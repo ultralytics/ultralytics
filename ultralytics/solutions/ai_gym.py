@@ -1,7 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.solutions.solutions import BaseSolution
-from ultralytics.utils.plotting import Annotator
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 
 
 class AIGym(BaseSolution):
@@ -63,16 +62,20 @@ class AIGym(BaseSolution):
             im0 (ndarray): Input image for processing.
 
         Returns:
-            (ndarray): Processed image with annotations for workout monitoring.
+            results (dict): Contains processed image `im0`,
+                'workout_count' (list of completed reps),
+                'workout_stage' (list of current stages),
+                'workout_angle' (list of angles), and
+                'total_tracks' (total number of tracked individuals).
 
         Examples:
             >>> gym = AIGym()
             >>> image = cv2.imread("workout.jpg")
             >>> processed_image = gym.monitor(image)
         """
-        # Extract tracks
+        # Extract tracks (it's separate, because pose estimation explicit use pose model for processing)
         tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"], **self.track_add_args)[0]
-
+        plot_im = im0  # For plotting the results
         if tracks.boxes.id is not None:
             # Extract and check keypoints
             if len(tracks) > len(self.count):
@@ -82,14 +85,14 @@ class AIGym(BaseSolution):
                 self.stage += ["-"] * new_human
 
             # Initialize annotator
-            self.annotator = Annotator(im0, line_width=self.line_width)
+            self.annotator = SolutionAnnotator(plot_im, line_width=self.line_width)
 
             # Enumerate over keypoints
             for ind, k in enumerate(reversed(tracks.keypoints.data)):
                 # Get keypoints and estimate the angle
                 kpts = [k[int(self.kpts[i])].cpu() for i in range(3)]
                 self.angle[ind] = self.annotator.estimate_pose_angle(*kpts)
-                im0 = self.annotator.draw_specific_points(k, self.kpts, radius=self.line_width * 3)
+                plot_im = self.annotator.draw_specific_points(k, self.kpts, radius=self.line_width * 3)
 
                 # Determine stage and count logic based on angle thresholds
                 if self.angle[ind] < self.down_angle:
@@ -107,5 +110,14 @@ class AIGym(BaseSolution):
                     center_kpt=k[int(self.kpts[1])],  # center keypoint for display
                 )
 
-        self.display_output(im0)  # Display output image, if environment support display
-        return im0  # return an image for writing or further usage
+        self.display_output(plot_im)  # Display output image, if environment support display
+
+        # Return SolutionResults
+        return SolutionResults(
+            plot_im=plot_im,
+            workout_count=self.count,
+            workout_stage=self.stage,
+            workout_angle=self.angle,
+            total_tracks=len(self.track_ids),
+            verbose=self.verbose,
+        )

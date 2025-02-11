@@ -4,8 +4,8 @@ import cv2
 import pytest
 
 from tests import TMP
-from ultralytics import YOLO, solutions
-from ultralytics.utils import ASSETS_URL, WEIGHTS_DIR
+from ultralytics import solutions
+from ultralytics.utils import ASSETS_URL
 from ultralytics.utils.downloads import safe_download
 
 DEMO_VIDEO = "solutions_ci_demo.mp4"
@@ -30,7 +30,12 @@ def test_major_solutions():
     pie_analytics = solutions.Analytics(analytics_type="pie", model="yolo11n.pt", show=False)  # line analytics
     bar_analytics = solutions.Analytics(analytics_type="bar", model="yolo11n.pt", show=False)  # line analytics
     area_analytics = solutions.Analytics(analytics_type="area", model="yolo11n.pt", show=False)  # line analytics
-    trackzone = solutions.TrackZone(region=region_points, model="yolo11n.pt", show=False)  # Test trackzone
+    trackzone = solutions.TrackZone(region=region_points, model="yolo11n.pt", show=False)  # trackzone
+    object_crop = solutions.ObjectCropper(model="yolo11n.pt", show=False)  # object cropping
+    object_blur = solutions.ObjectBlurrer(blur_ratio=0.5, model="yolo11n.pt", show=False)  # Object blurring
+    isegment = solutions.InstanceSegmentation(model="yolo11n-seg.pt", show=False)  # Instance segmentation
+    visioneye = solutions.VisionEye(model="yolo11n.pt", show=False)  # Visioneye
+    region_counter = solutions.RegionCounter(region=region_points, model="yolo11n.pt", show=False)  # Region counter
     frame_count = 0  # Required for analytics
     while cap.isOpened():
         success, im0 = cap.read()
@@ -48,6 +53,11 @@ def test_major_solutions():
         _ = bar_analytics.process_data(original_im0.copy(), frame_count)
         _ = area_analytics.process_data(original_im0.copy(), frame_count)
         _ = trackzone.trackzone(original_im0.copy())
+        _ = object_crop.crop(original_im0.copy())
+        _ = isegment.segment(original_im0.copy())
+        _ = object_blur.blur(original_im0.copy())
+        _ = visioneye.mapping(original_im0.copy())
+        _ = region_counter.count(original_im0.copy())
     cap.release()
 
     # Test workouts monitoring
@@ -61,31 +71,6 @@ def test_major_solutions():
             break
         _ = gym.monitor(im0)
     cap.release()
-
-
-@pytest.mark.slow
-def test_instance_segmentation():
-    """Test the instance segmentation solution."""
-    from ultralytics.utils.plotting import Annotator, colors
-
-    model = YOLO(WEIGHTS_DIR / "yolo11n-seg.pt")
-    names = model.names
-    cap = cv2.VideoCapture(TMP / DEMO_VIDEO)
-    assert cap.isOpened(), "Error reading video file"
-    while cap.isOpened():
-        success, im0 = cap.read()
-        if not success:
-            break
-        results = model.predict(im0)
-        annotator = Annotator(im0, line_width=2)
-        if results[0].masks is not None:
-            clss = results[0].boxes.cls.cpu().tolist()
-            masks = results[0].masks.xy
-            for mask, cls in zip(masks, clss):
-                color = colors(int(cls), True)
-                annotator.seg_bbox(mask=mask, mask_color=color, label=names[int(cls)])
-    cap.release()
-    cv2.destroyAllWindows()
 
 
 @pytest.mark.slow

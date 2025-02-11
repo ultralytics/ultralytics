@@ -98,10 +98,10 @@ data = {
         "x": {"size": 640, "map": 55.8, "cpu": "", "t4": 15.04, "params": 62, "flops": 202},
     },
     "YOLO-World": {
-        "s": {"size": 640, "map": 46.1, "cpu": "", "t4": 3.46, "params": "<++>", "flops": "<++>"},
-        "m": {"size": 640, "map": 51.0, "cpu": "", "t4": 7.26, "params": "<++>", "flops": "<++>"},
-        "l": {"size": 640, "map": 53.9, "cpu": "", "t4": 11.00, "params": "<++>", "flops": "<++>"},
-        "x": {"size": 640, "map": 54.7, "cpu": "", "t4": 17.24, "params": "<++>", "flops": "<++>"},
+        "s": {"size": 640, "map": 46.1, "cpu": "", "t4": 3.46, "params": 12.7, "flops": 51.0},
+        "m": {"size": 640, "map": 51.0, "cpu": "", "t4": 7.26, "params": 28.4, "flops": 110.5},
+        "l": {"size": 640, "map": 53.9, "cpu": "", "t4": 11.00, "params": 46.8, "flops": 204.5},
+        "x": {"size": 640, "map": 54.7, "cpu": "", "t4": 17.24, "params": 72.88, "flops": 309.3},
     },
     "RTMDet": {
         "t": {"size": 640, "map": 41.1, "cpu": "", "t4": 2.54, "params": 4.8, "flops": 8.1},
@@ -122,6 +122,12 @@ data = {
     "SSD": {
         "300": {"size": 300, "map": 25.5, "cpu": "", "t4": 3.97, "params": "<++>", "flops": "<++>"},
         "512": {"size": 300, "map": 29.5, "cpu": "", "t4": 8.96, "params": "<++>", "flops": "<++>"},
+    },
+    "RTDETRv3": {
+        "s": {"size": 640, "map": 48.1, "cpu": "", "t4": 5.03, "params": 20, "flops": 60},
+        "m": {"size": 640, "map": 49.9, "cpu": "", "t4": 7.51, "params": 36, "flops": 100},
+        "l": {"size": 640, "map": 53.4, "cpu": "", "t4": 9.76, "params": 42, "flops": 136},
+        "x": {"size": 640, "map": 54.6, "cpu": "", "t4": 15.03, "params": 76, "flops": 259},
     },
 }
 

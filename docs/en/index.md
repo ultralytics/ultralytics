@@ -53,6 +53,35 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
   <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
 </div>
 
+## Install Ultralytics
+
+<div class="install-menu">
+  <div class="menu-options">
+    <div class="option-row">
+      <label>Ultralytics Build:</label>
+      <div class="buttons-container">
+        <button class="option-btn" data-key="build" data-value="latest" onclick="updateOption('build', 'latest')">latest</button>
+        <button class="option-btn" data-key="build" data-value="8.3.55" onclick="updateOption('build', '8.3.55')">8.3.55</button>
+        <button class="option-btn" data-key="build" data-value="8.3.54" onclick="updateOption('build', '8.3.54')">8.3.54</button>
+      </div>
+    </div>
+    <div class="option-row">
+      <label>Package:</label>
+      <div class="buttons-container">
+        <button class="option-btn" data-key="package" data-value="Pip" onclick="updateOption('package', 'Pip')">Pip</button>
+        <button class="option-btn" data-key="package" data-value="Conda" onclick="updateOption('package', 'Conda')">Conda</button>
+      </div>
+    </div>
+  </div>
+  <div class="option-row">
+    <label>Run this Command:</label>
+    <code id="command">pip3 install ultralytics</code>
+  </div>
+</div>
+
+<link rel="stylesheet" href="../stylesheets/installer.css">
+<script src="../javascript/installer.js"></script>
+
 ## Where to Start
 
 <div class="grid cards" markdown>

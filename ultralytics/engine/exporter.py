@@ -1579,9 +1579,7 @@ class NMSModel(torch.nn.Module):
                 mask = score.topk(min(self.args.max_det * 5, score.shape[0])).indices
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             if not self.obb:
-                box = box_convert(
-                    box, in_fmt="cxcywh", out_fmt="xyxy"
-                )  # xywh2xyxy implementation causes error with coreml
+                box = box_convert(box, in_fmt="cxcywh", out_fmt="xyxy")  # xywh2xyxy causes error with coreml
                 if self.is_tf:
                     # TFlite bug returns less boxes
                     pad = torch.zeros((mask.shape[0] - box.shape[0], box.shape[-1]))

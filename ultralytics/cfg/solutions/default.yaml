@@ -20,5 +20,9 @@ kpts: [6, 8, 10] # (list[int]) keypoints for workouts monitoring, i.e. for push-
 analytics_type: "line" # (str) analytics type i.e "line", "pie", "bar" or "area" charts.
 json_file: # (str) parking system regions file path.
 
+# Dwell Time Analysis
+enable_funnel: False
+funnel_stages: None
+
 # Security alarm system settings ---------------------------------------------------------------------------------------
 records: 5 # (int) Total detections count to send an email about security

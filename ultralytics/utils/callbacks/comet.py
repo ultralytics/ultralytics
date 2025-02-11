@@ -313,7 +313,7 @@ def _log_model(experiment, trainer):
 
 def on_pretrain_routine_start(trainer):
     """Creates or resumes a CometML experiment at the start of a YOLO pre-training routine."""
-    experiment = comet_ml.get_global_experiment()
+    experiment = comet_ml.get_running_experiment()
     is_alive = getattr(experiment, "alive", False)
     if not experiment or not is_alive:
         _create_experiment(trainer.args)
@@ -321,7 +321,7 @@ def on_pretrain_routine_start(trainer):
 
 def on_train_epoch_end(trainer):
     """Log metrics and save batch images at the end of training epochs."""
-    experiment = comet_ml.get_global_experiment()
+    experiment = comet_ml.get_running_experiment()
     if not experiment:
         return
 
@@ -334,7 +334,7 @@ def on_train_epoch_end(trainer):
 
 def on_fit_epoch_end(trainer):
     """Logs model assets at the end of each epoch."""
-    experiment = comet_ml.get_global_experiment()
+    experiment = comet_ml.get_running_experiment()
     if not experiment:
         return
 
@@ -362,7 +362,7 @@ def on_fit_epoch_end(trainer):
 
 def on_train_end(trainer):
     """Perform operations at the end of training."""
-    experiment = comet_ml.get_global_experiment()
+    experiment = comet_ml.get_running_experiment()
     if not experiment:
         return
 

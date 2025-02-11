@@ -84,6 +84,45 @@ data = {
         "d6": {"size": 640, "map": 52.6, "cpu": 92.8, "t4": 89.29, "params": 51.9, "flops": 226.0},
         "d7": {"size": 640, "map": 53.7, "cpu": 122.0, "t4": 128.07, "params": 51.9, "flops": 325.0},
     },
+    "Gold-YOLO": {
+        "n": {"size": 640, "map": 39.9, "cpu": "", "t4": 1.66, "params": 5.6, "flops": 12.1},
+        "s": {"size": 640, "map": 46.4, "cpu": "", "t4": 3.43, "params": 21.5, "flops": 46.0},
+        "m": {"size": 640, "map": 51.1, "cpu": "", "t4": 6.43, "params": 41.3, "flops": 87.5},
+        "l": {"size": 640, "map": 53.3, "cpu": "", "t4": 10.64, "params": 75.1, "flops": 151.7},
+    },
+    "D-FINE": {
+        "n": {"size": 640, "map": 42.8, "cpu": "", "t4": 2.28, "params": 4, "flops": 7},
+        "s": {"size": 640, "map": 48.5, "cpu": "", "t4": 4.19, "params": 10, "flops": 25},
+        "m": {"size": 640, "map": 52.3, "cpu": "", "t4": 6.85, "params": 19, "flops": 57},
+        "l": {"size": 640, "map": 54.0, "cpu": "", "t4": 9.50, "params": 31, "flops": 91},
+        "x": {"size": 640, "map": 55.8, "cpu": "", "t4": 15.04, "params": 62, "flops": 202},
+    },
+    "YOLO-World": {
+        "s": {"size": 640, "map": 46.1, "cpu": "", "t4": 3.46, "params": "<++>", "flops": "<++>"},
+        "m": {"size": 640, "map": 51.0, "cpu": "", "t4": 7.26, "params": "<++>", "flops": "<++>"},
+        "l": {"size": 640, "map": 53.9, "cpu": "", "t4": 11.00, "params": "<++>", "flops": "<++>"},
+        "x": {"size": 640, "map": 54.7, "cpu": "", "t4": 17.24, "params": "<++>", "flops": "<++>"},
+    },
+    "RTMDet": {
+        "t": {"size": 640, "map": 41.1, "cpu": "", "t4": 2.54, "params": 4.8, "flops": 8.1},
+        "s": {"size": 640, "map": 44.6, "cpu": "", "t4": 3.18, "params": 8.89, "flops": 14.8},
+        "m": {"size": 640, "map": 49.4, "cpu": "", "t4": 6.82, "params": 24.71, "flops": 39.27},
+        "l": {"size": 640, "map": 51.5, "cpu": "", "t4": 11.06, "params": 52.3, "flops": 80.23},
+        "x": {"size": 640, "map": 52.8, "cpu": "", "t4": 19.66, "params": 94.86, "flops": 141.67},
+    },
+    "YOLO-NAS": {
+        "s": {"size": 640, "map": 47.5, "cpu": "", "t4": 3.09, "params": "<++>", "flops": "<++>"},
+        "m": {"size": 640, "map": 51.6, "cpu": "", "t4": 6.07, "params": "<++>", "flops": "<++>"},
+        "l": {"size": 640, "map": 52.2, "cpu": "", "t4": 7.84, "params": "<++>", "flops": "<++>"},
+    },
+    "FCOS": {
+        "R50": {"size": 800, "map": 36.6, "cpu": "", "t4": 15.18, "params": "<++>", "flops": "<++>"},
+        "R101": {"size": 800, "map": 39.1, "cpu": "", "t4": 18.91, "params": "<++>", "flops": "<++>"},
+    },
+    "SSD": {
+        "300": {"size": 300, "map": 25.5, "cpu": "", "t4": 3.97, "params": "<++>", "flops": "<++>"},
+        "512": {"size": 300, "map": 29.5, "cpu": "", "t4": 8.96, "params": "<++>", "flops": "<++>"},
+    },
 }
 
 if __name__ == "__main__":

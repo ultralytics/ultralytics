@@ -1582,7 +1582,7 @@ class NMSModel(torch.nn.Module):
                 box = box_convert(box, in_fmt="cxcywh", out_fmt="xyxy")  # xywh2xyxy causes error with coreml
                 if self.is_tf:
                     # TFlite bug returns less boxes
-                    pad = torch.zeros((mask.shape[0] - box.shape[0], box.shape[-1]))
+                    pad = torch.zeros((mask.shape[0] - box.shape[0], box.shape[-1]), device=box.device, dtype=box.dtype)
                     box = torch.cat((box, pad))
             nmsbox = box.clone()
             # `8` is the minimum value experimented to get correct NMS results for obb
@@ -1620,6 +1620,6 @@ class NMSModel(torch.nn.Module):
                 [box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1).to(out.dtype), extra[keep]], dim=-1
             )
             # Zero-pad to max_det size to avoid reshape error
-            pad = torch.zeros((self.args.max_det - dets.shape[0], out.shape[-1]))
+            pad = torch.zeros((self.args.max_det - dets.shape[0], out.shape[-1]), device=out.device, dtype=out.dtype)
             out[i] = torch.cat((dets, pad))
         return (out, preds[1]) if self.model.task == "segment" else out

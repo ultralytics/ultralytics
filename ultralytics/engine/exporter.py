@@ -84,7 +84,6 @@ from ultralytics.utils import (
     LINUX,
     LOGGER,
     MACOS,
-    PYTHON_VERSION,
     RKNN_CHIPS,
     ROOT,
     WINDOWS,
@@ -103,7 +102,7 @@ from ultralytics.utils.checks import (
 )
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.files import file_size, spaces_in_path
-from ultralytics.utils.ops import Profile, nms_rotated, xywh2xyxy
+from ultralytics.utils.ops import Profile, nms_rotated
 from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
 
 
@@ -1436,7 +1435,8 @@ class NMSModel(torch.nn.Module):
             out (torch.Tensor): The post-processed results with shape (N, max_det, 4 + 2 + extra_shape).
         """
         from functools import partial
-        from torchvision.ops import nms, box_convert
+
+        from torchvision.ops import box_convert, nms
 
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds

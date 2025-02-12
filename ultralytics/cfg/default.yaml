@@ -43,8 +43,8 @@ mask_ratio: 4 # (int) mask downsample ratio (segment train only)
 # Classification
 dropout: 0.0 # (float) use dropout regularization (classify train only)
 # Mlflow
-mlflow_exp_name:  # (str) mlflow experiment name 
-mlflow_run_name:   # (str) mlflow run name 
+mlflow_exp_name: # (str) mlflow experiment name
+mlflow_run_name: # (str) mlflow run name
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 val: True # (bool) validate/test during training

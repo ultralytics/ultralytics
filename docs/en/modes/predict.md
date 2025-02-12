@@ -474,7 +474,9 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
     # Run inference on an image
     results = model("https://ultralytics.com/images/bus.jpg")  # list of 1 Results object
-    results = model(["https://ultralytics.com/images/bus.jpg", "https://ultralytics.com/images/zidane.jpg"])  # list of 2 Results objects
+    results = model(
+        ["https://ultralytics.com/images/bus.jpg", "https://ultralytics.com/images/zidane.jpg"]
+    )  # list of 2 Results objects
     ```
 
 `Results` objects have the following attributes:

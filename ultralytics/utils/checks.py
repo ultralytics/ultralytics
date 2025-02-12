@@ -12,7 +12,7 @@ import time
 from importlib import metadata
 from pathlib import Path
 from typing import Optional
-from packaging.requirements import Requirement
+
 import cv2
 import numpy as np
 import requests
@@ -52,16 +52,16 @@ from ultralytics.utils import (
 def clean_specifier(spec):
     """
     Clean a version specifier string by removing any 'extra' requirements.
-    
+
     Args:
         spec (str): Version specifier string.
-    
+
     Returns:
         (str): Cleaned version specifier string.
     """
-    spec = re.sub(r'\s*and\s+extra\s*==\s*"[^"]+"', '', spec)
-    spec = re.sub(r'\s*;\s*extra\s*==\s*"[^"]+"', '', spec)
-    spec = re.sub(r'\s*;\s*$', '', spec)
+    spec = re.sub(r'\s*and\s+extra\s*==\s*"[^"]+"', "", spec)
+    spec = re.sub(r'\s*;\s*extra\s*==\s*"[^"]+"', "", spec)
+    spec = re.sub(r"\s*;\s*$", "", spec)
     return spec
 
 
@@ -88,7 +88,7 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package="", i
         requires = list()
         for x in metadata.distribution(package).requires:
             if "extra == " in x and not include_extra:
-                    continue
+                continue
             requires.append(clean_specifier(x))
     else:
         requires = Path(file_path).read_text().splitlines()
@@ -427,7 +427,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         r_stripped = r.split("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
         match = re.match(r"([a-zA-Z0-9-_]+)([<>!=~]+.*)?", r_stripped)
         name, required = match[1], match[2].strip() if match[2] else ""
-        if not required: # if no version specifier passed, check for Ultralytics requirements
+        if not required:  # if no version specifier passed, check for Ultralytics requirements
             required = check_ultralytics_requirements(name)
         try:
             assert check_version(metadata.version(name), required)  # exception if requirements not met

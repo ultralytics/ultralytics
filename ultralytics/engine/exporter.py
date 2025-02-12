@@ -351,7 +351,11 @@ class Exporter:
 
         y = None
         for _ in range(2):  # dry runs
-            y = NMSModel(model, self.args)(im) if self.args.nms and not (coreml and model.task == "detect") else model(im)
+            y = (
+                NMSModel(model, self.args)(im)
+                if self.args.nms and not (coreml and model.task == "detect")
+                else model(im)
+            )
         if self.args.half and onnx and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
 

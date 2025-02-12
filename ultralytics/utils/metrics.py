@@ -1292,3 +1292,65 @@ class OBBMetrics(SimpleClass):
     def curves_results(self):
         """Returns a list of curves for accessing specific metrics curves."""
         return []
+
+
+def KLD_distance(obb1, obb2):
+    """
+    Calculate KL divergence of arbitrary Gaussian-type distribution between oriented bounding boxes.
+
+    Implements the algorithm from https://ieeexplore.ieee.org/document/10218324.
+
+    Args:
+        obb1 (torch.Tensor): Ground truth OBBs, shape (N, 5), format xywhr.
+        obb2 (torch.Tensor): Predicted OBBs, shape (N, 5), format xywhr.
+
+    Returns:
+        (torch.Tensor): OBB similarities, shape (N,).
+
+    Note:
+        OBB format: [center_x, center_y, width, height, rotation_angle].
+    """
+    from math import pi
+
+    from scipy.special import gamma
+
+    x_p, y_p, w_p, h_p, r_p = torch.split(obb1, 1, 1)
+    x_t, y_t, w_t, h_t, r_t = torch.split(obb2, 1, 1)
+    w_t2, h_t2 = w_t**2, h_t**2
+    w_t3, h_t3 = w_t**3, h_t**3
+    w_t4, h_t4 = w_t**4, h_t**4
+    w_p4, h_p4 = w_p**4, h_p**4
+    r_hat = r_p - r_t
+    sin_, cos_ = r_hat.sin(), r_hat.cos()
+    sin2, cos2 = sin_**2, cos_**2
+    sin3, cos3 = sin_**3, cos_**3
+    sin4, cos4 = sin_**4, cos_**4
+    rot_m = torch.cat((r_t.cos(), -r_t.sin(), r_t.sin(), r_t.cos()), 1).view(-1, 2, 2)
+    mu_xy = rot_m @ torch.cat((x_p - x_t, y_p - y_t), 1)[..., None]
+    mu_x, mu_y = mu_xy.squeeze().split(1, 1)
+    mu_x, mu_y = mu_x / w_t, mu_y / h_t
+    mu_x2, mu_y2 = mu_x**2, mu_y**2
+    mu_x3, mu_y3 = mu_x**3, mu_y**3
+    mu_x4, mu_y4 = mu_x**4, mu_y**4
+    gamma_ = 1 / gamma(0.25)
+    gamma_2 = gamma_**2
+    gamma_4 = gamma_**4
+
+    a = h_t4 * (0.25 + 24 * 2**0.5 * pi * gamma_2 * mu_y2 + 16 * mu_y4)
+    b = w_t * h_t3 * (12 * 2**0.5 * pi * gamma_2 * mu_x * mu_y + 16 * mu_x * mu_y3)
+    c = w_t2 * h_t2 * (2 * pi**2 * gamma_4 + 4 * 2**0.5 * pi * gamma_2 * (mu_x2 + mu_y2) + 16 * mu_x2 * mu_y2)
+    d = w_t3 * h_t * (12 * 2**0.5 * pi * gamma_2 * mu_x * mu_y + 16 * mu_x3 * mu_y)
+    e = w_t4 * (0.25 + 24 * 2**0.5 * pi * gamma_2 * mu_x2 + 16 * mu_x4)
+
+    kld_dist = (
+        (w_p / w_t).log()
+        + (h_p / h_t).log()
+        - 0.5
+        + a * (sin4 / w_p4 + cos4 / h_p4)
+        - b * 4 * (cos_ * sin3 / w_p4 - cos3 * sin_ / h_p4)
+        + c * 6 * (1 / w_p4 + 1 / h_p4) * cos2 * sin2
+        - d * 4 * (sin_ * cos3 / w_p4 - cos_ * sin3 / h_p4)
+        + e * (cos4 / w_p4 + sin4 / h_p4)
+    )
+
+    return kld_dist.squeeze()

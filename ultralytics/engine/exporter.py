@@ -103,7 +103,7 @@ from ultralytics.utils.checks import (
 )
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.files import file_size, spaces_in_path
-from ultralytics.utils.ops import Profile, nms_rotated, xywh2xyxy
+from ultralytics.utils.ops import Profile, nms_rotated
 from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
 
 
@@ -351,7 +351,11 @@ class Exporter:
 
         y = None
         for _ in range(2):  # dry runs
-            y = NMSModel(model, self.args)(im) if self.args.nms and not coreml else model(im)
+            y = (
+                NMSModel(model, self.args)(im)
+                if self.args.nms and not (coreml and model.task == "detect")
+                else model(im)
+            )
         if self.args.half and onnx and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
 
@@ -761,12 +765,12 @@ class Exporter:
         if self.model.task == "classify":
             classifier_config = ct.ClassifierConfig(list(self.model.names.values())) if self.args.nms else None
             model = self.model
-        elif self.model.task == "detect":
-            model = IOSDetectModel(self.model, self.im) if self.args.nms else self.model
+        elif self.args.nms:
+            if self.model.task == "detect":
+                model = IOSDetectModel(self.model, self.im)
+            else:
+                model = NMSModel(self.model, self.args)
         else:
-            if self.args.nms:
-                LOGGER.warning(f"{prefix} WARNING ⚠️ 'nms=True' is only available for Detect models like 'yolo11n.pt'.")
-                # TODO CoreML Segment and Pose model pipelining
             model = self.model
 
         ts = torch.jit.trace(model.eval(), self.im, strict=False)  # TorchScript model
@@ -1554,7 +1558,7 @@ class NMSModel(torch.nn.Module):
         """
         from functools import partial
 
-        from torchvision.ops import nms
+        from torchvision.ops import box_convert, nms
 
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
@@ -1580,10 +1584,11 @@ class NMSModel(torch.nn.Module):
                 mask = score.topk(min(self.args.max_det * 5, score.shape[0])).indices
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             if not self.obb:
-                box = xywh2xyxy(box)
+                box = box_convert(box, in_fmt="cxcywh", out_fmt="xyxy")  # xywh2xyxy causes error with coreml
                 if self.is_tf:
                     # TFlite bug returns less boxes
-                    box = torch.nn.functional.pad(box, (0, 0, 0, mask.shape[0] - box.shape[0]))
+                    pad = torch.zeros((mask.shape[0] - box.shape[0], box.shape[-1]), device=box.device, dtype=box.dtype)
+                    box = torch.cat((box, pad))
             nmsbox = box.clone()
             # `8` is the minimum value experimented to get correct NMS results for obb
             multiplier = 8 if self.obb else 1
@@ -1620,6 +1625,6 @@ class NMSModel(torch.nn.Module):
                 [box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1).to(out.dtype), extra[keep]], dim=-1
             )
             # Zero-pad to max_det size to avoid reshape error
-            pad = (0, 0, 0, self.args.max_det - dets.shape[0])
-            out[i] = torch.nn.functional.pad(dets, pad)
+            pad = torch.zeros((self.args.max_det - dets.shape[0], out.shape[-1]), device=out.device, dtype=out.dtype)
+            out[i] = torch.cat((dets, pad))
         return (out, preds[1]) if self.model.task == "segment" else out

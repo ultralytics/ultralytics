@@ -440,7 +440,7 @@ class ConfusionMatrix:
 
     def print(self):
         """Print the confusion matrix to the console."""
-        for i in range(self.nc + 1):
+        for i in range(self.matrix.shape[0]):
             LOGGER.info(" ".join(map(str, self.matrix[i])))
 
 

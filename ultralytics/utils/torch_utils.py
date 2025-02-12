@@ -309,7 +309,7 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
 
         layers = OrderedDict()
         for name, m in model.named_modules():
-            if len(m._modules) != 0: # parent module; skip
+            if len(m._modules) != 0:  # parent module; skip
                 continue
             else:
                 layers[name] = m

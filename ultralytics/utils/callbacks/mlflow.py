@@ -71,8 +71,8 @@ def on_pretrain_routine_end(trainer):
     mlflow.set_tracking_uri(uri)
 
     # Set experiment and run names
-    experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME") or trainer.args.project or "/Shared/Ultralytics"
-    run_name = os.environ.get("MLFLOW_RUN") or trainer.args.name
+    experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME") or trainer.args.mlflow_exp_name or trainer.args.project or "/Shared/Ultralytics" 
+    run_name = os.environ.get("MLFLOW_RUN") or trainer.args.mlflow_run_name or trainer.args.name
     mlflow.set_experiment(experiment_name)
 
     mlflow.autolog()

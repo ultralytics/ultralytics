@@ -292,13 +292,10 @@ class AutoBackend(nn.Module):
                     metadata = json.loads(f.read(meta_len).decode("utf-8"))  # read metadata
                 except UnicodeDecodeError:
                     f.seek(0)  # engine file may lack embedded Ultralytics metadata
+                dla = metadata.get("dla", None)
+                if dla is not None:
+                    runtime.DLA_core = int(dla)
                 model = runtime.deserialize_cuda_engine(f.read())  # read engine
-                if "dla" in str(device.type):
-                    dla_core = int(device.type.split(":")[1])
-                    assert dla_core in {0, 1}, (
-                        "Expected device type for inference in DLA is 'dla:0' or 'dla:1', but received '{device.type}'"
-                    )
-                    runtime.DLA_core = dla_core
 
             # Model context
             try:

@@ -583,7 +583,7 @@ class Results(SimpleClass):
         if save:
             annotator.save(filename)
 
-        return annotator.result()
+        return annotator.im if pil else annotator.result()
 
     def show(self, *args, **kwargs):
         """

@@ -308,14 +308,14 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
         from collections import OrderedDict
 
         layers = OrderedDict()
-        for name, m in model.named_modules(prefix="model"):
-            if len(m._modules) != 0:  # parent module; skip
+        for name, m in model.named_modules():
+            if len(m._modules) != 0: # parent module; skip
                 continue
             else:
                 layers[name] = m
         return layers
 
-    layers = unwrap_layers(model.model)  # retrieve the layers
+    layers = unwrap_layers(model)  # retrieve the layers
     n_l = len(layers)  # number of layers
     if detailed:
         LOGGER.info(

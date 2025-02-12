@@ -309,7 +309,7 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
 
         layers = OrderedDict()
         for name, m in model.named_modules(prefix="model"):
-            if len(m._modules) != 0: # parent module; skip
+            if len(m._modules) != 0:  # parent module; skip
                 continue
             else:
                 layers[name] = m
@@ -329,7 +329,7 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
                         f"{i:>5g}{m_name + '.' + p_name:>40s}{m.__class__.__name__:>20s}{p.requires_grad!r:>10}{p.numel():>12g}"
                         f"{str(list(p.shape)):>20s}{p.mean():>10.3g}{p.std():>10.3g}{str(p.dtype).replace('torch.', ''):>15s}"
                     )
-            else: # layers with no learnable params
+            else:  # layers with no learnable params
                 LOGGER.info(
                     f"{i:>5g}{m_name:>40s}{m.__class__.__name__:>20s}{False!r:>10}{0:>12g}{str([]):>20s}"
                     f"{'-':>10.3s}{'-':>10.3s}{'-':>15s}"

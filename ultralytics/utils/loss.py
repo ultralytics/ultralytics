@@ -12,54 +12,29 @@ from ultralytics.utils.torch_utils import autocast
 from .metrics import bbox_iou, probiou
 from .tal import bbox2dist
 
+
 class VarifocalLoss(nn.Module):
+    """
+    Varifocal loss by Zhang et al.
+
+    https://arxiv.org/abs/2008.13367.
+    """
+
     def __init__(self):
+        """Initialize the VarifocalLoss class."""
         super().__init__()
 
-    def forward(self, pred_scores, target_scores, target_labels, alpha=0.75, gamma=2.0):
-        # Force loss calculation in full precision even under AMP
-        with torch.amp.autocast("cuda", enabled=False):
-            # Convert inputs to float32
-            pred_scores = pred_scores.float()
-            target_scores = target_scores.float()
-            target_labels = target_labels.float()
-            
-            # Ensure compatible shapes
-            assert pred_scores.shape == target_scores.shape == target_labels.shape, (
-                f"Shape mismatch: pred_scores={pred_scores.shape}, "
-                f"target_scores={target_scores.shape}, target_labels={target_labels.shape}"
+    @staticmethod
+    def forward(pred_score, gt_score, label, alpha=0.75, gamma=2.0):
+        """Computes varfocal loss."""
+        weight = alpha * pred_score.sigmoid().pow(gamma) * (1 - label) + gt_score * label
+        with autocast(enabled=False):
+            loss = (
+                (F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(), reduction="none") * weight)
+                .mean(1)
+                .sum()
             )
-
-            # Compute sigmoid and clamp for numerical stability
-            pred_scores_sigmoid = pred_scores.sigmoid().clamp(min=1e-4, max=1 - 1e-4)
-            
-            # Compute weights
-            weight = alpha * pred_scores_sigmoid.pow(gamma) * (1 - target_labels) + target_scores * target_labels
-            
-            # Debug: Print weight values if NaN is detected
-            if torch.isnan(weight).any():
-                print(f"Debug: weight contains NaN values. weight={weight}")
-                print(f"Debug: pred_scores_sigmoid={pred_scores_sigmoid}")
-                print(f"Debug: target_scores={target_scores}")
-                print(f"Debug: target_labels={target_labels}")
-                print(f"Debug: alpha={alpha}, gamma={gamma}")
-
-            if torch.isnan(pred_scores).any() or torch.isinf(pred_scores).any():
-                print(">>> pred_scores contains NaNs/Infs!")
-            if torch.isnan(target_scores).any() or torch.isinf(target_scores).any():
-                print(">>> target_scores contains NaNs/Infs!")
-            if torch.isnan(target_labels).any() or torch.isinf(target_labels).any():
-                print(">>> target_labels contains NaNs/Infs!")
-
-            
-            # Ensure no NaN or Inf in weights
-            assert not torch.isnan(weight).any(), "NaN detected in weight"
-            assert not torch.isinf(weight).any(), "Inf detected in weight"
-            
-            # Compute loss in float32
-            loss = F.binary_cross_entropy_with_logits(pred_scores, target_scores, reduction="none") * weight
-            
-            return loss.mean(1).sum()
+        return loss
 
 
 class FocalLoss(nn.Module):
@@ -116,12 +91,11 @@ class DFLoss(nn.Module):
 class BboxLoss(nn.Module):
     """Criterion class for computing training losses during training."""
 
-    def __init__(self, reg_max=16, inner_giou_ratio=1.5):
+    def __init__(self, reg_max=16, inner_giou_ratio=0.1):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
         self.dfl_loss = DFLoss(reg_max) if reg_max > 1 else None
         self.inner_giou_ratio = inner_giou_ratio
-        # self.inner_giou_ratio = nn.Parameter(torch.tensor(inner_giou_ratio))
 
 
     def forward(self, pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask):
@@ -134,7 +108,6 @@ class BboxLoss(nn.Module):
             GIoU=True,         # or set GIoU=True to get a GIoU-based portion
             InnerGIoU=True,    # toggles the Inner-GIoU logic
             ratio=self.inner_giou_ratio
-            # ratio=torch.sigmoid(self.inner_giou_ratio) * 1.5
         )
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 
@@ -200,14 +173,13 @@ class v8DetectionLoss:
 
         m = model.model[-1]  # Detect() module
         self.bce = nn.BCEWithLogitsLoss(reduction="none")
-        self.varifocal_loss = VarifocalLoss()
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
         self.no = m.nc + m.reg_max * 4
         self.reg_max = m.reg_max
         self.device = device
- 
+
         self.use_dfl = m.reg_max > 1
 
         self.assigner = TaskAlignedAssigner(topk=tal_topk, num_classes=self.nc, alpha=0.5, beta=6.0)
@@ -231,7 +203,7 @@ class v8DetectionLoss:
                     out[j, :n] = targets[matches, 1:]
             out[..., 1:5] = xywh2xyxy(out[..., 1:5].mul_(scale_tensor))
         return out
-    
+
     def bbox_decode(self, anchor_points, pred_dist):
         """Decode predicted object bounding box coordinates from anchor points and distribution."""
         if self.use_dfl:
@@ -265,12 +237,12 @@ class v8DetectionLoss:
 
         # Pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
-        dfl_conf = pred_distri.view(batch_size, -1, 4, self.reg_max).detach().softmax(-1)
-        dfl_conf = (dfl_conf.amax(-1).mean(-1) + dfl_conf.amax(-1).amin(-1)) / 2
+        # dfl_conf = pred_distri.view(batch_size, -1, 4, self.reg_max).detach().softmax(-1)
+        # dfl_conf = (dfl_conf.amax(-1).mean(-1) + dfl_conf.amax(-1).amin(-1)) / 2
 
-        target_labels, target_bboxes, target_scores, fg_mask, _ = self.assigner(
-            pred_scores.detach().sigmoid() * 0.8 + dfl_conf.unsqueeze(-1) * 0.2,
-            # pred_scores.detach().sigmoid(),
+        _, target_bboxes, target_scores, fg_mask, _ = self.assigner(
+            # pred_scores.detach().sigmoid() * 0.8 + dfl_conf.unsqueeze(-1) * 0.2,
+            pred_scores.detach().sigmoid(),
             (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
             anchor_points * stride_tensor,
             gt_labels,
@@ -283,10 +255,8 @@ class v8DetectionLoss:
 
         # Cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
-        # loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
-        target_labels_one_hot = F.one_hot(target_labels.squeeze(-1), self.nc).to(device=pred_scores.device, dtype=target_scores.dtype)
-        loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels_one_hot) / target_scores_sum
-        
+        loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+
         # Bbox loss
         if fg_mask.sum():
             target_bboxes /= stride_tensor

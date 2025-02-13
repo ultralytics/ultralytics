@@ -18,7 +18,7 @@ class VarifocalLoss(nn.Module):
 
     def forward(self, pred_scores, target_scores, target_labels, alpha=0.75, gamma=2.0):
         # Force loss calculation in full precision even under AMP
-        with torch.cuda.amp.autocast(enabled=False):
+        with torch.amp.autocast("cuda", enabled=False):
             # Convert inputs to float32
             pred_scores = pred_scores.float()
             target_scores = target_scores.float()
@@ -43,6 +43,14 @@ class VarifocalLoss(nn.Module):
                 print(f"Debug: target_scores={target_scores}")
                 print(f"Debug: target_labels={target_labels}")
                 print(f"Debug: alpha={alpha}, gamma={gamma}")
+
+            if torch.isnan(pred_scores).any() or torch.isinf(pred_scores).any():
+                print(">>> pred_scores contains NaNs/Infs!")
+            if torch.isnan(target_scores).any() or torch.isinf(target_scores).any():
+                print(">>> target_scores contains NaNs/Infs!")
+            if torch.isnan(target_labels).any() or torch.isinf(target_labels).any():
+                print(">>> target_labels contains NaNs/Infs!")
+
             
             # Ensure no NaN or Inf in weights
             assert not torch.isnan(weight).any(), "NaN detected in weight"

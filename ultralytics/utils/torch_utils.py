@@ -302,25 +302,23 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
         return
     n_p = get_num_params(model)  # number of parameters
     n_g = get_num_gradients(model)  # number of gradients
-
-    layers = __import__("collections").OrderedDict((n, m) for n, m in model.named_modules() if len(m._modules))
+    layers = __import__("collections").OrderedDict((n, m) for n, m in model.named_modules() if len(m._modules) == 0)
     n_l = len(layers)  # number of layers
     if detailed:
         LOGGER.info(
             f"{'layer':>5}{'name':>40}{'type':>20}{'gradient':>10}{'parameters':>12}{'shape':>20}{'mu':>10}{'sigma':>10}"
         )
-        for i, (m_name, m) in enumerate(layers.items()):
-            m_name = m_name.replace("module_list.", "")
+        for i, (mn, m) in enumerate(layers.items()):
+            mn = mn.replace("module_list.", "")
+            mt = m.__class__.__name__
             if len(m._parameters):
-                for p_name, p in m.named_parameters():
+                for pn, p in m.named_parameters():
                     LOGGER.info(
-                        f"{i:>5g}{m_name + '.' + p_name:>40s}{m.__class__.__name__:>20s}{p.requires_grad!r:>10}{p.numel():>12g}"
-                        f"{str(list(p.shape)):>20s}{p.mean():>10.3g}{p.std():>10.3g}{str(p.dtype).replace('torch.', ''):>15s}"
+                        f"{i:>5g}{mn + '.' + pn:>40}{mt:>20}{p.requires_grad!r:>10}{p.numel():>12g}"
+                        f"{str(list(p.shape)):>20}{p.mean():>10.3g}{p.std():>10.3g}{str(p.dtype).replace('torch.', ''):>15}"
                     )
             else:  # layers with no learnable params
-                LOGGER.info(
-                    f"{i:>5g}{m_name:>40s}{m.__class__.__name__:>20s}{False!r:>10}{0:>12g}{str([]):>20s}{'-':>10.3s}{'-':>10.3s}{'-':>15s}"
-                )
+                LOGGER.info(f"{i:>5g}{mn:>40}{mt:>20}{False!r:>10}{0:>12g}{str([]):>20}{'-':>10}{'-':>10}{'-':>15}")
 
     flops = get_flops(model, imgsz)  # imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320]
     fused = " (fused)" if getattr(model, "is_fused", lambda: False)() else ""

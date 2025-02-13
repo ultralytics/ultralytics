@@ -69,7 +69,7 @@ while cap.isOpened():
     results = security.monitor(im0)
 
     # print(results)    # Access the output
-    
+
     video_writer.write(results.plot_im)  # write the processed frame.
 
 cap.release()

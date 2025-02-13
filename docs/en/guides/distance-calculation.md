@@ -72,7 +72,7 @@ while cap.isOpened():
         break
 
     results = distance.calculate(im0)
-    
+
     print(results)  # Access the output
 
     video_writer.write(results.plot_im)  # write the processed frame.

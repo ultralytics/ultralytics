@@ -125,4 +125,8 @@ class DistanceCalculation(BaseSolution):
         cv2.setMouseCallback("Ultralytics Solutions", self.mouse_event_for_distance)
 
         # Return SolutionResults
-        return SolutionResults(plot_im=plot_im, pixels_distance=pixels_distance, total_tracks=len(self.track_ids),)
+        return SolutionResults(
+            plot_im=plot_im,
+            pixels_distance=pixels_distance,
+            total_tracks=len(self.track_ids),
+        )

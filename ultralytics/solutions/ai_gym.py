@@ -85,14 +85,14 @@ class AIGym(BaseSolution):
                 self.stage += ["-"] * new_human
 
             # Initialize annotator
-            self.annotator = SolutionAnnotator(plot_im, line_width=self.line_width)
+            annotator = SolutionAnnotator(plot_im, line_width=self.line_width)
 
             # Enumerate over keypoints
             for ind, k in enumerate(reversed(tracks.keypoints.data)):
                 # Get keypoints and estimate the angle
                 kpts = [k[int(self.kpts[i])].cpu() for i in range(3)]
-                self.angle[ind] = self.annotator.estimate_pose_angle(*kpts)
-                plot_im = self.annotator.draw_specific_points(k, self.kpts, radius=self.line_width * 3)
+                self.angle[ind] = annotator.estimate_pose_angle(*kpts)
+                plot_im = annotator.draw_specific_points(k, self.kpts, radius=self.line_width * 3)
 
                 # Determine stage and count logic based on angle thresholds
                 if self.angle[ind] < self.down_angle:
@@ -103,7 +103,7 @@ class AIGym(BaseSolution):
                     self.stage[ind] = "up"
 
                 # Display angle, count, and stage text
-                self.annotator.plot_angle_and_count_and_stage(
+                annotator.plot_angle_and_count_and_stage(
                     angle_text=self.angle[ind],  # angle text for display
                     count_text=self.count[ind],  # count text for workouts
                     stage_text=self.stage[ind],  # stage position text

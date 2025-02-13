@@ -61,7 +61,7 @@ YOLO11 supports multiple tasks, including detection, segmentation, classificatio
 
 Ultralytics YOLO11 is a versatile AI framework capable of performing various computer vision tasks with high accuracy and speed. These tasks include:
 
-- **[Detection](detect.md):** Identifying and localizing objects in images or video frames by drawing bounding boxes around them.
+- **[Object Detection](detect.md):** Identifying and localizing objects in images or video frames by drawing bounding boxes around them.
 - **[Image segmentation](segment.md):** Segmenting images into different regions based on their content, useful for applications like medical imaging.
 - **[Classification](classify.md):** Categorizing entire images based on their content, leveraging variants of the EfficientNet architecture.
 - **[Pose estimation](pose.md):** Detecting specific keypoints in an image or video frame to track movements or poses.

@@ -67,9 +67,9 @@ class SpeedEstimator(BaseSolution):
         """
         self.extract_tracks(im0)  # Extract tracks
         plot_im = im0  # For plotting the results
-        self.annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
+        annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
 
-        self.annotator.draw_region(
+        annotator.draw_region(
             reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2
         )  # Draw region
 
@@ -83,7 +83,7 @@ class SpeedEstimator(BaseSolution):
                 self.trk_pp[track_id] = self.track_line[-1]
 
             speed_label = f"{int(self.spd[track_id])} km/h" if track_id in self.spd else self.names[int(cls)]
-            self.annotator.box_label(box, label=speed_label, color=colors(track_id, True))  # Draw bounding box
+            annotator.box_label(box, label=speed_label, color=colors(track_id, True))  # Draw bounding box
 
             # Calculate object speed and direction based on region intersection
             if self.LineString([self.trk_pp[track_id], self.track_line[-1]]).intersects(self.r_s):

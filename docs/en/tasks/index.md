@@ -4,11 +4,11 @@ description: Explore Ultralytics YOLO11 for detection, segmentation, classificat
 keywords: Ultralytics YOLO11, detection, segmentation, classification, oriented object detection, pose estimation, computer vision, AI framework
 ---
 
-# Ultralytics YOLO11 Tasks
+# Computer Vision Tasks supported by Ultralytics YOLO11
 
-<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-tasks-banner.avif" alt="Ultralytics YOLO supported tasks">
+<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-tasks-banner.avif" alt="Ultralytics YOLO supported computer vision tasks">
 
-YOLO11 is an AI framework that supports multiple [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [obb](obb.md), [classification](classify.md), and [pose](pose.md) estimation. Each of these tasks has a different objective and use case.
+YOLO11 is an AI framework that supports multiple [computer vision](https://www.ultralytics.com/blog/everything-you-need-to-know-about-computer-vision-in-2025) **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [obb](obb.md), [classification](classify.md), and [pose](pose.md) estimation. Each of these tasks has a different objective and use case.
 
 <p align="center">
   <br>
@@ -18,7 +18,7 @@ YOLO11 is an AI framework that supports multiple [computer vision](https://www.u
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Explore Ultralytics YOLO Tasks: <a href="https://www.ultralytics.com/glossary/object-detection">Object Detection</a>, Segmentation, OBB, Tracking, and Pose Estimation.
+  <strong>Watch:</strong> Explore Ultralytics YOLO Tasks: <a href="https://www.ultralytics.com/blog/a-guide-to-deep-dive-into-object-detection-in-2025">Object Detection</a>, Segmentation, OBB, Tracking, and Pose Estimation.
 </p>
 
 ## [Detection](detect.md)
@@ -27,7 +27,7 @@ Detection is the primary task supported by YOLO11. It involves detecting objects
 
 [Detection Examples](detect.md){ .md-button }
 
-## [Segmentation](segment.md)
+## [Image segmentation](segment.md)
 
 Segmentation is a task that involves segmenting an image into different regions based on the content of the image. Each region is assigned a label based on its content. This task is useful in applications such as [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) and medical imaging. YOLO11 uses a variant of the U-Net architecture to perform segmentation.
 
@@ -39,7 +39,7 @@ Classification is a task that involves classifying an image into different categ
 
 [Classification Examples](classify.md){ .md-button }
 
-## [Pose](pose.md)
+## [Pose estimation](pose.md)
 
 Pose/keypoint detection is a task that involves detecting specific points in an image or video frame. These points are referred to as keypoints and are used to track movement or pose estimation. YOLO11 can detect keypoints in an image or video frame with high accuracy and speed.
 
@@ -57,12 +57,12 @@ YOLO11 supports multiple tasks, including detection, segmentation, classificatio
 
 ## FAQ
 
-### What tasks can Ultralytics YOLO11 perform?
+### What computer vision tasks can Ultralytics YOLO11 perform?
 
 Ultralytics YOLO11 is a versatile AI framework capable of performing various computer vision tasks with high accuracy and speed. These tasks include:
 
-- **[Detection](detect.md):** Identifying and localizing objects in images or video frames by drawing bounding boxes around them.
-- **[Segmentation](segment.md):** Segmenting images into different regions based on their content, useful for applications like medical imaging.
+- **[Object Detection](detect.md):** Identifying and localizing objects in images or video frames by drawing bounding boxes around them.
+- **[Image segmentation](segment.md):** Segmenting images into different regions based on their content, useful for applications like medical imaging.
 - **[Classification](classify.md):** Categorizing entire images based on their content, leveraging variants of the EfficientNet architecture.
 - **[Pose estimation](pose.md):** Detecting specific keypoints in an image or video frame to track movements or poses.
 - **[Oriented Object Detection (OBB)](obb.md):** Detecting rotated objects with an added orientation angle for enhanced accuracy.
@@ -109,7 +109,7 @@ Using YOLO11 for segmentation tasks provides several advantages:
 2. **Speed:** YOLO11 is optimized for real-time applications, offering quick processing even for high-resolution images.
 3. **Multiple Applications:** It is ideal for medical imaging, autonomous driving, and other applications requiring detailed image segmentation.
 
-Learn more about the benefits and use cases of YOLO11 for segmentation in the [segmentation section](segment.md).
+Learn more about the benefits and use cases of YOLO11 for segmentation in the [image segmentation section](segment.md).
 
 ### Can Ultralytics YOLO11 handle pose estimation and keypoint detection?
 

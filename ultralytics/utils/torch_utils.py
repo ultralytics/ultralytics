@@ -488,8 +488,15 @@ def init_seeds(seed=0, deterministic=False):
         else:
             LOGGER.warning("WARNING ⚠️ Upgrade to torch>=2.0.0 for deterministic training.")
     else:
-        torch.use_deterministic_algorithms(False)
-        torch.backends.cudnn.deterministic = False
+        unset_deterministic()
+
+
+def unset_deterministic():
+    """Unsets all the configurations applied for deterministic training."""
+    torch.use_deterministic_algorithms(False)
+    torch.backends.cudnn.deterministic = False
+    os.environ.pop("CUBLAS_WORKSPACE_CONFIG", None)
+    os.environ.pop("PYTHONHASHSEED", None)
 
 
 class ModelEMA:
@@ -739,7 +746,7 @@ class EarlyStopping:
         if fitness is None:  # check if fitness=None (happens when val=False)
             return False
 
-        if fitness >= self.best_fitness:  # >= 0 to allow for early zero-fitness stage of training
+        if fitness > self.best_fitness or self.best_fitness == 0:  # allow for early zero-fitness stage of training
             self.best_epoch = epoch
             self.best_fitness = fitness
         delta = epoch - self.best_epoch  # epochs without improvement

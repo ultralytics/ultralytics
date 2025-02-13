@@ -303,7 +303,7 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
     n_p = get_num_params(model)  # number of parameters
     n_g = get_num_gradients(model)  # number of gradients
 
-    layers = __import__("collections").OrderedDict((n, m) for n, n in model.named_modules if len len(m._modules))
+    layers = __import__("collections").OrderedDict((n, m) for n, m in model.named_modules() if len(m._modules))
     n_l = len(layers)  # number of layers
     if detailed:
         LOGGER.info(f"{'layer':>5}{'name':>40}{'type':>20}{'gradient':>10}{'parameters':>12}{'shape':>20}{'mu':>10}{'sigma':>10}")

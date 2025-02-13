@@ -65,7 +65,7 @@ class ObjectCropper(BaseSolution):
             >>> summary = cropper.crop(frame)
             >>> print(summary)
         """
-        results = self.model.predict(im0, classes=self.classes, conf=self.conf, iou=self.iou, device="cpu")[0]
+        results = self.model.predict(im0, classes=self.classes, conf=self.conf, iou=self.iou, device=self.CFG["device"])[0]
         plot_im = im0  # For plotting the results
         annotator = SolutionAnnotator(plot_im)
 

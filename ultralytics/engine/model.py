@@ -140,6 +140,7 @@ class Model(torch.nn.Module):
             return
 
         # Load or create new YOLO model
+        __import__("os").environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # to avoid deterministic warnings
         if Path(model).suffix in {".yaml", ".yml"}:
             self._new(model, task=task, verbose=verbose)
         else:

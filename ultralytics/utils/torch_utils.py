@@ -305,9 +305,8 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
     layers = __import__("collections").OrderedDict((n, m) for n, m in model.named_modules() if len(m._modules) == 0)
     n_l = len(layers)  # number of layers
     if detailed:
-        LOGGER.info(
-            f"{'layer':>5}{'name':>40}{'type':>20}{'gradient':>10}{'parameters':>12}{'shape':>20}{'mu':>10}{'sigma':>10}"
-        )
+        h = f"{'layer':>5}{'name':>40}{'type':>20}{'gradient':>10}{'parameters':>12}{'shape':>20}{'mu':>10}{'sigma':>10}"
+        LOGGER.info(h)
         for i, (mn, m) in enumerate(layers.items()):
             mn = mn.replace("module_list.", "")
             mt = m.__class__.__name__

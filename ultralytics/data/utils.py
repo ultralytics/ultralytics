@@ -714,7 +714,7 @@ def save_dataset_cache_file(prefix, path, x, version):
     if is_dir_writeable(path.parent):
         if path.exists():
             path.unlink()  # remove *.cache file if exists
-        with open(str(path), "wb") as file:
+        with open(str(path), "wb") as file:  # context manager here fixes windows async np.save bug
             np.save(file, x)
         LOGGER.info(f"{prefix}New cache created: {path}")
     else:

@@ -73,9 +73,9 @@ All Ultralytics Solutions use the separate class [`SolutionAnnotator`](https://d
 
 ### Working with SolutionResults
 
-All Solutions calls return a list of `SolutionResults` objects, containing comprehensive information about the solutions.  
+All Solutions calls return a list of `SolutionResults` objects, containing comprehensive information about the solutions.
 
-- For object counting, the results include `incounts`, `outcounts`, and `classwise_counts`.  
+- For object counting, the results include `incounts`, `outcounts`, and `classwise_counts`.
 
 For more details, refer to the [`SolutionResults` class documentation](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator).
 

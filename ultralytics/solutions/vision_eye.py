@@ -29,27 +29,14 @@ class VisionEye(BaseSolution):
         Attributes are inherited from the BaseSolution class and initialized using the provided configuration.
         """
         super().__init__(**kwargs)
-        self.vision_point = (20, 20)
 
-    def set_vision_point(self, vision_point):
-        """
-        Adjust vision eye point values.
-
-        Args:
-            vision_point (tuple[int, int]): visioneye point value, the point, where vision will view objects and draw tracks
-
-        Examples:
-            >>> vision_eye = VisionEye()
-            >>> vision_eye.set_vision_point((30, 30))
-        """
-        self.vision_point = vision_point  # Percentage of blur
-
-    def mapping(self, im0):
+    def mapping(self, im0, vision_point=(30, 30)):
         """
         Performs object detection, vision mapping, and annotation on the input image.
 
         Args:
             im0 (numpy.ndarray): The input image for detection and annotation.
+            vision_point (tuple[int, int], optional): visioneye point value, the point, where vision will view objects and draw tracks
 
         This method processes the input image, detects objects, applies vision mapping,
         and annotates each detected instance with a bounding box and label.
@@ -70,7 +57,7 @@ class VisionEye(BaseSolution):
         for cls, t_id, box in zip(self.clss, self.track_ids, self.boxes):
             # Annotate the image with bounding boxes, labels, and vision mapping
             annotator.box_label(box, label=self.names[cls], color=colors(int(t_id), True))
-            annotator.visioneye(box, self.vision_point)
+            annotator.visioneye(box, vision_point)
 
         self.display_output(plot_im)  # Display the annotated output using the base class function
 

@@ -35,9 +35,6 @@ visioneye = solutions.VisionEye(
     classes=[0, 2],  # generate visioneye view for specific classes
 )
 
-# Adjust visioneye monitoring point explicitly
-visioneye.set_vision_point((50, 50))
-
 # Process video
 while cap.isOpened():
     success, im0 = cap.read()
@@ -46,7 +43,7 @@ while cap.isOpened():
         print("Video frame is empty or video processing has been successfully completed.")
         break
 
-    results = visioneye.mapping(im0)
+    results = visioneye.mapping(im0, vision_point=(50, 50))
 
     # Access the output
     print(f"Total tracks: , {results.total_tracks}")

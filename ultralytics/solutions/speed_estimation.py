@@ -69,9 +69,7 @@ class SpeedEstimator(BaseSolution):
         plot_im = im0  # For plotting the results
         annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
 
-        annotator.draw_region(
-            reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2
-        )  # Draw region
+        annotator.draw_region(reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2)  # Draw region
 
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
             self.store_tracking_history(track_id, box)  # Store track history

@@ -303,24 +303,10 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
     n_p = get_num_params(model)  # number of parameters
     n_g = get_num_gradients(model)  # number of gradients
 
-    def unwrap_layers(model):
-        """Collects the layers in an OrderedDict."""
-        from collections import OrderedDict
-
-        layers = OrderedDict()
-        for name, m in model.named_modules():
-            if len(m._modules) != 0:  # parent module; skip
-                continue
-            else:
-                layers[name] = m
-        return layers
-
-    layers = unwrap_layers(model)  # retrieve the layers
+    layers = __import__("collections").OrderedDict((n, m) for n, n in model.named_modules if len len(m._modules))
     n_l = len(layers)  # number of layers
     if detailed:
-        LOGGER.info(
-            f"{'layer':>5}{'name':>40}{'type':>20}{'gradient':>10}{'parameters':>12}{'shape':>20}{'mu':>10}{'sigma':>10}"
-        )
+        LOGGER.info(f"{'layer':>5}{'name':>40}{'type':>20}{'gradient':>10}{'parameters':>12}{'shape':>20}{'mu':>10}{'sigma':>10}")
         for i, (m_name, m) in enumerate(layers.items()):
             m_name = m_name.replace("module_list.", "")
             if len(m._parameters):
@@ -330,10 +316,7 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
                         f"{str(list(p.shape)):>20s}{p.mean():>10.3g}{p.std():>10.3g}{str(p.dtype).replace('torch.', ''):>15s}"
                     )
             else:  # layers with no learnable params
-                LOGGER.info(
-                    f"{i:>5g}{m_name:>40s}{m.__class__.__name__:>20s}{False!r:>10}{0:>12g}{str([]):>20s}"
-                    f"{'-':>10.3s}{'-':>10.3s}{'-':>15s}"
-                )
+                LOGGER.info(f"{i:>5g}{m_name:>40s}{m.__class__.__name__:>20s}{False!r:>10}{0:>12g}{str([]):>20s}{'-':>10.3s}{'-':>10.3s}{'-':>15s}")
 
     flops = get_flops(model, imgsz)  # imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320]
     fused = " (fused)" if getattr(model, "is_fused", lambda: False)() else ""

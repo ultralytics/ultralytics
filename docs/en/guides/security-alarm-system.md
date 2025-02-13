@@ -68,10 +68,8 @@ while cap.isOpened():
 
     results = security.monitor(im0)
 
-    # Access the output
-    # print(f"Total tracks: , {results.total_tracks}")
-    # print(f"Email sent status: , {results.email_sent}")
-
+    # print(results)    # Access the output
+    
     video_writer.write(results.plot_im)  # write the processed frame.
 
 cap.release()

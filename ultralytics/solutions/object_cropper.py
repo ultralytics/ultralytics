@@ -86,5 +86,4 @@ class ObjectCropper(BaseSolution):
         return SolutionResults(
             plot_im=plot_im,
             total_crop_objects=self.crop_idx,
-            verbose=self.verbose,
         )

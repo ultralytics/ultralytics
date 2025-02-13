@@ -711,9 +711,17 @@ class SolutionResults:
         self.region_counts = {}
         self.speed_dict = {}
         self.total_crop_objects = 0
-        self.verbose = False
 
         # Override with user-defined values
         self.__dict__.update(kwargs)
-        if self.verbose:
-            LOGGER.info(f"{self.__dict__}")
+
+    def __str__(self):
+        """
+        Returns a formatted string representation of the SolutionResults object,
+        listing non-null attributes in a user-friendly way. The `plot_im` attribute is intentionally excluded.
+        """
+        attrs = {
+            k: v for k, v in self.__dict__.items()
+            if k != "plot_im" and v not in [None, {}, 0, 0.0, False]  # Exclude `plot_im` explicitly
+        }
+        return f"SolutionResults({', '.join(f'{k}={v}' for k, v in attrs.items())})"

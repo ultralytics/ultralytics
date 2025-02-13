@@ -88,10 +88,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
             results = counter.count(im0)
 
-            # Access the output
-            # print(f"In count: , {results.in_count}")
-            # print(f"Out count: , {results.out_count}")
-            # print(f"Class wise count: , {results.classwise_count}")
+            # print(results)    # Access the output
 
             video_writer.write(results.plot_im)  # write the processed frame.
 

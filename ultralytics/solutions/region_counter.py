@@ -119,6 +119,4 @@ class RegionCounter(BaseSolution):
         self.display_output(plot_im)
 
         # Return a SolutionResults
-        return SolutionResults(
-            plot_im=plot_im, total_tracks=len(self.track_ids), region_counts=region_counts, verbose=self.verbose
-        )
+        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), region_counts=region_counts)

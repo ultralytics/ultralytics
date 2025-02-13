@@ -72,10 +72,8 @@ while cap.isOpened():
         break
 
     results = distance.calculate(im0)
-
-    # Access the output
-    # print(f"Pexels distance: , {results.pixels_distance}")
-    # print(f"Total tracks: , {results.total_tracks}")
+    
+    print(results)  # Access the output
 
     video_writer.write(results.plot_im)  # write the processed frame.
 

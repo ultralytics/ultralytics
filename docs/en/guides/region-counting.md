@@ -74,9 +74,7 @@ while cap.isOpened():
 
     results = region.count(im0)
 
-    # Access the output
-    # print(f"Region counts: , {results.region_counts}")
-    # print(f"Total tracks: , {results.total_tracks}")
+    # print(results)    # Access the output
 
     video_writer.write(results.plot_im)
 

@@ -62,8 +62,7 @@ while cap.isOpened():
 
     results = blurrer.blur(im0)
 
-    # Access the output
-    # print(f"Total tracks: , {results.total_tracks}")
+    # print(results")   # Access the output
 
     video_writer.write(results.plot_im)  # write the processed frame.
 

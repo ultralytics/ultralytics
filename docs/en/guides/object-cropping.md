@@ -62,8 +62,7 @@ while cap.isOpened():
 
     results = cropper.crop(im0)
 
-    # Access the output
-    # print(f"Total cropped objects: , {results.total_crop_objects}")
+    # print(results)    # Access the output
 
 cap.release()
 cv2.destroyAllWindows()  # destroy all opened windows

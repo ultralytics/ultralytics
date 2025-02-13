@@ -62,4 +62,4 @@ class VisionEye(BaseSolution):
         self.display_output(plot_im)  # Display the annotated output using the base class function
 
         # Return a SolutionResults
-        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), verbose=self.verbose)
+        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids))

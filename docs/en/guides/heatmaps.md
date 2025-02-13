@@ -92,10 +92,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 
             results = heatmap.generate_heatmap(im0)
 
-            # Access the output
-            # print(f"Total tracks: , {results.total_tracks}")
-            # print(f"In count: , {results.in_count}")
-            # print(f"Out count: , {results.out_count}")
+            # print(results)    # Access the output
 
             video_writer.write(results.plot_im)  # write the processed frame.
 

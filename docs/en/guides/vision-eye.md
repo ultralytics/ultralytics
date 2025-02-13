@@ -45,8 +45,7 @@ while cap.isOpened():
 
     results = visioneye.mapping(im0, vision_point=(50, 50))
 
-    # Access the output
-    print(f"Total tracks: , {results.total_tracks}")
+    print(results)  # Access the output
 
     video_writer.write(results.plot_im)  # write the video file
 
@@ -111,8 +110,7 @@ while cap.isOpened():
 
     results = visioneye.mapping(im0)
 
-    # Access the output
-    print(f"Total tracks: , {results.total_tracks}")
+    print(results)  # Access the output
 
     video_writer.write(results.plot_im)  # write the video file
 

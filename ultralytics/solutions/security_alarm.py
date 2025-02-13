@@ -143,6 +143,4 @@ class SecurityAlarm(BaseSolution):
         self.display_output(plot_im)  # display output with base class function
 
         # Return a SolutionResults
-        return SolutionResults(
-            plot_im=plot_im, total_tracks=len(self.track_ids), email_sent=self.email_sent, verbose=self.verbose
-        )
+        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), email_sent=self.email_sent)

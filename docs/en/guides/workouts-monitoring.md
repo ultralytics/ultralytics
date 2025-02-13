@@ -83,10 +83,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 
             results = gym.monitor(im0)
 
-            # Access the output
-            # print(f"Workout count: , {results.workout_count}")
-            # print(f"Workout angle: , {results.workout_angle}")
-            # print(f"Workout stage: , {results.workout_stage}")
+            # print(results)    # Access the output
 
             video_writer.write(results.plot_im)  # write the processed frame.
 

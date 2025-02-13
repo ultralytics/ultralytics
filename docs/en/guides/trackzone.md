@@ -86,8 +86,7 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
 
             results = trackzone.trackzone(im0)
 
-            # Access the output
-            # print(f"Total tracks: , {results.total_tracks}")
+            # print(results)    # Access the output
 
             video_writer.write(results.plot_im)  # write the video file
 

@@ -718,7 +718,8 @@ class SolutionResults:
 
     def __str__(self):
         """
-        Returns a formatted string representation of the SolutionResults object, listing non-null attributes in simple way.
+        Returns a formatted string representation of the SolutionResults object, listing non-null attributes in simple
+        way.
 
         The `plot_im` attribute is intentionally excluded.
         """

@@ -103,7 +103,7 @@ from ultralytics.utils.checks import (
 )
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.files import file_size, spaces_in_path
-from ultralytics.utils.ops import Profile, nms_rotated
+from ultralytics.utils.ops import Profile, nms_rotated, xywh2xyxy
 from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
 
 
@@ -1560,7 +1560,7 @@ class NMSModel(torch.nn.Module):
         """
         from functools import partial
 
-        from torchvision.ops import box_convert, nms
+        from torchvision.ops import nms
 
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
@@ -1586,7 +1586,7 @@ class NMSModel(torch.nn.Module):
                 mask = score.topk(min(self.args.max_det * 5, score.shape[0])).indices
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             if not self.obb:
-                box = box_convert(box, in_fmt="cxcywh", out_fmt="xyxy")  # xywh2xyxy causes error with coreml
+                box = xywh2xyxy(box)  # xywh2xyxy causes error with coreml
                 if self.is_tf:
                     # TFlite bug returns less boxes
                     pad = torch.zeros((mask.shape[0] - box.shape[0], box.shape[-1]), device=box.device, dtype=box.dtype)

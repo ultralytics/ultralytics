@@ -6,7 +6,7 @@ keywords: SAM 2, SAM 2.1, Segment Anything, video segmentation, image segmentati
 
 !!! tip "SAM 2.1"
 
-    We have just supported the more accurate SAM2.1 model. Please give it a try!
+    We have just added support for the more accurate SAM2.1 model. Please give it a try!
 
 # SAM 2: Segment Anything Model 2
 

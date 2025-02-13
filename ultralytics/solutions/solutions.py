@@ -186,6 +186,7 @@ class BaseSolution:
         if self.CFG.get("show") and self.env_check:
             cv2.imshow("Ultralytics Solutions", plot_im)
             if cv2.waitKey(1) & 0xFF == ord("q"):
+                cv2.destroyAllWindows()  # Closes current frame window
                 return
 
 
@@ -717,8 +718,7 @@ class SolutionResults:
 
     def __str__(self):
         """
-        Returns a formatted string representation of the SolutionResults object, listing non-null attributes in a user-
-        friendly way.
+        Returns a formatted string representation of the SolutionResults object, listing non-null attributes in simple way.
 
         The `plot_im` attribute is intentionally excluded.
         """

@@ -116,7 +116,7 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
 @pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="CoreML not supported in Python 3.12")
 @pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch",
+    "task, dynamic, int8, half, batch, nms",
     [  # generate all combinations except for exclusion cases
         (task, dynamic, int8, half, batch, nms)
         for task, dynamic, int8, half, batch, nms in product(

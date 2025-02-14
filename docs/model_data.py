@@ -111,11 +111,20 @@ data = {
             },
     },
     "PP-YOLOE+": {
-        "t": {"size": 640, "map": 39.9, "cpu": "", "t4": 2.84, "params": 4.85, "flops": 19.15},
-        "s": {"size": 640, "map": 43.7, "cpu": "", "t4": 2.62, "params": 7.93, "flops": 17.36},
-        "m": {"size": 640, "map": 49.8, "cpu": "", "t4": 5.56, "params": 23.43, "flops": 49.91},
-        "l": {"size": 640, "map": 52.9, "cpu": "", "t4": 8.36, "params": 52.20, "flops": 110.07},
-        "x": {"size": 640, "map": 54.7, "cpu": "", "t4": 14.3, "params": 98.42, "flops": 206.59},
+        "Author": "PaddlePaddle Authors",
+        "Date Released": "2022-04-02",
+        "Arxiv URL": "https://arxiv.org/abs/2203.16250",
+        "GitHub Repository": "https://github.com/PaddlePaddle/PaddleDetection/",
+        "Documentation URL": "https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.8.1/configs/ppyoloe/README.md",
+        "License": "Apache-2.0 license",
+        "Performance Table":
+            {
+                "t": {"size": 640, "map": 39.9, "cpu": "", "t4": 2.84, "params": 4.85, "flops": 19.15},
+                "s": {"size": 640, "map": 43.7, "cpu": "", "t4": 2.62, "params": 7.93, "flops": 17.36},
+                "m": {"size": 640, "map": 49.8, "cpu": "", "t4": 5.56, "params": 23.43, "flops": 49.91},
+                "l": {"size": 640, "map": 52.9, "cpu": "", "t4": 8.36, "params": 52.20, "flops": 110.07},
+                "x": {"size": 640, "map": 54.7, "cpu": "", "t4": 14.3, "params": 98.42, "flops": 206.59},
+            },
     },
     "DAMO-YOLO": {
         "Author": "Xianzhe Xu, Yiqi Jiang, Weihua Chen, Yilun Huang, Yuan Zhang and Xiuyu Sun",
@@ -221,18 +230,27 @@ data = {
             },
     },
     "RTMDet": {
-        "t": {"size": 640, "map": 41.1, "cpu": "", "t4": 2.54, "params": 4.8, "flops": 8.1},
-        "s": {"size": 640, "map": 44.6, "cpu": "", "t4": 3.18, "params": 8.89, "flops": 14.8},
-        "m": {"size": 640, "map": 49.4, "cpu": "", "t4": 6.82, "params": 24.71, "flops": 39.27},
-        "l": {"size": 640, "map": 51.5, "cpu": "", "t4": 11.06, "params": 52.3, "flops": 80.23},
-        "x": {"size": 640, "map": 52.8, "cpu": "", "t4": 19.66, "params": 94.86, "flops": 141.67},
+        "Author": "Chengqi Lyu and Wenwei Zhang and Haian Huang and Yue Zhou and Yudong Wang and Yanyi Liu and Shilong Zhang and Kai Chen",
+        "Date Released": "2022-12-14",
+        "Arxiv URL": "https://arxiv.org/abs/2212.07784",
+        "GitHub Repository": "https://github.com/open-mmlab/mmdetection/tree/3.x/configs/rtmdet",
+        "Documentation URL": "https://github.com/open-mmlab/mmdetection/tree/3.x/configs/rtmdet#readme",
+        "License": "GPL-3.0 license",
+        "Performance Table":
+            {
+                "t": {"size": 640, "map": 41.1, "cpu": "", "t4": 2.54, "params": 4.8, "flops": 8.1},
+                "s": {"size": 640, "map": 44.6, "cpu": "", "t4": 3.18, "params": 8.89, "flops": 14.8},
+                "m": {"size": 640, "map": 49.4, "cpu": "", "t4": 6.82, "params": 24.71, "flops": 39.27},
+                "l": {"size": 640, "map": 51.5, "cpu": "", "t4": 11.06, "params": 52.3, "flops": 80.23},
+                "x": {"size": 640, "map": 52.8, "cpu": "", "t4": 19.66, "params": 94.86, "flops": 141.67},
+            },
     },
     "YOLO-NAS": {
         "Author": "Aharon,  Shay and {Louis-Dupont} and {Ofri Masad} and Yurkova,  Kate and {Lotem Fridman} and {Lkdci} and Khvedchenya,  Eugene and Rubin,  Ran and Bagrov,  Natan and Tymchenko,  Borys and Keren,  Tomer and Zhilko,  Alexander and {Eran-Deci}",
         "Date Released": "2023-05-03",
-        "Arxiv URL": None,
+        "Arxiv": None,
         "GitHub Repository": "https://github.com/Deci-AI/super-gradients/blob/master/YOLONAS.md",
-        "Documentation URL": "https://docs.ultralytics.com/models/yolo-nas/",
+        "Documentation": "https://docs.ultralytics.com/models/yolo-nas/",
         "License": "Apache-2.0 license",
         "Performance Table":
             {
@@ -250,10 +268,19 @@ data = {
         "512": {"size": 512, "map": 29.5, "cpu": "", "t4": 8.96, "params": 36.0, "flops": 197.3},
     },
     "RTDETRv3": {
-        "s": {"size": 640, "map": 48.1, "cpu": "", "t4": 5.03, "params": 20, "flops": 60},
-        "m": {"size": 640, "map": 49.9, "cpu": "", "t4": 7.51, "params": 36, "flops": 100},
-        "l": {"size": 640, "map": 53.4, "cpu": "", "t4": 9.76, "params": 42, "flops": 136},
-        "x": {"size": 640, "map": 54.6, "cpu": "", "t4": 15.03, "params": 76, "flops": 259},
+        "Author": "Yansong Peng and Hebei Li and Peixi Wu and Yueyi Zhang and Xiaoyan Sun and Feng Wu",
+        "Date Released": "2024-09-13",
+        "Arxiv URL": "https://arxiv.org/abs/2409.08475",
+        "GitHub Repository": "https://github.com/clxia12/RT-DETRv3",
+        "Documentation URL": "https://github.com/clxia12/RT-DETRv3/blob/main/README.md",
+        "License": "Apache-2.0 license",
+        "Performance Table":
+            {
+                "s": {"size": 640, "map": 48.1, "cpu": "", "t4": 5.03, "params": 20, "flops": 60},
+                "m": {"size": 640, "map": 49.9, "cpu": "", "t4": 7.51, "params": 36, "flops": 100},
+                "l": {"size": 640, "map": 53.4, "cpu": "", "t4": 9.76, "params": 42, "flops": 136},
+                "x": {"size": 640, "map": 54.6, "cpu": "", "t4": 15.03, "params": 76, "flops": 259},
+            },
     },
     "LWDETR": {
         "Author": "Qiang Chen and Xiangbo Su and Xinyu Zhang and Jian Wang and Jiahui Chen and Yunpeng Shen and Chuchu Han and Ziliang Chen and Weixiang Xu and Fanrong Li and Shan Zhang and Kun Yao and Errui Ding and Gang Zhang and Jingdong Wang",

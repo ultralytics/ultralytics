@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 SAM model interface.
 
@@ -106,7 +106,7 @@ class SAM(Model):
             ...     print(f"Detected {len(r.masks)} masks")
         """
         overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024)
-        kwargs = overrides | kwargs
+        kwargs = {**overrides, **kwargs}
         prompts = dict(bboxes=bboxes, points=points, labels=labels)
         return super().predict(source, stream, prompts=prompts, **kwargs)
 

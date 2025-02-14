@@ -10,8 +10,8 @@ Welcome to the Ultralytics Help page! We are dedicated to providing you with det
 - [Contributing Guide](contributing.md): Discover the protocols for making contributions, including how to submit pull requests, report bugs, and more.
 - [Continuous Integration (CI) Guide](CI.md): Gain insights into the CI processes we employ, complete with status reports for each Ultralytics repository.
 - [Contributor License Agreement (CLA)](CLA.md): Review the CLA to understand the rights and responsibilities associated with contributing to Ultralytics projects.
-- [Minimum Reproducible Example (MRE) Guide](minimum_reproducible_example.md): Learn the process for creating an MRE, which is crucial for the timely and effective resolution of bug reports.
-- [Code of Conduct](code_of_conduct.md): Our community guidelines support a respectful and open atmosphere for all collaborators.
+- [Minimum Reproducible Example (MRE) Guide](minimum-reproducible-example.md): Learn the process for creating an MRE, which is crucial for the timely and effective resolution of bug reports.
+- [Code of Conduct](code-of-conduct.md): Our community guidelines support a respectful and open atmosphere for all collaborators.
 - [Environmental, Health and Safety (EHS) Policy](environmental-health-safety.md): Delve into our commitment to sustainability and the well-being of all our stakeholders.
 - [Security Policy](security.md): Familiarize yourself with our security protocols and the procedure for reporting vulnerabilities.
 - [Privacy Policy](privacy.md): Read our privacy policy to understand how we protect your data and respect your privacy in all our services and operations.
@@ -28,7 +28,7 @@ For more details on YOLO11, visit the [YOLO11 documentation](../tasks/detect.md)
 
 ### How do I contribute to Ultralytics YOLO repositories?
 
-Contributing to Ultralytics YOLO repositories is straightforward. Start by reviewing the [Contributing Guide](../help/contributing.md) to understand the protocols for submitting pull requests, reporting bugs, and more. You'll also need to sign the [Contributor License Agreement (CLA)](../help/CLA.md) to ensure your contributions are legally recognized. For effective bug reporting, refer to the [Minimum Reproducible Example (MRE) Guide](../help/minimum_reproducible_example.md).
+Contributing to Ultralytics YOLO repositories is straightforward. Start by reviewing the [Contributing Guide](../help/contributing.md) to understand the protocols for submitting pull requests, reporting bugs, and more. You'll also need to sign the [Contributor License Agreement (CLA)](../help/CLA.md) to ensure your contributions are legally recognized. For effective bug reporting, refer to the [Minimum Reproducible Example (MRE) Guide](../help/minimum-reproducible-example.md).
 
 ### Why should I use Ultralytics HUB for my machine learning projects?
 

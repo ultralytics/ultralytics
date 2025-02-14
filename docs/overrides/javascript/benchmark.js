@@ -115,8 +115,8 @@ const data = {
     R101: { speed: 18.91, mAP: 39.1 },
     },
   SSD: {
-    "300": { speed: 3.97, mAP: 25.5 },
-    "512": { speed: 8.96, mAP: 29.5 },
+    300: { speed: 3.97, mAP: 25.5 },
+    512: { speed: 8.96, mAP: 29.5 },
     },
   RTDETRv3: {
     s: { speed: 5.03, mAP: 48.1 },
@@ -213,7 +213,7 @@ function updateChart(initialDatasets = []) {
       type: "line",
       data: { datasets },
       options: {
-        aspectRatio: 3.0,  // higher is wider
+        aspectRatio: 1.5,  // higher is wider
         plugins: {
           legend: {
             display: true,

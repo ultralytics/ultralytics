@@ -493,7 +493,7 @@ class BaseTrainer:
             memory = 0
         else:
             memory = torch.cuda.memory_reserved()
-        return memory >> 30
+        return memory >> 20
 
     def _clear_memory(self):
         """Clear accelerator memory on different platforms."""

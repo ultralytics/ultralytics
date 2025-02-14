@@ -256,9 +256,9 @@ class SegmentationValidator(DetectionValidator):
              >>> result = {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
         """
         if check_requirements("faster-coco-eval>=1.6.5", install=False):
-            from faster_coco_eval.core.mask import encode   # noqa
+            from faster_coco_eval.core.mask import encode  # noqa
         elif check_requirements("pycocotools>=2.0.6"):
-            from pycocotools.mask import encode   # noqa
+            from pycocotools.mask import encode  # noqa
 
         def single_encode(x):
             """Encode predicted masks as RLE and append results to jdict."""

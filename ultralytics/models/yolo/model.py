@@ -6,7 +6,7 @@ from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel, WorldModel
 from ultralytics.utils import ROOT, yaml_load
-
+from ultralytics.nn.modules import MixtureOfExperts  # Import the MixtureOfExperts module
 
 class YOLO(Model):
     """YOLO (You Only Look Once) object detection model."""

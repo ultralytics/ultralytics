@@ -28,6 +28,7 @@ backbone:
   - [-1, 2, C3k2, [1024, True]]
   - [-1, 1, SPPF, [1024, 5]] # 9
   - [-1, 2, C2PSA, [1024]] # 10
+  - [-1, 1, MixtureOfExperts, [1024, 4, 256, 128]] # Mixture of Experts module
 
 # YOLO11n head
 head:

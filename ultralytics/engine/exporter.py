@@ -1562,11 +1562,10 @@ class NMSModel(torch.nn.Module):
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
         pred = pred.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
+        bs = pred.shape[0]
         extra_shape = pred.shape[-1] - (4 + len(self.model.names))  # extras from Segment, OBB, Pose
         if self.args.dynamic and self.args.batch > 1:  # batch size needs to always be same due to loop unroll
-            pad = torch.zeros(
-                torch.max(torch.tensor(self.args.batch - pred.shape[0]), torch.tensor(0)), *pred.shape[1:], **kwargs
-            )
+            pad = torch.zeros(torch.max(torch.tensor(self.args.batch - bs), torch.tensor(0)), *pred.shape[1:], **kwargs)
             pred = torch.cat((pred, pad))
         boxes, scores, extras = pred.split([4, len(self.model.names), extra_shape], dim=2)
         scores, classes = scores.max(dim=-1)
@@ -1625,4 +1624,4 @@ class NMSModel(torch.nn.Module):
             # Zero-pad to max_det size to avoid reshape error
             pad = (0, 0, 0, self.args.max_det - dets.shape[0])
             out[i] = torch.nn.functional.pad(dets, pad)
-        return (out, preds[1]) if self.model.task == "segment" else out
+        return (out[:bs], preds[1]) if self.model.task == "segment" else out

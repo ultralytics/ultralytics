@@ -1558,11 +1558,11 @@ class NMSModel(torch.nn.Module):
 
         from torchvision.ops import nms
 
-        kwargs = dict(device=x.device, dtype=x.dtype)
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
-        pred = pred.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
+        kwargs = dict(device=pred.device, dtype=pred.dtype)
         bs = pred.shape[0]
+        pred = pred.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
         extra_shape = pred.shape[-1] - (4 + len(self.model.names))  # extras from Segment, OBB, Pose
         if self.args.dynamic and self.args.batch > 1:  # batch size needs to always be same due to loop unroll
             pad = torch.zeros(torch.max(torch.tensor(self.args.batch - bs), torch.tensor(0)), *pred.shape[1:], **kwargs)

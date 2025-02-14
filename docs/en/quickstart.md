@@ -161,7 +161,6 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
         ```bash
         yolo TASK MODE ARGS
         ```
-
         - `TASK` (optional) is one of ([detect](tasks/detect.md), [segment](tasks/segment.md), [classify](tasks/classify.md), [pose](tasks/pose.md), [obb](tasks/obb.md))
         - `MODE` (required) is one of ([train](modes/train.md), [val](modes/val.md), [predict](modes/predict.md), [export](modes/export.md), [track](modes/track.md), [benchmark](modes/benchmark.md))
         - `ARGS` (optional) are `arg=value` pairs like `imgsz=640` that override defaults.
@@ -196,6 +195,48 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
         yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
         ```
 
+    === "Count"
+
+        Count the objects in a video or live stream using YOLO11.
+        ```bash
+        yolo solutions count show=True
+
+        yolo solutions count source="path/to/video/file.mp4"  # specify video file path
+        ```
+
+    === "Workout"
+
+        Monitor the workout exercises using YOLO11 pose model.
+        ```bash
+        yolo solutions workout show=True
+
+        yolo solutions workout source="path/to/video/file.mp4"  # specify video file path
+
+        # Use keypoints for ab-workouts
+        yolo solutions workout kpts=[5, 11, 13]     # left side
+        yolo solutions workout kpts=[6, 12, 14]     # right side
+        ```
+
+    === "Queue"
+
+        Use YOLO11 to count objects in a designated queue or region.
+        ```bash
+        yolo solutions queue show=True
+
+        yolo solutions queue source="path/to/video/file.mp4"  # specify video file path
+
+        yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]    # configure queue coordinates
+        ```
+
+    === "Inference with Streamlit"
+
+        Perform object detection, instance segmentation or even pose estimation in web browser using Streamlit.
+        ```bash
+        yolo solutions inference
+
+        yolo solutions inference model="path/to/model.pt"   # use model fine-tuned with Ultralytics Python package
+        ```
+
     === "Special"
 
         Run special commands to see version, view settings, run checks and more:
@@ -206,6 +247,7 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
         yolo settings
         yolo copy-cfg
         yolo cfg
+        yolo solutions help
         ```
 
 !!! warning
@@ -216,6 +258,7 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
     - `yolo predict model yolo11n.pt imgsz 640 conf 0.25`  ❌ (missing `=`)
     - `yolo predict model=yolo11n.pt, imgsz=640, conf=0.25`  ❌ (do not use `,`)
     - `yolo predict --model yolo11n.pt --imgsz 640 --conf 0.25`  ❌ (do not use `--`)
+    - `yolo solution model=yolo11n.pt imgsz=640 conf=0.25` ❌ (use `solutions`, not `solution`)
 
 [CLI Guide](usage/cli.md){ .md-button }
 

@@ -479,9 +479,9 @@ class ImageEncoder(nn.Module):
         self.trunk = trunk
         self.neck = neck
         self.scalp = scalp
-        assert (
-            self.trunk.channel_list == self.neck.backbone_channel_list
-        ), f"Channel dims of trunk {self.trunk.channel_list} and neck {self.neck.backbone_channel_list} do not match."
+        assert self.trunk.channel_list == self.neck.backbone_channel_list, (
+            f"Channel dims of trunk {self.trunk.channel_list} and neck {self.neck.backbone_channel_list} do not match."
+        )
 
     def forward(self, sample: torch.Tensor):
         """Encodes input through patch embedding, positional embedding, transformer blocks, and neck module."""

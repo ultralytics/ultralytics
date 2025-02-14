@@ -190,17 +190,35 @@ data = {
         "l": {"size": 640, "map": 53.3, "cpu": "", "t4": 10.64, "params": 75.1, "flops": 151.7},
     },
     "D-FINE": {
-        "n": {"size": 640, "map": 42.8, "cpu": "", "t4": 2.28, "params": 4, "flops": 7},
-        "s": {"size": 640, "map": 48.5, "cpu": "", "t4": 4.19, "params": 10, "flops": 25},
-        "m": {"size": 640, "map": 52.3, "cpu": "", "t4": 6.85, "params": 19, "flops": 57},
-        "l": {"size": 640, "map": 54.0, "cpu": "", "t4": 9.50, "params": 31, "flops": 91},
-        "x": {"size": 640, "map": 55.8, "cpu": "", "t4": 15.04, "params": 62, "flops": 202},
+        "Author": "Yansong Peng and Hebei Li and Peixi Wu and Yueyi Zhang and Xiaoyan Sun and Feng Wu",
+        "Date Released": "2024-10-17",
+        "Arxiv URL": "https://arxiv.org/abs/1911.09070",
+        "GitHub Repository": "https://github.com/Peterande/D-FINE",
+        "Documentation URL": "https://github.com/Peterande/D-FINE/blob/master/README.md",
+        "License": "Apache-2.0 license",
+        "Performance Table":
+            {
+                "n": {"size": 640, "map": 42.8, "cpu": "", "t4": 2.28, "params": 4, "flops": 7},
+                "s": {"size": 640, "map": 48.5, "cpu": "", "t4": 4.19, "params": 10, "flops": 25},
+                "m": {"size": 640, "map": 52.3, "cpu": "", "t4": 6.85, "params": 19, "flops": 57},
+                "l": {"size": 640, "map": 54.0, "cpu": "", "t4": 9.50, "params": 31, "flops": 91},
+                "x": {"size": 640, "map": 55.8, "cpu": "", "t4": 15.04, "params": 62, "flops": 202},
+            },
     },
     "YOLO-World": {
-        "s": {"size": 640, "map": 46.1, "cpu": "", "t4": 3.46, "params": 12.7, "flops": 51.0},
-        "m": {"size": 640, "map": 51.0, "cpu": "", "t4": 7.26, "params": 28.4, "flops": 110.5},
-        "l": {"size": 640, "map": 53.9, "cpu": "", "t4": 11.00, "params": 46.8, "flops": 204.5},
-        "x": {"size": 640, "map": 54.7, "cpu": "", "t4": 17.24, "params": 72.88, "flops": 309.3},
+        "Author": "Tianheng Cheng and Lin Song and Yixiao Ge and Wenyu Liu and Xinggang Wang and Ying Shan",
+        "Date Released": "2024-01-30",
+        "Arxiv URL": "https://arxiv.org/abs/2401.17270",
+        "GitHub Repository": "https://github.com/AILab-CVC/YOLO-World",
+        "Documentation URL": "https://docs.ultralytics.com/models/yolo-world/",
+        "License": "GPL-3.0 license",
+        "Performance Table":
+            {
+                "s": {"size": 640, "map": 46.1, "cpu": "", "t4": 3.46, "params": 12.7, "flops": 51.0},
+                "m": {"size": 640, "map": 51.0, "cpu": "", "t4": 7.26, "params": 28.4, "flops": 110.5},
+                "l": {"size": 640, "map": 53.9, "cpu": "", "t4": 11.00, "params": 46.8, "flops": 204.5},
+                "x": {"size": 640, "map": 54.7, "cpu": "", "t4": 17.24, "params": 72.88, "flops": 309.3},
+            },
     },
     "RTMDet": {
         "t": {"size": 640, "map": 41.1, "cpu": "", "t4": 2.54, "params": 4.8, "flops": 8.1},
@@ -210,9 +228,18 @@ data = {
         "x": {"size": 640, "map": 52.8, "cpu": "", "t4": 19.66, "params": 94.86, "flops": 141.67},
     },
     "YOLO-NAS": {
-        "s": {"size": 640, "map": 47.5, "cpu": "", "t4": 3.09, "params": 12.2, "flops": 32.8},
-        "m": {"size": 640, "map": 51.6, "cpu": "", "t4": 6.07, "params": 31.9, "flops": 88.9},
-        "l": {"size": 640, "map": 52.2, "cpu": "", "t4": 7.84, "params": 42.02, "flops": 121.09},
+        "Author": "Aharon,  Shay and {Louis-Dupont} and {Ofri Masad} and Yurkova,  Kate and {Lotem Fridman} and {Lkdci} and Khvedchenya,  Eugene and Rubin,  Ran and Bagrov,  Natan and Tymchenko,  Borys and Keren,  Tomer and Zhilko,  Alexander and {Eran-Deci}",
+        "Date Released": "2023-05-03",
+        "Arxiv URL": None,
+        "GitHub Repository": "https://github.com/Deci-AI/super-gradients/blob/master/YOLONAS.md",
+        "Documentation URL": "https://docs.ultralytics.com/models/yolo-nas/",
+        "License": "Apache-2.0 license",
+        "Performance Table":
+            {
+                "s": {"size": 640, "map": 47.5, "cpu": "", "t4": 3.09, "params": 12.2, "flops": 32.8},
+                "m": {"size": 640, "map": 51.6, "cpu": "", "t4": 6.07, "params": 31.9, "flops": 88.9},
+                "l": {"size": 640, "map": 52.2, "cpu": "", "t4": 7.84, "params": 42.02, "flops": 121.09},
+            },
     },
     "FCOS": {
         "R50": {"size": 800, "map": 36.6, "cpu": "", "t4": 15.18, "params": 32.3, "flops": 250.9},
@@ -229,11 +256,20 @@ data = {
         "x": {"size": 640, "map": 54.6, "cpu": "", "t4": 15.03, "params": 76, "flops": 259},
     },
     "LWDETR": {
-        "t": {"size": 640, "map": 42.6, "cpu": "", "t4": 2.56, "params": 12.1, "flops": 11.2},
-        "s": {"size": 640, "map": 48.0, "cpu": "", "t4": 3.72, "params": 14.6, "flops": 16.6},
-        "m": {"size": 640, "map": 52.5, "cpu": "", "t4": 6.59, "params": 28.2, "flops": 42.8},
-        "l": {"size": 640, "map": 56.1, "cpu": "", "t4": 10.57, "params": 46.8, "flops": 71.6},
-        "x": {"size": 640, "map": 58.3, "cpu": "", "t4": 22.29, "params": 118.0, "flops": 174.1},
+        "Author": "Qiang Chen and Xiangbo Su and Xinyu Zhang and Jian Wang and Jiahui Chen and Yunpeng Shen and Chuchu Han and Ziliang Chen and Weixiang Xu and Fanrong Li and Shan Zhang and Kun Yao and Errui Ding and Gang Zhang and Jingdong Wang",
+        "Date Released": "2024-06-05",
+        "Arxiv URL": "https://arxiv.org/abs/2406.03459",
+        "GitHub Repository": "https://github.com/Atten4Vis/LW-DETR",
+        "Documentation URL": "https://github.com/Atten4Vis/LW-DETR/blob/main/README.md",
+        "License": "Apache-2.0 license",
+        "Performance Table":
+            {
+                "t": {"size": 640, "map": 42.6, "cpu": "", "t4": 2.56, "params": 12.1, "flops": 11.2},
+                "s": {"size": 640, "map": 48.0, "cpu": "", "t4": 3.72, "params": 14.6, "flops": 16.6},
+                "m": {"size": 640, "map": 52.5, "cpu": "", "t4": 6.59, "params": 28.2, "flops": 42.8},
+                "l": {"size": 640, "map": 56.1, "cpu": "", "t4": 10.57, "params": 46.8, "flops": 71.6},
+                "x": {"size": 640, "map": 58.3, "cpu": "", "t4": 22.29, "params": 118.0, "flops": 174.1},
+            },
     },
 }
 

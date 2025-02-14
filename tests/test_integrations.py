@@ -118,9 +118,12 @@ def test_triton():
     subprocess.call(f"docker kill {container_id}", shell=True)
 
 
-@pytest.mark.skipif(not check_requirements("pycocotools", install=False), reason="pycocotools not installed")
-def test_pycocotools():
-    """Validate YOLO model predictions on COCO dataset using pycocotools."""
+@pytest.mark.skipif(
+    not (check_requirements("pycocotools", install=False) or check_requirements("faster-coco-eval", install=False)),
+    reason="pycocotools or faster-coco-eval not installed",
+)
+def test_pycocotools_or_faster_coco_eval():
+    """Validate YOLO model predictions on COCO dataset using pycocotools or faster_coco_eval."""
     from ultralytics.models.yolo.detect import DetectionValidator
     from ultralytics.models.yolo.pose import PoseValidator
     from ultralytics.models.yolo.segment import SegmentationValidator

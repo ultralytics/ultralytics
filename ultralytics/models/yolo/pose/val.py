@@ -242,7 +242,7 @@ class PoseValidator(DetectionValidator):
     def eval_json(self, stats):
         """Evaluates object detection model using COCO JSON format."""
         if self.args.save_json and self.is_coco and len(self.jdict):
-            if check_requirements("faster-coco-eval>=1.6.3", install=False):
+            if check_requirements("faster-coco-eval>=1.6.5", install=False):
                 pkg = "faster-coco-eval"
             elif check_requirements("pycocotools>=2.0.6"):
                 pkg = "pycocotools"

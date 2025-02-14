@@ -48,7 +48,7 @@ class SegmentationValidator(DetectionValidator):
         self.plot_masks = []
 
         if self.args.save_json:
-            if not check_requirements("faster-coco-eval>=1.6.3", install=False):
+            if not check_requirements("faster-coco-eval>=1.6.5", install=False):
                 check_requirements("pycocotools>=2.0.6")
         # more accurate vs faster
         self.process = ops.process_mask_native if self.args.save_json or self.args.save_txt else ops.process_mask
@@ -255,7 +255,7 @@ class SegmentationValidator(DetectionValidator):
         Examples:
              >>> result = {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
         """
-        if check_requirements("faster-coco-eval>=1.6.3", install=False):
+        if check_requirements("faster-coco-eval>=1.6.5", install=False):
             from faster_coco_eval.core.mask import encode   # noqa
         elif check_requirements("pycocotools>=2.0.6"):
             from pycocotools.mask import encode   # noqa
@@ -287,7 +287,7 @@ class SegmentationValidator(DetectionValidator):
     def eval_json(self, stats):
         """Return COCO-style object detection evaluation metrics."""
         if self.args.save_json and self.is_coco and len(self.jdict):
-            if check_requirements("faster-coco-eval>=1.6.3", install=False):
+            if check_requirements("faster-coco-eval>=1.6.5", install=False):
                 pkg = "faster-coco-eval"
             elif check_requirements("pycocotools>=2.0.6"):
                 pkg = "pycocotools"

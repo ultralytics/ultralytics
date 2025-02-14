@@ -301,7 +301,7 @@ class DetectionValidator(BaseValidator):
     def eval_json(self, stats):
         """Evaluates YOLO output in JSON format and returns performance statistics."""
         if self.args.save_json and (self.is_coco or self.is_lvis) and len(self.jdict):
-            if check_requirements("faster-coco-eval>=1.6.3", install=False):
+            if check_requirements("faster-coco-eval>=1.6.5", install=False):
                 pkg = "faster-coco-eval"
             else:
                 if self.is_lvis:

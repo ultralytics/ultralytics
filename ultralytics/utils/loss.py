@@ -9,7 +9,7 @@ from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import autocast
 
-from .metrics import bbox_iou, probiou, KLD_distance
+from .metrics import KLD_distance, bbox_iou, probiou
 from .tal import bbox2dist
 
 
@@ -119,10 +119,10 @@ class RotatedBboxLoss(BboxLoss):
     def __init__(self, reg_max, use_kld=False):
         """
         Initialize the BboxLoss module with regularization maximum and DFL settings.
-        
+
         Args:
             reg_max (int): regularization maximum
-            use_kld (bool): if there are square objects in your dataset, it is recommended to set this parameter to True. 
+            use_kld (bool): if there are square objects in your dataset, it is recommended to set this parameter to True.
                             However, it will maybe drop the mAP on non-square objects slightly.
         """
         super().__init__(reg_max)
@@ -629,13 +629,12 @@ class v8OBBLoss(v8DetectionLoss):
     def __init__(self, model, use_kld=False):
         """
         Initializes v8OBBLoss with model, assigner, and rotated bbox loss; note model must be de-paralleled.
-        
+
         Args:
             model (OBBModel): yolo obb model.
-            use_kld (bool): if there are square objects in your dataset, it is recommended to set this parameter to True. 
+            use_kld (bool): if there are square objects in your dataset, it is recommended to set this parameter to True.
                             However, it will maybe drop the mAP on non-square objects slightly.
         """
-
         super().__init__(model)
         self.assigner = RotatedTaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, beta=6.0)
         self.bbox_loss = RotatedBboxLoss(self.reg_max, use_kld).to(self.device)

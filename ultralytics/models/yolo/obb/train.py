@@ -27,7 +27,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
             overrides = {}
         overrides["task"] = "obb"
         super().__init__(cfg, overrides, _callbacks)
-        self.use_kld = overrides['use_kld']
+        self.use_kld = overrides["use_kld"]
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return OBBModel initialized with specified config and weights."""

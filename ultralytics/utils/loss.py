@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import torch
 import torch.nn as nn
@@ -131,7 +131,7 @@ class RotatedBboxLoss(BboxLoss):
     def forward(self, pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask):
         """IoU loss."""
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
-
+        
         if self.use_kld:
             kld_dist = KLD_distance(pred_bboxes[fg_mask], target_bboxes[fg_mask])
             loss_iou = (1 - 1 / (1 + torch.log(1 + kld_dist))).mean()
@@ -202,8 +202,7 @@ class v8DetectionLoss:
             out = torch.zeros(batch_size, counts.max(), ne - 1, device=self.device)
             for j in range(batch_size):
                 matches = i == j
-                n = matches.sum()
-                if n:
+                if n := matches.sum():
                     out[j, :n] = targets[matches, 1:]
             out[..., 1:5] = xywh2xyxy(out[..., 1:5].mul_(scale_tensor))
         return out
@@ -311,7 +310,7 @@ class v8SegmentationLoss(v8DetectionLoss):
             raise TypeError(
                 "ERROR ❌ segment dataset incorrectly formatted or not a segment dataset.\n"
                 "This error can occur when incorrectly training a 'segment' model on a 'detect' dataset, "
-                "i.e. 'yolo train model=yolov8n-seg.pt data=coco8.yaml'.\nVerify your dataset is a "
+                "i.e. 'yolo train model=yolo11n-seg.pt data=coco8.yaml'.\nVerify your dataset is a "
                 "correctly formatted 'segment' dataset using 'data=coco8-seg.yaml' "
                 "as an example.\nSee https://docs.ultralytics.com/datasets/segment/ for help."
             ) from e
@@ -635,7 +634,6 @@ class v8OBBLoss(v8DetectionLoss):
             use_kld (bool): if there are square objects in your dataset, it is recommended to set this parameter to True. 
                             However, it will maybe drop the mAP on non-square objects slightly.
         """
-
         super().__init__(model)
         self.assigner = RotatedTaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, beta=6.0)
         self.bbox_loss = RotatedBboxLoss(self.reg_max, use_kld).to(self.device)
@@ -651,8 +649,7 @@ class v8OBBLoss(v8DetectionLoss):
             out = torch.zeros(batch_size, counts.max(), 6, device=self.device)
             for j in range(batch_size):
                 matches = i == j
-                n = matches.sum()
-                if n:
+                if n := matches.sum():
                     bboxes = targets[matches, 2:]
                     bboxes[..., :4].mul_(scale_tensor)
                     out[j, :n] = torch.cat([targets[matches, 1:2], bboxes], dim=-1)
@@ -689,7 +686,7 @@ class v8OBBLoss(v8DetectionLoss):
             raise TypeError(
                 "ERROR ❌ OBB dataset incorrectly formatted or not a OBB dataset.\n"
                 "This error can occur when incorrectly training a 'OBB' model on a 'detect' dataset, "
-                "i.e. 'yolo train model=yolov8n-obb.pt data=dota8.yaml'.\nVerify your dataset is a "
+                "i.e. 'yolo train model=yolo11n-obb.pt data=dota8.yaml'.\nVerify your dataset is a "
                 "correctly formatted 'OBB' dataset using 'data=dota8.yaml' "
                 "as an example.\nSee https://docs.ultralytics.com/datasets/obb/ for help."
             ) from e

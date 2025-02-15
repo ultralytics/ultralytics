@@ -386,13 +386,14 @@ class DetectionModel(BaseModel):
 class OBBModel(DetectionModel):
     """YOLO Oriented Bounding Box (OBB) model."""
 
-    def __init__(self, cfg="yolo11n-obb.yaml", ch=3, nc=None, verbose=True):
+    def __init__(self, cfg="yolo11n-obb.yaml", ch=3, nc=None, verbose=True, use_kld=False):
         """Initialize YOLO OBB model with given config and parameters."""
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+        self.use_kld = use_kld
 
     def init_criterion(self):
         """Initialize the loss criterion for the model."""
-        return v8OBBLoss(self)
+        return v8OBBLoss(self, self.use_kld)
 
 
 class SegmentationModel(DetectionModel):

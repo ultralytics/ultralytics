@@ -131,7 +131,7 @@ data = {
         "Date Released": "2022-11-23",
         "Arxiv URL": "https://arxiv.org/abs/2211.15444v2",
         "GitHub Repository": "https://github.com/tinyvision/DAMO-YOLO",
-        "Documentation URL": "https://github.com/tinyvision/DAMO-YOLO/blob/master/README_cn.md",
+        "Documentation URL": "https://github.com/tinyvision/DAMO-YOLO/blob/master/README.md",
         "License": "Apache-2.0 license",
         "Performance Table":
             {
@@ -159,11 +159,11 @@ data = {
             }
     },
     "RTDETRv2": {
-        "Author": "Ge, Zheng and Liu, Songtao and Wang, Feng and Li, Zeming and Sun, Jian",
+        "Author": "Ge, ZhengWenyu Lv and Yian Zhao and Qinyao Chang and Kui Huang and Guanzhong Wang and Yi Liu",
         "Date Released": "2023-04-17",
         "Arxiv URL": "https://arxiv.org/abs/2304.08069",
-        "GitHub Repository": "https://github.com/lyuwenyu/RT-DETR",
-        "Documentation URL": "https://docs.ultralytics.com/models/rtdetr/",
+        "GitHub Repository": "https://github.com/lyuwenyu/RT-DETR/tree/main/rtdetrv2_pytorch",
+        "Documentation URL": "https://github.com/lyuwenyu/RT-DETR/tree/main/rtdetrv2_pytorch#readme",
         "License": "Apache-2.0 license",
         "Performance Table":
             {

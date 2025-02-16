@@ -127,7 +127,7 @@ data = {
             },
     },
     "DAMO-YOLO": {
-        "Author": "Xianzhe Xu, Yiqi Jiang, Weihua Chen, Yilun Huang, Yuan Zhang and Xiuyu Sun",
+        "Author": "Xianzhe Xu and Yiqi Jiang and Weihua Chen and Yilun Huang and Yuan Zhang and Xiuyu Sun",
         "Date Released": "2022-11-23",
         "Arxiv URL": "https://arxiv.org/abs/2211.15444v2",
         "GitHub Repository": "https://github.com/tinyvision/DAMO-YOLO",
@@ -142,8 +142,8 @@ data = {
             },
     },
     "YOLOX": {
-        "Author": "Ge, Zheng and Liu, Songtao and Wang, Feng and Li, Zeming and Sun, Jian",
-        "Date Released": "2022-11-23",
+        "Author": "Zheng Ge and Songtao Liu and Feng Wang and Zeming Li and Jian Sun",
+        "Date Released": "2021-07-18",
         "Arxiv URL": "https://arxiv.org/abs/2107.08430",
         "GitHub Repository": "https://github.com/Megvii-BaseDetection/YOLOX",
         "Documentation URL": "https://yolox.readthedocs.io/en/latest/",
@@ -159,7 +159,7 @@ data = {
             }
     },
     "RTDETRv2": {
-        "Author": "Ge, ZhengWenyu Lv and Yian Zhao and Qinyao Chang and Kui Huang and Guanzhong Wang and Yi Liu",
+        "Author": "Wenyu Lv and Yian Zhao and Qinyao Chang and Kui Huang and Guanzhong Wang and Yi Liu",
         "Date Released": "2023-04-17",
         "Arxiv URL": "https://arxiv.org/abs/2304.08069",
         "GitHub Repository": "https://github.com/lyuwenyu/RT-DETR/tree/main/rtdetrv2_pytorch",
@@ -193,15 +193,24 @@ data = {
             },
     },
     "Gold-YOLO": {
-        "n": {"size": 640, "map": 39.9, "cpu": "", "t4": 1.66, "params": 5.6, "flops": 12.1},
-        "s": {"size": 640, "map": 46.4, "cpu": "", "t4": 3.43, "params": 21.5, "flops": 46.0},
-        "m": {"size": 640, "map": 51.1, "cpu": "", "t4": 6.43, "params": 41.3, "flops": 87.5},
-        "l": {"size": 640, "map": 53.3, "cpu": "", "t4": 10.64, "params": 75.1, "flops": 151.7},
+        "Author": "Mingxing Tan and Ruoming Pang and Quoc V. Le",
+        "Date Released": "2023-09-20",
+        "Arxiv URL": "https://arxiv.org/abs/2309.11331",
+        "GitHub Repository": "https://github.com/huawei-noah/Efficient-Computing/tree/master/Detection/Gold-YOLO",
+        "Documentation URL": "https://github.com/huawei-noah/Efficient-Computing/blob/master/Detection/Gold-YOLO/README.md",
+        "License": "GPL-3.0",
+        "Performance Table":
+            {
+                "n": {"size": 640, "map": 39.9, "cpu": "", "t4": 1.66, "params": 5.6, "flops": 12.1},
+                "s": {"size": 640, "map": 46.4, "cpu": "", "t4": 3.43, "params": 21.5, "flops": 46.0},
+                "m": {"size": 640, "map": 51.1, "cpu": "", "t4": 6.43, "params": 41.3, "flops": 87.5},
+                "l": {"size": 640, "map": 53.3, "cpu": "", "t4": 10.64, "params": 75.1, "flops": 151.7},
+            },
     },
     "D-FINE": {
         "Author": "Yansong Peng and Hebei Li and Peixi Wu and Yueyi Zhang and Xiaoyan Sun and Feng Wu",
         "Date Released": "2024-10-17",
-        "Arxiv URL": "https://arxiv.org/abs/1911.09070",
+        "Arxiv URL": "https://arxiv.org/abs/2410.13842",
         "GitHub Repository": "https://github.com/Peterande/D-FINE",
         "Documentation URL": "https://github.com/Peterande/D-FINE/blob/master/README.md",
         "License": "Apache-2.0 license",
@@ -215,7 +224,7 @@ data = {
             },
     },
     "YOLO-World": {
-        "Author": "Tianheng Cheng and Lin Song and Yixiao Ge and Wenyu Liu and Xinggang Wang and Ying Shan",
+        "Author": "Cheng, Tianheng and Song, Lin and Ge, Yixiao and Liu, Wenyu and Wang, Xinggang and Shan, Ying",
         "Date Released": "2024-01-30",
         "Arxiv URL": "https://arxiv.org/abs/2401.17270",
         "GitHub Repository": "https://github.com/AILab-CVC/YOLO-World",
@@ -235,7 +244,7 @@ data = {
         "Arxiv URL": "https://arxiv.org/abs/2212.07784",
         "GitHub Repository": "https://github.com/open-mmlab/mmdetection/tree/3.x/configs/rtmdet",
         "Documentation URL": "https://github.com/open-mmlab/mmdetection/tree/3.x/configs/rtmdet#readme",
-        "License": "GPL-3.0 license",
+        "License": "Apache-2.0 license",
         "Performance Table":
             {
                 "t": {"size": 640, "map": 41.1, "cpu": "", "t4": 2.54, "params": 4.8, "flops": 8.1},
@@ -260,15 +269,33 @@ data = {
             },
     },
     "FCOS": {
-        "R50": {"size": 800, "map": 36.6, "cpu": "", "t4": 15.18, "params": 32.3, "flops": 250.9},
-        "R101": {"size": 800, "map": 39.1, "cpu": "", "t4": 18.91, "params": 51.28, "flops": 346.1},
+        "Author": "Tian, Zhi and Shen, Chunhua and Chen, Hao and He, Tong",
+        "Date Released": "2019-04-02",
+        "Arxiv": "https://arxiv.org/abs/1904.01355",
+        "GitHub Repository": "https://github.com/tianzhi0549/FCOS/",
+        "Documentation": "https://github.com/tianzhi0549/FCOS/?tab=readme-ov-file#installation",
+        "License": "https://github.com/tianzhi0549/FCOS/blob/master/LICENSE",
+        "Performance Table":
+            {
+                "R50": {"size": 800, "map": 36.6, "cpu": "", "t4": 15.18, "params": 32.3, "flops": 250.9},
+                "R101": {"size": 800, "map": 39.1, "cpu": "", "t4": 18.91, "params": 51.28, "flops": 346.1},
+            },
     },
     "SSD": {
-        "300": {"size": 300, "map": 25.5, "cpu": "", "t4": 3.97, "params": 34.3, "flops": 68.7},
-        "512": {"size": 512, "map": 29.5, "cpu": "", "t4": 8.96, "params": 36.0, "flops": 197.3},
+        "Author": "Liu, Wei and Anguelov, Dragomir and Erhan, Dumitru and Szegedy, Christian and Reed, Scott and Fu, Cheng-Yang and Berg, Alexander C.",
+        "Date Released": "2015-12-08",
+        "Arxiv": "https://arxiv.org/abs/1512.02325",
+        "GitHub Repository": "https://github.com/weiliu89/caffe/tree/ssd",
+        "Documentation": "https://github.com/weiliu89/caffe/tree/ssd?tab=readme-ov-file#installation",
+        "License": "https://github.com/weiliu89/caffe/blob/master/LICENSE",
+        "Performance Table":
+            {
+                "300": {"size": 300, "map": 25.5, "cpu": "", "t4": 3.97, "params": 34.3, "flops": 68.7},
+                "512": {"size": 512, "map": 29.5, "cpu": "", "t4": 8.96, "params": 36.0, "flops": 197.3},
+            },
     },
     "RTDETRv3": {
-        "Author": "Yansong Peng and Hebei Li and Peixi Wu and Yueyi Zhang and Xiaoyan Sun and Feng Wu",
+        "Author": "Shuo Wang and Chunlong Xia and Feng Lv and Yifeng Shi",
         "Date Released": "2024-09-13",
         "Arxiv URL": "https://arxiv.org/abs/2409.08475",
         "GitHub Repository": "https://github.com/clxia12/RT-DETRv3",

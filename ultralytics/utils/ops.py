@@ -59,7 +59,7 @@ class Profile(contextlib.ContextDecorator):
         """Get current time."""
         if self.cuda:
             torch.cuda.synchronize(self.device)
-        return time.time()
+        return time.perf_counter()
 
 
 def segment2box(segment, width=640, height=640):

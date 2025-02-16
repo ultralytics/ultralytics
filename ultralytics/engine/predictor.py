@@ -236,10 +236,10 @@ class BasePredictor:
             if self.args.save or self.args.save_txt:
                 (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
-            # Warmup model
-            if not self.done_warmup:
-                self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz))
-                self.done_warmup = True
+            # # Warmup model
+            # if not self.done_warmup:
+            #     self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 4, *self.imgsz))
+            #     self.done_warmup = True
 
             self.seen, self.windows, self.batch = 0, [], None
             profilers = (

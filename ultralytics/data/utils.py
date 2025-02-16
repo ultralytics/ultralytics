@@ -656,7 +656,7 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
         im.save(f_new or f, "JPEG", quality=quality, optimize=True)  # save
     except Exception as e:  # use OpenCV
         LOGGER.info(f"WARNING ⚠️ HUB ops PIL failure {f}: {e}")
-        im = cv2.imread(f)
+        im = cv2.imread(f, cv2.IMREAD_UNCHANGED)
         im_height, im_width = im.shape[:2]
         r = max_dim / max(im_height, im_width)  # ratio
         if r < 1.0:  # image too large

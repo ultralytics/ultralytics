@@ -1071,7 +1071,14 @@ def plot_images(
     mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)  # init
     for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
-        mosaic[y : y + h, x : x + w, :] = images[i].transpose(1, 2, 0)
+        # mosaic[y : y + h, x : x + w, :] = images[i].transpose(1, 2, 0)
+        channels = cv2.split(images[i].astype(np.uint8))
+        if len(channels[0]) == 4:
+            D, B, G, R = channels[0]
+        else:
+            B, G, R = channels[0]
+        merged = cv2.merge([B, G, R])
+        mosaic[y : y + h, x : x + w, :] = merged
 
     # Resize (optional)
     scale = max_size / ns / max(h, w)

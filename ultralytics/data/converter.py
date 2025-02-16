@@ -380,7 +380,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
     pixel_to_class_mapping = {i + 1: i for i in range(classes)}
     for mask_path in Path(masks_dir).iterdir():
         if mask_path.suffix in {".png", ".jpg"}:
-            mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)  # Read the mask image in grayscale
+            mask = cv2.imread(str(mask_path), cv2.IMREAD_UNCHANGED)  # Read the mask image in grayscale
             img_height, img_width = mask.shape  # Get image dimensions
             LOGGER.info(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
 
@@ -509,7 +509,7 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
             if image_path.suffix != ".png":
                 continue
             image_name_without_ext = image_path.stem
-            img = cv2.imread(str(image_path))
+            img = cv2.imread(str(image_path), cv2.IMREAD_UNCHANGED)
             h, w = img.shape[:2]
             convert_label(image_name_without_ext, w, h, orig_label_dir, save_dir)
 
@@ -623,7 +623,7 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt", device=None):
             continue
         boxes[:, [0, 2]] *= w
         boxes[:, [1, 3]] *= h
-        im = cv2.imread(label["im_file"])
+        im = cv2.imread(label["im_file"], cv2.IMREAD_UNCHANGED)
         sam_results = sam_model(im, bboxes=xywh2xyxy(boxes), verbose=False, save=False, device=device)
         label["segments"] = sam_results[0].masks.xyn
 

@@ -4,6 +4,7 @@ name: 🐛 Bug Report
 # title: " "
 description: Problems with Ultralytics YOLO
 labels: [bug, triage]
+type: "bug"
 body:
   - type: markdown
     attributes:

@@ -101,7 +101,7 @@ Before diving into the usage instructions, it's important to note that while all
 
 | Argument | Type             | Default       | Description                                                                                                                                                                                   |
 | -------- | ---------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format` | `str`            | `saved_model` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
+| `format` | `str`            | `'saved_model'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
 | `imgsz`  | `int` or `tuple` | `640`         | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
 | `keras`  | `bool`           | `False`       | Enables export to Keras format, providing compatibility with TensorFlow serving and APIs.                                                                                                     |
 | `int8`   | `bool`           | `False`       | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |

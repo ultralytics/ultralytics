@@ -99,7 +99,7 @@ Before diving into the usage instructions, it's important to note that while all
 
 | Argument | Type             | Default   | Description                                                                                                                       |
 | -------- | ---------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `format` | `str`            | `edgetpu` | Target format for the exported model, defining compatibility with various deployment environments.                                |
+| `format` | `str`            | `'edgetpu'` | Target format for the exported model, defining compatibility with various deployment environments.                                |
 | `imgsz`  | `int` or `tuple` | `640`     | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions. |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).

@@ -50,6 +50,39 @@ __all__ = (
     "PSA",
     "SCDown",
     "TorchVision",
+    "MobileNetV2Block1",
+    "MobileNetV2Block2",
+    "MobileNetV2Block3",
+    "MobileNetV3SmallBlock1",
+    "MobileNetV3SmallBlock2",
+    "MobileNetV3SmallBlock3",
+    "EfficientNetB0Block1",
+    "EfficientNetB0Block2",
+    "EfficientNetB0Block3",
+    "EfficientNetB1Block1",
+    "EfficientNetB1Block2",
+    "EfficientNetB1Block3",
+    "EfficientNetV2SmallBlock1",
+    "EfficientNetV2SmallBlock2",
+    "EfficientNetV2SmallBlock3",
+    "ResNet18Block1",
+    "ResNet18Block2",
+    "ResNet18Block3",
+    "ResNet34Block1",
+    "ResNet34Block2",
+    "ResNet34Block3",
+    "ResNet50Block1",
+    "ResNet50Block2",
+    "ResNet50Block3",
+    "WideRseNet50Block1",
+    "WideRseNet50Block2",
+    "WideRseNet50Block3",
+    "Vgg11BnBlock1",
+    "Vgg11BnBlock2",
+    "Vgg11BnBlock3",
+    "ConvNextTinyBlock1",
+    "ConvNextTinyBlock2",
+    "ConvNextTinyBlock3",
 )
 
 
@@ -1154,3 +1187,534 @@ class TorchVision(nn.Module):
         else:
             y = self.m(x)
         return y
+
+
+class MobileNetV2Block1(nn.Module):
+    """mobilenet_v2 block 1."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("mobilenet_v2")
+        modules = list(model.children())
+        modules = modules[0][:7]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class MobileNetV2Block2(nn.Module):
+    """mobilenet_v2 block 2."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("mobilenet_v2")
+        modules = list(model.children())
+        modules = modules[0][7:14]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class MobileNetV2Block3(nn.Module):
+    """mobilenet_v2 block 3."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("mobilenet_v2")
+        modules = list(model.children())
+        modules = modules[0][14:19]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class MobileNetV3SmallBlock1(nn.Module):
+    """mobilenet_v3_small block 1."""
+
+    # out channel 24
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("mobilenet_v3_small")
+        modules = list(model.children())
+        modules = modules[0][:4]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class MobileNetV3SmallBlock2(nn.Module):
+    """mobilenet_v3_small block 2."""
+
+    # out 48 channel
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("mobilenet_v3_small")
+        modules = list(model.children())
+        modules = modules[0][4:9]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class MobileNetV3SmallBlock3(nn.Module):
+    """mobilenet_v3_small block 3."""
+
+    # out 576 channel
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("mobilenet_v3_small")
+        modules = list(model.children())
+        modules = modules[0][9:]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class EfficientNetB0Block1(nn.Module):
+    """efficientnet_b0 block 1."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("efficientnet_b0")
+        modules = list(model.children())
+        modules = modules[0][:4]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class EfficientNetB0Block2(nn.Module):
+    """efficientnet_b0 block 2."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("efficientnet_b0")
+        modules = list(model.children())
+        modules = modules[0][4:6]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class EfficientNetB0Block3(nn.Module):
+    """efficientnet_b0 block 3."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("efficientnet_b0")
+        modules = list(model.children())
+        modules = modules[0][6:]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class EfficientNetB1Block1(nn.Module):
+    """efficientnet_b1 block 1."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("efficientnet_b1")
+        modules = list(model.children())
+        modules = modules[0][:4]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class EfficientNetB1Block2(nn.Module):
+    """efficientnet_b1 block 2."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("efficientnet_b1")
+        modules = list(model.children())
+        modules = modules[0][4:6]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class EfficientNetB1Block3(nn.Module):
+    """efficientnet_b1 block 3."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("efficientnet_b1")
+        modules = list(model.children())
+        modules = modules[0][6:]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class EfficientNetV2SmallBlock1(nn.Module):
+    """efficientnet_v2_s block 1."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("efficientnet_v2_s")
+        modules = list(model.children())
+        modules = modules[0][:4]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class EfficientNetV2SmallBlock2(nn.Module):
+    """efficientnet_v2_s block 2."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("efficientnet_v2_s")
+        modules = list(model.children())
+        modules = modules[0][4:6]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class EfficientNetV2SmallBlock3(nn.Module):
+    """efficientnet_v2_s block 3."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("efficientnet_v2_s")
+        modules = list(model.children())
+        modules = modules[0][6:]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class ResNet18Block1(nn.Module):
+    """Resnet18 block 1."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("resnet18")
+        modules = list(model.children())
+        modules = modules[0][:6]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class ResNet18Block2(nn.Module):
+    """Resnet18 block 2."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        TorchVision("resnet18")
+        modules = list(model.children())
+        modules = modules[0][6:7]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class ResNet18Block3(nn.Module):
+    """Resnet18 block 3."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("resnet18")
+        modules = list(model.children())
+        modules = modules[0][7:8]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class ResNet34Block1(nn.Module):
+    """Resnet34 block 1."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("resnet34")
+        modules = list(model.children())
+        modules = modules[0][:6]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class ResNet34Block2(nn.Module):
+    """Resnet34 block 2."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("resnet34")
+        modules = list(model.children())
+        modules = modules[0][6]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class ResNet34Block3(nn.Module):
+    """Resnet34 block 3."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("resnet34")
+        modules = list(model.children())
+        modules = modules[0][7]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class ResNet50Block1(nn.Module):
+    """Resnet50 block 1."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("resnet50")
+        modules = list(model.children())
+        modules = modules[0][:6]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class ResNet50Block2(nn.Module):
+    """Resnet50 block 2."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("resnet50")
+        modules = list(model.children())
+        modules = modules[0][6]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class ResNet50Block3(nn.Module):
+    """Resnet50 block 3."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("resnet50")
+        modules = list(model.children())
+        modules = modules[0][7]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class WideRseNet50Block1(nn.Module):
+    """wide_resnet50_2 block 1."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("wide_resnet50_2")
+        modules = list(model.children())
+        modules = modules[0][:6]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class WideRseNet50Block2(nn.Module):
+    """wide_resnet50_2 block 2."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("wide_resnet50_2")
+        modules = list(model.children())
+        modules = modules[0][6]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class WideRseNet50Block3(nn.Module):
+    """wide_resnet50_2 block 3."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("wide_resnet50_2")
+        modules = list(model.children())
+        modules = modules[0][7]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class Vgg11BnBlock1(nn.Module):
+    """vgg11_bn block 1."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("vgg11_bn")
+        modules = list(model.children())
+        modules = modules[0][:14]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class Vgg11BnBlock2(nn.Module):
+    """vgg11_bn block 2."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("vgg11_bn")
+        modules = list(model.children())
+        modules = modules[0][14:21]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class Vgg11BnBlock3(nn.Module):
+    """vgg11_bn block 3."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("vgg11_bn")
+        modules = list(model.children())
+        modules = modules[0][21:28]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class ConvNextTinyBlock1(nn.Module):
+    """convnext_tiny block 1."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("convnext_tiny")
+        modules = list(model.children())
+        modules = modules[0][:4]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class ConvNextTinyBlock2(nn.Module):
+    """convnext_tiny block 2."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("convnext_tiny")
+        modules = list(model.children())
+        modules = modules[0][4:6]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)
+
+
+class ConvNextTinyBlock3(nn.Module):
+    """convnext_tiny block 3."""
+
+    def __init__(self, *args):
+        """Load the model and weights from torchvision, and extract sublayers for the block."""
+        super().__init__()
+        model = TorchVision("convnext_tiny")
+        modules = list(model.children())
+        modules = modules[0][6:8]
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, x):
+        """Forward pass through the block."""
+        return self.model(x)

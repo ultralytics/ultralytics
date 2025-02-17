@@ -61,7 +61,7 @@ classifiers = [
 
 # Required dependencies ------------------------------------------------------------------------------------------------
 dependencies = [
-    "numpy>=1.23.0,<=2.1.1", # OpenVINO and TFLite errors on '--slow' CI Tests https://github.com/ultralytics/ultralytics/pull/18943
+    "numpy>=1.23.0,<=2.2.3", # OpenVINO and TFLite errors on '--slow' CI Tests https://github.com/ultralytics/ultralytics/pull/18943
     "matplotlib>=3.3.0",
     "opencv-python>=4.6.0",
     "pillow>=7.1.2",

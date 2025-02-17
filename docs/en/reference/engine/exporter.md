@@ -15,10 +15,6 @@ keywords: YOLOv8, export formats, ONNX, TensorRT, CoreML, machine learning model
 
 <br><br><hr><br>
 
-## ::: ultralytics.engine.exporter.IOSDetectModel
-
-<br><br><hr><br>
-
 ## ::: ultralytics.engine.exporter.NMSModel
 
 <br><br><hr><br>

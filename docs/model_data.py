@@ -109,7 +109,7 @@ data = {
         "arxiv": "https://arxiv.org/abs/2203.16250",
         "github": "https://github.com/PaddlePaddle/PaddleDetection/",
         "docs": "https://github.com/PaddlePaddle/PaddleDetection/blob/release/2.8.1/configs/ppyoloe/README.md",
-        "license": "Apache-2.0 license",
+        "license": "Apache-2.0",
         "performance": {
             "t": {"size": 640, "map": 39.9, "cpu": "", "t4": 2.84, "params": 4.85, "flops": 19.15},
             "s": {"size": 640, "map": 43.7, "cpu": "", "t4": 2.62, "params": 7.93, "flops": 17.36},
@@ -124,7 +124,7 @@ data = {
         "arxiv": "https://arxiv.org/abs/2211.15444v2",
         "github": "https://github.com/tinyvision/DAMO-YOLO",
         "docs": "https://github.com/tinyvision/DAMO-YOLO/blob/master/README.md",
-        "license": "Apache-2.0 license",
+        "license": "Apache-2.0",
         "performance": {
             "t": {"size": 640, "map": 42.0, "cpu": "", "t4": 2.32, "params": 8.5, "flops": 18.1},
             "s": {"size": 640, "map": 46.0, "cpu": "", "t4": 3.45, "params": 16.3, "flops": 37.8},
@@ -138,7 +138,7 @@ data = {
         "arxiv": "https://arxiv.org/abs/2107.08430",
         "github": "https://github.com/Megvii-BaseDetection/YOLOX",
         "docs": "https://yolox.readthedocs.io/en/latest/",
-        "license": "Apache-2.0 license",
+        "license": "Apache-2.0",
         "performance": {
             "nano": {"size": 416, "map": 25.8, "cpu": "", "t4": "", "params": 0.91, "flops": 1.08},
             "tiny": {"size": 416, "map": 32.8, "cpu": "", "t4": "", "params": 5.06, "flops": 6.45},
@@ -154,7 +154,7 @@ data = {
         "arxiv": "https://arxiv.org/abs/2304.08069",
         "github": "https://github.com/lyuwenyu/RT-DETR/tree/main/rtdetrv2_pytorch",
         "docs": "https://github.com/lyuwenyu/RT-DETR/tree/main/rtdetrv2_pytorch#readme",
-        "license": "Apache-2.0 license",
+        "license": "Apache-2.0",
         "performance": {
             "s": {"size": 640, "map": 48.1, "cpu": "", "t4": 5.03, "params": 20, "flops": 60},
             "m": {"size": 640, "map": 51.9, "cpu": "", "t4": 7.51, "params": 36, "flops": 100},
@@ -168,7 +168,7 @@ data = {
         "arxiv": "https://arxiv.org/abs/1911.09070",
         "github": "https://github.com/google/automl/tree/master/efficientdet",
         "docs": "https://github.com/google/automl/tree/master/efficientdet#readme",
-        "license": "Apache-2.0 license",
+        "license": "Apache-2.0",
         "performance": {
             "d0": {"size": 640, "map": 34.6, "cpu": 10.2, "t4": 3.92, "params": 3.9, "flops": 2.54},
             "d1": {"size": 640, "map": 40.5, "cpu": 13.5, "t4": 7.31, "params": 6.6, "flops": 6.10},
@@ -200,7 +200,7 @@ data = {
         "arxiv": "https://arxiv.org/abs/2410.13842",
         "github": "https://github.com/Peterande/D-FINE",
         "docs": "https://github.com/Peterande/D-FINE/blob/master/README.md",
-        "license": "Apache-2.0 license",
+        "license": "Apache-2.0",
         "performance": {
             "n": {"size": 640, "map": 42.8, "cpu": "", "t4": 2.28, "params": 4, "flops": 7},
             "s": {"size": 640, "map": 48.5, "cpu": "", "t4": 4.19, "params": 10, "flops": 25},
@@ -215,7 +215,7 @@ data = {
         "arxiv": "https://arxiv.org/abs/2401.17270",
         "github": "https://github.com/AILab-CVC/YOLO-World",
         "docs": "https://docs.ultralytics.com/models/yolo-world/",
-        "license": "GPL-3.0 license",
+        "license": "GPL-3.0",
         "performance": {
             "s": {"size": 640, "map": 46.1, "cpu": "", "t4": 3.46, "params": 12.7, "flops": 51.0},
             "m": {"size": 640, "map": 51.0, "cpu": "", "t4": 7.26, "params": 28.4, "flops": 110.5},
@@ -229,7 +229,7 @@ data = {
         "arxiv": "https://arxiv.org/abs/2212.07784",
         "github": "https://github.com/open-mmlab/mmdetection/tree/3.x/configs/rtmdet",
         "docs": "https://github.com/open-mmlab/mmdetection/tree/3.x/configs/rtmdet#readme",
-        "license": "Apache-2.0 license",
+        "license": "Apache-2.0",
         "performance": {
             "t": {"size": 640, "map": 41.1, "cpu": "", "t4": 2.54, "params": 4.8, "flops": 8.1},
             "s": {"size": 640, "map": 44.6, "cpu": "", "t4": 3.18, "params": 8.89, "flops": 14.8},
@@ -244,7 +244,7 @@ data = {
         "Arxiv": None,
         "github": "https://github.com/Deci-AI/super-gradients/blob/master/YOLONAS.md",
         "Documentation": "https://docs.ultralytics.com/models/yolo-nas/",
-        "license": "Apache-2.0 license",
+        "license": "Proprietary",
         "performance": {
             "s": {"size": 640, "map": 47.5, "cpu": "", "t4": 3.09, "params": 12.2, "flops": 32.8},
             "m": {"size": 640, "map": 51.6, "cpu": "", "t4": 6.07, "params": 31.9, "flops": 88.9},
@@ -281,7 +281,7 @@ data = {
         "arxiv": "https://arxiv.org/abs/2409.08475",
         "github": "https://github.com/clxia12/RT-DETRv3",
         "docs": "https://github.com/clxia12/RT-DETRv3/blob/main/README.md",
-        "license": "Apache-2.0 license",
+        "license": "Apache-2.0",
         "performance": {
             "s": {"size": 640, "map": 48.1, "cpu": "", "t4": 5.03, "params": 20, "flops": 60},
             "m": {"size": 640, "map": 49.9, "cpu": "", "t4": 7.51, "params": 36, "flops": 100},
@@ -295,7 +295,7 @@ data = {
         "arxiv": "https://arxiv.org/abs/2406.03459",
         "github": "https://github.com/Atten4Vis/LW-DETR",
         "docs": "https://github.com/Atten4Vis/LW-DETR/blob/main/README.md",
-        "license": "Apache-2.0 license",
+        "license": "Apache-2.0",
         "performance": {
             "t": {"size": 640, "map": 42.6, "cpu": "", "t4": 2.56, "params": 12.1, "flops": 11.2},
             "s": {"size": 640, "map": 48.0, "cpu": "", "t4": 3.72, "params": 14.6, "flops": 16.6},

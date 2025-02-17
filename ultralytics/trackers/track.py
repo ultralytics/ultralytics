@@ -66,10 +66,11 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
         >>> predictor = YourPredictorClass()
         >>> on_predict_postprocess_end(predictor, persist=True)
     """
-    path, im0s = predictor.batch[:2]
+    path = predictor.batch[0]
 
     is_obb = predictor.args.task == "obb"
     is_stream = predictor.dataset.mode == "stream"
+    im0s = [result.orig_img for result in predictor.results]
     for i in range(len(im0s)):
         tracker = predictor.trackers[i if is_stream else 0]
         vid_path = predictor.save_dir / Path(path[i]).name

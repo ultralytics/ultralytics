@@ -31,7 +31,7 @@ data = {
         },
     },
     "YOLOv9": {
-        "author": "Wang, Chien-Yao  and Liao, Hong-Yuan Mark",
+        "author": "Wang, Chien-Yao and Liao, Hong-Yuan Mark",
         "date": "2024-02-21",
         "arxiv": "https://arxiv.org/abs/2402.13616",
         "github": "https://github.com/WongKinYiu/yolov9",
@@ -223,7 +223,7 @@ data = {
         },
     },
     "YOLO-NAS": {
-        "author": "Aharon,  Shay and {Louis-Dupont} and {Ofri Masad} and Yurkova,  Kate and {Lotem Fridman} and {Lkdci} and Khvedchenya,  Eugene and Rubin,  Ran and Bagrov,  Natan and Tymchenko,  Borys and Keren,  Tomer and Zhilko,  Alexander and {Eran-Deci}",
+        "author": "Aharon, Shay and {Louis-Dupont} and {Ofri Masad} and Yurkova, Kate and {Lotem Fridman} and {Lkdci} and Khvedchenya, Eugene and Rubin, Ran and Bagrov, Natan and Tymchenko, Borys and Keren, Tomer and Zhilko, Alexander and {Eran-Deci}",
         "date": "2023-05-03",
         "Arxiv": None,
         "github": "https://github.com/Deci-AI/super-gradients/blob/master/YOLONAS.md",

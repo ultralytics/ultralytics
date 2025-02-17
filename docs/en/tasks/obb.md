@@ -142,6 +142,9 @@ Use a trained YOLO11n-obb model to run predictions on images.
 
         # Predict with the model
         results = model("https://ultralytics.com/images/boats.jpg")  # predict on an image
+
+        # Print OBB boxes
+        print(results[0].obb.xywhr)
         ```
 
     === "CLI"

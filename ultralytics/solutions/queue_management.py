@@ -63,9 +63,7 @@ class QueueManager(BaseSolution):
         self.extract_tracks(im0)  # Extract tracks
         plot_im = im0  # For plotting the results
         annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
-        annotator.draw_region(
-            reg_pts=self.region, color=self.rect_color, thickness=self.line_width * 2
-        )  # Draw region
+        annotator.draw_region(reg_pts=self.region, color=self.rect_color, thickness=self.line_width * 2)  # Draw region
 
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
             # Draw bounding box and counting region

@@ -21,7 +21,7 @@ from ultralytics.data.loaders import (
     autocast_list,
 )
 from ultralytics.data.utils import IMG_FORMATS, PIN_MEMORY, VID_FORMATS
-from ultralytics.utils import RANK, colorstr
+from ultralytics.utils import RANK, colorstr, handle_errors
 from ultralytics.utils.checks import check_file
 
 
@@ -32,6 +32,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
     Uses same syntax as vanilla DataLoader.
     """
 
+    @handle_errors
     def __init__(self, *args, **kwargs):
         """Dataloader that infinitely recycles workers, inherits from DataLoader."""
         super().__init__(*args, **kwargs)

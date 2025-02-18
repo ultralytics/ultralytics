@@ -2,8 +2,9 @@
 
 
 import cv2
-from ultralytics.utils import LOGGER
+
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
+from ultralytics.utils import LOGGER
 from ultralytics.utils.plotting import colors
 
 
@@ -38,7 +39,7 @@ class ObjectBlurrer(BaseSolution):
         super().__init__(**kwargs)
         blur_ratio = kwargs.get("blur_ratio", 0.5)
         if blur_ratio < 0.1:
-            LOGGER.warning(f"⚠️ blur ratio can not be less than 0.1, updating it to default value 0.5")
+            LOGGER.warning("⚠️ blur ratio can not be less than 0.1, updating it to default value 0.5")
             blur_ratio = 0.5
         self.blur_ratio = int(blur_ratio * 100)
 

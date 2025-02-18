@@ -29,7 +29,7 @@ import yaml
 
 from ultralytics import __version__
 
-from .errors import handle_errors as handle_errors
+from .errors import handle_errors as handle_errors  # allow imports from ultralytics.utils
 
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv("RANK", -1))

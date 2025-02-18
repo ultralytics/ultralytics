@@ -599,7 +599,7 @@ class AutoBackend(nn.Module):
                     results[userdata] = request.results
 
                 # Create AsyncInferQueue, set the callback and start asynchronous inference for each input image
-                async_queue = self.ov.runtime.AsyncInferQueue(self.ov_compiled_model)
+                async_queue = self.ov.AsyncInferQueue(self.ov_compiled_model)
                 async_queue.set_callback(callback)
                 for i in range(n):
                     # Start async inference with userdata=i to specify the position in results list

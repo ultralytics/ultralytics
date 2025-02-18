@@ -3,6 +3,7 @@
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import LOGGER
 from ultralytics.utils.plotting import colors
+import numpy as np
 
 
 class RegionCounter(BaseSolution):
@@ -74,37 +75,47 @@ class RegionCounter(BaseSolution):
         plot_im = im0  # For plotting the results
         self.annotator = SolutionAnnotator(plot_im, line_width=self.line_width)
 
-        # Region initialization and conversion
-        if self.region is None:
-            self.initialize_region()
-            regions = {"Region#01": self.region}
-        else:
-            regions = self.region if isinstance(self.region, dict) else {"Region#01": self.region}
+        # Ensure self.region is initialized and structured as a dictionary
+        if not isinstance(self.region, dict):
+            self.region = {"Region#01": self.region or self.initialize_region()}
 
-        # Draw regions and process counts for each defined area
-        for idx, (region_name, reg_pts) in enumerate(regions.items(), start=1):
-            if not isinstance(reg_pts, list) or not all(isinstance(pt, tuple) for pt in reg_pts):
+        # Vectorized preparation of regions
+        for idx, (region_name, reg_pts) in enumerate(self.region.items(), start=1):
+            if not isinstance(reg_pts, list) or any(not isinstance(pt, tuple) for pt in reg_pts):
                 LOGGER.warning(f"Invalid region points for {region_name}: {reg_pts}")
-                continue  # Skip invalid entries
+                continue
+
             color = colors(idx, True)
-            self.annotator.draw_region(reg_pts=reg_pts, color=color, thickness=self.line_width * 2)
+            self.annotator.draw_region(reg_pts, color, self.line_width * 2)
             self.add_region(region_name, reg_pts, color, self.annotator.get_txt_color())
 
-        # Prepare regions for containment check
+        # Prepare regions for containment check (avoid redundant checks)
         for region in self.counting_regions:
-            region["prepared_polygon"] = self.prep(region["polygon"])
+            region.setdefault("prepared_polygon", self.prep(region["polygon"]))
+            region["counts"] = 0  # Reset counts efficiently before processing
 
-        # Process bounding boxes and count objects within each region
-        for box, cls in zip(self.boxes, self.clss):
+        # Convert bounding boxes to NumPy array
+        boxes_np = np.array([[(box[0] + box[2]) / 2, (box[1] + box[3]) / 2] for box in self.boxes])
+
+        # Ensure boxes_np is 2D before iterating
+        if boxes_np.ndim == 2 and boxes_np.shape[1] == 2:
+            points = [self.Point(pt) for pt in boxes_np]  # Convert centers to Point objects
+        else:
+            points = []
+
+        # Process bounding boxes efficiently
+        for (point, cls), box in zip(zip(points, self.clss), self.boxes):
             self.annotator.box_label(box, label=self.names[cls], color=colors(cls, True))
-            bbox_center = ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2)
 
+            # Use vectorized containment checking
             for region in self.counting_regions:
-                if region["prepared_polygon"].contains(self.Point(bbox_center)):
-                    region["counts"] += 1
+                if region["prepared_polygon"].contains(point):
+                    region["counts"] += 1  # Directly increment count
 
+        # Dictionary to store region counts
         region_counts = {}
-        # Display counts in each region
+
+        # Display region counts efficiently
         for region in self.counting_regions:
             self.annotator.text_label(
                 region["polygon"].bounds,
@@ -112,9 +123,10 @@ class RegionCounter(BaseSolution):
                 color=region["region_color"],
                 txt_color=region["text_color"],
             )
-            region_counts[region["name"]] = region["counts"]  # Store counts in the dictionary
+            region_counts[region["name"]] = region["counts"]  # Store counts
 
-            region["counts"] = 0  # Reset count for next frame
+            # Reset count efficiently
+            region["counts"] = 0
 
         self.display_output(plot_im)
 

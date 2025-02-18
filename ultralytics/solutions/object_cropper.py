@@ -34,14 +34,14 @@ class ObjectCropper(BaseSolution):
         images.
 
         Attributes:
-            crop_directory (str): Path to the directory for saving cropped object images.
+            crop_dir (str): Path to the directory for saving cropped object images.
             crop_idx (int): Counter for the number of cropped objects, initialized to zero.
         """
         super().__init__(**kwargs)
 
-        self.crop_directory = "cropped-detections"  # Directory for storing cropped detections
-        if not os.path.exists(self.crop_directory):
-            os.mkdir(self.crop_directory)  # Create directory if it does not exist
+        self.crop_dir = kwargs.get("crop_dir", "cropped-detections")  # Directory for storing cropped detections
+        if not os.path.exists(self.crop_dir):
+            os.mkdir(self.crop_dir)  # Create directory if it does not exist
 
         self.crop_idx = 0  # Initialize counter for total cropped objects
         self.iou = self.CFG["iou"]
@@ -77,7 +77,7 @@ class ObjectCropper(BaseSolution):
         for box, cls in zip(boxes, clss):
             self.crop_idx += 1
             crop_obj = plot_im[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]  # Crop the detected object
-            cv2.imwrite(os.path.join(self.crop_directory, f"crop-{self.crop_idx}.jpg"), crop_obj)  # Save cropped image
+            cv2.imwrite(os.path.join(self.crop_dir, f"crop-{self.crop_idx}.jpg"), crop_obj)  # Save cropped image
             annotator.box_label(box, label=self.names[cls], color=colors(cls, True))  # Bounding box plot
 
         self.display_output(plot_im)  # display output with base class function

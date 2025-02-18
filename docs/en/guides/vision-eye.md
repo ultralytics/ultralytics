@@ -33,7 +33,7 @@ visioneye = solutions.VisionEye(
     show=True,  # display the output
     model="yolo11n.pt",  # use any model that Ultralytics support, i.e, YOLOv10
     classes=[0, 2],  # generate visioneye view for specific classes
-    vision_point=(50, 50)   # the point, where vision will view objects and draw tracks
+    vision_point=(50, 50),  # the point, where vision will view objects and draw tracks
 )
 
 # Process video
@@ -44,7 +44,9 @@ while cap.isOpened():
         print("Video frame is empty or video processing has been successfully completed.")
         break
 
-    results = visioneye.mapping(im0, )
+    results = visioneye.mapping(
+        im0,
+    )
 
     print(results)  # Access the output
 

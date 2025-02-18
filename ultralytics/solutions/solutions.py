@@ -190,7 +190,7 @@ class BaseSolution:
                 return
 
     def process(self, *args, **kwargs):
-        """This method should be implemented by each subclass."""
+        """Process method should be implemented by each Solution subclass."""
 
     def __call__(self, *args, **kwargs):
         """Allow instances to be called like a function with flexible arguments."""

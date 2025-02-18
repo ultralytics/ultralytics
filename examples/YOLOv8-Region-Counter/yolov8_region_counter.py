@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import argparse
 from collections import defaultdict
@@ -91,7 +91,7 @@ def mouse_callback(event, x, y, flags, param):
 
 
 def run(
-    weights="yolov8n.pt",
+    weights="yolo11n.pt",
     source=None,
     device="cpu",
     view_img=False,
@@ -185,7 +185,7 @@ def run(
             region_color = region["region_color"]
             region_text_color = region["text_color"]
 
-            polygon_coords = np.array(region["polygon"].exterior.coords, dtype=np.int32)
+            polygon_coordinates = np.array(region["polygon"].exterior.coords, dtype=np.int32)
             centroid_x, centroid_y = int(region["polygon"].centroid.x), int(region["polygon"].centroid.y)
 
             text_size, _ = cv2.getTextSize(
@@ -203,7 +203,7 @@ def run(
             cv2.putText(
                 frame, region_label, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, region_text_color, line_thickness
             )
-            cv2.polylines(frame, [polygon_coords], isClosed=True, color=region_color, thickness=region_thickness)
+            cv2.polylines(frame, [polygon_coordinates], isClosed=True, color=region_color, thickness=region_thickness)
 
         if view_img:
             if vid_frame_count == 1:
@@ -229,7 +229,7 @@ def run(
 def parse_opt():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--weights", type=str, default="yolov8n.pt", help="initial weights path")
+    parser.add_argument("--weights", type=str, default="yolo11n.pt", help="initial weights path")
     parser.add_argument("--device", default="", help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
     parser.add_argument("--source", type=str, required=True, help="video file path")
     parser.add_argument("--view-img", action="store_true", help="show results")

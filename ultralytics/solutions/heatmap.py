@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import cv2
 import numpy as np
@@ -26,7 +26,7 @@ class Heatmap(ObjectCounter):
 
     Examples:
         >>> from ultralytics.solutions import Heatmap
-        >>> heatmap = Heatmap(model="yolov8n.pt", colormap=cv2.COLORMAP_JET)
+        >>> heatmap = Heatmap(model="yolo11n.pt", colormap=cv2.COLORMAP_JET)
         >>> frame = cv2.imread("frame.jpg")
         >>> processed_frame = heatmap.generate_heatmap(frame)
     """

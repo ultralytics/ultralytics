@@ -3,10 +3,13 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from scipy.optimize import linear_sum_assignment
+from autoimport import lazy
 
 from ultralytics.utils.metrics import bbox_iou
 from ultralytics.utils.ops import xywh2xyxy, xyxy2xywh
+
+with lazy():
+    import scipy
 
 
 class HungarianMatcher(nn.Module):
@@ -109,7 +112,7 @@ class HungarianMatcher(nn.Module):
         C[C.isnan() | C.isinf()] = 0.0
 
         C = C.view(bs, nq, -1).cpu()
-        indices = [linear_sum_assignment(c[i]) for i, c in enumerate(C.split(gt_groups, -1))]
+        indices = [scipy.optimize.linear_sum_assignment(c[i]) for i, c in enumerate(C.split(gt_groups, -1))]
         gt_groups = torch.as_tensor([0, *gt_groups[:-1]]).cumsum_(0)  # (idx for queries, idx for gt)
         return [
             (torch.tensor(i, dtype=torch.long), torch.tensor(j, dtype=torch.long) + gt_groups[k])

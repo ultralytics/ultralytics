@@ -4,6 +4,7 @@ name: 🚀 Feature Request
 description: Suggest an Ultralytics YOLO idea
 # title: " "
 labels: [enhancement]
+type: "feature"
 body:
   - type: markdown
     attributes:

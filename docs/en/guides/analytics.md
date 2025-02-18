@@ -100,12 +100,12 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
 Here's a table with the `Analytics` arguments:
 
-| Name             | Type   | Default | Description                                          |
-| ---------------- | ------ | ------- | ---------------------------------------------------- |
-| `analytics_type` | `str`  | `line`  | Type of graph i.e "line", "bar", "area", "pie"       |
-| `model`          | `str`  | `None`  | Path to Ultralytics YOLO Model File                  |
-| `line_width`     | `int`  | `2`     | Line thickness for bounding boxes.                   |
-| `show`           | `bool` | `False` | Flag to control whether to display the video stream. |
+| Name             | Type   | Default  | Description                                          |
+| ---------------- | ------ | -------- | ---------------------------------------------------- |
+| `analytics_type` | `str`  | `'line'` | Type of graph i.e "line", "bar", "area", "pie"       |
+| `model`          | `str`  | `None`   | Path to Ultralytics YOLO Model File                  |
+| `line_width`     | `int`  | `2`      | Line thickness for bounding boxes.                   |
+| `show`           | `bool` | `False`  | Flag to control whether to display the video stream. |
 
 ### Arguments `model.track`
 

@@ -1,9 +1,9 @@
 | Argument     | Type        | Default        | Description                                                                                    |
 | ------------ | ----------- | -------------- | ---------------------------------------------------------------------------------------------- |
-| `data`       | `str`       | required       | Path to directory containing target images/videos for annotation or segmentation.              |
-| `det_model`  | `str`       | `"yolo11x.pt"` | YOLO detection model path for initial object detection.                                        |
-| `sam_model`  | `str`       | `"sam2_b.pt"`  | SAM2 model path for segmentation (supports t/s/b/l variants and SAM2.1) and mobile_sam models. |
-| `device`     | `str`       | `""`           | Computation device (e.g., 'cuda:0', 'cpu', or '' for automatic device detection).              |
+| `data`       | `str`       | required       | Path to directory containing target images for annotation or segmentation.                     |
+| `det_model`  | `str`       | `'yolo11x.pt'` | YOLO detection model path for initial object detection.                                        |
+| `sam_model`  | `str`       | `'sam2_b.pt'`  | SAM2 model path for segmentation (supports t/s/b/l variants and SAM2.1) and mobile_sam models. |
+| `device`     | `str`       | `''`           | Computation device (e.g., 'cuda:0', 'cpu', or '' for automatic device detection).              |
 | `conf`       | `float`     | `0.25`         | YOLO detection confidence threshold for filtering weak detections.                             |
 | `iou`        | `float`     | `0.45`         | IoU threshold for Non-Maximum Suppression to filter overlapping boxes.                         |
 | `imgsz`      | `int`       | `640`          | Input size for resizing images (must be multiple of 32).                                       |

@@ -45,7 +45,7 @@ from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
 from ultralytics.data.augment import LetterBox, classify_transforms
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops
+from ultralytics.utils import DEFAULT_CFG, IS_COLAB, IS_KAGGLE, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops
 from ultralytics.utils.checks import check_imgsz, check_imshow
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
@@ -393,12 +393,21 @@ class BasePredictor:
     def show(self, p=""):
         """Display an image in a window using the OpenCV imshow function."""
         im = self.plotted_img
-        if platform.system() == "Linux" and p not in self.windows:
-            self.windows.append(p)
-            cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
-            cv2.resizeWindow(p, im.shape[1], im.shape[0])  # (width, height)
-        cv2.imshow(p, im)
-        cv2.waitKey(300 if self.dataset.mode == "image" else 1)  # 1 millisecond
+        if IS_COLAB or IS_KAGGLE:
+            cv2.imwrite("temp.png", im)
+            from ultralytics.data.utils import display_media_in_colab
+
+            try:
+                display_media_in_colab("temp.png")
+            except Exception as e:
+                print(f"Error displaying image: {e}")
+        else:
+            if platform.system() == "Linux" and p not in self.windows:
+                self.windows.append(p)
+                cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
+                cv2.resizeWindow(p, im.shape[1], im.shape[0])  # (width, height)
+            cv2.imshow(p, im)
+            cv2.waitKey(300 if self.dataset.mode == "image" else 1)  # 1 millisecond
 
     def run_callbacks(self, event: str):
         """Runs all registered callbacks for a specific event."""

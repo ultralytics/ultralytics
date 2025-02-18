@@ -69,6 +69,53 @@ def exif_size(img: Image.Image):
     return s
 
 
+def display_media_in_colab(source=None):
+    """
+    Displays an image or video file in Google Colab. If no source is provided, a default image is downloaded from
+    Ultralytics assets and displayed.
+
+    Args:
+        source (str, optional): Path to the local image or video file, or a URL to the media file.
+
+    Supported file formats:
+        - Image: .png, .jpg, .jpeg, .bmp, .gif
+        - Video: .mp4, .avi, .mov, .mkv, .webm
+
+    Example:
+        ```python
+        from ultralytics.data.utils import display_media_in_colab
+
+        display_media_in_colab("/path/to/image_or_video.mp4")
+        display_media_in_colab()
+        ```
+    """
+    LOGGER.warning("⚠️ Display initialization in progress. This may take a few seconds...")
+
+    from base64 import b64encode
+
+    from IPython.display import HTML, display
+
+    if source is None:
+        # download source from ultralytics assets
+        safe_download("https://github.com/ultralytics/yolov5/releases/download/v1.0/bus.jpg")
+        source = "/content/bus.jpg"
+
+    # Handle image files
+    if source.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif")):
+        img = Image.open(source)
+        display(img)
+
+    # Handle video files
+    elif source.lower().endswith((".mp4", ".avi", ".mov", ".mkv", ".webm")):
+        with open(source, "rb") as video_file:
+            video_base64 = b64encode(video_file.read()).decode()
+        video_tag = f"""<video width="640" height="480" controls>
+        <source src="data:video/mp4;base64,{video_base64}" type="video/mp4"></video>"""
+        display(HTML(video_tag))
+    else:
+        LOGGER.error("❌ Unsupported file format. Please provide a valid image or video file.")
+
+
 def verify_image(args):
     """Verify one image."""
     (im_file, cls), prefix = args
@@ -185,8 +232,12 @@ def visualize_image_annotations(image_path, txt_path, label_map):
         label_map (dict): A dictionary that maps class IDs (integers) to class labels (strings).
 
     Example:
-        >>> label_map = {0: "cat", 1: "dog", 2: "bird"}  # It should include all annotated classes details
-        >>> visualize_image_annotations("path/to/image.jpg", "path/to/annotations.txt", label_map)
+        ```python
+        from ultralytics.data.utils import visualize_image_annotations
+
+        label_map = {0: "cat", 1: "dog", 2: "bird"}  # It should include all annotated classes details
+        visualize_image_annotations("path/to/image.jpg", "path/to/annotations.txt", label_map)
+        ```
     """
     import matplotlib.pyplot as plt
 

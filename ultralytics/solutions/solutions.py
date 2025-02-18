@@ -196,6 +196,7 @@ class BaseSolution:
         """Allow instances to be called like a function."""
         return self.process(im0, frame_number)  # Call the subclass-specific process method
 
+
 class SolutionAnnotator(Annotator):
     """
     A specialized annotator class for visualizing and analyzing computer vision tasks.

@@ -218,7 +218,9 @@ class ParkingManagement(BaseSolution):
         Examples:
             >>> parking_manager = ParkingManagement(json_file="parking_regions.json")
             >>> image = cv2.imread("parking_lot.jpg")
-            >>> parking_manager.process(image,)
+            >>> parking_manager.process(
+            ...     image,
+            ... )
         """
         self.extract_tracks(im0)  # extract tracks from im0
         plot_im = im0  # For plotting the results

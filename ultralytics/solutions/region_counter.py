@@ -38,6 +38,7 @@ class RegionCounter(BaseSolution):
             "region_color": (255, 255, 255),
             "text_color": (0, 0, 0),
         }
+        self.region_counts = {}
         self.counting_regions = []
 
     def add_region(self, name, polygon_points, region_color, text_color):
@@ -79,41 +80,31 @@ class RegionCounter(BaseSolution):
         if not isinstance(self.region, dict):
             self.region = {"Region#01": self.region or self.initialize_region()}
 
-        # Vectorized preparation of regions
+        # Draw only valid regions
         for idx, (region_name, reg_pts) in enumerate(self.region.items(), start=1):
-            if not isinstance(reg_pts, list) or any(not isinstance(pt, tuple) for pt in reg_pts):
-                LOGGER.warning(f"Invalid region points for {region_name}: {reg_pts}")
-                continue
-
             color = colors(idx, True)
             self.annotator.draw_region(reg_pts, color, self.line_width * 2)
             self.add_region(region_name, reg_pts, color, self.annotator.get_txt_color())
 
-        # Prepare regions for containment check (avoid redundant checks)
+        # Prepare regions for containment check (only process valid ones)
         for region in self.counting_regions:
-            region.setdefault("prepared_polygon", self.prep(region["polygon"]))
-            region["counts"] = 0  # Reset counts efficiently before processing
+            if "prepared_polygon" not in region:
+                region["prepared_polygon"] = self.prep(region["polygon"])
 
         # Convert bounding boxes to NumPy array
-        boxes_np = np.array([[(box[0] + box[2]) / 2, (box[1] + box[3]) / 2] for box in self.boxes])
+        boxes_np = np.array([((box[0] + box[2]) / 2, (box[1] + box[3]) / 2) for box in self.boxes],
+                            dtype=np.float32)
+        points = [self.Point(pt) for pt in boxes_np]  # Convert centers to Point objects
 
-        # Ensure boxes_np is 2D before iterating
-        if boxes_np.ndim == 2 and boxes_np.shape[1] == 2:
-            points = [self.Point(pt) for pt in boxes_np]  # Convert centers to Point objects
-        else:
-            points = []
+        # Vectorized processing for bounding boxes & containment checks
+        if points:
+            for (point, cls), box in zip(zip(points, self.clss), self.boxes):
+                self.annotator.box_label(box, label=self.names[cls], color=colors(cls))
 
-        # Process bounding boxes efficiently
-        for (point, cls), box in zip(zip(points, self.clss), self.boxes):
-            self.annotator.box_label(box, label=self.names[cls], color=colors(cls, True))
-
-            # Use vectorized containment checking
-            for region in self.counting_regions:
-                if region["prepared_polygon"].contains(point):
-                    region["counts"] += 1  # Directly increment count
-
-        # Dictionary to store region counts
-        region_counts = {}
+                for region in self.counting_regions:    # Efficient containment check using precomputed polygons
+                    if region["prepared_polygon"].contains(point):
+                        region["counts"] += 1
+                        self.region_counts[region["name"]] = region["counts"]
 
         # Display region counts efficiently
         for region in self.counting_regions:
@@ -123,12 +114,9 @@ class RegionCounter(BaseSolution):
                 color=region["region_color"],
                 txt_color=region["text_color"],
             )
-            region_counts[region["name"]] = region["counts"]  # Store counts
-
-            # Reset count efficiently
-            region["counts"] = 0
+            region["counts"] = 0  # Reset for next frame
 
         self.display_output(plot_im)
 
         # Return a SolutionResults
-        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), region_counts=region_counts)
+        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), region_counts=self.region_counts)

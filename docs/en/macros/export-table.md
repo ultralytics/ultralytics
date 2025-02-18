@@ -1,4 +1,5 @@
 {%set tip1 = ':material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }' %}
+{%set tip2 = ':material-information-outline:{ title="conf, iou are also available when nms=True" }' %}
 
 | Format                                            | `format` Argument | Model                                           | Metadata | Arguments                                                                                     |
 | ------------------------------------------------- | ----------------- | ----------------------------------------------- | -------- | --------------------------------------------------------------------------------------------- |
@@ -7,7 +8,7 @@
 | [ONNX](../integrations/onnx.md)                   | `onnx`            | `{{ model_name or "yolo11n" }}.onnx`            | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `nms`{{ tip1 }}, `batch`                     |
 | [OpenVINO](../integrations/openvino.md)           | `openvino`        | `{{ model_name or "yolo11n" }}_openvino_model/` | ✅       | `imgsz`, `half`, `dynamic`, `int8`, `nms`{{ tip1 }}, `batch`, `data`                          |
 | [TensorRT](../integrations/tensorrt.md)           | `engine`          | `{{ model_name or "yolo11n" }}.engine`          | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `nms`{{ tip1 }}, `batch`, `data` |
-| [CoreML](../integrations/coreml.md)               | `coreml`          | `{{ model_name or "yolo11n" }}.mlpackage`       | ✅       | `imgsz`, `half`, `int8`, `nms`{{ tip1 }}, `batch`                                             |
+| [CoreML](../integrations/coreml.md)               | `coreml`          | `{{ model_name or "yolo11n" }}.mlpackage`       | ✅       | `imgsz`, `half`, `int8`, `nms`{{ tip2 }}, `batch`                                             |
 | [TF SavedModel](../integrations/tf-savedmodel.md) | `saved_model`     | `{{ model_name or "yolo11n" }}_saved_model/`    | ✅       | `imgsz`, `keras`, `int8`, `nms`{{ tip1 }}, `batch`                                            |
 | [TF GraphDef](../integrations/tf-graphdef.md)     | `pb`              | `{{ model_name or "yolo11n" }}.pb`              | ❌       | `imgsz`, `batch`                                                                              |
 | [TF Lite](../integrations/tflite.md)              | `tflite`          | `{{ model_name or "yolo11n" }}.tflite`          | ✅       | `imgsz`, `half`, `int8`, `nms`{{ tip1 }}, `batch`, `data`                                     |

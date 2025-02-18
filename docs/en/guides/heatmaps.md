@@ -90,7 +90,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
                 print("Video frame is empty or processing is complete.")
                 break
 
-            results = heatmap.generate_heatmap(im0)
+            results = heatmap(im0)
 
             # print(results)    # Access the output
 
@@ -169,11 +169,7 @@ while cap.isOpened():
     success, im0 = cap.read()
     if not success:
         break
-    results = heatmap.generate_heatmap(im0)
-    cv2.imshow("Heatmap", results.plot_im)
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
-
+    results = heatmap(im0)
 cap.release()
 cv2.destroyAllWindows()
 ```
@@ -200,11 +196,7 @@ while cap.isOpened():
     success, im0 = cap.read()
     if not success:
         break
-    results = heatmap.generate_heatmap(im0)
-    cv2.imshow("Heatmap", results.plot_im)
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
-
+    results = heatmap(im0)
 cap.release()
 cv2.destroyAllWindows()
 ```

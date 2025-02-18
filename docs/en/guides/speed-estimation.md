@@ -74,7 +74,7 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
         # speed region points
         speed_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
-        speed = solutions.SpeedEstimator(
+        speedestimator = solutions.SpeedEstimator(
             show=True,  # display the output
             model="yolo11n.pt",  # path to the YOLO11 model file.
             region=speed_region,  # pass region points
@@ -90,7 +90,7 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
                 print("Video frame is empty or processing is complete.")
                 break
 
-            results = speed.estimate_speed(im0)
+            results = speedestimator(im0)
 
             # print(results)    # Access the output
 
@@ -136,7 +136,7 @@ w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FR
 video_writer = cv2.VideoWriter("speed_estimation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
 # Initialize SpeedEstimator
-speed_obj = solutions.SpeedEstimator(
+speedestimator = solutions.SpeedEstimator(
     region=[(0, 360), (1280, 360)],
     model="yolo11n.pt",
     show=True,
@@ -146,7 +146,7 @@ while cap.isOpened():
     success, im0 = cap.read()
     if not success:
         break
-    results = speed_obj.estimate_speed(im0)
+    results = speedestimator(im0)
     video_writer.write(results.plot_im)
 
 cap.release()

@@ -58,7 +58,7 @@ w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FR
 video_writer = cv2.VideoWriter("region_counting.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
 # Init RegionCounter
-region = solutions.RegionCounter(
+regioncounter = solutions.RegionCounter(
     show=True,  # display the frame
     region=region_points,  # pass region points
     model="yolo11n.pt",  # model for counting in regions i.e yolo11s.pt
@@ -72,7 +72,7 @@ while cap.isOpened():
         print("Video frame is empty or processing is complete.")
         break
 
-    results = region.count(im0)
+    results = regioncounter(im0)
 
     # print(results)    # Access the output
 

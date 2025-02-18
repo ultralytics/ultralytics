@@ -81,7 +81,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
                 print("Video frame is empty or processing is complete.")
                 break
 
-            results = gym.monitor(im0)
+            results = gym(im0)
 
             # print(results)    # Access the output
 
@@ -204,7 +204,7 @@ while cap.isOpened():
     if not success:
         print("Video frame is empty or processing is complete.")
         break
-    results = gym.monitor(im0)
+    results = gym(im0)
     video_writer.write(results.plot_im)
 
 cv2.destroyAllWindows()

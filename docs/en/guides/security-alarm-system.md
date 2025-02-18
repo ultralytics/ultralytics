@@ -50,13 +50,13 @@ password = "---- ---- ---- ----"  # 16-digits password generated via: https://my
 to_email = "xyz@gmail.com"  # the receiver email address
 
 # Init SecurityAlarm
-security = solutions.SecurityAlarm(
+securityalarm = solutions.SecurityAlarm(
     show=True,  # display the output
     model="yolo11n.pt",  # i.e. yolo11s.pt, yolo11m.pt
     records=1,  # Total detections count to send an email
 )
 
-security.authenticate(from_email, password, to_email)  # Authenticate the email server
+securityalarm.authenticate(from_email, password, to_email)  # Authenticate the email server
 
 # Process video
 while cap.isOpened():
@@ -66,7 +66,7 @@ while cap.isOpened():
         print("Video frame is empty or video processing has been successfully completed.")
         break
 
-    results = security.monitor(im0)
+    results = securityalarm(im0)
 
     # print(results)    # Access the output
 

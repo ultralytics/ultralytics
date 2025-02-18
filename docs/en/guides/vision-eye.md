@@ -44,9 +44,7 @@ while cap.isOpened():
         print("Video frame is empty or video processing has been successfully completed.")
         break
 
-    results = visioneye.mapping(
-        im0,
-    )
+    results = visioneye(im0)
 
     print(results)  # Access the output
 
@@ -111,7 +109,7 @@ while cap.isOpened():
         print("Video frame is empty or video processing has been successfully completed.")
         break
 
-    results = visioneye.mapping(im0)
+    results = visioneye(im0)
 
     print(results)  # Access the output
 

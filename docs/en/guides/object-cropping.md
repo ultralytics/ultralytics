@@ -61,7 +61,7 @@ while cap.isOpened():
         print("Video frame is empty or processing is complete.")
         break
 
-    results = cropper.crop(im0)
+    results = cropper(im0)
 
     # print(results)    # Access the output
 

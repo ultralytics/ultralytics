@@ -63,7 +63,7 @@ while cap.isOpened():
         print("Video frame is empty or video processing has been successfully completed.")
         break
 
-    results = isegment.segment(im0)
+    results = isegment(im0)
 
     # print(results)    # Access the output
 
@@ -125,7 +125,7 @@ while cap.isOpened():
     if not success:
         print("Video frame is empty or processing is complete.")
         break
-    results = isegment.segment(im0)
+    results = isegment(im0)
     video_writer.write(results.plot_im)
 
 cap.release()

@@ -86,7 +86,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
                 print("Video frame is empty or processing is complete.")
                 break
 
-            results = counter.count(im0)
+            results = counter(im0)
 
             # print(results)    # Access the output
 
@@ -148,7 +148,7 @@ def count_objects_in_region(video_path, output_video_path, model_path):
         if not success:
             print("Video frame is empty or processing is complete.")
             break
-        results = counter.count(im0)
+        results = counter(im0)
         video_writer.write(results.plot_im)
 
     cap.release()
@@ -196,7 +196,7 @@ def count_specific_classes(video_path, output_video_path, model_path, classes_to
         if not success:
             print("Video frame is empty or processing is complete.")
             break
-        results = counter.count(im0)
+        results = counter(im0)
         video_writer.write(results.plot_im)
 
     cap.release()

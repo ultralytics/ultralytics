@@ -67,7 +67,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
         # queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]    # polygon points
 
         # Init QueueManager
-        queue = solutions.QueueManager(
+        queuemanager = solutions.QueueManager(
             show=True,  # display the output
             model="yolo11n.pt",  # path to the YOLO11 model file
             region=queue_region,  # pass queue region points
@@ -79,7 +79,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
             if not success:
                 print("Video frame is empty or processing is complete.")
                 break
-            results = queue.process_queue(im0)
+            results = queuemanager(im0)
 
             # print(results)    # Access the output
 
@@ -128,7 +128,7 @@ from ultralytics import solutions
 cap = cv2.VideoCapture("path/to/video.mp4")
 queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
-queue = solutions.QueueManager(
+queuemanager = solutions.QueueManager(
     model="yolo11n.pt",
     region=queue_region,
     line_width=3,
@@ -138,7 +138,7 @@ queue = solutions.QueueManager(
 while cap.isOpened():
     success, im0 = cap.read()
     if success:
-        results = queue.process_queue(im0)
+        results = queuemanager(im0)
 
 cap.release()
 cv2.destroyAllWindows()

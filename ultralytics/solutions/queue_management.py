@@ -62,14 +62,14 @@ class QueueManager(BaseSolution):
         self.counts = 0  # Reset counts every frame
         self.extract_tracks(im0)  # Extract tracks
         plot_im = im0  # For plotting the results
-        self.annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
-        self.annotator.draw_region(
+        annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
+        annotator.draw_region(
             reg_pts=self.region, color=self.rect_color, thickness=self.line_width * 2
         )  # Draw region
 
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
             # Draw bounding box and counting region
-            self.annotator.box_label(box, label=self.names[cls], color=colors(track_id, True))
+            annotator.box_label(box, label=self.names[cls], color=colors(track_id, True))
             self.store_tracking_history(track_id, box)  # Store track history
 
             # Cache frequently accessed attributes
@@ -83,7 +83,7 @@ class QueueManager(BaseSolution):
                 self.counts += 1
 
         # Display queue counts
-        self.annotator.queue_counts_display(
+        annotator.queue_counts_display(
             f"Queue Counts : {str(self.counts)}",
             points=self.region,
             region_color=self.rect_color,

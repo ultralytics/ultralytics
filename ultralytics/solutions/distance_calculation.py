@@ -96,12 +96,12 @@ class DistanceCalculation(BaseSolution):
         """
         self.extract_tracks(im0)  # Extract tracks
         plot_im = im0  # For plotting the results
-        self.annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
+        annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
 
         pixels_distance = 0
         # Iterate over bounding boxes, track ids and classes index
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
-            self.annotator.box_label(box, color=colors(int(cls), True), label=self.names[int(cls)])
+            annotator.box_label(box, color=colors(int(cls), True), label=self.names[int(cls)])
 
             if len(self.selected_boxes) == 2:
                 for trk_id in self.selected_boxes.keys():
@@ -117,7 +117,7 @@ class DistanceCalculation(BaseSolution):
             pixels_distance = math.sqrt(
                 (self.centroids[0][0] - self.centroids[1][0]) ** 2 + (self.centroids[0][1] - self.centroids[1][1]) ** 2
             )
-            self.annotator.plot_distance_and_line(pixels_distance, self.centroids)
+            annotator.plot_distance_and_line(pixels_distance, self.centroids)
 
         self.centroids = []
 

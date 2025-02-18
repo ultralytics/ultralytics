@@ -128,12 +128,12 @@ class SecurityAlarm(BaseSolution):
         """
         self.extract_tracks(im0)  # Extract tracks
         plot_im = im0  # For plotting the results
-        self.annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
+        annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
 
         # Iterate over bounding boxes, track ids and classes index
         for box, cls in zip(self.boxes, self.clss):
             # Draw bounding box
-            self.annotator.box_label(box, label=self.names[cls], color=colors(cls, True))
+            annotator.box_label(box, label=self.names[cls], color=colors(cls, True))
 
         total_det = len(self.clss)
         if total_det > self.records and not self.email_sent:  # Only send email If not sent before

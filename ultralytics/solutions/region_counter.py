@@ -74,7 +74,7 @@ class RegionCounter(BaseSolution):
         """
         self.extract_tracks(im0)
         plot_im = im0  # For plotting the results
-        self.annotator = SolutionAnnotator(plot_im, line_width=self.line_width)
+        annotator = SolutionAnnotator(plot_im, line_width=self.line_width)
 
         # Ensure self.region is initialized and structured as a dictionary
         if not isinstance(self.region, dict):
@@ -83,8 +83,8 @@ class RegionCounter(BaseSolution):
         # Draw only valid regions
         for idx, (region_name, reg_pts) in enumerate(self.region.items(), start=1):
             color = colors(idx, True)
-            self.annotator.draw_region(reg_pts, color, self.line_width * 2)
-            self.add_region(region_name, reg_pts, color, self.annotator.get_txt_color())
+            annotator.draw_region(reg_pts, color, self.line_width * 2)
+            self.add_region(region_name, reg_pts, color, annotator.get_txt_color())
 
         # Prepare regions for containment check (only process valid ones)
         for region in self.counting_regions:
@@ -99,7 +99,7 @@ class RegionCounter(BaseSolution):
         # Vectorized processing for bounding boxes & containment checks
         if points:
             for (point, cls), box in zip(zip(points, self.clss), self.boxes):
-                self.annotator.box_label(box, label=self.names[cls], color=colors(cls))
+                annotator.box_label(box, label=self.names[cls], color=colors(cls))
 
                 for region in self.counting_regions:    # Efficient containment check using precomputed polygons
                     if region["prepared_polygon"].contains(point):
@@ -108,7 +108,7 @@ class RegionCounter(BaseSolution):
 
         # Display region counts efficiently
         for region in self.counting_regions:
-            self.annotator.text_label(
+            annotator.text_label(
                 region["polygon"].bounds,
                 label=str(region["counts"]),
                 color=region["region_color"],

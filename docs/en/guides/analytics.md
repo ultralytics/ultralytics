@@ -103,17 +103,17 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
 Here's a table outlining the Analytics arguments:
 
-{% from "macros/solutions-args.md" import param_table %} 
+{% from "macros/solutions-args.md" import param_table %}
 {{ param_table(["model", "analytics_type"]) }}
 
 You can also utilize various tracking arguments within the analytics solution:
 
-{% from "macros/track-args.md" import param_table %} 
+{% from "macros/track-args.md" import param_table %}
 {{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
 
 Furthermore, some visualization arguments are supported, as listed below:
 
-{% from "macros/visualization-args.md" import param_table %} 
+{% from "macros/visualization-args.md" import param_table %}
 {{ param_table(["show", "line_width"]) }}
 
 ## Conclusion

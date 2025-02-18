@@ -413,7 +413,7 @@ Inference arguments:
 
 Visualization arguments:
 
-{% from "macros/visualization-args.md" import param_table %} 
+{% from "macros/visualization-args.md" import param_table %}
 {{ param_table() }}
 
 ## Image and Video Formats

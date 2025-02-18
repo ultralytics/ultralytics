@@ -73,12 +73,12 @@ cv2.destroyAllWindows()  # destroy all opened windows
 
 Here's a table with the `ObjectCropper` arguments:
 
-{% from "macros/solutions-args.md" import param_table %} 
+{% from "macros/solutions-args.md" import param_table %}
 {{ param_table(["model", "crop_dir"]) }}
 
 Furthermore, some visualization arguments are supported, as listed below:
 
-{% from "macros/visualization-args.md" import param_table %} 
+{% from "macros/visualization-args.md" import param_table %}
 {{ param_table(["show", "line_width"]) }}
 
 ## FAQ

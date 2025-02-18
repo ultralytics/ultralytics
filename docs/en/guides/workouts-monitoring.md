@@ -100,17 +100,17 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 
 Here's a table with the `AIGym` arguments:
 
-{% from "macros/solutions-args.md" import param_table %} 
+{% from "macros/solutions-args.md" import param_table %}
 {{ param_table(["model", "up_angle", "down_angle", "kpts"]) }}
 
 You can also utilize various tracking arguments within the AIGym solution:
 
-{% from "macros/track-args.md" import param_table %} 
+{% from "macros/track-args.md" import param_table %}
 {{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
 
 Furthermore, some visualization arguments are supported, as listed below:
 
-{% from "macros/visualization-args.md" import param_table %} 
+{% from "macros/visualization-args.md" import param_table %}
 {{ param_table(["show", "line_width"]) }}
 
 ## FAQ

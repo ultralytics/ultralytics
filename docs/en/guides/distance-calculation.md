@@ -86,17 +86,17 @@ cv2.destroyAllWindows()  # destroy all opened windows
 
 Here's a table with the `DistanceCalculation` arguments:
 
-{% from "macros/solutions-args.md" import param_table %} 
+{% from "macros/solutions-args.md" import param_table %}
 {{ param_table(["model"]) }}
 
 You can also utilize various tracking arguments within the DistanceCalculation solution:
 
-{% from "macros/track-args.md" import param_table %} 
+{% from "macros/track-args.md" import param_table %}
 {{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
 
 Furthermore, some visualization arguments are supported, as listed below:
 
-{% from "macros/visualization-args.md" import param_table %} 
+{% from "macros/visualization-args.md" import param_table %}
 {{ param_table(["show", "line_width"]) }}
 
 ## FAQ

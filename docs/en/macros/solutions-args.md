@@ -1,7 +1,8 @@
 {% macro param_table(params=None) %}
 
 | Argument | Type | Default | Description |
-|------|------|---------|-------------|
+| -------- | ---- | ------- | ----------- |
+
 {%- if not params %}
 | `model` | `str` | `None` | Path to Ultralytics YOLO Model File. |
 | `region` | `list` | `[(20, 400), (1260, 400)]` | List of points defining the counting region. |
@@ -11,7 +12,7 @@
 | `colormap` | `int` | `cv2.COLORMAP_JET` | Colormap to use for the heatmap. |
 | `json_file` | `str` | `None` | Path to the JSON file that contains all parking coordinates data. |
 | `up_angle` | `float` | `145.0` | Angle threshold for the 'up' pose. |
-| `kpts` | `list[int, int, int]` | `[6, 8, 10]` | List of keypoints used for monitoring workouts. These keypoints correspond to body joints or parts, such as shoulders, elbows, and wrists, for exercises like push-ups, pull-ups, squats, ab-workouts. |     
+| `kpts` | `list[int, int, int]` | `[6, 8, 10]` | List of keypoints used for monitoring workouts. These keypoints correspond to body joints or parts, such as shoulders, elbows, and wrists, for exercises like push-ups, pull-ups, squats, ab-workouts. |  
 | `down_angle` | `float` | `90.0` | Angle threshold for the 'down' pose. |
 | `blur_ratio` | `float` | `0.5` | Adjusts percentage of blur intensity, with values in range `0.1 - 1.0`. |
 | `crop_dir` | `str` | `"cropped-detections"` | Directory name for storing cropped detections. |

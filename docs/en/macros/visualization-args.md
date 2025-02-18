@@ -1,7 +1,8 @@
 {% macro param_table(params=None) %}
 
 | Argument | Type | Default | Description |
-|------|------|---------|-------------|
+| -------- | ---- | ------- | ----------- |
+
 {%- if not params %}
 | `show` | `bool` | `False` | If `True`, displays the annotated images or videos in a window. Useful for immediate visual feedback during development or testing. |
 | `save` | `bool` | `False` or `True` | Enables saving of the annotated images or videos to file. Useful for documentation, further analysis, or sharing results. Defaults to True when using CLI & False when used in Python. |

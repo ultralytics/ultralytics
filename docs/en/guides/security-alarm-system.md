@@ -87,17 +87,17 @@ That's it! When you execute the code, you'll receive a single notification on yo
 
 Here's a table with the `SecurityAlarm` arguments:
 
-{% from "macros/solutions-args.md" import param_table %} 
+{% from "macros/solutions-args.md" import param_table %}
 {{ param_table(["model", "records"]) }}
 
 You can also utilize various tracking arguments within the SecurityAlarm solution:
 
-{% from "macros/track-args.md" import param_table %} 
+{% from "macros/track-args.md" import param_table %}
 {{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
 
 Furthermore, some visualization arguments are supported, as listed below:
 
-{% from "macros/visualization-args.md" import param_table %} 
+{% from "macros/visualization-args.md" import param_table %}
 {{ param_table(["show", "line_width"]) }}
 
 ## FAQ

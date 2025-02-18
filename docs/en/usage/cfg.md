@@ -106,7 +106,7 @@ Inference arguments:
 
 Visualization arguments:
 
-{% from "macros/visualization-args.md" import param_table %} 
+{% from "macros/visualization-args.md" import param_table %}
 {{ param_table() }}
 
 [Predict Guide](../modes/predict.md){ .md-button }
@@ -135,7 +135,7 @@ It is crucial to thoughtfully configure these settings to ensure the exported mo
 
 The configuration settings for Ultralytics Solutions offer a flexible way to customize the model for various tasks like object counting, heatmap creation, workout tracking, data analysis, zone tracking, queue management, and region-based counting. These options make it easy to adjust the setup for accurate and useful results tailored to specific needs.
 
-{% from "macros/solutions-args.md" import param_table %} 
+{% from "macros/solutions-args.md" import param_table %}
 {{ param_table() }}
 
 [Solutions Guide](../solutions/index.md){ .md-button }

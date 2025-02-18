@@ -50,6 +50,7 @@ cropper = solutions.ObjectCropper(
     model="yolo11n.pt",  # model for object cropping i.e yolo11x.pt.
     classes=[0, 2],  # crop specific classes i.e. person and car with COCO pretrained model.
     # conf=0.5  # adjust confidence threshold for the objects.
+    # crop_dir="cropped-detections",  # set the directory name for cropped detections
 )
 
 # Process video

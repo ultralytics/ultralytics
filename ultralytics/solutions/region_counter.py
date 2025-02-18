@@ -1,9 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
-from ultralytics.utils import LOGGER
-from ultralytics.utils.plotting import colors
 import numpy as np
+
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
+from ultralytics.utils.plotting import colors
 
 
 class RegionCounter(BaseSolution):
@@ -92,8 +92,7 @@ class RegionCounter(BaseSolution):
                 region["prepared_polygon"] = self.prep(region["polygon"])
 
         # Convert bounding boxes to NumPy array
-        boxes_np = np.array([((box[0] + box[2]) / 2, (box[1] + box[3]) / 2) for box in self.boxes],
-                            dtype=np.float32)
+        boxes_np = np.array([((box[0] + box[2]) / 2, (box[1] + box[3]) / 2) for box in self.boxes], dtype=np.float32)
         points = [self.Point(pt) for pt in boxes_np]  # Convert centers to Point objects
 
         # Vectorized processing for bounding boxes & containment checks
@@ -101,7 +100,7 @@ class RegionCounter(BaseSolution):
             for (point, cls), box in zip(zip(points, self.clss), self.boxes):
                 self.annotator.box_label(box, label=self.names[cls], color=colors(cls))
 
-                for region in self.counting_regions:    # Efficient containment check using precomputed polygons
+                for region in self.counting_regions:  # Efficient containment check using precomputed polygons
                     if region["prepared_polygon"].contains(point):
                         region["counts"] += 1
                         self.region_counts[region["name"]] = region["counts"]

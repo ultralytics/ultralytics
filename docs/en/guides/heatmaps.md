@@ -105,22 +105,18 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 
 Here's a table with the `Heatmap` arguments:
 
-| Name         | Type    | Default            | Description                                                                                                                                                                  |
-| ------------ | ------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`      | `str`   | `None`             | Path to Ultralytics YOLO Model File                                                                                                                                          |
-| `colormap`   | `int`   | `cv2.COLORMAP_JET` | Colormap to use for the heatmap.                                                                                                                                             |
-| `show`       | `bool`  | `False`            | Whether to display the image with the heatmap overlay.                                                                                                                       |
-| `show_in`    | `bool`  | `True`             | Whether to display the count of objects entering the region.                                                                                                                 |
-| `show_out`   | `bool`  | `True`             | Whether to display the count of objects exiting the region.                                                                                                                  |
-| `region`     | `list`  | `None`             | Points defining the counting region (either a line or a polygon).                                                                                                            |
-| `line_width` | `int`   | `2`                | Thickness of the lines used in drawing.                                                                                                                                      |
-| `tracker`    | `str`   | `botsort.yaml`     | Specifies the tracking algorithm to use, e.g., `bytetrack.yaml` or `botsort.yaml`.                                                                                           |
-| `conf`       | `float` | `0.3`              | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives.                                                 |
-| `iou`        | `float` | `0.5`              | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections.                   |
-| `classes`    | `list`  | `None`             | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes.                                                                          |
-| `max_det`    | `int`   | `300`              | Maximum number of detections allowed per image. Limits the total number of objects the model can detect in a single inference, preventing excessive outputs in dense scenes. |
-| `verbose`    | `bool`  | `True`             | Controls the display of solutions results, providing a visual output of tracked objects.                                                                                     |
-| `device`     | `str`   | `None`             | Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution.         |
+{% from "macros/solutions-args.md" import param_table %} 
+{{ param_table(["model", "colormap", "show_in", "show_out", "region"]) }}
+
+You can also utilize various tracking arguments within the heatmap solution:
+
+{% from "macros/track-args.md" import param_table %} 
+{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+
+Furthermore, some visualization arguments are supported, as listed below:
+
+{% from "macros/visualization-args.md" import param_table %} 
+{{ param_table(["show", "line_width"]) }}
 
 ### Heatmap COLORMAPs
 

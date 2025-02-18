@@ -44,11 +44,15 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 
 ### Solutions Arguments
 
-!!! note "Predict args"
+{% from "macros/solutions-args.md" import param_table %} 
+{{ param_table() }}
 
-     Solutions also support some of the arguments from `predict`, including parameters such as `conf`, `line_width`, `tracker`, `model`, `show`, `verbose` and `classes`.
+!!! note "Track args"
 
-{% include "macros/solutions-args.md" %}
+     Solutions also support some of the arguments from and `track`, including parameters such as `conf`, `line_width`, `tracker`, `model`, `show`, `verbose` and `classes`.
+
+{% from "macros/track-args.md" import param_table %} 
+{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
 
 ### Usage of SolutionAnnotator
 
@@ -76,6 +80,21 @@ All Ultralytics Solutions use the separate class [`SolutionAnnotator`](https://d
 All Solutions calls return a list of `SolutionResults` objects, containing comprehensive information about the solutions.
 
 - For object counting, the results include `incounts`, `outcounts`, and `classwise_counts`.
+
+=== "Results"
+
+    ```python
+    counter = solutions.ObjectCounter(
+        show=True,  # display the output
+        region=region_points,  # pass region points
+        model="yolo11n.pt",  # model="yolo11n-obb.pt" for object counting with OBB model.
+        # classes=[0, 2],           # count specific classes i.e. person and car with COCO pretrained model.
+        # tracker="botsort.yaml"    # Choose trackers i.e "bytetrack.yaml"
+    )
+    results = counter.count(im0)
+    print(results.in_counts)  # display in_counts
+    print(results.out_counts)  # display out_counts
+    ```
 
 For more details, refer to the [`SolutionResults` class documentation](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator).
 

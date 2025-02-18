@@ -360,9 +360,9 @@ class BasePredictor:
         if self.args.save:
             if self.dataset.source_type.stream:
                 if platform.system() == "Windows":
-                    name = str(p).replace('\\', '_').replace('.', '_')
+                    name = str(p).replace("\\", "_").replace(".", "_")
                 else:
-                    name = str(p).replace('/', '_').replace('.', '_')
+                    name = str(p).replace("/", "_").replace(".", "_")
             else:
                 name = p.name
             self.save_predicted_images(str(self.save_dir / name), frame)

@@ -89,12 +89,12 @@ Here's a table with the `DistanceCalculation` arguments:
 {% from "macros/solutions-args.md" import param_table %}
 {{ param_table(["model"]) }}
 
-You can also utilize various tracking arguments within the DistanceCalculation solution:
+You can also make use of various `track` arguments in the `DistanceCalculation` solution.
 
 {% from "macros/track-args.md" import param_table %}
 {{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
 
-Furthermore, some visualization arguments are supported, as listed below:
+Moreover, the following visualization arguments are available:
 
 {% from "macros/visualization-args.md" import param_table %}
 {{ param_table(["show", "line_width"]) }}

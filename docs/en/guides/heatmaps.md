@@ -108,12 +108,12 @@ Here's a table with the `Heatmap` arguments:
 {% from "macros/solutions-args.md" import param_table %}
 {{ param_table(["model", "colormap", "show_in", "show_out", "region"]) }}
 
-You can also utilize various tracking arguments within the heatmap solution:
+You can also apply different `track` arguments in the `Heatmap` solution.
 
 {% from "macros/track-args.md" import param_table %}
 {{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
 
-Furthermore, some visualization arguments are supported, as listed below:
+Additionally, the supported visualization arguments are listed below:
 
 {% from "macros/visualization-args.md" import param_table %}
 {{ param_table(["show", "line_width"]) }}

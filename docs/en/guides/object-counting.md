@@ -104,12 +104,12 @@ Here's a table with the `ObjectCounter` arguments:
 {% from "macros/solutions-args.md" import param_table %}
 {{ param_table(["model", "show_in", "show_out", "region"]) }}
 
-You can also utilize various tracking arguments within the ObjectCounter solution:
+The `ObjectCounter` solution allows the use of several `track` arguments:
 
 {% from "macros/track-args.md" import param_table %}
 {{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
 
-Furthermore, some visualization arguments are supported, as listed below:
+Additionally, the visualization arguments listed below are supported:
 
 {% from "macros/visualization-args.md" import param_table %}
 {{ param_table(["show", "line_width"]) }}

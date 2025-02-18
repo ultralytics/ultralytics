@@ -97,12 +97,12 @@ Here's a table with the `QueueManager` arguments:
 {% from "macros/solutions-args.md" import param_table %}
 {{ param_table(["model", "region"]) }}
 
-You can also utilize various tracking arguments within the QueueManagement solution:
+The `QueueManagement` solution also support some `track` arguments:
 
 {% from "macros/track-args.md" import param_table %}
 {{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
 
-Furthermore, some visualization arguments are supported, as listed below:
+Additionally, the following visualization parameters are available:
 
 {% from "macros/visualization-args.md" import param_table %}
 {{ param_table(["show", "line_width"]) }}

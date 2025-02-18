@@ -90,12 +90,12 @@ Here's a table with the `SecurityAlarm` arguments:
 {% from "macros/solutions-args.md" import param_table %}
 {{ param_table(["model", "records"]) }}
 
-You can also utilize various tracking arguments within the SecurityAlarm solution:
+The `SecurityAlarm` solution supports a variety of `track` parameters:
 
 {% from "macros/track-args.md" import param_table %}
 {{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
 
-Furthermore, some visualization arguments are supported, as listed below:
+Moreover, the following visualization settings are available:
 
 {% from "macros/visualization-args.md" import param_table %}
 {{ param_table(["show", "line_width"]) }}

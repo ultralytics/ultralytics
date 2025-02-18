@@ -103,12 +103,12 @@ Here's a table with the `AIGym` arguments:
 {% from "macros/solutions-args.md" import param_table %}
 {{ param_table(["model", "up_angle", "down_angle", "kpts"]) }}
 
-You can also utilize various tracking arguments within the AIGym solution:
+The `AIGym` solution also supports a range of object tracking parameters:
 
 {% from "macros/track-args.md" import param_table %}
 {{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
 
-Furthermore, some visualization arguments are supported, as listed below:
+Additionally, the following visualization settings can be applied:
 
 {% from "macros/visualization-args.md" import param_table %}
 {{ param_table(["show", "line_width"]) }}

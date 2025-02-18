@@ -64,7 +64,7 @@ Here's a table with the `VisionEye` arguments:
 {% from "macros/solutions-args.md" import param_table %}
 {{ param_table(["model", "vision_point"]) }}
 
-You can also utilize various tracking arguments within the VisionEye solution:
+You can also utilize various `track` arguments within the `VisionEye` solution:
 
 {% from "macros/track-args.md" import param_table %}
 {{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}

@@ -106,12 +106,12 @@ Here's a table outlining the Analytics arguments:
 {% from "macros/solutions-args.md" import param_table %}
 {{ param_table(["model", "analytics_type"]) }}
 
-You can also utilize various tracking arguments within the analytics solution:
+You can also leverage different [`track`](../modes/track.md) arguments in the `Analytics` solution.
 
 {% from "macros/track-args.md" import param_table %}
 {{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
 
-Furthermore, some visualization arguments are supported, as listed below:
+Additionally, the following visualization arguments are supported:
 
 {% from "macros/visualization-args.md" import param_table %}
 {{ param_table(["show", "line_width"]) }}

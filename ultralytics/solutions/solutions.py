@@ -189,13 +189,12 @@ class BaseSolution:
                 cv2.destroyAllWindows()  # Closes current frame window
                 return
 
-    def process(self, im0, frame_number=None):
+    def process(self, *args, **kwargs):
         """This method should be implemented by each subclass."""
 
-    def __call__(self, im0, frame_number=None):
-        """Allow instances to be called like a function."""
-        return self.process(im0, frame_number)  # Call the subclass-specific process method
-
+    def __call__(self, *args, **kwargs):
+        """Allow instances to be called like a function with flexible arguments."""
+        return self.process(*args, **kwargs)  # Call the subclass-specific process method
 
 class SolutionAnnotator(Annotator):
     """

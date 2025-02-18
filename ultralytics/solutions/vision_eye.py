@@ -33,7 +33,7 @@ class VisionEye(BaseSolution):
             "vision_point", (30, 30)
         )  # visioneye point value, the point, where vision will view objects and draw tracks
 
-    def mapping(self, im0):
+    def process(self, im0):
         """
         Performs object detection, vision mapping, and annotation on the input image.
 

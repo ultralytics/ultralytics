@@ -86,7 +86,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
             success, im0 = cap.read()
             if success:
                 frame_count += 1
-                results = analytics.process_data(im0, frame_count)  # update analytics graph every frame
+                results = analytics(im0, frame_count)  # update analytics graph every frame
 
                 # print(results)    # Access the output
 
@@ -160,7 +160,7 @@ while cap.isOpened():
     success, im0 = cap.read()
     if success:
         frame_count += 1
-        results = analytics.process(im0, frame_count)  # update analytics graph every frame
+        results = analytics(im0, frame_count)  # update analytics graph every frame
         out.write(results.plot_im)  # write the video file
     else:
         break
@@ -210,7 +210,7 @@ while cap.isOpened():
     success, im0 = cap.read()
     if success:
         frame_count += 1
-        results = analytics.process(im0, frame_count)  # update analytics graph every frame
+        results = analytics(im0, frame_count)  # update analytics graph every frame
         out.write(results.plot_im)  # write the video file
     else:
         break
@@ -260,7 +260,7 @@ while cap.isOpened():
     success, im0 = cap.read()
     if success:
         frame_count += 1
-        results = analytics.process(im0, frame_count)  # update analytics graph every frame
+        results = analytics(im0, frame_count)  # update analytics graph every frame
         out.write(results.plot_im)  # write the video file
     else:
         break
@@ -305,7 +305,7 @@ while cap.isOpened():
     success, im0 = cap.read()
     if success:
         frame_count += 1
-        results = analytics.process(im0, frame_count)  # update analytics graph every frame
+        results = analytics(im0, frame_count)  # update analytics graph every frame
         out.write(results.plot_im)  # write the video file
     else:
         break

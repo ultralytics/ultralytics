@@ -47,10 +47,8 @@ blurrer = solutions.ObjectBlurrer(
     model="yolo11n.pt",  # model for object blurring i.e. yolo11m.pt
     # line_width=2,   # width of bounding box.
     # classes=[0, 2], # count specific classes i.e, person and car with COCO pretrained model.
+    # blur_ratio=0.5, # Adjust percentage of blur intensity, the value in range 0.1 - 1.0
 )
-
-# Adjust percentage of blur intensity
-blurrer.set_blur_ratio(0.6)  # the value in range 0.1 - 1.0
 
 # Process video
 while cap.isOpened():

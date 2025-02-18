@@ -2,7 +2,7 @@
 
 
 import cv2
-
+from ultralytics.utils import LOGGER
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
 
@@ -36,23 +36,11 @@ class ObjectBlurrer(BaseSolution):
             blur_ratio (int): Intensity of the blur effect, derived from the configuration.
         """
         super().__init__(**kwargs)
-
-        self.blur_ratio = 50  # Blur intensity multiplier
-
-    def set_blur_ratio(self, blur_ratio=0.5):
-        """
-        Adjust percentage of blur intensity, the value between 0.0 - 1.0.
-
-        Args:
-            blur_ratio (float): Percentage of blur intensity, the value between 0.0 - 1.0
-
-        Examples:
-            >>> blur_obj = ObjectBlurrer()
-            >>> blur_obj.set_blur_ratio(0.5)
-        """
-        if blur_ratio <= 0:  # If user pass blur ratio 0, use default blur ratio
-            return
-        self.blur_ratio = int(blur_ratio * 100)  # Percentage of blur
+        blur_ratio = kwargs.get("blur_ratio", 0.5)
+        if blur_ratio < 0.1:
+            LOGGER.warning(f"⚠️ blur ratio can not be less than 0.1, updating it to default value 0.5")
+            blur_ratio = 0.5
+        self.blur_ratio = int(blur_ratio * 100)
 
     def blur(self, im0):
         """

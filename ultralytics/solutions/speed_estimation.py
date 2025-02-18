@@ -50,7 +50,7 @@ class SpeedEstimator(BaseSolution):
         self.trk_pt = {}  # set for tracks previous time
         self.trk_pp = {}  # set for tracks previous point
 
-    def estimate_speed(self, im0):
+    def process(self, im0):
         """
         Estimates the speed of objects based on tracking data.
 

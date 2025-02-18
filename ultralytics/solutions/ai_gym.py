@@ -50,7 +50,7 @@ class AIGym(BaseSolution):
         self.down_angle = float(self.CFG["down_angle"])  # Pose down predefined angle to consider down pose
         self.kpts = self.CFG["kpts"]  # User selected kpts of workouts storage for further usage
 
-    def monitor(self, im0):
+    def process(self, im0):
         """
         Monitors workouts using Ultralytics YOLO Pose Model.
 

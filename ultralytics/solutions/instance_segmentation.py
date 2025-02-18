@@ -28,7 +28,7 @@ class InstanceSegmentation(BaseSolution):
         """
         super().__init__(**kwargs)
 
-    def segment(self, im0):
+    def process(self, im0):
         """
         Performs instance segmentation on the input image and annotates the results.
 

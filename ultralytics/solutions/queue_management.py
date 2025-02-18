@@ -44,7 +44,7 @@ class QueueManager(BaseSolution):
         self.rect_color = (255, 255, 255)  # Rectangle color
         self.region_length = len(self.region)  # Store region length for further usage
 
-    def process_queue(self, im0):
+    def process(self, im0):
         """
         Processes the queue management for a single frame of video.
 

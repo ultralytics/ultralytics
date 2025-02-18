@@ -43,7 +43,7 @@ class ObjectBlurrer(BaseSolution):
             blur_ratio = 0.5
         self.blur_ratio = int(blur_ratio * 100)
 
-    def blur(self, im0):
+    def process(self, im0):
         """
         Applies a blurring effect to detected objects in the input image.
 

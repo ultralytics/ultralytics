@@ -70,7 +70,7 @@ class Heatmap(ObjectCounter):
         # Update only the values within the bounding box in a single vectorized operation
         self.heatmap[y0:y1, x0:x1][within_radius] += 2
 
-    def generate_heatmap(self, im0):
+    def process(self, im0):
         """
         Generate heatmap for each frame using Ultralytics.
 

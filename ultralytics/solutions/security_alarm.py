@@ -107,7 +107,7 @@ class SecurityAlarm(BaseSolution):
         except Exception as e:
             print(f"❌ Failed to send email: {e}")
 
-    def monitor(self, im0):
+    def process(self, im0):
         """
         Monitors the frame, processes object detections, and triggers alerts if thresholds are exceeded.
 

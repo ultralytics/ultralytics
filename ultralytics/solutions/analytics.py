@@ -41,7 +41,7 @@ class Analytics(BaseSolution):
     Examples:
         >>> analytics = Analytics(analytics_type="line")
         >>> frame = cv2.imread("image.jpg")
-        >>> processed_frame = analytics.process_data(frame, frame_number=1)
+        >>> processed_frame = analytics.process(frame,frame_number=1)
         >>> cv2.imshow("Analytics", processed_frame)
     """
 
@@ -83,7 +83,7 @@ class Analytics(BaseSolution):
             if self.type == "pie":  # Ensure pie chart is circular
                 self.ax.axis("equal")
 
-    def process_data(self, im0, frame_number):
+    def process(self, im0, frame_number):
         """
         Processes image data and runs object tracking to update analytics charts.
 
@@ -101,7 +101,7 @@ class Analytics(BaseSolution):
         Examples:
             >>> analytics = Analytics(analytics_type="line")
             >>> frame = np.zeros((480, 640, 3), dtype=np.uint8)
-            >>> processed_frame = analytics.process_data(frame, frame_number=1)
+            >>> processed_frame = analytics.process(frame,frame_number=1)
         """
         self.extract_tracks(im0)  # Extract tracks
         if self.type == "line":

@@ -34,7 +34,7 @@ class TrackZone(BaseSolution):
         default_region = [(150, 150), (1130, 150), (1130, 570), (150, 570)]
         self.region = cv2.convexHull(np.array(self.region or default_region, dtype=np.int32))
 
-    def trackzone(self, im0):
+    def process(self, im0):
         """
         Processes the input frame to track objects within a defined region.
 

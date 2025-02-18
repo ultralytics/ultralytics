@@ -200,7 +200,7 @@ class ParkingManagement(BaseSolution):
         self.occ = (0, 255, 0)  # occupied region color
         self.dc = (255, 0, 189)  # centroid color for each box
 
-    def process_data(self, im0):
+    def process(self, im0):
         """
         Processes the model data for parking lot management.
 
@@ -218,7 +218,7 @@ class ParkingManagement(BaseSolution):
         Examples:
             >>> parking_manager = ParkingManagement(json_file="parking_regions.json")
             >>> image = cv2.imread("parking_lot.jpg")
-            >>> parking_manager.process_data(image)
+            >>> parking_manager.process(image,)
         """
         self.extract_tracks(im0)  # extract tracks from im0
         plot_im = im0  # For plotting the results

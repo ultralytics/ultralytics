@@ -47,7 +47,7 @@ class ObjectCropper(BaseSolution):
         self.iou = self.CFG["iou"]
         self.conf = self.CFG["conf"] if self.CFG["conf"] is not None else 0.25
 
-    def crop(self, im0):
+    def process(self, im0):
         """
         Crops detected objects from the input image and saves them as separate images.
 

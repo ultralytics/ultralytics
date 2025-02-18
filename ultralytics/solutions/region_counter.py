@@ -60,7 +60,7 @@ class RegionCounter(BaseSolution):
         )
         self.counting_regions.append(region)
 
-    def count(self, im0):
+    def process(self, im0):
         """
         Processes the input frame to detect and count objects within each defined region.
 

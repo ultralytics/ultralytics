@@ -205,19 +205,25 @@ class Results(SimpleClass):
         _keys (Tuple[str, ...]): Tuple of attribute names for internal use.
 
     Methods:
-        update: Updates object attributes with new detection results.
+        update: Updates object attributes with new results.
         cpu: Returns a copy of the Results object with all tensors on CPU memory.
         numpy: Returns a copy of the Results object with all tensors as numpy arrays.
         cuda: Returns a copy of the Results object with all tensors on GPU memory.
         to: Returns a copy of the Results object with tensors on a specified device and dtype.
         new: Returns a new Results object with the same image, path, and names.
-        plot: Plots detection results on an input image, returning an annotated image.
+        plot: Plots results on an input image, returning an annotated image.
         show: Shows annotated results on screen.
         save: Saves annotated results to file.
-        verbose: Returns a log string for each task, detailing detections and classifications.
-        save_txt: Saves detection results to a text file.
+        verbose: Returns a log string for each task, detailing detections, classifications, pose and OBB.
+        save_txt: Saves results to a text file.
         save_crop: Saves cropped detection images.
-        tojson: Converts detection results to JSON format.
+        summary: A list of dictionaries, each containing summarized information for results
+        to_df: Return the results in the Pandas Dataframe.
+        to_csv: Return the results in the CSV (comma separated values) format.
+        to_xml: Return the results to XML (extensible markup language) format.
+        to_json: Return the results to JSON format.
+        to_sql: Store the results in the SQL database.
+        to_html: Return the results into the HTML format.
 
     Examples:
         >>> results = model("path/to/image.jpg")
@@ -999,6 +1005,32 @@ class Results(SimpleClass):
         conn.close()
 
         LOGGER.info(f"✅ Detection results successfully written to SQL table '{table_name}' in database '{db_path}'.")
+
+    def to_html(self, normalize=False, decimals=5):
+        """
+        Converts detection results to an HTML table.
+
+        This method serializes the detection results into an HTML format, displaying detected objects
+        in a structured table. The output includes details such as bounding boxes, class names,
+        confidence scores, and optionally segmentation masks and keypoints.
+
+        Args:
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
+                If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
+            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+
+        Returns:
+            (str): An HTML string containing a table representation of the detection results.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> for result in results:
+            >>>     html_result = result.to_html()
+            >>>     print(html_result)
+        """
+        import pandas as pd  # scope for faster 'import ultralytics'
+
+        return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals)).to_html(index=False)
 
 
 class Boxes(BaseTensor):

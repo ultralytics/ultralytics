@@ -21,21 +21,21 @@ def test_major_solutions():
     region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
     counter = solutions.ObjectCounter(region=region_points, model="yolo11n.pt", show=False)  # Test object counter
     heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, model="yolo11n.pt", show=False)  # Test heatmaps
-    heatmap_count = solutions.Heatmap(
+    heatmapcounter = solutions.Heatmap(
         colormap=cv2.COLORMAP_PARULA, model="yolo11n.pt", show=False, region=region_points
     )  # Test heatmaps with object counting
     speed = solutions.SpeedEstimator(region=region_points, model="yolo11n.pt", show=False)  # Test queue manager
     queue = solutions.QueueManager(region=region_points, model="yolo11n.pt", show=False)  # Test speed estimation
-    line_analytics = solutions.Analytics(analytics_type="line", model="yolo11n.pt", show=False)  # line analytics
-    pie_analytics = solutions.Analytics(analytics_type="pie", model="yolo11n.pt", show=False)  # line analytics
-    bar_analytics = solutions.Analytics(analytics_type="bar", model="yolo11n.pt", show=False)  # line analytics
-    area_analytics = solutions.Analytics(analytics_type="area", model="yolo11n.pt", show=False)  # line analytics
+    lineanalytics = solutions.Analytics(analytics_type="line", model="yolo11n.pt", show=False)  # line analytics
+    pieanalytics = solutions.Analytics(analytics_type="pie", model="yolo11n.pt", show=False)  # line analytics
+    baranalytics = solutions.Analytics(analytics_type="bar", model="yolo11n.pt", show=False)  # line analytics
+    areaanalytics = solutions.Analytics(analytics_type="area", model="yolo11n.pt", show=False)  # line analytics
     trackzone = solutions.TrackZone(region=region_points, model="yolo11n.pt", show=False)  # trackzone
-    object_crop = solutions.ObjectCropper(model="yolo11n.pt", show=False)  # object cropping
-    object_blur = solutions.ObjectBlurrer(blur_ratio=0.5, model="yolo11n.pt", show=False)  # Object blurring
+    objectcropper = solutions.ObjectCropper(model="yolo11n.pt", show=False)  # object cropping
+    objectblurrer = solutions.ObjectBlurrer(blur_ratio=0.5, model="yolo11n.pt", show=False)  # Object blurring
     isegment = solutions.InstanceSegmentation(model="yolo11n-seg.pt", show=False)  # Instance segmentation
     visioneye = solutions.VisionEye(model="yolo11n.pt", show=False)  # Visioneye
-    region_counter = solutions.RegionCounter(region=region_points, model="yolo11n.pt", show=False)  # Region counter
+    regioncounter = solutions.RegionCounter(region=region_points, model="yolo11n.pt", show=False)  # Region counter
     frame_count = 0  # Required for analytics
     while cap.isOpened():
         success, im0 = cap.read()
@@ -43,21 +43,21 @@ def test_major_solutions():
             break
         frame_count += 1
         original_im0 = im0.copy()
-        _ = counter.count(original_im0.copy())
-        _ = heatmap.generate_heatmap(original_im0.copy())
-        _ = heatmap_count.generate_heatmap(original_im0.copy())
-        _ = speed.estimate_speed(original_im0.copy())
-        _ = queue.process_queue(original_im0.copy())
-        _ = line_analytics.process(original_im0.copy(), frame_count)
-        _ = pie_analytics.process(original_im0.copy(), frame_count)
-        _ = bar_analytics.process(original_im0.copy(), frame_count)
-        _ = area_analytics.process(original_im0.copy(), frame_count)
-        _ = trackzone.trackzone(original_im0.copy())
-        _ = object_crop.crop(original_im0.copy())
-        _ = isegment.segment(original_im0.copy())
-        _ = object_blur.blur(original_im0.copy())
-        _ = visioneye.mapping(original_im0.copy())
-        _ = region_counter.count(original_im0.copy())
+        _ = counter(original_im0.copy())
+        _ = heatmap(original_im0.copy())
+        _ = heatmapcounter(original_im0.copy())
+        _ = speed(original_im0.copy())
+        _ = queue(original_im0.copy())
+        _ = lineanalytics(original_im0.copy(), frame_count)
+        _ = pieanalytics(original_im0.copy(), frame_count)
+        _ = baranalytics(original_im0.copy(), frame_count)
+        _ = areaanalytics(original_im0.copy(), frame_count)
+        _ = trackzone(original_im0.copy())
+        _ = objectcropper(original_im0.copy())
+        _ = isegment(original_im0.copy())
+        _ = objectblurrer(original_im0.copy())
+        _ = visioneye(original_im0.copy())
+        _ = regioncounter(original_im0.copy())
     cap.release()
 
     # Test workouts monitoring
@@ -69,7 +69,7 @@ def test_major_solutions():
         success, im0 = cap.read()
         if not success:
             break
-        _ = gym.monitor(im0)
+        _ = gym(im0)
     cap.release()
 
 

@@ -50,6 +50,8 @@ __all__ = (
     "PSA",
     "SCDown",
     "TorchVision",
+    "IN",
+    "Multiin",
 )
 
 
@@ -1154,3 +1156,25 @@ class TorchVision(nn.Module):
         else:
             y = self.m(x)
         return y
+
+
+class IN(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x):
+        return x
+
+
+class Multiin(nn.Module):
+    def __init__(self, out=1):
+        super().__init__()
+        self.out = out
+
+    def forward(self, x):
+        x1, x2 = x[:, :3, :, :], x[:, 3:, :, :]
+        if self.out == 1:
+            x = x1
+        else:
+            x = x2
+        return x

@@ -22,6 +22,7 @@ from ultralytics.utils import (
     ARM64,
     ASSETS,
     AUTOINSTALL,
+    DEFAULT_CFG,
     IS_COLAB,
     IS_GIT_DIR,
     IS_KAGGLE,
@@ -670,6 +671,7 @@ def check_amp(model):
     """
     from ultralytics.utils.torch_utils import autocast
 
+    hyp = DEFAULT_CFG  # hyperparameters
     device = next(model.parameters()).device  # get model device
     prefix = colorstr("AMP: ")
     if device.type in {"cpu", "mps"}:
@@ -704,7 +706,8 @@ def check_amp(model):
     try:
         from ultralytics import YOLO
 
-        assert amp_allclose(YOLO("yolo11n.pt"), im)
+        if hyp.ch == 3:  # Use the yolo11n.pt file for checking when inputting RGB data only.
+            assert amp_allclose(YOLO("yolo11n.pt"), im)
         LOGGER.info(f"{prefix}checks passed ✅")
     except ConnectionError:
         LOGGER.warning(

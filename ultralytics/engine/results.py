@@ -479,7 +479,7 @@ class Results(SimpleClass):
             im_gpu (torch.Tensor | None): Normalized image on GPU for faster mask plotting.
             kpt_radius (int): Radius of drawn keypoints.
             kpt_line (bool): Whether to draw lines connecting keypoints.
-            labels (bool): Whether to plot labels of bounding boxes.
+            labels (bool | list): Whether to plot all or none or subset of labels of bounding boxes.
             boxes (bool): Whether to plot bounding boxes.
             masks (bool): Whether to plot masks.
             probs (bool): Whether to plot classification probabilities.
@@ -500,6 +500,16 @@ class Results(SimpleClass):
         assert color_mode in {"instance", "class"}, f"Expected color_mode='instance' or 'class', not {color_mode}."
         if img is None and isinstance(self.orig_img, torch.Tensor):
             img = (self.orig_img[0].detach().permute(1, 2, 0).contiguous() * 255).to(torch.uint8).cpu().numpy()
+
+        # Validate labels
+        # Define the allowed entries
+        allowed_labels = {True, False, "track_id", "cls_id", "cls_name"}
+        # Handle iterable cases when labels is a list of strings
+        if not isinstance(labels, bool):
+            # Check if all entries in labels are valid
+            invalid_labels = set(labels) - allowed_labels
+            if invalid_labels:
+                raise ValueError(f"Invalid labels found: {invalid_labels}. Allowed labels are: {allowed_labels}")
 
         names = self.names
         is_obb = self.obb is not None
@@ -539,8 +549,26 @@ class Results(SimpleClass):
         if pred_boxes is not None and show_boxes:
             for i, d in enumerate(reversed(pred_boxes)):
                 c, d_conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
-                name = ("" if id is None else f"id:{id} ") + names[c]
-                label = (f"{name} {d_conf:.2f}" if conf else name) if labels else None
+                track_id_text = f"id:{id}" if id is not None else ""
+                cls_id_text = str(c)
+                cls_name_text = names[c]
+                conf_text = f"{d_conf:.2f}" if conf else ""
+                # Generate the label string
+                label = (
+                    " ".join(
+                        filter(
+                            None,
+                            [
+                                track_id_text if labels is True or "track_id" in labels else "",
+                                cls_id_text if labels is True or "cls_id" in labels else "",
+                                cls_name_text if labels is True or "cls_name" in labels else "",
+                                conf_text if labels is True or conf is True else "",
+                            ],
+                        )
+                    )
+                    if labels
+                    else None
+                )
                 box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
                 annotator.box_label(
                     box,

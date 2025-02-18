@@ -118,7 +118,7 @@ Furthermore, some visualization arguments are supported, as listed below:
 {% from "macros/visualization-args.md" import param_table %}
 {{ param_table(["show", "line_width"]) }}
 
-### Heatmap COLORMAPs
+#### Heatmap COLORMAPs
 
 | Colormap Name                   | Description                            |
 | ------------------------------- | -------------------------------------- |

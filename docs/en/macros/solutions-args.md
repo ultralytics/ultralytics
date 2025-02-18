@@ -44,6 +44,9 @@
 {%- if param == "up_angle" %}
 | `up_angle` | `float` | `145.0` | Angle threshold for the 'up' pose. |
 {%- endif %}
+{%- if param == "up_angle" %}
+| `kpts` | `list[int, int, int]` | `[6, 8, 10]` | List of keypoints used for monitoring workouts. These keypoints correspond to body joints or parts, such as shoulders, elbows, and wrists, for exercises like push-ups, pull-ups, squats, ab-workouts. |
+{%- endif %}
 {%- if param == "down_angle" %}
 | `down_angle` | `float` | `90.0` | Angle threshold for the 'down' pose. |
 {%- endif %}

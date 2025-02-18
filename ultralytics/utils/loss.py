@@ -9,7 +9,7 @@ from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import autocast
 
-from .metrics import bbox_iou, probiou
+from .metrics import KLD_distance, bbox_iou, probiou
 from .tal import bbox2dist
 
 
@@ -116,15 +116,28 @@ class BboxLoss(nn.Module):
 class RotatedBboxLoss(BboxLoss):
     """Criterion class for computing training losses during training."""
 
-    def __init__(self, reg_max):
-        """Initialize the BboxLoss module with regularization maximum and DFL settings."""
+    def __init__(self, reg_max, use_kld=False):
+        """
+        Initialize the BboxLoss module with regularization maximum and DFL settings.
+
+        Args:
+            reg_max (int): regularization maximum
+            use_kld (bool): if there are square objects in your dataset, it is recommended to set this parameter to True.
+                            However, it will maybe drop the mAP on non-square objects slightly.
+        """
         super().__init__(reg_max)
+        self.use_kld = use_kld
 
     def forward(self, pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask):
         """IoU loss."""
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
-        iou = probiou(pred_bboxes[fg_mask], target_bboxes[fg_mask])
-        loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
+
+        if self.use_kld:
+            kld_dist = KLD_distance(pred_bboxes[fg_mask], target_bboxes[fg_mask])
+            loss_iou = (1 - 1 / (1 + torch.log(1 + kld_dist))).mean()
+        else:
+            iou = probiou(pred_bboxes[fg_mask], target_bboxes[fg_mask])
+            loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 
         # DFL loss
         if self.dfl_loss:
@@ -612,11 +625,18 @@ class v8ClassificationLoss:
 class v8OBBLoss(v8DetectionLoss):
     """Calculates losses for object detection, classification, and box distribution in rotated YOLO models."""
 
-    def __init__(self, model):
-        """Initializes v8OBBLoss with model, assigner, and rotated bbox loss; note model must be de-paralleled."""
+    def __init__(self, model, use_kld=False):
+        """
+        Initializes v8OBBLoss with model, assigner, and rotated bbox loss; note model must be de-paralleled.
+
+        Args:
+            model (OBBModel): yolo obb model.
+            use_kld (bool): if there are square objects in your dataset, it is recommended to set this parameter to True.
+                            However, it will maybe drop the mAP on non-square objects slightly.
+        """
         super().__init__(model)
         self.assigner = RotatedTaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, beta=6.0)
-        self.bbox_loss = RotatedBboxLoss(self.reg_max).to(self.device)
+        self.bbox_loss = RotatedBboxLoss(self.reg_max, use_kld).to(self.device)
 
     def preprocess(self, targets, batch_size, scale_tensor):
         """Preprocesses the target counts and matches with the input batch size to output a tensor."""

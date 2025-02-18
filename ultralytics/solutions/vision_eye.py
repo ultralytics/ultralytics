@@ -29,7 +29,9 @@ class VisionEye(BaseSolution):
         Attributes are inherited from the BaseSolution class and initialized using the provided configuration.
         """
         super().__init__(**kwargs)
-        self.vision_point = kwargs.get("vision_point", (30, 30))  # visioneye point value, the point, where vision will view objects and draw tracks
+        self.vision_point = kwargs.get(
+            "vision_point", (30, 30)
+        )  # visioneye point value, the point, where vision will view objects and draw tracks
 
     def mapping(self, im0):
         """

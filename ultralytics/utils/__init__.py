@@ -17,7 +17,7 @@ import warnings
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
-from typing import Union, Callable, TypeVar
+from typing import Callable, TypeVar, Union
 from urllib.parse import unquote
 
 import cv2
@@ -918,9 +918,9 @@ _F = TypeVar("F", bound=Callable[..., object])
 def detach_circular_reference(function: _F) -> _F:
     """
     Creates a weak-referenced version of the function.
-     
-    If a function F refers to object A, object A has object B as attribute, and object B has the function F
-    as attribute, this will create a circular reference that will bog down the garbage collector.
+
+    If a function F refers to object A, object A has object B as attribute, and object B has the function F as
+    attribute, this will create a circular reference that will bog down the garbage collector.
 
     By making F a weak reference, object B won't hold on to object A when A is unreferenced.
     """
@@ -937,7 +937,7 @@ def detach_circular_reference(function: _F) -> _F:
         return bound_method(*args, **kwargs)
 
     return _fn
-    
+
 
 class TryExcept(contextlib.ContextDecorator):
     """

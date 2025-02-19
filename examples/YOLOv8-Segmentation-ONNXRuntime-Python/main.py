@@ -2,15 +2,18 @@
 
 import argparse
 from typing import List, Tuple, Union
+
 import cv2
 import numpy as np
 import onnxruntime as ort
-from ultralytics.utils import ASSETS, yaml_load
-from ultralytics.utils.checks import check_yaml
 import torch
+import torch.nn.functional as F
+
 import ultralytics.utils.ops as ops
 from ultralytics.engine.results import Results
-import torch.nn.functional as F
+from ultralytics.utils import ASSETS, yaml_load
+from ultralytics.utils.checks import check_yaml
+
 
 class YOLOv8Seg:
     """YOLOv8 segmentation model."""
@@ -39,7 +42,7 @@ class YOLOv8Seg:
             if ort.get_device() == "GPU"
             else ["CPUExecutionProvider"],
         )
-        
+
         # Numpy dtype: support both FP32 and FP16 onnx model
         self.ndtype = np.half if self.session.get_inputs()[0].type == "tensor(float16)" else np.single
 
@@ -51,7 +54,7 @@ class YOLOv8Seg:
 
         # Device
         self.device = "cuda:0" if ort.get_device().lower() == "gpu" else "cpu"
-            
+
         # Confidence
         self.conf_threshold = conf_threshold
 
@@ -66,22 +69,20 @@ class YOLOv8Seg:
             list: Processed detection results after post-processing.
 
         Example:
-            >>> detector = Model("yolov8.onnx")  
+            >>> detector = Model("yolov8.onnx")
             >>> results = detector(image)  # Runs inference and returns detections.
         """
-                
         # Pre-process
         processed_image = self.preprocess(im0)
-        
+
         # Ort inference
         predictions = self.session.run(None, {self.session.get_inputs()[0].name: processed_image})
-        
+
         # Post-process
         results = self.postprocess(im0, processed_image, predictions)
 
-         
         return results
-    
+
     def preprocess(self, image, new_shape: Union[Tuple, List] = (640, 640)):
         """
         Preprocesses the input image before feeding it into the model.
@@ -96,7 +97,7 @@ class YOLOv8Seg:
         Example:
             >>> processed_img = model.preprocess(image)
         """
-        image,_, _ = self.__resize_and_pad_image(image=image, new_shape=new_shape)
+        image, _, _ = self.__resize_and_pad_image(image=image, new_shape=new_shape)
         image = self.__reshape_image(image=image)
         processed_image = image[None] if len(image.shape) == 3 else image
         return processed_image
@@ -119,7 +120,9 @@ class YOLOv8Seg:
         image = np.ascontiguousarray(image).astype(np.float32) / 255
         return image
 
-    def __resize_and_pad_image(self, image=np.ndarray, new_shape: Union[Tuple, List] = (640, 640),color: Union[Tuple, List] = (114, 114, 114)):
+    def __resize_and_pad_image(
+        self, image=np.ndarray, new_shape: Union[Tuple, List] = (640, 640), color: Union[Tuple, List] = (114, 114, 114)
+    ):
         """
         Resizes and pads the input image while maintaining the aspect ratio.
 
@@ -155,8 +158,8 @@ class YOLOv8Seg:
         left, right = int(round(delta_width - 0.1)), int(round(delta_width + 0.1))
         image = cv2.copyMakeBorder(image, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)
         return image, delta_width, delta_height
-    
-    def postprocess(self,image, processed_image, predictions):
+
+    def postprocess(self, image, processed_image, predictions):
         """
         Post-processes model predictions to extract meaningful results.
 
@@ -174,7 +177,7 @@ class YOLOv8Seg:
         torch_tensor_predictions = [torch.from_numpy(output) for output in predictions]
         torch_tensor_boxes_confidence_category_predictions = torch_tensor_predictions[0]
         masks_predictions_tensor = torch_tensor_predictions[1].to(self.device)
-        
+
         nms_boxes_confidence_category_predictions_tensor = ops.non_max_suppression(
             torch_tensor_boxes_confidence_category_predictions,
             conf_thres=self.conf_threshold,
@@ -182,17 +185,24 @@ class YOLOv8Seg:
             agnostic=False,
             max_det=100,
             max_time_img=0.001,
-            max_nms=1000)
-        
+            max_nms=1000,
+        )
+
         results = []
         for idx, predictions in enumerate(nms_boxes_confidence_category_predictions_tensor):
             predictions = predictions.to(self.device)
-            masks = self.__process_mask(masks_predictions_tensor[idx], predictions[:, 6:], predictions[:, :4], processed_image.shape[2:], upsample=True)  # HWC
+            masks = self.__process_mask(
+                masks_predictions_tensor[idx],
+                predictions[:, 6:],
+                predictions[:, :4],
+                processed_image.shape[2:],
+                upsample=True,
+            )  # HWC
             predictions[:, :4] = ops.scale_boxes(processed_image.shape[2:], predictions[:, :4], image.shape)
             results.append(Results(image, path="", names=self.classes, boxes=predictions[:, :6], masks=masks))
-    
+
         return results
-    
+
     def __process_mask(self, protos, masks_in, bboxes, shape, upsample=False):
         """
         Processes segmentation masks from the model output.
@@ -241,14 +251,11 @@ if __name__ == "__main__":
 
     # Read image by OpenCV
     img = cv2.imread(args.source)
-    img = cv2.resize(img, (640,640)) # Can be changed based on your models expected size
-    
+    img = cv2.resize(img, (640, 640))  # Can be changed based on your models expected size
+
     # Inference
     results = model(img)
-
 
     cv2.imshow("Segmented Image", results[0].plot())
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-    
-    

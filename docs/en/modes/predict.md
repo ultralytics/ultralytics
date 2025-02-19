@@ -532,7 +532,7 @@ For more details see the [`Results` class documentation](../reference/engine/res
     model = YOLO("yolo11n.pt")
 
     # Run inference on an image
-    results = model("bus.jpg")  # results list
+    results = model("https://ultralytics.com/images/bus.jpg")  # results list
 
     # View results
     for r in results:
@@ -570,7 +570,7 @@ For more details see the [`Boxes` class documentation](../reference/engine/resul
     model = YOLO("yolo11n-seg.pt")
 
     # Run inference on an image
-    results = model("bus.jpg")  # results list
+    results = model("https://ultralytics.com/images/bus.jpg")  # results list
 
     # View results
     for r in results:
@@ -603,7 +603,7 @@ For more details see the [`Masks` class documentation](../reference/engine/resul
     model = YOLO("yolo11n-pose.pt")
 
     # Run inference on an image
-    results = model("bus.jpg")  # results list
+    results = model("https://ultralytics.com/images/bus.jpg")  # results list
 
     # View results
     for r in results:
@@ -637,7 +637,7 @@ For more details see the [`Keypoints` class documentation](../reference/engine/r
     model = YOLO("yolo11n-cls.pt")
 
     # Run inference on an image
-    results = model("bus.jpg")  # results list
+    results = model("https://ultralytics.com/images/bus.jpg")  # results list
 
     # View results
     for r in results:
@@ -672,7 +672,7 @@ For more details see the [`Probs` class documentation](../reference/engine/resul
     model = YOLO("yolo11n-obb.pt")
 
     # Run inference on an image
-    results = model("boats.jpg")  # results list
+    results = model("https://ultralytics.com/images/boats.jpg")  # results list
 
     # View results
     for r in results:
@@ -712,7 +712,7 @@ The `plot()` method in `Results` objects facilitates visualization of prediction
     model = YOLO("yolo11n.pt")
 
     # Run inference on 'bus.jpg'
-    results = model(["bus.jpg", "zidane.jpg"])  # results list
+    results = model(["https://ultralytics.com/images/bus.jpg", "https://ultralytics.com/images/zidane.jpg"])  # results list
 
     # Visualize the results
     for i, r in enumerate(results):

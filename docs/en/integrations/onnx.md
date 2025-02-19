@@ -115,16 +115,16 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
 ### Export Arguments
 
-| Argument   | Type             | Default | Description                                                                                                                                 |
-| ---------- | ---------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `onnx`  | Target format for the exported model, defining compatibility with various deployment environments.                                          |
-| `imgsz`    | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.           |
-| `half`     | `bool`           | `False` | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                |
-| `dynamic`  | `bool`           | `False` | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                     |
-| `simplify` | `bool`           | `True`  | Simplifies the model graph with `onnxslim`, potentially improving performance and compatibility.                                            |
-| `opset`    | `int`            | `None`  | Specifies the ONNX opset version for compatibility with different ONNX parsers and runtimes. If not set, uses the latest supported version. |
-| `nms`      | `bool`           | `False` | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                         |
-| `batch`    | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.     |
+| Argument   | Type             | Default  | Description                                                                                                                                 |
+| ---------- | ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'onnx'` | Target format for the exported model, defining compatibility with various deployment environments.                                          |
+| `imgsz`    | `int` or `tuple` | `640`    | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.           |
+| `half`     | `bool`           | `False`  | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                |
+| `dynamic`  | `bool`           | `False`  | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                     |
+| `simplify` | `bool`           | `True`   | Simplifies the model graph with `onnxslim`, potentially improving performance and compatibility.                                            |
+| `opset`    | `int`            | `None`   | Specifies the ONNX opset version for compatibility with different ONNX parsers and runtimes. If not set, uses the latest supported version. |
+| `nms`      | `bool`           | `False`  | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                         |
+| `batch`    | `int`            | `1`      | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.     |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 

@@ -1009,6 +1009,7 @@ class Results(SimpleClass):
 
         LOGGER.info(f"✅ Detection results successfully written to SQL table '{table_name}' in database '{db_path}'.")
 
+
 class Boxes(BaseTensor):
     """
     A class for managing and manipulating detection boxes.

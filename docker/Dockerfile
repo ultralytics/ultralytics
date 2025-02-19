@@ -22,26 +22,44 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
 # Install linux packages
 # g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package
 # libsm6 required by libqxcb to create QT-based windows for visualization; set 'QT_DEBUG_PLUGINS=1' to test in docker
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    gcc git zip unzip wget curl htop libgl1 libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0 libsm6 \
-    && rm -rf /var/lib/apt/lists/*
+    gcc git zip unzip wget curl htop libgl1 libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0 libsm6 && \
+    apt upgrade --no-install-recommends -y openssl tar && \
+    rm -rf /var/lib/apt/lists/*
 
 # Security updates
 # https://security.snyk.io/vuln/SNYK-UBUNTU1804-OPENSSL-3314796
-RUN apt upgrade --no-install-recommends -y openssl tar
 
 # Create working directory
 WORKDIR /ultralytics
 
 # Copy contents and configure git
 COPY . .
-RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config
+# Moving cleanup into relevant layers
+RUN sed -i '/^\[http "https:\/\/github\.com\/"]/,\+1d' .git/config && \
+    rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
-# Install pip packages
-RUN pip install uv
-# Note -cu12 must be used with tensorrt
+# Combining all pip installations with specific versions
+RUN pip install uv && \
+    uv pip install --system -e ".[export]" \ # Note -cu12 must be used with tensorrt
+    tensorrt-cu12==9.2.0 \
+    "albumentations==1.4.6" \
+    comet-ml==3.35.5 \
+    pycocotools==2.0.7 \
+    "paddlepaddle==2.6.0" \ # Requires <= Python 3.10, bug with paddlepaddle==2.5.0 https://github.com/PaddlePaddle/X2Paddle/issues/991
+    x2paddle==0.9.9 \
+    numpy==1.23.5 && \ # Fix error: `np.bool` was a deprecated alias for the builtin `bool` segmentation error in Tests
+    # Run exports to AutoInstall packages
+    # Edge TPU export fails the first time so is run twice here
+    ( yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32 || \
+      yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32 ) && \
+    yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32 && \
+    rm -rf tmp /root/.config/Ultralytics/persistent_cache.json 
+
+    # Note -cu12 must be used with tensorrt
 RUN uv pip install --system -e ".[export]" tensorrt-cu12 "albumentations>=1.4.6" comet pycocotools
 
 # Run exports to AutoInstall packages
@@ -52,9 +70,6 @@ RUN yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32
 RUN uv pip install --system "paddlepaddle>=2.6.0" x2paddle
 # Fix error: `np.bool` was a deprecated alias for the builtin `bool` segmentation error in Tests
 RUN uv pip install --system numpy==1.23.5
-
-# Remove extra build files
-RUN rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

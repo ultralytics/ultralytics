@@ -902,8 +902,7 @@ class Results(SimpleClass):
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            >>>     xml_result = result.to_xml()
-            >>>     html_result = result.to_xml(enable_html=True)  # Store results in HTML table
+            >>>     xml_result = result.to_xml()  # pass `enable_html=True` to display results in HTML format
             >>>     print(xml_result)
         """
         if enable_html:

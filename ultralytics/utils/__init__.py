@@ -17,7 +17,7 @@ import warnings
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
-from typing import Union
+from typing import Union, Callable, TypeVar
 from urllib.parse import unquote
 
 import cv2
@@ -911,6 +911,33 @@ def remove_colorstr(input_string):
     ansi_escape = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
     return ansi_escape.sub("", input_string)
 
+
+_F = TypeVar("F", bound=Callable[..., object])
+
+
+def detach_circular_reference(function: _F) -> _F:
+    """
+    Creates a weak-referenced version of the function.
+     
+    If a function F refers to object A, object A has object B as attribute, and object B has the function F
+    as attribute, this will create a circular reference that will bog down the garbage collector.
+
+    By making F a weak reference, object B won't hold on to object A when A is unreferenced.
+    """
+    import weakref
+    from functools import wraps
+
+    function_weakref = weakref.WeakMethod(function)
+
+    @wraps(function)
+    def _fn(*args, **kwargs):
+        bound_method = function_weakref()
+        if bound_method is None:
+            return None
+        return bound_method(*args, **kwargs)
+
+    return _fn
+    
 
 class TryExcept(contextlib.ContextDecorator):
     """

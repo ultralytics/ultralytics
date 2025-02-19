@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER, SimpleClass, TryExcept, plt_settings
+from ultralytics.utils import LOGGER, SimpleClass, TryExcept, detach_circular_reference, plt_settings
 
 OKS_SIGMA = (
     np.array([0.26, 0.25, 0.25, 0.35, 0.35, 0.79, 0.79, 0.72, 0.72, 0.62, 0.62, 1.07, 1.07, 0.87, 0.87, 0.89, 0.89])
@@ -831,7 +831,7 @@ class DetMetrics(SimpleClass):
         """Initialize a DetMetrics instance with a save directory, plot flag, callback function, and class names."""
         self.save_dir = save_dir
         self.plot = plot
-        self.on_plot = on_plot
+        self.on_plot = detach_circular_reference(on_plot) if on_plot else None
         self.names = names
         self.box = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
@@ -929,7 +929,7 @@ class SegmentMetrics(SimpleClass):
         """Initialize a SegmentMetrics instance with a save directory, plot flag, callback function, and class names."""
         self.save_dir = save_dir
         self.plot = plot
-        self.on_plot = on_plot
+        self.on_plot = detach_circular_reference(on_plot) if on_plot else None
         self.names = names
         self.box = Metric()
         self.seg = Metric()
@@ -1070,7 +1070,7 @@ class PoseMetrics(SegmentMetrics):
         super().__init__(save_dir, plot, names)
         self.save_dir = save_dir
         self.plot = plot
-        self.on_plot = on_plot
+        self.on_plot = detach_circular_reference(on_plot) if on_plot else None
         self.names = names
         self.box = Metric()
         self.pose = Metric()
@@ -1230,7 +1230,7 @@ class OBBMetrics(SimpleClass):
         """Initialize an OBBMetrics instance with directory, plotting, callback, and class names."""
         self.save_dir = save_dir
         self.plot = plot
-        self.on_plot = on_plot
+        self.on_plot = detach_circular_reference(on_plot) if on_plot else None
         self.names = names
         self.box = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}

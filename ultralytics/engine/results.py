@@ -220,10 +220,9 @@ class Results(SimpleClass):
         summary: A list of dictionaries, each containing summarized information for results
         to_df: Return the results in the Pandas Dataframe.
         to_csv: Return the results in the CSV (comma separated values) format.
-        to_xml: Return the results to XML (extensible markup language) format.
+        to_xml: Return the results to XML (extensible markup language) format, you can also get html results optional by enabling `enable_html=True`.
         to_json: Return the results to JSON format.
         to_sql: Store the results in the SQL database.
-        to_html: Return the results into the HTML format.
 
     Examples:
         >>> results = model("path/to/image.jpg")
@@ -881,9 +880,9 @@ class Results(SimpleClass):
         """
         return self.to_df(normalize=normalize, decimals=decimals).to_csv(*args, **kwargs)
 
-    def to_xml(self, normalize=False, decimals=5, *args, **kwargs):
+    def to_xml(self, normalize=False, enable_html=False, decimals=5, *args, **kwargs):
         """
-        Converts detection results to XML format.
+        Converts detection results to XML format. You can optionally get only html results.
 
         This method serializes the detection results into an XML format. It includes information
         about detected objects such as bounding boxes, class names, confidence scores, and optionally
@@ -893,18 +892,22 @@ class Results(SimpleClass):
             normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
                 If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
             decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+            enable_html (bool): Return the results in html format.
             *args (Any): Variable length argument list to be passed to pandas.DataFrame.to_xml().
             **kwargs (Any): Arbitrary keyword arguments to be passed to pandas.DataFrame.to_xml().
 
         Returns:
-            (str): An XML string containing all the information in results in an organized way.
+            (str): An XML string or html table containing all the information in results in an organized way.
 
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
             >>>     xml_result = result.to_xml()
+            >>>     html_result = result.to_xml(enable_html=True)  # Store results in HTML table
             >>>     print(xml_result)
         """
+        if enable_html:
+            return self.to_df(normalize=normalize, decimals=decimals).to_html(index=False)
         check_requirements("lxml")
         df = self.to_df(normalize=normalize, decimals=decimals)
         return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>' if df.empty else df.to_xml(*args, **kwargs)
@@ -1005,33 +1008,6 @@ class Results(SimpleClass):
         conn.close()
 
         LOGGER.info(f"✅ Detection results successfully written to SQL table '{table_name}' in database '{db_path}'.")
-
-    def to_html(self, normalize=False, decimals=5):
-        """
-        Converts detection results to an HTML table.
-
-        This method serializes the detection results into an HTML format, displaying detected objects
-        in a structured table. The output includes details such as bounding boxes, class names,
-        confidence scores, and optionally segmentation masks and keypoints.
-
-        Args:
-            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
-                If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
-            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
-
-        Returns:
-            (str): An HTML string containing a table representation of the detection results.
-
-        Examples:
-            >>> results = model("path/to/image.jpg")
-            >>> for result in results:
-            >>>     html_result = result.to_html()
-            >>>     print(html_result)
-        """
-        import pandas as pd  # scope for faster 'import ultralytics'
-
-        return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals)).to_html(index=False)
-
 
 class Boxes(BaseTensor):
     """

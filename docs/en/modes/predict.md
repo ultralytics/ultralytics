@@ -496,27 +496,26 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
 `Results` objects have the following methods:
 
-| Method        | Return Type     | Description                                                                              |
-| ------------- | --------------- | ---------------------------------------------------------------------------------------- |
-| `update()`    | `None`          | Update the boxes, masks, and probs attributes of the Results object.                     |
-| `cpu()`       | `Results`       | Return a copy of the Results object with all tensors on CPU memory.                      |
-| `numpy()`     | `Results`       | Return a copy of the Results object with all tensors as numpy arrays.                    |
-| `cuda()`      | `Results`       | Return a copy of the Results object with all tensors on GPU memory.                      |
-| `to()`        | `Results`       | Return a copy of the Results object with tensors on the specified device and dtype.      |
-| `new()`       | `Results`       | Return a new Results object with the same image, path, and names.                        |
-| `plot()`      | `numpy.ndarray` | Plots the detection results. Returns a numpy array of the annotated image.               |
-| `show()`      | `None`          | Show annotated results to screen.                                                        |
-| `save()`      | `None`          | Save annotated results to file.                                                          |
-| `verbose()`   | `str`           | Return log string for each task.                                                         |
-| `save_txt()`  | `None`          | Save predictions into a txt file.                                                        |
-| `save_crop()` | `None`          | Save cropped predictions to `save_dir/cls/file_name.jpg`.                                |
-| `summary()`   | `List[Dict]`    | A list of dictionaries, each containing summarized information for results               |
-| `to_df()`     | `DataFrame`     | Convert the results to Pandas Dataframe.                                                 |
-| `to_csv()`    | `str`           | Convert the result to CSV (comma separated values) format.                               |
-| `to_xml()`    | `str`           | Convert the results to XML (Extensible Markup Language) format.                          |
-| `to_json()`   | `str`           | Convert the results to JSON format.                                                      |
-| `to_sql()`    | `None`          | Dump the results into the SQL database.                                                  |
-| `to_html()`   | `str`           | Returns an HTML string containing a structured HTML table representation of the results. |
+| Method        | Return Type     | Description                                                                                                                       |
+| ------------- | --------------- |-----------------------------------------------------------------------------------------------------------------------------------|
+| `update()`    | `None`          | Update the boxes, masks, and probs attributes of the Results object.                                                              |
+| `cpu()`       | `Results`       | Return a copy of the Results object with all tensors on CPU memory.                                                               |
+| `numpy()`     | `Results`       | Return a copy of the Results object with all tensors as numpy arrays.                                                             |
+| `cuda()`      | `Results`       | Return a copy of the Results object with all tensors on GPU memory.                                                               |
+| `to()`        | `Results`       | Return a copy of the Results object with tensors on the specified device and dtype.                                               |
+| `new()`       | `Results`       | Return a new Results object with the same image, path, and names.                                                                 |
+| `plot()`      | `numpy.ndarray` | Plots the detection results. Returns a numpy array of the annotated image.                                                        |
+| `show()`      | `None`          | Show annotated results to screen.                                                                                                 |
+| `save()`      | `None`          | Save annotated results to file.                                                                                                   |
+| `verbose()`   | `str`           | Return log string for each task.                                                                                                  |
+| `save_txt()`  | `None`          | Save predictions into a txt file.                                                                                                 |
+| `save_crop()` | `None`          | Save cropped predictions to `save_dir/cls/file_name.jpg`.                                                                         |
+| `summary()`   | `List[Dict]`    | A list of dictionaries, each containing summarized information for results                                                        |
+| `to_df()`     | `DataFrame`     | Convert the results to Pandas Dataframe.                                                                                          |
+| `to_csv()`    | `str`           | Convert the result to CSV (comma separated values) format.                                                                        |
+| `to_xml()`    | `str`           | Convert the results to XML (Extensible Markup Language) format. You can optionally returns an HTML string with `enable_html=True` |
+| `to_json()`   | `str`           | Convert the results to JSON format.                                                                                               |
+| `to_sql()`    | `None`          | Dump the results into the SQL database.                                                                                           |
 
 For more details see the [`Results` class documentation](../reference/engine/results.md).
 

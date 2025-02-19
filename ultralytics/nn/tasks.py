@@ -7,7 +7,6 @@ import types
 from copy import deepcopy
 from pathlib import Path
 
-import thop
 import torch
 
 from ultralytics.nn.modules import (
@@ -85,6 +84,11 @@ from ultralytics.utils.torch_utils import (
     scale_img,
     time_sync,
 )
+
+try:
+    import thop
+except ImportError:
+    thop = None  # conda support without 'ultralytics-thop' installed
 
 
 class BaseModel(torch.nn.Module):

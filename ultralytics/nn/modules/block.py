@@ -1159,10 +1159,10 @@ class TorchVision(nn.Module):
 class AAttn(nn.Module):
     """
     Area-attention module for YOLO models, providing efficient attention mechanisms.
-    
+
     This module implements an area-based attention mechanism that processes input features in a spatially-aware manner,
     making it particularly effective for object detection tasks.
-    
+
     Attributes:
         area (int): Number of areas the feature map is divided.
         num_heads (int): Number of heads into which the attention mechanism is divided.
@@ -1170,10 +1170,10 @@ class AAttn(nn.Module):
         qkv (Conv): Convolution layer for computing query, key and value tensors.
         proj (Conv): Projection convolution layer.
         pe (Conv): Position encoding convolution layer.
-    
+
     Methods:
         forward: Applies area-attention to input tensor.
-    
+
     Examples:
         >>> attn = AAttn(dim=256, num_heads=8, area=4)
         >>> x = torch.randn(1, 256, 32, 32)
@@ -1185,7 +1185,7 @@ class AAttn(nn.Module):
     def __init__(self, dim, num_heads, area=1):
         """
         Initializes an Area-attention module for YOLO models.
-        
+
         Args:
             dim (int): Number of hidden channels.
             num_heads (int): Number of heads into which the attention mechanism is divided.
@@ -1242,19 +1242,19 @@ class AAttn(nn.Module):
 class ABlock(nn.Module):
     """
     Area-attention block module for efficient feature extraction in YOLO models.
-    
-    This module implements an area-attention mechanism combined with a feed-forward network for processing feature maps. It 
-    uses a novel area-based attention approach that is more efficient than traditional self-attention while maintaining 
+
+    This module implements an area-attention mechanism combined with a feed-forward network for processing feature maps. It
+    uses a novel area-based attention approach that is more efficient than traditional self-attention while maintaining
     effectiveness.
-    
+
     Attributes:
         attn (AAttn): Area-attention module for processing spatial features.
         mlp (nn.Sequential): Multi-layer perceptron for feature transformation.
-    
+
     Methods:
         _init_weights: Initializes module weights using truncated normal distribution.
         forward: Applies area-attention and feed-forward processing to input tensor.
-    
+
     Examples:
         >>> block = ABlock(dim=256, num_heads=8, mlp_ratio=1.2, area=1)
         >>> x = torch.randn(1, 256, 32, 32)
@@ -1266,11 +1266,11 @@ class ABlock(nn.Module):
     def __init__(self, dim, num_heads, mlp_ratio=1.2, area=1):
         """
         Initializes an Area-attention block module for efficient feature extraction in YOLO models.
-        
-        This module implements an area-attention mechanism combined with a feed-forward network for processing feature maps. It 
-        uses a novel area-based attention approach that is more efficient than traditional self-attention while maintaining 
+
+        This module implements an area-attention mechanism combined with a feed-forward network for processing feature maps. It
+        uses a novel area-based attention approach that is more efficient than traditional self-attention while maintaining
         effectiveness.
-        
+
         Args:
             dim (int): Number of input channels.
             num_heads (int): Number of heads into which the attention mechanism is divided.
@@ -1301,19 +1301,19 @@ class ABlock(nn.Module):
 class A2C2f(nn.Module):
     """
     Area-Attention C2f module for enhanced feature extraction with area-based attention mechanisms.
-    
-    This module extends the C2f architecture by incorporating area-attention and ABlock layers for improved feature 
+
+    This module extends the C2f architecture by incorporating area-attention and ABlock layers for improved feature
     processing. It supports both area-attention and standard convolution modes.
-    
+
     Attributes:
         cv1 (Conv): Initial 1x1 convolution layer that reduces input channels to hidden channels.
         cv2 (Conv): Final 1x1 convolution layer that processes concatenated features.
         gamma (nn.Parameter | None): Learnable parameter for residual scaling when using area attention.
         m (nn.ModuleList): List of either ABlock or C3k modules for feature processing.
-    
+
     Methods:
         forward: Processes input through area-attention or standard convolution pathway.
-    
+
     Examples:
         >>> m = A2C2f(512, 512, n=1, a2=True, area=1)
         >>> x = torch.randn(1, 512, 32, 32)
@@ -1325,7 +1325,7 @@ class A2C2f(nn.Module):
     def __init__(self, c1, c2, n=1, a2=True, area=1, residual=False, mlp_ratio=2.0, e=0.5, g=1, shortcut=True):
         """
         Area-Attention C2f module for enhanced feature extraction with area-based attention mechanisms.
-        
+
         Args:
             c1 (int): Number of input channels.
             c2 (int): Number of output channels.

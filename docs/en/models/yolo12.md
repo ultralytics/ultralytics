@@ -13,11 +13,11 @@ YOLO12 introduces an attention-centric architecture that departs from the tradit
 ## Key Features
 
 - **Area Attention Mechanism**: A new self-attention approach that processes large receptive fields efficiently. It divides feature maps into _l_ equal-sized regions (defaulting to 4), either horizontally or vertically, avoiding complex operations and maintaining a large effective receptive field. This significantly reduces computational cost compared to standard self-attention.
-- **Residual Efficient Layer Aggregation Networks (R-ELAN)**: An improved feature aggregation module based on ELAN [57], designed to address optimization challenges, especially in larger-scale attention-centric models. R-ELAN introduces:
-    - Block-level residual connections with scaling (similar to layer scaling [52]).
+- **Residual Efficient Layer Aggregation Networks (R-ELAN)**: An improved feature aggregation module based on ELAN, designed to address optimization challenges, especially in larger-scale attention-centric models. R-ELAN introduces:
+    - Block-level residual connections with scaling (similar to layer scaling).
     - A redesigned feature aggregation method creating a bottleneck-like structure.
 - **Optimized Attention Architecture**: YOLO12 streamlines the standard attention mechanism for greater efficiency and compatibility with the YOLO framework. This includes:
-    - Using FlashAttention [13, 14] to minimize memory access overhead.
+    - Using FlashAttention to minimize memory access overhead.
     - Removing positional encoding for a cleaner and faster model.
     - Adjusting the MLP ratio (from the typical 4 to 1.2 or 2) to better balance computation between attention and feed-forward layers.
     - Reducing the depth of stacked blocks for improved optimization.

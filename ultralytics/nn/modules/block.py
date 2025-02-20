@@ -1213,12 +1213,14 @@ class AAttn(nn.Module):
             B, N, _ = qkv.shape
         q, k, v = (
             qkv.view(B, N, self.num_heads, self.head_dim * 3)
-            .permute(0, 2, 1, 3)
-            .split([self.head_dim, self.head_dim, self.head_dim], dim=3)
+            .permute(0, 2, 3, 1)
+            .split([self.head_dim, self.head_dim, self.head_dim], dim=2)
         )
-        x = F.scaled_dot_product_attention(q, k, v, attn_mask=None, dropout_p=0.0, is_causal=False)
-        x = x.permute(0, 2, 1, 3)
-        v = v.permute(0, 2, 1, 3)
+        attn = (q.transpose(-2, -1) @ k) * (self.head_dim**-0.5)
+        attn = attn.softmax(dim=-1)
+        x = v @ attn.transpose(-2, -1)
+        x = x.permute(0, 3, 1, 2)
+        v = v.permute(0, 3, 1, 2)
 
         if self.area > 1:
             x = x.reshape(B // self.area, N * self.area, C)

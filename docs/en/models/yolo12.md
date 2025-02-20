@@ -23,13 +23,13 @@ YOLO12 represents a paradigm shift in the Ultralytics YOLO series, introducing a
 
 YOLO12 provides comprehensive support for various computer vision tasks:
 
-| Model Type | Task | Inference | Validation | Training | Export |
-|------------|------|-----------|------------|----------|---------|
-| YOLO12-n/s/m/l/x | Detection | ✅ | ✅ | ✅ | ✅ |
-| YOLO12-seg | Segmentation | ✅ | ✅ | ✅ | ✅ |
-| YOLO12-pose | Pose | ✅ | ✅ | ✅ | ✅ |
-| YOLO12-cls | Classification | ✅ | ✅ | ✅ | ✅ |
-| YOLO12-obb | OBB | ✅ | ✅ | ✅ | ✅ |
+| Model Type       | Task           | Inference | Validation | Training | Export |
+| ---------------- | -------------- | --------- | ---------- | -------- | ------ |
+| YOLO12-n/s/m/l/x | Detection      | ✅        | ✅         | ✅       | ✅     |
+| YOLO12-seg       | Segmentation   | ✅        | ✅         | ✅       | ✅     |
+| YOLO12-pose      | Pose           | ✅        | ✅         | ✅       | ✅     |
+| YOLO12-cls       | Classification | ✅        | ✅         | ✅       | ✅     |
+| YOLO12-obb       | OBB            | ✅        | ✅         | ✅       | ✅     |
 
 ## Performance Metrics
 
@@ -37,13 +37,13 @@ YOLO12 demonstrates significant improvements across all model scales:
 
 ### Detection Performance (COCO)
 
-| Model | Size | mAP@50-95 | Speed (ms) | Parameters (M) | FLOPs (G) |
-|-------|------|------------|------------|----------------|------------|
-| YOLO12-n | 640 | 40.6 | 1.64 | 2.6 | 6.5 |
-| YOLO12-s | 640 | 48.0 | 2.61 | 9.3 | 21.4 |
-| YOLO12-m | 640 | 52.5 | 4.86 | 20.2 | 67.5 |
-| YOLO12-l | 640 | 53.7 | 6.77 | 26.4 | 88.9 |
-| YOLO12-x | 640 | 55.2 | 11.79 | 59.1 | 199.0 |
+| Model    | Size | mAP@50-95 | Speed (ms) | Parameters (M) | FLOPs (G) |
+| -------- | ---- | --------- | ---------- | -------------- | --------- |
+| YOLO12-n | 640  | 40.6      | 1.64       | 2.6            | 6.5       |
+| YOLO12-s | 640  | 48.0      | 2.61       | 9.3            | 21.4      |
+| YOLO12-m | 640  | 52.5      | 4.86       | 20.2           | 67.5      |
+| YOLO12-l | 640  | 53.7      | 6.77       | 26.4           | 88.9      |
+| YOLO12-x | 640  | 55.2      | 11.79      | 59.1           | 199.0     |
 
 ## Usage Examples
 
@@ -85,19 +85,21 @@ Note that the example below is for YOLO12 [Detect](../tasks/detect.md) models fo
 ## Key Improvements
 
 1. **Enhanced Feature Extraction**:
-   - Area Attention mechanism for efficient large receptive field processing
-   - Optimized balance between attention and feed-forward networks
-   - Improved feature aggregation through R-ELAN architecture
+
+    - Area Attention mechanism for efficient large receptive field processing
+    - Optimized balance between attention and feed-forward networks
+    - Improved feature aggregation through R-ELAN architecture
 
 2. **Optimization Innovations**:
-   - Residual connections with scaling techniques for stable training
-   - Refined feature integration methods
-   - Efficient memory access through FlashAttention integration
+
+    - Residual connections with scaling techniques for stable training
+    - Refined feature integration methods
+    - Efficient memory access through FlashAttention integration
 
 3. **Architectural Efficiency**:
-   - Reduced parameter count while maintaining or improving accuracy
-   - Streamlined attention implementation without positional encoding
-   - Optimized MLP ratios for better computational resource allocation
+    - Reduced parameter count while maintaining or improving accuracy
+    - Streamlined attention implementation without positional encoding
+    - Optimized MLP ratios for better computational resource allocation
 
 ## Requirements
 

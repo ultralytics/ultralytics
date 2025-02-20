@@ -8,6 +8,7 @@ from copy import deepcopy
 from pathlib import Path
 
 import torch
+import torch.nn as nn
 
 from ultralytics.nn.modules import (
     AIFI,
@@ -17,6 +18,7 @@ from ultralytics.nn.modules import (
     C3,
     C3TR,
     ELAN1,
+    IN,
     OBB,
     PSA,
     SPP,
@@ -50,6 +52,7 @@ from ultralytics.nn.modules import (
     HGStem,
     ImagePoolingAttn,
     Index,
+    Multiin,
     Pose,
     RepC3,
     RepConv,
@@ -91,7 +94,7 @@ except ImportError:
     thop = None  # conda support without 'ultralytics-thop' installed
 
 
-class BaseModel(torch.nn.Module):
+class BaseModel(nn.Module):
     """The BaseModel class serves as a base class for all the models in the Ultralytics YOLO family."""
 
     def forward(self, x, *args, **kwargs):
@@ -154,7 +157,7 @@ class BaseModel(torch.nn.Module):
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
             if embed and m.i in embed:
-                embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
+                embeddings.append(nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
                 if m.i == max(embed):
                     return torch.unbind(torch.cat(embeddings, 1), dim=0)
         return x
@@ -173,9 +176,12 @@ class BaseModel(torch.nn.Module):
         the provided list.
 
         Args:
-            m (torch.nn.Module): The layer to be profiled.
+            m (nn.Module): The layer to be profiled.
             x (torch.Tensor): The input data to the layer.
             dt (list): A list to store the computation time of the layer.
+
+        Returns:
+            None
         """
         c = m == self.model[-1] and isinstance(x, list)  # is final layer list, copy input as inplace fix
         flops = thop.profile(m, inputs=[x.copy() if c else x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs
@@ -195,7 +201,7 @@ class BaseModel(torch.nn.Module):
         computation efficiency.
 
         Returns:
-            (torch.nn.Module): The fused model is returned.
+            (nn.Module): The fused model is returned.
         """
         if not self.is_fused():
             for m in self.model.modules():
@@ -229,7 +235,7 @@ class BaseModel(torch.nn.Module):
         Returns:
             (bool): True if the number of BatchNorm layers in the model is less than the threshold, False otherwise.
         """
-        bn = tuple(v for k, v in torch.nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
+        bn = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
         return sum(isinstance(v, bn) for v in self.modules()) < thresh  # True if < 'thresh' BatchNorm layers in model
 
     def info(self, detailed=False, verbose=True, imgsz=640):
@@ -304,7 +310,7 @@ class DetectionModel(BaseModel):
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
         if self.yaml["backbone"][0][2] == "Silence":
             LOGGER.warning(
-                "WARNING ⚠️ YOLOv9 `Silence` module is deprecated in favor of torch.nn.Identity. "
+                "WARNING ⚠️ YOLOv9 `Silence` module is deprecated in favor of nn.Identity. "
                 "Please delete local *.pt file and re-download the latest model checkpoint."
             )
             self.yaml["backbone"][0][2] = "nn.Identity"
@@ -458,22 +464,20 @@ class ClassificationModel(BaseModel):
         name, m = list((model.model if hasattr(model, "model") else model).named_children())[-1]  # last module
         if isinstance(m, Classify):  # YOLO Classify() head
             if m.linear.out_features != nc:
-                m.linear = torch.nn.Linear(m.linear.in_features, nc)
-        elif isinstance(m, torch.nn.Linear):  # ResNet, EfficientNet
+                m.linear = nn.Linear(m.linear.in_features, nc)
+        elif isinstance(m, nn.Linear):  # ResNet, EfficientNet
             if m.out_features != nc:
-                setattr(model, name, torch.nn.Linear(m.in_features, nc))
-        elif isinstance(m, torch.nn.Sequential):
+                setattr(model, name, nn.Linear(m.in_features, nc))
+        elif isinstance(m, nn.Sequential):
             types = [type(x) for x in m]
-            if torch.nn.Linear in types:
-                i = len(types) - 1 - types[::-1].index(torch.nn.Linear)  # last torch.nn.Linear index
+            if nn.Linear in types:
+                i = len(types) - 1 - types[::-1].index(nn.Linear)  # last nn.Linear index
                 if m[i].out_features != nc:
-                    m[i] = torch.nn.Linear(m[i].in_features, nc)
-            elif torch.nn.Conv2d in types:
-                i = len(types) - 1 - types[::-1].index(torch.nn.Conv2d)  # last torch.nn.Conv2d index
+                    m[i] = nn.Linear(m[i].in_features, nc)
+            elif nn.Conv2d in types:
+                i = len(types) - 1 - types[::-1].index(nn.Conv2d)  # last nn.Conv2d index
                 if m[i].out_channels != nc:
-                    m[i] = torch.nn.Conv2d(
-                        m[i].in_channels, nc, m[i].kernel_size, m[i].stride, bias=m[i].bias is not None
-                    )
+                    m[i] = nn.Conv2d(m[i].in_channels, nc, m[i].kernel_size, m[i].stride, bias=m[i].bias is not None)
 
     def init_criterion(self):
         """Initialize the loss criterion for the ClassificationModel."""
@@ -583,7 +587,7 @@ class RTDETRDetectionModel(DetectionModel):
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
             if embed and m.i in embed:
-                embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
+                embeddings.append(nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
                 if m.i == max(embed):
                     return torch.unbind(torch.cat(embeddings, 1), dim=0)
         head = self.model[-1]
@@ -659,7 +663,7 @@ class WorldModel(DetectionModel):
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
             if embed and m.i in embed:
-                embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
+                embeddings.append(nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
                 if m.i == max(embed):
                     return torch.unbind(torch.cat(embeddings, 1), dim=0)
         return x
@@ -680,7 +684,7 @@ class WorldModel(DetectionModel):
         return self.criterion(preds, batch)
 
 
-class Ensemble(torch.nn.ModuleList):
+class Ensemble(nn.ModuleList):
     """Ensemble of models."""
 
     def __init__(self):
@@ -883,7 +887,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
     for m in ensemble.modules():
         if hasattr(m, "inplace"):
             m.inplace = inplace
-        elif isinstance(m, torch.nn.Upsample) and not hasattr(m, "recompute_scale_factor"):
+        elif isinstance(m, nn.Upsample) and not hasattr(m, "recompute_scale_factor"):
             m.recompute_scale_factor = None  # torch 1.11.0 compatibility
 
     # Return model
@@ -918,7 +922,7 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     for m in model.modules():
         if hasattr(m, "inplace"):
             m.inplace = inplace
-        elif isinstance(m, torch.nn.Upsample) and not hasattr(m, "recompute_scale_factor"):
+        elif isinstance(m, nn.Upsample) and not hasattr(m, "recompute_scale_factor"):
             m.recompute_scale_factor = None  # torch 1.11.0 compatibility
 
     # Return model and ckpt
@@ -942,7 +946,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         depth, width, max_channels = scales[scale]
 
     if act:
-        Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU()
+        Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = nn.SiLU()
         if verbose:
             LOGGER.info(f"{colorstr('activation:')} {act}")  # print
 
@@ -978,7 +982,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C3,
             C3TR,
             C3Ghost,
-            torch.nn.ConvTranspose2d,
+            nn.ConvTranspose2d,
             DWConvTranspose2d,
             C3x,
             RepC3,
@@ -1034,6 +1038,11 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 legacy = False
                 if scale in "mlx":
                     args[3] = True
+        elif m is IN:
+            ch[f] = ch[f]
+        elif m is Multiin:
+            c1 = ch[f]
+            c2 = ch[f] // 2
         elif m is AIFI:
             args = [ch[f], *args]
         elif m in frozenset({HGStem, HGBlock}):
@@ -1044,7 +1053,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 n = 1
         elif m is ResNetLayer:
             c2 = args[1] if args[3] else args[1] * 4
-        elif m is torch.nn.BatchNorm2d:
+        elif m is nn.BatchNorm2d:
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
@@ -1069,7 +1078,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         else:
             c2 = ch[f]
 
-        m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
+        m_ = nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
         t = str(m)[8:-2].replace("__main__.", "")  # module type
         m_.np = sum(x.numel() for x in m_.parameters())  # number params
         m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
@@ -1080,7 +1089,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         if i == 0:
             ch = []
         ch.append(c2)
-    return torch.nn.Sequential(*layers), sorted(save)
+    return nn.Sequential(*layers), sorted(save)
 
 
 def yaml_model_load(path):
@@ -1122,7 +1131,7 @@ def guess_model_task(model):
     Guess the task of a PyTorch model from its architecture or configuration.
 
     Args:
-        model (torch.nn.Module | dict): PyTorch model or model configuration in YAML format.
+        model (nn.Module | dict): PyTorch model or model configuration in YAML format.
 
     Returns:
         (str): Task of the model ('detect', 'segment', 'classify', 'pose').
@@ -1150,7 +1159,7 @@ def guess_model_task(model):
         with contextlib.suppress(Exception):
             return cfg2task(model)
     # Guess from PyTorch model
-    if isinstance(model, torch.nn.Module):  # PyTorch model
+    if isinstance(model, nn.Module):  # PyTorch model
         for x in "model.args", "model.model.args", "model.model.model.args":
             with contextlib.suppress(Exception):
                 return eval(x)["task"]

@@ -212,6 +212,12 @@ class Exporter:
         self.run_callbacks("on_export_start")
         t = time.time()
         fmt = self.args.format.lower()  # to lowercase
+        if fmt == "-":
+            LOGGER.info(
+                f"✅ Model already in PyTorch format."
+                f"\nVisualize:       https://netron.app"
+            )
+            return
         if fmt in {"tensorrt", "trt"}:  # 'engine' aliases
             fmt = "engine"
         if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"}:  # 'coreml' aliases

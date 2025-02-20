@@ -1229,8 +1229,7 @@ class AAttn(nn.Module):
         v = v.view(B, H, W, C).permute(0, 3, 1, 2)
 
         x = x + self.pe(v)
-        x = self.proj(x)
-        return x
+        return self.proj(x)
 
 
 class ABlock(nn.Module):

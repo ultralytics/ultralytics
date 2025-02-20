@@ -50,8 +50,8 @@ YOLO12 demonstrates significant [accuracy](https://www.ultralytics.com/glossary/
 
 ### Detection Performance (COCO val2017)
 
-| Model                                                                                | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) | Comparison<br><sup>(mAP/Speed)   |
-| ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------ | --------------------------------- | ------------------ | ----------------- | -------------------------------- |
+| Model                                                                                | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) | Comparison<br><sup>(mAP/Speed) |
+| ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------ | --------------------------------- | ------------------ | ----------------- | ------------------------------ |
 | [YOLO12n](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12n.pt) | 640                   | 40.6                 | -                              | 1.64                              | 2.6                | 6.5               | +2.1%/-9% (vs. YOLOv10n)       |
 | [YOLO12s](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12s.pt) | 640                   | 48.0                 | -                              | 2.61                              | 9.3                | 21.4              | +0.1%/+42% (vs. RT-DETRv2)     |
 | [YOLO12m](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12m.pt) | 640                   | 52.5                 | -                              | 4.86                              | 20.2               | 67.5              | +1.0%/+3% (vs. YOLO11m)        |

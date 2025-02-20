@@ -317,8 +317,7 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
             if len(m._parameters):
                 for pn, p in m.named_parameters():
                     LOGGER.info(
-                        f"{i:>5g}{mn + '.' + pn:>40}{mt:>20}{p.requires_grad!r:>10}{p.numel():>12g}"
-                        f"{str(list(p.shape)):>20}{p.mean():>10.3g}{p.std():>10.3g}{str(p.dtype).replace('torch.', ''):>15}"
+                        f"{i:>5g}{f'{mn}.{pn}':>40}{mt:>20}{p.requires_grad!r:>10}{p.numel():>12g}{str(list(p.shape)):>20}{p.mean():>10.3g}{p.std():>10.3g}{str(p.dtype).replace('torch.', ''):>15}"
                     )
             else:  # layers with no learnable params
                 LOGGER.info(f"{i:>5g}{mn:>40}{mt:>20}{False!r:>10}{0:>12g}{str([]):>20}{'-':>10}{'-':>10}{'-':>15}")

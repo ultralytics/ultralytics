@@ -203,7 +203,7 @@ Real-time object tracking can be achieved using the track mode in Ultralytics YO
 
         # Start tracking objects in a video
         # You can also use live video streams or webcam input
-        model.track(source="path/to/video.mp4")
+        model.track(source="https://youtu.be/LNwODJXcvt4")
         ```
 
     === "CLI"
@@ -211,7 +211,7 @@ Real-time object tracking can be achieved using the track mode in Ultralytics YO
         ```bash
         # Perform object tracking on a video from the command line
         # You can specify different sources like webcam (0) or RTSP streams
-        yolo track source=path/to/video.mp4
+        yolo track source="https://youtu.be/LNwODJXcvt4"
         ```
 
 For in-depth instructions, visit the [Track Guide](../modes/track.md).

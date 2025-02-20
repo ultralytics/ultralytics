@@ -274,7 +274,7 @@ FastSAM is practical for a variety of [computer vision](https://www.ultralytics.
 
 - Industrial automation for quality control and assurance
 - Real-time video analysis for security and surveillance
-- Autonomous vehicles for object detection and segmentation
+- [Autonomous vehicles](https://www.ultralytics.com/glossary/autonomous-vehicles) for object detection and segmentation
 - Medical imaging for precise and quick segmentation tasks
 
 Its ability to handle various user interaction prompts makes FastSAM adaptable and flexible for diverse scenarios.

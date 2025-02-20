@@ -158,3 +158,25 @@ If you use YOLO12 in your research, please cite the original paper and software 
           license = {AGPL-3.0}
         }
         ```
+
+## FAQ
+
+### How does YOLO12 achieve real-time object detection while maintaining high accuracy?
+
+YOLO12 incorporates several key innovations to balance speed and accuracy. The Area Attention mechanism efficiently processes large receptive fields, reducing computational cost compared to standard self-attention.  The Residual Efficient Layer Aggregation Networks (R-ELAN) improve feature aggregation, addressing optimization challenges in larger attention-centric models.  Optimized Attention Architecture, including the use of FlashAttention and removal of positional encoding, further enhances efficiency. These features allow YOLO12 to achieve state-of-the-art accuracy while maintaining the real-time inference speed crucial for many applications.
+
+### What computer vision tasks does YOLO12 support?
+
+YOLO12 is a versatile model that supports a wide range of core computer vision tasks.  It excels in object [detection](../tasks/detect.md), instance [segmentation](../tasks/segment.md), image [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and oriented object detection (OBB) ([see details](../tasks/obb.md)).  This comprehensive task support makes YOLO12 a powerful tool for diverse applications, from robotics and autonomous driving to medical imaging and industrial inspection.  Each of these tasks can be performed in Inference, Validation, Training, and Export modes.
+
+### How does YOLO12 compare to other YOLO models and competitors like RT-DETR?
+
+YOLO12 demonstrates significant accuracy improvements across all model scales compared to prior YOLO models like YOLOv10 and YOLOv11, with some trade-offs in speed compared to the *fastest* prior models.  For example, YOLO12n achieves a +2.1% mAP improvement over YOLOv10n and +1.2% over YOLOv11n on the COCO val2017 dataset.  Compared to models like [RT-DETR](https://docs.ultralytics.com/compare/yolov8-vs-rtdetr/), YOLO12s offers a +1.5% mAP improvement and a substantial +42% speed increase. These metrics highlight YOLO12's strong balance between accuracy and efficiency. See the [performance metrics section](#performance-metrics) for detailed comparisons.
+
+### What are the hardware requirements for running YOLO12, especially for using FlashAttention?
+
+By default, the Ultralytics YOLO12 implementation does *not* require FlashAttention. However, FlashAttention can be optionally compiled and used with YOLO12 to minimize memory access overhead. To compile FlashAttention, one of the following NVIDIA GPUs is needed: Turing GPUs (e.g., T4, Quadro RTX series), Ampere GPUs (e.g., RTX30 series, A30/40/100), Ada Lovelace GPUs (e.g., RTX40 series), or Hopper GPUs (e.g., H100/H200). This flexibility allows users to leverage FlashAttention's benefits when hardware resources permit.
+
+### Where can I find usage examples and more detailed documentation for YOLO12?
+
+This page provides basic [usage examples](#usage-examples) for training and inference. For comprehensive documentation on these and other modes, including [Validation](../modes/val.md) and [Export](../modes/export.md), consult the dedicated [Predict](../modes/predict.md) and [Train](../modes/train.md) pages. For task-specific information (segmentation, classification, oriented object detection, and pose estimation), refer to the respective documentation: [Segment](../tasks/segment.md), [Classify](../tasks/classify.md), [OBB](../tasks/obb.md), and [Pose](../tasks/pose.md). These resources provide in-depth guidance for effectively utilizing YOLO12 in various scenarios.

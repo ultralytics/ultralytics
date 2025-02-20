@@ -309,9 +309,8 @@ class Exporter:
                 "WARNING ⚠️ INT8 export requires a missing 'data' arg for calibration. "
                 f"Using default 'data={self.args.data}'."
             )
-        if tfjs:
-            if ARM64 and LINUX:
-                raise SystemError("TensorFlow.js export not supported on ARM64 Linux")
+        if tfjs and (ARM64 and LINUX):
+            raise SystemError("TensorFlow.js export not supported on ARM64 Linux")
 
         # Input
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)

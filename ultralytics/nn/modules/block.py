@@ -1178,7 +1178,6 @@ class AAttn(nn.Module):
 
     Notes:
         recommend that dim//num_heads be a multiple of 32 or 64.
-
     """
 
     def __init__(self, dim, num_heads, area=1):
@@ -1276,7 +1275,9 @@ class ABlock(nn.Module):
                 nn.init.constant_(m.bias, 0)
 
     def forward(self, x):
-        """Executes a forward pass through ABlock, applying area-attention and feed-forward layers to the input tensor."""
+        """Executes a forward pass through ABlock, applying area-attention and feed-forward layers to the input
+        tensor.
+        """
         x = x + self.attn(x)
         x = x + self.mlp(x)
         return x
@@ -1284,7 +1285,8 @@ class ABlock(nn.Module):
 
 class A2C2f(nn.Module):
     """
-    A2C2f module with residual enhanced feature extraction using ABlock blocks with area-attention. Also known as R-ELAN.
+    A2C2f module with residual enhanced feature extraction using ABlock blocks with area-attention. Also known as
+    R-ELAN.
 
     This class extends the C2f module by incorporating ABlock blocks for fast attention mechanisms and feature extraction.
 
@@ -1320,7 +1322,7 @@ class A2C2f(nn.Module):
         self.cv1 = Conv(c1, c_, 1, 1)
         self.cv2 = Conv((1 + n) * c_, c2, 1)
 
-        self.gamma = nn.Parameter(0.01 * torch.ones((c2)), requires_grad=True) if a2 and residual else None
+        self.gamma = nn.Parameter(0.01 * torch.ones(c2), requires_grad=True) if a2 and residual else None
         self.m = nn.ModuleList(
             nn.Sequential(*(ABlock(c_, c_ // 32, mlp_ratio, area) for _ in range(2)))
             if a2

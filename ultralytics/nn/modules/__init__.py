@@ -30,6 +30,7 @@ from .block import (
     SPP,
     SPPELAN,
     SPPF,
+    A2C2f,
     AConv,
     ADown,
     Attention,
@@ -57,7 +58,6 @@ from .block import (
     ResNetLayer,
     SCDown,
     TorchVision,
-    A2C2f
 )
 from .conv import (
     CBAM,
@@ -161,5 +161,5 @@ __all__ = (
     "PSA",
     "TorchVision",
     "Index",
-    "A2C2f"
+    "A2C2f",
 )

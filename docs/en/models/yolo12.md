@@ -51,16 +51,16 @@ YOLO12 demonstrates significant [accuracy](https://www.ultralytics.com/glossary/
 ### Detection Performance (COCO val2017)
 
 | Model                                                                                | size<br><sup>(pixels) | mAP<sup>val</sup><br>50-95 | Speed (ms)<sup>1</sup> | params<br><sup>(M) | FLOPs<br><sup>(B) | Comparison (mAP / Speed)<sup>2</sup> |
-| ------------------------------------------------------------------------------------ | --------------------- | -------------------------- | ---------------------- | ------------------ | ----------------- | ------------------------------------ |
-| [YOLO12n](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12n.pt) | 640                   | 40.6                       | 1.64                   | 2.6                | 6.5               | +2.1% / -9% (vs. YOLOv10n)           |
-| [YOLO12s](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12s.pt) | 640                   | 48.0                       | 2.61                   | 9.3                | 21.4              | +0.1% / +42% (vs. RT-DETRv2-R18)     |
-| [YOLO12m](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12m.pt) | 640                   | 52.5                       | 4.86                   | 20.2               | 67.5              | +1.0% / +3% (vs. YOLOv11m)           |
-| [YOLO12l](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12l.pt) | 640                   | 53.7                       | 6.77                   | 26.4               | 88.9              | +0.4% / -8% (vs. YOLOv11l)           |
-| [YOLO12x](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12x.pt) | 640                   | 55.2                       | 11.79                  | 59.1               | 199.0             | +0.6% / -4% (vs. YOLOv11x)           |
+| ------------------------------------------------------------------------------------ | --------------------- | -------------------------- | ---------------------- | ------------------ | ----------------- | --------------------------------- |
+| [YOLO12n](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12n.pt) | 640                   | 40.6                       | 1.64                   | 2.6                | 6.5               | +2.1% / -9% (vs. YOLOv10n)        |
+| [YOLO12s](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12s.pt) | 640                   | 48.0                       | 2.61                   | 9.3                | 21.4              | +0.1% / +42% (vs. RT-DETRv2-R18)  |
+| [YOLO12m](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12m.pt) | 640                   | 52.5                       | 4.86                   | 20.2               | 67.5              | +1.0% / +3% (vs. YOLO11m)         |
+| [YOLO12l](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12l.pt) | 640                   | 53.7                       | 6.77                   | 26.4               | 88.9              | +0.4% / -8% (vs. YOLO11l)         |
+| [YOLO12x](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12x.pt) | 640                   | 55.2                       | 11.79                  | 59.1               | 199.0             | +0.6% / -4% (vs. YOLO11x)         |
 
 <sup>1</sup> Inference speed measured on an NVIDIA T4 GPU with TensorRT FP16 [precision](https://www.ultralytics.com/glossary/precision).
 
-<sup>2</sup> Comparisons show the relative improvement in mAP and the percentage change in speed (positive indicates faster; negative indicates slower). Comparisons are made against published results for YOLOv10, YOLOv11, and RT-DETR where available.
+<sup>2</sup> Comparisons show the relative improvement in mAP and the percentage change in speed (positive indicates faster; negative indicates slower). Comparisons are made against published results for YOLOv10, YOLO11, and RT-DETR where available.
 
 ## Usage Examples
 
@@ -130,7 +130,7 @@ The Ultralytics YOLO12 implementation, by default, _does not require_ FlashAtten
 
 ## Citations and Acknowledgements
 
-If you use YOLO12 in your research, please cite the original paper and software citations included as reference implementations.
+If you use YOLO12 in your research, please cite the original work by [University at Buffalo](https://www.buffalo.edu/) and the [University of Chinese Academy of Sciences](https://english.ucas.ac.cn/):
 
 !!! quote ""
 

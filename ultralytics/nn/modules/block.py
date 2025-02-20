@@ -1209,22 +1209,16 @@ class AAttn(nn.Module):
 
         qkv = self.qkv(x).flatten(2).transpose(1, 2)
         if self.area > 1:
-            qkv = qkv.reshape(B * self.area, N // self.area, C * 3)
+            qkv = qkv.view(B * self.area, N // self.area, C * 3)
             B, N, _ = qkv.shape
-        q, k, v = qkv.view(B, N, self.num_heads, self.head_dim * 3).split(
-            [self.head_dim, self.head_dim, self.head_dim], dim=3
+        q, k, v = (
+            qkv.view(B, N, self.num_heads, self.head_dim * 3)
+            .permute(0, 2, 1, 3)
+            .split([self.head_dim, self.head_dim, self.head_dim], dim=3)
         )
-
-        q = q.permute(0, 2, 3, 1)
-        k = k.permute(0, 2, 3, 1)
-        v = v.permute(0, 2, 3, 1)
-        attn = (q.transpose(-2, -1) @ k) * (self.head_dim**-0.5)
-        max_attn = attn.max(dim=-1, keepdim=True).values
-        exp_attn = torch.exp(attn - max_attn)
-        attn = exp_attn / exp_attn.sum(dim=-1, keepdim=True)
-        x = v @ attn.transpose(-2, -1)
-        x = x.permute(0, 3, 1, 2)
-        v = v.permute(0, 3, 1, 2)
+        x = F.scaled_dot_product_attention(q, k, v, attn_mask=None, dropout_p=0.0, is_causal=False)
+        x = x.permute(0, 2, 1, 3)
+        v = v.permute(0, 2, 1, 3)
 
         if self.area > 1:
             x = x.reshape(B // self.area, N * self.area, C)
@@ -1235,8 +1229,7 @@ class AAttn(nn.Module):
         v = v.reshape(B, H, W, C).permute(0, 3, 1, 2)
 
         x = x + self.pe(v)
-        x = self.proj(x)
-        return x
+        return self.proj(x)
 
 
 class ABlock(nn.Module):

@@ -59,6 +59,7 @@ YOLO12 demonstrates significant accuracy improvements across all model scales, w
 | YOLO12x | 640                   | 55.2                       | 11.79                  | 59.1               | 199.0             | +0.6% / -4% (vs. YOLOv11x)           |
 
 <sup>1</sup> Inference speed measured on an NVIDIA T4 GPU with TensorRT FP16 precision.
+
 <sup>2</sup> Comparisons show the relative improvement in mAP and the percentage change in speed (positive indicates faster; negative indicates slower). Comparisons are made against published results for YOLOv10, YOLOv11, and RT-DETR where available.
 
 ## Usage Examples

@@ -213,10 +213,7 @@ class Exporter:
         t = time.time()
         fmt = self.args.format.lower()  # to lowercase
         if fmt == "-":
-            LOGGER.info(
-                f"✅ Model already in PyTorch format."
-                f"\nVisualize:       https://netron.app"
-            )
+            LOGGER.info("✅ Model already in PyTorch format.\nVisualize:       https://netron.app")
             return
         if fmt in {"tensorrt", "trt"}:  # 'engine' aliases
             fmt = "engine"

@@ -32,12 +32,12 @@ YOLO12 introduces an attention-centric architecture that departs from the tradit
 YOLO12 supports a variety of computer vision tasks. The table below shows task support and the operational modes (Inference, Validation, Training, and Export) enabled for each:
 
 | Model Type  | Task           | Inference | Validation | Training | Export |
-| ----------- | -------------- | --------- | ---------- | -------- | ------ |
-| YOLO12      | Detection      | ✅        | ✅         | ✅       | ✅     |
-| YOLO12-seg  | Segmentation   | ✅        | ✅         | ✅       | ✅     |
-| YOLO12-pose | Pose           | ✅        | ✅         | ✅       | ✅     |
-| YOLO12-cls  | Classification | ✅        | ✅         | ✅       | ✅     |
-| YOLO12-obb  | OBB            | ✅        | ✅         | ✅       | ✅     |
+|-------------|----------------|-----------|------------|----------|--------|
+| YOLO12      | Detection      | ✅         | ✅          | ✅        | ✅      |
+| YOLO12-seg  | Segmentation   | ✅         | ✅          | ✅        | ✅      |
+| YOLO12-pose | Pose           | ✅         | ✅          | ✅        | ✅      |
+| YOLO12-cls  | Classification | ✅         | ✅          | ✅        | ✅      |
+| YOLO12-obb  | OBB            | ✅         | ✅          | ✅        | ✅      |
 
 ## Performance Metrics
 
@@ -51,19 +51,12 @@ YOLO12 demonstrates significant accuracy improvements across all model scales, w
 ### Detection Performance (COCO val2017)
 
 | Model   | size<br><sup>(pixels) | mAP<sup>val</sup><br>50-95 | Speed (ms)<sup>1</sup> | params<br><sup>(M) | FLOPs<br><sup>(B) | Comparison (mAP / Speed)<sup>2</sup> |
-| ------- | --------------------- | -------------------------- | ---------------------- | ------------------ | ----------------- | ------------------------------------ |
+|---------|-----------------------|----------------------------|------------------------|--------------------|-------------------|--------------------------------------|
 | YOLO12n | 640                   | 40.6                       | 1.64                   | 2.6                | 6.5               | +2.1% / -9% (vs. YOLOv10n)           |
-|         |                       |                            |                        |                    |                   | +1.2% / +4% (vs. YOLOv11n)           |
-| YOLO12s | 640                   | 48.0                       | 2.61                   | 9.3                | 21.4              | +1.7% / -5% (vs. YOLOv10s)           |
-|         |                       |                            |                        |                    |                   | +1.1% / -4% (vs. YOLOv11s)           |
-|         |                       |                            |                        | 9.3                | 21.4              | +1.5% / +42% (vs. RT-DETR-R18)       |
-|         |                       |                            |                        | 9.3                | 21.4              | +0.1% / +42% (vs. RT-DETRv2-R18)     |
-| YOLO12m | 640                   | 52.5                       | 4.86                   | 20.2               | 67.5              | +1.4% / +2% (vs. YOLOv10m)           |
-|         |                       |                            |                        |                    |                   | +1.0% / +3% (vs. YOLOv11m)           |
-| YOLO12l | 640                   | 53.7                       | 6.77                   | 26.4               | 88.9              | +0.5% / +7% (vs. YOLOv10l)           |
-|         |                       |                            |                        |                    |                   | +0.4% / -8% (vs. YOLOv11l)           |
-| YOLO12x | 640                   | 55.2                       | 11.79                  | 59.1               | 199.0             | +0.8% / -9% (vs. YOLOv10x)           |
-|         |                       |                            |                        |                    |                   | +0.6% / -4% (vs. YOLOv11x)           |
+| YOLO12s | 640                   | 48.0                       | 2.61                   | 9.3                | 21.4              | +0.1% / +42% (vs. RT-DETRv2-R18)     |
+| YOLO12m | 640                   | 52.5                       | 4.86                   | 20.2               | 67.5              | +1.0% / +3% (vs. YOLOv11m)           |
+| YOLO12l | 640                   | 53.7                       | 6.77                   | 26.4               | 88.9              | +0.4% / -8% (vs. YOLOv11l)           |
+| YOLO12x | 640                   | 55.2                       | 11.79                  | 59.1               | 199.0             | +0.6% / -4% (vs. YOLOv11x)           |
 
 <sup>1</sup> Inference speed measured on an NVIDIA T4 GPU with TensorRT FP16 precision.
 <sup>2</sup> Comparisons show the relative improvement in mAP and the percentage change in speed (positive indicates faster; negative indicates slower). Comparisons are made against published results for YOLOv10, YOLOv11, and RT-DETR where available.
@@ -163,15 +156,15 @@ If you use YOLO12 in your research, please cite the original paper and software 
 
 ### How does YOLO12 achieve real-time object detection while maintaining high accuracy?
 
-YOLO12 incorporates several key innovations to balance speed and accuracy. The Area Attention mechanism efficiently processes large receptive fields, reducing computational cost compared to standard self-attention.  The Residual Efficient Layer Aggregation Networks (R-ELAN) improve feature aggregation, addressing optimization challenges in larger attention-centric models.  Optimized Attention Architecture, including the use of FlashAttention and removal of positional encoding, further enhances efficiency. These features allow YOLO12 to achieve state-of-the-art accuracy while maintaining the real-time inference speed crucial for many applications.
+YOLO12 incorporates several key innovations to balance speed and accuracy. The Area Attention mechanism efficiently processes large receptive fields, reducing computational cost compared to standard self-attention. The Residual Efficient Layer Aggregation Networks (R-ELAN) improve feature aggregation, addressing optimization challenges in larger attention-centric models. Optimized Attention Architecture, including the use of FlashAttention and removal of positional encoding, further enhances efficiency. These features allow YOLO12 to achieve state-of-the-art accuracy while maintaining the real-time inference speed crucial for many applications.
 
 ### What computer vision tasks does YOLO12 support?
 
-YOLO12 is a versatile model that supports a wide range of core computer vision tasks.  It excels in object [detection](../tasks/detect.md), instance [segmentation](../tasks/segment.md), image [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and oriented object detection (OBB) ([see details](../tasks/obb.md)).  This comprehensive task support makes YOLO12 a powerful tool for diverse applications, from robotics and autonomous driving to medical imaging and industrial inspection.  Each of these tasks can be performed in Inference, Validation, Training, and Export modes.
+YOLO12 is a versatile model that supports a wide range of core computer vision tasks. It excels in object [detection](../tasks/detect.md), instance [segmentation](../tasks/segment.md), image [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and oriented object detection (OBB) ([see details](../tasks/obb.md)). This comprehensive task support makes YOLO12 a powerful tool for diverse applications, from robotics and autonomous driving to medical imaging and industrial inspection. Each of these tasks can be performed in Inference, Validation, Training, and Export modes.
 
 ### How does YOLO12 compare to other YOLO models and competitors like RT-DETR?
 
-YOLO12 demonstrates significant accuracy improvements across all model scales compared to prior YOLO models like YOLOv10 and YOLOv11, with some trade-offs in speed compared to the *fastest* prior models.  For example, YOLO12n achieves a +2.1% mAP improvement over YOLOv10n and +1.2% over YOLOv11n on the COCO val2017 dataset.  Compared to models like [RT-DETR](https://docs.ultralytics.com/compare/yolov8-vs-rtdetr/), YOLO12s offers a +1.5% mAP improvement and a substantial +42% speed increase. These metrics highlight YOLO12's strong balance between accuracy and efficiency. See the [performance metrics section](#performance-metrics) for detailed comparisons.
+YOLO12 demonstrates significant accuracy improvements across all model scales compared to prior YOLO models like YOLOv10 and YOLOv11, with some trade-offs in speed compared to the *fastest* prior models. For example, YOLO12n achieves a +2.1% mAP improvement over YOLOv10n and +1.2% over YOLOv11n on the COCO val2017 dataset. Compared to models like [RT-DETR](https://docs.ultralytics.com/compare/yolov8-vs-rtdetr/), YOLO12s offers a +1.5% mAP improvement and a substantial +42% speed increase. These metrics highlight YOLO12's strong balance between accuracy and efficiency. See the [performance metrics section](#performance-metrics) for detailed comparisons.
 
 ### What are the hardware requirements for running YOLO12, especially for using FlashAttention?
 

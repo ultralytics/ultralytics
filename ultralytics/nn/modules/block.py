@@ -1158,30 +1158,41 @@ class TorchVision(nn.Module):
 
 class AAttn(nn.Module):
     """
-    Area-attention module with the requirement of flash attention.
-
+    Area-attention module for YOLO models, providing efficient attention mechanisms.
+    
+    This module implements an area-based attention mechanism that processes input features in a spatially-aware manner,
+    making it particularly effective for object detection tasks.
+    
     Attributes:
-        dim (int): Number of hidden channels.
+        area (int): Number of areas the feature map is divided.
         num_heads (int): Number of heads into which the attention mechanism is divided.
-        area (int, optional): Number of areas the feature map is divided. Defaults to 1.
-
+        head_dim (int): Dimension of each attention head.
+        qkv (Conv): Convolution layer for computing query, key and value tensors.
+        proj (Conv): Projection convolution layer.
+        pe (Conv): Position encoding convolution layer.
+    
     Methods:
-        forward: Performs a forward process of input tensor and outputs a tensor after the execution of the area attention mechanism.
-
+        forward: Applies area-attention to input tensor.
+    
     Examples:
-        >>> import torch
-        >>> from ultralytics.nn.modules import AAttn
-        >>> model = AAttn(dim=64, num_heads=2, area=4)
-        >>> x = torch.randn(2, 64, 128, 128)
-        >>> output = model(x)
+        >>> attn = AAttn(dim=256, num_heads=8, area=4)
+        >>> x = torch.randn(1, 256, 32, 32)
+        >>> output = attn(x)
         >>> print(output.shape)
-
-    Notes:
-        recommend that dim//num_heads be a multiple of 32 or 64.
+        torch.Size([1, 256, 32, 32])
     """
 
+
     def __init__(self, dim, num_heads, area=1):
-        """Initializes the area-attention module, a simple yet efficient attention module for YOLO."""
+        """
+        Initializes an Area-attention module for YOLO models.
+        
+        Args:
+            dim (int): Number of hidden channels.
+            num_heads (int): Number of heads into which the attention mechanism is divided.
+            area (int): Number of areas the feature map is divided, default is 1.
+        """
+
         super().__init__()
         self.area = area
 
@@ -1232,33 +1243,43 @@ class AAttn(nn.Module):
 
 class ABlock(nn.Module):
     """
-    ABlock class implementing a Area-Attention block with effective feature extraction.
-
-    This class encapsulates the functionality for applying multi-head attention with feature map are dividing into areas
-    and feed-forward neural network layers.
-
+    Area-attention block module for efficient feature extraction in YOLO models.
+    
+    This module implements an area-attention mechanism combined with a feed-forward network for processing feature maps. It 
+    uses a novel area-based attention approach that is more efficient than traditional self-attention while maintaining 
+    effectiveness.
+    
     Attributes:
-        dim (int): Number of hidden channels.
-        num_heads (int): Number of heads into which the attention mechanism is divided.
-        mlp_ratio (float, optional): MLP expansion ratio (or MLP hidden dimension ratio). Defaults to 1.2.
-        area (int, optional): Number of areas the feature map is divided.  Defaults to 1.
-
+        attn (AAttn): Area-attention module for processing spatial features.
+        mlp (nn.Sequential): Multi-layer perceptron for feature transformation.
+    
     Methods:
-        forward: Performs a forward pass through the ABlock, applying area-attention and feed-forward layers.
-
+        _init_weights: Initializes module weights using truncated normal distribution.
+        forward: Applies area-attention and feed-forward processing to input tensor.
+    
     Examples:
-        Create a ABlock and perform a forward pass
-        >>> model = ABlock(dim=64, num_heads=2, mlp_ratio=1.2, area=4)
-        >>> x = torch.randn(2, 64, 128, 128)
-        >>> output = model(x)
+        >>> block = ABlock(dim=256, num_heads=8, mlp_ratio=1.2, area=1)
+        >>> x = torch.randn(1, 256, 32, 32)
+        >>> output = block(x)
         >>> print(output.shape)
-
-    Notes:
-        Recommend that dim//num_heads be a multiple of 32 or 64.
+        torch.Size([1, 256, 32, 32])
     """
 
+
     def __init__(self, dim, num_heads, mlp_ratio=1.2, area=1):
-        """Initializes the ABlock with area-attention and feed-forward layers for faster feature extraction."""
+        """
+        Initializes an Area-attention block module for efficient feature extraction in YOLO models.
+        
+        This module implements an area-attention mechanism combined with a feed-forward network for processing feature maps. It 
+        uses a novel area-based attention approach that is more efficient than traditional self-attention while maintaining 
+        effectiveness.
+        
+        Args:
+            dim (int): Number of input channels.
+            num_heads (int): Number of heads into which the attention mechanism is divided.
+            mlp_ratio (float): Expansion ratio for MLP hidden dimension.
+            area (int): Number of areas the feature map is divided.
+        """
         super().__init__()
 
         self.attn = AAttn(dim, num_heads=num_heads, area=area)
@@ -1282,37 +1303,47 @@ class ABlock(nn.Module):
 
 class A2C2f(nn.Module):
     """
-    A2C2f module with residual enhanced feature extraction using ABlock blocks with area-attention. Also known as
-    R-ELAN.
-
-    This class extends the C2f module by incorporating ABlock blocks for fast attention mechanisms and feature extraction.
-
+    Area-Attention C2f module for enhanced feature extraction with area-based attention mechanisms.
+    
+    This module extends the C2f architecture by incorporating area-attention and ABlock layers for improved feature 
+    processing. It supports both area-attention and standard convolution modes.
+    
     Attributes:
-        c1 (int): Number of input channels.
-        c2 (int): Number of output channels.
-        n (int, optional): Number of 2xABlock modules to stack. Defaults to 1.
-        a2 (bool, optional): Whether use area-attention. Defaults to True.
-        area (int, optional): Number of areas the feature map is divided. Defaults to 1.
-        residual (bool, optional): Whether use the residual (with layer scale). Defaults to False.
-        mlp_ratio (float, optional): MLP expansion ratio (or MLP hidden dimension ratio). Defaults to 1.2.
-        e (float, optional): Expansion ratio for R-ELAN modules. Defaults to 0.5.
-        g (int, optional): Number of groups for grouped convolution. Defaults to 1.
-        shortcut (bool, optional): Whether to use shortcut connection. Defaults to True.
-
+        cv1 (Conv): Initial 1x1 convolution layer that reduces input channels to hidden channels.
+        cv2 (Conv): Final 1x1 convolution layer that processes concatenated features.
+        gamma (nn.Parameter | None): Learnable parameter for residual scaling when using area attention.
+        m (nn.ModuleList): List of either ABlock or C3k modules for feature processing.
+    
     Methods:
-        forward: Performs a forward pass through the A2C2f module.
-
+        forward: Processes input through area-attention or standard convolution pathway.
+    
     Examples:
-        >>> import torch
-        >>> from ultralytics.nn.modules import A2C2f
-        >>> model = A2C2f(c1=64, c2=64, n=2, a2=True, area=4, residual=True, e=0.5)
-        >>> x = torch.randn(2, 64, 128, 128)
-        >>> output = model(x)
+        >>> m = A2C2f(512, 512, n=1, a2=True, area=1)
+        >>> x = torch.randn(1, 512, 32, 32)
+        >>> output = m(x)
         >>> print(output.shape)
+        torch.Size([1, 512, 32, 32])
     """
 
+
     def __init__(self, c1, c2, n=1, a2=True, area=1, residual=False, mlp_ratio=2.0, e=0.5, g=1, shortcut=True):
-        """Initializes a residual enhanced feature extraction module with area-attention and ABlock layers."""
+        """
+        Area-Attention C2f module for enhanced feature extraction with area-based attention mechanisms.
+        
+        Args:
+            c1 (int): Number of input channels.
+            c2 (int): Number of output channels.
+            n (int): Number of ABlock or C3k modules to stack.
+            a2 (bool): Whether to use area attention blocks. If False, uses C3k blocks instead.
+            area (int): Number of areas the feature map is divided.
+            residual (bool): Whether to use residual connections with learnable gamma parameter.
+            mlp_ratio (float): Expansion ratio for MLP hidden dimension.
+            e (float): Channel expansion ratio for hidden channels.
+            g (int): Number of groups for grouped convolutions.
+            shortcut (bool): Whether to use shortcut connections in C3k blocks.
+        """
+
+
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
         assert c_ % 32 == 0, "Dimension of ABlock be a multiple of 32."

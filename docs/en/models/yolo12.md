@@ -24,7 +24,7 @@ YOLO12 introduces an attention-centric architecture that challenges the traditio
 YOLO12 provides comprehensive support for various computer vision tasks:
 
 | Model Type  | Task           | Inference | Validation | Training | Export |
-|-------------| -------------- | --------- | ---------- | -------- | ------ |
+| ----------- | -------------- | --------- | ---------- | -------- | ------ |
 | YOLO12      | Detection      | ✅        | ✅         | ✅       | ✅     |
 | YOLO12-seg  | Segmentation   | ✅        | ✅         | ✅       | ✅     |
 | YOLO12-pose | Pose           | ✅        | ✅         | ✅       | ✅     |

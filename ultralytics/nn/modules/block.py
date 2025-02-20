@@ -1275,12 +1275,9 @@ class ABlock(nn.Module):
                 nn.init.constant_(m.bias, 0)
 
     def forward(self, x):
-        """Executes a forward pass through ABlock, applying area-attention and feed-forward layers to the input
-        tensor.
-        """
+        """Forward pass through ABlock, applying area-attention and feed-forward layers to the input tensor."""
         x = x + self.attn(x)
-        x = x + self.mlp(x)
-        return x
+        return x + self.mlp(x)
 
 
 class A2C2f(nn.Module):

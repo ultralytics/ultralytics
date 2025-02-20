@@ -1289,7 +1289,7 @@ class ABlock(nn.Module):
         """Initialize weights using a truncated normal distribution."""
         if isinstance(m, nn.Conv2d):
             nn.init.trunc_normal_(m.weight, std=0.02)
-            if isinstance(m, nn.Conv2d) and m.bias is not None:
+            if m.bias is not None:
                 nn.init.constant_(m.bias, 0)
 
     def forward(self, x):

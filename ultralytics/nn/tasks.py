@@ -1040,8 +1040,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             if m is A2C2f:
                 legacy = False
                 if scale in "lx":  # for L/X sizes
-                    args.append(True)
-                    args.append(1.2)
+                    args.extend((True, 1.2))
         elif m is AIFI:
             args = [ch[f], *args]
         elif m in frozenset({HGStem, HGBlock}):

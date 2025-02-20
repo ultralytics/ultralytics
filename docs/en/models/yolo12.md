@@ -12,7 +12,7 @@ YOLO12 introduces an attention-centric architecture that departs from the tradit
 
 ## Key Features
 
-- **Area Attention Mechanism**: A new self-attention approach that processes large receptive fields efficiently. It divides feature maps into _l_ equal-sized regions (defaulting to 4), either horizontally or vertically, avoiding complex operations and maintaining a large effective receptive field. This significantly reduces computational cost compared to standard self-attention.
+- **Area Attention Mechanism**: A new self-attention approach that processes large receptive fields efficiently. It divides [feature maps](https://www.ultralytics.com/glossary/feature-maps) into _l_ equal-sized regions (defaulting to 4), either horizontally or vertically, avoiding complex operations and maintaining a large effective receptive field. This significantly reduces computational cost compared to standard self-attention.
 - **Residual Efficient Layer Aggregation Networks (R-ELAN)**: An improved feature aggregation module based on ELAN, designed to address optimization challenges, especially in larger-scale attention-centric models. R-ELAN introduces:
     - Block-level residual connections with scaling (similar to layer scaling).
     - A redesigned feature aggregation method creating a bottleneck-like structure.
@@ -23,7 +23,7 @@ YOLO12 introduces an attention-centric architecture that departs from the tradit
     - Reducing the depth of stacked blocks for improved optimization.
     - Leveraging convolution operations (where appropriate) for their computational efficiency.
     - Adding a 7x7 separable convolution (the "position perceiver") to the attention mechanism to implicitly encode positional information.
-- **Comprehensive Task Support**: YOLO12 supports a range of core computer vision tasks: object detection, instance segmentation, image classification, pose estimation, and oriented object detection (OBB).
+- **Comprehensive Task Support**: YOLO12 supports a range of core computer vision tasks: object detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), [image classification](https://www.ultralytics.com/glossary/image-classification), pose estimation, and oriented object detection (OBB).
 - **Enhanced Efficiency**: Achieves higher accuracy with fewer parameters compared to many prior models, demonstrating an improved balance between speed and accuracy.
 - **Flexible Deployment**: Designed for deployment across diverse platforms, from edge devices to cloud infrastructure.
 
@@ -46,7 +46,7 @@ YOLO12 supports a variety of computer vision tasks. The table below shows task s
 
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLO11"]'></canvas>
 
-YOLO12 demonstrates significant accuracy improvements across all model scales, with some trade-offs in speed compared to the _fastest_ prior YOLO models. Below are quantitative results for object detection on the COCO validation dataset:
+YOLO12 demonstrates significant [accuracy](https://www.ultralytics.com/glossary/accuracy) improvements across all model scales, with some trade-offs in speed compared to the _fastest_ prior YOLO models. Below are quantitative results for [object detection](https://www.ultralytics.com/glossary/object-detection) on the COCO validation dataset:
 
 ### Detection Performance (COCO val2017)
 
@@ -58,7 +58,7 @@ YOLO12 demonstrates significant accuracy improvements across all model scales, w
 | YOLO12l | 640                   | 53.7                       | 6.77                   | 26.4               | 88.9              | +0.4% / -8% (vs. YOLOv11l)           |
 | YOLO12x | 640                   | 55.2                       | 11.79                  | 59.1               | 199.0             | +0.6% / -4% (vs. YOLOv11x)           |
 
-<sup>1</sup> Inference speed measured on an NVIDIA T4 GPU with TensorRT FP16 precision.
+<sup>1</sup> Inference speed measured on an NVIDIA T4 GPU with TensorRT FP16 [precision](https://www.ultralytics.com/glossary/precision).
 
 <sup>2</sup> Comparisons show the relative improvement in mAP and the percentage change in speed (positive indicates faster; negative indicates slower). Comparisons are made against published results for YOLOv10, YOLOv11, and RT-DETR where available.
 
@@ -101,9 +101,9 @@ The examples below focus on YOLO12 [Detect](../tasks/detect.md) models (for obje
 
 ## Key Improvements
 
-1. **Enhanced Feature Extraction**:
+1. **Enhanced [Feature Extraction](https://www.ultralytics.com/glossary/feature-extraction)**:
 
-    - **Area Attention**: Efficiently handles large receptive fields, reducing computational cost.
+    - **Area Attention**: Efficiently handles large [receptive fields](https://www.ultralytics.com/glossary/receptive-field), reducing computational cost.
     - **Optimized Balance**: Improved balance between attention and feed-forward network computations.
     - **R-ELAN**: Enhances feature aggregation using the R-ELAN architecture.
 
@@ -157,11 +157,11 @@ If you use YOLO12 in your research, please cite the original paper and software 
 
 ### How does YOLO12 achieve real-time object detection while maintaining high accuracy?
 
-YOLO12 incorporates several key innovations to balance speed and accuracy. The Area Attention mechanism efficiently processes large receptive fields, reducing computational cost compared to standard self-attention. The Residual Efficient Layer Aggregation Networks (R-ELAN) improve feature aggregation, addressing optimization challenges in larger attention-centric models. Optimized Attention Architecture, including the use of FlashAttention and removal of positional encoding, further enhances efficiency. These features allow YOLO12 to achieve state-of-the-art accuracy while maintaining the real-time inference speed crucial for many applications.
+YOLO12 incorporates several key innovations to balance speed and accuracy. The Area [Attention mechanism](https://www.ultralytics.com/glossary/attention-mechanism) efficiently processes large receptive fields, reducing computational cost compared to standard self-attention. The Residual Efficient Layer Aggregation Networks (R-ELAN) improve feature aggregation, addressing optimization challenges in larger attention-centric models. Optimized Attention Architecture, including the use of FlashAttention and removal of positional encoding, further enhances efficiency. These features allow YOLO12 to achieve state-of-the-art accuracy while maintaining the real-time inference speed crucial for many applications.
 
-### What computer vision tasks does YOLO12 support?
+### What [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks does YOLO12 support?
 
-YOLO12 is a versatile model that supports a wide range of core computer vision tasks. It excels in object [detection](../tasks/detect.md), instance [segmentation](../tasks/segment.md), image [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and oriented object detection (OBB) ([see details](../tasks/obb.md)). This comprehensive task support makes YOLO12 a powerful tool for diverse applications, from robotics and autonomous driving to medical imaging and industrial inspection. Each of these tasks can be performed in Inference, Validation, Training, and Export modes.
+YOLO12 is a versatile model that supports a wide range of core computer vision tasks. It excels in object [detection](../tasks/detect.md), instance [segmentation](../tasks/segment.md), image [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and oriented object detection (OBB) ([see details](../tasks/obb.md)). This comprehensive task support makes YOLO12 a powerful tool for diverse applications, from [robotics](https://www.ultralytics.com/glossary/robotics) and autonomous driving to medical imaging and industrial inspection. Each of these tasks can be performed in Inference, Validation, Training, and Export modes.
 
 ### How does YOLO12 compare to other YOLO models and competitors like RT-DETR?
 

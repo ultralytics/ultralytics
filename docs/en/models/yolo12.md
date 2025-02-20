@@ -8,7 +8,7 @@ keywords: YOLO12, attention-centric object detection, YOLO series, Ultralytics, 
 
 ## Overview
 
-YOLO12 represents a paradigm shift in the Ultralytics YOLO series, introducing an attention-centric architecture that challenges the traditional CNN-based approach while maintaining the high-speed performance that YOLO is known for. This innovative model achieves state-of-the-art accuracy while preserving real-time inference capabilities through methodological innovations in attention mechanisms and architectural design.
+YOLO12 introduces an attention-centric architecture that challenges the traditional CNN-based approach while maintaining the high-speed performance that YOLO is known for. This innovative model achieves state-of-the-art accuracy while preserving real-time inference capabilities through methodological innovations in attention mechanisms and architectural design.
 
 ## Key Features
 
@@ -23,17 +23,17 @@ YOLO12 represents a paradigm shift in the Ultralytics YOLO series, introducing a
 
 YOLO12 provides comprehensive support for various computer vision tasks:
 
-| Model Type       | Task           | Inference | Validation | Training | Export |
-| ---------------- | -------------- | --------- | ---------- | -------- | ------ |
-| YOLO12-n/s/m/l/x | Detection      | ✅        | ✅         | ✅       | ✅     |
-| YOLO12-seg       | Segmentation   | ✅        | ✅         | ✅       | ✅     |
-| YOLO12-pose      | Pose           | ✅        | ✅         | ✅       | ✅     |
-| YOLO12-cls       | Classification | ✅        | ✅         | ✅       | ✅     |
-| YOLO12-obb       | OBB            | ✅        | ✅         | ✅       | ✅     |
+| Model Type  | Task           | Inference | Validation | Training | Export |
+|-------------| -------------- | --------- | ---------- | -------- | ------ |
+| YOLO12      | Detection      | ✅        | ✅         | ✅       | ✅     |
+| YOLO12-seg  | Segmentation   | ✅        | ✅         | ✅       | ✅     |
+| YOLO12-pose | Pose           | ✅        | ✅         | ✅       | ✅     |
+| YOLO12-cls  | Classification | ✅        | ✅         | ✅       | ✅     |
+| YOLO12-obb  | OBB            | ✅        | ✅         | ✅       | ✅     |
 
 ## Performance Metrics
 
-YOLO12 demonstrates significant improvements across all model scales:
+YOLO12 demonstrates significant accuracy improvements across all model scales at the expense of slower speeds vs. other YOLO models:
 
 ### Detection Performance (COCO)
 

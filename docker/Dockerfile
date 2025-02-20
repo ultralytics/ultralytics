@@ -41,7 +41,6 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
 # Install pip packages
 RUN pip install uv
-# Note -cu12 must be used with tensorrt
 RUN uv pip install --system -e ".[export]" "albumentations>=1.4.6" comet pycocotools
 
 # Run exports to AutoInstall packages

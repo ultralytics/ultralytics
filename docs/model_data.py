@@ -1,6 +1,20 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 data = {
+    "YOLO12": {
+        "author": "Yunjie Tian, Qixiang Ye, David Doermann",
+        "date": "2024-02-18",
+        "arxiv": "https://arxiv.org/abs/2502.12524",
+        "github": "https://github.com/sunsmarterjie/yolov12",
+        "docs": "https://docs.ultralytics.com/models/yolo12/",
+        "performance": {
+            "n": {"size": 640, "map": 40.6, "cpu": "", "t4": 1.64, "params": 2.6, "flops": 6.5},
+            "s": {"size": 640, "map": 48.0, "cpu": "", "t4": 2.61, "params": 9.3, "flops": 21.4},
+            "m": {"size": 640, "map": 52.5, "cpu": "", "t4": 4.86, "params": 20.2, "flops": 67.5},
+            "l": {"size": 640, "map": 53.7, "cpu": "", "t4": 6.77, "params": 26.4, "flops": 88.9},
+            "x": {"size": 640, "map": 55.2, "cpu": "", "t4": 11.79, "params": 59.1, "flops": 199.0},
+        },
+    },
     "YOLO11": {
         "author": "Glenn Jocher and Jing Qiu",
         "date": "2024-09-27",

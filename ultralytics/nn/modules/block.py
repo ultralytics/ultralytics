@@ -1243,9 +1243,9 @@ class ABlock(nn.Module):
     """
     Area-attention block module for efficient feature extraction in YOLO models.
 
-    This module implements an area-attention mechanism combined with a feed-forward network for processing feature maps. It
-    uses a novel area-based attention approach that is more efficient than traditional self-attention while maintaining
-    effectiveness.
+    This module implements an area-attention mechanism combined with a feed-forward network for processing feature maps.
+    It uses a novel area-based attention approach that is more efficient than traditional self-attention while
+    maintaining effectiveness.
 
     Attributes:
         attn (AAttn): Area-attention module for processing spatial features.
@@ -1267,9 +1267,9 @@ class ABlock(nn.Module):
         """
         Initializes an Area-attention block module for efficient feature extraction in YOLO models.
 
-        This module implements an area-attention mechanism combined with a feed-forward network for processing feature maps. It
-        uses a novel area-based attention approach that is more efficient than traditional self-attention while maintaining
-        effectiveness.
+        This module implements an area-attention mechanism combined with a feed-forward network for processing feature
+        maps. It uses a novel area-based attention approach that is more efficient than traditional self-attention
+        while maintaining effectiveness.
 
         Args:
             dim (int): Number of input channels.

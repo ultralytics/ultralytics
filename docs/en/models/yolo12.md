@@ -41,6 +41,11 @@ YOLO12 supports a variety of computer vision tasks. The table below shows task s
 
 ## Performance Metrics
 
+<script async src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script defer src="../../javascript/benchmark.js"></script>
+
+<canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLO11"]'></canvas>
+
 YOLO12 demonstrates significant accuracy improvements across all model scales, with some trade-offs in speed compared to the _fastest_ prior YOLO models. Below are quantitative results for object detection on the COCO validation dataset:
 
 ### Detection Performance (COCO val2017)

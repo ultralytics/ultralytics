@@ -45,20 +45,20 @@ YOLO12 demonstrates significant accuracy improvements across all model scales, w
 
 ### Detection Performance (COCO val2017)
 
-| Model   | size<br><sup>(pixels) | mAP<sup>val</sup><br>50-95 | Speed (ms)<sup>1</sup> | params<br><sup>(M) | FLOPs<br><sup>(B) | Comparison (mAP / Speed)<sup>2</sup> |
-| :------ | :----------------------- | :---------------------------- | :----------------------- | :----------------- | :---------------- |:-------------------------------------|
-| YOLO12n | 640                      | 40.6                          | 1.64                     | 2.6                | 6.5               | +2.1% / -9%  (vs. YOLOv10n)          |
-|         |                          |                               |                          |                    |                   | +1.2% / +4%   (vs. YOLOv11n)         |
-| YOLO12s | 640                      | 48.0                          | 2.61                     | 9.3                | 21.4              | +1.7% / -5%   (vs. YOLOv10s)         |
-|         |                          |                               |                          |                    |                   | +1.1% / -4%   (vs. YOLOv11s)         |
-|         |                          |                               |                          |      9.3              |     21.4              | +1.5% / +42%  (vs. RT-DETR-R18)      |
-|      |        |           |                       |      9.3   | 21.4 | +0.1% / +42% (vs. RT-DETRv2-R18)     |
-| YOLO12m | 640                      | 52.5                          | 4.86                     | 20.2               | 67.5              | +1.4% / +2%   (vs. YOLOv10m)         |
-|         |                          |                               |                          |                    |                   | +1.0% / +3%   (vs. YOLOv11m)         |
-| YOLO12l | 640                      | 53.7                          | 6.77                     | 26.4               | 88.9              | +0.5% / +7%  (vs. YOLOv10l)          |
-|         |                          |                               |                          |                    |                   | +0.4% / -8%  (vs. YOLOv11l)          |
-| YOLO12x | 640                      | 55.2                          | 11.79                    | 59.1               | 199.0             | +0.8% / -9% (vs. YOLOv10x)           |
-|         |                          |                               |                          |                    |                   | +0.6% / -4% (vs. YOLOv11x)           |
+| Model  | size<br><sup>(pixels) | mAP<sup>val</sup><br>50-95 | Speed (ms)<sup>1</sup> | params<br><sup>(M) | FLOPs<br><sup>(B) | Comparison (mAP / Speed)<sup>2</sup> |
+| ------ | ----------------------- | ---------------------------- | ----------------------- | ----------------- | ---------------- |-------------------------------------|
+| YOLO12n | 640                     | 40.6                         | 1.64                    | 2.6               | 6.5              | +2.1% / -9%  (vs. YOLOv10n)         |
+|        |                         |                              |                         |                   |                  | +1.2% / +4%   (vs. YOLOv11n)        |
+| YOLO12s | 640                     | 48.0                         | 2.61                    | 9.3               | 21.4             | +1.7% / -5%   (vs. YOLOv10s)        |
+|        |                         |                              |                         |                   |                  | +1.1% / -4%   (vs. YOLOv11s)        |
+|        |                         |                              |                         |      9.3             |     21.4             | +1.5% / +42%  (vs. RT-DETR-R18)     |
+|      |        |           |                       |      9.3   | 21.4 | +0.1% / +42% (vs. RT-DETRv2-R18)    |
+| YOLO12m | 640                     | 52.5                         | 4.86                    | 20.2              | 67.5             | +1.4% / +2%   (vs. YOLOv10m)        |
+|        |                         |                              |                         |                   |                  | +1.0% / +3%   (vs. YOLOv11m)        |
+| YOLO12l | 640                     | 53.7                         | 6.77                    | 26.4              | 88.9             | +0.5% / +7%  (vs. YOLOv10l)         |
+|        |                         |                              |                         |                   |                  | +0.4% / -8%  (vs. YOLOv11l)         |
+| YOLO12x | 640                     | 55.2                         | 11.79                   | 59.1              | 199.0            | +0.8% / -9% (vs. YOLOv10x)          |
+|        |                         |                              |                         |                   |                  | +0.6% / -4% (vs. YOLOv11x)          |
 
 
 <sup>1</sup> Inference speed measured on an NVIDIA T4 GPU with TensorRT FP16 precision.

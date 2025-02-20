@@ -1209,7 +1209,7 @@ class AAttn(nn.Module):
 
         qkv = self.qkv(x).flatten(2).transpose(1, 2)
         if self.area > 1:
-            qkv = qkv.view(B * self.area, N // self.area, C * 3)
+            qkv = qkv.reshape(B * self.area, N // self.area, C * 3)
             B, N, _ = qkv.shape
         q, k, v = (
             qkv.view(B, N, self.num_heads, self.head_dim * 3)

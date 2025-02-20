@@ -32,12 +32,12 @@ YOLO12 introduces an attention-centric architecture that departs from the tradit
 YOLO12 supports a variety of computer vision tasks. The table below shows task support and the operational modes (Inference, Validation, Training, and Export) enabled for each:
 
 | Model Type  | Task           | Inference | Validation | Training | Export |
-|-------------|----------------|-----------|------------|----------|--------|
-| YOLO12      | Detection      | ✅         | ✅          | ✅        | ✅      |
-| YOLO12-seg  | Segmentation   | ✅         | ✅          | ✅        | ✅      |
-| YOLO12-pose | Pose           | ✅         | ✅          | ✅        | ✅      |
-| YOLO12-cls  | Classification | ✅         | ✅          | ✅        | ✅      |
-| YOLO12-obb  | OBB            | ✅         | ✅          | ✅        | ✅      |
+| ----------- | -------------- | --------- | ---------- | -------- | ------ |
+| YOLO12      | Detection      | ✅        | ✅         | ✅       | ✅     |
+| YOLO12-seg  | Segmentation   | ✅        | ✅         | ✅       | ✅     |
+| YOLO12-pose | Pose           | ✅        | ✅         | ✅       | ✅     |
+| YOLO12-cls  | Classification | ✅        | ✅         | ✅       | ✅     |
+| YOLO12-obb  | OBB            | ✅        | ✅         | ✅       | ✅     |
 
 ## Performance Metrics
 
@@ -51,7 +51,7 @@ YOLO12 demonstrates significant accuracy improvements across all model scales, w
 ### Detection Performance (COCO val2017)
 
 | Model   | size<br><sup>(pixels) | mAP<sup>val</sup><br>50-95 | Speed (ms)<sup>1</sup> | params<br><sup>(M) | FLOPs<br><sup>(B) | Comparison (mAP / Speed)<sup>2</sup> |
-|---------|-----------------------|----------------------------|------------------------|--------------------|-------------------|--------------------------------------|
+| ------- | --------------------- | -------------------------- | ---------------------- | ------------------ | ----------------- | ------------------------------------ |
 | YOLO12n | 640                   | 40.6                       | 1.64                   | 2.6                | 6.5               | +2.1% / -9% (vs. YOLOv10n)           |
 | YOLO12s | 640                   | 48.0                       | 2.61                   | 9.3                | 21.4              | +0.1% / +42% (vs. RT-DETRv2-R18)     |
 | YOLO12m | 640                   | 52.5                       | 4.86                   | 20.2               | 67.5              | +1.0% / +3% (vs. YOLOv11m)           |
@@ -165,11 +165,11 @@ YOLO12 is a versatile model that supports a wide range of core computer vision t
 
 ### How does YOLO12 compare to other YOLO models and competitors like RT-DETR?
 
-YOLO12 demonstrates significant accuracy improvements across all model scales compared to prior YOLO models like YOLOv10 and YOLOv11, with some trade-offs in speed compared to the *fastest* prior models. For example, YOLO12n achieves a +2.1% mAP improvement over YOLOv10n and +1.2% over YOLOv11n on the COCO val2017 dataset. Compared to models like [RT-DETR](https://docs.ultralytics.com/compare/yolov8-vs-rtdetr/), YOLO12s offers a +1.5% mAP improvement and a substantial +42% speed increase. These metrics highlight YOLO12's strong balance between accuracy and efficiency. See the [performance metrics section](#performance-metrics) for detailed comparisons.
+YOLO12 demonstrates significant accuracy improvements across all model scales compared to prior YOLO models like YOLOv10 and YOLOv11, with some trade-offs in speed compared to the _fastest_ prior models. For example, YOLO12n achieves a +2.1% mAP improvement over YOLOv10n and +1.2% over YOLOv11n on the COCO val2017 dataset. Compared to models like [RT-DETR](https://docs.ultralytics.com/compare/yolov8-vs-rtdetr/), YOLO12s offers a +1.5% mAP improvement and a substantial +42% speed increase. These metrics highlight YOLO12's strong balance between accuracy and efficiency. See the [performance metrics section](#performance-metrics) for detailed comparisons.
 
 ### What are the hardware requirements for running YOLO12, especially for using FlashAttention?
 
-By default, the Ultralytics YOLO12 implementation does *not* require FlashAttention. However, FlashAttention can be optionally compiled and used with YOLO12 to minimize memory access overhead. To compile FlashAttention, one of the following NVIDIA GPUs is needed: Turing GPUs (e.g., T4, Quadro RTX series), Ampere GPUs (e.g., RTX30 series, A30/40/100), Ada Lovelace GPUs (e.g., RTX40 series), or Hopper GPUs (e.g., H100/H200). This flexibility allows users to leverage FlashAttention's benefits when hardware resources permit.
+By default, the Ultralytics YOLO12 implementation does _not_ require FlashAttention. However, FlashAttention can be optionally compiled and used with YOLO12 to minimize memory access overhead. To compile FlashAttention, one of the following NVIDIA GPUs is needed: Turing GPUs (e.g., T4, Quadro RTX series), Ampere GPUs (e.g., RTX30 series, A30/40/100), Ada Lovelace GPUs (e.g., RTX40 series), or Hopper GPUs (e.g., H100/H200). This flexibility allows users to leverage FlashAttention's benefits when hardware resources permit.
 
 ### Where can I find usage examples and more detailed documentation for YOLO12?
 

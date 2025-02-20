@@ -1221,12 +1221,12 @@ class AAttn(nn.Module):
         v = v.permute(0, 2, 1, 3)
 
         if self.area > 1:
-            x = x.view(B // self.area, N * self.area, C)
-            v = v.view(B // self.area, N * self.area, C)
+            x = x.reshape(B // self.area, N * self.area, C)
+            v = v.reshape(B // self.area, N * self.area, C)
             B, N, _ = x.shape
 
-        x = x.view(B, H, W, C).permute(0, 3, 1, 2)
-        v = v.view(B, H, W, C).permute(0, 3, 1, 2)
+        x = x.reshape(B, H, W, C).permute(0, 3, 1, 2)
+        v = v.reshape(B, H, W, C).permute(0, 3, 1, 2)
 
         x = x + self.pe(v)
         return self.proj(x)

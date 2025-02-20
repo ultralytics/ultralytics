@@ -123,10 +123,10 @@ The examples below focus on YOLO12 [Detect](../tasks/detect.md) models (for obje
 
 The Ultralytics YOLO12 implementation, by default, _does not require_ FlashAttention. However, FlashAttention can be optionally compiled and used with YOLO12. To compile FlashAttention, one of the following NVIDIA GPUs is needed:
 
-- [Turing GPUs](https://en.wikipedia.org/wiki/Turing_(microarchitecture)) (e.g., T4, Quadro RTX series)
-- [Ampere GPUs](https://en.wikipedia.org/wiki/Ampere_(microarchitecture)) (e.g., RTX30 series, A30/40/100)
+- [Turing GPUs](<https://en.wikipedia.org/wiki/Turing_(microarchitecture)>) (e.g., T4, Quadro RTX series)
+- [Ampere GPUs](<https://en.wikipedia.org/wiki/Ampere_(microarchitecture)>) (e.g., RTX30 series, A30/40/100)
 - [Ada Lovelace GPUs](https://www.nvidia.com/en-us/geforce/ada-lovelace-architecture/) (e.g., RTX40 series)
-- [Hopper GPUs](hhttps://www.nvidia.com/en-us/data-center/technologies/hopper-architecture/) (e.g., H100/H200)
+- [Hopper GPUs](https://www.nvidia.com/en-us/data-center/technologies/hopper-architecture/) (e.g., H100/H200)
 
 ## Citations and Acknowledgements
 

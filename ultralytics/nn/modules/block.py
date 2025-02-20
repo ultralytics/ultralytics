@@ -1182,7 +1182,6 @@ class AAttn(nn.Module):
         torch.Size([1, 256, 32, 32])
     """
 
-
     def __init__(self, dim, num_heads, area=1):
         """
         Initializes an Area-attention module for YOLO models.
@@ -1192,7 +1191,6 @@ class AAttn(nn.Module):
             num_heads (int): Number of heads into which the attention mechanism is divided.
             area (int): Number of areas the feature map is divided, default is 1.
         """
-
         super().__init__()
         self.area = area
 
@@ -1265,7 +1263,6 @@ class ABlock(nn.Module):
         torch.Size([1, 256, 32, 32])
     """
 
-
     def __init__(self, dim, num_heads, mlp_ratio=1.2, area=1):
         """
         Initializes an Area-attention block module for efficient feature extraction in YOLO models.
@@ -1325,7 +1322,6 @@ class A2C2f(nn.Module):
         torch.Size([1, 512, 32, 32])
     """
 
-
     def __init__(self, c1, c2, n=1, a2=True, area=1, residual=False, mlp_ratio=2.0, e=0.5, g=1, shortcut=True):
         """
         Area-Attention C2f module for enhanced feature extraction with area-based attention mechanisms.
@@ -1342,8 +1338,6 @@ class A2C2f(nn.Module):
             g (int): Number of groups for grouped convolutions.
             shortcut (bool): Whether to use shortcut connections in C3k blocks.
         """
-
-
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
         assert c_ % 32 == 0, "Dimension of ABlock be a multiple of 32."

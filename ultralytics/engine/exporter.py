@@ -419,7 +419,7 @@ class Exporter:
             if pb or tfjs:  # pb prerequisite to tfjs
                 f[6], _ = self.export_pb(keras_model=keras_model)
             if tflite:
-                f[7], _ = self.export_tflite(keras_model=keras_model, nms=False, agnostic_nms=self.args.agnostic_nms)
+                f[7], _ = self.export_tflite()
             if edgetpu:
                 f[8], _ = self.export_edgetpu(tflite_model=Path(f[5]) / f"{self.file.stem}_full_integer_quant.tflite")
             if tfjs:
@@ -1077,7 +1077,7 @@ class Exporter:
         return f, None
 
     @try_export
-    def export_tflite(self, keras_model, nms, agnostic_nms, prefix=colorstr("TensorFlow Lite:")):
+    def export_tflite(self, prefix=colorstr("TensorFlow Lite:")):
         """YOLO TensorFlow Lite export."""
         # BUG https://github.com/ultralytics/ultralytics/issues/13436
         import tensorflow as tf  # noqa

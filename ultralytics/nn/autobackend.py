@@ -200,7 +200,7 @@ class AutoBackend(nn.Module):
             if cuda:
                 if "CUDAExecutionProvider" in onnxruntime.get_available_providers():
                     providers.insert(0, "CUDAExecutionProvider")
-                else: # Only log warning if CUDA was requested but unavailable
+                else:  # Only log warning if CUDA was requested but unavailable
                     LOGGER.warning("WARNING ⚠️ Failed to start ONNX Runtime with CUDA. Using CPU...")
                     device = torch.device("cpu")
                     cuda = False

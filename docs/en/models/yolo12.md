@@ -32,7 +32,7 @@ YOLO12 introduces an attention-centric architecture that departs from the tradit
 YOLO12 supports a variety of computer vision tasks. The table below shows task support and the operational modes (Inference, Validation, Training, and Export) enabled for each:
 
 | Model Type                                                                                                        | Task                                   | Inference | Validation | Training | Export |
-| ----------------------------------------------------------------------------------------------------------------- |----------------------------------------| --------- | ---------- | -------- | ------ |
+| ----------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
 | [YOLO12](https://github.com/ultralytics/ultralytics/blob/yolov12/ultralytics/cfg/models/12/yolo12.yaml)           | [Detection](../tasks/detect.md)        | ✅        | ✅         | ✅       | ✅     |
 | [YOLO12-seg](https://github.com/ultralytics/ultralytics/blob/yolov12/ultralytics/cfg/models/12/yolo12-seg.yaml)   | [Segmentation](../tasks/segment.md)    | ✅        | ✅         | ✅       | ✅     |
 | [YOLO12-pose](https://github.com/ultralytics/ultralytics/blob/yolov12/ultralytics/cfg/models/12/yolo12-pose.yaml) | [Pose](../tasks/pose.md)               | ✅        | ✅         | ✅       | ✅     |

@@ -33,11 +33,11 @@ YOLO12 supports a variety of computer vision tasks. The table below shows task s
 
 | Model Type                                                                                                        | Task                                   | Inference | Validation | Training | Export |
 | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| [YOLO12](https://github.com/ultralytics/ultralytics/blob/yolov12/ultralytics/cfg/models/12/yolo12.yaml)           | [Detection](../tasks/detect.md)        | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-seg](https://github.com/ultralytics/ultralytics/blob/yolov12/ultralytics/cfg/models/12/yolo12-seg.yaml)   | [Segmentation](../tasks/segment.md)    | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-pose](https://github.com/ultralytics/ultralytics/blob/yolov12/ultralytics/cfg/models/12/yolo12-pose.yaml) | [Pose](../tasks/pose.md)               | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-cls](https://github.com/ultralytics/ultralytics/blob/yolov12/ultralytics/cfg/models/12/yolo12-cls.yaml)   | [Classification](../tasks/classify.md) | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-obb](https://github.com/ultralytics/ultralytics/blob/yolov12/ultralytics/cfg/models/12/yolo12-obb.yaml)   | [OBB](../tasks/obb.md)                 | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12](https://github.com/ultralytics/ultralytics/blob/yolo12/ultralytics/cfg/models/12/yolo12.yaml)           | [Detection](../tasks/detect.md)        | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-seg](https://github.com/ultralytics/ultralytics/blob/yolo12/ultralytics/cfg/models/12/yolo12-seg.yaml)   | [Segmentation](../tasks/segment.md)    | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-pose](https://github.com/ultralytics/ultralytics/blob/yolo12/ultralytics/cfg/models/12/yolo12-pose.yaml) | [Pose](../tasks/pose.md)               | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-cls](https://github.com/ultralytics/ultralytics/blob/yolo12/ultralytics/cfg/models/12/yolo12-cls.yaml)   | [Classification](../tasks/classify.md) | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-obb](https://github.com/ultralytics/ultralytics/blob/yolo12/ultralytics/cfg/models/12/yolo12-obb.yaml)   | [OBB](../tasks/obb.md)                 | ✅        | ✅         | ✅       | ✅     |
 
 ## Performance Metrics
 

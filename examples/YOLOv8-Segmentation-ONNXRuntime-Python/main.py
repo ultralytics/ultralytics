@@ -79,9 +79,7 @@ class YOLOv8Seg:
         predictions = self.session.run(None, {self.session.get_inputs()[0].name: processed_image})
 
         # Post-process
-        results = self.postprocess(im0, processed_image, predictions)
-
-        return results
+        return self.postprocess(im0, processed_image, predictions)
 
     def preprocess(self, image, new_shape: Union[Tuple, List] = (640, 640)):
         """
@@ -99,8 +97,7 @@ class YOLOv8Seg:
         """
         image, _, _ = self.__resize_and_pad_image(image=image, new_shape=new_shape)
         image = self.__reshape_image(image=image)
-        processed_image = image[None] if len(image.shape) == 3 else image
-        return processed_image
+        return image[None] if len(image.shape) == 3 else image
 
     def __reshape_image(self, image: np.ndarray) -> np.ndarray:
         """
@@ -117,8 +114,7 @@ class YOLOv8Seg:
         """
         image = image.transpose([2, 0, 1])
         image = image[np.newaxis, ...]
-        image = np.ascontiguousarray(image).astype(np.float32) / 255
-        return image
+        return np.ascontiguousarray(image).astype(np.float32) / 255
 
     def __resize_and_pad_image(
         self, image=np.ndarray, new_shape: Union[Tuple, List] = (640, 640), color: Union[Tuple, List] = (114, 114, 114)

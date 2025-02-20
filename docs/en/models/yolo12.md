@@ -32,12 +32,12 @@ YOLO12 introduces an attention-centric architecture that departs from the tradit
 YOLO12 supports a variety of computer vision tasks. The table below shows task support and the operational modes (Inference, Validation, Training, and Export) enabled for each:
 
 | Model Type                                                                                                       | Task                                   | Inference | Validation | Training | Export |
-| ---------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| [YOLO12](https://github.com/ultralytics/ultralytics/blob/yolo12/ultralytics/cfg/models/12/yolo12.yaml)           | [Detection](../tasks/detect.md)        | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-seg](https://github.com/ultralytics/ultralytics/blob/yolo12/ultralytics/cfg/models/12/yolo12-seg.yaml)   | [Segmentation](../tasks/segment.md)    | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-pose](https://github.com/ultralytics/ultralytics/blob/yolo12/ultralytics/cfg/models/12/yolo12-pose.yaml) | [Pose](../tasks/pose.md)               | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-cls](https://github.com/ultralytics/ultralytics/blob/yolo12/ultralytics/cfg/models/12/yolo12-cls.yaml)   | [Classification](../tasks/classify.md) | ✅        | ✅         | ✅       | ✅     |
-| [YOLO12-obb](https://github.com/ultralytics/ultralytics/blob/yolo12/ultralytics/cfg/models/12/yolo12-obb.yaml)   | [OBB](../tasks/obb.md)                 | ✅        | ✅         | ✅       | ✅     |
+|------------------------------------------------------------------------------------------------------------------| -------------------------------------- | --------- | ---------- | -------- | ------ |
+| [YOLO12](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12.yaml)             | [Detection](../tasks/detect.md)        | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-seg](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-seg.yaml)   | [Segmentation](../tasks/segment.md)    | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-pose](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-pose.yaml) | [Pose](../tasks/pose.md)               | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-cls](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-cls.yaml)   | [Classification](../tasks/classify.md) | ✅        | ✅         | ✅       | ✅     |
+| [YOLO12-obb](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/12/yolo12-obb.yaml)   | [OBB](../tasks/obb.md)                 | ✅        | ✅         | ✅       | ✅     |
 
 ## Performance Metrics
 

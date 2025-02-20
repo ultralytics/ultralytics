@@ -1195,7 +1195,7 @@ class AAttn(nn.Module):
         self.pe = Conv(all_head_dim, dim, 7, 1, 3, g=dim, act=False)
 
     def forward(self, x):
-        """Processes the input tensor 'x' through the area-attention"""
+        """Processes the input tensor 'x' through the area-attention."""
         B, C, H, W = x.shape
         N = H * W
 
@@ -1284,7 +1284,7 @@ class ABlock(nn.Module):
 
 class A2C2f(nn.Module):
     """
-    A2C2f module with residual enhanced feature extraction using ABlock blocks with area-attention. Also known as R-ELAN
+    A2C2f module with residual enhanced feature extraction using ABlock blocks with area-attention. Also known as R-ELAN.
 
     This class extends the C2f module by incorporating ABlock blocks for fast attention mechanisms and feature extraction.
 

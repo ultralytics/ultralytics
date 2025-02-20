@@ -3,7 +3,7 @@
 data = {
     "YOLO12": {
         "author": "Yunjie Tian, Qixiang Ye, David Doermann",
-        "org": "university at buffalo",
+        "org": "University at Buffalo and University of Chinese Academy of Sciences",
         "date": "2024-02-18",
         "arxiv": "https://arxiv.org/abs/2502.12524",
         "github": "https://github.com/sunsmarterjie/yolov12",
@@ -179,7 +179,7 @@ data = {
     },
     "EfficientDet": {
         "author": "Mingxing Tan and Ruoming Pang and Quoc V. Le",
-        "org": "Google AI",
+        "org": "Google",
         "date": "2019-11-20",
         "arxiv": "https://arxiv.org/abs/1911.09070",
         "github": "https://github.com/google/automl/tree/master/efficientdet",
@@ -255,7 +255,7 @@ data = {
     },
     "YOLO-NAS": {
         "author": "Aharon, Shay and {Louis-Dupont} and {Ofri Masad} and Yurkova, Kate and {Lotem Fridman} and {Lkdci} and Khvedchenya, Eugene and Rubin, Ran and Bagrov, Natan and Tymchenko, Borys and Keren, Tomer and Zhilko, Alexander and {Eran-Deci}",
-        "org": "Deci AI (Acquired by NVIDIA)",
+        "org": "Deci AI (acquired by NVIDIA)",
         "date": "2023-05-03",
         "Arxiv": None,
         "github": "https://github.com/Deci-AI/super-gradients/blob/master/YOLONAS.md",

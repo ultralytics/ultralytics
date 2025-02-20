@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 data = {
-    "YOLOv12": {
+    "YOLO12": {
         "author": "Yunjie Tian, Qixiang Ye, David Doermann",
         "date": "2024-02-18",
         "arxiv": "https://arxiv.org/abs/2502.12524",

@@ -31,13 +31,13 @@ YOLO12 introduces an attention-centric architecture that departs from the tradit
 
 YOLO12 supports a variety of computer vision tasks. The table below shows task support and the operational modes (Inference, Validation, Training, and Export) enabled for each:
 
-| Model Type  | Task           | Inference | Validation | Training | Export |
-| ----------- | -------------- | --------- | ---------- | -------- | ------ |
-| YOLO12      | Detection      | ✅        | ✅         | ✅       | ✅     |
-| YOLO12-seg  | Segmentation   | ✅        | ✅         | ✅       | ✅     |
-| YOLO12-pose | Pose           | ✅        | ✅         | ✅       | ✅     |
-| YOLO12-cls  | Classification | ✅        | ✅         | ✅       | ✅     |
-| YOLO12-obb  | OBB            | ✅        | ✅         | ✅       | ✅     |
+| Model Type                                                                                                        | Task           | Inference | Validation | Training | Export |
+|-------------------------------------------------------------------------------------------------------------------|----------------|-----------|------------|----------|--------|
+| [YOLO12](https://github.com/ultralytics/ultralytics/blob/yolov12/ultralytics/cfg/models/12/yolo12.yaml)           | Detection      | ✅         | ✅          | ✅        | ✅      |
+| [YOLO12-seg](https://github.com/ultralytics/ultralytics/blob/yolov12/ultralytics/cfg/models/12/yolo12-seg.yaml)   | Segmentation   | ✅         | ✅          | ✅        | ✅      |
+| [YOLO12-pose](https://github.com/ultralytics/ultralytics/blob/yolov12/ultralytics/cfg/models/12/yolo12-pose.yaml) | Pose           | ✅         | ✅          | ✅        | ✅      |
+| [YOLO12-cls](https://github.com/ultralytics/ultralytics/blob/yolov12/ultralytics/cfg/models/12/yolo12-cls.yaml)   | Classification | ✅         | ✅          | ✅        | ✅      |
+| [YOLO12-obb](https://github.com/ultralytics/ultralytics/blob/yolov12/ultralytics/cfg/models/12/yolo12-obb.yaml)   | OBB            | ✅         | ✅          | ✅        | ✅      |
 
 ## Performance Metrics
 
@@ -50,13 +50,13 @@ YOLO12 demonstrates significant [accuracy](https://www.ultralytics.com/glossary/
 
 ### Detection Performance (COCO val2017)
 
-| Model   | size<br><sup>(pixels) | mAP<sup>val</sup><br>50-95 | Speed (ms)<sup>1</sup> | params<br><sup>(M) | FLOPs<br><sup>(B) | Comparison (mAP / Speed)<sup>2</sup> |
-| ------- | --------------------- | -------------------------- | ---------------------- | ------------------ | ----------------- | ------------------------------------ |
-| YOLO12n | 640                   | 40.6                       | 1.64                   | 2.6                | 6.5               | +2.1% / -9% (vs. YOLOv10n)           |
-| YOLO12s | 640                   | 48.0                       | 2.61                   | 9.3                | 21.4              | +0.1% / +42% (vs. RT-DETRv2-R18)     |
-| YOLO12m | 640                   | 52.5                       | 4.86                   | 20.2               | 67.5              | +1.0% / +3% (vs. YOLOv11m)           |
-| YOLO12l | 640                   | 53.7                       | 6.77                   | 26.4               | 88.9              | +0.4% / -8% (vs. YOLOv11l)           |
-| YOLO12x | 640                   | 55.2                       | 11.79                  | 59.1               | 199.0             | +0.6% / -4% (vs. YOLOv11x)           |
+| Model                                                                                | size<br><sup>(pixels) | mAP<sup>val</sup><br>50-95 | Speed (ms)<sup>1</sup> | params<br><sup>(M) | FLOPs<br><sup>(B) | Comparison (mAP / Speed)<sup>2</sup> |
+|--------------------------------------------------------------------------------------|-----------------------|----------------------------|------------------------|--------------------|-------------------|--------------------------------------|
+| [YOLO12n](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12n.pt) | 640                   | 40.6                       | 1.64                   | 2.6                | 6.5               | +2.1% / -9% (vs. YOLOv10n)           |
+| [YOLO12n](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12s.pt) | 640                   | 48.0                       | 2.61                   | 9.3                | 21.4              | +0.1% / +42% (vs. RT-DETRv2-R18)     |
+| [YOLO12n](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12m.pt) | 640                   | 52.5                       | 4.86                   | 20.2               | 67.5              | +1.0% / +3% (vs. YOLOv11m)           |
+| [YOLO12n](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12l.pt) | 640                   | 53.7                       | 6.77                   | 26.4               | 88.9              | +0.4% / -8% (vs. YOLOv11l)           |
+| [YOLO12n](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12x.pt) | 640                   | 55.2                       | 11.79                  | 59.1               | 199.0             | +0.6% / -4% (vs. YOLOv11x)           |
 
 <sup>1</sup> Inference speed measured on an NVIDIA T4 GPU with TensorRT FP16 [precision](https://www.ultralytics.com/glossary/precision).
 

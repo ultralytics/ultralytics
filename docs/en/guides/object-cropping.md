@@ -34,7 +34,6 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 | ![Conveyor Belt at Airport Suitcases Cropping using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/suitcases-cropping-airport-conveyor-belt.avif) |
 |                                                      Suitcases Cropping at airport conveyor belt using Ultralytics YOLO11                                                      |
 
-
 !!! example "Object Cropping using YOLO11 Example"
 
     ```python

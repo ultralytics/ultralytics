@@ -97,7 +97,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-### `ObjectCounter` Arguments 
+### `ObjectCounter` Arguments
 
 Here's a table with the `ObjectCounter` arguments:
 

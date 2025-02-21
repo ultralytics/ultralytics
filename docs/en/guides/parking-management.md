@@ -49,11 +49,15 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
 
     Max Image Size of 1920 * 1080 supported
 
-```python
-from ultralytics import solutions
+!!! example "Parking Slots Annotator"
+    
+    === "Python"
 
-solutions.ParkingPtsSelection()
-```
+        ```python
+        from ultralytics import solutions
+        
+        solutions.ParkingPtsSelection()
+        ```
 
 - After defining the parking areas with polygons, click `save` to store a JSON file with the data in your working directory.
 
@@ -61,40 +65,44 @@ solutions.ParkingPtsSelection()
 
 ### Python Code for Parking Management
 
-```python
-import cv2
+!!! example "Parking Management using Ultralytics YOLO11"
+    
+    === "Python"
 
-from ultralytics import solutions
-
-# Video capture
-cap = cv2.VideoCapture("Path/to/video/file.mp4")
-assert cap.isOpened(), "Error reading video file"
-
-# Video writer
-w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-video_writer = cv2.VideoWriter("parking management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
-# Initialize ParkingManagement
-parkingmanager = solutions.ParkingManagement(
-    model="yolo11n.pt",  # path to model file
-    json_file="bounding_boxes.json",  # path to parking annotations file
-)
-
-while cap.isOpened():
-    ret, im0 = cap.read()
-    if not ret:
-        break
-
-    results = parkingmanager(im0)
-
-    # print(results)    # Access the output
-
-    video_writer.write(results.plot_im)  # write the processed frame.
-
-cap.release()
-video_writer.release()
-cv2.destroyAllWindows()  # destroy all opened windows
-```
+        ```python
+        import cv2
+        
+        from ultralytics import solutions
+        
+        # Video capture
+        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+        
+        # Video writer
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        video_writer = cv2.VideoWriter("parking management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        
+        # Initialize ParkingManagement
+        parkingmanager = solutions.ParkingManagement(
+            model="yolo11n.pt",  # path to model file
+            json_file="bounding_boxes.json",  # path to parking annotations file
+        )
+        
+        while cap.isOpened():
+            ret, im0 = cap.read()
+            if not ret:
+                break
+        
+            results = parkingmanager(im0)
+        
+            # print(results)    # Access the output
+        
+            video_writer.write(results.plot_im)  # write the processed frame.
+        
+        cap.release()
+        video_writer.release()
+        cv2.destroyAllWindows()  # destroy all opened windows
+        ```
 
 ### Arguments `ParkingManagement`
 

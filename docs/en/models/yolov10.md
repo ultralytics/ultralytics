@@ -29,16 +29,16 @@ Real-time object detection aims to accurately predict object categories and posi
 
 The architecture of YOLOv10 builds upon the strengths of previous YOLO models while introducing several key innovations. The model architecture consists of the following components:
 
-1. **Backbone**: Responsible for [feature extraction](https://www.ultralytics.com/glossary/feature-extraction), the backbone in YOLOv10 uses an enhanced version of CSPNet (Cross Stage Partial Network) to improve gradient flow and reduce computational redundancy.
+1. **[Backbone](https://www.ultralytics.com/glossary/backbone)**: Responsible for [feature extraction](https://www.ultralytics.com/glossary/feature-extraction), the backbone in YOLOv10 uses an enhanced version of CSPNet (Cross Stage Partial Network) to improve gradient flow and reduce computational redundancy.
 2. **Neck**: The neck is designed to aggregate features from different scales and passes them to the head. It includes PAN (Path Aggregation Network) layers for effective multiscale feature fusion.
 3. **One-to-Many Head**: Generates multiple predictions per object during training to provide rich supervisory signals and improve learning accuracy.
 4. **One-to-One Head**: Generates a single best prediction per object during inference to eliminate the need for NMS, thereby reducing latency and improving efficiency.
 
 ## Key Features
 
-1. **NMS-Free Training**: Utilizes consistent dual assignments to eliminate the need for NMS, reducing inference latency.
+1. **NMS-Free Training**: Utilizes consistent dual assignments to eliminate the need for NMS, reducing [inference latency](https://www.ultralytics.com/glossary/inference-latency).
 2. **Holistic Model Design**: Comprehensive optimization of various components from both efficiency and accuracy perspectives, including lightweight classification heads, spatial-channel decoupled down sampling, and rank-guided block design.
-3. **Enhanced Model Capabilities**: Incorporates large-kernel convolutions and partial self-attention modules to improve performance without significant computational cost.
+3. **Enhanced Model Capabilities**: Incorporates large-kernel [convolutions](https://www.ultralytics.com/glossary/convolution) and partial self-attention modules to improve performance without significant computational cost.
 
 ## Model Variants
 
@@ -52,6 +52,11 @@ YOLOv10 comes in various model scales to cater to different application needs:
 - **YOLOv10-X**: Extra-large version for maximum accuracy and performance.
 
 ## Performance
+
+<script async src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script defer src="../../javascript/benchmark.js"></script>
+
+<canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv10"]'></canvas>
 
 YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in terms of accuracy and efficiency. For example, YOLOv10-S is 1.8x faster than RT-DETR-R18 with similar AP on the COCO dataset, and YOLOv10-B has 46% less latency and 25% fewer parameters than YOLOv9-C with the same performance.
 
@@ -82,7 +87,7 @@ YOLOv10 employs dual label assignments, combining one-to-many and one-to-one str
 
 #### Accuracy Enhancements
 
-1. **Large-Kernel Convolution**: Enlarges the receptive field to enhance feature extraction capability.
+1. **Large-Kernel Convolution**: Enlarges the [receptive field](https://www.ultralytics.com/glossary/receptive-field) to enhance feature extraction capability.
 2. **Partial Self-Attention (PSA)**: Incorporates self-attention modules to improve global representation learning with minimal overhead.
 
 ## Experiments and Results

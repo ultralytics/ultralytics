@@ -801,9 +801,8 @@ class Annotator:
             return
 
         cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
-        text_size, _ = cv2.getTextSize(label, 0, self.sf, self.tf)
-
         if label:
+            text_size, _ = cv2.getTextSize(label, 0, self.sf, self.tf)
             cv2.rectangle(
                 self.im,
                 (int(mask[0][0]) - text_size[0] // 2 - 10, int(mask[0][1]) - text_size[1] - 10),

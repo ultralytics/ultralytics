@@ -49,21 +49,27 @@ def create_vercel_config():
 
 def prepare_docs_markdown(clone_repos=True):
     """Build docs using mkdocs."""
-    if SITE.exists():
-        print(f"Removing existing {SITE}")
-        shutil.rmtree(SITE)
+    print("Removing existing build artifacts")
+    shutil.rmtree(SITE, ignore_errors=True)
+    shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
-    # Get hub-sdk repo
     if clone_repos:
+        # Get hub-sdk repo
         repo = "https://github.com/ultralytics/hub-sdk"
-        local_dir = DOCS.parent / Path(repo).name
-        if not local_dir.exists():
-            os.system(f"git clone {repo} {local_dir}")
-        os.system(f"git -C {local_dir} pull")  # update repo
+        local_dir = DOCS / "repos" / Path(repo).name
+        os.system(f"git clone {repo} {local_dir} --depth 1 --single-branch --branch main")
         shutil.rmtree(DOCS / "en/hub/sdk", ignore_errors=True)  # delete if exists
         shutil.copytree(local_dir / "docs", DOCS / "en/hub/sdk")  # for docs
         shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)  # delete if exists
         shutil.copytree(local_dir / "hub_sdk", DOCS.parent / "hub_sdk")  # for mkdocstrings
+        print(f"Cloned/Updated {repo} in {local_dir}")
+
+        # Get docs repo
+        repo = "https://github.com/ultralytics/docs"
+        local_dir = DOCS / "repos" / Path(repo).name
+        os.system(f"git clone {repo} {local_dir} --depth 1 --single-branch --branch main")
+        shutil.rmtree(DOCS / "en/compare", ignore_errors=True)  # delete if exists
+        shutil.copytree(local_dir / "docs/en/compare", DOCS / "en/compare")  # for docs
         print(f"Cloned/Updated {repo} in {local_dir}")
 
     # Add frontmatter
@@ -107,7 +113,7 @@ def update_subdir_edit_links(subdir="", docs_url=""):
     if str(subdir[0]) == "/":
         subdir = str(subdir[0])[1:]
     html_files = (SITE / subdir).rglob("*.html")
-    for html_file in tqdm(html_files, desc="Processing subdir files"):
+    for html_file in tqdm(html_files, desc="Processing subdir files", mininterval=1.0):
         with html_file.open("r", encoding="utf-8") as file:
             soup = BeautifulSoup(file, "html.parser")
 
@@ -163,15 +169,16 @@ def update_docs_html():
     # Update 404 titles
     update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")
 
-    # Update edit links
-    update_subdir_edit_links(
-        subdir="hub/sdk/",  # do not use leading slash
-        docs_url="https://github.com/ultralytics/hub-sdk/tree/main/docs/",
-    )
+    # Update edit button links
+    for subdir, docs_url in (
+        ("hub/sdk/", "https://github.com/ultralytics/hub-sdk/tree/main/docs/"),  # do not use leading slash
+        ("compare/", "https://github.com/ultralytics/docs/tree/main/docs/en/compare/"),
+    ):
+        update_subdir_edit_links(subdir=subdir, docs_url=docs_url)
 
     # Convert plaintext links to HTML hyperlinks
     files_modified = 0
-    for html_file in tqdm(SITE.rglob("*.html"), desc="Converting plaintext links"):
+    for html_file in tqdm(SITE.rglob("*.html"), desc="Converting plaintext links", mininterval=1.0):
         with open(html_file, encoding="utf-8") as file:
             content = file.read()
         updated_content = convert_plaintext_links_to_html(content)
@@ -242,6 +249,29 @@ def remove_macros():
     print(f"Removed {len(macros_indices)} URLs containing '/macros/' from {sitemap}")
 
 
+def remove_comments_and_empty_lines(content, file_type):
+    """Removes comments and empty lines from a string of code, preserving newlines and URLs."""
+    if file_type == "html":
+        # Remove HTML comments, preserving newline after comment
+        # content = re.sub(r"<!--(.*?)-->\n?", r"\n", content, flags=re.DOTALL)
+        pass
+    elif file_type == "css":
+        # Remove CSS comments, preserving newline after comment
+        # content = re.sub(r"/\*.*?\*/\n?", r"\n", content, flags=re.DOTALL)
+        pass
+    elif file_type == "js":
+        # Remove JS single-line comments, preserving newline and URLs
+        # content = re.sub(r"(?<!:)//(.*?)\n", r"\n", content, flags=re.DOTALL)
+        # Remove JS multi-line comments, preserving newline after comment
+        # content = re.sub(r"/\*.*?\*/\n?", r"\n", content, flags=re.DOTALL)
+        pass
+
+    # Remove empty lines
+    content = re.sub(r"^\s*\n", "", content, flags=re.MULTILINE)
+
+    return content
+
+
 def minify_files(html=True, css=True, js=True):
     """Minifies HTML, CSS, and JS files and prints total reduction stats."""
     minify, compress, jsmin = None, None, None
@@ -262,14 +292,11 @@ def minify_files(html=True, css=True, js=True):
         "css": compress if css else None,
         "js": jsmin.jsmin if js else None,
     }.items():
-        if not minifier:
-            continue
-
         stats[ext] = {"original": 0, "minified": 0}
         directory = ""  # "stylesheets" if ext == css else "javascript" if ext == "js" else ""
-        for f in tqdm((SITE / directory).rglob(f"*.{ext}"), desc=f"Minifying {ext.upper()}"):
+        for f in tqdm((SITE / directory).rglob(f"*.{ext}"), desc=f"Minifying {ext.upper()}", mininterval=1.0):
             content = f.read_text(encoding="utf-8")
-            minified = minifier(content)
+            minified = minifier(content) if minifier else remove_comments_and_empty_lines(content, ext)
             stats[ext]["original"] += len(content)
             stats[ext]["minified"] += len(minified)
             f.write_text(minified, encoding="utf-8")
@@ -296,6 +323,10 @@ def main():
 
     # Minify files
     minify_files(html=False, css=False, js=False)
+
+    # Cleanup
+    shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)
+    shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
     # Show command to serve built website
     print('Docs built correctly ✅\nServe site at http://localhost:8000 with "python -m http.server --directory site"')

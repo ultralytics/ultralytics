@@ -75,7 +75,6 @@ class AIGym(BaseSolution):
         """
         # Extract tracks (it's separate, because pose estimation explicit use pose model for processing)
         tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"], **self.track_add_args)[0]
-        plot_im = im0  # For plotting the results
         if tracks.boxes.id is not None:
             # Extract and check keypoints
             if len(tracks) > len(self.count):
@@ -85,7 +84,7 @@ class AIGym(BaseSolution):
                 self.stage += ["-"] * new_human
 
             # Initialize annotator
-            annotator = SolutionAnnotator(plot_im, line_width=self.line_width)
+            annotator = SolutionAnnotator(im0, line_width=self.line_width)
 
             # Enumerate over keypoints
             for ind, k in enumerate(reversed(tracks.keypoints.data)):

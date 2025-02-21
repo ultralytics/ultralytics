@@ -164,19 +164,21 @@ def gd_outputs(gd):
 
 
 def try_export(inner_func):
-    """YOLO export decorator, i.e. @try_export."""
+    """YOLOv8 export decorator, i..e @try_export."""
     inner_args = get_default_args(inner_func)
 
     def outer_func(*args, **kwargs):
         """Export a model."""
-        prefix = inner_args["prefix"]
+        prefix = inner_args['prefix']
+        dt = None
         try:
             with Profile() as dt:
                 f, model = inner_func(*args, **kwargs)
             LOGGER.info(f"{prefix} export success ✅ {dt.t:.1f}s, saved as '{f}' ({file_size(f):.1f} MB)")
             return f, model
         except Exception as e:
-            LOGGER.error(f"{prefix} export failure ❌ {dt.t:.1f}s: {e}")
+            time_passed = f"{dt.t:.1f}s" if dt else 'unknown elapsed time'
+            LOGGER.info(f'{prefix} export failure ❌ {time_passed}: {e}')
             raise e
 
     return outer_func

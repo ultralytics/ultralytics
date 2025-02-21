@@ -61,8 +61,7 @@ class QueueManager(BaseSolution):
         """
         self.counts = 0  # Reset counts every frame
         self.extract_tracks(im0)  # Extract tracks
-        plot_im = im0  # For plotting the results
-        annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
+        annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
         annotator.draw_region(reg_pts=self.region, color=self.rect_color, thickness=self.line_width * 2)  # Draw region
 
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
@@ -87,6 +86,7 @@ class QueueManager(BaseSolution):
             region_color=self.rect_color,
             txt_color=(104, 31, 17),
         )
+        plot_im = annotator.result()
         self.display_output(plot_im)  # display output with base class function
 
         # Return a SolutionResults

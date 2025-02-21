@@ -27,49 +27,50 @@ Object blurring with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 - **Selective Focus**: YOLO11 allows for selective blurring, enabling users to target specific objects, ensuring a balance between privacy and retaining relevant visual information.
 - **Real-time Processing**: YOLO11's efficiency enables object blurring in real-time, making it suitable for applications requiring on-the-fly privacy enhancements in dynamic environments.
 
-## Code
 
-```python
-import cv2
+!!! example "Object Blurring using YOLO11 Example"
 
-from ultralytics import solutions
+    ```python
+    import cv2
 
-cap = cv2.VideoCapture("Path/to/video/file.mp4")
-assert cap.isOpened(), "Error reading video file"
+    from ultralytics import solutions
 
-# Video writer
-w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-video_writer = cv2.VideoWriter("object_blurring_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+    cap = cv2.VideoCapture("Path/to/video/file.mp4")
+    assert cap.isOpened(), "Error reading video file"
 
-# Init ObjectBlurrer
-blurrer = solutions.ObjectBlurrer(
-    show=True,  # display the output
-    model="yolo11n.pt",  # model for object blurring i.e. yolo11m.pt
-    # line_width=2,   # width of bounding box.
-    # classes=[0, 2], # count specific classes i.e, person and car with COCO pretrained model.
-    # blur_ratio=0.5, # Adjust percentage of blur intensity, the value in range 0.1 - 1.0
-)
+    # Video writer
+    w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+    video_writer = cv2.VideoWriter("object_blurring_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-# Process video
-while cap.isOpened():
-    success, im0 = cap.read()
+    # Init ObjectBlurrer
+    blurrer = solutions.ObjectBlurrer(
+        show=True,  # display the output
+        model="yolo11n.pt",  # model for object blurring i.e. yolo11m.pt
+        # line_width=2,   # width of bounding box.
+        # classes=[0, 2], # count specific classes i.e, person and car with COCO pretrained model.
+        # blur_ratio=0.5, # Adjust percentage of blur intensity, the value in range 0.1 - 1.0
+    )
 
-    if not success:
-        print("Video frame is empty or processing is complete.")
-        break
+    # Process video
+    while cap.isOpened():
+        success, im0 = cap.read()
 
-    results = blurrer(im0)
+        if not success:
+            print("Video frame is empty or processing is complete.")
+            break
 
-    # print(results")   # Access the output
+        results = blurrer(im0)
 
-    video_writer.write(results.plot_im)  # write the processed frame.
+        # print(results")   # Access the output
 
-cap.release()
-video_writer.release()
-cv2.destroyAllWindows()  # destroy all opened windows
-```
+        video_writer.write(results.plot_im)  # write the processed frame.
 
-### Argument `ObjectBlurrer`
+    cap.release()
+    video_writer.release()
+    cv2.destroyAllWindows()  # destroy all opened windows
+    ```
+
+### `ObjectBlurrer` Arguments
 
 Here's a table with the `ObjectBlurrer` arguments:
 

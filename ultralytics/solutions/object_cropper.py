@@ -1,13 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import os
+from pathlib import Path
 
-import cv2
+import torch
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
-from ultralytics.utils.plotting import colors, save_one_box
-from pathlib import Path
-import torch
+from ultralytics.utils.plotting import save_one_box
 
 
 class ObjectCropper(BaseSolution):
@@ -71,7 +70,7 @@ class ObjectCropper(BaseSolution):
             im0, classes=self.classes, conf=self.conf, iou=self.iou, device=self.CFG["device"]
         )[0]
         plot_im = im0  # For plotting the results
-        annotator = SolutionAnnotator(plot_im)
+        SolutionAnnotator(plot_im)
 
         boxes = results.boxes.xyxy.cpu().tolist()  # Detected bounding boxes list
         clss = results.boxes.cls.cpu().tolist()  # Detected classes list

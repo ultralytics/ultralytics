@@ -3,8 +3,6 @@
 import os
 from pathlib import Path
 
-import torch
-
 from ultralytics.solutions.solutions import BaseSolution, SolutionResults
 from ultralytics.utils.plotting import save_one_box
 
@@ -69,21 +67,15 @@ class ObjectCropper(BaseSolution):
         results = self.model.predict(
             im0, classes=self.classes, conf=self.conf, iou=self.iou, device=self.CFG["device"]
         )[0]
-        plot_im = im0  # For plotting the results
 
-        boxes = results.boxes.xyxy.cpu().tolist()  # Detected bounding boxes list
-
-        for box in boxes:
+        for box in results.boxes:
             self.crop_idx += 1
             save_one_box(
-                torch.tensor(box, dtype=torch.float32),
-                plot_im.copy(),
+                box.xyxy,
+                im0,
                 file=Path(self.crop_dir) / f"crop_{self.crop_idx}.jpg",
                 BGR=True,
             )
 
         # Return SolutionResults
-        return SolutionResults(
-            plot_im=plot_im,
-            total_crop_objects=self.crop_idx,
-        )
+        return SolutionResults(plot_im=im0, total_crop_objects=self.crop_idx)

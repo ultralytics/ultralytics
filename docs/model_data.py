@@ -177,7 +177,7 @@ data = {
             "x": {"size": 640, "map": 54.3, "cpu": "", "t4": 15.03, "params": 76, "flops": 259},
         },
     },
-   "EfficientDet": {
+    "EfficientDet": {
         "author": "Mingxing Tan, Ruoming Pang, and Quoc V. Le",
         "org": "Google",
         "date": "2019-11-20",

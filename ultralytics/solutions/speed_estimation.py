@@ -66,8 +66,7 @@ class SpeedEstimator(BaseSolution):
             >>> processed_image = estimator.estimate_speed(image)
         """
         self.extract_tracks(im0)  # Extract tracks
-        plot_im = im0  # For plotting the results
-        annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
+        annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
         annotator.draw_region(reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2)  # Draw region
 
@@ -98,7 +97,7 @@ class SpeedEstimator(BaseSolution):
 
             self.trk_pt[track_id] = time()
             self.trk_pp[track_id] = self.track_line[-1]
-
+        plot_im = annotator.result()
         self.display_output(plot_im)  # display output with base class function
 
         # return output dictionary with summary for more usage

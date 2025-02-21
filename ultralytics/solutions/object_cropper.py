@@ -72,9 +72,8 @@ class ObjectCropper(BaseSolution):
         plot_im = im0  # For plotting the results
 
         boxes = results.boxes.xyxy.cpu().tolist()  # Detected bounding boxes list
-        clss = results.boxes.cls.cpu().tolist()  # Detected classes list
 
-        for box, cls in zip(boxes, clss):
+        for box in boxes:
             self.crop_idx += 1
             save_one_box(
                 torch.tensor(box, dtype=torch.float32),

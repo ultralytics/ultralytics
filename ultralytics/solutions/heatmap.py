@@ -94,7 +94,7 @@ class Heatmap(ObjectCounter):
 
         self.extract_tracks(im0)  # Extract tracks
         plot_im = im0  # For plotting the results
-        annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
+        self.annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
 
         # Iterate over bounding boxes, track ids and classes index
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
@@ -102,7 +102,7 @@ class Heatmap(ObjectCounter):
             self.heatmap_effect(box)
 
             if self.region is not None:
-                annotator.draw_region(reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2)
+                self.annotator.draw_region(reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2)
                 self.store_tracking_history(track_id, box)  # Store track history
                 self.store_classwise_counts(cls)  # store classwise counts in dict
                 current_centroid = ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2)

@@ -146,7 +146,7 @@ class ObjectCounter(BaseSolution):
             for key, value in self.classwise_counts.items()
             if value["IN"] != 0 or value["OUT"] != 0
         }
-
+        print(self.annotator)
         if labels_dict:
             self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), 10)
 

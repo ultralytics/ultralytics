@@ -218,7 +218,7 @@ class Analytics(BaseSolution):
                 self.ax.clear()
 
                 # Create pie chart and create legend labels with percentages
-                wedges, autotexts = self.ax.pie(
+                wedges, _ = self.ax.pie(
                     counts, labels=labels, startangle=start_angle, textprops={"color": self.fg_color}, autopct=None
                 )
                 legend_labels = [f"{label} ({percentage:.1f}%)" for label, percentage in zip(labels, percentages)]

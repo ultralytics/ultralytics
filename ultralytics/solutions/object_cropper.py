@@ -5,7 +5,9 @@ import os
 import cv2
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
-from ultralytics.utils.plotting import colors
+from ultralytics.utils.plotting import colors, save_one_box
+from pathlib import Path
+import torch
 
 
 class ObjectCropper(BaseSolution):
@@ -76,9 +78,12 @@ class ObjectCropper(BaseSolution):
 
         for box, cls in zip(boxes, clss):
             self.crop_idx += 1
-            crop_obj = plot_im[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]  # Crop the detected object
-            cv2.imwrite(os.path.join(self.crop_dir, f"crop-{self.crop_idx}.jpg"), crop_obj)  # Save cropped image
-            annotator.box_label(box, label=self.names[cls], color=colors(cls, True))  # Bounding box plot
+            save_one_box(
+                torch.tensor(box, dtype=torch.float32),
+                plot_im.copy(),
+                file=Path(self.crop_dir) / f"crop_{self.crop_idx}.jpg",
+                BGR=True,
+            )
 
         self.display_output(plot_im)  # display output with base class function
 

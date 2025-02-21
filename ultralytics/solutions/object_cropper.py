@@ -70,7 +70,6 @@ class ObjectCropper(BaseSolution):
             im0, classes=self.classes, conf=self.conf, iou=self.iou, device=self.CFG["device"]
         )[0]
         plot_im = im0  # For plotting the results
-        SolutionAnnotator(plot_im)
 
         boxes = results.boxes.xyxy.cpu().tolist()  # Detected bounding boxes list
         clss = results.boxes.cls.cpu().tolist()  # Detected classes list
@@ -83,8 +82,6 @@ class ObjectCropper(BaseSolution):
                 file=Path(self.crop_dir) / f"crop_{self.crop_idx}.jpg",
                 BGR=True,
             )
-
-        self.display_output(plot_im)  # display output with base class function
 
         # Return SolutionResults
         return SolutionResults(

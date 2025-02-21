@@ -34,42 +34,43 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 | ![Conveyor Belt at Airport Suitcases Cropping using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/suitcases-cropping-airport-conveyor-belt.avif) |
 |                                                      Suitcases Cropping at airport conveyor belt using Ultralytics YOLO11                                                      |
 
-## Code
 
-```python
-import cv2
+!!! example "Object Cropping using YOLO11 Example"
 
-from ultralytics import solutions
+    ```python
+    import cv2
 
-cap = cv2.VideoCapture("Path/to/video/file.mp4")
-assert cap.isOpened(), "Error reading video file"
+    from ultralytics import solutions
 
-# Init ObjectCropper
-cropper = solutions.ObjectCropper(
-    show=True,  # display the output
-    model="yolo11n.pt",  # model for object cropping i.e yolo11x.pt.
-    classes=[0, 2],  # crop specific classes i.e. person and car with COCO pretrained model.
-    # conf=0.5  # adjust confidence threshold for the objects.
-    # crop_dir="cropped-detections",  # set the directory name for cropped detections
-)
+    cap = cv2.VideoCapture("Path/to/video/file.mp4")
+    assert cap.isOpened(), "Error reading video file"
 
-# Process video
-while cap.isOpened():
-    success, im0 = cap.read()
+    # Init ObjectCropper
+    cropper = solutions.ObjectCropper(
+        show=True,  # display the output
+        model="yolo11n.pt",  # model for object cropping i.e yolo11x.pt.
+        classes=[0, 2],  # crop specific classes i.e. person and car with COCO pretrained model.
+        # conf=0.5  # adjust confidence threshold for the objects.
+        # crop_dir="cropped-detections",  # set the directory name for cropped detections
+    )
 
-    if not success:
-        print("Video frame is empty or processing is complete.")
-        break
+    # Process video
+    while cap.isOpened():
+        success, im0 = cap.read()
 
-    results = cropper(im0)
+        if not success:
+            print("Video frame is empty or processing is complete.")
+            break
 
-    # print(results)    # Access the output
+        results = cropper(im0)
 
-cap.release()
-cv2.destroyAllWindows()  # destroy all opened windows
-```
+        # print(results)    # Access the output
 
-### Argument `ObjectCropper`
+    cap.release()
+    cv2.destroyAllWindows()  # destroy all opened windows
+    ```
+
+### `ObjectCropper` Arguments
 
 Here's a table with the `ObjectCropper` arguments:
 

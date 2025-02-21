@@ -4,7 +4,7 @@ data = {
     "YOLO12": {
         "author": "Yunjie Tian, Qixiang Ye, David Doermann",
         "org": "University at Buffalo and University of Chinese Academy of Sciences",
-        "date": "2024-02-18",
+        "date": "2025-02-18",
         "arxiv": "https://arxiv.org/abs/2502.12524",
         "github": "https://github.com/sunsmarterjie/yolov12",
         "docs": "https://docs.ultralytics.com/models/yolo12/",

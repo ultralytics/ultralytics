@@ -93,8 +93,7 @@ class Heatmap(ObjectCounter):
         self.initialized = True  # Initialize heatmap only once
 
         self.extract_tracks(im0)  # Extract tracks
-        plot_im = im0  # For plotting the results
-        self.annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
+        self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
         # Iterate over bounding boxes, track ids and classes index
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
@@ -115,6 +114,7 @@ class Heatmap(ObjectCounter):
         if self.region is not None:
             self.display_counts(plot_im)  # Display the counts on the frame
 
+        plot_im = self.annotator.result()
         # Normalize, apply colormap to heatmap and combine with original image
         if self.track_data.id is not None:
             plot_im = cv2.addWeighted(

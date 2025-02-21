@@ -190,7 +190,7 @@ class DetectionValidator(BaseValidator):
             self.metrics.process(**stats)
             return self.metrics.results_dict
         else:
-            return {k:0 for k in self.metrics.results_dict.keys()}
+            return {k: 0 for k in self.metrics.results_dict.keys()}
 
     def print_results(self):
         """Prints training/validation set metrics per class."""

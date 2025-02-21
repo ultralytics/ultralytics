@@ -81,7 +81,7 @@ All Solutions calls return a list of `SolutionResults` objects, containing compr
 
 - For object counting, the results include `incounts`, `outcounts`, and `classwise_counts`.
 
-=== "Results"
+!!! example "SolutionResults"
 
     ```python
     counter = solutions.ObjectCounter(

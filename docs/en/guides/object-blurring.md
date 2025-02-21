@@ -28,46 +28,48 @@ Object blurring with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 - **Real-time Processing**: YOLO11's efficiency enables object blurring in real-time, making it suitable for applications requiring on-the-fly privacy enhancements in dynamic environments.
 
 !!! example "Object Blurring using YOLO11 Example"
+    
+    === "Python"
 
-    ```python
-    import cv2
-
-    from ultralytics import solutions
-
-    cap = cv2.VideoCapture("Path/to/video/file.mp4")
-    assert cap.isOpened(), "Error reading video file"
-
-    # Video writer
-    w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-    video_writer = cv2.VideoWriter("object_blurring_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
-    # Init ObjectBlurrer
-    blurrer = solutions.ObjectBlurrer(
-        show=True,  # display the output
-        model="yolo11n.pt",  # model for object blurring i.e. yolo11m.pt
-        # line_width=2,   # width of bounding box.
-        # classes=[0, 2], # count specific classes i.e, person and car with COCO pretrained model.
-        # blur_ratio=0.5, # Adjust percentage of blur intensity, the value in range 0.1 - 1.0
-    )
-
-    # Process video
-    while cap.isOpened():
-        success, im0 = cap.read()
-
-        if not success:
-            print("Video frame is empty or processing is complete.")
-            break
-
-        results = blurrer(im0)
-
-        # print(results")   # Access the output
-
-        video_writer.write(results.plot_im)  # write the processed frame.
-
-    cap.release()
-    video_writer.release()
-    cv2.destroyAllWindows()  # destroy all opened windows
-    ```
+        ```python
+        import cv2
+    
+        from ultralytics import solutions
+    
+        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+    
+        # Video writer
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        video_writer = cv2.VideoWriter("object_blurring_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+    
+        # Init ObjectBlurrer
+        blurrer = solutions.ObjectBlurrer(
+            show=True,  # display the output
+            model="yolo11n.pt",  # model for object blurring i.e. yolo11m.pt
+            # line_width=2,   # width of bounding box.
+            # classes=[0, 2], # count specific classes i.e, person and car with COCO pretrained model.
+            # blur_ratio=0.5, # Adjust percentage of blur intensity, the value in range 0.1 - 1.0
+        )
+    
+        # Process video
+        while cap.isOpened():
+            success, im0 = cap.read()
+    
+            if not success:
+                print("Video frame is empty or processing is complete.")
+                break
+    
+            results = blurrer(im0)
+    
+            # print(results")   # Access the output
+    
+            video_writer.write(results.plot_im)  # write the processed frame.
+    
+        cap.release()
+        video_writer.release()
+        cv2.destroyAllWindows()  # destroy all opened windows
+        ```
 
 ### `ObjectBlurrer` Arguments
 

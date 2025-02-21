@@ -95,8 +95,7 @@ class DistanceCalculation(BaseSolution):
             >>> processed_frame = dc.calculate(frame)
         """
         self.extract_tracks(im0)  # Extract tracks
-        plot_im = im0  # For plotting the results
-        annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
+        annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
         pixels_distance = 0
         # Iterate over bounding boxes, track ids and classes index
@@ -120,7 +119,7 @@ class DistanceCalculation(BaseSolution):
             annotator.plot_distance_and_line(pixels_distance, self.centroids)
 
         self.centroids = []
-
+        plot_im = annotator.result()
         self.display_output(plot_im)  # display output with base class function
         cv2.setMouseCallback("Ultralytics Solutions", self.mouse_event_for_distance)
 

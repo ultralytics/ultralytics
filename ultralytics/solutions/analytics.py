@@ -111,7 +111,7 @@ class Analytics(BaseSolution):
             self.total_counts = 0
         elif self.type in {"pie", "bar", "area"}:
             self.clswise_count = {}
-            for box, cls in zip(self.boxes, self.clss):
+            for cls in self.clss:
                 if self.names[int(cls)] in self.clswise_count:
                     self.clswise_count[self.names[int(cls)]] += 1
                 else:

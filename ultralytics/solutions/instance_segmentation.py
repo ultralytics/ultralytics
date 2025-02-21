@@ -47,8 +47,7 @@ class InstanceSegmentation(BaseSolution):
             >>> print(summary)
         """
         self.extract_tracks(im0)  # Extract tracks (bounding boxes, classes, and masks)
-        plot_im = im0  # For plotting the results
-        annotator = SolutionAnnotator(plot_im, self.line_width)
+        annotator = SolutionAnnotator(im0, self.line_width)
 
         # Iterate over detected classes, track IDs, and segmentation masks
         if self.masks is None:
@@ -58,6 +57,7 @@ class InstanceSegmentation(BaseSolution):
                 # Annotate the image with segmentation mask, mask color, and label
                 annotator.seg_bbox(mask=mask, mask_color=colors(t_id, True), label=self.names[cls])
 
+        plot_im = annotator.result()
         self.display_output(plot_im)  # Display the annotated output using the base class function
 
         # Return SolutionResults

@@ -146,7 +146,6 @@ class ObjectCounter(BaseSolution):
             for key, value in self.classwise_counts.items()
             if value["IN"] != 0 or value["OUT"] != 0
         }
-        print(self.annotator)
         if labels_dict:
             self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), 10)
 
@@ -175,8 +174,7 @@ class ObjectCounter(BaseSolution):
             self.region_initialized = True
 
         self.extract_tracks(im0)  # Extract tracks
-        plot_im = im0  # For plotting the results
-        self.annotator = SolutionAnnotator(plot_im, line_width=self.line_width)  # Initialize annotator
+        self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
         self.annotator.draw_region(
             reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2
@@ -196,6 +194,7 @@ class ObjectCounter(BaseSolution):
                 prev_position = self.track_history[track_id][-2]
             self.count_objects(current_centroid, track_id, prev_position, cls)  # Perform object counting
 
+        plot_im = self.annotator.result()
         self.display_counts(plot_im)  # Display the counts on the frame
         self.display_output(plot_im)  # display output with base class function
 

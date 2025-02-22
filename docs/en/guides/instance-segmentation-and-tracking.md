@@ -34,7 +34,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
 | ![Ultralytics Instance Segmentation](https://github.com/ultralytics/docs/releases/download/0/ultralytics-instance-segmentation.avif) | ![Ultralytics Instance Segmentation with Object Tracking](https://github.com/ultralytics/docs/releases/download/0/ultralytics-instance-segmentation-object-tracking.avif) |
 |                                                 Ultralytics Instance Segmentation 😍                                                 |                                                         Ultralytics Instance Segmentation with Object Tracking 🔥                                                         |
 
-!!! example "Speed Estimation using Ultralytics YOLO"
+!!! example "Instance segmentation using Ultralytics YOLO"
 
     === "Python"
 

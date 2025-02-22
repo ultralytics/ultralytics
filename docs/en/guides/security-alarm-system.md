@@ -31,7 +31,7 @@ The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanc
 
 - Navigate to [App Password Generator](https://myaccount.google.com/apppasswords), designate an app name such as "security project," and obtain a 16-digit password. Copy this password and paste it into the designated `password` field in the code below.
 
-!!! example "Security Alarm System using YOLO11 Example"
+!!! example "Security Alarm System using Ultralytics YOLO"
 
     === "Python"
 
@@ -85,7 +85,7 @@ That's it! When you execute the code, you'll receive a single notification on yo
 
 <img width="256" src="https://github.com/ultralytics/docs/releases/download/0/email-received-sample.avif" alt="Email Received Sample">
 
-### Arguments `SecurityAlarm`
+### `SecurityAlarm` Arguments
 
 Here's a table with the `SecurityAlarm` arguments:
 

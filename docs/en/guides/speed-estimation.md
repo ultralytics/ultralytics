@@ -42,7 +42,7 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 
     Speed will be an estimate and may not be completely accurate. Additionally, the estimation can vary depending on GPU speed.
 
-!!! example "Speed Estimation using YOLO11 Example"
+!!! example "Speed Estimation using Ultralytics YOLO"
 
     === "CLI"
 
@@ -101,7 +101,7 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-### Arguments `SpeedEstimator`
+### `SpeedEstimator` Arguments
 
 Here's a table with the `SpeedEstimator` arguments:
 
@@ -184,7 +184,7 @@ The [accuracy](https://www.ultralytics.com/glossary/accuracy) of speed estimatio
 
 **Note**: Always consider margin of error and validate the estimates with ground truth data when possible.
 
-For further accuracy improvement tips, check the [Arguments `SpeedEstimator` section](#arguments-speedestimator).
+For further accuracy improvement tips, check the [Arguments `SpeedEstimator` section](#speedestimator-arguments).
 
 ### Why choose Ultralytics YOLO11 over other object detection models like TensorFlow Object Detection API?
 

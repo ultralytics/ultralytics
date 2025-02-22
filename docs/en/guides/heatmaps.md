@@ -36,7 +36,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 | ![Ultralytics YOLO11 Transportation Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-transportation-heatmap.avif) | ![Ultralytics YOLO11 Retail Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-retail-heatmap.avif) |
 |                                                      Ultralytics YOLO11 Transportation Heatmap                                                       |                                                  Ultralytics YOLO11 Retail Heatmap                                                   |
 
-!!! example "Heatmaps using Ultralytics YOLO11 Example"
+!!! example "Heatmaps using Ultralytics YOLO"
 
     === "CLI"
 
@@ -101,7 +101,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-### Arguments `Heatmap()`
+### `Heatmap()` Arguments
 
 Here's a table with the `Heatmap` arguments:
 
@@ -151,7 +151,7 @@ These colormaps are commonly used for visualizing data with different color repr
 
 ### How does Ultralytics YOLO11 generate heatmaps and what are their benefits?
 
-Ultralytics YOLO11 generates heatmaps by transforming complex data into a color-coded matrix where different hues represent data intensities. Heatmaps make it easier to visualize patterns, correlations, and anomalies in the data. Warmer hues indicate higher values, while cooler tones represent lower values. The primary benefits include intuitive visualization of data distribution, efficient pattern detection, and enhanced spatial analysis for decision-making. For more details and configuration options, refer to the [Heatmap Configuration](#arguments-heatmap) section.
+Ultralytics YOLO11 generates heatmaps by transforming complex data into a color-coded matrix where different hues represent data intensities. Heatmaps make it easier to visualize patterns, correlations, and anomalies in the data. Warmer hues indicate higher values, while cooler tones represent lower values. The primary benefits include intuitive visualization of data distribution, efficient pattern detection, and enhanced spatial analysis for decision-making. For more details and configuration options, refer to the [Heatmap Configuration](#heatmap-arguments) section.
 
 ### Can I use Ultralytics YOLO11 to perform object tracking and generate a heatmap simultaneously?
 

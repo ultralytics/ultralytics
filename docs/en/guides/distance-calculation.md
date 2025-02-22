@@ -43,7 +43,7 @@ Measuring the gap between two objects is known as distance calculation within a 
         Distance will be an estimate and may not be fully accurate, as it is calculated using 2-dimensional data,
         which lacks information about the object's depth.
 
-!!! example "Distance Calculation using YOLO11 Example"
+!!! example "Distance Calculation using Ultralytics YOLO"
 
     === "Python"
 
@@ -84,7 +84,7 @@ Measuring the gap between two objects is known as distance calculation within a 
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-### Arguments `DistanceCalculation()`
+### `DistanceCalculation()` Arguments
 
 Here's a table with the `DistanceCalculation` arguments:
 
@@ -129,4 +129,4 @@ The key arguments for initializing the `DistanceCalculation` class in Ultralytic
 
 - `model`: Model file path.
 
-For an exhaustive list and default values, see the [arguments of DistanceCalculation](#arguments-distancecalculation).
+For an exhaustive list and default values, see the [arguments of DistanceCalculation](#distancecalculation-arguments).

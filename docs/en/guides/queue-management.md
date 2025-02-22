@@ -33,7 +33,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
 | ![Queue management at airport ticket counter using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/queue-management-airport-ticket-counter-ultralytics-yolov8.avif) | ![Queue monitoring in crowd using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/queue-monitoring-crowd-ultralytics-yolov8.avif) |
 |                                                               Queue management at airport ticket counter Using Ultralytics YOLO11                                                               |                                                         Queue monitoring in crowd Ultralytics YOLO11                                                          |
 
-!!! example "Queue Management using YOLO11 Example"
+!!! example "Queue Management using Ultralytics YOLO"
 
     === "CLI"
 
@@ -90,7 +90,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-### Arguments `QueueManager`
+### `QueueManager` Arguments
 
 Here's a table with the `QueueManager` arguments:
 

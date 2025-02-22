@@ -14,7 +14,7 @@ keywords: VisionEye, YOLO11, Ultralytics, object mapping, object tracking, dista
   <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/visioneye-object-mapping-with-tracking.avif" alt="VisionEye View Object Mapping with Object Tracking using Ultralytics YOLO11">
 </p>
 
-!!! example "VisionEye Mapping using YOLO11 Example"
+!!! example "VisionEye Mapping using Ultralytics YOLO"
 
     === "Python"
 

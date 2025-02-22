@@ -37,7 +37,7 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
 | ![Plants Tracking in Field Using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/plants-tracking-in-zone-using-ultralytics-yolo11.avif) | ![Vehicles Tracking on Road using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/vehicle-tracking-in-zone-using-ultralytics-yolo11.avif) |
 |                                                          Plants Tracking in Field Using Ultralytics YOLO11                                                          |                                                          Vehicles Tracking on Road using Ultralytics YOLO11                                                           |
 
-!!! example "TrackZone using YOLO11 Example"
+!!! example "TrackZone using Ultralytics YOLO"
 
     === "CLI"
 
@@ -95,7 +95,7 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-### Argument `TrackZone`
+### `TrackZone` Arguments
 
 Here's a table with the `TrackZone` arguments:
 

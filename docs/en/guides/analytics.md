@@ -33,7 +33,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
 - Bar plots, on the other hand, are suitable for comparing quantities across different categories and showing relationships between a category and its numerical value.
 - Lastly, pie charts are effective for illustrating proportions among categories and showing parts of a whole.
 
-!!! example "Analytics Examples"
+!!! example "Analytics using Ultralytics YOLO"
 
     === "CLI"
 
@@ -99,7 +99,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-### Argument `Analytics`
+### `Analytics` Arguments
 
 Here's a table outlining the Analytics arguments:
 

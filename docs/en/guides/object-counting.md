@@ -36,7 +36,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 | ![Conveyor Belt Packets Counting Using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/conveyor-belt-packets-counting.avif) | ![Fish Counting in Sea using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/fish-counting-in-sea-using-ultralytics-yolov8.avif) |
 |                                                 Conveyor Belt Packets Counting Using Ultralytics YOLO11                                                 |                                                        Fish Counting in Sea using Ultralytics YOLO11                                                         |
 
-!!! example "Object Counting using YOLO11 Example"
+!!! example "Object Counting using Ultralytics YOLO"
 
     === "CLI"
 

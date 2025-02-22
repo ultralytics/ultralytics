@@ -36,7 +36,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 | ![PushUps Counting](https://github.com/ultralytics/docs/releases/download/0/pushups-counting.avif) | ![PullUps Counting](https://github.com/ultralytics/docs/releases/download/0/pullups-counting.avif) |
 |                                          PushUps Counting                                          |                                          PullUps Counting                                          |
 
-!!! example "Workouts Monitoring Example"
+!!! example "Workouts Monitoring using Ultralytics YOLO"
 
     === "CLI"
 
@@ -96,7 +96,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 
 ![keyPoints Order Ultralytics YOLO11 Pose](https://github.com/ultralytics/docs/releases/download/0/keypoints-order-ultralytics-yolov8-pose.avif)
 
-### Arguments `AIGym`
+### `AIGym` Arguments
 
 Here's a table with the `AIGym` arguments:
 
@@ -144,7 +144,7 @@ while cap.isOpened():
 cv2.destroyAllWindows()
 ```
 
-For further customization and settings, you can refer to the [AIGym](#arguments-aigym) section in the documentation.
+For further customization and settings, you can refer to the [AIGym](#aigym-arguments) section in the documentation.
 
 ### What are the benefits of using Ultralytics YOLO11 for workout monitoring?
 
@@ -176,7 +176,7 @@ gym = solutions.AIGym(
 )
 ```
 
-For more details on setting arguments, refer to the [Arguments `AIGym`](#arguments-aigym) section. This flexibility allows you to monitor various exercises and customize routines based on your needs.
+For more details on setting arguments, refer to the [Arguments `AIGym`](#aigym-arguments) section. This flexibility allows you to monitor various exercises and customize routines based on your needs.
 
 ### How can I save the workout monitoring output using Ultralytics YOLO11?
 

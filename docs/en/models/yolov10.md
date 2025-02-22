@@ -107,7 +107,7 @@ Compared to other state-of-the-art detectors:
 Here is a detailed comparison of YOLOv10 variants with other state-of-the-art models:
 
 | Model             | Params<br><sup>(M) | FLOPs<br><sup>(G) | mAP<sup>val<br>50-95 | Latency<br><sup>(ms) | Latency-forward<br><sup>(ms) |
-|-------------------| ------------------ | ----------------- | -------------------- | -------------------- | ---------------------------- |
+| ----------------- | ------------------ | ----------------- | -------------------- | -------------------- | ---------------------------- |
 | YOLOv6-3.0-N      | 4.7                | 11.4              | 37.0                 | 2.69                 | **1.76**                     |
 | Gold-YOLO-N       | 5.6                | 12.1              | **39.6**             | 2.92                 | 1.82                         |
 | YOLOv8n           | 3.2                | 8.7               | 37.3                 | 6.16                 | 1.77                         |

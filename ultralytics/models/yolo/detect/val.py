@@ -188,7 +188,7 @@ class DetectionValidator(BaseValidator):
         stats.pop("target_img", None)
         if len(stats):
             self.metrics.process(**stats)
-            return self.metrics.results_dict
+        return self.metrics.results_dict
 
     def print_results(self):
         """Prints training/validation set metrics per class."""

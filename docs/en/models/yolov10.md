@@ -77,7 +77,6 @@ YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in 
     | [YOLOv10l][5] | 640        | 53.2             | 120.3     | 7.28         |
     | [YOLOv10x][6] | 640        | **54.4**         | 160.4     | 10.70        |
 
-
 ## Methodology
 
 ### Consistent Dual Assignments for NMS-Free Training

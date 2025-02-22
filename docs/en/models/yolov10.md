@@ -44,12 +44,12 @@ The architecture of YOLOv10 builds upon the strengths of previous YOLO models wh
 
 YOLOv10 comes in various model scales to cater to different application needs:
 
-- **YOLOv10-N**: Nano version for extremely resource-constrained environments.
-- **YOLOv10-S**: Small version balancing speed and accuracy.
-- **YOLOv10-M**: Medium version for general-purpose use.
-- **YOLOv10-B**: Balanced version with increased width for higher accuracy.
-- **YOLOv10-L**: Large version for higher accuracy at the cost of increased computational resources.
-- **YOLOv10-X**: Extra-large version for maximum accuracy and performance.
+- **YOLOv10n**: Nano version for extremely resource-constrained environments.
+- **YOLOv10s**: Small version balancing speed and accuracy.
+- **YOLOv10m**: Medium version for general-purpose use.
+- **YOLOv10b**: Balanced version with increased width for higher accuracy.
+- **YOLOv10l**: Large version for higher accuracy at the cost of increased computational resources.
+- **YOLOv10x**: Extra-large version for maximum accuracy and performance.
 
 ## Performance
 
@@ -58,16 +58,16 @@ YOLOv10 comes in various model scales to cater to different application needs:
 
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv10"]'></canvas>
 
-YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in terms of accuracy and efficiency. For example, YOLOv10-S is 1.8x faster than RT-DETR-R18 with similar AP on the COCO dataset, and YOLOv10-B has 46% less latency and 25% fewer parameters than YOLOv9-C with the same performance.
+YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in terms of accuracy and efficiency. For example, YOLOv10s is 1.8x faster than RT-DETR-R18 with similar AP on the COCO dataset, and YOLOv10b has 46% less latency and 25% fewer parameters than YOLOv9-C with the same performance.
 
 | Model          | Input Size | AP<sup>val</sup> | FLOPs (G) | Latency (ms) |
 | -------------- | ---------- | ---------------- | --------- | ------------ |
-| [YOLOv10-N][1] | 640        | 38.5             | **6.7**   | **1.84**     |
-| [YOLOv10-S][2] | 640        | 46.3             | 21.6      | 2.49         |
-| [YOLOv10-M][3] | 640        | 51.1             | 59.1      | 4.74         |
-| [YOLOv10-B][4] | 640        | 52.5             | 92.0      | 5.74         |
-| [YOLOv10-L][5] | 640        | 53.2             | 120.3     | 7.28         |
-| [YOLOv10-X][6] | 640        | **54.4**         | 160.4     | 10.70        |
+| [YOLOv10n][1] | 640        | 38.5             | **6.7**   | **1.84**     |
+| [YOLOv10s][2] | 640        | 46.3             | 21.6      | 2.49         |
+| [YOLOv10m][3] | 640        | 51.1             | 59.1      | 4.74         |
+| [YOLOv10b][4] | 640        | 52.5             | 92.0      | 5.74         |
+| [YOLOv10l][5] | 640        | 53.2             | 120.3     | 7.28         |
+| [YOLOv10x][6] | 640        | **54.4**         | 160.4     | 10.70        |
 
 Latency measured with TensorRT FP16 on T4 GPU.
 
@@ -100,9 +100,9 @@ YOLOv10 has been extensively tested on standard benchmarks like COCO, demonstrat
 
 Compared to other state-of-the-art detectors:
 
-- YOLOv10-S / X are 1.8× / 1.3× faster than RT-DETR-R18 / R101 with similar accuracy
-- YOLOv10-B has 25% fewer parameters and 46% lower latency than YOLOv9-C at same accuracy
-- YOLOv10-L / X outperform YOLOv8-L / X by 0.3 AP / 0.5 AP with 1.8× / 2.3× fewer parameters
+- YOLOv10s / x are 1.8× / 1.3× faster than RT-DETR-R18 / R101 with similar accuracy
+- YOLOv10b has 25% fewer parameters and 46% lower latency than YOLOv9-C at same accuracy
+- YOLOv10l / x outperform YOLOv8l / x by 0.3 AP / 0.5 AP with 1.8× / 2.3× fewer parameters
 
 Here is a detailed comparison of YOLOv10 variants with other state-of-the-art models:
 
@@ -264,7 +264,7 @@ For easy inference, you can use the Ultralytics YOLO Python library or the comma
         ```python
         from ultralytics import YOLO
 
-        # Load the pre-trained YOLOv10-N model
+        # Load the pre-trained YOLOv10n model
         model = YOLO("yolov10n.pt")
         results = model("image.jpg")
         results[0].show()
@@ -282,12 +282,12 @@ For more usage examples, visit our [Usage Examples](#usage-examples) section.
 
 YOLOv10 offers several model variants to cater to different use cases:
 
-- **YOLOv10-N**: Suitable for extremely resource-constrained environments
-- **YOLOv10-S**: Balances speed and accuracy
-- **YOLOv10-M**: General-purpose use
-- **YOLOv10-B**: Higher accuracy with increased width
-- **YOLOv10-L**: High accuracy at the cost of computational resources
-- **YOLOv10-X**: Maximum accuracy and performance
+- **YOLOv10n**: Suitable for extremely resource-constrained environments
+- **YOLOv10s**: Balances speed and accuracy
+- **YOLOv10m**: General-purpose use
+- **YOLOv10b**: Higher accuracy with increased width
+- **YOLOv10l**: High accuracy at the cost of computational resources
+- **YOLOv10x**: Maximum accuracy and performance
 
 Each variant is designed for different computational needs and accuracy requirements, making them versatile for a variety of applications. Explore the [Model Variants](#model-variants) section for more information.
 
@@ -301,4 +301,4 @@ YOLOv10 supports several export formats, including TorchScript, ONNX, OpenVINO, 
 
 ### What are the performance benchmarks for YOLOv10 models?
 
-YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in both accuracy and efficiency. For example, YOLOv10-S is 1.8x faster than RT-DETR-R18 with a similar AP on the COCO dataset. YOLOv10-B shows 46% less latency and 25% fewer parameters than YOLOv9-C with the same performance. Detailed benchmarks can be found in the [Comparisons](#comparisons) section.
+YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in both accuracy and efficiency. For example, YOLOv10s is 1.8x faster than RT-DETR-R18 with a similar AP on the COCO dataset. YOLOv10b shows 46% less latency and 25% fewer parameters than YOLOv9-C with the same performance. Detailed benchmarks can be found in the [Comparisons](#comparisons) section.

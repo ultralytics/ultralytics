@@ -170,6 +170,7 @@ def try_export(inner_func):
     def outer_func(*args, **kwargs):
         """Export a model."""
         prefix = inner_args["prefix"]
+        dt = 0.0
         try:
             with Profile() as dt:
                 f, model = inner_func(*args, **kwargs)

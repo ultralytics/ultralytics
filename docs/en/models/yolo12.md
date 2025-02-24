@@ -80,7 +80,7 @@ The examples below focus on YOLO12 [Detect](../tasks/detect.md) models (for obje
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLO12n model on the 'bus.jpg' image
-        results = model("path/to/bus.jpg")
+        results = model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -92,7 +92,7 @@ The examples below focus on YOLO12 [Detect](../tasks/detect.md) models (for obje
         yolo train model=yolo12n.pt data=coco8.yaml epochs=100 imgsz=640
 
         # Load a COCO-pretrained YOLO12n model and run inference on the 'bus.jpg' image
-        yolo predict model=yolo12n.pt source=path/to/bus.jpg
+        yolo predict model=yolo12n.pt source="https://ultralytics.com/images/bus.jpg"
         ```
 
 ## Key Improvements

@@ -257,6 +257,11 @@ jobs:
           uv pip list
       - name: Pytest tests
         run: pytest --slow tests/
+      # for debugging versions after tests
+      - name: Check environment
+        run: |
+          yolo checks
+          uv pip list
       - name: Benchmark ClassificationModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-cls.pt' imgsz=160 verbose=0.249
       - name: Benchmark YOLOWorld DetectionModel

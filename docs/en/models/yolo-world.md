@@ -99,7 +99,7 @@ The YOLO-World models are easy to integrate into your Python applications. Ultra
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv8n model on the 'bus.jpg' image
-        results = model("path/to/bus.jpg")
+        results = model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -124,7 +124,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
         model = YOLOWorld("yolov8s-world.pt")  # or select yolov8m/l-world.pt for different sizes
 
         # Execute inference with the YOLOv8s-world model on the specified image
-        results = model.predict("path/to/image.jpg")
+        results = model.predict("https://ultralytics.com/images/bus.jpg")
 
         # Show results
         results[0].show()
@@ -134,7 +134,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
 
         ```bash
         # Perform object detection using a YOLO-World model
-        yolo predict model=yolov8s-world.pt source=path/to/image.jpg imgsz=640
+        yolo predict model=yolov8s-world.pt source="https://ultralytics.com/images/bus.jpg" imgsz=640
         ```
 
 This snippet demonstrates the simplicity of loading a pre-trained model and running a prediction on an image.
@@ -179,14 +179,14 @@ Model validation on a dataset is streamlined as follows:
         model = YOLO("yolov8s-world.pt")  # or select yolov8m/l-world.pt for different sizes
 
         # Track with a YOLO-World model on a video
-        results = model.track(source="path/to/video.mp4")
+        results = model.track(source="https://youtu.be/LNwODJXcvt4")
         ```
 
     === "CLI"
 
         ```bash
         # Track with a YOLO-World model on the video with a specified image size
-        yolo track model=yolov8s-world.pt imgsz=640 source="path/to/video/file.mp4"
+        yolo track model=yolov8s-world.pt imgsz=640 source="https://youtu.be/LNwODJXcvt4"
         ```
 
 !!! note
@@ -215,7 +215,7 @@ For instance, if your application only requires detecting 'person' and 'bus' obj
         model.set_classes(["person", "bus"])
 
         # Execute prediction for specified categories on an image
-        results = model.predict("path/to/image.jpg")
+        results = model.predict("https://ultralytics.com/images/bus.jpg")
 
         # Show results
         results[0].show()
@@ -357,7 +357,7 @@ model = YOLOWorld("yolov8s-world.pt")
 model.set_classes(["person", "bus"])
 
 # Execute prediction on an image
-results = model.predict("path/to/image.jpg")
+results = model.predict("https://ultralytics.com/images/bus.jpg")
 
 # Show results
 results[0].show()

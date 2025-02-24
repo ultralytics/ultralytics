@@ -690,7 +690,7 @@ class Model(torch.nn.Module):
             int8=args["int8"],
             device=args["device"],
             verbose=kwargs.get("verbose", False),
-            format=kwargs.get("format", ""),
+            export_format=kwargs.get("format", ""),
         )
 
     def export(

@@ -151,7 +151,7 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
         model.info()
 
         # Run inference with bboxes prompt
-        results = model("path/to/image.jpg", bboxes=[100, 100, 200, 200])
+        results = model("https://ultralytics.com/images/zidane.jpg", bboxes=[100, 100, 200, 200])
 
         # Run inference with single point
         results = model(points=[900, 370], labels=[1])
@@ -184,14 +184,14 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
         model.info()
 
         # Run inference
-        model("path/to/video.mp4")
+        model(source="https://youtu.be/LNwODJXcvt4")
         ```
 
     === "CLI"
 
         ```bash
         # Run inference with a SAM 2 model
-        yolo predict model=sam2.1_b.pt source=path/to/video.mp4
+        yolo predict model=sam2.1_b.pt source="https://youtu.be/LNwODJXcvt4"
         ```
 
 #### Segment Video and Track objects
@@ -358,10 +358,10 @@ SAM 2 can be utilized for real-time video segmentation by leveraging its prompta
         model.info()
 
         # Segment with bounding box prompt
-        results = model("path/to/image.jpg", bboxes=[100, 100, 200, 200])
+        results = model("https://ultralytics.com/images/bus.jpg", bboxes=[100, 100, 200, 200])
 
         # Segment with point prompt
-        results = model("path/to/image.jpg", points=[150, 150], labels=[1])
+        results = model("https://ultralytics.com/images/zidane.jpg", points=[150, 150], labels=[1])
         ```
 
 For more comprehensive usage, refer to the [How to Use SAM 2](#how-to-use-sam-2-versatility-in-image-and-video-segmentation) section.

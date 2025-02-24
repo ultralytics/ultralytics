@@ -1156,6 +1156,9 @@ class TorchVision(nn.Module):
         return y
 
 
+from flash_attn.flash_attn_interface import flash_attn_func
+
+
 class AAttn(nn.Module):
     """
     Area-attention module for YOLO models, providing efficient attention mechanisms.
@@ -1211,16 +1214,20 @@ class AAttn(nn.Module):
         if self.area > 1:
             qkv = qkv.reshape(B * self.area, N // self.area, C * 3)
             B, N, _ = qkv.shape
-        q, k, v = (
-            qkv.view(B, N, self.num_heads, self.head_dim * 3)
-            .permute(0, 2, 3, 1)
-            .split([self.head_dim, self.head_dim, self.head_dim], dim=2)
+        q, k, v = qkv.view(B, N, self.num_heads, self.head_dim * 3).split(
+            [self.head_dim, self.head_dim, self.head_dim], dim=3
         )
-        attn = (q.transpose(-2, -1) @ k) * (self.head_dim**-0.5)
-        attn = attn.softmax(dim=-1)
-        x = v @ attn.transpose(-2, -1)
-        x = x.permute(0, 3, 1, 2)
-        v = v.permute(0, 3, 1, 2)
+        x = flash_attn_func(q.contiguous().half(), k.contiguous().half(), v.contiguous().half()).to(q.dtype)
+        # q, k, v = (
+        #     qkv.view(B, N, self.num_heads, self.head_dim * 3)
+        #     .permute(0, 2, 3, 1)
+        #     .split([self.head_dim, self.head_dim, self.head_dim], dim=2)
+        # )
+        # attn = (q.transpose(-2, -1) @ k) * (self.head_dim**-0.5)
+        # attn = attn.softmax(dim=-1)
+        # x = v @ attn.transpose(-2, -1)
+        # x = x.permute(0, 3, 1, 2)
+        # v = v.permute(0, 3, 1, 2)
 
         if self.area > 1:
             x = x.reshape(B // self.area, N * self.area, C)

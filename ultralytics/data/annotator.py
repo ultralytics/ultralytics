@@ -65,6 +65,6 @@ def auto_annotate(
 
             with open(f"{Path(output_dir) / Path(result.path).stem}.txt", "w") as f:
                 for i, s in enumerate(segments):
-                    if s:
+                    if s.any():
                         segment = map(str, segments[i].reshape(-1).tolist())
                         f.write(f"{class_ids[i]} " + " ".join(segment) + "\n")

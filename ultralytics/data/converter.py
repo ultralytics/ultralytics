@@ -674,23 +674,23 @@ def create_synthetic_coco_dataset():
             ).save(image_file)
 
     # Download labels
-    dir = DATASETS_DIR / "coco"
+    path = DATASETS_DIR / "coco"
     url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/"
     label_zip = "coco2017labels-segments.zip"
-    download([url + label_zip], dir=dir.parent)
+    download([url + label_zip], dir=path.parent)
 
     # Create synthetic images
-    shutil.rmtree(dir / "labels" / "test2017", ignore_errors=True)  # Remove test2017 directory as not needed
+    shutil.rmtree(path / "labels" / "test2017", ignore_errors=True)  # Remove test2017 directory as not needed
     with ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
         for subset in ["train2017", "val2017"]:
-            subset_dir = dir / "images" / subset
+            subset_dir = path / "images" / subset
             subset_dir.mkdir(parents=True, exist_ok=True)
 
             # Read image filenames from label list file
-            label_list_file = dir / f"{subset}.txt"
+            label_list_file = path / f"{subset}.txt"
             if label_list_file.exists():
                 with open(label_list_file) as f:
-                    image_files = [dir / line.strip() for line in f]
+                    image_files = [path / line.strip() for line in f]
 
                 # Submit all tasks
                 futures = [executor.submit(create_synthetic_image, image_file) for image_file in image_files]

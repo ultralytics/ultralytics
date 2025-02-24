@@ -48,7 +48,7 @@ def _plot_curve(
     x,
     y,
     names=None,
-    id="precision-recall",
+    metric_id="precision-recall",
     title="Precision Recall Curve",
     x_title="Recall",
     y_title="Precision",
@@ -65,7 +65,7 @@ def _plot_curve(
         x (np.ndarray): Data points for the x-axis with length N.
         y (np.ndarray): Corresponding data points for the y-axis with shape CxN, where C is the number of classes.
         names (list, optional): Names of the classes corresponding to the y-axis data; length C. Defaults to [].
-        id (str, optional): Unique identifier for the logged data in wandb. Defaults to 'precision-recall'.
+        metric_id (str, optional): Unique identifier for the logged data in wandb. Defaults to 'precision-recall'.
         title (str, optional): Title for the visualization plot. Defaults to 'Precision Recall Curve'.
         x_title (str, optional): Label for the x-axis. Defaults to 'Recall'.
         y_title (str, optional): Label for the y-axis. Defaults to 'Precision'.
@@ -95,7 +95,7 @@ def _plot_curve(
             x_log.extend(x_new)  # add new x
             y_log.extend(np.interp(x_new, x, yi))  # interpolate y to new x
             classes.extend([names[i]] * len(x_new))  # add class names
-        wb.log({id: _custom_table(x_log, y_log, classes, title, x_title, y_title)}, commit=False)
+        wb.log({metric_id: _custom_table(x_log, y_log, classes, title, x_title, y_title)}, commit=False)
 
 
 def _log_plots(plots, step):
@@ -150,7 +150,7 @@ def on_train_end(trainer):
                 x,
                 y,
                 names=list(trainer.validator.metrics.names.values()),
-                id=f"curves/{curve_name}",
+                metric_id=f"curves/{curve_name}",
                 title=curve_name,
                 x_title=x_title,
                 y_title=y_title,

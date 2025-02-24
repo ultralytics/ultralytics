@@ -1218,7 +1218,7 @@ class AAttn(nn.Module):
             [self.head_dim, self.head_dim, self.head_dim], dim=3
         )
         # x = flash_attn_func(q.contiguous().half(), k.contiguous().half(), v.contiguous().half()).to(q.dtype)
-        max_s = q.shape[1]
+        max_s = q.shape[-1]
         x = flash_attn_func(q, k, v, max_s=max_s)#.to(q.dtype)
         # q, k, v = (
         #     qkv.view(B, N, self.num_heads, self.head_dim * 3)

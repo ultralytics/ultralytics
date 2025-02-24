@@ -274,6 +274,27 @@ class RepConv(nn.Module):
         if hasattr(self, "id_tensor"):
             self.__delattr__("id_tensor")
 
+# BiFPNLayer Implementation
+class BiFPNLayer(nn.Module):
+    def __init__(self, input_channels, intermediate_channels,
+                 output_channels):
+        super().__init__()
+        # Convolutional layers for feature fusion
+        self.conv1 = nn.Conv2d(input_channels,
+                               intermediate_channels,
+                               kernel_size=1)
+        self.conv2 = nn.Conv2d(intermediate_channels,
+                               output_channels,
+                               kernel_size=3,
+                               padding=1)
+        
+        # Activation function
+        self.relu = nn.ReLU()
+
+    def forward(self,x):
+        x = self.relu(self.conv1(x))
+        x = self.relu(self.conv2(x))
+        return x
 
 class ChannelAttention(nn.Module):
     """Channel-attention module https://github.com/open-mmlab/mmdetection/tree/v3.0.0rc1/configs/rtmdet."""

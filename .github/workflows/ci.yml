@@ -247,16 +247,18 @@ jobs:
           python3.11 -m venv env
           source env/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
+      - uses: astral-sh/setup-uv@v4
       - name: Install requirements
         run: |
-          python -m pip install --upgrade pip wheel
-          pip install -e ".[export]" pytest mlflow pycocotools
+          uv pip install -e ".[export]" pytest mlflow pycocotools --index-strategy unsafe-first-match
       - name: Check environment
         run: |
           yolo checks
-          pip list
+          uv pip list
       - name: Pytest tests
         run: pytest --slow tests/
+      - name: Benchmark DetectionModel
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n.pt' imgsz=160 verbose=0.309
       - name: Benchmark ClassificationModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-cls.pt' imgsz=160 verbose=0.249
       - name: Benchmark YOLOWorld DetectionModel

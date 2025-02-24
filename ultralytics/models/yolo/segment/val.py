@@ -294,14 +294,14 @@ class SegmentationValidator(DetectionValidator):
                     assert x.is_file(), f"{x} file not found"
                 anno = COCO(str(anno_json))  # init annotations api
                 pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
-                for i, eval in enumerate([COCOeval(anno, pred, "bbox"), COCOeval(anno, pred, "segm")]):
+                for i, eval_res in enumerate([COCOeval(anno, pred, "bbox"), COCOeval(anno, pred, "segm")]):
                     if self.is_coco:
-                        eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
-                    eval.evaluate()
-                    eval.accumulate()
-                    eval.summarize()
+                        eval_res.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
+                    eval_res.evaluate()
+                    eval_res.accumulate()
+                    eval_res.summarize()
                     idx = i * 4 + 2
-                    stats[self.metrics.keys[idx + 1]], stats[self.metrics.keys[idx]] = eval.stats[
+                    stats[self.metrics.keys[idx + 1]], stats[self.metrics.keys[idx]] = eval_res.stats[
                         :2
                     ]  # update mAP50-95 and mAP50
             except Exception as e:

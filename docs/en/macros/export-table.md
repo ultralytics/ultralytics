@@ -3,7 +3,7 @@
 {%set tip3 = ':material-information-outline:{ title="imx format is only supported for yolov8 nano model" }' %}
 
 | Format                                             | `format` Argument | Model                                           | Metadata | Arguments                                                                                     |
-|----------------------------------------------------| ----------------- | ----------------------------------------------- | -------- | --------------------------------------------------------------------------------------------- |
+| -------------------------------------------------- | ----------------- | ----------------------------------------------- | -------- | --------------------------------------------------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                    | -                 | `{{ model_name or "yolo11n" }}.pt`              | ✅       | -                                                                                             |
 | [TorchScript](../integrations/torchscript.md)      | `torchscript`     | `{{ model_name or "yolo11n" }}.torchscript`     | ✅       | `imgsz`, `optimize`, `nms`{{ tip1 }}, `batch`                                                 |
 | [ONNX](../integrations/onnx.md)                    | `onnx`            | `{{ model_name or "yolo11n" }}.onnx`            | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `nms`{{ tip1 }}, `batch`                     |

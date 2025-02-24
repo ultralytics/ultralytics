@@ -61,6 +61,7 @@ classifiers = [
 
 # Required dependencies ------------------------------------------------------------------------------------------------
 dependencies = [
+    "numpy>=1.23.0,<=2.1.1", # OpenVINO and TFLite errors on '--slow' CI Tests https://github.com/ultralytics/ultralytics/pull/18943
     "matplotlib>=3.3.0",
     "opencv-python>=4.6.0",
     "pillow>=7.1.2",
@@ -97,15 +98,12 @@ export = [
     "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'", # CoreML supported on macOS and Linux
     "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.11'", # CoreML k-means quantization
     "openvino>=2024.0.0", # OpenVINO export
-    "tensorflow>=2.18.0; platform_machine == 'aarch64' and python_version >= '3.9'", # TF bug https://github.com/ultralytics/ultralytics/pull/19306
     "tensorflow>=2.0.0", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
     "tensorflowjs>=3.9.0", # TF.js export, automatically installs tensorflow
     "tensorstore>=0.1.63; platform_machine == 'aarch64' and python_version >= '3.9'", # for TF Raspberry Pi exports
     "keras", # not installed automatically by tensorflow>=2.16
     "flatbuffers>=23.5.26,<100; platform_machine == 'aarch64'", # update old 'flatbuffers' included inside tensorflow package
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
-    "numpy<=1.26.0; platform_machine == 'aarch64'", # fix ModuleNotFoundError: No module named 'numpy.rec' with latest numpy for aarch64
-    "numpy>=1.23.0,<=2.1.1", # OpenVINO and TFLite errors on '--slow' CI Tests https://github.com/ultralytics/ultralytics/pull/18943
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching

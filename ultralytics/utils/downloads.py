@@ -278,7 +278,7 @@ def get_google_drive_file_info(link):
 def safe_download(
     url,
     file=None,
-    dir=None,
+    path=None,
     unzip=True,
     delete=False,
     curl=False,
@@ -294,7 +294,7 @@ def safe_download(
         url (str): The URL of the file to be downloaded.
         file (str, optional): The filename of the downloaded file.
             If not provided, the file will be saved with the same name as the URL.
-        dir (str, optional): The directory to save the downloaded file.
+        path (str, optional): The directory to save the downloaded file.
             If not provided, the file will be saved in the current working directory.
         unzip (bool, optional): Whether to unzip the downloaded file. Default: True.
         delete (bool, optional): Whether to delete the downloaded file after unzipping. Default: False.
@@ -317,7 +317,7 @@ def safe_download(
     if gdrive:
         url, file = get_google_drive_file_info(url)
 
-    f = Path(dir or ".") / (file or url2file(url))  # URL converted to filename
+    f = Path(path or ".") / (file or url2file(url))  # URL converted to filename
     if "://" not in str(url) and Path(url).is_file():  # URL exists ('://' check required in Windows Python<3.10)
         f = Path(url)  # filename
     elif not f.is_file():  # URL and file do not exist
@@ -367,7 +367,7 @@ def safe_download(
     if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz"}:
         from zipfile import is_zipfile
 
-        unzip_dir = (dir or f.parent).resolve()  # unzip to dir if provided else unzip in place
+        unzip_dir = (path or f.parent).resolve()  # unzip to dir if provided else unzip in place
         if is_zipfile(f):
             unzip_dir = unzip_file(file=f, path=unzip_dir, exist_ok=exist_ok, progress=progress)  # unzip
         elif f.suffix in {".tar", ".gz"}:
@@ -490,7 +490,7 @@ def download(url, dir=Path.cwd(), unzip=True, delete=False, curl=False, threads=
             pool.map(
                 lambda x: safe_download(
                     url=x[0],
-                    dir=x[1],
+                    path=x[1],
                     unzip=unzip,
                     delete=delete,
                     curl=curl,
@@ -504,4 +504,4 @@ def download(url, dir=Path.cwd(), unzip=True, delete=False, curl=False, threads=
             pool.join()
     else:
         for u in [url] if isinstance(url, (str, Path)) else url:
-            safe_download(url=u, dir=dir, unzip=unzip, delete=delete, curl=curl, retry=retry, exist_ok=exist_ok)
+            safe_download(url=u, path=dir, unzip=unzip, delete=delete, curl=curl, retry=retry, exist_ok=exist_ok)

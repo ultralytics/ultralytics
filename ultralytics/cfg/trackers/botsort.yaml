@@ -5,7 +5,7 @@
 # For BoT-SORT source code see https://github.com/NirAharon/BoT-SORT
 
 tracker_type: botsort # tracker type, ['botsort', 'bytetrack']
-track_high_thresh: 0.25 # threshold for the first association
+track_high_thresh: 0.10 # threshold for the first association
 track_low_thresh: 0.1 # threshold for the second association
 new_track_thresh: 0.25 # threshold for init new track if the detection does not match any tracks
 track_buffer: 30 # buffer to calculate the time when to remove tracks

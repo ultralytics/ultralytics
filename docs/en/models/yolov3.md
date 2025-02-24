@@ -59,7 +59,7 @@ This example provides simple YOLOv3 training and inference examples. For full do
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv3u model on the 'bus.jpg' image
-        results = model("path/to/bus.jpg")
+        results = model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -71,7 +71,7 @@ This example provides simple YOLOv3 training and inference examples. For full do
         yolo train model=yolov3u.pt data=coco8.yaml epochs=100 imgsz=640
 
         # Load a COCO-pretrained YOLOv3u model and run inference on the 'bus.jpg' image
-        yolo predict model=yolov3u.pt source=path/to/bus.jpg
+        yolo predict model=yolov3u.pt source="https://ultralytics.com/images/bus.jpg"
         ```
 
 ## Citations and Acknowledgements
@@ -145,14 +145,14 @@ You can perform inference using YOLOv3 models by either Python scripts or CLI co
         model = YOLO("yolov3u.pt")
 
         # Run inference with the YOLOv3u model on the 'bus.jpg' image
-        results = model("path/to/bus.jpg")
+        results = model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
 
         ```bash
         # Load a COCO-pretrained YOLOv3u model and run inference on the 'bus.jpg' image
-        yolo predict model=yolov3u.pt source=path/to/bus.jpg
+        yolo predict model=yolov3u.pt source="https://ultralytics.com/images/bus.jpg"
         ```
 
 Refer to the [Inference mode documentation](../modes/predict.md) for more details on running YOLO models.

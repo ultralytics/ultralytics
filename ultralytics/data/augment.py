@@ -807,7 +807,7 @@ class Mosaic(BaseMixTransform):
             >>> updated_labels = Mosaic._update_labels(labels, padw, padh)
         """
         nh, nw = labels["img"].shape[:2]
-        labels["instances"].convert_bbox(format="xyxy")
+        labels["instances"].convert_bbox(box_format="xyxy")
         labels["instances"].denormalize(nw, nh)
         labels["instances"].add_padding(padw, padh)
         return labels
@@ -1225,7 +1225,7 @@ class RandomPerspective:
         cls = labels["cls"]
         instances = labels.pop("instances")
         # Make sure the coord formats are right
-        instances.convert_bbox(format="xyxy")
+        instances.convert_bbox(box_format="xyxy")
         instances.denormalize(*img.shape[:2][::-1])
 
         border = labels.pop("mosaic_border", self.border)
@@ -1454,7 +1454,7 @@ class RandomFlip:
         """
         img = labels["img"]
         instances = labels.pop("instances")
-        instances.convert_bbox(format="xywh")
+        instances.convert_bbox(box_format="xywh")
         h, w = img.shape[:2]
         h = 1 if instances.normalized else h
         w = 1 if instances.normalized else w
@@ -1624,7 +1624,7 @@ class LetterBox:
             >>> padw, padh = 10, 20
             >>> updated_labels = letterbox._update_labels(labels, ratio, padw, padh)
         """
-        labels["instances"].convert_bbox(format="xyxy")
+        labels["instances"].convert_bbox(box_format="xyxy")
         labels["instances"].denormalize(*labels["img"].shape[:2][::-1])
         labels["instances"].scale(*ratio)
         labels["instances"].add_padding(padw, padh)
@@ -1704,7 +1704,7 @@ class CopyPaste(BaseMixTransform):
         cls = labels1["cls"]
         h, w = im.shape[:2]
         instances = labels1.pop("instances")
-        instances.convert_bbox(format="xyxy")
+        instances.convert_bbox(box_format="xyxy")
         instances.denormalize(w, h)
 
         im_new = np.zeros(im.shape, np.uint8)
@@ -1907,7 +1907,7 @@ class Albumentations:
             cls = labels["cls"]
             if len(cls):
                 im = labels["img"]
-                labels["instances"].convert_bbox("xywh")
+                labels["instances"].convert_bbox(box_format="xywh")
                 labels["instances"].normalize(*im.shape[:2][::-1])
                 bboxes = labels["instances"].bboxes
                 # TODO: add supports of segments and keypoints
@@ -2041,7 +2041,7 @@ class Format:
         h, w = img.shape[:2]
         cls = labels.pop("cls")
         instances = labels.pop("instances")
-        instances.convert_bbox(format=self.bbox_format)
+        instances.convert_bbox(box_format=self.bbox_format)
         instances.denormalize(w, h)
         nl = len(instances)
 

@@ -1172,14 +1172,14 @@ def plot_images(
 
 
 @plt_settings()
-def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, classify=False, on_plot=None):
+def plot_results(file="path/to/results.csv", path="", segment=False, pose=False, classify=False, on_plot=None):
     """
     Plot training results from a results CSV file. The function supports various types of data including segmentation,
     pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
 
     Args:
         file (str, optional): Path to the CSV file containing the training results. Defaults to 'path/to/results.csv'.
-        dir (str, optional): Directory where the CSV file is located if 'file' is not provided. Defaults to ''.
+        path (str, optional): Directory where the CSV file is located if 'file' is not provided. Defaults to ''.
         segment (bool, optional): Flag to indicate if the data is for segmentation. Defaults to False.
         pose (bool, optional): Flag to indicate if the data is for pose estimation. Defaults to False.
         classify (bool, optional): Flag to indicate if the data is for classification. Defaults to False.
@@ -1196,7 +1196,7 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
     import pandas as pd  # scope for faster 'import ultralytics'
     from scipy.ndimage import gaussian_filter1d
 
-    save_dir = Path(file).parent if file else Path(dir)
+    save_dir = Path(file).parent if file else Path(path)
     if classify:
         fig, ax = plt.subplots(2, 2, figsize=(6, 6), tight_layout=True)
         index = [2, 5, 3, 4]

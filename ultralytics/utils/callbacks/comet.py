@@ -199,7 +199,7 @@ def _format_prediction_annotations_for_detection(image_path, metadata, class_lab
         score = _scale_confidence_score(prediction["score"])
         cls_label = prediction["category_id"]
         if class_label_map:
-            cls_label = str(class_label_map[cls_label-label_index_offset])
+            cls_label = str(class_label_map[cls_label - label_index_offset])
 
         data.append({"boxes": [boxes], "label": cls_label, "score": score})
 

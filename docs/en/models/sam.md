@@ -56,7 +56,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         model.info()
 
         # Run inference with bboxes prompt
-        results = model("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
+        results = model("https://ultralytics.com/images/zidane.jpg", bboxes=[439, 437, 524, 709])
 
         # Run inference with single point
         results = model(points=[900, 370], labels=[1])
@@ -87,14 +87,14 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         model.info()
 
         # Run inference
-        model("path/to/image.jpg")
+        model("https://ultralytics.com/images/zidane.jpg")
         ```
 
     === "CLI"
 
         ```bash
         # Run inference with a SAM model
-        yolo predict model=sam_b.pt source=path/to/image.jpg
+        yolo predict model=sam_b.pt source="https://ultralytics.com/images/zidane.jpg"
         ```
 
 - The logic here is to segment the whole image if you don't pass any prompts(bboxes/points/masks).
@@ -113,8 +113,8 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         predictor = SAMPredictor(overrides=overrides)
 
         # Set image
-        predictor.set_image("ultralytics/assets/zidane.jpg")  # set with image file
-        predictor.set_image(cv2.imread("ultralytics/assets/zidane.jpg"))  # set with np.ndarray
+        predictor.set_image("https://ultralytics.com/images/zidane.jpg")  # set with image file
+        predictor.set_image(cv2.imread("https://ultralytics.com/images/zidane.jpg"))  # set with np.ndarray
         results = predictor(bboxes=[439, 437, 524, 709])
 
         # Run inference with single point prompt
@@ -142,7 +142,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         predictor = SAMPredictor(overrides=overrides)
 
         # Segment with additional args
-        results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
+        results = predictor(source="https://ultralytics.com/images/zidane.jpg", crop_n_layers=1, points_stride=64)
         ```
 
 !!! note
@@ -252,25 +252,25 @@ from ultralytics import SAM
 model = SAM("sam_b.pt")
 
 # Segment with bounding box prompt
-model("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
+model("https://ultralytics.com/images/zidane.jpg", bboxes=[439, 437, 524, 709])
 
 # Segment with points prompt
-model("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
+model("https://ultralytics.com/images/zidane.jpg", points=[900, 370], labels=[1])
 
 # Segment with multiple points prompt
-model("ultralytics/assets/zidane.jpg", points=[[400, 370], [900, 370]], labels=[[1, 1]])
+model("https://ultralytics.com/images/zidane.jpg", points=[[400, 370], [900, 370]], labels=[[1, 1]])
 
 # Segment with multiple points prompt per object
-model("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
+model("https://ultralytics.com/images/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
 
 # Segment with negative points prompt.
-model("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
+model("https://ultralytics.com/images/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
 ```
 
 Alternatively, you can run inference with SAM in the command line interface (CLI):
 
 ```bash
-yolo predict model=sam_b.pt source=path/to/image.jpg
+yolo predict model=sam_b.pt source="https://ultralytics.com/images/zidane.jpg"
 ```
 
 For more detailed usage instructions, visit the [Segmentation section](#sam-prediction-example).

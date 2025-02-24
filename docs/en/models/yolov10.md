@@ -156,7 +156,7 @@ For predicting new images with YOLOv10:
         model = YOLO("yolov10n.pt")
 
         # Perform object detection on an image
-        results = model("image.jpg")
+        results = model("https://ultralytics.com/images/bus.jpg")
 
         # Display the results
         results[0].show()
@@ -166,7 +166,7 @@ For predicting new images with YOLOv10:
 
         ```bash
         # Load a COCO-pretrained YOLOv10n model and run inference on the 'bus.jpg' image
-        yolo detect predict model=yolov10n.pt source=path/to/bus.jpg
+        yolo detect predict model=yolov10n.pt source="https://ultralytics.com/images/bus.jpg"
         ```
 
 For training YOLOv10 on a custom dataset:
@@ -266,14 +266,14 @@ For easy inference, you can use the Ultralytics YOLO Python library or the comma
 
         # Load the pre-trained YOLOv10-N model
         model = YOLO("yolov10n.pt")
-        results = model("image.jpg")
+        results = model("https://ultralytics.com/images/bus.jpg")
         results[0].show()
         ```
 
     === "CLI"
 
         ```bash
-        yolo detect predict model=yolov10n.pt source=path/to/image.jpg
+        yolo detect predict model=yolov10n.pt source="https://ultralytics.com/images/bus.jpg"
         ```
 
 For more usage examples, visit our [Usage Examples](#usage-examples) section.

@@ -549,6 +549,7 @@ def check_is_path_safe(basedir, path):
 def check_imshow(warn=False):
     """Check if environment supports image displays."""
     import IPython
+
     try:
         if IS_COLAB:
             # In Colab, we can't use cv2.imshow, so we use IPython display

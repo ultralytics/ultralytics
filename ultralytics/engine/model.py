@@ -594,7 +594,7 @@ class Model(torch.nn.Module):
 
         Notes:
             - This method sets a default confidence threshold of 0.0 to ensure
-            no detections above the detection threshold of any tracker are ignored.
+              no detections above the detection threshold of any tracker are ignored.
             - The tracking mode is explicitly set in the keyword arguments.
             - Batch size is set to 1 for tracking in videos.
         """

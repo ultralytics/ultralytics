@@ -266,7 +266,7 @@ def _log_image_predictions(experiment, validator, curr_step):
     predictions_metadata_map = _create_prediction_metadata_map(jdict)
     dataloader = validator.dataloader
     class_label_map = validator.names
-    class_map = None if not hasattr(validator, "class_map") else validator.class_map
+    class_map = getattr(validator, "class_map", None)
 
     batch_logging_interval = _get_eval_batch_logging_interval()
     max_image_predictions = _get_max_image_predictions_to_log()

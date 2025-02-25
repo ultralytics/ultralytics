@@ -61,7 +61,9 @@ Example:
         masks = r.masks  # Masks object for segment masks outputs
         probs = r.probs  # Class probabilities for classification outputs
 """
-
+# Directory to store images
+TEMP_DIR = "/tmp/colab_video"
+os.makedirs(TEMP_DIR, exist_ok=True)
 
 class BasePredictor:
     """
@@ -405,24 +407,22 @@ class BasePredictor:
 
 
         elif IS_COLAB:
+            # Save the frame as an image file
+            frame_path = os.path.join(TEMP_DIR, "frame.jpg")
+            cv2.imwrite(frame_path, im)
 
-            import IPython.display
-
-            # Convert frame to a displayable format in Colab
-
-            _, buffer = cv2.imencode(".jpg", im)
-
-            display_img = IPython.display.Image(data=buffer.tobytes())
-
-            # Clear previous output before displaying the new frame
-
-            IPython.display.clear_output(wait=True)
-
-            IPython.display.display(display_img)  # Correctly render the image
-
-            # Add a small delay for smoother frame updates
-
-            cv2.waitKey(1)
+            # Use JavaScript to refresh the image dynamically
+            output.eval_js(f'''
+                    var img = document.getElementById("colab_video_display");
+                    if (!img) {{
+                        img = document.createElement("img");
+                        img.id = "colab_video_display";
+                        img.style.border = "2px solid #000";
+                        img.style.maxWidth = "100%";
+                        document.body.appendChild(img);
+                    }}
+                    img.src = "{frame_path}?t=" + new Date().getTime();
+                    ''')
 
     def run_callbacks(self, event: str):
         """Runs all registered callbacks for a specific event."""

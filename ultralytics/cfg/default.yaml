@@ -54,6 +54,7 @@ max_det: 300 # (int) maximum number of detections per image
 half: False # (bool) use half precision (FP16)
 dnn: False # (bool) use OpenCV DNN for ONNX inference
 plots: True # (bool) save plots and images during train/val
+fit_weights: [0.0, 0.0, 0.1, 0.9] # (list) scaling factors for computing the fitness score; [P, R, mAP@0.5, mAP@0.5:0.95].
 
 # Predict settings -----------------------------------------------------------------------------------------------------
 source: # (str, optional) source directory for images or videos

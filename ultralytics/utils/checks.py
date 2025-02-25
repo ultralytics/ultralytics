@@ -24,7 +24,6 @@ from ultralytics.utils import (
     AUTOINSTALL,
     IS_COLAB,
     IS_GIT_DIR,
-    IS_KAGGLE,
     IS_PIP_PACKAGE,
     LINUX,
     LOGGER,
@@ -546,6 +545,7 @@ def check_is_path_safe(basedir, path):
 
     return path_resolved.exists() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
 
+
 def check_imshow(warn=False):
     """Check if environment supports image displays."""
     import IPython
@@ -553,6 +553,7 @@ def check_imshow(warn=False):
         # Check if running in Google Colab
         try:
             from google.colab import files  # This will raise an ImportError if not in Colab
+
             is_colab = True
         except ImportError:
             is_colab = False
@@ -580,6 +581,7 @@ def check_imshow(warn=False):
         if warn:
             print(f"WARNING ⚠️ Environment does not support cv2.imshow() or PIL Image.show()\n{e}")
         return False
+
 
 def check_yolo(verbose=True, device=""):
     """Return a human-readable YOLO software and hardware summary."""

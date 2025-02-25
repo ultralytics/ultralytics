@@ -246,7 +246,7 @@ class PoseValidator(DetectionValidator):
             pred_json = self.save_dir / "predictions.json"  # predictions
             LOGGER.info(f"\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...")
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
-                check_requirements("pycocotools>=2.0.6")
+                check_requirements("pycocotools")
                 from pycocotools.coco import COCO  # noqa
                 from pycocotools.cocoeval import COCOeval  # noqa
 

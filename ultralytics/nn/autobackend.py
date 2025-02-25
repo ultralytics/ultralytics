@@ -184,7 +184,7 @@ class AutoBackend(nn.Module):
         # ONNX OpenCV DNN
         elif dnn:
             LOGGER.info(f"Loading {w} for ONNX OpenCV DNN inference...")
-            check_requirements("opencv-python>=4.5.4")
+            check_requirements("opencv-python")
             net = cv2.dnn.readNetFromONNX(w)
 
         # ONNX Runtime and IMX
@@ -244,7 +244,7 @@ class AutoBackend(nn.Module):
         # OpenVINO
         elif xml:
             LOGGER.info(f"Loading {w} for OpenVINO inference...")
-            check_requirements("openvino>=2024.0.0,<2025.0.0")
+            check_requirements("openvino")
             import openvino as ov
 
             core = ov.Core()

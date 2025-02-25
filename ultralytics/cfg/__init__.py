@@ -692,7 +692,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
         return
 
     if s_n == "inference":
-        checks.check_requirements("streamlit>=1.29.0")
+        checks.check_requirements("streamlit")
         LOGGER.info("💡 Loading Ultralytics live inference app...")
         subprocess.run(
             [  # Run subprocess with Streamlit custom argument

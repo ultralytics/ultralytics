@@ -402,7 +402,7 @@ class BasePredictor:
             cv2.imshow(p, im)
             cv2.waitKey(300 if self.dataset.mode == "image" else 1)  # 1 millisecond
 
-        elif is_colab:
+        elif IS_COLAB:
             import IPython.display
 
             # Convert frame to a displayable format in Colab

@@ -550,15 +550,7 @@ def check_imshow(warn=False):
     """Check if environment supports image displays."""
     import IPython
     try:
-        # Check if running in Google Colab
-        try:
-            from google.colab import files  # This will raise an ImportError if not in Colab
-
-            is_colab = True
-        except ImportError:
-            is_colab = False
-
-        if is_colab:
+        if IS_COLAB:
             # In Colab, we can't use cv2.imshow, so we use IPython display
             img = np.zeros((8, 8, 3), dtype=np.uint8)  # Create a small test image
             _, buffer = cv2.imencode(".jpg", img)

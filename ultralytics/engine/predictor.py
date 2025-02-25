@@ -394,10 +394,7 @@ class BasePredictor:
         """Display an image in a window using the OpenCV imshow function."""
         im = self.plotted_img
 
-        # Check if running in a Colab environment
-        is_colab = "google.colab" in str(get_ipython())
-
-        if platform.system() == "Linux" and not is_colab:
+        if platform.system() == "Linux" and not IS_COLAB:
             if p not in self.windows:
                 self.windows.append(p)
                 cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)

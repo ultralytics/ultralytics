@@ -249,6 +249,7 @@ jobs:
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
         run: |
+          python -m pip install --upgrade pip wheel
           pip install -e ".[export]" pytest mlflow pycocotools
       - name: Check environment
         run: |

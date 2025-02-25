@@ -1227,8 +1227,8 @@ class AAttn(nn.Module):
             v = v.reshape(B // self.area, N * self.area, C)
             B, N, _ = x.shape
 
-        x = x.reshape(B, H, W, C).permute(0, 3, 1, 2)
-        v = v.reshape(B, H, W, C).permute(0, 3, 1, 2)
+        x = x.reshape(B, H, W, C).permute(0, 3, 1, 2).contiguous()
+        v = v.reshape(B, H, W, C).permute(0, 3, 1, 2).contiguous()
 
         x = x + self.pe(v)
         return self.proj(x)

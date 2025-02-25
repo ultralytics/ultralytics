@@ -393,7 +393,7 @@ class BasePredictor:
     def show(self, p=""):
         """Display an image in a window using the OpenCV imshow function."""
         im = self.plotted_img
-
+        from ultralytics.utils import IS_COLAB
         if platform.system() == "Linux" and not IS_COLAB:
             if p not in self.windows:
                 self.windows.append(p)

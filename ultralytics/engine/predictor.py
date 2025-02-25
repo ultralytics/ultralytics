@@ -61,6 +61,7 @@ Example:
         masks = r.masks  # Masks object for segment masks outputs
         probs = r.probs  # Class probabilities for classification outputs
 """
+import os
 # Directory to store images
 TEMP_DIR = "/tmp/colab_video"
 os.makedirs(TEMP_DIR, exist_ok=True)

@@ -546,21 +546,33 @@ def check_is_path_safe(basedir, path):
 
     return path_resolved.exists() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
 
-
 def check_imshow(warn=False):
     """Check if environment supports image displays."""
+    import IPython.display
     try:
-        if LINUX:
-            assert not IS_COLAB and not IS_KAGGLE
-            assert "DISPLAY" in os.environ, "The DISPLAY environment variable isn't set."
-        cv2.imshow("test", np.zeros((8, 8, 3), dtype=np.uint8))  # show a small 8-pixel image
+        is_colab = "google.colab" in str(get_ipython())
+
+        if is_colab:
+            # In Colab, we can't use cv2.imshow, but we can display images using IPython
+            img = np.zeros((8, 8, 3), dtype=np.uint8)  # Create a small black image
+            _, buffer = cv2.imencode(".jpg", img)
+            display_img = IPython.display.Image(data=buffer.tobytes())
+            IPython.display.display(display_img)
+            return True
+
+        if os.name == "posix" and "DISPLAY" not in os.environ:
+            raise Exception("The DISPLAY environment variable isn't set.")
+
+        # Standard cv2.imshow test
+        cv2.imshow("test", np.zeros((8, 8, 3), dtype=np.uint8))
         cv2.waitKey(1)
         cv2.destroyAllWindows()
         cv2.waitKey(1)
         return True
+
     except Exception as e:
         if warn:
-            LOGGER.warning(f"WARNING ⚠️ Environment does not support cv2.imshow() or PIL Image.show()\n{e}")
+            print(f"WARNING ⚠️ Environment does not support cv2.imshow() or PIL Image.show()\n{e}")
         return False
 
 

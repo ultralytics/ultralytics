@@ -34,8 +34,6 @@ This table provides a detailed overview of the YOLOv5u model variants, highlight
 
 <script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script defer src="../../javascript/benchmark.js"></script>
-<script defer src="https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js"></script>
-<script defer src="../../javascript/tablesort.js"></script>
 
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv5"]'></canvas>
 

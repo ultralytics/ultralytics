@@ -104,8 +104,8 @@ export = [
     "keras", # not installed automatically by tensorflow>=2.16
     "flatbuffers>=23.5.26,<100; platform_machine == 'aarch64'", # update old 'flatbuffers' included inside tensorflow package
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
-    "nncf>=2.14.0: python_version>'3.8'", # openvino requirements
-    "nncf>=2.13.0: python_version<='3.8'", # openvino requirements
+    "nncf>=2.14.0; python_version>'3.8'", # openvino requirements
+    "nncf>=2.13.0; python_version<='3.8'", # openvino requirements
     "MNN>=2.9.6",
     # "sng4onnx>=1.0.1", # required by 'onnx2tf' package
     # "onnx_graphsurgeon>=0.3.26", # required by 'onnx2tf' package

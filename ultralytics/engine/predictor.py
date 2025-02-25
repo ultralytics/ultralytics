@@ -393,12 +393,25 @@ class BasePredictor:
     def show(self, p=""):
         """Display an image in a window using the OpenCV imshow function."""
         im = self.plotted_img
-        if platform.system() == "Linux" and p not in self.windows:
-            self.windows.append(p)
-            cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
-            cv2.resizeWindow(p, im.shape[1], im.shape[0])  # (width, height)
-        cv2.imshow(p, im)
-        cv2.waitKey(300 if self.dataset.mode == "image" else 1)  # 1 millisecond
+
+        # Check if running in a Colab environment
+        is_colab = "google.colab" in str(get_ipython())
+
+        if platform.system() == "Linux" and not is_colab:
+            if p not in self.windows:
+                self.windows.append(p)
+                cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
+                cv2.resizeWindow(p, im.shape[1], im.shape[0])  # (width, height)
+            cv2.imshow(p, im)
+            cv2.waitKey(300 if self.dataset.mode == "image" else 1)  # 1 millisecond
+
+        elif is_colab:
+            import IPython.display
+            # Convert frame to a displayable format in Colab
+            _, buffer = cv2.imencode(".jpg", im)
+            display_img = IPython.display.Image(data=buffer.tobytes())
+            IPython.display.display(display_img)
+            IPython.display.clear_output(wait=True)  # Ensures smoother video playback
 
     def run_callbacks(self, event: str):
         """Runs all registered callbacks for a specific event."""

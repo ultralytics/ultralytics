@@ -1367,16 +1367,16 @@ class RandomHSV:
         if self.hgain or self.sgain or self.vgain:
             img = labels["img"]
             dtype = img.dtype  # uint8
-            # original implementation
+            x = np.arange(0, 256, dtype=r.dtype)
+
+            # Original implementation
             # r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1  # random gains
-            # x = np.arange(0, 256, dtype=r.dtype)
             # lut_hue = ((x * r[0]) % 180).astype(dtype)
             # lut_sat = np.clip(x * r[1], 0, 255).astype(dtype)
             # lut_val = np.clip(x * r[2], 0, 255).astype(dtype)
 
-            # correct implementation
+            # Fixed implementation from https://github.com/ultralytics/ultralytics/pull/19311
             r = np.random.uniform(-1, 1, 3) * (self.hgain, self.sgain, self.vgain) * (180, 255, 255)  # random gains
-            x = np.arange(0, 256, dtype=r.dtype)
             lut_hue = ((x + r[0]) % 180).astype(dtype)
             lut_sat = np.clip(x + r[1], 0, 255).astype(dtype)
             lut_val = np.clip(x + r[2], 0, 255).astype(dtype)

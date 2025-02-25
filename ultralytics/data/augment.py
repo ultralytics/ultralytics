@@ -1373,7 +1373,7 @@ class RandomHSV:
             x = np.arange(0, 256, dtype=r.dtype)
             lut_hue = ((x + r[0]) % 180).astype(dtype)
             lut_sat = np.clip(x + r[1], 0, 255).astype(dtype)
-            lut_sat[0] = 0 # prevent pure white changing color
+            lut_sat[0] = 0  # prevent pure white changing color
             lut_val = np.clip(x + r[2], 0, 255).astype(dtype)
 
             im_hsv = cv2.merge((cv2.LUT(hue, lut_hue), cv2.LUT(sat, lut_sat), cv2.LUT(val, lut_val)))

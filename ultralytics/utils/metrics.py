@@ -604,7 +604,7 @@ def ap_per_class(
             if j == 0:
                 prec_values.append(np.interp(x, mrec, mpre))  # precision at mAP@0.5
 
-    prec_values = np.array(prec_values)  # (nc, 1000)
+    prec_values = np.array(prec_values) if prec_values else np.zeros((1, 1000))  # (nc, 1000)
 
     # Compute F1 (harmonic mean of precision and recall)
     f1_curve = 2 * p_curve * r_curve / (p_curve + r_curve + eps)

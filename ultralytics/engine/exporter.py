@@ -990,7 +990,7 @@ class Exporter:
                 "onnxslim",
                 "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
                 "flatbuffers",  # update old 'flatbuffers' included inside tensorflow package
-                "onnxruntime-gpu" if cuda else "onnxruntime"
+                "onnxruntime-gpu" if cuda else "onnxruntime",
             ),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
         )

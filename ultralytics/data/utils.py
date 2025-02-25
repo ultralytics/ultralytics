@@ -185,8 +185,12 @@ def visualize_image_annotations(image_path, txt_path, label_map):
         label_map (dict): A dictionary that maps class IDs (integers) to class labels (strings).
 
     Example:
-        >>> label_map = {0: "cat", 1: "dog", 2: "bird"}  # It should include all annotated classes details
-        >>> visualize_image_annotations("path/to/image.jpg", "path/to/annotations.txt", label_map)
+        ```python
+        from ultralytics.data.utils import visualize_image_annotations
+
+        label_map = {0: "cat", 1: "dog", 2: "bird"}  # It should include all annotated classes details
+        visualize_image_annotations("path/to/image.jpg", "path/to/annotations.txt", label_map)
+        ```
     """
     import matplotlib.pyplot as plt
 

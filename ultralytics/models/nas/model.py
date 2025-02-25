@@ -78,7 +78,7 @@ class NAS(Model):
         self.model.yaml = {}  # for info()
         self.model.pt_path = weights  # for export()
         self.model.task = "detect"  # for export()
-        self.model.args = {**DEFAULT_CFG_DICT}  # for export()
+        self.model.args = DEFAULT_CFG_DICT  # for export()
 
     def info(self, detailed=False, verbose=True):
         """

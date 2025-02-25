@@ -403,14 +403,26 @@ class BasePredictor:
             cv2.imshow(p, im)
             cv2.waitKey(300 if self.dataset.mode == "image" else 1)  # 1 millisecond
 
+
         elif IS_COLAB:
+
             import IPython.display
 
             # Convert frame to a displayable format in Colab
+
             _, buffer = cv2.imencode(".jpg", im)
+
             display_img = IPython.display.Image(data=buffer.tobytes())
-            IPython.display.display(display_img)
-            IPython.display.clear_output(wait=True)  # Ensures smoother video playback
+
+            # Clear previous output before displaying the new frame
+
+            IPython.display.clear_output(wait=True)
+
+            IPython.display.display(display_img)  # Correctly render the image
+
+            # Add a small delay for smoother frame updates
+
+            cv2.waitKey(1)
 
     def run_callbacks(self, event: str):
         """Runs all registered callbacks for a specific event."""

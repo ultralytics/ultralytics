@@ -116,16 +116,14 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
 @pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="CoreML not supported in Python 3.12")
 @pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch, nms",
+    "task, dynamic, int8, half, batch",
     [  # generate all combinations except for exclusion cases
-        (task, dynamic, int8, half, batch, nms)
-        for task, dynamic, int8, half, batch, nms in product(
-            TASKS, [False], [True, False], [True, False], [1], [True, False]
-        )
-        if not ((int8 and half) or (task == "classify" and nms))
+        (task, dynamic, int8, half, batch)
+        for task, dynamic, int8, half, batch in product(TASKS, [False], [True, False], [True, False], [1])
+        if not (int8 and half)
     ],
 )
-def test_export_coreml_matrix(task, dynamic, int8, half, batch, nms):
+def test_export_coreml_matrix(task, dynamic, int8, half, batch):
     """Test YOLO exports to CoreML format with various parameter configurations."""
     file = YOLO(TASK2MODEL[task]).export(
         format="coreml",
@@ -134,7 +132,6 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch, nms):
         int8=int8,
         half=half,
         batch=batch,
-        nms=nms,
     )
     YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference at batch=3
     shutil.rmtree(file)  # cleanup

@@ -197,12 +197,13 @@ class AutoBackend(nn.Module):
             import onnxruntime
 
             providers = ["CPUExecutionProvider"]
-            if cuda and "CUDAExecutionProvider" in onnxruntime.get_available_providers():
-                providers.insert(0, "CUDAExecutionProvider")
-            elif cuda:  # Only log warning if CUDA was requested but unavailable
-                LOGGER.warning("WARNING ⚠️ Failed to start ONNX Runtime with CUDA. Using CPU...")
-                device = torch.device("cpu")
-                cuda = False
+            if cuda:
+                if "CUDAExecutionProvider" in onnxruntime.get_available_providers():
+                    providers.insert(0, "CUDAExecutionProvider")
+                else:  # Only log warning if CUDA was requested but unavailable
+                    LOGGER.warning("WARNING ⚠️ Failed to start ONNX Runtime with CUDA. Using CPU...")
+                    device = torch.device("cpu")
+                    cuda = False
             LOGGER.info(f"Using ONNX Runtime {providers[0]}")
             if onnx:
                 session = onnxruntime.InferenceSession(w, providers=providers)
@@ -223,7 +224,7 @@ class AutoBackend(nn.Module):
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
             dynamic = isinstance(session.get_outputs()[0].shape[0], str)
-            fp16 = True if "float16" in session.get_inputs()[0].type else False
+            fp16 = "float16" in session.get_inputs()[0].type
             if not dynamic:
                 io = session.io_binding()
                 bindings = []
@@ -640,10 +641,14 @@ class AutoBackend(nn.Module):
             y = self.model.predict({"image": im_pil})  # coordinates are xywh normalized
             if "confidence" in y:
                 raise TypeError(
-                    "'model={w}' has an NMS pipeline created by an older version of Ultralytics. "
-                    "CoreML inference with NMS is only supported for models exported with latest Ultralytics. "
-                    "You may export the model again with latest Ultralytics to resolve this."
+                    "Ultralytics only supports inference of non-pipelined CoreML models exported with "
+                    f"'nms=False', but 'model={w}' has an NMS pipeline created by an 'nms=True' export."
                 )
+                # TODO: CoreML NMS inference handling
+                # from ultralytics.utils.ops import xywh2xyxy
+                # box = xywh2xyxy(y['coordinates'] * [[w, h, w, h]])  # xyxy pixels
+                # conf, cls = y['confidence'].max(1), y['confidence'].argmax(1).astype(np.float32)
+                # y = np.concatenate((box, conf.reshape(-1, 1), cls.reshape(-1, 1)), 1)
             y = list(y.values())
             if len(y) == 2 and len(y[1].shape) != 4:  # segmentation model
                 y = list(reversed(y))  # reversed for segmentation models (pred, proto)

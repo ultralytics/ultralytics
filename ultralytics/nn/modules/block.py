@@ -1156,7 +1156,7 @@ class TorchVision(nn.Module):
         return y
 
 
-# from flash_attn.flash_attn_interface import flash_attn_func   # 2.0
+# from flash_attn.flash_attn_interface import flash_attn_func, flash_attn_varlen_qkvpacked_func  # 2.0
 from flash_attn.flash_attn_interface import flash_attn_unpadded_qkvpacked_func  # 1.0
 
 
@@ -1220,7 +1220,8 @@ class AAttn(nn.Module):
         v = qkv[:, 2]
         cu_seqlens = torch.arange(0, (B + 1) * N, step=N, dtype=torch.int32, device=qkv.device)
 
-        x = flash_attn_unpadded_qkvpacked_func(
+        x = flash_attn_unpadded_qkvpacked_func(   # 1.x
+        # x = flash_attn_varlen_qkvpacked_func(  # 2.x
             qkv.contiguous().half(),
             cu_seqlens,
             N,

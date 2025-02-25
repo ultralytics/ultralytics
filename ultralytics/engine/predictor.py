@@ -61,11 +61,25 @@ Example:
         masks = r.masks  # Masks object for segment masks outputs
         probs = r.probs  # Class probabilities for classification outputs
 """
-import os
+
 # Directory to store images
 TEMP_DIR = "/tmp/colab_video"
 os.makedirs(TEMP_DIR, exist_ok=True)
 
+# Create a placeholder for the video display (Run this only once)
+def setup_video_display():
+    display(HTML('''
+        <div id="colab_video_container">
+            <img id="colab_video_display" style="border:2px solid #000; max-width:100%;">
+        </div>
+        <script>
+        function updateImage() {
+            let img = document.getElementById("colab_video_display");
+            img.src = "/tmp/colab_video/frame.jpg?t=" + new Date().getTime();
+        }
+        setInterval(updateImage, 100);  // Refresh every 100ms
+        </script>
+    '''))
 
 class BasePredictor:
     """
@@ -408,22 +422,10 @@ class BasePredictor:
             cv2.waitKey(300 if self.dataset.mode == "image" else 1)  # 1 millisecond
 
         elif IS_COLAB:
+            from google.colab import output
             # Save the frame as an image file
             frame_path = os.path.join(TEMP_DIR, "frame.jpg")
             cv2.imwrite(frame_path, im)
-
-            # Use JavaScript to refresh the image dynamically
-            output.eval_js(f'''
-                    var img = document.getElementById("colab_video_display");
-                    if (!img) {{
-                        img = document.createElement("img");
-                        img.id = "colab_video_display";
-                        img.style.border = "2px solid #000";
-                        img.style.maxWidth = "100%";
-                        document.body.appendChild(img);
-                    }}
-                    img.src = "{frame_path}?t=" + new Date().getTime();
-                    ''')
 
     def run_callbacks(self, event: str):
         """Runs all registered callbacks for a specific event."""

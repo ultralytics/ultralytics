@@ -1216,7 +1216,8 @@ class AAttn(nn.Module):
             qkv = qkv.reshape(B * self.area, N // self.area, C * 3)
             B, N, _ = qkv.shape
 
-        qkv = qkv.reshape(B * N, self.num_heads, self.head_dim, 3).permute(0, 3, 1, 2)
+        # qkv = qkv.reshape(B * N, self.num_heads, self.head_dim, 3).permute(0, 3, 1, 2)
+        qkv = qkv.reshape(B * N, 3, self.num_heads, self.head_dim)
         v = qkv[:, 2]
         cu_seqlens = torch.arange(0, (B + 1) * N, step=N, dtype=torch.int32, device=qkv.device)
 

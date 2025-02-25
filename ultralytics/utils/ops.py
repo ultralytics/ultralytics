@@ -802,7 +802,7 @@ def regularize_rboxes(rboxes):
     # Swap edge and angle if h >= w
     w_ = torch.where(w > h, w, h)
     h_ = torch.where(w > h, h, w)
-    t = torch.where(w > h, t, t + math.pi / 2) % math.pi
+    t = torch.where(w > h, t, t + math.pi / 2) % (math.pi / 2)
     return torch.stack([x, y, w_, h_, t], dim=-1)  # regularized boxes
 
 

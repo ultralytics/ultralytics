@@ -426,7 +426,6 @@ class BasePredictor:
             cv2.waitKey(300 if self.dataset.mode == "image" else 1)  # 1 millisecond
 
         elif IS_COLAB:
-
             # Save the frame as an image file
             frame_path = os.path.join(TEMP_DIR, "frame.jpg")
             cv2.imwrite(frame_path, im)

@@ -53,7 +53,7 @@ class ObjectBlurrer(BaseSolution):
         This method uses the bounding box coordinates from the model's predictions to apply a blurring effect to the regions corresponding to detected objects. The processed image is updated in place.
 
         Returns:
-            results (dict): A summary dictionary containing the total number of blurred objects.
+            results (SolutionResults): A SolutionResults object containing the total number of blurred objects.
 
         Examples:
             >>> blurrer = ObjectBlurrer()

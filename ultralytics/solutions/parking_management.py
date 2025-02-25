@@ -212,7 +212,7 @@ class ParkingManagement(BaseSolution):
             im0 (np.ndarray): The input inference image.
 
         Returns:
-            results (dict): Contains processed image `im0`, 'filled_slots' (int, number of occupied parking slots),
+            results (SolutionResults): Contains processed image `im0`, 'filled_slots' (int, number of occupied parking slots),
                 'available_slots' (int, number of available parking slots), and 'total_tracks' (int, total number of tracked objects).
 
         Examples:

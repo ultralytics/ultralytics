@@ -38,7 +38,7 @@ class InstanceSegmentation(BaseSolution):
         This method processes the input image, applies segmentation masks, and annotates each segmented instance with a bounding box and label.
 
         Returns:
-            results (dict): A summary dictionary containing the total number of tracked instances.
+            results (SolutionResults): A SolutionResults object containing the total number of tracked instances.
 
         Examples:
             >>> segmenter = InstanceSegmentation()

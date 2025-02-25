@@ -44,7 +44,7 @@ class VisionEye(BaseSolution):
         and annotates each detected instance with a bounding box and label.
 
         Returns:
-            results (dict): A summary dictionary containing the total number of tracked instances.
+            results (SolutionResults): A summary dictionary containing the total number of tracked instances.
 
         Examples:
             >>> vision_eye = VisionEye()

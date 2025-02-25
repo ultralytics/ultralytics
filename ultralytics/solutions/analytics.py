@@ -92,7 +92,7 @@ class Analytics(BaseSolution):
             frame_number (int): Video frame number for plotting the data.
 
         Returns:
-            results (dict): Contains processed image `im0`, 'total_tracks' (int, total number of tracked objects) and
+            results (SolutionResults): Contains processed image `im0`, 'total_tracks' (int, total number of tracked objects) and
                 'classwise_count' (dict, per-class object count).
 
         Raises:

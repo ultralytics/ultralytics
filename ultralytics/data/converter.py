@@ -274,13 +274,13 @@ def convert_coco(
         # Create image dict
         images = {f"{x['id']:d}": x for x in data["images"]}
         # Create image-annotations dict
-        imgToAnns = defaultdict(list)
+        annotations = defaultdict(list)
         for ann in data["annotations"]:
-            imgToAnns[ann["image_id"]].append(ann)
+            annotations[ann["image_id"]].append(ann)
 
         image_txt = []
         # Write labels file
-        for img_id, anns in TQDM(imgToAnns.items(), desc=f"Annotations {json_file}"):
+        for img_id, anns in TQDM(annotations.items(), desc=f"Annotations {json_file}"):
             img = images[f"{img_id:d}"]
             h, w = img["height"], img["width"]
             f = str(Path(img["coco_url"]).relative_to("http://images.cocodataset.org")) if lvis else img["file_name"]

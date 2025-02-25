@@ -247,14 +247,13 @@ jobs:
           python3.11 -m venv env
           source env/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
-      - uses: astral-sh/setup-uv@v4
       - name: Install requirements
         run: |
-          uv pip install -e ".[export]" pytest mlflow pycocotools
+          pip install -e ".[export]" pytest mlflow pycocotools
       - name: Check environment
         run: |
           yolo checks
-          uv pip list
+          pip list
       - name: Pytest tests
         run: pytest --slow tests/
       - name: Benchmark DetectionModel

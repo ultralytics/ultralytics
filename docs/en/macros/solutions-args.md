@@ -21,15 +21,15 @@
 } %}
 
 {%- if not params %}
-    {%- for param, details in default_params.items() %}
+{%- for param, details in default_params.items() %}
 | `{{ param }}` | `{{ details[0] }}` | `{{ details[1] }}` | {{ details[2] }} |
-    {%- endfor %}
+{%- endfor %}
 {%- else %}
-    {%- for param in params %}
-        {%- if param in default_params %}
+{%- for param in params %}
+{%- if param in default_params %}
 | `{{ param }}` | `{{ default_params[param][0] }}` | `{{ default_params[param][1] }}` | {{ default_params[param][2] }} |
-        {%- endif %}
-    {%- endfor %}
+{%- endif %}
+{%- endfor %}
 {%- endif %}
 
 {% endmacro %}

@@ -140,7 +140,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
 @pytest.mark.slow
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
 @pytest.mark.skipif(
-    not LINUX and IS_RASPBERRYPI,
+    not LINUX or IS_RASPBERRYPI,
     reason="Test disabled as TF suffers from install conflicts on Windows, macOS and Raspberry Pi",
 )
 @pytest.mark.parametrize(

@@ -24,7 +24,6 @@ from ultralytics.utils import (
     AUTOINSTALL,
     IS_COLAB,
     IS_GIT_DIR,
-    IS_KAGGLE,
     IS_PIP_PACKAGE,
     LINUX,
     LOGGER,
@@ -546,9 +545,11 @@ def check_is_path_safe(basedir, path):
 
     return path_resolved.exists() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
 
+
 def check_imshow(warn=False):
     """Check if environment supports image displays."""
     import IPython.display
+
     try:
         is_colab = "google.colab" in str(get_ipython())
 

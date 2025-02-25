@@ -131,7 +131,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
         floor (int): Minimum allowed value for image size.
 
     Returns:
-        (List[int]): Updated image size.
+        (List[int] | int): Updated image size.
     """
     # Convert stride to integer if it is a tensor
     stride = int(stride.max() if isinstance(stride, torch.Tensor) else stride)
@@ -433,8 +433,8 @@ def check_torchvision():
     The compatibility table is a dictionary where the keys are PyTorch versions and the values are lists of compatible
     Torchvision versions.
     """
-    # Compatibility table
     compatibility_table = {
+        "2.6": ["0.21"],
         "2.5": ["0.20"],
         "2.4": ["0.19"],
         "2.3": ["0.18"],
@@ -445,7 +445,7 @@ def check_torchvision():
         "1.12": ["0.13"],
     }
 
-    # Extract only the major and minor versions
+    # Check major and minor versions
     v_torch = ".".join(torch.__version__.split("+")[0].split(".")[:2])
     if v_torch in compatibility_table:
         compatible_versions = compatibility_table[v_torch]

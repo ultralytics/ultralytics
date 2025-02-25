@@ -12,7 +12,14 @@ YOLOv7 is a state-of-the-art real-time object detector that surpasses all known 
 
 ## Comparison of SOTA object detectors
 
-From the results in the YOLO comparison table we know that the proposed method has the best speed-accuracy trade-off comprehensively. If we compare YOLOv7-tiny-SiLU with YOLOv5-N (r6.1), our method is 127 fps faster and 10.7% more accurate on AP. In addition, YOLOv7 has 51.4% AP at frame rate of 161 fps, while PPYOLOE-L with the same AP has only 78 fps frame rate. In terms of parameter usage, YOLOv7 is 41% less than PPYOLOE-L. If we compare YOLOv7-X with 114 fps inference speed to YOLOv5-L (r6.1) with 99 fps inference speed, YOLOv7-X can improve AP by 3.9%. If YOLOv7-X is compared with YOLOv5-X (r6.1) of similar scale, the inference speed of YOLOv7-X is 31 fps faster. In addition, in terms the amount of parameters and computation, YOLOv7-X reduces 22% of parameters and 8% of computation compared to YOLOv5-X (r6.1), but improves AP by 2.2% ([Source](https://arxiv.org/pdf/2207.02696)).
+From the results in the YOLO comparison table we know that the proposed method has the best speed-accuracy trade-off comprehensively. If we compare YOLOv7-tiny-SiLU with YOLOv5-N (r6.1), our method is 127 fps faster and 10.7% more accurate on AP. In addition, YOLOv7 has 51.4% AP at frame rate of 161 fps, while PPYOLOE-L with the same AP has only 78 fps frame rate. In terms of parameter usage, YOLOv7 is 41% less than PPYOLOE-L.
+
+<script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script defer src="../../javascript/benchmark.js"></script>
+
+<canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv7"]'></canvas>
+
+If we compare YOLOv7-X with 114 fps inference speed to YOLOv5-L (r6.1) with 99 fps inference speed, YOLOv7-X can improve AP by 3.9%. If YOLOv7-X is compared with YOLOv5-X (r6.1) of similar scale, the inference speed of YOLOv7-X is 31 fps faster. In addition, in terms the amount of parameters and computation, YOLOv7-X reduces 22% of parameters and 8% of computation compared to YOLOv5-X (r6.1), but improves AP by 2.2% ([Source](https://arxiv.org/pdf/2207.02696)).
 
 | Model                 | Params<br><sup>(M) | FLOPs<br><sup>(G) | Size<br><sup>(pixels) | FPS     | AP<sup>test / val<br>50-95 | AP<sup>test<br>50 | AP<sup>test<br>75 | AP<sup>test<br>S | AP<sup>test<br>M | AP<sup>test<br>L |
 | --------------------- | ------------------ | ----------------- | --------------------- | ------- | -------------------------- | ----------------- | ----------------- | ---------------- | ---------------- | ---------------- |
@@ -62,7 +69,7 @@ From the results in the YOLO comparison table we know that the proposed method h
 
 ## Overview
 
-Real-time object detection is an important component in many [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) systems, including multi-object tracking, autonomous driving, robotics, and medical image analysis. In recent years, real-time object detection development has focused on designing efficient architectures and improving the inference speed of various CPUs, GPUs, and neural processing units (NPUs). YOLOv7 supports both mobile GPU and GPU devices, from the edge to the cloud.
+Real-time object detection is an important component in many [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) systems, including multi-[object tracking](https://www.ultralytics.com/glossary/object-tracking), autonomous driving, [robotics](https://www.ultralytics.com/glossary/robotics), and [medical image analysis](https://www.ultralytics.com/glossary/medical-image-analysis). In recent years, real-time object detection development has focused on designing efficient architectures and improving the inference speed of various CPUs, GPUs, and neural processing units (NPUs). YOLOv7 supports both mobile GPU and GPU devices, from the edge to the cloud.
 
 Unlike traditional real-time object detectors that focus on architecture optimization, YOLOv7 introduces a focus on the optimization of the training process. This includes modules and optimization methods designed to improve the accuracy of object detection without increasing the inference cost, a concept known as the "trainable bag-of-freebies".
 

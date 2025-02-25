@@ -72,7 +72,7 @@ class RTDETRPredictor(BasePredictor):
     def pre_transform(self, im):
         """
         Pre-transforms the input images before feeding them into the model for inference. The input images are
-        letterboxed to ensure a square aspect ratio and scale-filled. The size must be square(640) and scaleFilled.
+        letterboxed to ensure a square aspect ratio and scale-filled. The size must be square(640) and scale_filled.
 
         Args:
             im (list[np.ndarray] |torch.Tensor): Input images of shape (N,3,h,w) for tensor, [(h,w,3) x N] for list.
@@ -80,5 +80,5 @@ class RTDETRPredictor(BasePredictor):
         Returns:
             (list): List of pre-transformed images ready for model inference.
         """
-        letterbox = LetterBox(self.imgsz, auto=False, scaleFill=True)
+        letterbox = LetterBox(self.imgsz, auto=False, scale_fill=True)
         return [letterbox(image=x) for x in im]

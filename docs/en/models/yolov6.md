@@ -8,7 +8,7 @@ keywords: Meituan YOLOv6, object detection, real-time applications, BiC module, 
 
 ## Overview
 
-[Meituan](https://www.meituan.com/) YOLOv6 is a cutting-edge object detector that offers remarkable balance between speed and accuracy, making it a popular choice for real-time applications. This model introduces several notable enhancements on its architecture and training scheme, including the implementation of a Bi-directional Concatenation (BiC) module, an anchor-aided training (AAT) strategy, and an improved backbone and neck design for state-of-the-art accuracy on the COCO dataset.
+[Meituan](https://www.meituan.com/) YOLOv6 is a cutting-edge object detector that offers remarkable balance between speed and accuracy, making it a popular choice for real-time applications. This model introduces several notable enhancements on its architecture and training scheme, including the implementation of a Bi-directional Concatenation (BiC) module, an anchor-aided training (AAT) strategy, and an improved [backbone](https://www.ultralytics.com/glossary/backbone) and neck design for state-of-the-art accuracy on the COCO dataset.
 
 ![Meituan YOLOv6](https://github.com/ultralytics/docs/releases/download/0/meituan-yolov6.avif)
 ![Model example image](https://github.com/ultralytics/docs/releases/download/0/yolov6-architecture-diagram.avif) **Overview of YOLOv6.** Model architecture diagram showing the redesigned network components and training strategies that have led to significant performance improvements. (a) The neck of YOLOv6 (N and S are shown). Note for M/L, RepBlocks is replaced with CSPStackRep. (b) The structure of a BiC module. (c) A SimCSPSPPF block. ([source](https://arxiv.org/pdf/2301.05586.pdf)).
@@ -22,7 +22,7 @@ keywords: Meituan YOLOv6, object detection, real-time applications, BiC module, 
 
 ## Performance Metrics
 
-<script async src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script defer src="../../javascript/benchmark.js"></script>
 
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv6-3.0"]'></canvas>
@@ -118,7 +118,7 @@ Meituan YOLOv6 is a state-of-the-art object detector that balances speed and acc
 
 ### How does the Bi-directional Concatenation (BiC) Module in YOLOv6 improve performance?
 
-The Bi-directional Concatenation (BiC) module in YOLOv6 enhances localization signals in the detector's neck, delivering performance improvements with negligible speed impact. This module effectively combines different feature maps, increasing the model's ability to detect objects accurately. For more details on YOLOv6's features, refer to the [Key Features](#key-features) section.
+The Bi-directional Concatenation (BiC) module in YOLOv6 enhances localization signals in the detector's neck, delivering performance improvements with negligible speed impact. This module effectively combines different [feature maps](https://www.ultralytics.com/glossary/feature-maps), increasing the model's ability to detect objects accurately. For more details on YOLOv6's features, refer to the [Key Features](#key-features) section.
 
 ### How can I train a YOLOv6 model using Ultralytics?
 

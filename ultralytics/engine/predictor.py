@@ -65,6 +65,7 @@ Example:
 TEMP_DIR = "/tmp/colab_video"
 os.makedirs(TEMP_DIR, exist_ok=True)
 
+
 class BasePredictor:
     """
     BasePredictor.
@@ -404,7 +405,6 @@ class BasePredictor:
                 cv2.resizeWindow(p, im.shape[1], im.shape[0])  # (width, height)
             cv2.imshow(p, im)
             cv2.waitKey(300 if self.dataset.mode == "image" else 1)  # 1 millisecond
-
 
         elif IS_COLAB:
             # Save the frame as an image file

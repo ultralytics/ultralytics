@@ -548,22 +548,27 @@ def check_is_path_safe(basedir, path):
 
 def check_imshow(warn=False):
     """Check if environment supports image displays."""
-    import IPython.display
     try:
-        is_colab = "google.colab" in str(get_ipython())
+        # Check if running in Google Colab
+        try:
+            from google.colab import files  # This will raise an ImportError if not in Colab
+            is_colab = True
+        except ImportError:
+            is_colab = False
 
         if is_colab:
-            # In Colab, we can't use cv2.imshow, but we can display images using IPython
-            img = np.zeros((8, 8, 3), dtype=np.uint8)  # Create a small black image
+            # In Colab, we can't use cv2.imshow, so we use IPython display
+            img = np.zeros((8, 8, 3), dtype=np.uint8)  # Create a small test image
             _, buffer = cv2.imencode(".jpg", img)
             display_img = IPython.display.Image(data=buffer.tobytes())
             IPython.display.display(display_img)
             return True
 
+        # For Linux, check DISPLAY variable
         if os.name == "posix" and "DISPLAY" not in os.environ:
             raise Exception("The DISPLAY environment variable isn't set.")
 
-        # Standard cv2.imshow test
+        # Standard OpenCV test
         cv2.imshow("test", np.zeros((8, 8, 3), dtype=np.uint8))
         cv2.waitKey(1)
         cv2.destroyAllWindows()
@@ -574,7 +579,6 @@ def check_imshow(warn=False):
         if warn:
             print(f"WARNING ⚠️ Environment does not support cv2.imshow() or PIL Image.show()\n{e}")
         return False
-
 
 def check_yolo(verbose=True, device=""):
     """Return a human-readable YOLO software and hardware summary."""

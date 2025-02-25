@@ -407,6 +407,7 @@ class BasePredictor:
 
         elif is_colab:
             import IPython.display
+
             # Convert frame to a displayable format in Colab
             _, buffer = cv2.imencode(".jpg", im)
             display_img = IPython.display.Image(data=buffer.tobytes())

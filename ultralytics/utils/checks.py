@@ -548,6 +548,7 @@ def check_is_path_safe(basedir, path):
 
 def check_imshow(warn=False):
     """Check if environment supports image displays."""
+    import IPython
     try:
         # Check if running in Google Colab
         try:

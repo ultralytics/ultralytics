@@ -1484,7 +1484,7 @@ class LetterBox:
     Attributes:
         new_shape (tuple): Target shape (height, width) for resizing.
         auto (bool): Whether to use minimum rectangle.
-        scaleFill (bool): Whether to stretch the image to new_shape.
+        scale_fill (bool): Whether to stretch the image to new_shape.
         scaleup (bool): Whether to allow scaling up. If False, only scale down.
         stride (int): Stride for rounding padding.
         center (bool): Whether to center the image or align to top-left.
@@ -1499,7 +1499,7 @@ class LetterBox:
         >>> updated_instances = result["instances"]
     """
 
-    def __init__(self, new_shape=(640, 640), auto=False, scaleFill=False, scaleup=True, center=True, stride=32):
+    def __init__(self, new_shape=(640, 640), auto=False, scale_fill=False, scaleup=True, center=True, stride=32):
         """
         Initialize LetterBox object for resizing and padding images.
 
@@ -1509,7 +1509,7 @@ class LetterBox:
         Args:
             new_shape (Tuple[int, int]): Target size (height, width) for the resized image.
             auto (bool): If True, use minimum rectangle to resize. If False, use new_shape directly.
-            scaleFill (bool): If True, stretch the image to new_shape without padding.
+            scale_fill (bool): If True, stretch the image to new_shape without padding.
             scaleup (bool): If True, allow scaling up. If False, only scale down.
             center (bool): If True, center the placed image. If False, place image in top-left corner.
             stride (int): Stride of the model (e.g., 32 for YOLOv5).
@@ -1517,17 +1517,17 @@ class LetterBox:
         Attributes:
             new_shape (Tuple[int, int]): Target size for the resized image.
             auto (bool): Flag for using minimum rectangle resizing.
-            scaleFill (bool): Flag for stretching image without padding.
+            scale_fill (bool): Flag for stretching image without padding.
             scaleup (bool): Flag for allowing upscaling.
             stride (int): Stride value for ensuring image size is divisible by stride.
 
         Examples:
-            >>> letterbox = LetterBox(new_shape=(640, 640), auto=False, scaleFill=False, scaleup=True, stride=32)
+            >>> letterbox = LetterBox(new_shape=(640, 640), auto=False, scale_fill=False, scaleup=True, stride=32)
             >>> resized_img = letterbox(original_img)
         """
         self.new_shape = new_shape
         self.auto = auto
-        self.scaleFill = scaleFill
+        self.scale_fill = scale_fill
         self.scaleup = scaleup
         self.stride = stride
         self.center = center  # Put the image in the middle or top-left
@@ -1573,7 +1573,7 @@ class LetterBox:
         dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
         if self.auto:  # minimum rectangle
             dw, dh = np.mod(dw, self.stride), np.mod(dh, self.stride)  # wh padding
-        elif self.scaleFill:  # stretch
+        elif self.scale_fill:  # stretch
             dw, dh = 0.0, 0.0
             new_unpad = (new_shape[1], new_shape[0])
             ratio = new_shape[1] / shape[1], new_shape[0] / shape[0]  # width, height ratios

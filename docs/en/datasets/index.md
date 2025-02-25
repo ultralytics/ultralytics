@@ -54,6 +54,7 @@ Create [embeddings](https://www.ultralytics.com/glossary/embeddings) for your da
 - [Brain-tumor](detect/brain-tumor.md): A dataset for detecting brain tumors includes MRI or CT scan images with details on tumor presence, location, and characteristics.
 - [African-wildlife](detect/african-wildlife.md): A dataset featuring images of African wildlife, including buffalo, elephant, rhino, and zebras.
 - [Signature](detect/signature.md): A dataset featuring images of various documents with annotated signatures, supporting document verification and fraud detection research.
+- [Medical-pills](detect/medical-pills.md): A dataset containing labeled images of medical-pills, designed to aid in tasks like pharmaceutical quality control, sorting, and ensuring compliance with industry standards.
 
 ## [Instance Segmentation](segment/index.md)
 
@@ -109,6 +110,17 @@ Multi-object tracking is a computer vision technique that involves detecting and
 ## Contribute New Datasets
 
 Contributing a new dataset involves several steps to ensure that it aligns well with the existing infrastructure. Below are the necessary steps:
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/yMR7BgwHQ3g?start=427"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Contribute to Ultralytics Datasets 🚀
+</p>
 
 ### Steps to Contribute a New Dataset
 

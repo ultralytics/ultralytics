@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import math
 import warnings
@@ -545,7 +545,8 @@ class Annotator:
         """Save the annotated image to 'filename'."""
         cv2.imwrite(filename, np.asarray(self.im))
 
-    def get_bbox_dimension(self, bbox=None):
+    @staticmethod
+    def get_bbox_dimension(bbox=None):
         """
         Calculate the area of a bounding box.
 
@@ -800,9 +801,8 @@ class Annotator:
             return
 
         cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
-        text_size, _ = cv2.getTextSize(label, 0, self.sf, self.tf)
-
         if label:
+            text_size, _ = cv2.getTextSize(label, 0, self.sf, self.tf)
             cv2.rectangle(
                 self.im,
                 (int(mask[0][0]) - text_size[0] // 2 - 10, int(mask[0][1]) - text_size[1] - 10),
@@ -1268,7 +1268,7 @@ def plt_color_scatter(v, f, bins=20, cmap="viridis", alpha=0.8, edgecolors="none
 
 def plot_tune_results(csv_file="tune_results.csv"):
     """
-    Plot the evolution results stored in an 'tune_results.csv' file. The function generates a scatter plot for each key
+    Plot the evolution results stored in a 'tune_results.csv' file. The function generates a scatter plot for each key
     in the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on the plots.
 
     Args:

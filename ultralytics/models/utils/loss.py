@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import torch
 import torch.nn as nn
@@ -243,12 +243,11 @@ class DETRLoss(nn.Module):
         if len(gt_bboxes):
             gt_scores[idx] = bbox_iou(pred_bboxes.detach(), gt_bboxes, xywh=True).squeeze(-1)
 
-        loss = {}
-        loss.update(self._get_loss_class(pred_scores, targets, gt_scores, len(gt_bboxes), postfix))
-        loss.update(self._get_loss_bbox(pred_bboxes, gt_bboxes, postfix))
-        # if masks is not None and gt_mask is not None:
-        #     loss.update(self._get_loss_mask(masks, gt_mask, match_indices, postfix))
-        return loss
+        return {
+            **self._get_loss_class(pred_scores, targets, gt_scores, len(gt_bboxes), postfix),
+            **self._get_loss_bbox(pred_bboxes, gt_bboxes, postfix),
+            # **(self._get_loss_mask(masks, gt_mask, match_indices, postfix) if masks is not None and gt_mask is not None else {})
+        }
 
     def forward(self, pred_bboxes, pred_scores, batch, postfix="", **kwargs):
         """

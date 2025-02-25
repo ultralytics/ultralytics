@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from typing import List
 from urllib.parse import urlsplit
@@ -66,6 +66,7 @@ class TritonRemoteModel:
         self.np_input_formats = [type_map[x] for x in self.input_formats]
         self.input_names = [x["name"] for x in config["input"]]
         self.output_names = [x["name"] for x in config["output"]]
+        self.metadata = eval(config.get("parameters", {}).get("metadata", {}).get("string_value", "None"))
 
     def __call__(self, *inputs: np.ndarray) -> List[np.ndarray]:
         """

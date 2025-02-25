@@ -119,11 +119,19 @@ keywords: Ultralytics, torch utils, model optimization, device selection, infere
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.torch_utils.unset_deterministic
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.torch_utils.strip_optimizer
 
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.torch_utils.convert_optimizer_state_dict_to_fp16
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.torch_utils.cuda_memory_usage
 
 <br><br><hr><br>
 

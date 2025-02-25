@@ -127,6 +127,12 @@ Use a trained YOLO11n-seg model to run predictions on images.
 
         # Predict with the model
         results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
+
+        # Access the results
+        for result in results:
+            xy = result.masks.xy  # mask in polygon format
+            xyn = result.masks.xyn  # normalized
+            masks = result.masks.data  # mask in matrix format (num_objects x H x W)
         ```
 
     === "CLI"

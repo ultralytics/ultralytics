@@ -16,7 +16,7 @@ The Ultralytics YOLO format is a dataset configuration format that allows you to
 
 ```yaml
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/coco8 # dataset root dir
+path: ../datasets/coco8 # dataset root dir (absolute or relative; if relative, it's relative to default datasets_dir)
 train: images/train # train images (relative to 'path') 4 images
 val: images/val # val images (relative to 'path') 4 images
 test: # test images (optional)
@@ -89,6 +89,7 @@ Here is a list of the supported datasets and a brief description for each:
 - [Brain-tumor](brain-tumor.md): A dataset for detecting brain tumors includes MRI or CT scan images with details on tumor presence, location, and characteristics.
 - [African-wildlife](african-wildlife.md): A dataset featuring images of African wildlife, including buffalo, elephant, rhino, and zebras.
 - [Signature](signature.md): A dataset featuring images of various documents with annotated signatures, supporting document verification and fraud detection research.
+- [Medical-pills](medical-pills.md): A dataset featuring images of medical-pills, annotated for applications such as pharmaceutical quality assurance, pill sorting, and regulatory compliance.
 
 ### Adding your own dataset
 

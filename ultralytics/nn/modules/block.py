@@ -1156,7 +1156,8 @@ class TorchVision(nn.Module):
         return y
 
 
-from flash_attn.flash_attn_interface import flash_attn_func
+# from flash_attn.flash_attn_interface import flash_attn_func   # 2.0
+from flash_attn.flash_attn_interface import flash_attn_unpadded_qkvpacked_func  # 1.0
 
 
 class AAttn(nn.Module):
@@ -1206,7 +1207,7 @@ class AAttn(nn.Module):
         self.pe = Conv(all_head_dim, dim, 7, 1, 3, g=dim, act=False)
 
     def forward(self, x):
-        """Processes the input tensor 'x' through the area-attention."""
+        """Processes the input tensor 'x' through the area-attention"""
         B, C, H, W = x.shape
         N = H * W
 
@@ -1214,22 +1215,17 @@ class AAttn(nn.Module):
         if self.area > 1:
             qkv = qkv.reshape(B * self.area, N // self.area, C * 3)
             B, N, _ = qkv.shape
-        q, k, v = qkv.view(B, N, self.num_heads, self.head_dim * 3).split(
-            [self.head_dim, self.head_dim, self.head_dim], dim=3
-        )
-        x = flash_attn_func(q.contiguous().half(), k.contiguous().half(), v.contiguous().half()).to(q.dtype)
-        # max_s = q.shape[-1]
-        # x = flash_attn_func(q, k, v, max_s=max_s)#.to(q.dtype)
-        # q, k, v = (
-        #     qkv.view(B, N, self.num_heads, self.head_dim * 3)
-        #     .permute(0, 2, 3, 1)
-        #     .split([self.head_dim, self.head_dim, self.head_dim], dim=2)
-        # )
-        # attn = (q.transpose(-2, -1) @ k) * (self.head_dim**-0.5)
-        # attn = attn.softmax(dim=-1)
-        # x = v @ attn.transpose(-2, -1)
-        # x = x.permute(0, 3, 1, 2)
-        # v = v.permute(0, 3, 1, 2)
+
+        qkv = qkv.reshape(B * N, 3, self.num_heads, self.head_dim)
+        v = qkv[:, 2]
+        cu_seqlens = torch.arange(0, (B + 1) * N, step=N, dtype=torch.int32, device=qkv.device)
+
+        x = flash_attn_unpadded_qkvpacked_func(
+            qkv.contiguous().half(),
+            cu_seqlens,
+            N,
+            0.0,
+        ).to(qkv.dtype)
 
         if self.area > 1:
             x = x.reshape(B // self.area, N * self.area, C)
@@ -1240,7 +1236,45 @@ class AAttn(nn.Module):
         v = v.reshape(B, H, W, C).permute(0, 3, 1, 2)
 
         x = x + self.pe(v)
-        return self.proj(x)
+        x = self.proj(x)
+        return x
+
+    # def forward(self, x):
+    #     """Processes the input tensor 'x' through the area-attention."""
+    #     B, C, H, W = x.shape
+    #     N = H * W
+    #
+    #     qkv = self.qkv(x).flatten(2).transpose(1, 2)
+    #     if self.area > 1:
+    #         qkv = qkv.reshape(B * self.area, N // self.area, C * 3)
+    #         B, N, _ = qkv.shape
+    #     q, k, v = qkv.view(B, N, self.num_heads, self.head_dim * 3).split(
+    #         [self.head_dim, self.head_dim, self.head_dim], dim=3
+    #     )
+    #     x = flash_attn_func(q.contiguous().half(), k.contiguous().half(), v.contiguous().half()).to(q.dtype)
+    #     # max_s = q.shape[-1]
+    #     # x = flash_attn_func(q, k, v, max_s=max_s)#.to(q.dtype)
+    #     # q, k, v = (
+    #     #     qkv.view(B, N, self.num_heads, self.head_dim * 3)
+    #     #     .permute(0, 2, 3, 1)
+    #     #     .split([self.head_dim, self.head_dim, self.head_dim], dim=2)
+    #     # )
+    #     # attn = (q.transpose(-2, -1) @ k) * (self.head_dim**-0.5)
+    #     # attn = attn.softmax(dim=-1)
+    #     # x = v @ attn.transpose(-2, -1)
+    #     # x = x.permute(0, 3, 1, 2)
+    #     # v = v.permute(0, 3, 1, 2)
+    #
+    #     if self.area > 1:
+    #         x = x.reshape(B // self.area, N * self.area, C)
+    #         v = v.reshape(B // self.area, N * self.area, C)
+    #         B, N, _ = x.shape
+    #
+    #     x = x.reshape(B, H, W, C).permute(0, 3, 1, 2)
+    #     v = v.reshape(B, H, W, C).permute(0, 3, 1, 2)
+    #
+    #     x = x + self.pe(v)
+    #     return self.proj(x)
 
 
 class ABlock(nn.Module):

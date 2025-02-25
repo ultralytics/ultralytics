@@ -1366,13 +1366,14 @@ class RandomHSV:
         """
         img = labels["img"]
         if self.hgain or self.sgain or self.vgain:
-            r = np.random.uniform(-1, 1, 3) * (self.hgain, self.sgain, self.vgain) * (180, 1, 256)  # random gains
+            r = np.random.uniform(-1, 1, 3) * (self.hgain, self.sgain, self.vgain) * (180, 255, 255)  # random gains
             hue, sat, val = cv2.split(cv2.cvtColor(img, cv2.COLOR_BGR2HSV))
             dtype = img.dtype  # uint8
 
             x = np.arange(0, 256, dtype=r.dtype)
             lut_hue = ((x + r[0]) % 180).astype(dtype)
-            lut_sat = np.clip(x * (1 + r[1]), 0, 255).astype(dtype)
+            lut_sat = np.clip(x + r[1], 0, 255).astype(dtype)
+            lut_sat[0] = 0 # prevent pure white changing color
             lut_val = np.clip(x + r[2], 0, 255).astype(dtype)
 
             im_hsv = cv2.merge((cv2.LUT(hue, lut_hue), cv2.LUT(sat, lut_sat), cv2.LUT(val, lut_val)))

@@ -1,11 +1,18 @@
 // YOLO models chart ---------------------------------------------------------------------------------------------------
 const data = {
+  //  YOLO12: {
+  //    n: { speed: 1.64, mAP: 40.6 },
+  //    s: { speed: 2.61, mAP: 48.0 },
+  //    m: { speed: 4.86, mAP: 52.5 },
+  //    l: { speed: 6.77, mAP: 53.7 },
+  //    x: { speed: 11.79, mAP: 55.2 },
+  //  },
   YOLO11: {
-    n: { speed: 1.55, mAP: 39.5 },
-    s: { speed: 2.63, mAP: 47.0 },
-    m: { speed: 5.27, mAP: 51.4 },
-    l: { speed: 6.84, mAP: 53.2 },
-    x: { speed: 12.49, mAP: 54.7 },
+    n: { speed: 1.5, mAP: 39.5 },
+    s: { speed: 2.5, mAP: 47.0 },
+    m: { speed: 4.7, mAP: 51.5 },
+    l: { speed: 6.2, mAP: 53.4 },
+    x: { speed: 11.3, mAP: 54.7 },
   },
   YOLOv10: {
     n: { speed: 1.56, mAP: 39.5 },
@@ -16,11 +23,11 @@ const data = {
     x: { speed: 12.2, mAP: 54.4 },
   },
   YOLOv9: {
-    t: { speed: 2.3, mAP: 37.8 },
-    s: { speed: 3.54, mAP: 46.5 },
-    m: { speed: 6.43, mAP: 51.5 },
-    c: { speed: 7.16, mAP: 52.8 },
-    e: { speed: 16.77, mAP: 55.1 },
+    t: { speed: 2.3, mAP: 38.3 },
+    s: { speed: 3.54, mAP: 46.8 },
+    m: { speed: 6.43, mAP: 51.4 },
+    c: { speed: 7.16, mAP: 53.0 },
+    e: { speed: 16.77, mAP: 55.6 },
   },
   YOLOv8: {
     n: { speed: 1.47, mAP: 37.3 },
@@ -37,6 +44,7 @@ const data = {
     l: { speed: 8.95, mAP: 52.8 },
   },
   YOLOv5: {
+    n: { speed: 1.12, mAP: 28.0 },
     s: { speed: 1.92, mAP: 37.4 },
     m: { speed: 4.03, mAP: 45.4 },
     l: { speed: 6.61, mAP: 49.0 },
@@ -67,9 +75,20 @@ const data = {
     l: { speed: 9.76, mAP: 53.4 },
     x: { speed: 15.03, mAP: 54.3 },
   },
+  EfficientDet: {
+    d0: { speed: 3.92, mAP: 34.6 },
+    d1: { speed: 7.31, mAP: 40.5 },
+    d2: { speed: 10.92, mAP: 43.0 },
+    d3: { speed: 19.59, mAP: 47.5 },
+    // d4: { speed: 33.55, mAP: 49.4 },
+    // d5: { speed: 67.86, mAP: 50.7 },
+    // d6: { speed: 89.29, mAP: 51.7 },
+    // d7: { speed: 128.07, mAP: 53.7 },
+    // d8: { speed: 157.57, mAP: 55.1 }
+  },
 };
 
-let chart = null; // chart variable will hold the reference to the current chart instance.
+let modelComparisonChart = null; // chart variable will hold the reference to the current chart instance.
 
 // Function to lighten a hex color by a specified amount.
 function lightenHexColor(color, amount = 0.5) {
@@ -83,9 +102,9 @@ function lightenHexColor(color, amount = 0.5) {
 }
 
 // Function to update the benchmarks chart.
-function updateChart() {
-  if (chart) {
-    chart.destroy();
+function updateChart(initialDatasets = []) {
+  if (modelComparisonChart) {
+    modelComparisonChart.destroy();
   } // If a chart instance already exists, destroy it.
 
   // Define a specific color map for models.
@@ -101,99 +120,117 @@ function updateChart() {
     "DAMO-YOLO": "#bcbd22",
     YOLOX: "#17becf",
     RTDETRv2: "#eccd22",
+    EfficientDet: "#000000",
   };
 
-  // Get the selected algorithms from the checkboxes.
-  const selectedAlgorithms = [
-    ...document.querySelectorAll('input[name="algorithm"]:checked'),
-  ].map((e) => e.value);
-
-  // Create the datasets for the selected algorithms.
-  const datasets = selectedAlgorithms.map((algorithm, i) => {
+  // Always include all models in the dataset creation
+  const datasets = Object.keys(data).map((algorithm, i) => {
     const baseColor =
       colorMap[algorithm] || `hsl(${Math.random() * 360}, 70%, 50%)`;
-    const lineColor = i === 0 ? baseColor : lightenHexColor(baseColor, 0.6); // Lighten non-primary lines.
+    const lineColor =
+      Object.keys(data).indexOf(algorithm) === 0
+        ? baseColor
+        : lightenHexColor(baseColor, 0.6);
 
     return {
-      label: algorithm, // Label for the data points in the legend.
+      label: algorithm,
       data: Object.entries(data[algorithm]).map(([version, point]) => ({
-        x: point.speed, // Speed data points on the x-axis.
-        y: point.mAP, // mAP data points on the y-axis.
-        version: version.toUpperCase(), // Store the version as additional data.
+        x: point.speed,
+        y: point.mAP,
+        version: version.toUpperCase(),
       })),
-      fill: false, // Don't fill the chart.
-      borderColor: lineColor, // Use the lightened color for the line.
-      tension: 0.3, // Smooth the line.
-      pointRadius: i === 0 ? 7 : 4, // Highlight primary dataset points.
-      pointHoverRadius: i === 0 ? 9 : 6, // Highlight hover for primary dataset.
-      pointBackgroundColor: lineColor, // Fill points with the line color.
-      pointBorderColor: "#ffffff", // Add a border around points for contrast.
-      borderWidth: i === 0 ? 3 : 1.5, // Slightly increase line size for the primary dataset.
+      fill: false,
+      borderColor: lineColor,
+      tension: 0.2,
+      pointRadius: Object.keys(data).indexOf(algorithm) === 0 ? 7 : 4,
+      pointHoverRadius: Object.keys(data).indexOf(algorithm) === 0 ? 9 : 6,
+      pointBackgroundColor: lineColor,
+      pointBorderColor: "#ffffff",
+      borderWidth: i === 0 ? 3 : 1.5,
+      hidden:
+        initialDatasets.length > 0 && !initialDatasets.includes(algorithm),
     };
   });
 
-  if (datasets.length === 0) {
-    return;
-  } // If there are no selected algorithms, return without creating a new chart.
-
   // Create a new chart instance.
-  chart = new Chart(document.getElementById("chart").getContext("2d"), {
-    type: "line", // Set the chart type to line.
-    data: { datasets },
-    options: {
-      plugins: {
-        legend: {
-          display: true,
-          position: "top",
-          labels: { color: "#808080" },
-        }, // Configure the legend.
-        tooltip: {
-          callbacks: {
-            label: (tooltipItem) => {
-              const { dataset, dataIndex } = tooltipItem;
-              const point = dataset.data[dataIndex];
-              return `${dataset.label}${point.version.toLowerCase()}: Speed = ${point.x}, mAP = ${point.y}`; // Custom tooltip label.
-            },
-          },
-          mode: "nearest",
-          intersect: false,
-        }, // Configure the tooltip.
-      },
-      interaction: { mode: "nearest", axis: "x", intersect: false }, // Configure the interaction mode.
-      scales: {
-        x: {
-          type: "linear",
-          position: "bottom",
-          title: {
+  modelComparisonChart = new Chart(
+    document.getElementById("modelComparisonChart").getContext("2d"),
+    {
+      type: "line",
+      data: { datasets },
+      options: {
+        //aspectRatio: 2.5,  // higher is wider
+        plugins: {
+          legend: {
             display: true,
-            text: "Latency T4 TensorRT10 FP16 (ms/img)",
-            color: "#808080",
-          }, // X-axis title.
-          grid: { color: "#e0e0e0" }, // Grid line color.
-          ticks: { color: "#808080" }, // Tick label color.
+            position: "right",
+            align: "start", // start, end, center
+            labels: { color: "#808080" },
+            onClick: (e, legendItem, legend) => {
+              const index = legendItem.datasetIndex;
+              const ci = legend.chart;
+              const meta = ci.getDatasetMeta(index);
+              meta.hidden =
+                meta.hidden === null ? !ci.data.datasets[index].hidden : null;
+              ci.update();
+            },
+          }, // Configure the legend.
+          tooltip: {
+            callbacks: {
+              label: (tooltipItem) => {
+                const { dataset, dataIndex } = tooltipItem;
+                const point = dataset.data[dataIndex];
+                return `${dataset.label}${point.version.toLowerCase()}: Speed = ${point.x}ms/img, mAP50-95 = ${point.y}`; // Custom tooltip label.
+              },
+            },
+            mode: "nearest",
+            intersect: false,
+          }, // Configure the tooltip.
         },
-        y: {
-          title: { display: true, text: "mAP", color: "#808080" }, // Y-axis title.
-          grid: { color: "#e0e0e0" }, // Grid line color.
-          ticks: { color: "#808080" }, // Tick label color.
+        interaction: { mode: "nearest", axis: "x", intersect: false }, // Configure the interaction mode.
+        scales: {
+          x: {
+            type: "linear",
+            position: "bottom",
+            title: {
+              display: true,
+              text: "Latency T4 TensorRT10 FP16 (ms/img)",
+              color: "#808080",
+            },
+            grid: { color: "#e0e0e0" },
+            ticks: { color: "#808080" },
+            min: 0,
+            max: 18,
+          },
+          y: {
+            title: { display: true, text: "COCO mAP 50-95", color: "#808080" },
+            grid: { color: "#e0e0e0" },
+            ticks: { color: "#808080" },
+            min: 36,
+            max: 56,
+          },
         },
       },
     },
-  });
+  );
+}
+
+function initChart(activeModels) {
+  updateChart(activeModels);
 }
 
 document$.subscribe(function () {
-  function initializeApp() {
+  (function initializeApp() {
     if (typeof Chart !== "undefined") {
-      document
-        .querySelectorAll('input[name="algorithm"]')
-        .forEach((checkbox) =>
-          checkbox.addEventListener("change", updateChart),
-        );
-      updateChart();
+      // Get active models from page config or use default
+      // e.g. <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv5", "YOLOv8"]'></canvas>
+      const pageConfig = document
+        .getElementById("modelComparisonChart")
+        .getAttribute("active-models");
+      const activeModels = pageConfig ? JSON.parse(pageConfig) : [];
+      initChart(activeModels);
     } else {
-      setTimeout(initializeApp, 100); // Retry every 100ms
+      setTimeout(initializeApp, 50); // Retry every 50 ms
     }
-  }
-  initializeApp(); // Initial chart rendering
+  })();
 });

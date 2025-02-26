@@ -936,6 +936,7 @@ def detach_circular_reference(function: _F) -> _F:
             return None
         return bound_method(*args, **kwargs)
 
+    _fn.__delattr__("__wrapped__")  # required to not keep a reference to 'function' 
     return _fn
 
 

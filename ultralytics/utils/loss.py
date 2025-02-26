@@ -444,7 +444,6 @@ class v8SegmentationLoss(v8DetectionLoss):
 
 class v8PoseLoss(v8DetectionLoss):
     """Criterion class for computing training losses."""
-
     def __init__(self, model):  # model must be de-paralleled
         super().__init__(model)
         self.kpt_shape = model.model[-1].kpt_shape

@@ -32,7 +32,8 @@ class Colors:
     Examples:
         ```python
         from ultralytics.utils.plotting import Colors
-        color = Colors(5, True)  #ff6fdd or (255, 111, 221)
+
+        color = Colors(5, True)  # ff6fdd or (255, 111, 221)
         ```
 
     ## Ultralytics Color Palette
@@ -172,6 +173,7 @@ class Annotator:
     Examples:
         ```python
         from ultralytics.utils.plotting import Annotator
+
         im0 = cv2.imread("test.png")
         annotator = Annotator(im0, line_width=10)
         ```
@@ -264,6 +266,7 @@ class Annotator:
         Examples:
             ```python
             from ultralytics.utils.plotting import Annotator
+
             im0 = cv2.imread("test.png")
             annotator = Annotator(im0, line_width=10)
             annotator.get_txt_color(color=(104, 31, 17))  # return (255, 255, 255)
@@ -368,6 +371,7 @@ class Annotator:
         Examples:
             ```python
             from ultralytics.utils.plotting import Annotator
+
             im0 = cv2.imread("test.png")
             annotator = Annotator(im0, line_width=10)
             annotator.box_label(box=[10, 20, 30, 40], label="person")
@@ -590,6 +594,7 @@ class Annotator:
         Examples:
             ```python
             from ultralytics.utils.plotting import Annotator
+
             im0 = cv2.imread("test.png")
             annotator = Annotator(im0, line_width=10)
             annotator.get_bbox_dimension(box=[10, 20, 30, 40])

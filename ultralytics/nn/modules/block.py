@@ -1156,8 +1156,8 @@ class TorchVision(nn.Module):
         return y
 
 
-# from flash_attn.flash_attn_interface import flash_attn_func, flash_attn_varlen_qkvpacked_func  # 2.0
-from flash_attn.flash_attn_interface import flash_attn_unpadded_qkvpacked_func  # 1.0
+from flash_attn.flash_attn_interface import flash_attn_func, flash_attn_varlen_qkvpacked_func  # 2.0
+# from flash_attn.flash_attn_interface import flash_attn_unpadded_qkvpacked_func  # 1.0
 
 
 class AAttn(nn.Module):
@@ -1216,13 +1216,15 @@ class AAttn(nn.Module):
             qkv = qkv.reshape(B * self.area, N // self.area, C * 3)
             B, N, _ = qkv.shape
 
-        # qkv = qkv.reshape(B * N, self.num_heads, self.head_dim, 3).permute(0, 3, 1, 2)
-        qkv = qkv.reshape(B * N, 3, self.num_heads, self.head_dim)
-        v = qkv[:, 2]
-        cu_seqlens = torch.arange(0, (B + 1) * N, step=N, dtype=torch.int32, device=qkv.device)
+        q, k, v = qkv.view(B, N, self.num_heads, self.head_dim * 3).split(
+            [self.head_dim, self.head_dim, self.head_dim], dim=3
+        )
 
-        x = flash_attn_unpadded_qkvpacked_func(   # 1.x
-        # x = flash_attn_varlen_qkvpacked_func(  # 2.x
+        qkv = torch.stack([q, k, v], dim=2)
+        qkv = qkv.reshape(B * N, 3, self.num_heads, self.head_dim)
+        cu_seqlens = torch.arange(0, (B + 1) * N, step=N, dtype=torch.int32, device=qkv.device)
+        # x = flash_attn_unpadded_qkvpacked_func(   # 1.x
+        x = flash_attn_varlen_qkvpacked_func(  # 2.x
             qkv.contiguous().half(),
             cu_seqlens,
             N,

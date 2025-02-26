@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import Union
 
 import numpy as np
-import thop
 import torch
 import torch.distributed as dist
 import torch.nn as nn
@@ -30,6 +29,11 @@ from ultralytics.utils import (
     colorstr,
 )
 from ultralytics.utils.checks import check_version
+
+try:
+    import thop
+except ImportError:
+    thop = None  # conda support without 'ultralytics-thop' installed
 
 # Version checks (all default to version>=min_version)
 TORCH_1_9 = check_version(torch.__version__, "1.9.0")
@@ -302,15 +306,21 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
         return
     n_p = get_num_params(model)  # number of parameters
     n_g = get_num_gradients(model)  # number of gradients
-    n_l = len(list(model.modules()))  # number of layers
+    layers = __import__("collections").OrderedDict((n, m) for n, m in model.named_modules() if len(m._modules) == 0)
+    n_l = len(layers)  # number of layers
     if detailed:
-        LOGGER.info(f"{'layer':>5}{'name':>40}{'gradient':>10}{'parameters':>12}{'shape':>20}{'mu':>10}{'sigma':>10}")
-        for i, (name, p) in enumerate(model.named_parameters()):
-            name = name.replace("module_list.", "")
-            LOGGER.info(
-                f"{i:>5g}{name:>40s}{p.requires_grad!r:>10}{p.numel():>12g}{str(list(p.shape)):>20s}"
-                f"{p.mean():>10.3g}{p.std():>10.3g}{str(p.dtype):>15s}"
-            )
+        h = f"{'layer':>5}{'name':>40}{'type':>20}{'gradient':>10}{'parameters':>12}{'shape':>20}{'mu':>10}{'sigma':>10}"
+        LOGGER.info(h)
+        for i, (mn, m) in enumerate(layers.items()):
+            mn = mn.replace("module_list.", "")
+            mt = m.__class__.__name__
+            if len(m._parameters):
+                for pn, p in m.named_parameters():
+                    LOGGER.info(
+                        f"{i:>5g}{f'{mn}.{pn}':>40}{mt:>20}{p.requires_grad!r:>10}{p.numel():>12g}{str(list(p.shape)):>20}{p.mean():>10.3g}{p.std():>10.3g}{str(p.dtype).replace('torch.', ''):>15}"
+                    )
+            else:  # layers with no learnable params
+                LOGGER.info(f"{i:>5g}{mn:>40}{mt:>20}{False!r:>10}{0:>12g}{str([]):>20}{'-':>10}{'-':>10}{'-':>15}")
 
     flops = get_flops(model, imgsz)  # imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320]
     fused = " (fused)" if getattr(model, "is_fused", lambda: False)() else ""
@@ -363,6 +373,9 @@ def model_info_for_loggers(trainer):
 
 def get_flops(model, imgsz=640):
     """Return a YOLO model's FLOPs."""
+    if not thop:
+        return 0.0  # if not installed return 0.0 GFLOPs
+
     try:
         model = de_parallel(model)
         p = next(model.parameters())
@@ -488,8 +501,15 @@ def init_seeds(seed=0, deterministic=False):
         else:
             LOGGER.warning("WARNING ⚠️ Upgrade to torch>=2.0.0 for deterministic training.")
     else:
-        torch.use_deterministic_algorithms(False)
-        torch.backends.cudnn.deterministic = False
+        unset_deterministic()
+
+
+def unset_deterministic():
+    """Unsets all the configurations applied for deterministic training."""
+    torch.use_deterministic_algorithms(False)
+    torch.backends.cudnn.deterministic = False
+    os.environ.pop("CUBLAS_WORKSPACE_CONFIG", None)
+    os.environ.pop("PYTHONHASHSEED", None)
 
 
 class ModelEMA:
@@ -667,7 +687,7 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
             m = m.half() if hasattr(m, "half") and isinstance(x, torch.Tensor) and x.dtype is torch.float16 else m
             tf, tb, t = 0, 0, [0, 0, 0]  # dt forward, backward
             try:
-                flops = thop.profile(deepcopy(m), inputs=[x], verbose=False)[0] / 1e9 * 2  # GFLOPs
+                flops = thop.profile(deepcopy(m), inputs=[x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs
             except Exception:
                 flops = 0
 
@@ -739,7 +759,7 @@ class EarlyStopping:
         if fitness is None:  # check if fitness=None (happens when val=False)
             return False
 
-        if fitness >= self.best_fitness:  # >= 0 to allow for early zero-fitness stage of training
+        if fitness > self.best_fitness or self.best_fitness == 0:  # allow for early zero-fitness stage of training
             self.best_epoch = epoch
             self.best_fitness = fitness
         delta = epoch - self.best_epoch  # epochs without improvement

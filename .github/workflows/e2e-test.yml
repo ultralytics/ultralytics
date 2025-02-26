@@ -1,0 +1,46 @@
+name: E2E Test
+on: [push, pull_request]
+
+jobs:
+  e2e-test:
+    name: Node.js
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ["10.x", "12.x", "14.x"]
+
+    steps:
+      - name: Checkout https://github.com/${{ github.repository }}@${{ github.ref }}
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Use cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            ~/.cache
+          key: ${{ runner.os }}-node${{ matrix.node-version }}-E2E-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm run cy:verify
+
+      - name: Start MongoDB
+        run: |
+          docker run -d -p 27017:27017 mongo:4.0
+          timeout 60s bash -c 'until nc -z -w 2 localhost 27017 && echo MongoDB ready; do sleep 2; done'
+
+      - name: Run E2E test suite
+        run: |
+          NODE_ENV=test npm start -- --silent &
+          npm run test:ci

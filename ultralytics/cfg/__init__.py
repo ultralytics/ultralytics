@@ -326,8 +326,8 @@ def check_cfg(cfg, hard=True):
     Checks configuration argument types and values for the Ultralytics library.
 
     This function validates the types and values of configuration arguments, ensuring correctness and converting
-    them if necessary. It checks for specific key types defined in global variables such as ``CFG_FLOAT_KEYS`,
-    `CFG_FRACTION_KEYS`, ``CFG_INT_KEYS`, and `CFG_BOOL_KEYS`.
+    them if necessary. It checks for specific key types defined in global variables such as `CFG_FLOAT_KEYS`,
+    `CFG_FRACTION_KEYS`, `CFG_INT_KEYS`, and `CFG_BOOL_KEYS`.
 
     Args:
         cfg (Dict): Configuration dictionary to validate.

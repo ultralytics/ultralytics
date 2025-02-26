@@ -32,7 +32,7 @@ class Colors:
     Examples:
         ```python
         from ultralytics.utils.plotting import Colors
-        color = Colors (5, True)  #ff6fdd or (255, 111, 221)
+        color = Colors(5, True)  #ff6fdd or (255, 111, 221)
         ```
 
     ## Ultralytics Color Palette

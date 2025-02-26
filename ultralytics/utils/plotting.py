@@ -365,13 +365,13 @@ class Annotator:
             txt_color (tuple, optional): The color of the text (R, G, B).
             rotated (bool, optional): Variable used to check if task is OBB
 
-            Examples:
-                ```python
-                from ultralytics.utils.plotting import Annotator
-                im0 = cv2.imread("test.png")
-                annotator = Annotator(im0, line_width=10)
-                annotator.box_label(box=[10, 20, 30, 40], label="person")
-                ```
+        Examples:
+            ```python
+            from ultralytics.utils.plotting import Annotator
+            im0 = cv2.imread("test.png")
+            annotator = Annotator(im0, line_width=10)
+            annotator.box_label(box=[10, 20, 30, 40], label="person")
+            ```
         """
         txt_color = self.get_txt_color(color, txt_color)
         if isinstance(box, torch.Tensor):

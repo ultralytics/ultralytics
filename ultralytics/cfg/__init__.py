@@ -498,7 +498,6 @@ def merge_equals_args(args: List[str]) -> List[str]:
     Merges arguments around isolated '=' in a list of strings and joins fragments with brackets.
 
     This function handles the following cases:
-
         1. ['arg', '=', 'val'] becomes ['arg=val']
         2. ['arg=', 'val'] becomes ['arg=val']
         3. ['arg', '=val'] becomes ['arg=val']

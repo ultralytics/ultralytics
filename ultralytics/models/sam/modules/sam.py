@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # All rights reserved.
@@ -426,8 +426,7 @@ class SAM2Model(torch.nn.Module):
                 high_res_masks: Tensor of shape (B, 1, H*16, W*16) with the best high-resolution mask.
                 obj_ptr: Tensor of shape (B, C) with object pointer vector for the output mask.
                 object_score_logits: Tensor of shape (B) with object score logits.
-
-            Where M is 3 if multimask_output=True, and 1 if multimask_output=False.
+                Where M is 3 if multimask_output=True, and 1 if multimask_output=False.
 
         Examples:
             >>> backbone_features = torch.rand(1, 256, 32, 32)

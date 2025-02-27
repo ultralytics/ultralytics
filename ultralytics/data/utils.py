@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import hashlib
 import json
@@ -60,8 +60,7 @@ def exif_size(img: Image.Image):
     s = img.size  # (width, height)
     if img.format == "JPEG":  # only support JPEG images
         try:
-            exif = img.getexif()
-            if exif:
+            if exif := img.getexif():
                 rotation = exif.get(274, None)  # the EXIF key for the orientation tag is 274
                 if rotation in {6, 8}:  # rotation 270 or 90
                     s = s[1], s[0]
@@ -125,8 +124,7 @@ def verify_image_label(args):
                     segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
                     lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
                 lb = np.array(lb, dtype=np.float32)
-            nl = len(lb)
-            if nl:
+            if nl := len(lb):
                 if keypoint:
                     assert lb.shape[1] == (5 + nkpt * ndim), f"labels require {(5 + nkpt * ndim)} columns each"
                     points = lb[:, 5:].reshape(-1, ndim)[:, :2]
@@ -138,7 +136,7 @@ def verify_image_label(args):
 
                 # All labels
                 max_cls = lb[:, 0].max()  # max label count
-                assert max_cls <= num_cls, (
+                assert max_cls < num_cls, (
                     f"Label class {int(max_cls)} exceeds dataset class count {num_cls}. "
                     f"Possible class labels are 0-{num_cls - 1}"
                 )
@@ -569,7 +567,7 @@ class HUBDatasetStats:
 
             # Get dataset statistics
             if self.task == "classify":
-                from torchvision.datasets import ImageFolder
+                from torchvision.datasets import ImageFolder  # scope for faster 'import ultralytics'
 
                 dataset = ImageFolder(self.data[split])
 
@@ -716,8 +714,8 @@ def save_dataset_cache_file(prefix, path, x, version):
     if is_dir_writeable(path.parent):
         if path.exists():
             path.unlink()  # remove *.cache file if exists
-        np.save(str(path), x)  # save cache for next time
-        path.with_suffix(".cache.npy").rename(path)  # remove .npy suffix
+        with open(str(path), "wb") as file:  # context manager here fixes windows async np.save bug
+            np.save(file, x)
         LOGGER.info(f"{prefix}New cache created: {path}")
     else:
         LOGGER.warning(f"{prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable, cache not saved.")

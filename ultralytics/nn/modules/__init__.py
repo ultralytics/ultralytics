@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 Ultralytics modules.
 
@@ -30,6 +30,7 @@ from .block import (
     SPP,
     SPPELAN,
     SPPF,
+    A2C2f,
     AConv,
     ADown,
     Attention,
@@ -160,4 +161,5 @@ __all__ = (
     "PSA",
     "TorchVision",
     "Index",
+    "A2C2f",
 )

@@ -57,16 +57,20 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
         yolo predict model=yolov8n_openvino_model source='https://ultralytics.com/images/bus.jpg'
         ```
 
-## Arguments
+## Export Arguments
 
-| Key       | Value        | Description                                                                 |
-| --------- | ------------ | --------------------------------------------------------------------------- |
-| `format`  | `'openvino'` | format to export to                                                         |
-| `imgsz`   | `640`        | image size as scalar or (h, w) list, i.e. (640, 480)                        |
-| `half`    | `False`      | FP16 quantization                                                           |
-| `int8`    | `False`      | INT8 quantization                                                           |
-| `batch`   | `1`          | [batch size](https://www.ultralytics.com/glossary/batch-size) for inference |
-| `dynamic` | `False`      | allows dynamic input sizes                                                  |
+| Argument  | Type             | Default        | Description                                                                                                                                                                                   |
+| --------- | ---------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`  | `str`            | `'openvino'`   | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
+| `imgsz`   | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
+| `half`    | `bool`           | `False`        | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                                                                  |
+| `int8`    | `bool`           | `False`        | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
+| `dynamic` | `bool`           | `False`        | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                       |
+| `nms`     | `bool`           | `False`        | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                           |
+| `batch`   | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                       |
+| `data`    | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets) configuration file (default: `coco8.yaml`), essential for quantization.                                                          |
+
+For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
 ## Benefits of OpenVINO
 

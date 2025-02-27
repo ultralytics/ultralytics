@@ -1,6 +1,5 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
 
@@ -14,7 +13,7 @@ class PosePredictor(DetectionPredictor):
         from ultralytics.utils import ASSETS
         from ultralytics.models.yolo.pose import PosePredictor
 
-        args = dict(model="yolov8n-pose.pt", source=ASSETS)
+        args = dict(model="yolo11n-pose.pt", source=ASSETS)
         predictor = PosePredictor(overrides=args)
         predictor.predict_cli()
         ```
@@ -30,27 +29,21 @@ class PosePredictor(DetectionPredictor):
                 "See https://github.com/ultralytics/ultralytics/issues/4031."
             )
 
-    def postprocess(self, preds, img, orig_imgs):
-        """Return detection results for a given input image or list of images."""
-        preds = ops.non_max_suppression(
-            preds,
-            self.args.conf,
-            self.args.iou,
-            agnostic=self.args.agnostic_nms,
-            max_det=self.args.max_det,
-            classes=self.args.classes,
-            nc=len(self.model.names),
-        )
+    def construct_result(self, pred, img, orig_img, img_path):
+        """
+        Constructs the result object from the prediction.
 
-        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
-            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+        Args:
+            pred (torch.Tensor): The predicted bounding boxes, scores, and keypoints.
+            img (torch.Tensor): The image after preprocessing.
+            orig_img (np.ndarray): The original image before preprocessing.
+            img_path (str): The path to the original image.
 
-        results = []
-        for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0]):
-            pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round()
-            pred_kpts = pred[:, 6:].view(len(pred), *self.model.kpt_shape) if len(pred) else pred[:, 6:]
-            pred_kpts = ops.scale_coords(img.shape[2:], pred_kpts, orig_img.shape)
-            results.append(
-                Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], keypoints=pred_kpts)
-            )
-        return results
+        Returns:
+            (Results): The result object containing the original image, image path, class names, bounding boxes, and keypoints.
+        """
+        result = super().construct_result(pred, img, orig_img, img_path)
+        pred_kpts = pred[:, 6:].view(len(pred), *self.model.kpt_shape) if len(pred) else pred[:, 6:]
+        pred_kpts = ops.scale_coords(img.shape[2:], pred_kpts, orig_img.shape)
+        result.update(keypoints=pred_kpts)
+        return result

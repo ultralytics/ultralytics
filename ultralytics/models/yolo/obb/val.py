@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from pathlib import Path
 
@@ -18,7 +18,7 @@ class OBBValidator(DetectionValidator):
         ```python
         from ultralytics.models.yolo.obb import OBBValidator
 
-        args = dict(model="yolov8n-obb.pt", data="dota8.yaml")
+        args = dict(model="yolo11n-obb.pt", data="dota8.yaml")
         validator = OBBValidator(args=args)
         validator(model=args["model"])
         ```
@@ -35,20 +35,6 @@ class OBBValidator(DetectionValidator):
         super().init_metrics(model)
         val = self.data.get(self.args.split, "")  # validation path
         self.is_dota = isinstance(val, str) and "DOTA" in val  # is COCO
-
-    def postprocess(self, preds):
-        """Apply Non-maximum suppression to prediction outputs."""
-        return ops.non_max_suppression(
-            preds,
-            self.args.conf,
-            self.args.iou,
-            labels=self.lb,
-            nc=self.nc,
-            multi_label=True,
-            agnostic=self.args.single_cls or self.args.agnostic_nms,
-            max_det=self.args.max_det,
-            rotated=True,
-        )
 
     def _process_batch(self, detections, gt_bboxes, gt_cls):
         """

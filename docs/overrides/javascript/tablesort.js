@@ -66,37 +66,35 @@ Tablesort.extend(
 );
 
 // tablesort.number.min.js
-(function () {
-  var cleanNumber = function (i) {
-      return i.replace(/[^\-?0-9.]/g, "");
-    },
-    compareNumber = function (a, b) {
-      a = parseFloat(a);
-      b = parseFloat(b);
+(function() {
+  var cleanNumber = function(i) {
+    // Remove everything after ± symbol if present
+    i = i.split('±')[0].trim();
+    return i.replace(/[^\-?0-9.]/g, '');
+  },
 
-      a = isNaN(a) ? 0 : a;
-      b = isNaN(b) ? 0 : b;
+  compareNumber = function(a, b) {
+    a = parseFloat(a);
+    b = parseFloat(b);
 
-      return a - b;
-    };
+    a = isNaN(a) ? 0 : a;
+    b = isNaN(b) ? 0 : b;
 
-  Tablesort.extend(
-    "number",
-    function (item) {
-      return (
-        item.match(/^[-+]?[£\x24Û¢´€]?\d+\s*([,\.]\d{0,2})/) || // Prefixed currency
-        item.match(/^[-+]?\d+\s*([,\.]\d{0,2})?[£\x24Û¢´€]/) || // Suffixed currency
-        item.match(/^[-+]?(\d)*-?([,\.]){0,1}-?(\d)+([E,e][\-+][\d]+)?%?$/)
-      ); // Number
-    },
-    function (a, b) {
-      a = cleanNumber(a);
-      b = cleanNumber(b);
+    return a - b;
+  };
 
-      return compareNumber(b, a);
-    },
-  );
-})();
+  Tablesort.extend('number', function(item) {
+    return item.match(/^[-+]?[£\x24Û¢´€]?\d+\s*([,\.]\d{0,2})/) || // Prefixed currency
+      item.match(/^[-+]?\d+\s*([,\.]\d{0,2})?[£\x24Û¢´€]/) || // Suffixed currency
+      item.match(/^[-+]?(\d)*-?([,\.]){0,1}-?(\d)+([E,e][\-+][\d]+)?%?$/); // Number
+  }, function(a, b) {
+    a = cleanNumber(a);
+    b = cleanNumber(b);
+
+    return compareNumber(b, a);
+  });
+
+}());
 
 // tablesort.monthname.min.js
 Tablesort.extend(

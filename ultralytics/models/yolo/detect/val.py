@@ -186,7 +186,7 @@ class DetectionValidator(BaseValidator):
         self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=self.nc)
         self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=self.nc)
         stats.pop("target_img", None)
-        if len(stats) and stats["tp"].any():
+        if len(stats):
             self.metrics.process(**stats)
         return self.metrics.results_dict
 

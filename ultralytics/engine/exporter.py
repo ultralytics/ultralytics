@@ -190,7 +190,7 @@ def arange_patch(args):
         func = torch.arange
 
         def arange(*args, dtype=None, **kwargs):
-            return func(*args, **kwargs).to(dtype)  # workaround arange FP16 incompatibility
+            return func(*args, **kwargs).to(dtype)  # cast to dtype instead of passing dtype
 
         torch.arange = arange  # patch
         yield

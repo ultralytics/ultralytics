@@ -929,7 +929,7 @@ class MixUp(BaseMixTransform):
         Applies MixUp augmentation to the input labels.
 
         This method implements the MixUp augmentation technique as described in the paper
-        [mixup: Beyond Empirical Risk Minimization](https://arxiv.org/abs/1710.09412).
+        "mixup: Beyond Empirical Risk Minimization" (https://arxiv.org/abs/1710.09412).
 
         Args:
             labels (Dict): A dictionary containing the original image and label information.

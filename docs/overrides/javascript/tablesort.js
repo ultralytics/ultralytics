@@ -100,36 +100,6 @@ Tablesort.extend(
   );
 })();
 
-// tablesort.monthname.min.js
-Tablesort.extend(
-  "monthname",
-  function (e) {
-    return (
-      -1 !==
-      e.search(
-        /(January|February|March|April|May|June|July|August|September|October|November|December)/i,
-      )
-    );
-  },
-  function (e, r) {
-    var u = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
-    return u.indexOf(r) - u.indexOf(e);
-  },
-);
-
 // subscribe
 document$.subscribe(function () {
   var tables = document.querySelectorAll("article table:not([class])");

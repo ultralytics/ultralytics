@@ -53,7 +53,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv8"]'></canvas>
 
-!!! performance
+!!! tip "Performance"
 
     === "Detection (COCO)"
 

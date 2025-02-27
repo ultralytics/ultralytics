@@ -583,7 +583,7 @@ class Annotator:
             >>> from ultralytics.utils.plotting import Annotator
             >>> im0 = cv2.imread("test.png")
             >>> annotator = Annotator(im0, line_width=10)
-            >>> annotator.get_bbox_dimension(box=[10, 20, 30, 40])
+            >>> annotator.get_bbox_dimension(bbox=[10, 20, 30, 40])
         """
         x_min, y_min, x_max, y_max = bbox
         width = x_max - x_min

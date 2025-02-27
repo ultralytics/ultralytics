@@ -803,13 +803,11 @@ class DetMetrics(SimpleClass):
     Args:
         save_dir (Path): A path to the directory where the output plots will be saved. Defaults to current directory.
         plot (bool): A flag that indicates whether to plot precision-recall curves for each class. Defaults to False.
-        on_plot (func): An optional callback to pass plots path and data when they are rendered. Defaults to None.
         names (dict of str): A dict of strings that represents the names of the classes. Defaults to an empty tuple.
 
     Attributes:
         save_dir (Path): A path to the directory where the output plots will be saved.
         plot (bool): A flag that indicates whether to plot the precision-recall curves for each class.
-        on_plot (func): An optional callback to pass plots path and data when they are rendered.
         names (dict of str): A dict of strings that represents the names of the classes.
         box (Metric): An instance of the Metric class for storing the results of the detection metrics.
         speed (dict): A dictionary for storing the execution time of different parts of the detection process.
@@ -902,13 +900,11 @@ class SegmentMetrics(SimpleClass):
     Args:
         save_dir (Path): Path to the directory where the output plots should be saved. Default is the current directory.
         plot (bool): Whether to save the detection and segmentation plots. Default is False.
-        on_plot (func): An optional callback to pass plots path and data when they are rendered. Defaults to None.
         names (list): List of class names. Default is an empty list.
 
     Attributes:
         save_dir (Path): Path to the directory where the output plots should be saved.
         plot (bool): Whether to save the detection and segmentation plots.
-        on_plot (func): An optional callback to pass plots path and data when they are rendered.
         names (list): List of class names.
         box (Metric): An instance of the Metric class to calculate box detection metrics.
         seg (Metric): An instance of the Metric class to calculate mask segmentation metrics.
@@ -944,6 +940,7 @@ class SegmentMetrics(SimpleClass):
             conf (list): List of confidence scores.
             pred_cls (list): List of predicted classes.
             target_cls (list): List of target classes.
+            on_plot (func): An optional callback to pass plots path and data when they are rendered. Defaults to None.
         """
         results_mask = ap_per_class(
             tp_m,
@@ -1041,13 +1038,11 @@ class PoseMetrics(SegmentMetrics):
     Args:
         save_dir (Path): Path to the directory where the output plots should be saved. Default is the current directory.
         plot (bool): Whether to save the detection and segmentation plots. Default is False.
-        on_plot (func): An optional callback to pass plots path and data when they are rendered. Defaults to None.
         names (list): List of class names. Default is an empty list.
 
     Attributes:
         save_dir (Path): Path to the directory where the output plots should be saved.
         plot (bool): Whether to save the detection and segmentation plots.
-        on_plot (func): An optional callback to pass plots path and data when they are rendered.
         names (list): List of class names.
         box (Metric): An instance of the Metric class to calculate box detection metrics.
         pose (Metric): An instance of the Metric class to calculate mask segmentation metrics.
@@ -1084,6 +1079,7 @@ class PoseMetrics(SegmentMetrics):
             conf (list): List of confidence scores.
             pred_cls (list): List of predicted classes.
             target_cls (list): List of target classes.
+            on_plot (func): An optional callback to pass plots path and data when they are rendered. Defaults to None.
         """
         results_pose = ap_per_class(
             tp_p,

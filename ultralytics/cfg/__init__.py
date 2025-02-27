@@ -237,6 +237,12 @@ CFG_BOOL_KEYS = frozenset(
     }
 )
 
+CFG_BOOL_OR_LIST_KEYS = frozenset(
+    {  # boolean or list arguments
+        "show_labels",
+    }
+)
+
 
 def cfg2dict(cfg):
     """
@@ -327,7 +333,7 @@ def check_cfg(cfg, hard=True):
 
     This function validates the types and values of configuration arguments, ensuring correctness and converting
     them if necessary. It checks for specific key types defined in global variables such as CFG_FLOAT_KEYS,
-    CFG_FRACTION_KEYS, CFG_INT_KEYS, and CFG_BOOL_KEYS.
+    CFG_FRACTION_KEYS, CFG_INT_KEYS, CFG_BOOL_KEYS, and CFG_BOOL_OR_LIST_KEYS.
 
     Args:
         cfg (Dict): Configuration dictionary to validate.
@@ -381,6 +387,12 @@ def check_cfg(cfg, hard=True):
                         f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')"
                     )
                 cfg[k] = bool(v)
+            elif k in CFG_BOOL_OR_LIST_KEYS and not isinstance(v, (bool, list)):
+                if hard:
+                    raise TypeError(
+                        f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                        f"'{k}' must be a bool or a list (i.e. '{k}=True' or '{k}=False' or a list)"
+                    )
 
 
 def get_save_dir(args, name=None):

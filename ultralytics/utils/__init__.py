@@ -17,6 +17,7 @@ import warnings
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
+from typing import Union
 from urllib.parse import unquote
 
 import cv2

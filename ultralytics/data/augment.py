@@ -868,8 +868,8 @@ class MixUp(BaseMixTransform):
     """
     Applies MixUp augmentation to image datasets.
 
-    This class implements the MixUp augmentation technique as described in the paper "mixup: Beyond Empirical Risk
-    Minimization" (https://arxiv.org/abs/1710.09412). MixUp combines two images and their labels using a random weight.
+    This class implements the MixUp augmentation technique as described in the paper [mixup: Beyond Empirical Risk
+    Minimization](https://arxiv.org/abs/1710.09412). MixUp combines two images and their labels using a random weight.
 
     Attributes:
         dataset (Any): The dataset to which MixUp augmentation will be applied.

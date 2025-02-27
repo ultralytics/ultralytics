@@ -186,7 +186,7 @@ def try_export(inner_func):
 @__import__("contextlib").contextmanager
 def arange_patch(args):
     """Workaround for ONNX torch.arange incompatibility with FP16."""
-    if args.dynamic and args.half:
+    if args.dynamic and args.half and args.format == "onnx":
         func = torch.arange
 
         def arange(*args, dtype=None, **kwargs):

@@ -49,7 +49,7 @@ Users can iteratively refine the segmentation results by providing additional pr
 
 SAM 2 includes mechanisms to manage common video segmentation challenges, such as object occlusion and reappearance. It uses a sophisticated memory mechanism to keep track of objects across frames, ensuring continuity even when objects are temporarily obscured or exit and re-enter the scene.
 
-For a deeper understanding of SAM 2's architecture and capabilities, explore the [SAM 2 research paper](https://arxiv.org/abs/2401.12741).
+For a deeper understanding of SAM 2's architecture and capabilities, explore the [SAM 2 research paper](https://arxiv.org/abs/2408.00714).
 
 ## Performance and Technical Details
 
@@ -338,7 +338,7 @@ SAM 2, the successor to Meta's [Segment Anything Model (SAM)](sam.md), is a cutt
 - **Interactive Refinement**: Allows users to iteratively refine segmentation results by providing additional prompts.
 - **Advanced Handling of Visual Challenges**: Manages common video segmentation challenges like object occlusion and reappearance.
 
-For more details on SAM 2's architecture and capabilities, explore the [SAM 2 research paper](https://arxiv.org/abs/2401.12741).
+For more details on SAM 2's architecture and capabilities, explore the [SAM 2 research paper](https://arxiv.org/abs/2408.00714).
 
 ### How can I use SAM 2 for real-time video segmentation?
 

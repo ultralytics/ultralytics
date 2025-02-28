@@ -42,7 +42,7 @@ from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
 from ultralytics.utils import ARM64, ASSETS, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR
-from ultralytics.utils.checks import IS_PYTHON_3_12, check_imgsz, check_requirements, check_yolo
+from ultralytics.utils.checks import IS_PYTHON_3_12, check_imgsz, check_requirements, check_yolo, is_rockchip
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import get_cpu_info, select_device
@@ -163,6 +163,7 @@ def benchmark(
             assert i != 5 or platform.system() == "Darwin", "inference only supported on macOS>=10.13"  # CoreML
             if i in {13}:
                 assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
+            assert i != 14 or is_rockchip(), "inference only supported on Rockchip devices"  # RKNN
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, verbose=False)
 
             # Validate

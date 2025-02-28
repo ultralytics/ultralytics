@@ -62,6 +62,7 @@ import shutil
 import subprocess
 import time
 import warnings
+from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
@@ -183,7 +184,7 @@ def try_export(inner_func):
     return outer_func
 
 
-@__import__("contextlib").contextmanager
+@contextmanager
 def arange_patch(args):
     """
     Workaround for ONNX torch.arange incompatibility with FP16.

@@ -280,6 +280,10 @@ class Exporter:
             assert self.args.name in RKNN_CHIPS, (
                 f"Invalid processor name '{self.args.name}' for Rockchip RKNN export. Valid names are {RKNN_CHIPS}."
             )
+            if ARM64 and not LINUX:
+                raise SystemError(
+                    "RKNN export only supported on non-aarch64 Linux."
+                )
         if self.args.int8 and tflite:
             assert not getattr(model, "end2end", False), "TFLite INT8 export not supported for end2end models."
         if self.args.nms:

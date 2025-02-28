@@ -42,7 +42,7 @@ from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
 from ultralytics.utils import ARM64, ASSETS, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR
-from ultralytics.utils.checks import IS_PYTHON_3_12, check_imgsz, check_requirements, check_yolo, is_rockchip
+from ultralytics.utils.checks import IS_PYTHON_3_12, check_imgsz, check_requirements, check_yolo
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import get_cpu_info, select_device
@@ -140,8 +140,6 @@ def benchmark(
             if i == 15:  # RKNN
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 RKNN exports not supported yet"
                 assert not is_end2end, "End-to-end models not supported by RKNN yet"
-                assert LINUX, "RKNN only supported on Linux"
-                assert not is_rockchip(), "RKNN Inference only supported on Rockchip devices"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:

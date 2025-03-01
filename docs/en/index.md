@@ -144,6 +144,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 - [YOLOv9](models/yolov9.md) introduces innovative methods like Programmable Gradient Information (PGI) and the Generalized Efficient Layer Aggregation Network (GELAN).
 - [YOLOv10](models/yolov10.md) is created by researchers from [Tsinghua University](https://www.tsinghua.edu.cn/en/) using the [Ultralytics](https://www.ultralytics.com/) [Python package](https://pypi.org/project/ultralytics/). This version provides real-time [object detection](tasks/detect.md) advancements by introducing an End-to-End head that eliminates Non-Maximum Suppression (NMS) requirements.
 - **[YOLO11](models/yolo11.md) 🚀 NEW**: Ultralytics' latest YOLO models delivering state-of-the-art (SOTA) performance across multiple tasks, including [object detection](tasks/detect.md), [segmentation](tasks/segment.md), [pose estimation](tasks/pose.md), [tracking](modes/track.md), and [classification](tasks/classify.md), leverage capabilities across diverse AI applications and domains.
+- **[YOLO12](models/yolo12.md)**, released in 2025, introduces an attention-centric architecture that replaces traditional CNN designs. By incorporating the Area Attention Mechanism and Residual Efficient Layer Aggregation Networks (R-ELAN), it delivers state-of-the-art object detection accuracy while maintaining real-time efficiency.
 
 ## YOLO Licenses: How is Ultralytics YOLO licensed?
 

@@ -184,7 +184,7 @@ def visualize_image_annotations(image_path, txt_path, label_map):
                         - height (float): The height of the bounding box (relative to image height).
         label_map (dict): A dictionary that maps class IDs (integers) to class labels (strings).
 
-    Example:
+    Examples:
         >>> label_map = {0: "cat", 1: "dog", 2: "bird"}  # It should include all annotated classes details
         >>> visualize_image_annotations("path/to/image.jpg", "path/to/annotations.txt", label_map)
     """
@@ -714,8 +714,8 @@ def save_dataset_cache_file(prefix, path, x, version):
     if is_dir_writeable(path.parent):
         if path.exists():
             path.unlink()  # remove *.cache file if exists
-        np.save(str(path), x)  # save cache for next time
-        path.with_suffix(".cache.npy").rename(path)  # remove .npy suffix
+        with open(str(path), "wb") as file:  # context manager here fixes windows async np.save bug
+            np.save(file, x)
         LOGGER.info(f"{prefix}New cache created: {path}")
     else:
         LOGGER.warning(f"{prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable, cache not saved.")

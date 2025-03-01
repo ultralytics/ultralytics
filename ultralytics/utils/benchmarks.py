@@ -57,6 +57,7 @@ def benchmark(
     device="cpu",
     verbose=False,
     eps=1e-3,
+    format="",
 ):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
@@ -70,6 +71,7 @@ def benchmark(
         device (str): Device to run the benchmark on, either 'cpu' or 'cuda'.
         verbose (bool | float): If True or a float, assert benchmarks pass with given metric.
         eps (float): Epsilon value for divide by zero prevention.
+        format (str): Export format for benchmarking. If not supplied all formats are benchmarked.
 
     Returns:
         (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size, metric,
@@ -91,12 +93,22 @@ def benchmark(
     if isinstance(model, (str, Path)):
         model = YOLO(model)
     is_end2end = getattr(model.model.model[-1], "end2end", False)
+    data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
+    key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
 
     y = []
     t0 = time.time()
+
+    format_arg = format.lower()
+    if format_arg:
+        formats = frozenset(export_formats()["Argument"])
+        assert format in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
     for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
         emoji, filename = "❌", None  # export defaults
         try:
+            if format_arg and format_arg != format:
+                continue
+
             # Checks
             if i == 7:  # TF GraphDef
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
@@ -140,7 +152,9 @@ def benchmark(
                 filename = model.pt_path or model.ckpt_path or model.model_name
                 exported_model = model  # PyTorch format
             else:
-                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False)
+                filename = model.export(
+                    imgsz=imgsz, format=format, half=half, int8=int8, data=data, device=device, verbose=False
+                )
                 exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"
             emoji = "❎"  # indicates export succeeded
@@ -154,8 +168,6 @@ def benchmark(
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, verbose=False)
 
             # Validate
-            data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
-            key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
             results = exported_model.val(
                 data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
             )

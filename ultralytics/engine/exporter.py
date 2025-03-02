@@ -170,6 +170,7 @@ def try_export(inner_func):
     def outer_func(*args, **kwargs):
         """Export a model."""
         prefix = inner_args["prefix"]
+        dt = 0.0
         try:
             with Profile() as dt:
                 f, model = inner_func(*args, **kwargs)
@@ -309,9 +310,8 @@ class Exporter:
                 "WARNING ⚠️ INT8 export requires a missing 'data' arg for calibration. "
                 f"Using default 'data={self.args.data}'."
             )
-        if tfjs:
-            if ARM64 and LINUX:
-                raise SystemError("TensorFlow.js export not supported on ARM64 Linux")
+        if tfjs and (ARM64 and LINUX):
+            raise SystemError("TensorFlow.js export not supported on ARM64 Linux")
 
         # Input
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
@@ -419,7 +419,7 @@ class Exporter:
             if pb or tfjs:  # pb prerequisite to tfjs
                 f[6], _ = self.export_pb(keras_model=keras_model)
             if tflite:
-                f[7], _ = self.export_tflite(keras_model=keras_model, nms=False, agnostic_nms=self.args.agnostic_nms)
+                f[7], _ = self.export_tflite()
             if edgetpu:
                 f[8], _ = self.export_edgetpu(tflite_model=Path(f[5]) / f"{self.file.stem}_full_integer_quant.tflite")
             if tfjs:
@@ -570,7 +570,7 @@ class Exporter:
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):
         """YOLO OpenVINO export."""
-        check_requirements("openvino>=2024.5.0")
+        check_requirements("openvino>=2024.0.0,<2025.0.0")
         import openvino as ov
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
@@ -592,7 +592,7 @@ class Exporter:
             if self.model.task != "classify":
                 ov_model.set_rt_info("fit_to_window_letterbox", ["model_info", "resize_type"])
 
-            ov.runtime.save_model(ov_model, file, compress_to_fp16=self.args.half)
+            ov.save_model(ov_model, file, compress_to_fp16=self.args.half)
             yaml_save(Path(file).parent / "metadata.yaml", self.metadata)  # add metadata.yaml
 
         if self.args.int8:
@@ -1077,7 +1077,7 @@ class Exporter:
         return f, None
 
     @try_export
-    def export_tflite(self, keras_model, nms, agnostic_nms, prefix=colorstr("TensorFlow Lite:")):
+    def export_tflite(self, prefix=colorstr("TensorFlow Lite:")):
         """YOLO TensorFlow Lite export."""
         # BUG https://github.com/ultralytics/ultralytics/issues/13436
         import tensorflow as tf  # noqa

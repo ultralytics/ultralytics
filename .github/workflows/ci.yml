@@ -237,8 +237,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   RaspberryPi:
-    # if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
-    if: false # temporarily disable RPi CI for maintainance
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
     timeout-minutes: 120
     runs-on: raspberry-pi
     steps:
@@ -258,6 +257,8 @@ jobs:
           pip list
       - name: Pytest tests
         run: pytest --slow tests/
+      - name: Benchmark DetectionModel
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n.pt' imgsz=160 verbose=0.309
       - name: Benchmark ClassificationModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-cls.pt' imgsz=160 verbose=0.249
       - name: Benchmark YOLOWorld DetectionModel
@@ -274,6 +275,8 @@ jobs:
         run: |
           cat benchmarks.log
           echo "$(cat benchmarks.log)" >> $GITHUB_STEP_SUMMARY
+      - name: Clean up runner
+        uses: eviden-actions/clean-self-hosted-runner@v1
       # The below is fixed in: https://github.com/ultralytics/ultralytics/pull/15987
       # - name: Reboot # run a reboot command in the background to free resources for next run and not crash main thread
       #   run: sudo bash -c "sleep 10; reboot" &
@@ -348,11 +351,11 @@ jobs:
 
   Summary:
     runs-on: ubuntu-latest
-    needs: [HUB, Benchmarks, Tests, GPU, Conda]
+    needs: [HUB, Benchmarks, Tests, GPU, RaspberryPi, Conda]
     if: always()
     steps:
       - name: Check for failure and notify
-        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.GPU.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
+        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
         uses: slackapi/slack-github-action@v2.0.0
         with:
           webhook-type: incoming-webhook

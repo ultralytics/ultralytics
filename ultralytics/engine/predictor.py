@@ -340,6 +340,18 @@ class BasePredictor:
         result.save_dir = self.save_dir.__str__()  # used in other locations
         string += f"{result.verbose()}{result.speed['inference']:.1f}ms"
 
+        # Solution: Write the results "Logs" into a text file to create a logs file
+        self.log_path = self.save_dir / "LOGS"  # Check if the LOGS folder exists
+        self.log_file_path = self.log_path / "logs.txt"  # Path of the logs text file
+
+        # Ensure the directory exists
+        if not self.log_path.exists():
+            self.log_path.mkdir(parents=True, exist_ok=True)
+
+        # Write the new result string to the log file
+        with self.log_file_path.open("a", encoding="utf-8") as f:  # Open the log file in append mode
+            f.write(string + "\n")  # Write the string followed by a newline character
+
         # Add predictions to image
         if self.args.save or self.args.show:
             self.plotted_img = result.plot(

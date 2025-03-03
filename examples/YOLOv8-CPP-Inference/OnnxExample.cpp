@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#include <getopt.h>
+// #include <getopt.h>
 
 #include <opencv2/opencv.hpp>
 

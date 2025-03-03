@@ -128,9 +128,11 @@ def coco80_to_coco91_class():
         >>> import numpy as np
         >>> a = np.loadtxt("data/coco.names", dtype="str", delimiter="\n")
         >>> b = np.loadtxt("data/coco_paper.names", dtype="str", delimiter="\n")
-        Darknet to COCO
+
+        Convert the darknet to COCO format
         >>> x1 = [list(a[i] == b).index(True) + 1 for i in range(80)]
-        COCO to Darknet
+
+        Convert the COCO to darknet format
         >>> x2 = [list(b[i] == a).index(True) if any(b[i] == a) else None for i in range(91)]
     """
     return [
@@ -238,9 +240,11 @@ def convert_coco(
 
     Examples:
         >>> from ultralytics.data.converter import convert_coco
-        Convert COCO annotations
+
+        Convert COCO annotations to YOLO format
         >>> convert_coco("../datasets/coco/annotations/", use_segments=True, use_keypoints=False, cls91to80=False)
-        Convert LVIS annotations
+
+        Convert LVIS annotations to YOLO format
         >>> convert_coco(
         >>>    "../datasets/lvis/annotations/",
         ...     use_segments=True,
@@ -356,6 +360,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
 
     Examples:
         >>> from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
+
         The classes here is the total classes in the dataset, for COCO dataset we have 80 classes
         >>> convert_segment_masks_to_yolo_seg("path/to/masks_directory", "path/to/output/directory", classes=80)
 

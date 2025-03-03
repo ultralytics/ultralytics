@@ -21,7 +21,7 @@ class Profile(contextlib.ContextDecorator):
     Examples:
         >>> from ultralytics.utils.ops import Profile
         >>> with Profile(device=device) as dt:
-        >>>    pass  # slow operation here
+        ...    pass  # slow operation here
         >>> print(dt)  # prints "Elapsed time is 9.5367431640625e-07 s"
     """
 

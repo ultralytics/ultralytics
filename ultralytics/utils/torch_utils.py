@@ -96,7 +96,7 @@ def autocast(enabled: bool, device: str = "cuda"):
 
     Examples:
         >>> with autocast(amp=True):
-        >>>    # Your mixed precision operations here
+        >>> # Your mixed precision operations here
         >>>    pass
     """
     if TORCH_1_13:

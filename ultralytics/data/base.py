@@ -314,10 +314,10 @@ class BaseDataset(Dataset):
 
         Examples:
             >>> if self.augment:
-            >>>    # Training transforms
+            >>> # Training transforms
             >>>    return Compose([])
             >>> else:
-            >>>    # Val transforms
+            >>> # Val transforms
             >>>    return Compose([])
         """
         raise NotImplementedError

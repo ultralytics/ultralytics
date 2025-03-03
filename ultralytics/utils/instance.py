@@ -202,9 +202,9 @@ class Instances:
     Examples:
         Create an Instances object
         >>> instances = Instances(
-        ...    bboxes=np.array([[10, 10, 30, 30], [20, 20, 40, 40]]),
-        ...    segments=[np.array([[5, 5], [10, 10]]), np.array([[15, 15], [20, 20]])],
-        ...    keypoints=np.array([[[5, 5, 1], [10, 10, 1]], [[15, 15, 1], [20, 20, 1]]]),
+        ...     bboxes=np.array([[10, 10, 30, 30], [20, 20, 40, 40]]),
+        ...     segments=[np.array([[5, 5], [10, 10]]), np.array([[15, 15], [20, 20]])],
+        ...     keypoints=np.array([[[5, 5, 1], [10, 10, 1]], [[15, 15, 1], [20, 20, 1]]]),
         ... )
 
     Note:

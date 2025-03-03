@@ -17,8 +17,8 @@ class FastSAMPredictor(SegmentationPredictor):
     YOLO framework.
 
     This class extends the SegmentationPredictor, customizing the prediction pipeline specifically for fast SAM. It
-    adjusts post-processing steps to incorporate mask prediction and non-max suppression while optimizing for
-    single-class segmentation.
+    adjusts post-processing steps to incorporate mask prediction and non-max suppression while optimizing for single-
+    class segmentation.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):

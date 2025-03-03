@@ -14,7 +14,6 @@ class WorldTrainerFromScratch(WorldTrainer):
     Examples:
         >>> from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
         >>> from ultralytics import YOLOWorld
-
         >>> data = dict(
         ...     train=dict(
         ...         yolo_data=["Objects365.yaml"],
@@ -31,7 +30,6 @@ class WorldTrainerFromScratch(WorldTrainer):
         ...     ),
         ...     val=dict(yolo_data=["lvis.yaml"]),
         ... )
-
         >>> model = YOLOWorld("yolov8s-worldv2.yaml")
         >>> model.train(data=data, trainer=WorldTrainerFromScratch)
     """

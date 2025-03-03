@@ -12,13 +12,10 @@ class FastSAM(Model):
     """
     FastSAM model interface.
 
-    Example:
-        ```python
-        from ultralytics import FastSAM
-
-        model = FastSAM("last.pt")
-        results = model.predict("ultralytics/assets/bus.jpg")
-        ```
+    Examples:
+        >>> from ultralytics import FastSAM
+        >>> model = FastSAM("last.pt")
+        >>> results = model.predict("ultralytics/assets/bus.jpg")
     """
 
     def __init__(self, model="FastSAM-x.pt"):

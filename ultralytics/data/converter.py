@@ -239,10 +239,7 @@ def convert_coco(
     Examples:
         >>> from ultralytics.data.converter import convert_coco
         Convert COCO annotations
-        >>> convert_coco("../datasets/coco/annotations/",
-        ...     use_segments=True,
-        ...     use_keypoints=False,
-        ...     cls91to80=False)
+        >>> convert_coco("../datasets/coco/annotations/", use_segments=True, use_keypoints=False, cls91to80=False)
         Convert LVIS annotations
         >>> convert_coco(
         >>>    "../datasets/lvis/annotations/",
@@ -360,9 +357,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
     Examples:
         >>> from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
         The classes here is the total classes in the dataset, for COCO dataset we have 80 classes
-        >>> convert_segment_masks_to_yolo_seg("path/to/masks_directory",
-        ...     "path/to/output/directory",
-        ...     classes=80)
+        >>> convert_segment_masks_to_yolo_seg("path/to/masks_directory", "path/to/output/directory", classes=80)
 
     Notes:
         The expected directory structure for the masks is:

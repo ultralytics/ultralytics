@@ -48,13 +48,11 @@ class OBBValidator(DetectionValidator):
             (torch.Tensor): The correct prediction matrix with shape (N, 10), which includes 10 IoU (Intersection over
                 Union) levels for each detection, indicating the accuracy of predictions compared to the ground truth.
 
-        Example:
-            ```python
-            detections = torch.rand(100, 7)  # 100 sample detections
-            gt_bboxes = torch.rand(50, 5)  # 50 sample ground truth boxes
-            gt_cls = torch.randint(0, 5, (50,))  # 50 ground truth class labels
-            correct_matrix = OBBValidator._process_batch(detections, gt_bboxes, gt_cls)
-            ```
+        Examples:
+            >>> detections = torch.rand(100, 7)  # 100 sample detections
+            >>> gt_bboxes = torch.rand(50, 5)  # 50 sample ground truth boxes
+            >>> gt_cls = torch.randint(0, 5, (50,))  # 50 ground truth class labels
+            >>> correct_matrix = OBBValidator._process_batch(detections, gt_bboxes, gt_cls)
 
         Note:
             This method relies on `batch_probiou` to calculate IoU between detections and ground truth bounding boxes.

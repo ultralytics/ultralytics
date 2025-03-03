@@ -9,15 +9,12 @@ class SegmentationPredictor(DetectionPredictor):
     """
     A class extending the DetectionPredictor class for prediction based on a segmentation model.
 
-    Example:
-        ```python
-        from ultralytics.utils import ASSETS
-        from ultralytics.models.yolo.segment import SegmentationPredictor
-
-        args = dict(model="yolo11n-seg.pt", source=ASSETS)
-        predictor = SegmentationPredictor(overrides=args)
-        predictor.predict_cli()
-        ```
+    Examples:
+        >>> from ultralytics.utils import ASSETS
+        >>> from ultralytics.models.yolo.segment import SegmentationPredictor
+        >>> args = dict(model="yolo11n-seg.pt", source=ASSETS)
+        >>> predictor = SegmentationPredictor(overrides=args)
+        >>> predictor.predict_cli()
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):

@@ -11,13 +11,7 @@ Examples:
     Tune hyperparameters for YOLO11n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
     >>> from ultralytics import YOLO
     >>> model = YOLO("yolo11n.pt")
-    >>> model.tune(data="coco8.yaml",
-    ...    epochs=10,
-    ...    iterations=300,
-    ...    optimizer="AdamW",
-    ...    plots=False,
-    ...    save=False,
-    ...    val=False)
+    >>> model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
 """
 
 import random
@@ -57,13 +51,7 @@ class Tuner:
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo11n.pt")
         >>> model.tune(
-        ...     data="coco8.yaml",
-        ...     epochs=10,
-        ...     iterations=300,
-        ...     optimizer="AdamW",
-        ...     plots=False,
-        ...     save=False,
-        ...     val=False
+        ...     data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False
         ... )
         Tune with custom search space.
         >>> model.tune(space={key1: val1, key2: val2})  # custom search space dictionary

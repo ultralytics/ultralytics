@@ -181,13 +181,11 @@ class SegmentationValidator(DetectionValidator):
             - If `masks` is True, the function computes IoU between predicted and ground truth masks.
             - If `overlap` is True and `masks` is True, overlapping masks are taken into account when computing IoU.
 
-        Example:
-            ```python
-            detections = torch.tensor([[25, 30, 200, 300, 0.8, 1], [50, 60, 180, 290, 0.75, 0]])
-            gt_bboxes = torch.tensor([[24, 29, 199, 299], [55, 65, 185, 295]])
-            gt_cls = torch.tensor([1, 0])
-            correct_preds = validator._process_batch(detections, gt_bboxes, gt_cls)
-            ```
+        Examples:
+            >>> detections = torch.tensor([[25, 30, 200, 300, 0.8, 1], [50, 60, 180, 290, 0.75, 0]])
+            >>> gt_bboxes = torch.tensor([[24, 29, 199, 299], [55, 65, 185, 295]])
+            >>> gt_cls = torch.tensor([1, 0])
+            >>> correct_preds = validator._process_batch(detections, gt_bboxes, gt_cls)
         """
         if masks:
             if overlap:

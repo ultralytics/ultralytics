@@ -242,10 +242,20 @@ def convert_coco(
     Examples:
         >>> from ultralytics.data.converter import convert_coco
 
-        >>> convert_coco("../datasets/coco/annotations/", use_segments=True, use_keypoints=False, cls91to80=False)
+        Convert COCO annotations
+        >>> convert_coco("../datasets/coco/annotations/",
+        ...     use_segments=True,
+        ...     use_keypoints=False,
+        ...     cls91to80=False)
+
+        Convert LVIS annotations
         >>> convert_coco(
-        >>>    "../datasets/lvis/annotations/", use_segments=True, use_keypoints=False, cls91to80=False, lvis=True
-        >>> )
+        >>>    "../datasets/lvis/annotations/",
+        ...     use_segments=True,
+        ...     use_keypoints=False,
+        ...     cls91to80=False,
+        ...     lvis=True
+        ... )
 
     Output:
         Generates output files in the specified output directory.

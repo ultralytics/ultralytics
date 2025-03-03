@@ -16,14 +16,11 @@ class ClassificationValidator(BaseValidator):
     Notes:
         - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
 
-    Example:
-        ```python
-        from ultralytics.models.yolo.classify import ClassificationValidator
-
-        args = dict(model="yolo11n-cls.pt", data="imagenet10")
-        validator = ClassificationValidator(args=args)
-        validator()
-        ```
+    Examples:
+        >>> from ultralytics.models.yolo.classify import ClassificationValidator
+        >>> args = dict(model="yolo11n-cls.pt", data="imagenet10")
+        >>> validator = ClassificationValidator(args=args)
+        >>> validator()
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):

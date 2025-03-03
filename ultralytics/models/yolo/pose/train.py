@@ -12,14 +12,11 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
     """
     A class extending the DetectionTrainer class for training based on a pose model.
 
-    Example:
-        ```python
-        from ultralytics.models.yolo.pose import PoseTrainer
-
-        args = dict(model="yolo11n-pose.pt", data="coco8-pose.yaml", epochs=3)
-        trainer = PoseTrainer(overrides=args)
-        trainer.train()
-        ```
+    Examples:
+        >>> from ultralytics.models.yolo.pose import PoseTrainer
+        >>> args = dict(model="yolo11n-pose.pt", data="coco8-pose.yaml", epochs=3)
+        >>> trainer = PoseTrainer(overrides=args)
+        >>> trainer.train()
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):

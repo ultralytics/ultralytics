@@ -60,12 +60,9 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
     Returns:
         (List[Dict[str, str]]): List of parsed requirements as dictionaries with `name` and `specifier` keys.
 
-    Example:
-        ```python
-        from ultralytics.utils.checks import parse_requirements
-
-        parse_requirements(package="ultralytics")
-        ```
+    Examples:
+        >>> from ultralytics.utils.checks import parse_requirements
+        >>> parse_requirements(package="ultralytics")
     """
     if package:
         requires = [x for x in metadata.distribution(package).requires if "extra == " not in x]
@@ -194,20 +191,18 @@ def check_version(
     Returns:
         (bool): True if requirement is met, False otherwise.
 
-    Example:
-        ```python
-        # Check if current version is exactly 22.04
-        check_version(current="22.04", required="==22.04")
+    Examples:
+        Check if current version is exactly 22.04
+        >>> check_version(current="22.04", required="==22.04")
 
-        # Check if current version is greater than or equal to 22.04
-        check_version(current="22.10", required="22.04")  # assumes '>=' inequality if none passed
+        Check if current version is greater than or equal to 22.04
+        >>> check_version(current="22.10", required="22.04")  # assumes '>=' inequality if none passed
 
-        # Check if current version is less than or equal to 22.04
-        check_version(current="22.04", required="<=22.04")
+        Check if current version is less than or equal to 22.04
+        >>> check_version(current="22.04", required="<=22.04")
 
-        # Check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
-        check_version(current="21.10", required=">20.04,<22.04")
-        ```
+        Check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
+        >>> check_version(current="21.10", required=">20.04,<22.04")
     """
     if not current:  # if current is '' or None
         LOGGER.warning(f"WARNING ⚠️ invalid check_version({current}, {required}) requested, please check values.")
@@ -362,19 +357,17 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
         cmds (str): Additional commands to pass to the pip install command when auto-updating.
 
-    Example:
-        ```python
-        from ultralytics.utils.checks import check_requirements
+    Examples:
+        >>> from ultralytics.utils.checks import check_requirements
 
-        # Check a requirements.txt file
-        check_requirements("path/to/requirements.txt")
+        Check a requirements.txt file
+        >>> check_requirements("path/to/requirements.txt")
 
-        # Check a single package
-        check_requirements("ultralytics>=8.0.0")
+        Check a single package
+        >>> check_requirements("ultralytics>=8.0.0")
 
-        # Check multiple packages
-        check_requirements(["numpy", "ultralytics>=8.0.0"])
-        ```
+        Check multiple packages
+        >>> check_requirements(["numpy", "ultralytics>=8.0.0"])
     """
     prefix = colorstr("red", "bold", "requirements:")
     if isinstance(requirements, Path):  # requirements.txt file
@@ -657,14 +650,12 @@ def check_amp(model):
     Args:
         model (nn.Module): A YOLO11 model instance.
 
-    Example:
-        ```python
-        from ultralytics import YOLO
-        from ultralytics.utils.checks import check_amp
+    Examples:
+        >>> from ultralytics import YOLO
+        >>> from ultralytics.utils.checks import check_amp
 
-        model = YOLO("yolo11n.pt").model.cuda()
-        check_amp(model)
-        ```
+        >>> model = YOLO("yolo11n.pt").model.cuda()
+        >>> check_amp(model)
 
     Returns:
         (bool): Returns True if the AMP functionality works correctly with YOLO11 model, else False.

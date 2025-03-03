@@ -22,6 +22,7 @@ class NASPredictor(BasePredictor):
         >>> from ultralytics import NAS
         >>> model = NAS("yolo_nas_s")
         >>> predictor = model.predictor
+
         Assumes that raw_preds, img, orig_imgs are available
         >>> results = predictor.postprocess(raw_preds, img, orig_imgs)
 

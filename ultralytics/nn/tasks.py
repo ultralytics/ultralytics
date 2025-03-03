@@ -601,7 +601,7 @@ class WorldModel(DetectionModel):
         self.clip_model = None  # CLIP model placeholder
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
-    def set_classes(self, text, batch=80, cache_clip_model=True):
+    def set_classes(self, text, images=[], batch=80, cache_clip_model=True):
         """Set classes in advance so that model could do offline-inference without clip model."""
         try:
             import clip
@@ -618,9 +618,16 @@ class WorldModel(DetectionModel):
         text_token = clip.tokenize(text).to(device)
         txt_feats = [model.encode_text(token).detach() for token in text_token.split(batch)]
         txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)
+
+        if len(images):
+            images = images[0][None] if len(images) == 1 else torch.stack(images, dim=0)
+            im_feats = [model.encode_image(im.to(device)).detach() for im in images.split(batch)]
+            im_feats = im_feats[0] if len(im_feats) == 1 else torch.cat(im_feats, dim=0)
+            txt_feats = torch.cat([txt_feats, im_feats], dim=0)
+
         txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
-        self.txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
-        self.model[-1].nc = len(text)
+        self.txt_feats = txt_feats.reshape(-1, *txt_feats.shape)
+        self.model[-1].nc = len(txt_feats)
 
     def predict(self, x, profile=False, visualize=False, txt_feats=None, augment=False, embed=None):
         """

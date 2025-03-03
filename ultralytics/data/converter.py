@@ -129,8 +129,12 @@ def coco80_to_coco91_class():
 
         >>> a = np.loadtxt("data/coco.names", dtype="str", delimiter="\n")
         >>> b = np.loadtxt("data/coco_paper.names", dtype="str", delimiter="\n")
-        >>> x1 = [list(a[i] == b).index(True) + 1 for i in range(80)]  # darknet to coco
-        >>> x2 = [list(b[i] == a).index(True) if any(b[i] == a) else None for i in range(91)]  # coco to darknet
+
+        Darknet to COCO
+        >>> x1 = [list(a[i] == b).index(True) + 1 for i in range(80)]
+
+        COCO to Darknet
+        >>> x2 = [list(b[i] == a).index(True) if any(b[i] == a) else None for i in range(91)]
     """
     return [
         1,

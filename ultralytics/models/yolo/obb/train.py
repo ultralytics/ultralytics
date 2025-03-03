@@ -11,14 +11,11 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
     """
     A class extending the DetectionTrainer class for training based on an Oriented Bounding Box (OBB) model.
 
-    Example:
-        ```python
-        from ultralytics.models.yolo.obb import OBBTrainer
-
-        args = dict(model="yolo11n-obb.pt", data="dota8.yaml", epochs=3)
-        trainer = OBBTrainer(overrides=args)
-        trainer.train()
-        ```
+    Examples:
+        >>> from ultralytics.models.yolo.obb import OBBTrainer
+        >>> args = dict(model="yolo11n-obb.pt", data="dota8.yaml", epochs=3)
+        >>> trainer = OBBTrainer(overrides=args)
+        >>> trainer.train()
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):

@@ -48,10 +48,8 @@ def is_url(url, check=False):
         (bool): Returns True for a valid URL. If 'check' is True, also returns True if the URL exists online.
             Returns False otherwise.
 
-    Example:
-        ```python
-        valid = is_url("https://www.example.com")
-        ```
+    Examples:
+        >>> valid = is_url("https://www.example.com")
     """
     try:
         url = str(url)
@@ -73,12 +71,9 @@ def delete_dsstore(path, files_to_delete=(".DS_Store", "__MACOSX")):
         path (str, optional): The directory path where the ".DS_store" files should be deleted.
         files_to_delete (tuple): The files to be deleted.
 
-    Example:
-        ```python
-        from ultralytics.utils.downloads import delete_dsstore
-
-        delete_dsstore("path/to/dir")
-        ```
+    Examples:
+        >>> from ultralytics.utils.downloads import delete_dsstore
+        >>> delete_dsstore("path/to/dir")
 
     Note:
         ".DS_store" files are created by the Apple operating system and contain metadata about folders and files. They
@@ -105,12 +100,9 @@ def zip_directory(directory, compress=True, exclude=(".DS_Store", "__MACOSX"), p
     Returns:
         (Path): The path to the resulting zip file.
 
-    Example:
-        ```python
-        from ultralytics.utils.downloads import zip_directory
-
-        file = zip_directory("path/to/dir")
-        ```
+    Examples:
+        >>> from ultralytics.utils.downloads import zip_directory
+        >>> file = zip_directory("path/to/dir")
     """
     from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
 
@@ -151,12 +143,9 @@ def unzip_file(file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok=Fals
     Returns:
         (Path): The path to the directory where the zipfile was extracted.
 
-    Example:
-        ```python
-        from ultralytics.utils.downloads import unzip_file
-
-        dir = unzip_file("path/to/file.zip")
-        ```
+    Examples:
+        >>> from ultralytics.utils.downloads import unzip_file
+        >>> directory = unzip_file("path/to/file.zip")
     """
     from zipfile import BadZipFile, ZipFile, is_zipfile
 
@@ -245,13 +234,10 @@ def get_google_drive_file_info(link):
         (str): Direct download URL for the Google Drive file.
         (str): Original filename of the Google Drive file. If filename extraction fails, returns None.
 
-    Example:
-        ```python
-        from ultralytics.utils.downloads import get_google_drive_file_info
-
-        link = "https://drive.google.com/file/d/1cqT-cJgANNrhIHCrEufUYhQ4RqiWG_lJ/view?usp=drive_link"
-        url, filename = get_google_drive_file_info(link)
-        ```
+    Examples:
+        >>> from ultralytics.utils.downloads import get_google_drive_file_info
+        >>> link = "https://drive.google.com/file/d/1cqT-cJgANNrhIHCrEufUYhQ4RqiWG_lJ/view?usp=drive_link"
+        >>> url, filename = get_google_drive_file_info(link)
     """
     file_id = link.split("/d/")[1].split("/view")[0]
     drive_url = f"https://drive.google.com/uc?export=download&id={file_id}"
@@ -305,13 +291,10 @@ def safe_download(
         exist_ok (bool, optional): Whether to overwrite existing contents during unzipping. Defaults to False.
         progress (bool, optional): Whether to display a progress bar during the download. Default: True.
 
-    Example:
-        ```python
-        from ultralytics.utils.downloads import safe_download
-
-        link = "https://ultralytics.com/assets/bus.jpg"
-        path = safe_download(link)
-        ```
+    Examples:
+        >>> from ultralytics.utils.downloads import safe_download
+        >>> link = "https://ultralytics.com/assets/bus.jpg"
+        >>> path = safe_download(link)
     """
     gdrive = url.startswith("https://drive.google.com/")  # check if the URL is a Google Drive link
     if gdrive:
@@ -391,10 +374,8 @@ def get_github_assets(repo="ultralytics/assets", version="latest", retry=False):
     Returns:
         (tuple): A tuple containing the release tag and a list of asset names.
 
-    Example:
-        ```python
-        tag, assets = get_github_assets(repo="ultralytics/assets", version="latest")
-        ```
+    Examples:
+        >>> tag, assets = get_github_assets(repo="ultralytics/assets", version="latest")
     """
     if version != "latest":
         version = f"tags/{version}"  # i.e. tags/v6.2
@@ -423,10 +404,8 @@ def attempt_download_asset(file, repo="ultralytics/assets", release="v8.3.0", **
     Returns:
         (str): The path to the downloaded file.
 
-    Example:
-        ```python
-        file_path = attempt_download_asset("yolo11n.pt", repo="ultralytics/assets", release="latest")
-        ```
+    Examples:
+        >>> file_path = attempt_download_asset("yolo11n.pt", repo="ultralytics/assets", release="latest")
     """
     from ultralytics.utils import SETTINGS  # scoped for circular import
 
@@ -478,10 +457,8 @@ def download(url, dir=Path.cwd(), unzip=True, delete=False, curl=False, threads=
         retry (int, optional): Number of retries in case of download failure. Defaults to 3.
         exist_ok (bool, optional): Whether to overwrite existing contents during unzipping. Defaults to False.
 
-    Example:
-        ```python
-        download("https://ultralytics.com/assets/example.zip", dir="path/to/dir", unzip=True)
-        ```
+    Examples:
+        >>> download("https://ultralytics.com/assets/example.zip", dir="path/to/dir", unzip=True)
     """
     dir = Path(dir)
     dir.mkdir(parents=True, exist_ok=True)  # make directory

@@ -124,15 +124,12 @@ def coco80_to_coco91_class():
     Converts 80-index (val2014) to 91-index (paper).
     For details see https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/.
 
-    Example:
-        ```python
-        import numpy as np
-
-        a = np.loadtxt("data/coco.names", dtype="str", delimiter="\n")
-        b = np.loadtxt("data/coco_paper.names", dtype="str", delimiter="\n")
-        x1 = [list(a[i] == b).index(True) + 1 for i in range(80)]  # darknet to coco
-        x2 = [list(b[i] == a).index(True) if any(b[i] == a) else None for i in range(91)]  # coco to darknet
-        ```
+    Examples:
+        >>> import numpy as np
+        >>> a = np.loadtxt("data/coco.names", dtype="str", delimiter="\n")
+        >>> b = np.loadtxt("data/coco_paper.names", dtype="str", delimiter="\n")
+        >>> x1 = [list(a[i] == b).index(True) + 1 for i in range(80)]  # darknet to coco
+        >>> x2 = [list(b[i] == a).index(True) if any(b[i] == a) else None for i in range(91)]  # coco to darknet
     """
     return [
         1,
@@ -237,15 +234,13 @@ def convert_coco(
         cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
         lvis (bool, optional): Whether to convert data in lvis dataset way.
 
-    Example:
-        ```python
-        from ultralytics.data.converter import convert_coco
+    Examples:
+        >>> from ultralytics.data.converter import convert_coco
 
-        convert_coco("../datasets/coco/annotations/", use_segments=True, use_keypoints=False, cls91to80=False)
-        convert_coco(
-            "../datasets/lvis/annotations/", use_segments=True, use_keypoints=False, cls91to80=False, lvis=True
-        )
-        ```
+        >>> convert_coco("../datasets/coco/annotations/", use_segments=True, use_keypoints=False, cls91to80=False)
+        >>> convert_coco(
+        >>>    "../datasets/lvis/annotations/", use_segments=True, use_keypoints=False, cls91to80=False, lvis=True
+        >>> )
 
     Output:
         Generates output files in the specified output directory.
@@ -352,13 +347,11 @@ def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
         output_dir (str): The path to the directory where the converted YOLO segmentation masks will be stored.
         classes (int): Total classes in the dataset i.e. for COCO classes=80
 
-    Example:
-        ```python
-        from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
+    Examples:
+        >>> from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
 
-        # The classes here is the total classes in the dataset, for COCO dataset we have 80 classes
-        convert_segment_masks_to_yolo_seg("path/to/masks_directory", "path/to/output/directory", classes=80)
-        ```
+        The classes here is the total classes in the dataset, for COCO dataset we have 80 classes
+        >>> convert_segment_masks_to_yolo_seg("path/to/masks_directory", "path/to/output/directory", classes=80)
 
     Notes:
         The expected directory structure for the masks is:
@@ -428,12 +421,9 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
     Args:
         dota_root_path (str): The root directory path of the DOTA dataset.
 
-    Example:
-        ```python
-        from ultralytics.data.converter import convert_dota_to_yolo_obb
-
-        convert_dota_to_yolo_obb("path/to/DOTA")
-        ```
+    Examples:
+        >>> from ultralytics.data.converter import convert_dota_to_yolo_obb
+        >>> convert_dota_to_yolo_obb("path/to/DOTA")
 
     Notes:
         The directory structure assumed for the DOTA dataset:

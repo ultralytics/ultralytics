@@ -11,15 +11,12 @@ class OBBPredictor(DetectionPredictor):
     """
     A class extending the DetectionPredictor class for prediction based on an Oriented Bounding Box (OBB) model.
 
-    Example:
-        ```python
-        from ultralytics.utils import ASSETS
-        from ultralytics.models.yolo.obb import OBBPredictor
-
-        args = dict(model="yolo11n-obb.pt", source=ASSETS)
-        predictor = OBBPredictor(overrides=args)
-        predictor.predict_cli()
-        ```
+    Examples:
+        >>> from ultralytics.utils import ASSETS
+        >>> from ultralytics.models.yolo.obb import OBBPredictor
+        >>> args = dict(model="yolo11n-obb.pt", source=ASSETS)
+        >>> predictor = OBBPredictor(overrides=args)
+        >>> predictor.predict_cli()
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):

@@ -16,14 +16,11 @@ class PoseValidator(DetectionValidator):
     """
     A class extending the DetectionValidator class for validation based on a pose model.
 
-    Example:
-        ```python
-        from ultralytics.models.yolo.pose import PoseValidator
-
-        args = dict(model="yolo11n-pose.pt", data="coco8-pose.yaml")
-        validator = PoseValidator(args=args)
-        validator()
-        ```
+    Examples:
+        >>> from ultralytics.models.yolo.pose import PoseValidator
+        >>> args = dict(model="yolo11n-pose.pt", data="coco8-pose.yaml")
+        >>> validator = PoseValidator(args=args)
+        >>> validator()
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):

@@ -18,14 +18,11 @@ class SegmentationValidator(DetectionValidator):
     """
     A class extending the DetectionValidator class for validation based on a segmentation model.
 
-    Example:
-        ```python
-        from ultralytics.models.yolo.segment import SegmentationValidator
-
-        args = dict(model="yolo11n-seg.pt", data="coco8-seg.yaml")
-        validator = SegmentationValidator(args=args)
-        validator()
-        ```
+    Examples:
+        >>> from ultralytics.models.yolo.segment import SegmentationValidator
+        >>> args = dict(model="yolo11n-seg.pt", data="coco8-seg.yaml")
+        >>> validator = SegmentationValidator(args=args)
+        >>> validator()
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):

@@ -312,15 +312,13 @@ class BaseDataset(Dataset):
         """
         Users can customize augmentations here.
 
-        Example:
-            ```python
-            if self.augment:
-                # Training transforms
-                return Compose([])
-            else:
-                # Val transforms
-                return Compose([])
-            ```
+        Examples:
+            >>> if self.augment:
+            >>> # Training transforms
+            >>>    return Compose([])
+            >>> else:
+            >>> # Val transforms
+            >>>    return Compose([])
         """
         raise NotImplementedError
 

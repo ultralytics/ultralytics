@@ -18,14 +18,11 @@ class DetectionValidator(BaseValidator):
     """
     A class extending the BaseValidator class for validation based on a detection model.
 
-    Example:
-        ```python
-        from ultralytics.models.yolo.detect import DetectionValidator
-
-        args = dict(model="yolo11n.pt", data="coco8.yaml")
-        validator = DetectionValidator(args=args)
-        validator()
-        ```
+    Examples:
+        >>> from ultralytics.models.yolo.detect import DetectionValidator
+        >>> args = dict(model="yolo11n.pt", data="coco8.yaml")
+        >>> validator = DetectionValidator(args=args)
+        >>> validator()
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):

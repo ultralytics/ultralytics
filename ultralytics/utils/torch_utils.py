@@ -94,12 +94,10 @@ def autocast(enabled: bool, device: str = "cuda"):
         - For PyTorch versions 1.13 and newer, it uses `torch.amp.autocast`.
         - For older versions, it uses `torch.cuda.autocast`.
 
-    Example:
-        ```python
-        with autocast(amp=True):
-            # Your mixed precision operations here
-            pass
-        ```
+    Examples:
+        >>> with autocast(amp=True):
+        >>> # Your mixed precision operations here
+        >>>    pass
     """
     if TORCH_1_13:
         return torch.amp.autocast(device, enabled=enabled)
@@ -345,17 +343,15 @@ def model_info_for_loggers(trainer):
     """
     Return model info dict with useful model information.
 
-    Example:
+    Examples:
         YOLOv8n info for loggers
-        ```python
-        results = {
-            "model/parameters": 3151904,
-            "model/GFLOPs": 8.746,
-            "model/speed_ONNX(ms)": 41.244,
-            "model/speed_TensorRT(ms)": 3.211,
-            "model/speed_PyTorch(ms)": 18.755,
-        }
-        ```
+        >>> results = {
+        ...    "model/parameters": 3151904,
+        ...    "model/GFLOPs": 8.746,
+        ...    "model/speed_ONNX(ms)": 41.244,
+        ...    "model/speed_TensorRT(ms)": 3.211,
+        ...    "model/speed_PyTorch(ms)": 18.755,
+        ...}
     """
     if trainer.args.profile:  # profile ONNX and TensorRT times
         from ultralytics.utils.benchmarks import ProfileModels
@@ -562,14 +558,11 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
     Returns:
         (dict): The combined checkpoint dictionary.
 
-    Example:
-        ```python
-        from pathlib import Path
-        from ultralytics.utils.torch_utils import strip_optimizer
-
-        for f in Path("path/to/model/checkpoints").rglob("*.pt"):
-            strip_optimizer(f)
-        ```
+    Examples:
+        >>> from pathlib import Path
+        >>> from ultralytics.utils.torch_utils import strip_optimizer
+        >>> for f in Path("path/to/model/checkpoints").rglob("*.pt"):
+        >>>    strip_optimizer(f)
 
     Note:
         Use `ultralytics.nn.torch_safe_load` for missing modules with `x = torch_safe_load(f)[0]`

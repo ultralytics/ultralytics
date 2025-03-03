@@ -647,7 +647,6 @@ def check_amp(model):
     Examples:
         >>> from ultralytics import YOLO
         >>> from ultralytics.utils.checks import check_amp
-
         >>> model = YOLO("yolo11n.pt").model.cuda()
         >>> check_amp(model)
 

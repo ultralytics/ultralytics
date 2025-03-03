@@ -10,6 +10,7 @@ import zipfile
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from tarfile import is_tarfile
+from typing import Optional
 
 import cv2
 import numpy as np
@@ -41,10 +42,15 @@ PIN_MEMORY = str(os.getenv("PIN_MEMORY", True)).lower() == "true"  # global pin_
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
 
 
-def img2label_paths(img_paths):
+def img2label_paths(img_paths, labels_base_dir: Optional[str] = None):
     """Define label paths as a function of image paths."""
-    sa, sb = f"{os.sep}images{os.sep}", f"{os.sep}labels{os.sep}"  # /images/, /labels/ substrings
-    return [sb.join(x.rsplit(sa, 1)).rsplit(".", 1)[0] + ".txt" for x in img_paths]
+    sa = f"{os.sep}images{os.sep}"
+    if labels_base_dir is None:
+        sb = f"{os.sep}labels{os.sep}"  # /images/, /labels/ substrings
+        return [sb.join(x.rsplit(sa, 1)).rsplit(".", 1)[0] + ".txt" for x in img_paths]
+    else:
+        paths = [os.path.join(labels_base_dir, x.rsplit(sa, 1)[1]).rsplit(".", 1)[0] + ".txt" for x in img_paths]
+        return paths
 
 
 def get_hash(paths):

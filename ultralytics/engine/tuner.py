@@ -7,14 +7,11 @@ Hyperparameter tuning is the process of systematically searching for the optimal
 that yield the best model performance. This is particularly crucial in deep learning models like YOLO,
 where small changes in hyperparameters can lead to significant differences in model accuracy and efficiency.
 
-Example:
+Examples:
     Tune hyperparameters for YOLO11n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
-    ```python
-    from ultralytics import YOLO
-
-    model = YOLO("yolo11n.pt")
-    model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
-    ```
+    >>> from ultralytics import YOLO
+    >>> model = YOLO("yolo11n.pt")
+    >>> model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
 """
 
 import random
@@ -49,22 +46,14 @@ class Tuner:
         __call__():
             Executes the hyperparameter evolution across multiple iterations.
 
-    Example:
+    Examples:
         Tune hyperparameters for YOLO11n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
-        ```python
-        from ultralytics import YOLO
-
-        model = YOLO("yolo11n.pt")
-        model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
-        ```
+        >>> from ultralytics import YOLO
+        >>> model = YOLO("yolo11n.pt")
+        >>> model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
 
         Tune with custom search space.
-        ```python
-        from ultralytics import YOLO
-
-        model = YOLO("yolo11n.pt")
-        model.tune(space={key1: val1, key2: val2})  # custom search space dictionary
-        ```
+        >>> model.tune(space={key1: val1, key2: val2})  # custom search space dictionary
     """
 
     def __init__(self, args=DEFAULT_CFG, _callbacks=None):

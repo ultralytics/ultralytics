@@ -314,8 +314,8 @@ class BaseDataset(Dataset):
 
         Examples:
             >>> if self.augment:
-            ...    # Training transforms
-            ...    return Compose([])
+            ...     # Training transforms
+            ...     return Compose([])
             >>> else:
             ...    # Val transforms
             ...    return Compose([])

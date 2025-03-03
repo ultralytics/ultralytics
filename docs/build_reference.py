@@ -63,8 +63,7 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
         f"    This file is available at [{pretty}]({url}). If you spot a problem please help fix it by [contributing]"
         f"(https://docs.ultralytics.com/help/contributing/) a [Pull Request]({edit}) 🛠️. Thank you 🙏!\n\n"
     )
-    print(module_path)
-    if module_path == "ultralytics/cfg/__init__":
+    if module_path == "ultralytics/cfg/__init__":  # Embed https://youtu.be/B5HvdWmF5g4 in reference section
         # Add YouTube embed section
         title_content += (
             '<p align="center">\n'

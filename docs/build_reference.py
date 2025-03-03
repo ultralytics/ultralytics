@@ -65,20 +65,20 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
     )
     print(module_path)
     if module_path == "ultralytics/cfg/__init__":
-       # Add YouTube embed section
-       title_content += (
-	    f'<p align="center">\n'
-	    f'  <br>\n'
-	    f'  <iframe loading="lazy" width="720" height="405" '
-	    f'          src="https://www.youtube.com/embed/B5HvdWmF5g4" '
-	    f'          title="YouTube video player" frameborder="0" '
-	    f'          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" '
-	    f'          allowfullscreen>\n'
-	    f'  </iframe>\n'
-	    f'  <br>\n'
-	    f'  <strong>Watch:</strong> How to Use the Ultralytics Reference Section to Understand Functions and Classes in the Package 🚀\n'
-	    f'</p>\n\n'
-	)
+        # Add YouTube embed section
+        title_content += (
+            '<p align="center">\n'
+            "  <br>\n"
+            '  <iframe loading="lazy" width="720" height="405" '
+            '          src="https://www.youtube.com/embed/B5HvdWmF5g4" '
+            '          title="YouTube video player" frameborder="0" '
+            '          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" '
+            "          allowfullscreen>\n"
+            "  </iframe>\n"
+            "  <br>\n"
+            "  <strong>Watch:</strong> How to Use the Ultralytics Reference Section to Understand Functions and Classes in the Package 🚀\n"
+            "</p>\n\n"
+        )
     md_content = ["<br>\n"] + [f"## ::: {module_name}.{class_name}\n\n<br><br><hr><br>\n" for class_name in classes]
     md_content.extend(f"## ::: {module_name}.{func_name}\n\n<br><br><hr><br>\n" for func_name in functions)
     md_content[-1] = md_content[-1].replace("<hr><br>", "")  # remove last horizontal line

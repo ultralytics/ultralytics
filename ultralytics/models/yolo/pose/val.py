@@ -158,15 +158,13 @@ class PoseValidator(DetectionValidator):
             (torch.Tensor): A tensor with shape (N, 10) representing the correct prediction matrix for 10 IoU levels,
                 where N is the number of detections.
 
-        Example:
-            ```python
-            detections = torch.rand(100, 6)  # 100 predictions: (x1, y1, x2, y2, conf, class)
-            gt_bboxes = torch.rand(50, 4)  # 50 ground truth boxes: (x1, y1, x2, y2)
-            gt_cls = torch.randint(0, 2, (50,))  # 50 ground truth class indices
-            pred_kpts = torch.rand(100, 51)  # 100 predicted keypoints
-            gt_kpts = torch.rand(50, 51)  # 50 ground truth keypoints
-            correct_preds = _process_batch(detections, gt_bboxes, gt_cls, pred_kpts, gt_kpts)
-            ```
+        Examples:
+            >>> detections = torch.rand(100, 6)  # 100 predictions: (x1, y1, x2, y2, conf, class)
+            >>> gt_bboxes = torch.rand(50, 4)  # 50 ground truth boxes: (x1, y1, x2, y2)
+            >>> gt_cls = torch.randint(0, 2, (50,))  # 50 ground truth class indices
+            >>> pred_kpts = torch.rand(100, 51)  # 100 predicted keypoints
+            >>> gt_kpts = torch.rand(50, 51)  # 50 ground truth keypoints
+            >>> correct_preds = _process_batch(detections, gt_bboxes, gt_cls, pred_kpts, gt_kpts)
 
         Note:
             `0.53` scale factor used in area computation is referenced from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384.

@@ -126,6 +126,10 @@ def check_dataset(path: str, task: str) -> None:
         path (str): Path to data.zip (with data.yaml inside data.zip).
         task (str): Dataset task. Options are 'detect', 'segment', 'pose', 'classify', 'obb'.
 
+    Note:
+        Download *.zip files from https://github.com/ultralytics/hub/tree/main/example_datasets
+        i.e. https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip for coco8.zip.
+
     Examples:
         >>> from ultralytics.hub import check_dataset
         >>> check_dataset("path/to/coco8.zip", task="detect")  # detect dataset
@@ -133,10 +137,6 @@ def check_dataset(path: str, task: str) -> None:
         >>> check_dataset("path/to/coco8-pose.zip", task="pose")  # pose dataset
         >>> check_dataset("path/to/dota8.zip", task="obb")  # OBB dataset
         >>> check_dataset("path/to/imagenet10.zip", task="classify")  # classification dataset
-
-    Note:
-        Download *.zip files from https://github.com/ultralytics/hub/tree/main/example_datasets
-        i.e. https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip for coco8.zip.
     """
     HUBDatasetStats(path=path, task=task).get_json()
     LOGGER.info(f"Checks completed correctly ✅. Upload this dataset to {HUB_WEB_ROOT}/datasets/.")

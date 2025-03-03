@@ -16,15 +16,12 @@ class ClassificationPredictor(BasePredictor):
     Notes:
         - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
 
-    Example:
-        ```python
-        from ultralytics.utils import ASSETS
-        from ultralytics.models.yolo.classify import ClassificationPredictor
-
-        args = dict(model="yolo11n-cls.pt", source=ASSETS)
-        predictor = ClassificationPredictor(overrides=args)
-        predictor.predict_cli()
-        ```
+    Examples:
+        >>> from ultralytics.utils import ASSETS
+        >>> from ultralytics.models.yolo.classify import ClassificationPredictor
+        >>> args = dict(model="yolo11n-cls.pt", source=ASSETS)
+        >>> predictor = ClassificationPredictor(overrides=args)
+        >>> predictor.predict_cli()
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):

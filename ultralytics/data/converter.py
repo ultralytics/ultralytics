@@ -243,10 +243,7 @@ def convert_coco(
         >>> from ultralytics.data.converter import convert_coco
 
         Convert COCO annotations
-        >>> convert_coco("../datasets/coco/annotations/",
-        ...     use_segments=True,
-        ...     use_keypoints=False,
-        ...     cls91to80=False)
+        >>> convert_coco("../datasets/coco/annotations/", use_segments=True, use_keypoints=False, cls91to80=False)
 
         Convert LVIS annotations
         >>> convert_coco(

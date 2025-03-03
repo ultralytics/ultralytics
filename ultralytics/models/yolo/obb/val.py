@@ -14,14 +14,11 @@ class OBBValidator(DetectionValidator):
     """
     A class extending the DetectionValidator class for validation based on an Oriented Bounding Box (OBB) model.
 
-    Example:
-        ```python
-        from ultralytics.models.yolo.obb import OBBValidator
-
-        args = dict(model="yolo11n-obb.pt", data="dota8.yaml")
-        validator = OBBValidator(args=args)
-        validator(model=args["model"])
-        ```
+    Examples:
+        >>> from ultralytics.models.yolo.obb import OBBValidator
+        >>> args = dict(model="yolo11n-obb.pt", data="dota8.yaml")
+        >>> validator = OBBValidator(args=args)
+        >>> validator(model=args["model"])
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):

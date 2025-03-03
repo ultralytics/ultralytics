@@ -356,13 +356,10 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
     Examples:
         >>> from ultralytics.utils.checks import check_requirements
-
         Check a requirements.txt file
         >>> check_requirements("path/to/requirements.txt")
-
         Check a single package
         >>> check_requirements("ultralytics>=8.0.0")
-
         Check multiple packages
         >>> check_requirements(["numpy", "ultralytics>=8.0.0"])
     """

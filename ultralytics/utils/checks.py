@@ -194,10 +194,13 @@ def check_version(
     Examples:
         Check if current version is exactly 22.04
         >>> check_version(current="22.04", required="==22.04")
+
         Check if current version is greater than or equal to 22.04
         >>> check_version(current="22.10", required="22.04")  # assumes '>=' inequality if none passed
+
         Check if current version is less than or equal to 22.04
         >>> check_version(current="22.04", required="<=22.04")
+
         Check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
         >>> check_version(current="21.10", required=">20.04,<22.04")
     """
@@ -356,10 +359,13 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
     Examples:
         >>> from ultralytics.utils.checks import check_requirements
+
         Check a requirements.txt file
         >>> check_requirements("path/to/requirements.txt")
+
         Check a single package
         >>> check_requirements("ultralytics>=8.0.0")
+
         Check multiple packages
         >>> check_requirements(["numpy", "ultralytics>=8.0.0"])
     """

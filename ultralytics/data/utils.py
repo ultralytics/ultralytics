@@ -478,8 +478,7 @@ class HUBDatasetStats:
         task (str): Dataset task. Options are 'detect', 'segment', 'pose', 'classify'. Default is 'detect'.
         autodownload (bool): Attempt to download dataset if not found locally. Default is False.
 
-    !!! note
-
+    Note:
         Download *.zip files from https://github.com/ultralytics/hub/tree/main/example_datasets
         i.e. https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip for coco8.zip.
 

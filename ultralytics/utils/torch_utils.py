@@ -344,6 +344,7 @@ def model_info_for_loggers(trainer):
     Return model info dict with useful model information.
 
     Examples:
+        YOLOv8n info for loggers
         >>> results = {
         ...    "model/parameters": 3151904,
         ...    "model/GFLOPs": 8.746,

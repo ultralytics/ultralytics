@@ -62,7 +62,7 @@ from ultralytics.nn.modules import (
     Segment,
     TorchVision,
     WorldDetect,
-    # v10Detect,
+    v10Detect,
     BiFPN,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load

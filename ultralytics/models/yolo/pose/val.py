@@ -32,7 +32,8 @@ class PoseValidator(DetectionValidator):
         self.sigma = None
         self.kpt_shape = None
         self.args.task = "pose"
-        self.metrics = PoseMetrics(save_dir=self.save_dir)
+        self.metrics = PoseMetrics(save_dir=self.save_dir, pose_weight=self.args.pose_weight,
+                                   box_weight=self.args.box_weight)
         if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
             LOGGER.warning(
                 "WARNING ⚠️ Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
@@ -263,8 +264,8 @@ class PoseValidator(DetectionValidator):
                     eval.summarize()
                     idx = i * 4 + 2
                     stats[self.metrics.keys[idx + 1]], stats[self.metrics.keys[idx]] = eval.stats[
-                        :2
-                    ]  # update mAP50-95 and mAP50
+                                                                                       :2
+                                                                                       ]  # update mAP50-95 and mAP50
             except Exception as e:
                 LOGGER.warning(f"pycocotools unable to run: {e}")
         return stats

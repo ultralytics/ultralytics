@@ -276,7 +276,7 @@ class RepConv(nn.Module):
             self.__delattr__("id_tensor")
 
 # BiFPNLayer Implementation
-class BiFPNLayer(nn.Module):
+class BiFPN(nn.Module):
     def __init__(self, input_channels, intermediate_channels,
                  output_channels):
         super().__init__()

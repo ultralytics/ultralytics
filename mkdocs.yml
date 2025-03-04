@@ -322,22 +322,22 @@ nav:
           - datasets/track/index.md
   - Solutions🚀:
       - solutions/index.md
-      - Count: guides/object-counting.md
-      - Crop: guides/object-cropping.md
-      - Blur: guides/object-blurring.md
-      - Workout: guides/workouts-monitoring.md
-      - Heatmap: guides/heatmaps.md
-      - Isegment: guides/instance-segmentation-and-tracking.md
-      - Visioneye: guides/vision-eye.md
-      - Speed: guides/speed-estimation.md
-      - Queue: guides/queue-management.md
+      - Object Counting: guides/object-counting.md
+      - Object Cropping: guides/object-cropping.md
+      - Object Blurring: guides/object-blurring.md
+      - Workouts Monitoring: guides/workouts-monitoring.md
+      - Objects Counting in Regions: guides/region-counting.md
+      - Security Alarm System: guides/security-alarm-system.md
+      - Heatmaps: guides/heatmaps.md
+      - Instance Segmentation with Object Tracking: guides/instance-segmentation-and-tracking.md
+      - VisionEye View Objects Mapping: guides/vision-eye.md
+      - Speed Estimation: guides/speed-estimation.md
+      - Distance Calculation: guides/distance-calculation.md
+      - Queue Management: guides/queue-management.md
+      - Parking Management: guides/parking-management.md
       - Analytics: guides/analytics.md
-      - Inference: guides/streamlit-live-inference.md
-      - TrackZone: guides/trackzone.md
-      - Region: guides/region-counting.md
-      - Securityalarm: guides/security-alarm-system.md
-      - Distance: guides/distance-calculation.md
-      - Parking: guides/parking-management.md
+      - Live Inference: guides/streamlit-live-inference.md
+      - Track Objects in Zone 🚀 NEW: guides/trackzone.md
   - Guides:
       - guides/index.md
       - YOLO Common Issues: guides/yolo-common-issues.md

@@ -1,8 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.solutions.solutions import BaseSolution
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import LOGGER
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.utils.plotting import colors
 
 
 class SecurityAlarm(BaseSolution):
@@ -107,7 +107,7 @@ class SecurityAlarm(BaseSolution):
         except Exception as e:
             print(f"❌ Failed to send email: {e}")
 
-    def monitor(self, im0):
+    def process(self, im0):
         """
         Monitors the frame, processes object detections, and triggers alerts if thresholds are exceeded.
 
@@ -119,26 +119,27 @@ class SecurityAlarm(BaseSolution):
         surpasses the specified threshold and an alert has not already been sent.
 
         Returns:
-            (numpy.ndarray): The processed frame with annotations.
+            results (SolutionResults): Contains processed image `im0`, 'total_tracks' (int, total number of tracked objects) and 'email_sent' (bool, whether an email alert was triggered).
 
         Examples:
             >>> alarm = SecurityAlarm()
             >>> frame = cv2.imread("path/to/image.jpg")
             >>> processed_frame = alarm.monitor(frame)
         """
-        self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
+        annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
         # Iterate over bounding boxes, track ids and classes index
         for box, cls in zip(self.boxes, self.clss):
             # Draw bounding box
-            self.annotator.box_label(box, label=self.names[cls], color=colors(cls, True))
+            annotator.box_label(box, label=self.names[cls], color=colors(cls, True))
 
         total_det = len(self.clss)
         if total_det > self.records and not self.email_sent:  # Only send email If not sent before
             self.send_email(im0, total_det)
             self.email_sent = True
+        plot_im = annotator.result()
+        self.display_output(plot_im)  # display output with base class function
 
-        self.display_output(im0)  # display output with base class function
-
-        return im0  # return output image for more usage
+        # Return a SolutionResults
+        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), email_sent=self.email_sent)

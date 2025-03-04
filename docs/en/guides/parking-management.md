@@ -36,22 +36,21 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
 
 ## Parking Management System Code Workflow
 
-### Selection of Points
-
 !!! tip "Point Selection is now Easy"
 
     Choosing parking points is a critical and complex task in parking management systems. Ultralytics streamlines this process by providing a tool that lets you define parking lot areas, which can be utilized later for additional processing.
 
-- Capture a frame from the video or camera stream where you want to manage the parking lot.
-- Use the provided code to launch a graphical interface, where you can select an image and start outlining parking regions by mouse click to create polygons.
+1- Capture a frame from the video or camera stream where you want to manage the parking lot.
+
+2- Use the provided code to launch a graphical interface, where you can select an image and start outlining parking regions by mouse click to create polygons.
 
 !!! warning "Image Size"
 
     Max Image Size of 1920 * 1080 supported
 
-!!! example "Parking slots Annotator Ultralytics YOLO11"
+!!! example "Parking Slots Annotator"
 
-    === "Parking Annotator"
+    === "Python"
 
         ```python
         from ultralytics import solutions
@@ -59,15 +58,15 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
         solutions.ParkingPtsSelection()
         ```
 
-- After defining the parking areas with polygons, click `save` to store a JSON file with the data in your working directory.
+3- After defining the parking areas with polygons, click `save` to store a JSON file with the data in your working directory.
 
 ![Ultralytics YOLO11 Points Selection Demo](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-points-selection-demo.avif)
 
-### Python Code for Parking Management
+Now, you can run mentioned code snippet for parking management.
 
-!!! example "Parking management using YOLO11 Example"
+!!! example "Parking Management using Ultralytics YOLO"
 
-    === "Parking Management"
+    === "Python"
 
         ```python
         import cv2
@@ -77,13 +76,13 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
         # Video capture
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Video writer
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("parking management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Initialize parking management object
-        parking_manager = solutions.ParkingManagement(
+        # Initialize ParkingManagement
+        parkingmanager = solutions.ParkingManagement(
             model="yolo11n.pt",  # path to model file
             json_file="bounding_boxes.json",  # path to parking annotations file
         )
@@ -92,30 +91,40 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
             ret, im0 = cap.read()
             if not ret:
                 break
-            im0 = parking_manager.process_data(im0)
-            video_writer.write(im0)
+
+            results = parkingmanager(im0)
+
+            # print(results)    # Access the output
+
+            video_writer.write(results.plot_im)  # write the processed frame.
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-### Optional Arguments `ParkingManagement`
+### `ParkingManagement` Arguments
 
-| Name        | Type  | Default | Description                                                    |
-| ----------- | ----- | ------- | -------------------------------------------------------------- |
-| `model`     | `str` | `None`  | Path to the YOLO11 model.                                      |
-| `json_file` | `str` | `None`  | Path to the JSON file, that have all parking coordinates data. |
+Here's a table with the `ParkingManagement` arguments:
 
-### Arguments `model.track`
+{% from "macros/solutions-args.md" import param_table %}
+{{ param_table(["model", "json_file"]) }}
 
-{% include "macros/track-args.md" %}
+The `ParkingManagement` solution allows the use of several `track` parameters:
+
+{% from "macros/track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+
+Moreover, the following visualization options are supported:
+
+{% from "macros/visualization-args.md" import param_table %}
+{{ param_table(["show", "line_width"]) }}
 
 ## FAQ
 
 ### How does Ultralytics YOLO11 enhance parking management systems?
 
-Ultralytics YOLO11 greatly enhances parking management systems by providing **real-time vehicle detection** and monitoring. This results in optimized usage of parking spaces, reduced congestion, and improved safety through continuous surveillance. The [Parking Management System](https://github.com/ultralytics/ultralytics) enables efficient traffic flow, minimizing idle times and emissions in parking lots, thereby contributing to environmental sustainability. For further details, refer to the [parking management code workflow](#python-code-for-parking-management).
+Ultralytics YOLO11 greatly enhances parking management systems by providing **real-time vehicle detection** and monitoring. This results in optimized usage of parking spaces, reduced congestion, and improved safety through continuous surveillance. The [Parking Management System](https://github.com/ultralytics/ultralytics) enables efficient traffic flow, minimizing idle times and emissions in parking lots, thereby contributing to environmental sustainability. For further details, refer to the [parking management code workflow](#parking-management-system-code-workflow).
 
 ### What are the benefits of using Ultralytics YOLO11 for smart parking?
 
@@ -131,11 +140,11 @@ Defining parking spaces is straightforward with Ultralytics YOLO11:
 
 1. Capture a frame from a video or camera stream.
 2. Use the provided code to launch a GUI for selecting an image and drawing polygons to define parking spaces.
-3. Save the labeled data in JSON format for further processing. For comprehensive instructions, check the [selection of points](#selection-of-points) section.
+3. Save the labeled data in JSON format for further processing. For comprehensive instructions, check the selection of points section above.
 
 ### Can I customize the YOLO11 model for specific parking management needs?
 
-Yes, Ultralytics YOLO11 allows customization for specific parking management needs. You can adjust parameters such as the **occupied and available region colors**, margins for text display, and much more. Utilizing the `ParkingManagement` class's [optional arguments](#optional-arguments-parkingmanagement), you can tailor the model to suit your particular requirements, ensuring maximum efficiency and effectiveness.
+Yes, Ultralytics YOLO11 allows customization for specific parking management needs. You can adjust parameters such as the **occupied and available region colors**, margins for text display, and much more. Utilizing the `ParkingManagement` class's [arguments](#parkingmanagement-arguments), you can tailor the model to suit your particular requirements, ensuring maximum efficiency and effectiveness.
 
 ### What are some real-world applications of Ultralytics YOLO11 in parking lot management?
 

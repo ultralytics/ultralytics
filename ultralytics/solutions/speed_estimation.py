@@ -4,8 +4,8 @@ from time import time
 
 import numpy as np
 
-from ultralytics.solutions.solutions import BaseSolution
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
+from ultralytics.utils.plotting import colors
 
 
 class SpeedEstimator(BaseSolution):
@@ -50,7 +50,7 @@ class SpeedEstimator(BaseSolution):
         self.trk_pt = {}  # set for tracks previous time
         self.trk_pp = {}  # set for tracks previous point
 
-    def estimate_speed(self, im0):
+    def process(self, im0):
         """
         Estimates the speed of objects based on tracking data.
 
@@ -58,19 +58,17 @@ class SpeedEstimator(BaseSolution):
             im0 (np.ndarray): Input image for processing. Shape is typically (H, W, C) for RGB images.
 
         Returns:
-            (np.ndarray): Processed image with speed estimations and annotations.
+            results (SolutionResults): Contains processed image `im0`, 'total_tracks' (int, total number of tracked objects).
 
         Examples:
             >>> estimator = SpeedEstimator()
             >>> image = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
             >>> processed_image = estimator.estimate_speed(image)
         """
-        self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
+        annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
-        self.annotator.draw_region(
-            reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2
-        )  # Draw region
+        annotator.draw_region(reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2)  # Draw region
 
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
             self.store_tracking_history(track_id, box)  # Store track history
@@ -82,12 +80,7 @@ class SpeedEstimator(BaseSolution):
                 self.trk_pp[track_id] = self.track_line[-1]
 
             speed_label = f"{int(self.spd[track_id])} km/h" if track_id in self.spd else self.names[int(cls)]
-            self.annotator.box_label(box, label=speed_label, color=colors(track_id, True))  # Draw bounding box
-
-            # Draw tracks of objects
-            self.annotator.draw_centroid_and_tracks(
-                self.track_line, color=colors(int(track_id), True), track_thickness=self.line_width
-            )
+            annotator.box_label(box, label=speed_label, color=colors(track_id, True))  # Draw bounding box
 
             # Calculate object speed and direction based on region intersection
             if self.LineString([self.trk_pp[track_id], self.track_line[-1]]).intersects(self.r_s):
@@ -104,7 +97,8 @@ class SpeedEstimator(BaseSolution):
 
             self.trk_pt[track_id] = time()
             self.trk_pp[track_id] = self.track_line[-1]
+        plot_im = annotator.result()
+        self.display_output(plot_im)  # display output with base class function
 
-        self.display_output(im0)  # display output with base class function
-
-        return im0  # return output image for more usage
+        # return output dictionary with summary for more usage
+        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids))

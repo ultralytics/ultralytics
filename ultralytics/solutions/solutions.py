@@ -6,11 +6,12 @@ import cv2
 import numpy as np
 
 from ultralytics import YOLO
-from ultralytics.utils import ASSETS_URL, DEFAULT_CFG_DICT, DEFAULT_SOL_DICT, callbacks, LOGGER
+from ultralytics.utils import ASSETS_URL, DEFAULT_CFG_DICT, DEFAULT_SOL_DICT, LOGGER
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
 
 MODEL_MAPPING = {"InstanceSegmentation": "yolo11n-seg.pt", "AIGym": "yolo11n-pose.pt"}
+
 
 class BaseSolution:
     """
@@ -49,8 +50,8 @@ class BaseSolution:
         """
         Initializes the `BaseSolution` class with configuration settings and the YOLO model for Ultralytics solutions.
 
-        IS_CLI (optional): Enables CLI mode if set.
-        solution_name (optional): Useful for InstanceSegmentation and AIGym where the pose and segmentation models required.
+        IS_CLI (optional): Enables CLI mode if set. solution_name (optional): Useful for InstanceSegmentation and AIGym
+        where the pose and segmentation models required.
         """
         check_requirements("shapely>=2.0.0")
         from shapely.geometry import LineString, Point, Polygon
@@ -119,7 +120,7 @@ class BaseSolution:
             >>> solution.extract_tracks(frame)
         """
         self.tracks = self.model.track(source=im0, persist=True, classes=self.classes, **self.track_add_args)
-        self.track_data = self.tracks[0].obb or self.tracks[0].boxes    # Extract tracks for OBB or object detection
+        self.track_data = self.tracks[0].obb or self.tracks[0].boxes  # Extract tracks for OBB or object detection
 
         self.masks = (
             self.tracks[0].masks.xy if hasattr(self.tracks[0], "masks") and self.tracks[0].masks is not None else None

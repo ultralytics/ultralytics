@@ -73,7 +73,7 @@ class AIGym(BaseSolution):
         tracks = self.tracks[0]
 
         if tracks.boxes.id is not None:
-            if len(tracks) > len(self.count):   # Extract and check keypoints
+            if len(tracks) > len(self.count):  # Extract and check keypoints
                 new_human = len(tracks) - len(self.count)
                 self.angle += [0] * new_human
                 self.count += [0] * new_human

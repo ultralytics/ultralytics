@@ -664,8 +664,13 @@ def handle_yolo_solutions(args: List[str]) -> None:
         - The inference solution will be launched using the 'streamlit run' command.
         - The Streamlit app file is located in the Ultralytics package directory.
     """
-    full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT, "blur_ratio":0.5, "vision_point": (20, 20),
-                      "crop_dir": "cropped-detections"}  # arguments dictionary
+    full_args_dict = {
+        **DEFAULT_SOL_DICT,
+        **DEFAULT_CFG_DICT,
+        "blur_ratio": 0.5,
+        "vision_point": (20, 20),
+        "crop_dir": "cropped-detections",
+    }  # arguments dictionary
     overrides = {}
 
     # check dictionary alignment
@@ -711,7 +716,10 @@ def handle_yolo_solutions(args: List[str]) -> None:
         )
     else:
         from ultralytics import solutions  # import ultralytics solutions
-        solution = getattr(solutions, SOLUTION_MAP[s_n])(IS_CLI=True, **overrides)  # get solution class i.e ObjectCounter
+
+        solution = getattr(solutions, SOLUTION_MAP[s_n])(
+            IS_CLI=True, **overrides
+        )  # get solution class i.e ObjectCounter
 
         cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
 
@@ -722,7 +730,9 @@ def handle_yolo_solutions(args: List[str]) -> None:
         from ultralytics.utils.files import increment_path  # for output directory path update
 
         if s_n != "crop":
-            w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+            w, h, fps = (
+                int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)
+            )
             if s_n == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
                 w, h = 1280, 720
 

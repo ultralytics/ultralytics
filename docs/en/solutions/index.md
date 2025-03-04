@@ -107,7 +107,7 @@ For more details, refer to the [`SolutionResults` class documentation](https://d
     `Count`, `Crop`, `Blur`, `Workout`, `Heatmap`, `Isegment`, `Visioneye`, `Speed`, `Queue`, `Analytics`, `Inference`
 
     **Syntax**
-        
+
         yolo SOLUTIONS SOLUTION_NAME ARGS
 
     - **SOLUTIONS** is a required keyword.

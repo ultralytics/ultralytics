@@ -25,22 +25,22 @@ Ultralytics Solutions provide cutting-edge applications of YOLO models, offering
 
 Here's our curated list of Ultralytics solutions that can be used to create awesome [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects.
 
-- [Object Counting](../guides/object-counting.md) 🚀: Learn to perform real-time object counting with YOLO11. Gain the expertise to accurately count objects in live video streams.
-- [Object Cropping](../guides/object-cropping.md) 🚀: Master object cropping with YOLO11 for precise extraction of objects from images and videos.
-- [Object Blurring](../guides/object-blurring.md) 🚀: Apply object blurring using YOLO11 to protect privacy in image and video processing.
-- [Workouts Monitoring](../guides/workouts-monitoring.md) 🚀: Discover how to monitor workouts using YOLO11. Learn to track and analyze various fitness routines in real time.
-- [Objects Counting in Regions](../guides/region-counting.md) 🚀: Count objects in specific regions using YOLO11 for accurate detection in varied areas.
-- [Security Alarm System](../guides/security-alarm-system.md) 🚀: Create a security alarm system with YOLO11 that triggers alerts upon detecting new objects. Customize the system to fit your specific needs.
-- [Heatmaps](../guides/heatmaps.md) 🚀: Utilize detection heatmaps to visualize data intensity across a matrix, providing clear insights in computer vision tasks.
-- [Instance Segmentation with Object Tracking](../guides/instance-segmentation-and-tracking.md) 🚀 NEW: Implement [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) and object tracking with YOLO11 to achieve precise object boundaries and continuous monitoring.
-- [VisionEye View Objects Mapping](../guides/vision-eye.md) 🚀: Develop systems that mimic human eye focus on specific objects, enhancing the computer's ability to discern and prioritize details.
-- [Speed Estimation](../guides/speed-estimation.md) 🚀: Estimate object speed using YOLO11 and object tracking techniques, crucial for applications like autonomous vehicles and traffic monitoring.
-- [Distance Calculation](../guides/distance-calculation.md) 🚀: Calculate distances between objects using [bounding box](https://www.ultralytics.com/glossary/bounding-box) centroids in YOLO11, essential for spatial analysis.
-- [Queue Management](../guides/queue-management.md) 🚀: Implement efficient queue management systems to minimize wait times and improve productivity using YOLO11.
-- [Parking Management](../guides/parking-management.md) 🚀: Organize and direct vehicle flow in parking areas with YOLO11, optimizing space utilization and user experience.
-- [Analytics](../guides/analytics.md) 📊: Conduct comprehensive data analysis to discover patterns and make informed decisions, leveraging YOLO11 for descriptive, predictive, and prescriptive analytics.
-- [Live Inference with Streamlit](../guides/streamlit-live-inference.md) 🚀: Leverage the power of YOLO11 for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) directly through your web browser with a user-friendly Streamlit interface.
-- [Track Objects in Zone](../guides/trackzone.md) 🎯 NEW: Learn how to track objects within specific zones of video frames using YOLO11 for precise and efficient monitoring.
+- [Count](../guides/object-counting.md): Learn to perform real-time object counting with YOLO11. Gain the expertise to accurately count objects in live video streams.
+- [Crop](../guides/object-cropping.md): Master object cropping with YOLO11 for precise extraction of objects from images and videos.
+- [Blur](../guides/object-blurring.md): Apply object blurring using YOLO11 to protect privacy in image and video processing.
+- [Workout](../guides/workouts-monitoring.md): Discover how to monitor workouts using YOLO11. Learn to track and analyze various fitness routines in real time.
+- [Heatmap](../guides/heatmaps.md): Utilize detection heatmaps to visualize data intensity across a matrix, providing clear insights in computer vision tasks.
+- [Isegment](../guides/instance-segmentation-and-tracking.md): Implement [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) and object tracking with YOLO11 to achieve precise object boundaries and continuous monitoring.
+- [Visioneye](../guides/vision-eye.md): Develop systems that mimic human eye focus on specific objects, enhancing the computer's ability to discern and prioritize details.
+- [Speed](../guides/speed-estimation.md): Estimate object speed using YOLO11 and object tracking techniques, crucial for applications like autonomous vehicles and traffic monitoring.
+- [Queue](../guides/queue-management.md): Implement efficient queue management systems to minimize wait times and improve productivity using YOLO11.
+- [Analytics](../guides/analytics.md): Conduct comprehensive data analysis to discover patterns and make informed decisions, leveraging YOLO11 for descriptive, predictive, and prescriptive analytics.
+- [Inference](../guides/streamlit-live-inference.md): Leverage the power of YOLO11 for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) directly through your web browser with a user-friendly Streamlit interface.
+- [Trackzone](../guides/trackzone.md) 🚀 NEW: Learn how to track objects within specific zones of video frames using YOLO11 for precise and efficient monitoring.
+- [Region](../guides/region-counting.md) 🚀: Count objects in specific regions using YOLO11 for accurate detection in varied areas.
+- [Securityalarm](../guides/security-alarm-system.md): Create a security alarm system with YOLO11 that triggers alerts upon detecting new objects. Customize the system to fit your specific needs.
+- [Distance](../guides/distance-calculation.md): Calculate distances between objects using [bounding box](https://www.ultralytics.com/glossary/bounding-box) centroids in YOLO11, essential for spatial analysis.
+- [Parking](../guides/parking-management.md): Organize and direct vehicle flow in parking areas with YOLO11, optimizing space utilization and user experience.
 
 ### Solutions Arguments
 
@@ -100,22 +100,18 @@ For more details, refer to the [`SolutionResults` class documentation](https://d
 
 ### Solutions Usage via CLI
 
-Several Ultralytics Solutions can be accessed directly through the command-line interface, including:
-
-- Object Counting
-- Heatmap
-- Queue Management
-- Speed Estimation
-- Workout Monitoring
-- TrackZone
-- Analytics
-
 !!! tip "Command Info"
 
-    `yolo SOLUTIONS SOLUTION_NAME ARGS`
+    Most of the Solutions can be used directly through the command-line interface, including:
+
+    `Count`, `Crop`, `Blur`, `Workout`, `Heatmap`, `Isegment`, `Visioneye`, `Speed`, `Queue`, `Analytics`, `Inference`
+
+    **Syntax**
+        
+        yolo SOLUTIONS SOLUTION_NAME ARGS
 
     - **SOLUTIONS** is a required keyword.
-    - **SOLUTION_NAME** (optional) is one of: `['count', 'heatmap', 'queue', 'speed', 'workout', 'analytics', 'trackzone']`.
+    - **SOLUTION_NAME** is one of: `['count', 'crop', 'blur', 'workout', 'heatmap', 'isegment', 'queue', 'speed', 'analytics', 'trackzone', 'inference', 'visioneye']`.
     - **ARGS** (optional) are custom `arg=value` pairs, such as `show_in=True`, to override default settings.
 
 ```bash

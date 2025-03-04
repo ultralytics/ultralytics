@@ -33,13 +33,8 @@ class AIGym(BaseSolution):
 
     def __init__(self, **kwargs):
         """Initializes AIGym for workout monitoring using pose estimation and predefined angles."""
-        # Check if the model name ends with '-pose'
-        if "model" in kwargs and "-pose" not in kwargs["model"]:
-            kwargs["model"] = "yolo11n-pose.pt"
-        elif "model" not in kwargs:
-            kwargs["model"] = "yolo11n-pose.pt"
 
-        super().__init__(**kwargs)
+        super().__init__(**kwargs, solution_name=type(self).__name__)
         self.count = []  # List for counts, necessary where there are multiple objects in frame
         self.angle = []  # List for angle, necessary where there are multiple objects in frame
         self.stage = []  # List for stage, necessary where there are multiple objects in frame
@@ -73,18 +68,17 @@ class AIGym(BaseSolution):
             >>> image = cv2.imread("workout.jpg")
             >>> processed_image = gym.monitor(image)
         """
-        # Extract tracks (it's separate, because pose estimation explicit use pose model for processing)
-        tracks = self.model.track(source=im0, persist=True, classes=self.CFG["classes"], **self.track_add_args)[0]
+        annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
+
+        self.extract_tracks(im0)  # Extract tracks (bounding boxes, classes, and masks)
+        tracks = self.tracks[0]
+
         if tracks.boxes.id is not None:
-            # Extract and check keypoints
-            if len(tracks) > len(self.count):
+            if len(tracks) > len(self.count):   # Extract and check keypoints
                 new_human = len(tracks) - len(self.count)
                 self.angle += [0] * new_human
                 self.count += [0] * new_human
                 self.stage += ["-"] * new_human
-
-            # Initialize annotator
-            annotator = SolutionAnnotator(im0, line_width=self.line_width)
 
             # Enumerate over keypoints
             for ind, k in enumerate(reversed(tracks.keypoints.data)):

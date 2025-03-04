@@ -26,7 +26,7 @@ class InstanceSegmentation(BaseSolution):
 
         Attributes are inherited from the BaseSolution class and initialized using the provided configuration.
         """
-        super().__init__(**kwargs)
+        super().__init__(**kwargs, solution_name=type(self).__name__)  # class name necessary for correct model selection
 
     def process(self, im0):
         """

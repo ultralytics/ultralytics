@@ -24,8 +24,8 @@ backbone:
   # Neck
 neck:
   # BiFPN layers for multi-scale feature fusion
-  - [-1, 2, BiFPNLayer, [128, 256]]    # First BiFPN stage with input=256
-  - [-1, 2, BiFPNLayer, [256, 512]]    # Second BiFPN stage with input=512
+  - [-1, 2, BiFPNLayer, [512, 128, 256]]    # First BiFPN stage with input=256
+  - [-1, 2, BiFPNLayer, [256, 256, 512]]    # Second BiFPN stage with input=512
 
 # YOLOv8.0n head
 head:

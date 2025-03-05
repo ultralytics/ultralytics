@@ -30,8 +30,8 @@ class Colors:
         pose_palette (np.ndarray): A specific color palette array with dtype np.uint8.
 
     Examples:
-        >>> from ultralytics.utils.plotting import Colors
-        >>> color = Colors(5, True)  # ff6fdd or (255, 111, 221)
+        >>> from ultralytics.utils.plotting import colors
+        >>> color = colors(5, True)  # ff6fdd or (255, 111, 221)
 
     ## Ultralytics Color Palette
 

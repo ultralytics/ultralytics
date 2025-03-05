@@ -71,6 +71,7 @@ class SegmentationPredictor(DetectionPredictor):
         else:
             masks = ops.process_mask(proto, pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True)  # HWC
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
-        keep = masks.sum((-2, -1)) > 0  # only keep preds with masks
-        pred, masks = pred[keep], masks[keep]
+        if masks is not None:
+            keep = masks.sum((-2, -1)) > 0  # only keep preds with masks
+            pred, masks = pred[keep], masks[keep]
         return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks)

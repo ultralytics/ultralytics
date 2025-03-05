@@ -293,8 +293,11 @@ class BiFPN(nn.Module):
         self.relu = nn.ReLU()
 
     def forward(self,x):
+        print("First shape: ", x.shape)
         x = self.relu(self.conv1(x))
+        print("Second shape: ", x.shape)
         x = self.relu(self.conv2(x))
+        print("Third shape: ", x.shape)
         return x
 
 class ChannelAttention(nn.Module):

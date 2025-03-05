@@ -590,7 +590,7 @@ class Exporter:
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):
         """YOLO OpenVINO export."""
-        check_requirements("openvino>=2024.0.0,<2025.0.0")
+        check_requirements("openvino")
         import openvino as ov
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
@@ -618,7 +618,7 @@ class Exporter:
         if self.args.int8:
             fq = str(self.file).replace(self.file.suffix, f"_int8_openvino_model{os.sep}")
             fq_ov = str(Path(fq) / self.file.with_suffix(".xml").name)
-            check_requirements("nncf>=2.14.0")
+            check_requirements("nncf")
             import nncf
 
             def transform_fn(data_item) -> np.ndarray:
@@ -678,7 +678,7 @@ class Exporter:
         """YOLOv8 MNN export using MNN https://github.com/alibaba/MNN."""
         f_onnx, _ = self.export_onnx()  # get onnx model first
 
-        check_requirements("MNN>=2.9.6")
+        check_requirements("MNN")
         import MNN  # noqa
         from MNN.tools import mnnconvert
 
@@ -770,7 +770,7 @@ class Exporter:
     def export_coreml(self, prefix=colorstr("CoreML:")):
         """YOLO CoreML export."""
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
-        check_requirements("coremltools>=6.0,<=6.2" if mlmodel else "coremltools>=7.0")
+        check_requirements("coremltools>=6.0,<=6.2" if mlmodel else "coremltools")
         import coremltools as ct  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
@@ -1003,15 +1003,14 @@ class Exporter:
             (
                 "keras",  # required by 'onnx2tf' package
                 "tf_keras",  # required by 'onnx2tf' package
-                "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
-                "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
-                "onnx>=1.12.0",
-                "onnx2tf>1.17.5,<=1.26.3",
-                "onnxslim>=0.1.31",
+                "sng4onnx",  # required by 'onnx2tf' package
+                "onnx_graphsurgeon",  # required by 'onnx2tf' package
+                "onnx",
+                "onnx2tf",
+                "onnxslim",
                 "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
-                "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
+                "flatbuffers",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
-                "protobuf>=5",  # tflite_support pins <=4 but >=5 works
             ),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
         )
@@ -1220,8 +1219,8 @@ class Exporter:
             raise ValueError("IMX export is not supported for end2end models.")
         if "C2f" not in self.model.__str__():
             raise ValueError("IMX export is only supported for YOLOv8n detection models")
-        check_requirements(("model-compression-toolkit==2.1.1", "sony-custom-layers==0.2.0", "tensorflow==2.12.0"))
-        check_requirements("imx500-converter[pt]==3.14.3")  # Separate requirements for imx500-converter
+        check_requirements(("model-compression-toolkit", "sony-custom-layers", "tensorflow==2.12.0"))
+        check_requirements("imx500-converter[pt]")  # Separate requirements for imx500-converter
 
         import model_compression_toolkit as mct
         import onnx

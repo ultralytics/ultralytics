@@ -104,10 +104,21 @@ export = [
     "keras", # not installed automatically by tensorflow>=2.16
     "flatbuffers>=23.5.26,<100; platform_machine == 'aarch64'", # update old 'flatbuffers' included inside tensorflow package
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
+    "nncf>=2.14.0; python_version>'3.8'", # openvino requirements
+    "nncf>=2.13.0; python_version<='3.8'", # openvino requirements
+    "MNN>=2.9.6",
+    # "sng4onnx>=1.0.1", # required by 'onnx2tf' package
+    # "onnx_graphsurgeon>=0.3.26", # required by 'onnx2tf' package
+    "onnx2tf", # required by 'onnx2tf' package
+    # "onnxslim>=0.1.31", # required by 'onnx2tf' package
+    # "tflite_support", # required by 'onnx2tf' package
+    "model-compression-toolkit==2.1.1", # required for imx export
+    "sony-custom-layers==0.2.0",
+    "imx500-converter[pt]==3.14.3"
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching
-    "streamlit",    # for live inference on web browser i.e `yolo streamlit-predict`
+    "streamlit>=1.29.0",    # for live inference on web browser i.e `yolo streamlit-predict`
 ]
 logging = [
     "comet", # https://docs.ultralytics.com/integrations/comet/
@@ -119,6 +130,9 @@ extra = [
     "ipython", # interactive notebook
     "albumentations>=1.4.6", # training augmentations
     "pycocotools>=2.0.7", # COCO mAP
+    "pytubefix>=6.5.2",
+    "youtube_dl==2020.12.2",
+    "lvis>=0.5.3"
 ]
 
 [project.urls]

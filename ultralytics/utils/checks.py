@@ -49,13 +49,30 @@ from ultralytics.utils import (
 )
 
 
-def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
+def clean_specifier(spec):
+    """
+    Clean a version specifier string by removing any 'extra' requirements.
+
+    Args:
+        spec (str): Version specifier string.
+
+    Returns:
+        (str): Cleaned version specifier string.
+    """
+    spec = re.sub(r'\s*and\s+extra\s*==\s*"[^"]+"', "", spec)
+    spec = re.sub(r'\s*;\s*extra\s*==\s*"[^"]+"', "", spec)
+    spec = re.sub(r"\s*;\s*$", "", spec)
+    return spec
+
+
+def parse_requirements(file_path=ROOT.parent / "requirements.txt", package="", include_extra=False):
     """
     Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.
 
     Args:
         file_path (Path): Path to the requirements.txt file.
         package (str, optional): Python package to use instead of requirements.txt file, i.e. package='ultralytics'.
+        include_extra (bool, optional): Include extra requirements, i.e. 'extra == True'.
 
     Returns:
         (List[Dict[str, str]]): List of parsed requirements as dictionaries with `name` and `specifier` keys.
@@ -68,7 +85,11 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
         ```
     """
     if package:
-        requires = [x for x in metadata.distribution(package).requires if "extra == " not in x]
+        requires = list()
+        for x in metadata.distribution(package).requires:
+            if "extra == " in x and not include_extra:
+                continue
+            requires.append(clean_specifier(x))
     else:
         requires = Path(file_path).read_text().splitlines()
 
@@ -350,6 +371,23 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
     return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard, verbose=verbose)
 
 
+def check_ultralytics_requirements(name):
+    """
+    Check if a package is a requirement of the Ultralytics package and return the version specifier.
+
+    Args:
+        name (str): Name of the package to check.
+
+    Returns:
+        (str): The version specifier for the package if it is a requirement of the Ultralytics package, otherwise an empty string.
+    """
+    packages = parse_requirements(package="ultralytics", include_extra=True)
+    for p in packages:
+        if p.name == name:
+            return p.specifier
+    return ""
+
+
 @TryExcept()
 def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds=""):
     """
@@ -389,6 +427,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         r_stripped = r.split("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
         match = re.match(r"([a-zA-Z0-9-_]+)([<>!=~]+.*)?", r_stripped)
         name, required = match[1], match[2].strip() if match[2] else ""
+        if not required:  # if no version specifier passed, check for Ultralytics requirements
+            required = check_ultralytics_requirements(name)
         try:
             assert check_version(metadata.version(name), required)  # exception if requirements not met
         except (AssertionError, metadata.PackageNotFoundError):

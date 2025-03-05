@@ -24,7 +24,6 @@ from ultralytics.utils import (
     AUTOINSTALL,
     IS_COLAB,
     IS_GIT_DIR,
-    IS_KAGGLE,
     IS_PIP_PACKAGE,
     LINUX,
     LOGGER,
@@ -549,18 +548,31 @@ def check_is_path_safe(basedir, path):
 
 def check_imshow(warn=False):
     """Check if environment supports image displays."""
+    import IPython
+
     try:
-        if LINUX:
-            assert not IS_COLAB and not IS_KAGGLE
-            assert "DISPLAY" in os.environ, "The DISPLAY environment variable isn't set."
-        cv2.imshow("test", np.zeros((8, 8, 3), dtype=np.uint8))  # show a small 8-pixel image
+        if IS_COLAB:
+            # In Colab, we can't use cv2.imshow, so we use IPython display
+            img = np.zeros((8, 8, 3), dtype=np.uint8)  # Create a small test image
+            _, buffer = cv2.imencode(".jpg", img)
+            display_img = IPython.display.Image(data=buffer.tobytes())
+            IPython.display.display(display_img)
+            return True
+
+        # For Linux, check DISPLAY variable
+        if os.name == "posix" and "DISPLAY" not in os.environ:
+            raise Exception("The DISPLAY environment variable isn't set.")
+
+        # Standard OpenCV test
+        cv2.imshow("test", np.zeros((8, 8, 3), dtype=np.uint8))
         cv2.waitKey(1)
         cv2.destroyAllWindows()
         cv2.waitKey(1)
         return True
+
     except Exception as e:
         if warn:
-            LOGGER.warning(f"WARNING ⚠️ Environment does not support cv2.imshow() or PIL Image.show()\n{e}")
+            print(f"WARNING ⚠️ Environment does not support cv2.imshow() or PIL Image.show()\n{e}")
         return False
 
 

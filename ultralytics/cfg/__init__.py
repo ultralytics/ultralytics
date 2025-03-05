@@ -511,7 +511,7 @@ def merge_equals_args(args: List[str]) -> List[str]:
 
     Examples:
         >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3", "imgsz=[3,", "640,", "640]"]
-        >>> merge_and_join_args(args)
+        >>> merge_equals_args(args)
         ['arg1=value', 'arg2=value2', 'arg3=value3', 'imgsz=[3,640,640]']
     """
     new_args = []

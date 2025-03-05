@@ -29,8 +29,8 @@ backbone:
 # YOLOv8.0n head
 head:
   # BiFPN layers for multi-scale feature fusion
-  - [-1, 2, BiFPN, [256, 128]]    # First BiFPN stage with input=256
-  - [-1, 2, BiFPN, [64, 32]]    # Second BiFPN stage with input=512
+  - [-1, 2, BiFPN, [128]]    # First BiFPN stage with input=256
+  - [-1, 2, BiFPN, [32]]    # Second BiFPN stage with input=512
   - [[-1], 1, Detect, [nc]] # Classify
   # YOLOv8 detection head layers
   #- [[-1], nc * (5 + nc), DetectHead]             # DetectHead for final outputs

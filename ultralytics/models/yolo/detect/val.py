@@ -37,7 +37,7 @@ class DetectionValidator(BaseValidator):
         self.is_lvis = False
         self.class_map = None
         self.args.task = "detect"
-        self.metrics = DetMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
+        self.metrics = DetMetrics(save_dir=self.save_dir)
         self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
         self.lb = []  # for autolabelling
@@ -78,6 +78,7 @@ class DetectionValidator(BaseValidator):
         self.args.save_json |= self.args.val and (self.is_coco or self.is_lvis) and not self.training  # run final val
         self.names = model.names
         self.nc = len(model.names)
+        self.end2end = getattr(model, "end2end", False)
         self.metrics.names = self.names
         self.metrics.plot = self.args.plots
         self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf)
@@ -96,9 +97,12 @@ class DetectionValidator(BaseValidator):
             self.args.conf,
             self.args.iou,
             labels=self.lb,
+            nc=self.nc,
             multi_label=True,
             agnostic=self.args.single_cls or self.args.agnostic_nms,
             max_det=self.args.max_det,
+            end2end=self.end2end,
+            rotated=self.args.task == "obb",
         )
 
     def _prepare_batch(self, si, batch):
@@ -182,8 +186,8 @@ class DetectionValidator(BaseValidator):
         self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=self.nc)
         self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=self.nc)
         stats.pop("target_img", None)
-        if len(stats) and stats["tp"].any():
-            self.metrics.process(**stats)
+        if len(stats):
+            self.metrics.process(**stats, on_plot=self.on_plot)
         return self.metrics.results_dict
 
     def print_results(self):

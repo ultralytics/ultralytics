@@ -41,8 +41,8 @@ import yaml
 from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
-from ultralytics.utils import ARM64, ASSETS, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR
-from ultralytics.utils.checks import IS_PYTHON_3_12, check_requirements, check_yolo, is_rockchip
+from ultralytics.utils import ARM64, ASSETS, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR
+from ultralytics.utils.checks import IS_PYTHON_3_12, check_imgsz, check_requirements, check_yolo, is_rockchip
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import get_cpu_info, select_device
@@ -57,6 +57,7 @@ def benchmark(
     device="cpu",
     verbose=False,
     eps=1e-3,
+    format="",
 ):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
@@ -70,6 +71,7 @@ def benchmark(
         device (str): Device to run the benchmark on, either 'cpu' or 'cuda'.
         verbose (bool | float): If True or a float, assert benchmarks pass with given metric.
         eps (float): Epsilon value for divide by zero prevention.
+        format (str): Export format for benchmarking. If not supplied all formats are benchmarked.
 
     Returns:
         (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size, metric,
@@ -80,6 +82,9 @@ def benchmark(
         >>> from ultralytics.utils.benchmarks import benchmark
         >>> benchmark(model="yolo11n.pt", imgsz=640)
     """
+    imgsz = check_imgsz(imgsz)
+    assert imgsz[0] == imgsz[1] if isinstance(imgsz, list) else True, "benchmark() only supports square imgsz."
+
     import pandas as pd  # scope for faster 'import ultralytics'
 
     pd.options.display.max_columns = 10
@@ -88,21 +93,31 @@ def benchmark(
     if isinstance(model, (str, Path)):
         model = YOLO(model)
     is_end2end = getattr(model.model.model[-1], "end2end", False)
+    data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
+    key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
 
     y = []
     t0 = time.time()
+
+    format_arg = format.lower()
+    if format_arg:
+        formats = frozenset(export_formats()["Argument"])
+        assert format in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
     for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
         emoji, filename = "❌", None  # export defaults
         try:
+            if format_arg and format_arg != format:
+                continue
+
             # Checks
             if i == 7:  # TF GraphDef
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
             elif i == 9:  # Edge TPU
                 assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
             elif i in {5, 10}:  # CoreML and TF.js
-                assert MACOS or LINUX, "CoreML and TF.js export only supported on macOS and Linux"
-                assert not IS_RASPBERRYPI, "CoreML and TF.js export not supported on Raspberry Pi"
-                assert not IS_JETSON, "CoreML and TF.js export not supported on NVIDIA Jetson"
+                assert MACOS or (LINUX and not ARM64), (
+                    "CoreML and TF.js export only supported on macOS and non-aarch64 Linux"
+                )
             if i in {5}:  # CoreML
                 assert not IS_PYTHON_3_12, "CoreML not supported on Python 3.12"
             if i in {6, 7, 8}:  # TF SavedModel, TF GraphDef, and TFLite
@@ -134,10 +149,12 @@ def benchmark(
 
             # Export
             if format == "-":
-                filename = model.ckpt_path or model.cfg
+                filename = model.pt_path or model.ckpt_path or model.model_name
                 exported_model = model  # PyTorch format
             else:
-                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False)
+                filename = model.export(
+                    imgsz=imgsz, format=format, half=half, int8=int8, data=data, device=device, verbose=False
+                )
                 exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"
             emoji = "❎"  # indicates export succeeded
@@ -148,11 +165,9 @@ def benchmark(
             assert i != 5 or platform.system() == "Darwin", "inference only supported on macOS>=10.13"  # CoreML
             if i in {13}:
                 assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
-            exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half)
+            exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, verbose=False)
 
             # Validate
-            data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
-            key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
             results = exported_model.val(
                 data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
             )
@@ -169,8 +184,10 @@ def benchmark(
     check_yolo(device=device)  # print system info
     df = pd.DataFrame(y, columns=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"])
 
-    name = Path(model.ckpt_path).name
-    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df}\n"
+    name = model.model_name
+    dt = time.time() - t0
+    legend = "Benchmarks legend:  - ✅ Success  - ❎ Export passed but validation failed  - ❌️ Export failed"
+    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({dt:.2f}s)\n{legend}\n{df.fillna('-')}\n"
     LOGGER.info(s)
     with open("benchmarks.log", "a", errors="ignore", encoding="utf-8") as f:
         f.write(s)

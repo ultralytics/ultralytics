@@ -404,7 +404,7 @@ Below are code examples for using each source type:
     model = YOLO("yolo11n.pt")
 
     # Run inference on 'bus.jpg' with arguments
-    model.predict("bus.jpg", save=True, imgsz=320, conf=0.5)
+    model.predict("https://ultralytics.com/images/bus.jpg", save=True, imgsz=320, conf=0.5)
     ```
 
 Inference arguments:
@@ -473,8 +473,10 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
     model = YOLO("yolo11n.pt")
 
     # Run inference on an image
-    results = model("bus.jpg")  # list of 1 Results object
-    results = model(["bus.jpg", "zidane.jpg"])  # list of 2 Results objects
+    results = model("https://ultralytics.com/images/bus.jpg")  # list of 1 Results object
+    results = model(
+        ["https://ultralytics.com/images/bus.jpg", "https://ultralytics.com/images/zidane.jpg"]
+    )  # list of 2 Results objects
     ```
 
 `Results` objects have the following attributes:
@@ -508,7 +510,12 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 | `verbose()`   | `str`           | Return log string for each task.                                                    |
 | `save_txt()`  | `None`          | Save predictions into a txt file.                                                   |
 | `save_crop()` | `None`          | Save cropped predictions to `save_dir/cls/file_name.jpg`.                           |
-| `tojson()`    | `str`           | Convert the object to JSON format.                                                  |
+| `summary()`   | `List[Dict]`    | A list of dictionaries, each containing summarized information for results          |
+| `to_df()`     | `DataFrame`     | Convert the results to Pandas Dataframe.                                            |
+| `to_csv()`    | `str`           | Convert the result to CSV (comma separated values) format.                          |
+| `to_xml()`    | `str`           | Convert the results to XML (Extensible Markup Language) format.                     |
+| `to_json()`   | `str`           | Convert the results to JSON format.                                                 |
+| `to_sql()`    | `None`          | Dump the results into the SQL database.                                             |
 
 For more details see the [`Results` class documentation](../reference/engine/results.md).
 
@@ -525,7 +532,7 @@ For more details see the [`Results` class documentation](../reference/engine/res
     model = YOLO("yolo11n.pt")
 
     # Run inference on an image
-    results = model("bus.jpg")  # results list
+    results = model("https://ultralytics.com/images/bus.jpg")  # results list
 
     # View results
     for r in results:
@@ -563,7 +570,7 @@ For more details see the [`Boxes` class documentation](../reference/engine/resul
     model = YOLO("yolo11n-seg.pt")
 
     # Run inference on an image
-    results = model("bus.jpg")  # results list
+    results = model("https://ultralytics.com/images/bus.jpg")  # results list
 
     # View results
     for r in results:
@@ -596,7 +603,7 @@ For more details see the [`Masks` class documentation](../reference/engine/resul
     model = YOLO("yolo11n-pose.pt")
 
     # Run inference on an image
-    results = model("bus.jpg")  # results list
+    results = model("https://ultralytics.com/images/bus.jpg")  # results list
 
     # View results
     for r in results:
@@ -630,7 +637,7 @@ For more details see the [`Keypoints` class documentation](../reference/engine/r
     model = YOLO("yolo11n-cls.pt")
 
     # Run inference on an image
-    results = model("bus.jpg")  # results list
+    results = model("https://ultralytics.com/images/bus.jpg")  # results list
 
     # View results
     for r in results:
@@ -665,7 +672,7 @@ For more details see the [`Probs` class documentation](../reference/engine/resul
     model = YOLO("yolo11n-obb.pt")
 
     # Run inference on an image
-    results = model("boats.jpg")  # results list
+    results = model("https://ultralytics.com/images/boats.jpg")  # results list
 
     # View results
     for r in results:
@@ -705,7 +712,7 @@ The `plot()` method in `Results` objects facilitates visualization of prediction
     model = YOLO("yolo11n.pt")
 
     # Run inference on 'bus.jpg'
-    results = model(["bus.jpg", "zidane.jpg"])  # results list
+    results = model(["https://ultralytics.com/images/bus.jpg", "https://ultralytics.com/images/zidane.jpg"])  # results list
 
     # Visualize the results
     for i, r in enumerate(results):

@@ -29,6 +29,10 @@ class Colors:
         n (int): The number of colors in the palette.
         pose_palette (np.ndarray): A specific color palette array with dtype np.uint8.
 
+    Examples:
+        >>> from ultralytics.utils.plotting import Colors
+        >>> color = Colors(5, True)  # ff6fdd or (255, 111, 221)
+
     ## Ultralytics Color Palette
 
     | Index | Color                                                             | HEX       | RGB               |
@@ -162,6 +166,11 @@ class Annotator:
         skeleton (List[List[int]]): Skeleton structure for keypoints.
         limb_color (List[int]): Color palette for limbs.
         kpt_color (List[int]): Color palette for keypoints.
+
+    Examples:
+        >>> from ultralytics.utils.plotting import Annotator
+        >>> im0 = cv2.imread("test.png")
+        >>> annotator = Annotator(im0, line_width=10)
     """
 
     def __init__(self, im, line_width=None, font_size=None, font="Arial.ttf", pil=False, example="abc"):
@@ -247,6 +256,12 @@ class Annotator:
 
         Returns:
             txt_color (tuple): Text color for label
+
+        Examples:
+            >>> from ultralytics.utils.plotting import Annotator
+            >>> im0 = cv2.imread("test.png")
+            >>> annotator = Annotator(im0, line_width=10)
+            >>> annotator.get_txt_color(color=(104, 31, 17))  # return (255, 255, 255)
         """
         if color in self.dark_colors:
             return 104, 31, 17
@@ -343,6 +358,12 @@ class Annotator:
             color (tuple, optional): The background color of the rectangle (B, G, R).
             txt_color (tuple, optional): The color of the text (R, G, B).
             rotated (bool, optional): Variable used to check if task is OBB
+
+        Examples:
+            >>> from ultralytics.utils.plotting import Annotator
+            >>> im0 = cv2.imread("test.png")
+            >>> annotator = Annotator(im0, line_width=10)
+            >>> annotator.box_label(box=[10, 20, 30, 40], label="person")
         """
         txt_color = self.get_txt_color(color, txt_color)
         if isinstance(box, torch.Tensor):
@@ -557,6 +578,12 @@ class Annotator:
             width (float): Width of the bounding box.
             height (float): Height of the bounding box.
             area (float): Area enclosed by the bounding box.
+
+        Examples:
+            >>> from ultralytics.utils.plotting import Annotator
+            >>> im0 = cv2.imread("test.png")
+            >>> annotator = Annotator(im0, line_width=10)
+            >>> annotator.get_bbox_dimension(bbox=[10, 20, 30, 40])
         """
         x_min, y_min, x_max, y_max = bbox
         width = x_max - x_min
@@ -801,9 +828,8 @@ class Annotator:
             return
 
         cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
-        text_size, _ = cv2.getTextSize(label, 0, self.sf, self.tf)
-
         if label:
+            text_size, _ = cv2.getTextSize(label, 0, self.sf, self.tf)
             cv2.rectangle(
                 self.im,
                 (int(mask[0][0]) - text_size[0] // 2 - 10, int(mask[0][1]) - text_size[1] - 10),

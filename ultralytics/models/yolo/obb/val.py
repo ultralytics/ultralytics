@@ -28,27 +28,13 @@ class OBBValidator(DetectionValidator):
         """Initialize OBBValidator and set task to 'obb', metrics to OBBMetrics."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.args.task = "obb"
-        self.metrics = OBBMetrics(save_dir=self.save_dir, plot=True, on_plot=self.on_plot)
+        self.metrics = OBBMetrics(save_dir=self.save_dir, plot=True)
 
     def init_metrics(self, model):
         """Initialize evaluation metrics for YOLO."""
         super().init_metrics(model)
         val = self.data.get(self.args.split, "")  # validation path
         self.is_dota = isinstance(val, str) and "DOTA" in val  # is COCO
-
-    def postprocess(self, preds):
-        """Apply Non-maximum suppression to prediction outputs."""
-        return ops.non_max_suppression(
-            preds,
-            self.args.conf,
-            self.args.iou,
-            labels=self.lb,
-            nc=self.nc,
-            multi_label=True,
-            agnostic=self.args.single_cls or self.args.agnostic_nms,
-            max_det=self.args.max_det,
-            rotated=True,
-        )
 
     def _process_batch(self, detections, gt_bboxes, gt_cls):
         """

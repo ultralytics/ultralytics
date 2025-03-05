@@ -61,7 +61,7 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
 
 !!! note "Additional step for macOS"
 
-    If you are using macOS, first [install Homebrew](https://brew.sh) and then install tkinter using `brew install python-tk` to install `tkinter` package which is needed for the parking slots annotator tool.
+    If you are using macOS, first [install Homebrew](https://brew.sh) and then install `tkinter` using `brew install python-tk`. This package is needed for the parking slots annotator tool.
 
 - After defining the parking areas with polygons, click `save` to store a JSON file with the data in your working directory.
 

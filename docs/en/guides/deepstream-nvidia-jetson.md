@@ -344,7 +344,7 @@ The following benchmarks summarizes how YOLO11 models perform at different Tenso
 
 ### Detailed Comparison Table
 
-!!! performance
+!!! tip "Performance"
 
     === "YOLO11n"
 

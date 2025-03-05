@@ -197,12 +197,13 @@ class AutoBackend(nn.Module):
             import onnxruntime
 
             providers = ["CPUExecutionProvider"]
-            if cuda and "CUDAExecutionProvider" in onnxruntime.get_available_providers():
-                providers.insert(0, "CUDAExecutionProvider")
-            elif cuda:  # Only log warning if CUDA was requested but unavailable
-                LOGGER.warning("WARNING ⚠️ Failed to start ONNX Runtime with CUDA. Using CPU...")
-                device = torch.device("cpu")
-                cuda = False
+            if cuda:
+                if "CUDAExecutionProvider" in onnxruntime.get_available_providers():
+                    providers.insert(0, "CUDAExecutionProvider")
+                else:  # Only log warning if CUDA was requested but unavailable
+                    LOGGER.warning("WARNING ⚠️ Failed to start ONNX Runtime with CUDA. Using CPU...")
+                    device = torch.device("cpu")
+                    cuda = False
             LOGGER.info(f"Using ONNX Runtime {providers[0]}")
             if onnx:
                 session = onnxruntime.InferenceSession(w, providers=providers)
@@ -223,7 +224,7 @@ class AutoBackend(nn.Module):
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
             dynamic = isinstance(session.get_outputs()[0].shape[0], str)
-            fp16 = True if "float16" in session.get_inputs()[0].type else False
+            fp16 = "float16" in session.get_inputs()[0].type
             if not dynamic:
                 io = session.io_binding()
                 bindings = []
@@ -243,7 +244,7 @@ class AutoBackend(nn.Module):
         # OpenVINO
         elif xml:
             LOGGER.info(f"Loading {w} for OpenVINO inference...")
-            check_requirements("openvino>=2024.0.0")
+            check_requirements("openvino>=2024.0.0,<2025.0.0")
             import openvino as ov
 
             core = ov.Core()
@@ -599,7 +600,7 @@ class AutoBackend(nn.Module):
                     results[userdata] = request.results
 
                 # Create AsyncInferQueue, set the callback and start asynchronous inference for each input image
-                async_queue = self.ov.runtime.AsyncInferQueue(self.ov_compiled_model)
+                async_queue = self.ov.AsyncInferQueue(self.ov_compiled_model)
                 async_queue.set_callback(callback)
                 for i in range(n):
                     # Start async inference with userdata=i to specify the position in results list

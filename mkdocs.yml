@@ -102,6 +102,8 @@ extra_css:
 extra_javascript:
   - javascript/extra.js
   - javascript/giscus.js
+  - https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js
+  - javascript/tablesort.js
 
 markdown_extensions:
   - admonition

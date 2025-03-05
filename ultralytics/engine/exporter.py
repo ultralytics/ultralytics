@@ -867,7 +867,7 @@ class Exporter:
         # Engine builder
         builder = trt.Builder(logger)
         config = builder.create_builder_config()
-        workspace = int(self.args.workspace or 0 * (1 << 30))
+        workspace = int((self.args.workspace or 0) * (1 << 30))
         if is_trt10 and workspace > 0:
             config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace)
         elif workspace > 0:  # TensorRT versions 7, 8

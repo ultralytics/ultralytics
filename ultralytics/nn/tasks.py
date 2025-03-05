@@ -1068,7 +1068,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         else:
             c2 = ch[f]
 
-        print(m(*args))
         m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
         t = str(m)[8:-2].replace("__main__.", "")  # module type
         m_.np = sum(x.numel() for x in m_.parameters())  # number params

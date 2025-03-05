@@ -1,0 +1,41 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# YOLOv9t object detection model with P3/8 - P5/32 outputs
+# Model docs: https://docs.ultralytics.com/models/yolov9
+# Task docs: https://docs.ultralytics.com/tasks/detect
+# 917 layers, 2128720 parameters, 8.5 GFLOPs
+
+# Parameters
+nc: 80 # number of classes
+
+# GELAN backbone
+backbone:
+  - [-1, 1, Conv, [16, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [32, 3, 2]] # 1-P2/4
+  - [-1, 1, ELAN1, [32, 32, 16]] # 2
+  - [-1, 1, AConv, [64]] # 3-P3/8
+  - [-1, 1, RepNCSPELAN4, [64, 64, 32, 3]] # 4
+  - [-1, 1, AConv, [96]] # 5-P4/16
+  - [-1, 1, RepNCSPELAN4, [96, 96, 48, 3]] # 6
+  - [-1, 1, AConv, [128]] # 7-P5/32
+  - [-1, 1, RepNCSPELAN4, [128, 128, 64, 3]] # 8
+  - [-1, 1, SPPELAN, [128, 64]] # 9
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]] # cat backbone P4
+  - [-1, 1, RepNCSPELAN4, [96, 96, 48, 3]] # 12
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]] # cat backbone P3
+  - [-1, 1, RepNCSPELAN4, [64, 64, 32, 3]] # 15
+
+  - [-1, 1, AConv, [48]]
+  - [[-1, 12], 1, Concat, [1]] # cat head P4
+  - [-1, 1, RepNCSPELAN4, [96, 96, 48, 3]] # 18 (P4/16-medium)
+
+  - [-1, 1, AConv, [64]]
+  - [[-1, 9], 1, Concat, [1]] # cat head P5
+  - [-1, 1, RepNCSPELAN4, [128, 128, 64, 3]] # 21 (P5/32-large)
+
+  - [[15, 18, 21], 1, Detect, [nc]] # Detect(P3, P4, P5)

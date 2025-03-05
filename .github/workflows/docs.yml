@@ -1,0 +1,105 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Test and publish docs to https://docs.ultralytics.com
+# Ignores the following Docs rules to match Google-style docstrings:
+# D100: Missing docstring in public module
+# D104: Missing docstring in public package
+# D203: 1 blank line required before class docstring
+# D205: 1 blank line required between summary line and description
+# D212: Multi-line docstring summary should start at the first line
+# D213: Multi-line docstring summary should start at the second line
+# D401: First line of docstring should be in imperative mood
+# D406: Section name should end with a newline
+# D407: Missing dashed underline after section
+# D413: Missing blank line after last section
+
+name: Publish Docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      publish_docs:
+        description: "Publish live to https://docs.ultralytics.com"
+        default: true
+        type: boolean
+
+jobs:
+  Docs:
+    if: github.repository == 'ultralytics/ultralytics'
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: ${{ github.head_ref || github.ref }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch depth 0 required to capture full docs author history
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          ref: ${{ env.GITHUB_REF }}
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: astral-sh/setup-uv@v5
+      - name: Install Dependencies
+        run: uv pip install --system ruff black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
+      - name: Ruff fixes
+        continue-on-error: true
+        run: ruff check --fix --unsafe-fixes --select D --ignore=D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 .
+      - name: Update Docs Reference Section and Push Changes
+        continue-on-error: true
+        run: |
+          git config --global user.name "UltralyticsAssistant"
+          git config --global user.email "web@ultralytics.com"
+          python docs/build_reference.py
+          git pull origin "$GITHUB_REF"          
+          git add .
+          git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
+          if ! git diff --staged --quiet; then
+            git commit -m "Auto-update Ultralytics Docs Reference by https://ultralytics.com/actions"
+            git push
+          else
+            echo "No changes to commit"
+          fi
+      - name: Ruff checks
+        run: ruff check --select D --ignore=D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 .
+      - name: Build Docs and Check for Warnings
+        run: |
+          export JUPYTER_PLATFORM_DIRS=1
+          python docs/build_docs.py
+      - name: Commit and Push Docs changes
+        continue-on-error: true
+        if: always()
+        run: |
+          git pull origin "$GITHUB_REF"
+          git add --update  # only add updated files
+          git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
+          if ! git diff --staged --quiet; then
+            git commit -m "Auto-update Ultralytics Docs by https://ultralytics.com/actions"
+            git push
+          else
+            echo "No changes to commit"
+          fi
+      - name: Publish Docs to https://docs.ultralytics.com
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_docs == 'true')
+        run: |
+          git clone --depth 1 --branch gh-pages https://github.com/ultralytics/docs.git docs-repo
+          cd docs-repo
+          rm -rf *
+          cp -R ../site/* .
+          echo "${{ secrets.INDEXNOW_KEY_DOCS }}" > "${{ secrets.INDEXNOW_KEY_DOCS }}.txt"
+          git add .
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git pull origin gh-pages
+            LATEST_HASH=$(git rev-parse --short=7 HEAD)
+            git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }} - $LATEST_HASH'"
+            git push https://${{ secrets._GITHUB_TOKEN }}@github.com/ultralytics/docs.git gh-pages
+          fi

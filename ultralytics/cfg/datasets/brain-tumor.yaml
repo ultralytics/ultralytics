@@ -1,0 +1,23 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Brain-tumor dataset by Ultralytics
+# Documentation: https://docs.ultralytics.com/datasets/detect/brain-tumor/
+# Example usage: yolo train data=brain-tumor.yaml
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── brain-tumor  ← downloads here (4.05 MB)
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: ../datasets/brain-tumor # dataset root dir
+train: train/images # train images (relative to 'path') 893 images
+val: valid/images # val images (relative to 'path') 223 images
+test: # test images (relative to 'path')
+
+# Classes
+names:
+  0: negative
+  1: positive
+
+# Download script/URL (optional)
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/brain-tumor.zip

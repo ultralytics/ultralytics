@@ -1,29 +1,31 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 name: ❓ Question
-description: Ask a YOLOv8 question
+description: Ask an Ultralytics YOLO question
 # title: " "
 labels: [question]
 body:
   - type: markdown
     attributes:
       value: |
-        Thank you for asking a YOLOv8 ❓ Question!
+        Thank you for asking an Ultralytics YOLO ❓ Question!
 
   - type: checkboxes
     attributes:
       label: Search before asking
       description: >
-        Please search the [issues](https://github.com/ultralytics/ultralytics/issues) and [discussions](https://github.com/ultralytics/ultralytics/discussions) to see if a similar question already exists.
+        Please search the Ultralytics [Docs](https://docs.ultralytics.com/), [issues](https://github.com/ultralytics/ultralytics/issues) and [discussions](https://github.com/orgs/ultralytics/discussions) to see if a similar question already exists.
       options:
         - label: >
-            I have searched the YOLOv8 [issues](https://github.com/ultralytics/ultralytics/issues) and [discussions](https://github.com/ultralytics/ultralytics/discussions) and found no similar questions.
+            I have searched the Ultralytics YOLO [issues](https://github.com/ultralytics/ultralytics/issues) and [discussions](https://github.com/orgs/ultralytics/discussions) and found no similar questions.
           required: true
 
   - type: textarea
     attributes:
       label: Question
-      description: What is your question?
+      description: What is your question? Please provide as much information as possible. Include detailed code examples to reproduce the problem and describe the context in which the issue occurs. Format your text and code using [Markdown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) for clarity and readability. Following these guidelines will help us assist you more effectively.
       placeholder: |
-        💡 ProTip! Include as much information as possible (screenshots, logs, tracebacks etc.) to receive the most helpful response.
+        💡 ProTip! Include as much information as possible (logs, tracebacks, screenshots etc.) to receive the most helpful response.
     validations:
       required: true
 

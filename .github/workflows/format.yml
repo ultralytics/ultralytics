@@ -1,0 +1,62 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics Actions https://github.com/ultralytics/actions
+# This workflow automatically formats code and documentation in PRs to official Ultralytics standards
+
+name: Ultralytics Actions
+
+on:
+  issues:
+    types: [opened, edited]
+  discussion:
+    types: [created]
+  pull_request:
+    branches: [main]
+    types: [opened, closed, synchronize, review_requested]
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Ultralytics Formatting
+        uses: ultralytics/actions@main
+        with:
+          token: ${{ secrets._GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          labels: true # autolabel issues and PRs
+          python: true # format Python code and docstrings
+          prettier: true # format YAML, JSON, Markdown and CSS
+          spelling: true # check spelling
+          links: false # check broken links
+          summary: true # print PR summary with GPT4o (requires 'openai_api_key')
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          first_issue_response: |
+            👋 Hello @${{ github.actor }}, thank you for your interest in Ultralytics 🚀! We recommend a visit to the [Docs](https://docs.ultralytics.com/) for new users where you can find many [Python](https://docs.ultralytics.com/usage/python/) and [CLI](https://docs.ultralytics.com/usage/cli/) usage examples and where many of the most common questions may already be answered.
+
+            If this is a 🐛 Bug Report, please provide a [minimum reproducible example](https://docs.ultralytics.com/help/minimum-reproducible-example/) to help us debug it.
+
+            If this is a custom training ❓ Question, please provide as much information as possible, including dataset image examples and training logs, and verify you are following our [Tips for Best Training Results](https://docs.ultralytics.com/guides/model-training-tips/).
+
+            Join the Ultralytics community where it suits you best. For real-time chat, head to [Discord](https://discord.com/invite/ultralytics) 🎧. Prefer in-depth discussions? Check out [Discourse](https://community.ultralytics.com/). Or dive into threads on our [Subreddit](https://reddit.com/r/Ultralytics) to share knowledge with the community.
+
+            ## Upgrade
+
+            Upgrade to the latest `ultralytics` package including all [requirements](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) in a [**Python>=3.8**](https://www.python.org/) environment with [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/) to verify your issue is not already resolved in the latest version:
+
+            ```bash
+            pip install -U ultralytics
+            ```
+
+            ## Environments
+
+            YOLO may be run in any of the following up-to-date verified environments (with all dependencies including [CUDA](https://developer.nvidia.com/cuda-zone)/[CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/) and [PyTorch](https://pytorch.org/) preinstalled):
+
+            - **Notebooks** with free GPU: <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"/></a> <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolo11"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+            - **Google Cloud** Deep Learning VM. See [GCP Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/google_cloud_quickstart_tutorial/)
+            - **Amazon** Deep Learning AMI. See [AWS Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/aws_quickstart_tutorial/)
+            - **Docker Image**. See [Docker Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/docker_image_quickstart_tutorial/) <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Docker Pulls"></a>
+
+            ## Status
+
+            <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml?query=event%3Aschedule"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml/badge.svg" alt="Ultralytics CI"></a>
+
+            If this badge is green, all [Ultralytics CI](https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml?query=event%3Aschedule) tests are currently passing. CI tests verify correct operation of all YOLO [Modes](https://docs.ultralytics.com/modes/) and [Tasks](https://docs.ultralytics.com/tasks/) on macOS, Windows, and Ubuntu every 24 hours and on every commit.

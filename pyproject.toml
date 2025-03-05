@@ -1,0 +1,184 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Overview:
+# This pyproject.toml file manages the build, packaging, and distribution of the Ultralytics library.
+# It defines essential project metadata, dependencies, and settings used to develop and deploy the library.
+
+# Key Sections:
+# - [build-system]: Specifies the build requirements and backend (e.g., setuptools, wheel).
+# - [project]: Includes details like name, version, description, authors, dependencies and more.
+# - [project.optional-dependencies]: Provides additional, optional packages for extended features.
+# - [tool.*]: Configures settings for various tools (pytest, yapf, etc.) used in the project.
+
+# Installation:
+# The Ultralytics library can be installed using the command: 'pip install ultralytics'
+# For development purposes, you can install the package in editable mode with: 'pip install -e .'
+# This approach allows for real-time code modifications without the need for re-installation.
+
+# Documentation:
+# For comprehensive documentation and usage instructions, visit: https://docs.ultralytics.com
+
+[build-system]
+requires = ["setuptools>=70.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# Project settings -----------------------------------------------------------------------------------------------------
+[project]
+name = "ultralytics"
+dynamic = ["version"]
+description = "Ultralytics YOLO 🚀 for SOTA object detection, multi-object tracking, instance segmentation, pose estimation and image classification."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { "text" = "AGPL-3.0" }
+keywords = ["machine-learning", "deep-learning", "computer-vision", "ML", "DL", "AI", "YOLO", "YOLOv3", "YOLOv5", "YOLOv8", "YOLOv9", "YOLOv10", "YOLO11", "HUB", "Ultralytics"]
+authors = [
+    { name = "Glenn Jocher", email = "glenn.jocher@ultralytics.com" },
+    { name = "Jing Qiu", email = "jing.qiu@ultralytics.com" },
+]
+maintainers = [
+    { name = "Ultralytics", email = "hello@ultralytics.com" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+]
+
+# Required dependencies ------------------------------------------------------------------------------------------------
+dependencies = [
+    "numpy>=1.23.0,<=2.1.1", # OpenVINO and TFLite errors on '--slow' CI Tests https://github.com/ultralytics/ultralytics/pull/18943
+    "matplotlib>=3.3.0",
+    "opencv-python>=4.6.0",
+    "pillow>=7.1.2",
+    "pyyaml>=5.3.1",
+    "requests>=2.23.0",
+    "scipy>=1.4.1",
+    "torch>=1.8.0",
+    "torch>=1.8.0,!=2.4.0; sys_platform == 'win32'", # Windows CPU errors w/ 2.4.0 https://github.com/ultralytics/ultralytics/issues/15049
+    "torchvision>=0.9.0",
+    "tqdm>=4.64.0", # progress bars
+    "psutil", # system utilization
+    "py-cpuinfo", # display CPU info
+    "pandas>=1.1.4",
+    "seaborn>=0.11.0", # plotting
+    "ultralytics-thop>=2.0.0", # FLOPs computation https://github.com/ultralytics/thop
+]
+
+# Optional dependencies ------------------------------------------------------------------------------------------------
+[project.optional-dependencies]
+dev = [
+    "ipython",
+    "pytest",
+    "pytest-cov",
+    "coverage[toml]",
+    "mkdocs>=1.6.0",
+    "mkdocs-material>=9.5.9",
+    "mkdocstrings[python]",
+    "mkdocs-redirects", # 301 redirects
+    "mkdocs-ultralytics-plugin>=0.1.17", # for meta descriptions and images, dates and authors
+    "mkdocs-macros-plugin>=1.0.5"  # duplicating content (i.e. export tables) in multiple places
+]
+export = [
+    "onnx>=1.12.0", # ONNX export
+    "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'", # CoreML supported on macOS and Linux
+    "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.11'", # CoreML k-means quantization
+    "openvino>=2024.0.0,<2025.0.0", # OpenVINO export
+    "tensorflow>=2.0.0", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
+    "tensorflowjs>=3.9.0", # TF.js export, automatically installs tensorflow
+    "tensorstore>=0.1.63; platform_machine == 'aarch64' and python_version >= '3.9'", # for TF Raspberry Pi exports
+    "keras", # not installed automatically by tensorflow>=2.16
+    "flatbuffers>=23.5.26,<100; platform_machine == 'aarch64'", # update old 'flatbuffers' included inside tensorflow package
+    "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
+]
+solutions = [
+    "shapely>=2.0.0",    # shapely for point and polygon data matching
+    "streamlit",    # for live inference on web browser i.e `yolo streamlit-predict`
+]
+logging = [
+    "comet", # https://docs.ultralytics.com/integrations/comet/
+    "tensorboard>=2.13.0",
+    "dvclive>=2.12.0",
+]
+extra = [
+    "hub-sdk>=0.0.12", # Ultralytics HUB
+    "ipython", # interactive notebook
+    "albumentations>=1.4.6", # training augmentations
+    "pycocotools>=2.0.7", # COCO mAP
+]
+
+[project.urls]
+"Homepage" = "https://ultralytics.com"
+"Source" = "https://github.com/ultralytics/ultralytics"
+"Documentation" = "https://docs.ultralytics.com"
+"Bug Reports" = "https://github.com/ultralytics/ultralytics/issues"
+"Changelog" = "https://github.com/ultralytics/ultralytics/releases"
+
+[project.scripts]
+yolo = "ultralytics.cfg:entrypoint"
+ultralytics = "ultralytics.cfg:entrypoint"
+
+# Tools settings -------------------------------------------------------------------------------------------------------
+[tool.setuptools]  # configuration specific to the `setuptools` build backend.
+packages = { find = { where = ["."], include = ["ultralytics", "ultralytics.*"] } }
+package-data = { "ultralytics" = ["**/*.yaml", "../tests/*.py"], "ultralytics.assets" = ["*.jpg"] }
+
+[tool.setuptools.dynamic]
+version = { attr = "ultralytics.__version__" }
+
+[tool.pytest.ini_options]
+addopts = "--doctest-modules --durations=30 --color=yes"
+markers = [
+    "slow: skip slow tests unless --slow is set",
+]
+norecursedirs = [".git", "dist", "build"]
+
+[tool.coverage.run]
+source = ["ultralytics/"]
+data_file = "tests/.coverage"
+omit = ["ultralytics/utils/callbacks/*"]
+
+[tool.isort]
+line_length = 120
+multi_line_output = 0
+
+[tool.yapf]
+based_on_style = "pep8"
+spaces_before_comment = 2
+column_limit = 120
+coalesce_brackets = true
+spaces_around_power_operator = true
+space_between_ending_comma_and_closing_bracket = true
+split_before_closing_bracket = false
+split_before_first_argument = false
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.docformatter]
+wrap-summaries = 120
+wrap-descriptions = 120
+pre-summary-newline = true
+close-quotes-on-newline = true
+in-place = true
+
+[tool.codespell]
+ignore-words-list = "crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall"
+skip = '*.pt,*.pth,*.torchscript,*.onnx,*.tflite,*.pb,*.bin,*.param,*.mlmodel,*.engine,*.npy,*.data*,*.csv,*pnnx*,*venv*,*translat*,__pycache__*,*.ico,*.jpg,*.png,*.mp4,*.mov,/runs,/.git,./docs/??/*.md,./docs/mkdocs_??.yml'

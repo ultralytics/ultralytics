@@ -1,4 +1,7 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 import argparse
+from typing import Tuple
 
 import cv2
 import numpy as np
@@ -9,11 +12,12 @@ from ultralytics.utils import ASSETS, yaml_load
 from ultralytics.utils.checks import check_requirements, check_yaml
 
 
-class Yolov8:
+class YOLOv8:
+    """YOLOv8 object detection model class for handling inference and visualization."""
 
     def __init__(self, onnx_model, input_image, confidence_thres, iou_thres):
         """
-        Initializes an instance of the Yolov8 class.
+        Initializes an instance of the YOLOv8 class.
 
         Args:
             onnx_model: Path to the ONNX model.
@@ -27,10 +31,29 @@ class Yolov8:
         self.iou_thres = iou_thres
 
         # Load the class names from the COCO dataset
-        self.classes = yaml_load(check_yaml('coco128.yaml'))['names']
+        self.classes = yaml_load(check_yaml("coco8.yaml"))["names"]
 
         # Generate a color palette for the classes
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
+
+    def letterbox(self, img: np.ndarray, new_shape: Tuple = (640, 640)) -> Tuple[np.ndarray, Tuple[float, float]]:
+        """Resizes and reshapes images while maintaining aspect ratio by adding padding, suitable for YOLO models."""
+        shape = img.shape[:2]  # current shape [height, width]
+
+        # Scale ratio (new / old)
+        r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
+
+        # Compute padding
+        new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
+        dw, dh = (new_shape[1] - new_unpad[0]) / 2, (new_shape[0] - new_unpad[1]) / 2  # wh padding
+
+        if shape[::-1] != new_unpad:  # resize
+            img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
+        top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
+        left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
+        img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))
+
+        return img, (top, left)
 
     def draw_detections(self, img, box, score, class_id):
         """
@@ -45,7 +68,6 @@ class Yolov8:
         Returns:
             None
         """
-
         # Extract the coordinates of the bounding box
         x1, y1, w, h = box
 
@@ -56,7 +78,7 @@ class Yolov8:
         cv2.rectangle(img, (int(x1), int(y1)), (int(x1 + w), int(y1 + h)), color, 2)
 
         # Create the label text with class name and score
-        label = f'{self.classes[class_id]}: {score:.2f}'
+        label = f"{self.classes[class_id]}: {score:.2f}"
 
         # Calculate the dimensions of the label text
         (label_width, label_height), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
@@ -66,8 +88,9 @@ class Yolov8:
         label_y = y1 - 10 if y1 - 10 > label_height else y1 + 10
 
         # Draw a filled rectangle as the background for the label text
-        cv2.rectangle(img, (label_x, label_y - label_height), (label_x + label_width, label_y + label_height), color,
-                      cv2.FILLED)
+        cv2.rectangle(
+            img, (label_x, label_y - label_height), (label_x + label_width, label_y + label_height), color, cv2.FILLED
+        )
 
         # Draw the label text on the image
         cv2.putText(img, label, (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
@@ -78,6 +101,7 @@ class Yolov8:
 
         Returns:
             image_data: Preprocessed image data ready for inference.
+            pad: A tuple of two float values representing the padding applied (top/bottom, left/right).
         """
         # Read the input image using OpenCV
         self.img = cv2.imread(self.input_image)
@@ -88,8 +112,7 @@ class Yolov8:
         # Convert the image color space from BGR to RGB
         img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
 
-        # Resize the image to match the input shape
-        img = cv2.resize(img, (self.input_width, self.input_height))
+        img, pad = self.letterbox(img, (self.input_width, self.input_height))
 
         # Normalize the image data by dividing it by 255.0
         image_data = np.array(img) / 255.0
@@ -101,20 +124,20 @@ class Yolov8:
         image_data = np.expand_dims(image_data, axis=0).astype(np.float32)
 
         # Return the preprocessed image data
-        return image_data
+        return image_data, pad
 
-    def postprocess(self, input_image, output):
+    def postprocess(self, input_image, output, pad):
         """
         Performs post-processing on the model's output to extract bounding boxes, scores, and class IDs.
 
         Args:
             input_image (numpy.ndarray): The input image.
             output (numpy.ndarray): The output of the model.
+            pad (Tuple[float, float]): Padding used by letterbox
 
         Returns:
             numpy.ndarray: The input image with detections drawn on it.
         """
-
         # Transpose and squeeze the output to match the expected shape
         outputs = np.transpose(np.squeeze(output[0]))
 
@@ -127,8 +150,9 @@ class Yolov8:
         class_ids = []
 
         # Calculate the scaling factors for the bounding box coordinates
-        x_factor = self.img_width / self.input_width
-        y_factor = self.img_height / self.input_height
+        gain = min(self.input_height / self.img_height, self.input_width / self.img_height)
+        outputs[:, 0] -= pad[1]
+        outputs[:, 1] -= pad[0]
 
         # Iterate over each row in the outputs array
         for i in range(rows):
@@ -147,10 +171,10 @@ class Yolov8:
                 x, y, w, h = outputs[i][0], outputs[i][1], outputs[i][2], outputs[i][3]
 
                 # Calculate the scaled coordinates of the bounding box
-                left = int((x - w / 2) * x_factor)
-                top = int((y - h / 2) * y_factor)
-                width = int(w * x_factor)
-                height = int(h * y_factor)
+                left = int((x - w / 2) / gain)
+                top = int((y - h / 2) / gain)
+                width = int(w / gain)
+                height = int(h / gain)
 
                 # Add the class ID, score, and box coordinates to the respective lists
                 class_ids.append(class_id)
@@ -181,7 +205,7 @@ class Yolov8:
             output_img: The output image with drawn detections.
         """
         # Create an inference session using the ONNX model and specify execution providers
-        session = ort.InferenceSession(self.onnx_model, providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
+        session = ort.InferenceSession(self.onnx_model, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
 
         # Get the model inputs
         model_inputs = session.get_inputs()
@@ -192,36 +216,36 @@ class Yolov8:
         self.input_height = input_shape[3]
 
         # Preprocess the image data
-        img_data = self.preprocess()
+        img_data, pad = self.preprocess()
 
         # Run inference using the preprocessed image data
         outputs = session.run(None, {model_inputs[0].name: img_data})
 
         # Perform post-processing on the outputs to obtain output image.
-        return self.postprocess(self.img, outputs)  # output image
+        return self.postprocess(self.img, outputs, pad)  # output image
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Create an argument parser to handle command-line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='yolov8n.onnx', help='Input your ONNX model.')
-    parser.add_argument('--img', type=str, default=str(ASSETS / 'bus.jpg'), help='Path to input image.')
-    parser.add_argument('--conf-thres', type=float, default=0.5, help='Confidence threshold')
-    parser.add_argument('--iou-thres', type=float, default=0.5, help='NMS IoU threshold')
+    parser.add_argument("--model", type=str, default="yolov8n.onnx", help="Input your ONNX model.")
+    parser.add_argument("--img", type=str, default=str(ASSETS / "bus.jpg"), help="Path to input image.")
+    parser.add_argument("--conf-thres", type=float, default=0.5, help="Confidence threshold")
+    parser.add_argument("--iou-thres", type=float, default=0.5, help="NMS IoU threshold")
     args = parser.parse_args()
 
     # Check the requirements and select the appropriate backend (CPU or GPU)
-    check_requirements('onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime')
+    check_requirements("onnxruntime-gpu" if torch.cuda.is_available() else "onnxruntime")
 
-    # Create an instance of the Yolov8 class with the specified arguments
-    detection = Yolov8(args.model, args.img, args.conf_thres, args.iou_thres)
+    # Create an instance of the YOLOv8 class with the specified arguments
+    detection = YOLOv8(args.model, args.img, args.conf_thres, args.iou_thres)
 
     # Perform object detection and obtain the output image
     output_image = detection.main()
 
     # Display the output image in a window
-    cv2.namedWindow('Output', cv2.WINDOW_NORMAL)
-    cv2.imshow('Output', output_image)
+    cv2.namedWindow("Output", cv2.WINDOW_NORMAL)
+    cv2.imshow("Output", output_image)
 
     # Wait for a key press to exit
     cv2.waitKey(0)

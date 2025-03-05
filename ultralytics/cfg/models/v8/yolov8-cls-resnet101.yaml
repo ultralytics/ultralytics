@@ -1,0 +1,28 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics YOLOv8-cls image classification model with ResNet101 backbone
+# Model docs: https://docs.ultralytics.com/models/yolov8
+# Task docs: https://docs.ultralytics.com/tasks/classify
+
+# Parameters
+nc: 1000 # number of classes
+scales: # model compound scaling constants, i.e. 'model=yolov8n-cls.yaml' will call yolov8-cls.yaml with scale 'n'
+  # [depth, width, max_channels]
+  n: [0.33, 0.25, 1024]
+  s: [0.33, 0.50, 1024]
+  m: [0.67, 0.75, 1024]
+  l: [1.00, 1.00, 1024]
+  x: [1.00, 1.25, 1024]
+
+# YOLOv8.0n backbone
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, ResNetLayer, [3, 64, 1, True, 1]] # 0-P1/2
+  - [-1, 1, ResNetLayer, [64, 64, 1, False, 3]] # 1-P2/4
+  - [-1, 1, ResNetLayer, [256, 128, 2, False, 4]] # 2-P3/8
+  - [-1, 1, ResNetLayer, [512, 256, 2, False, 23]] # 3-P4/16
+  - [-1, 1, ResNetLayer, [1024, 512, 2, False, 3]] # 4-P5/32
+
+# YOLOv8.0n head
+head:
+  - [-1, 1, Classify, [nc]] # Classify

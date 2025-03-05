@@ -1,17 +1,18 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # VisDrone2019-DET dataset https://github.com/VisDrone/VisDrone-Dataset by Tianjin University
+# Documentation: https://docs.ultralytics.com/datasets/detect/visdrone/
 # Example usage: yolo train data=VisDrone.yaml
 # parent
 # ├── ultralytics
 # └── datasets
 #     └── VisDrone  ← downloads here (2.3 GB)
 
-
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/VisDrone  # dataset root dir
-train: VisDrone2019-DET-train/images  # train images (relative to 'path')  6471 images
-val: VisDrone2019-DET-val/images  # val images (relative to 'path')  548 images
-test: VisDrone2019-DET-test-dev/images  # test images (optional)  1610 images
+path: ../datasets/VisDrone # dataset root dir
+train: VisDrone2019-DET-train/images # train images (relative to 'path')  6471 images
+val: VisDrone2019-DET-val/images # val images (relative to 'path')  548 images
+test: VisDrone2019-DET-test-dev/images # test images (optional)  1610 images
 
 # Classes
 names:
@@ -25,7 +26,6 @@ names:
   7: awning-tricycle
   8: bus
   9: motor
-
 
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
@@ -62,10 +62,10 @@ download: |
 
   # Download
   dir = Path(yaml['path'])  # dataset root dir
-  urls = ['https://github.com/ultralytics/yolov5/releases/download/v1.0/VisDrone2019-DET-train.zip',
-          'https://github.com/ultralytics/yolov5/releases/download/v1.0/VisDrone2019-DET-val.zip',
-          'https://github.com/ultralytics/yolov5/releases/download/v1.0/VisDrone2019-DET-test-dev.zip',
-          'https://github.com/ultralytics/yolov5/releases/download/v1.0/VisDrone2019-DET-test-challenge.zip']
+  urls = ['https://github.com/ultralytics/assets/releases/download/v0.0.0/VisDrone2019-DET-train.zip',
+          'https://github.com/ultralytics/assets/releases/download/v0.0.0/VisDrone2019-DET-val.zip',
+          'https://github.com/ultralytics/assets/releases/download/v0.0.0/VisDrone2019-DET-test-dev.zip',
+          'https://github.com/ultralytics/assets/releases/download/v0.0.0/VisDrone2019-DET-test-challenge.zip']
   download(urls, dir=dir, curl=True, threads=4)
 
   # Convert

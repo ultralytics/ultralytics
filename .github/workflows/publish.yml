@@ -1,7 +1,8 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
-# Publish pip package to PyPI https://pypi.org/project/ultralytics/ and Docs to https://docs.ultralytics.com
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-name: Publish to PyPI and Deploy Docs
+# Publish pip package to PyPI https://pypi.org/project/ultralytics/
+
+name: Publish to PyPI
 
 on:
   push:
@@ -11,99 +12,114 @@ on:
       pypi:
         type: boolean
         description: Publish to PyPI
-      docs:
-        type: boolean
-        description: Deploy Docs
 
 jobs:
-  publish:
+  check:
     if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
-    name: Publish
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      increment: ${{ steps.check_pypi.outputs.increment }}
+      current_tag: ${{ steps.check_pypi.outputs.current_tag }}
+      previous_tag: ${{ steps.check_pypi.outputs.previous_tag }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          fetch-depth: "0" # pulls all commits (needed correct last updated dates in Docs)
-      - name: Set up Python environment
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-          cache: 'pip' # caching pip dependencies
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip wheel build twine
-          pip install -e ".[dev]" --extra-index-url https://download.pytorch.org/whl/cpu
-      - name: Check PyPI version
+          python-version: "3.x"
+      - uses: astral-sh/setup-uv@v5
+      - run: uv pip install --system --no-cache ultralytics-actions
+      - id: check_pypi
         shell: python
         run: |
           import os
-          import ultralytics
-          from ultralytics.utils.checks import check_latest_pypi_version
+          from actions.utils import check_pypi_version
+          local_version, online_version, publish = check_pypi_version()
+          os.system(f'echo "increment={publish}" >> $GITHUB_OUTPUT')
+          os.system(f'echo "current_tag=v{local_version}" >> $GITHUB_OUTPUT')
+          os.system(f'echo "previous_tag=v{online_version}" >> $GITHUB_OUTPUT')
+          if publish:
+              print('Ready to publish new version to PyPI ✅.')
+      - name: Tag and Release
+        if: steps.check_pypi.outputs.increment == 'True'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURRENT_TAG: ${{ steps.check_pypi.outputs.current_tag }}
+          PREVIOUS_TAG: ${{ steps.check_pypi.outputs.previous_tag }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          git config --global user.name "UltralyticsAssistant"
+          git config --global user.email "web@ultralytics.com"
+          git tag -a "$CURRENT_TAG" -m "$(git log -1 --pretty=%B)"
+          git push origin "$CURRENT_TAG"
+          ultralytics-actions-summarize-release
+          uv cache prune --ci
 
-          v_local = tuple(map(int, ultralytics.__version__.split('.')))
-          v_pypi = tuple(map(int, check_latest_pypi_version().split('.')))
-          print(f'Local version is {v_local}')
-          print(f'PyPI version is {v_pypi}')
-          d = [a - b for a, b in zip(v_local, v_pypi)]  # diff
-          increment = (d[0] == d[1] == 0) and (0 < d[2] < 3)  # only publish if patch version increments by 1 or 2
-          os.system(f'echo "increment={increment}" >> $GITHUB_OUTPUT')
-          os.system(f'echo "version={ultralytics.__version__}" >> $GITHUB_OUTPUT')
-          if increment:
-              print('Local version is higher than PyPI version. Publishing new version to PyPI ✅.')
-        id: check_pypi
-      - name: Publish to PyPI
-        continue-on-error: true
-        if: (github.event_name == 'push' || github.event.inputs.pypi == 'true')  && steps.check_pypi.outputs.increment == 'True'
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          python -m build
-          python -m twine upload dist/* -u __token__ -p $PYPI_TOKEN
-      - name: Deploy Docs
-        continue-on-error: true
-        if: (github.event_name == 'push' || github.event.inputs.docs == 'true') && github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
-        env:
-          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-        run: |
-          mkdocs build
-          git config --global user.name "Glenn Jocher"
-          git config --global user.email "glenn.jocher@ultralytics.com"
-          git clone https://github.com/ultralytics/docs.git docs-repo
-          cd docs-repo
-          git checkout gh-pages || git checkout -b gh-pages
-          rm -rf *
-          cp -R ../site/* .
-          git add .
-          git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }}'"
-          git push https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/ultralytics/docs.git gh-pages
+  build:
+    needs: check
+    if: needs.check.outputs.increment == 'True'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: astral-sh/setup-uv@v5
+      - run: uv pip install --system --no-cache build
+      - run: python -m build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - run: uv cache prune --ci
+
+  publish:
+    needs: [check, build]
+    if: needs.check.outputs.increment == 'True'
+    runs-on: ubuntu-latest
+    environment: # for GitHub Deployments tab
+      name: Release - PyPI
+      url: https://pypi.org/p/ultralytics
+    permissions:
+      id-token: write # for PyPI trusted publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  notify:
+    needs: [check, publish]
+    if: always() && needs.check.outputs.increment == 'True'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       - name: Extract PR Details
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            PR_JSON=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }})
-            PR_NUMBER=${{ github.event.pull_request.number }}
-            PR_TITLE=$(echo $PR_JSON | jq -r '.title')
-          else
-            COMMIT_SHA=${{ github.event.after }}
-            PR_JSON=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/search/issues?q=repo:${{ github.repository }}+is:pr+is:merged+sha:$COMMIT_SHA")
-            PR_NUMBER=$(echo $PR_JSON | jq -r '.items[0].number')
-            PR_TITLE=$(echo $PR_JSON | jq -r '.items[0].title')
-          fi
-          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
-          echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
-      - name: Notify on Slack (Success)
-        if: success() && github.event_name == 'push' && steps.check_pypi.outputs.increment == 'True'
-        uses: slackapi/slack-github-action@v1.24.0
+          PR_JSON=$(gh pr list --search "${GITHUB_SHA}" --state merged --json number,title --jq '.[0]')
+          PR_NUMBER=$(echo "${PR_JSON}" | jq -r '.number')
+          PR_TITLE=$(echo "${PR_JSON}" | jq -r '.title')
+          echo "PR_NUMBER=${PR_NUMBER}" >> "${GITHUB_ENV}"
+          echo "PR_TITLE=${PR_TITLE}" >> "${GITHUB_ENV}"
+      - name: Notify Success
+        if: needs.publish.result == 'success' && github.event_name == 'push'
+        uses: slackapi/slack-github-action@v2.0.0
         with:
+          webhook-type: incoming-webhook
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
           payload: |
-            {"text": "<!channel> GitHub Actions success for ${{ github.workflow }} ✅\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* NEW 'ultralytics ${{ steps.check_pypi.outputs.version }}' pip package published 😃\n*Job Status:* ${{ job.status }}\n*Pull Request:* <https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}> ${{ env.PR_TITLE }}\n"}
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
-      - name: Notify on Slack (Failure)
-        if: failure()
-        uses: slackapi/slack-github-action@v1.24.0
+            text: "<!channel> GitHub Actions success for ${{ github.workflow }} ✅\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* NEW `${{ github.repository }} ${{ needs.check.outputs.current_tag }}` pip package published 😃\n*Job Status:* ${{ job.status }}\n*Pull Request:* <https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}> ${{ env.PR_TITLE }}\n"
+      - name: Notify Failure
+        if: needs.publish.result != 'success'
+        uses: slackapi/slack-github-action@v2.0.0
         with:
+          webhook-type: incoming-webhook
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
           payload: |
-            {"text": "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n*Job Status:* ${{ job.status }}\n*Pull Request:* <https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}> ${{ env.PR_TITLE }}\n"}
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
+            text: "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n*Job Status:* ${{ job.status }}\n*Pull Request:* <https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}> ${{ env.PR_TITLE }}\n"

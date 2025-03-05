@@ -1,0 +1,70 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Builds ultralytics/ultralytics:jetson-jetpack4 image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
+# Supports JetPack4.x for YOLO11 on Jetson Nano, TX2, Xavier NX, AGX Xavier
+
+# Start FROM https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-cuda
+FROM nvcr.io/nvidia/l4t-cuda:10.2.460-runtime
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Downloads to user config dir
+ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
+    https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.Unicode.ttf \
+    /root/.config/Ultralytics/
+
+# Add NVIDIA repositories for TensorRT dependencies
+RUN wget -q -O - https://repo.download.nvidia.com/jetson/jetson-ota-public.asc | apt-key add - && \
+  echo "deb https://repo.download.nvidia.com/jetson/common r32.7 main" > /etc/apt/sources.list.d/nvidia-l4t-apt-source.list && \
+  echo "deb https://repo.download.nvidia.com/jetson/t194 r32.7 main" >> /etc/apt/sources.list.d/nvidia-l4t-apt-source.list
+
+# Install dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    git python3.8 python3.8-dev python3-pip python3-libnvinfer libopenmpi-dev libopenblas-base libomp-dev gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create symbolic links for python3.8 and pip3
+RUN ln -sf /usr/bin/python3.8 /usr/bin/python3
+RUN ln -s /usr/bin/pip3 /usr/bin/pip
+
+# Create working directory
+WORKDIR /ultralytics
+
+# Copy contents and configure git
+COPY . .
+RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config
+ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
+
+# Download onnxruntime-gpu 1.8.0 and tensorrt 8.2.0.6
+# Other versions can be seen in https://elinux.org/Jetson_Zoo and https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048
+ADD https://nvidia.box.com/shared/static/gjqofg7rkg97z3gc8jeyup6t8n9j8xjw.whl onnxruntime_gpu-1.8.0-cp38-cp38-linux_aarch64.whl
+ADD https://forums.developer.nvidia.com/uploads/short-url/hASzFOm9YsJx6VVFrDW1g44CMmv.whl tensorrt-8.2.0.6-cp38-none-linux_aarch64.whl
+
+# Install pip packages
+RUN python3 -m pip install --upgrade pip
+RUN python3 -m pip install uv
+RUN uv pip install --system \
+    onnxruntime_gpu-1.8.0-cp38-cp38-linux_aarch64.whl \
+    tensorrt-8.2.0.6-cp38-none-linux_aarch64.whl \
+    https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-1.11.0a0+gitbc2c6ed-cp38-cp38-linux_aarch64.whl \
+    https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.12.0a0+9b5a3fe-cp38-cp38-linux_aarch64.whl
+RUN uv pip install --system -e ".[export]"
+
+# Remove extra build files
+RUN rm -rf *.whl /root/.config/Ultralytics/persistent_cache.json
+
+# Usage Examples -------------------------------------------------------------------------------------------------------
+
+# Build and Push
+# t=ultralytics/ultralytics:latest-jetson-jetpack4 && sudo docker build --platform linux/arm64 -f docker/Dockerfile-jetson-jetpack4 -t $t . && sudo docker push $t
+
+# Run
+# t=ultralytics/ultralytics:latest-jetson-jetpack4 && sudo docker run -it --ipc=host $t
+
+# Pull and Run
+# t=ultralytics/ultralytics:latest-jetson-jetpack4 && sudo docker pull $t && sudo docker run -it --ipc=host $t
+
+# Pull and Run with NVIDIA runtime
+# t=ultralytics/ultralytics:latest-jetson-jetpack4 && sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t

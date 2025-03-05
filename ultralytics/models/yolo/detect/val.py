@@ -41,7 +41,7 @@ class DetectionValidator(BaseValidator):
         self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
         self.lb = []  # for autolabelling
-        if self.args.save_hybrid and not self.args.task == "obb":
+        if self.args.save_hybrid and self.args.task != "obb":
             LOGGER.warning(
                 "WARNING ⚠️ 'save_hybrid=True' will append ground truth to predictions for autolabelling.\n"
                 "WARNING ⚠️ 'save_hybrid=True' will cause incorrect mAP.\n"
@@ -54,7 +54,7 @@ class DetectionValidator(BaseValidator):
         for k in ["batch_idx", "cls", "bboxes"]:
             batch[k] = batch[k].to(self.device)
 
-        if self.args.save_hybrid and not self.args.task == "obb":
+        if self.args.save_hybrid and self.args.task != "obb":
             height, width = batch["img"].shape[2:]
             nb = len(batch["img"])
             bboxes = batch["bboxes"] * torch.tensor((width, height, width, height), device=self.device)

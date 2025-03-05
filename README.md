@@ -1,4 +1,4 @@
-# this repo is a fork of ultralytics/ultralytics, site:https://github.com/ultralytics.com
+# this repo is a fork of ultralytics, site:https://github.com/ultralytics.com
 ## added new features:
 1. use this source code train models on own datasets
 2. in order to modify the model, you need to modify the model.py file

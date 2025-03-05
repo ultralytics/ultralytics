@@ -29,6 +29,6 @@ neck:
 
 # YOLOv8.0n head
 head:
-  - [-1, 1, Detect, [nc]] # Classify
+  - [[6], 1, Detect, [nc]] # Classify
   # YOLOv8 detection head layers
   #- [[-1], nc * (5 + nc), DetectHead]             # DetectHead for final outputs

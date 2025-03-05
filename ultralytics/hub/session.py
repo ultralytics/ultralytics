@@ -93,7 +93,7 @@ class HUBTrainingSession:
         """Loads an existing model from Ultralytics HUB using the provided model identifier."""
         self.model = self.client.model(model_id)
         if not self.model.data:  # then model does not exist
-            raise ValueError(f"The model {model_id} does not exist")  # TODO: improve error handling
+            LOGGER.warning(f"❌ The HUB model {model_id} does not exist")
 
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
         if self.model.is_trained():
@@ -134,7 +134,7 @@ class HUBTrainingSession:
         # Model could not be created
         # TODO: improve error handling
         if not self.model.id:
-            raise ValueError(f"The model {self.filename} does not exist")
+            LOGGER.warning(f"The model {self.filename} does not exist")
 
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
 

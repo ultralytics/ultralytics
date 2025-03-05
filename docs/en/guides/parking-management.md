@@ -59,13 +59,13 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
         solutions.ParkingPtsSelection()
         ```
 
-!!! note "Additional step for installing `tkinter`"
-
-    Generally, `tkinter` comes pre-packaged with Python. However, if it did not, install it on Linux as `sudo apt-get install python3-tk`, on macOS as `brew install python-tk` and on Windows enable the checkbox `tcl/tk and IDLE` on "Optional Features" when installing Python.
-
 - After defining the parking areas with polygons, click `save` to store a JSON file with the data in your working directory.
 
 ![Ultralytics YOLO11 Points Selection Demo](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-points-selection-demo.avif)
+
+!!! note "Additional step for installing `tkinter`"
+
+    Generally, `tkinter` comes pre-packaged with Python. However, if it did not, install it on Linux as `sudo apt-get install python3-tk`, on macOS as `brew install python-tk` and on Windows enable the checkbox `tcl/tk and IDLE` on "Optional Features" when installing Python.
 
 ### Python Code for Parking Management
 

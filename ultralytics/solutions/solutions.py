@@ -10,8 +10,6 @@ from ultralytics.utils import ASSETS_URL, DEFAULT_CFG_DICT, DEFAULT_SOL_DICT, LO
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
 
-MODEL_MAPPING = {"InstanceSegmentation": "yolo11n-seg.pt", "AIGym": "yolo11n-pose.pt"}
-
 
 class BaseSolution:
     """
@@ -86,10 +84,10 @@ class BaseSolution:
 
         # Load Model and store classes names
         if self.CFG["model"] is None:
-            self.CFG["model"] = MODEL_MAPPING.get(solution_name, "yolo11n.pt")
-            self.model = YOLO(self.CFG["model"], verbose=self.CFG["verbose"])
-        self.classes = self.CFG["classes"]
+            self.CFG["model"] = "yolo11n.pt"
+        self.model = YOLO(self.CFG["model"], verbose=self.CFG["verbose"])
         self.names = self.model.names
+        self.classes = self.CFG["classes"]
 
         self.track_add_args = {  # Tracker additional arguments for advance configuration
             k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker", "device"]

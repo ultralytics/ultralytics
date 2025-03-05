@@ -33,7 +33,8 @@ class AIGym(BaseSolution):
 
     def __init__(self, **kwargs):
         """Initializes AIGym for workout monitoring using pose estimation and predefined angles."""
-        super().__init__(**kwargs, solution_name=type(self).__name__)
+        kwargs["model"] = kwargs.get("model", "yolo11n-pose.pt")
+        super().__init__(**kwargs)
         self.count = []  # List for counts, necessary where there are multiple objects in frame
         self.angle = []  # List for angle, necessary where there are multiple objects in frame
         self.stage = []  # List for stage, necessary where there are multiple objects in frame

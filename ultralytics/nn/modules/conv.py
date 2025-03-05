@@ -277,14 +277,14 @@ class RepConv(nn.Module):
 
 # BiFPNLayer Implementation
 class BiFPN(nn.Module):
-    def __init__(self, input_channels, intermediate_channels,
+    def __init__(self, input_channels,
                  output_channels):
         super().__init__()
         # Convolutional layers for feature fusion
         self.conv1 = nn.Conv2d(input_channels,
-                               intermediate_channels,
+                               input_channels // 2,
                                kernel_size=1)
-        self.conv2 = nn.Conv2d(intermediate_channels,
+        self.conv2 = nn.Conv2d(input_channels // 2,
                                output_channels,
                                kernel_size=3,
                                padding=1)

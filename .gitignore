@@ -174,3 +174,4 @@ pnnx*
 # calibration image
 calibration_*.npy
 __pycache__/
+.vscode/

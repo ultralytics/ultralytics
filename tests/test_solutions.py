@@ -80,6 +80,7 @@ def test_major_solutions():
 
 @pytest.mark.slow
 def test_parking_annotator():
+    """Test the parking annotator"""
     from ultralytics import solutions
 
     solutions.ParkingPtsSelection()

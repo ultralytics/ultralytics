@@ -71,9 +71,9 @@ def test_major_solutions():
     safe_download(url=f"{ASSETS_URL}/{PARKING_MODEL}", dir=TMP)
     cap = cv2.VideoCapture(str(TMP / PARKING_VIDEO))
     assert cap.isOpened(), "Error reading video file"
-    parkingmanager = solutions.ParkingManagement(json_file=str(TMP / PARKING_AREAS_JSON), 
-                                                model=str(TMP / PARKING_MODEL), 
-                                                show=True)
+    parkingmanager = solutions.ParkingManagement(
+        json_file=str(TMP / PARKING_AREAS_JSON), model=str(TMP / PARKING_MODEL), show=True
+    )
     while cap.isOpened():
         success, im0 = cap.read()
         if not success:

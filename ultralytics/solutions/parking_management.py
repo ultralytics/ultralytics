@@ -48,9 +48,25 @@ class ParkingPtsSelection:
 
     def __init__(self):
         """Initializes the ParkingPtsSelection class, setting up UI and properties for parking zone point selection."""
-        import tkinter as tk
-        from tkinter import filedialog, messagebox
+        from ultralytics.utils.checks import check_imshow
+        try:    # check if tkinter installed
+            import tkinter as tk
+            from tkinter import filedialog, messagebox
+        except ImportError: # Display error with recommendations
+            os_name = platform.system()
 
+            install_cmd = {
+                "Linux": "sudo apt install python3-tk (Debian/Ubuntu) | sudo dnf install python3-tkinter (Fedora) | "
+                         "sudo pacman -S tk (Arch)",
+                "Windows": "Reinstall Python and check 'tcl/tk' during installation.",
+                "MacOS": "Reinstall Python from https://www.python.org/downloads/mac-osx/"
+            }.get(os_name, "Unknown OS. Check your Python installation.")
+
+            LOGGER.warning(f"⚠️ Tkinter is not configured or supported.\n"
+                           f"🚀 Recommended fix: {install_cmd}")
+        if not check_imshow():  # verify if the system support display
+            LOGGER.info("Annotation tool unsupported in VMs, Colab, or non-GUI apps.😃")
+            return
         self.tk, self.filedialog, self.messagebox = tk, filedialog, messagebox
         self.master = self.tk.Tk()  # Reference to the main application window or parent widget
         self.master.title("Ultralytics Parking Zones Points Selector")

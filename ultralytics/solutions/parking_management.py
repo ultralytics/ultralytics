@@ -55,6 +55,7 @@ class ParkingPtsSelection:
             from tkinter import filedialog, messagebox
         except ImportError:  # Display error with recommendations
             import platform
+
             os_name = platform.system()
 
             install_cmd = {
@@ -66,7 +67,7 @@ class ParkingPtsSelection:
 
             LOGGER.warning(f"⚠️ Tkinter is not configured or supported.\n🚀 Recommended fix: {install_cmd}")
             return
-        
+
         if not check_imshow():  # verify if the system support display
             LOGGER.info("Annotation tool unsupported in VMs, Colab, or non-GUI apps.😃")
             return

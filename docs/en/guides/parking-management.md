@@ -49,8 +49,8 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
 
     ??? note "Additional step for installing `tkinter`"
 
-        Generally, `tkinter` comes pre-packaged with Python. However, if it did not, you can install it using the highlighted steps: 
-        
+        Generally, `tkinter` comes pre-packaged with Python. However, if it did not, you can install it using the highlighted steps:
+
         - **Linux**: (Debian/Ubuntu): `sudo apt install python3-tk`
         - **Fedora**: `sudo dnf install python3-tkinter`
         - **Arch**: `sudo pacman -S tk`

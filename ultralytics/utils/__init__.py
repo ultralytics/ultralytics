@@ -1253,7 +1253,8 @@ class SettingsManager(JSONDict):
             "settings_version": version,  # Settings schema version
             # modifyed by zhd 2025-03-06 12:40:37
             # Datasets directory
-            "datasets_dir": str(datasets_root / "ultralytics-daito"),
+            # "datasets_dir": str(datasets_root / "datasets"),
+            "datasets_dir": str(root),
             "weights_dir": str(root / "weights"),  # Model weights directory
             "runs_dir": str(root / "runs"),  # Experiment runs directory
             # SHA-256 anonymized UUID hash

@@ -3,6 +3,49 @@
 1. use this source code train models on own datasets
 2. in order to modify the model, you need to modify the model.py file
 3. send train infomation to redis
+4. ultralytics's tree
+  ├── docker                             # 官方的 docker 版本（不用 docker 的话不用管）
+  ├── docs                               # 官方文档
+  ├── examples                           # 官方实例
+  ├── test                               # 测试文件
+  └── ultralytics                        # 核心的模型代码文件和其他工具组件
+  ├── assets                             # 感觉好像没啥用的
+  ├── cfg                                # --- 参数 ---
+  │    ├── datasets                      # 数据集的参数
+  │    ├── models                        # 各类模型的网络结构参数 rt-detr,v3,v5,v6,v8,v9,v10,v11
+  │    ├── trackers                      # ？ 部分参数文件
+  │    └── default.yaml                  # ！ 训练器默认会加载的参数
+  ├── data                               # --- 数据处理 ---
+  │    ├── explorer                      # 可视化
+  │    ├── scripts                       # 获取数据的脚本文件
+  │    ├── augment.py                    # ！ 所有的数据增强类和实现
+  │    └── ***.py                        # 各类数据读取器、数据处理等相关代码
+  ├── engine                             # --- 最底层的类定义 ---
+  │    ├── model.py                      # 模型基类
+  │    ├── trainer.py                    # 训练器基类
+  │    └── ***.py                        # 其他各种基类
+  ├── hub                                # ？
+  ├── models                             # --- 外层的类定义 ---
+  │    ├── fastsam                       # fast SAM 模型
+  │    ├── nas                           # NAS 模型
+  │    ├── rtdetr                        # RT-DETR 模型
+  │    ├── sam                           # SAM 模型
+  │    │    └── modules                  # SAM中用到的网络结构的实现，encoder、decoder等
+  │    ├── utils                         # 各网络中公用的基础组件
+  │    └── yolo                          # YOLO 模型
+  │         ├── classify                 # 分类任务
+  │         ├── detect                   # 检测任务
+  │         ├── obb                      # Oriented Bounding Box 3D包围盒
+  │         ├── pose                     # 姿态估计
+  │         └── segment                  # 分割任务
+  ├── nn                                 # --- 公用的神经网络组件 ---
+  │    └── modules                       # 公用的基础网络结构的实现
+  ├── solutions                          # --- 一些偏专用的解决方法 ---
+  ├── trackers                           # ？
+  │    └── utils                         # 该任务中公用的基础组件
+  └── utils                              # --- 在架构各阶段用到的公用的基础组件 ---
+  └── callbacks                          # ？ 回调函数、可视化等基础组件
+
 <div align="center">
   <p>
     <a href="https://www.ultralytics.com/events/yolovision" target="_blank">

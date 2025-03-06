@@ -38,7 +38,8 @@ class DetectionValidator(BaseValidator):
         self.class_map = None
         self.args.task = "detect"
         self.metrics = DetMetrics(save_dir=self.save_dir)
-        self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
+        # IoU vector for mAP@0.5:0.95
+        self.iouv = torch.linspace(0.5, 0.95, 10)
         self.niou = self.iouv.numel()
         self.lb = []  # for autolabelling
         if self.args.save_hybrid and self.args.task == "detect":
@@ -50,16 +51,20 @@ class DetectionValidator(BaseValidator):
     def preprocess(self, batch):
         """Preprocesses batch of images for YOLO training."""
         batch["img"] = batch["img"].to(self.device, non_blocking=True)
-        batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255
+        batch["img"] = (batch["img"].half()
+                        if self.args.half else batch["img"].float()) / 255
         for k in ["batch_idx", "cls", "bboxes"]:
             batch[k] = batch[k].to(self.device)
 
         if self.args.save_hybrid and self.args.task == "detect":
             height, width = batch["img"].shape[2:]
             nb = len(batch["img"])
-            bboxes = batch["bboxes"] * torch.tensor((width, height, width, height), device=self.device)
+            bboxes = batch["bboxes"] * \
+                torch.tensor((width, height, width, height),
+                             device=self.device)
             self.lb = [
-                torch.cat([batch["cls"][batch["batch_idx"] == i], bboxes[batch["batch_idx"] == i]], dim=-1)
+                torch.cat([batch["cls"][batch["batch_idx"] == i],
+                          bboxes[batch["batch_idx"] == i]], dim=-1)
                 for i in range(nb)
             ]
 
@@ -73,18 +78,23 @@ class DetectionValidator(BaseValidator):
             and "coco" in val
             and (val.endswith(f"{os.sep}val2017.txt") or val.endswith(f"{os.sep}test-dev2017.txt"))
         )  # is COCO
-        self.is_lvis = isinstance(val, str) and "lvis" in val and not self.is_coco  # is LVIS
-        self.class_map = converter.coco80_to_coco91_class() if self.is_coco else list(range(1, len(model.names) + 1))
-        self.args.save_json |= self.args.val and (self.is_coco or self.is_lvis) and not self.training  # run final val
+        self.is_lvis = isinstance(
+            val, str) and "lvis" in val and not self.is_coco  # is LVIS
+        self.class_map = converter.coco80_to_coco91_class(
+        ) if self.is_coco else list(range(1, len(model.names) + 1))
+        self.args.save_json |= self.args.val and (
+            self.is_coco or self.is_lvis) and not self.training  # run final val
         self.names = model.names
         self.nc = len(model.names)
         self.end2end = getattr(model, "end2end", False)
         self.metrics.names = self.names
         self.metrics.plot = self.args.plots
-        self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf)
+        self.confusion_matrix = ConfusionMatrix(
+            nc=self.nc, conf=self.args.conf)
         self.seen = 0
         self.jdict = []
-        self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
+        self.stats = dict(tp=[], conf=[], pred_cls=[],
+                          target_cls=[], target_img=[])
 
     def get_desc(self):
         """Return a formatted string summarizing class metrics of YOLO model."""
@@ -114,15 +124,18 @@ class DetectionValidator(BaseValidator):
         imgsz = batch["img"].shape[2:]
         ratio_pad = batch["ratio_pad"][si]
         if len(cls):
-            bbox = ops.xywh2xyxy(bbox) * torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]]  # target boxes
-            ops.scale_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad)  # native-space labels
+            bbox = ops.xywh2xyxy(bbox) * torch.tensor(imgsz,
+                                                      device=self.device)[[1, 0, 1, 0]]  # target boxes
+            # native-space labels
+            ops.scale_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad)
         return {"cls": cls, "bbox": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
 
     def _prepare_pred(self, pred, pbatch):
         """Prepares a batch of images and annotations for validation."""
         predn = pred.clone()
         ops.scale_boxes(
-            pbatch["imgsz"], predn[:, :4], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
+            pbatch["imgsz"], predn[:,
+                                   :4], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
         )  # native-space pred
         return predn
 
@@ -134,7 +147,8 @@ class DetectionValidator(BaseValidator):
             stat = dict(
                 conf=torch.zeros(0, device=self.device),
                 pred_cls=torch.zeros(0, device=self.device),
-                tp=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device),
+                tp=torch.zeros(npr, self.niou, dtype=torch.bool,
+                               device=self.device),
             )
             pbatch = self._prepare_batch(si, batch)
             cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
@@ -146,7 +160,8 @@ class DetectionValidator(BaseValidator):
                     for k in self.stats.keys():
                         self.stats[k].append(stat[k])
                     if self.args.plots:
-                        self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
+                        self.confusion_matrix.process_batch(
+                            detections=None, gt_bboxes=bbox, gt_cls=cls)
                 continue
 
             # Predictions
@@ -172,7 +187,8 @@ class DetectionValidator(BaseValidator):
                     predn,
                     self.args.save_conf,
                     pbatch["ori_shape"],
-                    self.save_dir / "labels" / f"{Path(batch['im_file'][si]).stem}.txt",
+                    self.save_dir / "labels" /
+                    f"{Path(batch['im_file'][si]).stem}.txt",
                 )
 
     def finalize_metrics(self, *args, **kwargs):
@@ -182,9 +198,12 @@ class DetectionValidator(BaseValidator):
 
     def get_stats(self):
         """Returns metrics statistics and results dictionary."""
-        stats = {k: torch.cat(v, 0).cpu().numpy() for k, v in self.stats.items()}  # to numpy
-        self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=self.nc)
-        self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=self.nc)
+        stats = {k: torch.cat(v, 0).cpu().numpy()
+                 for k, v in self.stats.items()}  # to numpy
+        self.nt_per_class = np.bincount(
+            stats["target_cls"].astype(int), minlength=self.nc)
+        self.nt_per_image = np.bincount(
+            stats["target_img"].astype(int), minlength=self.nc)
         stats.pop("target_img", None)
         if len(stats):
             self.metrics.process(**stats, on_plot=self.on_plot)
@@ -192,16 +211,24 @@ class DetectionValidator(BaseValidator):
 
     def print_results(self):
         """Prints training/validation set metrics per class."""
-        pf = "%22s" + "%11i" * 2 + "%11.3g" * len(self.metrics.keys)  # print format
-        LOGGER.info(pf % ("all", self.seen, self.nt_per_class.sum(), *self.metrics.mean_results()))
+        pf = "%22s" + "%11i" * 2 + "%11.3g" * \
+            len(self.metrics.keys)  # print format
+        # zhd 2025/03/06
+        # all x x ...
+        LOGGER.info(pf % ("all", self.seen, self.nt_per_class.sum(),
+                    *self.metrics.mean_results()))
+        print(pf % ("all", self.seen, self.nt_per_class.sum(),
+                    *self.metrics.mean_results()))
         if self.nt_per_class.sum() == 0:
-            LOGGER.warning(f"WARNING ⚠️ no labels found in {self.args.task} set, can not compute metrics without labels")
+            LOGGER.warning(
+                f"WARNING ⚠️ no labels found in {self.args.task} set, can not compute metrics without labels")
 
-        # Print results per class
+        # Print results per class--最后训练结束的时候才输出
         if self.args.verbose and not self.training and self.nc > 1 and len(self.stats):
             for i, c in enumerate(self.metrics.ap_class_index):
                 LOGGER.info(
-                    pf % (self.names[c], self.nt_per_image[c], self.nt_per_class[c], *self.metrics.class_result(i))
+                    pf % (self.names[c], self.nt_per_image[c],
+                          self.nt_per_class[c], *self.metrics.class_result(i))
                 )
 
         if self.args.plots:
@@ -244,8 +271,10 @@ class DetectionValidator(BaseValidator):
 
     def get_dataloader(self, dataset_path, batch_size):
         """Construct and return dataloader."""
-        dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
-        return build_dataloader(dataset, batch_size, self.args.workers, shuffle=False, rank=-1)  # return dataloader
+        dataset = self.build_dataset(
+            dataset_path, batch=batch_size, mode="val")
+        # return dataloader
+        return build_dataloader(dataset, batch_size, self.args.workers, shuffle=False, rank=-1)
 
     def plot_val_samples(self, batch, ni):
         """Plot validation image samples."""
@@ -308,25 +337,30 @@ class DetectionValidator(BaseValidator):
                 / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
             )  # annotations
             pkg = "pycocotools" if self.is_coco else "lvis"
-            LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
+            LOGGER.info(
+                f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 for x in pred_json, anno_json:
                     assert x.is_file(), f"{x} file not found"
-                check_requirements("pycocotools>=2.0.6" if self.is_coco else "lvis>=0.5.3")
+                check_requirements(
+                    "pycocotools>=2.0.6" if self.is_coco else "lvis>=0.5.3")
                 if self.is_coco:
                     from pycocotools.coco import COCO  # noqa
                     from pycocotools.cocoeval import COCOeval  # noqa
 
                     anno = COCO(str(anno_json))  # init annotations api
-                    pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
+                    # init predictions api (must pass string, not Path)
+                    pred = anno.loadRes(str(pred_json))
                     val = COCOeval(anno, pred, "bbox")
                 else:
                     from lvis import LVIS, LVISEval
 
                     anno = LVIS(str(anno_json))  # init annotations api
-                    pred = anno._load_json(str(pred_json))  # init predictions api (must pass string, not Path)
+                    # init predictions api (must pass string, not Path)
+                    pred = anno._load_json(str(pred_json))
                     val = LVISEval(anno, pred, "bbox")
-                val.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
+                val.params.imgIds = [
+                    int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
                 val.evaluate()
                 val.accumulate()
                 val.summarize()
@@ -334,7 +368,8 @@ class DetectionValidator(BaseValidator):
                     val.print_results()  # explicitly call print_results
                 # update mAP50-95 and mAP50
                 stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = (
-                    val.stats[:2] if self.is_coco else [val.results["AP50"], val.results["AP"]]
+                    val.stats[:2] if self.is_coco else [
+                        val.results["AP50"], val.results["AP"]]
                 )
             except Exception as e:
                 LOGGER.warning(f"{pkg} unable to run: {e}")

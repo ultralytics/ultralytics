@@ -6,7 +6,6 @@ import cv2
 import numpy as np
 import onnxruntime as ort
 import torch
-import torch.nn.functional as F
 
 import ultralytics.utils.ops as ops
 from ultralytics.engine.results import Results

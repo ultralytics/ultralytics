@@ -34,7 +34,7 @@ class SegmentationValidator(DetectionValidator):
         self.plot_masks = None
         self.process = None
         self.args.task = "segment"
-        self.metrics = SegmentMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
+        self.metrics = SegmentMetrics(save_dir=self.save_dir)
 
     def preprocess(self, batch):
         """Preprocesses batch by converting masks to float and sending to device."""

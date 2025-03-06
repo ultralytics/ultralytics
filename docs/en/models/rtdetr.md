@@ -36,7 +36,7 @@ The Ultralytics Python API provides pre-trained PaddlePaddle RT-DETR models with
 - RT-DETR-L: 53.0% AP on COCO val2017, 114 FPS on T4 GPU
 - RT-DETR-X: 54.8% AP on COCO val2017, 74 FPS on T4 GPU
 
-<script async src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script defer src="../../javascript/benchmark.js"></script>
 
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["RTDETRv2"]'></canvas>

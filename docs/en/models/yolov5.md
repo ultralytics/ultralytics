@@ -32,14 +32,14 @@ This table provides a detailed overview of the YOLOv5u model variants, highlight
 
 ## Performance Metrics
 
-<script async src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script defer src="../../javascript/benchmark.js"></script>
 
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv5"]'></canvas>
 
-!!! performance
+!!! tip "Performance"
 
-    === "Detection"
+    === "Detection (COCO)"
 
     See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pre-trained classes.
 

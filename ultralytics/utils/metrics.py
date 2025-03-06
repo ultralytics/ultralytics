@@ -624,7 +624,7 @@ def ap_per_class(
             if j == 0:
                 prec_values.append(np.interp(x, mrec, mpre))  # precision at mAP@0.5
 
-    prec_values = np.array(prec_values)  # (nc, 1000)
+    prec_values = np.array(prec_values) if prec_values else np.zeros((1, 1000))  # (nc, 1000)
 
     # Compute F1 (harmonic mean of precision and recall)
     f1_curve = 2 * p_curve * r_curve / (p_curve + r_curve + eps)
@@ -823,13 +823,11 @@ class DetMetrics(SimpleClass):
     Args:
         save_dir (Path): A path to the directory where the output plots will be saved. Defaults to current directory.
         plot (bool): A flag that indicates whether to plot precision-recall curves for each class. Defaults to False.
-        on_plot (func): An optional callback to pass plots path and data when they are rendered. Defaults to None.
         names (dict of str): A dict of strings that represents the names of the classes. Defaults to an empty tuple.
 
     Attributes:
         save_dir (Path): A path to the directory where the output plots will be saved.
         plot (bool): A flag that indicates whether to plot the precision-recall curves for each class.
-        on_plot (func): An optional callback to pass plots path and data when they are rendered.
         names (dict of str): A dict of strings that represents the names of the classes.
         box (Metric): An instance of the Metric class for storing the results of the detection metrics.
         speed (dict): A dictionary for storing the execution time of different parts of the detection process.
@@ -847,17 +845,16 @@ class DetMetrics(SimpleClass):
         curves_results: TODO
     """
 
-    def __init__(self, save_dir=Path("."), plot=False, on_plot=None, names={}) -> None:
+    def __init__(self, save_dir=Path("."), plot=False, names={}) -> None:
         """Initialize a DetMetrics instance with a save directory, plot flag, callback function, and class names."""
         self.save_dir = save_dir
         self.plot = plot
-        self.on_plot = on_plot
         self.names = names
         self.box = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "detect"
 
-    def process(self, tp, conf, pred_cls, target_cls):
+    def process(self, tp, conf, pred_cls, target_cls, on_plot=None):
         """Process predicted results for object detection and update metrics."""
         results = ap_per_class(
             tp,
@@ -867,7 +864,7 @@ class DetMetrics(SimpleClass):
             plot=self.plot,
             save_dir=self.save_dir,
             names=self.names,
-            on_plot=self.on_plot,
+            on_plot=on_plot,
         )[2:]
         self.box.nc = len(self.names)
         self.box.update(results)
@@ -923,13 +920,11 @@ class SegmentMetrics(SimpleClass):
     Args:
         save_dir (Path): Path to the directory where the output plots should be saved. Default is the current directory.
         plot (bool): Whether to save the detection and segmentation plots. Default is False.
-        on_plot (func): An optional callback to pass plots path and data when they are rendered. Defaults to None.
         names (list): List of class names. Default is an empty list.
 
     Attributes:
         save_dir (Path): Path to the directory where the output plots should be saved.
         plot (bool): Whether to save the detection and segmentation plots.
-        on_plot (func): An optional callback to pass plots path and data when they are rendered.
         names (list): List of class names.
         box (Metric): An instance of the Metric class to calculate box detection metrics.
         seg (Metric): An instance of the Metric class to calculate mask segmentation metrics.
@@ -945,18 +940,17 @@ class SegmentMetrics(SimpleClass):
         results_dict: Returns the dictionary containing all the detection and segmentation metrics and fitness score.
     """
 
-    def __init__(self, save_dir=Path("."), plot=False, on_plot=None, names=()) -> None:
+    def __init__(self, save_dir=Path("."), plot=False, names=()) -> None:
         """Initialize a SegmentMetrics instance with a save directory, plot flag, callback function, and class names."""
         self.save_dir = save_dir
         self.plot = plot
-        self.on_plot = on_plot
         self.names = names
         self.box = Metric()
         self.seg = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "segment"
 
-    def process(self, tp, tp_m, conf, pred_cls, target_cls):
+    def process(self, tp, tp_m, conf, pred_cls, target_cls, on_plot=None):
         """
         Processes the detection and segmentation metrics over the given set of predictions.
 
@@ -966,6 +960,7 @@ class SegmentMetrics(SimpleClass):
             conf (list): List of confidence scores.
             pred_cls (list): List of predicted classes.
             target_cls (list): List of target classes.
+            on_plot (func): An optional callback to pass plots path and data when they are rendered. Defaults to None.
         """
         results_mask = ap_per_class(
             tp_m,
@@ -973,7 +968,7 @@ class SegmentMetrics(SimpleClass):
             pred_cls,
             target_cls,
             plot=self.plot,
-            on_plot=self.on_plot,
+            on_plot=on_plot,
             save_dir=self.save_dir,
             names=self.names,
             prefix="Mask",
@@ -986,7 +981,7 @@ class SegmentMetrics(SimpleClass):
             pred_cls,
             target_cls,
             plot=self.plot,
-            on_plot=self.on_plot,
+            on_plot=on_plot,
             save_dir=self.save_dir,
             names=self.names,
             prefix="Box",
@@ -1063,13 +1058,11 @@ class PoseMetrics(SegmentMetrics):
     Args:
         save_dir (Path): Path to the directory where the output plots should be saved. Default is the current directory.
         plot (bool): Whether to save the detection and segmentation plots. Default is False.
-        on_plot (func): An optional callback to pass plots path and data when they are rendered. Defaults to None.
         names (list): List of class names. Default is an empty list.
 
     Attributes:
         save_dir (Path): Path to the directory where the output plots should be saved.
         plot (bool): Whether to save the detection and segmentation plots.
-        on_plot (func): An optional callback to pass plots path and data when they are rendered.
         names (list): List of class names.
         box (Metric): An instance of the Metric class to calculate box detection metrics.
         pose (Metric): An instance of the Metric class to calculate mask segmentation metrics.
@@ -1085,19 +1078,18 @@ class PoseMetrics(SegmentMetrics):
         results_dict: Returns the dictionary containing all the detection and segmentation metrics and fitness score.
     """
 
-    def __init__(self, save_dir=Path("."), plot=False, on_plot=None, names=()) -> None:
+    def __init__(self, save_dir=Path("."), plot=False, names=()) -> None:
         """Initialize the PoseMetrics class with directory path, class names, and plotting options."""
         super().__init__(save_dir, plot, names)
         self.save_dir = save_dir
         self.plot = plot
-        self.on_plot = on_plot
         self.names = names
         self.box = Metric()
         self.pose = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "pose"
 
-    def process(self, tp, tp_p, conf, pred_cls, target_cls):
+    def process(self, tp, tp_p, conf, pred_cls, target_cls, on_plot=None):
         """
         Processes the detection and pose metrics over the given set of predictions.
 
@@ -1107,6 +1099,7 @@ class PoseMetrics(SegmentMetrics):
             conf (list): List of confidence scores.
             pred_cls (list): List of predicted classes.
             target_cls (list): List of target classes.
+            on_plot (func): An optional callback to pass plots path and data when they are rendered. Defaults to None.
         """
         results_pose = ap_per_class(
             tp_p,
@@ -1114,7 +1107,7 @@ class PoseMetrics(SegmentMetrics):
             pred_cls,
             target_cls,
             plot=self.plot,
-            on_plot=self.on_plot,
+            on_plot=on_plot,
             save_dir=self.save_dir,
             names=self.names,
             prefix="Pose",
@@ -1127,7 +1120,7 @@ class PoseMetrics(SegmentMetrics):
             pred_cls,
             target_cls,
             plot=self.plot,
-            on_plot=self.on_plot,
+            on_plot=on_plot,
             save_dir=self.save_dir,
             names=self.names,
             prefix="Box",
@@ -1246,16 +1239,15 @@ class ClassifyMetrics(SimpleClass):
 class OBBMetrics(SimpleClass):
     """Metrics for evaluating oriented bounding box (OBB) detection, see https://arxiv.org/pdf/2106.06072.pdf."""
 
-    def __init__(self, save_dir=Path("."), plot=False, on_plot=None, names=()) -> None:
+    def __init__(self, save_dir=Path("."), plot=False, names=()) -> None:
         """Initialize an OBBMetrics instance with directory, plotting, callback, and class names."""
         self.save_dir = save_dir
         self.plot = plot
-        self.on_plot = on_plot
         self.names = names
         self.box = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
 
-    def process(self, tp, conf, pred_cls, target_cls):
+    def process(self, tp, conf, pred_cls, target_cls, on_plot=None):
         """Process predicted results for object detection and update metrics."""
         results = ap_per_class(
             tp,
@@ -1265,7 +1257,7 @@ class OBBMetrics(SimpleClass):
             plot=self.plot,
             save_dir=self.save_dir,
             names=self.names,
-            on_plot=self.on_plot,
+            on_plot=on_plot,
         )[2:]
         self.box.nc = len(self.names)
         self.box.update(results)

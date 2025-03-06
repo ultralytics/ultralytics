@@ -60,16 +60,20 @@ This section details the models available with their specific pre-trained weight
 
 ## Zero-shot Transfer on COCO Dataset
 
-| Model Type      | mAP  | mAP50 | mAP75 |
-| --------------- | ---- | ----- | ----- |
-| yolov8s-world   | 37.4 | 52.0  | 40.6  |
-| yolov8s-worldv2 | 37.7 | 52.2  | 41.0  |
-| yolov8m-world   | 42.0 | 57.0  | 45.6  |
-| yolov8m-worldv2 | 43.0 | 58.4  | 46.8  |
-| yolov8l-world   | 45.7 | 61.3  | 49.8  |
-| yolov8l-worldv2 | 45.8 | 61.3  | 49.8  |
-| yolov8x-world   | 47.0 | 63.0  | 51.2  |
-| yolov8x-worldv2 | 47.1 | 62.8  | 51.4  |
+!!! tip "Performance"
+
+    === "Detection (COCO)"
+
+        | Model Type      | mAP  | mAP50 | mAP75 |
+        | --------------- | ---- | ----- | ----- |
+        | yolov8s-world   | 37.4 | 52.0  | 40.6  |
+        | yolov8s-worldv2 | 37.7 | 52.2  | 41.0  |
+        | yolov8m-world   | 42.0 | 57.0  | 45.6  |
+        | yolov8m-worldv2 | 43.0 | 58.4  | 46.8  |
+        | yolov8l-world   | 45.7 | 61.3  | 49.8  |
+        | yolov8l-worldv2 | 45.8 | 61.3  | 49.8  |
+        | yolov8x-world   | 47.0 | 63.0  | 51.2  |
+        | yolov8x-worldv2 | 47.1 | 62.8  | 51.4  |
 
 ## Usage Examples
 

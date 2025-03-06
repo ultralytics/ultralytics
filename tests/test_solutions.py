@@ -77,10 +77,13 @@ def test_major_solutions():
         _ = parkingmanager.process_data(im0)
     cap.release()
 
+
 @pytest.mark.slow
 def test_parking_annotator():
     from ultralytics import solutions
+
     solutions.ParkingPtsSelection()
+
 
 @pytest.mark.slow
 def test_instance_segmentation():

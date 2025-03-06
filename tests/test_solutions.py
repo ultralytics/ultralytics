@@ -8,11 +8,12 @@ from ultralytics import YOLO, solutions
 from ultralytics.utils import ASSETS_URL, WEIGHTS_DIR
 from ultralytics.utils.downloads import safe_download
 
-DEMO_VIDEO = "solutions_ci_demo.mp4" # for all the solutions, except workout and parking
+DEMO_VIDEO = "solutions_ci_demo.mp4"  # for all the solutions, except workout and parking
 POSE_VIDEO = "solution_ci_pose_demo.mp4"  # only for workouts monitoring solution
 PARKING_VIDEO = "solution_ci_parking_demo.mp4"  # only for parking management solution
-PARKING_AREAS_JSON = "solution_ci_parking_areas.json" # only for parking management solution
-PARKING_MODEL = "solutions_ci_parking_model.pt" # only for parking management solution
+PARKING_AREAS_JSON = "solution_ci_parking_areas.json"  # only for parking management solution
+PARKING_MODEL = "solutions_ci_parking_model.pt"  # only for parking management solution
+
 
 @pytest.mark.slow
 def test_major_solutions():
@@ -75,6 +76,7 @@ def test_major_solutions():
             break
         _ = parkingmanager.process_data(im0)
     cap.release()
+
 
 @pytest.mark.slow
 def test_instance_segmentation():

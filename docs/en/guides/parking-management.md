@@ -38,18 +38,24 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
 
 ### Selection of Points
 
-!!! tip "Point Selection is now Easy"
+!!! tip "Points selection is now easy"
 
     Choosing parking points is a critical and complex task in parking management systems. Ultralytics streamlines this process by providing a tool that lets you define parking lot areas, which can be utilized later for additional processing.
 
 - Capture a frame from the video or camera stream where you want to manage the parking lot.
 - Use the provided code to launch a graphical interface, where you can select an image and start outlining parking regions by mouse click to create polygons.
 
-!!! warning "Image Size"
+!!! example "Parking slots annotator Ultralytics YOLO11"
 
-    Max Image Size of 1920 * 1080 supported
+    ??? note "Additional step for installing `tkinter`"
 
-!!! example "Parking slots Annotator Ultralytics YOLO11"
+        Generally, `tkinter` comes pre-packaged with Python. However, if it did not, you can install it using the highlighted steps: 
+        
+        - **Linux**: (Debian/Ubuntu): `sudo apt install python3-tk`
+        - **Fedora**: `sudo dnf install python3-tkinter`
+        - **Arch**: `sudo pacman -S tk`
+        - **Windows**: Reinstall Python and enable the checkbox `tcl/tk and IDLE` on **Optional Features** during installation
+        - **MacOS**: Reinstall Python from [https://www.python.org/downloads/mac-osx/](https://www.python.org/downloads/mac-osx/) or `brew install python-tk`
 
     === "Parking Annotator"
 
@@ -62,10 +68,6 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
 - After defining the parking areas with polygons, click `save` to store a JSON file with the data in your working directory.
 
 ![Ultralytics YOLO11 Points Selection Demo](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-points-selection-demo.avif)
-
-!!! note "Additional step for installing `tkinter`"
-
-    Generally, `tkinter` comes pre-packaged with Python. However, if it did not, install it on Linux as `sudo apt-get install python3-tk`, on macOS as `brew install python-tk` and on Windows enable the checkbox `tcl/tk and IDLE` on "Optional Features" when installing Python.
 
 ### Python Code for Parking Management
 

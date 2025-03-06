@@ -25,10 +25,11 @@ class YOLOv8Seg:
             onnx_model (str): Path to the ONNX model file.
             conf (float, optional): Confidence threshold for detections. Defaults to 0.25.
             iou (float, optional): IoU threshold for NMS. Defaults to 0.7.
+            imgsz (int | Tuple): Input image size of the model.
 
         Attributes:
             session (ort.InferenceSession): ONNX Runtime session.
-            imgsz (tuple): Input image size of the model.
+            imgsz (Tuple): Input image size of the model.
             classes (dict): Class mappings from the COCO dataset.
             conf (float): Confidence threshold for filtering detections.
             iou (float): IoU threshold used by NMS.

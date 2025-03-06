@@ -25,14 +25,11 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
     """
     A class to fine-tune a world model on a close-set dataset.
 
-    Example:
-        ```python
-        from ultralytics.models.yolo.world import WorldModel
-
-        args = dict(model="yolov8s-world.pt", data="coco8.yaml", epochs=3)
-        trainer = WorldTrainer(overrides=args)
-        trainer.train()
-        ```
+    Examples:
+        >>> from ultralytics.models.yolo.world import WorldModel
+        >>> args = dict(model="yolov8s-world.pt", data="coco8.yaml", epochs=3)
+        >>> trainer = WorldTrainer(overrides=args)
+        >>> trainer.train()
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):

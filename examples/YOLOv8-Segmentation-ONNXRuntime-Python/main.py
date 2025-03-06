@@ -113,42 +113,30 @@ class YOLOv8Seg:
 
         results = []
         for i, pred in enumerate(preds):
-            masks = self.process_mask(protos[i], pred[:, 6:], pred[:, :4], prep_img.shape[2:], True)
             pred[:, :4] = ops.scale_boxes(prep_img.shape[2:], pred[:, :4], img.shape)
+            masks = self.process_mask(protos[i], pred[:, 6:], pred[:, :4], img.shape[:2])
             results.append(Results(img, path="", names=self.classes, boxes=pred[:, :6], masks=masks))
 
         return results
 
-    def process_mask(self, protos, masks_in, bboxes, shape, upsample=False):
+    def process_mask(self, protos, masks_in, bboxes, shape):
         """
-        Processes segmentation masks from the model output.
+        It takes the output of the mask head, and crops it after upsampling to the bounding boxes.
 
         Args:
-            protos (torch.Tensor): The prototype mask predictions from the model.
-            masks_in (torch.Tensor): The raw mask predictions.
-            bboxes (torch.Tensor): Bounding boxes for the detected objects.
-            shape (Tuple): Target shape for mask resizing.
-            upsample (bool, optional): Whether to upscale masks to match the original image size. Defaults to False.
+            protos (torch.Tensor): [mask_dim, mask_h, mask_w]
+            masks_in (torch.Tensor): [n, mask_dim], n is number of masks after nms.
+            bboxes (torch.Tensor): [n, 4], n is number of masks after nms.
+            shape (Tuple): The size of the input image (h,w).
 
         Returns:
-            torch.Tensor: Processed binary masks.
+            masks (torch.Tensor): The returned masks with dimensions [h, w, n].
         """
         c, mh, mw = protos.shape  # CHW
-        ih, iw = shape
-        masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)  # CHW
-        width_ratio = mw / iw
-        height_ratio = mh / ih
-
-        downsampled_bboxes = bboxes.clone()
-        downsampled_bboxes[:, 0] *= width_ratio
-        downsampled_bboxes[:, 2] *= width_ratio
-        downsampled_bboxes[:, 3] *= height_ratio
-        downsampled_bboxes[:, 1] *= height_ratio
-
-        masks = ops.crop_mask(masks, downsampled_bboxes)  # CHW
-        if upsample:
-            masks = F.interpolate(masks[None], shape, mode="bilinear", align_corners=False)[0]  # CHW
-        return masks.gt_(0)
+        masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)
+        masks = ops.scale_masks(masks[None], shape)[0]  # CHW
+        masks = ops.crop_mask(masks, bboxes)  # CHW
+        return masks.gt_(0.0)
 
 
 if __name__ == "__main__":

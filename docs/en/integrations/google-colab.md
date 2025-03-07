@@ -16,7 +16,7 @@ Many developers lack the powerful computing resources needed to build [deep lear
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO11 models on Your Custom Dataset in Google Colab | Episode 3
+  <strong>Watch:</strong> How to Train Ultralytics YOLO11 models on Your Custom Dataset in <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb" target="_blank">Google Colab</a>.
 </p>
 
 You can use Google Colab to work on projects related to [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models. Google Colab's user-friendly environment is well suited for efficient model development and experimentation. Let's learn more about Google Colab, its key features, and how you can use it to train YOLO11 models.

@@ -2453,18 +2453,6 @@ class C2fPSA(C2f):
         super().__init__(c1, c2, n=n, e=e)
         self.m = nn.ModuleList(PSABlock(self.c, attn_ratio=0.5, num_heads=self.c // 64) for _ in range(n))
 
-    def forward(self, x):
-        """
-        Forward pass through the C2fPSA module.
-
-        Args:
-            x (torch.Tensor): Input tensor of shape (B, c1, H, W).
-
-        Returns:
-            (torch.Tensor): Output tensor of shape (B, c2, H, W) maintaining spatial dimensions.
-        """
-        return super().forward(x)
-
 
 class SCDown(nn.Module):
     """

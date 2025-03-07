@@ -510,6 +510,7 @@ class AutoBackend(nn.Module):
                     metadata[k] = int(v)
                 elif k in {"imgsz", "names", "kpt_shape", "args"} and isinstance(v, str):
                     metadata[k] = eval(v)
+            stride = metadata["stride"]
             task = metadata["task"]
             batch = metadata["batch"]
             imgsz = metadata["imgsz"]

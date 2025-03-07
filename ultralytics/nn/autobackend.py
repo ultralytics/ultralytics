@@ -244,7 +244,7 @@ class AutoBackend(nn.Module):
         # OpenVINO
         elif xml:
             LOGGER.info(f"Loading {w} for OpenVINO inference...")
-            check_requirements("openvino>=2024.0.0,<2025.0.0")
+            check_requirements("openvino>=2024.0.0,!=2025.0.0")
             import openvino as ov
 
             core = ov.Core()

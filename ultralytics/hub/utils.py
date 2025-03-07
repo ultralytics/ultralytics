@@ -218,8 +218,11 @@ class Events:
         if len(self.events) < 25:  # Events list limited to 25 events (drop any events past this)
             params = {
                 **self.metadata,
+                "debug_mode": 1,  
                 "task": cfg.task,
                 "model": cfg.model if cfg.model in GITHUB_ASSETS_NAMES else "custom",
+                "epochs": cfg.epochs,
+                "batch": cfg.batch
             }
             if cfg.mode == "export":
                 params["format"] = cfg.format

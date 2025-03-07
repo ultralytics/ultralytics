@@ -181,7 +181,7 @@ class BaseValidator:
         # Class Images Instance ...
         bar = TQDM(self.dataloader, desc=self.get_desc(),
                    total=len(self.dataloader))
-        print(self.get_desc())
+        # print(self.get_desc())
         self.init_metrics(de_parallel(model))
         self.jdict = []  # empty before each val
         for batch_i, batch in enumerate(bar):

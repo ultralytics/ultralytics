@@ -217,8 +217,9 @@ class DetectionValidator(BaseValidator):
         # all x x ...
         LOGGER.info(pf % ("all", self.seen, self.nt_per_class.sum(),
                     *self.metrics.mean_results()))
-        print(pf % ("all", self.seen, self.nt_per_class.sum(),
-                    *self.metrics.mean_results()))
+        # print(pf % ("all", self.seen, self.nt_per_class.sum(),
+        #             *self.metrics.mean_results()))
+
         if self.nt_per_class.sum() == 0:
             LOGGER.warning(
                 f"WARNING ⚠️ no labels found in {self.args.task} set, can not compute metrics without labels")

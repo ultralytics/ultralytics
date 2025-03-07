@@ -91,7 +91,7 @@ class BaseTrainer:
         csv (Path): Path to results CSV file.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, rds, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initializes the BaseTrainer class.
 
@@ -99,6 +99,7 @@ class BaseTrainer:
             cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
+        self.rds = rds
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
         self.device = select_device(self.args.device, self.args.batch)
@@ -217,7 +218,7 @@ class BaseTrainer:
                 ddp_cleanup(self, str(file))
 
         else:
-            self._do_train(world_size)
+            self._do_train(world_size)  # 传入redis
 
     def _setup_scheduler(self):
         """Initialize training learning rate scheduler."""
@@ -392,7 +393,8 @@ class BaseTrainer:
             if RANK in {-1, 0}:
                 # zhd 2025/03/06
                 LOGGER.info(self.progress_string())  # Epoch GPU box_loss ...
-                print(self.progress_string())
+                # 只输出对用的值
+                # rds.xadd("train_001_猫狗训练",{"Epoch"})
                 pbar = TQDM(enumerate(self.train_loader), total=nb)
             self.tloss = None
             for i, batch in pbar:
@@ -460,17 +462,6 @@ class BaseTrainer:
                             batch["img"].shape[-1],  # imgsz, i.e 640
                         )
                     )
-                    # zhd 2025/03/06 1/100 3.76G ...
-                    print(("%11s" * 2 + "%11.4g" * (2 + loss_length))
-                          % (
-                        f"{epoch + 1}/{self.epochs}",
-                        # (GB) GPU memory util
-                        f"{self._get_memory():.3g}G",
-                        *(self.tloss if loss_length >
-                          1 else torch.unsqueeze(self.tloss, 0)),  # losses
-                        batch["cls"].shape[0],  # batch size, i.e. 8
-                        batch["img"].shape[-1],  # imgsz, i.e 640
-                    ))
                     self.run_callbacks("on_batch_end")
                     if self.args.plots and ni in self.plot_idx:
                         self.plot_training_samples(batch, ni)
@@ -481,6 +472,19 @@ class BaseTrainer:
             self.lr = {f"lr/pg{ir}": x["lr"]
                        for ir, x in enumerate(self.optimizer.param_groups)}
             self.run_callbacks("on_train_epoch_end")
+            # print(self.tloss)# tensor([1.2220,3.1067,1.6617], device='cuda:0')
+            # print(torch.unsqueeze(self.tloss, 0))#tensor([[1.2220, 3.1067, 1.6617]], device='cuda:0')
+            # loss = self.tloss if loss_length > 1 else torch.unsqueeze(
+            #     self.tloss, 0)
+            # epoch_result = {
+            #     "epoch": epoch+1,
+            #     "gpu_mem": round(self._get_memory(), 3),  # GB
+            #     "box_loss": round(loss[0].item(), 4),
+            #     "cls_loss": round(loss[1].item(), 4),
+            #     "dfl_loss": round(loss[2].item(), 4),
+            #     "Instances": batch["cls"].shape[0],
+            #     "Size": batch["img"].shape[-1]
+            # }
             if RANK in {-1, 0}:
                 final_epoch = epoch + 1 >= self.epochs
                 self.ema.update_attr(self.model, include=[
@@ -489,8 +493,27 @@ class BaseTrainer:
                 # Validation
                 if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
                     self.metrics, self.fitness = self.validate()
-                self.save_metrics(
-                    metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
+                metrics = {
+                    **self.label_loss_items(self.tloss), **self.metrics, **self.lr}
+                self.save_metrics(metrics)
+                # zhd
+                # 发送 epoch gpu_mem train/box_loss train/cls_loss train/dfl_loss val/box_loss val/cls_loss val/dfl_loss precision recall mAP50 mAP50-95
+                epoch_result = {
+                    "epoch": epoch+1,
+                    "gpu_mem": round(self._get_memory(), 3),  # GB
+                    "train/box_loss": metrics["train/box_loss"],
+                    "train/cls_loss": metrics["train/cls_loss"],
+                    "train/dfl_loss": metrics["train/dfl_loss"],
+                    "val/box_loss": metrics["val/box_loss"],
+                    "val/cls_loss": metrics["val/cls_loss"],
+                    "val/dfl_loss": metrics["val/dfl_loss"],
+                    "metrics/precision": metrics["metrics/precision(B)"],
+                    "metrics/recall": metrics["metrics/recall(B)"],
+                    "metrics/mAP50": metrics["metrics/mAP50(B)"],
+                    "metrics/mAP50-95": metrics["metrics/mAP50-95(B)"]
+                }
+                self.rds.xadd("train_001_猫狗训练_each_epoch_info", {
+                    "each_epoch_info": str(epoch_result).encode()}, maxlen=100)
                 self.stop |= self.stopper(
                     epoch + 1, self.fitness) or final_epoch
                 if self.args.time:

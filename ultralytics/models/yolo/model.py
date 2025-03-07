@@ -9,7 +9,11 @@ from ultralytics.utils import ROOT, yaml_load
 
 
 class YOLO(Model):
-    """YOLO (You Only Look Once) object detection model."""
+    """
+    1. YOLO (You Only Look Once) object detection model.
+    2. 覆盖父类的task_map
+    3. 没有重新实现train,所以会调用父类的
+    """
 
     def __init__(self, model="yolo11n.pt", task=None, verbose=False):
         """Initialize YOLO model, switching to YOLOWorld if model filename contains '-world'."""

@@ -9,6 +9,7 @@
 @version    :1.0
 @Email      :2462491568@qq.com
 '''
+import os
 import psutil
 import time
 import subprocess
@@ -20,8 +21,11 @@ import multiprocessing
 
 from utils import Logger
 
-from config import (redis_ip, redis_port, redis_pwd,
-                    train_host_msg, IP,
+from config import (redis_ip,
+                    redis_port,
+                    redis_pwd,
+                    train_host_msg,
+                    IP,
                     train_action_opt_topic_name,
                     train_action_result_topic_name,
                     train_data_download_topic_name,
@@ -35,7 +39,9 @@ from config import (redis_ip, redis_port, redis_pwd,
                     train_result,
                     export_result,
                     minio_train_prefix,
-                    minio_export_prefix)
+                    minio_export_prefix,
+                    pretrained_models
+                    )
 
 
 class trainService(object):
@@ -155,6 +161,14 @@ class trainService(object):
         '''
         pass
 
+    def generate_dir(self):
+        if not os.path.exists(data_cfg):
+            os.makedirs(data_cfg)
+        elif not os.path.exists(train_result):
+            os.makedirs(train_result)
+        elif not os.path.exists(pretrained_models):
+            os.makedirs(pretrained_models)
+
     def start_train_process(self, taskId: str, taskName: str, modelId: str, netType: str, modelType: str, prefix: list, labels: list, ratio: float, trainParams: dict):
         # 确保没有相同训练任务
         enableFlag = False
@@ -166,7 +180,31 @@ class trainService(object):
         if enableFlag:
             from utils import Dataset
             from utils import uploadMinio
+            from ultralytics import YOLO  # 本地源码包
             # 开始训练--这里必须要异步
+            download_datasets_log = Logger(
+                f"./log/download_datasets_{taskId}_{taskName}.txt", level="info")
+            data_yaml_path = f"{data_cfg}/{taskId}_{taskName}.yaml"
+            if not modelId:  # 初始化训练
+                trainType = "Init"
+            else:
+                trainType = "Iteration"
+            dataset = Dataset(self.minio_client,
+                              'datasets',
+                              'train',
+                              prefix,
+                              labels,
+                              ratio,
+                              data_yaml_path,
+                              download_datasets_log)
+            dataset.start()
+            dataset.join()  # 此处必须阻塞,因为数据没下载完成前,不允许启动训练
+            self.upload_data_download_result(True)
+            self.generate_dir()
+            # 还是要后台执行
+            model = YOLO().load()
+
+            # -------------------------------------------------
             if modelType == 'classify':
                 pass
             if modelType == 'detect':
@@ -195,6 +233,7 @@ class trainService(object):
                 # 2.异步训练
                 # 往Redis发一条数据下载的完成情况消息
                 self.upload_data_download_result(True)
+
                 # 在类中起进程开始训练
                 train_task_yolo_det = trainYOLODetectTask(self.rds,
                                                           taskId,
@@ -207,7 +246,9 @@ class trainService(object):
                                                           modelId,
                                                           trainParams,
                                                           self.upload_task_result)
-                train_task_yolo_det.start()
+                # train_task_yolo_det.start()
+                p = multiprocessing.Process(target=train_task_yolo_det.train2)
+                p.start()
                 ##############################################
                 # 3.上传结果
                 # 上传训练结果到minio--都是异步的,但是一定要等到训练结束后才能开始上传

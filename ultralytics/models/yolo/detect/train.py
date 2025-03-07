@@ -28,6 +28,7 @@ class DetectionTrainer(BaseTrainer):
         trainer = DetectionTrainer(overrides=args)
         trainer.train()
         ```
+    train()没有覆盖父类的,且初始化也是用父类的
     """
 
     def build_dataset(self, img_path, mode="train", batch=None):

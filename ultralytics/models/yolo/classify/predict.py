@@ -4,6 +4,7 @@ import cv2
 import torch
 from PIL import Image
 
+from ultralytics.data.augment import classify_transforms
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG, ops
@@ -32,6 +33,20 @@ class ClassificationPredictor(BasePredictor):
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "classify"
         self._legacy_transform_name = "ultralytics.yolo.data.augment.ToTensor"
+
+    def setup_source(self, source):
+        """Sets up source and inference mode and classify transforms."""
+        super().setup_source(source)
+        updated = (
+            self.model.model.transforms.transforms[0].size != max(self.imgsz)
+            if hasattr(self.model.model, "transforms")
+            else True
+        )
+        self.transforms = (
+            self.model.model.transforms
+            if not updated
+            else classify_transforms(self.imgsz, crop_fraction=self.args.crop_fraction)
+        )
 
     def preprocess(self, img):
         """Converts input image to model-compatible data type."""

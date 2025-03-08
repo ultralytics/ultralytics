@@ -494,7 +494,7 @@ class BaseTrainer:
                 total = torch.mps.get_mem_info()[0]
                 frac = (memory / total) if total > 0 else 0
         elif self.device.type == "cpu":
-            memory, frac = 0
+            memory, frac = 0, 0
         else:
             memory = torch.cuda.memory_reserved()
             if util:

@@ -334,7 +334,11 @@ def convert_coco(
                     file.write(("%g " * len(line)).rstrip() % line + "\n")
 
         if lvis:
-            with open((Path(save_dir) / json_file.name.replace("lvis_v1_", "").replace(".json", ".txt")), "a", encoding="utf-8") as f:
+            with open(
+                (Path(save_dir) / json_file.name.replace("lvis_v1_", "").replace(".json", ".txt")),
+                "a",
+                encoding="utf-8",
+            ) as f:
                 f.writelines(f"{line}\n" for line in image_txt)
 
     LOGGER.info(f"{'LVIS' if lvis else 'COCO'} data converted successfully.\nResults saved to {save_dir.resolve()}")

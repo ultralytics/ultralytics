@@ -660,6 +660,9 @@ def handle_yolo_solutions(args: List[str]) -> None:
         - The inference solution will be launched using the 'streamlit run' command.
         - The Streamlit app file is located in the Ultralytics package directory.
     """
+    from ultralytics import solutions
+    from ultralytics.utils.files import increment_path
+
     full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}  # arguments dictionary
     overrides = {}
 
@@ -706,9 +709,6 @@ def handle_yolo_solutions(args: List[str]) -> None:
         )
     else:
         cls, method = SOLUTION_MAP[s_n]  # solution class name, method name and default source
-
-        from ultralytics import solutions  # import ultralytics solutions
-
         solution = getattr(solutions, cls)(IS_CLI=True, **overrides)  # get solution class i.e ObjectCounter
         process = getattr(
             solution, method
@@ -717,17 +717,13 @@ def handle_yolo_solutions(args: List[str]) -> None:
         cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
 
         # extract width, height and fps of the video file, create save directory and initialize video writer
-        import os  # for directory creation
-        from pathlib import Path
-
-        from ultralytics.utils.files import increment_path  # for output directory path update
 
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         if s_n == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
             w, h = 1920, 1080
         save_dir = increment_path(Path("runs") / "solutions" / "exp", exist_ok=False)
         save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory
-        vw = cv2.VideoWriter(os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        vw = cv2.VideoWriter(str(save_dir / "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         try:  # Process video frames
             f_n = 0  # frame number, required for analytical graphs

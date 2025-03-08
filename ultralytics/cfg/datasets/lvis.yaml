@@ -1222,15 +1222,15 @@ names:
 # Download script/URL (optional)
 download: |
   from pathlib import Path
-  
+
   from ultralytics.utils.downloads import download
-  
+
   # Download labels
   dir = Path(yaml["path"])  # dataset root dir
   url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/"
   urls = [f"{url}lvis-labels-segments.zip"]
   download(urls, dir=dir.parent)
-  
+
   # Download data
   urls = [
       "http://images.cocodataset.org/zips/train2017.zip",  # 19G, 118k images

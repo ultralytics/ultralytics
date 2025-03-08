@@ -100,9 +100,9 @@ names:
 # Download script/URL (optional)
 download: |
   from pathlib import Path
-  
+
   from ultralytics.utils.downloads import download
-  
+
   # Download labels
   segments = True  # segment or box labels
   dir = Path(yaml["path"])  # dataset root dir

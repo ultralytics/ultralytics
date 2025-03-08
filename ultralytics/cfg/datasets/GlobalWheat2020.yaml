@@ -33,9 +33,9 @@ names:
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
   from pathlib import Path
-  
+
   from ultralytics.utils.downloads import download
-  
+
   # Download
   dir = Path(yaml["path"])  # dataset root dir
   urls = [
@@ -43,11 +43,11 @@ download: |
       "https://github.com/ultralytics/assets/releases/download/v0.0.0/GlobalWheat2020_labels.zip",
   ]
   download(urls, dir=dir)
-  
+
   # Make Directories
   for p in "annotations", "images", "labels":
       (dir / p).mkdir(parents=True, exist_ok=True)
-  
+
   # Move
   for p in (
       "arvalis_1",

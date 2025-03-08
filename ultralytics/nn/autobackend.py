@@ -132,7 +132,7 @@ class AutoBackend(nn.Module):
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
-        end2end = False  # default end2end
+        end2end, dynamic = False, False
         model, metadata, task = None, None, None
 
         # Set device
@@ -517,6 +517,7 @@ class AutoBackend(nn.Module):
             names = metadata["names"]
             kpt_shape = metadata.get("kpt_shape")
             end2end = metadata.get("args", {}).get("nms", False)
+            dynamic = metadata.get("args", {}).get("dynamic", dynamic)
         elif not (pt or triton or nn_module):
             LOGGER.warning(f"WARNING ⚠️ Metadata not found for 'model={weights}'")
 

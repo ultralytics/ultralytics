@@ -317,7 +317,7 @@ class HUBTrainingSession:
         epoch: int,
         weights: str,
         is_best: bool = False,
-        map: float = 0.0,
+        mean_ap: float = 0.0,
         final: bool = False,
     ) -> None:
         """
@@ -327,7 +327,7 @@ class HUBTrainingSession:
             epoch (int): The current training epoch.
             weights (str): Path to the model weights file.
             is_best (bool): Indicates if the current model is the best one so far.
-            map (float): Mean average precision of the model.
+            mean_ap (float): Mean average precision of the model.
             final (bool): Indicates if the model is the final model after training.
         """
         weights = Path(weights)
@@ -350,7 +350,7 @@ class HUBTrainingSession:
             epoch=epoch,
             weights=str(weights),
             is_best=is_best,
-            map=map,
+            map=mean_ap,
             final=final,
             retry=10,
             timeout=3600,

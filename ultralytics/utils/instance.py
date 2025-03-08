@@ -40,35 +40,35 @@ class Bboxes:
 
     Attributes:
         bboxes (numpy.ndarray): The bounding boxes stored in a 2D numpy array.
-        format (str): The format of the bounding boxes ('xyxy', 'xywh', or 'ltwh').
+        box_format (str): The format of the bounding boxes ('xyxy', 'xywh', or 'ltwh').
 
     Note:
         This class does not handle normalization or denormalization of bounding boxes.
     """
 
-    def __init__(self, bboxes, format="xyxy") -> None:
+    def __init__(self, bboxes, box_format="xyxy") -> None:
         """Initializes the Bboxes class with bounding box data in a specified format."""
-        assert format in _formats, f"Invalid bounding box format: {format}, format must be one of {_formats}"
+        assert box_format in _formats, f"Invalid bounding box format: {box_format}, format must be one of {_formats}"
         bboxes = bboxes[None, :] if bboxes.ndim == 1 else bboxes
         assert bboxes.ndim == 2
         assert bboxes.shape[1] == 4
         self.bboxes = bboxes
-        self.format = format
+        self.format = box_format
         # self.normalized = normalized
 
-    def convert(self, format):
+    def convert(self, box_format):
         """Converts bounding box format from one type to another."""
-        assert format in _formats, f"Invalid bounding box format: {format}, format must be one of {_formats}"
-        if self.format == format:
+        assert box_format in _formats, f"Invalid bounding box format: {box_format}, format must be one of {_formats}"
+        if self.format == box_format:
             return
         elif self.format == "xyxy":
-            func = xyxy2xywh if format == "xywh" else xyxy2ltwh
+            func = xyxy2xywh if box_format == "xywh" else xyxy2ltwh
         elif self.format == "xywh":
-            func = xywh2xyxy if format == "xyxy" else xywh2ltwh
+            func = xywh2xyxy if box_format == "xyxy" else xywh2ltwh
         else:
-            func = ltwh2xyxy if format == "xyxy" else ltwh2xywh
+            func = ltwh2xyxy if box_format == "xyxy" else ltwh2xywh
         self.bboxes = func(self.bboxes)
-        self.format = format
+        self.format = box_format
 
     def areas(self):
         """Return box areas."""
@@ -225,14 +225,14 @@ class Instances:
             bbox_format (str, optional): Format of bboxes. Defaults to "xywh".
             normalized (bool, optional): Whether the coordinates are normalized. Defaults to True.
         """
-        self._bboxes = Bboxes(bboxes=bboxes, format=bbox_format)
+        self._bboxes = Bboxes(bboxes=bboxes, box_format=bbox_format)
         self.keypoints = keypoints
         self.normalized = normalized
         self.segments = segments
 
-    def convert_bbox(self, format):
+    def convert_bbox(self, box_format):
         """Convert bounding box format."""
-        self._bboxes.convert(format=format)
+        self._bboxes.convert(box_format=box_format)
 
     @property
     def bbox_areas(self):
@@ -341,11 +341,11 @@ class Instances:
     def clip(self, w, h):
         """Clips bounding boxes, segments, and keypoints values to stay within image boundaries."""
         ori_format = self._bboxes.format
-        self.convert_bbox(format="xyxy")
+        self.convert_bbox(box_format="xyxy")
         self.bboxes[:, [0, 2]] = self.bboxes[:, [0, 2]].clip(0, w)
         self.bboxes[:, [1, 3]] = self.bboxes[:, [1, 3]].clip(0, h)
         if ori_format != "xyxy":
-            self.convert_bbox(format=ori_format)
+            self.convert_bbox(box_format=ori_format)
         self.segments[..., 0] = self.segments[..., 0].clip(0, w)
         self.segments[..., 1] = self.segments[..., 1].clip(0, h)
         if self.keypoints is not None:
@@ -365,7 +365,7 @@ class Instances:
 
     def update(self, bboxes, segments=None, keypoints=None):
         """Updates instance variables."""
-        self._bboxes = Bboxes(bboxes, format=self._bboxes.format)
+        self._bboxes = Bboxes(bboxes, box_format=self._bboxes.format)
         if segments is not None:
             self.segments = segments
         if keypoints is not None:

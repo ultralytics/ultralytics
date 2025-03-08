@@ -57,7 +57,7 @@ def benchmark(
     device="cpu",
     verbose=False,
     eps=1e-3,
-    format="",
+    export_format="",
 ):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
@@ -71,7 +71,7 @@ def benchmark(
         device (str): Device to run the benchmark on, either 'cpu' or 'cuda'.
         verbose (bool | float): If True or a float, assert benchmarks pass with given metric.
         eps (float): Epsilon value for divide by zero prevention.
-        format (str): Export format for benchmarking. If not supplied all formats are benchmarked.
+        export_format (str): Export format for benchmarking. If not supplied all formats are benchmarked.
 
     Returns:
         (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size, metric,
@@ -99,14 +99,14 @@ def benchmark(
     y = []
     t0 = time.time()
 
-    format_arg = format.lower()
+    format_arg = export_format.lower()
     if format_arg:
         formats = frozenset(export_formats()["Argument"])
-        assert format in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
-    for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
+        assert export_format in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
+    for i, (name, export_format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
         emoji, filename = "❌", None  # export defaults
         try:
-            if format_arg and format_arg != format:
+            if format_arg and format_arg != export_format:
                 continue
 
             # Checks
@@ -148,12 +148,12 @@ def benchmark(
                 assert gpu, "inference not supported on GPU"
 
             # Export
-            if format == "-":
+            if export_format == "-":
                 filename = model.pt_path or model.ckpt_path or model.model_name
                 exported_model = model  # PyTorch format
             else:
                 filename = model.export(
-                    imgsz=imgsz, format=format, half=half, int8=int8, data=data, device=device, verbose=False
+                    imgsz=imgsz, format=export_format, half=half, int8=int8, data=data, device=device, verbose=False
                 )
                 exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"

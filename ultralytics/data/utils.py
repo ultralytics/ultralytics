@@ -318,7 +318,7 @@ def check_det_dataset(dataset, autodownload=True):
     # Download (optional)
     extract_dir = ""
     if zipfile.is_zipfile(file) or is_tarfile(file):
-        new_dir = safe_download(file, dir=DATASETS_DIR, unzip=True, delete=False)
+        new_dir = safe_download(file, path=DATASETS_DIR, unzip=True, delete=False)
         file = find_dataset_yaml(DATASETS_DIR / new_dir)
         extract_dir, autodownload = file.parent, False
 
@@ -377,7 +377,7 @@ def check_det_dataset(dataset, autodownload=True):
             t = time.time()
             r = None  # success
             if s.startswith("http") and s.endswith(".zip"):  # URL
-                safe_download(url=s, dir=DATASETS_DIR, delete=True)
+                safe_download(url=s, path=DATASETS_DIR, delete=True)
             elif s.startswith("bash "):  # bash script
                 LOGGER.info(f"Running {s} ...")
                 r = os.system(s)
@@ -412,10 +412,10 @@ def check_cls_dataset(dataset, split=""):
     """
     # Download (optional if dataset=https://file.zip is passed directly)
     if str(dataset).startswith(("http:/", "https:/")):
-        dataset = safe_download(dataset, dir=DATASETS_DIR, unzip=True, delete=False)
+        dataset = safe_download(dataset, path=DATASETS_DIR, unzip=True, delete=False)
     elif Path(dataset).suffix in {".zip", ".tar", ".gz"}:
         file = check_file(dataset)
-        dataset = safe_download(file, dir=DATASETS_DIR, unzip=True, delete=False)
+        dataset = safe_download(file, path=DATASETS_DIR, unzip=True, delete=False)
 
     dataset = Path(dataset)
     data_dir = (dataset if dataset.is_dir() else (DATASETS_DIR / dataset)).resolve()

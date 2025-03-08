@@ -656,7 +656,7 @@ def cuda_memory_usage(device=None):
         yield cuda_info
 
 
-def profile(input, ops, n=10, device=None, max_num_obj=0):
+def profile(obj, ops, n=10, device=None, max_num_obj=0):
     """
     Ultralytics speed, memory and FLOPs profiler.
 
@@ -664,10 +664,10 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
         ```python
         from ultralytics.utils.torch_utils import profile
 
-        input = torch.randn(16, 3, 640, 640)
+        t = torch.randn(16, 3, 640, 640)
         m1 = lambda x: x * torch.sigmoid(x)
         m2 = nn.SiLU()
-        profile(input, [m1, m2], n=100)  # profile over 100 iterations
+        profile(t, [m1, m2], n=100)  # profile over 100 iterations
         ```
     """
     results = []
@@ -679,7 +679,7 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
     )
     gc.collect()  # attempt to free unused memory
     torch.cuda.empty_cache()
-    for x in input if isinstance(input, list) else [input]:
+    for x in obj if isinstance(obj, list) else [obj]:
         x = x.to(device)
         x.requires_grad = True
         for m in ops if isinstance(ops, list) else [ops]:

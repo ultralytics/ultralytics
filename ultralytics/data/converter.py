@@ -605,7 +605,6 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt", device=None):
     """
     from ultralytics import SAM
     from ultralytics.data import YOLODataset
-    from ultralytics.utils import LOGGER
     from ultralytics.utils.ops import xywh2xyxy
 
     # NOTE: add placeholder to pass class index check

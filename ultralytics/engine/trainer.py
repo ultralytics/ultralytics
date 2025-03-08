@@ -500,7 +500,7 @@ class BaseTrainer:
             if util:
                 total = torch.cuda.get_device_properties(self.device).total_memory
                 frac = memory / total
-        memory /=2**30
+        memory /= 2**30
         return (memory, frac) if util else memory
 
     def _clear_memory(self):

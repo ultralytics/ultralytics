@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
@@ -22,7 +22,7 @@ class SegmentationValidator(DetectionValidator):
         ```python
         from ultralytics.models.yolo.segment import SegmentationValidator
 
-        args = dict(model="yolov8n-seg.pt", data="coco8-seg.yaml")
+        args = dict(model="yolo11n-seg.pt", data="coco8-seg.yaml")
         validator = SegmentationValidator(args=args)
         validator()
         ```
@@ -34,7 +34,7 @@ class SegmentationValidator(DetectionValidator):
         self.plot_masks = None
         self.process = None
         self.args.task = "segment"
-        self.metrics = SegmentMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
+        self.metrics = SegmentMetrics(save_dir=self.save_dir)
 
     def preprocess(self, batch):
         """Preprocesses batch by converting masks to float and sending to device."""
@@ -70,16 +70,7 @@ class SegmentationValidator(DetectionValidator):
 
     def postprocess(self, preds):
         """Post-processes YOLO predictions and returns output detections with proto."""
-        p = ops.non_max_suppression(
-            preds[0],
-            self.args.conf,
-            self.args.iou,
-            labels=self.lb,
-            multi_label=True,
-            agnostic=self.args.single_cls or self.args.agnostic_nms,
-            max_det=self.args.max_det,
-            nc=self.nc,
-        )
+        p = super().postprocess(preds[0])
         proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         return p, proto
 
@@ -162,7 +153,7 @@ class SegmentationValidator(DetectionValidator):
                     pred_masks,
                     self.args.save_conf,
                     pbatch["ori_shape"],
-                    self.save_dir / "labels" / f'{Path(batch["im_file"][si]).stem}.txt',
+                    self.save_dir / "labels" / f"{Path(batch['im_file'][si]).stem}.txt",
                 )
 
     def finalize_metrics(self, *args, **kwargs):

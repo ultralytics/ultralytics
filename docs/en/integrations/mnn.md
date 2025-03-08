@@ -66,7 +66,17 @@ Before diving into the usage instructions, it's important to note that while all
           yolo predict model='yolo11n.mnn' source='https://ultralytics.com/images/bus.jpg'
           ```
 
-For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).
+### Export Arguments
+
+| Argument | Type             | Default | Description                                                                                                                                                                                   |
+| -------- | ---------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format` | `str`            | `'mnn'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
+| `imgsz`  | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
+| `half`   | `bool`           | `False` | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                                                                  |
+| `int8`   | `bool`           | `False` | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
+| `batch`  | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                       |
+
+For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
 ### MNN-Only Inference
 
@@ -100,6 +110,7 @@ A function that relies solely on MNN for YOLO11 inference and preprocessing is i
             image = cv2.resize(
                 image, (640, 640), 0.0, 0.0, cv2.INTER_LINEAR, -1, [0.0, 0.0, 0.0], [1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0]
             )
+            image = image[..., ::-1]  # BGR to RGB
             input_var = np.expand_dims(image, 0)
             input_var = MNN.expr.convert(input_var, MNN.expr.NC4HW4)
             output_var = net.forward(input_var)
@@ -210,6 +221,7 @@ A function that relies solely on MNN for YOLO11 inference and preprocessing is i
             auto pads = _Const(static_cast<void*>(padvals.data()), {3, 2}, NCHW, halide_type_of<int>());
             auto image = _Pad(original_image, pads, CONSTANT);
             image = resize(image, Size(640, 640), 0, 0, INTER_LINEAR, -1, {0., 0., 0.}, {1./255., 1./255., 1./255.});
+            image = cvtColor(image, COLOR_BGR2RGB);
             auto input = _Unsqueeze(image, {0});
             input = _Convert(input, NC4HW4);
             auto outputs = net->onForward({input});

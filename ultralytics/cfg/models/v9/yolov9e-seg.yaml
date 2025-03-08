@@ -1,5 +1,8 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
-# YOLOv9e-seg instance segmentation model. For Usage examples see https://docs.ultralytics.com/models/yolov9
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# YOLOv9e-seg instance segmentation model with P3/8 - P5/32 outputs
+# Model docs: https://docs.ultralytics.com/models/yolov9
+# Task docs: https://docs.ultralytics.com/tasks/segment
 # 1261 layers, 60512800 parameters, 248.4 GFLOPs
 
 # Parameters

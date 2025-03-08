@@ -1,4 +1,5 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Open Images v7 dataset https://storage.googleapis.com/openimages/web/index.html by Google
 # Documentation: https://docs.ultralytics.com/datasets/detect/open-images-v7/
 # Example usage: yolo train data=open-images-v7.yaml
@@ -632,6 +633,7 @@ download: |
   import warnings
 
   name = 'open-images-v7'
+  fo.config.dataset_zoo_dir = Path(SETTINGS["datasets_dir"]) / "fiftyone" / name
   fraction = 1.0  # fraction of full dataset to use
   LOGGER.warning('WARNING ⚠️ Open Images V7 dataset requires at least **561 GB of free space. Starting download...')
   for split in 'train', 'validation':  # 1743042 train, 41620 val images
@@ -641,7 +643,6 @@ download: |
       dataset = foz.load_zoo_dataset(name,
                                      split=split,
                                      label_types=['detections'],
-                                     dataset_dir=Path(SETTINGS['datasets_dir']) / 'fiftyone' / name,
                                      max_samples=round((1743042 if train else 41620) * fraction))
 
       # Define classes

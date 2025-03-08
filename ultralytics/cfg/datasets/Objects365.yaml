@@ -1,4 +1,5 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Objects365 dataset https://www.objects365.org/ by Megvii
 # Documentation: https://docs.ultralytics.com/datasets/detect/objects365/
 # Example usage: yolo train data=Objects365.yaml

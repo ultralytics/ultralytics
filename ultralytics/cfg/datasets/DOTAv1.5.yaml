@@ -1,4 +1,5 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # DOTA 1.5 dataset https://captain-whu.github.io/DOTA/index.html for object detection in aerial images by Wuhan University
 # Documentation: https://docs.ultralytics.com/datasets/obb/dota-v2/
 # Example usage: yolo train model=yolov8n-obb.pt data=DOTAv1.5.yaml

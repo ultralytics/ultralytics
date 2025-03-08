@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import shutil
 import subprocess
@@ -47,8 +47,8 @@ SOLUTION_MAP = {
 }
 
 # Define valid tasks and modes
-MODES = {"train", "val", "predict", "export", "track", "benchmark"}
-TASKS = {"detect", "segment", "classify", "pose", "obb"}
+MODES = frozenset({"train", "val", "predict", "export", "track", "benchmark"})
+TASKS = frozenset({"detect", "segment", "classify", "pose", "obb"})
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
@@ -70,11 +70,11 @@ TASK2METRIC = {
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
 }
-MODELS = {TASK2MODEL[task] for task in TASKS}
+MODELS = frozenset({TASK2MODEL[task] for task in TASKS})
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 SOLUTIONS_HELP_MSG = f"""
-    Arguments received: {str(['yolo'] + ARGV[1:])}. Ultralytics 'yolo solutions' usage overview:
+    Arguments received: {str(["yolo"] + ARGV[1:])}. Ultralytics 'yolo solutions' usage overview:
 
         yolo solutions SOLUTION ARGS
 
@@ -104,7 +104,7 @@ SOLUTIONS_HELP_MSG = f"""
         yolo streamlit-predict
     """
 CLI_HELP_MSG = f"""
-    Arguments received: {str(['yolo'] + ARGV[1:])}. Ultralytics 'yolo' commands use the following syntax:
+    Arguments received: {str(["yolo"] + ARGV[1:])}. Ultralytics 'yolo' commands use the following syntax:
 
         yolo TASK MODE ARGS
 
@@ -144,90 +144,98 @@ CLI_HELP_MSG = f"""
     """
 
 # Define keys for arg type checks
-CFG_FLOAT_KEYS = {  # integer or float arguments, i.e. x=2 and x=2.0
-    "warmup_epochs",
-    "box",
-    "cls",
-    "dfl",
-    "degrees",
-    "shear",
-    "time",
-    "workspace",
-    "batch",
-}
-CFG_FRACTION_KEYS = {  # fractional float arguments with 0.0<=values<=1.0
-    "dropout",
-    "lr0",
-    "lrf",
-    "momentum",
-    "weight_decay",
-    "warmup_momentum",
-    "warmup_bias_lr",
-    "hsv_h",
-    "hsv_s",
-    "hsv_v",
-    "translate",
-    "scale",
-    "perspective",
-    "flipud",
-    "fliplr",
-    "bgr",
-    "mosaic",
-    "mixup",
-    "copy_paste",
-    "conf",
-    "iou",
-    "fraction",
-}
-CFG_INT_KEYS = {  # integer-only arguments
-    "epochs",
-    "patience",
-    "workers",
-    "seed",
-    "close_mosaic",
-    "mask_ratio",
-    "max_det",
-    "vid_stride",
-    "line_width",
-    "nbs",
-    "save_period",
-}
-CFG_BOOL_KEYS = {  # boolean-only arguments
-    "save",
-    "exist_ok",
-    "verbose",
-    "deterministic",
-    "single_cls",
-    "rect",
-    "cos_lr",
-    "overlap_mask",
-    "val",
-    "save_json",
-    "save_hybrid",
-    "half",
-    "dnn",
-    "plots",
-    "show",
-    "save_txt",
-    "save_conf",
-    "save_crop",
-    "save_frames",
-    "show_labels",
-    "show_conf",
-    "visualize",
-    "augment",
-    "agnostic_nms",
-    "retina_masks",
-    "show_boxes",
-    "keras",
-    "optimize",
-    "int8",
-    "dynamic",
-    "simplify",
-    "nms",
-    "profile",
-    "multi_scale",
-}
+CFG_FLOAT_KEYS = frozenset(
+    {  # integer or float arguments, i.e. x=2 and x=2.0
+        "warmup_epochs",
+        "box",
+        "cls",
+        "dfl",
+        "degrees",
+        "shear",
+        "time",
+        "workspace",
+        "batch",
+    }
+)
+CFG_FRACTION_KEYS = frozenset(
+    {  # fractional float arguments with 0.0<=values<=1.0
+        "dropout",
+        "lr0",
+        "lrf",
+        "momentum",
+        "weight_decay",
+        "warmup_momentum",
+        "warmup_bias_lr",
+        "hsv_h",
+        "hsv_s",
+        "hsv_v",
+        "translate",
+        "scale",
+        "perspective",
+        "flipud",
+        "fliplr",
+        "bgr",
+        "mosaic",
+        "mixup",
+        "copy_paste",
+        "conf",
+        "iou",
+        "fraction",
+    }
+)
+CFG_INT_KEYS = frozenset(
+    {  # integer-only arguments
+        "epochs",
+        "patience",
+        "workers",
+        "seed",
+        "close_mosaic",
+        "mask_ratio",
+        "max_det",
+        "vid_stride",
+        "line_width",
+        "nbs",
+        "save_period",
+    }
+)
+CFG_BOOL_KEYS = frozenset(
+    {  # boolean-only arguments
+        "save",
+        "exist_ok",
+        "verbose",
+        "deterministic",
+        "single_cls",
+        "rect",
+        "cos_lr",
+        "overlap_mask",
+        "val",
+        "save_json",
+        "save_hybrid",
+        "half",
+        "dnn",
+        "plots",
+        "show",
+        "save_txt",
+        "save_conf",
+        "save_crop",
+        "save_frames",
+        "show_labels",
+        "show_conf",
+        "visualize",
+        "augment",
+        "agnostic_nms",
+        "retina_masks",
+        "show_boxes",
+        "keras",
+        "optimize",
+        "int8",
+        "dynamic",
+        "simplify",
+        "nms",
+        "profile",
+        "multi_scale",
+    }
+)
 
 
 def cfg2dict(cfg):
@@ -280,7 +288,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     Examples:
         >>> from ultralytics.cfg import get_cfg
         >>> config = get_cfg()  # Load default configuration
-        >>> config = get_cfg("path/to/config.yaml", overrides={"epochs": 50, "batch_size": 16})
+        >>> config_with_overrides = get_cfg("path/to/config.yaml", overrides={"epochs": 50, "batch_size": 16})
 
     Notes:
         - If both `cfg` and `overrides` are provided, the values in `overrides` will take precedence.
@@ -318,8 +326,8 @@ def check_cfg(cfg, hard=True):
     Checks configuration argument types and values for the Ultralytics library.
 
     This function validates the types and values of configuration arguments, ensuring correctness and converting
-    them if necessary. It checks for specific key types defined in global variables such as CFG_FLOAT_KEYS,
-    CFG_FRACTION_KEYS, CFG_INT_KEYS, and CFG_BOOL_KEYS.
+    them if necessary. It checks for specific key types defined in global variables such as `CFG_FLOAT_KEYS`,
+    `CFG_FRACTION_KEYS`, `CFG_INT_KEYS`, and `CFG_BOOL_KEYS`.
 
     Args:
         cfg (Dict): Configuration dictionary to validate.
@@ -359,11 +367,11 @@ def check_cfg(cfg, hard=True):
                         )
                     cfg[k] = v = float(v)
                 if not (0.0 <= v <= 1.0):
-                    raise ValueError(f"'{k}={v}' is an invalid value. " f"Valid '{k}' values are between 0.0 and 1.0.")
+                    raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
             elif k in CFG_INT_KEYS and not isinstance(v, int):
                 if hard:
                     raise TypeError(
-                        f"'{k}={v}' is of invalid type {type(v).__name__}. " f"'{k}' must be an int (i.e. '{k}=8')"
+                        f"'{k}={v}' is of invalid type {type(v).__name__}. '{k}' must be an int (i.e. '{k}=8')"
                     )
                 cfg[k] = int(v)
             elif k in CFG_BOOL_KEYS and not isinstance(v, bool):
@@ -472,9 +480,8 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
         - Prints detailed error messages for each mismatched key to help users correct their configurations.
     """
     custom = _handle_deprecation(custom)
-    base_keys, custom_keys = (set(x.keys()) for x in (base, custom))
-    mismatched = [k for k in custom_keys if k not in base_keys]
-    if mismatched:
+    base_keys, custom_keys = (frozenset(x.keys()) for x in (base, custom))
+    if mismatched := [k for k in custom_keys if k not in base_keys]:
         from difflib import get_close_matches
 
         string = ""
@@ -491,10 +498,10 @@ def merge_equals_args(args: List[str]) -> List[str]:
     Merges arguments around isolated '=' in a list of strings and joins fragments with brackets.
 
     This function handles the following cases:
-    1. ['arg', '=', 'val'] becomes ['arg=val']
-    2. ['arg=', 'val'] becomes ['arg=val']
-    3. ['arg', '=val'] becomes ['arg=val']
-    4. Joins fragments with brackets, e.g., ['imgsz=[3,', '640,', '640]'] becomes ['imgsz=[3,640,640]']
+        1. ['arg', '=', 'val'] becomes ['arg=val']
+        2. ['arg=', 'val'] becomes ['arg=val']
+        3. ['arg', '=val'] becomes ['arg=val']
+        4. Joins fragments with brackets, e.g., ['imgsz=[3,', '640,', '640]'] becomes ['imgsz=[3,640,640]']
 
     Args:
         args (List[str]): A list of strings where each element represents an argument or fragment.
@@ -504,7 +511,7 @@ def merge_equals_args(args: List[str]) -> List[str]:
 
     Examples:
         >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3", "imgsz=[3,", "640,", "640]"]
-        >>> merge_and_join_args(args)
+        >>> merge_equals_args(args)
         ['arg1=value', 'arg2=value2', 'arg3=value3', 'imgsz=[3,640,640]']
     """
     new_args = []
@@ -915,7 +922,13 @@ def entrypoint(debug=""):
     task = overrides.pop("task", None)
     if task:
         if task not in TASKS:
-            raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
+            if task == "track":
+                LOGGER.warning(
+                    "WARNING ⚠️ invalid 'task=track', setting 'task=detect' and 'mode=track'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}."
+                )
+                task, mode = "detect", "track"
+            else:
+                raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
         if "model" not in overrides:
             overrides["model"] = TASK2MODEL[task]
 

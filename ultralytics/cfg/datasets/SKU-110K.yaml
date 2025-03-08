@@ -1,4 +1,5 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # SKU-110K retail items dataset https://github.com/eg4000/SKU110K_CVPR19 by Trax Retail
 # Documentation: https://docs.ultralytics.com/datasets/detect/sku-110k/
 # Example usage: yolo train data=SKU-110K.yaml

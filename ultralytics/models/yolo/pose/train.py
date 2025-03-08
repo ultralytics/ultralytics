@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from copy import copy
 
@@ -16,7 +16,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         ```python
         from ultralytics.models.yolo.pose import PoseTrainer
 
-        args = dict(model="yolov8n-pose.pt", data="coco8-pose.yaml", epochs=3)
+        args = dict(model="yolo11n-pose.pt", data="coco8-pose.yaml", epochs=3)
         trainer = PoseTrainer(overrides=args)
         trainer.train()
         ```

@@ -135,9 +135,11 @@ download: |
 
   # Download manually from https://challenge.xviewdataset.org
   dir = Path(yaml["path"])  # dataset root dir
-  # urls = ["https://d307kc0mrhucc3.cloudfront.net/train_labels.zip",  # train labels
-  #         "https://d307kc0mrhucc3.cloudfront.net/train_images.zip",  # 15G, 847 train images
-  #         "https://d307kc0mrhucc3.cloudfront.net/val_images.zip"]  # 5G, 282 val images (no labels)
+  # urls = [
+  #     "https://d307kc0mrhucc3.cloudfront.net/train_labels.zip",  # train labels
+  #     "https://d307kc0mrhucc3.cloudfront.net/train_images.zip",  # 15G, 847 train images
+  #     "https://d307kc0mrhucc3.cloudfront.net/val_images.zip",  # 5G, 282 val images (no labels)
+  # ]
   # download(urls, dir=dir)
 
   # Convert labels

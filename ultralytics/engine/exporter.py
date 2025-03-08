@@ -1161,7 +1161,7 @@ class Exporter:
         f_pb = str(self.file.with_suffix(".pb"))  # *.pb path
 
         gd = tf.Graph().as_graph_def()  # TF GraphDef
-        with open(f_pb, "rb", encoding="utf-8") as file:
+        with open(f_pb, "rb") as file:
             gd.ParseFromString(file.read())
         outputs = ",".join(gd_outputs(gd))
         LOGGER.info(f"\n{prefix} output node names: {outputs}")

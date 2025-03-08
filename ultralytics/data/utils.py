@@ -82,7 +82,7 @@ def verify_image(args):
         assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
         assert im.format.lower() in IMG_FORMATS, f"Invalid image format {im.format}. {FORMATS_HELP_MSG}"
         if im.format.lower() in {"jpg", "jpeg"}:
-            with open(im_file, "rb", encoding="utf-8") as f:
+            with open(im_file, "rb") as f:
                 f.seek(-2, 2)
                 if f.read() != b"\xff\xd9":  # corrupt JPEG
                     ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
@@ -108,7 +108,7 @@ def verify_image_label(args):
         assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
         assert im.format.lower() in IMG_FORMATS, f"invalid image format {im.format}. {FORMATS_HELP_MSG}"
         if im.format.lower() in {"jpg", "jpeg"}:
-            with open(im_file, "rb", encoding="utf-8") as f:
+            with open(im_file, "rb") as f:
                 f.seek(-2, 2)
                 if f.read() != b"\xff\xd9":  # corrupt JPEG
                     ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
@@ -714,7 +714,7 @@ def save_dataset_cache_file(prefix, path, x, version):
     if is_dir_writeable(path.parent):
         if path.exists():
             path.unlink()  # remove *.cache file if exists
-        with open(str(path), "wb", encoding="utf-8") as file:  # context manager here fixes windows async np.save bug
+        with open(str(path), "wb") as file:  # context manager here fixes windows async np.save bug
             np.save(file, x)
         LOGGER.info(f"{prefix}New cache created: {path}")
     else:

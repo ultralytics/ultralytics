@@ -452,7 +452,8 @@ class BaseTrainer:
                 self.scheduler.last_epoch = self.epoch  # do not move
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
             self.run_callbacks("on_fit_epoch_end")
-            self._clear_memory()
+            if self._get_memory(True)[1] > 0.9:
+                self._clear_memory()  # clear if memory utilization > 90%
 
             # Early Stopping
             if RANK != -1:  # if DDP training
@@ -485,15 +486,22 @@ class BaseTrainer:
             max_num_obj=max_num_obj,
         )  # returns batch size
 
-    def _get_memory(self):
-        """Get accelerator memory utilization in GB."""
+    def _get_memory(self, util=False):
+        """Get accelerator memory utilization in GB and fraction."""
         if self.device.type == "mps":
             memory = torch.mps.driver_allocated_memory()
+            if util:
+                total = torch.mps.get_mem_info()[0]
+                frac = (memory / total) if total > 0 else 0
         elif self.device.type == "cpu":
-            memory = 0
+            memory, frac = 0, 0
         else:
             memory = torch.cuda.memory_reserved()
-        return memory / (2**30)
+            if util:
+                total = torch.cuda.get_device_properties(self.device).total_memory
+                frac = memory / total
+        memory /= 2**30
+        return (memory, frac) if util else memory
 
     def _clear_memory(self):
         """Clear accelerator memory on different platforms."""

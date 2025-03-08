@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.solutions.solutions import BaseSolution
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
+from ultralytics.utils.plotting import colors
 
 
 class QueueManager(BaseSolution):
@@ -44,7 +44,7 @@ class QueueManager(BaseSolution):
         self.rect_color = (255, 255, 255)  # Rectangle color
         self.region_length = len(self.region)  # Store region length for further usage
 
-    def process_queue(self, im0):
+    def process(self, im0):
         """
         Processes the queue management for a single frame of video.
 
@@ -52,20 +52,7 @@ class QueueManager(BaseSolution):
             im0 (numpy.ndarray): Input image for processing, typically a frame from a video stream.
 
         Returns:
-            (numpy.ndarray): Processed image with annotations, bounding boxes, and queue counts.
-
-        This method performs the following steps:
-        1. Resets the queue count for the current frame.
-        2. Initializes an Annotator object for drawing on the image.
-        3. Extracts tracks from the image.
-        4. Draws the counting region on the image.
-        5. For each detected object:
-           - Draws bounding boxes and labels.
-           - Stores tracking history.
-           - Draws centroids and tracks.
-           - Checks if the object is inside the counting region and updates the count.
-        6. Displays the queue count on the image.
-        7. Displays the processed output.
+            results (SolutionResults): Contains processed image `im0`, 'queue_count' (int, number of objects in the queue) and 'total_tracks' (int, total number of tracked objects).
 
         Examples:
             >>> queue_manager = QueueManager()
@@ -73,22 +60,14 @@ class QueueManager(BaseSolution):
             >>> processed_frame = queue_manager.process_queue(frame)
         """
         self.counts = 0  # Reset counts every frame
-        self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
-
-        self.annotator.draw_region(
-            reg_pts=self.region, color=self.rect_color, thickness=self.line_width * 2
-        )  # Draw region
+        annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
+        annotator.draw_region(reg_pts=self.region, color=self.rect_color, thickness=self.line_width * 2)  # Draw region
 
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
             # Draw bounding box and counting region
-            self.annotator.box_label(box, label=self.names[cls], color=colors(track_id, True))
+            annotator.box_label(box, label=self.names[cls], color=colors(track_id, True))
             self.store_tracking_history(track_id, box)  # Store track history
-
-            # Draw tracks of objects
-            self.annotator.draw_centroid_and_tracks(
-                self.track_line, color=colors(int(track_id), True), track_thickness=self.line_width
-            )
 
             # Cache frequently accessed attributes
             track_history = self.track_history.get(track_id, [])
@@ -101,12 +80,14 @@ class QueueManager(BaseSolution):
                 self.counts += 1
 
         # Display queue counts
-        self.annotator.queue_counts_display(
+        annotator.queue_counts_display(
             f"Queue Counts : {str(self.counts)}",
             points=self.region,
             region_color=self.rect_color,
             txt_color=(104, 31, 17),
         )
-        self.display_output(im0)  # display output with base class function
+        plot_im = annotator.result()
+        self.display_output(plot_im)  # display output with base class function
 
-        return im0  # return output image for more usage
+        # Return a SolutionResults
+        return SolutionResults(plot_im=plot_im, queue_count=self.counts, total_tracks=len(self.track_ids))

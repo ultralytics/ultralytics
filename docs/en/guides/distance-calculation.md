@@ -35,10 +35,17 @@ Measuring the gap between two objects is known as distance calculation within a 
 ???+ tip "Distance Calculation"
 
     - Click on any two bounding boxes with Left Mouse click for distance calculation
+    - Mouse Right Click will delete all drawn points
+    - Mouse Left Click can be used to draw points
 
-!!! example "Distance Calculation using YOLO11 Example"
+???+ warning "Distance is Estimate"
 
-    === "Video Stream"
+        Distance will be an estimate and may not be fully accurate, as it is calculated using 2-dimensional data,
+        which lacks information about the object's depth.
+
+!!! example "Distance Calculation using Ultralytics YOLO"
+
+    === "Python"
 
         ```python
         import cv2
@@ -47,48 +54,52 @@ Measuring the gap between two objects is known as distance calculation within a 
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Video writer
-        video_writer = cv2.VideoWriter("distance_calculation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        video_writer = cv2.VideoWriter("distance_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Init distance-calculation obj
-        distance = solutions.DistanceCalculation(model="yolo11n.pt", show=True)
+        # Init DistanceCalculation
+        distancecalculator = solutions.DistanceCalculation(
+            model="yolo11n.pt",  # path to the YOLO11 model file.
+            show=True,  # display the output
+        )
 
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
+
             if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
+                print("Video frame is empty or processing is complete.")
                 break
-            im0 = distance.calculate(im0)
-            video_writer.write(im0)
+
+            results = distancecalculator(im0)
+
+            print(results)  # Access the output
+
+            video_writer.write(results.plot_im)  # write the processed frame.
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-???+ note
+### `DistanceCalculation()` Arguments
 
-    - Mouse Right Click will delete all drawn points
-    - Mouse Left Click can be used to draw points
+Here's a table with the `DistanceCalculation` arguments:
 
-???+ warning "Distance is Estimate"
+{% from "macros/solutions-args.md" import param_table %}
+{{ param_table(["model"]) }}
 
-        Distance will be an estimate and may not be fully accurate, as it is calculated using 2-dimensional data, which lacks information about the object's depth.
+You can also make use of various `track` arguments in the `DistanceCalculation` solution.
 
-### Arguments `DistanceCalculation()`
+{% from "macros/track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
 
-| `Name`       | `Type` | `Default` | Description                                          |
-| ------------ | ------ | --------- | ---------------------------------------------------- |
-| `model`      | `str`  | `None`    | Path to Ultralytics YOLO Model File                  |
-| `line_width` | `int`  | `2`       | Line thickness for bounding boxes.                   |
-| `show`       | `bool` | `False`   | Flag to control whether to display the video stream. |
+Moreover, the following visualization arguments are available:
 
-### Arguments `model.track`
-
-{% include "macros/track-args.md" %}
+{% from "macros/visualization-args.md" import param_table %}
+{{ param_table(["show", "line_width"]) }}
 
 ## FAQ
 
@@ -117,7 +128,5 @@ To delete points drawn during distance calculation with Ultralytics YOLO11, you 
 The key arguments for initializing the `DistanceCalculation` class in Ultralytics YOLO11 include:
 
 - `model`: Model file path.
-- `show`: Flag to indicate if the video stream should be displayed.
-- `line_width`: Thickness of bounding box and the lines drawn on the image.
 
-For an exhaustive list and default values, see the [arguments of DistanceCalculation](#arguments-distancecalculation).
+For an exhaustive list and default values, see the [arguments of DistanceCalculation](#distancecalculation-arguments).

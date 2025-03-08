@@ -34,66 +34,77 @@ keywords: object counting, regions, YOLO11, computer vision, Ultralytics, effici
 | ![People Counting in Different Region using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/people-counting-different-region-ultralytics-yolov8.avif) | ![Crowd Counting in Different Region using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/crowd-counting-different-region-ultralytics-yolov8.avif) |
 |                                                           People Counting in Different Region using Ultralytics YOLO11                                                            |                                                           Crowd Counting in Different Region using Ultralytics YOLO11                                                           |
 
-!!! example "Region Counting Example"
+!!! example "Region counting using Ultralytics YOLO"
 
     === "Python"
 
-        ```python
-        import cv2
+         ```python
+         import cv2
 
-        from ultralytics import solutions
+         from ultralytics import solutions
 
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+         cap = cv2.VideoCapture("Path/to/video/file.mp4")
+         assert cap.isOpened(), "Error reading video file"
 
-        # Define region points
-        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)] # Pass region as list
+         # Pass region as list
+         # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
-        # pass region as dictionary
-        region_points = {
-            "region-01": [(50, 50), (250, 50), (250, 250), (50, 250)],
-            "region-02": [(640, 640), (780, 640), (780, 720), (640, 720)],
-        }
+         # Pass region as dictionary
+         region_points = {
+             "region-01": [(50, 50), (250, 50), (250, 250), (50, 250)],
+             "region-02": [(640, 640), (780, 640), (780, 720), (640, 720)],
+         }
 
-        # Video writer
-        video_writer = cv2.VideoWriter("region_counting.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+         # Video writer
+         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+         video_writer = cv2.VideoWriter("region_counting.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Init RegionCounter
-        region = solutions.RegionCounter(
-            show=True,
-            region=region_points,
-            model="yolo11n.pt",
-        )
+         # Init RegionCounter
+         regioncounter = solutions.RegionCounter(
+             show=True,  # display the frame
+             region=region_points,  # pass region points
+             model="yolo11n.pt",  # model for counting in regions i.e yolo11s.pt
+         )
 
-        # Process video
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
-            im0 = region.count(im0)
-            video_writer.write(im0)
+         # Process video
+         while cap.isOpened():
+             success, im0 = cap.read()
 
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()
-        ```
+             if not success:
+                 print("Video frame is empty or processing is complete.")
+                 break
+
+             results = regioncounter(im0)
+
+             # print(results)    # Access the output
+
+             video_writer.write(results.plot_im)
+
+         cap.release()
+         video_writer.release()
+         cv2.destroyAllWindows()  # destroy all opened windows
+         ```
 
 !!! tip "Ultralytics Example Code"
 
       The Ultralytics region counting module is available in our [examples section](https://github.com/ultralytics/ultralytics/blob/main/examples/YOLOv8-Region-Counter/yolov8_region_counter.py). You can explore this example for code customization and modify it to suit your specific use case.
 
-### Argument `RegionCounter`
+### `RegionCounter` Arguments
 
 Here's a table with the `RegionCounter` arguments:
 
-| Name         | Type   | Default                    | Description                                          |
-| ------------ | ------ | -------------------------- | ---------------------------------------------------- |
-| `model`      | `str`  | `None`                     | Path to Ultralytics YOLO Model File                  |
-| `region`     | `list` | `[(20, 400), (1260, 400)]` | List of points defining the counting region.         |
-| `line_width` | `int`  | `2`                        | Line thickness for bounding boxes.                   |
-| `show`       | `bool` | `False`                    | Flag to control whether to display the video stream. |
+{% from "macros/solutions-args.md" import param_table %}
+{{ param_table(["model", "region"]) }}
+
+The `RegionCounter` solution enables the use of object tracking parameters:
+
+{% from "macros/track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+
+Additionally, the following visualization settings are supported:
+
+{% from "macros/visualization-args.md" import param_table %}
+{{ param_table(["show", "line_width"]) }}
 
 ## FAQ
 

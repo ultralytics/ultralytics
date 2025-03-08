@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.solutions.solutions import BaseSolution
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
+from ultralytics.utils.plotting import colors
 
 
 class ObjectCounter(BaseSolution):
@@ -60,10 +60,10 @@ class ObjectCounter(BaseSolution):
             >>> counter = ObjectCounter()
             >>> track_line = {1: [100, 200], 2: [110, 210], 3: [120, 220]}
             >>> box = [130, 230, 150, 250]
-            >>> track_id = 1
-            >>> prev_position = (120, 220)
-            >>> cls = 0
-            >>> counter.count_objects(current_centroid, track_id, prev_position, cls)
+            >>> track_id_num = 1
+            >>> previous_position = (120, 220)
+            >>> class_to_count = 0  # In COCO model, class 0 = person
+            >>> counter.count_objects(current_centroid, track_id_num, previous_position, class_to_count)
         """
         if prev_position is None or track_id in self.counted_ids:
             return
@@ -128,12 +128,12 @@ class ObjectCounter(BaseSolution):
         if self.names[cls] not in self.classwise_counts:
             self.classwise_counts[self.names[cls]] = {"IN": 0, "OUT": 0}
 
-    def display_counts(self, im0):
+    def display_counts(self, plot_im):
         """
         Displays object counts on the input image or frame.
 
         Args:
-            im0 (numpy.ndarray): The input image or frame to display counts on.
+            plot_im (numpy.ndarray): The image or frame to display counts on.
 
         Examples:
             >>> counter = ObjectCounter()
@@ -146,11 +146,10 @@ class ObjectCounter(BaseSolution):
             for key, value in self.classwise_counts.items()
             if value["IN"] != 0 or value["OUT"] != 0
         }
-
         if labels_dict:
-            self.annotator.display_analytics(im0, labels_dict, (104, 31, 17), (255, 255, 255), 10)
+            self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), 10)
 
-    def count(self, im0):
+    def process(self, im0):
         """
         Processes input data (frames or object tracks) and updates object counts.
 
@@ -161,7 +160,9 @@ class ObjectCounter(BaseSolution):
             im0 (numpy.ndarray): The input image or frame to be processed.
 
         Returns:
-            (numpy.ndarray): The processed image with annotations and count information.
+            results (SolutionResults): Contains processed image `im0`,
+                'in_count' (int, count of objects entering the region), 'out_count' (int, count of objects exiting the region),
+                'classwise_count' (dict, per-class object count), and 'total_tracks' (int, total number of tracked objects),
 
         Examples:
             >>> counter = ObjectCounter()
@@ -172,8 +173,8 @@ class ObjectCounter(BaseSolution):
             self.initialize_region()
             self.region_initialized = True
 
-        self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
+        self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
         self.annotator.draw_region(
             reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2
@@ -186,10 +187,6 @@ class ObjectCounter(BaseSolution):
             self.store_tracking_history(track_id, box)  # Store track history
             self.store_classwise_counts(cls)  # store classwise counts in dict
 
-            # Draw tracks of objects
-            self.annotator.draw_centroid_and_tracks(
-                self.track_line, color=colors(int(cls), True), track_thickness=self.line_width
-            )
             current_centroid = ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2)
             # store previous position of track for object counting
             prev_position = None
@@ -197,7 +194,15 @@ class ObjectCounter(BaseSolution):
                 prev_position = self.track_history[track_id][-2]
             self.count_objects(current_centroid, track_id, prev_position, cls)  # Perform object counting
 
-        self.display_counts(im0)  # Display the counts on the frame
-        self.display_output(im0)  # display output with base class function
+        plot_im = self.annotator.result()
+        self.display_counts(plot_im)  # Display the counts on the frame
+        self.display_output(plot_im)  # display output with base class function
 
-        return im0  # return output image for more usage
+        # Return SolutionResults
+        return SolutionResults(
+            plot_im=plot_im,
+            in_count=self.in_count,
+            out_count=self.out_count,
+            classwise_count=self.classwise_counts,
+            total_tracks=len(self.track_ids),
+        )

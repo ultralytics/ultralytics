@@ -8,7 +8,7 @@ import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 
-from ultralytics.solutions.solutions import BaseSolution  # Import a parent class
+from ultralytics.solutions.solutions import BaseSolution, SolutionResults  # Import a parent class
 
 
 class Analytics(BaseSolution):
@@ -41,7 +41,7 @@ class Analytics(BaseSolution):
     Examples:
         >>> analytics = Analytics(analytics_type="line")
         >>> frame = cv2.imread("image.jpg")
-        >>> processed_frame = analytics.process_data(frame, frame_number=1)
+        >>> processed_frame = analytics.process(frame, frame_number=1)
         >>> cv2.imshow("Analytics", processed_frame)
     """
 
@@ -59,7 +59,7 @@ class Analytics(BaseSolution):
         self.title = "Ultralytics Solutions"  # window name
         self.max_points = 45  # maximum points to be drawn on window
         self.fontsize = 25  # text font size for display
-        figsize = (19.2, 10.8)  # Set output image size 1920 * 1080
+        figsize = (12.8, 7.2)  # Set output image size 1280 * 720
         self.color_cycle = cycle(["#DD00BA", "#042AFF", "#FF4447", "#7D24FF", "#BD00FF"])
 
         self.total_counts = 0  # count variable for storing total counts i.e. for line
@@ -83,7 +83,7 @@ class Analytics(BaseSolution):
             if self.type == "pie":  # Ensure pie chart is circular
                 self.ax.axis("equal")
 
-    def process_data(self, im0, frame_number):
+    def process(self, im0, frame_number):
         """
         Processes image data and runs object tracking to update analytics charts.
 
@@ -92,7 +92,8 @@ class Analytics(BaseSolution):
             frame_number (int): Video frame number for plotting the data.
 
         Returns:
-            (np.ndarray): Processed image with updated analytics chart.
+            results (SolutionResults): Contains processed image `im0`, 'total_tracks' (int, total number of tracked objects) and
+                'classwise_count' (dict, per-class object count).
 
         Raises:
             ModuleNotFoundError: If an unsupported chart type is specified.
@@ -100,26 +101,27 @@ class Analytics(BaseSolution):
         Examples:
             >>> analytics = Analytics(analytics_type="line")
             >>> frame = np.zeros((480, 640, 3), dtype=np.uint8)
-            >>> processed_frame = analytics.process_data(frame, frame_number=1)
+            >>> processed_frame = analytics.process(frame, frame_number=1)
         """
         self.extract_tracks(im0)  # Extract tracks
-
         if self.type == "line":
             for _ in self.boxes:
                 self.total_counts += 1
-            im0 = self.update_graph(frame_number=frame_number)
+            plot_im = self.update_graph(frame_number=frame_number)
             self.total_counts = 0
         elif self.type in {"pie", "bar", "area"}:
             self.clswise_count = {}
-            for box, cls in zip(self.boxes, self.clss):
+            for cls in self.clss:
                 if self.names[int(cls)] in self.clswise_count:
                     self.clswise_count[self.names[int(cls)]] += 1
                 else:
                     self.clswise_count[self.names[int(cls)]] = 1
-            im0 = self.update_graph(frame_number=frame_number, count_dict=self.clswise_count, plot=self.type)
+            plot_im = self.update_graph(frame_number=frame_number, count_dict=self.clswise_count, plot=self.type)
         else:
             raise ModuleNotFoundError(f"{self.type} chart is not supported ❌")
-        return im0
+
+        # return output dictionary with summary for more usage
+        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), classwise_count=self.clswise_count)
 
     def update_graph(self, frame_number, count_dict=None, plot="line"):
         """
@@ -136,9 +138,9 @@ class Analytics(BaseSolution):
 
         Examples:
             >>> analytics = Analytics()
-            >>> frame_number = 10
-            >>> count_dict = {"person": 5, "car": 3}
-            >>> updated_image = analytics.update_graph(frame_number, count_dict, plot="bar")
+            >>> frame_num = 10
+            >>> results_dict = {"person": 5, "car": 3}
+            >>> updated_image = analytics.update_graph(frame_num, results_dict, plot="bar")
         """
         if count_dict is None:
             # Single line update
@@ -216,7 +218,7 @@ class Analytics(BaseSolution):
                 self.ax.clear()
 
                 # Create pie chart and create legend labels with percentages
-                wedges, autotexts = self.ax.pie(
+                wedges, _ = self.ax.pie(
                     counts, labels=labels, startangle=start_angle, textprops={"color": self.fg_color}, autopct=None
                 )
                 legend_labels = [f"{label} ({percentage:.1f}%)" for label, percentage in zip(labels, percentages)]

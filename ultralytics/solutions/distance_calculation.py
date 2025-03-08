@@ -4,8 +4,8 @@ import math
 
 import cv2
 
-from ultralytics.solutions.solutions import BaseSolution
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
+from ultralytics.utils.plotting import colors
 
 
 class DistanceCalculation(BaseSolution):
@@ -73,7 +73,7 @@ class DistanceCalculation(BaseSolution):
             self.selected_boxes = {}
             self.left_mouse_count = 0
 
-    def calculate(self, im0):
+    def process(self, im0):
         """
         Processes a video frame and calculates the distance between two selected bounding boxes.
 
@@ -84,7 +84,8 @@ class DistanceCalculation(BaseSolution):
             im0 (numpy.ndarray): The input image frame to process.
 
         Returns:
-            (numpy.ndarray): The processed image frame with annotations and distance calculations.
+            results (SolutionResults): Contains processed image `im0`, 'total_tracks' (int, total number of tracked objects).
+                'pixels_distance' (float, distance between selected objects in pixels) and
 
         Examples:
             >>> import numpy as np
@@ -93,12 +94,13 @@ class DistanceCalculation(BaseSolution):
             >>> frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
             >>> processed_frame = dc.calculate(frame)
         """
-        self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
+        annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
+        pixels_distance = 0
         # Iterate over bounding boxes, track ids and classes index
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
-            self.annotator.box_label(box, color=colors(int(cls), True), label=self.names[int(cls)])
+            annotator.box_label(box, color=colors(int(cls), True), label=self.names[int(cls)])
 
             if len(self.selected_boxes) == 2:
                 for trk_id in self.selected_boxes.keys():
@@ -114,11 +116,12 @@ class DistanceCalculation(BaseSolution):
             pixels_distance = math.sqrt(
                 (self.centroids[0][0] - self.centroids[1][0]) ** 2 + (self.centroids[0][1] - self.centroids[1][1]) ** 2
             )
-            self.annotator.plot_distance_and_line(pixels_distance, self.centroids)
+            annotator.plot_distance_and_line(pixels_distance, self.centroids)
 
         self.centroids = []
-
-        self.display_output(im0)  # display output with base class function
+        plot_im = annotator.result()
+        self.display_output(plot_im)  # display output with base class function
         cv2.setMouseCallback("Ultralytics Solutions", self.mouse_event_for_distance)
 
-        return im0  # return output image for more usage
+        # Return SolutionResults
+        return SolutionResults(plot_im=plot_im, pixels_distance=pixels_distance, total_tracks=len(self.track_ids))

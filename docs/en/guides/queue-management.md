@@ -33,7 +33,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
 | ![Queue management at airport ticket counter using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/queue-management-airport-ticket-counter-ultralytics-yolov8.avif) | ![Queue monitoring in crowd using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/queue-monitoring-crowd-ultralytics-yolov8.avif) |
 |                                                               Queue management at airport ticket counter Using Ultralytics YOLO11                                                               |                                                         Queue monitoring in crowd Ultralytics YOLO11                                                          |
 
-!!! example "Queue Management using YOLO11 Example"
+!!! example "Queue Management using Ultralytics YOLO"
 
     === "CLI"
 
@@ -56,52 +56,56 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
         from ultralytics import solutions
 
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
-
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Video writer
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("queue_management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Define queue region points
-        queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # Define queue region points
-        # queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]  # Define queue polygon points
+        # Define queue points
+        queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # region points
+        # queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]    # polygon points
 
-        # Init Queue Manager
-        queue = solutions.QueueManager(
-            show=True,  # Display the output
-            model="yolo11n.pt",  # Path to the YOLO11 model file
-            region=queue_region,  # Pass queue region points
-            # classes=[0, 2],  # If you want to count specific classes i.e person and car with COCO pretrained model.
-            # line_width=2,  # Adjust the line width for bounding boxes and text display
+        # Init QueueManager
+        queuemanager = solutions.QueueManager(
+            show=True,  # display the output
+            model="yolo11n.pt",  # path to the YOLO11 model file
+            region=queue_region,  # pass queue region points
         )
 
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
+                print("Video frame is empty or processing is complete.")
                 break
-            out = queue.process_queue(im0)
-            video_writer.write(im0)
+            results = queuemanager(im0)
+
+            # print(results)    # Access the output
+
+            video_writer.write(results.plot_im)  # write the processed frame.
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-### Arguments `QueueManager`
+### `QueueManager` Arguments
 
-| Name         | Type   | Default                    | Description                                          |
-| ------------ | ------ | -------------------------- | ---------------------------------------------------- |
-| `model`      | `str`  | `None`                     | Path to Ultralytics YOLO Model File                  |
-| `region`     | `list` | `[(20, 400), (1260, 400)]` | List of points defining the queue region.            |
-| `line_width` | `int`  | `2`                        | Line thickness for bounding boxes.                   |
-| `show`       | `bool` | `False`                    | Flag to control whether to display the video stream. |
+Here's a table with the `QueueManager` arguments:
 
-### Arguments `model.track`
+{% from "macros/solutions-args.md" import param_table %}
+{{ param_table(["model", "region"]) }}
 
-{% include "macros/track-args.md" %}
+The `QueueManagement` solution also support some `track` arguments:
+
+{% from "macros/track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+
+Additionally, the following visualization parameters are available:
+
+{% from "macros/visualization-args.md" import param_table %}
+{{ param_table(["show", "line_width"]) }}
 
 ## FAQ
 
@@ -124,19 +128,17 @@ from ultralytics import solutions
 cap = cv2.VideoCapture("path/to/video.mp4")
 queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
-queue = solutions.QueueManager(
+queuemanager = solutions.QueueManager(
     model="yolo11n.pt",
     region=queue_region,
     line_width=3,
+    show=True,
 )
 
 while cap.isOpened():
     success, im0 = cap.read()
     if success:
-        out = queue.process_queue(im0)
-        cv2.imshow("Queue Management", im0)
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
+        results = queuemanager(im0)
 
 cap.release()
 cv2.destroyAllWindows()

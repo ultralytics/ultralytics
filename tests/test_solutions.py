@@ -15,7 +15,7 @@ POSE_VIDEO = "solution_ci_pose_demo.mp4"
 @pytest.mark.slow
 def test_major_solutions():
     """Test the object counting, heatmap, speed estimation, trackzone and queue management solution."""
-    safe_download(url=f"{ASSETS_URL}/{DEMO_VIDEO}", dir=TMP)
+    safe_download(url=f"{ASSETS_URL}/{DEMO_VIDEO}", path=TMP)
     cap = cv2.VideoCapture(str(TMP / DEMO_VIDEO))
     assert cap.isOpened(), "Error reading video file"
     region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]

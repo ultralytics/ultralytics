@@ -8,7 +8,7 @@ import torch
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.metrics import OKS_SIGMA, PoseMetrics, box_iou, kpt_iou
+from ultralytics.utils.metrics import PoseMetrics, box_iou, kpt_iou
 from ultralytics.utils.plotting import output_to_target, plot_images
 
 
@@ -32,7 +32,8 @@ class PoseValidator(DetectionValidator):
         self.sigma = None
         self.kpt_shape = None
         self.args.task = "pose"
-        self.metrics = PoseMetrics(save_dir=self.save_dir)
+        self.metrics = PoseMetrics(save_dir=self.save_dir, pose_weight=self.args.pose_weight,
+                                   box_weight=self.args.box_weight)
         if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
             LOGGER.warning(
                 "WARNING ⚠️ Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
@@ -64,10 +65,11 @@ class PoseValidator(DetectionValidator):
     def init_metrics(self, model):
         """Initiate pose estimation metrics for YOLO model."""
         super().init_metrics(model)
-        self.kpt_shape = self.data["kpt_shape"]
-        is_pose = self.kpt_shape == [17, 3]
+        self.kpt_shape = self.data['kpt_shape']
         nkpt = self.kpt_shape[0]
-        self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
+        OKS_SIGMA = self.args.OKS_SIGMA
+        is_pose = len(OKS_SIGMA) == nkpt
+        self.sigma = np.array(OKS_SIGMA) if is_pose else np.ones(nkpt) / nkpt
         self.stats = dict(tp_p=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
     def _prepare_batch(self, si, batch):
@@ -262,8 +264,8 @@ class PoseValidator(DetectionValidator):
                     eval.summarize()
                     idx = i * 4 + 2
                     stats[self.metrics.keys[idx + 1]], stats[self.metrics.keys[idx]] = eval.stats[
-                        :2
-                    ]  # update mAP50-95 and mAP50
+                                                                                       :2
+                                                                                       ]  # update mAP50-95 and mAP50
             except Exception as e:
                 LOGGER.warning(f"pycocotools unable to run: {e}")
         return stats

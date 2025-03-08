@@ -432,7 +432,7 @@ download: |
               width, height = im["width"], im["height"]
               path = Path(im["file_name"])  # image filename
               try:
-                  with open(labels / path.with_suffix('.txt').name, 'a') as file:
+                  with open(labels / path.with_suffix('.txt').name, "a", encoding="utf-8") as file:
                       annIds = coco.getAnnIds(imgIds=im["id"], catIds=catIds, iscrowd=None)
                       for a in coco.loadAnns(annIds):
                           x, y, w, h = a['bbox']  # bounding box in xywh (xy top-left corner)

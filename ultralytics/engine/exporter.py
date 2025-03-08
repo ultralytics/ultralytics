@@ -1342,7 +1342,7 @@ class Exporter:
         )
 
         # Needed for imx models.
-        with open(f / "labels.txt", "w") as file:
+        with open(f / "labels.txt", "w", encoding="utf-8") as file:
             file.writelines([f"{name}\n" for _, name in self.model.names.items()])
 
         return f, None
@@ -1368,7 +1368,7 @@ class Exporter:
 
         # Label file
         tmp_file = Path(file).parent / "temp_meta.txt"
-        with open(tmp_file, "w") as f:
+        with open(tmp_file, "w", encoding="utf-8") as f:
             f.write(str(self.metadata))
 
         label_file = schema.AssociatedFileT()

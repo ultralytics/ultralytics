@@ -500,7 +500,7 @@ class BaseTrainer:
             if util:
                 total = torch.cuda.get_device_properties(self.device).total_memory
                 frac = memory / total
-        memory /= 1e9
+        memory /=2**30
         return (memory, frac) if util else memory
 
     def _clear_memory(self):
@@ -575,6 +575,10 @@ class BaseTrainer:
         except Exception as e:
             raise RuntimeError(emojis(f"Dataset '{clean_url(self.args.data)}' error ❌ {e}")) from e
         self.data = data
+        if self.args.single_cls:
+            LOGGER.info("Overriding class names with single class.")
+            self.data["names"] = {0: "item"}
+            self.data["nc"] = 1
         return data["train"], data.get("val") or data.get("test")
 
     def setup_model(self):

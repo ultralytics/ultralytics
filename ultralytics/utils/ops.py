@@ -799,10 +799,11 @@ def regularize_rboxes(rboxes):
         (torch.Tensor): The regularized boxes.
     """
     x, y, w, h, t = rboxes.unbind(dim=-1)
-    # Swap edge and angle if h >= w
-    w_ = torch.where(w > h, w, h)
-    h_ = torch.where(w > h, h, w)
-    t = torch.where(w > h, t, t + math.pi / 2) % math.pi
+    # Swap edge if t >= pi/2 while not being symmetrically opposite
+    swap = t % math.pi >= math.pi / 2
+    w_ = torch.where(swap, h, w)
+    h_ = torch.where(swap, w, h)
+    t = t % (math.pi / 2)
     return torch.stack([x, y, w_, h_, t], dim=-1)  # regularized boxes
 
 

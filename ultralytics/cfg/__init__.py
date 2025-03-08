@@ -326,8 +326,8 @@ def check_cfg(cfg, hard=True):
     Checks configuration argument types and values for the Ultralytics library.
 
     This function validates the types and values of configuration arguments, ensuring correctness and converting
-    them if necessary. It checks for specific key types defined in global variables such as CFG_FLOAT_KEYS,
-    CFG_FRACTION_KEYS, CFG_INT_KEYS, and CFG_BOOL_KEYS.
+    them if necessary. It checks for specific key types defined in global variables such as `CFG_FLOAT_KEYS`,
+    `CFG_FRACTION_KEYS`, `CFG_INT_KEYS`, and `CFG_BOOL_KEYS`.
 
     Args:
         cfg (Dict): Configuration dictionary to validate.
@@ -498,10 +498,10 @@ def merge_equals_args(args: List[str]) -> List[str]:
     Merges arguments around isolated '=' in a list of strings and joins fragments with brackets.
 
     This function handles the following cases:
-    1. ['arg', '=', 'val'] becomes ['arg=val']
-    2. ['arg=', 'val'] becomes ['arg=val']
-    3. ['arg', '=val'] becomes ['arg=val']
-    4. Joins fragments with brackets, e.g., ['imgsz=[3,', '640,', '640]'] becomes ['imgsz=[3,640,640]']
+        1. ['arg', '=', 'val'] becomes ['arg=val']
+        2. ['arg=', 'val'] becomes ['arg=val']
+        3. ['arg', '=val'] becomes ['arg=val']
+        4. Joins fragments with brackets, e.g., ['imgsz=[3,', '640,', '640]'] becomes ['imgsz=[3,640,640]']
 
     Args:
         args (List[str]): A list of strings where each element represents an argument or fragment.
@@ -511,7 +511,7 @@ def merge_equals_args(args: List[str]) -> List[str]:
 
     Examples:
         >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3", "imgsz=[3,", "640,", "640]"]
-        >>> merge_and_join_args(args)
+        >>> merge_equals_args(args)
         ['arg1=value', 'arg2=value2', 'arg3=value3', 'imgsz=[3,640,640]']
     """
     new_args = []

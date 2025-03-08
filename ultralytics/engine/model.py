@@ -122,6 +122,7 @@ class Model(torch.nn.Module):
         self.metrics = None  # validation/training metrics
         self.session = None  # HUB session
         self.task = task  # task type
+        self.model_name = None  # model name
         model = str(model).strip()
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com

@@ -94,7 +94,7 @@ download: |
   def convert_labels(fname=Path('xView/xView_train.geojson')):
       # Convert xView geoJSON labels to YOLO format
       path = fname.parent
-      with open(fname) as f:
+      with open(fname, encoding="utf-8") as f:
           print(f'Loading {fname}...')
           data = json.load(f)
 
@@ -127,7 +127,7 @@ download: |
                       if id not in shapes:
                           shapes[id] = Image.open(file).size
                       box = xyxy2xywhn(box[None].astype(np.float), w=shapes[id][0], h=shapes[id][1], clip=True)
-                      with open((labels / id).with_suffix('.txt'), 'a') as f:
+                      with open((labels / id).with_suffix('.txt'), "a", encoding="utf-8") as f:
                           f.write(f"{cls} {' '.join(f'{x:.6f}' for x in box[0])}\n")  # write label.txt
                   except Exception as e:
                       print(f'WARNING: skipping one label for {file}: {e}')

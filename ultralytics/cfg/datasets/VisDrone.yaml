@@ -49,14 +49,14 @@ download: |
       for f in pbar:
           img_size = Image.open((dir / 'images' / f.name).with_suffix('.jpg')).size
           lines = []
-          with open(f, 'r') as file:  # read annotation.txt
+          with open(f, "r", encoding="utf-8") as file:  # read annotation.txt
               for row in [x.split(',') for x in file.read().strip().splitlines()]:
                   if row[4] == '0':  # VisDrone 'ignored regions' class 0
                       continue
                   cls = int(row[5]) - 1
                   box = convert_box(img_size, tuple(map(int, row[:4])))
                   lines.append(f"{cls} {' '.join(f'{x:.6f}' for x in box)}\n")
-                  with open(str(f).replace(f'{os.sep}annotations{os.sep}', f'{os.sep}labels{os.sep}'), 'w') as fl:
+                  with open(str(f).replace(f'{os.sep}annotations{os.sep}', f'{os.sep}labels{os.sep}'), "w", encoding="utf-8") as fl:
                       fl.writelines(lines)  # write label.txt
 
 

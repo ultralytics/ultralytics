@@ -57,7 +57,7 @@ download: |
           labels[k].append(f"{cls} {x_center} {y_center} {width} {height}\n")
 
       for k in labels:
-          with open(k, "w") as f:
+          with open(k, "w", encoding="utf-8") as f:
               f.writelines(labels[k])
 
 

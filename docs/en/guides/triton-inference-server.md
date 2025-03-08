@@ -48,7 +48,7 @@ from ultralytics import YOLO
 # Load a model
 model = YOLO("yolo11n.pt")  # load an official model
 
-# Retrieve metadata during export
+# Retrieve metadata during export. Metadata needs to be added to config.pbtxt. See next section.
 metadata = []
 
 
@@ -91,9 +91,17 @@ The Triton Model Repository is a storage location where Triton can access and lo
     # Create config file
     (triton_model_path / "config.pbtxt").touch()
 
+    data = """
+    # Add metadata
+    parameters {
+      key: "metadata"
+      value: {
+        string_value: "%s"
+      }
+    }
+
     # (Optional) Enable TensorRT for GPU inference
     # First run will be slow due to TensorRT engine conversion
-    data = """
     optimization {
       execution_accelerators {
         gpu_execution_accelerator {
@@ -115,12 +123,6 @@ The Triton Model Repository is a storage location where Triton can access and lo
             value: "/models/yolo/1"
           }
         }
-      }
-    }
-    parameters {
-      key: "metadata"
-      value: {
-        string_value: "%s"
       }
     }
     """ % metadata[0]

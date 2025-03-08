@@ -62,6 +62,7 @@ import shutil
 import subprocess
 import time
 import warnings
+from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
@@ -183,6 +184,26 @@ def try_export(inner_func):
     return outer_func
 
 
+@contextmanager
+def arange_patch(args):
+    """
+    Workaround for ONNX torch.arange incompatibility with FP16.
+
+    https://github.com/pytorch/pytorch/issues/148041.
+    """
+    if args.dynamic and args.half and args.format == "onnx":
+        func = torch.arange
+
+        def arange(*args, dtype=None, **kwargs):
+            return func(*args, **kwargs).to(dtype)  # cast to dtype instead of passing dtype
+
+        torch.arange = arange  # patch
+        yield
+        torch.arange = func  # unpatch
+    else:
+        yield
+
+
 class Exporter:
     """
     A class for exporting a model.
@@ -263,7 +284,6 @@ class Exporter:
         if self.args.half and onnx and self.device.type == "cpu":
             LOGGER.warning("WARNING ⚠️ half=True only compatible with GPU export, i.e. use device=0")
             self.args.half = False
-            assert not self.args.dynamic, "half=True not compatible with dynamic=True, i.e. use only one."
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.int8 and engine:
             self.args.dynamic = True  # enforce dynamic to export TensorRT INT8
@@ -515,7 +535,6 @@ class Exporter:
         output_names = ["output0", "output1"] if isinstance(self.model, SegmentationModel) else ["output0"]
         dynamic = self.args.dynamic
         if dynamic:
-            self.model.cpu()  # dynamic=True only compatible with cpu
             dynamic = {"images": {0: "batch", 2: "height", 3: "width"}}  # shape(1,3,640,640)
             if isinstance(self.model, SegmentationModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 116, 8400)
@@ -533,17 +552,18 @@ class Exporter:
                 pass
             check_requirements("onnxslim>=0.1.46")  # Older versions has bug with OBB
 
-        torch.onnx.export(
-            NMSModel(self.model, self.args) if self.args.nms else self.model,
-            self.im.cpu() if dynamic else self.im,
-            f,
-            verbose=False,
-            opset_version=opset_version,
-            do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
-            input_names=["images"],
-            output_names=output_names,
-            dynamic_axes=dynamic or None,
-        )
+        with arange_patch(self.args):
+            torch.onnx.export(
+                NMSModel(self.model, self.args) if self.args.nms else self.model,
+                self.im,
+                f,
+                verbose=False,
+                opset_version=opset_version,
+                do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
+                input_names=["images"],
+                output_names=output_names,
+                dynamic_axes=dynamic or None,
+            )
 
         # Checks
         model_onnx = onnx.load(f)  # load onnx model
@@ -847,7 +867,7 @@ class Exporter:
         # Engine builder
         builder = trt.Builder(logger)
         config = builder.create_builder_config()
-        workspace = int(self.args.workspace * (1 << 30)) if self.args.workspace is not None else 0
+        workspace = int((self.args.workspace or 0) * (1 << 30))
         if is_trt10 and workspace > 0:
             config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace)
         elif workspace > 0:  # TensorRT versions 7, 8
@@ -889,7 +909,7 @@ class Exporter:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ 'dynamic=True' model requires max batch size, i.e. 'batch=16'")
             profile = builder.create_optimization_profile()
             min_shape = (1, shape[1], 32, 32)  # minimum input shape
-            max_shape = (*shape[:2], *(int(max(1, workspace) * d) for d in shape[2:]))  # max input shape
+            max_shape = (*shape[:2], *(int(max(1, self.args.workspace or 1) * d) for d in shape[2:]))  # max input shape
             for inp in inputs:
                 profile.set_shape(inp.name, min=min_shape, opt=shape, max=max_shape)
             config.add_optimization_profile(profile)

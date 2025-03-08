@@ -60,7 +60,7 @@ This example provides simple YOLOv6 training and inference examples. For full do
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv6n model on the 'bus.jpg' image
-        results = model("path/to/bus.jpg")
+        results = model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -72,7 +72,7 @@ This example provides simple YOLOv6 training and inference examples. For full do
         yolo train model=yolov6n.yaml data=coco8.yaml epochs=100 imgsz=640
 
         # Build a YOLOv6n model from scratch and run inference on the 'bus.jpg' image
-        yolo predict model=yolov6n.yaml source=path/to/bus.jpg
+        yolo predict model=yolov6n.yaml source="https://ultralytics.com/images/bus.jpg"
         ```
 
 ## Supported Tasks and Modes

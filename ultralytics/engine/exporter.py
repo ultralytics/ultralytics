@@ -1161,7 +1161,7 @@ class Exporter:
         f_pb = str(self.file.with_suffix(".pb"))  # *.pb path
 
         gd = tf.Graph().as_graph_def()  # TF GraphDef
-        with open(f_pb, "rb") as file:
+        with open(f_pb, "rb", encoding="utf-8") as file:
             gd.ParseFromString(file.read())
         outputs = ",".join(gd_outputs(gd))
         LOGGER.info(f"\n{prefix} output node names: {outputs}")
@@ -1342,7 +1342,7 @@ class Exporter:
         )
 
         # Needed for imx models.
-        with open(f / "labels.txt", "w") as file:
+        with open(f / "labels.txt", "w", encoding="utf-8") as file:
             file.writelines([f"{name}\n" for _, name in self.model.names.items()])
 
         return f, None
@@ -1368,7 +1368,7 @@ class Exporter:
 
         # Label file
         tmp_file = Path(file).parent / "temp_meta.txt"
-        with open(tmp_file, "w") as f:
+        with open(tmp_file, "w", encoding="utf-8") as f:
             f.write(str(self.metadata))
 
         label_file = schema.AssociatedFileT()

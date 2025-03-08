@@ -82,7 +82,7 @@ def verify_image(args):
         assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
         assert im.format.lower() in IMG_FORMATS, f"Invalid image format {im.format}. {FORMATS_HELP_MSG}"
         if im.format.lower() in {"jpg", "jpeg"}:
-            with open(im_file, "rb") as f:
+            with open(im_file, "rb", encoding="utf-8") as f:
                 f.seek(-2, 2)
                 if f.read() != b"\xff\xd9":  # corrupt JPEG
                     ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
@@ -108,7 +108,7 @@ def verify_image_label(args):
         assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
         assert im.format.lower() in IMG_FORMATS, f"invalid image format {im.format}. {FORMATS_HELP_MSG}"
         if im.format.lower() in {"jpg", "jpeg"}:
-            with open(im_file, "rb") as f:
+            with open(im_file, "rb", encoding="utf-8") as f:
                 f.seek(-2, 2)
                 if f.read() != b"\xff\xd9":  # corrupt JPEG
                     ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
@@ -117,7 +117,7 @@ def verify_image_label(args):
         # Verify labels
         if os.path.isfile(lb_file):
             nf = 1  # label found
-            with open(lb_file) as f:
+            with open(lb_file, encoding="utf-8") as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
                 if any(len(x) > 6 for x in lb) and (not keypoint):  # is segment
                     classes = np.array([x[0] for x in lb], dtype=np.float32)
@@ -195,7 +195,7 @@ def visualize_image_annotations(image_path, txt_path, label_map):
     img = np.array(Image.open(image_path))
     img_height, img_width = img.shape[:2]
     annotations = []
-    with open(txt_path) as file:
+    with open(txt_path, encoding="utf-8") as file:
         for line in file:
             class_id, x_center, y_center, width, height = map(float, line.split())
             x = (x_center - width / 2) * img_width
@@ -605,7 +605,7 @@ class HUBDatasetStats:
             self.hub_dir.mkdir(parents=True, exist_ok=True)  # makes dataset-hub/
             stats_path = self.hub_dir / "stats.json"
             LOGGER.info(f"Saving {stats_path.resolve()}...")
-            with open(stats_path, "w") as f:
+            with open(stats_path, "w", encoding="utf-8") as f:
                 json.dump(self.stats, f)  # save stats.json
         if verbose:
             LOGGER.info(json.dumps(self.stats, indent=2, sort_keys=False))
@@ -694,7 +694,7 @@ def autosplit(path=DATASETS_DIR / "coco8/images", weights=(0.9, 0.1, 0.0), annot
     LOGGER.info(f"Autosplitting images from {path}" + ", using *.txt labeled images only" * annotated_only)
     for i, img in TQDM(zip(indices, files), total=n):
         if not annotated_only or Path(img2label_paths([str(img)])[0]).exists():  # check label
-            with open(path.parent / txt[i], "a") as f:
+            with open(path.parent / txt[i], "a", encoding="utf-8") as f:
                 f.write(f"./{img.relative_to(path.parent).as_posix()}" + "\n")  # add image to txt file
 
 
@@ -714,7 +714,7 @@ def save_dataset_cache_file(prefix, path, x, version):
     if is_dir_writeable(path.parent):
         if path.exists():
             path.unlink()  # remove *.cache file if exists
-        with open(str(path), "wb") as file:  # context manager here fixes windows async np.save bug
+        with open(str(path), "wb", encoding="utf-8") as file:  # context manager here fixes windows async np.save bug
             np.save(file, x)
         LOGGER.info(f"{prefix}New cache created: {path}")
     else:

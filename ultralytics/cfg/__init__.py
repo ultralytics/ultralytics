@@ -718,7 +718,6 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
         # extract width, height and fps of the video file, create save directory and initialize video writer
         import os  # for directory creation
-        from pathlib import Path
 
         from ultralytics.utils.files import increment_path  # for output directory path update
 

@@ -51,7 +51,7 @@ def test_major_solutions():
     cap.release()
 
     # Test workouts monitoring
-    safe_download(url=f"{ASSETS_URL}/{POSE_VIDEO}", dir=TMP)
+    safe_download(url=f"{ASSETS_URL}/{POSE_VIDEO}", path=TMP)
     cap = cv2.VideoCapture(str(TMP / POSE_VIDEO))
     assert cap.isOpened(), "Error reading video file"
     gym = solutions.AIGym(kpts=[5, 11, 13], show=False)

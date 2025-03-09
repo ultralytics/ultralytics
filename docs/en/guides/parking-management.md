@@ -117,6 +117,10 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
 
 {% include "macros/track-args.md" %}
 
+!!! tip "Recommended model"
+
+    When using this solution, it is best to use a model trained on a suitable dataset for overhead imagery, such as the [VisDrone dataset](https://docs.ultralytics.com/datasets/detect/visdrone), to achieve optimal performance in detecting objects from a bird’s-eye view.
+
 ## FAQ
 
 ### How does Ultralytics YOLO11 enhance parking management systems?

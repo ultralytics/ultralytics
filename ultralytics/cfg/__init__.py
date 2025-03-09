@@ -707,6 +707,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
     else:
         from ultralytics import solutions
         from ultralytics.utils.files import increment_path
+
         cls, method = SOLUTION_MAP[s_n]  # solution class name, method name and default source
         solution = getattr(solutions, cls)(IS_CLI=True, **overrides)  # get solution class i.e ObjectCounter
         process = getattr(

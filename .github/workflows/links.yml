@@ -18,6 +18,7 @@ on:
 
 jobs:
   Links:
+    if: github.repository == "ultralytics/ultralytics"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

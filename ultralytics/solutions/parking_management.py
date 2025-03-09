@@ -56,14 +56,12 @@ class ParkingPtsSelection:
         except ImportError:  # Display error with recommendations
             import platform
 
-            os_name = platform.system()
-
             install_cmd = {
                 "Linux": "sudo apt install python3-tk (Debian/Ubuntu) | sudo dnf install python3-tkinter (Fedora) | "
                 "sudo pacman -S tk (Arch)",
                 "Windows": "Reinstall Python and enable the checkbox `tcl/tk and IDLE` on **Optional Features** during installation",
                 "Darwin": "Reinstall Python from https://www.python.org/downloads/mac-osx/ or `brew install python-tk`",
-            }.get(os_name, "Unknown OS. Check your Python installation.")
+            }.get(platform.system(), "Unknown OS. Check your Python installation.")
 
             LOGGER.warning(f"⚠️ Tkinter is not configured or supported.\n🚀 Recommended fix: {install_cmd}")
             return

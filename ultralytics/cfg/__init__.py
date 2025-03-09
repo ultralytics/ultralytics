@@ -656,7 +656,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
         - For 'analytics' solution, frame numbers are tracked for generating analytical graphs
         - Video processing can be interrupted by pressing 'q'
         - Processes video frames sequentially and saves output in .avi format
-        - If no source is specified, downloads and uses a default sample video\
+        - If no source is specified, downloads and uses a default sample video
         - The inference solution will be launched using the 'streamlit run' command.
         - The Streamlit app file is located in the Ultralytics package directory.
     """

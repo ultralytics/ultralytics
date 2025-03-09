@@ -680,11 +680,10 @@ def handle_yolo_solutions(args: List[str]) -> None:
     if args:
         temp_s_n = args[0]
         if temp_s_n in SOLUTION_MAP:
-            if temp_s_n != "help":
-                s_n = args.pop(0)  # Extract the solution name directly
-            else:
+            if temp_s_n == "help":
                 LOGGER.info(SOLUTIONS_HELP_MSG)
                 return
+            s_n = args.pop(0)  # Extract the solution name directly
         else:
             LOGGER.warning(
                 f"❌ {temp_s_n} is not valid solution.💡 Updating to default solution='count'. \n"

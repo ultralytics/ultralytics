@@ -87,7 +87,7 @@ def load_yolo_dota(data_root, split="train"):
     annos = []
     for im_file, lb_file in zip(im_files, lb_files):
         w, h = exif_size(Image.open(im_file))
-        with open(lb_file) as f:
+        with open(lb_file, encoding="utf-8") as f:
             lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
             lb = np.array(lb, dtype=np.float32)
         annos.append(dict(ori_size=(h, w), label=lb, filepath=im_file))
@@ -191,7 +191,7 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir, allow_background_i
             label[:, 1::2] /= pw
             label[:, 2::2] /= ph
 
-            with open(Path(lb_dir) / f"{new_name}.txt", "w") as f:
+            with open(Path(lb_dir) / f"{new_name}.txt", "w", encoding="utf-8") as f:
                 for lb in label:
                     formatted_coords = [f"{coord:.6g}" for coord in lb[1:]]
                     f.write(f"{int(lb[0])} {' '.join(formatted_coords)}\n")

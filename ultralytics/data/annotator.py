@@ -63,7 +63,7 @@ def auto_annotate(
             sam_results = sam_model(result.orig_img, bboxes=boxes, verbose=False, save=False, device=device)
             segments = sam_results[0].masks.xyn  # noqa
 
-            with open(f"{Path(output_dir) / Path(result.path).stem}.txt", "w") as f:
+            with open(f"{Path(output_dir) / Path(result.path).stem}.txt", "w", encoding="utf-8") as f:
                 for i, s in enumerate(segments):
                     if s.any():
                         segment = map(str, s.reshape(-1).tolist())

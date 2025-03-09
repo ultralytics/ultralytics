@@ -30,10 +30,7 @@ backbone:
   - [-1, 1, ResNetLayer, [512, 256, 2, False, 6]] # 3-P4/16
   - [-1, 1, ResNetLayer, [1024, 512, 2, False, 3]] # 4-P5/32
 
-
-  
-
-# YOLOv8.0n head
+# Head with BiFPN and YOLOv8 Detection Heads
 head:
   - [-1, 1, Conv, [512, 1, 1]] # P5/32
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]

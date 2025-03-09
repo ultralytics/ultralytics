@@ -7,6 +7,7 @@ import numpy as np
 
 from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils import LOGGER
+from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator
 
 
@@ -48,8 +49,6 @@ class ParkingPtsSelection:
 
     def __init__(self):
         """Initializes the ParkingPtsSelection class, setting up UI and properties for parking zone point selection."""
-        from ultralytics.utils.checks import check_imshow
-
         try:  # check if tkinter installed
             import tkinter as tk
             from tkinter import filedialog, messagebox

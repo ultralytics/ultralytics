@@ -8,17 +8,17 @@
 nc: 10 # number of classes
 scales: # model compound scaling constants, i.e. 'model=yolov8n-cls.yaml' will call yolov8-cls.yaml with scale 'n'
   # [depth, width, max_channels]
-  # n: [0.33, 0.25, 1024]
-  # s: [0.33, 0.50, 1024]
-  # m: [0.67, 0.75, 1024]
-  # l: [1.00, 1.00, 1024]
-  # x: [1.00, 1.25, 1024]
-
   n: [0.33, 0.25, 1024]
   s: [0.33, 0.50, 1024]
-  m: [0.67, 0.75, 768]
-  l: [1.00, 1.00, 512]
-  x: [1.00, 1.25, 512] 
+  m: [0.67, 0.75, 1024]
+  l: [1.00, 1.00, 1024]
+  x: [1.00, 1.25, 1024]
+
+  # n: [0.33, 0.25, 1024]
+  # s: [0.33, 0.50, 1024]
+  # m: [0.67, 0.75, 768]
+  # l: [1.00, 1.00, 512]
+  # x: [1.00, 1.25, 512] 
 
 # YOLOv8.0n backbone
 # YOLOv8.0n backbone

@@ -580,7 +580,7 @@ class v8PoseLoss(v8DetectionLoss):
         )
 
         # Divide coordinates by stride
-        selected_keypoints /= stride_tensor.view(1, -1, 1, 1)
+        selected_keypoints[..., :2] /= stride_tensor.view(1, -1, 1, 1)
 
         kpts_loss = 0
         kpts_obj_loss = 0

@@ -407,10 +407,10 @@ class ResNetLayer(nn.Module):
     def forward(self, x):
         """Forward pass through the ResNet layer."""
         print("ResNet 1 shape: ", x.shape)
-        #return self.layer(x)
-        output = self.layer(x)
-        print("ResNet 2 shape: ", output.shape)
-        return output
+        return self.layer(x)
+        #output = self.layer(x)
+        #print("ResNet 2 shape: ", output.shape)
+        #return output
 
 class MaxSigmoidAttnBlock(nn.Module):
     """Max Sigmoid attention block."""

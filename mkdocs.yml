@@ -274,8 +274,9 @@ nav:
           - datasets/detect/index.md
           - Argoverse: datasets/detect/argoverse.md
           - COCO: datasets/detect/coco.md
-          - LVIS: datasets/detect/lvis.md
           - COCO8: datasets/detect/coco8.md
+          - COCO128: datasets/detect/coco128.md
+          - LVIS: datasets/detect/lvis.md
           - GlobalWheat2020: datasets/detect/globalwheat2020.md
           - Objects365: datasets/detect/objects365.md
           - OpenImagesV7: datasets/detect/open-images-v7.md

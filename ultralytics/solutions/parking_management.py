@@ -7,7 +7,6 @@ import numpy as np
 
 from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils import LOGGER
-from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.plotting import Annotator
 
 
@@ -49,10 +48,29 @@ class ParkingPtsSelection:
 
     def __init__(self):
         """Initializes the ParkingPtsSelection class, setting up UI and properties for parking zone point selection."""
-        check_requirements("tkinter")
-        import tkinter as tk
-        from tkinter import filedialog, messagebox
+        from ultralytics.utils.checks import check_imshow
 
+        try:  # check if tkinter installed
+            import tkinter as tk
+            from tkinter import filedialog, messagebox
+        except ImportError:  # Display error with recommendations
+            import platform
+
+            os_name = platform.system()
+
+            install_cmd = {
+                "Linux": "sudo apt install python3-tk (Debian/Ubuntu) | sudo dnf install python3-tkinter (Fedora) | "
+                "sudo pacman -S tk (Arch)",
+                "Windows": "Reinstall Python and enable the checkbox `tcl/tk and IDLE` on **Optional Features** during installation",
+                "Darwin": "Reinstall Python from https://www.python.org/downloads/mac-osx/ or `brew install python-tk`",
+            }.get(os_name, "Unknown OS. Check your Python installation.")
+
+            LOGGER.warning(f"⚠️ Tkinter is not configured or supported.\n🚀 Recommended fix: {install_cmd}")
+            return
+
+        if not check_imshow():  # verify if the system support display
+            LOGGER.info("Annotation tool unsupported in VMs, Colab, or non-GUI apps.😃")
+            return
         self.tk, self.filedialog, self.messagebox = tk, filedialog, messagebox
         self.master = self.tk.Tk()  # Reference to the main application window or parent widget
         self.master.title("Ultralytics Parking Zones Points Selector")

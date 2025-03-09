@@ -18,6 +18,7 @@ on:
 
 jobs:
   Links:
+    if: github.repository == "ultralytics/ultralytics"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,7 +41,7 @@ jobs:
             --insecure \
             --accept 401,403,429,500,502,999 \
             --exclude-all-private \
-            --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com|ort\.pyke\.io)' \
+            --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' \
             --exclude-path docs/zh \
             --exclude-path docs/es \
             --exclude-path docs/ru \
@@ -70,7 +71,7 @@ jobs:
             --insecure \
             --accept 401,403,429,500,502,999 \
             --exclude-all-private \
-            --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com|ort\.pyke\.io)' \
+            --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' \
             --exclude-path '**/ci.yml' \
             --exclude-path docs/zh \
             --exclude-path docs/es \

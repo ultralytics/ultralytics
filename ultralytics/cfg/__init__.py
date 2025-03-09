@@ -682,14 +682,12 @@ def handle_yolo_solutions(args: List[str]) -> None:
             s_n = args.pop(0)  # Extract the solution name directly
         else:
             LOGGER.info(SOLUTIONS_HELP_MSG)
+            return
     else:
         LOGGER.warning(
             f"⚠️ No valid solution provided. Using default 'count'. Available: {', '.join(SOLUTION_MAP.keys())}"
         )
         s_n = "count"  # Default solution if none provided
-
-    if args and args[0] == "help":  # Add check for return if user call `yolo solutions help`
-        return
 
     if s_n == "inference":
         checks.check_requirements("streamlit>=1.29.0")

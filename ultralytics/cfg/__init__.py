@@ -660,9 +660,6 @@ def handle_yolo_solutions(args: List[str]) -> None:
         - The inference solution will be launched using the 'streamlit run' command.
         - The Streamlit app file is located in the Ultralytics package directory.
     """
-    from ultralytics import solutions
-    from ultralytics.utils.files import increment_path
-
     full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}  # arguments dictionary
     overrides = {}
 
@@ -708,6 +705,8 @@ def handle_yolo_solutions(args: List[str]) -> None:
             ]
         )
     else:
+        from ultralytics import solutions
+        from ultralytics.utils.files import increment_path
         cls, method = SOLUTION_MAP[s_n]  # solution class name, method name and default source
         solution = getattr(solutions, cls)(IS_CLI=True, **overrides)  # get solution class i.e ObjectCounter
         process = getattr(

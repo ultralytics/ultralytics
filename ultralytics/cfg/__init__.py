@@ -677,17 +677,20 @@ def handle_yolo_solutions(args: List[str]) -> None:
     check_dict_alignment(full_args_dict, overrides)  # dict alignment
 
     # Get solution name
-    if args and args[0] in SOLUTION_MAP:
-        if args[0] != "help":
-            s_n = args.pop(0)  # Extract the solution name directly
+    if args:
+        temp_s_n = args[0]
+        if temp_s_n in SOLUTION_MAP:
+            if temp_s_n != "help":
+                s_n = args.pop(0)  # Extract the solution name directly
+            else:
+                LOGGER.info(SOLUTIONS_HELP_MSG)
+                return
         else:
-            LOGGER.info(SOLUTIONS_HELP_MSG)
-            return
-    else:
-        LOGGER.warning(
-            f"⚠️ No valid solution provided. Using default 'count'. Available: {', '.join(SOLUTION_MAP.keys())}"
-        )
-        s_n = "count"  # Default solution if none provided
+            LOGGER.warning(
+                f"❌ {temp_s_n} is not valid solution.💡 Updating to default solution='count'. \n"
+                f"🚀 Available solutions: {', '.join(list(SOLUTION_MAP.keys())[:-1])}\n"
+            )
+            s_n = "count"  # Default solution if none provided
 
     if s_n == "inference":
         checks.check_requirements("streamlit>=1.29.0")

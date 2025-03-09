@@ -677,23 +677,19 @@ def handle_yolo_solutions(args: List[str]) -> None:
     check_dict_alignment(full_args_dict, overrides)  # dict alignment
 
     # Get solution name
-    if args:
-        temp_s_n = args[0]
+    if args[0] == "help":
+        LOGGER.info(SOLUTIONS_HELP_MSG)
+        return  # Early return for 'help' case
+    elif args[0] in SOLUTION_MAP:
+        solution_name = args.pop(0)  # Extract the solution name directly
+    else:
+        LOGGER.warning(
+            f"❌ '{args[0]}' is not a valid solution. 💡 Defaulting to 'count'.\n"
+            f"🚀 Available solutions: {', '.join(list(SOLUTION_MAP.keys())[:-1])}\n"
+        )
+        solution_name = "count"  # Default for invalid solution
 
-        if temp_s_n == "help":
-            LOGGER.info(SOLUTIONS_HELP_MSG)
-            return  # Early return for 'help' case
-
-        if temp_s_n in SOLUTION_MAP:
-            s_n = args.pop(0)  # Extract the solution name directly
-        else:
-            LOGGER.warning(
-                f"❌ '{temp_s_n}' is not a valid solution. 💡 Defaulting to 'count'.\n"
-                f"🚀 Available solutions: {', '.join(list(SOLUTION_MAP.keys())[:-1])}\n"
-            )
-            s_n = "count"  # Default solution if none provided
-
-    if s_n == "inference":
+    if solution_name == "inference":
         checks.check_requirements("streamlit>=1.29.0")
         LOGGER.info("💡 Loading Ultralytics live inference app...")
         subprocess.run(
@@ -709,7 +705,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
     else:
         from ultralytics import solutions
 
-        cls, method = SOLUTION_MAP[s_n]  # solution class name, method name and default source
+        cls, method = SOLUTION_MAP[solution_name]  # solution class name, method name and default source
         solution = getattr(solutions, cls)(IS_CLI=True, **overrides)  # get solution class i.e ObjectCounter
         process = getattr(
             solution, method
@@ -718,13 +714,12 @@ def handle_yolo_solutions(args: List[str]) -> None:
         cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
 
         # extract width, height and fps of the video file, create save directory and initialize video writer
-
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        if s_n == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
+        if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
             w, h = 1920, 1080
         save_dir = get_save_dir(SimpleNamespace(project="runs/solutions", name="exp", exist_ok=False))
         save_dir.mkdir(parents=True)  # create the output directory i.e. runs/solutions/exp
-        vw = cv2.VideoWriter(str(save_dir / f"{s_n}.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        vw = cv2.VideoWriter(str(save_dir / f"{solution_name}.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         try:  # Process video frames
             f_n = 0  # frame number, required for analytical graphs
@@ -732,7 +727,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
                 success, frame = cap.read()
                 if not success:
                     break
-                frame = process(frame, f_n := f_n + 1) if s_n == "analytics" else process(frame)
+                frame = process(frame, f_n := f_n + 1) if solution_name == "analytics" else process(frame)
                 vw.write(frame)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break

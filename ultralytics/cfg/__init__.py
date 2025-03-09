@@ -721,7 +721,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
             w, h = 1920, 1080
         save_dir = increment_path(Path("runs") / "solutions" / "exp", exist_ok=False)
         save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory
-        vw = cv2.VideoWriter(str(save_dir / "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        vw = cv2.VideoWriter(str(save_dir / f"{s_n}.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         try:  # Process video frames
             f_n = 0  # frame number, required for analytical graphs

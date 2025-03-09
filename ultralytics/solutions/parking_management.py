@@ -66,9 +66,9 @@ class ParkingPtsSelection:
             LOGGER.warning(f"⚠️ Tkinter is not configured or supported.\n🚀 Recommended fix: {install_cmd}")
             return
 
-        if not check_imshow():  # verify if the system support display
-            LOGGER.info("Annotation tool unsupported in VMs, Colab, or non-GUI apps.😃")
+        if not check_imshow(warn=True):
             return
+
         self.tk, self.filedialog, self.messagebox = tk, filedialog, messagebox
         self.master = self.tk.Tk()  # Reference to the main application window or parent widget
         self.master.title("Ultralytics Parking Zones Points Selector")

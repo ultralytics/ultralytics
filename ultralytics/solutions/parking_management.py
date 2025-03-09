@@ -62,7 +62,7 @@ class ParkingPtsSelection:
                 "Linux": "sudo apt install python3-tk (Debian/Ubuntu) | sudo dnf install python3-tkinter (Fedora) | "
                 "sudo pacman -S tk (Arch)",
                 "Windows": "Reinstall Python and enable the checkbox `tcl/tk and IDLE` on **Optional Features** during installation",
-                "MacOS": "Reinstall Python from [https://www.python.org/downloads/mac-osx/](https://www.python.org/downloads/mac-osx/) or `brew install python-tk`",
+                "MacOS": "Reinstall Python from https://www.python.org/downloads/mac-osx/ or `brew install python-tk`",
             }.get(os_name, "Unknown OS. Check your Python installation.")
 
             LOGGER.warning(f"⚠️ Tkinter is not configured or supported.\n🚀 Recommended fix: {install_cmd}")

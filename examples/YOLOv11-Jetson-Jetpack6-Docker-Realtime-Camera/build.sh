@@ -1,0 +1,1 @@
+sudo docker build -f Dockerfile-jetson-jetpack6 -t opencv-jetson-ultralytics:6.1 .

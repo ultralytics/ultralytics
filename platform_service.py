@@ -144,9 +144,7 @@ class trainService:
             "exeMsg": exeMsg,
             "exeTime": create_time,
         }
-        self.rds.xadd(
-            self.train_action_result_topic_name, {"result": str(task_result).encode()}, maxlen=100
-        )
+        self.rds.xadd(self.train_action_result_topic_name, {"result": str(task_result).encode()}, maxlen=100)
         # log.logger.info(f'task_result:{task_result}')
 
     def upload_train_result_minio(self, action, taskId, taskName, create_time):
@@ -469,9 +467,7 @@ class exportService:
             "exeMsg": exeMsg,
             "exeTime": create_time,
         }
-        self.rds.xadd(
-            self.export_action_result_topic_name, {"result": str(task_result).encode()}, maxlen=100
-        )
+        self.rds.xadd(self.export_action_result_topic_name, {"result": str(task_result).encode()}, maxlen=100)
 
     def start_export_process(self, taskId, taskName, modelId, exportType):
         """taskId,taskName是本次导出的任务id和name,modelId(taskId_taskName)是之前训练时的id和name,用于找到pt."""

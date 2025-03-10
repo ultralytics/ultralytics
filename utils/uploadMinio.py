@@ -40,10 +40,17 @@ class uploadMinio(Thread):
         log: Logger,
         max_workers: int = 10,
     ):
-        """初始化uploadMinio类 :param minio_client:    已初始化的Minio客户端 :param bucket:          上传目标桶名称 :param result:
-        本地训练的目录 :param taskId:          训练任务的id :param taskName:        训练任务的name :param minio_prefix:    minio的prefix
-        :param uploadType:      minio上传类型,训练结果上传,导出结果上传 :param modelId:         导出时采用到参数,用于找到导出的模型 :param log:
-        日志 :param max_workers:     线程池最大工作线程数.
+        """
+        初始化uploadMinio类 :param minio_client:    已初始化的Minio客户端 :param bucket:          上传目标桶名称 :param result:
+
+        本地训练的目录
+        :param taskId: 训练任务的id
+        :param taskName: 训练任务的name
+        :param minio_prefix: minio的prefix
+        :param uploadType: minio上传类型,训练结果上传,导出结果上传
+        :param modelId: 导出时采用到参数,用于找到导出的模型
+        :param log: 日志
+        :param max_workers: 线程池最大工作线程数.
         """
         super().__init__()
         self.rds = rds

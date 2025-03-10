@@ -515,7 +515,7 @@ def merge_equals_args(args: List[str]) -> List[str]:
 
     Examples:
         >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3", "imgsz=[3,", "640,", "640]"]
-        >>> merge_and_join_args(args)
+        >>> merge_equals_args(args)
         ['arg1=value', 'arg2=value2', 'arg3=value3', 'imgsz=[3,640,640]']
     """
     new_args = []
@@ -713,23 +713,23 @@ def handle_yolo_solutions(args: List[str]) -> None:
             ]
         )
     else:
-        from ultralytics import solutions  # import ultralytics solutions
+        from ultralytics import solutions
 
         solution = getattr(solutions, SOLUTION_MAP[s_n])(
             IS_CLI=True, **overrides
         )  # get solution class i.e ObjectCounter
 
         cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
-        if solution_name != "crop":
-            w, h, fps = (
-                int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)
-            )
-            if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
-                w, h = 1280, 720
+        # extract width, height and fps of the video file, create save directory and initialize video writer
+        w, h, fps = (
+            int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)
+          )
+        if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
+            w, h = 1280, 720
 
-            save_dir = get_save_dir(SimpleNamespace(project="runs/solutions", name="exp", exist_ok=False))
-            save_dir.mkdir(parents=True)  # create the output directory i.e. runs/solutions/exp
-            vw = cv2.VideoWriter(str(save_dir / f"{solution_name}.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        save_dir = get_save_dir(SimpleNamespace(project="runs/solutions", name="exp", exist_ok=False))
+        save_dir.mkdir(parents=True)  # create the output directory i.e. runs/solutions/exp
+        vw = cv2.VideoWriter(str(save_dir / f"{solution_name}.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
         try:  # Process video frames
             f_n = 0  # frame number, required for analytical graphs
             while cap.isOpened():
@@ -738,8 +738,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
                     break
                 results = solution(frame, f_n := f_n + 1) if s_n == "analytics" else solution(frame)
                 LOGGER.info(f"🚀 Results: {results}")
-                if s_n != "crop":
-                    vw.write(results.plot_im)
+                vw.write(results.plot_im)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
         finally:

@@ -519,19 +519,16 @@ class Annotator:
             w, h = self.font.getsize(text)  # text width, height
             xy[1] += 1 - h
         if self.pil:
-            if box_style:
+            text = text.split("\n") if "\n" in text else [text]
+            for idx, text in enumerate(text):
                 w, h = self.font.getsize(text)
-                self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=txt_color)
-                # Using `txt_color` for background and draw fg with white color
-                txt_color = (255, 255, 255)
-            if "\n" in text:
-                lines = text.split("\n")
-                _, h = self.font.getsize(text)
-                for line in lines:
-                    self.draw.text(xy, line, fill=txt_color, font=self.font)
-                    xy[1] += h
-            else:
+                if box_style:
+                    color = colors(idx, True)
+                    self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=color)
+                    # Using `color` for background and draw fg with white color
+                    txt_color = self.get_txt_color(color, txt_color)
                 self.draw.text(xy, text, fill=txt_color, font=self.font)
+                xy[1] += h
         else:
             if box_style:
                 w, h = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
@@ -1146,7 +1143,7 @@ def plot_images(
                 for c in classes:
                     color = colors(c)
                     c = names.get(c, c) if names else c
-                    annotator.text((x, y), f"{c}", txt_color=color, box_style=True)
+                    annotator.text([x, y], f"{c}", txt_color=color, box_style=True)
 
             # Plot keypoints
             if len(kpts):

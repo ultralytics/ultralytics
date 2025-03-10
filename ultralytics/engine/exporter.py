@@ -62,6 +62,7 @@ import shutil
 import subprocess
 import time
 import warnings
+from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
@@ -75,7 +76,7 @@ from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder
-from ultralytics.nn.tasks import DetectionModel, SegmentationModel, WorldModel
+from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
@@ -170,6 +171,7 @@ def try_export(inner_func):
     def outer_func(*args, **kwargs):
         """Export a model."""
         prefix = inner_args["prefix"]
+        dt = 0.0
         try:
             with Profile() as dt:
                 f, model = inner_func(*args, **kwargs)
@@ -180,6 +182,26 @@ def try_export(inner_func):
             raise e
 
     return outer_func
+
+
+@contextmanager
+def arange_patch(args):
+    """
+    Workaround for ONNX torch.arange incompatibility with FP16.
+
+    https://github.com/pytorch/pytorch/issues/148041.
+    """
+    if args.dynamic and args.half and args.format == "onnx":
+        func = torch.arange
+
+        def arange(*args, dtype=None, **kwargs):
+            return func(*args, **kwargs).to(dtype)  # cast to dtype instead of passing dtype
+
+        torch.arange = arange  # patch
+        yield
+        torch.arange = func  # unpatch
+    else:
+        yield
 
 
 class Exporter:
@@ -262,7 +284,6 @@ class Exporter:
         if self.args.half and onnx and self.device.type == "cpu":
             LOGGER.warning("WARNING ⚠️ half=True only compatible with GPU export, i.e. use device=0")
             self.args.half = False
-            assert not self.args.dynamic, "half=True not compatible with dynamic=True, i.e. use only one."
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.int8 and engine:
             self.args.dynamic = True  # enforce dynamic to export TensorRT INT8
@@ -282,13 +303,16 @@ class Exporter:
         if self.args.int8 and tflite:
             assert not getattr(model, "end2end", False), "TFLite INT8 export not supported for end2end models."
         if self.args.nms:
+            assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
             if getattr(model, "end2end", False):
                 LOGGER.warning("WARNING ⚠️ 'nms=True' is not available for end2end models. Forcing 'nms=False'.")
                 self.args.nms = False
             self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
         if edgetpu:
-            if not LINUX:
-                raise SystemError("Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler")
+            if ARM64 and not LINUX:
+                raise SystemError(
+                    "Edge TPU export only supported on non-aarch64 Linux. See https://coral.ai/docs/edgetpu/compiler"
+                )
             elif self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
                 LOGGER.warning("WARNING ⚠️ Edge TPU export requires batch size 1, setting batch=1.")
                 self.args.batch = 1
@@ -306,6 +330,8 @@ class Exporter:
                 "WARNING ⚠️ INT8 export requires a missing 'data' arg for calibration. "
                 f"Using default 'data={self.args.data}'."
             )
+        if tfjs and (ARM64 and LINUX):
+            raise SystemError("TensorFlow.js export not supported on ARM64 Linux")
 
         # Input
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
@@ -385,6 +411,8 @@ class Exporter:
             "names": model.names,
             "args": {k: v for k, v in self.args if k in fmt_keys},
         }  # model metadata
+        if dla is not None:
+            self.metadata["dla"] = dla  # make sure `AutoBackend` uses correct dla device if it has one
         if model.task == "pose":
             self.metadata["kpt_shape"] = model.model[-1].kpt_shape
 
@@ -411,7 +439,7 @@ class Exporter:
             if pb or tfjs:  # pb prerequisite to tfjs
                 f[6], _ = self.export_pb(keras_model=keras_model)
             if tflite:
-                f[7], _ = self.export_tflite(keras_model=keras_model, nms=False, agnostic_nms=self.args.agnostic_nms)
+                f[7], _ = self.export_tflite()
             if edgetpu:
                 f[8], _ = self.export_edgetpu(tflite_model=Path(f[5]) / f"{self.file.stem}_full_integer_quant.tflite")
             if tfjs:
@@ -518,22 +546,24 @@ class Exporter:
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset_version  # for NMSModel
             # OBB error https://github.com/pytorch/pytorch/issues/110859#issuecomment-1757841865
-            torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
+            try:
+                torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
+            except RuntimeError:  # it will fail if it's already registered
+                pass
             check_requirements("onnxslim>=0.1.46")  # Older versions has bug with OBB
 
-        torch.onnx.export(
-            NMSModel(self.model.cpu() if dynamic else self.model, self.args)
-            if self.args.nms
-            else self.model,  # dynamic=True only compatible with cpu
-            self.im.cpu() if dynamic else self.im,
-            f,
-            verbose=False,
-            opset_version=opset_version,
-            do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
-            input_names=["images"],
-            output_names=output_names,
-            dynamic_axes=dynamic or None,
-        )
+        with arange_patch(self.args):
+            torch.onnx.export(
+                NMSModel(self.model, self.args) if self.args.nms else self.model,
+                self.im,
+                f,
+                verbose=False,
+                opset_version=opset_version,
+                do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
+                input_names=["images"],
+                output_names=output_names,
+                dynamic_axes=dynamic or None,
+            )
 
         # Checks
         model_onnx = onnx.load(f)  # load onnx model
@@ -560,7 +590,7 @@ class Exporter:
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):
         """YOLO OpenVINO export."""
-        check_requirements("openvino>=2024.5.0")
+        check_requirements("openvino>=2024.0.0,!=2025.0.0")
         import openvino as ov
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
@@ -582,7 +612,7 @@ class Exporter:
             if self.model.task != "classify":
                 ov_model.set_rt_info("fit_to_window_letterbox", ["model_info", "resize_type"])
 
-            ov.runtime.save_model(ov_model, file, compress_to_fp16=self.args.half)
+            ov.save_model(ov_model, file, compress_to_fp16=self.args.half)
             yaml_save(Path(file).parent / "metadata.yaml", self.metadata)  # add metadata.yaml
 
         if self.args.int8:
@@ -837,7 +867,7 @@ class Exporter:
         # Engine builder
         builder = trt.Builder(logger)
         config = builder.create_builder_config()
-        workspace = int(self.args.workspace * (1 << 30)) if self.args.workspace is not None else 0
+        workspace = int((self.args.workspace or 0) * (1 << 30))
         if is_trt10 and workspace > 0:
             config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace)
         elif workspace > 0:  # TensorRT versions 7, 8
@@ -879,7 +909,7 @@ class Exporter:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ 'dynamic=True' model requires max batch size, i.e. 'batch=16'")
             profile = builder.create_optimization_profile()
             min_shape = (1, shape[1], 32, 32)  # minimum input shape
-            max_shape = (*shape[:2], *(int(max(1, workspace) * d) for d in shape[2:]))  # max input shape
+            max_shape = (*shape[:2], *(int(max(1, self.args.workspace or 1) * d) for d in shape[2:]))  # max input shape
             for inp in inputs:
                 profile.set_shape(inp.name, min=min_shape, opt=shape, max=max_shape)
             config.add_optimization_profile(profile)
@@ -981,6 +1011,7 @@ class Exporter:
                 "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
+                "protobuf>=5",  # tflite_support pins <=4 but >=5 works
             ),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
         )
@@ -1066,7 +1097,7 @@ class Exporter:
         return f, None
 
     @try_export
-    def export_tflite(self, keras_model, nms, agnostic_nms, prefix=colorstr("TensorFlow Lite:")):
+    def export_tflite(self, prefix=colorstr("TensorFlow Lite:")):
         """YOLO TensorFlow Lite export."""
         # BUG https://github.com/ultralytics/ultralytics/issues/13436
         import tensorflow as tf  # noqa
@@ -1122,9 +1153,6 @@ class Exporter:
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
         """YOLO TensorFlow.js export."""
         check_requirements("tensorflowjs")
-        if ARM64:
-            # Fix error: `np.object` was a deprecated alias for the builtin `object` when exporting to TF.js on ARM64
-            check_requirements("numpy==1.23.5")
         import tensorflow as tf
         import tensorflowjs as tfjs  # noqa
 
@@ -1314,7 +1342,7 @@ class Exporter:
         )
 
         # Needed for imx models.
-        with open(f / "labels.txt", "w") as file:
+        with open(f / "labels.txt", "w", encoding="utf-8") as file:
             file.writelines([f"{name}\n" for _, name in self.model.names.items()])
 
         return f, None
@@ -1340,7 +1368,7 @@ class Exporter:
 
         # Label file
         tmp_file = Path(file).parent / "temp_meta.txt"
-        with open(tmp_file, "w") as f:
+        with open(tmp_file, "w", encoding="utf-8") as f:
             f.write(str(self.metadata))
 
         label_file = schema.AssociatedFileT()
@@ -1541,10 +1569,10 @@ class NMSModel(torch.nn.Module):
         Performs inference with NMS post-processing. Supports Detect, Segment, OBB and Pose.
 
         Args:
-            x (torch.tensor): The preprocessed tensor with shape (N, 3, H, W).
+            x (torch.Tensor): The preprocessed tensor with shape (N, 3, H, W).
 
         Returns:
-            out (torch.tensor): The post-processed results with shape (N, max_det, 4 + 2 + extra_shape).
+            out (torch.Tensor): The post-processed results with shape (N, max_det, 4 + 2 + extra_shape).
         """
         from functools import partial
 
@@ -1552,25 +1580,26 @@ class NMSModel(torch.nn.Module):
 
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
+        kwargs = dict(device=pred.device, dtype=pred.dtype)
+        bs = pred.shape[0]
         pred = pred.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
-        extra_shape = pred.shape[-1] - (4 + self.model.nc)  # extras from Segment, OBB, Pose
-        boxes, scores, extras = pred.split([4, self.model.nc, extra_shape], dim=2)
+        extra_shape = pred.shape[-1] - (4 + len(self.model.names))  # extras from Segment, OBB, Pose
+        if self.args.dynamic and self.args.batch > 1:  # batch size needs to always be same due to loop unroll
+            pad = torch.zeros(torch.max(torch.tensor(self.args.batch - bs), torch.tensor(0)), *pred.shape[1:], **kwargs)
+            pred = torch.cat((pred, pad))
+        boxes, scores, extras = pred.split([4, len(self.model.names), extra_shape], dim=2)
         scores, classes = scores.max(dim=-1)
+        self.args.max_det = min(pred.shape[1], self.args.max_det)  # in case num_anchors < max_det
         # (N, max_det, 4 coords + 1 class score + 1 class label + extra_shape).
-        out = torch.zeros(
-            boxes.shape[0],
-            self.args.max_det,
-            boxes.shape[-1] + 2 + extra_shape,
-            device=boxes.device,
-            dtype=boxes.dtype,
-        )
-        for i, (box, cls, score, extra) in enumerate(zip(boxes, classes, scores, extras)):
+        out = torch.zeros(bs, self.args.max_det, boxes.shape[-1] + 2 + extra_shape, **kwargs)
+        for i in range(bs):
+            box, cls, score, extra = boxes[i], classes[i], scores[i], extras[i]
             mask = score > self.args.conf
             if self.is_tf:
                 # TFLite GatherND error if mask is empty
                 score *= mask
                 # Explicit length otherwise reshape error, hardcoded to `self.args.max_det * 5`
-                mask = score.topk(self.args.max_det * 5).indices
+                mask = score.topk(min(self.args.max_det * 5, score.shape[0])).indices
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             if not self.obb:
                 box = xywh2xyxy(box)
@@ -1584,7 +1613,7 @@ class NMSModel(torch.nn.Module):
             if self.args.format == "tflite":  # TFLite is already normalized
                 nmsbox *= multiplier
             else:
-                nmsbox = multiplier * nmsbox / torch.tensor(x.shape[2:], device=box.device, dtype=box.dtype).max()
+                nmsbox = multiplier * nmsbox / torch.tensor(x.shape[2:], **kwargs).max()
             if not self.args.agnostic_nms:  # class-specific NMS
                 end = 2 if self.obb else 4
                 # fully explicit expansion otherwise reshape error
@@ -1593,15 +1622,26 @@ class NMSModel(torch.nn.Module):
                 offbox = nmsbox[:, :end] + cls_offset * multiplier
                 nmsbox = torch.cat((offbox, nmsbox[:, end:]), dim=-1)
             nms_fn = (
-                partial(nms_rotated, use_triu=not (self.is_tf or (self.args.opset or 14) < 14)) if self.obb else nms
+                partial(
+                    nms_rotated,
+                    use_triu=not (
+                        self.is_tf
+                        or (self.args.opset or 14) < 14
+                        or (self.args.format == "openvino" and self.args.int8)  # OpenVINO int8 error with triu
+                    ),
+                )
+                if self.obb
+                else nms
             )
             keep = nms_fn(
                 torch.cat([nmsbox, extra], dim=-1) if self.obb else nmsbox,
                 score,
                 self.args.iou,
             )[: self.args.max_det]
-            dets = torch.cat([box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1), extra[keep]], dim=-1)
+            dets = torch.cat(
+                [box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1).to(out.dtype), extra[keep]], dim=-1
+            )
             # Zero-pad to max_det size to avoid reshape error
             pad = (0, 0, 0, self.args.max_det - dets.shape[0])
             out[i] = torch.nn.functional.pad(dets, pad)
-        return (out, preds[1]) if self.model.task == "segment" else out
+        return (out[:bs], preds[1]) if self.model.task == "segment" else out[:bs]

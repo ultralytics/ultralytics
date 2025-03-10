@@ -18,6 +18,7 @@ GITHUB_ASSETS_REPO = "ultralytics/assets"
 GITHUB_ASSETS_NAMES = (
     [f"yolov8{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb", "-oiv7")]
     + [f"yolo11{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb")]
+    + [f"yolo12{k}{suffix}.pt" for k in "nsmlx" for suffix in ("",)]  # detect models only currently
     + [f"yolov5{k}{resolution}u.pt" for k in "nsmlx" for resolution in ("", "6")]
     + [f"yolov3{k}u.pt" for k in ("", "-spp", "-tiny")]
     + [f"yolov8{k}-world.pt" for k in "smlx"]

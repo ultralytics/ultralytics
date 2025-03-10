@@ -194,8 +194,8 @@ class Tuner:
                 launch = [
                     __import__("sys").executable,
                     "-m",
-                    "ultralytics.cfg.__init__",
-                ]  # workaround yolo not found issue
+                    "ultralytics.cfg.__init__"
+                ]  # workaround yolo not found
                 cmd = [*launch, "train", *(f"{k}={v}" for k, v in train_args.items())]
                 return_code = subprocess.run(cmd, check=True).returncode
                 ckpt_file = weights_dir / ("best.pt" if (weights_dir / "best.pt").exists() else "last.pt")

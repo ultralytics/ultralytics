@@ -166,17 +166,13 @@ def update_markdown_files(md_filepath: Path):
 
 
 def remove_python_repl_prompts(match):
-    """Remove Python REPL prompt lines (>>> and ...) from code blocks in HTML."""
+    """Remove Python REPL prompt markers while keeping the content of the lines."""
     start, code, end = match.groups()
 
-    # Use a regex that matches lines with <span class="gp">&gt;&gt;&gt; </span> or <span class="gp">... </span>
-    # We need the negative version - keeping lines that DON'T have the REPL prompts
-    filtered_lines = []
-    for line in code.split("\n"):
-        if not re.search(r'<span class="gp">(?:&gt;&gt;&gt;|\.\.\.)\s</span>', line):
-            filtered_lines.append(line)
+    # Remove just the REPL prompt spans, keeping the rest of each line's content
+    modified_code = re.sub(r'<span class="gp">(?:&gt;&gt;&gt;|\.\.\.)\s</span>', "", code)
 
-    return start + "\n".join(filtered_lines) + end
+    return start + modified_code + end
 
 
 def update_docs_html():

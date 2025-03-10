@@ -61,6 +61,7 @@ from ultralytics.nn.modules import (
     SCDown,
     Segment,
     TorchVision,
+    Timm,
     WorldDetect,
     v10Detect,
 )

@@ -103,12 +103,15 @@ class SegmentationValidator(DetectionValidator):
             nl = len(cls)
             stat["target_cls"] = cls
             stat["target_img"] = cls.unique()
+            idx = batch["batch_idx"] == si
+            labelsn = torch.cat((batch["cls"][idx], bbox), 1)  # native-space labels
             if npr == 0:
                 if nl:
                     for k in self.stats.keys():
                         self.stats[k].append(stat[k])
                     if self.args.plots:
                         self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
+                        self.output_bad_cases(None, labelsn, batch, si)
                 continue
 
             # Masks
@@ -128,6 +131,7 @@ class SegmentationValidator(DetectionValidator):
                 )
             if self.args.plots:
                 self.confusion_matrix.process_batch(predn, bbox, cls)
+                self.output_bad_cases(predn, labelsn, batch, si)
 
             for k in self.stats.keys():
                 self.stats[k].append(stat[k])

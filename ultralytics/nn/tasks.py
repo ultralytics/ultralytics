@@ -7,7 +7,6 @@ import types
 from copy import deepcopy
 from pathlib import Path
 
-import thop
 import torch
 
 from ultralytics.nn.modules import (
@@ -23,6 +22,7 @@ from ultralytics.nn.modules import (
     SPP,
     SPPELAN,
     SPPF,
+    A2C2f,
     AConv,
     ADown,
     Bottleneck,
@@ -85,6 +85,11 @@ from ultralytics.utils.torch_utils import (
     scale_img,
     time_sync,
 )
+
+try:
+    import thop
+except ImportError:
+    thop = None  # conda support without 'ultralytics-thop' installed
 
 
 class BaseModel(torch.nn.Module):
@@ -484,12 +489,6 @@ class RTDETRDetectionModel(DetectionModel):
     the training and inference processes. RTDETR is an object detection and tracking model that extends from the
     DetectionModel base class.
 
-    Attributes:
-        cfg (str): The configuration file path or preset string. Default is 'rtdetr-l.yaml'.
-        ch (int): Number of input channels. Default is 3 (RGB).
-        nc (int, optional): Number of classes for object detection. Default is None.
-        verbose (bool): Specifies if summary statistics are shown during initialization. Default is True.
-
     Methods:
         init_criterion: Initializes the criterion used for loss calculation.
         loss: Computes and returns the loss during training.
@@ -639,8 +638,8 @@ class WorldModel(DetectionModel):
             (torch.Tensor): Model's output tensor.
         """
         txt_feats = (self.txt_feats if txt_feats is None else txt_feats).to(device=x.device, dtype=x.dtype)
-        if len(txt_feats) != len(x):
-            txt_feats = txt_feats.repeat(len(x), 1, 1)
+        if len(txt_feats) != len(x) or self.model[-1].export:
+            txt_feats = txt_feats.expand(x.shape[0], -1, -1)
         ori_txt_feats = txt_feats.clone()
         y, dt, embeddings = [], [], []  # outputs
         for m in self.model:  # except the head part
@@ -987,6 +986,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             PSA,
             SCDown,
             C2fCIB,
+            A2C2f,
         }
     )
     repeat_modules = frozenset(  # modules with 'repeat' arguments
@@ -1005,6 +1005,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C2fPSA,
             C2fCIB,
             C2PSA,
+            A2C2f,
         }
     )
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
@@ -1036,6 +1037,10 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 legacy = False
                 if scale in "mlx":
                     args[3] = True
+            if m is A2C2f:
+                legacy = False
+                if scale in "lx":  # for L/X sizes
+                    args.extend((True, 1.2))
         elif m is AIFI:
             args = [ch[f], *args]
         elif m in frozenset({HGStem, HGBlock}):
@@ -1114,7 +1119,7 @@ def guess_model_scale(model_path):
         (str): The size character of the model's scale, which can be n, s, m, l, or x.
     """
     try:
-        return re.search(r"yolo[v]?\d+([nslmx])", Path(model_path).stem).group(1)  # noqa, returns n, s, m, l, or x
+        return re.search(r"yolo[v]?\d+([nslmx])", Path(model_path).stem).group(1)  # returns n, s, m, l, or x
     except AttributeError:
         return ""
 

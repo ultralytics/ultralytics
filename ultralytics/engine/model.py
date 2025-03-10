@@ -122,6 +122,7 @@ class Model(torch.nn.Module):
         self.metrics = None  # validation/training metrics
         self.session = None  # HUB session
         self.task = task  # task type
+        self.model_name = None  # model name
         model = str(model).strip()
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
@@ -140,6 +141,7 @@ class Model(torch.nn.Module):
             return
 
         # Load or create new YOLO model
+        __import__("os").environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # to avoid deterministic warnings
         if Path(model).suffix in {".yaml", ".yml"}:
             self._new(model, task=task, verbose=verbose)
         else:

@@ -139,7 +139,10 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
 
 @pytest.mark.slow
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
-@pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
+@pytest.mark.skipif(
+    not LINUX or IS_RASPBERRYPI,
+    reason="Test disabled as TF suffers from install conflicts on Windows, macOS and Raspberry Pi",
+)
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, nms",
     [  # generate all combinations except for exclusion cases
@@ -197,7 +200,6 @@ def test_export_paddle():
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="MNN not supported on Raspberry Pi")
 def test_export_mnn():
     """Test YOLO exports to MNN format (WARNING: MNN test must precede NCNN test or CI error on Windows)."""
     file = YOLO(MODEL).export(format="mnn", imgsz=32)

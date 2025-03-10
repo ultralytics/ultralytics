@@ -14,7 +14,7 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
 
     You may need to refresh the page to view the graphs correctly due to potential cookie issues.
 
-<script async src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script defer src="../../javascript/benchmark.js"></script>
 
 <canvas id="modelComparisonChart" width="1024" height="400"></canvas>

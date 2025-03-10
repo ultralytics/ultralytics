@@ -34,67 +34,67 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 | ![Conveyor Belt at Airport Suitcases Cropping using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/suitcases-cropping-airport-conveyor-belt.avif) |
 |                                                      Suitcases Cropping at airport conveyor belt using Ultralytics YOLO11                                                      |
 
-!!! example "Object Cropping using YOLO11 Example"
+!!! example "Object Cropping using Ultralytics YOLO"
 
-    === "Object Cropping"
+    === "CLI"
 
-        ```python
-        import os
+        ```bash
+        # Crop the objects
+        yolo solutions crop show=True
 
-        import cv2
+        # Pass a source video
+        yolo solutions crop source="path/to/video/file.mp4"
 
-        from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator, colors
-
-        model = YOLO("yolo11n.pt")
-        names = model.names
-
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-        crop_dir_name = "ultralytics_crop"
-        if not os.path.exists(crop_dir_name):
-            os.mkdir(crop_dir_name)
-
-        # Video writer
-        video_writer = cv2.VideoWriter("object_cropping_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
-        idx = 0
-        while cap.isOpened():
-            success, im0 = cap.read()
-            if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
-
-            results = model.predict(im0, show=False)
-            boxes = results[0].boxes.xyxy.cpu().tolist()
-            clss = results[0].boxes.cls.cpu().tolist()
-            annotator = Annotator(im0, line_width=2, example=names)
-
-            if boxes is not None:
-                for box, cls in zip(boxes, clss):
-                    idx += 1
-                    annotator.box_label(box, color=colors(int(cls), True), label=names[int(cls)])
-
-                    crop_obj = im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]
-
-                    cv2.imwrite(os.path.join(crop_dir_name, str(idx) + ".png"), crop_obj)
-
-            cv2.imshow("ultralytics", im0)
-            video_writer.write(im0)
-
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-
-        cap.release()
-        video_writer.release()
-        cv2.destroyAllWindows()
+        # Crop specific classes
+        yolo solutions crop classes=[0, 2]
         ```
 
-### Arguments `model.predict`
+    === "Python"
 
-{% include "macros/predict-args.md" %}
+        ```python
+        import cv2
+
+        from ultralytics import solutions
+
+        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+
+        # Initialize object cropper object
+        cropper = solutions.ObjectCropper(
+            show=True,  # display the output
+            model="yolo11n.pt",  # model for object cropping i.e yolo11x.pt.
+            classes=[0, 2],  # crop specific classes i.e. person and car with COCO pretrained model.
+            # conf=0.5,  # adjust confidence threshold for the objects.
+            # crop_dir="cropped-detections",  # set the directory name for cropped detections
+        )
+
+        # Process video
+        while cap.isOpened():
+            success, im0 = cap.read()
+
+            if not success:
+                print("Video frame is empty or processing is complete.")
+                break
+
+            results = cropper(im0)
+
+            # print(results)  # access the output
+
+        cap.release()
+        cv2.destroyAllWindows()  # destroy all opened windows
+        ```
+
+### `ObjectCropper` Arguments
+
+Here's a table with the `ObjectCropper` arguments:
+
+{% from "macros/solutions-args.md" import param_table %}
+{{ param_table(["model", "crop_dir"]) }}
+
+Moreover, the following visualization arguments are available for use:
+
+{% from "macros/visualization-args.md" import param_table %}
+{{ param_table(["show", "line_width"]) }}
 
 ## FAQ
 

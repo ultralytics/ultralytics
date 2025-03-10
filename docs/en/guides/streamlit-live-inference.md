@@ -29,7 +29,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
 ## Advantages of Live Inference
 
 - **Seamless Real-Time Object Detection**: Streamlit combined with YOLO11 enables real-time object detection directly from your webcam feed. This allows for immediate analysis and insights, making it ideal for applications requiring instant feedback.
-- **User-Friendly Deployment**: Streamlit's interactive interface makes it easy to deploy and use the application without extensive technical knowledge. Users can start live inference with a simple click, enhancing accessibility and usability.
+- **User-Friendly Deployment**: Streamlit interactive interface makes it easy to deploy and use the application without extensive technical knowledge. Users can start live inference with a simple click, enhancing accessibility and usability.
 - **Efficient Resource Utilization**: YOLO11 optimized algorithm ensure high-speed processing with minimal computational resources. This efficiency allows for smooth and reliable webcam inference even on standard hardware, making advanced computer vision accessible to a wider audience.
 
 ## Streamlit Application Code
@@ -38,7 +38,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
 
     Before you start building the application, ensure you have the Ultralytics Python Package installed. You can install it using the command **pip install ultralytics**
 
-!!! example "Streamlit Application"
+!!! example "Inference using Streamlit with Ultralytics YOLO"
 
     === "CLI"
 
@@ -54,7 +54,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
         from ultralytics import solutions
 
         inf = solutions.Inference(
-            model="yolo11n.pt",  # You can use any model that Ultralytics support, i.e. YOLO11, or custom trained model
+            model="yolo11n.pt",  # you can use any model that Ultralytics support, i.e. YOLO11, or custom trained model
         )
 
         inf.inference()
@@ -74,7 +74,7 @@ You can optionally supply a specific model in Python:
         from ultralytics import solutions
 
         inf = solutions.Inference(
-            model="yolo11n.pt",  # You can use any model that Ultralytics support, i.e. YOLO11, YOLOv10
+            model="yolo11n.pt",  # you can use any model that Ultralytics support, i.e. YOLO11, YOLOv10
         )
 
         inf.inference()
@@ -121,7 +121,7 @@ Then, you can create a basic Streamlit application to run live inference:
         from ultralytics import solutions
 
         inf = solutions.Inference(
-            model="yolo11n.pt",  # You can use any model that Ultralytics support, i.e. YOLO11, YOLOv10
+            model="yolo11n.pt",  # you can use any model that Ultralytics support, i.e. YOLO11, YOLOv10
         )
 
         inf.inference()
@@ -142,7 +142,7 @@ For more details on the practical setup, refer to the [Streamlit Application Cod
 Using Ultralytics YOLO11 with Streamlit for real-time object detection offers several advantages:
 
 - **Seamless Real-Time Detection**: Achieve high-[accuracy](https://www.ultralytics.com/glossary/accuracy), real-time object detection directly from webcam feeds.
-- **User-Friendly Interface**: Streamlit's intuitive interface allows easy use and deployment without extensive technical knowledge.
+- **User-Friendly Interface**: Streamlit intuitive interface allows easy use and deployment without extensive technical knowledge.
 - **Resource Efficiency**: YOLO11's optimized algorithms ensure high-speed processing with minimal computational resources.
 
 Discover more about these advantages [here](#advantages-of-live-inference).

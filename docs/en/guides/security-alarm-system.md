@@ -24,57 +24,60 @@ The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanc
   <br>
   <strong>Watch:</strong> Security Alarm System with Ultralytics YOLO11 + Solutions <a href="https://www.ultralytics.com/glossary/object-detection">Object Detection</a>
 </p>
-
-### Code
-
+ 
 ???+ note
 
     App Password Generation is necessary
 
 - Navigate to [App Password Generator](https://myaccount.google.com/apppasswords), designate an app name such as "security project," and obtain a 16-digit password. Copy this password and paste it into the designated `password` field in the code below.
 
-!!! example "Security Alarm System using YOLO11 Example"
+!!! example "Security Alarm System using Ultralytics YOLO"
 
     === "Python"
 
-    ```python
-    import cv2
+        ```python
+        import cv2
 
-    from ultralytics import solutions
+        from ultralytics import solutions
 
-    cap = cv2.VideoCapture("Path/to/video/file.mp4")
-    assert cap.isOpened(), "Error reading video file"
+        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
 
-    # Video writer
-    w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-    video_writer = cv2.VideoWriter("security_alarm_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        # Video writer
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        video_writer = cv2.VideoWriter("security_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-    from_email = "abc@gmail.com"  # The sender email address
-    password = "---- ---- ---- ----"  # 16-digits password generated via: https://myaccount.google.com/apppasswords
-    to_email = "xyz@gmail.com"  # The receiver email address
+        from_email = "abc@gmail.com"  # the sender email address
+        password = "---- ---- ---- ----"  # 16-digits password generated via: https://myaccount.google.com/apppasswords
+        to_email = "xyz@gmail.com"  # the receiver email address
 
-    # Init SecurityAlarm
-    security = solutions.SecurityAlarm(
-        show=True,  # Display the output
-        model="yolo11n.pt",  # i.e. YOLO11s.pt
-        records=1,  # Total detections count to send an email about security
-    )
+        # Initialize security alarm object
+        securityalarm = solutions.SecurityAlarm(
+            show=True,  # display the output
+            model="yolo11n.pt",  # i.e. yolo11s.pt, yolo11m.pt
+            records=1,  # total detections count to send an email
+        )
 
-    security.authenticate(from_email, password, to_email)  # Authenticate the email server
+        securityalarm.authenticate(from_email, password, to_email)  # authenticate the email server
 
-    # Process video
-    while cap.isOpened():
-        success, im0 = cap.read()
-        if not success:
-            print("Video frame is empty or video processing has been successfully completed.")
-            break
-        im0 = security.monitor(im0)
-        video_writer.write(im0)
+        # Process video
+        while cap.isOpened():
+            success, im0 = cap.read()
 
-    cap.release()
-    video_writer.release()
-    cv2.destroyAllWindows()
-    ```
+            if not success:
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
+
+            results = securityalarm(im0)
+
+            # print(results)  # access the output
+
+            video_writer.write(results.plot_im)  # write the processed frame.
+
+        cap.release()
+        video_writer.release()
+        cv2.destroyAllWindows()  # destroy all opened windows
+        ```
 
 That's it! When you execute the code, you'll receive a single notification on your email if any object is detected. The notification is sent immediately, not repeatedly. However, feel free to customize the code to suit your project requirements.
 
@@ -82,20 +85,22 @@ That's it! When you execute the code, you'll receive a single notification on yo
 
 <img width="256" src="https://github.com/ultralytics/docs/releases/download/0/email-received-sample.avif" alt="Email Received Sample">
 
-### Arguments `SecurityAlarm`
+### `SecurityAlarm` Arguments
 
 Here's a table with the `SecurityAlarm` arguments:
 
-| Name         | Type   | Default | Description                                             |
-| ------------ | ------ | ------- | ------------------------------------------------------- |
-| `model`      | `str`  | `None`  | Path to Ultralytics YOLO Model File                     |
-| `line_width` | `int`  | `2`     | Line thickness for bounding boxes.                      |
-| `show`       | `bool` | `False` | Flag to control whether to display the video stream.    |
-| `records`    | `int`  | `5`     | Total detections count to send an email about security. |
+{% from "macros/solutions-args.md" import param_table %}
+{{ param_table(["model", "records"]) }}
 
-### Arguments `model.track`
+The `SecurityAlarm` solution supports a variety of `track` parameters:
 
-{% include "macros/track-args.md" %}
+{% from "macros/track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+
+Moreover, the following visualization settings are available:
+
+{% from "macros/visualization-args.md" import param_table %}
+{{ param_table(["show", "line_width"]) }}
 
 ## FAQ
 

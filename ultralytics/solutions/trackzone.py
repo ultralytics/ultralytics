@@ -3,8 +3,8 @@
 import cv2
 import numpy as np
 
-from ultralytics.solutions.solutions import BaseSolution
-from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
+from ultralytics.utils.plotting import colors
 
 
 class TrackZone(BaseSolution):
@@ -34,7 +34,7 @@ class TrackZone(BaseSolution):
         default_region = [(150, 150), (1130, 150), (1130, 570), (150, 570)]
         self.region = cv2.convexHull(np.array(self.region or default_region, dtype=np.int32))
 
-    def trackzone(self, im0):
+    def process(self, im0):
         """
         Processes the input frame to track objects within a defined region.
 
@@ -45,14 +45,14 @@ class TrackZone(BaseSolution):
             im0 (numpy.ndarray): The input image or frame to be processed.
 
         Returns:
-            (numpy.ndarray): The processed image with tracking id and bounding boxes annotations.
+            results (SolutionResults): Contains processed image `im0`, 'total_tracks' (int, total number of tracked objects within the defined region).
 
         Examples:
             >>> tracker = TrackZone()
             >>> frame = cv2.imread("path/to/image.jpg")
             >>> tracker.trackzone(frame)
         """
-        self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
+        annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
         # Create a mask for the region and extract tracks from the masked image
         masked_frame = cv2.bitwise_and(im0, im0, mask=cv2.fillPoly(np.zeros_like(im0[:, :, 0]), [self.region], 255))
         self.extract_tracks(masked_frame)
@@ -61,8 +61,9 @@ class TrackZone(BaseSolution):
 
         # Iterate over boxes, track ids, classes indexes list and draw bounding boxes
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
-            self.annotator.box_label(box, label=f"{self.names[cls]}:{track_id}", color=colors(track_id, True))
+            annotator.box_label(box, label=f"{self.names[cls]}:{track_id}", color=colors(track_id, True))
+        plot_im = annotator.result()
+        self.display_output(plot_im)  # display output with base class function
 
-        self.display_output(im0)  # display output with base class function
-
-        return im0  # return output image for more usage
+        # Return a SolutionResults
+        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids))

@@ -10,169 +10,82 @@ keywords: VisionEye, YOLO11, Ultralytics, object mapping, object tracking, dista
 
 [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/) VisionEye offers the capability for computers to identify and pinpoint objects, simulating the observational [precision](https://www.ultralytics.com/glossary/precision) of the human eye. This functionality enables computers to discern and focus on specific objects, much like the way the human eye observes details from a particular viewpoint.
 
-## Samples
+<p align="center">
+  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/visioneye-object-mapping-with-tracking.avif" alt="VisionEye View Object Mapping with Object Tracking using Ultralytics YOLO11">
+</p>
 
-|                                                                        VisionEye View                                                                        |                                                                         VisionEye View With Object Tracking                                                                         |                                                                 VisionEye View With Distance Calculation                                                                 |
-| :----------------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![VisionEye View Object Mapping using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/visioneye-view-object-mapping-yolov8.avif) | ![VisionEye View Object Mapping with Object Tracking using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/visioneye-object-mapping-with-tracking.avif) | ![VisionEye View with Distance Calculation using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/visioneye-distance-calculation-yolov8.avif) |
-|                                                    VisionEye View Object Mapping using Ultralytics YOLO11                                                    |                                                     VisionEye View Object Mapping with Object Tracking using Ultralytics YOLO11                                                     |                                                    VisionEye View with Distance Calculation using Ultralytics YOLO11                                                     |
+!!! example "VisionEye Mapping using Ultralytics YOLO"
 
-!!! example "VisionEye Object Mapping using YOLO11"
+    === "CLI"
 
-    === "VisionEye Object Mapping"
+        ```bash
+        # Monitor objects position with visioneye
+        yolo solutions visioneye show=True
+
+        # Pass a source video
+        yolo solutions visioneye source="path/to/video/file.mp4"
+
+        # Monitor the specific classes
+        yolo solutions visioneye classes=[0, 5]
+        ```
+
+    === "Python"
 
         ```python
         import cv2
 
-        from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator, colors
+        from ultralytics import solutions
 
-        model = YOLO("yolo11n.pt")
-        names = model.model.names
         cap = cv2.VideoCapture("path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+
+        # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        video_writer = cv2.VideoWriter("visioneye_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        out = cv2.VideoWriter("visioneye-pinpoint.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
+        # Initialize vision eye object
+        visioneye = solutions.VisionEye(
+            show=True,  # display the output
+            model="yolo11n.pt",  # use any model that Ultralytics support, i.e, YOLOv10
+            classes=[0, 2],  # generate visioneye view for specific classes
+            vision_point=(50, 50),  # the point, where vision will view objects and draw tracks
+        )
 
-        center_point = (-10, h)
+        # Process video
+        while cap.isOpened():
+            success, im0 = cap.read()
 
-        while True:
-            ret, im0 = cap.read()
-            if not ret:
+            if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
 
-            results = model.predict(im0)
-            boxes = results[0].boxes.xyxy.cpu()
-            clss = results[0].boxes.cls.cpu().tolist()
+            results = visioneye(im0)
 
-            annotator = Annotator(im0, line_width=2)
+            print(results)  # access the output
 
-            for box, cls in zip(boxes, clss):
-                annotator.box_label(box, label=names[int(cls)], color=colors(int(cls)))
-                annotator.visioneye(box, center_point)
+            video_writer.write(results.plot_im)  # write the video file
 
-            out.write(im0)
-            cv2.imshow("visioneye-pinpoint", im0)
-
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-
-        out.release()
         cap.release()
-        cv2.destroyAllWindows()
+        video_writer.release()
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-    === "VisionEye Object Mapping with Object Tracking"
+### `VisionEye` Arguments
 
-        ```python
-        import cv2
+Here's a table with the `VisionEye` arguments:
 
-        from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator, colors
+{% from "macros/solutions-args.md" import param_table %}
+{{ param_table(["model", "vision_point"]) }}
 
-        model = YOLO("yolo11n.pt")
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+You can also utilize various `track` arguments within the `VisionEye` solution:
 
-        out = cv2.VideoWriter("visioneye-pinpoint.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
+{% from "macros/track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
 
-        center_point = (-10, h)
+Furthermore, some visualization arguments are supported, as listed below:
 
-        while True:
-            ret, im0 = cap.read()
-            if not ret:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
-
-            annotator = Annotator(im0, line_width=2)
-
-            results = model.track(im0, persist=True)
-            boxes = results[0].boxes.xyxy.cpu()
-
-            if results[0].boxes.id is not None:
-                track_ids = results[0].boxes.id.int().cpu().tolist()
-
-                for box, track_id in zip(boxes, track_ids):
-                    annotator.box_label(box, label=str(track_id), color=colors(int(track_id)))
-                    annotator.visioneye(box, center_point)
-
-            out.write(im0)
-            cv2.imshow("visioneye-pinpoint", im0)
-
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-
-        out.release()
-        cap.release()
-        cv2.destroyAllWindows()
-        ```
-
-    === "VisionEye with Distance Calculation"
-
-        ```python
-        import math
-
-        import cv2
-
-        from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator
-
-        model = YOLO("yolo11n.pt")
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
-
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-        out = cv2.VideoWriter("visioneye-distance-calculation.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
-
-        center_point = (0, h)
-        pixel_per_meter = 10
-
-        txt_color, txt_background, bbox_clr = ((0, 0, 0), (255, 255, 255), (255, 0, 255))
-
-        while True:
-            ret, im0 = cap.read()
-            if not ret:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
-
-            annotator = Annotator(im0, line_width=2)
-
-            results = model.track(im0, persist=True)
-            boxes = results[0].boxes.xyxy.cpu()
-
-            if results[0].boxes.id is not None:
-                track_ids = results[0].boxes.id.int().cpu().tolist()
-
-                for box, track_id in zip(boxes, track_ids):
-                    annotator.box_label(box, label=str(track_id), color=bbox_clr)
-                    annotator.visioneye(box, center_point)
-
-                    x1, y1 = int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2)  # Bounding box centroid
-
-                    distance = (math.sqrt((x1 - center_point[0]) ** 2 + (y1 - center_point[1]) ** 2)) / pixel_per_meter
-
-                    text_size, _ = cv2.getTextSize(f"Distance: {distance:.2f} m", cv2.FONT_HERSHEY_SIMPLEX, 1.2, 3)
-                    cv2.rectangle(im0, (x1, y1 - text_size[1] - 10), (x1 + text_size[0] + 10, y1), txt_background, -1)
-                    cv2.putText(im0, f"Distance: {distance:.2f} m", (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 1.2, txt_color, 3)
-
-            out.write(im0)
-            cv2.imshow("visioneye-distance-calculation", im0)
-
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-
-        out.release()
-        cap.release()
-        cv2.destroyAllWindows()
-        ```
-
-### `visioneye` Arguments
-
-| Name        | Type    | Default          | Description                    |
-| ----------- | ------- | ---------------- | ------------------------------ |
-| `color`     | `tuple` | `(235, 219, 11)` | Line and object centroid color |
-| `pin_color` | `tuple` | `(255, 0, 255)`  | VisionEye pinpoint color       |
+{% from "macros/visualization-args.md" import param_table %}
+{{ param_table(["show", "line_width"]) }}
 
 ## Note
 
@@ -187,108 +100,40 @@ To start using VisionEye Object Mapping with Ultralytics YOLO11, first, you'll n
 ```python
 import cv2
 
-from ultralytics import YOLO
+from ultralytics import solutions
 
-model = YOLO("yolo11n.pt")
 cap = cv2.VideoCapture("path/to/video/file.mp4")
+assert cap.isOpened(), "Error reading video file"
 
-while True:
-    ret, frame = cap.read()
-    if not ret:
+# Video writer
+w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+video_writer = cv2.VideoWriter("vision-eye-mapping.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+
+# Init vision eye object
+visioneye = solutions.VisionEye(
+    show=True,  # display the output
+    model="yolo11n.pt",  # use any model that Ultralytics support, i.e, YOLOv10
+    classes=[0, 2],  # generate visioneye view for specific classes
+)
+
+# Process video
+while cap.isOpened():
+    success, im0 = cap.read()
+
+    if not success:
+        print("Video frame is empty or video processing has been successfully completed.")
         break
 
-    results = model.predict(frame)
-    for result in results:
-        # Perform custom logic with result
-        pass
+    results = visioneye(im0)
 
-    cv2.imshow("visioneye", frame)
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
+    print(results)  # access the output
+
+    video_writer.write(results.plot_im)  # write the video file
 
 cap.release()
-cv2.destroyAllWindows()
+video_writer.release()
+cv2.destroyAllWindows()  # destroy all opened windows
 ```
-
-### What are the key features of VisionEye's object tracking capability using Ultralytics YOLO11?
-
-VisionEye's object tracking with Ultralytics YOLO11 allows users to follow the movement of objects within a video frame. Key features include:
-
-1. **Real-Time Object Tracking**: Keeps up with objects as they move.
-2. **Object Identification**: Utilizes YOLO11's powerful detection algorithms.
-3. **Distance Calculation**: Calculates distances between objects and specified points.
-4. **Annotation and Visualization**: Provides visual markers for tracked objects.
-
-Here's a brief code snippet demonstrating tracking with VisionEye:
-
-```python
-import cv2
-
-from ultralytics import YOLO
-
-model = YOLO("yolo11n.pt")
-cap = cv2.VideoCapture("path/to/video/file.mp4")
-
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
-
-    results = model.track(frame, persist=True)
-    for result in results:
-        # Annotate and visualize tracking
-        pass
-
-    cv2.imshow("visioneye-tracking", frame)
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
-
-cap.release()
-cv2.destroyAllWindows()
-```
-
-For a comprehensive guide, visit the [VisionEye Object Mapping with Object Tracking](#samples).
-
-### How can I calculate distances with VisionEye's YOLO11 model?
-
-Distance calculation with VisionEye and Ultralytics YOLO11 involves determining the distance of detected objects from a specified point in the frame. It enhances spatial analysis capabilities, useful in applications such as autonomous driving and surveillance.
-
-Here's a simplified example:
-
-```python
-import math
-
-import cv2
-
-from ultralytics import YOLO
-
-model = YOLO("yolo11n.pt")
-cap = cv2.VideoCapture("path/to/video/file.mp4")
-center_point = (0, 480)  # Example center point
-pixel_per_meter = 10
-
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
-
-    results = model.track(frame, persist=True)
-    for result in results:
-        # Calculate distance logic
-        distances = [
-            (math.sqrt((box[0] - center_point[0]) ** 2 + (box[1] - center_point[1]) ** 2)) / pixel_per_meter
-            for box in results
-        ]
-
-    cv2.imshow("visioneye-distance", frame)
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
-
-cap.release()
-cv2.destroyAllWindows()
-```
-
-For detailed instructions, refer to the [VisionEye with Distance Calculation](#samples).
 
 ### Why should I use Ultralytics YOLO11 for object mapping and tracking?
 

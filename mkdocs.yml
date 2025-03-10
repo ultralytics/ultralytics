@@ -321,7 +321,7 @@ nav:
           - DOTA8: datasets/obb/dota8.md
       - Multi-Object Tracking:
           - datasets/track/index.md
-  - Solutions 🚀 NEW:
+  - Solutions 🚀:
       - solutions/index.md
       - Object Counting: guides/object-counting.md
       - Object Cropping: guides/object-cropping.md
@@ -331,7 +331,7 @@ nav:
       - Security Alarm System: guides/security-alarm-system.md
       - Heatmaps: guides/heatmaps.md
       - Instance Segmentation with Object Tracking: guides/instance-segmentation-and-tracking.md
-      - VisionEye Mapping: guides/vision-eye.md
+      - VisionEye View Objects Mapping: guides/vision-eye.md
       - Speed Estimation: guides/speed-estimation.md
       - Distance Calculation: guides/distance-calculation.md
       - Queue Management: guides/queue-management.md
@@ -575,17 +575,21 @@ nav:
               - utils: reference/nn/modules/utils.md
           - tasks: reference/nn/tasks.md
       - solutions:
-          - ai_gym: reference/solutions/ai_gym.md
-          - analytics: reference/solutions/analytics.md
-          - distance_calculation: reference/solutions/distance_calculation.md
-          - heatmap: reference/solutions/heatmap.md
+          - solutions: reference/solutions/solutions.md
           - object_counter: reference/solutions/object_counter.md
-          - parking_management: reference/solutions/parking_management.md
-          - queue_management: reference/solutions/queue_management.md
+          - object_cropper: reference/solutions/object_cropper.md
+          - object_blurrer: reference/solutions/object_blurrer.md
+          - ai_gym: reference/solutions/ai_gym.md
           - region_counter: reference/solutions/region_counter.md
           - security_alarm: reference/solutions/security_alarm.md
-          - solutions: reference/solutions/solutions.md
+          - heatmap: reference/solutions/heatmap.md
+          - instance_segmentation: reference/solutions/instance_segmentation.md
+          - visioneye_mapping: reference/solutions/vision_eye.md
           - speed_estimation: reference/solutions/speed_estimation.md
+          - distance_calculation: reference/solutions/distance_calculation.md
+          - queue_management: reference/solutions/queue_management.md
+          - parking_management: reference/solutions/parking_management.md
+          - analytics: reference/solutions/analytics.md
           - streamlit_inference: reference/solutions/streamlit_inference.md
           - trackzone: reference/solutions/trackzone.md
       - trackers:

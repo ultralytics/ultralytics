@@ -27,62 +27,79 @@ Object blurring with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 - **Selective Focus**: YOLO11 allows for selective blurring, enabling users to target specific objects, ensuring a balance between privacy and retaining relevant visual information.
 - **Real-time Processing**: YOLO11's efficiency enables object blurring in real-time, making it suitable for applications requiring on-the-fly privacy enhancements in dynamic environments.
 
-!!! example "Object Blurring using YOLO11 Example"
+!!! example "Object Blurring using Ultralytics YOLO"
 
-    === "Object Blurring"
+    === "CLI"
+
+        ```bash
+        # Blur the objects
+        yolo solutions blur show=True
+
+        # Pass a source video
+        yolo solutions blur source="path/to/video/file.mp4"
+
+        # Blur the specific classes
+        yolo solutions blur classes=[0, 5]
+        ```
+
+    === "Python"
 
         ```python
         import cv2
 
-        from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator, colors
+        from ultralytics import solutions
 
-        model = YOLO("yolo11n.pt")
-        names = model.names
-
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-        # Blur ratio
-        blur_ratio = 50
 
         # Video writer
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("object_blurring_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
+        # Initialize object blurrer object
+        blurrer = solutions.ObjectBlurrer(
+            show=True,  # display the output
+            model="yolo11n.pt",  # model for object blurring i.e. yolo11m.pt
+            # line_width=2,  # width of bounding box.
+            # classes=[0, 2],  # count specific classes i.e, person and car with COCO pretrained model.
+            # blur_ratio=0.5,  # adjust percentage of blur intensity, the value in range 0.1 - 1.0
+        )
+
+        # Process video
         while cap.isOpened():
             success, im0 = cap.read()
+
             if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
+                print("Video frame is empty or processing is complete.")
                 break
 
-            results = model.predict(im0, show=False)
-            boxes = results[0].boxes.xyxy.cpu().tolist()
-            clss = results[0].boxes.cls.cpu().tolist()
-            annotator = Annotator(im0, line_width=2, example=names)
+            results = blurrer(im0)
 
-            if boxes is not None:
-                for box, cls in zip(boxes, clss):
-                    annotator.box_label(box, color=colors(int(cls), True), label=names[int(cls)])
+            # print(results")  # access the output
 
-                    obj = im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]
-                    blur_obj = cv2.blur(obj, (blur_ratio, blur_ratio))
-
-                    im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] = blur_obj
-
-            cv2.imshow("ultralytics", im0)
-            video_writer.write(im0)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
+            video_writer.write(results.plot_im)  # write the processed frame.
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-### Arguments `model.predict`
+### `ObjectBlurrer` Arguments
 
-{% include "macros/predict-args.md" %}
+Here's a table with the `ObjectBlurrer` arguments:
+
+{% from "macros/solutions-args.md" import param_table %}
+{{ param_table(["model", "line_width", "blur_ratio"]) }}
+
+The `ObjectBlurrer` solution also supports a range of `track` arguments:
+
+{% from "macros/track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+
+Moreover, the following visualization arguments can be used:
+
+{% from "macros/visualization-args.md" import param_table %}
+{{ param_table(["show", "line_width"]) }}
 
 ## FAQ
 
@@ -97,26 +114,35 @@ To implement real-time object blurring with YOLO11, follow the provided Python e
 ```python
 import cv2
 
-from ultralytics import YOLO
+from ultralytics import solutions
 
-model = YOLO("yolo11n.pt")
-cap = cv2.VideoCapture("path/to/video/file.mp4")
+cap = cv2.VideoCapture("Path/to/video/file.mp4")
+assert cap.isOpened(), "Error reading video file"
+w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
+# Video writer
+video_writer = cv2.VideoWriter("object_blurring_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+
+# Init ObjectBlurrer
+blurrer = solutions.ObjectBlurrer(
+    show=True,  # display the output
+    model="yolo11n.pt",  # model="yolo11n-obb.pt" for object blurring using YOLO11 OBB model.
+    blur_ratio=0.5,  # set blur percentage i.e 0.7 for 70% blurred detected objects
+    # line_width=2,  # width of bounding box.
+    # classes=[0, 2],  # count specific classes i.e, person and car with COCO pretrained model.
+)
+
+# Process video
 while cap.isOpened():
     success, im0 = cap.read()
     if not success:
+        print("Video frame is empty or processing is complete.")
         break
-
-    results = model.predict(im0, show=False)
-    for box in results[0].boxes.xyxy.cpu().tolist():
-        obj = im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]
-        im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] = cv2.blur(obj, (50, 50))
-
-    cv2.imshow("YOLO11 Blurring", im0)
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
+    results = blurrer(im0)
+    video_writer.write(results.plot_im)
 
 cap.release()
+video_writer.release()
 cv2.destroyAllWindows()
 ```
 

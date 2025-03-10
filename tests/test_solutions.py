@@ -82,7 +82,7 @@ def test_major_solutions():
     cap = cv2.VideoCapture(str(TMP / PARKING_VIDEO))
     assert cap.isOpened(), "Error reading video file"
     parkingmanager = solutions.ParkingManagement(
-        json_file=str(TMP / PARKING_AREAS_JSON), model=str(TMP / PARKING_MODEL), show=True
+        json_file=str(TMP / PARKING_AREAS_JSON), model=str(TMP / PARKING_MODEL), show=False
     )
     while cap.isOpened():
         success, im0 = cap.read()
@@ -93,11 +93,28 @@ def test_major_solutions():
 
 
 @pytest.mark.slow
-def test_parking_annotator():
-    """Test the parking annotator."""
-    from ultralytics import solutions
+def test_instance_segmentation():
+    """Test the instance segmentation solution."""
+    from ultralytics.utils.plotting import Annotator, colors
 
-    solutions.ParkingPtsSelection()
+    model = YOLO(WEIGHTS_DIR / "yolo11n-seg.pt")
+    names = model.names
+    cap = cv2.VideoCapture(TMP / DEMO_VIDEO)
+    assert cap.isOpened(), "Error reading video file"
+    while cap.isOpened():
+        success, im0 = cap.read()
+        if not success:
+            break
+        results = model.predict(im0)
+        annotator = Annotator(im0, line_width=2)
+        if results[0].masks is not None:
+            clss = results[0].boxes.cls.cpu().tolist()
+            masks = results[0].masks.xy
+            for mask, cls in zip(masks, clss):
+                color = colors(int(cls), True)
+                annotator.seg_bbox(mask=mask, mask_color=color, label=names[int(cls)])
+    cap.release()
+    cv2.destroyAllWindows()
 
 
 @pytest.mark.slow

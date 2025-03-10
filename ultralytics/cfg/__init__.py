@@ -714,6 +714,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
         )
     else:
         from ultralytics import solutions
+
         solution = getattr(solutions, SOLUTION_MAP[s_n])(
             IS_CLI=True, **overrides
         )  # get solution class i.e ObjectCounter

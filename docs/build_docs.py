@@ -166,7 +166,11 @@ def update_markdown_files(md_filepath: Path):
 
 
 def remove_python_repl_lines(match):
-    """Remove '>>> ' and '... ' lines from Python REPL examples in HTML code blocks."""
+    """
+    Remove '>>> ' and '...
+
+    ' lines from Python REPL examples in HTML code blocks.
+    """
     start, code, end = match.groups()
     lines = [line for line in code.split("\n") if not re.match(r"^\s*(&gt;&gt;&gt;\s|\.\.\.\s)", line)]
     return start + "\n".join(lines) + end

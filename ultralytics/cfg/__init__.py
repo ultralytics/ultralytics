@@ -720,13 +720,6 @@ def handle_yolo_solutions(args: List[str]) -> None:
         )  # get solution class i.e ObjectCounter
 
         cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
-
-        # extract width, height and fps of the video file, create save directory and initialize video writer
-        import os  # for directory creation
-        from pathlib import Path
-
-        from ultralytics.utils.files import increment_path  # for output directory path update
-
         if solution_name != "crop":
             w, h, fps = (
                 int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)

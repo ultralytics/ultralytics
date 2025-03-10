@@ -1,14 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
+from collections.abc import Callable
 from types import SimpleNamespace
-from typing import Any, List, Optional
-
-import cv2
-import numpy as np
-from pycocotools.mask import decode
+from typing import List, Optional, Any
 
 from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, ops
 from ultralytics.utils.metrics import ClassifyMetrics, DetMetrics, OBBMetrics, PoseMetrics, SegmentMetrics
+import numpy as np
+import cv2
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -198,6 +196,12 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
         # with prediction's category ID indices (can start from one)
         label_index_offset = sorted(class_map)[0]
 
+    try:
+        # import pycotools utilities to decompress annotations for various tasks, e.g. segmentation
+        from pycocotools.mask import decode  # noqa
+    except ImportError:
+        decode = None
+
     data = []
     for prediction in predictions:
         boxes = prediction["bbox"]
@@ -208,18 +212,20 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
 
         annotation_data = {"boxes": [boxes], "label": cls_label, "score": score}
 
-        segments = prediction.get("segmentation", None)
-        if segments is not None:
-            segments = _extract_segmentation_annotation(segments)
+        if decode is not None:
+            # do segmentation processing only if we are able to decode it
+            segments = prediction.get("segmentation", None)
             if segments is not None:
-                annotation_data["points"] = segments
+                segments = _extract_segmentation_annotation(segments, decode)
+                if segments is not None:
+                    annotation_data["points"] = segments
 
         data.append(annotation_data)
 
     return {"name": "prediction", "data": data}
 
 
-def _extract_segmentation_annotation(segmentation_raw: str) -> Optional[List[List[Any]]]:
+def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) -> Optional[List[List[Any]]]:
     """Extracts segmentation annotation from compressed segmentations as list of polygons."""
     try:
         mask = decode(segmentation_raw)

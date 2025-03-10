@@ -7,7 +7,6 @@ import numpy as np
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import LOGGER
-from ultralytics.utils.checks import check_requirements
 
 
 class ParkingPtsSelection:
@@ -56,7 +55,7 @@ class ParkingPtsSelection:
 
             install_cmd = {
                 "Linux": "sudo apt install python3-tk (Debian/Ubuntu) | sudo dnf install python3-tkinter (Fedora) | "
-                         "sudo pacman -S tk (Arch)",
+                "sudo pacman -S tk (Arch)",
                 "Windows": "reinstall Python and enable the checkbox `tcl/tk and IDLE` on **Optional Features** during installation",
                 "Darwin": "reinstall Python from https://www.python.org/downloads/mac-osx/ or `brew install python-tk`",
             }.get(platform.system(), "Unknown OS. Check your Python installation.")

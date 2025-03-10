@@ -26,7 +26,7 @@ import numpy as np
 import torch
 
 from ultralytics.cfg import get_cfg, get_save_dir
-from ultralytics.utils import DEFAULT_CFG, LOGGER, callbacks, colorstr, remove_colorstr, yaml_print, yaml_save
+from ultralytics.utils import DEFAULT_CFG, LOGGER, ROOT, callbacks, colorstr, remove_colorstr, yaml_print, yaml_save
 from ultralytics.utils.plotting import plot_tune_results
 
 
@@ -191,8 +191,9 @@ class Tuner:
             weights_dir = save_dir / "weights"
             try:
                 # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)
-                cmd = ["yolo", "train", *(f"{k}={v}" for k, v in train_args.items())]
-                return_code = subprocess.run(" ".join(cmd), check=True, shell=True).returncode
+                launch = [__import__("sys").executable, "-m", f"{ROOT}.cfg.__init__"]  # workaround yolo not found issue
+                cmd = [*launch, "train", *(f"{k}={v)}" for k, v in train_args.items())]
+                return_code = subprocess.run(cmd, check=True).returncode
                 ckpt_file = weights_dir / ("best.pt" if (weights_dir / "best.pt").exists() else "last.pt")
                 metrics = torch.load(ckpt_file)["train_metrics"]
                 assert return_code == 0, "training failed"

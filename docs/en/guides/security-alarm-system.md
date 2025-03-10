@@ -16,13 +16,13 @@ The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanc
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/_1CmwUzoxY4"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/DTjtBnSK2fY"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Security Alarm System Project with Ultralytics YOLO11 <a href="https://www.ultralytics.com/glossary/object-detection">Object Detection</a>
+  <strong>Watch:</strong> Security Alarm System with Ultralytics YOLO11 + Solutions <a href="https://www.ultralytics.com/glossary/object-detection">Object Detection</a>
 </p>
 
 ### Code

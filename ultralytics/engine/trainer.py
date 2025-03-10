@@ -452,7 +452,7 @@ class BaseTrainer:
                 self.scheduler.last_epoch = self.epoch  # do not move
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
             self.run_callbacks("on_fit_epoch_end")
-            if self._get_memory(True)[1] > 0.9:
+            if self._get_memory(util=True)[1] > 0.9:
                 self._clear_memory()  # clear if memory utilization > 90%
 
             # Early Stopping

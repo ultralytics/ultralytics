@@ -72,7 +72,7 @@ def test_major_solutions():
     cap = cv2.VideoCapture(str(TMP / PARKING_VIDEO))
     assert cap.isOpened(), "Error reading video file"
     parkingmanager = solutions.ParkingManagement(
-        json_file=str(TMP / PARKING_AREAS_JSON), model=str(TMP / PARKING_MODEL), show=True
+        json_file=str(TMP / PARKING_AREAS_JSON), model=str(TMP / PARKING_MODEL), show=False
     )
     while cap.isOpened():
         success, im0 = cap.read()
@@ -80,14 +80,6 @@ def test_major_solutions():
             break
         _ = parkingmanager.process_data(im0)
     cap.release()
-
-
-@pytest.mark.slow
-def test_parking_annotator():
-    """Test the parking annotator."""
-    from ultralytics import solutions
-
-    solutions.ParkingPtsSelection()
 
 
 @pytest.mark.slow

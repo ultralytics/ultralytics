@@ -474,7 +474,9 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
     # Run inference on an image
     results = model("https://ultralytics.com/images/bus.jpg")
-    results = model(["https://ultralytics.com/images/bus.jpg", "https://ultralytics.com/images/zidane.jpg"])  # batch inference
+    results = model(
+        ["https://ultralytics.com/images/bus.jpg", "https://ultralytics.com/images/zidane.jpg"]
+    )  # batch inference
     ```
 
 `Results` objects have the following attributes:
@@ -491,31 +493,31 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 | `speed`      | `dict`                | A dictionary of preprocess, inference, and postprocess speeds in milliseconds per image. |
 | `names`      | `dict`                | A dictionary mapping class indices to class names.                                       |
 | `path`       | `str`                 | The path to the image file.                                                              |
-| `save_dir`   | `str, optional`       | Directory to save results.                                                              |
+| `save_dir`   | `str, optional`       | Directory to save results.                                                               |
 
 `Results` objects have the following methods:
 
-| Method | Return Type | Description |
-|--------|-------------|-------------|
-| `update()` | `None` | Updates the Results object with new detection data (boxes, masks, probs, obb, keypoints). |
-| `cpu()` | `Results` | Returns a copy of the Results object with all tensors moved to CPU memory. |
-| `numpy()` | `Results` | Returns a copy of the Results object with all tensors converted to numpy arrays. |
-| `cuda()` | `Results` | Returns a copy of the Results object with all tensors moved to GPU memory. |
-| `to()` | `Results` | Returns a copy of the Results object with tensors moved to specified device and dtype. |
-| `new()` | `Results` | Creates a new Results object with the same image, path, names, and speed attributes. |
-| `plot()` | `np.ndarray` | Plots detection results on an input RGB image and returns the annotated image. |
-| `show()` | `None` | Displays the image with annotated inference results. |
-| `save()` | `str` | Saves annotated inference results image to file and returns the filename. |
-| `verbose()` | `str` | Returns a log string for each task, detailing detection and classification outcomes. |
-| `save_txt()` | `str` | Saves detection results to a text file and returns the path to the saved file. |
-| `save_crop()` | `None` | Saves cropped detection images to specified directory. |
-| `summary()` | `List[Dict]` | Converts inference results to a summarized dictionary with optional normalization. |
-| `to_df()` | `DataFrame` | Converts detection results to a Pandas DataFrame. |
-| `to_csv()` | `str` | Converts detection results to CSV format. |
-| `to_xml()` | `str` | Converts detection results to XML format. |
-| `to_html()` | `str` | Converts detection results to HTML format. |
-| `to_json()` | `str` | Converts detection results to JSON format. |
-| `to_sql()` | `None` | Converts detection results to SQL-compatible format and saves to database. |
+| Method        | Return Type  | Description                                                                               |
+| ------------- | ------------ | ----------------------------------------------------------------------------------------- |
+| `update()`    | `None`       | Updates the Results object with new detection data (boxes, masks, probs, obb, keypoints). |
+| `cpu()`       | `Results`    | Returns a copy of the Results object with all tensors moved to CPU memory.                |
+| `numpy()`     | `Results`    | Returns a copy of the Results object with all tensors converted to numpy arrays.          |
+| `cuda()`      | `Results`    | Returns a copy of the Results object with all tensors moved to GPU memory.                |
+| `to()`        | `Results`    | Returns a copy of the Results object with tensors moved to specified device and dtype.    |
+| `new()`       | `Results`    | Creates a new Results object with the same image, path, names, and speed attributes.      |
+| `plot()`      | `np.ndarray` | Plots detection results on an input RGB image and returns the annotated image.            |
+| `show()`      | `None`       | Displays the image with annotated inference results.                                      |
+| `save()`      | `str`        | Saves annotated inference results image to file and returns the filename.                 |
+| `verbose()`   | `str`        | Returns a log string for each task, detailing detection and classification outcomes.      |
+| `save_txt()`  | `str`        | Saves detection results to a text file and returns the path to the saved file.            |
+| `save_crop()` | `None`       | Saves cropped detection images to specified directory.                                    |
+| `summary()`   | `List[Dict]` | Converts inference results to a summarized dictionary with optional normalization.        |
+| `to_df()`     | `DataFrame`  | Converts detection results to a Pandas DataFrame.                                         |
+| `to_csv()`    | `str`        | Converts detection results to CSV format.                                                 |
+| `to_xml()`    | `str`        | Converts detection results to XML format.                                                 |
+| `to_html()`   | `str`        | Converts detection results to HTML format.                                                |
+| `to_json()`   | `str`        | Converts detection results to JSON format.                                                |
+| `to_sql()`    | `None`       | Converts detection results to SQL-compatible format and saves to database.                |
 
 For more details see the [`Results` class documentation](../reference/engine/results.md).
 

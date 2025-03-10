@@ -1,10 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import numpy as np
-import scipy
-from scipy.spatial.distance import cdist
+from autoimport import lazy
 
 from ultralytics.utils.metrics import batch_probiou, bbox_ioa
+
+with lazy():
+    import scipy
+    from scipy.spatial.distance import cdist
 
 try:
     import lap  # for linear_assignment

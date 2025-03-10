@@ -1008,7 +1008,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             A2C2f,
         }
     )
-    exec(d.get("module", {}).get("init", ""), globals())  # run custom init script
+    exec(d.get("module", {}).get("init", ""), globals(), locals())  # run custom init script
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
         m = (
             getattr(torch.nn, m[3:])

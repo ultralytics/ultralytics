@@ -1,6 +1,7 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import argparse
+from typing import Tuple
 
 import cv2
 import numpy as np
@@ -34,6 +35,25 @@ class YOLOv8:
 
         # Generate a color palette for the classes
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
+
+    def letterbox(self, img: np.ndarray, new_shape: Tuple = (640, 640)) -> Tuple[np.ndarray, Tuple[float, float]]:
+        """Resizes and reshapes images while maintaining aspect ratio by adding padding, suitable for YOLO models."""
+        shape = img.shape[:2]  # current shape [height, width]
+
+        # Scale ratio (new / old)
+        r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
+
+        # Compute padding
+        new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
+        dw, dh = (new_shape[1] - new_unpad[0]) / 2, (new_shape[0] - new_unpad[1]) / 2  # wh padding
+
+        if shape[::-1] != new_unpad:  # resize
+            img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
+        top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
+        left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
+        img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))
+
+        return img, (top, left)
 
     def draw_detections(self, img, box, score, class_id):
         """
@@ -81,6 +101,7 @@ class YOLOv8:
 
         Returns:
             image_data: Preprocessed image data ready for inference.
+            pad: A tuple of two float values representing the padding applied (top/bottom, left/right).
         """
         # Read the input image using OpenCV
         self.img = cv2.imread(self.input_image)
@@ -91,8 +112,7 @@ class YOLOv8:
         # Convert the image color space from BGR to RGB
         img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
 
-        # Resize the image to match the input shape
-        img = cv2.resize(img, (self.input_width, self.input_height))
+        img, pad = self.letterbox(img, (self.input_width, self.input_height))
 
         # Normalize the image data by dividing it by 255.0
         image_data = np.array(img) / 255.0
@@ -104,15 +124,16 @@ class YOLOv8:
         image_data = np.expand_dims(image_data, axis=0).astype(np.float32)
 
         # Return the preprocessed image data
-        return image_data
+        return image_data, pad
 
-    def postprocess(self, input_image, output):
+    def postprocess(self, input_image, output, pad):
         """
         Performs post-processing on the model's output to extract bounding boxes, scores, and class IDs.
 
         Args:
             input_image (numpy.ndarray): The input image.
             output (numpy.ndarray): The output of the model.
+            pad (Tuple[float, float]): Padding used by letterbox
 
         Returns:
             numpy.ndarray: The input image with detections drawn on it.
@@ -129,8 +150,9 @@ class YOLOv8:
         class_ids = []
 
         # Calculate the scaling factors for the bounding box coordinates
-        x_factor = self.img_width / self.input_width
-        y_factor = self.img_height / self.input_height
+        gain = min(self.input_height / self.img_height, self.input_width / self.img_height)
+        outputs[:, 0] -= pad[1]
+        outputs[:, 1] -= pad[0]
 
         # Iterate over each row in the outputs array
         for i in range(rows):
@@ -149,10 +171,10 @@ class YOLOv8:
                 x, y, w, h = outputs[i][0], outputs[i][1], outputs[i][2], outputs[i][3]
 
                 # Calculate the scaled coordinates of the bounding box
-                left = int((x - w / 2) * x_factor)
-                top = int((y - h / 2) * y_factor)
-                width = int(w * x_factor)
-                height = int(h * y_factor)
+                left = int((x - w / 2) / gain)
+                top = int((y - h / 2) / gain)
+                width = int(w / gain)
+                height = int(h / gain)
 
                 # Add the class ID, score, and box coordinates to the respective lists
                 class_ids.append(class_id)
@@ -194,13 +216,13 @@ class YOLOv8:
         self.input_height = input_shape[3]
 
         # Preprocess the image data
-        img_data = self.preprocess()
+        img_data, pad = self.preprocess()
 
         # Run inference using the preprocessed image data
         outputs = session.run(None, {model_inputs[0].name: img_data})
 
         # Perform post-processing on the outputs to obtain output image.
-        return self.postprocess(self.img, outputs)  # output image
+        return self.postprocess(self.img, outputs, pad)  # output image
 
 
 if __name__ == "__main__":

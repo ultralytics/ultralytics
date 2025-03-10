@@ -72,7 +72,7 @@ Without further ado, let's dive in!
 
     ```python
     yaml_file = "path/to/data.yaml"  # your data YAML with data directories and names dictionary
-    with open(yaml_file, "r", encoding="utf8") as y:
+    with open(yaml_file, encoding="utf8") as y:
         classes = yaml.safe_load(y)["names"]
     cls_idx = sorted(classes.keys())
     ```
@@ -82,8 +82,8 @@ Without further ado, let's dive in!
     ```python
     import pandas as pd
 
-    indx = [label.stem for label in labels]  # uses base filename as ID (no extension)
-    labels_df = pd.DataFrame([], columns=cls_idx, index=indx)
+    index = [label.stem for label in labels]  # uses base filename as ID (no extension)
+    labels_df = pd.DataFrame([], columns=cls_idx, index=index)
     ```
 
 5. Count the instances of each class-label present in the annotation files.
@@ -94,7 +94,7 @@ Without further ado, let's dive in!
     for label in labels:
         lbl_counter = Counter()
 
-        with open(label, "r") as lf:
+        with open(label) as lf:
             lines = lf.readlines()
 
         for line in lines:
@@ -146,11 +146,11 @@ The rows index the label files, each corresponding to an image in your dataset, 
 
     ```python
     folds = [f"split_{n}" for n in range(1, ksplit + 1)]
-    folds_df = pd.DataFrame(index=indx, columns=folds)
+    folds_df = pd.DataFrame(index=index, columns=folds)
 
-    for idx, (train, val) in enumerate(kfolds, start=1):
-        folds_df[f"split_{idx}"].loc[labels_df.iloc[train].index] = "train"
-        folds_df[f"split_{idx}"].loc[labels_df.iloc[val].index] = "val"
+    for i, (train, val) in enumerate(kfolds, start=1):
+        folds_df[f"split_{i}"].loc[labels_df.iloc[train].index] = "train"
+        folds_df[f"split_{i}"].loc[labels_df.iloc[val].index] = "val"
     ```
 
 3. Now we will calculate the distribution of class labels for each fold as a ratio of the classes present in `val` to those present in `train`.

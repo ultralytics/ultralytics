@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import itertools
 from glob import glob
@@ -8,9 +8,9 @@ from pathlib import Path
 import cv2
 import numpy as np
 from PIL import Image
-from tqdm import tqdm
 
 from ultralytics.data.utils import exif_size, img2label_paths
+from ultralytics.utils import TQDM
 from ultralytics.utils.checks import check_requirements
 
 
@@ -87,7 +87,7 @@ def load_yolo_dota(data_root, split="train"):
     annos = []
     for im_file, lb_file in zip(im_files, lb_files):
         w, h = exif_size(Image.open(im_file))
-        with open(lb_file) as f:
+        with open(lb_file, encoding="utf-8") as f:
             lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
             lb = np.array(lb, dtype=np.float32)
         annos.append(dict(ori_size=(h, w), label=lb, filepath=im_file))
@@ -191,7 +191,7 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir, allow_background_i
             label[:, 1::2] /= pw
             label[:, 2::2] /= ph
 
-            with open(Path(lb_dir) / f"{new_name}.txt", "w") as f:
+            with open(Path(lb_dir) / f"{new_name}.txt", "w", encoding="utf-8") as f:
                 for lb in label:
                     formatted_coords = [f"{coord:.6g}" for coord in lb[1:]]
                     f.write(f"{int(lb[0])} {' '.join(formatted_coords)}\n")
@@ -221,7 +221,7 @@ def split_images_and_labels(data_root, save_dir, split="train", crop_sizes=(1024
     lb_dir.mkdir(parents=True, exist_ok=True)
 
     annos = load_yolo_dota(data_root, split=split)
-    for anno in tqdm(annos, total=len(annos), desc=split):
+    for anno in TQDM(annos, total=len(annos), desc=split):
         windows = get_windows(anno["ori_size"], crop_sizes, gaps)
         window_objs = get_window_obj(anno, windows)
         crop_and_save(anno, windows, window_objs, str(im_dir), str(lb_dir))
@@ -281,7 +281,7 @@ def split_test(data_root, save_dir, crop_size=1024, gap=200, rates=(1.0,)):
     im_dir = Path(data_root) / "images" / "test"
     assert im_dir.exists(), f"Can't find {im_dir}, please check your data root."
     im_files = glob(str(im_dir / "*"))
-    for im_file in tqdm(im_files, total=len(im_files), desc="test"):
+    for im_file in TQDM(im_files, total=len(im_files), desc="test"):
         w, h = exif_size(Image.open(im_file))
         windows = get_windows((h, w), crop_sizes=crop_sizes, gaps=gaps)
         im = cv2.imread(im_file)

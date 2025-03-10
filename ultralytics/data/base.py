@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import glob
 import math
@@ -113,7 +113,7 @@ class BaseDataset(Dataset):
                     f += glob.glob(str(p / "**" / "*.*"), recursive=True)
                     # F = list(p.rglob('*.*'))  # pathlib
                 elif p.is_file():  # file
-                    with open(p) as t:
+                    with open(p, encoding="utf-8") as t:
                         t = t.read().strip().splitlines()
                         parent = str(p.parent) + os.sep
                         f += [x.replace("./", parent) if x.startswith("./") else x for x in t]  # local to global path

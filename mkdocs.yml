@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Configuration file for building the Ultralytics YOLO documentation site using MkDocs.
 # Provides settings to control site metadata, customize the appearance using the
@@ -70,7 +70,7 @@ theme:
     - content.tabs.link # all code tabs change simultaneously
 
 # Customization
-copyright: <a href="https://www.ultralytics.com/" target="_blank">© 2024 Ultralytics Inc.</a> All rights reserved.
+copyright: <a href="https://www.ultralytics.com/" target="_blank">© 2025 Ultralytics Inc.</a> All rights reserved.
 extra: # version:
   homepage: https://www.ultralytics.com/
   #   provider: mike  #  version drop-down menu
@@ -102,6 +102,8 @@ extra_css:
 extra_javascript:
   - javascript/extra.js
   - javascript/giscus.js
+  - https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js
+  - javascript/tablesort.js
 
 markdown_extensions:
   - admonition
@@ -139,6 +141,10 @@ validation:
     unrecognized_links: warn
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
+not_in_nav: |
+  /compare
+  /macros
+
 nav:
   - Home:
       - Home: index.md
@@ -254,6 +260,7 @@ nav:
       - YOLOv9: models/yolov9.md
       - YOLOv10: models/yolov10.md
       - YOLO11 🚀 NEW: models/yolo11.md
+      - YOLO12: models/yolo12.md
       - SAM (Segment Anything Model): models/sam.md
       - SAM 2 (Segment Anything Model 2): models/sam-2.md
       - MobileSAM (Mobile Segment Anything Model): models/mobile-sam.md
@@ -267,8 +274,9 @@ nav:
           - datasets/detect/index.md
           - Argoverse: datasets/detect/argoverse.md
           - COCO: datasets/detect/coco.md
-          - LVIS: datasets/detect/lvis.md
           - COCO8: datasets/detect/coco8.md
+          - COCO128: datasets/detect/coco128.md
+          - LVIS: datasets/detect/lvis.md
           - GlobalWheat2020: datasets/detect/globalwheat2020.md
           - Objects365: datasets/detect/objects365.md
           - OpenImagesV7: datasets/detect/open-images-v7.md
@@ -424,6 +432,8 @@ nav:
       - Weights & Biases: integrations/weights-biases.md
       - Albumentations: integrations/albumentations.md
       - SONY IMX500: integrations/sony-imx500.md
+      - Rockchip RKNN: integrations/rockchip-rknn.md
+      - Seeed Studio reCamera: integrations/seeedstudio-recamera.md
   - HUB:
       - hub/index.md
       - Web:
@@ -624,8 +634,8 @@ nav:
       - Contributing Guide: help/contributing.md
       - Continuous Integration (CI) Guide: help/CI.md
       - Contributor License Agreement (CLA): help/CLA.md
-      - Minimum Reproducible Example (MRE) Guide: help/minimum_reproducible_example.md
-      - Code of Conduct: help/code_of_conduct.md
+      - Minimum Reproducible Example (MRE) Guide: help/minimum-reproducible-example.md
+      - Code of Conduct: help/code-of-conduct.md
       - Environmental, Health and Safety (EHS) Policy: help/environmental-health-safety.md
       - Security Policy: help/security.md
       - Privacy Policy: help/privacy.md
@@ -661,6 +671,7 @@ plugins:
       add_share_buttons: True
       add_css: False
       default_image: https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png
+      default_author: glenn.jocher@ultralytics.com
   - redirects:
       redirect_maps:
         hi/index.md: index.md
@@ -699,6 +710,8 @@ plugins:
         tasks/keypoints.md: tasks/pose.md
         tasks/tracking.md: modes/track.md
         SECURITY.md: help/security.md
+        help/minimum_reproducible_example.md: help/minimum-reproducible-example.md
+        help/code_of_conduct.md: help/code-of-conduct.md
         tutorials/architecture-summary.md: yolov5/tutorials/architecture_description.md
         tutorials/clearml-logging.md: yolov5/tutorials/clearml_logging_integration.md
         tutorials/comet-logging.md: yolov5/tutorials/comet_logging_integration.md

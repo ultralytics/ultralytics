@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from copy import copy
 
@@ -15,7 +15,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
         ```python
         from ultralytics.models.yolo.obb import OBBTrainer
 
-        args = dict(model="yolov8n-obb.pt", data="dota8.yaml", epochs=3)
+        args = dict(model="yolo11n-obb.pt", data="dota8.yaml", epochs=3)
         trainer = OBBTrainer(overrides=args)
         trainer.train()
         ```

@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import json
 
@@ -7,7 +7,7 @@ import numpy as np
 
 from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils import LOGGER
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator
 
 
@@ -49,9 +49,24 @@ class ParkingPtsSelection:
 
     def __init__(self):
         """Initializes the ParkingPtsSelection class, setting up UI and properties for parking zone point selection."""
-        check_requirements("tkinter")
-        import tkinter as tk
-        from tkinter import filedialog, messagebox
+        try:  # check if tkinter installed
+            import tkinter as tk
+            from tkinter import filedialog, messagebox
+        except ImportError:  # Display error with recommendations
+            import platform
+
+            install_cmd = {
+                "Linux": "sudo apt install python3-tk (Debian/Ubuntu) | sudo dnf install python3-tkinter (Fedora) | "
+                "sudo pacman -S tk (Arch)",
+                "Windows": "reinstall Python and enable the checkbox `tcl/tk and IDLE` on **Optional Features** during installation",
+                "Darwin": "reinstall Python from https://www.python.org/downloads/mac-osx/ or `brew install python-tk`",
+            }.get(platform.system(), "Unknown OS. Check your Python installation.")
+
+            LOGGER.warning(f"WARNING ⚠️  Tkinter is not configured or supported. Potential fix: {install_cmd}")
+            return
+
+        if not check_imshow(warn=True):
+            return
 
         self.tk, self.filedialog, self.messagebox = tk, filedialog, messagebox
         self.master = self.tk.Tk()  # Reference to the main application window or parent widget
@@ -178,7 +193,7 @@ class ParkingManagement(BaseSolution):
 
     Examples:
         >>> from ultralytics.solutions import ParkingManagement
-        >>> parking_manager = ParkingManagement(model="yolov8n.pt", json_file="parking_regions.json")
+        >>> parking_manager = ParkingManagement(model="yolo11n.pt", json_file="parking_regions.json")
         >>> print(f"Occupied spaces: {parking_manager.pr_info['Occupancy']}")
         >>> print(f"Available spaces: {parking_manager.pr_info['Available']}")
     """

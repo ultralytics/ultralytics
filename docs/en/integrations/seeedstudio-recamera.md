@@ -26,9 +26,44 @@ reCamera series is purpose-built for edge AI applications, tailored to meet the 
 
 ## Quick Hardware Setup of reCamera
 
-Please follow [reCamera Quick Start Guide](https://wiki.seeedstudio.com/recamera_getting_started) for initial onboarding of the device such as connecting the device to a WiFi network and access the [Node-RED](https://nodered.org) web UI for quick previewing of detection redsults with the pre-installed Ultralytics YOLO models.
+Please follow [reCamera Quick Start Guide](https://wiki.seeedstudio.com/recamera_getting_started) for initial onboarding of the device such as connecting the device to a WiFi network and access the [Node-RED](https://nodered.org) web UI for quick previewing of detection results.
+
+## Inference Using Pre-installed YOLO11 Models
+
+reCamera comes pre-installed with four Ultralytics YOLO11 models and you can simply choose your desired model within the Node-RED dashboard.
+
+- [Detection (YOLO11n)](../tasks/detect.md)
+- [Classification (YOLO11n-cls)](../tasks/classify.md)
+- [Segmentation (YOLO11n-seg)](../tasks/segment.md)
+- [Post Estimation (YOLO11n-pose)](../tasks/pose.md)
+
+Step 1: If you have connected reCamera to a network, enter the IP address of reCamera on a web browser to open the Node-RED dashboard. If you have connected the reCamera to a PC via USB, you can enter `192.168.42.1`. Here you will see YOLO11n detection model is loaded by default.
+
+![reCamera YOLO11n demo](https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-yolo11n-demo.avif)
+
+Step 2: Click the green color circle at the bottom right corner to access the Node-RED flow editor.
+
+Step 3: Click the `model` node and click `On Device`.
+
+![Node-RED model selection](https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-nodered-model-select.avif)
+
+Step 4: Choose one of the four different pre-installed YOLO11n models and click `Done`. For example, here we will select `YOLO11n Pose`
+
+<p align="center">
+  <img width="50%" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-nodered-yolo11n-pose.avif" alt="Node-RED YOLO11n-pose select">
+</p>
+
+Step 6: Click `Deploy` and when it finishes deploying, click `Dashboard`
+
+![reCamera Node-RED deploy](https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-nodered-deploy.avif)
+
+Now you will be able to see YOLO11n pose estimation model in action!
+
+![reCamera YOLO11n-pose demo](https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-yolo11n-pose-demo.avif)
 
 ## Export to cvimodel: Converting Your YOLO11 Model
+
+If you want to use a [custom-trained YOLO11 model](../modes/train.md) and use with reCamera, please follow the steps below.
 
 Here we will first convert `PyTorch` model to `ONNX` and then convert it to `MLIR` model format. Finally `MLIR` will be converted to `cvimodel` in order to inference on-device
 
@@ -67,14 +102,14 @@ For detailed instructions and best practices related to the installation process
         model = YOLO("yolo11n.pt")
 
         # Export the model to ONNX format
-        model.export(format="onnx")  # creates 'yolo11n.onnx'
+        model.export(format="onnx", opset=14)  # creates 'yolo11n.onnx'
         ```
 
     === "CLI"
 
         ```bash
         # Export a YOLO11n PyTorch model to ONNX format
-        yolo export model=yolo11n.pt format=onnx  # creates 'yolo11n.onnx'
+        yolo export model=yolo11n.pt format=onnx opset=14 # creates 'yolo11n.onnx'
         ```
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).

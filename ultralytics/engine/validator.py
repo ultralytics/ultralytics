@@ -103,6 +103,7 @@ class BaseValidator:
         self.args.imgsz = check_imgsz(self.args.imgsz, max_dim=1)
 
         self.plots = {}
+        self.save_csv = {}
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
     @smart_inference_mode()
@@ -217,8 +218,11 @@ class BaseValidator:
                     LOGGER.info(f"Saving {f.name}...")
                     json.dump(self.jdict, f)  # flatten and save
                 stats = self.eval_json(stats)  # update stats
+
             if self.args.plots or self.args.save_json:
                 LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}")
+                self.save_results_csv()
+
             return stats
 
     def match_predictions(self, pred_classes, true_classes, iou, use_scipy=False):
@@ -340,4 +344,8 @@ class BaseValidator:
 
     def eval_json(self, stats):
         """Evaluate and return JSON format of prediction statistics."""
+        pass
+
+    def save_results_csv(self):
+        """Save metrics to CSV."""
         pass

@@ -165,15 +165,18 @@ def update_markdown_files(md_filepath: Path):
     return
 
 
-def remove_python_repl_lines(match):
-    """
-    Remove '>>> ' and '...
-
-    ' lines from Python REPL examples in HTML code blocks.
-    """
+def remove_python_repl_prompts(match):
+    """Remove Python REPL prompt lines (>>> and ...) from code blocks in HTML."""
     start, code, end = match.groups()
-    lines = [line for line in code.split("\n") if not re.match(r"^\s*(&gt;&gt;&gt;\s|\.\.\.\s)", line)]
-    return start + "\n".join(lines) + end
+
+    # Use a regex that matches lines with <span class="gp">&gt;&gt;&gt; </span> or <span class="gp">... </span>
+    # We need the negative version - keeping lines that DON'T have the REPL prompts
+    filtered_lines = []
+    for line in code.split("\n"):
+        if not re.search(r'<span class="gp">(?:&gt;&gt;&gt;|\.\.\.)\s</span>', line):
+            filtered_lines.append(line)
+
+    return start + "\n".join(filtered_lines) + end
 
 
 def update_docs_html():
@@ -195,7 +198,7 @@ def update_docs_html():
             content = file.read()
         updated_content = convert_plaintext_links_to_html(content)
         if "reference" in html_file.parts:
-            updated_content = PYTHON_PATTERN.sub(remove_python_repl_lines, updated_content)
+            updated_content = PYTHON_PATTERN.sub(remove_python_repl_prompts, updated_content)
         if updated_content != content:
             with open(html_file, "w", encoding="utf-8") as file:
                 file.write(updated_content)

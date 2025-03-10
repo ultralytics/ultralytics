@@ -32,7 +32,7 @@ class BaseDataset(Dataset):
         rect (bool, optional): If True, rectangular training is used. Defaults to False.
         batch_size (int, optional): Size of batches. Defaults to None.
         stride (int, optional): Stride. Defaults to 32.
-        pad (float, optional): Padding. Defaults to 0.0.
+        pad (float, optional): Padding. Defaults to 0.5.
         single_cls (bool, optional): If True, single class training is used. Defaults to False.
         classes (list): List of included classes. Default is None.
         fraction (float): Fraction of dataset to utilize. Default is 1.0 (use all data).

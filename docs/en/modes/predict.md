@@ -476,9 +476,9 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
     results = model("https://ultralytics.com/images/bus.jpg")
     results = model(
         [
-            "https://ultralytics.com/images/bus.jpg", 
+            "https://ultralytics.com/images/bus.jpg",
             "https://ultralytics.com/images/zidane.jpg",
-         ]
+        ]
     )  # batch inference
     ```
 

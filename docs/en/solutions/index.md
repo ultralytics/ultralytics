@@ -40,7 +40,8 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 - [Parking Management](../guides/parking-management.md) 🚀: Organize and direct vehicle flow in parking areas with YOLO11, optimizing space utilization and user experience.
 - [Analytics](../guides/analytics.md) 📊: Conduct comprehensive data analysis to discover patterns and make informed decisions, leveraging YOLO11 for descriptive, predictive, and prescriptive analytics.
 - [Live Inference with Streamlit](../guides/streamlit-live-inference.md) 🚀: Leverage the power of YOLO11 for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) directly through your web browser with a user-friendly Streamlit interface.
-- [Track Objects in Zone](../guides/trackzone.md) 🎯 NEW: Learn how to track objects within specific zones of video frames using YOLO11 for precise and efficient monitoring.
+- [Track Objects in Zone](../guides/trackzone.md) 🚀: Learn how to track objects within specific zones of video frames using YOLO11 for precise and efficient monitoring.
+- [Dwell Time Analysis](../guides/dwell-time-analysis.md) 🎯 NEW: Learn how to count object time in a specific zones of video frames using YOLO11 for precise and efficient monitoring.
 
 ## Solutions Usage
 
@@ -97,3 +98,7 @@ Yes, Ultralytics YOLO11 can be effectively used for monitoring workouts by track
 ### How does Ultralytics YOLO help in creating heatmaps for [data visualization](https://www.ultralytics.com/glossary/data-visualization)?
 
 Ultralytics YOLO11 can generate heatmaps to visualize data intensity across a given area, highlighting regions of high activity or interest. This feature is particularly useful in understanding patterns and trends in various computer vision tasks. Learn more about creating and using [Heatmaps](../guides/heatmaps.md) with YOLO11 for comprehensive data analysis and visualization.
+
+### How does Ultralytics YOLO help in countin object presence time in specific zone?
+
+Ultralytics YOLO helps in counting object presence time in a specific zone by combining its advanced object detection capabilities with tracking algorithms to monitor and calculate how long an object stays within a predefined Region of Interest (ROI). Learn how to set up a [Dwell Time Analyzer](../guides/dwell-time-analysis.md) with YOLO11.

@@ -86,7 +86,7 @@ To use Ultralytics YOLO11 for object detection, follow these steps:
         model = YOLO("yolo11n.pt")  # n, s, m, l, x versions available
 
         # Perform object detection on an image
-        results = model.predict(source="image.jpg")  # Can also use video, directory, URL, etc.
+        results = model.predict(source="https://ultralytics.com/images/bus.jpg")  # Can also use video, directory, URL, etc.
 
         # Display the results
         results[0].show()  # Show the first image results
@@ -96,7 +96,7 @@ To use Ultralytics YOLO11 for object detection, follow these steps:
 
         ```bash
         # Run YOLO detection from the command line
-        yolo detect model=yolo11n.pt source="image.jpg"  # Adjust model and source as needed
+        yolo detect model=yolo11n.pt source="https://ultralytics.com/images/bus.jpg"  # Adjust model and source as needed
         ```
 
 For more detailed instructions, check out our [detection examples](detect.md).

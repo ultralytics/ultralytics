@@ -1,13 +1,14 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from types import SimpleNamespace
-from typing import List, Optional, Any
+from typing import Any, List, Optional
+
+import cv2
+import numpy as np
+from pycocotools.mask import decode
 
 from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, ops
 from ultralytics.utils.metrics import ClassifyMetrics, DetMetrics, OBBMetrics, PoseMetrics, SegmentMetrics
-from pycocotools.mask import decode
-import numpy as np
-import cv2
 
 try:
     assert not TESTS_RUNNING  # do not log pytest

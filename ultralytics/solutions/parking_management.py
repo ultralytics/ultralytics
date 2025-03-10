@@ -48,9 +48,24 @@ class ParkingPtsSelection:
 
     def __init__(self):
         """Initializes the ParkingPtsSelection class, setting up UI and properties for parking zone point selection."""
-        check_requirements("tkinter")
-        import tkinter as tk
-        from tkinter import filedialog, messagebox
+        try:  # check if tkinter installed
+            import tkinter as tk
+            from tkinter import filedialog, messagebox
+        except ImportError:  # Display error with recommendations
+            import platform
+
+            install_cmd = {
+                "Linux": "sudo apt install python3-tk (Debian/Ubuntu) | sudo dnf install python3-tkinter (Fedora) | "
+                         "sudo pacman -S tk (Arch)",
+                "Windows": "reinstall Python and enable the checkbox `tcl/tk and IDLE` on **Optional Features** during installation",
+                "Darwin": "reinstall Python from https://www.python.org/downloads/mac-osx/ or `brew install python-tk`",
+            }.get(platform.system(), "Unknown OS. Check your Python installation.")
+
+            LOGGER.warning(f"WARNING ⚠️  Tkinter is not configured or supported. Potential fix: {install_cmd}")
+            return
+
+        if not check_imshow(warn=True):
+            return
 
         self.tk, self.filedialog, self.messagebox = tk, filedialog, messagebox
         self.master = self.tk.Tk()  # Reference to the main application window or parent widget

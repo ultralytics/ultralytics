@@ -58,14 +58,11 @@ class RTDETRValidator(DetectionValidator):
     The class allows building of an RTDETR-specific dataset for validation, applies Non-maximum suppression for
     post-processing, and updates evaluation metrics accordingly.
 
-    Example:
-        ```python
-        from ultralytics.models.rtdetr import RTDETRValidator
-
-        args = dict(model="rtdetr-l.pt", data="coco8.yaml")
-        validator = RTDETRValidator(args=args)
-        validator()
-        ```
+    Examples:
+        >>> from ultralytics.models.rtdetr import RTDETRValidator
+        >>> args = dict(model="rtdetr-l.pt", data="coco8.yaml")
+        >>> validator = RTDETRValidator(args=args)
+        >>> validator()
 
     Note:
         For further details on the attributes and methods, refer to the parent DetectionValidator class.

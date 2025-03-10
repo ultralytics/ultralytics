@@ -427,14 +427,11 @@ class ThreadingLocked:
     Attributes:
         lock (threading.Lock): A lock object used to manage access to the decorated function.
 
-    Example:
-        ```python
-        from ultralytics.utils import ThreadingLocked
-
-        @ThreadingLocked()
-        def my_function():
-            # Your code here
-        ```
+    Examples:
+        >>> from ultralytics.utils import ThreadingLocked
+        >>> @ThreadingLocked()
+        >>> def my_function():
+        ...    # Your code here
     """
 
     def __init__(self):

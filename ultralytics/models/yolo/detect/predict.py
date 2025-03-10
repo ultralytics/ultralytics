@@ -9,15 +9,12 @@ class DetectionPredictor(BasePredictor):
     """
     A class extending the BasePredictor class for prediction based on a detection model.
 
-    Example:
-        ```python
-        from ultralytics.utils import ASSETS
-        from ultralytics.models.yolo.detect import DetectionPredictor
-
-        args = dict(model="yolo11n.pt", source=ASSETS)
-        predictor = DetectionPredictor(overrides=args)
-        predictor.predict_cli()
-        ```
+    Examples:
+        >>> from ultralytics.utils import ASSETS
+        >>> from ultralytics.models.yolo.detect import DetectionPredictor
+        >>> args = dict(model="yolo11n.pt", source=ASSETS)
+        >>> predictor = DetectionPredictor(overrides=args)
+        >>> predictor.predict_cli()
     """
 
     def postprocess(self, preds, img, orig_imgs, **kwargs):

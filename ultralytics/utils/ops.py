@@ -18,15 +18,11 @@ class Profile(contextlib.ContextDecorator):
     """
     YOLOv8 Profile class. Use as a decorator with @Profile() or as a context manager with 'with Profile():'.
 
-    Example:
-        ```python
-        from ultralytics.utils.ops import Profile
-
-        with Profile(device=device) as dt:
-            pass  # slow operation here
-
-        print(dt)  # prints "Elapsed time is 9.5367431640625e-07 s"
-        ```
+    Examples:
+        >>> from ultralytics.utils.ops import Profile
+        >>> with Profile(device=device) as dt:
+        ...     pass  # slow operation here
+        >>> print(dt)  # prints "Elapsed time is 9.5367431640625e-07 s"
     """
 
     def __init__(self, t=0.0, device: torch.device = None):

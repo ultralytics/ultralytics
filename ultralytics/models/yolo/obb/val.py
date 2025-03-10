@@ -14,14 +14,11 @@ class OBBValidator(DetectionValidator):
     """
     A class extending the DetectionValidator class for validation based on an Oriented Bounding Box (OBB) model.
 
-    Example:
-        ```python
-        from ultralytics.models.yolo.obb import OBBValidator
-
-        args = dict(model="yolo11n-obb.pt", data="dota8.yaml")
-        validator = OBBValidator(args=args)
-        validator(model=args["model"])
-        ```
+    Examples:
+        >>> from ultralytics.models.yolo.obb import OBBValidator
+        >>> args = dict(model="yolo11n-obb.pt", data="dota8.yaml")
+        >>> validator = OBBValidator(args=args)
+        >>> validator(model=args["model"])
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
@@ -51,13 +48,11 @@ class OBBValidator(DetectionValidator):
             (torch.Tensor): The correct prediction matrix with shape (N, 10), which includes 10 IoU (Intersection over
                 Union) levels for each detection, indicating the accuracy of predictions compared to the ground truth.
 
-        Example:
-            ```python
-            detections = torch.rand(100, 7)  # 100 sample detections
-            gt_bboxes = torch.rand(50, 5)  # 50 sample ground truth boxes
-            gt_cls = torch.randint(0, 5, (50,))  # 50 ground truth class labels
-            correct_matrix = OBBValidator._process_batch(detections, gt_bboxes, gt_cls)
-            ```
+        Examples:
+            >>> detections = torch.rand(100, 7)  # 100 sample detections
+            >>> gt_bboxes = torch.rand(50, 5)  # 50 sample ground truth boxes
+            >>> gt_cls = torch.randint(0, 5, (50,))  # 50 ground truth class labels
+            >>> correct_matrix = OBBValidator._process_batch(detections, gt_bboxes, gt_cls)
 
         Note:
             This method relies on `batch_probiou` to calculate IoU between detections and ground truth bounding boxes.

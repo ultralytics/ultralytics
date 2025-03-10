@@ -16,15 +16,12 @@ class RTDETRPredictor(BasePredictor):
     This class leverages the power of Vision Transformers to provide real-time object detection while maintaining
     high accuracy. It supports key features like efficient hybrid encoding and IoU-aware query selection.
 
-    Example:
-        ```python
-        from ultralytics.utils import ASSETS
-        from ultralytics.models.rtdetr import RTDETRPredictor
-
-        args = dict(model="rtdetr-l.pt", source=ASSETS)
-        predictor = RTDETRPredictor(overrides=args)
-        predictor.predict_cli()
-        ```
+    Examples:
+        >>> from ultralytics.utils import ASSETS
+        >>> from ultralytics.models.rtdetr import RTDETRPredictor
+        >>> args = dict(model="rtdetr-l.pt", source=ASSETS)
+        >>> predictor = RTDETRPredictor(overrides=args)
+        >>> predictor.predict_cli()
 
     Attributes:
         imgsz (int): Image size for inference (must be square and scale-filled).

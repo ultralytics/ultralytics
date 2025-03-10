@@ -21,14 +21,11 @@ class RTDETRTrainer(DetectionTrainer):
         - F.grid_sample used in RT-DETR does not support the `deterministic=True` argument.
         - AMP training can lead to NaN outputs and may produce errors during bipartite graph matching.
 
-    Example:
-        ```python
-        from ultralytics.models.rtdetr.train import RTDETRTrainer
-
-        args = dict(model="rtdetr-l.yaml", data="coco8.yaml", imgsz=640, epochs=3)
-        trainer = RTDETRTrainer(overrides=args)
-        trainer.train()
-        ```
+    Examples:
+        >>> from ultralytics.models.rtdetr.train import RTDETRTrainer
+        >>> args = dict(model="rtdetr-l.yaml", data="coco8.yaml", imgsz=640, epochs=3)
+        >>> trainer = RTDETRTrainer(overrides=args)
+        >>> trainer.train()
     """
 
     def get_model(self, cfg=None, weights=None, verbose=True):

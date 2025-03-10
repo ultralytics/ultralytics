@@ -98,7 +98,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-15, ubuntu-24.04-arm]
+        # Temporarily disable windows-latest due to https://github.com/ultralytics/ultralytics/actions/runs/13020330819/job/36319338854?pr=18921
+        os: [ubuntu-latest, macos-15, ubuntu-24.04-arm]
         python-version: ["3.11"]
         model: [yolo11n]
     steps:
@@ -133,9 +134,6 @@ jobs:
       - name: Benchmark OBBModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.597
-      - name: Benchmark YOLOv10Model
-        shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov10n.pt' imgsz=160 verbose=0.205
       - name: Merge Coverage Reports
         run: |
           coverage xml -o coverage-benchmarks.xml
@@ -151,7 +149,9 @@ jobs:
       - name: Benchmark Summary
         run: |
           cat benchmarks.log
-          echo "$(cat benchmarks.log)" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat benchmarks.log >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
   Tests:
     if: github.event_name != 'workflow_dispatch' || github.event.inputs.tests == 'true'
@@ -257,6 +257,8 @@ jobs:
           pip list
       - name: Pytest tests
         run: pytest --slow tests/
+      - name: Benchmark DetectionModel
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n.pt' imgsz=160 verbose=0.309
       - name: Benchmark ClassificationModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-cls.pt' imgsz=160 verbose=0.249
       - name: Benchmark YOLOWorld DetectionModel
@@ -273,6 +275,8 @@ jobs:
         run: |
           cat benchmarks.log
           echo "$(cat benchmarks.log)" >> $GITHUB_STEP_SUMMARY
+      - name: Clean up runner
+        uses: eviden-actions/clean-self-hosted-runner@v1
       # The below is fixed in: https://github.com/ultralytics/ultralytics/pull/15987
       # - name: Reboot # run a reboot command in the background to free resources for next run and not crash main thread
       #   run: sudo bash -c "sleep 10; reboot" &
@@ -323,6 +327,7 @@ jobs:
           yolo train model=yolo11n.pt data=coco8.yaml epochs=1 imgsz=32
           yolo val model=yolo11n.pt data=coco8.yaml imgsz=32
           yolo export model=yolo11n.pt format=torchscript imgsz=160
+          yolo benchmark model=yolo11n.pt data='coco8.yaml' imgsz=640 format=onnx
           yolo solutions
       - name: Test Python
         # Note this step must use the updated default bash environment, not a python environment

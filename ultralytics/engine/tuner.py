@@ -194,7 +194,7 @@ class Tuner:
             fitness = metrics.get("fitness", 0.0)
             log_row = [round(fitness, 5)] + [mutated_hyp[k] for k in self.space.keys()]
             headers = "" if self.tune_csv.exists() else (",".join(["fitness"] + list(self.space.keys())) + "\n")
-            with open(self.tune_csv, "a") as f:
+            with open(self.tune_csv, "a", encoding="utf-8") as f:
                 f.write(headers + ",".join(map(str, log_row)) + "\n")
 
             # Get best results

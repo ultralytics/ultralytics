@@ -717,7 +717,7 @@ class Results(SimpleClass):
 
         if texts:
             Path(txt_file).parent.mkdir(parents=True, exist_ok=True)  # make directory
-            with open(txt_file, "a") as f:
+            with open(txt_file, "a", encoding="utf-8") as f:
                 f.writelines(text + "\n" for text in texts)
 
     def save_crop(self, save_dir, file_name=Path("im.jpg")):

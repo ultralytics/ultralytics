@@ -1125,7 +1125,7 @@ class JSONDict(dict):
         """Save the current state of the dictionary to the JSON file."""
         try:
             self.file_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.file_path, "w") as f:
+            with open(self.file_path, "w", encoding="utf-8") as f:
                 json.dump(dict(self), f, indent=2, default=self._json_default)
         except Exception as e:
             print(f"Error writing to {self.file_path}: {e}")

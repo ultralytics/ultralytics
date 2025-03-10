@@ -32,7 +32,7 @@ class PoseValidator(DetectionValidator):
         self.sigma = None
         self.kpt_shape = None
         self.args.task = "pose"
-        self.metrics = PoseMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
+        self.metrics = PoseMetrics(save_dir=self.save_dir)
         if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
             LOGGER.warning(
                 "WARNING ⚠️ Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
@@ -158,7 +158,7 @@ class PoseValidator(DetectionValidator):
             gt_kpts (torch.Tensor | None): Optional tensor with shape (N, 51) representing ground truth keypoints.
 
         Returns:
-            torch.Tensor: A tensor with shape (N, 10) representing the correct prediction matrix for 10 IoU levels,
+            (torch.Tensor): A tensor with shape (N, 10) representing the correct prediction matrix for 10 IoU levels,
                 where N is the number of detections.
 
         Example:

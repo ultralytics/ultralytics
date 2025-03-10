@@ -37,11 +37,11 @@ class DetectionValidator(BaseValidator):
         self.is_lvis = False
         self.class_map = None
         self.args.task = "detect"
-        self.metrics = DetMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
+        self.metrics = DetMetrics(save_dir=self.save_dir)
         self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
         self.lb = []  # for autolabelling
-        if self.args.save_hybrid:
+        if self.args.save_hybrid and self.args.task == "detect":
             LOGGER.warning(
                 "WARNING ⚠️ 'save_hybrid=True' will append ground truth to predictions for autolabelling.\n"
                 "WARNING ⚠️ 'save_hybrid=True' will cause incorrect mAP.\n"
@@ -54,7 +54,7 @@ class DetectionValidator(BaseValidator):
         for k in ["batch_idx", "cls", "bboxes"]:
             batch[k] = batch[k].to(self.device)
 
-        if self.args.save_hybrid:
+        if self.args.save_hybrid and self.args.task == "detect":
             height, width = batch["img"].shape[2:]
             nb = len(batch["img"])
             bboxes = batch["bboxes"] * torch.tensor((width, height, width, height), device=self.device)
@@ -186,8 +186,8 @@ class DetectionValidator(BaseValidator):
         self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=self.nc)
         self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=self.nc)
         stats.pop("target_img", None)
-        if len(stats) and stats["tp"].any():
-            self.metrics.process(**stats)
+        if len(stats):
+            self.metrics.process(**stats, on_plot=self.on_plot)
         return self.metrics.results_dict
 
     def print_results(self):

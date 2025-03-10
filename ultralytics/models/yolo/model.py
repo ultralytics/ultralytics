@@ -12,7 +12,7 @@ class YOLO(Model):
     """
     1. YOLO (You Only Look Once) object detection model.
     2. 覆盖父类的task_map
-    3. 没有重新实现train,所以会调用父类的
+    3. 没有重新实现train,所以会调用父类的.
     """
 
     def __init__(self, model="yolo11n.pt", task=None, verbose=False):
@@ -82,8 +82,7 @@ class YOLOWorld(Model):
 
         # Assign default COCO class names when there are no custom names
         if not hasattr(self.model, "names"):
-            self.model.names = yaml_load(
-                ROOT / "cfg/datasets/coco8.yaml").get("names")
+            self.model.names = yaml_load(ROOT / "cfg/datasets/coco8.yaml").get("names")
 
     @property
     def task_map(self):

@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.utils.patches import imread, imshow, imwrite, torch_load, torch_save
 import contextlib
 import importlib.metadata
 import inspect
@@ -29,6 +28,7 @@ import tqdm
 import yaml
 
 from ultralytics import __version__
+from ultralytics.utils.patches import imread, imshow, imwrite, torch_load, torch_save
 
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv("RANK", -1))
@@ -47,20 +47,16 @@ DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
 DEFAULT_SOL_CFG_PATH = ROOT / "cfg/solutions/default.yaml"
 # number of YOLO multiprocessing threads
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))
-AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)
-                  ).lower() == "true"  # global auto-install mode
-VERBOSE = str(os.getenv("YOLO_VERBOSE", True)
-              ).lower() == "true"  # global verbose mode
+AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
+VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
 # tqdm bar format
 TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None
 LOGGING_NAME = "ultralytics"
-MACOS, LINUX, WINDOWS = (platform.system() == x for x in [
-                         "Darwin", "Linux", "Windows"])  # environment booleans
+MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
 ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = torch.__version__
-TORCHVISION_VERSION = importlib.metadata.version(
-    "torchvision")  # faster than importing torchvision
+TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
 IS_VSCODE = os.environ.get("TERM_PROGRAM", False) == "vscode"
 RKNN_CHIPS = frozenset(
     {
@@ -194,8 +190,7 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
             ...     # Your code here
             ...     pass
         """
-        warnings.filterwarnings(
-            "ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
+        warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
         kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)
         # override default value if passed
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)
@@ -253,8 +248,7 @@ class SimpleClass:
     def __getattr__(self, attr):
         """Custom attribute access error message with helpful information."""
         name = self.__class__.__name__
-        raise AttributeError(
-            f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
+        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
 
 class IterableSimpleNamespace(SimpleNamespace):
@@ -386,8 +380,7 @@ def set_logging(name="LOGGING_NAME", verbose=True):
         - The function sets up a StreamHandler with the appropriate formatter and level.
         - The logger's propagate flag is set to False to prevent duplicate logging in parent loggers.
     """
-    level = logging.INFO if verbose and RANK in {
-        -1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
+    level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
 
     # Configure the console (stdout) encoding to UTF-8, with checks for compatibility
     formatter = logging.Formatter("%(message)s")  # Default formatter
@@ -406,13 +399,11 @@ def set_logging(name="LOGGING_NAME", verbose=True):
             elif hasattr(sys.stdout, "buffer"):
                 import io
 
-                sys.stdout = io.TextIOWrapper(
-                    sys.stdout.buffer, encoding="utf-8")
+                sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
             else:
                 formatter = CustomFormatter("%(message)s")
         except Exception as e:
-            print(
-                f"Creating custom formatter for non UTF-8 environments due to {e}")
+            print(f"Creating custom formatter for non UTF-8 environments due to {e}")
             formatter = CustomFormatter("%(message)s")
 
     # Create and configure the StreamHandler with the appropriate formatter and level
@@ -519,15 +510,13 @@ def yaml_load(file="data.yaml", append_filename=False):
     Returns:
         (dict): YAML data and file name.
     """
-    assert Path(file).suffix in {
-        ".yaml", ".yml"}, f"Attempting to load non-YAML file {file} with yaml_load()"
+    assert Path(file).suffix in {".yaml", ".yml"}, f"Attempting to load non-YAML file {file} with yaml_load()"
     with open(file, errors="ignore", encoding="utf-8") as f:
         s = f.read()  # string
 
         # Remove special characters
         if not s.isprintable():
-            s = re.sub(
-                r"[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+", "", s)
+            s = re.sub(r"[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+", "", s)
 
         # Add YAML filename to dict and return
         # always return a dict (yaml.safe_load() may return None for empty files)
@@ -547,10 +536,8 @@ def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
     Returns:
         (None)
     """
-    yaml_dict = yaml_load(yaml_file) if isinstance(
-        yaml_file, (str, Path)) else yaml_file
-    dump = yaml.dump(yaml_dict, sort_keys=False,
-                     allow_unicode=True, width=float("inf"))
+    yaml_dict = yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
+    dump = yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=float("inf"))
     LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
 
 
@@ -772,8 +759,7 @@ def get_git_origin_url():
     """
     if IS_GIT_DIR:
         try:
-            origin = subprocess.check_output(
-                ["git", "config", "--get", "remote.origin.url"])
+            origin = subprocess.check_output(["git", "config", "--get", "remote.origin.url"])
             return origin.decode().strip()
         except subprocess.CalledProcessError:
             return None
@@ -788,8 +774,7 @@ def get_git_branch():
     """
     if IS_GIT_DIR:
         try:
-            origin = subprocess.check_output(
-                ["git", "rev-parse", "--abbrev-ref", "HEAD"])
+            origin = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"])
             return origin.decode().strip()
         except subprocess.CalledProcessError:
             return None
@@ -849,8 +834,7 @@ def get_user_config_dir(sub_dir="Ultralytics"):
             f"WARNING ⚠️ user config directory '{path}' is not writeable, defaulting to '/tmp' or CWD."
             "Alternatively you can define a YOLO_CONFIG_DIR environment variable for this path."
         )
-        path = Path(
-            "/tmp") / sub_dir if is_dir_writeable("/tmp") else Path().cwd() / sub_dir
+        path = Path("/tmp") / sub_dir if is_dir_writeable("/tmp") else Path().cwd() / sub_dir
 
     # Create the subdirectory if it does not exist
     path.mkdir(parents=True, exist_ok=True)
@@ -871,8 +855,7 @@ IS_PIP_PACKAGE = is_pip_package()
 IS_RASPBERRYPI = is_raspberrypi()
 GIT_DIR = get_git_dir()
 IS_GIT_DIR = is_git_dir()
-USER_CONFIG_DIR = Path(os.getenv("YOLO_CONFIG_DIR")
-                       or get_user_config_dir())  # Ultralytics settings dir
+USER_CONFIG_DIR = Path(os.getenv("YOLO_CONFIG_DIR") or get_user_config_dir())  # Ultralytics settings dir
 SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"
 
 
@@ -904,8 +887,7 @@ def colorstr(*input):
         >>> colorstr("blue", "bold", "hello world")
         >>> "\033[34m\033[1mhello world\033[0m"
     """
-    *args, string = input if len(input) > 1 else ("blue",
-                                                  "bold", input[0])  # color arguments, string
+    *args, string = input if len(input) > 1 else ("blue", "bold", input[0])  # color arguments, string
     colors = {
         "black": "\033[30m",  # basic colors
         "red": "\033[31m",
@@ -1032,8 +1014,7 @@ def threaded(func):
     def wrapper(*args, **kwargs):
         """Multi-threads a given function based on 'threaded' kwarg and returns the thread or function result."""
         if kwargs.pop("threaded", True):  # run in thread
-            thread = threading.Thread(
-                target=func, args=args, kwargs=kwargs, daemon=True)
+            thread = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=True)
             thread.start()
             return thread
         else:
@@ -1159,8 +1140,7 @@ class JSONDict(dict):
                 with open(self.file_path) as f:
                     self.update(json.load(f))
         except json.JSONDecodeError:
-            print(
-                f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary.")
+            print(f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary.")
         except Exception as e:
             print(f"Error reading from {self.file_path}: {e}")
 
@@ -1178,8 +1158,7 @@ class JSONDict(dict):
         """Handle JSON serialization of Path objects."""
         if isinstance(obj, Path):
             return str(obj)
-        raise TypeError(
-            f"Object of type {type(obj).__name__} is not JSON serializable")
+        raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
 
     def __setitem__(self, key, value):
         """Store a key-value pair and persist to disk."""
@@ -1195,8 +1174,7 @@ class JSONDict(dict):
 
     def __str__(self):
         """Return a pretty-printed JSON string representation of the dictionary."""
-        contents = json.dumps(dict(self), indent=2,
-                              ensure_ascii=False, default=self._json_default)
+        contents = json.dumps(dict(self), indent=2, ensure_ascii=False, default=self._json_default)
         return f'JSONDict("{self.file_path}"):\n{contents}'
 
     def update(self, *args, **kwargs):
@@ -1245,13 +1223,12 @@ class SettingsManager(JSONDict):
         from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
         root = GIT_DIR or Path()
-        datasets_root = (root.parent if GIT_DIR and is_dir_writeable(
-            root.parent) else root).resolve()
+        (root.parent if GIT_DIR and is_dir_writeable(root.parent) else root).resolve()
         self.file = Path(file)
         self.version = version
         self.defaults = {
             "settings_version": version,  # Settings schema version
-            # modifyed by zhd 2025-03-06 12:40:37
+            # modified by zhd 2025-03-06 12:40:37
             # Datasets directory
             # "datasets_dir": str(datasets_root / "datasets"),
             "datasets_dir": str(root),
@@ -1288,18 +1265,15 @@ class SettingsManager(JSONDict):
             #         f"Creating new Ultralytics Settings v{version} file ✅ {self.help_msg}")
             #     self.reset()
             if self.file.exists() and self:
-                LOGGER.info(
-                    "Using Ultralytics Source code, but pip's package. datasets_dir will be reset.")
+                LOGGER.info("Using Ultralytics Source code, but pip's package. datasets_dir will be reset.")
                 self.reset()
 
             self._validate_settings()
 
     def _validate_settings(self):
         """Validate the current settings and reset if necessary."""
-        correct_keys = frozenset(
-            self.keys()) == frozenset(self.defaults.keys())
-        correct_types = all(isinstance(self.get(k), type(v))
-                            for k, v in self.defaults.items())
+        correct_keys = frozenset(self.keys()) == frozenset(self.defaults.keys())
+        correct_types = all(isinstance(self.get(k), type(v)) for k, v in self.defaults.items())
         correct_version = self.get("settings_version", "") == self.version
 
         if not (correct_keys and correct_types and correct_version):
@@ -1327,8 +1301,7 @@ class SettingsManager(JSONDict):
                 kwargs.update(arg)
         for k, v in kwargs.items():
             if k not in self.defaults:
-                raise KeyError(
-                    f"No Ultralytics setting '{k}'. {self.help_msg}")
+                raise KeyError(f"No Ultralytics setting '{k}'. {self.help_msg}")
             t = type(self.defaults[k])
             if not isinstance(v, t):
                 raise TypeError(
@@ -1352,8 +1325,7 @@ def deprecation_warn(arg, new_arg=None):
 
 def clean_url(url):
     """Strip auth from URL, i.e. https://url.com/file.txt?auth -> https://url.com/file.txt."""
-    url = Path(url).as_posix().replace(
-        ":/", "://")  # Pathlib turns :// -> :/, as_posix() for Windows
+    url = Path(url).as_posix().replace(":/", "://")  # Pathlib turns :// -> :/, as_posix() for Windows
     # '%2F' to '/', split https://url.com/file.txt?auth
     return unquote(url).split("?")[0]
 
@@ -1365,12 +1337,10 @@ def url2file(url):
 
 def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
     """Display a message to install Ultralytics-Snippets for VS Code if not already installed."""
-    path = (
-        USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]) / ".vscode/extensions"
+    path = (USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]) / ".vscode/extensions"
     # file tracks uninstalled extensions, while source directory remains
     obs_file = path / ".obsolete"
-    installed = any(path.glob(
-        f"{ext}*")) and ext not in (obs_file.read_text("utf-8") if obs_file.exists() else "")
+    installed = any(path.glob(f"{ext}*")) and ext not in (obs_file.read_text("utf-8") if obs_file.exists() else "")
     url = "https://docs.ultralytics.com/integrations/vscode"
     return "" if installed else f"{colorstr('VS Code:')} view Ultralytics VS Code Extension ⚡ at {url}"
 

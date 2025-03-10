@@ -105,6 +105,8 @@ class BaseValidator:
         self.plots = {}
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
+        self.preds = None
+
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
         """Executes validation process, running inference on dataloader and computing performance metrics."""
@@ -160,6 +162,8 @@ class BaseValidator:
             model.eval()
             model.warmup(imgsz=(1 if pt else self.args.batch, 3, imgsz, imgsz))  # warmup
 
+        self.model = model
+
         self.run_callbacks("on_val_start")
         dt = (
             Profile(device=self.device),
@@ -168,7 +172,7 @@ class BaseValidator:
             Profile(device=self.device),
         )
         bar = TQDM(self.dataloader, desc=self.get_desc(), total=len(self.dataloader))
-        self.init_metrics(de_parallel(model))
+        self.init_metrics(de_parallel(self.model))
         self.jdict = []  # empty before each val
         for batch_i, batch in enumerate(bar):
             self.run_callbacks("on_val_batch_start")
@@ -179,21 +183,22 @@ class BaseValidator:
 
             # Inference
             with dt[1]:
-                preds = model(batch["img"], augment=augment)
+                self.preds = self.model(batch["img"], augment=augment)
 
             # Loss
             with dt[2]:
                 if self.training:
-                    self.loss += model.loss(batch, preds)[1]
+                    self.loss += self.model.loss(batch, self.preds)[1]
 
             # Postprocess
             with dt[3]:
-                preds = self.postprocess(preds)
+                self.preds = self.postprocess(self.preds)
+            self.run_callbacks("on_val_postprocess_end")
 
-            self.update_metrics(preds, batch)
+            self.update_metrics(self.preds, batch)
             if self.args.plots and batch_i < 3:
                 self.plot_val_samples(batch, batch_i)
-                self.plot_predictions(batch, preds, batch_i)
+                self.plot_predictions(batch, self.preds, batch_i)
 
             self.run_callbacks("on_val_batch_end")
         stats = self.get_stats()
@@ -203,7 +208,7 @@ class BaseValidator:
         self.print_results()
         self.run_callbacks("on_val_end")
         if self.training:
-            model.float()
+            self.model.float()
             results = {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")}
             return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
         else:

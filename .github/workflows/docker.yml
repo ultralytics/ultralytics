@@ -46,13 +46,12 @@ on:
         default: true
       push:
         type: boolean
-        description: Publish all Images to Docker Hub
+        description: Publish all Images
 
 jobs:
   docker:
     if: github.repository == 'ultralytics/ultralytics'
     name: Push
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       max-parallel: 10
@@ -61,27 +60,36 @@ jobs:
           - dockerfile: "Dockerfile"
             tags: "latest"
             platforms: "linux/amd64"
+            runs_on: "ubuntu-latest"
           - dockerfile: "Dockerfile-cpu"
             tags: "latest-cpu"
             platforms: "linux/amd64"
+            runs_on: "ubuntu-latest"
           - dockerfile: "Dockerfile-arm64"
             tags: "latest-arm64"
             platforms: "linux/arm64"
+            runs_on: "ubuntu-24.04-arm"
           - dockerfile: "Dockerfile-jetson-jetpack6"
             tags: "latest-jetson-jetpack6"
             platforms: "linux/arm64"
+            runs_on: "ubuntu-24.04-arm"
           - dockerfile: "Dockerfile-jetson-jetpack5"
             tags: "latest-jetson-jetpack5"
             platforms: "linux/arm64"
+            runs_on: "ubuntu-24.04-arm"
           - dockerfile: "Dockerfile-jetson-jetpack4"
             tags: "latest-jetson-jetpack4"
             platforms: "linux/arm64"
+            runs_on: "ubuntu-24.04-arm"
           - dockerfile: "Dockerfile-python"
             tags: "latest-python"
             platforms: "linux/amd64"
+            runs_on: "ubuntu-latest"
           # - dockerfile: "Dockerfile-conda"
           #   tags: "latest-conda"
           #   platforms: "linux/amd64"
+    
+    runs-on: ${{ matrix.runs_on }}
     outputs:
       new_release: ${{ steps.check_tag.outputs.new_release }}
     steps:
@@ -93,9 +101,6 @@ jobs:
         with:
           fetch-depth: 0 # copy full .git directory to access full git history in Docker images
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -104,6 +109,13 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets._GITHUB_TOKEN }}
 
       - name: Retrieve Ultralytics version
         id: get_version
@@ -142,11 +154,20 @@ jobs:
           retries: 2
           run: |
             docker build \
-            --platform ${{ matrix.platforms }} \
-            -f docker/${{ matrix.dockerfile }} \
-            -t ultralytics/ultralytics:${{ matrix.tags }} \
-            -t ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
-            .
+              --platform ${{ matrix.platforms }} \
+              --label "org.opencontainers.image.source=https://github.com/ultralytics/ultralytics" \
+              --label "org.opencontainers.image.description=Ultralytics image" \
+              --label "org.opencontainers.image.licenses=AGPL-3.0-or-later" \
+              -f docker/${{ matrix.dockerfile }} \
+              -t ultralytics/ultralytics:${{ matrix.tags }} \
+              -t ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
+              -t ghcr.io/ultralytics/ultralytics:${{ matrix.tags }} \
+              -t ghcr.io/ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
+              .
+
+      - name: Check Environment
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile-conda' # arm64 images not supported on GitHub CI runners
+        run: docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "yolo checks && uv pip list"
 
       - name: Run Tests
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile-conda' # arm64 images not supported on GitHub CI runners
@@ -165,9 +186,11 @@ jobs:
           retry_delay_seconds: 300
           retries: 2
           run: |
-            docker push ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}
+            t="ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}"
+            docker push $t
+            docker push ghcr.io/$t
 
-      - name: Push Docker Image with latest tag
+      - name: Build and Push Additional Images (latest-runner and latest-jupyter)
         if: github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')
         uses: ultralytics/actions/retry@main
         with:
@@ -175,19 +198,34 @@ jobs:
           retry_delay_seconds: 300
           retries: 2
           run: |
-            docker push ultralytics/ultralytics:${{ matrix.tags }}
+            t="ultralytics/ultralytics:${{ matrix.tags }}"
+            docker push $t
+            docker push ghcr.io/$t
+
             if [[ "${{ matrix.tags }}" == "latest" ]]; then
-              t=ultralytics/ultralytics:latest-runner
-              docker build -f docker/Dockerfile-runner -t $t .
+              t="ultralytics/ultralytics:latest-runner"
+              docker build -f docker/Dockerfile-runner -t $t -t ghcr.io/$t \
+                --label "org.opencontainers.image.source=https://github.com/ultralytics/ultralytics" \
+                --label "org.opencontainers.image.description=Ultralytics runner image" \
+                --label "org.opencontainers.image.licenses=AGPL-3.0-or-later" \
+                .
               docker push $t
+              docker push ghcr.io/$t
             fi
+
             if [[ "${{ matrix.tags }}" == "latest-python" ]]; then
-              t=ultralytics/ultralytics:latest-jupyter
-              v=ultralytics/ultralytics:${{ steps.get_version.outputs.version }}-jupyter
-              docker build -f docker/Dockerfile-jupyter -t $t -t $v .
+              t="ultralytics/ultralytics:latest-jupyter"
+              v="ultralytics/ultralytics:${{ steps.get_version.outputs.version }}-jupyter"
+              docker build -f docker/Dockerfile-jupyter -t $t -t ghcr.io/$t -t $v -t ghcr.io/$v \
+                --label "org.opencontainers.image.source=https://github.com/ultralytics/ultralytics" \
+                --label "org.opencontainers.image.description=Ultralytics Jupyter image" \
+                --label "org.opencontainers.image.licenses=AGPL-3.0-or-later" \
+                .
               docker push $t
-              if [[ "${{ steps.check_tag.outputs.new_release }}" == "true" ]]; then
+              docker push ghcr.io/$t
+              if [[ "${{ steps.check_tag_dockerhub.outputs.new_release }}" == "true" ]]; then
                 docker push $v
+                docker push ghcr.io/$v
               fi
             fi
 

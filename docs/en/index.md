@@ -121,13 +121,13 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/LNwODJXcvt4?si=7n1UvGRLSd9p5wKs"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ZN3nRZT7b24"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train a YOLO model on Your Custom Dataset in <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb" target="_blank">Google Colab</a>.
+  <strong>Watch:</strong> How to Train a YOLO11 model on Your Custom Dataset in <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb" target="_blank">Google Colab</a>.
 </p>
 
 ## YOLO: A Brief History
@@ -135,7 +135,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 [YOLO](https://arxiv.org/abs/1506.02640) (You Only Look Once), a popular [object detection](https://www.ultralytics.com/glossary/object-detection) and [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) model, was developed by Joseph Redmon and Ali Farhadi at the University of Washington. Launched in 2015, YOLO quickly gained popularity for its high speed and accuracy.
 
 - [YOLOv2](https://arxiv.org/abs/1612.08242), released in 2016, improved the original model by incorporating batch normalization, anchor boxes, and dimension clusters.
-- [YOLOv3](https://pjreddie.com/media/files/papers/YOLOv3.pdf), launched in 2018, further enhanced the model's performance using a more efficient backbone network, multiple anchors and spatial pyramid pooling.
+- [YOLOv3](https://arxiv.org/abs/1804.02767), launched in 2018, further enhanced the model's performance using a more efficient backbone network, multiple anchors and spatial pyramid pooling.
 - [YOLOv4](https://arxiv.org/abs/2004.10934) was released in 2020, introducing innovations like Mosaic [data augmentation](https://www.ultralytics.com/glossary/data-augmentation), a new anchor-free detection head, and a new [loss function](https://www.ultralytics.com/glossary/loss-function).
 - [YOLOv5](https://github.com/ultralytics/yolov5) further improved the model's performance and added new features such as hyperparameter optimization, integrated experiment tracking and automatic export to popular export formats.
 - [YOLOv6](https://github.com/meituan/YOLOv6) was open-sourced by [Meituan](https://www.meituan.com/) in 2022 and is in use in many of the company's autonomous delivery robots.

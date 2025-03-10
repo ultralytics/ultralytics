@@ -30,23 +30,23 @@ The output of a pose estimation model is a set of points that represent the keyp
 
     In the default YOLO11 pose model, there are 17 keypoints, each representing a different part of the human body. Here is the mapping of each index to its respective body joint:
 
-    0: Nose
-    1: Left Eye
-    2: Right Eye
-    3: Left Ear
-    4: Right Ear
-    5: Left Shoulder
-    6: Right Shoulder
-    7: Left Elbow
-    8: Right Elbow
-    9: Left Wrist
-    10: Right Wrist
-    11: Left Hip
-    12: Right Hip
-    13: Left Knee
-    14: Right Knee
-    15: Left Ankle
-    16: Right Ankle
+    0. Nose
+    1. Left Eye
+    2. Right Eye
+    3. Left Ear
+    4. Right Ear
+    5. Left Shoulder
+    6. Right Shoulder
+    7. Left Elbow
+    8. Right Elbow
+    9. Left Wrist
+    10. Right Wrist
+    11. Left Hip
+    12. Right Hip
+    13. Left Knee
+    14. Right Knee
+    15. Left Ankle
+    16. Right Ankle
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/11)
 
@@ -143,6 +143,12 @@ Use a trained YOLO11n-pose model to run predictions on images.
 
         # Predict with the model
         results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
+
+        # Access the results
+        for result in results:
+            xy = result.keypoints.xy  # x and y coordinates
+            xyn = result.keypoints.xyn  # normalized
+            kpts = result.keypoints.data  # x, y, visibility (if available)
         ```
 
     === "CLI"

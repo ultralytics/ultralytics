@@ -68,7 +68,7 @@ jobs:
           git pull origin "$GITHUB_REF"          
           git add .
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
-          if ! git diff --staged --quiet; then
+          if [[ "${{ github.event_name }}" == "pull_request" ]] && ! git diff --staged --quiet; then
             git commit -m "Auto-update Ultralytics Docs Reference by https://ultralytics.com/actions"
             git push
           else
@@ -92,7 +92,7 @@ jobs:
           git pull origin "$GITHUB_REF"
           git add --update  # only add updated files
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
-          if ! git diff --staged --quiet; then
+          if [[ "${{ github.event_name }}" == "pull_request" ]] && ! git diff --staged --quiet; then
             git commit -m "Auto-update Ultralytics Docs by https://ultralytics.com/actions"
             git push
           else

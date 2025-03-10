@@ -3,10 +3,11 @@ from collections.abc import Callable
 from types import SimpleNamespace
 from typing import List, Optional, Any
 
+import cv2
+import numpy as np
+
 from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, ops
 from ultralytics.utils.metrics import ClassifyMetrics, DetMetrics, OBBMetrics, PoseMetrics, SegmentMetrics
-import numpy as np
-import cv2
 
 try:
     assert not TESTS_RUNNING  # do not log pytest

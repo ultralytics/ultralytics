@@ -699,9 +699,6 @@ def handle_yolo_solutions(args: List[str]) -> None:
         )
         solution_name = "count"  # Default for invalid solution
 
-    if args and args[0] == "help":  # Add check for return if user call `yolo solutions help`
-        return
-
     if solution_name == "inference":
         checks.check_requirements("streamlit>=1.29.0")
         LOGGER.info("💡 Loading Ultralytics live inference app...")

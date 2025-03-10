@@ -38,7 +38,7 @@ os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is 
 DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 LINK_PATTERN = re.compile(r"(https?://[^\s()<>]*[^\s()<>.,:;!?\'\"])")
-PYTHON_PATTERN = re.compile(r"(<code[^>]*>)(.*?)(</code>)", re.DOTALL)  # >>> and ... on Python codeblock examples
+PYTHON_REPL_PATTERN = re.compile(r"(<code[^>]*>)(.*?)(</code>)", re.DOTALL)  # >>> and ... on Python codeblock examples
 
 
 def create_vercel_config():
@@ -198,7 +198,7 @@ def update_docs_html():
             content = file.read()
         updated_content = convert_plaintext_links_to_html(content)
         if "reference" in html_file.parts:
-            updated_content = PYTHON_PATTERN.sub(remove_python_repl_prompts, updated_content)
+            updated_content = PYTHON_REPL_PATTERN.sub(remove_python_repl_prompts, updated_content)
         if updated_content != content:
             with open(html_file, "w", encoding="utf-8") as file:
                 file.write(updated_content)

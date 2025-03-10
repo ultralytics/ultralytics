@@ -102,6 +102,8 @@ extra_css:
 extra_javascript:
   - javascript/extra.js
   - javascript/giscus.js
+  - https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js
+  - javascript/tablesort.js
 
 markdown_extensions:
   - admonition
@@ -139,6 +141,10 @@ validation:
     unrecognized_links: warn
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
+not_in_nav: |
+  /compare
+  /macros
+
 nav:
   - Home:
       - Home: index.md
@@ -254,6 +260,7 @@ nav:
       - YOLOv9: models/yolov9.md
       - YOLOv10: models/yolov10.md
       - YOLO11 🚀 NEW: models/yolo11.md
+      - YOLO12: models/yolo12.md
       - SAM (Segment Anything Model): models/sam.md
       - SAM 2 (Segment Anything Model 2): models/sam-2.md
       - MobileSAM (Mobile Segment Anything Model): models/mobile-sam.md
@@ -267,8 +274,9 @@ nav:
           - datasets/detect/index.md
           - Argoverse: datasets/detect/argoverse.md
           - COCO: datasets/detect/coco.md
-          - LVIS: datasets/detect/lvis.md
           - COCO8: datasets/detect/coco8.md
+          - COCO128: datasets/detect/coco128.md
+          - LVIS: datasets/detect/lvis.md
           - GlobalWheat2020: datasets/detect/globalwheat2020.md
           - Objects365: datasets/detect/objects365.md
           - OpenImagesV7: datasets/detect/open-images-v7.md
@@ -663,6 +671,7 @@ plugins:
       add_share_buttons: True
       add_css: False
       default_image: https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png
+      default_author: glenn.jocher@ultralytics.com
   - redirects:
       redirect_maps:
         hi/index.md: index.md

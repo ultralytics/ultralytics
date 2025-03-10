@@ -142,6 +142,13 @@ Use a trained YOLO11n-obb model to run predictions on images.
 
         # Predict with the model
         results = model("https://ultralytics.com/images/boats.jpg")  # predict on an image
+
+        # Access the results
+        for result in results:
+            xywhr = result.keypoints.xy  # center-x, center-y, width, height, angle (radians)
+            xyxyxyxy = result.obb.xyxyxyxy  # polygon format with 4-points
+            names = [result.names[cls.item()] for cls in result.obb.cls.int()]  # class name of each box
+            confs = result.obb.conf  # confidence score of each box
         ```
 
     === "CLI"

@@ -145,9 +145,9 @@ A function that relies solely on MNN for YOLO11 inference and preprocessing is i
                 y1 = int(y1 * scale)
                 x0 = int(x0 * scale)
                 x1 = int(x1 * scale)
-                // clamp to the original image size to handle cases where padding was applied
+                # clamp to the original image size to handle cases where padding was applied
                 x1 = min(iw, x1)
-                y1 = min(ih, y1);
+                y1 = min(ih, y1)
                 print(result_class_ids[i])
                 cv2.rectangle(original_image, (x0, y0), (x1, y1), (0, 0, 255), 2)
             cv2.imwrite("res.jpg", original_image)

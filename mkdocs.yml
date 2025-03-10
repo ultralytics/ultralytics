@@ -321,7 +321,7 @@ nav:
           - DOTA8: datasets/obb/dota8.md
       - Multi-Object Tracking:
           - datasets/track/index.md
-  - Solutions🚀:
+  - Solutions 🚀:
       - solutions/index.md
       - Object Counting: guides/object-counting.md
       - Object Cropping: guides/object-cropping.md

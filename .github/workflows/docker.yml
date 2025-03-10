@@ -52,7 +52,6 @@ jobs:
   docker:
     if: github.repository == 'ultralytics/ultralytics'
     name: Push
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       max-parallel: 10
@@ -61,27 +60,36 @@ jobs:
           - dockerfile: "Dockerfile"
             tags: "latest"
             platforms: "linux/amd64"
+            runs_on: "ubuntu-latest"
           - dockerfile: "Dockerfile-cpu"
             tags: "latest-cpu"
             platforms: "linux/amd64"
+            runs_on: "ubuntu-latest"
           - dockerfile: "Dockerfile-arm64"
             tags: "latest-arm64"
             platforms: "linux/arm64"
+            runs_on: "ubuntu-24.04-arm"
           - dockerfile: "Dockerfile-jetson-jetpack6"
             tags: "latest-jetson-jetpack6"
             platforms: "linux/arm64"
+            runs_on: "ubuntu-24.04-arm"
           - dockerfile: "Dockerfile-jetson-jetpack5"
             tags: "latest-jetson-jetpack5"
             platforms: "linux/arm64"
+            runs_on: "ubuntu-24.04-arm"
           - dockerfile: "Dockerfile-jetson-jetpack4"
             tags: "latest-jetson-jetpack4"
             platforms: "linux/arm64"
+            runs_on: "ubuntu-24.04-arm"
           - dockerfile: "Dockerfile-python"
             tags: "latest-python"
             platforms: "linux/amd64"
+            runs_on: "ubuntu-latest"
           # - dockerfile: "Dockerfile-conda"
           #   tags: "latest-conda"
           #   platforms: "linux/amd64"
+    
+    runs-on: ${{ matrix.runs_on }}
     outputs:
       new_release: ${{ steps.check_tag.outputs.new_release }}
     steps:
@@ -92,11 +100,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # copy full .git directory to access full git history in Docker images
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          image: tonistiigi/binfmt:qemu-v7.0.0-28 # pin version for JetPack 6 failing Docker build: https://github.com/ultralytics/ultralytics/pull/19216
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -161,6 +164,10 @@ jobs:
               -t ghcr.io/ultralytics/ultralytics:${{ matrix.tags }} \
               -t ghcr.io/ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
               .
+
+      - name: Check Environment
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile-conda' # arm64 images not supported on GitHub CI runners
+        run: docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "yolo checks && uv pip list"
 
       - name: Run Tests
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile-conda' # arm64 images not supported on GitHub CI runners

@@ -93,8 +93,6 @@ By benchmarking, you can ensure that your model not only performs well in contro
 
 The performance of YOLOv9 on the [COCO dataset](../datasets/detect/coco.md) exemplifies its significant advancements in real-time object detection, setting new benchmarks across various model sizes. Table 1 presents a comprehensive comparison of state-of-the-art real-time object detectors, illustrating YOLOv9's superior efficiency and [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
-**Table 1. Comparison of State-of-the-Art Real-Time Object Detectors**
-
 !!! tip "Performance"
 
     === "Detection (COCO)"

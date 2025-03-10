@@ -10,6 +10,8 @@ keywords: SAM 2, SAM 2.1, Segment Anything, video segmentation, image segmentati
 
 # SAM 2: Segment Anything Model 2
 
+<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/inference-with-meta-sam-and-sam2-using-ultralytics-python-package.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Inference with Segment Anything 2 In Colab"></a>
+
 SAM 2, the successor to Meta's [Segment Anything Model (SAM)](sam.md), is a cutting-edge tool designed for comprehensive object segmentation in both images and videos. It excels in handling complex visual data through a unified, promptable model architecture that supports real-time processing and zero-shot generalization.
 
 ![SAM 2 Example Results](https://github.com/ultralytics/docs/releases/download/0/sa-v-dataset.avif)
@@ -47,7 +49,7 @@ Users can iteratively refine the segmentation results by providing additional pr
 
 SAM 2 includes mechanisms to manage common video segmentation challenges, such as object occlusion and reappearance. It uses a sophisticated memory mechanism to keep track of objects across frames, ensuring continuity even when objects are temporarily obscured or exit and re-enter the scene.
 
-For a deeper understanding of SAM 2's architecture and capabilities, explore the [SAM 2 research paper](https://arxiv.org/abs/2401.12741).
+For a deeper understanding of SAM 2's architecture and capabilities, explore the [SAM 2 research paper](https://arxiv.org/abs/2408.00714).
 
 ## Performance and Technical Details
 
@@ -210,7 +212,7 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
         predictor = SAM2VideoPredictor(overrides=overrides)
 
         # Run inference with single point
-        results = predictor(source="test.mp4", points=[920, 470], labels=1)
+        results = predictor(source="test.mp4", points=[920, 470], labels=[1])
 
         # Run inference with multiple points
         results = predictor(source="test.mp4", points=[[920, 470], [909, 138]], labels=[1, 1])
@@ -336,7 +338,7 @@ SAM 2, the successor to Meta's [Segment Anything Model (SAM)](sam.md), is a cutt
 - **Interactive Refinement**: Allows users to iteratively refine segmentation results by providing additional prompts.
 - **Advanced Handling of Visual Challenges**: Manages common video segmentation challenges like object occlusion and reappearance.
 
-For more details on SAM 2's architecture and capabilities, explore the [SAM 2 research paper](https://arxiv.org/abs/2401.12741).
+For more details on SAM 2's architecture and capabilities, explore the [SAM 2 research paper](https://arxiv.org/abs/2408.00714).
 
 ### How can I use SAM 2 for real-time video segmentation?
 

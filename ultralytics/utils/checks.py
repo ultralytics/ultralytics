@@ -621,6 +621,7 @@ def collect_system_info():
         "Environment": ENVIRONMENT,
         "Python": PYTHON_VERSION,
         "Install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
+        "Path": str(ROOT),
         "RAM": f"{psutil.virtual_memory().total / gib:.2f} GB",
         "Disk": f"{(total - free) / gib:.1f}/{total / gib:.1f} GB",
         "CPU": get_cpu_info(),

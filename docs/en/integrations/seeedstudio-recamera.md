@@ -102,7 +102,7 @@ For detailed instructions and best practices related to the installation process
         model = YOLO("yolo11n.pt")
 
         # Export the model to ONNX format
-        model.export(format="onnx" opset=14)  # creates 'yolo11n.onnx'
+        model.export(format="onnx", opset=14)  # creates 'yolo11n.onnx'
         ```
 
     === "CLI"

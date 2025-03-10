@@ -1156,49 +1156,6 @@ class TorchVision(nn.Module):
         return y
 
 
-class Timm(nn.Module):
-    """
-    A wrapper class for timm models, allowing customization for unwrapping models,
-    truncating layers, and splitting outputs.
-    
-    Args:
-        model (str): Name of the timm model to load.
-        pretrained (bool, optional): Pre-trained weights to load. Default is True.
-        unwrap (bool, optional): If True, unwraps the model to a sequential containing all but the last `truncate` layers. Default is True.
-        truncate (int, optional): Number of layers to truncate from the end if `unwrap` is True. Default is 0.
-        split (bool, optional): Returns output from intermediate child modules as list. Default is False.    
-    """
-
-    def __init__(self, model, pretrained=True, unwrap=True, truncate=0, split=False):
-        """Load the model and pretrained weights from timm."""
-        import timm  # scope for faster 'import ultralytics'
-
-        super().__init__()        
-        if unwrap:
-            self.m = timm.create_model(model, features_only=True, pretrained=pretrained)
-            self.unwrap = True
-            self.truncate = truncate # truncate only for unwrap
-            self.split = split
-        else:
-            self.m = timm.create_model(model, features_only=False, pretrained=pretrained)
-            self.unwrap = False
-            self.truncate = False # truncate only for unwrap
-            self.split = False # split only for unwrap     
-            self.m.head = self.m.heads = nn.Identity()
-
-    def forward(self, x):
-        """Forward pass through the model."""
-        y = self.m(x)
-        if not self.unwrap:
-            return y 
-        if self.truncate:
-            y = y[:int(-1 * self.truncate)]
-        if self.split:
-            return y
-        else:
-            return y[-1]
-
-
 class AAttn(nn.Module):
     """
     Area-attention module for YOLO models, providing efficient attention mechanisms.
@@ -1399,3 +1356,59 @@ class A2C2f(nn.Module):
         if self.gamma is not None:
             return x + self.gamma.view(-1, len(self.gamma), 1, 1) * y
         return y
+
+
+class Timm(nn.Module):
+    """
+    A wrapper class for timm models, allowing customization for unwrapping models,
+    truncating layers, and splitting outputs.
+    
+    Args:
+        model (str): Name of the timm model to load.
+        pretrained (bool, optional): Pre-trained weights to load. Default is True.
+        unwrap (bool, optional): If True, unwraps the model to a sequential containing all but the last `truncate` layers. Default is True.
+        truncate (int, optional): Number of layers to truncate from the end if `unwrap` is True. Default is 0.
+        split (bool, optional): Returns output from intermediate child modules as list. Default is False.    
+    """
+
+    def __init__(self, model, pretrained=True, unwrap=True, truncate=0, split=False):
+        """Load the model and pretrained weights from timm."""
+        try:
+            import timm  # scope for faster 'import ultralytics'
+        except:
+            # Decide which version of timm to install based on torch version
+            from ultralytics.utils.checks import check_version
+            import subprocess
+            TORCH_1_9 = check_version(torch.__version__, "1.9.0")
+            if TORCH_1_9:
+                print("Installing the latest version of timm")            
+                subprocess.check_call(["pip", "install", f"timm==1.0.15"])            
+            else:
+                print("Installing timm version 0.3.3 for PyTorch version less than 1.9")
+                subprocess.check_call(["pip", "install", f"timm==0.3.3"])           
+            import timm                   
+
+        super().__init__()        
+        if unwrap:
+            self.m = timm.create_model(model, features_only=True, pretrained=pretrained)
+            self.unwrap = True
+            self.truncate = truncate # truncate only for unwrap
+            self.split = split
+        else:
+            self.m = timm.create_model(model, features_only=False, pretrained=pretrained)
+            self.unwrap = False
+            self.truncate = False # truncate only for unwrap
+            self.split = False # split only for unwrap     
+            self.m.head = self.m.heads = nn.Identity()
+
+    def forward(self, x):
+        """Forward pass through the model."""
+        y = self.m(x)
+        if not self.unwrap:
+            return y 
+        if self.truncate:
+            y = y[:int(-1 * self.truncate)]
+        if self.split:
+            return y
+        else:
+            return y[-1]

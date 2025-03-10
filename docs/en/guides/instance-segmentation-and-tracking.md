@@ -35,7 +35,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
 |                                                 Ultralytics Instance Segmentation 😍                                                 |                                                         Ultralytics Instance Segmentation with Object Tracking 🔥                                                         |
 
 !!! example "Instance segmentation using Ultralytics YOLO"
-    
+
     === "CLI"
 
         ```bash

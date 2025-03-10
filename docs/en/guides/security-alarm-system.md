@@ -51,7 +51,7 @@ The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanc
         password = "---- ---- ---- ----"  # 16-digits password generated via: https://myaccount.google.com/apppasswords
         to_email = "xyz@gmail.com"  # the receiver email address
 
-        # Initialze security alarm object
+        # Initialize security alarm object
         securityalarm = solutions.SecurityAlarm(
             show=True,  # display the output
             model="yolo11n.pt",  # i.e. yolo11s.pt, yolo11m.pt

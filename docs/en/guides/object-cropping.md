@@ -35,13 +35,13 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 |                                                      Suitcases Cropping at airport conveyor belt using Ultralytics YOLO11                                                      |
 
 !!! example "Object Cropping using Ultralytics YOLO"
-    
+
     === "CLI"
 
         ```bash
         # Crop the objects
         yolo solutions crop show=True
-    
+
         # Pass a source video
         yolo solutions crop source="path/to/video/file.mp4"
 

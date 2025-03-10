@@ -15,7 +15,7 @@ keywords: VisionEye, YOLO11, Ultralytics, object mapping, object tracking, dista
 </p>
 
 !!! example "VisionEye Mapping using Ultralytics YOLO"
-    
+
     === "CLI"
 
         ```bash

@@ -73,7 +73,7 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 
         # speed region points
         speed_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
-        
+
         # Initialize speed estimation object
         speedestimator = solutions.SpeedEstimator(
             show=True,  # display the output

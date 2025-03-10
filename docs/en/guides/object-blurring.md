@@ -28,7 +28,7 @@ Object blurring with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 - **Real-time Processing**: YOLO11's efficiency enables object blurring in real-time, making it suitable for applications requiring on-the-fly privacy enhancements in dynamic environments.
 
 !!! example "Object Blurring using Ultralytics YOLO"
-    
+
     === "CLI"
 
         ```bash

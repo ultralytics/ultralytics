@@ -66,7 +66,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
         queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # region points
         # queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]    # polygon points
 
-        # Initialze queue manager object
+        # Initialize queue manager object
         queuemanager = solutions.QueueManager(
             show=True,  # display the output
             model="yolo11n.pt",  # path to the YOLO11 model file

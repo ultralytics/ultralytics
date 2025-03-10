@@ -59,7 +59,7 @@ keywords: object counting, regions, YOLO11, computer vision, Ultralytics, effici
          w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
          video_writer = cv2.VideoWriter("region_counting.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-         # Initialze region counter object
+         # Initialize region counter object
          regioncounter = solutions.RegionCounter(
              show=True,  # display the frame
              region=region_points,  # pass region points

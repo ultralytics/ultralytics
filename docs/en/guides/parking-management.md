@@ -100,7 +100,7 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
 
             results = parkingmanager(im0)
 
-            # print(results)    # Access the output
+            # print(results)  # access the output
 
             video_writer.write(results.plot_im)  # write the processed frame.
 

@@ -28,6 +28,19 @@ Object blurring with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 - **Real-time Processing**: YOLO11's efficiency enables object blurring in real-time, making it suitable for applications requiring on-the-fly privacy enhancements in dynamic environments.
 
 !!! example "Object Blurring using Ultralytics YOLO"
+    
+    === "CLI"
+
+        ```bash
+        # Blur the objects
+        yolo solutions blur show=True
+
+        # Pass a source video
+        yolo solutions blur source="path/to/video/file.mp4"
+
+        # Blur the specific classes
+        yolo solutions blur classes=[0, 5]
+        ```
 
     === "Python"
 
@@ -43,13 +56,13 @@ Object blurring with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("object_blurring_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Init ObjectBlurrer
+        # Initialize object blurrer object
         blurrer = solutions.ObjectBlurrer(
             show=True,  # display the output
             model="yolo11n.pt",  # model for object blurring i.e. yolo11m.pt
-            # line_width=2,   # width of bounding box.
-            # classes=[0, 2], # count specific classes i.e, person and car with COCO pretrained model.
-            # blur_ratio=0.5, # Adjust percentage of blur intensity, the value in range 0.1 - 1.0
+            # line_width=2,  # width of bounding box.
+            # classes=[0, 2],  # count specific classes i.e, person and car with COCO pretrained model.
+            # blur_ratio=0.5,  # adjust percentage of blur intensity, the value in range 0.1 - 1.0
         )
 
         # Process video
@@ -62,7 +75,7 @@ Object blurring with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
             results = blurrer(im0)
 
-            # print(results")   # Access the output
+            # print(results")  # access the output
 
             video_writer.write(results.plot_im)  # write the processed frame.
 
@@ -115,8 +128,8 @@ blurrer = solutions.ObjectBlurrer(
     show=True,  # display the output
     model="yolo11n.pt",  # model="yolo11n-obb.pt" for object blurring using YOLO11 OBB model.
     blur_ratio=0.5,  # set blur percentage i.e 0.7 for 70% blurred detected objects
-    # line_width=2,         # Width of bounding box.
-    # classes=[0, 2],       # count specific classes i.e, person and car with COCO pretrained model.
+    # line_width=2,  # width of bounding box.
+    # classes=[0, 2],  # count specific classes i.e, person and car with COCO pretrained model.
 )
 
 # Process video

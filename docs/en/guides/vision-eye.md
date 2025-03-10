@@ -15,6 +15,19 @@ keywords: VisionEye, YOLO11, Ultralytics, object mapping, object tracking, dista
 </p>
 
 !!! example "VisionEye Mapping using Ultralytics YOLO"
+    
+    === "CLI"
+
+        ```bash
+        # Monitor objects position with visioneye
+        yolo solutions visioneye show=True
+
+        # Pass a source video
+        yolo solutions visioneye source="path/to/video/file.mp4"
+
+        # Monitor the specific classes
+        yolo solutions visioneye classes=[0, 5]
+        ```
 
     === "Python"
 
@@ -30,7 +43,7 @@ keywords: VisionEye, YOLO11, Ultralytics, object mapping, object tracking, dista
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("visioneye_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Init VisionEye
+        # Initialize vision eye object
         visioneye = solutions.VisionEye(
             show=True,  # display the output
             model="yolo11n.pt",  # use any model that Ultralytics support, i.e, YOLOv10
@@ -48,7 +61,7 @@ keywords: VisionEye, YOLO11, Ultralytics, object mapping, object tracking, dista
 
             results = visioneye(im0)
 
-            print(results)  # Access the output
+            print(results)  # access the output
 
             video_writer.write(results.plot_im)  # write the video file
 
@@ -96,7 +109,7 @@ assert cap.isOpened(), "Error reading video file"
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 video_writer = cv2.VideoWriter("vision-eye-mapping.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-# Init VisionEye
+# Init vision eye object
 visioneye = solutions.VisionEye(
     show=True,  # display the output
     model="yolo11n.pt",  # use any model that Ultralytics support, i.e, YOLOv10
@@ -113,7 +126,7 @@ while cap.isOpened():
 
     results = visioneye(im0)
 
-    print(results)  # Access the output
+    print(results)  # access the output
 
     video_writer.write(results.plot_im)  # write the video file
 

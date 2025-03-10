@@ -51,14 +51,14 @@ The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanc
         password = "---- ---- ---- ----"  # 16-digits password generated via: https://myaccount.google.com/apppasswords
         to_email = "xyz@gmail.com"  # the receiver email address
 
-        # Init SecurityAlarm
+        # Initialze security alarm object
         securityalarm = solutions.SecurityAlarm(
             show=True,  # display the output
             model="yolo11n.pt",  # i.e. yolo11s.pt, yolo11m.pt
-            records=1,  # Total detections count to send an email
+            records=1,  # total detections count to send an email
         )
 
-        securityalarm.authenticate(from_email, password, to_email)  # Authenticate the email server
+        securityalarm.authenticate(from_email, password, to_email)  # authenticate the email server
 
         # Process video
         while cap.isOpened():
@@ -70,7 +70,7 @@ The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanc
 
             results = securityalarm(im0)
 
-            # print(results)    # Access the output
+            # print(results)  # access the output
 
             video_writer.write(results.plot_im)  # write the processed frame.
 

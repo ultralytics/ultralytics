@@ -40,16 +40,16 @@ This guide provides a comprehensive overview of three fundamental types of [data
         ```bash
          yolo solutions analytics show=True
 
-        # pass the source
+        # Pass the source
         yolo solutions analytics source="path/to/video/file.mp4"
 
-        # generate the pie chart
+        # Generate the pie chart
         yolo solutions analytics analytics_type="pie" show=True
 
-        # generate the bar plots
+        # Generate the bar plots
         yolo solutions analytics analytics_type="bar" show=True
 
-        # generate the area plots
+        # Generate the area plots
         yolo solutions analytics analytics_type="area" show=True
         ```
 
@@ -69,15 +69,15 @@ This guide provides a comprehensive overview of three fundamental types of [data
             "analytics_output.avi",
             cv2.VideoWriter_fourcc(*"MJPG"),
             fps,
-            (1280, 720),  # This is fixed
+            (1280, 720),  # this is fixed
         )
 
-        # Init Analytics
+        # Initialize analytics object
         analytics = solutions.Analytics(
             show=True,  # display the output
             analytics_type="line",  # pass the analytics type, could be "pie", "bar" or "area".
             model="yolo11n.pt",  # path to the YOLO11 model file
-            # classes=[0, 2],           # display analytics for specific detection classes
+            # classes=[0, 2],  # display analytics for specific detection classes
         )
 
         # Process video
@@ -88,7 +88,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
                 frame_count += 1
                 results = analytics(im0, frame_count)  # update analytics graph every frame
 
-                # print(results)    # Access the output
+                # print(results)  # access the output
 
                 out.write(results.plot_im)  # write the video file
             else:
@@ -147,7 +147,7 @@ out = cv2.VideoWriter(
     "ultralytics_analytics.avi",
     cv2.VideoWriter_fourcc(*"MJPG"),
     fps,
-    (1920, 1080),  # This is fixed
+    (1280, 720),  # this is fixed
 )
 
 analytics = solutions.Analytics(
@@ -197,7 +197,7 @@ out = cv2.VideoWriter(
     "ultralytics_analytics.avi",
     cv2.VideoWriter_fourcc(*"MJPG"),
     fps,
-    (1920, 1080),  # This is fixed
+    (1280, 720),  # this is fixed
 )
 
 analytics = solutions.Analytics(
@@ -247,7 +247,7 @@ out = cv2.VideoWriter(
     "ultralytics_analytics.avi",
     cv2.VideoWriter_fourcc(*"MJPG"),
     fps,
-    (1920, 1080),  # This is fixed
+    (1280, 720),  # this is fixed
 )
 
 analytics = solutions.Analytics(
@@ -292,7 +292,7 @@ out = cv2.VideoWriter(
     "ultralytics_analytics.avi",
     cv2.VideoWriter_fourcc(*"MJPG"),
     fps,
-    (1920, 1080),  # This is fixed
+    (1280, 720),  # this is fixed
 )
 
 analytics = solutions.Analytics(

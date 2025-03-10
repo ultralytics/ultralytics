@@ -69,13 +69,13 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Init ObjectCounter
+        # Initialize object counter object
         counter = solutions.ObjectCounter(
             show=True,  # display the output
             region=region_points,  # pass region points
             model="yolo11n.pt",  # model="yolo11n-obb.pt" for object counting with OBB model.
-            # classes=[0, 2],           # count specific classes i.e. person and car with COCO pretrained model.
-            # tracker="botsort.yaml"    # Choose trackers i.e "bytetrack.yaml"
+            # classes=[0, 2],  # count specific classes i.e. person and car with COCO pretrained model.
+            # tracker="botsort.yaml",  # choose trackers i.e "bytetrack.yaml"
         )
 
         # Process video
@@ -88,7 +88,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
             results = counter(im0)
 
-            # print(results)    # Access the output
+            # print(results)  # access the output
 
             video_writer.write(results.plot_im)  # write the processed frame.
 

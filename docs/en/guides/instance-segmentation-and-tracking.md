@@ -35,6 +35,19 @@ There are two types of instance segmentation tracking available in the Ultralyti
 |                                                 Ultralytics Instance Segmentation 😍                                                 |                                                         Ultralytics Instance Segmentation with Object Tracking 🔥                                                         |
 
 !!! example "Instance segmentation using Ultralytics YOLO"
+    
+    === "CLI"
+
+        ```bash
+        # Instance segmentation using Ultralytics YOLO11
+        yolo solutions isegment show=True
+
+        # Pass a source video
+        yolo solutions isegment source="path/to/video/file.mp4"
+
+        # Monitor the specific classes
+        yolo solutions isegment classes=[0, 5]
+        ```
 
     === "Python"
 
@@ -50,11 +63,11 @@ There are two types of instance segmentation tracking available in the Ultralyti
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("isegment_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Init InstanceSegmentation
+        # Initialize instance segmentation object
         isegment = solutions.InstanceSegmentation(
             show=True,  # display the output
             model="yolo11n-seg.pt",  # model="yolo11n-seg.pt" for object segmentation using YOLO11.
-            # classes=[0, 2],                   # segment specific classes i.e, person and car with pretrained model.
+            # classes=[0, 2],  # segment specific classes i.e, person and car with pretrained model.
         )
 
         # Process video
@@ -67,7 +80,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
 
             results = isegment(im0)
 
-            # print(results)    # Access the output
+            # print(results)  # access the output
 
             video_writer.write(results.plot_im)  # write the processed frame.
 
@@ -117,7 +130,7 @@ video_writer = cv2.VideoWriter("instance-segmentation.avi", cv2.VideoWriter_four
 
 # Init InstanceSegmentation
 isegment = solutions.InstanceSegmentation(
-    show=True,  # Display the output
+    show=True,  # display the output
     model="yolo11n-seg.pt",  # model="yolo11n-seg.pt" for object segmentation using YOLO11.
 )
 

@@ -73,13 +73,13 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
         # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]              # rectangle region
         # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]   # polygon points
 
-        # Init heatmap
+        # Initialize heatmap object
         heatmap = solutions.Heatmap(
-            show=True,  # Display the output
-            model="yolo11n.pt",  # Path to the YOLO11 model file
-            colormap=cv2.COLORMAP_PARULA,  # Colormap of heatmap
-            # region=region_points,         # object counting with heatmaps, you can pass region_points
-            # classes=[0, 2],               # generate heatmap for specific classes i.e person and car.
+            show=True,  # display the output
+            model="yolo11n.pt",  # path to the YOLO11 model file
+            colormap=cv2.COLORMAP_PARULA,  # colormap of heatmap
+            # region=region_points,  # object counting with heatmaps, you can pass region_points
+            # classes=[0, 2],  # generate heatmap for specific classes i.e person and car.
         )
 
         # Process video
@@ -92,7 +92,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 
             results = heatmap(im0)
 
-            # print(results)    # Access the output
+            # print(results)  # access the output
 
             video_writer.write(results.plot_im)  # write the processed frame.
 

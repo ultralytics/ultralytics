@@ -73,13 +73,14 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 
         # speed region points
         speed_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
-
+        
+        # Initialize speed estimation object
         speedestimator = solutions.SpeedEstimator(
             show=True,  # display the output
             model="yolo11n.pt",  # path to the YOLO11 model file.
             region=speed_region,  # pass region points
-            # classes=[0, 2],           # estimate speed of specific classes.
-            # line_width=2,             # Adjust the line width for bounding boxes
+            # classes=[0, 2],  # estimate speed of specific classes.
+            # line_width=2,  # adjust the line width for bounding boxes
         )
 
         # Process video
@@ -92,7 +93,7 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 
             results = speedestimator(im0)
 
-            # print(results)    # Access the output
+            # print(results)  # access the output
 
             video_writer.write(results.plot_im)  # write the processed frame.
 

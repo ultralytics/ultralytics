@@ -70,7 +70,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
             show=True,  # display the frame
             kpts=[6, 8, 10],  # keypoints for monitoring specific exercise, by default it's for pushup
             model="yolo11n-pose.pt",  # path to the YOLO11 pose estimation model file
-            # line_width=2,             # adjust the line width for bounding boxes and text display
+            # line_width=2,  # adjust the line width for bounding boxes and text display
         )
 
         # Process video
@@ -83,7 +83,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 
             results = gym(im0)
 
-            # print(results)    # Access the output
+            # print(results)  # access the output
 
             video_writer.write(results.plot_im)  # write the processed frame.
 

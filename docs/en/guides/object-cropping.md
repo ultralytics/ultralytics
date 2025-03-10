@@ -35,6 +35,19 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 |                                                      Suitcases Cropping at airport conveyor belt using Ultralytics YOLO11                                                      |
 
 !!! example "Object Cropping using Ultralytics YOLO"
+    
+    === "CLI"
+
+        ```bash
+        # Crop the objects
+        yolo solutions crop show=True
+    
+        # Pass a source video
+        yolo solutions crop source="path/to/video/file.mp4"
+
+        # Crop specific classes
+        yolo solutions crop classes=[0, 2]
+        ```
 
     === "Python"
 
@@ -46,12 +59,12 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         cap = cv2.VideoCapture("Path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
 
-        # Init ObjectCropper
+        # Initialize object cropper object
         cropper = solutions.ObjectCropper(
             show=True,  # display the output
             model="yolo11n.pt",  # model for object cropping i.e yolo11x.pt.
             classes=[0, 2],  # crop specific classes i.e. person and car with COCO pretrained model.
-            # conf=0.5  # adjust confidence threshold for the objects.
+            # conf=0.5,  # adjust confidence threshold for the objects.
             # crop_dir="cropped-detections",  # set the directory name for cropped detections
         )
 
@@ -65,7 +78,7 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
             results = cropper(im0)
 
-            # print(results)    # Access the output
+            # print(results)  # access the output
 
         cap.release()
         cv2.destroyAllWindows()  # destroy all opened windows

@@ -69,12 +69,12 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("trackzone_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Init TrackZone (Object Tracking in Zones, not complete frame)
+        # Init trackzone (object tracking in zones, not complete frame)
         trackzone = solutions.TrackZone(
             show=True,  # display the output
             region=region_points,  # pass region points
             model="yolo11n.pt",  # use any model that Ultralytics support, i.e. YOLOv9, YOLOv10
-            # line_width=2,             # Adjust the line width for bounding boxes and text display
+            # line_width=2,  # adjust the line width for bounding boxes and text display
         )
 
         # Process video
@@ -86,7 +86,7 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
 
             results = trackzone(im0)
 
-            # print(results)    # Access the output
+            # print(results)  # access the output
 
             video_writer.write(results.plot_im)  # write the video file
 
@@ -141,10 +141,10 @@ region_points = [(150, 150), (1130, 150), (1130, 570), (150, 570)]
 # Video writer
 video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-# Init TrackZone (Object Tracking in Zones, not complete frame)
+# Init trackzone (object tracking in zones, not complete frame)
 trackzone = solutions.TrackZone(
-    show=True,  # Display the output
-    region=region_points,  # Pass region points
+    show=True,  # display the output
+    region=region_points,  # pass region points
     model="yolo11n.pt",
 )
 
@@ -170,9 +170,9 @@ Configuring zone points for video processing with Ultralytics TrackZone is simpl
 # Define region points
 region_points = [(150, 150), (1130, 150), (1130, 570), (150, 570)]
 
-# Init TrackZone (Object Tracking in Zones, not complete frame)
+# Initialize trackzone
 trackzone = solutions.TrackZone(
-    show=True,  # Display the output
-    region=region_points,  # Pass region points
+    show=True,  # display the output
+    region=region_points,  # pass region points
 )
 ```

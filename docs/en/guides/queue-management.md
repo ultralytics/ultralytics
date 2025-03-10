@@ -66,7 +66,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
         queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # region points
         # queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]    # polygon points
 
-        # Init QueueManager
+        # Initialze queue manager object
         queuemanager = solutions.QueueManager(
             show=True,  # display the output
             model="yolo11n.pt",  # path to the YOLO11 model file
@@ -81,7 +81,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
                 break
             results = queuemanager(im0)
 
-            # print(results)    # Access the output
+            # print(results)  # access the output
 
             video_writer.write(results.plot_im)  # write the processed frame.
 

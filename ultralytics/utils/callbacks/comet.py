@@ -1,6 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
+from collections.abc import Callable
 from types import SimpleNamespace
+from typing import Any, List, Optional
+
+import cv2
+import numpy as np
 
 from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING, ops
 from ultralytics.utils.metrics import ClassifyMetrics, DetMetrics, OBBMetrics, PoseMetrics, SegmentMetrics
@@ -16,7 +20,7 @@ try:
     from pathlib import Path
 
     # Ensures certain logging functions only run for supported tasks
-    COMET_SUPPORTED_TASKS = ["detect"]
+    COMET_SUPPORTED_TASKS = ["detect", "segment"]
 
     # Names of plots created by Ultralytics that are logged to Comet
     CONFUSION_MATRIX_PLOT_NAMES = "confusion_matrix", "confusion_matrix_normalized"
@@ -177,7 +181,7 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
     return {"name": "ground_truth", "data": data}
 
 
-def _format_prediction_annotations_for_detection(image_path, metadata, class_label_map=None, class_map=None):
+def _format_prediction_annotations(image_path, metadata, class_label_map=None, class_map=None):
     """Format YOLO predictions for object detection visualization."""
     stem = image_path.stem
     image_id = int(stem) if stem.isnumeric() else stem
@@ -193,6 +197,12 @@ def _format_prediction_annotations_for_detection(image_path, metadata, class_lab
         # with prediction's category ID indices (can start from one)
         label_index_offset = sorted(class_map)[0]
 
+    try:
+        # import pycotools utilities to decompress annotations for various tasks, e.g. segmentation
+        from pycocotools.mask import decode  # noqa
+    except ImportError:
+        decode = None
+
     data = []
     for prediction in predictions:
         boxes = prediction["bbox"]
@@ -201,9 +211,31 @@ def _format_prediction_annotations_for_detection(image_path, metadata, class_lab
         if class_label_map:
             cls_label = str(class_label_map[cls_label - label_index_offset])
 
-        data.append({"boxes": [boxes], "label": cls_label, "score": score})
+        annotation_data = {"boxes": [boxes], "label": cls_label, "score": score}
+
+        if decode is not None:
+            # do segmentation processing only if we are able to decode it
+            segments = prediction.get("segmentation", None)
+            if segments is not None:
+                segments = _extract_segmentation_annotation(segments, decode)
+                if segments is not None:
+                    annotation_data["points"] = segments
+
+        data.append(annotation_data)
 
     return {"name": "prediction", "data": data}
+
+
+def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) -> Optional[List[List[Any]]]:
+    """Extracts segmentation annotation from compressed segmentations as list of polygons."""
+    try:
+        mask = decode(segmentation_raw)
+        contours, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        annotations = [np.array(polygon).squeeze() for polygon in contours if len(polygon) >= 3]
+        return [annotation.ravel().tolist() for annotation in annotations]
+    except Exception as e:
+        LOGGER.warning(f"COMET WARNING: Failed to extract segmentation annotation: {e}")
+    return None
 
 
 def _fetch_annotations(img_idx, image_path, batch, prediction_metadata_map, class_label_map, class_map):
@@ -211,7 +243,7 @@ def _fetch_annotations(img_idx, image_path, batch, prediction_metadata_map, clas
     ground_truth_annotations = _format_ground_truth_annotations_for_detection(
         img_idx, image_path, batch, class_label_map
     )
-    prediction_annotations = _format_prediction_annotations_for_detection(
+    prediction_annotations = _format_prediction_annotations(
         image_path, prediction_metadata_map, class_label_map, class_map
     )
 

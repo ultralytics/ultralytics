@@ -212,7 +212,7 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
         predictor = SAM2VideoPredictor(overrides=overrides)
 
         # Run inference with single point
-        results = predictor(source="test.mp4", points=[920, 470], labels=1)
+        results = predictor(source="test.mp4", points=[920, 470], labels=[1])
 
         # Run inference with multiple points
         results = predictor(source="test.mp4", points=[[920, 470], [909, 138]], labels=[1, 1])

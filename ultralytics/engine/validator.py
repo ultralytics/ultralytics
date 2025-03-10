@@ -216,7 +216,7 @@ class BaseValidator:
                 )
             )
             if self.args.save_json and self.jdict:
-                with open(str(self.save_dir / "predictions.json"), "w") as f:
+                with open(str(self.save_dir / "predictions.json"), "w", encoding="utf-8") as f:
                     LOGGER.info(f"Saving {f.name}...")
                     json.dump(self.jdict, f)  # flatten and save
                 stats = self.eval_json(stats)  # update stats

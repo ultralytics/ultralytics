@@ -15,13 +15,13 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/mUybgOlSxxA"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/BPYkGt3odNk"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Setup NVIDIA Jetson with Ultralytics YOLO11
+  <strong>Watch:</strong> How to use Ultralytics YOLO11 on NVIDIA JETSON Devices
 </p>
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/nvidia-jetson-ecosystem.avif" alt="NVIDIA Jetson Ecosystem">
@@ -213,11 +213,11 @@ The above ultralytics installation will install Torch and Torchvision. However, 
     pip uninstall torch torchvision
     ```
 
-2. Install `torch 2.1.0` and `torchvision 0.16.2` according to JP5.1.2
+2. Install `torch 2.2.0` and `torchvision 0.17.2` according to JP5.1.2
 
     ```bash
-    pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl
-    pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.16.2+c6f3977-cp38-cp38-linux_aarch64.whl
+    pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.2.0-cp38-cp38-linux_aarch64.whl
+    pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.17.2+c1d70fe-cp38-cp38-linux_aarch64.whl
     ```
 
 !!! note
@@ -289,10 +289,13 @@ The YOLO11n model in PyTorch format is converted to TensorRT to run inference wi
 
 The following Jetson devices are equipped with DLA hardware:
 
-- Jetson Orin NX 16GB
-- Jetson AGX Orin Series
-- Jetson AGX Xavier Series
-- Jetson Xavier NX Series
+| Jetson Device            | DLA Cores | DLA Max Frequency |
+| ------------------------ | --------- | ----------------- |
+| Jetson AGX Orin Series   | 2         | 1.6 GHz           |
+| Jetson Orin NX 16GB      | 2         | 614 MHz           |
+| Jetson Orin NX 8GB       | 1         | 614 MHz           |
+| Jetson AGX Xavier Series | 2         | 1.4 GHz           |
+| Jetson Xavier NX Series  | 2         | 1.1 GHz           |
 
 !!! example
 
@@ -318,6 +321,7 @@ The following Jetson devices are equipped with DLA hardware:
 
         ```bash
         # Export a YOLO11n PyTorch model to TensorRT format with DLA enabled (only works with FP16 or INT8)
+        # Once DLA core number is specified at export, it will use the same core at inference
         yolo export model=yolo11n.pt format=engine device="dla:0" half=True  # dla:0 or dla:1 corresponds to the DLA cores
 
         # Run inference with the exported model on the DLA
@@ -356,7 +360,7 @@ The below table represents the benchmark results for five different models (YOLO
 
 #### NVIDIA Jetson Orin Nano Super Developer Kit
 
-!!! performance
+!!! tip "Performance"
 
     === "YOLO11n"
 
@@ -452,7 +456,7 @@ The below table represents the benchmark results for five different models (YOLO
 
 #### NVIDIA Jetson Orin NX 16GB
 
-!!! performance
+!!! tip "Performance"
 
     === "YOLO11n"
 

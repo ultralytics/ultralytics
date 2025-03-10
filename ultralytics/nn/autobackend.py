@@ -133,7 +133,7 @@ class AutoBackend(nn.Module):
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
-        end2end = False  # default end2end
+        end2end, dynamic = False, False
         model, metadata, task = None, None, None
 
         # Set device
@@ -198,12 +198,13 @@ class AutoBackend(nn.Module):
             import onnxruntime
 
             providers = ["CPUExecutionProvider"]
-            if cuda and "CUDAExecutionProvider" in onnxruntime.get_available_providers():
-                providers.insert(0, "CUDAExecutionProvider")
-            elif cuda:  # Only log warning if CUDA was requested but unavailable
-                LOGGER.warning("WARNING ⚠️ Failed to start ONNX Runtime with CUDA. Using CPU...")
-                device = torch.device("cpu")
-                cuda = False
+            if cuda:
+                if "CUDAExecutionProvider" in onnxruntime.get_available_providers():
+                    providers.insert(0, "CUDAExecutionProvider")
+                else:  # Only log warning if CUDA was requested but unavailable
+                    LOGGER.warning("WARNING ⚠️ Failed to start ONNX Runtime with CUDA. Using CPU...")
+                    device = torch.device("cpu")
+                    cuda = False
             LOGGER.info(f"Using ONNX Runtime {providers[0]}")
             if onnx:
                 session = onnxruntime.InferenceSession(w, providers=providers)
@@ -224,7 +225,7 @@ class AutoBackend(nn.Module):
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
             dynamic = isinstance(session.get_outputs()[0].shape[0], str)
-            fp16 = True if "float16" in session.get_inputs()[0].type else False
+            fp16 = "float16" in session.get_inputs()[0].type
             if not dynamic:
                 io = session.io_binding()
                 bindings = []
@@ -244,7 +245,7 @@ class AutoBackend(nn.Module):
         # OpenVINO
         elif xml:
             LOGGER.info(f"Loading {w} for OpenVINO inference...")
-            check_requirements("openvino>=2024.0.0")
+            check_requirements("openvino>=2024.0.0,!=2025.0.0")
             import openvino as ov
 
             core = ov.Core()
@@ -293,6 +294,9 @@ class AutoBackend(nn.Module):
                     metadata = json.loads(f.read(meta_len).decode("utf-8"))  # read metadata
                 except UnicodeDecodeError:
                     f.seek(0)  # engine file may lack embedded Ultralytics metadata
+                dla = metadata.get("dla", None)
+                if dla is not None:
+                    runtime.DLA_core = int(dla)
                 model = runtime.deserialize_cuda_engine(f.read())  # read engine
 
             # Model context
@@ -514,6 +518,7 @@ class AutoBackend(nn.Module):
             names = metadata["names"]
             kpt_shape = metadata.get("kpt_shape")
             end2end = metadata.get("args", {}).get("nms", False)
+            dynamic = metadata.get("args", {}).get("dynamic", dynamic)
         elif not (pt or triton or nn_module):
             LOGGER.warning(f"WARNING ⚠️ Metadata not found for 'model={weights}'")
 
@@ -598,7 +603,7 @@ class AutoBackend(nn.Module):
                     results[userdata] = request.results
 
                 # Create AsyncInferQueue, set the callback and start asynchronous inference for each input image
-                async_queue = self.ov.runtime.AsyncInferQueue(self.ov_compiled_model)
+                async_queue = self.ov.AsyncInferQueue(self.ov_compiled_model)
                 async_queue.set_callback(callback)
                 for i in range(n):
                     # Start async inference with userdata=i to specify the position in results list
@@ -776,7 +781,7 @@ class AutoBackend(nn.Module):
         saved_model, pb, tflite, edgetpu, tfjs, ncnn or paddle.
 
         Args:
-            p: path to the model file. Defaults to path/to/model.pt
+            p (str): path to the model file. Defaults to path/to/model.pt
 
         Examples:
             >>> model = AutoBackend(weights="path/to/model.onnx")

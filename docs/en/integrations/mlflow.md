@@ -70,7 +70,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
     export MLFLOW_EXPERIMENT_NAME=<your_experiment_name>
     ```
 
-    Or use the `project=<project>` argument when training a YOLO model, i.e. `yolo train project=my_project`.
+    Or use the `mlflow_exp_name=<mlflow_exp_name>` argument when training a YOLO model, i.e. `yolo train mlflow_exp_name=my_mlflow_exp_name`.
 
 2. **Set a Run Name**: Similar to setting a project name, you can set the run name via an environment variable:
 
@@ -78,7 +78,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
     export MLFLOW_RUN=<your_run_name>
     ```
 
-    Or use the `name=<name>` argument when training a YOLO model, i.e. `yolo train project=my_project name=my_name`.
+    Or use the `mlflow_run_name=<mlflow_run_name>` argument when training a YOLO model, i.e. `yolo train mlflow_exp_name=my_mlflow_exp_name mlflow_run_name=my_mlflow_run_name`.
 
 3. **Start Local MLflow Server**: To start tracking, use:
 

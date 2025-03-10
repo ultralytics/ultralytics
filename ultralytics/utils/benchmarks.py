@@ -243,7 +243,7 @@ class RF100Benchmark:
         os.mkdir("ultralytics-benchmarks")
         safe_download("https://github.com/ultralytics/assets/releases/download/v0.0.0/datasets_links.txt")
 
-        with open(ds_link_txt) as file:
+        with open(ds_link_txt, encoding="utf-8") as file:
             for line in file:
                 try:
                     _, url, workspace, project, version = re.split("/+", line.strip())
@@ -270,11 +270,11 @@ class RF100Benchmark:
         Examples:
             >>> RF100Benchmark.fix_yaml("path/to/data.yaml")
         """
-        with open(path) as file:
+        with open(path, encoding="utf-8") as file:
             yaml_data = yaml.safe_load(file)
         yaml_data["train"] = "train/images"
         yaml_data["val"] = "valid/images"
-        with open(path, "w") as file:
+        with open(path, "w", encoding="utf-8") as file:
             yaml.safe_dump(yaml_data, file)
 
     def evaluate(self, yaml_path, val_log_file, eval_log_file, list_ind):
@@ -296,7 +296,7 @@ class RF100Benchmark:
             >>> benchmark.evaluate("path/to/data.yaml", "path/to/val_log.txt", "path/to/eval_log.txt", 0)
         """
         skip_symbols = ["🚀", "⚠️", "💡", "❌"]
-        with open(yaml_path) as stream:
+        with open(yaml_path, encoding="utf-8") as stream:
             class_names = yaml.safe_load(stream)["names"]
         with open(val_log_file, encoding="utf-8") as f:
             lines = f.readlines()
@@ -330,7 +330,7 @@ class RF100Benchmark:
             print("There's only one dict res")
             map_val = [res["map50"] for res in eval_lines][0]
 
-        with open(eval_log_file, "a") as f:
+        with open(eval_log_file, "a", encoding="utf-8") as f:
             f.write(f"{self.ds_names[list_ind]}: {map_val}\n")
 
 

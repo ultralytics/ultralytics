@@ -475,7 +475,10 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
     # Run inference on an image
     results = model("https://ultralytics.com/images/bus.jpg")
     results = model(
-        ["https://ultralytics.com/images/bus.jpg", "https://ultralytics.com/images/zidane.jpg"]
+        [
+            "https://ultralytics.com/images/bus.jpg", 
+            "https://ultralytics.com/images/zidane.jpg",
+         ]
     )  # batch inference
     ```
 

@@ -40,7 +40,6 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
 
     Choosing parking points is a critical and complex task in parking management systems. Ultralytics streamlines this process by providing a tool "Parking slots annotator" that lets you define parking lot areas, which can be utilized later for additional processing.
 
-
 **Step-1:** Capture a frame from the video or camera stream where you want to manage the parking lot.
 
 **Step-2:** Use the provided code to launch a graphical interface, where you can select an image and start outlining parking regions by mouse click to create polygons.

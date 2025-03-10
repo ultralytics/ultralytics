@@ -515,7 +515,7 @@ def merge_equals_args(args: List[str]) -> List[str]:
 
     Examples:
         >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3", "imgsz=[3,", "640,", "640]"]
-        >>> merge_equals_args(args)
+        >>> merge_and_join_args(args)
         ['arg1=value', 'arg2=value2', 'arg3=value3', 'imgsz=[3,640,640]']
     """
     new_args = []
@@ -687,19 +687,21 @@ def handle_yolo_solutions(args: List[str]) -> None:
     check_dict_alignment(full_args_dict, overrides)  # dict alignment
 
     # Get solution name
-    if args[0] == "help":
-        LOGGER.info(SOLUTIONS_HELP_MSG)
-        return  # Early return for 'help' case
-    elif args[0] in SOLUTION_MAP:
-        solution_name = args.pop(0)  # Extract the solution name directly
+    if args and args[0] in SOLUTION_MAP:
+        if args[0] != "help":
+            s_n = args.pop(0)  # Extract the solution name directly
+        else:
+            LOGGER.info(SOLUTIONS_HELP_MSG)
     else:
         LOGGER.warning(
-            f"❌ '{args[0]}' is not a valid solution. 💡 Defaulting to 'count'.\n"
-            f"🚀 Available solutions: {', '.join(list(SOLUTION_MAP.keys())[:-1])}\n"
+            f"⚠️ No valid solution provided. Using default 'count'. Available: {', '.join(SOLUTION_MAP.keys())}"
         )
-        solution_name = "count"  # Default for invalid solution
+        s_n = "count"  # Default solution if none provided
 
-    if solution_name == "inference":
+    if args and args[0] == "help":  # Add check for return if user call `yolo solutions help`
+        return
+
+    if s_n == "inference":
         checks.check_requirements("streamlit>=1.29.0")
         LOGGER.info("💡 Loading Ultralytics live inference app...")
         subprocess.run(
@@ -713,23 +715,31 @@ def handle_yolo_solutions(args: List[str]) -> None:
             ]
         )
     else:
-        from ultralytics import solutions
+        from ultralytics import solutions  # import ultralytics solutions
 
         solution = getattr(solutions, SOLUTION_MAP[s_n])(
             IS_CLI=True, **overrides
         )  # get solution class i.e ObjectCounter
 
         cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
-        # extract width, height and fps of the video file, create save directory and initialize video writer
-        w, h, fps = (
-            int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)
-          )
-        if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
-            w, h = 1280, 720
 
-        save_dir = get_save_dir(SimpleNamespace(project="runs/solutions", name="exp", exist_ok=False))
-        save_dir.mkdir(parents=True)  # create the output directory i.e. runs/solutions/exp
-        vw = cv2.VideoWriter(str(save_dir / f"{solution_name}.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        # extract width, height and fps of the video file, create save directory and initialize video writer
+        import os  # for directory creation
+        from pathlib import Path
+
+        from ultralytics.utils.files import increment_path  # for output directory path update
+
+        if s_n != "crop":
+            w, h, fps = (
+                int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)
+            )
+            if s_n == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
+                w, h = 1280, 720
+
+            save_dir = increment_path(Path("runs") / "solutions" / "exp", exist_ok=False)
+            save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory
+            vw = cv2.VideoWriter(os.path.join(save_dir, "solution.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+
         try:  # Process video frames
             f_n = 0  # frame number, required for analytical graphs
             while cap.isOpened():
@@ -738,7 +748,8 @@ def handle_yolo_solutions(args: List[str]) -> None:
                     break
                 results = solution(frame, f_n := f_n + 1) if s_n == "analytics" else solution(frame)
                 LOGGER.info(f"🚀 Results: {results}")
-                vw.write(results.plot_im)
+                if s_n != "crop":
+                    vw.write(results.plot_im)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
         finally:

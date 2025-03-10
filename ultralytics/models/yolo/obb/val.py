@@ -28,7 +28,7 @@ class OBBValidator(DetectionValidator):
         """Initialize OBBValidator and set task to 'obb', metrics to OBBMetrics."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.args.task = "obb"
-        self.metrics = OBBMetrics(save_dir=self.save_dir, plot=True, on_plot=self.on_plot)
+        self.metrics = OBBMetrics(save_dir=self.save_dir, plot=True)
 
     def init_metrics(self, model):
         """Initialize evaluation metrics for YOLO."""
@@ -149,7 +149,7 @@ class OBBValidator(DetectionValidator):
                 classname = self.names[d["category_id"] - 1].replace(" ", "-")
                 p = d["poly"]
 
-                with open(f"{pred_txt / f'Task1_{classname}'}.txt", "a") as f:
+                with open(f"{pred_txt / f'Task1_{classname}'}.txt", "a", encoding="utf-8") as f:
                     f.writelines(f"{image_id} {score} {p[0]} {p[1]} {p[2]} {p[3]} {p[4]} {p[5]} {p[6]} {p[7]}\n")
             # Save merged results, this could result slightly lower map than using official merging script,
             # because of the probiou calculation.
@@ -183,7 +183,7 @@ class OBBValidator(DetectionValidator):
                     p = [round(i, 3) for i in x[:-2]]  # poly
                     score = round(x[-2], 3)
 
-                    with open(f"{pred_merged_txt / f'Task1_{classname}'}.txt", "a") as f:
+                    with open(f"{pred_merged_txt / f'Task1_{classname}'}.txt", "a", encoding="utf-8") as f:
                         f.writelines(f"{image_id} {score} {p[0]} {p[1]} {p[2]} {p[3]} {p[4]} {p[5]} {p[6]} {p[7]}\n")
 
         return stats

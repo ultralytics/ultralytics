@@ -544,7 +544,7 @@ class Model(torch.nn.Module):
             x in ARGV for x in ("predict", "track", "mode=predict", "mode=track")
         )
 
-        custom = {"save": is_cli, "mode": "predict"}  # method defaults
+        custom = {"batch":1, "save": is_cli, "mode": "predict"}  # method defaults
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
         prompts = args.pop("prompts", None)  # for SAM-type models
 

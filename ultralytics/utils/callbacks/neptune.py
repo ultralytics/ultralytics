@@ -5,9 +5,10 @@ from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING
 try:
     assert not TESTS_RUNNING  # do not log pytest
     assert SETTINGS["neptune"] is True  # verify integration is enabled
+    from pathlib import Path
+
     import neptune
     from neptune.types import File
-    from pathlib import Path
 
     assert hasattr(neptune, "__version__")
 

@@ -41,7 +41,7 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
     md_filepath = py_filepath.with_suffix(".md")
     exists = md_filepath.exists()
 
-    # Read existing content and keep header content between first two ---
+    # Read existing content and retain header metadata if available
     header_content = ""
     if exists:
         existing_content = md_filepath.read_text()
@@ -56,7 +56,7 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
     module_path = module_path.replace(".", "/")
     url = f"https://github.com/{GITHUB_REPO}/blob/main/{module_path}.py"
     edit = f"https://github.com/{GITHUB_REPO}/edit/main/{module_path}.py"
-    pretty = url.replace("__init__.py", "\\_\\_init\\_\\_.py")  # properly display __init__.py filenames
+    pretty = url.replace("__init__.py", "\\_\\_init\\_\\_.py")  # Properly display __init__.py filenames
     title_content = (
         f"# Reference for `{module_path}.py`\n\n"
         f"!!! note\n\n"
@@ -65,7 +65,7 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
     )
     md_content = ["<br>\n"] + [f"## ::: {module_name}.{class_name}\n\n<br><br><hr><br>\n" for class_name in classes]
     md_content.extend(f"## ::: {module_name}.{func_name}\n\n<br><br><hr><br>\n" for func_name in functions)
-    md_content[-1] = md_content[-1].replace("<hr><br>", "")  # remove last horizontal line
+    md_content[-1] = md_content[-1].replace("<hr><br>", "")  # Remove last horizontal rule from final entry
     md_content = header_content + title_content + "\n".join(md_content)
     if not md_content.endswith("\n"):
         md_content += "\n"
@@ -74,7 +74,7 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
     md_filepath.write_text(md_content)
 
     if not exists:
-        # Add new markdown file to the git staging area
+        # Add new Markdown file to the Git staging area
         print(f"Created new file '{md_filepath}'")
         subprocess.run(["git", "add", "-f", str(md_filepath)], check=True, cwd=PACKAGE_DIR)
 
@@ -99,7 +99,7 @@ def create_nav_menu_yaml(nav_items: list, save: bool = False):
         item = Path(item_str)
         parts = item.parts
         current_level = nav_tree["reference"]
-        for part in parts[2:-1]:  # Skip the first two parts (docs and reference) and the last part (filename)
+        for part in parts[2:-1]:  # Skip the first two parts (docs and reference) and the filename
             current_level = current_level[part]
 
         md_file_name = parts[-1].replace(".md", "")
@@ -121,15 +121,13 @@ def create_nav_menu_yaml(nav_items: list, save: bool = False):
     # Print updated YAML reference section
     print("Scan complete, new mkdocs.yaml reference section is:\n\n", _dict_to_yaml(nav_tree_sorted))
 
-    # Save new YAML reference section
+    # Save new YAML reference section to file if 'save' is True
     if save:
         (PACKAGE_DIR.parent / "nav_menu_updated.yml").write_text(_dict_to_yaml(nav_tree_sorted))
 
 
 def main():
-    """
-    Extract class and function names, create Markdown files, and generate a YAML navigation menu.
-    """
+    """Extract class and function names, create Markdown files, and generate a YAML navigation menu."""
     nav_items = []
 
     for py_filepath in PACKAGE_DIR.rglob("*.py"):

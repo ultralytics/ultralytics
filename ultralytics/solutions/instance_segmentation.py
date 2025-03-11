@@ -56,7 +56,7 @@ class InstanceSegmentation(BaseSolution):
         else:
             for cls, t_id, mask in zip(self.clss, self.track_ids, self.masks):
                 # Annotate the image with segmentation mask, mask color, and label
-                annotator.seg_bbox(mask=mask, mask_color=colors(t_id, True), label=self.names[cls])
+                annotator.segmentation_mask(mask=mask, mask_color=colors(t_id, True), label=self.names[cls])
 
         plot_im = annotator.result()
         self.display_output(plot_im)  # Display the annotated output using the base class function

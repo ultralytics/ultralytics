@@ -85,7 +85,7 @@ class AIGym(BaseSolution):
                 # Get keypoints and estimate the angle
                 kpts = [k[int(self.kpts[i])].cpu() for i in range(3)]
                 self.angle[ind] = annotator.estimate_pose_angle(*kpts)
-                annotator.draw_specific_points(k, self.kpts, radius=self.line_width * 3)
+                annotator.draw_specific_kpts(k, self.kpts, radius=self.line_width * 3)
 
                 # Determine stage and count logic based on angle thresholds
                 if self.angle[ind] < self.down_angle:

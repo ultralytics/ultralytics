@@ -4,6 +4,7 @@ from collections import defaultdict
 
 import cv2
 import numpy as np
+from numpy import ndarray
 
 from ultralytics import YOLO
 from ultralytics.utils import ASSETS_URL, DEFAULT_CFG_DICT, DEFAULT_SOL_DICT, LOGGER
@@ -44,7 +45,7 @@ class BaseSolution:
         >>> solution.display_output(image)
     """
 
-    def __init__(self, IS_CLI=False, solution_name=None, **kwargs):
+    def __init__(self, IS_CLI=False, **kwargs):
         """
         Initializes the `BaseSolution` class with configuration settings and the YOLO model for Ultralytics solutions.
 
@@ -221,7 +222,7 @@ class SolutionAnnotator(Annotator):
         plot_angle_and_count_and_stage: Visualizes angle, step count, and stage for workout monitoring.
         plot_distance_and_line: Displays the distance between centroids and connects them with a line.
         display_objects_labels: Annotates bounding boxes with object class labels.
-        seg_bbox: Draws contours for segmented objects and optionally labels them.
+        segmentation_mask: Draws mask for segmented objects and optionally labels them.
         sweep_annotator: Visualizes a vertical sweep line and optional label.
         visioneye: Maps and connects object centroids to a visual "eye" point.
         circle_label: Draws a circular label within a bounding box.
@@ -307,7 +308,7 @@ class SolutionAnnotator(Annotator):
 
     def display_analytics(self, im0, text, txt_color, bg_color, margin):
         """
-        Display the overall statistics for parking lots.
+        Display the overall statistics for parking lots, object counter etc.
 
         Args:
             im0 (ndarray): Inference image.
@@ -337,7 +338,7 @@ class SolutionAnnotator(Annotator):
     @staticmethod
     def estimate_pose_angle(a, b, c):
         """
-        Calculate the pose angle for object.
+        Calculate the pose angle for object for workout monitoring
 
         Args:
             a (float) : The value of pose point a
@@ -354,7 +355,7 @@ class SolutionAnnotator(Annotator):
             angle = 360 - angle
         return angle
 
-    def draw_specific_points(self, keypoints, indices=None, radius=2, conf_thresh=0.25):
+    def draw_specific_kpts(self, keypoints: object, indices: object = None, radius: object = 2, conf_thresh: object = 0.25) -> ndarray:
         """
         Draw specific keypoints for gym steps counting.
 
@@ -386,7 +387,7 @@ class SolutionAnnotator(Annotator):
 
     def plot_workout_information(self, display_text, position, color=(104, 31, 17), txt_color=(255, 255, 255)):
         """
-        Draw text with a background on the image.
+        Draw workouts text with a background on the image.
 
         Args:
             display_text (str): The text to be displayed.
@@ -513,33 +514,45 @@ class SolutionAnnotator(Annotator):
             lineType=cv2.LINE_AA,
         )
 
-    def seg_bbox(self, mask, mask_color=(255, 0, 255), label=None):
+    def segmentation_mask(self, mask, mask_color=(255, 0, 255), label=None, alpha=0.5):
         """
-        Function for drawing segmented object in bounding box shape.
+        Function for drawing an optimized segmentation mask with smooth corners, a highlighted edge, and dynamic text box size.
 
         Args:
-            mask (np.ndarray): A 2D array of shape (N, 2) containing the contour points of the segmented object.
-            mask_color (tuple): RGB color for the contour and label background.
-            label (str, optional): Text label for the object. If None, no label is drawn.
+            mask (np.ndarray): A 2D array of shape (N, 2) containing the object mask.
+            mask_color (tuple): RGB color for the mask.
+            label (str, optional): Text label for the object.
+            alpha (float): Transparency level (0 = fully transparent, 1 = fully opaque).
         """
-        txt_color = self.get_txt_color(mask_color)
-        if mask.size == 0:  # no masks to plot
+        if mask.size == 0:
             return
 
-        cv2.polylines(self.im, [np.int32([mask])], isClosed=True, color=mask_color, thickness=2)
+        overlay = self.im.copy()
+        mask = np.int32([mask])
 
+        # Approximate polygon for smooth corners
+        epsilon = 0.002 * cv2.arcLength(mask, True)
+        refined_mask = cv2.approxPolyDP(mask, epsilon, True)
+
+        # Apply a highlighter effect by drawing a thick outer shadow
+        cv2.polylines(overlay, [refined_mask], isClosed=True, color=mask_color, thickness=self.lw * 3)
+        cv2.fillPoly(overlay, [refined_mask], mask_color)  # draw mask with primary color
+
+        # Apply an inner glow effect for extra clarity
+        cv2.polylines(overlay, [refined_mask], isClosed=True, color=mask_color, thickness=self.lw)
+
+        self.im = cv2.addWeighted(overlay, alpha, self.im, 1 - alpha, 0)  # blend overlay with the original image
+
+        # Draw label if provided
         if label:
-            text_size, _ = cv2.getTextSize(label, 0, self.sf, self.tf)
-            cv2.rectangle(
-                self.im,
-                (int(mask[0][0]) - text_size[0] // 2 - 10, int(mask[0][1]) - text_size[1] - 10),
-                (int(mask[0][0]) + text_size[0] // 2 + 10, int(mask[0][1] + 10)),
-                mask_color,
-                -1,
-            )
-            cv2.putText(
-                self.im, label, (int(mask[0][0]) - text_size[0] // 2, int(mask[0][1])), 0, self.sf, txt_color, self.tf
-            )
+            txt_color = self.get_txt_color(mask_color)
+            text_size, _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, self.sf, self.tf)
+            text_x, text_y = refined_mask[0][0][0], refined_mask[0][0][1]
+
+            # Auto-adjusted label background
+            rect_start, rect_end = (text_x - 5, text_y - text_size[1] - 5), (text_x + text_size[0] + 5, text_y + 5)
+            cv2.rectangle(self.im, rect_start, rect_end, mask_color, -1)
+            cv2.putText(self.im, label, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, self.sf, txt_color, self.tf)
 
     def sweep_annotator(self, line_x=0, line_y=0, label=None, color=(221, 0, 186), txt_color=(255, 255, 255)):
         """

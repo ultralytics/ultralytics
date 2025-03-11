@@ -1375,7 +1375,7 @@ class Timm(nn.Module):
         """Load the model and pretrained weights from timm."""
         try:
             import timm  # scope for faster 'import ultralytics'
-        except:
+        except ImportError:
             # Decide which version of timm to install based on torch version
             from ultralytics.utils.checks import check_version
             import subprocess

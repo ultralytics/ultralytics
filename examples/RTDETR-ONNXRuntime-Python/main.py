@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import argparse
+from typing import List
 
 import cv2
 import numpy as np

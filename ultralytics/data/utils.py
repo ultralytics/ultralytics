@@ -478,21 +478,19 @@ class HUBDatasetStats:
         task (str): Dataset task. Options are 'detect', 'segment', 'pose', 'classify'. Default is 'detect'.
         autodownload (bool): Attempt to download dataset if not found locally. Default is False.
 
-    Example:
+    Note:
         Download *.zip files from https://github.com/ultralytics/hub/tree/main/example_datasets
-            i.e. https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip for coco8.zip.
-        ```python
-        from ultralytics.data.utils import HUBDatasetStats
+        i.e. https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip for coco8.zip.
 
-        stats = HUBDatasetStats("path/to/coco8.zip", task="detect")  # detect dataset
-        stats = HUBDatasetStats("path/to/coco8-seg.zip", task="segment")  # segment dataset
-        stats = HUBDatasetStats("path/to/coco8-pose.zip", task="pose")  # pose dataset
-        stats = HUBDatasetStats("path/to/dota8.zip", task="obb")  # OBB dataset
-        stats = HUBDatasetStats("path/to/imagenet10.zip", task="classify")  # classification dataset
-
-        stats.get_json(save=True)
-        stats.process_images()
-        ```
+    Examples:
+        >>> from ultralytics.data.utils import HUBDatasetStats
+        >>> stats = HUBDatasetStats("path/to/coco8.zip", task="detect")  # detect dataset
+        >>> stats = HUBDatasetStats("path/to/coco8-seg.zip", task="segment")  # segment dataset
+        >>> stats = HUBDatasetStats("path/to/coco8-pose.zip", task="pose")  # pose dataset
+        >>> stats = HUBDatasetStats("path/to/dota8.zip", task="obb")  # OBB dataset
+        >>> stats = HUBDatasetStats("path/to/imagenet10.zip", task="classify")  # classification dataset
+        >>> stats.get_json(save=True)
+        >>> stats.process_images()
     """
 
     def __init__(self, path="coco8.yaml", task="detect", autodownload=False):
@@ -639,14 +637,11 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
         max_dim (int, optional): The maximum dimension (width or height) of the output image. Default is 1920 pixels.
         quality (int, optional): The image compression quality as a percentage. Default is 50%.
 
-    Example:
-        ```python
-        from pathlib import Path
-        from ultralytics.data.utils import compress_one_image
-
-        for f in Path("path/to/dataset").rglob("*.jpg"):
-            compress_one_image(f)
-        ```
+    Examples:
+        >>> from pathlib import Path
+        >>> from ultralytics.data.utils import compress_one_image
+        >>> for f in Path("path/to/dataset").rglob("*.jpg"):
+        >>>    compress_one_image(f)
     """
     try:  # use PIL
         im = Image.open(f)
@@ -673,12 +668,9 @@ def autosplit(path=DATASETS_DIR / "coco8/images", weights=(0.9, 0.1, 0.0), annot
         weights (list | tuple, optional): Train, validation, and test split fractions. Defaults to (0.9, 0.1, 0.0).
         annotated_only (bool, optional): If True, only images with an associated txt file are used. Defaults to False.
 
-    Example:
-        ```python
-        from ultralytics.data.utils import autosplit
-
-        autosplit()
-        ```
+    Examples:
+        >>> from ultralytics.data.utils import autosplit
+        >>> autosplit()
     """
     path = Path(path)  # images dir
     files = sorted(x for x in path.rglob("*.*") if x.suffix[1:].lower() in IMG_FORMATS)  # image files only

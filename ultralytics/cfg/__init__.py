@@ -5,7 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Dict, List, Union, Any
+from typing import Any, Dict, List, Union
 
 import cv2
 

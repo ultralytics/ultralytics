@@ -34,7 +34,7 @@ def test_major_solutions():
     baranalytics = solutions.Analytics(analytics_type="bar", model="yolo11n.pt", show=False)  # line analytics
     areaanalytics = solutions.Analytics(analytics_type="area", model="yolo11n.pt", show=False)  # line analytics
     trackzone = solutions.TrackZone(region=region_points, model="yolo11n.pt", show=False)  # trackzone
-    objectcropper = solutions.ObjectCropper(model="yolo11n.pt", show=False)  # object cropping
+    objectcropper = solutions.ObjectCropper(model="yolo11n.pt", show=False, crop_dir=TMP)  # object cropping
     objectblurrer = solutions.ObjectBlurrer(blur_ratio=0.5, model="yolo11n.pt", show=False)  # Object blurring
     isegment = solutions.InstanceSegmentation(model="yolo11n-seg.pt", show=False)  # Instance segmentation
     visioneye = solutions.VisionEye(model="yolo11n.pt", show=False)  # Visioneye

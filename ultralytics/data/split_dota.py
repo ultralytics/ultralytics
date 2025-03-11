@@ -19,14 +19,14 @@ def bbox_iof(polygon1, bbox2, eps=1e-6):
     Calculate Intersection over Foreground (IoF) between polygons and bounding boxes.
 
     Args:
-        polygon1 (np.ndarray): Polygon coordinates, shape (n, 8).
-        bbox2 (np.ndarray): Bounding boxes, shape (n, 4).
-        eps (float, optional): Small value to prevent division by zero. Defaults to 1e-6.
+        polygon1 (np.ndarray): Polygon coordinates with shape (n, 8).
+        bbox2 (np.ndarray): Bounding boxes with shape (n, 4).
+        eps (float, optional): Small value to prevent division by zero.
 
     Returns:
-        (np.ndarray): IoF scores, shape (n, 1) or (n, m) if bbox2 is (m, 4).
+        (np.ndarray): IoF scores with shape (n, 1) or (n, m) if bbox2 is (m, 4).
 
-    Note:
+    Notes:
         Polygon format: [x1, y1, x2, y2, x3, y3, x4, y4].
         Bounding box format: [x_min, y_min, x_max, y_max].
     """
@@ -66,7 +66,7 @@ def load_yolo_dota(data_root, split="train"):
     Load DOTA dataset.
 
     Args:
-        data_root (str): Data root.
+        data_root (str): Data root directory.
         split (str): The split data set, could be `train` or `val`.
 
     Notes:

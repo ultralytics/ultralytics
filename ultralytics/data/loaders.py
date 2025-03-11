@@ -330,7 +330,7 @@ class LoadImagesAndVideos:
         for path in path_list:
             abs_path = Path(path).absolute()
             if "*" in str(abs_path):
-                files.extend(str(p) for p in sorted(abs_path.parent.glob(abs_path.name)))
+                files.extend(str(p) for p in sorted(abs_path.glob("*")))
             elif abs_path.is_dir():
                 files.extend(str(p) for p in sorted(abs_path.glob("*.*")))
             elif abs_path.is_file():

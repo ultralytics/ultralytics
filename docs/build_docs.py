@@ -1,4 +1,4 @@
-# Ultralytics 🚀 AGPL-3.0 License - https://ultalytics.com/license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 Automates building and post-processing of MkDocs documentation, especially for multilingual projects.
 
@@ -26,7 +26,6 @@ import re
 import shutil
 import subprocess
 from pathlib import Path
-from typing import List
 
 from bs4 import BeautifulSoup
 from tqdm import tqdm

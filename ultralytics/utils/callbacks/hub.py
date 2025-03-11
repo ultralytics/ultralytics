@@ -14,14 +14,14 @@ def on_pretrain_routine_start(trainer):
 
 
 def on_pretrain_routine_end(trainer):
-    """Logs info before starting timer for upload rate limit."""
+    """Initialize timers for upload rate limiting before training begins."""
     if session := getattr(trainer, "hub_session", None):
         # Start timer for upload rate limit
         session.timers = {"metrics": time(), "ckpt": time()}  # start timer for session rate limiting
 
 
 def on_fit_epoch_end(trainer):
-    """Uploads training progress metrics at the end of each epoch."""
+    """Upload training progress metrics to Ultralytics HUB at the end of each epoch."""
     if session := getattr(trainer, "hub_session", None):
         # Upload metrics after validation ends
         all_plots = {
@@ -46,7 +46,7 @@ def on_fit_epoch_end(trainer):
 
 
 def on_model_save(trainer):
-    """Saves checkpoints to Ultralytics HUB with rate limiting."""
+    """Upload model checkpoints to Ultralytics HUB with rate limiting."""
     if session := getattr(trainer, "hub_session", None):
         # Upload checkpoints with rate limiting
         is_best = trainer.best_fitness == trainer.fitness
@@ -77,7 +77,7 @@ def on_train_start(trainer):
 
 
 def on_val_start(validator):
-    """Runs events on validation start."""
+    """Run events on validation start."""
     events(validator.args)
 
 
@@ -105,4 +105,4 @@ callbacks = (
     }
     if SETTINGS["hub"] is True
     else {}
-)  # verify enabled
+)  # verify hub is enabled before registering callbacks

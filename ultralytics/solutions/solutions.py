@@ -355,7 +355,9 @@ class SolutionAnnotator(Annotator):
             angle = 360 - angle
         return angle
 
-    def draw_specific_kpts(self, keypoints: object, indices: object = None, radius: object = 2, conf_thresh: object = 0.25) -> ndarray:
+    def draw_specific_kpts(
+        self, keypoints: object, indices: object = None, radius: object = 2, conf_thresh: object = 0.25
+    ) -> ndarray:
         """
         Draw specific keypoints for gym steps counting.
 
@@ -516,7 +518,8 @@ class SolutionAnnotator(Annotator):
 
     def segmentation_mask(self, mask, mask_color=(255, 0, 255), label=None, alpha=0.5):
         """
-        Function for drawing an optimized segmentation mask with smooth corners, a highlighted edge, and dynamic text box size.
+        Function for drawing an optimized segmentation mask with smooth corners, a highlighted edge, and dynamic text
+        box size.
 
         Args:
             mask (np.ndarray): A 2D array of shape (N, 2) containing the object mask.

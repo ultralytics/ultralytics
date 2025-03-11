@@ -255,4 +255,4 @@ def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False):
     # Attach source types to the dataset
     setattr(dataset, "source_type", source_type)
 
-    return datase
+    return dataset

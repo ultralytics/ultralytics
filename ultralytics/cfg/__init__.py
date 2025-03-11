@@ -35,14 +35,18 @@ from ultralytics.utils import (
 
 # Define valid solutions
 SOLUTION_MAP = {
-    "count": ("ObjectCounter", "count"),
-    "heatmap": ("Heatmap", "generate_heatmap"),
-    "queue": ("QueueManager", "process_queue"),
-    "speed": ("SpeedEstimator", "estimate_speed"),
-    "workout": ("AIGym", "monitor"),
-    "analytics": ("Analytics", "process_data"),
-    "trackzone": ("TrackZone", "trackzone"),
-    "inference": ("Inference", "inference"),
+    "count": "ObjectCounter",
+    "crop": "ObjectCropper",
+    "blur": "ObjectBlurrer",
+    "workout": "AIGym",
+    "heatmap": "Heatmap",
+    "isegment": "InstanceSegmentation",
+    "visioneye": "VisionEye",
+    "speed": "SpeedEstimator",
+    "queue": "QueueManager",
+    "analytics": "Analytics",
+    "inference": "Inference",
+    "trackzone": "TrackZone",
     "help": None,
 }
 
@@ -660,7 +664,13 @@ def handle_yolo_solutions(args: List[str]) -> None:
         - The inference solution will be launched using the 'streamlit run' command.
         - The Streamlit app file is located in the Ultralytics package directory.
     """
-    full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}  # arguments dictionary
+    full_args_dict = {
+        **DEFAULT_SOL_DICT,
+        **DEFAULT_CFG_DICT,
+        "blur_ratio": 0.5,
+        "vision_point": (20, 20),
+        "crop_dir": "cropped-detections",
+    }  # arguments dictionary
     overrides = {}
 
     # check dictionary alignment
@@ -705,21 +715,21 @@ def handle_yolo_solutions(args: List[str]) -> None:
     else:
         from ultralytics import solutions
 
-        cls, method = SOLUTION_MAP[solution_name]  # solution class name, method name and default source
-        solution = getattr(solutions, cls)(IS_CLI=True, **overrides)  # get solution class i.e ObjectCounter
-        process = getattr(
-            solution, method
-        )  # get specific function of class for processing i.e, count from ObjectCounter
+        solution = getattr(solutions, SOLUTION_MAP[solution_name])(
+            IS_CLI=True, **overrides
+        )  # get solution class i.e ObjectCounter
 
         cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
-
-        # extract width, height and fps of the video file, create save directory and initialize video writer
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
-            w, h = 1920, 1080
-        save_dir = get_save_dir(SimpleNamespace(project="runs/solutions", name="exp", exist_ok=False))
-        save_dir.mkdir(parents=True)  # create the output directory i.e. runs/solutions/exp
-        vw = cv2.VideoWriter(str(save_dir / f"{solution_name}.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        if solution_name != "crop":
+            # extract width, height and fps of the video file, create save directory and initialize video writer
+            w, h, fps = (
+                int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)
+            )
+            if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
+                w, h = 1280, 720
+            save_dir = get_save_dir(SimpleNamespace(project="runs/solutions", name="exp", exist_ok=False))
+            save_dir.mkdir(parents=True)  # create the output directory i.e. runs/solutions/exp
+            vw = cv2.VideoWriter(str(save_dir / f"{solution_name}.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         try:  # Process video frames
             f_n = 0  # frame number, required for analytical graphs
@@ -727,8 +737,10 @@ def handle_yolo_solutions(args: List[str]) -> None:
                 success, frame = cap.read()
                 if not success:
                     break
-                frame = process(frame, f_n := f_n + 1) if solution_name == "analytics" else process(frame)
-                vw.write(frame)
+                results = solution(frame, f_n := f_n + 1) if solution_name == "analytics" else solution(frame)
+                LOGGER.info(f"🚀 Results: {results}")
+                if solution_name != "crop":
+                    vw.write(results.plot_im)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
         finally:

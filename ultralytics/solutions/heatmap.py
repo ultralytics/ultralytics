@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 from ultralytics.solutions.object_counter import ObjectCounter
-from ultralytics.utils.plotting import Annotator
+from ultralytics.solutions.solutions import SolutionAnnotator, SolutionResults
 
 
 class Heatmap(ObjectCounter):
@@ -52,8 +52,8 @@ class Heatmap(ObjectCounter):
 
         Examples:
             >>> heatmap = Heatmap()
-            >>> box = [100, 100, 200, 200]
-            >>> heatmap.heatmap_effect(box)
+            >>> bbox = [100, 100, 200, 200]
+            >>> heatmap.heatmap_effect(bbox)
         """
         x0, y0, x1, y1 = map(int, box)
         radius_squared = (min(x1 - x0, y1 - y0) // 2) ** 2
@@ -70,7 +70,7 @@ class Heatmap(ObjectCounter):
         # Update only the values within the bounding box in a single vectorized operation
         self.heatmap[y0:y1, x0:x1][within_radius] += 2
 
-    def generate_heatmap(self, im0):
+    def process(self, im0):
         """
         Generate heatmap for each frame using Ultralytics.
 
@@ -78,19 +78,22 @@ class Heatmap(ObjectCounter):
             im0 (np.ndarray): Input image array for processing.
 
         Returns:
-            (np.ndarray): Processed image with heatmap overlay and object counts (if region is specified).
+            results (SolutionResults): Contains processed image `im0`,
+                'in_count' (int, count of objects entering the region),
+                'out_count' (int, count of objects exiting the region),
+                'classwise_count' (dict, per-class object count), and 'total_tracks' (int, total number of tracked objects).
 
         Examples:
             >>> heatmap = Heatmap()
-            >>> im0 = cv2.imread("image.jpg")
-            >>> result = heatmap.generate_heatmap(im0)
+            >>> image = cv2.imread("image.jpg")
+            >>> result = heatmap.generate_heatmap(image)
         """
         if not self.initialized:
             self.heatmap = np.zeros_like(im0, dtype=np.float32) * 0.99
         self.initialized = True  # Initialize heatmap only once
 
-        self.annotator = Annotator(im0, line_width=self.line_width)  # Initialize annotator
         self.extract_tracks(im0)  # Extract tracks
+        self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
         # Iterate over bounding boxes, track ids and classes index
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
@@ -108,13 +111,14 @@ class Heatmap(ObjectCounter):
                     prev_position = self.track_history[track_id][-2]
                 self.count_objects(current_centroid, track_id, prev_position, cls)  # Perform object counting
 
+        plot_im = self.annotator.result()
         if self.region is not None:
-            self.display_counts(im0)  # Display the counts on the frame
+            self.display_counts(plot_im)  # Display the counts on the frame
 
         # Normalize, apply colormap to heatmap and combine with original image
         if self.track_data.id is not None:
-            im0 = cv2.addWeighted(
-                im0,
+            plot_im = cv2.addWeighted(
+                plot_im,
                 0.5,
                 cv2.applyColorMap(
                     cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8), self.colormap
@@ -123,5 +127,13 @@ class Heatmap(ObjectCounter):
                 0,
             )
 
-        self.display_output(im0)  # display output with base class function
-        return im0  # return output image for more usage
+        self.display_output(plot_im)  # display output with base class function
+
+        # Return SolutionResults
+        return SolutionResults(
+            plot_im=plot_im,
+            in_count=self.in_count,
+            out_count=self.out_count,
+            classwise_count=self.classwise_counts,
+            total_tracks=len(self.track_ids),
+        )

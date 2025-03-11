@@ -55,10 +55,10 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
 
     Args:
         file_path (Path): Path to the requirements.txt file.
-        package (str, optional): Python package to use instead of requirements.txt file, i.e. package='ultralytics'.
+        package (str, optional): Python package to use instead of requirements.txt file.
 
     Returns:
-        (List[Dict[str, str]]): List of parsed requirements as dictionaries with `name` and `specifier` keys.
+        (List[SimpleNamespace]): List of parsed requirements as SimpleNamespace objects with `name` and `specifier` attributes.
 
     Examples:
         >>> from ultralytics.utils.checks import parse_requirements
@@ -82,14 +82,13 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
 
 def parse_version(version="0.0.0") -> tuple:
     """
-    Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version. This
-    function replaces deprecated 'pkg_resources.parse_version(v)'.
+    Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
 
     Args:
         version (str): Version string, i.e. '2.0.1+cpu'
 
     Returns:
-        (tuple): Tuple of integers representing the numeric part of the version and the extra string, i.e. (2, 0, 1)
+        (tuple): Tuple of integers representing the numeric part of the version, i.e. (2, 0, 1)
     """
     try:
         return tuple(map(int, re.findall(r"\d+", version)[:3]))  # '2.0.1+cpu' -> (2, 0, 1)
@@ -121,7 +120,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     stride, update it to the nearest multiple of the stride that is greater than or equal to the given floor value.
 
     Args:
-        imgsz (int | cList[int]): Image size.
+        imgsz (int | List[int]): Image size.
         stride (int): Stride value.
         min_dim (int): Minimum number of dimensions.
         max_dim (int): Maximum number of dimensions.
@@ -336,8 +335,8 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
 
     Args:
         minimum (str): Required minimum version of python.
-        hard (bool, optional): If True, raise an AssertionError if the requirement is not met.
-        verbose (bool, optional): If True, print warning message if requirement is not met.
+        hard (bool): If True, raise an AssertionError if the requirement is not met.
+        verbose (bool): If True, print warning message if requirement is not met.
 
     Returns:
         (bool): Whether the installed Python version meets the minimum constraints.
@@ -420,11 +419,7 @@ def check_torchvision():
     Checks the installed versions of PyTorch and Torchvision to ensure they're compatible.
 
     This function checks the installed versions of PyTorch and Torchvision, and warns if they're incompatible according
-    to the provided compatibility table based on:
-    https://github.com/pytorch/vision#installation.
-
-    The compatibility table is a dictionary where the keys are PyTorch versions and the values are lists of compatible
-    Torchvision versions.
+    to the compatibility table based on: https://github.com/pytorch/vision#installation.
     """
     compatibility_table = {
         "2.6": ["0.21"],
@@ -643,21 +638,22 @@ def collect_system_info():
 
 def check_amp(model):
     """
-    Checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLO11 model. If the checks fail, it means
-    there are anomalies with AMP on the system that may cause NaN losses or zero-mAP results, so AMP will be disabled
-    during training.
+    Checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLO11 model.
+
+    If the checks fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP
+    results, so AMP will be disabled during training.
 
     Args:
         model (nn.Module): A YOLO11 model instance.
+
+    Returns:
+        (bool): Returns True if the AMP functionality works correctly with YOLO11 model, else False.
 
     Examples:
         >>> from ultralytics import YOLO
         >>> from ultralytics.utils.checks import check_amp
         >>> model = YOLO("yolo11n.pt").model.cuda()
         >>> check_amp(model)
-
-    Returns:
-        (bool): Returns True if the AMP functionality works correctly with YOLO11 model, else False.
     """
     from ultralytics.utils.torch_utils import autocast
 

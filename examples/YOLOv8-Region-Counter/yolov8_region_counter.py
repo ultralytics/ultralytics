@@ -3,7 +3,7 @@
 import argparse
 from collections import defaultdict
 from pathlib import Path
-from typing import List, Any
+from typing import Any, List
 
 import cv2
 import numpy as np

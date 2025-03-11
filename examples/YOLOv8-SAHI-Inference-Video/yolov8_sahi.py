@@ -2,7 +2,6 @@
 
 import argparse
 from pathlib import Path
-from typing import List, Tuple, Optional
 
 import cv2
 from sahi import AutoDetectionModel

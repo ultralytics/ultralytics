@@ -37,7 +37,7 @@ def test_major_solutions():
     areaanalytics = solutions.Analytics(analytics_type="area", model="yolo11n.pt", show=False)  # line analytics
     trackzone = solutions.TrackZone(region=region_points, model="yolo11n.pt", show=False)  # trackzone
     objectcropper = solutions.ObjectCropper(
-        model="yolo11n.pt", show=False, crop_dir=str(TMP / "crop_objects")
+        model="yolo11n.pt", show=False, crop_dir=str(TMP / "cropped-detections")
     )  # object cropping
     objectblurrer = solutions.ObjectBlurrer(blur_ratio=0.5, model="yolo11n.pt", show=False)  # Object blurring
     isegment = solutions.InstanceSegmentation(model="yolo11n-seg.pt", show=False)  # Instance segmentation

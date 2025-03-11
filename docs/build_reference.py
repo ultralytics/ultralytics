@@ -99,7 +99,7 @@ def create_nav_menu_yaml(nav_items: list, save: bool = False):
         item = Path(item_str)
         parts = item.parts
         current_level = nav_tree["reference"]
-        for part in parts[2:-1]:  # skip the first two parts (docs and reference) and the last part (filename)
+        for part in parts[2:-1]:  # Skip the first two parts (docs and reference) and the last part (filename)
             current_level = current_level[part]
 
         md_file_name = parts[-1].replace(".md", "")
@@ -127,7 +127,9 @@ def create_nav_menu_yaml(nav_items: list, save: bool = False):
 
 
 def main():
-    """Main function to extract class and function names, create Markdown files, and generate a YAML navigation menu."""
+    """
+    Extract class and function names, create Markdown files, and generate a YAML navigation menu.
+    """
     nav_items = []
 
     for py_filepath in PACKAGE_DIR.rglob("*.py"):

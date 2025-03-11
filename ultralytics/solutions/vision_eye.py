@@ -16,7 +16,7 @@ class VisionEye(BaseSolution):
         vision_point (Tuple[int, int]): Coordinates where vision will view objects and draw tracks, default is (30, 30).
 
     Methods:
-        process: Processes the input image to detect objects, annotate them, and apply vision mapping.
+        process: Process the input image to detect objects, annotate them, and apply vision mapping.
 
     Examples:
         >>> vision_eye = VisionEye()
@@ -27,7 +27,7 @@ class VisionEye(BaseSolution):
 
     def __init__(self, **kwargs):
         """
-        Initializes the VisionEye class for detecting objects and applying vision mapping.
+        Initialize the VisionEye class for detecting objects and applying vision mapping.
 
         Args:
             **kwargs (Any): Keyword arguments passed to the parent class and for configuring vision_point.
@@ -38,7 +38,7 @@ class VisionEye(BaseSolution):
 
     def process(self, im0):
         """
-        Performs object detection, vision mapping, and annotation on the input image.
+        Perform object detection, vision mapping, and annotation on the input image.
 
         Args:
             im0 (numpy.ndarray): The input image for detection and annotation.

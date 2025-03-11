@@ -29,22 +29,19 @@ from ultralytics.utils.plotting import plot_tune_results
 
 class Tuner:
     """
-    Class responsible for hyperparameter tuning of YOLO models.
+    A class for hyperparameter tuning of YOLO models.
 
     The class evolves YOLO model hyperparameters over a given number of iterations
     by mutating them according to the search space and retraining the model to evaluate their performance.
 
     Attributes:
-        space (dict): Hyperparameter search space containing bounds and scaling factors for mutation.
+        space (Dict): Hyperparameter search space containing bounds and scaling factors for mutation.
         tune_dir (Path): Directory where evolution logs and results will be saved.
         tune_csv (Path): Path to the CSV file where evolution logs are saved.
 
     Methods:
-        _mutate(hyp: dict) -> dict:
-            Mutates the given hyperparameters within the bounds specified in `self.space`.
-
-        __call__():
-            Executes the hyperparameter evolution across multiple iterations.
+        _mutate(hyp: dict) -> dict: Mutates the given hyperparameters within the specified bounds.
+        __call__(): Executes the hyperparameter evolution across multiple iterations.
 
     Examples:
         Tune hyperparameters for YOLO11n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
@@ -53,6 +50,7 @@ class Tuner:
         >>> model.tune(
         ...     data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False
         ... )
+
         Tune with custom search space.
         >>> model.tune(space={key1: val1, key2: val2})  # custom search space dictionary
     """
@@ -104,7 +102,7 @@ class Tuner:
 
     def _mutate(self, parent="single", n=5, mutation=0.8, sigma=0.2):
         """
-        Mutates the hyperparameters based on bounds and scaling factors specified in `self.space`.
+        Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.
 
         Args:
             parent (str): Parent selection method: 'single' or 'weighted'.
@@ -113,7 +111,7 @@ class Tuner:
             sigma (float): Standard deviation for Gaussian random number generator.
 
         Returns:
-            (dict): A dictionary containing mutated hyperparameters.
+            (Dict): A dictionary containing mutated hyperparameters.
         """
         if self.tune_csv.exists():  # if CSV file exists: select best hyps and mutate
             # Select parent(s)
@@ -150,7 +148,7 @@ class Tuner:
 
     def __call__(self, model=None, iterations=10, cleanup=True):
         """
-        Executes the hyperparameter evolution process when the Tuner instance is called.
+        Execute the hyperparameter evolution process when the Tuner instance is called.
 
         This method iterates through the number of iterations, performing the following steps in each iteration:
         1. Load the existing hyperparameters or initialize new ones.

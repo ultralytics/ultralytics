@@ -110,9 +110,9 @@ class BasePredictor:
         Initialize the BasePredictor class.
 
         Args:
-            cfg (str | dict): Path to a configuration file or a configuration dictionary. Defaults to DEFAULT_CFG.
-            overrides (dict | None): Configuration overrides. Defaults to None.
-            _callbacks (dict | None): Dictionary of callback functions. Defaults to None.
+            cfg (str | dict): Path to a configuration file or a configuration dictionary.
+            overrides (dict | None): Configuration overrides.
+            _callbacks (dict | None): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
         self.save_dir = get_save_dir(self.args)
@@ -146,7 +146,7 @@ class BasePredictor:
         Prepares input image before inference.
 
         Args:
-            im (torch.Tensor | List(np.ndarray)): BCHW for tensor, [(HWC) x B] for list.
+            im (torch.Tensor | List(np.ndarray)): Images of shape (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
         """
         not_tensor = not isinstance(im, torch.Tensor)
         if not_tensor:
@@ -175,7 +175,7 @@ class BasePredictor:
         Pre-transform input image before inference.
 
         Args:
-            im (List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
+            im (List[np.ndarray]): Images of shape (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
 
         Returns:
             (List[np.ndarray]): A list of transformed images.
@@ -368,7 +368,7 @@ class BasePredictor:
 
         Args:
             model (str | Path | torch.nn.Module | None): Model to load or use.
-            verbose (bool): Whether to print verbose output. Defaults to True.
+            verbose (bool): Whether to print verbose output.
         """
         self.model = AutoBackend(
             weights=model or self.args.model,
@@ -471,7 +471,7 @@ class BasePredictor:
             cv2.imwrite(str(Path(save_path).with_suffix(".jpg")), im)  # save to JPG for best support
 
     def show(self, p=""):
-        """Display an image in a window using the OpenCV imshow function."""
+        """Display an image in a window."""
         im = self.plotted_img
         if platform.system() == "Linux" and p not in self.windows:
             self.windows.append(p)

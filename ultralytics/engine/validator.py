@@ -41,7 +41,7 @@ from ultralytics.utils.torch_utils import de_parallel, select_device, smart_infe
 
 class BaseValidator:
     """
-    Base class for creating validators.
+    A base class for creating validators.
 
     This class provides the foundation for validation processes, including model evaluation, metric computation, and
     result visualization.
@@ -63,10 +63,32 @@ class BaseValidator:
         iouv (torch.Tensor): IoU thresholds from 0.50 to 0.95 in spaces of 0.05.
         jdict (List): List to store JSON validation results.
         speed (dict): Dictionary with keys 'preprocess', 'inference', 'loss', 'postprocess' and their respective
-                      batch processing times in milliseconds.
+            batch processing times in milliseconds.
         save_dir (Path): Directory to save results.
         plots (dict): Dictionary to store plots for visualization.
         callbacks (dict): Dictionary to store various callback functions.
+
+    Methods:
+        __call__: Execute validation process, running inference on dataloader and computing performance metrics.
+        match_predictions: Match predictions to ground truth objects using IoU.
+        add_callback: Append the given callback to the specified event.
+        run_callbacks: Run all callbacks associated with a specified event.
+        get_dataloader: Get data loader from dataset path and batch size.
+        build_dataset: Build dataset from image path.
+        preprocess: Preprocess an input batch.
+        postprocess: Postprocess the predictions.
+        init_metrics: Initialize performance metrics for the YOLO model.
+        update_metrics: Update metrics based on predictions and batch.
+        finalize_metrics: Finalize and return all metrics.
+        get_stats: Return statistics about the model's performance.
+        check_stats: Check statistics.
+        print_results: Print the results of the model's predictions.
+        get_desc: Get description of the YOLO model.
+        on_plot: Register plots (e.g. to be consumed in callbacks).
+        plot_val_samples: Plot validation samples during training.
+        plot_predictions: Plot YOLO model predictions on batch images.
+        pred_to_json: Convert predictions to JSON format.
+        eval_json: Evaluate and return JSON format of prediction statistics.
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
@@ -116,14 +138,14 @@ class BaseValidator:
             model (nn.Module, optional): Model to validate if not using a trainer.
 
         Returns:
-            (dict): Dictionary containing validation statistics.
+            stats (dict): Dictionary containing validation statistics.
         """
         self.training = trainer is not None
         augment = self.args.augment and (not self.training)
         if self.training:
             self.device = trainer.device
             self.data = trainer.data
-            # force FP16 val during training
+            # Force FP16 val during training
             self.args.half = self.device.type != "cpu" and trainer.amp
             model = trainer.ema.ema or trainer.model
             model = model.half() if self.args.half else model.float()
@@ -231,8 +253,9 @@ class BaseValidator:
                 LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}")
             return stats
 
-    def match_predictions(self, pred_classes: torch.Tensor, true_classes: torch.Tensor, iou: torch.Tensor, 
-                          use_scipy: bool = False) -> torch.Tensor:
+    def match_predictions(
+        self, pred_classes: torch.Tensor, true_classes: torch.Tensor, iou: torch.Tensor, use_scipy: bool = False
+    ) -> torch.Tensor:
         """
         Match predictions to ground truth objects using IoU.
 

@@ -87,8 +87,10 @@ class BaseTrainer:
         fitness (float): Current fitness value.
         loss (float): Current loss value.
         tloss (float): Total loss value.
-        loss_names (list): List of loss names.
+        loss_names (List): List of loss names.
         csv (Path): Path to results CSV file.
+        metrics (Dict): Dictionary of metrics.
+        plots (Dict): Dictionary of plots.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):

@@ -146,7 +146,7 @@ class SecurityAlarm(BaseSolution):
         if total_det > self.records and not self.email_sent:  # Only send email if not sent before
             self.send_email(im0, total_det)
             self.email_sent = True
-        
+
         plot_im = annotator.result()
         self.display_output(plot_im)  # Display output with base class function
 

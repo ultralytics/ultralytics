@@ -11,7 +11,7 @@ class ObjectCropper(BaseSolution):
     """
     A class to manage the cropping of detected objects in a real-time video stream or images.
 
-    This class extends the BaseSolution class and provides functionality for cropping objects based on detected bounding 
+    This class extends the BaseSolution class and provides functionality for cropping objects based on detected bounding
     boxes. The cropped images are saved to a specified directory for further analysis or usage.
 
     Attributes:

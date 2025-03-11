@@ -61,7 +61,7 @@ class VisionEye(BaseSolution):
             # Annotate the image with bounding boxes, labels, and vision mapping
             annotator.box_label(box, label=self.names[cls], color=colors(int(t_id), True))
             annotator.visioneye(box, self.vision_point)
-        
+
         plot_im = annotator.result()
         self.display_output(plot_im)  # Display the annotated output using the base class function
 

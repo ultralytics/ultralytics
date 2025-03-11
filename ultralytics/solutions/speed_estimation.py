@@ -41,7 +41,7 @@ class SpeedEstimator(BaseSolution):
     def __init__(self, **kwargs):
         """
         Initializes the SpeedEstimator object with speed estimation parameters and data structures.
-        
+
         Args:
             **kwargs (Any): Additional keyword arguments passed to the parent class.
         """
@@ -105,7 +105,7 @@ class SpeedEstimator(BaseSolution):
             # Update tracking data for next frame
             self.trk_pt[track_id] = time()
             self.trk_pp[track_id] = self.track_line[-1]
-            
+
         plot_im = annotator.result()
         self.display_output(plot_im)  # Display output with base class function
 

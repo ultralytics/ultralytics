@@ -65,7 +65,7 @@ def is_url(url, check=False):
 
 def delete_dsstore(path, files_to_delete=(".DS_Store", "__MACOSX")):
     """
-    Deletes all ".DS_store" files under a specified directory.
+    Delete all ".DS_store" files in a specified directory.
 
     Args:
         path (str, optional): The directory path where the ".DS_store" files should be deleted.
@@ -75,7 +75,7 @@ def delete_dsstore(path, files_to_delete=(".DS_Store", "__MACOSX")):
         >>> from ultralytics.utils.downloads import delete_dsstore
         >>> delete_dsstore("path/to/dir")
 
-    Note:
+    Notes:
         ".DS_store" files are created by the Apple operating system and contain metadata about folders and files. They
         are hidden system files and can cause issues when transferring files between different operating systems.
     """
@@ -132,7 +132,7 @@ def unzip_file(file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok=Fals
 
     Args:
         file (str | Path): The path to the zipfile to be extracted.
-        path (str, optional): The path to extract the zipfile to. Defaults to None.
+        path (str | Path, optional): The path to extract the zipfile to. Defaults to None.
         exclude (tuple, optional): A tuple of filename strings to be excluded. Defaults to ('.DS_Store', '__MACOSX').
         exist_ok (bool, optional): Whether to overwrite existing contents if they exist. Defaults to False.
         progress (bool, optional): Whether to display a progress bar. Defaults to True.
@@ -280,7 +280,7 @@ def safe_download(
         url (str): The URL of the file to be downloaded.
         file (str, optional): The filename of the downloaded file.
             If not provided, the file will be saved with the same name as the URL.
-        dir (str, optional): The directory to save the downloaded file.
+        dir (str | Path, optional): The directory to save the downloaded file.
             If not provided, the file will be saved in the current working directory.
         unzip (bool, optional): Whether to unzip the downloaded file. Default: True.
         delete (bool, optional): Whether to delete the downloaded file after unzipping. Default: False.
@@ -392,14 +392,13 @@ def get_github_assets(repo="ultralytics/assets", version="latest", retry=False):
 
 def attempt_download_asset(file, repo="ultralytics/assets", release="v8.3.0", **kwargs):
     """
-    Attempt to download a file from GitHub release assets if it is not found locally. The function checks for the file
-    locally first, then tries to download it from the specified GitHub repository release.
+    Attempt to download a file from GitHub release assets if it is not found locally.
 
     Args:
         file (str | Path): The filename or file path to be downloaded.
         repo (str, optional): The GitHub repository in the format 'owner/repo'. Defaults to 'ultralytics/assets'.
         release (str, optional): The specific release version to be downloaded. Defaults to 'v8.3.0'.
-        **kwargs (any): Additional keyword arguments for the download process.
+        **kwargs (Any): Additional keyword arguments for the download process.
 
     Returns:
         (str): The path to the downloaded file.

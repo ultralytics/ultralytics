@@ -40,7 +40,7 @@ def main(onnx_model, input_image):
         input_image (str): Path to the input image.
 
     Returns:
-        (List[Dict]): List of dictionaries containing detection information such as class_id, class_name, confidence, 
+        (List[Dict]): List of dictionaries containing detection information such as class_id, class_name, confidence,
         box coordinates, and scale factor.
     """
     # Load the ONNX model

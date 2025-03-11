@@ -24,7 +24,7 @@ class YOLOv8Seg:
             onnx_model (str): Path to the ONNX model file.
             conf (float): Confidence threshold for filtering detections. Defaults to 0.25.
             iou (float): IoU threshold for non-maximum suppression. Defaults to 0.7.
-            imgsz (int | tuple): Input image size of the model. Can be an integer for square input or a tuple for 
+            imgsz (int | tuple): Input image size of the model. Can be an integer for square input or a tuple for
                 rectangular input.
 
         Attributes:
@@ -63,11 +63,11 @@ class YOLOv8Seg:
     def letterbox(self, img, new_shape=(640, 640)):
         """
         Resizes and pads image while maintaining aspect ratio.
-        
+
         Args:
             img (np.ndarray): Input image in BGR format.
             new_shape (tuple): Target shape as (height, width).
-            
+
         Returns:
             (np.ndarray): Resized and padded image.
         """

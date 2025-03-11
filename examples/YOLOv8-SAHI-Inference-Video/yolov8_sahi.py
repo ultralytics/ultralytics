@@ -15,13 +15,13 @@ from ultralytics.utils.plotting import Annotator, colors
 class SAHIInference:
     """
     Runs Ultralytics YOLO11 and SAHI for object detection on video with options to view, save, and track results.
-    
+
     This class integrates SAHI (Slicing Aided Hyper Inference) with YOLO11 models to perform efficient object detection
     on large images by slicing them into smaller pieces, running inference on each slice, and then merging the results.
-    
+
     Attributes:
         detection_model (AutoDetectionModel): The loaded YOLO11 model wrapped with SAHI functionality.
-    
+
     Methods:
         load_model: Loads a YOLO11 model with specified weights.
         inference: Runs object detection on a video using the loaded model.
@@ -35,7 +35,7 @@ class SAHIInference:
     def load_model(self, weights: str) -> None:
         """
         Loads a YOLO11 model with specified weights for object detection using SAHI.
-        
+
         Args:
             weights (str): Path to the model weights file.
         """
@@ -55,10 +55,10 @@ class SAHIInference:
     ) -> None:
         """
         Run object detection on a video using YOLO11 and SAHI.
-        
-        The function processes each frame of the video, applies sliced inference using SAHI, 
+
+        The function processes each frame of the video, applies sliced inference using SAHI,
         and optionally displays and/or saves the results with bounding boxes and labels.
-        
+
         Args:
             weights (str): Model weights path, defaults to "yolo11n.pt".
             source (str): Video file path, defaults to "test.mp4".
@@ -87,9 +87,9 @@ class SAHIInference:
             success, frame = cap.read()
             if not success:
                 break
-                
+
             annotator = Annotator(frame)  # Initialize annotator for plotting detection results
-            
+
             # Perform sliced prediction using SAHI
             results = get_sliced_prediction(
                 frame[..., ::-1],  # Convert BGR to RGB
@@ -97,7 +97,7 @@ class SAHIInference:
                 slice_height=512,
                 slice_width=512,
             )
-            
+
             # Extract detection data from results
             detection_data = [
                 (det.category.name, det.category.id, (det.bbox.minx, det.bbox.miny, det.bbox.maxx, det.bbox.maxy))
@@ -111,7 +111,7 @@ class SAHIInference:
             # Display results if requested
             if view_img:
                 cv2.imshow(Path(source).stem, frame)
-                
+
             # Save results if requested
             if save_img:
                 video_writer.write(frame)
@@ -119,7 +119,7 @@ class SAHIInference:
             # Break loop if 'q' is pressed
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
-                
+
         # Clean up resources
         video_writer.release()
         cap.release()
@@ -128,7 +128,7 @@ class SAHIInference:
     def parse_opt(self) -> argparse.Namespace:
         """
         Parse command line arguments for the inference process.
-        
+
         Returns:
             (argparse.Namespace): Parsed command line arguments.
         """

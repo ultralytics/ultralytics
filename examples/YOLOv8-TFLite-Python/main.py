@@ -84,7 +84,9 @@ class YOLOv8TFLite:
         self.out_index = output_details["index"]
         self.out_scale, self.out_zero_point = output_details["quantization"]
 
-    def letterbox(self, img: np.ndarray, new_shape: Tuple[int, int] = (640, 640)) -> Tuple[np.ndarray, Tuple[float, float]]:
+    def letterbox(
+        self, img: np.ndarray, new_shape: Tuple[int, int] = (640, 640)
+    ) -> Tuple[np.ndarray, Tuple[float, float]]:
         """
         Resizes and pads image while maintaining aspect ratio.
 
@@ -219,15 +221,15 @@ class YOLOv8TFLite:
         # Load and preprocess image
         img = cv2.imread(img_path)
         x, pad = self.preprocess(img)
-        
+
         # Apply quantization if model is int8
         if self.int8:
             x = (x / self.in_scale + self.in_zero_point).astype(np.int8)
-        
+
         # Set input tensor and run inference
         self.model.set_tensor(self.in_index, x)
         self.model.invoke()
-        
+
         # Get output and dequantize if necessary
         y = self.model.get_tensor(self.out_index)
         if self.int8:

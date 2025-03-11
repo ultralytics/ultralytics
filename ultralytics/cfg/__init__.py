@@ -5,7 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Any
 
 import cv2
 
@@ -242,7 +242,7 @@ CFG_BOOL_KEYS = frozenset(
 )
 
 
-def cfg2dict(cfg):
+def cfg2dict(cfg: Union[str, Path, Dict, SimpleNamespace]) -> Dict:
     """
     Converts a configuration object to a dictionary.
 
@@ -277,7 +277,7 @@ def cfg2dict(cfg):
     return cfg
 
 
-def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, overrides: Dict = None):
+def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, overrides: Dict = None) -> SimpleNamespace:
     """
     Load and merge configuration data from a file or dictionary, with optional overrides.
 
@@ -325,7 +325,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     return IterableSimpleNamespace(**cfg)
 
 
-def check_cfg(cfg, hard=True):
+def check_cfg(cfg: Dict, hard: bool = True) -> None:
     """
     Checks configuration argument types and values for the Ultralytics library.
 
@@ -387,7 +387,7 @@ def check_cfg(cfg, hard=True):
                 cfg[k] = bool(v)
 
 
-def get_save_dir(args, name=None):
+def get_save_dir(args: SimpleNamespace, name: str = None) -> Path:
     """
     Returns the directory path for saving outputs, derived from arguments or default settings.
 
@@ -419,7 +419,7 @@ def get_save_dir(args, name=None):
     return Path(save_dir)
 
 
-def _handle_deprecation(custom):
+def _handle_deprecation(custom: Dict) -> Dict:
     """
     Handles deprecated configuration keys by mapping them to current equivalents with deprecation warnings.
 
@@ -457,7 +457,7 @@ def _handle_deprecation(custom):
     return custom
 
 
-def check_dict_alignment(base: Dict, custom: Dict, e=None):
+def check_dict_alignment(base: Dict, custom: Dict, e: Exception = None) -> None:
     """
     Checks alignment between custom and base configuration dictionaries, handling deprecated keys and providing error
     messages for mismatched keys.
@@ -511,7 +511,7 @@ def merge_equals_args(args: List[str]) -> List[str]:
         args (List[str]): A list of strings where each element represents an argument or fragment.
 
     Returns:
-        List[str]: A list of strings where the arguments around isolated '=' are merged and fragments with brackets are joined.
+        (List[str]): A list of strings where the arguments around isolated '=' are merged and fragments with brackets are joined.
 
     Examples:
         >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3", "imgsz=[3,", "640,", "640]"]
@@ -638,9 +638,6 @@ def handle_yolo_solutions(args: List[str]) -> None:
             solutions: https://docs.ultralytics.com/solutions/, It can include solution name, source,
             and other configuration parameters.
 
-    Returns:
-        None: The function processes video frames and saves the output but doesn't return any value.
-
     Examples:
         Run people counting solution with default settings:
         >>> handle_yolo_solutions(["count"])
@@ -745,7 +742,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
             cap.release()
 
 
-def parse_key_value_pair(pair: str = "key=value"):
+def parse_key_value_pair(pair: str = "key=value") -> tuple:
     """
     Parses a key-value pair string into separate key and value components.
 
@@ -779,7 +776,7 @@ def parse_key_value_pair(pair: str = "key=value"):
     return k, smart_value(v)
 
 
-def smart_value(v):
+def smart_value(v: str) -> Any:
     """
     Converts a string representation of a value to its appropriate Python type.
 
@@ -824,7 +821,7 @@ def smart_value(v):
             return v
 
 
-def entrypoint(debug=""):
+def entrypoint(debug: str = "") -> None:
     """
     Ultralytics entrypoint function for parsing and executing command-line arguments.
 
@@ -996,7 +993,7 @@ def entrypoint(debug=""):
 
 
 # Special modes --------------------------------------------------------------------------------------------------------
-def copy_default_cfg():
+def copy_default_cfg() -> None:
     """
     Copies the default configuration file and creates a new one with '_copy' appended to its name.
 

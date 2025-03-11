@@ -330,13 +330,13 @@ class LoadImagesAndVideos:
         for path in path_list:
             abs_path = Path(path).absolute()
             if "*" in str(abs_path):
-                files.extend(str(p) for p in sorted(abs_path.glob("*")))
+                files.extend(sorted([str(f) for f in list(abs_path.parent.glob("**/" + abs_path.name))]))
             elif abs_path.is_dir():
-                files.extend(str(p) for p in sorted(abs_path.glob("*.*")))
+                files.extend(sorted([str(f) for f in list(abs_path.glob("*.*"))]))
             elif abs_path.is_file():
                 files.append(str(abs_path))
             elif parent and (parent.joinpath(path)).is_file():
-                files.append(str(parent.joinpath(path).absolute()))
+                files.append(str((parent.joinpath(path)).absolute()))
             else:
                 raise FileNotFoundError(f"{path} does not exist")
 

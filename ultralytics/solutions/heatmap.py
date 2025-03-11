@@ -111,10 +111,10 @@ class Heatmap(ObjectCounter):
                     prev_position = self.track_history[track_id][-2]
                 self.count_objects(current_centroid, track_id, prev_position, cls)  # Perform object counting
 
+        plot_im = self.annotator.result()
         if self.region is not None:
             self.display_counts(plot_im)  # Display the counts on the frame
 
-        plot_im = self.annotator.result()
         # Normalize, apply colormap to heatmap and combine with original image
         if self.track_data.id is not None:
             plot_im = cv2.addWeighted(

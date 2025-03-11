@@ -353,6 +353,14 @@ class ProfileModels:
 
     Methods:
         profile: Profiles the models and prints the result.
+        get_files: Gets all relevant model files.
+        get_onnx_model_info: Extracts metadata from an ONNX model.
+        iterative_sigma_clipping: Applies sigma clipping to remove outliers.
+        profile_tensorrt_model: Profiles a TensorRT model.
+        profile_onnx_model: Profiles an ONNX model.
+        generate_table_row: Generates a table row with model metrics.
+        generate_results_dict: Generates a dictionary of profiling results.
+        print_table: Prints a formatted table of results.
 
     Examples:
         Profile models and print results

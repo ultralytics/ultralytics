@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
-Helper file to build Ultralytics Docs reference section. Recursively walks through ultralytics dir and builds an MkDocs
-reference section of *.md files composed of classes and functions, and also creates a nav menu for use in mkdocs.yaml.
+Helper file to build Ultralytics Docs reference section.
+
+This script recursively walks through the ultralytics directory and builds an MkDocs reference section of *.md files
+composed of classes and functions, and also creates a navigation menu for use in mkdocs.yaml.
 
 Note: Must be run from repository root directory. Do not run from docs directory.
 """
@@ -36,7 +38,7 @@ def extract_classes_and_functions(filepath: Path) -> tuple:
     return classes, functions
 
 
-def create_markdown(py_filepath: Path, module_path: str, classes: list, functions: list):
+def create_markdown(py_filepath: Path, module_path: str, classes: list, functions: list) -> Path:
     """Creates a Markdown file containing the API reference for the given Python module."""
     md_filepath = py_filepath.with_suffix(".md")
     exists = md_filepath.exists()
@@ -91,7 +93,7 @@ def sort_nested_dict(d: dict) -> dict:
     return {key: sort_nested_dict(value) if isinstance(value, dict) else value for key, value in sorted(d.items())}
 
 
-def create_nav_menu_yaml(nav_items: list, save: bool = False):
+def create_nav_menu_yaml(nav_items: list, save: bool = False) -> None:
     """Creates a YAML file for the navigation menu based on the provided list of items."""
     nav_tree = nested_dict()
 

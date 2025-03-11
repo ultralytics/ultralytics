@@ -523,7 +523,9 @@ class Annotator:
             for idx, text in enumerate(text):
                 w, h = self.font.getsize(text)
                 if box_style:
-                    self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=(128, 128, 128))  # gray color
+                    self.draw.rectangle(
+                        (xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=(128, 128, 128)
+                    )  # gray color
                     # Using `color` for background and draw fg with white color
                     txt_color = (255, 255, 255)
                 self.draw.text(xy, text, fill=txt_color, font=self.font)

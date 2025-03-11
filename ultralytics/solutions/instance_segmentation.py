@@ -20,7 +20,8 @@ class InstanceSegmentation(BaseSolution):
         masks (List[numpy.ndarray]): List of segmentation masks for detected instances.
 
     Methods:
-        process: Processes the input image to perform instance segmentation and annotate results.
+        process: Process the input image to perform instance segmentation and annotate results.
+        extract_tracks: Extract tracks including bounding boxes, classes, and masks from model predictions.
 
     Examples:
         >>> segmenter = InstanceSegmentation()

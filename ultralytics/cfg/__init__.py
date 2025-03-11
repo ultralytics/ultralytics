@@ -384,25 +384,7 @@ def check_cfg(cfg, hard=True):
 
 
 def get_save_dir(args, name=None):
-    """
-    Returns the directory path for saving outputs, derived from arguments or default settings.
-
-    Args:
-        args (SimpleNamespace): Namespace object containing configurations such as 'project', 'name', 'task',
-            'mode', and 'save_dir'.
-        name (str | None): Optional name for the output directory. If not provided, it defaults to 'args.name'
-            or the 'args.mode'.
-
-    Returns:
-        (Path): Directory path where outputs should be saved.
-
-    Examples:
-        >>> from types import SimpleNamespace
-        >>> args = SimpleNamespace(project="my_project", task="detect", mode="train", exist_ok=True)
-        >>> save_dir = get_save_dir(args)
-        >>> print(save_dir)
-        my_project/detect/train
-    """
+    """Returns the directory path for saving outputs, derived from arguments or default settings."""
     if getattr(args, "save_dir", None):
         save_dir = args.save_dir
     else:
@@ -416,23 +398,7 @@ def get_save_dir(args, name=None):
 
 
 def _handle_deprecation(custom):
-    """
-    Handles deprecated configuration keys by mapping them to current equivalents with deprecation warnings.
-
-    Args:
-        custom (Dict): Configuration dictionary potentially containing deprecated keys.
-
-    Examples:
-        >>> custom_config = {"boxes": True, "hide_labels": "False", "line_thickness": 2}
-        >>> _handle_deprecation(custom_config)
-        >>> print(custom_config)
-        {'show_boxes': True, 'show_labels': True, 'line_width': 2}
-
-    Notes:
-        This function modifies the input dictionary in-place, replacing deprecated keys with their current
-        equivalents. It also handles value conversions where necessary, such as inverting boolean values for
-        'hide_labels' and 'hide_conf'.
-    """
+    """Handles deprecated configuration keys by mapping them to current equivalents with deprecation warnings."""
     for key in custom.copy().keys():
         if key == "boxes":
             deprecation_warn(key, "show_boxes")

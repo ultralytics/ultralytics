@@ -13,7 +13,6 @@ class InstanceSegmentation(BaseSolution):
 
     Attributes:
         model (str): The segmentation model to use for inference.
-        All other attributes are inherited from BaseSolution.
 
     Methods:
         process: Processes the input image to perform instance segmentation and annotate results.

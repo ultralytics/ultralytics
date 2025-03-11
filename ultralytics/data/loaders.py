@@ -363,7 +363,7 @@ class LoadImagesAndVideos:
         else:
             self.cap = None
         if self.nf == 0:
-            raise FileNotFoundError(f"No images or videos found in {p}. {FORMATS_HELP_MSG}")
+            raise FileNotFoundError(f"No images or videos found in {path}. {FORMATS_HELP_MSG}")
 
     def __iter__(self):
         """Iterates through image/video files, yielding source paths, images, and metadata."""

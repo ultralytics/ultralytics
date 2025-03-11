@@ -18,21 +18,27 @@ class AIGym(BaseSolution):
         up_angle (float): Angle threshold for considering the 'up' position of an exercise.
         down_angle (float): Angle threshold for considering the 'down' position of an exercise.
         kpts (List[int]): Indices of keypoints used for angle calculation.
-        annotator (Annotator): Object for drawing annotations on the image.
 
     Methods:
-        monitor: Processes a frame to detect poses, calculate angles, and count repetitions.
+        process: Processes a frame to detect poses, calculate angles, and count repetitions.
 
     Examples:
         >>> gym = AIGym(model="yolo11n-pose.pt")
         >>> image = cv2.imread("gym_scene.jpg")
-        >>> processed_image = gym.monitor(image)
+        >>> results = gym.process(image)
+        >>> processed_image = results.plot_im
         >>> cv2.imshow("Processed Image", processed_image)
         >>> cv2.waitKey(0)
     """
 
     def __init__(self, **kwargs):
-        """Initializes AIGym for workout monitoring using pose estimation and predefined angles."""
+        """
+        Initializes AIGym for workout monitoring using pose estimation and predefined angles.
+
+        Args:
+            **kwargs (Any): Keyword arguments passed to the parent class constructor.
+                model (str): Model name or path, defaults to "yolo11n-pose.pt".
+        """
         kwargs["model"] = kwargs.get("model", "yolo11n-pose.pt")
         super().__init__(**kwargs)
         self.count = []  # List for counts, necessary where there are multiple objects in frame
@@ -57,7 +63,7 @@ class AIGym(BaseSolution):
             im0 (ndarray): Input image for processing.
 
         Returns:
-            results (SolutionResults): Contains processed image `im0`,
+            (SolutionResults): Contains processed image `plot_im`,
                 'workout_count' (list of completed reps),
                 'workout_stage' (list of current stages),
                 'workout_angle' (list of angles), and
@@ -66,7 +72,8 @@ class AIGym(BaseSolution):
         Examples:
             >>> gym = AIGym()
             >>> image = cv2.imread("workout.jpg")
-            >>> processed_image = gym.monitor(image)
+            >>> results = gym.process(image)
+            >>> processed_image = results.plot_im
         """
         annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
@@ -74,7 +81,7 @@ class AIGym(BaseSolution):
         tracks = self.tracks[0]
 
         if tracks.boxes.id is not None:
-            if len(tracks) > len(self.count):  # Extract and check keypoints
+            if len(tracks) > len(self.count):  # Add new entries for newly detected people
                 new_human = len(tracks) - len(self.count)
                 self.angle += [0] * new_human
                 self.count += [0] * new_human

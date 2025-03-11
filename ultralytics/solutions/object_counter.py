@@ -24,12 +24,12 @@ class ObjectCounter(BaseSolution):
         count_objects: Counts objects within a polygonal or linear region.
         store_classwise_counts: Initializes class-wise counts if not already present.
         display_counts: Displays object counts on the frame.
-        count: Processes input data (frames or object tracks) and updates counts.
+        process: Processes input data (frames or object tracks) and updates counts.
 
     Examples:
         >>> counter = ObjectCounter()
         >>> frame = cv2.imread("frame.jpg")
-        >>> processed_frame = counter.count(frame)
+        >>> results = counter.process(frame)
         >>> print(f"Inward count: {counter.in_count}, Outward count: {counter.out_count}")
     """
 
@@ -41,7 +41,7 @@ class ObjectCounter(BaseSolution):
         self.out_count = 0  # Counter for objects moving outward
         self.counted_ids = []  # List of IDs of objects that have been counted
         self.classwise_counts = {}  # Dictionary for counts, categorized by object class
-        self.region_initialized = False  # Bool variable for region initialization
+        self.region_initialized = False  # Flag indicating whether the region has been initialized
 
         self.show_in = self.CFG["show_in"]
         self.show_out = self.CFG["show_out"]
@@ -51,7 +51,7 @@ class ObjectCounter(BaseSolution):
         Counts objects within a polygonal or linear region based on their tracks.
 
         Args:
-            current_centroid (Tuple[float, float]): Current centroid values in the current frame.
+            current_centroid (Tuple[float, float]): Current centroid coordinates (x, y) in the current frame.
             track_id (int): Unique identifier for the tracked object.
             prev_position (Tuple[float, float]): Last frame position coordinates (x, y) of the track.
             cls (int): Class index for classwise count updates.
@@ -63,7 +63,7 @@ class ObjectCounter(BaseSolution):
             >>> track_id_num = 1
             >>> previous_position = (120, 220)
             >>> class_to_count = 0  # In COCO model, class 0 = person
-            >>> counter.count_objects(current_centroid, track_id_num, previous_position, class_to_count)
+            >>> counter.count_objects((140, 240), track_id_num, previous_position, class_to_count)
         """
         if prev_position is None or track_id in self.counted_ids:
             return
@@ -101,10 +101,10 @@ class ObjectCounter(BaseSolution):
                     and current_centroid[0] > prev_position[0]
                     or region_width >= region_height
                     and current_centroid[1] > prev_position[1]
-                ):  # Moving right
+                ):  # Moving right or downward
                     self.in_count += 1
                     self.classwise_counts[self.names[cls]]["IN"] += 1
-                else:  # Moving left
+                else:  # Moving left or upward
                     self.out_count += 1
                     self.classwise_counts[self.names[cls]]["OUT"] += 1
                 self.counted_ids.append(track_id)
@@ -115,9 +115,6 @@ class ObjectCounter(BaseSolution):
 
         Args:
             cls (int): Class index for classwise count updates.
-
-        This method ensures that the 'classwise_counts' dictionary contains an entry for the specified class,
-        initializing 'IN' and 'OUT' counts to zero if the class is not already present.
 
         Examples:
             >>> counter = ObjectCounter()
@@ -160,14 +157,14 @@ class ObjectCounter(BaseSolution):
             im0 (numpy.ndarray): The input image or frame to be processed.
 
         Returns:
-            results (SolutionResults): Contains processed image `im0`,
-                'in_count' (int, count of objects entering the region), 'out_count' (int, count of objects exiting the region),
-                'classwise_count' (dict, per-class object count), and 'total_tracks' (int, total number of tracked objects),
+            (SolutionResults): Contains processed image `im0`, 'in_count' (int, count of objects entering the region), 
+                'out_count' (int, count of objects exiting the region), 'classwise_count' (Dict, per-class object count), 
+                and 'total_tracks' (int, total number of tracked objects).
 
         Examples:
             >>> counter = ObjectCounter()
             >>> frame = cv2.imread("path/to/image.jpg")
-            >>> processed_frame = counter.count(frame)
+            >>> results = counter.process(frame)
         """
         if not self.region_initialized:
             self.initialize_region()
@@ -185,10 +182,10 @@ class ObjectCounter(BaseSolution):
             # Draw bounding box and counting region
             self.annotator.box_label(box, label=self.names[cls], color=colors(cls, True))
             self.store_tracking_history(track_id, box)  # Store track history
-            self.store_classwise_counts(cls)  # store classwise counts in dict
+            self.store_classwise_counts(cls)  # Store classwise counts in dict
 
             current_centroid = ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2)
-            # store previous position of track for object counting
+            # Store previous position of track for object counting
             prev_position = None
             if len(self.track_history[track_id]) > 1:
                 prev_position = self.track_history[track_id][-2]
@@ -196,7 +193,7 @@ class ObjectCounter(BaseSolution):
 
         plot_im = self.annotator.result()
         self.display_counts(plot_im)  # Display the counts on the frame
-        self.display_output(plot_im)  # display output with base class function
+        self.display_output(plot_im)  # Display output with base class function
 
         # Return SolutionResults
         return SolutionResults(

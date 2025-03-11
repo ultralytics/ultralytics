@@ -33,16 +33,18 @@ class Analytics(BaseSolution):
         fig (Figure): Matplotlib figure object for the chart.
         ax (Axes): Matplotlib axes object for the chart.
         canvas (FigureCanvas): Canvas for rendering the chart.
+        lines (Dict): Dictionary to store line objects for area charts.
+        color_mapping (Dict[str, str]): Dictionary mapping class labels to colors for consistent visualization.
 
     Methods:
-        process_data: Processes image data and updates the chart.
+        process: Processes image data and updates the chart.
         update_graph: Updates the chart with new data points.
 
     Examples:
         >>> analytics = Analytics(analytics_type="line")
         >>> frame = cv2.imread("image.jpg")
-        >>> processed_frame = analytics.process(frame, frame_number=1)
-        >>> cv2.imshow("Analytics", processed_frame)
+        >>> results = analytics.process(frame, frame_number=1)
+        >>> cv2.imshow("Analytics", results.plot_im)
     """
 
     def __init__(self, **kwargs):
@@ -92,8 +94,8 @@ class Analytics(BaseSolution):
             frame_number (int): Video frame number for plotting the data.
 
         Returns:
-            results (SolutionResults): Contains processed image `im0`, 'total_tracks' (int, total number of tracked objects) and
-                'classwise_count' (dict, per-class object count).
+            (SolutionResults): Contains processed image `plot_im`, 'total_tracks' (int, total number of tracked objects)
+                and 'classwise_count' (dict, per-class object count).
 
         Raises:
             ModuleNotFoundError: If an unsupported chart type is specified.
@@ -101,7 +103,7 @@ class Analytics(BaseSolution):
         Examples:
             >>> analytics = Analytics(analytics_type="line")
             >>> frame = np.zeros((480, 640, 3), dtype=np.uint8)
-            >>> processed_frame = analytics.process(frame, frame_number=1)
+            >>> results = analytics.process(frame, frame_number=1)
         """
         self.extract_tracks(im0)  # Extract tracks
         if self.type == "line":
@@ -137,7 +139,7 @@ class Analytics(BaseSolution):
             (np.ndarray): Updated image containing the graph.
 
         Examples:
-            >>> analytics = Analytics()
+            >>> analytics = Analytics(analytics_type="bar")
             >>> frame_num = 10
             >>> results_dict = {"person": 5, "car": 3}
             >>> updated_image = analytics.update_graph(frame_num, results_dict, plot="bar")

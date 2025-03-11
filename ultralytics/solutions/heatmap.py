@@ -18,28 +18,33 @@ class Heatmap(ObjectCounter):
         initialized (bool): Flag indicating whether the heatmap has been initialized.
         colormap (int): OpenCV colormap used for heatmap visualization.
         heatmap (np.ndarray): Array storing the cumulative heatmap data.
-        annotator (Annotator): Object for drawing annotations on the image.
+        annotator (SolutionAnnotator): Object for drawing annotations on the image.
 
     Methods:
         heatmap_effect: Calculates and updates the heatmap effect for a given bounding box.
-        generate_heatmap: Generates and applies the heatmap effect to each frame.
-
+        process: Generates and applies the heatmap effect to each frame.
+        
     Examples:
         >>> from ultralytics.solutions import Heatmap
         >>> heatmap = Heatmap(model="yolo11n.pt", colormap=cv2.COLORMAP_JET)
         >>> frame = cv2.imread("frame.jpg")
-        >>> processed_frame = heatmap.generate_heatmap(frame)
+        >>> processed_frame = heatmap.process(frame)
     """
 
     def __init__(self, **kwargs):
-        """Initializes the Heatmap class for real-time video stream heatmap generation based on object tracks."""
+        """
+        Initializes the Heatmap class for real-time video stream heatmap generation based on object tracks.
+        
+        Args:
+            **kwargs (Any): Keyword arguments passed to the parent ObjectCounter class.
+        """
         super().__init__(**kwargs)
 
-        self.initialized = False  # bool variable for heatmap initialization
-        if self.region is not None:  # check if user provided the region coordinates
+        self.initialized = False  # Flag for heatmap initialization
+        if self.region is not None:  # Check if user provided the region coordinates
             self.initialize_region()
 
-        # store colormap
+        # Store colormap
         self.colormap = cv2.COLORMAP_PARULA if self.CFG["colormap"] is None else self.CFG["colormap"]
         self.heatmap = None
 
@@ -49,11 +54,6 @@ class Heatmap(ObjectCounter):
 
         Args:
             box (List[float]): Bounding box coordinates [x0, y0, x1, y1].
-
-        Examples:
-            >>> heatmap = Heatmap()
-            >>> bbox = [100, 100, 200, 200]
-            >>> heatmap.heatmap_effect(bbox)
         """
         x0, y0, x1, y1 = map(int, box)
         radius_squared = (min(x1 - x0, y1 - y0) // 2) ** 2
@@ -78,34 +78,30 @@ class Heatmap(ObjectCounter):
             im0 (np.ndarray): Input image array for processing.
 
         Returns:
-            results (SolutionResults): Contains processed image `im0`,
+            (SolutionResults): Contains processed image `plot_im`,
                 'in_count' (int, count of objects entering the region),
                 'out_count' (int, count of objects exiting the region),
-                'classwise_count' (dict, per-class object count), and 'total_tracks' (int, total number of tracked objects).
-
-        Examples:
-            >>> heatmap = Heatmap()
-            >>> image = cv2.imread("image.jpg")
-            >>> result = heatmap.generate_heatmap(image)
+                'classwise_count' (dict, per-class object count), and 
+                'total_tracks' (int, total number of tracked objects).
         """
         if not self.initialized:
             self.heatmap = np.zeros_like(im0, dtype=np.float32) * 0.99
-        self.initialized = True  # Initialize heatmap only once
+            self.initialized = True  # Initialize heatmap only once
 
         self.extract_tracks(im0)  # Extract tracks
         self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
         # Iterate over bounding boxes, track ids and classes index
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
-            # Draw bounding box and counting region
+            # Apply heatmap effect for the bounding box
             self.heatmap_effect(box)
 
             if self.region is not None:
                 self.annotator.draw_region(reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2)
                 self.store_tracking_history(track_id, box)  # Store track history
-                self.store_classwise_counts(cls)  # store classwise counts in dict
+                self.store_classwise_counts(cls)  # Store classwise counts in dict
                 current_centroid = ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2)
-                # Store tracking previous position and perform object counting
+                # Get previous position if available
                 prev_position = None
                 if len(self.track_history[track_id]) > 1:
                     prev_position = self.track_history[track_id][-2]
@@ -117,17 +113,11 @@ class Heatmap(ObjectCounter):
 
         # Normalize, apply colormap to heatmap and combine with original image
         if self.track_data.id is not None:
-            plot_im = cv2.addWeighted(
-                plot_im,
-                0.5,
-                cv2.applyColorMap(
-                    cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8), self.colormap
-                ),
-                0.5,
-                0,
-            )
+            normalized_heatmap = cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+            colored_heatmap = cv2.applyColorMap(normalized_heatmap, self.colormap)
+            plot_im = cv2.addWeighted(plot_im, 0.5, colored_heatmap, 0.5, 0)
 
-        self.display_output(plot_im)  # display output with base class function
+        self.display_output(plot_im)  # Display output with base class function
 
         # Return SolutionResults
         return SolutionResults(

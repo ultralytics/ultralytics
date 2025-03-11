@@ -15,13 +15,12 @@ class QueueManager(BaseSolution):
         counts (int): The current count of objects in the queue.
         rect_color (Tuple[int, int, int]): RGB color tuple for drawing the queue region rectangle.
         region_length (int): The number of points defining the queue region.
-        annotator (Annotator): An instance of the Annotator class for drawing on frames.
         track_line (List[Tuple[int, int]]): List of track line coordinates.
         track_history (Dict[int, List[Tuple[int, int]]]): Dictionary storing tracking history for each object.
 
     Methods:
         initialize_region: Initializes the queue region.
-        process_queue: Processes a single frame for queue management.
+        process: Processes a single frame for queue management.
         extract_tracks: Extracts object tracks from the current frame.
         store_tracking_history: Stores the tracking history for an object.
         display_output: Displays the processed output.
@@ -33,15 +32,15 @@ class QueueManager(BaseSolution):
         >>>     success, im0 = cap.read()
         >>>     if not success:
         >>>         break
-        >>>     out = queue.process_queue(im0)
+        >>>     results = queue_manager.process(im0)
     """
 
     def __init__(self, **kwargs):
         """Initializes the QueueManager with parameters for tracking and counting objects in a video stream."""
         super().__init__(**kwargs)
         self.initialize_region()
-        self.counts = 0  # Queue counts Information
-        self.rect_color = (255, 255, 255)  # Rectangle color
+        self.counts = 0  # Queue counts information
+        self.rect_color = (255, 255, 255)  # Rectangle color for visualization
         self.region_length = len(self.region)  # Store region length for further usage
 
     def process(self, im0):
@@ -52,15 +51,16 @@ class QueueManager(BaseSolution):
             im0 (numpy.ndarray): Input image for processing, typically a frame from a video stream.
 
         Returns:
-            results (SolutionResults): Contains processed image `im0`, 'queue_count' (int, number of objects in the queue) and 'total_tracks' (int, total number of tracked objects).
+            (SolutionResults): Contains processed image `im0`, 'queue_count' (int, number of objects in the queue) and 
+                'total_tracks' (int, total number of tracked objects).
 
         Examples:
             >>> queue_manager = QueueManager()
             >>> frame = cv2.imread("frame.jpg")
-            >>> processed_frame = queue_manager.process_queue(frame)
+            >>> results = queue_manager.process(frame)
         """
         self.counts = 0  # Reset counts every frame
-        self.extract_tracks(im0)  # Extract tracks
+        self.extract_tracks(im0)  # Extract tracks from the current frame
         annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
         annotator.draw_region(reg_pts=self.region, color=self.rect_color, thickness=self.line_width * 2)  # Draw region
 
@@ -72,7 +72,7 @@ class QueueManager(BaseSolution):
             # Cache frequently accessed attributes
             track_history = self.track_history.get(track_id, [])
 
-            # store previous position of track and check if the object is inside the counting region
+            # Store previous position of track and check if the object is inside the counting region
             prev_position = None
             if len(track_history) > 1:
                 prev_position = track_history[-2]
@@ -87,7 +87,7 @@ class QueueManager(BaseSolution):
             txt_color=(104, 31, 17),
         )
         plot_im = annotator.result()
-        self.display_output(plot_im)  # display output with base class function
+        self.display_output(plot_im)  # Display output with base class function
 
-        # Return a SolutionResults
+        # Return a SolutionResults object with processed data
         return SolutionResults(plot_im=plot_im, queue_count=self.counts, total_tracks=len(self.track_ids))

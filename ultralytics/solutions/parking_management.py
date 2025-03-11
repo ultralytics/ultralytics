@@ -188,7 +188,7 @@ class ParkingManagement(BaseSolution):
         dc (Tuple[int, int, int]): RGB color tuple for centroid visualization of detected objects.
 
     Methods:
-        process_data: Processes model data for parking lot management and visualization.
+        process: Processes the input image for parking lot management and visualization.
 
     Examples:
         >>> from ultralytics.solutions import ParkingManagement
@@ -217,7 +217,7 @@ class ParkingManagement(BaseSolution):
 
     def process(self, im0):
         """
-        Processes the model data for parking lot management.
+        Processes the input image for parking lot management and visualization.
 
         This function analyzes the input image, extracts tracks, and determines the occupancy status of parking
         regions defined in the JSON file. It annotates the image with occupied and available parking spots,
@@ -227,15 +227,13 @@ class ParkingManagement(BaseSolution):
             im0 (np.ndarray): The input inference image.
 
         Returns:
-            results (SolutionResults): Contains processed image `im0`, 'filled_slots' (int, number of occupied parking slots),
-                'available_slots' (int, number of available parking slots), and 'total_tracks' (int, total number of tracked objects).
+            (SolutionResults): Contains processed image `plot_im`, 'filled_slots' (number of occupied parking slots),
+                'available_slots' (number of available parking slots), and 'total_tracks' (total number of tracked objects).
 
         Examples:
             >>> parking_manager = ParkingManagement(json_file="parking_regions.json")
             >>> image = cv2.imread("parking_lot.jpg")
-            >>> parking_manager.process(
-            ...     image,
-            ... )
+            >>> results = parking_manager.process(image)
         """
         self.extract_tracks(im0)  # extract tracks from im0
         es, fs = len(self.json), 0  # empty slots, filled slots

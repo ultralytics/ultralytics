@@ -8,10 +8,15 @@ class InstanceSegmentation(BaseSolution):
     """
     A class to manage instance segmentation in images or video streams.
 
-    This class extends the BaseSolution class and provides functionality for performing instance segmentation, including drawing segmented masks with bounding boxes and labels.
+    This class extends the BaseSolution class and provides functionality for performing instance segmentation, including
+    drawing segmented masks with bounding boxes and labels.
+
+    Attributes:
+        model (str): The segmentation model to use for inference.
+        All other attributes are inherited from BaseSolution.
 
     Methods:
-        segment: Processes the input image to perform instance segmentation and annotate results.
+        process: Processes the input image to perform instance segmentation and annotate results.
 
     Examples:
         >>> segmenter = InstanceSegmentation()
@@ -24,7 +29,9 @@ class InstanceSegmentation(BaseSolution):
         """
         Initializes the InstanceSegmentation class for detecting and annotating segmented instances.
 
-        Attributes are inherited from the BaseSolution class and initialized using the provided configuration.
+        Args:
+            **kwargs (Any): Keyword arguments passed to the BaseSolution parent class.
+                model (str): Model name or path, defaults to "yolo11n-seg.pt".
         """
         kwargs["model"] = kwargs.get("model", "yolo11n-seg.pt")
         super().__init__(**kwargs)
@@ -36,10 +43,8 @@ class InstanceSegmentation(BaseSolution):
         Args:
             im0 (numpy.ndarray): The input image for segmentation.
 
-        This method processes the input image, applies segmentation masks, and annotates each segmented instance with a bounding box and label.
-
         Returns:
-            results (SolutionResults): A SolutionResults object containing the total number of tracked instances.
+            (SolutionResults): Object containing the annotated image and total number of tracked instances.
 
         Examples:
             >>> segmenter = InstanceSegmentation()

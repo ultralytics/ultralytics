@@ -12,34 +12,38 @@ class ObjectBlurrer(BaseSolution):
     """
     A class to manage the blurring of detected objects in a real-time video stream.
 
-    This class extends the BaseSolution class and provides functionality for blurring objects based on detected bounding boxes. The blurred areas are updated directly in the input image, allowing for privacy preservation or other effects.
+    This class extends the BaseSolution class and provides functionality for blurring objects based on detected bounding
+    boxes. The blurred areas are updated directly in the input image, allowing for privacy preservation or other effects.
 
     Attributes:
-        blur_ratio (int): The intensity of the blur effect applied to detected objects.
+        blur_ratio (int): The intensity of the blur effect applied to detected objects (higher values create more blur).
         iou (float): Intersection over Union threshold for object detection.
         conf (float): Confidence threshold for object detection.
 
     Methods:
-        blur: Applies a blurring effect to detected objects in the input image.
+        process: Applies a blurring effect to detected objects in the input image.
+        extract_tracks: Extracts tracking information from detected objects.
+        display_output: Displays the processed output image.
 
     Examples:
         >>> blurrer = ObjectBlurrer()
         >>> frame = cv2.imread("frame.jpg")
-        >>> processed_frame = blurrer.blur(frame)
-        >>> print(f"Total blurred objects: {processed_frame['total_tracks']}")
+        >>> processed_results = blurrer.process(frame)
+        >>> print(f"Total blurred objects: {processed_results.total_tracks}")
     """
 
     def __init__(self, **kwargs):
         """
         Initializes the ObjectBlurrer class for applying a blur effect to objects detected in video streams or images.
 
-        Attributes:
-            blur_ratio (int): Intensity of the blur effect, derived from the configuration.
+        Args:
+            **kwargs (Any): Keyword arguments passed to the parent class and for configuration.
+                blur_ratio (float): Intensity of the blur effect (0.1-1.0, default=0.5).
         """
         super().__init__(**kwargs)
         blur_ratio = kwargs.get("blur_ratio", 0.5)
         if blur_ratio < 0.1:
-            LOGGER.warning("⚠️ blur ratio can not be less than 0.1, updating it to default value 0.5")
+            LOGGER.warning("⚠️ blur ratio cannot be less than 0.1, updating it to default value 0.5")
             blur_ratio = 0.5
         self.blur_ratio = int(blur_ratio * 100)
 
@@ -47,19 +51,22 @@ class ObjectBlurrer(BaseSolution):
         """
         Applies a blurring effect to detected objects in the input image.
 
+        This method extracts tracking information, applies blur to regions corresponding to detected objects,
+        and annotates the image with bounding boxes.
+
         Args:
             im0 (numpy.ndarray): The input image containing detected objects.
 
-        This method uses the bounding box coordinates from the model's predictions to apply a blurring effect to the regions corresponding to detected objects. The processed image is updated in place.
-
         Returns:
-            results (SolutionResults): A SolutionResults object containing the total number of blurred objects.
+            (SolutionResults): Object containing the processed image and number of tracked objects.
+                - plot_im (numpy.ndarray): The annotated output image with blurred objects.
+                - total_tracks (int): The total number of tracked objects in the frame.
 
         Examples:
             >>> blurrer = ObjectBlurrer()
             >>> frame = cv2.imread("image.jpg")
-            >>> summary = blurrer.blur(frame)
-            >>> print(summary)
+            >>> results = blurrer.process(frame)
+            >>> print(f"Blurred {results.total_tracks} objects")
         """
         self.extract_tracks(im0)  # Extract tracks
         annotator = SolutionAnnotator(im0, self.line_width)

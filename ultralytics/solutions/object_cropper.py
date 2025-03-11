@@ -9,32 +9,34 @@ from ultralytics.utils.plotting import save_one_box
 
 class ObjectCropper(BaseSolution):
     """
-    A class to manage the cropping of detected objects in a real-time video stream.
+    A class to manage the cropping of detected objects in a real-time video stream or images.
 
-    This class extends the BaseSolution class and provides functionality for cropping objects based on detected bounding boxes. The cropped images are saved to a specified directory for further analysis or usage.
+    This class extends the BaseSolution class and provides functionality for cropping objects based on detected bounding 
+    boxes. The cropped images are saved to a specified directory for further analysis or usage.
 
     Attributes:
-        crop_directory (str): Directory where cropped object images are stored.
+        crop_dir (str): Directory where cropped object images are stored.
         crop_idx (int): Counter for the total number of cropped objects.
+        iou (float): IoU (Intersection over Union) threshold for non-maximum suppression.
+        conf (float): Confidence threshold for filtering detections.
 
     Methods:
-        crop: Crops detected objects from the input image and saves them to the output directory.
+        process: Crops detected objects from the input image and saves them to the output directory.
 
     Examples:
         >>> cropper = ObjectCropper()
         >>> frame = cv2.imread("frame.jpg")
-        >>> processed_frame = cropper.crop(frame)
+        >>> processed_results = cropper.process(frame)
         >>> print(f"Total cropped objects: {cropper.crop_idx}")
     """
 
     def __init__(self, **kwargs):
         """
-        Initializes the ObjectCropper class for cropping objects from detected bounding boxes in video streams or
-        images.
+        Initializes the ObjectCropper class for cropping objects from detected bounding boxes.
 
-        Attributes:
-            crop_dir (str): Path to the directory for saving cropped object images.
-            crop_idx (int): Counter for the number of cropped objects, initialized to zero.
+        Args:
+            **kwargs (Any): Keyword arguments passed to the parent class and used for configuration.
+                crop_dir (str): Path to the directory for saving cropped object images.
         """
         super().__init__(**kwargs)
 
@@ -56,16 +58,14 @@ class ObjectCropper(BaseSolution):
         Args:
             im0 (numpy.ndarray): The input image containing detected objects.
 
-        This method uses the bounding box coordinates from the model's predictions to extract regions corresponding to detected objects. The cropped objects are saved as individual images in the `crop_directory`.
-
         Returns:
-            results (SolutionResults): A SolutionResults object containing the total number of cropped objects and processed image `im0`.
+            (SolutionResults): A SolutionResults object containing the total number of cropped objects and processed image.
 
         Examples:
             >>> cropper = ObjectCropper()
             >>> frame = cv2.imread("image.jpg")
-            >>> summary = cropper.crop(frame)
-            >>> print(summary)
+            >>> results = cropper.process(frame)
+            >>> print(f"Total cropped objects: {results.total_crop_objects}")
         """
         results = self.model.predict(
             im0, classes=self.classes, conf=self.conf, iou=self.iou, device=self.CFG["device"]

@@ -92,7 +92,7 @@ def test_major_solutions():
         success, im0 = cap.read()
         if not success:
             break
-        _ = parkingmanager.process_data(im0)
+        _ = parkingmanager(im0)
     cap.release()
 
 

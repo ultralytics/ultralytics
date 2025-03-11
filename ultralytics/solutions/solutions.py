@@ -551,8 +551,15 @@ class SolutionAnnotator(Annotator):
             text_x, text_y = refined_mask[0][0][0], refined_mask[0][0][1]
             rect_start, rect_end = (text_x - 5, text_y - text_size[1] - 5), (text_x + text_size[0] + 5, text_y + 5)
             cv2.rectangle(self.im, rect_start, rect_end, mask_color, -1)
-            cv2.putText(self.im, label, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, self.sf,
-                        self.get_txt_color(mask_color), self.tf)
+            cv2.putText(
+                self.im,
+                label,
+                (text_x, text_y),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                self.sf,
+                self.get_txt_color(mask_color),
+                self.tf,
+            )
 
     def sweep_annotator(self, line_x=0, line_y=0, label=None, color=(221, 0, 186), txt_color=(255, 255, 255)):
         """

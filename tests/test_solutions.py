@@ -91,6 +91,7 @@ def test_major_solutions():
         _ = parkingmanager.process_data(im0)
     cap.release()
 
+
 @pytest.mark.slow
 def test_streamlit_predict():
     """Test streamlit predict live inference solution."""

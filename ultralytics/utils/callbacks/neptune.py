@@ -24,7 +24,7 @@ def _log_scalars(scalars, step=0):
 
 
 def _log_images(imgs_dict, group=""):
-    """Log scalars to the NeptuneAI experiment logger."""
+    """Log images to the NeptuneAI experiment logger."""
     if run:
         for k, v in imgs_dict.items():
             run[f"{group}/{k}"].upload(File(v))
@@ -36,7 +36,7 @@ def _log_plot(title, plot_path):
 
     Args:
         title (str): Title of the plot.
-        plot_path (PosixPath | str): Path to the saved image file.
+        plot_path (Path | str): Path to the saved image file.
     """
     import matplotlib.image as mpimg
     import matplotlib.pyplot as plt

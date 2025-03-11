@@ -17,13 +17,13 @@ def on_pretrain_routine_end(trainer):
     """Logs info before starting timer for upload rate limit."""
     if session := getattr(trainer, "hub_session", None):
         # Start timer for upload rate limit
-        session.timers = {"metrics": time(), "ckpt": time()}  # start timer on session.rate_limit
+        session.timers = {"metrics": time(), "ckpt": time()}  # start timer for session rate limiting
 
 
 def on_fit_epoch_end(trainer):
     """Uploads training progress metrics at the end of each epoch."""
     if session := getattr(trainer, "hub_session", None):
-        # Upload metrics after val end
+        # Upload metrics after validation ends
         all_plots = {
             **trainer.label_loss_items(trainer.tloss, prefix="train"),
             **trainer.metrics,
@@ -35,7 +35,7 @@ def on_fit_epoch_end(trainer):
 
         session.metrics_queue[trainer.epoch] = json.dumps(all_plots)
 
-        # If any metrics fail to upload, add them to the queue to attempt uploading again.
+        # If any metrics failed to upload previously, add them to the queue to attempt uploading again
         if session.metrics_upload_failed_queue:
             session.metrics_queue.update(session.metrics_upload_failed_queue)
 

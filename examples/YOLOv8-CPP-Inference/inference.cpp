@@ -173,7 +173,7 @@ void Inference::loadOnnxNetwork()
     }
 }
 
-cv::Mat Inference::formatToSquare(const cv::Mat &source)
+cv::Mat Inference::formatToSquare(const cv::Mat &source, int *pad_x, int *pad_y, float *scale)
 {
     int col = source.cols;
     int row = source.rows;

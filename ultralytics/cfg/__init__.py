@@ -715,7 +715,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
     else:
         from ultralytics import solutions
 
-        solution = getattr(solutions, SOLUTION_MAP[s_n])(
+        solution = getattr(solutions, SOLUTION_MAP[solution_name])(
             IS_CLI=True, **overrides
         )  # get solution class i.e ObjectCounter
 
@@ -737,9 +737,9 @@ def handle_yolo_solutions(args: List[str]) -> None:
                 success, frame = cap.read()
                 if not success:
                     break
-                results = solution(frame, f_n := f_n + 1) if s_n == "analytics" else solution(frame)
+                results = solution(frame, f_n := f_n + 1) if solution_name == "analytics" else solution(frame)
                 LOGGER.info(f"🚀 Results: {results}")
-                if s_n != "crop":
+                if solution_name != "crop":
                     vw.write(results.plot_im)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break

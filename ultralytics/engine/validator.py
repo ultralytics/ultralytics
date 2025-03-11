@@ -41,26 +41,27 @@ from ultralytics.utils.torch_utils import de_parallel, select_device, smart_infe
 
 class BaseValidator:
     """
-    BaseValidator.
+    Base class for creating validators.
 
-    A base class for creating validators.
+    This class provides the foundation for validation processes, including model evaluation, metric computation, and
+    result visualization.
 
     Attributes:
         args (SimpleNamespace): Configuration for the validator.
         dataloader (DataLoader): Dataloader to use for validation.
         pbar (tqdm): Progress bar to update during validation.
         model (nn.Module): Model to validate.
-        data (dict): Data dictionary.
+        data (dict): Data dictionary containing dataset information.
         device (torch.device): Device to use for validation.
         batch_i (int): Current batch index.
         training (bool): Whether the model is in training mode.
-        names (dict): Class names.
-        seen: Records the number of images seen so far during validation.
-        stats: Placeholder for statistics during validation.
-        confusion_matrix: Placeholder for a confusion matrix.
-        nc: Number of classes.
-        iouv: (torch.Tensor): IoU thresholds from 0.50 to 0.95 in spaces of 0.05.
-        jdict (dict): Dictionary to store JSON validation results.
+        names (dict): Class names mapping.
+        seen (int): Number of images seen so far during validation.
+        stats (dict): Statistics collected during validation.
+        confusion_matrix: Confusion matrix for classification evaluation.
+        nc (int): Number of classes.
+        iouv (torch.Tensor): IoU thresholds from 0.50 to 0.95 in spaces of 0.05.
+        jdict (List): List to store JSON validation results.
         speed (dict): Dictionary with keys 'preprocess', 'inference', 'loss', 'postprocess' and their respective
                       batch processing times in milliseconds.
         save_dir (Path): Directory to save results.
@@ -70,7 +71,7 @@ class BaseValidator:
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """
-        Initializes a BaseValidator instance.
+        Initialize a BaseValidator instance.
 
         Args:
             dataloader (torch.utils.data.DataLoader): Dataloader to be used for validation.
@@ -107,7 +108,16 @@ class BaseValidator:
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
-        """Executes validation process, running inference on dataloader and computing performance metrics."""
+        """
+        Execute validation process, running inference on dataloader and computing performance metrics.
+
+        Args:
+            trainer (object, optional): Trainer object that contains the model to validate.
+            model (nn.Module, optional): Model to validate if not using a trainer.
+
+        Returns:
+            (dict): Dictionary containing validation statistics.
+        """
         self.training = trainer is not None
         augment = self.args.augment and (not self.training)
         if self.training:
@@ -223,16 +233,16 @@ class BaseValidator:
 
     def match_predictions(self, pred_classes, true_classes, iou, use_scipy=False):
         """
-        Matches predictions to ground truth objects (pred_classes, true_classes) using IoU.
+        Match predictions to ground truth objects using IoU.
 
         Args:
-            pred_classes (torch.Tensor): Predicted class indices of shape(N,).
-            true_classes (torch.Tensor): Target class indices of shape(M,).
-            iou (torch.Tensor): An NxM tensor containing the pairwise IoU values for predictions and ground of truth
+            pred_classes (torch.Tensor): Predicted class indices of shape (N,).
+            true_classes (torch.Tensor): Target class indices of shape (M,).
+            iou (torch.Tensor): An NxM tensor containing the pairwise IoU values for predictions and ground truth.
             use_scipy (bool): Whether to use scipy for matching (more precise).
 
         Returns:
-            (torch.Tensor): Correct tensor of shape(N,10) for 10 IoU thresholds.
+            (torch.Tensor): Correct tensor of shape (N, 10) for 10 IoU thresholds.
         """
         # Dx10 matrix, where D - detections, 10 - IoU thresholds
         correct = np.zeros((pred_classes.shape[0], self.iouv.shape[0])).astype(bool)
@@ -264,11 +274,11 @@ class BaseValidator:
         return torch.tensor(correct, dtype=torch.bool, device=pred_classes.device)
 
     def add_callback(self, event: str, callback):
-        """Appends the given callback."""
+        """Append the given callback to the specified event."""
         self.callbacks[event].append(callback)
 
     def run_callbacks(self, event: str):
-        """Runs all callbacks associated with a specified event."""
+        """Run all callbacks associated with a specified event."""
         for callback in self.callbacks.get(event, []):
             callback(self)
 
@@ -277,15 +287,15 @@ class BaseValidator:
         raise NotImplementedError("get_dataloader function not implemented for this validator")
 
     def build_dataset(self, img_path):
-        """Build dataset."""
+        """Build dataset from image path."""
         raise NotImplementedError("build_dataset function not implemented in validator")
 
     def preprocess(self, batch):
-        """Preprocesses an input batch."""
+        """Preprocess an input batch."""
         return batch
 
     def postprocess(self, preds):
-        """Preprocesses the predictions."""
+        """Postprocess the predictions."""
         return preds
 
     def init_metrics(self, model):
@@ -293,23 +303,23 @@ class BaseValidator:
         pass
 
     def update_metrics(self, preds, batch):
-        """Updates metrics based on predictions and batch."""
+        """Update metrics based on predictions and batch."""
         pass
 
     def finalize_metrics(self, *args, **kwargs):
-        """Finalizes and returns all metrics."""
+        """Finalize and return all metrics."""
         pass
 
     def get_stats(self):
-        """Returns statistics about the model's performance."""
+        """Return statistics about the model's performance."""
         return {}
 
     def check_stats(self, stats):
-        """Checks statistics."""
+        """Check statistics."""
         pass
 
     def print_results(self):
-        """Prints the results of the model's predictions."""
+        """Print the results of the model's predictions."""
         pass
 
     def get_desc(self):
@@ -318,20 +328,20 @@ class BaseValidator:
 
     @property
     def metric_keys(self):
-        """Returns the metric keys used in YOLO training/validation."""
+        """Return the metric keys used in YOLO training/validation."""
         return []
 
     def on_plot(self, name, data=None):
-        """Registers plots (e.g. to be consumed in callbacks)."""
+        """Register plots (e.g. to be consumed in callbacks)."""
         self.plots[Path(name)] = {"data": data, "timestamp": time.time()}
 
     # TODO: may need to put these following functions into callback
     def plot_val_samples(self, batch, ni):
-        """Plots validation samples during training."""
+        """Plot validation samples during training."""
         pass
 
     def plot_predictions(self, batch, preds, ni):
-        """Plots YOLO model predictions on batch images."""
+        """Plot YOLO model predictions on batch images."""
         pass
 
     def pred_to_json(self, preds, batch):

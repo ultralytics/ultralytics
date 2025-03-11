@@ -530,9 +530,8 @@ class SolutionAnnotator(Annotator):
         overlay = self.im.copy()
         mask = np.int32([mask])
 
-        # Approximate polygon for smooth corners
-        epsilon = 0.002 * cv2.arcLength(mask, True)
-        refined_mask = cv2.approxPolyDP(mask, epsilon, True)
+        # Approximate polygon for smooth corners with epsilon
+        refined_mask = cv2.approxPolyDP(mask, 0.002 * cv2.arcLength(mask, True), True)
 
         # Apply a highlighter effect by drawing a thick outer shadow
         cv2.polylines(overlay, [refined_mask], isClosed=True, color=mask_color, thickness=self.lw * 3)
@@ -545,14 +544,12 @@ class SolutionAnnotator(Annotator):
 
         # Draw label if provided
         if label:
-            txt_color = self.get_txt_color(mask_color)
             text_size, _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, self.sf, self.tf)
             text_x, text_y = refined_mask[0][0][0], refined_mask[0][0][1]
-
-            # Auto-adjusted label background
             rect_start, rect_end = (text_x - 5, text_y - text_size[1] - 5), (text_x + text_size[0] + 5, text_y + 5)
             cv2.rectangle(self.im, rect_start, rect_end, mask_color, -1)
-            cv2.putText(self.im, label, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, self.sf, txt_color, self.tf)
+            cv2.putText(self.im, label, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, self.sf,
+                        self.get_txt_color(mask_color), self.tf)
 
     def sweep_annotator(self, line_x=0, line_y=0, label=None, color=(221, 0, 186), txt_color=(255, 255, 255)):
         """

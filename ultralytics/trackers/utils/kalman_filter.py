@@ -67,7 +67,7 @@ class KalmanFilterXYAH:
         Create a track from an unassociated measurement.
 
         Args:
-            measurement (ndarray): Bounding box coordinates (x, y, a, h) with center position (x, y), aspect ratio a,
+            measurement (np.ndarray): Bounding box coordinates (x, y, a, h) with center position (x, y), aspect ratio a,
                 and height h.
 
         Returns:
@@ -101,8 +101,8 @@ class KalmanFilterXYAH:
         Run Kalman filter prediction step.
 
         Args:
-            mean (ndarray): The 8-dimensional mean vector of the object state at the previous time step.
-            covariance (ndarray): The 8x8-dimensional covariance matrix of the object state at the previous time step.
+            mean (np.ndarray): The 8-dimensional mean vector of the object state at the previous time step.
+            covariance (np.ndarray): The 8x8-dimensional covariance matrix of the object state at the previous time step.
 
         Returns:
             (tuple[ndarray, ndarray]): Returns the mean vector and covariance matrix of the predicted state. Unobserved
@@ -138,8 +138,8 @@ class KalmanFilterXYAH:
         Project state distribution to measurement space.
 
         Args:
-            mean (ndarray): The state's mean vector (8 dimensional array).
-            covariance (ndarray): The state's covariance matrix (8x8 dimensional).
+            mean (np.ndarray): The state's mean vector (8 dimensional array).
+            covariance (np.ndarray): The state's covariance matrix (8x8 dimensional).
 
         Returns:
             (tuple[ndarray, ndarray]): Returns the projected mean and covariance matrix of the given state estimate.
@@ -167,8 +167,8 @@ class KalmanFilterXYAH:
         Run Kalman filter prediction step for multiple object states (Vectorized version).
 
         Args:
-            mean (ndarray): The Nx8 dimensional mean matrix of the object states at the previous time step.
-            covariance (ndarray): The Nx8x8 covariance matrix of the object states at the previous time step.
+            mean (np.ndarray): The Nx8 dimensional mean matrix of the object states at the previous time step.
+            covariance (np.ndarray): The Nx8x8 covariance matrix of the object states at the previous time step.
 
         Returns:
             (tuple[ndarray, ndarray]): Returns the mean matrix and covariance matrix of the predicted states.
@@ -208,9 +208,9 @@ class KalmanFilterXYAH:
         Run Kalman filter correction step.
 
         Args:
-            mean (ndarray): The predicted state's mean vector (8 dimensional).
-            covariance (ndarray): The state's covariance matrix (8x8 dimensional).
-            measurement (ndarray): The 4 dimensional measurement vector (x, y, a, h), where (x, y) is the center
+            mean (np.ndarray): The predicted state's mean vector (8 dimensional).
+            covariance (np.ndarray): The state's covariance matrix (8x8 dimensional).
+            measurement (np.ndarray): The 4 dimensional measurement vector (x, y, a, h), where (x, y) is the center
                 position, a the aspect ratio, and h the height of the bounding box.
 
         Returns:
@@ -250,9 +250,9 @@ class KalmanFilterXYAH:
         distribution has 4 degrees of freedom, otherwise 2.
 
         Args:
-            mean (ndarray): Mean vector over the state distribution (8 dimensional).
-            covariance (ndarray): Covariance of the state distribution (8x8 dimensional).
-            measurements (ndarray): An (N, 4) matrix of N measurements, each in format (x, y, a, h) where (x, y) is the
+            mean (np.ndarray): Mean vector over the state distribution (8 dimensional).
+            covariance (np.ndarray): Covariance of the state distribution (8x8 dimensional).
+            measurements (np.ndarray): An (N, 4) matrix of N measurements, each in format (x, y, a, h) where (x, y) is the
                 bounding box center position, a the aspect ratio, and h the height.
             only_position (bool): If True, distance computation is done with respect to box center position only.
             metric (str): The metric to use for calculating the distance. Options are 'gaussian' for the squared
@@ -322,7 +322,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         Create track from unassociated measurement.
 
         Args:
-            measurement (ndarray): Bounding box coordinates (x, y, w, h) with center position (x, y), width, and height.
+            measurement (np.ndarray): Bounding box coordinates (x, y, w, h) with center position (x, y), width, and height.
 
         Returns:
             (tuple[ndarray, ndarray]): Returns the mean vector (8 dimensional) and covariance matrix (8x8 dimensional)
@@ -366,8 +366,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         Run Kalman filter prediction step.
 
         Args:
-            mean (ndarray): The 8-dimensional mean vector of the object state at the previous time step.
-            covariance (ndarray): The 8x8-dimensional covariance matrix of the object state at the previous time step.
+            mean (np.ndarray): The 8-dimensional mean vector of the object state at the previous time step.
+            covariance (np.ndarray): The 8x8-dimensional covariance matrix of the object state at the previous time step.
 
         Returns:
             (tuple[ndarray, ndarray]): Returns the mean vector and covariance matrix of the predicted state. Unobserved
@@ -403,8 +403,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         Project state distribution to measurement space.
 
         Args:
-            mean (ndarray): The state's mean vector (8 dimensional array).
-            covariance (ndarray): The state's covariance matrix (8x8 dimensional).
+            mean (np.ndarray): The state's mean vector (8 dimensional array).
+            covariance (np.ndarray): The state's covariance matrix (8x8 dimensional).
 
         Returns:
             (tuple[ndarray, ndarray]): Returns the projected mean and covariance matrix of the given state estimate.
@@ -432,8 +432,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         Run Kalman filter prediction step (Vectorized version).
 
         Args:
-            mean (ndarray): The Nx8 dimensional mean matrix of the object states at the previous time step.
-            covariance (ndarray): The Nx8x8 covariance matrix of the object states at the previous time step.
+            mean (np.ndarray): The Nx8 dimensional mean matrix of the object states at the previous time step.
+            covariance (np.ndarray): The Nx8x8 covariance matrix of the object states at the previous time step.
 
         Returns:
             (tuple[ndarray, ndarray]): Returns the mean vector and covariance matrix of the predicted state. Unobserved
@@ -473,9 +473,9 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         Run Kalman filter correction step.
 
         Args:
-            mean (ndarray): The predicted state's mean vector (8 dimensional).
-            covariance (ndarray): The state's covariance matrix (8x8 dimensional).
-            measurement (ndarray): The 4 dimensional measurement vector (x, y, w, h), where (x, y) is the center
+            mean (np.ndarray): The predicted state's mean vector (8 dimensional).
+            covariance (np.ndarray): The state's covariance matrix (8x8 dimensional).
+            measurement (np.ndarray): The 4 dimensional measurement vector (x, y, w, h), where (x, y) is the center
                 position, w the width, and h the height of the bounding box.
 
         Returns:

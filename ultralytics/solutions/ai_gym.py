@@ -60,7 +60,7 @@ class AIGym(BaseSolution):
         angle thresholds.
 
         Args:
-            im0 (ndarray): Input image for processing.
+            im0 (np.ndarray): Input image for processing.
 
         Returns:
             (SolutionResults): Contains processed image `plot_im`,

@@ -236,8 +236,8 @@ class BYTETracker:
     """
     BYTETracker: A tracking algorithm built on top of YOLOv8 for object detection and tracking.
 
-    This class encapsulates the functionality for initializing, updating, and managing the tracks for detected objects in a 
-    video sequence. It maintains the state of tracked, lost, and removed tracks over frames, utilizes Kalman filtering for 
+    This class encapsulates the functionality for initializing, updating, and managing the tracks for detected objects in a
+    video sequence. It maintains the state of tracked, lost, and removed tracks over frames, utilizes Kalman filtering for
     predicting the new object locations, and performs data association.
 
     Attributes:

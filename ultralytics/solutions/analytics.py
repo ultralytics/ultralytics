@@ -150,7 +150,7 @@ class Analytics(BaseSolution):
             y_data = np.append(self.line.get_ydata(), float(self.total_counts))
 
             if len(x_data) > self.max_points:
-                x_data, y_data = x_data[-self.max_points:], y_data[-self.max_points:]
+                x_data, y_data = x_data[-self.max_points :], y_data[-self.max_points :]
 
             self.line.set_data(x_data, y_data)
             self.line.set_label("Counts")

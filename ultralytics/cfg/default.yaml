@@ -1,5 +1,7 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
-# Default training settings and hyperparameters for medium-augmentation COCO training
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Global configuration YAML with settings and hyperparameters for YOLO training, validation, prediction and export
+# For documentation see https://docs.ultralytics.com/usage/cfg/
 
 task: detect # (str) YOLO task, i.e. detect, segment, classify, pose, obb
 mode: train # (str) YOLO mode, i.e. train, val, predict, export, track, benchmark

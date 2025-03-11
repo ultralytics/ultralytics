@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import glob
 import inspect
@@ -19,6 +19,7 @@ import requests
 import torch
 
 from ultralytics.utils import (
+    ARM64,
     ASSETS,
     AUTOINSTALL,
     IS_COLAB,
@@ -30,6 +31,7 @@ from ultralytics.utils import (
     MACOS,
     ONLINE,
     PYTHON_VERSION,
+    RKNN_CHIPS,
     ROOT,
     TORCHVISION_VERSION,
     USER_CONFIG_DIR,
@@ -129,7 +131,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
         floor (int): Minimum allowed value for image size.
 
     Returns:
-        (List[int]): Updated image size.
+        (List[int] | int): Updated image size.
     """
     # Convert stride to integer if it is a tensor
     stride = int(stride.max() if isinstance(stride, torch.Tensor) else stride)
@@ -431,8 +433,8 @@ def check_torchvision():
     The compatibility table is a dictionary where the keys are PyTorch versions and the values are lists of compatible
     Torchvision versions.
     """
-    # Compatibility table
     compatibility_table = {
+        "2.6": ["0.21"],
         "2.5": ["0.20"],
         "2.4": ["0.19"],
         "2.3": ["0.18"],
@@ -443,7 +445,7 @@ def check_torchvision():
         "1.12": ["0.13"],
     }
 
-    # Extract only the major and minor versions
+    # Check major and minor versions
     v_torch = ".".join(torch.__version__.split("+")[0].split(".")[:2])
     if v_torch in compatibility_table:
         compatible_versions = compatibility_table[v_torch]
@@ -487,10 +489,10 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
     return file
 
 
-def check_model_file_from_stem(model="yolov8n"):
+def check_model_file_from_stem(model="yolo11n"):
     """Return a model filename from a valid model stem."""
     if model and not Path(model).suffix and Path(model).stem in downloads.GITHUB_ASSETS_STEMS:
-        return Path(model).with_suffix(".pt")  # add suffix, i.e. yolov8n -> yolov8n.pt
+        return Path(model).with_suffix(".pt")  # add suffix, i.e. yolo11n -> yolo11n.pt
     else:
         return model
 
@@ -607,6 +609,7 @@ def collect_system_info():
         "Environment": ENVIRONMENT,
         "Python": PYTHON_VERSION,
         "Install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
+        "Path": str(ROOT),
         "RAM": f"{psutil.virtual_memory().total / gib:.2f} GB",
         "Disk": f"{(total - free) / gib:.1f}/{total / gib:.1f} GB",
         "CPU": get_cpu_info(),
@@ -782,8 +785,38 @@ def cuda_is_available() -> bool:
     return cuda_device_count() > 0
 
 
+def is_rockchip():
+    """Check if the current environment is running on a Rockchip SoC."""
+    if LINUX and ARM64:
+        try:
+            with open("/proc/device-tree/compatible") as f:
+                dev_str = f.read()
+                *_, soc = dev_str.split(",")
+                if soc.replace("\x00", "") in RKNN_CHIPS:
+                    return True
+        except OSError:
+            return False
+    else:
+        return False
+
+
+def is_sudo_available() -> bool:
+    """
+    Check if the sudo command is available in the environment.
+
+    Returns:
+        (bool): True if the sudo command is available, False otherwise.
+    """
+    if WINDOWS:
+        return False
+    cmd = "sudo --version"
+    return subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+
+
 # Run checks and define constants
 check_python("3.8", hard=False, verbose=True)  # check python version
 check_torchvision()  # check torch-torchvision compatibility
+
+# Define constants
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")

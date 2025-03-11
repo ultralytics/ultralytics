@@ -66,7 +66,17 @@ Before diving into the usage instructions, it's important to note that while all
           yolo predict model='yolo11n.mnn' source='https://ultralytics.com/images/bus.jpg'
           ```
 
-For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).
+### Export Arguments
+
+| Argument | Type             | Default | Description                                                                                                                                                                                   |
+| -------- | ---------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format` | `str`            | `'mnn'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
+| `imgsz`  | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
+| `half`   | `bool`           | `False` | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                                                                  |
+| `int8`   | `bool`           | `False` | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
+| `batch`  | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                       |
+
+For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
 ### MNN-Only Inference
 
@@ -100,6 +110,7 @@ A function that relies solely on MNN for YOLO11 inference and preprocessing is i
             image = cv2.resize(
                 image, (640, 640), 0.0, 0.0, cv2.INTER_LINEAR, -1, [0.0, 0.0, 0.0], [1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0]
             )
+            image = image[..., ::-1]  # BGR to RGB
             input_var = np.expand_dims(image, 0)
             input_var = MNN.expr.convert(input_var, MNN.expr.NC4HW4)
             output_var = net.forward(input_var)
@@ -117,6 +128,8 @@ A function that relies solely on MNN for YOLO11 inference and preprocessing is i
             x1 = cx + w * 0.5
             y1 = cy + h * 0.5
             boxes = np.stack([x0, y0, x1, y1], axis=1)
+            # ensure ratio is within the valid range [0.0, 1.0]
+            boxes = np.clip(boxes, 0, 1)
             # get max prob and idx
             scores = np.max(probs, 0)
             class_ids = np.argmax(probs, 0)
@@ -132,6 +145,9 @@ A function that relies solely on MNN for YOLO11 inference and preprocessing is i
                 y1 = int(y1 * scale)
                 x0 = int(x0 * scale)
                 x1 = int(x1 * scale)
+                # clamp to the original image size to handle cases where padding was applied
+                x1 = min(iw, x1)
+                y1 = min(ih, y1)
                 print(result_class_ids[i])
                 cv2.rectangle(original_image, (x0, y0), (x1, y1), (0, 0, 255), 2)
             cv2.imwrite("res.jpg", original_image)
@@ -210,6 +226,7 @@ A function that relies solely on MNN for YOLO11 inference and preprocessing is i
             auto pads = _Const(static_cast<void*>(padvals.data()), {3, 2}, NCHW, halide_type_of<int>());
             auto image = _Pad(original_image, pads, CONSTANT);
             image = resize(image, Size(640, 640), 0, 0, INTER_LINEAR, -1, {0., 0., 0.}, {1./255., 1./255., 1./255.});
+            image = cvtColor(image, COLOR_BGR2RGB);
             auto input = _Unsqueeze(image, {0});
             input = _Convert(input, NC4HW4);
             auto outputs = net->onForward({input});
@@ -231,6 +248,9 @@ A function that relies solely on MNN for YOLO11 inference and preprocessing is i
             auto x1 = cx + w * _Const(0.5);
             auto y1 = cy + h * _Const(0.5);
             auto boxes = _Stack({x0, y0, x1, y1}, 1);
+            // ensure ratio is within the valid range [0.0, 1.0]
+            boxes = _Maximum(boxes, _Scalar<float>(0.0f));
+            boxes = _Minimum(boxes, _Scalar<float>(1.0f));
             auto scores = _ReduceMax(probs, {0});
             auto ids = _ArgMax(probs, 0);
             auto result_ids = _Nms(boxes, scores, 100, 0.45, 0.25);
@@ -245,6 +265,9 @@ A function that relies solely on MNN for YOLO11 inference and preprocessing is i
                 auto y0 = box_ptr[idx * 4 + 1] * scale;
                 auto x1 = box_ptr[idx * 4 + 2] * scale;
                 auto y1 = box_ptr[idx * 4 + 3] * scale;
+                // clamp to the original image size to handle cases where padding was applied
+                x1 = std::min(static_cast<float>(iw), x1);
+                y1 = std::min(static_cast<float>(ih), y1);
                 auto class_idx = ids_ptr[idx];
                 auto score = score_ptr[idx];
                 rectangle(original_image, {x0, y0}, {x1, y1}, {0, 0, 255}, 2);

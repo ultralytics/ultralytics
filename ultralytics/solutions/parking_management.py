@@ -1,14 +1,13 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import json
 
 import cv2
 import numpy as np
 
-from ultralytics.solutions.solutions import BaseSolution
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import LOGGER
-from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.plotting import Annotator
+from ultralytics.utils.checks import check_imshow
 
 
 class ParkingPtsSelection:
@@ -49,9 +48,24 @@ class ParkingPtsSelection:
 
     def __init__(self):
         """Initializes the ParkingPtsSelection class, setting up UI and properties for parking zone point selection."""
-        check_requirements("tkinter")
-        import tkinter as tk
-        from tkinter import filedialog, messagebox
+        try:  # check if tkinter installed
+            import tkinter as tk
+            from tkinter import filedialog, messagebox
+        except ImportError:  # Display error with recommendations
+            import platform
+
+            install_cmd = {
+                "Linux": "sudo apt install python3-tk (Debian/Ubuntu) | sudo dnf install python3-tkinter (Fedora) | "
+                "sudo pacman -S tk (Arch)",
+                "Windows": "reinstall Python and enable the checkbox `tcl/tk and IDLE` on **Optional Features** during installation",
+                "Darwin": "reinstall Python from https://www.python.org/downloads/mac-osx/ or `brew install python-tk`",
+            }.get(platform.system(), "Unknown OS. Check your Python installation.")
+
+            LOGGER.warning(f"WARNING ⚠️  Tkinter is not configured or supported. Potential fix: {install_cmd}")
+            return
+
+        if not check_imshow(warn=True):
+            return
 
         self.tk, self.filedialog, self.messagebox = tk, filedialog, messagebox
         self.master = self.tk.Tk()  # Reference to the main application window or parent widget
@@ -174,11 +188,11 @@ class ParkingManagement(BaseSolution):
         dc (Tuple[int, int, int]): RGB color tuple for centroid visualization of detected objects.
 
     Methods:
-        process_data: Processes model data for parking lot management and visualization.
+        process: Processes the input image for parking lot management and visualization.
 
     Examples:
         >>> from ultralytics.solutions import ParkingManagement
-        >>> parking_manager = ParkingManagement(model="yolov8n.pt", json_file="parking_regions.json")
+        >>> parking_manager = ParkingManagement(model="yolo11n.pt", json_file="parking_regions.json")
         >>> print(f"Occupied spaces: {parking_manager.pr_info['Occupancy']}")
         >>> print(f"Available spaces: {parking_manager.pr_info['Available']}")
     """
@@ -201,9 +215,9 @@ class ParkingManagement(BaseSolution):
         self.occ = (0, 255, 0)  # occupied region color
         self.dc = (255, 0, 189)  # centroid color for each box
 
-    def process_data(self, im0):
+    def process(self, im0):
         """
-        Processes the model data for parking lot management.
+        Processes the input image for parking lot management and visualization.
 
         This function analyzes the input image, extracts tracks, and determines the occupancy status of parking
         regions defined in the JSON file. It annotates the image with occupied and available parking spots,
@@ -212,14 +226,18 @@ class ParkingManagement(BaseSolution):
         Args:
             im0 (np.ndarray): The input inference image.
 
+        Returns:
+            (SolutionResults): Contains processed image `plot_im`, 'filled_slots' (number of occupied parking slots),
+                'available_slots' (number of available parking slots), and 'total_tracks' (total number of tracked objects).
+
         Examples:
             >>> parking_manager = ParkingManagement(json_file="parking_regions.json")
             >>> image = cv2.imread("parking_lot.jpg")
-            >>> parking_manager.process_data(image)
+            >>> results = parking_manager.process(image)
         """
         self.extract_tracks(im0)  # extract tracks from im0
         es, fs = len(self.json), 0  # empty slots, filled slots
-        annotator = Annotator(im0, self.line_width)  # init annotator
+        annotator = SolutionAnnotator(im0, self.line_width)  # init annotator
 
         for region in self.json:
             # Convert points to a NumPy array with the correct dtype and reshape properly
@@ -242,5 +260,14 @@ class ParkingManagement(BaseSolution):
         self.pr_info["Occupancy"], self.pr_info["Available"] = fs, es
 
         annotator.display_analytics(im0, self.pr_info, (104, 31, 17), (255, 255, 255), 10)
-        self.display_output(im0)  # display output with base class function
-        return im0  # return output image for more usage
+
+        plot_im = annotator.result()
+        self.display_output(plot_im)  # display output with base class function
+
+        # Return SolutionResults
+        return SolutionResults(
+            plot_im=plot_im,
+            filled_slots=self.pr_info["Occupancy"],
+            available_slots=self.pr_info["Available"],
+            total_tracks=len(self.track_ids),
+        )

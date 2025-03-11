@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import contextlib
 import importlib.metadata
@@ -13,6 +13,7 @@ import sys
 import threading
 import time
 import uuid
+import warnings
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
@@ -23,10 +24,11 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import tqdm
 import yaml
-from tqdm import tqdm as tqdm_original
 
 from ultralytics import __version__
+from ultralytics.utils.patches import imread, imshow, imwrite, torch_load, torch_save  # for patches
 
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv("RANK", -1))
@@ -51,6 +53,20 @@ PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = torch.__version__
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
 IS_VSCODE = os.environ.get("TERM_PROGRAM", False) == "vscode"
+RKNN_CHIPS = frozenset(
+    {
+        "rk3588",
+        "rk3576",
+        "rk3566",
+        "rk3568",
+        "rk3562",
+        "rv1103",
+        "rv1106",
+        "rv1103b",
+        "rv1106b",
+        "rk2118",
+    }
+)  # Rockchip processors available for export
 HELP_MSG = """
     Examples for running Ultralytics:
 
@@ -110,16 +126,18 @@ HELP_MSG = """
 
 # Settings and Environment Variables
 torch.set_printoptions(linewidth=320, precision=4, profile="default")
-np.set_printoptions(linewidth=320, formatter={"float_kind": "{:11.5g}".format})  # format short g, %precision=5
+np.set_printoptions(linewidth=320, formatter=dict(float_kind="{:11.5g}".format))  # format short g, %precision=5
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
-os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # for deterministic training to avoid CUDA warning
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warnings in Colab
 os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
 
+if TQDM_RICH := str(os.getenv("YOLO_TQDM_RICH", False)).lower() == "true":
+    from tqdm import rich
 
-class TQDM(tqdm_original):
+
+class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
     """
     A custom TQDM progress bar class that extends the original tqdm functionality.
 
@@ -162,7 +180,8 @@ class TQDM(tqdm_original):
             ...     # Your code here
             ...     pass
         """
-        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)  # logical 'and' with default value if passed
+        warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
+        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)
 
@@ -575,6 +594,16 @@ def is_jupyter():
         - "get_ipython" in globals() method suffers false positives when IPython package installed manually.
     """
     return IS_COLAB or IS_KAGGLE
+
+
+def is_runpod():
+    """
+    Check if the current script is running inside a RunPod container.
+
+    Returns:
+        (bool): True if running in RunPod, False otherwise.
+    """
+    return "RUNPOD_POD_ID" in os.environ
 
 
 def is_docker() -> bool:
@@ -1042,7 +1071,7 @@ def set_sentry():
         auto_enabling_integrations=False,
         traces_sample_rate=1.0,
         release=__version__,
-        environment="production",  # 'dev' or 'production'
+        environment="runpod" if is_runpod() else "production",
         before_send=before_send,
         ignore_errors=[KeyboardInterrupt, FileNotFoundError],
     )
@@ -1100,7 +1129,7 @@ class JSONDict(dict):
         """Save the current state of the dictionary to the JSON file."""
         try:
             self.file_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.file_path, "w") as f:
+            with open(self.file_path, "w", encoding="utf-8") as f:
                 json.dump(dict(self), f, indent=2, default=self._json_default)
         except Exception as e:
             print(f"Error writing to {self.file_path}: {e}")
@@ -1217,7 +1246,7 @@ class SettingsManager(JSONDict):
 
     def _validate_settings(self):
         """Validate the current settings and reset if necessary."""
-        correct_keys = set(self.keys()) == set(self.defaults.keys())
+        correct_keys = frozenset(self.keys()) == frozenset(self.defaults.keys())
         correct_types = all(isinstance(self.get(k), type(v)) for k, v in self.defaults.items())
         correct_version = self.get("settings_version", "") == self.version
 
@@ -1312,8 +1341,6 @@ TESTS_RUNNING = is_pytest_running() or is_github_action_running()
 set_sentry()
 
 # Apply monkey patches
-from ultralytics.utils.patches import imread, imshow, imwrite, torch_load, torch_save
-
 torch.load = torch_load
 torch.save = torch_save
 if WINDOWS:

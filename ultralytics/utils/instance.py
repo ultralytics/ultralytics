@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from collections import abc
 from itertools import repeat
@@ -188,12 +188,12 @@ class Instances:
 
     Attributes:
         _bboxes (Bboxes): Internal object for handling bounding box operations.
-        keypoints (ndarray): keypoints(x, y, visible) with shape [N, 17, 3]. Default is None.
+        keypoints (np.ndarray): keypoints(x, y, visible) with shape [N, 17, 3]. Default is None.
         normalized (bool): Flag indicating whether the bounding box coordinates are normalized.
-        segments (ndarray): Segments array with shape [N, 1000, 2] after resampling.
+        segments (np.ndarray): Segments array with shape [N, 1000, 2] after resampling.
 
     Args:
-        bboxes (ndarray): An array of bounding boxes with shape [N, 4].
+        bboxes (np.ndarray): An array of bounding boxes with shape [N, 4].
         segments (list | ndarray, optional): A list or array of object segments. Default is None.
         keypoints (ndarray, optional): An array of keypoints with shape [N, 17, 3]. Default is None.
         bbox_format (str, optional): The format of bounding boxes ('xywh' or 'xyxy'). Default is 'xywh'.
@@ -407,7 +407,7 @@ class Instances:
 
         cat_boxes = np.concatenate([ins.bboxes for ins in instances_list], axis=axis)
         seg_len = [b.segments.shape[1] for b in instances_list]
-        if len(set(seg_len)) > 1:  # resample segments if there's different length
+        if len(frozenset(seg_len)) > 1:  # resample segments if there's different length
             max_len = max(seg_len)
             cat_segments = np.concatenate(
                 [

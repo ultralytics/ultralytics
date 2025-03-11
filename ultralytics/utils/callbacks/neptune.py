@@ -7,6 +7,7 @@ try:
     assert SETTINGS["neptune"] is True  # verify integration is enabled
     import neptune
     from neptune.types import File
+    from pathlib import Path
 
     assert hasattr(neptune, "__version__")
 
@@ -30,7 +31,7 @@ def _log_images(imgs_dict: dict, group: str = "") -> None:
             run[f"{group}/{k}"].upload(File(v))
 
 
-def _log_plot(title: str, plot_path: str | "Path") -> None:
+def _log_plot(title: str, plot_path: str | Path) -> None:
     """
     Log plots to the NeptuneAI experiment logger.
 

@@ -30,7 +30,7 @@ class TrackZone(BaseSolution):
     def __init__(self, **kwargs):
         """
         Initializes the TrackZone class for tracking objects within a defined region in video streams.
-        
+
         Args:
             **kwargs (Any): Additional keyword arguments passed to the parent class.
         """
@@ -49,7 +49,7 @@ class TrackZone(BaseSolution):
             im0 (np.ndarray): The input image or frame to be processed.
 
         Returns:
-            (SolutionResults): Contains processed image `plot_im` and `total_tracks` (int) representing the 
+            (SolutionResults): Contains processed image `plot_im` and `total_tracks` (int) representing the
                                total number of tracked objects within the defined region.
 
         Examples:
@@ -58,7 +58,7 @@ class TrackZone(BaseSolution):
             >>> results = tracker.process(frame)
         """
         annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
-        
+
         # Create a mask for the region and extract tracks from the masked image
         mask = np.zeros_like(im0[:, :, 0])
         mask = cv2.fillPoly(mask, [self.region], 255)
@@ -71,7 +71,7 @@ class TrackZone(BaseSolution):
         # Iterate over boxes, track ids, classes indexes list and draw bounding boxes
         for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
             annotator.box_label(box, label=f"{self.names[cls]}:{track_id}", color=colors(track_id, True))
-        
+
         plot_im = annotator.result()
         self.display_output(plot_im)  # display output with base class function
 

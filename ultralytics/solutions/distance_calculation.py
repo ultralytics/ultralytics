@@ -78,8 +78,8 @@ class DistanceCalculation(BaseSolution):
             im0 (numpy.ndarray): The input image frame to process.
 
         Returns:
-            (SolutionResults): Contains processed image `plot_im`, `total_tracks` (int) representing the total number 
-                of tracked objects, and `pixels_distance` (float) representing the distance between selected objects 
+            (SolutionResults): Contains processed image `plot_im`, `total_tracks` (int) representing the total number
+                of tracked objects, and `pixels_distance` (float) representing the distance between selected objects
                 in pixels.
 
         Examples:

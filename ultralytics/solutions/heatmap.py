@@ -23,7 +23,7 @@ class Heatmap(ObjectCounter):
     Methods:
         heatmap_effect: Calculates and updates the heatmap effect for a given bounding box.
         process: Generates and applies the heatmap effect to each frame.
-        
+
     Examples:
         >>> from ultralytics.solutions import Heatmap
         >>> heatmap = Heatmap(model="yolo11n.pt", colormap=cv2.COLORMAP_JET)
@@ -34,7 +34,7 @@ class Heatmap(ObjectCounter):
     def __init__(self, **kwargs):
         """
         Initializes the Heatmap class for real-time video stream heatmap generation based on object tracks.
-        
+
         Args:
             **kwargs (Any): Keyword arguments passed to the parent ObjectCounter class.
         """
@@ -81,7 +81,7 @@ class Heatmap(ObjectCounter):
             (SolutionResults): Contains processed image `plot_im`,
                 'in_count' (int, count of objects entering the region),
                 'out_count' (int, count of objects exiting the region),
-                'classwise_count' (dict, per-class object count), and 
+                'classwise_count' (dict, per-class object count), and
                 'total_tracks' (int, total number of tracked objects).
         """
         if not self.initialized:

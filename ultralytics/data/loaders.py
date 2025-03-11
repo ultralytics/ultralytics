@@ -327,18 +327,19 @@ class LoadImagesAndVideos:
             parent = Path(path).parent
             path = Path(path).read_text().splitlines()  # list of sources
         files = []
-        for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
-            a = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912
-            if "*" in a:
-                files.extend(sorted(glob.glob(a, recursive=True)))  # glob
-            elif os.path.isdir(a):
-                files.extend(sorted(glob.glob(os.path.join(a, "*.*"))))  # dir
-            elif os.path.isfile(a):
-                files.append(a)  # files (absolute or relative to CWD)
-            elif parent and (parent / p).is_file():
-                files.append(str((parent / p).absolute()))  # files (relative to *.txt file parent)
+        path_list = sorted(path) if isinstance(path, (list, tuple)) else [path]
+        for path in path_list:
+            abs_path = Path(path).absolute()
+            if "*" in str(abs_path):
+                files.extend(str(p) for p in sorted(abs_path.parent.glob(abs_path.name)))
+            elif abs_path.is_dir():
+                files.extend(str(p) for p in sorted(abs_path.glob("*.*")))
+            elif abs_path.is_file():
+                files.append(str(abs_path))
+            elif parent and (parent.joinpath(path)).is_file():
+                files.append(str(parent.joinpath(path).absolute()))
             else:
-                raise FileNotFoundError(f"{p} does not exist")
+                raise FileNotFoundError(f"{path} does not exist")
 
         # Define files as images or videos
         images, videos = [], []

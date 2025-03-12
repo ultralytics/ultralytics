@@ -8,11 +8,11 @@
 nc: 80 # number of classes
 scales: # model compound scaling constants, i.e. 'model=yolov8n.yaml' will call yolov8.yaml with scale 'n'
   # [depth, width, max_channels]
-  n: [0.33, 0.25, 1024] # YOLOv8n-world summary: 161 layers, 4204111 parameters, 4204095 gradients, 39.6 GFLOPS
-  s: [0.33, 0.50, 1024] # YOLOv8s-world summary: 161 layers, 13383496 parameters, 13383480 gradients, 71.5 GFLOPS
-  m: [0.67, 0.75, 768] # YOLOv8m-world summary: 201 layers, 29065310 parameters, 29065294 gradients, 131.4 GFLOPS
-  l: [1.00, 1.00, 512] # YOLOv8l-world summary: 241 layers, 47553970 parameters, 47553954 gradients, 225.6 GFLOPS
-  x: [1.00, 1.25, 512] # YOLOv8x-world summary: 241 layers, 73690217 parameters, 73690201 gradients, 330.8 GFLOPS
+  n: [0.33, 0.25, 1024] # YOLOv8n-world summary: 161 layers, 4204111 parameters, 4204095 gradients, 39.6 GFLOPs
+  s: [0.33, 0.50, 1024] # YOLOv8s-world summary: 161 layers, 13383496 parameters, 13383480 gradients, 71.5 GFLOPs
+  m: [0.67, 0.75, 768] # YOLOv8m-world summary: 201 layers, 29065310 parameters, 29065294 gradients, 131.4 GFLOPs
+  l: [1.00, 1.00, 512] # YOLOv8l-world summary: 241 layers, 47553970 parameters, 47553954 gradients, 225.6 GFLOPs
+  x: [1.00, 1.25, 512] # YOLOv8x-world summary: 241 layers, 73690217 parameters, 73690201 gradients, 330.8 GFLOPs
 
 # YOLOv8.0n backbone
 backbone:

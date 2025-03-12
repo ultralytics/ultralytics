@@ -176,7 +176,8 @@ def test_youtube():
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(not IS_TMP_WRITEABLE, reason="directory is not writeable")
 def test_track_stream():
-    """Test streaming tracking on a short 10 frame video using ByteTrack tracker and different GMC methods.
+    """
+    Test streaming tracking on a short 10 frame video using ByteTrack tracker and different GMC methods.
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """

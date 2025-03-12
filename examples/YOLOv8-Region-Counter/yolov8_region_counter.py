@@ -37,7 +37,7 @@ counting_regions = [
 ]
 
 
-def mouse_callback(event: int, x: int, y: int, flags: int, param: Any):
+def mouse_callback(event: int, x: int, y: int, flags: int, param: Any) -> None:
     """
     Handle mouse events for region manipulation.
 
@@ -49,7 +49,7 @@ def mouse_callback(event: int, x: int, y: int, flags: int, param: Any):
         param (Any): Additional parameters passed to the callback.
 
     Global Variables:
-        current_region (Dict): A dictionary representing the current selected region.
+        current_region (dict): A dictionary representing the current selected region.
 
     Notes:
         This function is intended to be used as a callback for OpenCV mouse events.
@@ -97,7 +97,7 @@ def run(
     line_thickness: int = 2,
     track_thickness: int = 2,
     region_thickness: int = 2,
-):
+) -> None:
     """
     Run region counting on a video using YOLOv8 and ByteTrack.
 
@@ -223,7 +223,7 @@ def run(
     cv2.destroyAllWindows()
 
 
-def parse_opt():
+def parse_opt() -> argparse.Namespace:
     """Parse command line arguments for the region counting application."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--weights", type=str, default="yolo11n.pt", help="initial weights path")
@@ -240,7 +240,7 @@ def parse_opt():
     return parser.parse_args()
 
 
-def main(options):
+def main(options: argparse.Namespace) -> None:
     """Execute the main region counting functionality with the provided options."""
     run(**vars(options))
 

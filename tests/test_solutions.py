@@ -30,18 +30,18 @@ def test_major_solutions():
         colormap=cv2.COLORMAP_PARULA, model="yolo11n.pt", show=False, region=region_points
     )  # Test heatmaps with object counting
     speed = solutions.SpeedEstimator(region=region_points, model="yolo11n.pt", show=False)  # Test speed estimation
-    queue = solutions.QueueManager(region=region_points, model="yolo11n.pt", show=False)  # Test queue manager
-    lineanalytics = solutions.Analytics(analytics_type="line", model="yolo11n.pt", show=False)  # line analytics
-    pieanalytics = solutions.Analytics(analytics_type="pie", model="yolo11n.pt", show=False)  # pie analytics
-    baranalytics = solutions.Analytics(analytics_type="bar", model="yolo11n.pt", show=False)  # bar analytics
-    areaanalytics = solutions.Analytics(analytics_type="area", model="yolo11n.pt", show=False)  # area analytics
-    trackzone = solutions.TrackZone(region=region_points, model="yolo11n.pt", show=False)  # trackzone
+    queue = solutions.QueueManager(region=region_points, model="yolo11n.pt", show=False)  # Test queue management
+    lineanalytics = solutions.Analytics(analytics_type="line", model="yolo11n.pt", show=False)  # Line analytics
+    pieanalytics = solutions.Analytics(analytics_type="pie", model="yolo11n.pt", show=False)  # Pie analytics
+    baranalytics = solutions.Analytics(analytics_type="bar", model="yolo11n.pt", show=False)  # Bar analytics
+    areaanalytics = solutions.Analytics(analytics_type="area", model="yolo11n.pt", show=False)  # Area analytics
+    trackzone = solutions.TrackZone(region=region_points, model="yolo11n.pt", show=False)  # Track zone monitoring
     objectcropper = solutions.ObjectCropper(
         model="yolo11n.pt", show=False, crop_dir=str(TMP / "cropped-detections")
-    )  # object cropping
+    )  # Object cropping
     objectblurrer = solutions.ObjectBlurrer(blur_ratio=0.5, model="yolo11n.pt", show=False)  # Object blurring
     isegment = solutions.InstanceSegmentation(model="yolo11n-seg.pt", show=False)  # Instance segmentation
-    visioneye = solutions.VisionEye(model="yolo11n.pt", show=False)  # Visioneye
+    visioneye = solutions.VisionEye(model="yolo11n.pt", show=False)  # Vision Eye solution
     regioncounter = solutions.RegionCounter(region=region_points, model="yolo11n.pt", show=False)  # Region counter
     frame_count = 0  # Required for analytics
     while cap.isOpened():

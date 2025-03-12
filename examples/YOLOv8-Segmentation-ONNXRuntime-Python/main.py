@@ -23,8 +23,8 @@ class YOLOv8Seg:
 
     Attributes:
         session (ort.InferenceSession): ONNX Runtime inference session for model execution.
-        imgsz (tuple): Input image size as (height, width) for the model.
-        classes (dict): Dictionary mapping class indices to class names from the dataset.
+        imgsz (Tuple[int, int]): Input image size as (height, width) for the model.
+        classes (Dict): Dictionary mapping class indices to class names from the dataset.
         conf (float): Confidence threshold for filtering detections.
         iou (float): IoU threshold used by non-maximum suppression.
 
@@ -43,8 +43,8 @@ class YOLOv8Seg:
             onnx_model (str): Path to the ONNX model file.
             conf (float): Confidence threshold for filtering detections.
             iou (float): IoU threshold for non-maximum suppression.
-            imgsz (int | tuple): Input image size of the model. Can be an integer for square input or a tuple for
-                rectangular input.
+            imgsz (int | Tuple[int, int]): Input image size of the model. Can be an integer for square input or a tuple
+                for rectangular input.
         """
         self.session = ort.InferenceSession(
             onnx_model,
@@ -79,7 +79,7 @@ class YOLOv8Seg:
 
         Args:
             img (np.ndarray): Input image in BGR format.
-            new_shape (tuple): Target shape as (height, width).
+            new_shape (Tuple[int, int]): Target shape as (height, width).
 
         Returns:
             (np.ndarray): Resized and padded image.
@@ -107,7 +107,7 @@ class YOLOv8Seg:
 
         Args:
             img (np.ndarray): The input image in BGR format.
-            new_shape (tuple): The target shape for resizing as (height, width).
+            new_shape (Tuple[int, int]): The target shape for resizing as (height, width).
 
         Returns:
             (np.ndarray): Preprocessed image ready for model inference, with shape (1, 3, height, width) and normalized.
@@ -149,7 +149,7 @@ class YOLOv8Seg:
             protos (torch.Tensor): Prototype masks with shape (mask_dim, mask_h, mask_w).
             masks_in (torch.Tensor): Predicted mask coefficients with shape (n, mask_dim), where n is number of detections.
             bboxes (torch.Tensor): Bounding boxes with shape (n, 4), where n is number of detections.
-            shape (tuple): The size of the input image as (height, width).
+            shape (Tuple[int, int]): The size of the input image as (height, width).
 
         Returns:
             (torch.Tensor): Binary segmentation masks with shape (n, height, width).

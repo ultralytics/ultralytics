@@ -33,7 +33,7 @@ class AIGym(BaseSolution):
 
     def __init__(self, **kwargs):
         """
-        Initializes AIGym for workout monitoring using pose estimation and predefined angles.
+        Initialize AIGym for workout monitoring using pose estimation and predefined angles.
 
         Args:
             **kwargs (Any): Keyword arguments passed to the parent class constructor.
@@ -53,7 +53,7 @@ class AIGym(BaseSolution):
 
     def process(self, im0):
         """
-        Monitors workouts using Ultralytics YOLO Pose Model.
+        Monitor workouts using Ultralytics YOLO Pose Model.
 
         This function processes an input image to track and analyze human poses for workout monitoring. It uses
         the YOLO Pose model to detect keypoints, estimate angles, and count repetitions based on predefined

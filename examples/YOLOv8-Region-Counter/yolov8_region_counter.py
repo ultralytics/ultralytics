@@ -37,30 +37,25 @@ counting_regions = [
 ]
 
 
-def mouse_callback(event: int, x: int, y: int, flags: int, param: Any):
+def mouse_callback(event: int, x: int, y: int, flags: int, param: Any) -> None:
     """
-    Handles mouse events for region manipulation.
+    Handle mouse events for region manipulation.
 
     Args:
         event (int): The mouse event type (e.g., cv2.EVENT_LBUTTONDOWN).
         x (int): The x-coordinate of the mouse pointer.
         y (int): The y-coordinate of the mouse pointer.
         flags (int): Additional flags passed by OpenCV.
-        param (Any): Additional parameters passed to the callback (not used in this function).
+        param (Any): Additional parameters passed to the callback.
 
     Global Variables:
-        current_region (Dict): A dictionary representing the current selected region.
-
-    Mouse Events:
-        - LBUTTONDOWN: Initiates dragging for the region containing the clicked point.
-        - MOUSEMOVE: Moves the selected region if dragging is active.
-        - LBUTTONUP: Ends dragging for the selected region.
+        current_region (dict): A dictionary representing the current selected region.
 
     Notes:
-        - This function is intended to be used as a callback for OpenCV mouse events.
-        - Requires the existence of the 'counting_regions' list and the 'Polygon' class.
+        This function is intended to be used as a callback for OpenCV mouse events.
+        It allows for selecting and dragging counting regions within the video frame.
 
-    Example:
+    Examples:
         >>> cv2.setMouseCallback(window_name, mouse_callback)
     """
     global current_region
@@ -102,13 +97,9 @@ def run(
     line_thickness: int = 2,
     track_thickness: int = 2,
     region_thickness: int = 2,
-):
+) -> None:
     """
-    Run Region counting on a video using YOLOv8 and ByteTrack.
-
-    Supports movable region for real time counting inside specific area.
-    Supports multiple regions counting.
-    Regions can be Polygons or rectangle in shape.
+    Run region counting on a video using YOLOv8 and ByteTrack.
 
     Args:
         weights (str): Model weights path.
@@ -121,6 +112,11 @@ def run(
         line_thickness (int): Bounding box thickness.
         track_thickness (int): Tracking line thickness.
         region_thickness (int): Region thickness.
+
+    Notes:
+        - Supports movable regions for real-time counting inside specific areas.
+        - Supports multiple regions counting.
+        - Regions can be Polygons or rectangles in shape.
     """
     vid_frame_count = 0
 
@@ -227,7 +223,7 @@ def run(
     cv2.destroyAllWindows()
 
 
-def parse_opt():
+def parse_opt() -> argparse.Namespace:
     """Parse command line arguments for the region counting application."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--weights", type=str, default="yolo11n.pt", help="initial weights path")
@@ -244,7 +240,7 @@ def parse_opt():
     return parser.parse_args()
 
 
-def main(options):
+def main(options: argparse.Namespace) -> None:
     """Execute the main region counting functionality with the provided options."""
     run(**vars(options))
 

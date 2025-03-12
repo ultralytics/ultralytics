@@ -1153,9 +1153,9 @@ class Exporter:
 def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
     """YOLO TensorFlow.js export."""
     # Apply the patch for np.object deprecation
-    import numpy as np
     import sys
-    import importlib.util
+
+    import numpy as np
     
     # Store the original __getattr__
     original_getattr = np.__getattr__

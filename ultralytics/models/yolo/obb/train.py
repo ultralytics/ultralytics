@@ -11,6 +11,13 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
     """
     A class extending the DetectionTrainer class for training based on an Oriented Bounding Box (OBB) model.
 
+    Attributes:
+        loss_names (Tuple[str]): Names of the loss components used during training.
+
+    Methods:
+        get_model: Return OBBModel initialized with specified config and weights.
+        get_validator: Return an instance of OBBValidator for validation of YOLO model.
+
     Examples:
         >>> from ultralytics.models.yolo.obb import OBBTrainer
         >>> args = dict(model="yolo11n-obb.pt", data="dota8.yaml", epochs=3)

@@ -34,7 +34,7 @@ class SAHIInference:
 
     def load_model(self, weights: str) -> None:
         """
-        Loads a YOLO11 model with specified weights for object detection using SAHI.
+        Load a YOLO11 model with specified weights for object detection using SAHI.
 
         Args:
             weights (str): Path to the model weights file.
@@ -60,11 +60,11 @@ class SAHIInference:
         and optionally displays and/or saves the results with bounding boxes and labels.
 
         Args:
-            weights (str): Model weights path, defaults to "yolo11n.pt".
-            source (str): Video file path, defaults to "test.mp4".
-            view_img (bool): Whether to display results in a window, defaults to False.
-            save_img (bool): Whether to save results to a video file, defaults to False.
-            exist_ok (bool): Whether to overwrite existing output files, defaults to False.
+            weights (str): Model weights path.
+            source (str): Video file path.
+            view_img (bool): Whether to display results in a window.
+            save_img (bool): Whether to save results to a video file.
+            exist_ok (bool): Whether to overwrite existing output files.
         """
         # Video setup
         cap = cv2.VideoCapture(source)

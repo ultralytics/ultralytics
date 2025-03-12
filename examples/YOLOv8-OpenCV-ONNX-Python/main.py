@@ -14,7 +14,7 @@ colors = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 
 def draw_bounding_box(img, class_id, confidence, x, y, x_plus_w, y_plus_h):
     """
-    Draws bounding boxes on the input image based on the provided arguments.
+    Draw bounding boxes on the input image based on the provided arguments.
 
     Args:
         img (np.ndarray): The input image to draw the bounding box on.
@@ -33,7 +33,7 @@ def draw_bounding_box(img, class_id, confidence, x, y, x_plus_w, y_plus_h):
 
 def main(onnx_model, input_image):
     """
-    Main function to load ONNX model, perform inference, draw bounding boxes, and display the output image.
+    Load ONNX model, perform inference, draw bounding boxes, and display the output image.
 
     Args:
         onnx_model (str): Path to the ONNX model.

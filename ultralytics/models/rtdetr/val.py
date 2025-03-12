@@ -16,9 +16,6 @@ class RTDETRDataset(YOLODataset):
 
     This specialized dataset class is designed for use with the RT-DETR object detection model and is optimized for
     real-time detection and tracking tasks.
-
-    Attributes:
-        Same as YOLODataset with RT-DETR specific optimizations.
     """
 
     def __init__(self, *args, data=None, **kwargs):
@@ -67,9 +64,6 @@ class RTDETRValidator(DetectionValidator):
 
     The class allows building of an RTDETR-specific dataset for validation, applies Non-maximum suppression for
     post-processing, and updates evaluation metrics accordingly.
-
-    Attributes:
-        Same as DetectionValidator with RT-DETR specific modifications.
 
     Examples:
         >>> from ultralytics.models.rtdetr import RTDETRValidator

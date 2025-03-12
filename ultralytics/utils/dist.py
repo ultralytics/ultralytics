@@ -62,7 +62,7 @@ def generate_ddp_command(world_size, trainer):
 
     Args:
         world_size (int): Number of processes to spawn for distributed training.
-        trainer: The trainer object containing configuration for distributed training.
+        trainer (object): The trainer object containing configuration for distributed training.
 
     Returns:
         cmd (List[str]): The command to execute for distributed training.

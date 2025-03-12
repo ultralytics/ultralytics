@@ -51,22 +51,22 @@ class BaseValidator:
         dataloader (DataLoader): Dataloader to use for validation.
         pbar (tqdm): Progress bar to update during validation.
         model (nn.Module): Model to validate.
-        data (dict): Data dictionary containing dataset information.
+        data (Dict): Data dictionary containing dataset information.
         device (torch.device): Device to use for validation.
         batch_i (int): Current batch index.
         training (bool): Whether the model is in training mode.
-        names (dict): Class names mapping.
+        names (Dict): Class names mapping.
         seen (int): Number of images seen so far during validation.
-        stats (dict): Statistics collected during validation.
+        stats (Dict): Statistics collected during validation.
         confusion_matrix: Confusion matrix for classification evaluation.
         nc (int): Number of classes.
         iouv (torch.Tensor): IoU thresholds from 0.50 to 0.95 in spaces of 0.05.
         jdict (List): List to store JSON validation results.
-        speed (dict): Dictionary with keys 'preprocess', 'inference', 'loss', 'postprocess' and their respective
+        speed (Dict): Dictionary with keys 'preprocess', 'inference', 'loss', 'postprocess' and their respective
             batch processing times in milliseconds.
         save_dir (Path): Directory to save results.
-        plots (dict): Dictionary to store plots for visualization.
-        callbacks (dict): Dictionary to store various callback functions.
+        plots (Dict): Dictionary to store plots for visualization.
+        callbacks (Dict): Dictionary to store various callback functions.
 
     Methods:
         __call__: Execute validation process, running inference on dataloader and computing performance metrics.
@@ -96,11 +96,11 @@ class BaseValidator:
         Initialize a BaseValidator instance.
 
         Args:
-            dataloader (torch.utils.data.DataLoader): Dataloader to be used for validation.
+            dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
             save_dir (Path, optional): Directory to save results.
-            pbar (tqdm.tqdm): Progress bar for displaying progress.
-            args (SimpleNamespace): Configuration for the validator.
-            _callbacks (dict): Dictionary to store various callback functions.
+            pbar (tqdm.tqdm, optional): Progress bar for displaying progress.
+            args (SimpleNamespace, optional): Configuration for the validator.
+            _callbacks (Dict, optional): Dictionary to store various callback functions.
         """
         self.args = get_cfg(overrides=args)
         self.dataloader = dataloader

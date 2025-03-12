@@ -221,6 +221,11 @@ class BasePredictor:
         the inputs in a streaming manner. This method ensures that no outputs accumulate in memory by consuming the
         generator without storing results.
 
+        Args:
+            source (str | Path | List[str] | List[Path] | List[np.ndarray] | np.ndarray | torch.Tensor | None):
+                Source for inference.
+            model (str | Path | torch.nn.Module | None): Model for inference.
+
         Note:
             Do not modify this function or remove the generator. The generator ensures that no outputs are
             accumulated in memory, which is critical for preventing memory issues during long-running predictions.

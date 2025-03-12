@@ -35,7 +35,7 @@ class YOLOv8:
 
     def __init__(self, onnx_model: str, input_image: str, confidence_thres: float, iou_thres: float):
         """
-        Initializes an instance of the YOLOv8 class.
+        Initialize an instance of the YOLOv8 class.
 
         Args:
             onnx_model (str): Path to the ONNX model.
@@ -56,9 +56,9 @@ class YOLOv8:
 
     def letterbox(self, img: np.ndarray, new_shape: Tuple[int, int] = (640, 640)) -> Tuple[np.ndarray, Tuple[int, int]]:
         """
-        Resizes and reshapes images while maintaining aspect ratio by adding padding.
+        Resize and reshape images while maintaining aspect ratio by adding padding.
 
-        This function is suitable for preparing images for YOLO models by resizing them to the required dimensions
+        This function prepares images for YOLO models by resizing them to the required dimensions
         while preserving their aspect ratio.
 
         Args:
@@ -88,7 +88,7 @@ class YOLOv8:
 
     def draw_detections(self, img: np.ndarray, box: List[float], score: float, class_id: int) -> None:
         """
-        Draws bounding boxes and labels on the input image based on the detected objects.
+        Draw bounding boxes and labels on the input image based on the detected objects.
 
         Args:
             img (np.ndarray): The input image to draw detections on.
@@ -125,7 +125,7 @@ class YOLOv8:
 
     def preprocess(self) -> Tuple[np.ndarray, Tuple[int, int]]:
         """
-        Preprocesses the input image before performing inference.
+        Preprocess the input image before performing inference.
 
         This method reads the input image, converts its color space, applies letterboxing to maintain aspect ratio,
         normalizes pixel values, and prepares the image data for model input.
@@ -159,7 +159,7 @@ class YOLOv8:
 
     def postprocess(self, input_image: np.ndarray, output: List[np.ndarray], pad: Tuple[int, int]) -> np.ndarray:
         """
-        Performs post-processing on the model's output to extract and visualize detections.
+        Perform post-processing on the model's output to extract and visualize detections.
 
         This method processes the raw model output to extract bounding boxes, scores, and class IDs.
         It applies non-maximum suppression to filter overlapping detections and draws the results on the input image.
@@ -233,7 +233,7 @@ class YOLOv8:
 
     def main(self) -> np.ndarray:
         """
-        Performs inference using an ONNX model and returns the output image with drawn detections.
+        Perform inference using an ONNX model and return the output image with drawn detections.
 
         This method creates an ONNX inference session, preprocesses the input image, runs inference,
         and post-processes the results to visualize detections.

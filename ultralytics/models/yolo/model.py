@@ -91,18 +91,41 @@ class YOLOWorld(Model):
             }
         }
 
-    def set_classes(self, classes):
+    def set_classes(self, classes, images=None):
         """
         Set classes.
 
         Args:
             classes (List(str)): A list of categories i.e. ["person"].
+            images (str, Path, PIL.Image, np.ndarray): The input image sources.
         """
-        self.model.set_classes(classes)
+        assert isinstance(classes, list), f"`classes` should be a list, but got {type(classes)}"
+
         # Remove background if it's given
         background = " "
         if background in classes:
             classes.remove(background)
+
+        ims, names = [], []
+        if images is not None:
+            from PIL import Image
+
+            from ultralytics.data import load_inference_source
+            from ultralytics.data.augment import classify_transforms
+
+            dataset = load_inference_source(images, batch=1)
+            assert not dataset.source_type.tensor, "`torch.Tensor` is not supported for now!"
+            transforms = classify_transforms(
+                mean=(0.48145466, 0.4578275, 0.40821073),
+                std=(0.26862954, 0.26130258, 0.27577711),
+            )
+            for path, im, _ in dataset:
+                im = transforms(Image.fromarray(im[0][..., ::-1]))
+                ims.append(im)
+                names.append(Path(path[0]).stem)
+
+        self.model.set_classes(classes, ims)
+        classes.extend(names)
         self.model.names = classes
 
         # Reset method class names

@@ -34,7 +34,7 @@ class ObjectBlurrer(BaseSolution):
 
     def __init__(self, **kwargs):
         """
-        Initializes the ObjectBlurrer class for applying a blur effect to objects detected in video streams or images.
+        Initialize the ObjectBlurrer class for applying a blur effect to objects detected in video streams or images.
 
         Args:
             **kwargs (Any): Keyword arguments passed to the parent class and for configuration.
@@ -49,7 +49,7 @@ class ObjectBlurrer(BaseSolution):
 
     def process(self, im0):
         """
-        Applies a blurring effect to detected objects in the input image.
+        Apply a blurring effect to detected objects in the input image.
 
         This method extracts tracking information, applies blur to regions corresponding to detected objects,
         and annotates the image with bounding boxes.

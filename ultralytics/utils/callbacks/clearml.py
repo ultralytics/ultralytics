@@ -14,12 +14,12 @@ except (ImportError, AssertionError):
     clearml = None
 
 
-def _log_debug_samples(files, title="Debug Samples") -> None:
+def _log_debug_samples(files, title: str = "Debug Samples") -> None:
     """
     Log files (images) as debug samples in the ClearML task.
 
     Args:
-        files (list): A list of file paths in PosixPath format.
+        files (List[Path]): A list of file paths in PosixPath format.
         title (str): A title that groups together images with the same values.
     """
     import re
@@ -34,7 +34,7 @@ def _log_debug_samples(files, title="Debug Samples") -> None:
                 )
 
 
-def _log_plot(title, plot_path) -> None:
+def _log_plot(title: str, plot_path: str) -> None:
     """
     Log an image as a plot in the plot section of ClearML.
 
@@ -55,8 +55,8 @@ def _log_plot(title, plot_path) -> None:
     )
 
 
-def on_pretrain_routine_start(trainer):
-    """Runs at start of pretraining routine; initializes and connects/ logs task to ClearML."""
+def on_pretrain_routine_start(trainer) -> None:
+    """Runs at start of pretraining routine; initializes and connects/logs task to ClearML."""
     try:
         if task := Task.current_task():
             # WARNING: make sure the automatic pytorch and matplotlib bindings are disabled!
@@ -84,8 +84,8 @@ def on_pretrain_routine_start(trainer):
         LOGGER.warning(f"WARNING ⚠️ ClearML installed but not initialized correctly, not logging this run. {e}")
 
 
-def on_train_epoch_end(trainer):
-    """Logs debug samples for the first epoch of YOLO training and report current training progress."""
+def on_train_epoch_end(trainer) -> None:
+    """Logs debug samples for the first epoch of YOLO training and reports current training progress."""
     if task := Task.current_task():
         # Log debug samples
         if trainer.epoch == 1:
@@ -97,10 +97,10 @@ def on_train_epoch_end(trainer):
             task.get_logger().report_scalar("lr", k, v, iteration=trainer.epoch)
 
 
-def on_fit_epoch_end(trainer):
+def on_fit_epoch_end(trainer) -> None:
     """Reports model information to logger at the end of an epoch."""
     if task := Task.current_task():
-        # You should have access to the validation bboxes under jdict
+        # Report epoch time and validation metrics
         task.get_logger().report_scalar(
             title="Epoch Time", series="Epoch Time", value=trainer.epoch_time, iteration=trainer.epoch
         )
@@ -113,14 +113,14 @@ def on_fit_epoch_end(trainer):
                 task.get_logger().report_single_value(k, v)
 
 
-def on_val_end(validator):
+def on_val_end(validator) -> None:
     """Logs validation results including labels and predictions."""
     if Task.current_task():
         # Log val_labels and val_pred
         _log_debug_samples(sorted(validator.save_dir.glob("val*.jpg")), "Validation")
 
 
-def on_train_end(trainer):
+def on_train_end(trainer) -> None:
     """Logs final model and its name on training completion."""
     if task := Task.current_task():
         # Log final results, CM matrix + PR plots

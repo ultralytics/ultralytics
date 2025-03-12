@@ -21,8 +21,8 @@ class Heatmap(ObjectCounter):
         annotator (SolutionAnnotator): Object for drawing annotations on the image.
 
     Methods:
-        heatmap_effect: Calculates and updates the heatmap effect for a given bounding box.
-        process: Generates and applies the heatmap effect to each frame.
+        heatmap_effect: Calculate and update the heatmap effect for a given bounding box.
+        process: Generate and apply the heatmap effect to each frame.
 
     Examples:
         >>> from ultralytics.solutions import Heatmap
@@ -33,7 +33,7 @@ class Heatmap(ObjectCounter):
 
     def __init__(self, **kwargs):
         """
-        Initializes the Heatmap class for real-time video stream heatmap generation based on object tracks.
+        Initialize the Heatmap class for real-time video stream heatmap generation based on object tracks.
 
         Args:
             **kwargs (Any): Keyword arguments passed to the parent ObjectCounter class.
@@ -50,7 +50,7 @@ class Heatmap(ObjectCounter):
 
     def heatmap_effect(self, box):
         """
-        Efficiently calculates heatmap area and effect location for applying colormap.
+        Efficiently calculate heatmap area and effect location for applying colormap.
 
         Args:
             box (List[float]): Bounding box coordinates [x0, y0, x1, y1].

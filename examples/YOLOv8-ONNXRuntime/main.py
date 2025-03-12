@@ -58,9 +58,6 @@ class YOLOv8:
         """
         Resize and reshape images while maintaining aspect ratio by adding padding.
 
-        This function prepares images for YOLO models by resizing them to the required dimensions
-        while preserving their aspect ratio.
-
         Args:
             img (np.ndarray): Input image to be resized.
             new_shape (Tuple[int, int]): Target shape (height, width) for the image.
@@ -234,9 +231,6 @@ class YOLOv8:
     def main(self) -> np.ndarray:
         """
         Perform inference using an ONNX model and return the output image with drawn detections.
-
-        This method creates an ONNX inference session, preprocesses the input image, runs inference,
-        and post-processes the results to visualize detections.
 
         Returns:
             (np.ndarray): The output image with drawn detections.

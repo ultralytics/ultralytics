@@ -51,11 +51,6 @@ def mouse_callback(event: int, x: int, y: int, flags: int, param: Any):
     Global Variables:
         current_region (Dict): A dictionary representing the current selected region.
 
-    Mouse Events:
-        - LBUTTONDOWN: Initiates dragging for the region containing the clicked point.
-        - MOUSEMOVE: Moves the selected region if dragging is active.
-        - LBUTTONUP: Ends dragging for the selected region.
-
     Notes:
         This function is intended to be used as a callback for OpenCV mouse events.
         It allows for selecting and dragging counting regions within the video frame.

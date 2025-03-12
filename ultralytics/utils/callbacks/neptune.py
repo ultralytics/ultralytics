@@ -1,13 +1,11 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from pathlib import Path
 
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
     assert SETTINGS["neptune"] is True  # verify integration is enabled
-    from pathlib import Path
 
     import neptune
     from neptune.types import File

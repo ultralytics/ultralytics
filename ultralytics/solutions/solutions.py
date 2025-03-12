@@ -92,7 +92,7 @@ class BaseSolution:
 
         self.track_add_args = {  # Tracker additional arguments for advance configuration
             k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker", "device", "verbose"]
-        }  # verbose must be passed to track; setting it in YOLO model still logs the track information, even if False.
+        }  # verbose must be passed to track method; setting it False in YOLO still logs the track information.
 
         if is_cli and self.CFG["source"] is None:
             d_s = "solutions_ci_demo.mp4" if "-pose" not in self.CFG["model"] else "solution_ci_pose_demo.mp4"

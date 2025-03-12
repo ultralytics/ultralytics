@@ -9,11 +9,11 @@
 nc: 80 # number of classes
 scales: # model compound scaling constants, i.e. 'model=yolov8n.yaml' will call yolov8.yaml with scale 'n'
   # [depth, width, max_channels]
-  n: [0.33, 0.25, 1024] # YOLOv8n-ghost summary: 403 layers,  1865316 parameters,  1865300 gradients,   5.8 GFLOPs
-  s: [0.33, 0.50, 1024] # YOLOv8s-ghost summary: 403 layers,  5960072 parameters,  5960056 gradients,  16.4 GFLOPs
-  m: [0.67, 0.75, 768] # YOLOv8m-ghost summary: 603 layers, 10336312 parameters, 10336296 gradients,  32.7 GFLOPs
-  l: [1.00, 1.00, 512] # YOLOv8l-ghost summary: 803 layers, 14277872 parameters, 14277856 gradients,  53.7 GFLOPs
-  x: [1.00, 1.25, 512] # YOLOv8x-ghost summary: 803 layers, 22229308 parameters, 22229292 gradients,  83.3 GFLOPs
+  n: [0.33, 0.25, 1024] # YOLOv8n-ghost summary: 237 layers, 1865316 parameters, 1865300 gradients, 5.8 GFLOPS
+  s: [0.33, 0.50, 1024] # YOLOv8s-ghost summary: 237 layers, 5960072 parameters, 5960056 gradients, 16.4 GFLOPS
+  m: [0.67, 0.75, 768] # YOLOv8m-ghost summary: 357 layers, 10336312 parameters, 10336296 gradients, 32.7 GFLOPS
+  l: [1.00, 1.00, 512] # YOLOv8l-ghost summary: 477 layers, 14277872 parameters, 14277856 gradients, 53.7 GFLOPS
+  x: [1.00, 1.25, 512] # YOLOv8x-ghost summary: 477 layers, 22229308 parameters, 22229292 gradients, 83.3 GFLOPS
 
 # YOLOv8.0n-ghost backbone
 backbone:

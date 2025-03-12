@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, checks
+from pathlib import Path
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -11,7 +12,6 @@ try:
 
     import os
     import re
-    from pathlib import Path
 
     # DVCLive logger instance
     live = None

@@ -25,7 +25,7 @@ except (ImportError, AssertionError, TypeError):
     dvclive = None
 
 
-def _log_images(path, prefix=""):
+def _log_images(path: Path, prefix: str = "") -> None:
     """Logs images at specified path with an optional prefix using DVCLive."""
     if live:
         name = path.name
@@ -39,7 +39,7 @@ def _log_images(path, prefix=""):
         live.log_image(os.path.join(prefix, name), path)
 
 
-def _log_plots(plots, prefix=""):
+def _log_plots(plots: dict, prefix: str = "") -> None:
     """Logs plot images for training progress if they have not been previously processed."""
     for name, params in plots.items():
         timestamp = params["timestamp"]
@@ -48,7 +48,7 @@ def _log_plots(plots, prefix=""):
             _processed_plots[name] = timestamp
 
 
-def _log_confusion_matrix(validator):
+def _log_confusion_matrix(validator) -> None:
     """Logs the confusion matrix for the given validator using DVCLive."""
     targets = []
     preds = []
@@ -65,7 +65,7 @@ def _log_confusion_matrix(validator):
     live.log_sklearn_plot("confusion_matrix", targets, preds, name="cf.json", normalized=True)
 
 
-def on_pretrain_routine_start(trainer):
+def on_pretrain_routine_start(trainer) -> None:
     """Initializes DVCLive logger for training metadata during pre-training routine."""
     try:
         global live
@@ -75,24 +75,24 @@ def on_pretrain_routine_start(trainer):
         LOGGER.warning(f"WARNING ⚠️ DVCLive installed but not initialized correctly, not logging this run. {e}")
 
 
-def on_pretrain_routine_end(trainer):
+def on_pretrain_routine_end(trainer) -> None:
     """Logs plots related to the training process at the end of the pretraining routine."""
     _log_plots(trainer.plots, "train")
 
 
-def on_train_start(trainer):
+def on_train_start(trainer) -> None:
     """Logs the training parameters if DVCLive logging is active."""
     if live:
         live.log_params(trainer.args)
 
 
-def on_train_epoch_start(trainer):
+def on_train_epoch_start(trainer) -> None:
     """Sets the global variable _training_epoch value to True at the start of training each epoch."""
     global _training_epoch
     _training_epoch = True
 
 
-def on_fit_epoch_end(trainer):
+def on_fit_epoch_end(trainer) -> None:
     """Logs training metrics and model info, and advances to next step on the end of each fit epoch."""
     global _training_epoch
     if live and _training_epoch:
@@ -113,7 +113,7 @@ def on_fit_epoch_end(trainer):
         _training_epoch = False
 
 
-def on_train_end(trainer):
+def on_train_end(trainer) -> None:
     """Logs the best metrics, plots, and confusion matrix at the end of training if DVCLive is active."""
     if live:
         # At the end log the best metrics. It runs validator on the best model internally.

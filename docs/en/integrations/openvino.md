@@ -68,7 +68,7 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
 | `dynamic` | `bool`           | `False`        | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                       |
 | `nms`     | `bool`           | `False`        | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                           |
 | `batch`   | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                       |
-| `data`    | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets) configuration file (default: `coco8.yaml`), essential for quantization.                                                          |
+| `data`    | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets/) configuration file (default: `coco8.yaml`), essential for quantization.                                                          |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 

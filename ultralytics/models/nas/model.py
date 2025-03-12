@@ -39,7 +39,7 @@ class NAS(Model):
         >>> model = NAS("yolo_nas_s")
         >>> results = model.predict("ultralytics/assets/bus.jpg")
 
-     Notes:
+    Notes:
         YOLO-NAS models only support pre-trained models. Do not provide YAML configuration files.
     """
 

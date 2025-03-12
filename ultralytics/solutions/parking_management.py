@@ -47,7 +47,7 @@ class ParkingPtsSelection:
     """
 
     def __init__(self):
-        """Initializes the ParkingPtsSelection class, setting up UI and properties for parking zone point selection."""
+        """Initialize the ParkingPtsSelection class, setting up UI and properties for parking zone point selection."""
         try:  # check if tkinter installed
             import tkinter as tk
             from tkinter import filedialog, messagebox
@@ -106,7 +106,7 @@ class ParkingPtsSelection:
         self.canvas_max_width, self.canvas_max_height = 1280, 720
 
     def upload_image(self):
-        """Uploads and displays an image on the canvas, resizing it to fit within specified dimensions."""
+        """Upload and display an image on the canvas, resizing it to fit within specified dimensions."""
         from PIL import Image, ImageTk  # scope because ImageTk requires tkinter package
 
         self.image = Image.open(self.filedialog.askopenfilename(filetypes=[("Image Files", "*.png *.jpg *.jpeg")]))
@@ -130,7 +130,7 @@ class ParkingPtsSelection:
         self.rg_data.clear(), self.current_box.clear()
 
     def on_canvas_click(self, event):
-        """Handles mouse clicks to add points for bounding boxes on the canvas."""
+        """Handle mouse clicks to add points for bounding boxes on the canvas."""
         self.current_box.append((event.x, event.y))
         self.canvas.create_oval(event.x - 3, event.y - 3, event.x + 3, event.y + 3, fill="red")
         if len(self.current_box) == 4:
@@ -139,12 +139,12 @@ class ParkingPtsSelection:
             self.current_box.clear()
 
     def draw_box(self, box):
-        """Draws a bounding box on the canvas using the provided coordinates."""
+        """Draw a bounding box on the canvas using the provided coordinates."""
         for i in range(4):
             self.canvas.create_line(box[i], box[(i + 1) % 4], fill="blue", width=2)
 
     def remove_last_bounding_box(self):
-        """Removes the last bounding box from the list and redraws the canvas."""
+        """Remove the last bounding box from the list and redraw the canvas."""
         if not self.rg_data:
             self.messagebox.showwarning("Warning", "No bounding boxes to remove.")
             return
@@ -152,14 +152,14 @@ class ParkingPtsSelection:
         self.redraw_canvas()
 
     def redraw_canvas(self):
-        """Redraws the canvas with the image and all bounding boxes."""
+        """Redraw the canvas with the image and all bounding boxes."""
         self.canvas.delete("all")
         self.canvas.create_image(0, 0, anchor=self.tk.NW, image=self.canvas_image)
         for box in self.rg_data:
             self.draw_box(box)
 
     def save_to_json(self):
-        """Saves the selected parking zone points to a JSON file with scaled coordinates."""
+        """Save the selected parking zone points to a JSON file with scaled coordinates."""
         scale_w, scale_h = self.imgw / self.canvas.winfo_width(), self.imgh / self.canvas.winfo_height()
         data = [{"points": [(int(x * scale_w), int(y * scale_h)) for x, y in box]} for box in self.rg_data]
 
@@ -198,7 +198,7 @@ class ParkingManagement(BaseSolution):
     """
 
     def __init__(self, **kwargs):
-        """Initializes the parking management system with a YOLO model and visualization settings."""
+        """Initialize the parking management system with a YOLO model and visualization settings."""
         super().__init__(**kwargs)
 
         self.json_file = self.CFG["json_file"]  # Load JSON data
@@ -217,7 +217,7 @@ class ParkingManagement(BaseSolution):
 
     def process(self, im0):
         """
-        Processes the input image for parking lot management and visualization.
+        Process the input image for parking lot management and visualization.
 
         This function analyzes the input image, extracts tracks, and determines the occupancy status of parking
         regions defined in the JSON file. It annotates the image with occupied and available parking spots,

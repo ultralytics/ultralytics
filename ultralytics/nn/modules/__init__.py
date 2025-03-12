@@ -2,6 +2,9 @@
 """
 Ultralytics modules.
 
+This module provides access to various neural network components used in Ultralytics models, including convolution blocks,
+attention mechanisms, transformer components, and detection/segmentation heads.
+
 Examples:
     Visualize a module with Netron.
     >>> from ultralytics.nn.modules import *

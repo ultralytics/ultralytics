@@ -22,13 +22,20 @@ class RTDETRDataset(YOLODataset):
         """Initialize the RTDETRDataset class by inheriting from the YOLODataset class."""
         super().__init__(*args, data=data, **kwargs)
 
-    # NOTE: add stretch version load_image for RTDETR mosaic
     def load_image(self, i, rect_mode=False):
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
         return super().load_image(i=i, rect_mode=rect_mode)
 
     def build_transforms(self, hyp=None):
-        """Temporary, only for evaluation."""
+        """
+        Build transformation pipeline for the dataset.
+
+        Args:
+            hyp (Dict, optional): Hyperparameters for transformations.
+
+        Returns:
+            (Compose): Composition of transformation functions.
+        """
         if self.augment:
             hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
@@ -75,7 +82,10 @@ class RTDETRValidator(DetectionValidator):
         Args:
             img_path (str): Path to the folder containing images.
             mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
-            batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
+            batch (int, optional): Size of batches, this is for `rect`.
+
+        Returns:
+            (RTDETRDataset): Dataset configured for RT-DETR validation.
         """
         return RTDETRDataset(
             img_path=img_path,
@@ -90,7 +100,15 @@ class RTDETRValidator(DetectionValidator):
         )
 
     def postprocess(self, preds):
-        """Apply Non-maximum suppression to prediction outputs."""
+        """
+        Apply Non-maximum suppression to prediction outputs.
+
+        Args:
+            preds (List | Tuple | torch.Tensor): Raw predictions from the model.
+
+        Returns:
+            (List[torch.Tensor]): List of processed predictions for each image in batch.
+        """
         if not isinstance(preds, (list, tuple)):  # list for PyTorch inference but list[0] Tensor for export inference
             preds = [preds, None]
 
@@ -111,7 +129,16 @@ class RTDETRValidator(DetectionValidator):
         return outputs
 
     def _prepare_batch(self, si, batch):
-        """Prepares a batch for training or inference by applying transformations."""
+        """
+        Prepares a batch for validation by applying necessary transformations.
+
+        Args:
+            si (int): Batch index.
+            batch (Dict): Batch data containing images and annotations.
+
+        Returns:
+            (Dict): Prepared batch with transformed annotations.
+        """
         idx = batch["batch_idx"] == si
         cls = batch["cls"][idx].squeeze(-1)
         bbox = batch["bboxes"][idx]
@@ -125,7 +152,16 @@ class RTDETRValidator(DetectionValidator):
         return {"cls": cls, "bbox": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
 
     def _prepare_pred(self, pred, pbatch):
-        """Prepares and returns a batch with transformed bounding boxes and class labels."""
+        """
+        Prepares predictions by scaling bounding boxes to original image dimensions.
+
+        Args:
+            pred (torch.Tensor): Raw predictions.
+            pbatch (Dict): Prepared batch information.
+
+        Returns:
+            (torch.Tensor): Predictions scaled to original image dimensions.
+        """
         predn = pred.clone()
         predn[..., [0, 2]] *= pbatch["ori_shape"][1] / self.args.imgsz  # native-space pred
         predn[..., [1, 3]] *= pbatch["ori_shape"][0] / self.args.imgsz  # native-space pred

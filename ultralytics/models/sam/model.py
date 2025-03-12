@@ -70,7 +70,6 @@ class SAM(Model):
         """
         Load the specified weights into the SAM model.
 
-
         Args:
             weights (str): Path to the weights file. Should be a .pt or .pth file containing the model parameters.
             task (str | None): Task name. If provided, it specifies the particular task the model is being loaded for.

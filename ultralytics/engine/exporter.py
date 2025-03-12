@@ -1162,9 +1162,9 @@ class Exporter:
 
         # Define a patched __getattr__ function that returns np.object_ when np.object is accessed
         def patched_getattr(name):
-            if name == 'object':
+            if name == "object":
                 return np.object_
-            elif name == 'bool':
+            elif name == "bool":
                 return np.bool_
             return original_getattr(name)
 

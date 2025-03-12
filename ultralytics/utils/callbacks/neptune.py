@@ -34,13 +34,13 @@ def _log_images(imgs_dict: dict, group: str = "") -> None:
             run[f"{group}/{k}"].upload(File(v))
 
 
-def _log_plot(title: str, plot_path: str | Path) -> None:
+def _log_plot(title: str, plot_path: str) -> None:
     """
     Log plots to the NeptuneAI experiment logger.
 
     Args:
         title (str): Title of the plot.
-        plot_path (str | Path): Path to the saved image file.
+        plot_path (str): Path to the saved image file.
     """
     import matplotlib.image as mpimg
     import matplotlib.pyplot as plt

@@ -15,12 +15,12 @@ TASK_MODEL_DATA = [(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for t
 MODELS = [WEIGHTS_DIR / TASK2MODEL[task] for task in TASKS]
 
 
-def run(cmd):
+def run(cmd: str) -> None:
     """Execute a shell command using subprocess."""
     subprocess.run(cmd.split(), check=True)
 
 
-def test_special_modes():
+def test_special_modes() -> None:
     """Test various special command-line modes for YOLO functionality."""
     run("yolo help")
     run("yolo checks")
@@ -30,30 +30,30 @@ def test_special_modes():
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
-def test_train(task, model, data):
+def test_train(task: str, model: str, data: str) -> None:
     """Test YOLO training for different tasks, models, and datasets."""
     run(f"yolo train {task} model={model} data={data} imgsz=32 epochs=1 cache=disk")
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
-def test_val(task, model, data):
+def test_val(task: str, model: str, data: str) -> None:
     """Test YOLO validation process for specified task, model, and data using a shell command."""
     run(f"yolo val {task} model={model} data={data} imgsz=32 save_txt save_json")
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
-def test_predict(task, model, data):
+def test_predict(task: str, model: str, data: str) -> None:
     """Test YOLO prediction on provided sample assets for specified task and model."""
     run(f"yolo predict model={model} source={ASSETS} imgsz=32 save save_crop save_txt")
 
 
 @pytest.mark.parametrize("model", MODELS)
-def test_export(model):
+def test_export(model: str) -> None:
     """Test exporting a YOLO model to TorchScript format."""
     run(f"yolo export model={model} format=torchscript imgsz=32")
 
 
-def test_rtdetr(task="detect", model="yolov8n-rtdetr.yaml", data="coco8.yaml"):
+def test_rtdetr(task: str = "detect", model: str = "yolov8n-rtdetr.yaml", data: str = "coco8.yaml") -> None:
     """Test the RTDETR functionality within Ultralytics for detection tasks using specified model and data."""
     # Warning: must use imgsz=640 (note also add coma, spaces, fraction=0.25 args to test single-image training)
     run(f"yolo train {task} model={model} data={data} --imgsz= 160 epochs =1, cache = disk fraction=0.25")
@@ -64,7 +64,9 @@ def test_rtdetr(task="detect", model="yolov8n-rtdetr.yaml", data="coco8.yaml"):
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="MobileSAM with CLIP is not supported in Python 3.12")
-def test_fastsam(task="segment", model=WEIGHTS_DIR / "FastSAM-s.pt", data="coco8-seg.yaml"):
+def test_fastsam(
+    task: str = "segment", model: str = WEIGHTS_DIR / "FastSAM-s.pt", data: str = "coco8-seg.yaml"
+) -> None:
     """Test FastSAM model for segmenting objects in images using various prompts within Ultralytics."""
     source = ASSETS / "bus.jpg"
 
@@ -88,7 +90,7 @@ def test_fastsam(task="segment", model=WEIGHTS_DIR / "FastSAM-s.pt", data="coco8
         sam_model(source, bboxes=[439, 437, 524, 709], points=[[200, 200]], labels=[1], texts="a photo of a dog")
 
 
-def test_mobilesam():
+def test_mobilesam() -> None:
     """Test MobileSAM segmentation with point prompts using Ultralytics."""
     from ultralytics import SAM
 
@@ -116,7 +118,7 @@ def test_mobilesam():
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 @pytest.mark.skipif(CUDA_DEVICE_COUNT < 2, reason="DDP is not available")
-def test_train_gpu(task, model, data):
+def test_train_gpu(task: str, model: str, data: str) -> None:
     """Test YOLO training on GPU(s) for various tasks and models."""
     run(f"yolo train {task} model={model} data={data} imgsz=32 epochs=1 device=0")  # single GPU
     run(f"yolo train {task} model={model} data={data} imgsz=32 epochs=1 device=0,1")  # multi GPU

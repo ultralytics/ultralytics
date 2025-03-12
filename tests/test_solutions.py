@@ -29,12 +29,12 @@ def test_major_solutions():
     heatmapcounter = solutions.Heatmap(
         colormap=cv2.COLORMAP_PARULA, model="yolo11n.pt", show=False, region=region_points
     )  # Test heatmaps with object counting
-    speed = solutions.SpeedEstimator(region=region_points, model="yolo11n.pt", show=False)  # Test queue manager
-    queue = solutions.QueueManager(region=region_points, model="yolo11n.pt", show=False)  # Test speed estimation
+    speed = solutions.SpeedEstimator(region=region_points, model="yolo11n.pt", show=False)  # Test speed estimation
+    queue = solutions.QueueManager(region=region_points, model="yolo11n.pt", show=False)  # Test queue manager
     lineanalytics = solutions.Analytics(analytics_type="line", model="yolo11n.pt", show=False)  # line analytics
-    pieanalytics = solutions.Analytics(analytics_type="pie", model="yolo11n.pt", show=False)  # line analytics
-    baranalytics = solutions.Analytics(analytics_type="bar", model="yolo11n.pt", show=False)  # line analytics
-    areaanalytics = solutions.Analytics(analytics_type="area", model="yolo11n.pt", show=False)  # line analytics
+    pieanalytics = solutions.Analytics(analytics_type="pie", model="yolo11n.pt", show=False)  # pie analytics
+    baranalytics = solutions.Analytics(analytics_type="bar", model="yolo11n.pt", show=False)  # bar analytics
+    areaanalytics = solutions.Analytics(analytics_type="area", model="yolo11n.pt", show=False)  # area analytics
     trackzone = solutions.TrackZone(region=region_points, model="yolo11n.pt", show=False)  # trackzone
     objectcropper = solutions.ObjectCropper(
         model="yolo11n.pt", show=False, crop_dir=str(TMP / "cropped-detections")

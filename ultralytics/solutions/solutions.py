@@ -198,6 +198,7 @@ class BaseSolution:
             LOGGER.info(f"🚀 Results: {result}")
         return result
 
+
 class SolutionAnnotator(Annotator):
     """
     A specialized annotator class for visualizing and analyzing computer vision tasks.

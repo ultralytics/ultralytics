@@ -1002,7 +1002,7 @@ class Exporter:
         check_requirements(
             (
                 "keras",  # required by 'onnx2tf' package
-                "tf_keras<=2.18.0",  # required by 'onnx2tf' package
+                "tf_keras",  # required by 'onnx2tf' package
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
                 "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
                 "onnx>=1.12.0",

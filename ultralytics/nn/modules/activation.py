@@ -6,10 +6,19 @@ import torch.nn as nn
 
 
 class AGLU(nn.Module):
-    """Unified activation function module from https://github.com/kostas1515/AGLU."""
+    """
+    Unified activation function module from https://github.com/kostas1515/AGLU.
+
+    This class implements a parameterized activation function with learnable parameters lambda and kappa.
+
+    Attributes:
+        act (nn.Softplus): Softplus activation function with negative beta.
+        lambd (nn.Parameter): Learnable lambda parameter initialized with uniform distribution.
+        kappa (nn.Parameter): Learnable kappa parameter initialized with uniform distribution.
+    """
 
     def __init__(self, device=None, dtype=None) -> None:
-        """Initialize the Unified activation function."""
+        """Initialize the Unified activation function with learnable parameters."""
         super().__init__()
         self.act = nn.Softplus(beta=-1.0)
         self.lambd = nn.Parameter(nn.init.uniform_(torch.empty(1, device=device, dtype=dtype)))  # lambda parameter
@@ -17,5 +26,5 @@ class AGLU(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Compute the forward pass of the Unified activation function."""
-        lam = torch.clamp(self.lambd, min=0.0001)
+        lam = torch.clamp(self.lambd, min=0.0001)  # Clamp lambda to avoid division by zero
         return torch.exp((1 / lam) * self.act((self.kappa * x) - torch.log(lam)))

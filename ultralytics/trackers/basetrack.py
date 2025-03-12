@@ -67,7 +67,7 @@ class BaseTrack:
 
     def __init__(self):
         """
-        Initializes a new track with a unique ID and foundational tracking attributes.
+        Initialize a new track with a unique ID and foundational tracking attributes.
 
         Examples:
             Initialize a new track

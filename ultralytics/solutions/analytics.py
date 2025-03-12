@@ -37,8 +37,8 @@ class Analytics(BaseSolution):
         color_mapping (Dict[str, str]): Dictionary mapping class labels to colors for consistent visualization.
 
     Methods:
-        process: Processes image data and updates the chart.
-        update_graph: Updates the chart with new data points.
+        process: Process image data and update the chart.
+        update_graph: Update the chart with new data points.
 
     Examples:
         >>> analytics = Analytics(analytics_type="line")
@@ -87,7 +87,7 @@ class Analytics(BaseSolution):
 
     def process(self, im0, frame_number):
         """
-        Processes image data and runs object tracking to update analytics charts.
+        Process image data and run object tracking to update analytics charts.
 
         Args:
             im0 (np.ndarray): Input image for processing.
@@ -127,7 +127,7 @@ class Analytics(BaseSolution):
 
     def update_graph(self, frame_number, count_dict=None, plot="line"):
         """
-        Updates the graph with new data for single or multiple classes.
+        Update the graph with new data for single or multiple classes.
 
         Args:
             frame_number (int): The current frame number.

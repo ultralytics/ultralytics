@@ -86,13 +86,13 @@ class BaseSolution:
         # Load Model and store classes names
         if self.CFG["model"] is None:
             self.CFG["model"] = "yolo11n.pt"
-        self.model = YOLO(self.CFG["model"], verbose=self.CFG["verbose"])
+        self.model = YOLO(self.CFG["model"])
         self.names = self.model.names
         self.classes = self.CFG["classes"]
 
         self.track_add_args = {  # Tracker additional arguments for advance configuration
-            k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker", "device"]
-        }
+            k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker", "device", "verbose"]
+        }  # verbose must be passed to track; setting it in YOLO model still logs the track information, even if False.
 
         if is_cli and self.CFG["source"] is None:
             d_s = "solutions_ci_demo.mp4" if "-pose" not in self.CFG["model"] else "solution_ci_pose_demo.mp4"

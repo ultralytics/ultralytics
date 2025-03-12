@@ -18,14 +18,14 @@ class Auth:
     3. Prompting the user to enter an API key.
 
     Attributes:
-        id_token (str or bool): Token used for identity verification, initialized as False.
-        api_key (str or bool): API key for authentication, initialized as False.
+        id_token (str | bool): Token used for identity verification, initialized as False.
+        api_key (str | bool): API key for authentication, initialized as False.
         model_key (bool): Placeholder for model key, initialized as False.
     """
 
     id_token = api_key = model_key = False
 
-    def __init__(self, api_key="", verbose=False):
+    def __init__(self, api_key: str = "", verbose: bool = False):
         """
         Initialize Auth class and authenticate user.
 
@@ -70,12 +70,8 @@ class Auth:
         elif verbose:
             LOGGER.info(f"{PREFIX}Get API key from {API_KEY_URL} and then run 'yolo login API_KEY'")
 
-    def request_api_key(self, max_attempts=3):
-        """
-        Prompt the user to input their API key.
-
-        Returns the model ID.
-        """
+    def request_api_key(self, max_attempts: int = 3) -> bool:
+        """Prompt the user to input their API key."""
         import getpass
 
         for attempts in range(max_attempts):
@@ -107,8 +103,9 @@ class Auth:
 
     def auth_with_cookies(self) -> bool:
         """
-        Attempt to fetch authentication via cookies and set id_token. User must be logged in to HUB and running in a
-        supported browser.
+        Attempt to fetch authentication via cookies and set id_token.
+
+        User must be logged in to HUB and running in a supported browser.
 
         Returns:
             (bool): True if authentication is successful, False otherwise.
@@ -131,7 +128,7 @@ class Auth:
         Get the authentication header for making API requests.
 
         Returns:
-            (dict): The authentication header if id_token or API key is set, None otherwise.
+            (dict | None): The authentication header if id_token or API key is set, None otherwise.
         """
         if self.id_token:
             return {"authorization": f"Bearer {self.id_token}"}

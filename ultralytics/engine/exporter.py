@@ -1155,8 +1155,6 @@ class Exporter:
         # Apply the patch for np.object deprecation
         import sys
 
-        import numpy as np
-
         # Store the original __getattr__
         original_getattr = np.__getattr__
 

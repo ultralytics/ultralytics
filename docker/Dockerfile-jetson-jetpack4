@@ -43,7 +43,7 @@ ADD https://nvidia.box.com/shared/static/gjqofg7rkg97z3gc8jeyup6t8n9j8xjw.whl on
 ADD https://forums.developer.nvidia.com/uploads/short-url/hASzFOm9YsJx6VVFrDW1g44CMmv.whl tensorrt-8.2.0.6-cp38-none-linux_aarch64.whl
 
 # Replace pyproject.toml TF.js version with 'tensorflowjs>=3.9.0' for jetpack compat
-RUN sed -i 's/^\(    "tensorflowjs\)>=.*,/\1>=3.9.0,/' pyproject.toml
+RUN sed -i 's/^\(    "tensorflowjs\)>=.*\(".*\)/\1>=3.9.0\2/' pyproject.toml
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip

@@ -75,8 +75,8 @@ class YOLODataset(BaseDataset):
         Args:
             data (dict, optional): Dataset configuration dictionary.
             task (str): Task type, one of 'detect', 'segment', 'pose', or 'obb'.
-            *args: Additional positional arguments for the parent class.
-            **kwargs: Additional keyword arguments for the parent class.
+            *args (Any): Additional positional arguments for the parent class.
+            **kwargs (Any): Additional keyword arguments for the parent class.
         """
         self.use_segments = task == "segment"
         self.use_keypoints = task == "pose"
@@ -311,9 +311,6 @@ class YOLOMultiModalDataset(YOLODataset):
     This class extends YOLODataset to add text information for multi-modal model training, enabling models to
     process both image and text data.
 
-    Attributes:
-        Inherits all attributes from YOLODataset.
-
     Methods:
         update_labels_info: Adds text information for multi-modal model training.
         build_transforms: Enhances data transformations with text augmentation.
@@ -331,8 +328,8 @@ class YOLOMultiModalDataset(YOLODataset):
         Args:
             data (dict, optional): Dataset configuration dictionary.
             task (str): Task type, one of 'detect', 'segment', 'pose', or 'obb'.
-            *args: Additional positional arguments for the parent class.
-            **kwargs: Additional keyword arguments for the parent class.
+            *args (Any): Additional positional arguments for the parent class.
+            **kwargs (Any): Additional keyword arguments for the parent class.
         """
         super().__init__(*args, data=data, task=task, **kwargs)
 
@@ -395,8 +392,8 @@ class GroundingDataset(YOLODataset):
         Args:
             json_file (str): Path to the JSON file containing annotations.
             task (str): Must be 'detect' for GroundingDataset.
-            *args: Additional positional arguments for the parent class.
-            **kwargs: Additional keyword arguments for the parent class.
+            *args (Any): Additional positional arguments for the parent class.
+            **kwargs (Any): Additional keyword arguments for the parent class.
         """
         assert task == "detect", "`GroundingDataset` only support `detect` task for now!"
         self.json_file = json_file

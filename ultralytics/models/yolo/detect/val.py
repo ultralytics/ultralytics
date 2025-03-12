@@ -247,8 +247,8 @@ class DetectionValidator(BaseValidator):
         Set final values for metrics speed and confusion matrix.
 
         Args:
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
+            *args (Any): Variable length argument list.
+            **kwargs (Any): Arbitrary keyword arguments.
         """
         self.metrics.speed = self.speed
         self.metrics.confusion_matrix = self.confusion_matrix

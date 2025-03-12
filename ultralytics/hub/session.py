@@ -266,8 +266,8 @@ class HUBTrainingSession:
             verbose (bool): Whether to log detailed messages.
             progress_total (int, optional): Total size for progress tracking.
             stream_response (bool, optional): Whether to stream the response.
-            *args: Additional positional arguments for request_func.
-            **kwargs: Additional keyword arguments for request_func.
+            *args (Any): Additional positional arguments for request_func.
+            **kwargs (Any): Additional keyword arguments for request_func.
 
         Returns:
             (requests.Response | None): The response object if thread=False, otherwise None.

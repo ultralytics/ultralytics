@@ -201,8 +201,8 @@ class BasePredictor:
                 Source for inference.
             model (str | Path | torch.nn.Module | None): Model for inference.
             stream (bool): Whether to stream the inference results. If True, returns a generator.
-            *args: Additional arguments for the inference method.
-            **kwargs: Additional keyword arguments for the inference method.
+            *args (Any): Additional arguments for the inference method.
+            **kwargs (Any): Additional keyword arguments for the inference method.
 
         Returns:
             (List[ultralytics.engine.results.Results] | generator): Results objects or generator of Results objects.
@@ -277,8 +277,8 @@ class BasePredictor:
             source (str | Path | List[str] | List[Path] | List[np.ndarray] | np.ndarray | torch.Tensor | None):
                 Source for inference.
             model (str | Path | torch.nn.Module | None): Model for inference.
-            *args: Additional arguments for the inference method.
-            **kwargs: Additional keyword arguments for the inference method.
+            *args (Any): Additional arguments for the inference method.
+            **kwargs (Any): Additional keyword arguments for the inference method.
 
         Yields:
             (ultralytics.engine.results.Results): Results objects.

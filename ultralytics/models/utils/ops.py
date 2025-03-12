@@ -162,9 +162,10 @@ def get_cdn_group(
         training (bool, optional): If it's in training mode.
 
     Returns:
-        (Tuple[Optional[torch.Tensor], Optional[torch.Tensor], Optional[torch.Tensor], Optional[Dict]]): The modified class
-        embeddings, bounding boxes, attention mask and meta information for denoising. If not in training mode or 'num_dn'
-        is less than or equal to 0, the function returns None for all elements in the tuple.
+        padding_cls (Optional[torch.Tensor]): The modified class embeddings for denoising.
+        padding_bbox (Optional[torch.Tensor]): The modified bounding boxes for denoising.
+        attn_mask (Optional[torch.Tensor]): The attention mask for denoising.
+        dn_meta (Optional[Dict]): Meta information for denoising.
     """
     if (not training) or num_dn <= 0 or batch is None:
         return None, None, None, None

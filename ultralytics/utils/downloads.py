@@ -291,6 +291,9 @@ def safe_download(
         exist_ok (bool, optional): Whether to overwrite existing contents during unzipping. Defaults to False.
         progress (bool, optional): Whether to display a progress bar during the download. Default: True.
 
+    Returns:
+        (Path | str): The path to the downloaded file or extracted directory.
+
     Examples:
         >>> from ultralytics.utils.downloads import safe_download
         >>> link = "https://ultralytics.com/assets/bus.jpg"
@@ -359,6 +362,7 @@ def safe_download(
         if delete:
             f.unlink()  # remove zip
         return unzip_dir
+    return f
 
 
 def get_github_assets(repo="ultralytics/assets", version="latest", retry=False):
@@ -372,7 +376,8 @@ def get_github_assets(repo="ultralytics/assets", version="latest", retry=False):
         retry (bool, optional): Flag to retry the request in case of a failure. Defaults to False.
 
     Returns:
-        (tuple): A tuple containing the release tag and a list of asset names.
+        (str): The release tag.
+        (List[str]): A list of asset names.
 
     Examples:
         >>> tag, assets = get_github_assets(repo="ultralytics/assets", version="latest")
@@ -447,7 +452,7 @@ def download(url, dir=Path.cwd(), unzip=True, delete=False, curl=False, threads=
     specified.
 
     Args:
-        url (str | list): The URL or list of URLs of the files to be downloaded.
+        url (str | List[str]): The URL or list of URLs of the files to be downloaded.
         dir (Path, optional): The directory where the files will be saved. Defaults to the current working directory.
         unzip (bool, optional): Flag to unzip the files after downloading. Defaults to True.
         delete (bool, optional): Flag to delete the zip files after extraction. Defaults to False.

@@ -100,9 +100,6 @@ class TaskAlignedAssigner(nn.Module):
             target_scores (torch.Tensor): Target scores with shape (bs, num_total_anchors, num_classes).
             fg_mask (torch.Tensor): Foreground mask with shape (bs, num_total_anchors).
             target_gt_idx (torch.Tensor): Target ground truth indices with shape (bs, num_total_anchors).
-
-        References:
-            https://github.com/Nioolek/PPYOLOE_pytorch/blob/master/ppyoloe/assigner/tal_assigner.py
         """
         mask_pos, align_metric, overlaps = self.get_pos_mask(
             pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt
@@ -127,12 +124,12 @@ class TaskAlignedAssigner(nn.Module):
         Get positive mask for each ground truth box.
 
         Args:
-            pd_scores (torch.Tensor): Predicted classification scores.
-            pd_bboxes (torch.Tensor): Predicted bounding boxes.
-            gt_labels (torch.Tensor): Ground truth labels.
-            gt_bboxes (torch.Tensor): Ground truth boxes.
-            anc_points (torch.Tensor): Anchor points.
-            mask_gt (torch.Tensor): Mask for valid ground truth boxes.
+            pd_scores (torch.Tensor): Predicted classification scores with shape (bs, num_total_anchors, num_classes).
+            pd_bboxes (torch.Tensor): Predicted bounding boxes with shape (bs, num_total_anchors, 4).
+            gt_labels (torch.Tensor): Ground truth labels with shape (bs, n_max_boxes, 1).
+            gt_bboxes (torch.Tensor): Ground truth boxes with shape (bs, n_max_boxes, 4).
+            anc_points (torch.Tensor): Anchor points with shape (num_total_anchors, 2).
+            mask_gt (torch.Tensor): Mask for valid ground truth boxes with shape (bs, n_max_boxes, 1).
 
         Returns:
             mask_pos (torch.Tensor): Positive mask with shape (bs, max_num_obj, h*w).
@@ -154,11 +151,11 @@ class TaskAlignedAssigner(nn.Module):
         Compute alignment metric given predicted and ground truth bounding boxes.
 
         Args:
-            pd_scores (torch.Tensor): Predicted classification scores.
-            pd_bboxes (torch.Tensor): Predicted bounding boxes.
-            gt_labels (torch.Tensor): Ground truth labels.
-            gt_bboxes (torch.Tensor): Ground truth boxes.
-            mask_gt (torch.Tensor): Mask for valid ground truth boxes.
+            pd_scores (torch.Tensor): Predicted classification scores with shape (bs, num_total_anchors, num_classes).
+            pd_bboxes (torch.Tensor): Predicted bounding boxes with shape (bs, num_total_anchors, 4).
+            gt_labels (torch.Tensor): Ground truth labels with shape (bs, n_max_boxes, 1).
+            gt_bboxes (torch.Tensor): Ground truth boxes with shape (bs, n_max_boxes, 4).
+            mask_gt (torch.Tensor): Mask for valid ground truth boxes with shape (bs, n_max_boxes, h*w).
 
         Returns:
             align_metric (torch.Tensor): Alignment metric combining classification and localization.
@@ -225,7 +222,6 @@ class TaskAlignedAssigner(nn.Module):
         for k in range(self.topk):
             # Expand topk_idxs for each value of k and add 1 at the specified positions
             count_tensor.scatter_add_(-1, topk_idxs[:, :, k : k + 1], ones)
-        # count_tensor.scatter_add_(-1, topk_idxs, torch.ones_like(topk_idxs, dtype=torch.int8, device=topk_idxs.device))
         # Filter invalid bboxes
         count_tensor.masked_fill_(count_tensor > 1, 0)
 
@@ -297,7 +293,6 @@ class TaskAlignedAssigner(nn.Module):
         bs, n_boxes, _ = gt_bboxes.shape
         lt, rb = gt_bboxes.view(-1, 1, 4).chunk(2, 2)  # left-top, right-bottom
         bbox_deltas = torch.cat((xy_centers[None] - lt, rb - xy_centers[None]), dim=2).view(bs, n_boxes, n_anchors, -1)
-        # return (bbox_deltas.min(3)[0] > eps).to(gt_bboxes.dtype)
         return bbox_deltas.amin(3).gt_(eps)
 
     @staticmethod

@@ -448,7 +448,14 @@ def check_torchvision():
 
 
 def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
-    """Check file(s) for acceptable suffix."""
+    """
+    Check file(s) for acceptable suffix.
+
+    Args:
+        file (str | List[str]): File or list of files to check.
+        suffix (str | Tuple[str]): Acceptable suffix or tuple of suffixes.
+        msg (str): Additional message to display in case of error.
+    """
     if file and suffix:
         if isinstance(suffix, str):
             suffix = (suffix,)
@@ -459,7 +466,16 @@ def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
 
 
 def check_yolov5u_filename(file: str, verbose: bool = True):
-    """Replace legacy YOLOv5 filenames with updated YOLOv5u filenames."""
+    """
+    Replace legacy YOLOv5 filenames with updated YOLOv5u filenames.
+
+    Args:
+        file (str): Filename to check and potentially update.
+        verbose (bool): Whether to print information about the replacement.
+
+    Returns:
+        (str): Updated filename.
+    """
     if "yolov3" in file or "yolov5" in file:
         if "u.yaml" in file:
             file = file.replace("u.yaml", ".yaml")  # i.e. yolov5nu.yaml -> yolov5n.yaml
@@ -478,7 +494,15 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
 
 
 def check_model_file_from_stem(model="yolo11n"):
-    """Return a model filename from a valid model stem."""
+    """
+    Return a model filename from a valid model stem.
+
+    Args:
+        model (str): Model stem to check.
+
+    Returns:
+        (str | Path): Model filename with appropriate suffix.
+    """
     if model and not Path(model).suffix and Path(model).stem in downloads.GITHUB_ASSETS_STEMS:
         return Path(model).with_suffix(".pt")  # add suffix, i.e. yolo11n -> yolo11n.pt
     else:
@@ -486,7 +510,19 @@ def check_model_file_from_stem(model="yolo11n"):
 
 
 def check_file(file, suffix="", download=True, download_dir=".", hard=True):
-    """Search/download file (if necessary) and return path."""
+    """
+    Search/download file (if necessary) and return path.
+
+    Args:
+        file (str): File name or path.
+        suffix (str): File suffix to check.
+        download (bool): Whether to download the file if it doesn't exist locally.
+        download_dir (str): Directory to download the file to.
+        hard (bool): Whether to raise an error if the file is not found.
+
+    Returns:
+        (str): Path to the file.
+    """
     check_suffix(file, suffix)  # optional
     file = str(file).strip()  # convert to string and strip spaces
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
@@ -514,7 +550,17 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
 
 
 def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
-    """Search/download YAML file (if necessary) and return path, checking suffix."""
+    """
+    Search/download YAML file (if necessary) and return path, checking suffix.
+
+    Args:
+        file (str): File name or path.
+        suffix (tuple): Acceptable file suffixes.
+        hard (bool): Whether to raise an error if the file is not found.
+
+    Returns:
+        (str): Path to the YAML file.
+    """
     return check_file(file, suffix, hard=hard)
 
 
@@ -536,7 +582,15 @@ def check_is_path_safe(basedir, path):
 
 
 def check_imshow(warn=False):
-    """Check if environment supports image displays."""
+    """
+    Check if environment supports image displays.
+
+    Args:
+        warn (bool): Whether to warn if environment doesn't support image displays.
+
+    Returns:
+        (bool): True if environment supports image displays, False otherwise.
+    """
     try:
         if LINUX:
             assert not IS_COLAB and not IS_KAGGLE
@@ -553,7 +607,13 @@ def check_imshow(warn=False):
 
 
 def check_yolo(verbose=True, device=""):
-    """Return a human-readable YOLO software and hardware summary."""
+    """
+    Return a human-readable YOLO software and hardware summary.
+
+    Args:
+        verbose (bool): Whether to print verbose information.
+        device (str): Device to use for YOLO.
+    """
     import psutil
 
     from ultralytics.utils.torch_utils import select_device
@@ -581,7 +641,12 @@ def check_yolo(verbose=True, device=""):
 
 
 def collect_system_info():
-    """Collect and print relevant system information including OS, Python, RAM, CPU, and CUDA."""
+    """
+    Collect and print relevant system information including OS, Python, RAM, CPU, and CUDA.
+
+    Returns:
+        (dict): Dictionary containing system information.
+    """
     import psutil
 
     from ultralytics.utils import ENVIRONMENT  # scope to avoid circular import
@@ -712,7 +777,15 @@ def check_amp(model):
 
 
 def git_describe(path=ROOT):  # path must be a directory
-    """Return human-readable git description, i.e. v5.0-5-g3e25f1e https://git-scm.com/docs/git-describe."""
+    """
+    Return human-readable git description, i.e. v5.0-5-g3e25f1e https://git-scm.com/docs/git-describe.
+
+    Args:
+        path (Path): Path to git repository.
+
+    Returns:
+        (str): Human-readable git description.
+    """
     try:
         return subprocess.check_output(f"git -C {path} describe --tags --long --always", shell=True).decode()[:-1]
     except Exception:
@@ -720,7 +793,14 @@ def git_describe(path=ROOT):  # path must be a directory
 
 
 def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
-    """Print function arguments (optional args dict)."""
+    """
+    Print function arguments (optional args dict).
+
+    Args:
+        args (dict, optional): Arguments to print.
+        show_file (bool): Whether to show the file name.
+        show_func (bool): Whether to show the function name.
+    """
 
     def strip_auth(v):
         """Clean longer Ultralytics HUB URLs by stripping potential authentication information."""
@@ -772,7 +852,12 @@ def cuda_is_available() -> bool:
 
 
 def is_rockchip():
-    """Check if the current environment is running on a Rockchip SoC."""
+    """
+    Check if the current environment is running on a Rockchip SoC.
+
+    Returns:
+        (bool): True if running on a Rockchip SoC, False otherwise.
+    """
     if LINUX and ARM64:
         try:
             with open("/proc/device-tree/compatible") as f:

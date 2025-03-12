@@ -18,7 +18,7 @@ class WorkingDirectory(contextlib.ContextDecorator):
     It ensures that the original working directory is restored after the context or decorated function completes.
 
     Attributes:
-        dir (Path): The new directory to switch to.
+        dir (Path | str): The new directory to switch to.
         cwd (Path): The original current working directory before the switch.
 
     Methods:
@@ -64,7 +64,7 @@ def spaces_in_path(path):
         path (str | Path): The original path that may contain spaces.
 
     Yields:
-        (Path): Temporary path with spaces replaced by underscores if spaces were present, otherwise the original path.
+        (Path | str): Temporary path with spaces replaced by underscores if spaces were present, otherwise the original path.
 
     Examples:
         >>> with spaces_in_path('/path/with spaces') as new_path:

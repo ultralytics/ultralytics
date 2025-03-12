@@ -39,7 +39,7 @@ class Bboxes:
     Bounding box data should be provided in numpy arrays.
 
     Attributes:
-        bboxes (numpy.ndarray): The bounding boxes stored in a 2D numpy array with shape (N, 4).
+        bboxes (np.ndarray): The bounding boxes stored in a 2D numpy array with shape (N, 4).
         format (str): The format of the bounding boxes ('xyxy', 'xywh', or 'ltwh').
 
     Note:
@@ -51,7 +51,7 @@ class Bboxes:
         Initialize the Bboxes class with bounding box data in a specified format.
 
         Args:
-            bboxes (numpy.ndarray): Array of bounding boxes with shape (N, 4) or (4,).
+            bboxes (np.ndarray): Array of bounding boxes with shape (N, 4) or (4,).
             format (str): Format of the bounding boxes, one of 'xyxy', 'xywh', or 'ltwh'.
         """
         assert format in _formats, f"Invalid bounding box format: {format}, format must be one of {_formats}"
@@ -229,7 +229,7 @@ class Instances:
 
         Args:
             bboxes (np.ndarray): Bounding boxes, shape (N, 4).
-            segments (list | np.ndarray, optional): Segmentation masks.
+            segments (List | np.ndarray, optional): Segmentation masks.
             keypoints (np.ndarray, optional): Keypoints, shape (N, 17, 3) in format (x, y, visible).
             bbox_format (str, optional): Format of bboxes.
             normalized (bool, optional): Whether the coordinates are normalized.

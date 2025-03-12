@@ -38,7 +38,7 @@ def _log_plot(title: str, plot_path: str | Path) -> None:
 
     Args:
         title (str): Title of the plot.
-        plot_path (Path | str): Path to the saved image file.
+        plot_path (str | Path): Path to the saved image file.
     """
     import matplotlib.image as mpimg
     import matplotlib.pyplot as plt

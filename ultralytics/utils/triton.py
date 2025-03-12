@@ -24,6 +24,12 @@ class TritonRemoteModel:
         input_names (List[str]): The names of the model inputs.
         output_names (List[str]): The names of the model outputs.
         metadata: The metadata associated with the model.
+
+    Examples:
+        Initialize a Triton client with HTTP
+        >>> model = TritonRemoteModel(url="localhost:8000", endpoint="yolov8", scheme="http")
+        Make inference with numpy arrays
+        >>> outputs = model(np.random.rand(1, 3, 640, 640).astype(np.float32))
     """
 
     def __init__(self, url: str, endpoint: str = "", scheme: str = ""):

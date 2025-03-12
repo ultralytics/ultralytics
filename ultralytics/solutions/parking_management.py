@@ -5,10 +5,9 @@ import json
 import cv2
 import numpy as np
 
-from ultralytics.solutions.solutions import BaseSolution
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_imshow
-from ultralytics.utils.plotting import Annotator
 
 
 class ParkingPtsSelection:
@@ -189,7 +188,7 @@ class ParkingManagement(BaseSolution):
         dc (Tuple[int, int, int]): RGB color tuple for centroid visualization of detected objects.
 
     Methods:
-        process_data: Processes model data for parking lot management and visualization.
+        process: Processes the input image for parking lot management and visualization.
 
     Examples:
         >>> from ultralytics.solutions import ParkingManagement
@@ -216,9 +215,9 @@ class ParkingManagement(BaseSolution):
         self.occ = (0, 255, 0)  # occupied region color
         self.dc = (255, 0, 189)  # centroid color for each box
 
-    def process_data(self, im0):
+    def process(self, im0):
         """
-        Processes the model data for parking lot management.
+        Processes the input image for parking lot management and visualization.
 
         This function analyzes the input image, extracts tracks, and determines the occupancy status of parking
         regions defined in the JSON file. It annotates the image with occupied and available parking spots,
@@ -227,14 +226,18 @@ class ParkingManagement(BaseSolution):
         Args:
             im0 (np.ndarray): The input inference image.
 
+        Returns:
+            (SolutionResults): Contains processed image `plot_im`, 'filled_slots' (number of occupied parking slots),
+                'available_slots' (number of available parking slots), and 'total_tracks' (total number of tracked objects).
+
         Examples:
             >>> parking_manager = ParkingManagement(json_file="parking_regions.json")
             >>> image = cv2.imread("parking_lot.jpg")
-            >>> parking_manager.process_data(image)
+            >>> results = parking_manager.process(image)
         """
         self.extract_tracks(im0)  # extract tracks from im0
         es, fs = len(self.json), 0  # empty slots, filled slots
-        annotator = Annotator(im0, self.line_width)  # init annotator
+        annotator = SolutionAnnotator(im0, self.line_width)  # init annotator
 
         for region in self.json:
             # Convert points to a NumPy array with the correct dtype and reshape properly
@@ -257,5 +260,14 @@ class ParkingManagement(BaseSolution):
         self.pr_info["Occupancy"], self.pr_info["Available"] = fs, es
 
         annotator.display_analytics(im0, self.pr_info, (104, 31, 17), (255, 255, 255), 10)
-        self.display_output(im0)  # display output with base class function
-        return im0  # return output image for more usage
+
+        plot_im = annotator.result()
+        self.display_output(plot_im)  # display output with base class function
+
+        # Return SolutionResults
+        return SolutionResults(
+            plot_im=plot_im,
+            filled_slots=self.pr_info["Occupancy"],
+            available_slots=self.pr_info["Available"],
+            total_tracks=len(self.track_ids),
+        )

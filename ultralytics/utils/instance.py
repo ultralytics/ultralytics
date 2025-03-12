@@ -188,26 +188,24 @@ class Instances:
 
     Attributes:
         _bboxes (Bboxes): Internal object for handling bounding box operations.
-        keypoints (ndarray): keypoints(x, y, visible) with shape [N, 17, 3]. Default is None.
+        keypoints (np.ndarray): keypoints(x, y, visible) with shape [N, 17, 3]. Default is None.
         normalized (bool): Flag indicating whether the bounding box coordinates are normalized.
-        segments (ndarray): Segments array with shape [N, 1000, 2] after resampling.
+        segments (np.ndarray): Segments array with shape [N, 1000, 2] after resampling.
 
     Args:
-        bboxes (ndarray): An array of bounding boxes with shape [N, 4].
+        bboxes (np.ndarray): An array of bounding boxes with shape [N, 4].
         segments (list | ndarray, optional): A list or array of object segments. Default is None.
         keypoints (ndarray, optional): An array of keypoints with shape [N, 17, 3]. Default is None.
         bbox_format (str, optional): The format of bounding boxes ('xywh' or 'xyxy'). Default is 'xywh'.
         normalized (bool, optional): Whether the bounding box coordinates are normalized. Default is True.
 
     Examples:
-        ```python
-        # Create an Instances object
-        instances = Instances(
-            bboxes=np.array([[10, 10, 30, 30], [20, 20, 40, 40]]),
-            segments=[np.array([[5, 5], [10, 10]]), np.array([[15, 15], [20, 20]])],
-            keypoints=np.array([[[5, 5, 1], [10, 10, 1]], [[15, 15, 1], [20, 20, 1]]]),
-        )
-        ```
+        Create an Instances object
+        >>> instances = Instances(
+        ...     bboxes=np.array([[10, 10, 30, 30], [20, 20, 40, 40]]),
+        ...     segments=[np.array([[5, 5], [10, 10]]), np.array([[15, 15], [20, 20]])],
+        ...     keypoints=np.array([[[5, 5, 1], [10, 10, 1]], [[15, 15, 1], [20, 20, 1]]]),
+        ... )
 
     Note:
         The bounding box format is either 'xywh' or 'xyxy', and is determined by the `bbox_format` argument.

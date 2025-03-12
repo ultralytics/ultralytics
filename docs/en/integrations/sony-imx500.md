@@ -80,7 +80,7 @@ Export an Ultralytics YOLOv8 model to IMX500 format and run inference with the e
 | `format` | `str`            | `'imx'`        | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
 | `imgsz`  | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
 | `int8`   | `bool`           | `True`         | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
-| `data`   | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets) configuration file (default: `coco8.yaml`), essential for quantization.                                                          |
+| `data`   | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets/) configuration file (default: `coco8.yaml`), essential for quantization.                                                          |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 

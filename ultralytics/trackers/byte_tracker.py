@@ -17,7 +17,7 @@ class STrack(BaseTrack):
     and predictions based on Kalman filter.
 
     Attributes:
-        shared_kalman (KalmanFilterXYAH): Shared Kalman filter that is used across all STrack instances for prediction.
+        shared_kalman (KalmanFilterXYAH): Shared Kalman filter used across all STrack instances for prediction.
         _tlwh (np.ndarray): Private attribute to store top-left corner coordinates and width and height of bounding box.
         kalman_filter (KalmanFilterXYAH): Instance of Kalman filter used for this particular object track.
         mean (np.ndarray): Mean state estimate vector.

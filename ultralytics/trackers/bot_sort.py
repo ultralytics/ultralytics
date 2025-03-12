@@ -31,7 +31,7 @@ class BOTrack(STrack):
         update_features: Update features vector and smooth it using exponential moving average.
         predict: Predict the mean and covariance using Kalman filter.
         re_activate: Reactivate a track with updated features and optionally new ID.
-        update: Update the YOLOv8 instance with new track and frame ID.
+        update: Update the track with new detection and frame ID.
         tlwh: Property that gets the current position in tlwh format `(top left x, top left y, width, height)`.
         multi_predict: Predict the mean and covariance of multiple object tracks using shared Kalman filter.
         convert_coords: Convert tlwh bounding box coordinates to xywh format.
@@ -102,7 +102,7 @@ class BOTrack(STrack):
         super().re_activate(new_track, frame_id, new_id)
 
     def update(self, new_track, frame_id):
-        """Update the YOLOv8 instance with new track information and the current frame ID."""
+        """Update the track with new detection information and the current frame ID."""
         if new_track.curr_feat is not None:
             self.update_features(new_track.curr_feat)
         super().update(new_track, frame_id)
@@ -174,7 +174,7 @@ class BOTSORT(BYTETracker):
 
     def __init__(self, args, frame_rate=30):
         """
-        Initialize YOLOv8 object with ReID module and GMC algorithm.
+        Initialize BOTSORT object with ReID module and GMC algorithm.
 
         Args:
             args (object): Parsed command-line arguments containing tracking parameters.

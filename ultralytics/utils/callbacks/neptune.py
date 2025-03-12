@@ -1,7 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING
 from pathlib import Path
+
+from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING
 
 try:
     assert not TESTS_RUNNING  # do not log pytest

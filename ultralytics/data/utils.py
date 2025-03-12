@@ -440,8 +440,10 @@ def check_cls_dataset(dataset, split=""):
     test_set = data_dir / "test" if (data_dir / "test").exists() else None  # data/val or data/test
     if split == "val" and not val_set:
         LOGGER.warning("WARNING ⚠️ Dataset 'split=val' not found, using 'split=test' instead.")
+        val_set = test_set
     elif split == "test" and not test_set:
         LOGGER.warning("WARNING ⚠️ Dataset 'split=test' not found, using 'split=val' instead.")
+        test_set = val_set
 
     nc = len([x for x in (data_dir / "train").glob("*") if x.is_dir()])  # number of classes
     names = [x.name for x in (data_dir / "train").iterdir() if x.is_dir()]  # class names list

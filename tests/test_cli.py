@@ -56,7 +56,7 @@ def test_export(model: str) -> None:
 def test_rtdetr(task: str = "detect", model: str = "yolov8n-rtdetr.yaml", data: str = "coco8.yaml") -> None:
     """Test the RTDETR functionality within Ultralytics for detection tasks using specified model and data."""
     # Warning: must use imgsz=640 (note also add coma, spaces, fraction=0.25 args to test single-image training)
-    run(f"yolo train {task} model={model} data={data} --imgsz= 160 epochs =1, cache = disk fraction=0.25")
+    run(f"yolo train {task} model={model} data={data} --imgsz= 160 epochs =1, cache = disk fraction=0.25")  # spaces
     run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=160 save save_crop save_txt")
     if TORCH_1_9:
         weights = WEIGHTS_DIR / "rtdetr-l.pt"

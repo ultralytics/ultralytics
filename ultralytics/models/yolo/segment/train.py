@@ -12,14 +12,11 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
     """
     A class extending the DetectionTrainer class for training based on a segmentation model.
 
-    Example:
-        ```python
-        from ultralytics.models.yolo.segment import SegmentationTrainer
-
-        args = dict(model="yolo11n-seg.pt", data="coco8-seg.yaml", epochs=3)
-        trainer = SegmentationTrainer(overrides=args)
-        trainer.train()
-        ```
+    Examples:
+        >>> from ultralytics.models.yolo.segment import SegmentationTrainer
+        >>> args = dict(model="yolo11n-seg.pt", data="coco8-seg.yaml", epochs=3)
+        >>> trainer = SegmentationTrainer(overrides=args)
+        >>> trainer.train()
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):

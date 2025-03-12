@@ -1149,47 +1149,46 @@ class Exporter:
         self._add_tflite_metadata(f)
         return f, None
 
-
     @try_export
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
         """YOLO TensorFlow.js export."""
         # Apply the patch for np.object deprecation
         import sys
-    
+
         import numpy as np
-    
+
         # Store the original __getattr__
         original_getattr = np.__getattr__
-    
+
         # Define a patched __getattr__ function that returns np.object_ when np.object is accessed
         def patched_getattr(name):
             if name == "object":
                 return np.object_
             return original_getattr(name)
-    
+
         # Apply the monkey patch
         np.__getattr__ = patched_getattr
-    
+
         try:
             # Clear tensorflowjs from sys.modules if it was already imported
             if "tensorflowjs" in sys.modules:
                 del sys.modules["tensorflowjs"]
-    
+
             # Now import tensorflowjs with the patch applied
             check_requirements("tensorflowjs")
             import tensorflow as tf
             import tensorflowjs as tfjs  # noqa
-    
+
             LOGGER.info(f"\n{prefix} starting export with tensorflowjs {tfjs.__version__}...")
             f = str(self.file).replace(self.file.suffix, "_web_model")  # js dir
             f_pb = str(self.file.with_suffix(".pb"))  # *.pb path
-    
+
             gd = tf.Graph().as_graph_def()  # TF GraphDef
             with open(f_pb, "rb") as file:
                 gd.ParseFromString(file.read())
             outputs = ",".join(gd_outputs(gd))
             LOGGER.info(f"\n{prefix} output node names: {outputs}")
-    
+
             quantization = "--quantize_float16" if self.args.half else "--quantize_uint8" if self.args.int8 else ""
             with spaces_in_path(f_pb) as fpb_, spaces_in_path(f) as f_:  # exporter can not handle spaces in path
                 cmd = (
@@ -1198,14 +1197,14 @@ class Exporter:
                 )
                 LOGGER.info(f"{prefix} running '{cmd}'")
                 subprocess.run(cmd, shell=True)
-    
+
             if " " in f:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ your model may not work correctly with spaces in path '{f}'.")
-    
+
             # Add metadata
             yaml_save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
             return f, None
-    
+
         finally:
             # Restore original numpy behavior
             np.__getattr__ = original_getattr

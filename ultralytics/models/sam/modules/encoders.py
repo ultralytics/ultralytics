@@ -239,7 +239,6 @@ class PromptEncoder(nn.Module):
         """
         Return the dense positional encoding used for encoding point prompts.
 
-
         Generate a positional encoding for a dense set of points matching the shape of the image
         encoding. The encoding is used to provide spatial information to the model when processing point prompts.
 

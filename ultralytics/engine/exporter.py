@@ -1149,9 +1149,32 @@ class Exporter:
         self._add_tflite_metadata(f)
         return f, None
 
-    @try_export
-    def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
-        """YOLO TensorFlow.js export."""
+@try_export
+def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
+    """YOLO TensorFlow.js export."""
+    # Apply the patch for np.object deprecation
+    import numpy as np
+    import sys
+    import importlib.util
+    
+    # Store the original __getattr__
+    original_getattr = np.__getattr__
+    
+    # Define a patched __getattr__ function that returns np.object_ when np.object is accessed
+    def patched_getattr(name):
+        if name == 'object':
+            return np.object_
+        return original_getattr(name)
+    
+    # Apply the monkey patch
+    np.__getattr__ = patched_getattr
+    
+    try:
+        # Clear tensorflowjs from sys.modules if it was already imported
+        if 'tensorflowjs' in sys.modules:
+            del sys.modules['tensorflowjs']
+        
+        # Now import tensorflowjs with the patch applied
         check_requirements("tensorflowjs")
         import tensorflow as tf
         import tensorflowjs as tfjs  # noqa
@@ -1181,6 +1204,10 @@ class Exporter:
         # Add metadata
         yaml_save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
         return f, None
+    
+    finally:
+        # Restore original numpy behavior
+        np.__getattr__ = original_getattr
 
     @try_export
     def export_rknn(self, prefix=colorstr("RKNN:")):

@@ -1152,62 +1152,35 @@ class Exporter:
     @try_export
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
         """YOLO TensorFlow.js export."""
-        # Apply the patch for np.object deprecation
-        import sys
+        check_requirements("tensorflowjs")
+        import tensorflow as tf
+        import tensorflowjs as tfjs  # noqa
 
-        # Store the original __getattr__
-        original_getattr = np.__getattr__
+        LOGGER.info(f"\n{prefix} starting export with tensorflowjs {tfjs.__version__}...")
+        f = str(self.file).replace(self.file.suffix, "_web_model")  # js dir
+        f_pb = str(self.file.with_suffix(".pb"))  # *.pb path
 
-        # Define a patched __getattr__ function that returns np.object_ when np.object is accessed
-        def patched_getattr(name):
-            if name == "object":
-                return np.object_
-            elif name == "bool":
-                return np.bool_
-            return original_getattr(name)
+        gd = tf.Graph().as_graph_def()  # TF GraphDef
+        with open(f_pb, "rb") as file:
+            gd.ParseFromString(file.read())
+        outputs = ",".join(gd_outputs(gd))
+        LOGGER.info(f"\n{prefix} output node names: {outputs}")
 
-        # Apply the monkey patch
-        np.__getattr__ = patched_getattr
+        quantization = "--quantize_float16" if self.args.half else "--quantize_uint8" if self.args.int8 else ""
+        with spaces_in_path(f_pb) as fpb_, spaces_in_path(f) as f_:  # exporter can not handle spaces in path
+            cmd = (
+                "tensorflowjs_converter "
+                f'--input_format=tf_frozen_model {quantization} --output_node_names={outputs} "{fpb_}" "{f_}"'
+            )
+            LOGGER.info(f"{prefix} running '{cmd}'")
+            subprocess.run(cmd, shell=True)
 
-        try:
-            # Clear tensorflowjs from sys.modules if it was already imported
-            if "tensorflowjs" in sys.modules:
-                del sys.modules["tensorflowjs"]
+        if " " in f:
+            LOGGER.warning(f"{prefix} WARNING ⚠️ your model may not work correctly with spaces in path '{f}'.")
 
-            # Now import tensorflowjs with the patch applied
-            check_requirements("tensorflowjs")
-            import tensorflow as tf
-            import tensorflowjs as tfjs  # noqa
-
-            LOGGER.info(f"\n{prefix} starting export with tensorflowjs {tfjs.__version__}...")
-            f = str(self.file).replace(self.file.suffix, "_web_model")  # js dir
-            f_pb = str(self.file.with_suffix(".pb"))  # *.pb path
-
-            gd = tf.Graph().as_graph_def()  # TF GraphDef
-            with open(f_pb, "rb") as file:
-                gd.ParseFromString(file.read())
-            outputs = ",".join(gd_outputs(gd))
-            LOGGER.info(f"\n{prefix} output node names: {outputs}")
-
-            quantization = "--quantize_float16" if self.args.half else "--quantize_uint8" if self.args.int8 else ""
-            with spaces_in_path(f_pb) as fpb_, spaces_in_path(f) as f_:  # exporter can not handle spaces in path
-                cmd = (
-                    "tensorflowjs_converter "
-                    f'--input_format=tf_frozen_model {quantization} --output_node_names={outputs} "{fpb_}" "{f_}"'
-                )
-                LOGGER.info(f"{prefix} running '{cmd}'")
-                subprocess.run(cmd, shell=True)
-
-            if " " in f:
-                LOGGER.warning(f"{prefix} WARNING ⚠️ your model may not work correctly with spaces in path '{f}'.")
-
-            # Add metadata
-            yaml_save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
-            return f, None
-
-        finally:
-            # Restore original numpy behavior
-            np.__getattr__ = original_getattr
+        # Add metadata
+        yaml_save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
+        return f, None
 
     @try_export
     def export_rknn(self, prefix=colorstr("RKNN:")):

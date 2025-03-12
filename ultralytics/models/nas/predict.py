@@ -18,15 +18,13 @@ class NASPredictor(BasePredictor):
     Attributes:
         args (Namespace): Namespace containing various configurations for post-processing.
 
-    Example:
-        ```python
-        from ultralytics import NAS
+    Examples:
+        >>> from ultralytics import NAS
+        >>> model = NAS("yolo_nas_s")
+        >>> predictor = model.predictor
 
-        model = NAS("yolo_nas_s")
-        predictor = model.predictor
-        # Assumes that raw_preds, img, orig_imgs are available
-        results = predictor.postprocess(raw_preds, img, orig_imgs)
-        ```
+        Assumes that raw_preds, img, orig_imgs are available
+        >>> results = predictor.postprocess(raw_preds, img, orig_imgs)
 
     Note:
         Typically, this class is not instantiated directly. It is used internally within the `NAS` class.

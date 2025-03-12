@@ -200,14 +200,12 @@ class Instances:
         normalized (bool, optional): Whether the bounding box coordinates are normalized. Default is True.
 
     Examples:
-        ```python
-        # Create an Instances object
-        instances = Instances(
-            bboxes=np.array([[10, 10, 30, 30], [20, 20, 40, 40]]),
-            segments=[np.array([[5, 5], [10, 10]]), np.array([[15, 15], [20, 20]])],
-            keypoints=np.array([[[5, 5, 1], [10, 10, 1]], [[15, 15, 1], [20, 20, 1]]]),
-        )
-        ```
+        Create an Instances object
+        >>> instances = Instances(
+        ...     bboxes=np.array([[10, 10, 30, 30], [20, 20, 40, 40]]),
+        ...     segments=[np.array([[5, 5], [10, 10]]), np.array([[15, 15], [20, 20]])],
+        ...     keypoints=np.array([[[5, 5, 1], [10, 10, 1]], [[15, 15, 1], [20, 20, 1]]]),
+        ... )
 
     Note:
         The bounding box format is either 'xywh' or 'xyxy', and is determined by the `bbox_format` argument.

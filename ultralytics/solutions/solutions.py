@@ -193,8 +193,10 @@ class BaseSolution:
 
     def __call__(self, *args, **kwargs):
         """Allow instances to be called like a function with flexible arguments."""
-        return self.process(*args, **kwargs)  # Call the subclass-specific process method
-
+        result = self.process(*args, **kwargs)  # Call the subclass-specific process method
+        if self.CFG["verbose"]:  # extract verbose value to display the output logs if True
+            LOGGER.info(f"🚀 Results: {result}")
+        return result
 
 class SolutionAnnotator(Annotator):
     """

@@ -250,7 +250,7 @@ jobs:
       - uses: astral-sh/setup-uv@v4
       - name: Install requirements
         run: |
-          uv pip install -e ".[export]" pytest mlflow pycocotools --index-strategy unsafe-first-match
+          uv pip install -e ".[export]" pytest mlflow pycocotools --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks

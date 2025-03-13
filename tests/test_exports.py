@@ -12,7 +12,6 @@ from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import (
     ARM64,
-    IS_RASPBERRYPI,
     LINUX,
     MACOS,
     WINDOWS,

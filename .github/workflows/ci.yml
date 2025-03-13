@@ -193,7 +193,7 @@ jobs:
       - name: Pytest tests
         shell: bash # for Windows compatibility
         run: |
-          slow=""
+          slow="--slow"
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
               slow="--slow"
           fi

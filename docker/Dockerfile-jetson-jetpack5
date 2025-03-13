@@ -39,7 +39,7 @@ RUN uv pip install --system \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.18.0-cp38-cp38-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.2.0-cp38-cp38-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.17.2+c1d70fe-cp38-cp38-linux_aarch64.whl
-RUN uv pip install --system -e ".[export]"
+RUN uv pip install --system -e ".[export]" --index-strategy unsafe-best-match
 
 # Remove extra build files
 RUN rm -rf *.whl /root/.config/Ultralytics/persistent_cache.json

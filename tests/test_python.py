@@ -26,6 +26,8 @@ from ultralytics.utils import (
     ROOT,
     WEIGHTS_DIR,
     WINDOWS,
+    LINUX,
+    ARM64,
     checks,
     is_dir_writeable,
     is_github_action_running,

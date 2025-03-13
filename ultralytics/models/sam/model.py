@@ -49,7 +49,7 @@ class SAM(Model):
 
     def __init__(self, model="sam_b.pt") -> None:
         """
-        Initializes the SAM (Segment Anything Model) instance.
+        Initialize the SAM (Segment Anything Model) instance.
 
         Args:
             model (str): Path to the pre-trained SAM model file. File should have a .pt or .pth extension.
@@ -68,10 +68,7 @@ class SAM(Model):
 
     def _load(self, weights: str, task=None):
         """
-        Loads the specified weights into the SAM model.
-
-        This method initializes the SAM model with the provided weights file, setting up the model architecture
-        and loading the pre-trained parameters.
+        Load the specified weights into the SAM model.
 
         Args:
             weights (str): Path to the weights file. Should be a .pt or .pth file containing the model parameters.
@@ -85,7 +82,7 @@ class SAM(Model):
 
     def predict(self, source, stream=False, bboxes=None, points=None, labels=None, **kwargs):
         """
-        Performs segmentation prediction on the given image or video source.
+        Perform segmentation prediction on the given image or video source.
 
         Args:
             source (str | PIL.Image | numpy.ndarray): Path to the image or video file, or a PIL.Image object, or
@@ -112,7 +109,7 @@ class SAM(Model):
 
     def __call__(self, source=None, stream=False, bboxes=None, points=None, labels=None, **kwargs):
         """
-        Performs segmentation prediction on the given image or video source.
+        Perform segmentation prediction on the given image or video source.
 
         This method is an alias for the 'predict' method, providing a convenient way to call the SAM model
         for segmentation tasks.
@@ -138,10 +135,7 @@ class SAM(Model):
 
     def info(self, detailed=False, verbose=True):
         """
-        Logs information about the SAM model.
-
-        This method provides details about the Segment Anything Model (SAM), including its architecture,
-        parameters, and computational requirements.
+        Log information about the SAM model.
 
         Args:
             detailed (bool): If True, displays detailed information about the model layers and operations.
@@ -160,16 +154,16 @@ class SAM(Model):
     @property
     def task_map(self):
         """
-        Provides a mapping from the 'segment' task to its corresponding 'Predictor'.
+        Provide a mapping from the 'segment' task to its corresponding 'Predictor'.
 
         Returns:
-            (Dict[str, Type[Predictor]]): A dictionary mapping the 'segment' task to its corresponding Predictor
+            (Dict[str, Dict[str, Type[Predictor]]]): A dictionary mapping the 'segment' task to its corresponding Predictor
                 class. For SAM2 models, it maps to SAM2Predictor, otherwise to the standard Predictor.
 
         Examples:
             >>> sam = SAM("sam_b.pt")
             >>> task_map = sam.task_map
             >>> print(task_map)
-            {'segment': <class 'ultralytics.models.sam.predict.Predictor'>}
+            {'segment': {'predictor': <class 'ultralytics.models.sam.predict.Predictor'>}}
         """
         return {"segment": {"predictor": SAM2Predictor if self.is_sam2 else Predictor}}

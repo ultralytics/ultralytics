@@ -12,6 +12,12 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
     """
     A class extending the DetectionTrainer class for training based on a segmentation model.
 
+    This trainer specializes in handling segmentation tasks, extending the detection trainer with segmentation-specific
+    functionality including model initialization, validation, and visualization.
+
+    Attributes:
+        loss_names (Tuple[str]): Names of the loss components used during training.
+
     Examples:
         >>> from ultralytics.models.yolo.segment import SegmentationTrainer
         >>> args = dict(model="yolo11n-seg.pt", data="coco8-seg.yaml", epochs=3)

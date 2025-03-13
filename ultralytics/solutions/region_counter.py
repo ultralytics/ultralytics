@@ -42,7 +42,7 @@ class RegionCounter(BaseSolution):
 
     def add_region(self, name, polygon_points, region_color, text_color):
         """
-        Adds a new region to the counting list based on the provided template with specific attributes.
+        Add a new region to the counting list based on the provided template with specific attributes.
 
         Args:
             name (str): Name assigned to the new region.
@@ -63,7 +63,7 @@ class RegionCounter(BaseSolution):
 
     def process(self, im0):
         """
-        Processes the input frame to detect and count objects within each defined region.
+        Process the input frame to detect and count objects within each defined region.
 
         Args:
             im0 (np.ndarray): Input image frame where objects and regions are annotated.

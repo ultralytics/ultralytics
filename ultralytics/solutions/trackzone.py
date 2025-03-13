@@ -16,9 +16,16 @@ class TrackZone(BaseSolution):
 
     Attributes:
         region (np.ndarray): The polygonal region for tracking, represented as a convex hull of points.
+        line_width (int): Width of the lines used for drawing bounding boxes and region boundaries.
+        names (List[str]): List of class names that the model can detect.
+        boxes (List[np.ndarray]): Bounding boxes of tracked objects.
+        track_ids (List[int]): Unique identifiers for each tracked object.
+        clss (List[int]): Class indices of tracked objects.
 
     Methods:
         process: Processes each frame of the video, applying region-based tracking.
+        extract_tracks: Extracts tracking information from the input frame.
+        display_output: Displays the processed output.
 
     Examples:
         >>> tracker = TrackZone()
@@ -29,7 +36,7 @@ class TrackZone(BaseSolution):
 
     def __init__(self, **kwargs):
         """
-        Initializes the TrackZone class for tracking objects within a defined region in video streams.
+        Initialize the TrackZone class for tracking objects within a defined region in video streams.
 
         Args:
             **kwargs (Any): Additional keyword arguments passed to the parent class.
@@ -40,7 +47,7 @@ class TrackZone(BaseSolution):
 
     def process(self, im0):
         """
-        Processes the input frame to track objects within a defined region.
+        Process the input frame to track objects within a defined region.
 
         This method initializes the annotator, creates a mask for the specified region, extracts tracks
         only from the masked area, and updates tracking information. Objects outside the region are ignored.

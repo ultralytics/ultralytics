@@ -10,7 +10,23 @@ from ultralytics.utils.plotting import plot_images, plot_results
 
 class PoseTrainer(yolo.detect.DetectionTrainer):
     """
-    A class extending the DetectionTrainer class for training based on a pose model.
+    A class extending the DetectionTrainer class for training YOLO pose estimation models.
+
+    This trainer specializes in handling pose estimation tasks, managing model training, validation, and visualization
+    of pose keypoints alongside bounding boxes.
+
+    Attributes:
+        args (Dict): Configuration arguments for training.
+        model (PoseModel): The pose estimation model being trained.
+        data (Dict): Dataset configuration including keypoint shape information.
+        loss_names (Tuple[str]): Names of the loss components used in training.
+
+    Methods:
+        get_model: Retrieves a pose estimation model with specified configuration.
+        set_model_attributes: Sets keypoints shape attribute on the model.
+        get_validator: Creates a validator instance for model evaluation.
+        plot_training_samples: Visualizes training samples with keypoints.
+        plot_metrics: Generates and saves training/validation metric plots.
 
     Examples:
         >>> from ultralytics.models.yolo.pose import PoseTrainer

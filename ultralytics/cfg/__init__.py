@@ -684,6 +684,9 @@ def handle_yolo_solutions(args: List[str]) -> None:
     check_dict_alignment(full_args_dict, overrides)  # dict alignment
 
     # Get solution name
+    if not args:
+        LOGGER.warning("⚠️ No solution name provided. i.e `yolo solutions count`. Defaulting to 'count'.")
+        args = ["count"]
     if args[0] == "help":
         LOGGER.info(SOLUTIONS_HELP_MSG)
         return  # Early return for 'help' case
@@ -733,7 +736,6 @@ def handle_yolo_solutions(args: List[str]) -> None:
                 if not success:
                     break
                 results = solution(frame, f_n := f_n + 1) if solution_name == "analytics" else solution(frame)
-                LOGGER.info(f"🚀 Results: {results}")
                 if solution_name != "crop":
                     vw.write(results.plot_im)
                 if cv2.waitKey(1) & 0xFF == ord("q"):

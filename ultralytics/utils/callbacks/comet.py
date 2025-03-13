@@ -365,6 +365,12 @@ def _log_model(experiment, trainer):
     experiment.log_model(model_name, file_or_folder=str(trainer.best), file_name="best.pt", overwrite=True)
 
 
+def _log_image_batches(experiment, trainer, curr_step: int) -> None:
+    """Log samples of images batches for train, validation, and test."""
+    _log_images(experiment, trainer.save_dir.glob("train_batch*.jpg"), curr_step)
+    _log_images(experiment, trainer.save_dir.glob("val_batch*.jpg"), curr_step)
+
+
 def on_pretrain_routine_start(trainer):
     """Creates or resumes a CometML experiment at the start of a YOLO pre-training routine."""
     _resume_or_create_experiment(trainer.args)
@@ -428,8 +434,7 @@ def on_train_end(trainer):
 
     _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch)
     _log_image_predictions(experiment, trainer.validator, curr_step)
-    _log_images(experiment, trainer.save_dir.glob("train_batch*.jpg"), curr_step)
-    _log_images(experiment, trainer.save_dir.glob("val_batch*.jpg"), curr_step)
+    _log_image_batches(experiment, trainer, curr_step)
     experiment.end()
 
     global _comet_image_prediction_count

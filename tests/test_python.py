@@ -18,16 +18,16 @@ from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import MODELS, TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import (
+    ARM64,
     ASSETS,
     DEFAULT_CFG,
     DEFAULT_CFG_PATH,
+    LINUX,
     LOGGER,
     ONLINE,
     ROOT,
     WEIGHTS_DIR,
     WINDOWS,
-    LINUX,
-    ARM64,
     checks,
     is_dir_writeable,
     is_github_action_running,

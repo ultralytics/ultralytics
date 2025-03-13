@@ -127,7 +127,9 @@ def benchmark(
             if i == 11:  # Paddle
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
                 assert not is_end2end, "End-to-end models not supported by PaddlePaddle yet"
-                assert (LINUX and not ARM64) or MACOS, "Windows Paddle exports not supported yet" # disable for failing arm64 Linux CI
+                assert (LINUX and not ARM64) or MACOS, (
+                    "Windows Paddle exports not supported yet"
+                )  # disable for failing arm64 Linux CI
             if i == 12:  # MNN
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 MNN exports not supported yet"
             if i == 13:  # NCNN

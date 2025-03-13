@@ -127,7 +127,7 @@ class ObjectCounter(BaseSolution):
 
     def display_counts(self, plot_im):
         """
-        Displays object counts on the input image or frame.
+        Display object counts on the input image or frame.
 
         Args:
             plot_im (numpy.ndarray): The image or frame to display counts on.
@@ -148,7 +148,7 @@ class ObjectCounter(BaseSolution):
 
     def process(self, im0):
         """
-        Processes input data (frames or object tracks) and updates object counts.
+        Process input data (frames or object tracks) and update object counts.
 
         This method initializes the counting region, extracts tracks, draws bounding boxes and regions, updates
         object counts, and displays the results on the input image.

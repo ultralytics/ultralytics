@@ -40,7 +40,7 @@ class SpeedEstimator(BaseSolution):
 
     def __init__(self, **kwargs):
         """
-        Initializes the SpeedEstimator object with speed estimation parameters and data structures.
+        Initialize the SpeedEstimator object with speed estimation parameters and data structures.
 
         Args:
             **kwargs (Any): Additional keyword arguments passed to the parent class.
@@ -56,7 +56,7 @@ class SpeedEstimator(BaseSolution):
 
     def process(self, im0):
         """
-        Processes an input frame to estimate object speeds based on tracking data.
+        Process an input frame to estimate object speeds based on tracking data.
 
         Args:
             im0 (np.ndarray): Input image for processing with shape (H, W, C) for RGB images.

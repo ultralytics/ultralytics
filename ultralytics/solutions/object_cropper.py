@@ -32,7 +32,7 @@ class ObjectCropper(BaseSolution):
 
     def __init__(self, **kwargs):
         """
-        Initializes the ObjectCropper class for cropping objects from detected bounding boxes.
+        Initialize the ObjectCropper class for cropping objects from detected bounding boxes.
 
         Args:
             **kwargs (Any): Keyword arguments passed to the parent class and used for configuration.
@@ -53,7 +53,7 @@ class ObjectCropper(BaseSolution):
 
     def process(self, im0):
         """
-        Crops detected objects from the input image and saves them as separate images.
+        Crop detected objects from the input image and save them as separate images.
 
         Args:
             im0 (numpy.ndarray): The input image containing detected objects.

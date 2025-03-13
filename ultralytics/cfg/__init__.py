@@ -684,7 +684,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
     check_dict_alignment(full_args_dict, overrides)  # dict alignment
 
     # Get solution name
-    args = args if args else (LOGGER.warning("⚠️ No solution provided. Defaulting to 'count'."), ["count"])[1]
+    args = args if args else (LOGGER.warning("⚠️ No solution name provided. i.e `yolo solutions count`. Defaulting to 'count'."), ["count"])[1]
     if args[0] == "help":
         LOGGER.info(SOLUTIONS_HELP_MSG)
         return  # Early return for 'help' case

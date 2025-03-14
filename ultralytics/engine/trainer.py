@@ -495,7 +495,7 @@ class BaseTrainer:
         if self.device.type == "mps":
             memory = torch.mps.driver_allocated_memory()
             if fraction:
-                total = torch.mps.get_mem_info()[0]
+                total = torch.mps.recommended_max_memory()
         elif self.device.type == "cpu":
             pass
         else:

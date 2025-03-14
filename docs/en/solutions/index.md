@@ -49,7 +49,7 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 
 !!! note "Track args"
 
-     Solutions also support some of the arguments from and `track`, including parameters such as `conf`, `line_width`, `tracker`, `model`, `show`, `verbose` and `classes`.
+     Solutions also support some of the arguments from `track`, including parameters such as `conf`, `line_width`, `tracker`, `model`, `show`, `verbose` and `classes`.
 
 {% from "macros/track-args.md" import param_table %}
 {{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}

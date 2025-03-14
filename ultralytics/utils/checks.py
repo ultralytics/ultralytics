@@ -55,10 +55,10 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
 
     Args:
         file_path (Path): Path to the requirements.txt file.
-        package (str, optional): Python package to use instead of requirements.txt file, i.e. package='ultralytics'.
+        package (str, optional): Python package to use instead of requirements.txt file.
 
     Returns:
-        (List[Dict[str, str]]): List of parsed requirements as dictionaries with `name` and `specifier` keys.
+        (List[SimpleNamespace]): List of parsed requirements as SimpleNamespace objects with `name` and `specifier` attributes.
 
     Examples:
         >>> from ultralytics.utils.checks import parse_requirements
@@ -82,14 +82,13 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
 
 def parse_version(version="0.0.0") -> tuple:
     """
-    Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version. This
-    function replaces deprecated 'pkg_resources.parse_version(v)'.
+    Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
 
     Args:
         version (str): Version string, i.e. '2.0.1+cpu'
 
     Returns:
-        (tuple): Tuple of integers representing the numeric part of the version and the extra string, i.e. (2, 0, 1)
+        (tuple): Tuple of integers representing the numeric part of the version, i.e. (2, 0, 1)
     """
     try:
         return tuple(map(int, re.findall(r"\d+", version)[:3]))  # '2.0.1+cpu' -> (2, 0, 1)
@@ -121,7 +120,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     stride, update it to the nearest multiple of the stride that is greater than or equal to the given floor value.
 
     Args:
-        imgsz (int | cList[int]): Image size.
+        imgsz (int | List[int]): Image size.
         stride (int): Stride value.
         min_dim (int): Minimum number of dimensions.
         max_dim (int): Maximum number of dimensions.
@@ -183,10 +182,10 @@ def check_version(
     Args:
         current (str): Current version or package name to get version from.
         required (str): Required version or range (in pip-style format).
-        name (str, optional): Name to be used in warning message.
-        hard (bool, optional): If True, raise an AssertionError if the requirement is not met.
-        verbose (bool, optional): If True, print warning message if requirement is not met.
-        msg (str, optional): Extra message to display if verbose.
+        name (str): Name to be used in warning message.
+        hard (bool): If True, raise an AssertionError if the requirement is not met.
+        verbose (bool): If True, print warning message if requirement is not met.
+        msg (str): Extra message to display if verbose.
 
     Returns:
         (bool): True if requirement is met, False otherwise.
@@ -308,7 +307,7 @@ def check_font(font="Arial.ttf"):
         font (str): Path or name of font.
 
     Returns:
-        file (Path): Resolved font file path.
+        (Path): Resolved font file path.
     """
     from matplotlib import font_manager
 
@@ -336,8 +335,8 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
 
     Args:
         minimum (str): Required minimum version of python.
-        hard (bool, optional): If True, raise an AssertionError if the requirement is not met.
-        verbose (bool, optional): If True, print warning message if requirement is not met.
+        hard (bool): If True, raise an AssertionError if the requirement is not met.
+        verbose (bool): If True, print warning message if requirement is not met.
 
     Returns:
         (bool): Whether the installed Python version meets the minimum constraints.
@@ -420,11 +419,7 @@ def check_torchvision():
     Checks the installed versions of PyTorch and Torchvision to ensure they're compatible.
 
     This function checks the installed versions of PyTorch and Torchvision, and warns if they're incompatible according
-    to the provided compatibility table based on:
-    https://github.com/pytorch/vision#installation.
-
-    The compatibility table is a dictionary where the keys are PyTorch versions and the values are lists of compatible
-    Torchvision versions.
+    to the compatibility table based on: https://github.com/pytorch/vision#installation.
     """
     compatibility_table = {
         "2.6": ["0.21"],
@@ -453,7 +448,14 @@ def check_torchvision():
 
 
 def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
-    """Check file(s) for acceptable suffix."""
+    """
+    Check file(s) for acceptable suffix.
+
+    Args:
+        file (str | List[str]): File or list of files to check.
+        suffix (str | Tuple[str]): Acceptable suffix or tuple of suffixes.
+        msg (str): Additional message to display in case of error.
+    """
     if file and suffix:
         if isinstance(suffix, str):
             suffix = (suffix,)
@@ -464,7 +466,16 @@ def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
 
 
 def check_yolov5u_filename(file: str, verbose: bool = True):
-    """Replace legacy YOLOv5 filenames with updated YOLOv5u filenames."""
+    """
+    Replace legacy YOLOv5 filenames with updated YOLOv5u filenames.
+
+    Args:
+        file (str): Filename to check and potentially update.
+        verbose (bool): Whether to print information about the replacement.
+
+    Returns:
+        (str): Updated filename.
+    """
     if "yolov3" in file or "yolov5" in file:
         if "u.yaml" in file:
             file = file.replace("u.yaml", ".yaml")  # i.e. yolov5nu.yaml -> yolov5n.yaml
@@ -483,7 +494,15 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
 
 
 def check_model_file_from_stem(model="yolo11n"):
-    """Return a model filename from a valid model stem."""
+    """
+    Return a model filename from a valid model stem.
+
+    Args:
+        model (str): Model stem to check.
+
+    Returns:
+        (str | Path): Model filename with appropriate suffix.
+    """
     if model and not Path(model).suffix and Path(model).stem in downloads.GITHUB_ASSETS_STEMS:
         return Path(model).with_suffix(".pt")  # add suffix, i.e. yolo11n -> yolo11n.pt
     else:
@@ -491,7 +510,19 @@ def check_model_file_from_stem(model="yolo11n"):
 
 
 def check_file(file, suffix="", download=True, download_dir=".", hard=True):
-    """Search/download file (if necessary) and return path."""
+    """
+    Search/download file (if necessary) and return path.
+
+    Args:
+        file (str): File name or path.
+        suffix (str): File suffix to check.
+        download (bool): Whether to download the file if it doesn't exist locally.
+        download_dir (str): Directory to download the file to.
+        hard (bool): Whether to raise an error if the file is not found.
+
+    Returns:
+        (str): Path to the file.
+    """
     check_suffix(file, suffix)  # optional
     file = str(file).strip()  # convert to string and strip spaces
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
@@ -519,7 +550,17 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
 
 
 def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
-    """Search/download YAML file (if necessary) and return path, checking suffix."""
+    """
+    Search/download YAML file (if necessary) and return path, checking suffix.
+
+    Args:
+        file (str): File name or path.
+        suffix (tuple): Acceptable file suffixes.
+        hard (bool): Whether to raise an error if the file is not found.
+
+    Returns:
+        (str): Path to the YAML file.
+    """
     return check_file(file, suffix, hard=hard)
 
 
@@ -541,7 +582,15 @@ def check_is_path_safe(basedir, path):
 
 
 def check_imshow(warn=False):
-    """Check if environment supports image displays."""
+    """
+    Check if environment supports image displays.
+
+    Args:
+        warn (bool): Whether to warn if environment doesn't support image displays.
+
+    Returns:
+        (bool): True if environment supports image displays, False otherwise.
+    """
     try:
         if LINUX:
             assert not IS_COLAB and not IS_KAGGLE
@@ -558,7 +607,13 @@ def check_imshow(warn=False):
 
 
 def check_yolo(verbose=True, device=""):
-    """Return a human-readable YOLO software and hardware summary."""
+    """
+    Return a human-readable YOLO software and hardware summary.
+
+    Args:
+        verbose (bool): Whether to print verbose information.
+        device (str): Device to use for YOLO.
+    """
     import psutil
 
     from ultralytics.utils.torch_utils import select_device
@@ -586,7 +641,12 @@ def check_yolo(verbose=True, device=""):
 
 
 def collect_system_info():
-    """Collect and print relevant system information including OS, Python, RAM, CPU, and CUDA."""
+    """
+    Collect and print relevant system information including OS, Python, RAM, CPU, and CUDA.
+
+    Returns:
+        (dict): Dictionary containing system information.
+    """
     import psutil
 
     from ultralytics.utils import ENVIRONMENT  # scope to avoid circular import
@@ -643,21 +703,22 @@ def collect_system_info():
 
 def check_amp(model):
     """
-    Checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLO11 model. If the checks fail, it means
-    there are anomalies with AMP on the system that may cause NaN losses or zero-mAP results, so AMP will be disabled
-    during training.
+    Checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLO11 model.
+
+    If the checks fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP
+    results, so AMP will be disabled during training.
 
     Args:
         model (nn.Module): A YOLO11 model instance.
+
+    Returns:
+        (bool): Returns True if the AMP functionality works correctly with YOLO11 model, else False.
 
     Examples:
         >>> from ultralytics import YOLO
         >>> from ultralytics.utils.checks import check_amp
         >>> model = YOLO("yolo11n.pt").model.cuda()
         >>> check_amp(model)
-
-    Returns:
-        (bool): Returns True if the AMP functionality works correctly with YOLO11 model, else False.
     """
     from ultralytics.utils.torch_utils import autocast
 
@@ -716,7 +777,15 @@ def check_amp(model):
 
 
 def git_describe(path=ROOT):  # path must be a directory
-    """Return human-readable git description, i.e. v5.0-5-g3e25f1e https://git-scm.com/docs/git-describe."""
+    """
+    Return human-readable git description, i.e. v5.0-5-g3e25f1e https://git-scm.com/docs/git-describe.
+
+    Args:
+        path (Path): Path to git repository.
+
+    Returns:
+        (str): Human-readable git description.
+    """
     try:
         return subprocess.check_output(f"git -C {path} describe --tags --long --always", shell=True).decode()[:-1]
     except Exception:
@@ -724,7 +793,14 @@ def git_describe(path=ROOT):  # path must be a directory
 
 
 def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
-    """Print function arguments (optional args dict)."""
+    """
+    Print function arguments (optional args dict).
+
+    Args:
+        args (dict, optional): Arguments to print.
+        show_file (bool): Whether to show the file name.
+        show_func (bool): Whether to show the function name.
+    """
 
     def strip_auth(v):
         """Clean longer Ultralytics HUB URLs by stripping potential authentication information."""
@@ -776,7 +852,12 @@ def cuda_is_available() -> bool:
 
 
 def is_rockchip():
-    """Check if the current environment is running on a Rockchip SoC."""
+    """
+    Check if the current environment is running on a Rockchip SoC.
+
+    Returns:
+        (bool): True if running on a Rockchip SoC, False otherwise.
+    """
     if LINUX and ARM64:
         try:
             with open("/proc/device-tree/compatible") as f:

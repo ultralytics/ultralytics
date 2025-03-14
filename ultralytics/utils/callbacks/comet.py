@@ -50,33 +50,33 @@ def _get_comet_mode() -> str:
     return "online"
 
 
-def _get_comet_model_name():
+def _get_comet_model_name() -> str:
     """Returns the model name for Comet from the environment variable COMET_MODEL_NAME or defaults to 'Ultralytics'."""
     return os.getenv("COMET_MODEL_NAME", "Ultralytics")
 
 
-def _get_eval_batch_logging_interval():
+def _get_eval_batch_logging_interval() -> int:
     """Get the evaluation batch logging interval from environment variable or use default value 1."""
     return int(os.getenv("COMET_EVAL_BATCH_LOGGING_INTERVAL", 1))
 
 
-def _get_max_image_predictions_to_log():
+def _get_max_image_predictions_to_log() -> int:
     """Get the maximum number of image predictions to log from the environment variables."""
     return int(os.getenv("COMET_MAX_IMAGE_PREDICTIONS", 100))
 
 
-def _scale_confidence_score(score):
+def _scale_confidence_score(score: float) -> float:
     """Scales the given confidence score by a factor specified in an environment variable."""
     scale = float(os.getenv("COMET_MAX_CONFIDENCE_SCORE", 100.0))
     return score * scale
 
 
-def _should_log_confusion_matrix():
+def _should_log_confusion_matrix() -> bool:
     """Determines if the confusion matrix should be logged based on the environment variable settings."""
     return os.getenv("COMET_EVAL_LOG_CONFUSION_MATRIX", "false").lower() == "true"
 
 
-def _should_log_image_predictions():
+def _should_log_image_predictions() -> bool:
     """Determines whether to log image predictions based on a specified environment variable."""
     return os.getenv("COMET_EVAL_LOG_IMAGE_PREDICTIONS", "true").lower() == "true"
 
@@ -114,7 +114,7 @@ def _resume_or_create_experiment(args: SimpleNamespace) -> None:
         LOGGER.warning(f"WARNING ⚠️ Comet installed but not initialized correctly, not logging this run. {e}")
 
 
-def _fetch_trainer_metadata(trainer):
+def _fetch_trainer_metadata(trainer) -> dict:
     """Returns metadata for YOLO training including epoch and asset saving status."""
     curr_epoch = trainer.epoch + 1
 
@@ -130,7 +130,9 @@ def _fetch_trainer_metadata(trainer):
     return dict(curr_epoch=curr_epoch, curr_step=curr_step, save_assets=save_assets, final_epoch=final_epoch)
 
 
-def _scale_bounding_box_to_original_image_shape(box, resized_image_shape, original_image_shape, ratio_pad):
+def _scale_bounding_box_to_original_image_shape(
+    box, resized_image_shape, original_image_shape, ratio_pad
+) -> List[float]:
     """
     YOLO resizes images during training and the label values are normalized based on this resized shape.
 
@@ -151,7 +153,7 @@ def _scale_bounding_box_to_original_image_shape(box, resized_image_shape, origin
     return box
 
 
-def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, class_name_map=None):
+def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, class_name_map=None) -> Optional[dict]:
     """Format ground truth annotations for detection."""
     indices = batch["batch_idx"] == img_idx
     bboxes = batch["bboxes"][indices]
@@ -181,7 +183,7 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
     return {"name": "ground_truth", "data": data}
 
 
-def _format_prediction_annotations(image_path, metadata, class_label_map=None, class_map=None):
+def _format_prediction_annotations(image_path, metadata, class_label_map=None, class_map=None) -> Optional[dict]:
     """Format YOLO predictions for object detection visualization."""
     stem = image_path.stem
     image_id = int(stem) if stem.isnumeric() else stem
@@ -227,7 +229,16 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
 
 
 def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) -> Optional[List[List[Any]]]:
-    """Extracts segmentation annotation from compressed segmentations as list of polygons."""
+    """
+    Extracts segmentation annotation from compressed segmentations as list of polygons.
+
+    Args:
+        segmentation_raw: Raw segmentation data in compressed format.
+        decode: Function to decode the compressed segmentation data.
+
+    Returns:
+        (Optional[List[List[Any]]]): List of polygon points or None if extraction fails.
+    """
     try:
         mask = decode(segmentation_raw)
         contours, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
@@ -238,7 +249,9 @@ def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) ->
     return None
 
 
-def _fetch_annotations(img_idx, image_path, batch, prediction_metadata_map, class_label_map, class_map):
+def _fetch_annotations(
+    img_idx, image_path, batch, prediction_metadata_map, class_label_map, class_map
+) -> Optional[List]:
     """Join the ground truth and prediction annotations if they exist."""
     ground_truth_annotations = _format_ground_truth_annotations_for_detection(
         img_idx, image_path, batch, class_label_map
@@ -253,7 +266,7 @@ def _fetch_annotations(img_idx, image_path, batch, prediction_metadata_map, clas
     return [annotations] if annotations else None
 
 
-def _create_prediction_metadata_map(model_predictions):
+def _create_prediction_metadata_map(model_predictions) -> dict:
     """Create metadata map for model predictions by groupings them based on image ID."""
     pred_metadata_map = {}
     for prediction in model_predictions:
@@ -263,7 +276,7 @@ def _create_prediction_metadata_map(model_predictions):
     return pred_metadata_map
 
 
-def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch):
+def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch) -> None:
     """Log the confusion matrix to Comet experiment."""
     conf_mat = trainer.validator.confusion_matrix.matrix
     names = list(trainer.data["names"].values()) + ["background"]
@@ -272,7 +285,7 @@ def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch):
     )
 
 
-def _log_images(experiment, image_paths, curr_step, annotations=None):
+def _log_images(experiment, image_paths, curr_step, annotations=None) -> None:
     """Logs images to the experiment with optional annotations."""
     if annotations:
         for image_path, annotation in zip(image_paths, annotations):
@@ -283,7 +296,7 @@ def _log_images(experiment, image_paths, curr_step, annotations=None):
             experiment.log_image(image_path, name=image_path.stem, step=curr_step)
 
 
-def _log_image_predictions(experiment, validator, curr_step):
+def _log_image_predictions(experiment, validator, curr_step) -> None:
     """Logs predicted boxes for a single image during training."""
     global _comet_image_prediction_count
 
@@ -330,7 +343,7 @@ def _log_image_predictions(experiment, validator, curr_step):
             _comet_image_prediction_count += 1
 
 
-def _log_plots(experiment, trainer):
+def _log_plots(experiment, trainer) -> None:
     """Logs evaluation plots and label plots for the experiment."""
     plot_filenames = None
     if isinstance(trainer.validator.metrics, SegmentMetrics) and trainer.validator.metrics.task == "segment":
@@ -359,7 +372,7 @@ def _log_plots(experiment, trainer):
         _log_images(experiment, label_plot_filenames, None)
 
 
-def _log_model(experiment, trainer):
+def _log_model(experiment, trainer) -> None:
     """Log the best-trained model to Comet.ml."""
     model_name = _get_comet_model_name()
     experiment.log_model(model_name, file_or_folder=str(trainer.best), file_name="best.pt", overwrite=True)
@@ -371,12 +384,12 @@ def _log_image_batches(experiment, trainer, curr_step: int) -> None:
     _log_images(experiment, trainer.save_dir.glob("val_batch*.jpg"), curr_step)
 
 
-def on_pretrain_routine_start(trainer):
+def on_pretrain_routine_start(trainer) -> None:
     """Creates or resumes a CometML experiment at the start of a YOLO pre-training routine."""
     _resume_or_create_experiment(trainer.args)
 
 
-def on_train_epoch_end(trainer):
+def on_train_epoch_end(trainer) -> None:
     """Log metrics and save batch images at the end of training epochs."""
     experiment = comet_ml.get_running_experiment()
     if not experiment:
@@ -389,7 +402,7 @@ def on_train_epoch_end(trainer):
     experiment.log_metrics(trainer.label_loss_items(trainer.tloss, prefix="train"), step=curr_step, epoch=curr_epoch)
 
 
-def on_fit_epoch_end(trainer):
+def on_fit_epoch_end(trainer) -> None:
     """Logs model assets at the end of each epoch."""
     experiment = comet_ml.get_running_experiment()
     if not experiment:
@@ -417,7 +430,7 @@ def on_fit_epoch_end(trainer):
         _log_image_predictions(experiment, trainer.validator, curr_step)
 
 
-def on_train_end(trainer):
+def on_train_end(trainer) -> None:
     """Perform operations at the end of training."""
     experiment = comet_ml.get_running_experiment()
     if not experiment:

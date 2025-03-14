@@ -21,9 +21,9 @@ class SecurityAlarm(BaseSolution):
         from_email (str): Sender's email address for alerts.
 
     Methods:
-        authenticate: Sets up email server authentication for sending alerts.
-        send_email: Sends an email notification with details and an image attachment.
-        process: Monitors the frame, processes detections, and triggers alerts if thresholds are crossed.
+        authenticate: Set up email server authentication for sending alerts.
+        send_email: Send an email notification with details and an image attachment.
+        process: Monitor the frame, process detections, and trigger alerts if thresholds are crossed.
 
     Examples:
         >>> security = SecurityAlarm()
@@ -34,7 +34,7 @@ class SecurityAlarm(BaseSolution):
 
     def __init__(self, **kwargs):
         """
-        Initializes the SecurityAlarm class with parameters for real-time object monitoring.
+        Initialize the SecurityAlarm class with parameters for real-time object monitoring.
 
         Args:
             **kwargs (Any): Additional keyword arguments passed to the parent class.
@@ -48,7 +48,7 @@ class SecurityAlarm(BaseSolution):
 
     def authenticate(self, from_email, password, to_email):
         """
-        Authenticates the email server for sending alert notifications.
+        Authenticate the email server for sending alert notifications.
 
         Args:
             from_email (str): Sender's email address.
@@ -71,7 +71,7 @@ class SecurityAlarm(BaseSolution):
 
     def send_email(self, im0, records=5):
         """
-        Sends an email notification with an image attachment indicating the number of objects detected.
+        Send an email notification with an image attachment indicating the number of objects detected.
 
         Args:
             im0 (numpy.ndarray): The input image or frame to be attached to the email.
@@ -116,7 +116,7 @@ class SecurityAlarm(BaseSolution):
 
     def process(self, im0):
         """
-        Monitors the frame, processes object detections, and triggers alerts if thresholds are exceeded.
+        Monitor the frame, process object detections, and trigger alerts if thresholds are exceeded.
 
         Args:
             im0 (numpy.ndarray): The input image or frame to be processed and annotated.

@@ -304,17 +304,24 @@ def plt_settings(rcparams=None, backend="Agg"):
     """
     Decorator to temporarily set rc parameters and the backend for a plotting function.
 
-    Example:
-        decorator: @plt_settings({"font.size": 12})
-        context manager: with plt_settings({"font.size": 12}):
-
     Args:
-        rcparams (dict): Dictionary of rc parameters to set.
+        rcparams (dict, optional): Dictionary of rc parameters to set.
         backend (str, optional): Name of the backend to use. Defaults to 'Agg'.
 
     Returns:
-        (Callable): Decorated function with temporarily set rc parameters and backend. This decorator can be
-            applied to any function that needs to have specific matplotlib rc parameters and backend for its execution.
+        (Callable): Decorated function with temporarily set rc parameters and backend.
+
+    Examples:
+        >>> @plt_settings({"font.size": 12})
+        >>> def plot_function():
+        ...     plt.figure()
+        ...     plt.plot([1, 2, 3])
+        ...     plt.show()
+
+        >>> with plt_settings({"font.size": 12}):
+        ...     plt.figure()
+        ...     plt.plot([1, 2, 3])
+        ...     plt.show()
     """
     if rcparams is None:
         rcparams = {"font.size": 11}
@@ -357,6 +364,9 @@ def set_logging(name="LOGGING_NAME", verbose=True):
         name (str): Name of the logger. Defaults to "LOGGING_NAME".
         verbose (bool): Flag to set logging level to INFO if True, ERROR otherwise. Defaults to True.
 
+    Returns:
+        (logging.Logger): Configured logger object.
+
     Examples:
         >>> set_logging(name="ultralytics", verbose=True)
         >>> logger = logging.getLogger("ultralytics")
@@ -376,7 +386,7 @@ def set_logging(name="LOGGING_NAME", verbose=True):
 
         class CustomFormatter(logging.Formatter):
             def format(self, record):
-                """Sets up logging with UTF-8 encoding and configurable verbosity."""
+                """Format log records with UTF-8 encoding for Windows compatibility."""
                 return emojis(super().format(record))
 
         try:
@@ -420,9 +430,10 @@ def emojis(string=""):
 
 class ThreadingLocked:
     """
-    A decorator class for ensuring thread-safe execution of a function or method. This class can be used as a decorator
-    to make sure that if the decorated function is called from multiple threads, only one thread at a time will be able
-    to execute the function.
+    A decorator class for ensuring thread-safe execution of a function or method.
+
+    This class can be used as a decorator to make sure that if the decorated function is called from multiple threads,
+    only one thread at a time will be able to execute the function.
 
     Attributes:
         lock (threading.Lock): A lock object used to manage access to the decorated function.
@@ -435,7 +446,7 @@ class ThreadingLocked:
     """
 
     def __init__(self):
-        """Initializes the decorator class for thread-safe execution of a function or method."""
+        """Initialize the decorator class with a threading lock."""
         self.lock = threading.Lock()
 
     def __call__(self, f):
@@ -536,8 +547,7 @@ DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
 def read_device_model() -> str:
     """
-    Reads the device model information from the system and caches it for quick access. Used by is_jetson() and
-    is_raspberrypi().
+    Reads the device model information from the system and caches it for quick access.
 
     Returns:
         (str): Kernel release information.
@@ -619,7 +629,7 @@ def is_docker() -> bool:
 
 def is_raspberrypi() -> bool:
     """
-    Determines if the Python environment is running on a Raspberry Pi by checking the device model information.
+    Determines if the Python environment is running on a Raspberry Pi.
 
     Returns:
         (bool): True if running on a Raspberry Pi, False otherwise.
@@ -629,7 +639,7 @@ def is_raspberrypi() -> bool:
 
 def is_jetson() -> bool:
     """
-    Determines if the Python environment is running on an NVIDIA Jetson device by checking the device model information.
+    Determines if the Python environment is running on an NVIDIA Jetson device.
 
     Returns:
         (bool): True if running on an NVIDIA Jetson device, False otherwise.
@@ -709,8 +719,7 @@ def is_github_action_running() -> bool:
 
 def get_git_dir():
     """
-    Determines whether the current file is part of a git repository and if so, returns the repository root directory. If
-    the current file is not part of a git repository, returns None.
+    Determines whether the current file is part of a git repository and if so, returns the repository root directory.
 
     Returns:
         (Path | None): Git root directory if found or None if not found.
@@ -722,8 +731,7 @@ def get_git_dir():
 
 def is_git_dir():
     """
-    Determines whether the current file is part of a git repository. If the current file is not part of a git
-    repository, returns None.
+    Determines whether the current file is part of a git repository.
 
     Returns:
         (bool): True if current file is part of a git repository.
@@ -1004,8 +1012,10 @@ def threaded(func):
 
 def set_sentry():
     """
-    Initialize the Sentry SDK for error tracking and reporting. Only used if sentry_sdk package is installed and
-    sync=True in settings. Run 'yolo settings' to see and update settings.
+    Initialize the Sentry SDK for error tracking and reporting.
+
+    Only used if sentry_sdk package is installed and sync=True in settings. Run 'yolo settings' to see and update
+    settings.
 
     Conditions required to send errors (ALL conditions must be met or no errors will be reported):
         - sentry_sdk package is installed
@@ -1016,11 +1026,6 @@ def set_sentry():
         - running with rank -1 or 0
         - online environment
         - CLI used to run package (checked with 'yolo' as the name of the main CLI command)
-
-    The function also configures Sentry SDK to ignore KeyboardInterrupt and FileNotFoundError exceptions and to exclude
-    events with 'out of memory' in their exception message.
-
-    Additionally, the function sets custom tags and user information for Sentry events.
     """
     if (
         not SETTINGS["sync"]

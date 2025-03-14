@@ -25,9 +25,9 @@ class Colors:
     RGB values.
 
     Attributes:
-        palette (list of tuple): List of RGB color values.
+        palette (List[Tuple]): List of RGB color values.
         n (int): The number of colors in the palette.
-        pose_palette (np.ndarray): A specific color palette array with dtype np.uint8.
+        pose_palette (np.ndarray): A specific color palette array for pose estimation with dtype np.uint8.
 
     Examples:
         >>> from ultralytics.utils.plotting import Colors
@@ -142,13 +142,13 @@ class Colors:
         )
 
     def __call__(self, i, bgr=False):
-        """Converts hex color codes to RGB values."""
+        """Convert hex color codes to RGB values."""
         c = self.palette[int(i) % self.n]
         return (c[2], c[1], c[0]) if bgr else c
 
     @staticmethod
     def hex2rgb(h):
-        """Converts hex color codes to RGB values (i.e. default PIL order)."""
+        """Convert hex color codes to RGB values (i.e. default PIL order)."""
         return tuple(int(h[1 + i : 1 + i + 2], 16) for i in (0, 2, 4))
 
 
@@ -160,13 +160,15 @@ class Annotator:
     Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
 
     Attributes:
-        im (Image.Image or numpy array): The image to annotate.
+        im (Image.Image or np.ndarray): The image to annotate.
         pil (bool): Whether to use PIL or cv2 for drawing annotations.
         font (ImageFont.truetype or ImageFont.load_default): Font used for text annotations.
         lw (float): Line width for drawing.
         skeleton (List[List[int]]): Skeleton structure for keypoints.
         limb_color (List[int]): Color palette for limbs.
         kpt_color (List[int]): Color palette for keypoints.
+        dark_colors (set): Set of colors considered dark for text contrast.
+        light_colors (set): Set of colors considered light for text contrast.
 
     Examples:
         >>> from ultralytics.utils.plotting import Annotator
@@ -256,7 +258,7 @@ class Annotator:
             txt_color (tuple, optional): The color of the text (R, G, B).
 
         Returns:
-            txt_color (tuple): Text color for label
+            (tuple): Text color for label.
 
         Examples:
             >>> from ultralytics.utils.plotting import Annotator
@@ -273,14 +275,14 @@ class Annotator:
 
     def box_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False):
         """
-        Draws a bounding box to image with label.
+        Draw a bounding box on an image with a given label.
 
         Args:
             box (tuple): The bounding box coordinates (x1, y1, x2, y2).
-            label (str): The text label to be displayed.
+            label (str, optional): The text label to be displayed.
             color (tuple, optional): The background color of the rectangle (B, G, R).
             txt_color (tuple, optional): The color of the text (R, G, B).
-            rotated (bool, optional): Variable used to check if task is OBB
+            rotated (bool, optional): Whether the task is oriented bounding box detection.
 
         Examples:
             >>> from ultralytics.utils.plotting import Annotator
@@ -340,11 +342,11 @@ class Annotator:
         Plot masks on image.
 
         Args:
-            masks (tensor): Predicted masks on cuda, shape: [n, h, w]
-            colors (List[List[Int]]): Colors for predicted masks, [[r, g, b] * n]
-            im_gpu (tensor): Image is in cuda, shape: [3, h, w], range: [0, 1]
-            alpha (float): Mask transparency: 0.0 fully transparent, 1.0 opaque
-            retina_masks (bool): Whether to use high resolution masks or not. Defaults to False.
+            masks (torch.Tensor): Predicted masks on cuda, shape: [n, h, w]
+            colors (List[List[int]]): Colors for predicted masks, [[r, g, b] * n]
+            im_gpu (torch.Tensor): Image is in cuda, shape: [3, h, w], range: [0, 1]
+            alpha (float, optional): Mask transparency: 0.0 fully transparent, 1.0 opaque.
+            retina_masks (bool, optional): Whether to use high resolution masks or not.
         """
         if self.pil:
             # Convert to numpy first
@@ -377,11 +379,11 @@ class Annotator:
 
         Args:
             kpts (torch.Tensor): Keypoints, shape [17, 3] (x, y, confidence).
-            shape (tuple, optional): Image shape (h, w). Defaults to (640, 640).
-            radius (int, optional): Keypoint radius. Defaults to 5.
-            kpt_line (bool, optional): Draw lines between keypoints. Defaults to True.
-            conf_thres (float, optional): Confidence threshold. Defaults to 0.25.
-            kpt_color (tuple, optional): Keypoint color (B, G, R). Defaults to None.
+            shape (tuple, optional): Image shape (h, w).
+            radius (int, optional): Keypoint radius.
+            kpt_line (bool, optional): Draw lines between keypoints.
+            conf_thres (float, optional): Confidence threshold.
+            kpt_color (tuple, optional): Keypoint color (B, G, R).
 
         Note:
             - `kpt_line=True` currently only supports human pose plotting.
@@ -436,7 +438,16 @@ class Annotator:
         self.draw.rectangle(xy, fill, outline, width)
 
     def text(self, xy, text, txt_color=(255, 255, 255), anchor="top", box_style=False):
-        """Adds text to an image using PIL or cv2."""
+        """
+        Add text to an image using PIL or cv2.
+
+        Args:
+            xy (List[int]): Top-left coordinates for text placement.
+            text (str): Text to be drawn.
+            txt_color (tuple, optional): Text color (R, G, B).
+            anchor (str, optional): Text anchor position ('top' or 'bottom').
+            box_style (bool, optional): Whether to draw text with a background box.
+        """
         if anchor == "bottom":  # start y from font bottom
             w, h = self.font.getsize(text)  # text width, height
             xy[1] += 1 - h
@@ -492,7 +503,7 @@ class Annotator:
     @staticmethod
     def get_bbox_dimension(bbox=None):
         """
-        Calculate the area of a bounding box.
+        Calculate the dimensions and area of a bounding box.
 
         Args:
             bbox (tuple): Bounding box coordinates in the format (x_min, y_min, x_max, y_max).
@@ -517,7 +528,16 @@ class Annotator:
 @TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395
 @plt_settings()
 def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
-    """Plot training labels including class histograms and box statistics."""
+    """
+    Plot training labels including class histograms and box statistics.
+
+    Args:
+        boxes (np.ndarray): Bounding box coordinates in format [x, y, width, height].
+        cls (np.ndarray): Class indices.
+        names (Dict, optional): Dictionary mapping class indices to class names.
+        save_dir (Path, optional): Directory to save the plot.
+        on_plot (Callable, optional): Function to call after plot is saved.
+    """
     import pandas  # scope for faster 'import ultralytics'
     import seaborn  # scope for faster 'import ultralytics'
 
@@ -580,16 +600,16 @@ def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False,
 
     Args:
         xyxy (torch.Tensor or list): A tensor or list representing the bounding box in xyxy format.
-        im (numpy.ndarray): The input image.
-        file (Path, optional): The path where the cropped image will be saved. Defaults to 'im.jpg'.
-        gain (float, optional): A multiplicative factor to increase the size of the bounding box. Defaults to 1.02.
-        pad (int, optional): The number of pixels to add to the width and height of the bounding box. Defaults to 10.
-        square (bool, optional): If True, the bounding box will be transformed into a square. Defaults to False.
-        BGR (bool, optional): If True, the image will be saved in BGR format, otherwise in RGB. Defaults to False.
-        save (bool, optional): If True, the cropped image will be saved to disk. Defaults to True.
+        im (np.ndarray): The input image.
+        file (Path, optional): The path where the cropped image will be saved.
+        gain (float, optional): A multiplicative factor to increase the size of the bounding box.
+        pad (int, optional): The number of pixels to add to the width and height of the bounding box.
+        square (bool, optional): If True, the bounding box will be transformed into a square.
+        BGR (bool, optional): If True, the image will be saved in BGR format, otherwise in RGB.
+        save (bool, optional): If True, the cropped image will be saved to disk.
 
     Returns:
-        (numpy.ndarray): The cropped image.
+        (np.ndarray): The cropped image.
 
     Examples:
         >>> from ultralytics.utils.plotting import save_one_box
@@ -653,7 +673,7 @@ def plot_images(
         conf_thres: Confidence threshold for displaying detections.
 
     Returns:
-        np.ndarray: Plotted image grid as a numpy array if save is False, None otherwise.
+        (np.ndarray): Plotted image grid as a numpy array if save is False, None otherwise.
 
     Note:
         This function supports both tensor and numpy array inputs. It will automatically
@@ -789,13 +809,12 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
     pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
 
     Args:
-        file (str, optional): Path to the CSV file containing the training results. Defaults to 'path/to/results.csv'.
-        dir (str, optional): Directory where the CSV file is located if 'file' is not provided. Defaults to ''.
-        segment (bool, optional): Flag to indicate if the data is for segmentation. Defaults to False.
-        pose (bool, optional): Flag to indicate if the data is for pose estimation. Defaults to False.
-        classify (bool, optional): Flag to indicate if the data is for classification. Defaults to False.
+        file (str, optional): Path to the CSV file containing the training results.
+        dir (str, optional): Directory where the CSV file is located if 'file' is not provided.
+        segment (bool, optional): Flag to indicate if the data is for segmentation.
+        pose (bool, optional): Flag to indicate if the data is for pose estimation.
+        classify (bool, optional): Flag to indicate if the data is for classification.
         on_plot (callable, optional): Callback function to be executed after plotting. Takes filename as an argument.
-            Defaults to None.
 
     Examples:
         >>> from ultralytics.utils.plotting import plot_results
@@ -845,15 +864,15 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
 
 def plt_color_scatter(v, f, bins=20, cmap="viridis", alpha=0.8, edgecolors="none"):
     """
-    Plots a scatter plot with points colored based on a 2D histogram.
+    Plot a scatter plot with points colored based on a 2D histogram.
 
     Args:
         v (array-like): Values for the x-axis.
         f (array-like): Values for the y-axis.
-        bins (int, optional): Number of bins for the histogram. Defaults to 20.
-        cmap (str, optional): Colormap for the scatter plot. Defaults to 'viridis'.
-        alpha (float, optional): Alpha for the scatter plot. Defaults to 0.8.
-        edgecolors (str, optional): Edge colors for the scatter plot. Defaults to 'none'.
+        bins (int, optional): Number of bins for the histogram.
+        cmap (str, optional): Colormap for the scatter plot.
+        alpha (float, optional): Alpha for the scatter plot.
+        edgecolors (str, optional): Edge colors for the scatter plot.
 
     Examples:
         >>> v = np.random.rand(100)
@@ -880,7 +899,7 @@ def plot_tune_results(csv_file="tune_results.csv"):
     in the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on the plots.
 
     Args:
-        csv_file (str, optional): Path to the CSV file containing the tuning results. Defaults to 'tune_results.csv'.
+        csv_file (str, optional): Path to the CSV file containing the tuning results.
 
     Examples:
         >>> plot_tune_results("path/to/tune_results.csv")
@@ -959,8 +978,8 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detec
         x (torch.Tensor): Features to be visualized.
         module_type (str): Module type.
         stage (int): Module stage within the model.
-        n (int, optional): Maximum number of feature maps to plot. Defaults to 32.
-        save_dir (Path, optional): Directory to save results. Defaults to Path('runs/detect/exp').
+        n (int, optional): Maximum number of feature maps to plot.
+        save_dir (Path, optional): Directory to save results.
     """
     for m in {"Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder"}:  # all model heads
         if m in module_type:

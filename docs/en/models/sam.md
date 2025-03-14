@@ -14,7 +14,7 @@ Welcome to the frontier of [image segmentation](https://www.ultralytics.com/glos
 
 The Segment Anything Model, or SAM, is a cutting-edge image segmentation model that allows for promptable segmentation, providing unparalleled versatility in image analysis tasks. SAM forms the heart of the Segment Anything initiative, a groundbreaking project that introduces a novel model, task, and dataset for image segmentation.
 
-SAM's advanced design allows it to adapt to new image distributions and tasks without prior knowledge, a feature known as zero-shot transfer. Trained on the expansive [SA-1B dataset](https://ai.facebook.com/datasets/segment-anything/), which contains more than 1 billion masks spread over 11 million carefully curated images, SAM has displayed impressive zero-shot performance, surpassing previous fully supervised results in many cases.
+SAM's advanced design allows it to adapt to new image distributions and tasks without prior knowledge, a feature known as zero-shot transfer. Trained on the expansive [SA-1B dataset](https://ai.meta.com/datasets/segment-anything/), which contains more than 1 billion masks spread over 11 million carefully curated images, SAM has displayed impressive zero-shot performance, surpassing previous fully supervised results in many cases.
 
 ![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/sa-1b-dataset-sample.avif) **SA-1B Example images.** Dataset images overlaid masks from the newly introduced SA-1B dataset. SA-1B contains 11M diverse, high-resolution, licensed, and privacy protecting images and 1.1B high-quality segmentation masks. These masks were annotated fully automatically by SAM, and as verified by human ratings and numerous experiments, are of high quality and diversity. Images are grouped by number of masks per image for visualization (there are ∼100 masks per image on average).
 
@@ -241,7 +241,7 @@ We would like to express our gratitude to Meta AI for creating and maintaining t
 
 ### What is the Segment Anything Model (SAM) by Ultralytics?
 
-The Segment Anything Model (SAM) by Ultralytics is a revolutionary image segmentation model designed for promptable segmentation tasks. It leverages advanced architecture, including image and prompt encoders combined with a lightweight mask decoder, to generate high-quality segmentation masks from various prompts such as spatial or text cues. Trained on the expansive [SA-1B dataset](https://ai.facebook.com/datasets/segment-anything/), SAM excels in zero-shot performance, adapting to new image distributions and tasks without prior knowledge. Learn more [here](#introduction-to-sam-the-segment-anything-model).
+The Segment Anything Model (SAM) by Ultralytics is a revolutionary image segmentation model designed for promptable segmentation tasks. It leverages advanced architecture, including image and prompt encoders combined with a lightweight mask decoder, to generate high-quality segmentation masks from various prompts such as spatial or text cues. Trained on the expansive [SA-1B dataset](https://ai.meta.com/datasets/segment-anything/), SAM excels in zero-shot performance, adapting to new image distributions and tasks without prior knowledge. Learn more [here](#introduction-to-sam-the-segment-anything-model).
 
 ### How can I use the Segment Anything Model (SAM) for image segmentation?
 
@@ -295,4 +295,4 @@ This function takes the path to your images and optional arguments for pre-train
 
 ### What datasets are used to train the Segment Anything Model (SAM)?
 
-SAM is trained on the extensive [SA-1B dataset](https://ai.facebook.com/datasets/segment-anything/) which comprises over 1 billion masks across 11 million images. SA-1B is the largest segmentation dataset to date, providing high-quality and diverse [training data](https://www.ultralytics.com/glossary/training-data), ensuring impressive zero-shot performance in varied segmentation tasks. For more details, visit the [Dataset section](#key-features-of-the-segment-anything-model-sam).
+SAM is trained on the extensive [SA-1B dataset](https://ai.meta.com/datasets/segment-anything/) which comprises over 1 billion masks across 11 million images. SA-1B is the largest segmentation dataset to date, providing high-quality and diverse [training data](https://www.ultralytics.com/glossary/training-data), ensuring impressive zero-shot performance in varied segmentation tasks. For more details, visit the [Dataset section](#key-features-of-the-segment-anything-model-sam).

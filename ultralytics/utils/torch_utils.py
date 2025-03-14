@@ -355,7 +355,7 @@ def model_info_for_loggers(trainer):
     Return model info dict with useful model information.
 
     Args:
-        trainer: The trainer object containing model and validation information.
+        trainer (ultralytics.engine.trainer.BaseTrainer): The trainer object containing model and validation data.
 
     Returns:
         (dict): Dictionary containing model parameters, GFLOPs, and inference speeds.

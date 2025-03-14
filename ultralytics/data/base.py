@@ -22,28 +22,45 @@ class BaseDataset(Dataset):
     """
     Base dataset class for loading and processing image data.
 
-    Args:
-        img_path (str): Path to the folder containing images.
-        imgsz (int, optional): Image size. Defaults to 640.
-        cache (bool, optional): Cache images to RAM or disk during training. Defaults to False.
-        augment (bool, optional): If True, data augmentation is applied. Defaults to True.
-        hyp (dict, optional): Hyperparameters to apply data augmentation. Defaults to None.
-        prefix (str, optional): Prefix to print in log messages. Defaults to ''.
-        rect (bool, optional): If True, rectangular training is used. Defaults to False.
-        batch_size (int, optional): Size of batches. Defaults to None.
-        stride (int, optional): Stride. Defaults to 32.
-        pad (float, optional): Padding. Defaults to 0.0.
-        single_cls (bool, optional): If True, single class training is used. Defaults to False.
-        classes (list): List of included classes. Default is None.
-        fraction (float): Fraction of dataset to utilize. Default is 1.0 (use all data).
+    This class provides core functionality for loading images, caching, and preparing data for training and inference
+    in object detection tasks.
 
     Attributes:
-        im_files (list): List of image file paths.
-        labels (list): List of label data dictionaries.
+        img_path (str): Path to the folder containing images.
+        imgsz (int): Target image size for resizing.
+        augment (bool): Whether to apply data augmentation.
+        single_cls (bool): Whether to treat all objects as a single class.
+        prefix (str): Prefix to print in log messages.
+        fraction (float): Fraction of dataset to utilize.
+        im_files (List[str]): List of image file paths.
+        labels (List[Dict]): List of label data dictionaries.
         ni (int): Number of images in the dataset.
-        ims (list): List of loaded images.
-        npy_files (list): List of numpy file paths.
+        rect (bool): Whether to use rectangular training.
+        batch_size (int): Size of batches.
+        stride (int): Stride used in the model.
+        pad (float): Padding value.
+        buffer (List): Buffer for mosaic images.
+        max_buffer_length (int): Maximum buffer size.
+        ims (List): List of loaded images.
+        im_hw0 (List): List of original image dimensions (h, w).
+        im_hw (List): List of resized image dimensions (h, w).
+        npy_files (List[Path]): List of numpy file paths.
+        cache (str): Cache images to RAM or disk during training.
         transforms (callable): Image transformation function.
+
+    Methods:
+        get_img_files: Read image files from the specified path.
+        update_labels: Update labels to include only specified classes.
+        load_image: Load an image from the dataset.
+        cache_images: Cache images to memory or disk.
+        cache_images_to_disk: Save an image as an *.npy file for faster loading.
+        check_cache_disk: Check image caching requirements vs available disk space.
+        check_cache_ram: Check image caching requirements vs available memory.
+        set_rectangle: Set the shape of bounding boxes as rectangles.
+        get_image_and_label: Get and return label information from the dataset.
+        update_labels_info: Custom label format method to be implemented by subclasses.
+        build_transforms: Build transformation pipeline to be implemented by subclasses.
+        get_labels: Get labels method to be implemented by subclasses.
     """
 
     def __init__(
@@ -62,7 +79,24 @@ class BaseDataset(Dataset):
         classes=None,
         fraction=1.0,
     ):
-        """Initialize BaseDataset with given configuration and options."""
+        """
+        Initialize BaseDataset with given configuration and options.
+
+        Args:
+            img_path (str): Path to the folder containing images.
+            imgsz (int, optional): Image size for resizing.
+            cache (bool | str, optional): Cache images to RAM or disk during training.
+            augment (bool, optional): If True, data augmentation is applied.
+            hyp (dict, optional): Hyperparameters to apply data augmentation.
+            prefix (str, optional): Prefix to print in log messages.
+            rect (bool, optional): If True, rectangular training is used.
+            batch_size (int, optional): Size of batches.
+            stride (int, optional): Stride used in the model.
+            pad (float, optional): Padding value.
+            single_cls (bool, optional): If True, single class training is used.
+            classes (List, optional): List of included classes.
+            fraction (float, optional): Fraction of dataset to utilize.
+        """
         super().__init__()
         self.img_path = img_path
         self.imgsz = imgsz
@@ -104,7 +138,18 @@ class BaseDataset(Dataset):
         self.transforms = self.build_transforms(hyp=hyp)
 
     def get_img_files(self, img_path):
-        """Read image files."""
+        """
+        Read image files from the specified path.
+
+        Args:
+            img_path (str | List[str]): Path or list of paths to image directories or files.
+
+        Returns:
+            (List[str]): List of image file paths.
+
+        Raises:
+            FileNotFoundError: If no images are found or the path doesn't exist.
+        """
         try:
             f = []  # image files
             for p in img_path if isinstance(img_path, list) else [img_path]:
@@ -130,7 +175,12 @@ class BaseDataset(Dataset):
         return im_files
 
     def update_labels(self, include_class: Optional[list]):
-        """Update labels to include only these classes (optional)."""
+        """
+        Update labels to include only specified classes.
+
+        Args:
+            include_class (List, optional): List of classes to include. If None, all classes are included.
+        """
         include_class_array = np.array(include_class).reshape(1, -1)
         for i in range(len(self.labels)):
             if include_class is not None:
@@ -149,7 +199,21 @@ class BaseDataset(Dataset):
                 self.labels[i]["cls"][:, 0] = 0
 
     def load_image(self, i, rect_mode=True):
-        """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
+        """
+        Load an image from dataset index 'i'.
+
+        Args:
+            i (int): Index of the image to load.
+            rect_mode (bool, optional): Whether to use rectangular resizing.
+
+        Returns:
+            (np.ndarray): Loaded image.
+            (tuple): Original image dimensions (h, w).
+            (tuple): Resized image dimensions (h, w).
+
+        Raises:
+            FileNotFoundError: If the image file is not found.
+        """
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
             if fn.exists():  # load npy
@@ -187,7 +251,7 @@ class BaseDataset(Dataset):
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
 
     def cache_images(self):
-        """Cache images to memory or disk."""
+        """Cache images to memory or disk for faster training."""
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
         fcn, storage = (self.cache_images_to_disk, "Disk") if self.cache == "disk" else (self.load_image, "RAM")
         with ThreadPool(NUM_THREADS) as pool:
@@ -203,13 +267,21 @@ class BaseDataset(Dataset):
             pbar.close()
 
     def cache_images_to_disk(self, i):
-        """Saves an image as an *.npy file for faster loading."""
+        """Save an image as an *.npy file for faster loading."""
         f = self.npy_files[i]
         if not f.exists():
             np.save(f.as_posix(), cv2.imread(self.im_files[i]), allow_pickle=False)
 
     def check_cache_disk(self, safety_margin=0.5):
-        """Check image caching requirements vs available disk space."""
+        """
+        Check if there's enough disk space for caching images.
+
+        Args:
+            safety_margin (float, optional): Safety margin factor for disk space calculation.
+
+        Returns:
+            (bool): True if there's enough disk space, False otherwise.
+        """
         import shutil
 
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
@@ -237,7 +309,15 @@ class BaseDataset(Dataset):
         return True
 
     def check_cache_ram(self, safety_margin=0.5):
-        """Check image caching requirements vs available memory."""
+        """
+        Check if there's enough RAM for caching images.
+
+        Args:
+            safety_margin (float, optional): Safety margin factor for RAM calculation.
+
+        Returns:
+            (bool): True if there's enough RAM, False otherwise.
+        """
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
         n = min(self.ni, 30)  # extrapolate from 30 random images
         for _ in range(n):
@@ -259,7 +339,7 @@ class BaseDataset(Dataset):
         return True
 
     def set_rectangle(self):
-        """Sets the shape of bounding boxes for YOLO detections as rectangles."""
+        """Set the shape of bounding boxes for YOLO detections as rectangles."""
         bi = np.floor(np.arange(self.ni) / self.batch_size).astype(int)  # batch index
         nb = bi[-1] + 1  # number of batches
 
@@ -284,11 +364,19 @@ class BaseDataset(Dataset):
         self.batch = bi  # batch index of image
 
     def __getitem__(self, index):
-        """Returns transformed label information for given index."""
+        """Return transformed label information for given index."""
         return self.transforms(self.get_image_and_label(index))
 
     def get_image_and_label(self, index):
-        """Get and return label information from the dataset."""
+        """
+        Get and return label information from the dataset.
+
+        Args:
+            index (int): Index of the image to retrieve.
+
+        Returns:
+            (dict): Label dictionary with image and metadata.
+        """
         label = deepcopy(self.labels[index])  # requires deepcopy() https://github.com/ultralytics/ultralytics/pull/1948
         label.pop("shape", None)  # shape is for rect, remove it
         label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
@@ -301,7 +389,7 @@ class BaseDataset(Dataset):
         return self.update_labels_info(label)
 
     def __len__(self):
-        """Returns the length of the labels list for the dataset."""
+        """Return the length of the labels list for the dataset."""
         return len(self.labels)
 
     def update_labels_info(self, label):
@@ -312,15 +400,13 @@ class BaseDataset(Dataset):
         """
         Users can customize augmentations here.
 
-        Example:
-            ```python
-            if self.augment:
-                # Training transforms
-                return Compose([])
-            else:
-                # Val transforms
-                return Compose([])
-            ```
+        Examples:
+            >>> if self.augment:
+            ...     # Training transforms
+            ...     return Compose([])
+            >>> else:
+            ...    # Val transforms
+            ...    return Compose([])
         """
         raise NotImplementedError
 

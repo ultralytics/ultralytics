@@ -175,13 +175,8 @@ def visualize_image_annotations(image_path, txt_path, label_map):
     adjusted for readability, depending on the background color's luminance.
 
     Args:
-        image_path (str): The path to the image file to annotate, and it can be in formats supported by PIL (e.g., .jpg, .png).
-        txt_path (str): The path to the annotation file in YOLO format, that should contain one line per object with:
-                        - class_id (int): The class index.
-                        - x_center (float): The X center of the bounding box (relative to image width).
-                        - y_center (float): The Y center of the bounding box (relative to image height).
-                        - width (float): The width of the bounding box (relative to image width).
-                        - height (float): The height of the bounding box (relative to image height).
+        image_path (str): The path to the image file to annotate, and it can be in formats supported by PIL.
+        txt_path (str): The path to the annotation file in YOLO format, that should contain one line per object.
         label_map (dict): A dictionary that maps class IDs (integers) to class labels (strings).
 
     Examples:
@@ -222,8 +217,8 @@ def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
         imgsz (tuple): The size of the image as (height, width).
         polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where
                                      N is the number of polygons, and M is the number of points such that M % 2 = 0.
-        color (int, optional): The color value to fill in the polygons on the mask. Defaults to 1.
-        downsample_ratio (int, optional): Factor by which to downsample the mask. Defaults to 1.
+        color (int, optional): The color value to fill in the polygons on the mask.
+        downsample_ratio (int, optional): Factor by which to downsample the mask.
 
     Returns:
         (np.ndarray): A binary mask of the specified image size with the polygons filled in.
@@ -246,7 +241,7 @@ def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
         polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where
                                      N is the number of polygons, and M is the number of points such that M % 2 = 0.
         color (int): The color value to fill in the polygons on the masks.
-        downsample_ratio (int, optional): Factor by which to downsample each mask. Defaults to 1.
+        downsample_ratio (int, optional): Factor by which to downsample each mask.
 
     Returns:
         (np.ndarray): A set of binary masks of the specified image size with the polygons filled in.
@@ -281,8 +276,7 @@ def find_dataset_yaml(path: Path) -> Path:
     Find and return the YAML file associated with a Detect, Segment or Pose dataset.
 
     This function searches for a YAML file at the root level of the provided directory first, and if not found, it
-    performs a recursive search. It prefers YAML files that have the same stem as the provided path. An AssertionError
-    is raised if no YAML file is found or if multiple YAML files are found.
+    performs a recursive search. It prefers YAML files that have the same stem as the provided path.
 
     Args:
         path (Path): The directory path to search for the YAML file.
@@ -308,7 +302,7 @@ def check_det_dataset(dataset, autodownload=True):
 
     Args:
         dataset (str): Path to the dataset or dataset descriptor (like a YAML file).
-        autodownload (bool, optional): Whether to automatically download the dataset if not found. Defaults to True.
+        autodownload (bool, optional): Whether to automatically download the dataset if not found.
 
     Returns:
         (dict): Parsed dataset information and paths.
@@ -400,7 +394,7 @@ def check_cls_dataset(dataset, split=""):
 
     Args:
         dataset (str | Path): The name of the dataset.
-        split (str, optional): The split of the dataset. Either 'val', 'test', or ''. Defaults to ''.
+        split (str, optional): The split of the dataset. Either 'val', 'test', or ''.
 
     Returns:
         (dict): A dictionary containing the following keys:
@@ -634,8 +628,8 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
     Args:
         f (str): The path to the input image file.
         f_new (str, optional): The path to the output image file. If not specified, the input file will be overwritten.
-        max_dim (int, optional): The maximum dimension (width or height) of the output image. Default is 1920 pixels.
-        quality (int, optional): The image compression quality as a percentage. Default is 50%.
+        max_dim (int, optional): The maximum dimension (width or height) of the output image.
+        quality (int, optional): The image compression quality as a percentage.
 
     Examples:
         >>> from pathlib import Path
@@ -664,9 +658,9 @@ def autosplit(path=DATASETS_DIR / "coco8/images", weights=(0.9, 0.1, 0.0), annot
     Automatically split a dataset into train/val/test splits and save the resulting splits into autosplit_*.txt files.
 
     Args:
-        path (Path, optional): Path to images directory. Defaults to DATASETS_DIR / 'coco8/images'.
-        weights (list | tuple, optional): Train, validation, and test split fractions. Defaults to (0.9, 0.1, 0.0).
-        annotated_only (bool, optional): If True, only images with an associated txt file are used. Defaults to False.
+        path (Path, optional): Path to images directory.
+        weights (list | tuple, optional): Train, validation, and test split fractions.
+        annotated_only (bool, optional): If True, only images with an associated txt file are used.
 
     Examples:
         >>> from ultralytics.data.utils import autosplit

@@ -60,7 +60,7 @@ class MemoryAttentionLayer(nn.Module):
         pos_enc_at_cross_attn_keys: bool = True,
         pos_enc_at_cross_attn_queries: bool = False,
     ):
-        """Initializes a memory attention layer with self-attention, cross-attention, and feedforward components."""
+        """Initialize a memory attention layer with self-attention, cross-attention, and feedforward components."""
         super().__init__()
         self.d_model = d_model
         self.dim_feedforward = dim_feedforward
@@ -93,16 +93,23 @@ class MemoryAttentionLayer(nn.Module):
         self.pos_enc_at_cross_attn_queries = pos_enc_at_cross_attn_queries
         self.pos_enc_at_cross_attn_keys = pos_enc_at_cross_attn_keys
 
-    def _forward_sa(self, tgt, query_pos):
-        """Performs self-attention on input tensor using positional encoding and RoPE attention mechanism."""
+    def _forward_sa(self, tgt: Tensor, query_pos: Optional[Tensor]) -> Tensor:
+        """Perform self-attention on input tensor using positional encoding and RoPE attention mechanism."""
         tgt2 = self.norm1(tgt)
         q = k = tgt2 + query_pos if self.pos_enc_at_attn else tgt2
         tgt2 = self.self_attn(q, k, v=tgt2)
         tgt = tgt + self.dropout1(tgt2)
         return tgt
 
-    def _forward_ca(self, tgt, memory, query_pos, pos, num_k_exclude_rope=0):
-        """Performs cross-attention between target and memory tensors using RoPEAttention mechanism."""
+    def _forward_ca(
+        self,
+        tgt: Tensor,
+        memory: Tensor,
+        query_pos: Optional[Tensor],
+        pos: Optional[Tensor],
+        num_k_exclude_rope: int = 0,
+    ) -> Tensor:
+        """Perform cross-attention between target and memory tensors using RoPEAttention mechanism."""
         kwds = {}
         if num_k_exclude_rope > 0:
             assert isinstance(self.cross_attn_image, RoPEAttention)
@@ -121,13 +128,13 @@ class MemoryAttentionLayer(nn.Module):
 
     def forward(
         self,
-        tgt,
-        memory,
+        tgt: Tensor,
+        memory: Tensor,
         pos: Optional[Tensor] = None,
         query_pos: Optional[Tensor] = None,
         num_k_exclude_rope: int = 0,
     ) -> torch.Tensor:
-        """Processes input tensors using self-attention, cross-attention, and MLP for memory-based attention."""
+        """Process input tensors through self-attention, cross-attention, and feedforward network layers."""
         tgt = self._forward_sa(tgt, query_pos)
         tgt = self._forward_ca(tgt, memory, query_pos, pos, num_k_exclude_rope)
         # MLP
@@ -176,7 +183,7 @@ class MemoryAttention(nn.Module):
         num_layers: int,
         batch_first: bool = True,  # Do layers expect batch first input?
     ):
-        """Initializes MemoryAttention module with layers and normalization for attention processing."""
+        """Initialize MemoryAttention with specified layers and normalization for sequential data processing."""
         super().__init__()
         self.d_model = d_model
         self.layers = nn.ModuleList([copy.deepcopy(layer) for _ in range(num_layers)])
@@ -192,15 +199,12 @@ class MemoryAttention(nn.Module):
         curr_pos: Optional[Tensor] = None,  # pos_enc for self-attention inputs
         memory_pos: Optional[Tensor] = None,  # pos_enc for cross-attention inputs
         num_obj_ptr_tokens: int = 0,  # number of object pointer *tokens*
-    ):
-        """Processes input tensors through multiple attention layers, applying self and cross-attention mechanisms."""
+    ) -> torch.Tensor:
+        """Process inputs through attention layers, applying self and cross-attention with positional encoding."""
         if isinstance(curr, list):
             assert isinstance(curr_pos, list)
             assert len(curr) == len(curr_pos) == 1
-            curr, curr_pos = (
-                curr[0],
-                curr_pos[0],
-            )
+            curr, curr_pos = curr[0], curr_pos[0]
 
         assert curr.shape[1] == memory.shape[1], "Batch size must be the same for curr and memory"
 

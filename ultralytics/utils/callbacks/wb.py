@@ -27,9 +27,9 @@ def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall
         x (List): Values for the x-axis; expected to have length N.
         y (List): Corresponding values for the y-axis; also expected to have length N.
         classes (List): Labels identifying the class of each point; length N.
-        title (str, optional): Title for the plot; defaults to 'Precision Recall Curve'.
-        x_title (str, optional): Label for the x-axis; defaults to 'Recall'.
-        y_title (str, optional): Label for the y-axis; defaults to 'Precision'.
+        title (str): Title for the plot; defaults to 'Precision Recall Curve'.
+        x_title (str): Label for the x-axis; defaults to 'Recall'.
+        y_title (str): Label for the y-axis; defaults to 'Precision'.
 
     Returns:
         (wandb.Object): A wandb object suitable for logging, showcasing the crafted metric visualization.
@@ -63,16 +63,16 @@ def _plot_curve(
 
     Args:
         x (np.ndarray): Data points for the x-axis with length N.
-        y (np.ndarray): Corresponding data points for the y-axis with shape CxN, where C is the number of classes.
-        names (list, optional): Names of the classes corresponding to the y-axis data; length C. Defaults to [].
-        id (str, optional): Unique identifier for the logged data in wandb. Defaults to 'precision-recall'.
-        title (str, optional): Title for the visualization plot. Defaults to 'Precision Recall Curve'.
-        x_title (str, optional): Label for the x-axis. Defaults to 'Recall'.
-        y_title (str, optional): Label for the y-axis. Defaults to 'Precision'.
-        num_x (int, optional): Number of interpolated data points for visualization. Defaults to 100.
-        only_mean (bool, optional): Flag to indicate if only the mean curve should be plotted. Defaults to True.
+        y (np.ndarray): Corresponding data points for the y-axis with shape (C, N), where C is the number of classes.
+        names (List): Names of the classes corresponding to the y-axis data; length C.
+        id (str): Unique identifier for the logged data in wandb.
+        title (str): Title for the visualization plot.
+        x_title (str): Label for the x-axis.
+        y_title (str): Label for the y-axis.
+        num_x (int): Number of interpolated data points for visualization.
+        only_mean (bool): Flag to indicate if only the mean curve should be plotted.
 
-    Note:
+    Notes:
         The function leverages the '_custom_table' function to generate the actual visualization.
     """
     import numpy as np
@@ -108,7 +108,7 @@ def _log_plots(plots, step):
 
 
 def on_pretrain_routine_start(trainer):
-    """Initiate and start project if module is present."""
+    """Initiate and start wandb project if module is present."""
     if not wb.run:
         wb.init(
             project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics",
@@ -118,7 +118,7 @@ def on_pretrain_routine_start(trainer):
 
 
 def on_fit_epoch_end(trainer):
-    """Logs training metrics and model information at the end of an epoch."""
+    """Log training metrics and model information at the end of an epoch."""
     wb.run.log(trainer.metrics, step=trainer.epoch + 1)
     _log_plots(trainer.plots, step=trainer.epoch + 1)
     _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
@@ -135,7 +135,7 @@ def on_train_epoch_end(trainer):
 
 
 def on_train_end(trainer):
-    """Save the best model as an artifact at end of training."""
+    """Save the best model as an artifact and log final plots at the end of training."""
     _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
     _log_plots(trainer.plots, step=trainer.epoch + 1)
     art = wb.Artifact(type="model", name=f"run_{wb.run.id}_model")

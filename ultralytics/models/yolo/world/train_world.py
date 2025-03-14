@@ -9,49 +9,59 @@ from ultralytics.utils.torch_utils import de_parallel
 
 class WorldTrainerFromScratch(WorldTrainer):
     """
-    A class extending the WorldTrainer class for training a world model from scratch on open-set dataset.
+    A class extending the WorldTrainer for training a world model from scratch on open-set datasets.
 
-    Example:
-        ```python
-        from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
-        from ultralytics import YOLOWorld
+    This trainer specializes in handling mixed datasets including both object detection and grounding datasets,
+    supporting training YOLO-World models with combined vision-language capabilities.
 
-        data = dict(
-            train=dict(
-                yolo_data=["Objects365.yaml"],
-                grounding_data=[
-                    dict(
-                        img_path="../datasets/flickr30k/images",
-                        json_file="../datasets/flickr30k/final_flickr_separateGT_train.json",
-                    ),
-                    dict(
-                        img_path="../datasets/GQA/images",
-                        json_file="../datasets/GQA/final_mixed_train_no_coco.json",
-                    ),
-                ],
-            ),
-            val=dict(yolo_data=["lvis.yaml"]),
-        )
+    Attributes:
+        cfg (Dict): Configuration dictionary with default parameters for model training.
+        overrides (Dict): Dictionary of parameter overrides to customize the configuration.
+        _callbacks (List): List of callback functions to be executed during different stages of training.
 
-        model = YOLOWorld("yolov8s-worldv2.yaml")
-        model.train(data=data, trainer=WorldTrainerFromScratch)
-        ```
+    Examples:
+        >>> from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
+        >>> from ultralytics import YOLOWorld
+        >>> data = dict(
+        ...     train=dict(
+        ...         yolo_data=["Objects365.yaml"],
+        ...         grounding_data=[
+        ...             dict(
+        ...                 img_path="../datasets/flickr30k/images",
+        ...                 json_file="../datasets/flickr30k/final_flickr_separateGT_train.json",
+        ...             ),
+        ...             dict(
+        ...                 img_path="../datasets/GQA/images",
+        ...                 json_file="../datasets/GQA/final_mixed_train_no_coco.json",
+        ...             ),
+        ...         ],
+        ...     ),
+        ...     val=dict(yolo_data=["lvis.yaml"]),
+        ... )
+        >>> model = YOLOWorld("yolov8s-worldv2.yaml")
+        >>> model.train(data=data, trainer=WorldTrainerFromScratch)
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initialize a WorldTrainer object with given arguments."""
+        """Initialize a WorldTrainerFromScratch object with given configuration and callbacks."""
         if overrides is None:
             overrides = {}
         super().__init__(cfg, overrides, _callbacks)
 
     def build_dataset(self, img_path, mode="train", batch=None):
         """
-        Build YOLO Dataset.
+        Build YOLO Dataset for training or validation.
+
+        This method constructs appropriate datasets based on the mode and input paths, handling both
+        standard YOLO datasets and grounding datasets with different formats.
 
         Args:
-            img_path (List[str] | str): Path to the folder containing images.
-            mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
-            batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
+            img_path (List[str] | str): Path to the folder containing images or list of paths.
+            mode (str): 'train' mode or 'val' mode, allowing customized augmentations for each mode.
+            batch (int, optional): Size of batches, used for rectangular training/validation.
+
+        Returns:
+            (YOLOConcatDataset | Dataset): The constructed dataset for training or validation.
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         if mode != "train":
@@ -66,9 +76,17 @@ class WorldTrainerFromScratch(WorldTrainer):
 
     def get_dataset(self):
         """
-        Get train, val path from data dict if it exists.
+        Get train and validation paths from data dictionary.
 
-        Returns None if data format is not recognized.
+        Processes the data configuration to extract paths for training and validation datasets,
+        handling both YOLO detection datasets and grounding datasets.
+
+        Returns:
+            (str): Train dataset path.
+            (str): Validation dataset path.
+
+        Raises:
+            AssertionError: If train or validation datasets are not found, or if validation has multiple datasets.
         """
         final_data = {}
         data_yaml = self.args.data
@@ -98,11 +116,18 @@ class WorldTrainerFromScratch(WorldTrainer):
         return final_data["train"], final_data["val"][0]
 
     def plot_training_labels(self):
-        """DO NOT plot labels."""
+        """Do not plot labels for YOLO-World training."""
         pass
 
     def final_eval(self):
-        """Performs final evaluation and validation for object detection YOLO-World model."""
+        """
+        Perform final evaluation and validation for the YOLO-World model.
+
+        Configures the validator with appropriate dataset and split information before running evaluation.
+
+        Returns:
+            (Dict): Dictionary containing evaluation metrics and results.
+        """
         val = self.args.data["val"]["yolo_data"][0]
         self.validator.args.data = val
         self.validator.args.split = "minival" if isinstance(val, str) and "lvis" in val else "val"

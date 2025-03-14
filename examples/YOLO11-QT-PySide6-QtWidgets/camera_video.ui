@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>camera_video</class>
+ <widget class="QMainWindow" name="camera_video">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>616</width>
+    <height>484</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>Yolo11 Camera Video</string>
+  </property>
+  <property name="documentMode">
+   <bool>false</bool>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0" colspan="2">
+     <widget class="QLabel" name="label">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>1</width>
+        <height>1</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(0, 0, 0);</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0" colspan="2">
+     <widget class="QWidget" name="widget" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="5" alignment="Qt::AlignmentFlag::AlignLeft">
+        <widget class="QLineEdit" name="lineEdit_2"/>
+       </item>
+       <item row="0" column="3" alignment="Qt::AlignmentFlag::AlignLeft">
+        <widget class="QPushButton" name="model">
+         <property name="styleSheet">
+          <string notr="true">selection-background-color: qconicalgradient(cx:0.5, cy:0.5, angle:0, stop:0 rgba(255, 255, 255, 255), stop:0.373979 rgba(255, 255, 255, 255), stop:0.373991 rgba(33, 30, 255, 255), stop:0.624018 rgba(33, 30, 255, 255), stop:0.624043 rgba(255, 0, 0, 255), stop:1 rgba(255, 0, 0, 255));
+selection-background-color: rgb(255, 56, 255);
+selection-color: rgb(43, 82, 255);</string>
+         </property>
+         <property name="text">
+          <string>model</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1" alignment="Qt::AlignmentFlag::AlignLeft">
+        <widget class="QLineEdit" name="lineEdit">
+         <property name="text">
+          <string>yolo11n.pt</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="6" alignment="Qt::AlignmentFlag::AlignLeft">
+        <widget class="QPushButton" name="video">
+         <property name="text">
+          <string>video or image</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0" alignment="Qt::AlignmentFlag::AlignLeft">
+        <widget class="QComboBox" name="input">
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
+         <item>
+          <property name="text">
+           <string>camera</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>video</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>image directory</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QPushButton" name="start">
+         <property name="text">
+          <string>media start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1" alignment="Qt::AlignmentFlag::AlignLeft">
+        <widget class="QPushButton" name="stop">
+         <property name="text">
+          <string>stop</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3" alignment="Qt::AlignmentFlag::AlignLeft">
+        <widget class="QCheckBox" name="save">
+         <property name="styleSheet">
+          <string notr="true">selection-background-color: rgb(166, 106, 255);
+selection-background-color: qconicalgradient(cx:0.5, cy:0.5, angle:0, stop:0 rgba(255, 255, 255, 255), stop:0.373979 rgba(255, 255, 255, 255), stop:0.373991 rgba(33, 30, 255, 255), stop:0.624018 rgba(33, 30, 255, 255), stop:0.624043 rgba(255, 0, 0, 255), stop:1 rgba(255, 0, 0, 255));
+selection-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 0, 0, 255), stop:0.339795 rgba(255, 0, 0, 255), stop:0.339799 rgba(255, 255, 255, 255), stop:0.662444 rgba(255, 255, 255, 255), stop:0.662469 rgba(0, 0, 255, 255), stop:1 rgba(0, 0, 255, 255));</string>
+         </property>
+         <property name="text">
+          <string>save video</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>616</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>start</sender>
+   <signal>clicked()</signal>
+   <receiver>camera_video</receiver>
+   <slot>start()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>192</x>
+     <y>437</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>288</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>save</sender>
+   <signal>checkStateChanged(Qt::CheckState)</signal>
+   <receiver>camera_video</receiver>
+   <slot>save()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>517</x>
+     <y>437</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>288</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>stop</sender>
+   <signal>clicked()</signal>
+   <receiver>camera_video</receiver>
+   <slot>stop()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>329</x>
+     <y>437</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>288</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>model</sender>
+   <signal>clicked()</signal>
+   <receiver>camera_video</receiver>
+   <slot>open()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>192</x>
+     <y>407</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>288</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>video</sender>
+   <signal>clicked()</signal>
+   <receiver>camera_video</receiver>
+   <slot>open_video()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>512</x>
+     <y>407</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>288</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>stop</sender>
+   <signal>clicked()</signal>
+   <receiver>camera_video</receiver>
+   <slot>setlast()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>176</x>
+     <y>434</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>307</x>
+     <y>242</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>open()</slot>
+  <slot>start()</slot>
+  <slot>save()</slot>
+  <slot>stop()</slot>
+  <slot>open_video()</slot>
+  <slot>setlast()</slot>
+ </slots>
+</ui>

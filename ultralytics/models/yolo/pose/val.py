@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from pathlib import Path
 
@@ -16,23 +16,43 @@ class PoseValidator(DetectionValidator):
     """
     A class extending the DetectionValidator class for validation based on a pose model.
 
-    Example:
-        ```python
-        from ultralytics.models.yolo.pose import PoseValidator
+    This validator is specifically designed for pose estimation tasks, handling keypoints and implementing
+    specialized metrics for pose evaluation.
 
-        args = dict(model="yolov8n-pose.pt", data="coco8-pose.yaml")
-        validator = PoseValidator(args=args)
-        validator()
-        ```
+    Attributes:
+        sigma (np.ndarray): Sigma values for OKS calculation, either from OKS_SIGMA or ones divided by number of keypoints.
+        kpt_shape (List[int]): Shape of the keypoints, typically [17, 3] for COCO format.
+        args (Dict): Arguments for the validator including task set to "pose".
+        metrics (PoseMetrics): Metrics object for pose evaluation.
+
+    Methods:
+        preprocess: Preprocesses batch data for pose validation.
+        get_desc: Returns description of evaluation metrics.
+        init_metrics: Initializes pose metrics for the model.
+        _prepare_batch: Prepares a batch for processing.
+        _prepare_pred: Prepares and scales predictions for evaluation.
+        update_metrics: Updates metrics with new predictions.
+        _process_batch: Processes batch to compute IoU between detections and ground truth.
+        plot_val_samples: Plots validation samples with ground truth annotations.
+        plot_predictions: Plots model predictions.
+        save_one_txt: Saves detections to a text file.
+        pred_to_json: Converts predictions to COCO JSON format.
+        eval_json: Evaluates model using COCO JSON format.
+
+    Examples:
+        >>> from ultralytics.models.yolo.pose import PoseValidator
+        >>> args = dict(model="yolo11n-pose.pt", data="coco8-pose.yaml")
+        >>> validator = PoseValidator(args=args)
+        >>> validator()
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
-        """Initialize a 'PoseValidator' object with custom parameters and assigned attributes."""
+        """Initialize a PoseValidator object with custom parameters and assigned attributes."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.sigma = None
         self.kpt_shape = None
         self.args.task = "pose"
-        self.metrics = PoseMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
+        self.metrics = PoseMetrics(save_dir=self.save_dir)
         if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
             LOGGER.warning(
                 "WARNING ⚠️ Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
@@ -40,13 +60,13 @@ class PoseValidator(DetectionValidator):
             )
 
     def preprocess(self, batch):
-        """Preprocesses the batch by converting the 'keypoints' data into a float and moving it to the device."""
+        """Preprocess batch by converting keypoints data to float and moving it to the device."""
         batch = super().preprocess(batch)
         batch["keypoints"] = batch["keypoints"].to(self.device).float()
         return batch
 
     def get_desc(self):
-        """Returns description of evaluation metrics in string format."""
+        """Return description of evaluation metrics in string format."""
         return ("%22s" + "%11s" * 10) % (
             "Class",
             "Images",
@@ -61,21 +81,8 @@ class PoseValidator(DetectionValidator):
             "mAP50-95)",
         )
 
-    def postprocess(self, preds):
-        """Apply non-maximum suppression and return detections with high confidence scores."""
-        return ops.non_max_suppression(
-            preds,
-            self.args.conf,
-            self.args.iou,
-            labels=self.lb,
-            multi_label=True,
-            agnostic=self.args.single_cls or self.args.agnostic_nms,
-            max_det=self.args.max_det,
-            nc=self.nc,
-        )
-
     def init_metrics(self, model):
-        """Initiate pose estimation metrics for YOLO model."""
+        """Initialize pose estimation metrics for YOLO model."""
         super().init_metrics(model)
         self.kpt_shape = self.data["kpt_shape"]
         is_pose = self.kpt_shape == [17, 3]
@@ -84,7 +91,7 @@ class PoseValidator(DetectionValidator):
         self.stats = dict(tp_p=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
     def _prepare_batch(self, si, batch):
-        """Prepares a batch for processing by converting keypoints to float and moving to device."""
+        """Prepare a batch for processing by converting keypoints to float and scaling to original dimensions."""
         pbatch = super()._prepare_batch(si, batch)
         kpts = batch["keypoints"][batch["batch_idx"] == si]
         h, w = pbatch["imgsz"]
@@ -96,7 +103,7 @@ class PoseValidator(DetectionValidator):
         return pbatch
 
     def _prepare_pred(self, pred, pbatch):
-        """Prepares and scales keypoints in a batch for pose processing."""
+        """Prepare and scale keypoints in predictions for pose processing."""
         predn = super()._prepare_pred(pred, pbatch)
         nk = pbatch["kpts"].shape[1]
         pred_kpts = predn[:, 6:].view(len(predn), nk, -1)
@@ -104,7 +111,16 @@ class PoseValidator(DetectionValidator):
         return predn, pred_kpts
 
     def update_metrics(self, preds, batch):
-        """Metrics."""
+        """
+        Update metrics with new predictions and ground truth data.
+
+        This method processes each prediction, compares it with ground truth, and updates various statistics
+        for performance evaluation.
+
+        Args:
+            preds (List[torch.Tensor]): List of prediction tensors from the model.
+            batch (Dict): Batch data containing images and ground truth annotations.
+        """
         for si, pred in enumerate(preds):
             self.seen += 1
             npr = len(pred)
@@ -153,7 +169,7 @@ class PoseValidator(DetectionValidator):
                     pred_kpts,
                     self.args.save_conf,
                     pbatch["ori_shape"],
-                    self.save_dir / "labels" / f'{Path(batch["im_file"][si]).stem}.txt',
+                    self.save_dir / "labels" / f"{Path(batch['im_file'][si]).stem}.txt",
                 )
 
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_kpts=None, gt_kpts=None):
@@ -171,21 +187,12 @@ class PoseValidator(DetectionValidator):
             gt_kpts (torch.Tensor | None): Optional tensor with shape (N, 51) representing ground truth keypoints.
 
         Returns:
-            torch.Tensor: A tensor with shape (N, 10) representing the correct prediction matrix for 10 IoU levels,
+            (torch.Tensor): A tensor with shape (N, 10) representing the correct prediction matrix for 10 IoU levels,
                 where N is the number of detections.
 
-        Example:
-            ```python
-            detections = torch.rand(100, 6)  # 100 predictions: (x1, y1, x2, y2, conf, class)
-            gt_bboxes = torch.rand(50, 4)  # 50 ground truth boxes: (x1, y1, x2, y2)
-            gt_cls = torch.randint(0, 2, (50,))  # 50 ground truth class indices
-            pred_kpts = torch.rand(100, 51)  # 100 predicted keypoints
-            gt_kpts = torch.rand(50, 51)  # 50 ground truth keypoints
-            correct_preds = _process_batch(detections, gt_bboxes, gt_cls, pred_kpts, gt_kpts)
-            ```
-
-        Note:
-            `0.53` scale factor used in area computation is referenced from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384.
+        Notes:
+            `0.53` scale factor used in area computation is referenced from
+            https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384.
         """
         if pred_kpts is not None and gt_kpts is not None:
             # `0.53` is from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384
@@ -197,7 +204,7 @@ class PoseValidator(DetectionValidator):
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
     def plot_val_samples(self, batch, ni):
-        """Plots and saves validation set samples with predicted bounding boxes and keypoints."""
+        """Plot and save validation set samples with ground truth bounding boxes and keypoints."""
         plot_images(
             batch["img"],
             batch["batch_idx"],
@@ -211,7 +218,7 @@ class PoseValidator(DetectionValidator):
         )
 
     def plot_predictions(self, batch, preds, ni):
-        """Plots predictions for YOLO model."""
+        """Plot and save model predictions with bounding boxes and keypoints."""
         pred_kpts = torch.cat([p[:, 6:].view(-1, *self.kpt_shape) for p in preds], 0)
         plot_images(
             batch["img"],
@@ -236,7 +243,7 @@ class PoseValidator(DetectionValidator):
         ).save_txt(file, save_conf=save_conf)
 
     def pred_to_json(self, predn, filename):
-        """Converts YOLO predictions to COCO JSON format."""
+        """Convert YOLO predictions to COCO JSON format."""
         stem = Path(filename).stem
         image_id = int(stem) if stem.isnumeric() else stem
         box = ops.xyxy2xywh(predn[:, :4])  # xywh
@@ -253,7 +260,7 @@ class PoseValidator(DetectionValidator):
             )
 
     def eval_json(self, stats):
-        """Evaluates object detection model using COCO JSON format."""
+        """Evaluate object detection model using COCO JSON format."""
         if self.args.save_json and self.is_coco and len(self.jdict):
             anno_json = self.data["path"] / "annotations/person_keypoints_val2017.json"  # annotations
             pred_json = self.save_dir / "predictions.json"  # predictions

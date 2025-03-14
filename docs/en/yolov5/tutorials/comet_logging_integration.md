@@ -138,7 +138,7 @@ python train.py \
 
 ### Controlling the number of Prediction Images logged to Comet
 
-When logging predictions from YOLOv5, Comet will log the images associated with each set of predictions. By default a maximum of 100 validation images are logged. You can increase or decrease this number using the `COMET_MAX_IMAGE_UPLOADS` environment variable.
+When logging predictions from YOLOv5, Comet will log the images associated with each set of predictions. By default, a maximum of 100 validation images are logged. You can increase or decrease this number using the `COMET_MAX_IMAGE_UPLOADS` environment variable.
 
 ```shell
 env COMET_MAX_IMAGE_UPLOADS=200 python train.py \

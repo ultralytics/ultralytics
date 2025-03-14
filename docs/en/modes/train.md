@@ -49,6 +49,10 @@ The following are some notable features of YOLO11's Train mode:
 
 Train YOLO11n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. The training device can be specified using the `device` argument. If no argument is passed GPU `device=0` will be used if available, otherwise `device='cpu'` will be used. See Arguments section below for a full list of training arguments.
 
+!!! warning "Windows Multi-Processing Error"
+
+    On Windows, you may receive a `RuntimeError` when launching the training as a script. Add a `if __name__ == "__main__":` block before your training code to resolve it.
+
 !!! example "Single-GPU and CPU Training Example"
 
     Device is determined automatically. If a GPU is available then it will be used, otherwise training will start on CPU.

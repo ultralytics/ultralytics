@@ -6,9 +6,22 @@ keywords: TrackZone, object tracking, YOLO11, Ultralytics, real-time object dete
 
 # TrackZone using Ultralytics YOLO11
 
+<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-track-the-objects-in-zone-using-ultralytics-yolo.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open TrackZone In Colab"></a>
+
 ## What is TrackZone?
 
 TrackZone specializes in monitoring objects within designated areas of a frame instead of the whole frame. Built on [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/), it integrates object detection and tracking specifically within zones for videos and live camera feeds. YOLO11's advanced algorithms and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) technologies make it a perfect choice for real-time use cases, offering precise and efficient object tracking in applications like crowd monitoring and surveillance.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/SMSJvjUG1ko"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Track Objects in Region using Ultralytics YOLO11 | TrackZone 🚀
+</p>
 
 ## Advantages of Object Tracking in Zones (TrackZone)
 
@@ -24,7 +37,7 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
 | ![Plants Tracking in Field Using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/plants-tracking-in-zone-using-ultralytics-yolo11.avif) | ![Vehicles Tracking on Road using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/vehicle-tracking-in-zone-using-ultralytics-yolo11.avif) |
 |                                                          Plants Tracking in Field Using Ultralytics YOLO11                                                          |                                                          Vehicles Tracking on Road using Ultralytics YOLO11                                                           |
 
-!!! example "TrackZone using YOLO11 Example"
+!!! example "TrackZone using Ultralytics YOLO"
 
     === "CLI"
 
@@ -48,51 +61,56 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
 
         cap = cv2.VideoCapture("path/to/video/file.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Define region points
         region_points = [(150, 150), (1130, 150), (1130, 570), (150, 570)]
 
         # Video writer
-        video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        video_writer = cv2.VideoWriter("trackzone_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Init TrackZone (Object Tracking in Zones, not complete frame)
+        # Init trackzone (object tracking in zones, not complete frame)
         trackzone = solutions.TrackZone(
-            show=True,  # Display the output
-            region=region_points,  # Pass region points
-            model="yolo11n.pt",  # You can use any model that Ultralytics support, i.e. YOLOv9, YOLOv10
-            # line_width=2,  # Adjust the line width for bounding boxes and text display
-            # classes=[0, 2],  # If you want to count specific classes i.e. person and car with COCO pretrained model.
+            show=True,  # display the output
+            region=region_points,  # pass region points
+            model="yolo11n.pt",  # use any model that Ultralytics support, i.e. YOLOv9, YOLOv10
+            # line_width=2,  # adjust the line width for bounding boxes and text display
         )
 
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
+                print("Video frame is empty or processing is complete.")
                 break
-            im0 = trackzone.trackzone(im0)
-            video_writer.write(im0)
+
+            results = trackzone(im0)
+
+            # print(results)  # access the output
+
+            video_writer.write(results.plot_im)  # write the video file
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-### Argument `TrackZone`
+### `TrackZone` Arguments
 
 Here's a table with the `TrackZone` arguments:
 
-| Name         | Type   | Default                                              | Description                                          |
-| ------------ | ------ | ---------------------------------------------------- | ---------------------------------------------------- |
-| `model`      | `str`  | `None`                                               | Path to Ultralytics YOLO Model File                  |
-| `region`     | `list` | `[(150, 150), (1130, 150), (1130, 570), (150, 570)]` | List of points defining the object tracking region.  |
-| `line_width` | `int`  | `2`                                                  | Line thickness for bounding boxes.                   |
-| `show`       | `bool` | `False`                                              | Flag to control whether to display the video stream. |
+{% from "macros/solutions-args.md" import param_table %}
+{{ param_table(["model", "region"]) }}
 
-### Arguments `model.track`
+The TrackZone solution includes support for `track` parameters:
 
-{% include "macros/track-args.md" %}
+{% from "macros/track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+
+Moreover, the following visualization options are available:
+
+{% from "macros/visualization-args.md" import param_table %}
+{{ param_table(["show", "line_width"]) }}
 
 ## FAQ
 
@@ -123,10 +141,10 @@ region_points = [(150, 150), (1130, 150), (1130, 570), (150, 570)]
 # Video writer
 video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-# Init TrackZone (Object Tracking in Zones, not complete frame)
+# Init trackzone (object tracking in zones, not complete frame)
 trackzone = solutions.TrackZone(
-    show=True,  # Display the output
-    region=region_points,  # Pass region points
+    show=True,  # display the output
+    region=region_points,  # pass region points
     model="yolo11n.pt",
 )
 
@@ -136,8 +154,8 @@ while cap.isOpened():
     if not success:
         print("Video frame is empty or video processing has been successfully completed.")
         break
-    im0 = trackzone.trackzone(im0)
-    video_writer.write(im0)
+    results = trackzone(im0)
+    video_writer.write(results.plot_im)
 
 cap.release()
 video_writer.release()
@@ -152,9 +170,9 @@ Configuring zone points for video processing with Ultralytics TrackZone is simpl
 # Define region points
 region_points = [(150, 150), (1130, 150), (1130, 570), (150, 570)]
 
-# Init TrackZone (Object Tracking in Zones, not complete frame)
+# Initialize trackzone
 trackzone = solutions.TrackZone(
-    show=True,  # Display the output
-    region=region_points,  # Pass region points
+    show=True,  # display the output
+    region=region_points,  # pass region points
 )
 ```

@@ -8,6 +8,17 @@ keywords: CIFAR-100, dataset, machine learning, computer vision, image classific
 
 The [CIFAR-100](https://www.cs.toronto.edu/~kriz/cifar.html) (Canadian Institute For Advanced Research) dataset is a significant extension of the CIFAR-10 dataset, composed of 60,000 32x32 color images in 100 different classes. It was developed by researchers at the CIFAR institute, offering a more challenging dataset for more complex machine learning and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/6bZeCs0xwO4"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train Ultralytics YOLO11 on CIFAR-100 | Step-by-Step Image Classification Tutorial 🚀
+</p>
+
 ## Key Features
 
 - The CIFAR-100 dataset consists of 60,000 images, divided into 100 classes.

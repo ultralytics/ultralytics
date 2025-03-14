@@ -2,6 +2,7 @@
 comments: true
 description: Learn how to deploy Ultralytics YOLO11 on Raspberry Pi with our comprehensive guide. Get performance benchmarks, setup instructions, and best practices.
 keywords: Ultralytics, YOLO11, Raspberry Pi, setup, guide, benchmarks, computer vision, object detection, NCNN, Docker, camera modules
+benchmark_version: 8.3.39
 ---
 
 # Quick Start Guide: Raspberry Pi with Ultralytics YOLO11
@@ -94,7 +95,7 @@ Here we will install Ultralytics package on the Raspberry Pi with optional depen
 
 ## Use NCNN on Raspberry Pi
 
-Out of all the model export formats supported by Ultralytics, [NCNN](https://docs.ultralytics.com/integrations/ncnn/) delivers the best inference performance when working with Raspberry Pi devices because NCNN is highly optimized for mobile/ embedded platforms (such as ARM architecture). Therefor our recommendation is to use NCNN with Raspberry Pi.
+Out of all the model export formats supported by Ultralytics, [NCNN](https://docs.ultralytics.com/integrations/ncnn/) delivers the best inference performance when working with Raspberry Pi devices because NCNN is highly optimized for mobile/ embedded platforms (such as ARM architecture).
 
 ## Convert Model to NCNN and Run Inference
 
@@ -144,7 +145,7 @@ We have only included benchmarks for YOLO11n and YOLO11s models because other mo
 
 <figure style="text-align: center;">
     <img width="800" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/rpi-yolo11-benchmarks.avif" alt="YOLO11 benchmarks on RPi 5">
-    <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics v8.3.39</figcaption>
+    <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics {{ benchmark_version }}</figcaption>
 </figure>
 
 ### Detailed Comparison Table
@@ -183,7 +184,7 @@ The below table represents the benchmark results for two different models (YOLO1
         | MNN           | ✅      | 36.2              | 0.7409      | 273.032                |
         | NCNN          | ✅      | 36.2              | 0.7419      | 194.858                |
 
-    Benchmarked with Ultralytics `v8.3.39`
+    Benchmarked with Ultralytics {{ benchmark_version }}
 
 ## Reproduce Our Results
 
@@ -200,7 +201,7 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
         model = YOLO("yolo11n.pt")
 
         # Benchmark YOLO11n speed and accuracy on the COCO8 dataset for all all export formats
-        results = model.benchmarks(data="coco8.yaml", imgsz=640)
+        results = model.benchmark(data="coco8.yaml", imgsz=640)
         ```
 
     === "CLI"

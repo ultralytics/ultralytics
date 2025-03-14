@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # All rights reserved.
@@ -425,9 +425,8 @@ class SAM2Model(torch.nn.Module):
                 low_res_masks: Tensor of shape (B, 1, H*4, W*4) with the best low-resolution mask.
                 high_res_masks: Tensor of shape (B, 1, H*16, W*16) with the best high-resolution mask.
                 obj_ptr: Tensor of shape (B, C) with object pointer vector for the output mask.
-                object_score_logits: Tensor of shape (B,) with object score logits.
-
-            Where M is 3 if multimask_output=True, and 1 if multimask_output=False.
+                object_score_logits: Tensor of shape (B) with object score logits.
+                Where M is 3 if multimask_output=True, and 1 if multimask_output=False.
 
         Examples:
             >>> backbone_features = torch.rand(1, 256, 32, 32)
@@ -643,7 +642,7 @@ class SAM2Model(torch.nn.Module):
         if not is_init_cond_frame:
             # Retrieve the memories encoded with the maskmem backbone
             to_cat_memory, to_cat_memory_pos_embed = [], []
-            # Add conditioning frames's output first (all cond frames have t_pos=0 for
+            # Add conditioning frame's output first (all cond frames have t_pos=0 for
             # when getting temporal positional embedding below)
             assert len(output_dict["cond_frame_outputs"]) > 0
             # Select a maximum number of temporally closest cond frames for cross attention
@@ -685,11 +684,11 @@ class SAM2Model(torch.nn.Module):
                 if prev is None:
                     continue  # skip padding frames
                 # "maskmem_features" might have been offloaded to CPU in demo use cases,
-                # so we load it back to GPU (it's a no-op if it's already on GPU).
-                feats = prev["maskmem_features"].cuda(non_blocking=True)
+                # so we load it back to inference device (it's a no-op if it's already on device).
+                feats = prev["maskmem_features"].to(device=device, non_blocking=True)
                 to_cat_memory.append(feats.flatten(2).permute(2, 0, 1))
                 # Spatial positional encoding (it might have been offloaded to CPU in eval)
-                maskmem_enc = prev["maskmem_pos_enc"][-1].cuda()
+                maskmem_enc = prev["maskmem_pos_enc"][-1].to(device=device)
                 maskmem_enc = maskmem_enc.flatten(2).permute(2, 0, 1)
                 # Temporal positional encoding
                 maskmem_enc = maskmem_enc + self.maskmem_tpos_enc[self.num_maskmem - t_pos - 1]

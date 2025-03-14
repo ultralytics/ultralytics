@@ -8,9 +8,9 @@ keywords: MobileSAM, image segmentation, lightweight model, fast segmentation, m
 
 # Mobile Segment Anything (MobileSAM)
 
-The MobileSAM paper is now available on [arXiv](https://arxiv.org/pdf/2306.14289.pdf).
+The MobileSAM paper is now available on [arXiv](https://arxiv.org/pdf/2306.14289).
 
-A demonstration of MobileSAM running on a CPU can be accessed at this [demo link](https://huggingface.co/spaces/dhkim2810/MobileSAM). The performance on a Mac i5 CPU takes approximately 3 seconds. On the Hugging Face demo, the interface and lower-performance CPUs contribute to a slower response, but it continues to function effectively.
+A demonstration of MobileSAM running on a CPU can be accessed at this [demo link](https://huggingface.co/spaces/dhkim2810/MobileSAM). The performance on a Mac i5 CPU takes approximately 3 seconds. On the [Hugging Face](https://www.ultralytics.com/glossary/hugging-face) demo, the interface and lower-performance CPUs contribute to a slower response, but it continues to function effectively.
 
 <p align="center">
   <br>
@@ -118,7 +118,7 @@ You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blo
         # Predict a segment based on a single point prompt
         model.predict("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
 
-        # Predict mutiple segments based on multiple points prompt
+        # Predict multiple segments based on multiple points prompt
         model.predict("ultralytics/assets/zidane.jpg", points=[[400, 370], [900, 370]], labels=[1, 1])
 
         # Predict a segment based on multiple points prompt per object
@@ -129,6 +129,22 @@ You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blo
         ```
 
 We have implemented `MobileSAM` and `SAM` using the same API. For more usage information, please see the [SAM page](sam.md).
+
+### Automatically Build Segmentation Datasets Leveraging a Detection Model
+
+To automatically annotate your dataset using the Ultralytics framework, utilize the `auto_annotate` function as demonstrated below:
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics.data.annotator import auto_annotate
+
+        auto_annotate(data="path/to/images", det_model="yolo11x.pt", sam_model="mobile_sam.pt")
+        ```
+
+{% include "macros/sam-auto-annotate.md" %}
 
 ## Citations and Acknowledgements
 

@@ -44,6 +44,9 @@ To install the required packages, run:
         ```bash
         # Install the required packages for Ultralytics YOLO and Weights & Biases
         pip install -U ultralytics wandb
+
+        # Enable W&B logging for Ultralytics
+        yolo settings wandb=True
         ```
 
 For detailed instructions and best practices related to the installation process, be sure to check our [YOLO11 Installation guide](../quickstart.md). While installing the required packages for YOLO11, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
@@ -108,16 +111,16 @@ Before diving into the usage instructions for YOLO11 model training with Weights
 
 !!! tip "Enable or Disable Weights & Biases"
 
-    If you want to enable or disable Weights & Biases logging, you can use the `wandb` command. By default, Weights & Biases logging is enabled.
+    If you want to enable or disable Weights & Biases logging in Ultralytics, you can use the `yolo settings` command. By default, Weights & Biases logging is disabled.
 
     === "CLI"
 
         ```bash
         # Enable Weights & Biases logging
-        wandb enabled
+        yolo settings wandb=True
 
         # Disable Weights & Biases logging
-        wandb disabled
+        yolo settings wandb=False
         ```
 
 ### Understanding the Output
@@ -168,26 +171,27 @@ To integrate Weights & Biases with Ultralytics YOLO11:
 
 1. Install the required packages:
 
-```bash
-pip install -U ultralytics wandb
-```
+    ```bash
+    pip install -U ultralytics wandb
+    yolo settings wandb=True
+    ```
 
 2. Log in to your Weights & Biases account:
 
-```python
-import wandb
+    ```python
+    import wandb
 
-wandb.login(key="<API_KEY>")
-```
+    wandb.login(key="<API_KEY>")
+    ```
 
 3. Train your YOLO11 model with W&B logging enabled:
 
-```python
-from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-model = YOLO("yolo11n.pt")
-model.train(data="coco8.yaml", epochs=5, project="ultralytics", name="yolo11n")
-```
+    model = YOLO("yolo11n.pt")
+    model.train(data="coco8.yaml", epochs=5, project="ultralytics", name="yolo11n")
+    ```
 
 This will automatically log metrics, hyperparameters, and model artifacts to your W&B project.
 
@@ -220,13 +224,13 @@ The dashboard offers insights into your model's training process, allowing you t
 Yes, you can disable W&B logging using the following command:
 
 ```bash
-wandb disabled
+yolo settings wandb=True
 ```
 
 To re-enable logging, use:
 
 ```bash
-wandb enabled
+yolo settings wandb=False
 ```
 
 This allows you to control when you want to use W&B logging without modifying your training scripts.

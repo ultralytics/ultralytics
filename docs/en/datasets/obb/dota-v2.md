@@ -31,7 +31,7 @@ keywords: DOTA dataset, object detection, aerial images, oriented bounding boxes
 - Very small instances (less than 10 pixels) are also annotated.
 - Addition of a new category: "container crane".
 - A total of 403,318 instances.
-- Released for the DOAI Challenge 2019 on Object Detection in Aerial Images.
+- Released for the [DOAI Challenge 2019 on Object Detection in Aerial Images](https://captain-whu.github.io/DOAI2019/challenge.html).
 
 ### DOTA-v2.0
 

@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import contextlib
 import math
@@ -18,15 +18,11 @@ class Profile(contextlib.ContextDecorator):
     """
     YOLOv8 Profile class. Use as a decorator with @Profile() or as a context manager with 'with Profile():'.
 
-    Example:
-        ```python
-        from ultralytics.utils.ops import Profile
-
-        with Profile(device=device) as dt:
-            pass  # slow operation here
-
-        print(dt)  # prints "Elapsed time is 9.5367431640625e-07 s"
-        ```
+    Examples:
+        >>> from ultralytics.utils.ops import Profile
+        >>> with Profile(device=device) as dt:
+        ...     pass  # slow operation here
+        >>> print(dt)  # prints "Elapsed time is 9.5367431640625e-07 s"
     """
 
     def __init__(self, t=0.0, device: torch.device = None):
@@ -59,7 +55,7 @@ class Profile(contextlib.ContextDecorator):
         """Get current time."""
         if self.cuda:
             torch.cuda.synchronize(self.device)
-        return time.time()
+        return time.perf_counter()
 
 
 def segment2box(segment, width=640, height=640):
@@ -75,8 +71,13 @@ def segment2box(segment, width=640, height=640):
         (np.ndarray): the minimum and maximum x and y values of the segment.
     """
     x, y = segment.T  # segment xy
-    x = x.clip(0, width)
-    y = y.clip(0, height)
+    # any 3 out of 4 sides are outside the image, clip coordinates first, https://github.com/ultralytics/ultralytics/pull/18294
+    if np.array([x.min() < 0, y.min() < 0, x.max() > width, y.max() > height]).sum() >= 3:
+        x = x.clip(0, width)
+        y = y.clip(0, height)
+    inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
+    x = x[inside]
+    y = y[inside]
     return (
         np.array([x.min(), y.min(), x.max(), y.max()], dtype=segment.dtype)
         if any(x)
@@ -138,7 +139,7 @@ def make_divisible(x, divisor):
     return math.ceil(x / divisor) * divisor
 
 
-def nms_rotated(boxes, scores, threshold=0.45):
+def nms_rotated(boxes, scores, threshold=0.45, use_triu=True):
     """
     NMS for oriented bounding boxes using probiou and fast-nms.
 
@@ -146,16 +147,30 @@ def nms_rotated(boxes, scores, threshold=0.45):
         boxes (torch.Tensor): Rotated bounding boxes, shape (N, 5), format xywhr.
         scores (torch.Tensor): Confidence scores, shape (N,).
         threshold (float, optional): IoU threshold. Defaults to 0.45.
+        use_triu (bool, optional): Whether to use `torch.triu` operator. It'd be useful for disable it
+            when exporting obb models to some formats that do not support `torch.triu`.
 
     Returns:
         (torch.Tensor): Indices of boxes to keep after NMS.
     """
-    if len(boxes) == 0:
-        return np.empty((0,), dtype=np.int8)
     sorted_idx = torch.argsort(scores, descending=True)
     boxes = boxes[sorted_idx]
-    ious = batch_probiou(boxes, boxes).triu_(diagonal=1)
-    pick = torch.nonzero(ious.max(dim=0)[0] < threshold).squeeze_(-1)
+    ious = batch_probiou(boxes, boxes)
+    if use_triu:
+        ious = ious.triu_(diagonal=1)
+        # pick = torch.nonzero(ious.max(dim=0)[0] < threshold).squeeze_(-1)
+        # NOTE: handle the case when len(boxes) hence exportable by eliminating if-else condition
+        pick = torch.nonzero((ious >= threshold).sum(0) <= 0).squeeze_(-1)
+    else:
+        n = boxes.shape[0]
+        row_idx = torch.arange(n, device=boxes.device).view(-1, 1).expand(-1, n)
+        col_idx = torch.arange(n, device=boxes.device).view(1, -1).expand(n, -1)
+        upper_mask = row_idx < col_idx
+        ious = ious * upper_mask
+        # Zeroing these scores ensures the additional indices would not affect the final results
+        scores[~((ious >= threshold).sum(0) <= 0)] = 0
+        # NOTE: return indices with fixed length to avoid TFLite reshape error
+        pick = torch.topk(scores, scores.shape[0]).indices
     return sorted_idx[pick]
 
 
@@ -174,6 +189,7 @@ def non_max_suppression(
     max_wh=7680,
     in_place=True,
     rotated=False,
+    end2end=False,
 ):
     """
     Perform non-maximum suppression (NMS) on a set of boxes, with support for masks and multiple labels per box.
@@ -200,6 +216,7 @@ def non_max_suppression(
         max_wh (int): The maximum box width and height in pixels.
         in_place (bool): If True, the input prediction tensor will be modified in place.
         rotated (bool): If Oriented Bounding Boxes (OBB) are being passed for NMS.
+        end2end (bool): If the model doesn't require NMS.
 
     Returns:
         (List[torch.Tensor]): A list of length batch_size, where each element is a tensor of
@@ -216,7 +233,7 @@ def non_max_suppression(
     if classes is not None:
         classes = torch.tensor(classes, device=prediction.device)
 
-    if prediction.shape[-1] == 6:  # end-to-end model (BNC, i.e. 1,300,6)
+    if prediction.shape[-1] == 6 or end2end:  # end-to-end model (BNC, i.e. 1,300,6)
         output = [pred[pred[:, 4] > conf_thres][:max_det] for pred in prediction]
         if classes is not None:
             output = [pred[(pred[:, 5:6] == classes).any(1)] for pred in output]
@@ -400,7 +417,7 @@ def xyxy2xywh(x):
         y (np.ndarray | torch.Tensor): The bounding box coordinates in (x, y, width, height) format.
     """
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
-    y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
+    y = empty_like(x)  # faster than clone/copy
     y[..., 0] = (x[..., 0] + x[..., 2]) / 2  # x center
     y[..., 1] = (x[..., 1] + x[..., 3]) / 2  # y center
     y[..., 2] = x[..., 2] - x[..., 0]  # width
@@ -420,7 +437,7 @@ def xywh2xyxy(x):
         y (np.ndarray | torch.Tensor): The bounding box coordinates in (x1, y1, x2, y2) format.
     """
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
-    y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
+    y = empty_like(x)  # faster than clone/copy
     xy = x[..., :2]  # centers
     wh = x[..., 2:] / 2  # half width-height
     y[..., :2] = xy - wh  # top left xy
@@ -443,7 +460,7 @@ def xywhn2xyxy(x, w=640, h=640, padw=0, padh=0):
             x1,y1 is the top-left corner, x2,y2 is the bottom-right corner of the bounding box.
     """
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
-    y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
+    y = empty_like(x)  # faster than clone/copy
     y[..., 0] = w * (x[..., 0] - x[..., 2] / 2) + padw  # top left x
     y[..., 1] = h * (x[..., 1] - x[..., 3] / 2) + padh  # top left y
     y[..., 2] = w * (x[..., 0] + x[..., 2] / 2) + padw  # bottom right x
@@ -469,7 +486,7 @@ def xyxy2xywhn(x, w=640, h=640, clip=False, eps=0.0):
     if clip:
         x = clip_boxes(x, (h - eps, w - eps))
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
-    y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
+    y = empty_like(x)  # faster than clone/copy
     y[..., 0] = ((x[..., 0] + x[..., 2]) / 2) / w  # x center
     y[..., 1] = ((x[..., 1] + x[..., 3]) / 2) / h  # y center
     y[..., 2] = (x[..., 2] - x[..., 0]) / w  # width
@@ -624,9 +641,12 @@ def resample_segments(segments, n=1000):
         segments (list): the resampled segments.
     """
     for i, s in enumerate(segments):
+        if len(s) == n:
+            continue
         s = np.concatenate((s, s[0:1, :]), axis=0)
-        x = np.linspace(0, len(s) - 1, n)
+        x = np.linspace(0, len(s) - 1, n - len(s) if len(s) < n else n)
         xp = np.arange(len(s))
+        x = np.insert(x, np.searchsorted(x, xp), xp) if len(s) < n else x
         segments[i] = (
             np.concatenate([np.interp(x, xp, s[:, i]) for i in range(2)], dtype=np.float32).reshape(2, -1).T
         )  # segment xy
@@ -775,10 +795,11 @@ def regularize_rboxes(rboxes):
         (torch.Tensor): The regularized boxes.
     """
     x, y, w, h, t = rboxes.unbind(dim=-1)
-    # Swap edge and angle if h >= w
-    w_ = torch.where(w > h, w, h)
-    h_ = torch.where(w > h, h, w)
-    t = torch.where(w > h, t, t + math.pi / 2) % math.pi
+    # Swap edge if t >= pi/2 while not being symmetrically opposite
+    swap = t % math.pi >= math.pi / 2
+    w_ = torch.where(swap, h, w)
+    h_ = torch.where(swap, w, h)
+    t = t % (math.pi / 2)
     return torch.stack([x, y, w_, h_, t], dim=-1)  # regularized boxes
 
 
@@ -837,3 +858,10 @@ def clean_str(s):
         (str): a string with special characters replaced by an underscore _
     """
     return re.sub(pattern="[|@#!¡·$€%&()=?¿^*;:,¨´><+]", repl="_", string=s)
+
+
+def empty_like(x):
+    """Creates empty torch.Tensor or np.ndarray with same shape as input and float32 dtype."""
+    return (
+        torch.empty_like(x, dtype=torch.float32) if isinstance(x, torch.Tensor) else np.empty_like(x, dtype=np.float32)
+    )

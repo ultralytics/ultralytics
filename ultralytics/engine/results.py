@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 Ultralytics Results, Boxes and Masks classes for handling inference results.
 
@@ -188,43 +188,50 @@ class Results(SimpleClass):
     """
     A class for storing and manipulating inference results.
 
-    This class encapsulates the functionality for handling detection, segmentation, pose estimation,
-    and classification results from YOLO models.
+    This class provides methods for accessing, manipulating, and visualizing inference results from various
+    Ultralytics models, including detection, segmentation, classification, and pose estimation.
 
     Attributes:
-        orig_img (numpy.ndarray): Original image as a numpy array.
+        orig_img (numpy.ndarray): The original image as a numpy array.
         orig_shape (Tuple[int, int]): Original image shape in (height, width) format.
-        boxes (Boxes | None): Object containing detection bounding boxes.
-        masks (Masks | None): Object containing detection masks.
-        probs (Probs | None): Object containing class probabilities for classification tasks.
-        keypoints (Keypoints | None): Object containing detected keypoints for each object.
-        obb (OBB | None): Object containing oriented bounding boxes.
-        speed (Dict[str, float | None]): Dictionary of preprocess, inference, and postprocess speeds.
-        names (Dict[int, str]): Dictionary mapping class IDs to class names.
-        path (str): Path to the image file.
-        _keys (Tuple[str, ...]): Tuple of attribute names for internal use.
+        boxes (Boxes | None): Detected bounding boxes.
+        masks (Masks | None): Segmentation masks.
+        probs (Probs | None): Classification probabilities.
+        keypoints (Keypoints | None): Detected keypoints.
+        obb (OBB | None): Oriented bounding boxes.
+        speed (Dict): Dictionary containing inference speed information.
+        names (Dict): Dictionary mapping class indices to class names.
+        path (str): Path to the input image file.
+        save_dir (str | None): Directory to save results.
 
     Methods:
-        update: Updates object attributes with new detection results.
-        cpu: Returns a copy of the Results object with all tensors on CPU memory.
-        numpy: Returns a copy of the Results object with all tensors as numpy arrays.
-        cuda: Returns a copy of the Results object with all tensors on GPU memory.
-        to: Returns a copy of the Results object with tensors on a specified device and dtype.
-        new: Returns a new Results object with the same image, path, and names.
-        plot: Plots detection results on an input image, returning an annotated image.
-        show: Shows annotated results on screen.
-        save: Saves annotated results to file.
-        verbose: Returns a log string for each task, detailing detections and classifications.
+        update: Updates the Results object with new detection data.
+        cpu: Returns a copy of the Results object with all tensors moved to CPU memory.
+        numpy: Converts all tensors in the Results object to numpy arrays.
+        cuda: Moves all tensors in the Results object to GPU memory.
+        to: Moves all tensors to the specified device and dtype.
+        new: Creates a new Results object with the same image, path, names, and speed attributes.
+        plot: Plots detection results on an input RGB image.
+        show: Displays the image with annotated inference results.
+        save: Saves annotated inference results image to file.
+        verbose: Returns a log string for each task in the results.
         save_txt: Saves detection results to a text file.
-        save_crop: Saves cropped detection images.
-        tojson: Converts detection results to JSON format.
+        save_crop: Saves cropped detection images to specified directory.
+        summary: Converts inference results to a summarized dictionary.
+        to_df: Converts detection results to a Pandas Dataframe.
+        to_json: Converts detection results to JSON format.
+        to_csv: Converts detection results to a CSV format.
+        to_xml: Converts detection results to XML format.
+        to_html: Converts detection results to HTML format.
+        to_sql: Converts detection results to an SQL-compatible format.
 
     Examples:
         >>> results = model("path/to/image.jpg")
+        >>> result = results[0]  # Get the first result
+        >>> boxes = result.boxes  # Get the boxes for the first result
+        >>> masks = result.masks  # Get the masks for the first result
         >>> for result in results:
-        ...     print(result.boxes)  # Print detection boxes
-        ...     result.show()  # Display the annotated image
-        ...     result.save(filename="result.jpg")  # Save annotated image
+        >>>     result.plot()  # Plot detection results
     """
 
     def __init__(
@@ -305,7 +312,7 @@ class Results(SimpleClass):
             if v is not None:
                 return len(v)
 
-    def update(self, boxes=None, masks=None, probs=None, obb=None):
+    def update(self, boxes=None, masks=None, probs=None, obb=None, keypoints=None):
         """
         Updates the Results object with new detection data.
 
@@ -318,6 +325,7 @@ class Results(SimpleClass):
             masks (torch.Tensor | None): A tensor of shape (N, H, W) containing segmentation masks.
             probs (torch.Tensor | None): A tensor of shape (num_classes,) containing class probabilities.
             obb (torch.Tensor | None): A tensor of shape (N, 5) containing oriented bounding box coordinates.
+            keypoints (torch.Tensor | None): A tensor of shape (N, 17, 3) containing keypoints.
 
         Examples:
             >>> results = model("image.jpg")
@@ -332,6 +340,8 @@ class Results(SimpleClass):
             self.probs = probs
         if obb is not None:
             self.obb = OBB(obb, self.orig_shape)
+        if keypoints is not None:
+            self.keypoints = Keypoints(keypoints, self.orig_shape)
 
     def _apply(self, fn, *args, **kwargs):
         """
@@ -491,8 +501,8 @@ class Results(SimpleClass):
         Examples:
             >>> results = model("image.jpg")
             >>> for result in results:
-            ...     im = result.plot()
-            ...     im.show()
+            >>>     im = result.plot()
+            >>>     im.show()
         """
         assert color_mode in {"instance", "class"}, f"Expected color_mode='instance' or 'class', not {color_mode}."
         if img is None and isinstance(self.orig_img, torch.Tensor):
@@ -580,7 +590,7 @@ class Results(SimpleClass):
         if save:
             annotator.save(filename)
 
-        return annotator.result()
+        return annotator.im if pil else annotator.result()
 
     def show(self, *args, **kwargs):
         """
@@ -597,7 +607,7 @@ class Results(SimpleClass):
             >>> results = model("path/to/image.jpg")
             >>> results[0].show()  # Display the first result
             >>> for result in results:
-            ...     result.show()  # Display all results
+            >>>     result.show()  # Display all results
         """
         self.plot(show=True, *args, **kwargs)
 
@@ -617,10 +627,10 @@ class Results(SimpleClass):
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            ...     result.save("annotated_image.jpg")
+            >>>     result.save("annotated_image.jpg")
             >>> # Or with custom plot arguments
             >>> for result in results:
-            ...     result.save("annotated_image.jpg", conf=False, line_width=2)
+            >>>     result.save("annotated_image.jpg", conf=False, line_width=2)
         """
         if not filename:
             filename = f"results_{Path(self.path).name}"
@@ -641,7 +651,7 @@ class Results(SimpleClass):
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            ...     print(result.verbose())
+            >>>     print(result.verbose())
             2 persons, 1 car, 3 traffic lights,
             dog 0.92, cat 0.78, horse 0.64,
 
@@ -652,12 +662,11 @@ class Results(SimpleClass):
         """
         log_string = ""
         probs = self.probs
-        boxes = self.boxes
         if len(self) == 0:
             return log_string if probs is not None else f"{log_string}(no detections), "
         if probs is not None:
             log_string += f"{', '.join(f'{self.names[j]} {probs.data[j]:.2f}' for j in probs.top5)}, "
-        if boxes:
+        if boxes := self.boxes:
             for c in boxes.cls.unique():
                 n = (boxes.cls == c).sum()  # detections per class
                 log_string += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "
@@ -679,7 +688,7 @@ class Results(SimpleClass):
             >>> model = YOLO("yolo11n.pt")
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            ...     result.save_txt("output.txt")
+            >>>     result.save_txt("output.txt")
 
         Notes:
             - The file will contain one line per detection or classification with the following structure:
@@ -715,7 +724,7 @@ class Results(SimpleClass):
 
         if texts:
             Path(txt_file).parent.mkdir(parents=True, exist_ok=True)  # make directory
-            with open(txt_file, "a") as f:
+            with open(txt_file, "a", encoding="utf-8") as f:
                 f.writelines(text + "\n" for text in texts)
 
     def save_crop(self, save_dir, file_name=Path("im.jpg")):
@@ -738,7 +747,7 @@ class Results(SimpleClass):
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            ...     result.save_crop(save_dir="path/to/crops", file_name="detection")
+            >>>     result.save_crop(save_dir="path/to/crops", file_name="detection")
         """
         if self.probs is not None:
             LOGGER.warning("WARNING ⚠️ Classify task do not support `save_crop`.")
@@ -764,8 +773,8 @@ class Results(SimpleClass):
         optionally mask segments and keypoints.
 
         Args:
-            normalize (bool): Whether to normalize bounding box coordinates by image dimensions. Defaults to False.
-            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+            normalize (bool): Whether to normalize bounding box coordinates by image dimensions.
+            decimals (int): Number of decimal places to round the output values to.
 
         Returns:
             (List[Dict]): A list of dictionaries, each containing summarized information for a single
@@ -774,8 +783,9 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("image.jpg")
-            >>> summary = results[0].summary()
-            >>> print(summary)
+            >>> for result in results:
+            >>>     summary = result.summary()
+            >>>     print(summary)
         """
         # Create list of detection dictionaries
         results = []
@@ -829,18 +839,19 @@ class Results(SimpleClass):
 
         Args:
             normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
-                If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
-            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+                If True, coordinates will be returned as float values between 0 and 1.
+            decimals (int): Number of decimal places to round the output values to.
 
         Returns:
             (DataFrame): A Pandas Dataframe containing all the information in results in an organized way.
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> df_result = results[0].to_df()
-            >>> print(df_result)
+            >>> for result in results:
+            >>>     df_result = result.to_df()
+            >>>     print(df_result)
         """
-        import pandas as pd
+        import pandas as pd  # scope for faster 'import ultralytics'
 
         return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
 
@@ -854,8 +865,8 @@ class Results(SimpleClass):
 
         Args:
             normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
-                If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
-            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+                If True, coordinates will be returned as float values between 0 and 1.
+            decimals (int): Number of decimal places to round the output values to.
             *args (Any): Variable length argument list to be passed to pandas.DataFrame.to_csv().
             **kwargs (Any): Arbitrary keyword arguments to be passed to pandas.DataFrame.to_csv().
 
@@ -865,8 +876,9 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> csv_result = results[0].to_csv()
-            >>> print(csv_result)
+            >>> for result in results:
+            >>>     csv_result = result.to_csv()
+            >>>     print(csv_result)
         """
         return self.to_df(normalize=normalize, decimals=decimals).to_csv(*args, **kwargs)
 
@@ -880,8 +892,8 @@ class Results(SimpleClass):
 
         Args:
             normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
-                If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
-            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+                If True, coordinates will be returned as float values between 0 and 1.
+            decimals (int): Number of decimal places to round the output values to.
             *args (Any): Variable length argument list to be passed to pandas.DataFrame.to_xml().
             **kwargs (Any): Arbitrary keyword arguments to be passed to pandas.DataFrame.to_xml().
 
@@ -890,12 +902,41 @@ class Results(SimpleClass):
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> xml_result = results[0].to_xml()
-            >>> print(xml_result)
+            >>> for result in results:
+            >>>     xml_result = result.to_xml()
+            >>>     print(xml_result)
         """
         check_requirements("lxml")
         df = self.to_df(normalize=normalize, decimals=decimals)
         return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>' if df.empty else df.to_xml(*args, **kwargs)
+
+    def to_html(self, normalize=False, decimals=5, index=False, *args, **kwargs):
+        """
+        Converts detection results to HTML format.
+
+        This method serializes the detection results into an HTML format. It includes information
+        about detected objects such as bounding boxes, class names, confidence scores, and optionally
+        segmentation masks and keypoints.
+
+        Args:
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
+                If True, coordinates will be returned as float values between 0 and 1.
+            decimals (int): Number of decimal places to round the output values to.
+            index (bool): Whether to include the DataFrame index in the HTML output.
+            *args (Any): Variable length argument list to be passed to pandas.DataFrame.to_html().
+            **kwargs (Any): Arbitrary keyword arguments to be passed to pandas.DataFrame.to_html().
+
+        Returns:
+            (str): An HTML string containing all the information in results in an organized way.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> for result in results:
+            >>>     html_result = result.to_html()
+            >>>     print(html_result)
+        """
+        df = self.to_df(normalize=normalize, decimals=decimals)
+        return "<table></table>" if df.empty else df.to_html(index=index, *args, **kwargs)
 
     def tojson(self, normalize=False, decimals=5):
         """Deprecated version of to_json()."""
@@ -912,16 +953,17 @@ class Results(SimpleClass):
 
         Args:
             normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
-                If True, coordinates will be returned as float values between 0 and 1. Defaults to False.
-            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+                If True, coordinates will be returned as float values between 0 and 1.
+            decimals (int): Number of decimal places to round the output values to.
 
         Returns:
             (str): A JSON string containing the serialized detection results.
 
         Examples:
             >>> results = model("path/to/image.jpg")
-            >>> json_result = results[0].to_json()
-            >>> print(json_result)
+            >>> for result in results:
+            >>>     json_result = result.to_json()
+            >>>     print(json_result)
 
         Notes:
             - For classification tasks, the JSON will contain class probabilities instead of bounding boxes.
@@ -934,6 +976,64 @@ class Results(SimpleClass):
         import json
 
         return json.dumps(self.summary(normalize=normalize, decimals=decimals), indent=2)
+
+    def to_sql(self, table_name="results", normalize=False, decimals=5, db_path="results.db"):
+        """
+        Converts detection results to an SQL-compatible format.
+
+        This method serializes the detection results into a format compatible with SQL databases.
+        It includes information about detected objects such as bounding boxes, class names, confidence scores,
+        and optionally segmentation masks, keypoints or oriented bounding boxes.
+
+        Args:
+            table_name (str): Name of the SQL table where the data will be inserted.
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
+                If True, coordinates will be returned as float values between 0 and 1.
+            decimals (int): Number of decimal places to round the bounding boxes values to.
+            db_path (str): Path to the SQLite database file.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> for result in results:
+            >>>     result.to_sql()
+        """
+        import json
+        import sqlite3
+
+        # Convert results to a list of dictionaries
+        data = self.summary(normalize=normalize, decimals=decimals)
+        if len(data) == 0:
+            LOGGER.warning("⚠️ No results to save to SQL. Results dict is empty")
+            return
+
+        # Connect to the SQLite database
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        # Create table if it doesn't exist
+        columns = (
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, class_name TEXT, confidence REAL, box TEXT, masks TEXT, kpts TEXT"
+        )
+        cursor.execute(f"CREATE TABLE IF NOT EXISTS {table_name} ({columns})")
+
+        # Insert data into the table
+        for item in data:
+            cursor.execute(
+                f"INSERT INTO {table_name} (class_name, confidence, box, masks, kpts) VALUES (?, ?, ?, ?, ?)",
+                (
+                    item.get("name"),
+                    item.get("confidence"),
+                    json.dumps(item.get("box", {})),
+                    json.dumps(item.get("segments", {})),
+                    json.dumps(item.get("keypoints", {})),
+                ),
+            )
+
+        # Commit and close the connection
+        conn.commit()
+        conn.close()
+
+        LOGGER.info(f"✅ Detection results successfully written to SQL table '{table_name}' in database '{db_path}'.")
 
 
 class Boxes(BaseTensor):
@@ -951,7 +1051,7 @@ class Boxes(BaseTensor):
         xyxy (torch.Tensor | numpy.ndarray): Boxes in [x1, y1, x2, y2] format.
         conf (torch.Tensor | numpy.ndarray): Confidence scores for each box.
         cls (torch.Tensor | numpy.ndarray): Class labels for each box.
-        id (torch.Tensor | numpy.ndarray): Tracking IDs for each box (if available).
+        id (torch.Tensor | None): Tracking IDs for each box (if available).
         xywh (torch.Tensor | numpy.ndarray): Boxes in [x, y, width, height] format.
         xyxyn (torch.Tensor | numpy.ndarray): Normalized [x1, y1, x2, y2] boxes relative to orig_shape.
         xywhn (torch.Tensor | numpy.ndarray): Normalized [x, y, width, height] boxes relative to orig_shape.
@@ -1719,7 +1819,7 @@ class OBB(BaseTensor):
         Examples:
             >>> import torch
             >>> from ultralytics import YOLO
-            >>> model = YOLO("yolov8n-obb.pt")
+            >>> model = YOLO("yolo11n-obb.pt")
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
             ...     obb = result.obb

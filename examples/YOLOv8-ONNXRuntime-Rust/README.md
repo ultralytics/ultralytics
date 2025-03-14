@@ -87,13 +87,13 @@ cargo run --release -- --cuda --device_id 0 --model <MODEL> --source <SOURCE>
 
 Set `--batch` to do multi-batch-size inference.
 
-If you're using `--trt`, you can also set `--batch-min` and `--batch-max` to explicitly specify min/max/opt batch for dynamic batch input.(https://onnxruntime.ai/docs/execution-providers/TensorRT-ExecutionProvider.html#explicit-shape-range-for-dynamic-shape-input).(Note that the ONNX model should exported with dynamic shapes)
+If you're using `--trt`, you can also set `--batch-min` and `--batch-max` to explicitly specify min/max/opt batch for dynamic batch input.(https://onnxruntime.ai/docs/execution-providers/TensorRT-ExecutionProvider.html#explicit-shape-range-for-dynamic-shape-input).(Note that the ONNX model should be exported with dynamic shapes.)
 
 ```bash
 cargo run --release -- --cuda --batch 2 --model <MODEL> --source <SOURCE>
 ```
 
-Set `--height` and `--width` to do dynamic image size inference. (Note that the ONNX model should exported with dynamic shapes)
+Set `--height` and `--width` to do dynamic image size inference. (Note that the ONNX model should be exported with dynamic shapes.)
 
 ```bash
 cargo run --release -- --cuda --width 480 --height 640 --model <MODEL> --source <SOURCE>

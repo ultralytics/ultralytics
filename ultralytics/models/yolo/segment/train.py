@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from copy import copy
 
@@ -12,14 +12,17 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
     """
     A class extending the DetectionTrainer class for training based on a segmentation model.
 
-    Example:
-        ```python
-        from ultralytics.models.yolo.segment import SegmentationTrainer
+    This trainer specializes in handling segmentation tasks, extending the detection trainer with segmentation-specific
+    functionality including model initialization, validation, and visualization.
 
-        args = dict(model="yolov8n-seg.pt", data="coco8-seg.yaml", epochs=3)
-        trainer = SegmentationTrainer(overrides=args)
-        trainer.train()
-        ```
+    Attributes:
+        loss_names (Tuple[str]): Names of the loss components used during training.
+
+    Examples:
+        >>> from ultralytics.models.yolo.segment import SegmentationTrainer
+        >>> args = dict(model="yolo11n-seg.pt", data="coco8-seg.yaml", epochs=3)
+        >>> trainer = SegmentationTrainer(overrides=args)
+        >>> trainer.train()
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):

@@ -62,7 +62,7 @@ Next, let's understand the features Kaggle offers that make it an excellent plat
 - **Datasets**: Kaggle hosts a massive collection of datasets on various topics. You can easily search and use these datasets in your projects, which is particularly handy for training and testing your YOLO11 models.
 - **Competitions**: Known for its exciting competitions, Kaggle allows data scientists and machine learning enthusiasts to solve real-world problems. Competing helps you improve your skills, learn new techniques, and gain recognition in the community.
 - **Free Access to TPUs**: Kaggle provides free access to powerful TPUs, which are essential for training complex machine learning models. This means you can speed up processing and boost the performance of your YOLO11 projects without incurring extra costs.
-- **Integration with Github**: Kaggle allows you to easily connect your GitHub repository to upload notebooks and save your work. This integration makes it convenient to manage and access your files.
+- **Integration with GitHub**: Kaggle allows you to easily connect your GitHub repository to upload notebooks and save your work. This integration makes it convenient to manage and access your files.
 - **Community and Discussions**: Kaggle boasts a strong community of data scientists and machine learning practitioners. The discussion forums and shared notebooks are fantastic resources for learning and troubleshooting. You can easily find help, share your knowledge, and collaborate with others.
 
 ## Why Should You Use Kaggle for Your YOLO11 Projects?
@@ -81,7 +81,7 @@ If you want to learn more about Kaggle, here are some helpful resources to guide
 
 - [**Kaggle Learn**](https://www.kaggle.com/learn): Discover a variety of free, interactive tutorials on Kaggle Learn. These courses cover essential data science topics and provide hands-on experience to help you master new skills.
 - [**Getting Started with Kaggle**](https://www.kaggle.com/code/alexisbcook/getting-started-with-kaggle): This comprehensive guide walks you through the basics of using Kaggle, from joining competitions to creating your first notebook. It's a great starting point for newcomers.
-- [**Kaggle Medium Page**](https://medium.com/@kaggleteam): Explore tutorials, updates, and community contributions on Kaggle's Medium page. It's an excellent source for staying up-to-date with the latest trends and gaining deeper insights into data science.
+- [**Kaggle Medium Page**](https://medium.com/@kaggleteam): Explore tutorials, updates, and community contributions to Kaggle's Medium page. It's an excellent source for staying up-to-date with the latest trends and gaining deeper insights into data science.
 
 ## Summary
 

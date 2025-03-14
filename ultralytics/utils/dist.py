@@ -12,10 +12,13 @@ from .torch_utils import TORCH_1_9
 
 def find_free_network_port() -> int:
     """
-    Finds a free port on localhost.
+    Find a free port on localhost.
 
     It is useful in single-node training when we don't want to connect to a real main node but have to set the
     `MASTER_PORT` environment variable.
+
+    Returns:
+        (int): The available network port number.
     """
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("127.0.0.1", 0))
@@ -54,7 +57,17 @@ if __name__ == "__main__":
 
 
 def generate_ddp_command(world_size, trainer):
-    """Generates and returns command for distributed training."""
+    """
+    Generate command for distributed training.
+
+    Args:
+        world_size (int): Number of processes to spawn for distributed training.
+        trainer (object): The trainer object containing configuration for distributed training.
+
+    Returns:
+        cmd (List[str]): The command to execute for distributed training.
+        file (str): Path to the temporary file created for DDP training.
+    """
     import __main__  # noqa local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
 
     if not trainer.resume:

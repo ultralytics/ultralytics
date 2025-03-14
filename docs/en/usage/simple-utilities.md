@@ -29,7 +29,7 @@ The `ultralytics` package comes with a myriad of utilities that can support, enh
 
 Dataset annotation is a very resource intensive and time-consuming process. If you have a YOLO [object detection](https://www.ultralytics.com/glossary/object-detection) model trained on a reasonable amount of data, you can use it and [SAM](../models/sam.md) to auto-annotate additional data (segmentation format).
 
-```{ .py .annotate }
+```python
 from ultralytics.data.annotator import auto_annotate
 
 auto_annotate(
@@ -50,7 +50,7 @@ This function does not return any value. For further details on how the function
 
 This function visualizes YOLO annotations on an image before training, helping to identify and correct any wrong annotations that could lead to incorrect detection results. It draws bounding boxes, labels objects with class names, and adjusts text color based on the background's luminance for better readability.
 
-```{ .py .annotate }
+```python
 from ultralytics.data.utils import visualize_image_annotations
 
 label_map = {  # Define the label map with all annotated class labels.

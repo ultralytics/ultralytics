@@ -1,7 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import numpy as np
-import scipy.linalg
+from autoimport import lazy
+
+with lazy():
+    import scipy
 
 
 class KalmanFilterXYAH:

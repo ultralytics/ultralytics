@@ -13,21 +13,42 @@ from .utils import adjust_bboxes_to_image_border
 
 class FastSAMPredictor(SegmentationPredictor):
     """
-    FastSAMPredictor is specialized for fast SAM (Segment Anything Model) segmentation prediction tasks in Ultralytics
-    YOLO framework.
+    FastSAMPredictor is specialized for fast SAM (Segment Anything Model) segmentation prediction tasks.
 
     This class extends the SegmentationPredictor, customizing the prediction pipeline specifically for fast SAM. It
-    adjusts post-processing steps to incorporate mask prediction and non-max suppression while optimizing for single-
-    class segmentation.
+    adjusts post-processing steps to incorporate mask prediction and non-maximum suppression while optimizing for
+    single-class segmentation.
+
+    Attributes:
+        prompts (Dict): Dictionary containing prompt information for segmentation (bboxes, points, labels, texts).
+        device (torch.device): Device on which model and tensors are processed.
+        clip_model (Any, optional): CLIP model for text-based prompting, loaded on demand.
+        clip_preprocess (Any, optional): CLIP preprocessing function for images, loaded on demand.
+
+    Methods:
+        postprocess: Applies box postprocessing for FastSAM predictions.
+        prompt: Performs image segmentation inference based on various prompt types.
+        _clip_inference: Performs CLIP inference to calculate similarity between images and text prompts.
+        set_prompts: Sets prompts to be used during inference.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initializes a FastSAMPredictor for fast SAM segmentation tasks in Ultralytics YOLO framework."""
+        """Initialize the FastSAMPredictor with configuration and callbacks."""
         super().__init__(cfg, overrides, _callbacks)
         self.prompts = {}
 
     def postprocess(self, preds, img, orig_imgs):
-        """Applies box postprocess for FastSAM predictions."""
+        """
+        Apply postprocessing to FastSAM predictions and handle prompts.
+
+        Args:
+            preds (List[torch.Tensor]): Raw predictions from the model.
+            img (torch.Tensor): Input image tensor that was fed to the model.
+            orig_imgs (List[numpy.ndarray]): Original images before preprocessing.
+
+        Returns:
+            (List[Results]): Processed results with prompts applied.
+        """
         bboxes = self.prompts.pop("bboxes", None)
         points = self.prompts.pop("points", None)
         labels = self.prompts.pop("labels", None)
@@ -46,18 +67,17 @@ class FastSAMPredictor(SegmentationPredictor):
 
     def prompt(self, results, bboxes=None, points=None, labels=None, texts=None):
         """
-        Internal function for image segmentation inference based on cues like bounding boxes, points, and masks.
-        Leverages SAM's specialized architecture for prompt-based, real-time segmentation.
+        Perform image segmentation inference based on cues like bounding boxes, points, and text prompts.
 
         Args:
-            results (Results | List[Results]): The original inference results from FastSAM models without any prompts.
+            results (Results | List[Results]): Original inference results from FastSAM models without any prompts.
             bboxes (np.ndarray | List, optional): Bounding boxes with shape (N, 4), in XYXY format.
             points (np.ndarray | List, optional): Points indicating object locations with shape (N, 2), in pixels.
             labels (np.ndarray | List, optional): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background.
-            texts (str | List[str], optional): Textual prompts, a list contains string objects.
+            texts (str | List[str], optional): Textual prompts, a list containing string objects.
 
         Returns:
-            (List[Results]): The output results determined by prompts.
+            (List[Results]): Output results filtered and determined by the provided prompts.
         """
         if bboxes is None and points is None and texts is None:
             return results
@@ -121,14 +141,14 @@ class FastSAMPredictor(SegmentationPredictor):
 
     def _clip_inference(self, images, texts):
         """
-        CLIP Inference process.
+        Perform CLIP inference to calculate similarity between images and text prompts.
 
         Args:
-            images (List[PIL.Image]): A list of source images and each of them should be PIL.Image type with RGB channel order.
-            texts (List[str]): A list of prompt texts and each of them should be string object.
+            images (List[PIL.Image]): List of source images, each should be PIL.Image with RGB channel order.
+            texts (List[str]): List of prompt texts, each should be a string object.
 
         Returns:
-            (torch.Tensor): The similarity between given images and texts.
+            (torch.Tensor): Similarity matrix between given images and texts with shape (M, N).
         """
         try:
             import clip
@@ -146,5 +166,5 @@ class FastSAMPredictor(SegmentationPredictor):
         return (image_features * text_features[:, None]).sum(-1)  # (M, N)
 
     def set_prompts(self, prompts):
-        """Set prompts in advance."""
+        """Set prompts to be used during inference."""
         self.prompts = prompts

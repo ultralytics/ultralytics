@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""Module utils."""
 
 import copy
 import math
@@ -46,9 +45,24 @@ def multi_scale_deformable_attn_pytorch(
     attention_weights: torch.Tensor,
 ) -> torch.Tensor:
     """
-    Multiscale deformable attention.
+    Implement multi-scale deformable attention in PyTorch.
 
-    https://github.com/IDEA-Research/detrex/blob/main/detrex/layers/multi_scale_deform_attn.py
+    This function performs deformable attention across multiple feature map scales, allowing the model to attend to
+    different spatial locations with learned offsets.
+
+    Args:
+        value (torch.Tensor): The value tensor with shape (bs, num_keys, num_heads, embed_dims).
+        value_spatial_shapes (torch.Tensor): Spatial shapes of the value tensor with shape (num_levels, 2).
+        sampling_locations (torch.Tensor): The sampling locations with shape
+            (bs, num_queries, num_heads, num_levels, num_points, 2).
+        attention_weights (torch.Tensor): The attention weights with shape
+            (bs, num_queries, num_heads, num_levels, num_points).
+
+    Returns:
+        (torch.Tensor): The output tensor with shape (bs, num_queries, embed_dims).
+
+    References:
+        https://github.com/IDEA-Research/detrex/blob/main/detrex/layers/multi_scale_deform_attn.py
     """
     bs, _, num_heads, embed_dims = value.shape
     _, num_queries, num_heads, num_levels, num_points, _ = sampling_locations.shape

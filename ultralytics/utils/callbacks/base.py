@@ -1,5 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""Base callbacks."""
+"""Base callbacks for Ultralytics training, validation, prediction, and export processes."""
 
 from collections import defaultdict
 from copy import deepcopy
@@ -189,8 +189,8 @@ def add_integration_callbacks(instance):
     Add integration callbacks from various sources to the instance's callbacks.
 
     Args:
-        instance (Trainer, Predictor, Validator, Exporter): An object with a 'callbacks' attribute that is a dictionary
-            of callback lists.
+        instance (Trainer | Predictor | Validator | Exporter): An object with a 'callbacks' attribute that is a
+            dictionary of callback lists.
     """
     # Load HUB callbacks
     from .hub import callbacks as hub_cb

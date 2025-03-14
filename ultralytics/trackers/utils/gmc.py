@@ -16,20 +16,19 @@ class GMC:
     SIFT, ECC, and Sparse Optical Flow. It also supports downscaling of frames for computational efficiency.
 
     Attributes:
-        method (str): The method used for tracking. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', 'none'.
+        method (str): The tracking method to use. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', 'none'.
         downscale (int): Factor by which to downscale the frames for processing.
-        prevFrame (np.ndarray): Stores the previous frame for tracking.
-        prevKeyPoints (List): Stores the keypoints from the previous frame.
-        prevDescriptors (np.ndarray): Stores the descriptors from the previous frame.
-        initializedFirstFrame (bool): Flag to indicate if the first frame has been processed.
+        prevFrame (np.ndarray): Previous frame for tracking.
+        prevKeyPoints (List): Keypoints from the previous frame.
+        prevDescriptors (np.ndarray): Descriptors from the previous frame.
+        initializedFirstFrame (bool): Flag indicating if the first frame has been processed.
 
     Methods:
-        __init__: Initializes a GMC object with the specified method and downscale factor.
-        apply: Applies the chosen method to a raw frame and optionally uses provided detections.
-        apply_ecc: Applies the ECC algorithm to a raw frame.
-        apply_features: Applies feature-based methods like ORB or SIFT to a raw frame.
-        apply_sparseoptflow: Applies the Sparse Optical Flow method to a raw frame.
-        reset_params: Resets the internal parameters of the GMC object.
+        apply: Apply the chosen method to a raw frame and optionally use provided detections.
+        apply_ecc: Apply the ECC algorithm to a raw frame.
+        apply_features: Apply feature-based methods like ORB or SIFT to a raw frame.
+        apply_sparseoptflow: Apply the Sparse Optical Flow method to a raw frame.
+        reset_params: Reset the internal parameters of the GMC object.
 
     Examples:
         Create a GMC object and apply it to a frame
@@ -46,7 +45,7 @@ class GMC:
         Initialize a Generalized Motion Compensation (GMC) object with tracking method and downscale factor.
 
         Args:
-            method (str): The method used for tracking. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', 'none'.
+            method (str): The tracking method to use. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', 'none'.
             downscale (int): Downscale factor for processing frames.
 
         Examples:
@@ -82,14 +81,14 @@ class GMC:
         elif self.method in {"none", "None", None}:
             self.method = None
         else:
-            raise ValueError(f"Error: Unknown GMC method:{method}")
+            raise ValueError(f"Error: Unknown GMC method: {method}")
 
         self.prevFrame = None
         self.prevKeyPoints = None
         self.prevDescriptors = None
         self.initializedFirstFrame = False
 
-    def apply(self, raw_frame: np.array, detections: list = None) -> np.array:
+    def apply(self, raw_frame: np.ndarray, detections: list = None) -> np.ndarray:
         """
         Apply object detection on a raw frame using the specified method.
 
@@ -98,14 +97,14 @@ class GMC:
             detections (List | None): List of detections to be used in the processing.
 
         Returns:
-            (np.ndarray): Processed frame with applied object detection.
+            (np.ndarray): Transformation matrix with shape (2, 3).
 
         Examples:
             >>> gmc = GMC(method="sparseOptFlow")
             >>> raw_frame = np.random.rand(480, 640, 3)
-            >>> processed_frame = gmc.apply(raw_frame)
-            >>> print(processed_frame.shape)
-            (480, 640, 3)
+            >>> transformation_matrix = gmc.apply(raw_frame)
+            >>> print(transformation_matrix.shape)
+            (2, 3)
         """
         if self.method in {"orb", "sift"}:
             return self.apply_features(raw_frame, detections)
@@ -116,7 +115,7 @@ class GMC:
         else:
             return np.eye(2, 3)
 
-    def apply_ecc(self, raw_frame: np.array) -> np.array:
+    def apply_ecc(self, raw_frame: np.ndarray) -> np.ndarray:
         """
         Apply the ECC (Enhanced Correlation Coefficient) algorithm to a raw frame for motion compensation.
 
@@ -124,7 +123,7 @@ class GMC:
             raw_frame (np.ndarray): The raw frame to be processed, with shape (H, W, C).
 
         Returns:
-            (np.ndarray): The processed frame with the applied ECC transformation.
+            (np.ndarray): Transformation matrix with shape (2, 3).
 
         Examples:
             >>> gmc = GMC(method="ecc")
@@ -161,7 +160,7 @@ class GMC:
 
         return H
 
-    def apply_features(self, raw_frame: np.array, detections: list = None) -> np.array:
+    def apply_features(self, raw_frame: np.ndarray, detections: list = None) -> np.ndarray:
         """
         Apply feature-based methods like ORB or SIFT to a raw frame.
 
@@ -170,13 +169,13 @@ class GMC:
             detections (List | None): List of detections to be used in the processing.
 
         Returns:
-            (np.ndarray): Processed frame.
+            (np.ndarray): Transformation matrix with shape (2, 3).
 
         Examples:
             >>> gmc = GMC(method="orb")
             >>> raw_frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-            >>> processed_frame = gmc.apply_features(raw_frame)
-            >>> print(processed_frame.shape)
+            >>> transformation_matrix = gmc.apply_features(raw_frame)
+            >>> print(transformation_matrix.shape)
             (2, 3)
         """
         height, width, _ = raw_frame.shape
@@ -304,7 +303,7 @@ class GMC:
 
         return H
 
-    def apply_sparseoptflow(self, raw_frame: np.array) -> np.array:
+    def apply_sparseoptflow(self, raw_frame: np.ndarray) -> np.ndarray:
         """
         Apply Sparse Optical Flow method to a raw frame.
 
@@ -312,7 +311,7 @@ class GMC:
             raw_frame (np.ndarray): The raw frame to be processed, with shape (H, W, C).
 
         Returns:
-            (np.ndarray): Processed frame with shape (2, 3).
+            (np.ndarray): Transformation matrix with shape (2, 3).
 
         Examples:
             >>> gmc = GMC()
@@ -355,7 +354,7 @@ class GMC:
         currPoints = np.array(currPoints)
 
         # Find rigid matrix
-        if (prevPoints.shape[0] > 4) and (prevPoints.shape[0] == prevPoints.shape[0]):
+        if (prevPoints.shape[0] > 4) and (prevPoints.shape[0] == currPoints.shape[0]):
             H, _ = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)
 
             if self.downscale > 1.0:

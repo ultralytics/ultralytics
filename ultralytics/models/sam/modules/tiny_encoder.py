@@ -27,7 +27,7 @@ class Conv2d_BN(torch.nn.Sequential):
 
     Attributes:
         c (torch.nn.Conv2d): 2D convolution layer.
-        1 (torch.nn.BatchNorm2d): Batch normalization layer.
+        bn (torch.nn.BatchNorm2d): Batch normalization layer.
 
     Methods:
         __init__: Initializes the Conv2d_BN with specified parameters.
@@ -265,9 +265,9 @@ class ConvLayer(nn.Module):
             dim (int): The dimensionality of the input and output.
             input_resolution (Tuple[int, int]): The resolution of the input image.
             depth (int): The number of MBConv layers in the block.
-            activation (Callable): Activation function applied after each convolution.
+            activation (nn.Module): Activation function applied after each convolution.
             drop_path (float | List[float]): Drop path rate. Single float or a list of floats for each MBConv.
-            downsample (Optional[Callable]): Function for downsampling the output. None to skip downsampling.
+            downsample (Optional[nn.Module]): Function for downsampling the output. None to skip downsampling.
             use_checkpoint (bool): Whether to use gradient checkpointing to save memory.
             out_dim (Optional[int]): The dimensionality of the output. None means it will be the same as `dim`.
             conv_expand_ratio (float): Expansion ratio for the MBConv layers.
@@ -413,12 +413,9 @@ class Attention(torch.nn.Module):
         Args:
             dim (int): The dimensionality of the input and output.
             key_dim (int): The dimensionality of the keys and queries.
-            num_heads (int): Number of attention heads. Default is 8.
-            attn_ratio (float): Attention ratio, affecting the dimensions of the value vectors. Default is 4.
-            resolution (Tuple[int, int]): Spatial resolution of the input feature map. Default is (14, 14).
-
-        Raises:
-            AssertionError: If 'resolution' is not a tuple of length 2.
+            num_heads (int): Number of attention heads.
+            attn_ratio (float): Attention ratio, affecting the dimensions of the value vectors.
+            resolution (Tuple[int, int]): Spatial resolution of the input feature map.
 
         Examples:
             >>> attn = Attention(dim=256, key_dim=64, num_heads=8, resolution=(14, 14))
@@ -821,22 +818,20 @@ class TinyViT(nn.Module):
         attention and convolution blocks, and a classification head.
 
         Args:
-            img_size (int): Size of the input image. Default is 224.
-            in_chans (int): Number of input channels. Default is 3.
-            num_classes (int): Number of classes for classification. Default is 1000.
+            img_size (int): Size of the input image.
+            in_chans (int): Number of input channels.
+            num_classes (int): Number of classes for classification.
             embed_dims (Tuple[int, int, int, int]): Embedding dimensions for each stage.
-                Default is (96, 192, 384, 768).
-            depths (Tuple[int, int, int, int]): Number of blocks in each stage. Default is (2, 2, 6, 2).
+            depths (Tuple[int, int, int, int]): Number of blocks in each stage.
             num_heads (Tuple[int, int, int, int]): Number of attention heads in each stage.
-                Default is (3, 6, 12, 24).
-            window_sizes (Tuple[int, int, int, int]): Window sizes for each stage. Default is (7, 7, 14, 7).
-            mlp_ratio (float): Ratio of MLP hidden dim to embedding dim. Default is 4.0.
-            drop_rate (float): Dropout rate. Default is 0.0.
-            drop_path_rate (float): Stochastic depth rate. Default is 0.1.
-            use_checkpoint (bool): Whether to use checkpointing to save memory. Default is False.
-            mbconv_expand_ratio (float): Expansion ratio for MBConv layer. Default is 4.0.
-            local_conv_size (int): Kernel size for local convolutions. Default is 3.
-            layer_lr_decay (float): Layer-wise learning rate decay factor. Default is 1.0.
+            window_sizes (Tuple[int, int, int, int]): Window sizes for each stage.
+            mlp_ratio (float): Ratio of MLP hidden dim to embedding dim.
+            drop_rate (float): Dropout rate.
+            drop_path_rate (float): Stochastic depth rate.
+            use_checkpoint (bool): Whether to use checkpointing to save memory.
+            mbconv_expand_ratio (float): Expansion ratio for MBConv layer.
+            local_conv_size (int): Kernel size for local convolutions.
+            layer_lr_decay (float): Layer-wise learning rate decay factor.
 
         Examples:
             >>> model = TinyViT(img_size=224, num_classes=1000)
@@ -992,12 +987,7 @@ class TinyViT(nn.Module):
         return self.forward_features(x)
 
     def set_imgsz(self, imgsz=[1024, 1024]):
-        """
-        Set image size to make model compatible with different image sizes.
-
-        Args:
-            imgsz (Tuple[int, int]): The size of the input image.
-        """
+        """Set image size to make model compatible with different image sizes."""
         imgsz = [s // 4 for s in imgsz]
         self.patches_resolution = imgsz
         for i, layer in enumerate(self.layers):

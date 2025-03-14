@@ -84,7 +84,7 @@ extra: # version:
     - icon: fontawesome/brands/linkedin
       link: https://www.linkedin.com/company/ultralytics/
     - icon: fontawesome/brands/x-twitter
-      link: https://twitter.com/ultralytics
+      link: https://x.com/ultralytics
     - icon: fontawesome/brands/youtube
       link: https://youtube.com/ultralytics?sub_confirmation=1
     - icon: fontawesome/brands/docker
@@ -95,6 +95,8 @@ extra: # version:
       link: https://discord.com/invite/ultralytics
     - icon: fontawesome/brands/reddit
       link: https://reddit.com/r/ultralytics
+    - icon: fontawesome/brands/wechat
+      link: https://weixin.qq.com/r/mp/LxckPDfEgWr_rXNf90I9
 
 extra_css:
   - stylesheets/style.css

@@ -162,7 +162,10 @@ class Annotator:
     Attributes:
         im (Image.Image or numpy array): The image to annotate.
         pil (bool): Whether to use PIL or cv2 for drawing annotations.
-        font (ImageFont.truetype or ImageFont.load_default): Font used for text annotations.
+        font (ImageFont.truetype or ImageFont.load_default): Font used for text annotations, enabled only in PIL mode.
+        font_size (float | None): Font size for text annotations, enabled only in PIL mode.
+        cv2_font_thickness (int | None): Font thickness for text annotations, enabled only in cv2 mode.
+        cv2_font_scale (float | None): Font scale for text annotations, enabled only in cv2 mode.
         lw (float): Line width for drawing.
         skeleton (List[List[int]]): Skeleton structure for keypoints.
         limb_color (List[int]): Color palette for limbs.
@@ -174,7 +177,7 @@ class Annotator:
         >>> annotator = Annotator(im0, line_width=10)
     """
 
-    def __init__(self, im, line_width=None, font_size=None, font="Arial.ttf", pil=False, example="abc"):
+    def __init__(self, im, line_width=None, font_size=None, font="Arial.ttf", pil=False, example="abc", cv2_font_thickness=None, cv2_font_scale=None):
         """Initialize the Annotator class with image and line width along with color palette for keypoints and limbs."""
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         input_is_pil = isinstance(im, Image.Image)
@@ -195,8 +198,8 @@ class Annotator:
         else:  # use cv2
             assert im.data.contiguous, "Image not contiguous. Apply np.ascontiguousarray(im) to Annotator input images."
             self.im = im if im.flags.writeable else im.copy()
-            self.tf = max(self.lw - 1, 1)  # font thickness
-            self.sf = self.lw / 3  # font scale
+            self.tf = cv2_font_thickness or max(self.lw - 1, 1)  # font thickness
+            self.sf = cv2_font_scale or self.lw / 3  # font scale
         # Pose
         self.skeleton = [
             [16, 14],

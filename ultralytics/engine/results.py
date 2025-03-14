@@ -472,6 +472,8 @@ class Results(SimpleClass):
         save=False,
         filename=None,
         color_mode="class",
+        cv2_font_thickness=None,
+        cv2_font_scale=None,
     ):
         """
         Plots detection results on an input RGB image.
@@ -479,8 +481,10 @@ class Results(SimpleClass):
         Args:
             conf (bool): Whether to plot detection confidence scores.
             line_width (float | None): Line width of bounding boxes. If None, scaled to image size.
-            font_size (float | None): Font size for text. If None, scaled to image size.
-            font (str): Font to use for text.
+            font_size (float | None): Font size for text, enabled only in pil mode. If None, scaled to image size.
+            font (str): Font to use for text, enabled only in pil mode.
+            cv2_font_thickness (int | None): Font thickness for text annotations, enabled only in cv2 mode.
+            cv2_font_scale (float | None): Font scale for text annotations, enabled only in cv2 mode.
             pil (bool): Whether to return the image as a PIL Image.
             img (np.ndarray | None): Image to plot on. If None, uses original image.
             im_gpu (torch.Tensor | None): Normalized image on GPU for faster mask plotting.
@@ -520,6 +524,8 @@ class Results(SimpleClass):
             font,
             pil or (pred_probs is not None and show_probs),  # Classify tasks default to pil=True
             example=names,
+            cv2_font_scale=cv2_font_scale,
+            cv2_font_thickness=cv2_font_thickness,
         )
 
         # Plot Segment results

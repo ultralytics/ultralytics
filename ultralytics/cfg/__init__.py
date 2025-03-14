@@ -5,7 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Union
 
 import cv2
 
@@ -35,14 +35,18 @@ from ultralytics.utils import (
 
 # Define valid solutions
 SOLUTION_MAP = {
-    "count": ("ObjectCounter", "count"),
-    "heatmap": ("Heatmap", "generate_heatmap"),
-    "queue": ("QueueManager", "process_queue"),
-    "speed": ("SpeedEstimator", "estimate_speed"),
-    "workout": ("AIGym", "monitor"),
-    "analytics": ("Analytics", "process_data"),
-    "trackzone": ("TrackZone", "trackzone"),
-    "inference": ("Inference", "inference"),
+    "count": "ObjectCounter",
+    "crop": "ObjectCropper",
+    "blur": "ObjectBlurrer",
+    "workout": "AIGym",
+    "heatmap": "Heatmap",
+    "isegment": "InstanceSegmentation",
+    "visioneye": "VisionEye",
+    "speed": "SpeedEstimator",
+    "queue": "QueueManager",
+    "analytics": "Analytics",
+    "inference": "Inference",
+    "trackzone": "TrackZone",
     "help": None,
 }
 
@@ -238,7 +242,7 @@ CFG_BOOL_KEYS = frozenset(
 )
 
 
-def cfg2dict(cfg):
+def cfg2dict(cfg: Union[str, Path, Dict, SimpleNamespace]) -> Dict:
     """
     Converts a configuration object to a dictionary.
 
@@ -273,7 +277,7 @@ def cfg2dict(cfg):
     return cfg
 
 
-def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, overrides: Dict = None):
+def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, overrides: Dict = None) -> SimpleNamespace:
     """
     Load and merge configuration data from a file or dictionary, with optional overrides.
 
@@ -321,7 +325,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     return IterableSimpleNamespace(**cfg)
 
 
-def check_cfg(cfg, hard=True):
+def check_cfg(cfg: Dict, hard: bool = True) -> None:
     """
     Checks configuration argument types and values for the Ultralytics library.
 
@@ -383,7 +387,7 @@ def check_cfg(cfg, hard=True):
                 cfg[k] = bool(v)
 
 
-def get_save_dir(args, name=None):
+def get_save_dir(args: SimpleNamespace, name: str = None) -> Path:
     """
     Returns the directory path for saving outputs, derived from arguments or default settings.
 
@@ -415,7 +419,7 @@ def get_save_dir(args, name=None):
     return Path(save_dir)
 
 
-def _handle_deprecation(custom):
+def _handle_deprecation(custom: Dict) -> Dict:
     """
     Handles deprecated configuration keys by mapping them to current equivalents with deprecation warnings.
 
@@ -453,7 +457,7 @@ def _handle_deprecation(custom):
     return custom
 
 
-def check_dict_alignment(base: Dict, custom: Dict, e=None):
+def check_dict_alignment(base: Dict, custom: Dict, e: Exception = None) -> None:
     """
     Checks alignment between custom and base configuration dictionaries, handling deprecated keys and providing error
     messages for mismatched keys.
@@ -507,7 +511,7 @@ def merge_equals_args(args: List[str]) -> List[str]:
         args (List[str]): A list of strings where each element represents an argument or fragment.
 
     Returns:
-        List[str]: A list of strings where the arguments around isolated '=' are merged and fragments with brackets are joined.
+        (List[str]): A list of strings where the arguments around isolated '=' are merged and fragments with brackets are joined.
 
     Examples:
         >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3", "imgsz=[3,", "640,", "640]"]
@@ -634,9 +638,6 @@ def handle_yolo_solutions(args: List[str]) -> None:
             solutions: https://docs.ultralytics.com/solutions/, It can include solution name, source,
             and other configuration parameters.
 
-    Returns:
-        None: The function processes video frames and saves the output but doesn't return any value.
-
     Examples:
         Run people counting solution with default settings:
         >>> handle_yolo_solutions(["count"])
@@ -660,7 +661,13 @@ def handle_yolo_solutions(args: List[str]) -> None:
         - The inference solution will be launched using the 'streamlit run' command.
         - The Streamlit app file is located in the Ultralytics package directory.
     """
-    full_args_dict = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}  # arguments dictionary
+    full_args_dict = {
+        **DEFAULT_SOL_DICT,
+        **DEFAULT_CFG_DICT,
+        "blur_ratio": 0.5,
+        "vision_point": (20, 20),
+        "crop_dir": "cropped-detections",
+    }  # arguments dictionary
     overrides = {}
 
     # check dictionary alignment
@@ -677,6 +684,9 @@ def handle_yolo_solutions(args: List[str]) -> None:
     check_dict_alignment(full_args_dict, overrides)  # dict alignment
 
     # Get solution name
+    if not args:
+        LOGGER.warning("⚠️ No solution name provided. i.e `yolo solutions count`. Defaulting to 'count'.")
+        args = ["count"]
     if args[0] == "help":
         LOGGER.info(SOLUTIONS_HELP_MSG)
         return  # Early return for 'help' case
@@ -705,21 +715,19 @@ def handle_yolo_solutions(args: List[str]) -> None:
     else:
         from ultralytics import solutions
 
-        cls, method = SOLUTION_MAP[solution_name]  # solution class name, method name and default source
-        solution = getattr(solutions, cls)(IS_CLI=True, **overrides)  # get solution class i.e ObjectCounter
-        process = getattr(
-            solution, method
-        )  # get specific function of class for processing i.e, count from ObjectCounter
+        solution = getattr(solutions, SOLUTION_MAP[solution_name])(is_cli=True, **overrides)  # class i.e ObjectCounter
 
         cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
-
-        # extract width, height and fps of the video file, create save directory and initialize video writer
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-        if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
-            w, h = 1920, 1080
-        save_dir = get_save_dir(SimpleNamespace(project="runs/solutions", name="exp", exist_ok=False))
-        save_dir.mkdir(parents=True)  # create the output directory i.e. runs/solutions/exp
-        vw = cv2.VideoWriter(str(save_dir / f"{solution_name}.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        if solution_name != "crop":
+            # extract width, height and fps of the video file, create save directory and initialize video writer
+            w, h, fps = (
+                int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)
+            )
+            if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
+                w, h = 1280, 720
+            save_dir = get_save_dir(SimpleNamespace(project="runs/solutions", name="exp", exist_ok=False))
+            save_dir.mkdir(parents=True)  # create the output directory i.e. runs/solutions/exp
+            vw = cv2.VideoWriter(str(save_dir / f"{solution_name}.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         try:  # Process video frames
             f_n = 0  # frame number, required for analytical graphs
@@ -727,15 +735,16 @@ def handle_yolo_solutions(args: List[str]) -> None:
                 success, frame = cap.read()
                 if not success:
                     break
-                frame = process(frame, f_n := f_n + 1) if solution_name == "analytics" else process(frame)
-                vw.write(frame)
+                results = solution(frame, f_n := f_n + 1) if solution_name == "analytics" else solution(frame)
+                if solution_name != "crop":
+                    vw.write(results.plot_im)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
         finally:
             cap.release()
 
 
-def parse_key_value_pair(pair: str = "key=value"):
+def parse_key_value_pair(pair: str = "key=value") -> tuple:
     """
     Parses a key-value pair string into separate key and value components.
 
@@ -769,7 +778,7 @@ def parse_key_value_pair(pair: str = "key=value"):
     return k, smart_value(v)
 
 
-def smart_value(v):
+def smart_value(v: str) -> Any:
     """
     Converts a string representation of a value to its appropriate Python type.
 
@@ -814,7 +823,7 @@ def smart_value(v):
             return v
 
 
-def entrypoint(debug=""):
+def entrypoint(debug: str = "") -> None:
     """
     Ultralytics entrypoint function for parsing and executing command-line arguments.
 
@@ -986,7 +995,7 @@ def entrypoint(debug=""):
 
 
 # Special modes --------------------------------------------------------------------------------------------------------
-def copy_default_cfg():
+def copy_default_cfg() -> None:
     """
     Copies the default configuration file and creates a new one with '_copy' appended to its name.
 

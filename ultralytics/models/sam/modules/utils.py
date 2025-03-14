@@ -8,7 +8,7 @@ import torch.nn.functional as F
 
 def select_closest_cond_frames(frame_idx, cond_frame_outputs, max_cond_frame_num):
     """
-    Selects the closest conditioning frames to a given frame index.
+    Select the closest conditioning frames to a given frame index.
 
     Args:
         frame_idx (int): Current frame index.
@@ -37,17 +37,17 @@ def select_closest_cond_frames(frame_idx, cond_frame_outputs, max_cond_frame_num
         assert max_cond_frame_num >= 2, "we should allow using 2+ conditioning frames"
         selected_outputs = {}
 
-        # the closest conditioning frame before `frame_idx` (if any)
+        # The closest conditioning frame before `frame_idx` (if any)
         idx_before = max((t for t in cond_frame_outputs if t < frame_idx), default=None)
         if idx_before is not None:
             selected_outputs[idx_before] = cond_frame_outputs[idx_before]
 
-        # the closest conditioning frame after `frame_idx` (if any)
+        # The closest conditioning frame after `frame_idx` (if any)
         idx_after = min((t for t in cond_frame_outputs if t >= frame_idx), default=None)
         if idx_after is not None:
             selected_outputs[idx_after] = cond_frame_outputs[idx_after]
 
-        # add other temporally closest conditioning frames until reaching a total
+        # Add other temporally closest conditioning frames until reaching a total
         # of `max_cond_frame_num` conditioning frames.
         num_remain = max_cond_frame_num - len(selected_outputs)
         inds_remain = sorted(
@@ -61,7 +61,7 @@ def select_closest_cond_frames(frame_idx, cond_frame_outputs, max_cond_frame_num
 
 
 def get_1d_sine_pe(pos_inds, dim, temperature=10000):
-    """Generates 1D sinusoidal positional embeddings for given positions and dimensions."""
+    """Generate 1D sinusoidal positional embeddings for given positions and dimensions."""
     pe_dim = dim // 2
     dim_t = torch.arange(pe_dim, dtype=torch.float32, device=pos_inds.device)
     dim_t = temperature ** (2 * (dim_t // 2) / pe_dim)
@@ -72,7 +72,7 @@ def get_1d_sine_pe(pos_inds, dim, temperature=10000):
 
 
 def init_t_xy(end_x: int, end_y: int):
-    """Initializes 1D and 2D coordinate tensors for a grid of specified dimensions."""
+    """Initialize 1D and 2D coordinate tensors for a grid of specified dimensions."""
     t = torch.arange(end_x * end_y, dtype=torch.float32)
     t_x = (t % end_x).float()
     t_y = torch.div(t, end_x, rounding_mode="floor").float()
@@ -80,7 +80,7 @@ def init_t_xy(end_x: int, end_y: int):
 
 
 def compute_axial_cis(dim: int, end_x: int, end_y: int, theta: float = 10000.0):
-    """Computes axial complex exponential positional encodings for 2D spatial positions in a grid."""
+    """Compute axial complex exponential positional encodings for 2D spatial positions in a grid."""
     freqs_x = 1.0 / (theta ** (torch.arange(0, dim, 4)[: (dim // 4)].float() / dim))
     freqs_y = 1.0 / (theta ** (torch.arange(0, dim, 4)[: (dim // 4)].float() / dim))
 
@@ -93,7 +93,7 @@ def compute_axial_cis(dim: int, end_x: int, end_y: int, theta: float = 10000.0):
 
 
 def reshape_for_broadcast(freqs_cis: torch.Tensor, x: torch.Tensor):
-    """Reshapes frequency tensor for broadcasting with input tensor, ensuring dimensional compatibility."""
+    """Reshape frequency tensor for broadcasting with input tensor, ensuring dimensional compatibility."""
     ndim = x.ndim
     assert 0 <= 1 < ndim
     assert freqs_cis.shape == (x.shape[-2], x.shape[-1])
@@ -107,15 +107,15 @@ def apply_rotary_enc(
     freqs_cis: torch.Tensor,
     repeat_freqs_k: bool = False,
 ):
-    """Applies rotary positional encoding to query and key tensors using complex-valued frequency components."""
+    """Apply rotary positional encoding to query and key tensors using complex-valued frequency components."""
     xq_ = torch.view_as_complex(xq.float().reshape(*xq.shape[:-1], -1, 2))
     xk_ = torch.view_as_complex(xk.float().reshape(*xk.shape[:-1], -1, 2)) if xk.shape[-2] != 0 else None
     freqs_cis = reshape_for_broadcast(freqs_cis, xq_)
     xq_out = torch.view_as_real(xq_ * freqs_cis).flatten(3)
     if xk_ is None:
-        # no keys to rotate, due to dropout
+        # No keys to rotate, due to dropout
         return xq_out.type_as(xq).to(xq.device), xk
-    # repeat freqs along seq_len dim to match k seq_len
+    # Repeat freqs along seq_len dim to match k seq_len
     if repeat_freqs_k:
         r = xk_.shape[-2] // xq_.shape[-2]
         freqs_cis = freqs_cis.repeat(*([1] * (freqs_cis.ndim - 2)), r, 1)
@@ -125,7 +125,7 @@ def apply_rotary_enc(
 
 def window_partition(x, window_size):
     """
-    Partitions input tensor into non-overlapping windows with padding if needed.
+    Partition input tensor into non-overlapping windows with padding if needed.
 
     Args:
         x (torch.Tensor): Input tensor with shape (B, H, W, C).
@@ -157,7 +157,7 @@ def window_partition(x, window_size):
 
 def window_unpartition(windows, window_size, pad_hw, hw):
     """
-    Unpartitions windowed sequences into original sequences and removes padding.
+    Unpartition windowed sequences into original sequences and remove padding.
 
     This function reverses the windowing process, reconstructing the original input from windowed segments
     and removing any padding that was added during the windowing process.
@@ -195,7 +195,7 @@ def window_unpartition(windows, window_size, pad_hw, hw):
 
 def get_rel_pos(q_size: int, k_size: int, rel_pos: torch.Tensor) -> torch.Tensor:
     """
-    Extracts relative positional embeddings based on query and key sizes.
+    Extract relative positional embeddings based on query and key sizes.
 
     Args:
         q_size (int): Size of the query.
@@ -244,7 +244,7 @@ def add_decomposed_rel_pos(
     k_size: Tuple[int, int],
 ) -> torch.Tensor:
     """
-    Adds decomposed Relative Positional Embeddings to the attention map.
+    Add decomposed Relative Positional Embeddings to the attention map.
 
     This function calculates and applies decomposed Relative Positional Embeddings as described in the MVITv2
     paper. It enhances the attention mechanism by incorporating spatial relationships between query and key

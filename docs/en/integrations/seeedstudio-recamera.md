@@ -6,7 +6,7 @@ keywords: Seeed Studio reCamera, YOLO11, ONNX export, edge AI, computer vision, 
 
 # Quick Start Guide: Seeed Studio reCamera with Ultralytics YOLO11
 
-[reCamera](https://www.seeedstudio.com/recamera) was introduced for the AI community at [YOLO Vision 2024 (YV24)](https://www.youtube.com/watch?v=rfI5vOo3-_A), [Ultralytics](https://ultralytics.com/) annual hybrid event. It is mainly designed for edge AI applications, offering powerful processing capabilities and effortless deployment.
+[reCamera](https://www.seeedstudio.com/recamera) was introduced for the AI community at [YOLO Vision 2024 (YV24)](https://www.youtube.com/watch?v=rfI5vOo3-_A), [Ultralytics](https://www.ultralytics.com/) annual hybrid event. It is mainly designed for edge AI applications, offering powerful processing capabilities and effortless deployment.
 
 With support for diverse hardware configurations and open-source resources, it serves as an ideal platform for prototyping and deploying innovative [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) [solutions](https://docs.ultralytics.com/solutions/#solutions) at the edge.
 
@@ -26,7 +26,7 @@ reCamera series is purpose-built for edge AI applications, tailored to meet the 
 
 ## Quick Hardware Setup of reCamera
 
-Please follow [reCamera Quick Start Guide](https://wiki.seeedstudio.com/recamera_getting_started) for initial onboarding of the device such as connecting the device to a WiFi network and access the [Node-RED](https://nodered.org) web UI for quick previewing of detection results.
+Please follow [reCamera Quick Start Guide](https://wiki.seeedstudio.com/recamera_getting_started/) for initial onboarding of the device such as connecting the device to a WiFi network and access the [Node-RED](https://nodered.org/) web UI for quick previewing of detection results.
 
 ## Inference Using Pre-installed YOLO11 Models
 
@@ -116,7 +116,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ### Export ONNX to MLIR and cvimodel
 
-After obtaining an ONNX model, refer to [Convert and Quantize AI Models](https://wiki.seeedstudio.com/recamera_model_conversion) page to convert the ONNX model to MLIR and then to cvimodel.
+After obtaining an ONNX model, refer to [Convert and Quantize AI Models](https://wiki.seeedstudio.com/recamera_model_conversion/) page to convert the ONNX model to MLIR and then to cvimodel.
 
 !!! note
 

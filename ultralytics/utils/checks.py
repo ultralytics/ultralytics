@@ -9,7 +9,7 @@ import re
 import shutil
 import subprocess
 import time
-from importlib import metadata
+from importlib import metadata, reload
 from pathlib import Path
 from typing import Optional
 
@@ -377,6 +377,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         requirements = [requirements]
 
     pkgs = []
+    pkg_names = []  # Store just the package names
     for r in requirements:
         r_stripped = r.split("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
         match = re.match(r"([a-zA-Z0-9-_]+)([<>!=~]+.*)?", r_stripped)
@@ -385,6 +386,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             assert check_version(metadata.version(name), required)  # exception if requirements not met
         except (AssertionError, metadata.PackageNotFoundError):
             pkgs.append(r)
+            pkg_names.append(name)
 
     @Retry(times=2, delay=1)
     def attempt_install(packages, commands):
@@ -394,6 +396,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:
         if install and AUTOINSTALL:  # check environment variable
+            import sys
+
             n = len(pkgs)  # number of packages updates
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:
@@ -401,10 +405,17 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 assert ONLINE, "AutoUpdate skipped (offline)"
                 LOGGER.info(attempt_install(s, cmds))
                 dt = time.time() - t
-                LOGGER.info(
-                    f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}\n"
-                    f"{prefix} ⚠️ {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
-                )
+
+                # Reload updated modules
+                for name in pkg_names:
+                    if name in sys.modules:
+                        try:
+                            reload(sys.modules[name])
+                            LOGGER.info(f"{prefix} Successfully reloaded {name} module")
+                        except Exception as e:
+                            LOGGER.warning(f"{prefix} Failed to reload {name}: {e}")
+
+                LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}")
             except Exception as e:
                 LOGGER.warning(f"{prefix} ❌ {e}")
                 return False

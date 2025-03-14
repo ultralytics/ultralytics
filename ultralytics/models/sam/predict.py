@@ -701,9 +701,6 @@ class SAM2Predictor(Predictor):
             - The method supports batched inference for multiple objects when points or bboxes are provided.
             - Input prompts (bboxes, points) are automatically scaled to match the input image dimensions.
             - When both bboxes and points are provided, they are merged into a single 'points' input for the model.
-
-        References:
-            - SAM2 Paper: [Add link to SAM2 paper when available]
         """
         features = self.get_im_features(im) if self.features is None else self.features
 

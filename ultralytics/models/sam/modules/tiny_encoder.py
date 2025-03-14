@@ -832,6 +832,7 @@ class TinyViT(nn.Module):
             mbconv_expand_ratio (float): Expansion ratio for MBConv layer.
             local_conv_size (int): Kernel size for local convolutions.
             layer_lr_decay (float): Layer-wise learning rate decay factor.
+
         Examples:
             >>> model = TinyViT(img_size=224, num_classes=1000)
             >>> x = torch.randn(1, 3, 224, 224)

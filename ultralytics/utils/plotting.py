@@ -713,6 +713,7 @@ def plot_images(
 
     # Annotate
     fs = int((h + w) * ns * 0.01)  # font size
+    fs = max(fs, 18)  # ensure that the font size is large enough to be easily readable.
     annotator = Annotator(mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=names)
     for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin

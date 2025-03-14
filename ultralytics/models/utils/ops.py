@@ -18,7 +18,7 @@ class HungarianMatcher(nn.Module):
     function that considers classification scores, bounding box coordinates, and optionally, mask predictions.
 
     Attributes:
-        cost_gain (dict): Dictionary of cost coefficients: 'class', 'bbox', 'giou', 'mask', and 'dice'.
+        cost_gain (Dict): Dictionary of cost coefficients: 'class', 'bbox', 'giou', 'mask', and 'dice'.
         use_fl (bool): Indicates whether to use Focal Loss for the classification cost calculation.
         with_mask (bool): Indicates whether the model makes mask predictions.
         num_sample_points (int): The number of sample points used in mask cost calculation.
@@ -26,13 +26,12 @@ class HungarianMatcher(nn.Module):
         gamma (float): The gamma factor in Focal Loss calculation.
 
     Methods:
-        forward(pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups, masks=None, gt_mask=None): Computes the
-            assignment between predictions and ground truths for a batch.
-        _cost_mask(bs, num_gts, masks=None, gt_mask=None): Computes the mask cost and dice cost if masks are predicted.
+        forward: Computes the assignment between predictions and ground truths for a batch.
+        _cost_mask: Computes the mask cost and dice cost if masks are predicted.
     """
 
     def __init__(self, cost_gain=None, use_fl=True, with_mask=False, num_sample_points=12544, alpha=0.25, gamma=2.0):
-        """Initializes a HungarianMatcher module for optimal assignment of predicted and ground truth bounding boxes."""
+        """Initialize a HungarianMatcher module for optimal assignment of predicted and ground truth bounding boxes."""
         super().__init__()
         if cost_gain is None:
             cost_gain = {"class": 1, "bbox": 5, "giou": 2, "mask": 1, "dice": 1}
@@ -45,24 +44,21 @@ class HungarianMatcher(nn.Module):
 
     def forward(self, pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups, masks=None, gt_mask=None):
         """
-        Forward pass for HungarianMatcher. This function computes costs based on prediction and ground truth
-        (classification cost, L1 cost between boxes and GIoU cost between boxes) and finds the optimal matching between
-        predictions and ground truth based on these costs.
+        Forward pass for HungarianMatcher. Computes costs based on prediction and ground truth and finds the optimal
+        matching between predictions and ground truth based on these costs.
 
         Args:
-            pred_bboxes (Tensor): Predicted bounding boxes with shape [batch_size, num_queries, 4].
-            pred_scores (Tensor): Predicted scores with shape [batch_size, num_queries, num_classes].
-            gt_cls (torch.Tensor): Ground truth classes with shape [num_gts, ].
-            gt_bboxes (torch.Tensor): Ground truth bounding boxes with shape [num_gts, 4].
+            pred_bboxes (torch.Tensor): Predicted bounding boxes with shape (batch_size, num_queries, 4).
+            pred_scores (torch.Tensor): Predicted scores with shape (batch_size, num_queries, num_classes).
+            gt_cls (torch.Tensor): Ground truth classes with shape (num_gts, ).
+            gt_bboxes (torch.Tensor): Ground truth bounding boxes with shape (num_gts, 4).
             gt_groups (List[int]): List of length equal to batch size, containing the number of ground truths for
                 each image.
-            masks (Tensor, optional): Predicted masks with shape [batch_size, num_queries, height, width].
-                Defaults to None.
-            gt_mask (List[Tensor], optional): List of ground truth masks, each with shape [num_masks, Height, Width].
-                Defaults to None.
+            masks (torch.Tensor, optional): Predicted masks with shape (batch_size, num_queries, height, width).
+            gt_mask (List[torch.Tensor], optional): List of ground truth masks, each with shape (num_masks, Height, Width).
 
         Returns:
-            (List[Tuple[Tensor, Tensor]]): A list of size batch_size, each element is a tuple (index_i, index_j), where:
+            (List[Tuple[torch.Tensor, torch.Tensor]]): A list of size batch_size, each element is a tuple (index_i, index_j), where:
                 - index_i is the tensor of indices of the selected predictions (in order)
                 - index_j is the tensor of indices of the corresponding selected ground truth targets (in order)
                 For each batch element, it holds:
@@ -74,10 +70,10 @@ class HungarianMatcher(nn.Module):
             return [(torch.tensor([], dtype=torch.long), torch.tensor([], dtype=torch.long)) for _ in range(bs)]
 
         # We flatten to compute the cost matrices in a batch
-        # [batch_size * num_queries, num_classes]
+        # (batch_size * num_queries, num_classes)
         pred_scores = pred_scores.detach().view(-1, nc)
         pred_scores = F.sigmoid(pred_scores) if self.use_fl else F.softmax(pred_scores, dim=-1)
-        # [batch_size * num_queries, 4]
+        # (batch_size * num_queries, 4)
         pred_bboxes = pred_bboxes.detach().view(-1, 4)
 
         # Compute the classification cost
@@ -151,26 +147,25 @@ def get_cdn_group(
     batch, num_classes, num_queries, class_embed, num_dn=100, cls_noise_ratio=0.5, box_noise_scale=1.0, training=False
 ):
     """
-    Get contrastive denoising training group. This function creates a contrastive denoising training group with positive
-    and negative samples from the ground truths (gt). It applies noise to the class labels and bounding box coordinates,
-    and returns the modified labels, bounding boxes, attention mask and meta information.
+    Get contrastive denoising training group with positive and negative samples from ground truths.
 
     Args:
-        batch (dict): A dict that includes 'gt_cls' (torch.Tensor with shape [num_gts, ]), 'gt_bboxes'
-            (torch.Tensor with shape [num_gts, 4]), 'gt_groups' (List(int)) which is a list of batch size length
+        batch (Dict): A dict that includes 'gt_cls' (torch.Tensor with shape (num_gts, )), 'gt_bboxes'
+            (torch.Tensor with shape (num_gts, 4)), 'gt_groups' (List[int]) which is a list of batch size length
             indicating the number of gts of each image.
         num_classes (int): Number of classes.
         num_queries (int): Number of queries.
         class_embed (torch.Tensor): Embedding weights to map class labels to embedding space.
-        num_dn (int, optional): Number of denoising. Defaults to 100.
-        cls_noise_ratio (float, optional): Noise ratio for class labels. Defaults to 0.5.
-        box_noise_scale (float, optional): Noise scale for bounding box coordinates. Defaults to 1.0.
-        training (bool, optional): If it's in training mode. Defaults to False.
+        num_dn (int, optional): Number of denoising queries.
+        cls_noise_ratio (float, optional): Noise ratio for class labels.
+        box_noise_scale (float, optional): Noise scale for bounding box coordinates.
+        training (bool, optional): If it's in training mode.
 
     Returns:
-        (Tuple[Optional[Tensor], Optional[Tensor], Optional[Tensor], Optional[Dict]]): The modified class embeddings,
-            bounding boxes, attention mask and meta information for denoising. If not in training mode or 'num_dn'
-            is less than or equal to 0, the function returns None for all elements in the tuple.
+        padding_cls (Optional[torch.Tensor]): The modified class embeddings for denoising.
+        padding_bbox (Optional[torch.Tensor]): The modified bounding boxes for denoising.
+        attn_mask (Optional[torch.Tensor]): The attention mask for denoising.
+        dn_meta (Optional[Dict]): Meta information for denoising.
     """
     if (not training) or num_dn <= 0 or batch is None:
         return None, None, None, None

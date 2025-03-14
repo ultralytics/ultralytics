@@ -25,6 +25,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
 
     Raises:
         AssertionError: If the tracker_type is not 'bytetrack' or 'botsort'.
+        ValueError: If the task is 'classify' as classification doesn't support tracking.
 
     Examples:
         Initialize trackers for a predictor object:
@@ -47,7 +48,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     for _ in range(predictor.dataset.bs):
         tracker = TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30)
         trackers.append(tracker)
-        if predictor.dataset.mode != "stream":  # only need one tracker for other modes.
+        if predictor.dataset.mode != "stream":  # only need one tracker for other modes
             break
     predictor.trackers = trackers
     predictor.vid_path = [None] * predictor.dataset.bs  # for determining when to reset tracker on new video

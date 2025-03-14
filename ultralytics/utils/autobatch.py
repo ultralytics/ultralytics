@@ -25,7 +25,7 @@ def check_train_batch_size(model, imgsz=640, amp=True, batch=-1, max_num_obj=1):
     Returns:
         (int): Optimal batch size computed using the autobatch() function.
 
-    Note:
+    Notes:
         If 0.0 < batch < 1.0, it's used as the fraction of GPU memory to use.
         Otherwise, a default fraction of 0.6 is used.
     """
@@ -40,10 +40,10 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch, max
     Automatically estimate the best YOLO batch size to use a fraction of the available CUDA memory.
 
     Args:
-        model (torch.nn.module): YOLO model to compute batch size for.
-        imgsz (int, optional): The image size used as input for the YOLO model. Defaults to 640.
-        fraction (float, optional): The fraction of available CUDA memory to use. Defaults to 0.60.
-        batch_size (int, optional): The default batch size to use if an error is detected. Defaults to 16.
+        model (torch.nn.Module): YOLO model to compute batch size for.
+        imgsz (int, optional): The image size used as input for the YOLO model.
+        fraction (float, optional): The fraction of available CUDA memory to use.
+        batch_size (int, optional): The default batch size to use if an error is detected.
         max_num_obj (int, optional): The maximum number of objects from dataset.
 
     Returns:

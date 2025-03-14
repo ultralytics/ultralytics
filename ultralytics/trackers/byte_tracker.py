@@ -17,7 +17,7 @@ class STrack(BaseTrack):
     and predictions based on Kalman filter.
 
     Attributes:
-        shared_kalman (KalmanFilterXYAH): Shared Kalman filter that is used across all STrack instances for prediction.
+        shared_kalman (KalmanFilterXYAH): Shared Kalman filter used across all STrack instances for prediction.
         _tlwh (np.ndarray): Private attribute to store top-left corner coordinates and width and height of bounding box.
         kalman_filter (KalmanFilterXYAH): Instance of Kalman filter used for this particular object track.
         mean (np.ndarray): Mean state estimate vector.
@@ -236,9 +236,9 @@ class BYTETracker:
     """
     BYTETracker: A tracking algorithm built on top of YOLOv8 for object detection and tracking.
 
-    Responsible for initializing, updating, and managing the tracks for detected objects in a video sequence.
-    It maintains the state of tracked, lost, and removed tracks over frames, utilizes Kalman filtering for predicting
-    the new object locations, and performs data association.
+    This class encapsulates the functionality for initializing, updating, and managing the tracks for detected objects in a
+    video sequence. It maintains the state of tracked, lost, and removed tracks over frames, utilizes Kalman filtering for
+    predicting the new object locations, and performs data association.
 
     Attributes:
         tracked_stracks (List[STrack]): List of successfully activated tracks.

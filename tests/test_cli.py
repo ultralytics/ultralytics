@@ -7,7 +7,7 @@ from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
+from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks, ARM64, MACOS
 from ultralytics.utils.torch_utils import TORCH_1_9
 
 # Constants
@@ -45,6 +45,13 @@ def test_val(task: str, model: str, data: str) -> None:
 def test_predict(task: str, model: str, data: str) -> None:
     """Test YOLO prediction on provided sample assets for specified task and model."""
     run(f"yolo predict model={model} source={ASSETS} imgsz=32 save save_crop save_txt")
+
+
+@pytest.mark.skipif(not MACOS, reason="MPS requires macOS")
+@pytest.mark.skipif(not ARM64, reason="MPS requires arm64")
+def test_predict_mps(task: str, model: str, data: str) -> None:
+    """Test YOLO prediction on Apple MPS."""
+    run(f"yolo predict model={model} source={ASSETS} imgsz=32 device=mps")
 
 
 @pytest.mark.parametrize("model", MODELS)

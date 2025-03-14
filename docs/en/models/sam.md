@@ -153,20 +153,21 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 
 - More additional args for `Segment everything` see [`Predictor/generate` Reference](../reference/models/sam/predict.md).
 
-## SAM comparison vs YOLOv8
+## SAM Comparison vs YOLO
 
-Here we compare Meta's smallest SAM model, SAM-b, with Ultralytics smallest segmentation model, [YOLOv8n-seg](../tasks/segment.md):
+Here we compare Meta's SAM-b model with Ultralytics smallest segmentation model, [YOLO11n-seg](../tasks/segment.md):
 
 | Model                                                                                          | Size<br><sup>(MB)</sup> | Parameters<br><sup>(M)</sup> | Speed (CPU)<br><sup>(ms/im)</sup> |
-| ---------------------------------------------------------------------------------------------- | ----------------------- | ---------------------------- | --------------------------------- |
-| Meta SAM-b                                                                                     | 358                     | 94.7                         | 51096                             |
-| [MobileSAM](mobile-sam.md)                                                                     | 40.7                    | 10.1                         | 46122                             |
-| [FastSAM-s](fast-sam.md) with YOLOv8 [backbone](https://www.ultralytics.com/glossary/backbone) | 23.7                    | 11.8                         | 115                               |
-| Ultralytics [YOLOv8n-seg](../tasks/segment.md)                                                 | **6.7** (53.4x smaller) | **3.4** (27.9x less)         | **59** (866x faster)              |
+|------------------------------------------------------------------------------------------------|-------------------------|------------------------------|-----------------------------------|
+| [Meta SAM-b](sam.md)                                                                           | 375                     | 93.7                         | 49401                             |
+| [MobileSAM](mobile-sam.md)                                                                     | 40.7                    | 10.1                         | 25381                             |
+| [FastSAM-s](fast-sam.md) with YOLOv8 [backbone](https://www.ultralytics.com/glossary/backbone) | 23.7                    | 11.8                         | 55.9                              |
+| Ultralytics [YOLOv8n-seg](yolov8.md)                                                           | **6.7** (11.7x smaller) | **3.4** (11.4x less)         | **24.5** (1061x faster)           |
+| Ultralytics [YOLO11n-seg](yolo11.md)                                                           | **5.9** (13.2x smaller) | **2.9** (13.4x less)         | **30.1** (864x faster)           |
 
-This comparison shows the order-of-magnitude differences in the model sizes and speeds between models. Whereas SAM presents unique capabilities for automatic segmenting, it is not a direct competitor to YOLOv8 segment models, which are smaller, faster and more efficient.
+This comparison demonstrates the substantial differences in model sizes and speeds between SAM variants and YOLO segmentation models. While SAM provides unique automatic segmentation capabilities, YOLO models, particularly YOLOv8n-seg and YOLO11n-seg, are significantly smaller, faster, and more computationally efficient.
 
-Tests run on a 2023 Apple M2 Macbook with 16GB of RAM. To reproduce this test:
+Tests run on a 2025 Apple M4 Pro Macbook with 24GB of RAM using `torch==2.6.0` and `ultralytics==8.3.90`. To reproduce this test:
 
 !!! example
 
@@ -175,8 +176,8 @@ Tests run on a 2023 Apple M2 Macbook with 16GB of RAM. To reproduce this test:
         ```python
         from ultralytics import ASSETS, SAM, YOLO, FastSAM
 
-        # Profile SAM-b, MobileSAM
-        for file in ["sam_b.pt", "mobile_sam.pt"]:
+        # Profile SAM2-t, SAM2-b, SAM-b, MobileSAM
+        for file in ["sam_b.pt", "sam2_b.pt", "sam2_t.pt", "mobile_sam.pt"]:
             model = SAM(file)
             model.info()
             model(ASSETS)
@@ -186,10 +187,11 @@ Tests run on a 2023 Apple M2 Macbook with 16GB of RAM. To reproduce this test:
         model.info()
         model(ASSETS)
 
-        # Profile YOLOv8n-seg
-        model = YOLO("yolov8n-seg.pt")
-        model.info()
-        model(ASSETS)
+        # Profile YOLO models
+        for file_name in ["yolov8n-seg.pt", "yolo11n-seg.pt"]:
+            model = YOLO(file_name)
+            model.info()
+            model(ASSETS)
         ```
 
 ## Auto-Annotation: A Quick Path to Segmentation Datasets

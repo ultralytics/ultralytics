@@ -36,7 +36,7 @@ RUN pip install uv
 RUN uv pip install --system -e ".[export]" --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
 
 # Run exports to AutoInstall packages
-RUN yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32
+# RUN yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32 # temporarily disable for IMX500 export
 RUN yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32
 RUN yolo export model=tmp/yolov8n.pt format=imx imgsz=32
 # Requires Python<=3.10, bug with paddlepaddle==2.5.0 https://github.com/PaddlePaddle/X2Paddle/issues/991

@@ -34,103 +34,77 @@ There are two types of instance segmentation tracking available in the Ultralyti
 | ![Ultralytics Instance Segmentation](https://github.com/ultralytics/docs/releases/download/0/ultralytics-instance-segmentation.avif) | ![Ultralytics Instance Segmentation with Object Tracking](https://github.com/ultralytics/docs/releases/download/0/ultralytics-instance-segmentation-object-tracking.avif) |
 |                                                 Ultralytics Instance Segmentation 😍                                                 |                                                         Ultralytics Instance Segmentation with Object Tracking 🔥                                                         |
 
-!!! example "Instance Segmentation and Tracking"
+!!! example "Instance segmentation using Ultralytics YOLO"
 
-    === "Instance Segmentation"
+    === "CLI"
+
+        ```bash
+        # Instance segmentation using Ultralytics YOLO11
+        yolo solutions isegment show=True
+
+        # Pass a source video
+        yolo solutions isegment source="path/to/video/file.mp4"
+
+        # Monitor the specific classes
+        yolo solutions isegment classes=[0, 5]
+        ```
+
+    === "Python"
 
         ```python
         import cv2
 
-        from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator, colors
+        from ultralytics import solutions
 
-        model = YOLO("yolo11n-seg.pt")  # segmentation model
-        names = model.model.names
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        assert cap.isOpened(), "Error reading video file"
+
+        # Video writer
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        video_writer = cv2.VideoWriter("isegment_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        out = cv2.VideoWriter("instance-segmentation.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
+        # Initialize instance segmentation object
+        isegment = solutions.InstanceSegmentation(
+            show=True,  # display the output
+            model="yolo11n-seg.pt",  # model="yolo11n-seg.pt" for object segmentation using YOLO11.
+            # classes=[0, 2],  # segment specific classes i.e, person and car with pretrained model.
+        )
 
-        while True:
-            ret, im0 = cap.read()
-            if not ret:
+        # Process video
+        while cap.isOpened():
+            success, im0 = cap.read()
+
+            if not success:
                 print("Video frame is empty or video processing has been successfully completed.")
                 break
 
-            results = model.predict(im0)
-            annotator = Annotator(im0, line_width=2)
+            results = isegment(im0)
 
-            if results[0].masks is not None:
-                clss = results[0].boxes.cls.cpu().tolist()
-                masks = results[0].masks.xy
-                for mask, cls in zip(masks, clss):
-                    color = colors(int(cls), True)
-                    txt_color = annotator.get_txt_color(color)
-                    annotator.seg_bbox(mask=mask, mask_color=color, label=names[int(cls)], txt_color=txt_color)
+            # print(results)  # access the output
 
-            out.write(im0)
-            cv2.imshow("instance-segmentation", im0)
+            video_writer.write(results.plot_im)  # write the processed frame.
 
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-
-        out.release()
         cap.release()
-        cv2.destroyAllWindows()
+        video_writer.release()
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-    === "Instance Segmentation with Object Tracking"
+### `InstanceSegmentation` Arguments
 
-        ```python
-        import cv2
+Here's a table with the `InstanceSegmentation` arguments:
 
-        from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator, colors
+{% from "macros/solutions-args.md" import param_table %}
+{{ param_table(["model", "region"]) }}
 
-        model = YOLO("yolo11n-seg.pt")  # segmentation model
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+You can also take advantage of `track` arguments within the `InstanceSegmentation` solution:
 
-        out = cv2.VideoWriter("instance-segmentation-object-tracking.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
+{% from "macros/track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
 
-        while True:
-            ret, im0 = cap.read()
-            if not ret:
-                print("Video frame is empty or video processing has been successfully completed.")
-                break
+Moreover, the following visualization arguments are available:
 
-            annotator = Annotator(im0, line_width=2)
-
-            results = model.track(im0, persist=True)
-
-            if results[0].boxes.id is not None and results[0].masks is not None:
-                masks = results[0].masks.xy
-                track_ids = results[0].boxes.id.int().cpu().tolist()
-
-                for mask, track_id in zip(masks, track_ids):
-                    color = colors(int(track_id), True)
-                    txt_color = annotator.get_txt_color(color)
-                    annotator.seg_bbox(mask=mask, mask_color=color, label=str(track_id), txt_color=txt_color)
-
-            out.write(im0)
-            cv2.imshow("instance-segmentation-object-tracking", im0)
-
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-
-        out.release()
-        cap.release()
-        cv2.destroyAllWindows()
-        ```
-
-### `seg_bbox` Arguments
-
-| Name         | Type    | Default         | Description                                  |
-| ------------ | ------- | --------------- | -------------------------------------------- |
-| `mask`       | `array` | `None`          | Segmentation mask coordinates                |
-| `mask_color` | `RGB`   | `(255, 0, 255)` | Mask color for every segmented box           |
-| `label`      | `str`   | `None`          | Label for segmented object                   |
-| `txt_color`  | `RGB`   | `None`          | Label color for segmented and tracked object |
+{% from "macros/visualization-args.md" import param_table %}
+{{ param_table(["show", "line_width"]) }}
 
 ## Note
 
@@ -142,45 +116,37 @@ For any inquiries, feel free to post your questions in the [Ultralytics Issue Se
 
 To perform instance segmentation using Ultralytics YOLO11, initialize the YOLO model with a segmentation version of YOLO11 and process video frames through it. Here's a simplified code example:
 
-!!! example
+```python
+import cv2
 
-    === "Python"
+from ultralytics import solutions
 
-        ```python
-        import cv2
+cap = cv2.VideoCapture("Path/to/video/file.mp4")
+assert cap.isOpened(), "Error reading video file"
 
-        from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator, colors
+# Video writer
+w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+video_writer = cv2.VideoWriter("instance-segmentation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        model = YOLO("yolo11n-seg.pt")  # segmentation model
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+# Init InstanceSegmentation
+isegment = solutions.InstanceSegmentation(
+    show=True,  # display the output
+    model="yolo11n-seg.pt",  # model="yolo11n-seg.pt" for object segmentation using YOLO11.
+)
 
-        out = cv2.VideoWriter("instance-segmentation.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
+# Process video
+while cap.isOpened():
+    success, im0 = cap.read()
+    if not success:
+        print("Video frame is empty or processing is complete.")
+        break
+    results = isegment(im0)
+    video_writer.write(results.plot_im)
 
-        while True:
-            ret, im0 = cap.read()
-            if not ret:
-                break
-
-            results = model.predict(im0)
-            annotator = Annotator(im0, line_width=2)
-
-            if results[0].masks is not None:
-                clss = results[0].boxes.cls.cpu().tolist()
-                masks = results[0].masks.xy
-                for mask, cls in zip(masks, clss):
-                    annotator.seg_bbox(mask=mask, mask_color=colors(int(cls), True), det_label=model.model.names[int(cls)])
-
-            out.write(im0)
-            cv2.imshow("instance-segmentation", im0)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-
-        out.release()
-        cap.release()
-        cv2.destroyAllWindows()
-        ```
+cap.release()
+video_writer.release()
+cv2.destroyAllWindows()
+```
 
 Learn more about instance segmentation in the [Ultralytics YOLO11 guide](#what-is-instance-segmentation).
 
@@ -191,53 +157,6 @@ Instance segmentation identifies and outlines individual objects within an image
 ### Why should I use Ultralytics YOLO11 for instance segmentation and tracking over other models like Mask R-CNN or Faster R-CNN?
 
 Ultralytics YOLO11 offers real-time performance, superior [accuracy](https://www.ultralytics.com/glossary/accuracy), and ease of use compared to other models like Mask R-CNN or Faster R-CNN. YOLO11 provides a seamless integration with Ultralytics HUB, allowing users to manage models, datasets, and training pipelines efficiently. Discover more about the benefits of YOLO11 in the [Ultralytics blog](https://www.ultralytics.com/blog/introducing-ultralytics-yolov8).
-
-### How can I implement object tracking using Ultralytics YOLO11?
-
-To implement object tracking, use the `model.track` method and ensure that each object's ID is consistently assigned across frames. Below is a simple example:
-
-!!! example
-
-    === "Python"
-
-        ```python
-        import cv2
-
-        from ultralytics import YOLO
-        from ultralytics.utils.plotting import Annotator, colors
-
-        model = YOLO("yolo11n-seg.pt")  # segmentation model
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-        out = cv2.VideoWriter("instance-segmentation-object-tracking.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
-
-        while True:
-            ret, im0 = cap.read()
-            if not ret:
-                break
-
-            annotator = Annotator(im0, line_width=2)
-            results = model.track(im0, persist=True)
-
-            if results[0].boxes.id is not None and results[0].masks is not None:
-                masks = results[0].masks.xy
-                track_ids = results[0].boxes.id.int().cpu().tolist()
-
-                for mask, track_id in zip(masks, track_ids):
-                    annotator.seg_bbox(mask=mask, mask_color=colors(track_id, True), track_label=str(track_id))
-
-            out.write(im0)
-            cv2.imshow("instance-segmentation-object-tracking", im0)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-
-        out.release()
-        cap.release()
-        cv2.destroyAllWindows()
-        ```
-
-Find more in the [Instance Segmentation and Tracking section](#samples).
 
 ### Are there any datasets provided by Ultralytics suitable for training YOLO11 models for instance segmentation and tracking?
 

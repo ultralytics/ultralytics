@@ -17,17 +17,34 @@ class ClassificationTrainer(BaseTrainer):
     """
     A class extending the BaseTrainer class for training based on a classification model.
 
-    Notes:
-        - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
+    This trainer handles the training process for image classification tasks, supporting both YOLO classification models
+    and torchvision models.
 
-    Example:
-        ```python
-        from ultralytics.models.yolo.classify import ClassificationTrainer
+    Attributes:
+        model (ClassificationModel): The classification model to be trained.
+        data (Dict): Dictionary containing dataset information including class names and number of classes.
+        loss_names (List[str]): Names of the loss functions used during training.
+        validator (ClassificationValidator): Validator instance for model evaluation.
 
-        args = dict(model="yolo11n-cls.pt", data="imagenet10", epochs=3)
-        trainer = ClassificationTrainer(overrides=args)
-        trainer.train()
-        ```
+    Methods:
+        set_model_attributes: Set the model's class names from the loaded dataset.
+        get_model: Return a modified PyTorch model configured for training.
+        setup_model: Load, create or download model for classification.
+        build_dataset: Create a ClassificationDataset instance.
+        get_dataloader: Return PyTorch DataLoader with transforms for image preprocessing.
+        preprocess_batch: Preprocess a batch of images and classes.
+        progress_string: Return a formatted string showing training progress.
+        get_validator: Return an instance of ClassificationValidator.
+        label_loss_items: Return a loss dict with labelled training loss items.
+        plot_metrics: Plot metrics from a CSV file.
+        final_eval: Evaluate trained model and save validation results.
+        plot_training_samples: Plot training samples with their annotations.
+
+    Examples:
+        >>> from ultralytics.models.yolo.classify import ClassificationTrainer
+        >>> args = dict(model="yolo11n-cls.pt", data="imagenet10", epochs=3)
+        >>> trainer = ClassificationTrainer(overrides=args)
+        >>> trainer.train()
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -44,7 +61,17 @@ class ClassificationTrainer(BaseTrainer):
         self.model.names = self.data["names"]
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """Returns a modified PyTorch model configured for training YOLO."""
+        """
+        Return a modified PyTorch model configured for training YOLO.
+
+        Args:
+            cfg (Any): Model configuration.
+            weights (Any): Pre-trained model weights.
+            verbose (bool): Whether to display model information.
+
+        Returns:
+            (ClassificationModel): Configured PyTorch model for classification.
+        """
         model = ClassificationModel(cfg, nc=self.data["nc"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
@@ -59,7 +86,12 @@ class ClassificationTrainer(BaseTrainer):
         return model
 
     def setup_model(self):
-        """Load, create or download model for any task."""
+        """
+        Load, create or download model for classification tasks.
+
+        Returns:
+            (Any): Model checkpoint if applicable, otherwise None.
+        """
         import torchvision  # scope for faster 'import ultralytics'
 
         if str(self.model) in torchvision.models.__dict__:
@@ -73,11 +105,32 @@ class ClassificationTrainer(BaseTrainer):
         return ckpt
 
     def build_dataset(self, img_path, mode="train", batch=None):
-        """Creates a ClassificationDataset instance given an image path, and mode (train/test etc.)."""
+        """
+        Create a ClassificationDataset instance given an image path and mode.
+
+        Args:
+            img_path (str): Path to the dataset images.
+            mode (str): Dataset mode ('train', 'val', or 'test').
+            batch (Any): Batch information (unused in this implementation).
+
+        Returns:
+            (ClassificationDataset): Dataset for the specified mode.
+        """
         return ClassificationDataset(root=img_path, args=self.args, augment=mode == "train", prefix=mode)
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
-        """Returns PyTorch DataLoader with transforms to preprocess images for inference."""
+        """
+        Return PyTorch DataLoader with transforms to preprocess images.
+
+        Args:
+            dataset_path (str): Path to the dataset.
+            batch_size (int): Number of images per batch.
+            rank (int): Process rank for distributed training.
+            mode (str): 'train', 'val', or 'test' mode.
+
+        Returns:
+            (torch.utils.data.DataLoader): DataLoader for the specified dataset and mode.
+        """
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode)
 
@@ -115,9 +168,14 @@ class ClassificationTrainer(BaseTrainer):
 
     def label_loss_items(self, loss_items=None, prefix="train"):
         """
-        Returns a loss dict with labelled training loss items tensor.
+        Return a loss dict with labelled training loss items tensor.
 
-        Not needed for classification but necessary for segmentation & detection
+        Args:
+            loss_items (torch.Tensor, optional): Loss tensor items.
+            prefix (str): Prefix to prepend to loss names.
+
+        Returns:
+            (Dict[str, float] | List[str]): Dictionary of loss items or list of loss keys if loss_items is None.
         """
         keys = [f"{prefix}/{x}" for x in self.loss_names]
         if loss_items is None:
@@ -126,7 +184,7 @@ class ClassificationTrainer(BaseTrainer):
         return dict(zip(keys, loss_items))
 
     def plot_metrics(self):
-        """Plots metrics from a CSV file."""
+        """Plot metrics from a CSV file."""
         plot_results(file=self.csv, classify=True, on_plot=self.on_plot)  # save results.png
 
     def final_eval(self):
@@ -143,7 +201,13 @@ class ClassificationTrainer(BaseTrainer):
                     self.run_callbacks("on_fit_epoch_end")
 
     def plot_training_samples(self, batch, ni):
-        """Plots training samples with their annotations."""
+        """
+        Plot training samples with their annotations.
+
+        Args:
+            batch (Dict[str, torch.Tensor]): Batch containing images and class labels.
+            ni (int): Number of iterations.
+        """
         plot_images(
             images=batch["img"],
             batch_idx=torch.arange(len(batch["img"])),

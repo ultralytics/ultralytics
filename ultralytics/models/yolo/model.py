@@ -93,7 +93,7 @@ class YOLOWorld(Model):
 
     def set_classes(self, classes):
         """
-        Set classes.
+        Set the model's class names for detection.
 
         Args:
             classes (List(str)): A list of categories i.e. ["person"].
@@ -106,6 +106,5 @@ class YOLOWorld(Model):
         self.model.names = classes
 
         # Reset method class names
-        # self.predictor = None  # reset predictor otherwise old names remain
         if self.predictor:
             self.predictor.model.names = classes

@@ -25,10 +25,10 @@ def pytest_collection_modifyitems(config, items):
 
     Args:
         config (pytest.config.Config): The pytest configuration object that provides access to command-line options.
-        items (list): The list of collected pytest item objects to be modified based on the presence of --slow option.
+        items (List): The list of collected pytest item objects to be modified based on the presence of --slow option.
 
     Returns:
-        (None) The function modifies the 'items' list in place, and does not return a value.
+        (None): The function modifies the 'items' list in place.
     """
     if not config.getoption("--slow"):
         # Remove the item entirely from the list of test items if it's marked as 'slow'

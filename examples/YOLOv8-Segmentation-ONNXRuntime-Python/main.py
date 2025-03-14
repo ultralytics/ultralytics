@@ -14,24 +14,37 @@ from ultralytics.utils.checks import check_yaml
 
 
 class YOLOv8Seg:
-    """YOLOv8 segmentation model."""
+    """
+    YOLOv8 segmentation model for performing instance segmentation using ONNX Runtime.
+
+    This class implements a YOLOv8 instance segmentation model using ONNX Runtime for inference. It handles
+    preprocessing of input images, running inference with the ONNX model, and postprocessing the results to
+    generate bounding boxes and segmentation masks.
+
+    Attributes:
+        session (ort.InferenceSession): ONNX Runtime inference session for model execution.
+        imgsz (Tuple[int, int]): Input image size as (height, width) for the model.
+        classes (Dict): Dictionary mapping class indices to class names from the dataset.
+        conf (float): Confidence threshold for filtering detections.
+        iou (float): IoU threshold used by non-maximum suppression.
+
+    Examples:
+        >>> model = YOLOv8Seg("yolov8n-seg.onnx", conf=0.25, iou=0.7)
+        >>> img = cv2.imread("image.jpg")
+        >>> results = model(img)
+        >>> cv2.imshow("Segmentation", results[0].plot())
+    """
 
     def __init__(self, onnx_model, conf=0.25, iou=0.7, imgsz=640):
         """
-        Initializes the object detection model using an ONNX model.
+        Initialize the instance segmentation model using an ONNX model.
 
         Args:
             onnx_model (str): Path to the ONNX model file.
-            conf (float, optional): Confidence threshold for detections. Defaults to 0.25.
-            iou (float, optional): IoU threshold for NMS. Defaults to 0.7.
-            imgsz (int | Tuple): Input image size of the model.
-
-        Attributes:
-            session (ort.InferenceSession): ONNX Runtime session.
-            imgsz (Tuple): Input image size of the model.
-            classes (dict): Class mappings from the COCO dataset.
             conf (float): Confidence threshold for filtering detections.
-            iou (float): IoU threshold used by NMS.
+            iou (float): IoU threshold for non-maximum suppression.
+            imgsz (int | Tuple[int, int]): Input image size of the model. Can be an integer for square input or a tuple
+                for rectangular input.
         """
         self.session = ort.InferenceSession(
             onnx_model,
@@ -47,20 +60,30 @@ class YOLOv8Seg:
 
     def __call__(self, img):
         """
-        Runs inference on the input image using the ONNX model.
+        Run inference on the input image using the ONNX model.
 
         Args:
-            img (numpy.ndarray): The original input image in BGR format.
+            img (np.ndarray): The original input image in BGR format.
 
         Returns:
-            list: Processed detection results after post-processing.
+            (List[Results]): Processed detection results after post-processing, containing bounding boxes and
+                segmentation masks.
         """
         prep_img = self.preprocess(img, self.imgsz)
         outs = self.session.run(None, {self.session.get_inputs()[0].name: prep_img})
         return self.postprocess(img, prep_img, outs)
 
     def letterbox(self, img, new_shape=(640, 640)):
-        """Resizes and reshapes images while maintaining aspect ratio by adding padding, suitable for YOLO models."""
+        """
+        Resize and pad image while maintaining aspect ratio.
+
+        Args:
+            img (np.ndarray): Input image in BGR format.
+            new_shape (Tuple[int, int]): Target shape as (height, width).
+
+        Returns:
+            (np.ndarray): Resized and padded image.
+        """
         shape = img.shape[:2]  # current shape [height, width]
 
         # Scale ratio (new / old)
@@ -80,32 +103,32 @@ class YOLOv8Seg:
 
     def preprocess(self, img, new_shape):
         """
-        Preprocesses the input image before feeding it into the model.
+        Preprocess the input image before feeding it into the model.
 
         Args:
             img (np.ndarray): The input image in BGR format.
-            new_shape (Tuple or List, optional): The target shape for resizing. Defaults to (640, 640).
+            new_shape (Tuple[int, int]): The target shape for resizing as (height, width).
 
         Returns:
-            np.ndarray: Preprocessed image ready for model inference.
+            (np.ndarray): Preprocessed image ready for model inference, with shape (1, 3, height, width) and normalized.
         """
         img = self.letterbox(img, new_shape)
-        img = img[..., ::-1].transpose([2, 0, 1])[None]
+        img = img[..., ::-1].transpose([2, 0, 1])[None]  # BGR to RGB, BHWC to BCHW
         img = np.ascontiguousarray(img)
-        img = img.astype(np.float32) / 255
+        img = img.astype(np.float32) / 255  # Normalize to [0, 1]
         return img
 
     def postprocess(self, img, prep_img, outs):
         """
-        Post-processes model predictions to extract meaningful results.
+        Post-process model predictions to extract meaningful results.
 
         Args:
             img (np.ndarray): The original input image.
             prep_img (np.ndarray): The preprocessed image used for inference.
-            outs (list): Model outputs.
+            outs (List): Model outputs containing predictions and prototype masks.
 
         Returns:
-            list: Processed detection results.
+            (List[Results]): Processed detection results containing bounding boxes and segmentation masks.
         """
         preds, protos = [torch.from_numpy(p) for p in outs]
         preds = ops.non_max_suppression(preds, self.conf, self.iou, nc=len(self.classes))
@@ -120,22 +143,22 @@ class YOLOv8Seg:
 
     def process_mask(self, protos, masks_in, bboxes, shape):
         """
-        It takes the output of the mask head, and crops it after upsampling to the bounding boxes.
+        Process prototype masks with predicted mask coefficients to generate instance segmentation masks.
 
         Args:
-            protos (torch.Tensor): [mask_dim, mask_h, mask_w]
-            masks_in (torch.Tensor): [n, mask_dim], n is number of masks after nms.
-            bboxes (torch.Tensor): [n, 4], n is number of masks after nms.
-            shape (Tuple): The size of the input image (h,w).
+            protos (torch.Tensor): Prototype masks with shape (mask_dim, mask_h, mask_w).
+            masks_in (torch.Tensor): Predicted mask coefficients with shape (n, mask_dim), where n is number of detections.
+            bboxes (torch.Tensor): Bounding boxes with shape (n, 4), where n is number of detections.
+            shape (Tuple[int, int]): The size of the input image as (height, width).
 
         Returns:
-            masks (torch.Tensor): The returned masks with dimensions [h, w, n].
+            (torch.Tensor): Binary segmentation masks with shape (n, height, width).
         """
         c, mh, mw = protos.shape  # CHW
-        masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)
-        masks = ops.scale_masks(masks[None], shape)[0]  # CHW
-        masks = ops.crop_mask(masks, bboxes)  # CHW
-        return masks.gt_(0.0)
+        masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)  # Matrix multiplication
+        masks = ops.scale_masks(masks[None], shape)[0]  # Scale masks to original image size
+        masks = ops.crop_mask(masks, bboxes)  # Crop masks to bounding boxes
+        return masks.gt_(0.0)  # Convert to binary masks
 
 
 if __name__ == "__main__":

@@ -9,6 +9,19 @@ class SegmentationPredictor(DetectionPredictor):
     """
     A class extending the DetectionPredictor class for prediction based on a segmentation model.
 
+    This class specializes in processing segmentation model outputs, handling both bounding boxes and masks in the
+    prediction results.
+
+    Attributes:
+        args (Dict): Configuration arguments for the predictor.
+        model (torch.nn.Module): The loaded YOLO segmentation model.
+        batch (List): Current batch of images being processed.
+
+    Methods:
+        postprocess: Applies non-max suppression and processes detections.
+        construct_results: Constructs a list of result objects from predictions.
+        construct_result: Constructs a single result object from a prediction.
+
     Examples:
         >>> from ultralytics.utils import ASSETS
         >>> from ultralytics.models.yolo.segment import SegmentationPredictor
@@ -18,19 +31,19 @@ class SegmentationPredictor(DetectionPredictor):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initializes the SegmentationPredictor with the provided configuration, overrides, and callbacks."""
+        """Initialize the SegmentationPredictor with configuration, overrides, and callbacks."""
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "segment"
 
     def postprocess(self, preds, img, orig_imgs):
-        """Applies non-max suppression and processes detections for each image in an input batch."""
-        # tuple if PyTorch model or array if exported
+        """Apply non-max suppression and process detections for each image in the input batch."""
+        # Extract protos - tuple if PyTorch model or array if exported
         protos = preds[1][-1] if isinstance(preds[1], tuple) else preds[1]
         return super().postprocess(preds[0], img, orig_imgs, protos=protos)
 
     def construct_results(self, preds, img, orig_imgs, protos):
         """
-        Constructs a list of result objects from the predictions.
+        Construct a list of result objects from the predictions.
 
         Args:
             preds (List[torch.Tensor]): List of predicted bounding boxes, scores, and masks.
@@ -39,7 +52,8 @@ class SegmentationPredictor(DetectionPredictor):
             protos (List[torch.Tensor]): List of prototype masks.
 
         Returns:
-            (list): List of result objects containing the original images, image paths, class names, bounding boxes, and masks.
+            (List[Results]): List of result objects containing the original images, image paths, class names,
+                bounding boxes, and masks.
         """
         return [
             self.construct_result(pred, img, orig_img, img_path, proto)
@@ -48,7 +62,7 @@ class SegmentationPredictor(DetectionPredictor):
 
     def construct_result(self, pred, img, orig_img, img_path, proto):
         """
-        Constructs the result object from the prediction.
+        Construct a single result object from the prediction.
 
         Args:
             pred (np.ndarray): The predicted bounding boxes, scores, and masks.
@@ -58,7 +72,7 @@ class SegmentationPredictor(DetectionPredictor):
             proto (torch.Tensor): The prototype masks.
 
         Returns:
-            (Results): The result object containing the original image, image path, class names, bounding boxes, and masks.
+            (Results): Result object containing the original image, image path, class names, bounding boxes, and masks.
         """
         if not len(pred):  # save empty boxes
             masks = None
@@ -69,6 +83,6 @@ class SegmentationPredictor(DetectionPredictor):
             masks = ops.process_mask(proto, pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True)  # HWC
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
         if masks is not None:
-            keep = masks.sum((-2, -1)) > 0  # only keep preds with masks
+            keep = masks.sum((-2, -1)) > 0  # only keep predictions with masks
             pred, masks = pred[keep], masks[keep]
         return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks)

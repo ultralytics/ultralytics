@@ -29,7 +29,7 @@ class Inference:
         iou (float): IoU threshold for non-maximum suppression.
         org_frame (Any): Container for the original frame to be displayed.
         ann_frame (Any): Container for the annotated frame to be displayed.
-        vid_file_name (Union[str, int]): Name of the uploaded video file or webcam index.
+        vid_file_name (str | int): Name of the uploaded video file or webcam index.
         selected_ind (List[int]): List of selected class indices for detection.
 
     Methods:
@@ -46,7 +46,7 @@ class Inference:
 
     def __init__(self, **kwargs: Any):
         """
-        Initializes the Inference class, checking Streamlit requirements and setting up the model path.
+        Initialize the Inference class, checking Streamlit requirements and setting up the model path.
 
         Args:
             **kwargs (Any): Additional keyword arguments for model configuration.
@@ -92,7 +92,7 @@ class Inference:
         self.st.markdown(sub_title_cfg, unsafe_allow_html=True)
 
     def sidebar(self):
-        """Configures the Streamlit sidebar for model and inference settings."""
+        """Configure the Streamlit sidebar for model and inference settings."""
         with self.st.sidebar:  # Add Ultralytics LOGO
             logo = "https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg"
             self.st.image(logo, width=250)
@@ -113,7 +113,7 @@ class Inference:
         self.ann_frame = col2.empty()  # Container for annotated frame
 
     def source_upload(self):
-        """Handles video file uploads through the Streamlit interface."""
+        """Handle video file uploads through the Streamlit interface."""
         self.vid_file_name = ""
         if self.source == "video":
             vid_file = self.st.sidebar.file_uploader("Upload Video File", type=["mp4", "mov", "avi", "mkv"])
@@ -126,7 +126,7 @@ class Inference:
             self.vid_file_name = 0  # Use webcam index 0
 
     def configure(self):
-        """Configures the model and loads selected classes for inference."""
+        """Configure the model and load selected classes for inference."""
         # Add dropdown menu for model selection
         available_models = [x.replace("yolo", "YOLO") for x in GITHUB_ASSETS_STEMS if x.startswith("yolo11")]
         if self.model_path:  # If user provided the custom model, insert model without suffix as *.pt is added later
@@ -146,7 +146,7 @@ class Inference:
             self.selected_ind = list(self.selected_ind)
 
     def inference(self):
-        """Performs real-time object detection inference on video or webcam feed."""
+        """Perform real-time object detection inference on video or webcam feed."""
         self.web_ui()  # Initialize the web interface
         self.sidebar()  # Create the sidebar
         self.source_upload()  # Upload the video source

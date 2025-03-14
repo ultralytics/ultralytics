@@ -45,7 +45,7 @@ class QueueManager(BaseSolution):
 
     def process(self, im0):
         """
-        Processes the queue management for a single frame of video.
+        Process queue management for a single frame of video.
 
         Args:
             im0 (numpy.ndarray): Input image for processing, typically a frame from a video stream.

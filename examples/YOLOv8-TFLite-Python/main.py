@@ -50,13 +50,13 @@ class YOLOv8TFLite:
 
     def __init__(self, model: str, conf: float = 0.25, iou: float = 0.45, metadata: Union[str, None] = None):
         """
-        Initializes an instance of the YOLOv8TFLite class.
+        Initialize an instance of the YOLOv8TFLite class.
 
         Args:
             model (str): Path to the TFLite model file.
-            conf (float): Confidence threshold for filtering detections. Defaults to 0.25.
-            iou (float): IoU threshold for non-maximum suppression. Defaults to 0.45.
-            metadata (Union[str, None]): Path to the metadata file containing class names. Defaults to None.
+            conf (float): Confidence threshold for filtering detections.
+            iou (float): IoU threshold for non-maximum suppression.
+            metadata (str | None): Path to the metadata file containing class names.
         """
         self.conf = conf
         self.iou = iou
@@ -88,7 +88,7 @@ class YOLOv8TFLite:
         self, img: np.ndarray, new_shape: Tuple[int, int] = (640, 640)
     ) -> Tuple[np.ndarray, Tuple[float, float]]:
         """
-        Resizes and pads image while maintaining aspect ratio.
+        Resize and pad image while maintaining aspect ratio.
 
         Args:
             img (np.ndarray): Input image with shape (H, W, C).
@@ -117,7 +117,7 @@ class YOLOv8TFLite:
 
     def draw_detections(self, img: np.ndarray, box: np.ndarray, score: np.float32, class_id: int) -> None:
         """
-        Draws bounding boxes and labels on the input image based on the detected objects.
+        Draw bounding boxes and labels on the input image based on the detected objects.
 
         Args:
             img (np.ndarray): The input image to draw detections on.
@@ -155,7 +155,7 @@ class YOLOv8TFLite:
 
     def preprocess(self, img: np.ndarray) -> Tuple[np.ndarray, Tuple[float, float]]:
         """
-        Preprocesses the input image before performing inference.
+        Preprocess the input image before performing inference.
 
         Args:
             img (np.ndarray): The input image to be preprocessed with shape (H, W, C).
@@ -172,7 +172,7 @@ class YOLOv8TFLite:
 
     def postprocess(self, img: np.ndarray, outputs: np.ndarray, pad: Tuple[float, float]) -> np.ndarray:
         """
-        Processes model outputs to extract and visualize detections.
+        Process model outputs to extract and visualize detections.
 
         Args:
             img (np.ndarray): The original input image.
@@ -210,7 +210,7 @@ class YOLOv8TFLite:
 
     def detect(self, img_path: str) -> np.ndarray:
         """
-        Performs object detection on an input image.
+        Perform object detection on an input image.
 
         Args:
             img_path (str): Path to the input image file.

@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
@@ -13,9 +13,15 @@ class InstanceSegmentation(BaseSolution):
 
     Attributes:
         model (str): The segmentation model to use for inference.
+        line_width (int): Width of the bounding box and text lines.
+        names (Dict[int, str]): Dictionary mapping class indices to class names.
+        clss (List[int]): List of detected class indices.
+        track_ids (List[int]): List of track IDs for detected instances.
+        masks (List[numpy.ndarray]): List of segmentation masks for detected instances.
 
     Methods:
-        process: Processes the input image to perform instance segmentation and annotate results.
+        process: Process the input image to perform instance segmentation and annotate results.
+        extract_tracks: Extract tracks including bounding boxes, classes, and masks from model predictions.
 
     Examples:
         >>> segmenter = InstanceSegmentation()
@@ -26,7 +32,7 @@ class InstanceSegmentation(BaseSolution):
 
     def __init__(self, **kwargs):
         """
-        Initializes the InstanceSegmentation class for detecting and annotating segmented instances.
+        Initialize the InstanceSegmentation class for detecting and annotating segmented instances.
 
         Args:
             **kwargs (Any): Keyword arguments passed to the BaseSolution parent class.
@@ -37,7 +43,7 @@ class InstanceSegmentation(BaseSolution):
 
     def process(self, im0):
         """
-        Performs instance segmentation on the input image and annotates the results.
+        Perform instance segmentation on the input image and annotate the results.
 
         Args:
             im0 (numpy.ndarray): The input image for segmentation.

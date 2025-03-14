@@ -48,6 +48,7 @@ def test_predict(task: str, model: str, data: str) -> None:
 
 
 @pytest.mark.skipif(not MACOS or not ARM64, reason="MPS requires macOS on ARM64")
+@pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_predict_mps(task: str, model: str, data: str) -> None:
     """Test YOLO prediction on Apple MPS."""
     run(f"yolo predict model={model} source={ASSETS} imgsz=32 device=mps")

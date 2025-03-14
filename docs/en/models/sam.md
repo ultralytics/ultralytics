@@ -158,12 +158,12 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 Here we compare Meta's SAM-b model with Ultralytics smallest segmentation model, [YOLO11n-seg](../tasks/segment.md):
 
 | Model                                                                                          | Size<br><sup>(MB)</sup> | Parameters<br><sup>(M)</sup> | Speed (CPU)<br><sup>(ms/im)</sup> |
-|------------------------------------------------------------------------------------------------|-------------------------|------------------------------|-----------------------------------|
+| ---------------------------------------------------------------------------------------------- | ----------------------- | ---------------------------- | --------------------------------- |
 | [Meta SAM-b](sam.md)                                                                           | 375                     | 93.7                         | 49401                             |
 | [MobileSAM](mobile-sam.md)                                                                     | 40.7                    | 10.1                         | 25381                             |
 | [FastSAM-s](fast-sam.md) with YOLOv8 [backbone](https://www.ultralytics.com/glossary/backbone) | 23.7                    | 11.8                         | 55.9                              |
 | Ultralytics [YOLOv8n-seg](yolov8.md)                                                           | **6.7** (11.7x smaller) | **3.4** (11.4x less)         | **24.5** (1061x faster)           |
-| Ultralytics [YOLO11n-seg](yolo11.md)                                                           | **5.9** (13.2x smaller) | **2.9** (13.4x less)         | **30.1** (864x faster)           |
+| Ultralytics [YOLO11n-seg](yolo11.md)                                                           | **5.9** (13.2x smaller) | **2.9** (13.4x less)         | **30.1** (864x faster)            |
 
 This comparison demonstrates the substantial differences in model sizes and speeds between SAM variants and YOLO segmentation models. While SAM provides unique automatic segmentation capabilities, YOLO models, particularly YOLOv8n-seg and YOLO11n-seg, are significantly smaller, faster, and more computationally efficient.
 

@@ -738,12 +738,12 @@ The `plot()` method in `Results` objects facilitates visualization of prediction
 The `plot()` method supports various arguments to customize the output:
 
 | Argument             | Type            | Description                                                                      | Default       |
-|----------------------|-----------------|----------------------------------------------------------------------------------|---------------|
+| -------------------- | --------------- | -------------------------------------------------------------------------------- | ------------- |
 | `conf`               | `bool`          | Include detection confidence scores.                                             | `True`        |
 | `line_width`         | `float`         | Line width of bounding boxes. Scales with image size if `None`.                  | `None`        |
 | `font_size`          | `float`         | Text font size. Scales with image size if `None` and only works when `pil=True`. | `None`        |
 | `font`               | `str`           | Font name for text annotations and only works when `pil=True`.                   | `'Arial.ttf'` |
- | `cv2_font_thickness` | `int`           | Text font thickness, which works when `pil=False`.                               | `None`        |
+| `cv2_font_thickness` | `int`           | Text font thickness, which works when `pil=False`.                               | `None`        |
 | `cv2_font_scale`     | `float`         | Text font scale, which works when `pil=False`.                                   | `None`        |
 | `pil`                | `bool`          | Return image as a PIL Image object.                                              | `False`       |
 | `img`                | `numpy.ndarray` | Alternative image for plotting. Uses the original image if `None`.               | `None`        |

@@ -177,7 +177,17 @@ class Annotator:
         >>> annotator = Annotator(im0, line_width=10)
     """
 
-    def __init__(self, im, line_width=None, font_size=None, font="Arial.ttf", pil=False, example="abc", cv2_font_thickness=None, cv2_font_scale=None):
+    def __init__(
+        self,
+        im,
+        line_width=None,
+        font_size=None,
+        font="Arial.ttf",
+        pil=False,
+        example="abc",
+        cv2_font_thickness=None,
+        cv2_font_scale=None,
+    ):
         """Initialize the Annotator class with image and line width along with color palette for keypoints and limbs."""
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         input_is_pil = isinstance(im, Image.Image)

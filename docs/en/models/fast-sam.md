@@ -59,8 +59,8 @@ Here we compare Meta's SAM 2 models, including the smallest SAM2-t variant, with
 | Model                                                                                          | Size<br><sup>(MB)</sup> | Parameters<br><sup>(M)</sup> | Speed (CPU)<br><sup>(ms/im)</sup> |
 |------------------------------------------------------------------------------------------------|-------------------------|------------------------------|-----------------------------------|
 | [Meta SAM-b](sam.md)                                                                           | 375                     | 93.7                         | 49401                             |
-| Meta SAM2-b                                                                                    | 162                     | 80.8                         | 31901                             |
-| Meta SAM2-t                                                                                    | 78.1                    | 38.9                         | 25997                             |
+| [Meta SAM2-b](sam-2.md)                                                                        | 162                     | 80.8                         | 31901                             |
+| [Meta SAM2-t](sam-2.md)                                                                        | 78.1                    | 38.9                         | 25997                             |
 | [MobileSAM](mobile-sam.md)                                                                     | 40.7                    | 10.1                         | 25381                             |
 | [FastSAM-s](fast-sam.md) with YOLOv8 [backbone](https://www.ultralytics.com/glossary/backbone) | 23.7                    | 11.8                         | 55.9                              |
 | Ultralytics [YOLOv8n-seg](yolov8.md)                                                           | **6.7** (11.7x smaller) | **3.4** (11.4x less)         | **24.5** (1061x faster)           |

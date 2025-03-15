@@ -997,8 +997,7 @@ class Exporter:
         try:
             import tensorflow as tf  # noqa
         except ImportError:
-            version = ">=2.0.0"
-            check_requirements(f"tensorflow{version}")
+            check_requirements("tensorflow>=2.0.0")
             import tensorflow as tf  # noqa
         check_requirements(
             (

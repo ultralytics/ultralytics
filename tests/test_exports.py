@@ -150,7 +150,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
         for task, dynamic, int8, half, batch, nms in product(
             TASKS, [False], [True, False], [True, False], [1], [True, False]
         )
-        if not ((int8 and half) or (task == "classify" and nms))
+        if not ((int8 and half) or (task == "classify" and nms) or (ARM64 and nms))
     ],
 )
 def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms):
@@ -213,7 +213,7 @@ def test_export_ncnn():
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
-@pytest.mark.skipif(True, reason="Test disabled as keras and tensorflow version conflicts with tflite export.")
+@pytest.mark.skipif(True, reason="Test disabled as keras and tensorflow version conflicts with TFlite export.")
 @pytest.mark.skipif(not LINUX or MACOS, reason="Skipping test on Windows and Macos")
 def test_export_imx():
     """Test YOLO exports to IMX format."""

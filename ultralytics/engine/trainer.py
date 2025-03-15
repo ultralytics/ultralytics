@@ -40,6 +40,7 @@ from ultralytics.utils import (
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
 from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
+from ultralytics.utils.errors import DatasetError
 from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.torch_utils import (
     TORCH_2_4,
@@ -575,7 +576,7 @@ class BaseTrainer:
                 if "yaml_file" in data:
                     self.args.data = data["yaml_file"]  # for validating 'yolo train data=url.zip' usage
         except Exception as e:
-            raise RuntimeError(emojis(f"Dataset '{clean_url(self.args.data)}' error ❌ {e}")) from e
+            raise DatasetError(emojis(f"Dataset '{clean_url(self.args.data)}' error ❌ {e}")) from e
         self.data = data
         if self.args.single_cls:
             LOGGER.info("Overriding class names with single class.")

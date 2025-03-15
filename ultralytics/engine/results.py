@@ -472,7 +472,7 @@ class Results(SimpleClass):
         save=False,
         filename=None,
         color_mode="class",
-        txt_color=(255, 255, 255)
+        txt_color=(255, 255, 255),
     ):
         """
         Plots detection results on an input RGB image.

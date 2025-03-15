@@ -305,6 +305,7 @@ class Exporter:
             assert not getattr(model, "end2end", False), "TFLite INT8 export not supported for end2end models."
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
+            assert not (tflite and ARM64 and LINUX), "TFLite export with NMS unsupported on ARM64 Linux"
             if getattr(model, "end2end", False):
                 LOGGER.warning("WARNING ⚠️ 'nms=True' is not available for end2end models. Forcing 'nms=False'.")
                 self.args.nms = False
@@ -331,8 +332,8 @@ class Exporter:
                 "WARNING ⚠️ INT8 export requires a missing 'data' arg for calibration. "
                 f"Using default 'data={self.args.data}'."
             )
-        if (tflite or tfjs) and (ARM64 and LINUX):
-            raise SystemError("TFLite and TF.js exports are not currently supported on ARM64 Linux")
+        if tfjs and (ARM64 and LINUX):
+            raise SystemError("TF.js exports are not currently supported on ARM64 Linux")
 
         # Input
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)

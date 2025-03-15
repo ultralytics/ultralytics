@@ -1890,7 +1890,7 @@ class Timm(nn.Module):
             else:
                 print("Installing timm version 0.3.3 for PyTorch version less than 1.9")
                 subprocess.check_call(["pip", "install", f"timm==0.3.3"])           
-            import timm                   
+            import timm # import after installation               
 
         super().__init__()        
         if unwrap:

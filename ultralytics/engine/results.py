@@ -472,6 +472,7 @@ class Results(SimpleClass):
         save=False,
         filename=None,
         color_mode="class",
+        txt_color=(255, 255, 255)
     ):
         """
         Plots detection results on an input RGB image.
@@ -494,6 +495,7 @@ class Results(SimpleClass):
             save (bool): Whether to save the annotated image.
             filename (str | None): Filename to save image if save is True.
             color_mode (bool): Specify the color mode, e.g., 'instance' or 'class'. Default to 'class'.
+            txt_color (tuple[int, int, int]): Specify the RGB text color for classification task
 
         Returns:
             (np.ndarray): Annotated image as a numpy array.
@@ -569,7 +571,7 @@ class Results(SimpleClass):
         if pred_probs is not None and show_probs:
             text = ",\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5)
             x = round(self.orig_shape[0] * 0.03)
-            annotator.text([x, x], text, txt_color=(255, 255, 255))  # TODO: allow setting colors
+            annotator.text([x, x], text, txt_color=txt_color)
 
         # Plot Pose results
         if self.keypoints is not None:

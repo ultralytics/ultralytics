@@ -104,10 +104,9 @@ class HUBTrainingSession:
             session = cls(identifier)
             if args and not identifier.startswith(f"{HUB_WEB_ROOT}/models/"):  # not a HUB model URL
                 session.create_model(args)
-                assert session.model.id, "HUB model not loaded correctly"
             return session
         # PermissionError and ModuleNotFoundError indicate hub-sdk not installed
-        except (PermissionError, ModuleNotFoundError, AssertionError):
+        except (PermissionError, ModuleNotFoundError, ValueError):
             return None
 
     def load_model(self, model_id):
@@ -122,7 +121,7 @@ class HUBTrainingSession:
         """
         self.model = self.client.model(model_id)
         if not self.model.data:  # then model does not exist
-            raise ValueError(emojis("❌ The specified HUB model does not exist"))  # TODO: improve error handling
+            raise ValueError(f"❌ The HUB model {model_id} does not exist")
 
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
         if self.model.is_trained():
@@ -171,7 +170,7 @@ class HUBTrainingSession:
         # Model could not be created
         # TODO: improve error handling
         if not self.model.id:
-            return None
+            raise ValueError(f"The model {self.filename} does not exist")
 
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
 

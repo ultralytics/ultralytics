@@ -310,7 +310,7 @@ class Exporter:
                 self.args.nms = False
             self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
         if edgetpu:
-            if ARM64 and not LINUX:
+            if not LINUX or ARM64:
                 raise SystemError(
                     "Edge TPU export only supported on non-aarch64 Linux. See https://coral.ai/docs/edgetpu/compiler"
                 )
@@ -331,8 +331,8 @@ class Exporter:
                 "WARNING ⚠️ INT8 export requires a missing 'data' arg for calibration. "
                 f"Using default 'data={self.args.data}'."
             )
-        if tfjs and (ARM64 and LINUX):
-            raise SystemError("TensorFlow.js export not supported on ARM64 Linux")
+        if (tflite or tfjs) and (ARM64 and LINUX):
+            raise SystemError("TFLite and TF.js exports are not currently supported on ARM64 Linux")
 
         # Input
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
@@ -997,9 +997,8 @@ class Exporter:
         try:
             import tensorflow as tf  # noqa
         except ImportError:
-            suffix = "-macos" if MACOS else "-aarch64" if ARM64 else "" if cuda else "-cpu"
             version = ">=2.0.0"
-            check_requirements(f"tensorflow{suffix}{version}")
+            check_requirements(f"tensorflow{version}")
             import tensorflow as tf  # noqa
         check_requirements(
             (

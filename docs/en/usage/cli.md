@@ -245,7 +245,7 @@ To train a YOLO11 model using the CLI, execute a single-line command in the term
 yolo train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
 ```
 
-This command uses the `train` mode with specific arguments. For a full list of available arguments, refer to the [Configuration Guide](../usage/cfg.md).
+This command uses the `train` mode with specific arguments. For a full list of available arguments, refer to the [Configuration Guide](cfg.md).
 
 ### What tasks can I perform with the Ultralytics YOLO11 CLI?
 

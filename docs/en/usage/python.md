@@ -210,7 +210,7 @@ For example, users can load a model, train it, evaluate its performance on a val
         from ultralytics import YOLO
 
         model = YOLO("yolo11n.pt")
-        model.export(format="onnx", device=0)
+        model.export(format="engine", device=0)
         ```
 
 [Export Examples](../modes/export.md){ .md-button }
@@ -258,7 +258,7 @@ For example, users can load a model, train it, evaluate its performance on a val
 
 ## Using Trainers
 
-The `YOLO` model class serves as a high-level wrapper for the Trainer classes. Each YOLO task has its own trainer, which inherits from `BaseTrainer`.
+The `YOLO` model class serves as a high-level wrapper for the Trainer classes. Each YOLO task has its own trainer, which inherits from `BaseTrainer`. This architecture allows for greater flexibility and customization in your machine learning workflows.
 
 !!! tip "Detection Trainer Example"
 
@@ -280,10 +280,10 @@ The `YOLO` model class serves as a high-level wrapper for the Trainer classes. E
 
     # resume from last weight
     overrides["resume"] = trainer.last
-    trainer = detect.DetectionTrainer(overrides=overrides)
+    trainer = DetectionTrainer(overrides=overrides)
     ```
 
-You can easily customize Trainers to support custom tasks or explore research and development ideas. Learn more about Customizing `Trainers`, `Validators`, and `Predictors` to suit your project needs in the Customization Section.
+You can easily customize Trainers to support custom tasks or explore research and development ideas. The modular design of Ultralytics YOLO allows you to adapt the framework to your specific needs, whether you're working on a novel computer vision task or fine-tuning existing models for better performance.
 
 [Customization tutorials](engine.md){ .md-button }
 

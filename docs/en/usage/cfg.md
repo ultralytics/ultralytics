@@ -36,7 +36,7 @@ Ultralytics commands use the following syntax:
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO11 model from a pre-trained weights file
+        # Load a YOLO model from a pre-trained weights file
         model = YOLO("yolo11n.pt")
 
         # Run MODE mode using the custom arguments ARGS (guess TASK)
@@ -71,12 +71,12 @@ Ultralytics YOLO models can perform a variety of computer vision tasks, includin
 
 Ultralytics YOLO models operate in different modes, each designed for a specific stage of the model lifecycle:
 
-* **Train**: Train a YOLO model on a custom dataset.
-* **Val**: Validate a trained YOLO model.
-* **Predict**: Use a trained YOLO model to make predictions on new images or videos.
-* **Export**: Export a YOLO model for deployment.
-* **Track**: Track objects in real-time using a YOLO model.
-* **Benchmark**: Benchmark the speed and accuracy of YOLO exports (ONNX, TensorRT, etc.).
+- **Train**: Train a YOLO model on a custom dataset.
+- **Val**: Validate a trained YOLO model.
+- **Predict**: Use a trained YOLO model to make predictions on new images or videos.
+- **Export**: Export a YOLO model for deployment.
+- **Track**: Track objects in real-time using a YOLO model.
+- **Benchmark**: Benchmark the speed and accuracy of YOLO exports (ONNX, TensorRT, etc.).
 
 | Argument | Default   | Description                                                                                                                                                                                                                                                                                                        |
 |----------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -154,10 +154,10 @@ Adjust these settings to meet dataset and task requirements. Experimenting with 
 
 Logging, checkpoints, plotting, and file management are important when training a YOLO model:
 
-* **Logging**: Track the model's progress and diagnose issues using libraries like TensorBoard or by writing to a file.
-* **Checkpoints**: Save the model at regular intervals to resume training or experiment with different configurations.
-* **Plotting**: Visualize performance and training progress using libraries like matplotlib or TensorBoard.
-* **File management**: Organize files generated during training, such as checkpoints, log files, and plots, for easy access and analysis.
+- **Logging**: Track the model's progress and diagnose issues using libraries like [TensorBoard](https://www.ultralytics.com/integrations/tensorboard) or by writing to a file.
+- **Checkpoints**: Save the model at regular intervals to resume training or experiment with different configurations.
+- **Plotting**: Visualize performance and training progress using libraries like matplotlib or TensorBoard.
+- **File management**: Organize files generated during training, such as checkpoints, log files, and plots, for easy access and analysis.
 
 Effective management of these aspects helps track progress and makes debugging and optimization easier.
 
@@ -179,10 +179,10 @@ Improve performance by tuning hyperparameters like batch size, learning rate, mo
 
 Key hyperparameters affecting accuracy include:
 
-* **Batch Size (`batch`)**: Larger sizes can stabilize training but need more memory.
-* **Learning Rate (`lr0`)**: Smaller rates offer fine adjustments but slower convergence.
-* **Momentum (`momentum`)**: Accelerates gradient vectors, dampening oscillations.
-* **Image Size (`imgsz`)**: Larger sizes improve accuracy but increase computational load.
+- **Batch Size (`batch`)**: Larger sizes can stabilize training but need more memory.
+- **Learning Rate (`lr0`)**: Smaller rates offer fine adjustments but slower convergence.
+- **Momentum (`momentum`)**: Accelerates gradient vectors, dampening oscillations.
+- **Image Size (`imgsz`)**: Larger sizes improve accuracy but increase computational load.
 
 Adjust these based on your dataset and hardware. Learn more in [Train Settings](#train-settings).
 
@@ -194,10 +194,10 @@ The learning rate (`lr0`) is crucial; start with `0.01` for SGD or `0.001` for A
 
 Default settings include:
 
-* **Confidence Threshold (`conf=0.25`)**: Minimum confidence for detections.
-* **IoU Threshold (`iou=0.7`)**: For [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms).
-* **Image Size (`imgsz=640`)**: Resizes input images.
-* **Device (`device=None`)**: Selects CPU or GPU.
+- **Confidence Threshold (`conf=0.25`)**: Minimum confidence for detections.
+- **IoU Threshold (`iou=0.7`)**: For [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms).
+- **Image Size (`imgsz=640`)**: Resizes input images.
+- **Device (`device=None`)**: Selects CPU or GPU.
 
 For a full overview, see [Predict Settings](#predict-settings) and the [Predict Guide](../modes/predict.md).
 

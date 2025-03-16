@@ -281,7 +281,7 @@ class AutoBackend(nn.Module):
         elif engine:
             LOGGER.info(f"Loading {w} for TensorRT inference...")
 
-            if IS_JETSON and check_version(PYTHON_VERSION, "<3.8.0"):
+            if IS_JETSON and check_version(PYTHON_VERSION, "<=3.8.0"):
                 # fix error: `np.bool` was a deprecated alias for the builtin `bool` for JetPack 4 with Python <= 3.8.0
                 check_requirements("numpy==1.23.5")
 

@@ -121,7 +121,7 @@ class HUBTrainingSession:
         """
         self.model = self.client.model(model_id)
         if not self.model.data:  # then model does not exist
-            raise ValueError(f"❌ The HUB model {model_id} does not exist")
+            raise ValueError(emojis(f"❌ The HUB model {model_id} does not exist"))
 
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
         if self.model.is_trained():

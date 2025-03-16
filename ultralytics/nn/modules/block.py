@@ -1724,7 +1724,6 @@ class AAttn(nn.Module):
         return self.proj(x)
 
 
-
 class ABlock(nn.Module):
     """
     Area-attention block module for efficient feature extraction in YOLO models.

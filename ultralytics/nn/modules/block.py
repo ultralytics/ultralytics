@@ -1676,9 +1676,10 @@ class AAttn(nn.Module):
         self.head_dim = head_dim = dim // num_heads
         all_head_dim = head_dim * self.num_heads
 
-        self.qkv = Conv(dim, all_head_dim * 3, 1, act=False)
+        self.qk = Conv(dim, all_head_dim * 2, 1, act=False)
+        self.v = Conv(dim, all_head_dim, 1, act=False)
         self.proj = Conv(all_head_dim, dim, 1, act=False)
-        self.pe = Conv(all_head_dim, dim, 7, 1, 3, g=dim, act=False)
+        self.pe = Conv(all_head_dim, dim, 5, 1, 2, g=dim, act=False)
 
     def forward(self, x):
         """
@@ -1693,15 +1694,18 @@ class AAttn(nn.Module):
         B, C, H, W = x.shape
         N = H * W
 
-        qkv = self.qkv(x).flatten(2).transpose(1, 2)
+        qk = self.qk(x).flatten(2).transpose(1, 2)
+        v = self.v(x).flatten(2).transpose(1, 2)
         if self.area > 1:
-            qkv = qkv.reshape(B * self.area, N // self.area, C * 3)
-            B, N, _ = qkv.shape
-        q, k, v = (
-            qkv.view(B, N, self.num_heads, self.head_dim * 3)
+            qk = qk.reshape(B * self.area, N // self.area, C * 2)
+            v = v.reshape(B * self.area, N // self.area, C)
+            B, N, _ = qk.shape
+        q, k = (
+            qk.view(B, N, self.num_heads, self.head_dim * 2)
             .permute(0, 2, 3, 1)
-            .split([self.head_dim, self.head_dim, self.head_dim], dim=2)
+            .split([self.head_dim, self.head_dim], dim=2)
         )
+        v = v.view(B, N, self.num_heads, self.head_dim).permute(0, 2, 3, 1)
         attn = (q.transpose(-2, -1) @ k) * (self.head_dim**-0.5)
         attn = attn.softmax(dim=-1)
         x = v @ attn.transpose(-2, -1)
@@ -1718,6 +1722,7 @@ class AAttn(nn.Module):
 
         x = x + self.pe(v)
         return self.proj(x)
+
 
 
 class ABlock(nn.Module):

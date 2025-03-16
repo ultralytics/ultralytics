@@ -1013,6 +1013,7 @@ class Exporter:
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
                 "protobuf>=5",  # tflite_support pins <=4 but >=5 works
+                "ai-edge-litert>=1.2.0" # ai-edge-litert is missing if onnx2tf==1.27.0
             ),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
         )

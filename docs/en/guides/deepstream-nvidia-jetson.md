@@ -139,7 +139,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
 6.  Copy the generated `.onnx` model file and `labels.txt` file to the `DeepStream-Yolo` folder
 
     ```bash
-    cp yolo11s.pt.onnx labels.txt ~/DeepStream-Yolo
+    cp yolo11s.onnx labels.txt ~/DeepStream-Yolo
     cd ~/DeepStream-Yolo
     ```
 

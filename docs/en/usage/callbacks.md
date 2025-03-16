@@ -58,7 +58,7 @@ Below are all the supported callbacks. For more details, refer to the callbacks 
 ### Trainer Callbacks
 
 | Callback                    | Description                                                                                  |
-|-----------------------------|----------------------------------------------------------------------------------------------|
+| --------------------------- | -------------------------------------------------------------------------------------------- |
 | `on_pretrain_routine_start` | Triggered at the beginning of the pre-training routine.                                      |
 | `on_pretrain_routine_end`   | Triggered at the end of the pre-training routine.                                            |
 | `on_train_start`            | Triggered when the training starts.                                                          |
@@ -77,7 +77,7 @@ Below are all the supported callbacks. For more details, refer to the callbacks 
 ### Validator Callbacks
 
 | Callback             | Description                                      |
-|----------------------|--------------------------------------------------|
+| -------------------- | ------------------------------------------------ |
 | `on_val_start`       | Triggered when validation starts.                |
 | `on_val_batch_start` | Triggered at the start of each validation batch. |
 | `on_val_batch_end`   | Triggered at the end of each validation batch.   |
@@ -86,7 +86,7 @@ Below are all the supported callbacks. For more details, refer to the callbacks 
 ### Predictor Callbacks
 
 | Callback                     | Description                                         |
-|------------------------------|-----------------------------------------------------|
+| ---------------------------- | --------------------------------------------------- |
 | `on_predict_start`           | Triggered when the prediction process starts.       |
 | `on_predict_batch_start`     | Triggered at the start of each prediction batch.    |
 | `on_predict_postprocess_end` | Triggered at the end of prediction post-processing. |
@@ -96,7 +96,7 @@ Below are all the supported callbacks. For more details, refer to the callbacks 
 ### Exporter Callbacks
 
 | Callback          | Description                               |
-|-------------------|-------------------------------------------|
+| ----------------- | ----------------------------------------- |
 | `on_export_start` | Triggered when the export process starts. |
 | `on_export_end`   | Triggered when the export process ends.   |
 

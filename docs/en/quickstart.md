@@ -365,7 +365,7 @@ Ultralytics makes it easy to modify settings in the following ways:
 The table below overviews the adjustable settings within Ultralytics, including example values, data types, and descriptions.
 
 | Name               | Example Value         | Data Type | Description                                                                                                      |
-|--------------------|-----------------------|-----------|------------------------------------------------------------------------------------------------------------------|
+| ------------------ | --------------------- | --------- | ---------------------------------------------------------------------------------------------------------------- |
 | `settings_version` | `'0.0.4'`             | `str`     | Ultralytics _settings_ version (distinct from the Ultralytics [pip] version)                                     |
 | `datasets_dir`     | `'/path/to/datasets'` | `str`     | Directory where datasets are stored                                                                              |
 | `weights_dir`      | `'/path/to/weights'`  | `str`     | Directory where model weights are stored                                                                         |

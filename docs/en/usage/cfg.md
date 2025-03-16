@@ -1,10 +1,14 @@
 ---
 comments: true
-description: Optimize your YOLO model's performance with the right settings and hyperparameters. Learn about training, validation, and prediction configurations.
+description: Optimize your Ultralytics YOLO model's performance with the right settings and hyperparameters. Learn about training, validation, and prediction configurations.
 keywords: YOLO, hyperparameters, configuration, training, validation, prediction, model settings, Ultralytics, performance optimization, machine learning
 ---
 
-YOLO settings and hyperparameters play a critical role in the model's performance, speed, and [accuracy](https://www.ultralytics.com/glossary/accuracy). These settings and hyperparameters can affect the model's behavior at various stages of the model development process, including training, validation, and prediction.
+# Configuration
+
+YOLO settings and hyperparameters play a critical role in the model's performance, speed, and [accuracy](https://www.ultralytics.com/glossary/accuracy). These settings can affect the model's behavior at various stages, including training, validation, and prediction.
+
+**Watch:** Mastering Ultralytics YOLO: Configuration
 
 <p align="center">
   <br>
@@ -45,60 +49,60 @@ Where:
 - `MODE` (required) is one of ([train](../modes/train.md), [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md), [track](../modes/track.md), [benchmark](../modes/benchmark.md))
 - `ARGS` (optional) are `arg=value` pairs like `imgsz=640` that override defaults.
 
-Default `ARG` values are defined on this page from the `cfg/defaults.yaml` [file](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
+Default `ARG` values are defined on this page and come from the `cfg/defaults.yaml` [file](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
 
-#### Tasks
+## Tasks
 
-YOLO models can be used for a variety of tasks, including detection, segmentation, classification and pose. These tasks differ in the type of output they produce and the specific problem they are designed to solve.
+Ultralytics YOLO models can perform a variety of computer vision tasks, including:
 
-- **Detect**: For identifying and localizing objects or regions of interest in an image or video.
-- **Segment**: For dividing an image or video into regions or pixels that correspond to different objects or classes.
-- **Classify**: For predicting the class label of an input image.
-- **Pose**: For identifying objects and estimating their keypoints in an image or video.
-- **OBB**: Oriented (i.e. rotated) bounding boxes suitable for satellite or medical imagery.
+- **Detect**: [Object detection](https://docs.ultralytics.com/tasks/detect/) identifies and localizes objects within an image or video.
+- **Segment**: [Instance segmentation](https://docs.ultralytics.com/tasks/segment/) divides an image or video into regions corresponding to different objects or classes.
+- **Classify**: [Image classification](https://docs.ultralytics.com/tasks/classify/) predicts the class label of an input image.
+- **Pose**: [Pose estimation](https://docs.ultralytics.com/tasks/pose/) identifies objects and estimates their keypoints in an image or video.
+- **OBB**: [Oriented Bounding Boxes](https://docs.ultralytics.com/tasks/obb/) uses rotated bounding boxes, suitable for satellite or medical imagery.
 
-| Argument | Default    | Description                                                                                                                                                                                                                                                                                                                                                                  |
-| -------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `task`   | `'detect'` | Specifies the YOLO task to be executed. Options include `detect` for [object detection](https://www.ultralytics.com/glossary/object-detection), `segment` for segmentation, `classify` for classification, `pose` for pose estimation and `obb` for oriented bounding boxes. Each task is tailored to specific types of output and problems within image and video analysis. |
+| Argument | Default    | Description                                                                                                                                                                                                                                                                                                                        |
+|----------|------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `task`   | `'detect'` | Specifies the YOLO task: `detect` for [object detection](https://www.ultralytics.com/glossary/object-detection), `segment` for segmentation, `classify` for classification, `pose` for pose estimation, and `obb` for oriented bounding boxes. Each task is tailored to specific outputs and problems in image and video analysis. |
 
 [Tasks Guide](../tasks/index.md){ .md-button }
 
-#### Modes
+## Modes
 
-YOLO models can be used in different modes depending on the specific problem you are trying to solve. These modes include:
+Ultralytics YOLO models operate in different modes, each designed for a specific stage of the model lifecycle:
 
-- **Train**: For training a YOLO11 model on a custom dataset.
-- **Val**: For validating a YOLO11 model after it has been trained.
-- **Predict**: For making predictions using a trained YOLO11 model on new images or videos.
-- **Export**: For exporting a YOLO11 model to a format that can be used for deployment.
-- **Track**: For tracking objects in real-time using a YOLO11 model.
-- **Benchmark**: For benchmarking YOLO11 exports (ONNX, TensorRT, etc.) speed and accuracy.
+* **Train**: Train a YOLO model on a custom dataset.
+* **Val**: Validate a trained YOLO model.
+* **Predict**: Use a trained YOLO model to make predictions on new images or videos.
+* **Export**: Export a YOLO model for deployment.
+* **Track**: Track objects in real-time using a YOLO model.
+* **Benchmark**: Benchmark the speed and accuracy of YOLO exports (ONNX, TensorRT, etc.).
 
-| Argument | Default   | Description                                                                                                                                                                                                                                                                                                                                                                                   |
-| -------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mode`   | `'train'` | Specifies the mode in which the YOLO model operates. Options are `train` for model training, `val` for validation, `predict` for inference on new data, `export` for model conversion to deployment formats, `track` for object tracking, and `benchmark` for performance evaluation. Each mode is designed for different stages of the model lifecycle, from development through deployment. |
+| Argument | Default   | Description                                                                                                                                                                                                                                                                                                        |
+|----------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `mode`   | `'train'` | Specifies the YOLO model's operating mode: `train` for model training, `val` for validation, `predict` for inference, `export` for converting to deployment formats, `track` for object tracking, and `benchmark` for performance evaluation. Each mode supports different stages, from development to deployment. |
 
 [Modes Guide](../modes/index.md){ .md-button }
 
 ## Train Settings
 
-The training settings for YOLO models encompass various hyperparameters and configurations used during the training process. These settings influence the model's performance, speed, and accuracy. Key training settings include batch size, [learning rate](https://www.ultralytics.com/glossary/learning-rate), momentum, and weight decay. Additionally, the choice of optimizer, [loss function](https://www.ultralytics.com/glossary/loss-function), and training dataset composition can impact the training process. Careful tuning and experimentation with these settings are crucial for optimizing performance.
+Training settings for YOLO models include hyperparameters and configurations that affect the model's performance, speed, and [accuracy](https://www.ultralytics.com/glossary/accuracy). Key settings include [batch size](https://www.ultralytics.com/glossary/batch-size), [learning rate](https://www.ultralytics.com/glossary/learning-rate), momentum, and weight decay. The choice of optimizer, [loss function](https://www.ultralytics.com/glossary/loss-function), and dataset composition also impact training. Tuning and experimentation are crucial for optimal performance. For more details, see the [Ultralytics entrypoint function](https://docs.ultralytics.com/reference/cfg/__init__/).
 
 {% include "macros/train-args.md" %}
 
 !!! info "Note on Batch-size Settings"
 
-    The `batch` argument can be configured in three ways:
+    The `batch` argument offers three configuration options:
 
-    - **Fixed [Batch Size](https://www.ultralytics.com/glossary/batch-size)**: Set an integer value (e.g., `batch=16`), specifying the number of images per batch directly.
-    - **Auto Mode (60% GPU Memory)**: Use `batch=-1` to automatically adjust batch size for approximately 60% CUDA memory utilization.
-    - **Auto Mode with Utilization Fraction**: Set a fraction value (e.g., `batch=0.70`) to adjust batch size based on the specified fraction of GPU memory usage.
+    - **Fixed Batch Size**: Specify the number of images per batch with an integer (e.g., `batch=16`).
+    - **Auto Mode (60% GPU Memory)**: Use `batch=-1` for automatic adjustment to approximately 60% CUDA memory utilization.
+    - **Auto Mode with Utilization Fraction**: Set a fraction (e.g., `batch=0.70`) to adjust based on a specified GPU memory usage.
 
 [Train Guide](../modes/train.md){ .md-button }
 
 ## Predict Settings
 
-The prediction settings for YOLO models encompass a range of hyperparameters and configurations that influence the model's performance, speed, and accuracy during inference on new data. Careful tuning and experimentation with these settings are essential to achieve optimal performance for a specific task. Key settings include the confidence threshold, Non-Maximum Suppression (NMS) threshold, and the number of classes considered. Additional factors affecting the prediction process are input data size and format, the presence of supplementary features such as masks or multiple labels per box, and the particular task the model is employed for.
+Prediction settings for YOLO models include hyperparameters and configurations that influence performance, speed, and [accuracy](https://www.ultralytics.com/glossary/accuracy) during inference. Key settings include the confidence threshold, [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) threshold, and the number of classes. Input data size, format, and supplementary features like masks also affect predictions. Tuning these settings is essential for optimal performance.
 
 Inference arguments:
 
@@ -106,99 +110,97 @@ Inference arguments:
 
 Visualization arguments:
 
-{% from "macros/visualization-args.md" import param_table %}
-{{ param_table() }}
+{% from "macros/visualization-args.md" import param_table %} {{ param_table() }}
 
 [Predict Guide](../modes/predict.md){ .md-button }
 
 ## Validation Settings
 
-The val (validation) settings for YOLO models involve various hyperparameters and configurations used to evaluate the model's performance on a validation dataset. These settings influence the model's performance, speed, and accuracy. Common YOLO validation settings include batch size, validation frequency during training, and performance evaluation metrics. Other factors affecting the validation process include the validation dataset's size and composition, as well as the specific task the model is employed for.
+Validation settings for YOLO models involve hyperparameters and configurations to evaluate performance on a [validation dataset](https://www.ultralytics.com/glossary/validation-data). These settings influence performance, speed, and [accuracy](https://www.ultralytics.com/glossary/accuracy). Common settings include batch size, validation frequency, and performance metrics. The validation dataset's size and composition, along with the specific task, also affect the process.
 
 {% include "macros/validation-args.md" %}
 
-Careful tuning and experimentation with these settings are crucial to ensure optimal performance on the validation dataset and detect and prevent [overfitting](https://www.ultralytics.com/glossary/overfitting).
+Careful tuning and experimentation are crucial to ensure optimal performance and to detect and prevent [overfitting](https://www.ultralytics.com/glossary/overfitting).
 
 [Val Guide](../modes/val.md){ .md-button }
 
 ## Export Settings
 
-Export settings for YOLO models encompass configurations and options related to saving or exporting the model for use in different environments or platforms. These settings can impact the model's performance, size, and compatibility with various systems. Key export settings include the exported model file format (e.g., ONNX, TensorFlow SavedModel), the target device (e.g., CPU, GPU), and additional features such as masks or multiple labels per box. The export process may also be affected by the model's specific task and the requirements or constraints of the destination environment or platform.
+Export settings for YOLO models include configurations for saving or exporting the model for use in different environments. These settings impact performance, size, and compatibility. Key settings include the exported file format (e.g., ONNX, TensorFlow SavedModel), the target device (e.g., CPU, GPU), and features like masks. The model's task and the destination environment's constraints also affect the export process.
 
 {% include "macros/export-args.md" %}
 
-It is crucial to thoughtfully configure these settings to ensure the exported model is optimized for the intended use case and functions effectively in the target environment.
+Thoughtful configuration ensures the exported model is optimized for its use case and functions effectively in the target environment.
 
 [Export Guide](../modes/export.md){ .md-button }
 
 ## Solutions Settings
 
-The configuration settings for Ultralytics Solutions offer a flexible way to customize the model for various tasks like object counting, heatmap creation, workout tracking, data analysis, zone tracking, queue management, and region-based counting. These options make it easy to adjust the setup for accurate and useful results tailored to specific needs.
+Ultralytics Solutions configuration settings offer flexibility to customize models for tasks like object counting, heatmap creation, workout tracking, data analysis, zone tracking, queue management, and region-based counting. These options allow easy adjustments for accurate and useful results tailored to specific needs.
 
-{% from "macros/solutions-args.md" import param_table %}
-{{ param_table() }}
+{% from "macros/solutions-args.md" import param_table %} {{ param_table() }}
 
 [Solutions Guide](../solutions/index.md){ .md-button }
 
 ## Augmentation Settings
 
-Augmentation techniques are essential for improving the robustness and performance of YOLO models by introducing variability into the [training data](https://www.ultralytics.com/glossary/training-data), helping the model generalize better to unseen data. The following table outlines the purpose and effect of each augmentation argument:
+[Data augmentation](https://www.ultralytics.com/glossary/data-augmentation) techniques are essential for improving YOLO model robustness and performance by introducing variability into the [training data](https://www.ultralytics.com/glossary/training-data), helping the model generalize better to unseen data. The following table outlines each augmentation argument's purpose and effect:
 
 {% include "macros/augmentation-args.md" %}
 
-These settings can be adjusted to meet the specific requirements of the dataset and task at hand. Experimenting with different values can help find the optimal augmentation strategy that leads to the best model performance.
+Adjust these settings to meet dataset and task requirements. Experimenting with different values can help find the optimal augmentation strategy for the best model performance.
 
 ## Logging, Checkpoints and Plotting Settings
 
-Logging, checkpoints, plotting, and file management are important considerations when training a YOLO model.
+Logging, checkpoints, plotting, and file management are important when training a YOLO model:
 
-- Logging: It is often helpful to log various metrics and statistics during training to track the model's progress and diagnose any issues that may arise. This can be done using a logging library such as TensorBoard or by writing log messages to a file.
-- Checkpoints: It is a good practice to save checkpoints of the model at regular intervals during training. This allows you to resume training from a previous point if the training process is interrupted or if you want to experiment with different training configurations.
-- Plotting: Visualizing the model's performance and training progress can be helpful for understanding how the model is behaving and identifying potential issues. This can be done using a plotting library such as matplotlib or by generating plots using a logging library such as TensorBoard.
-- File management: Managing the various files generated during the training process, such as model checkpoints, log files, and plots, can be challenging. It is important to have a clear and organized file structure to keep track of these files and make it easy to access and analyze them as needed.
+* **Logging**: Track the model's progress and diagnose issues using libraries like TensorBoard or by writing to a file.
+* **Checkpoints**: Save the model at regular intervals to resume training or experiment with different configurations.
+* **Plotting**: Visualize performance and training progress using libraries like matplotlib or TensorBoard.
+* **File management**: Organize files generated during training, such as checkpoints, log files, and plots, for easy access and analysis.
 
-Effective logging, checkpointing, plotting, and file management can help you keep track of the model's progress and make it easier to debug and optimize the training process.
+Effective management of these aspects helps track progress and makes debugging and optimization easier.
 
-| Argument   | Default  | Description                                                                                                                                                                                                                                                                                                                         |
-| ---------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `project`  | `'runs'` | Specifies the root directory for saving training runs. Each run will be saved in a separate subdirectory within this directory.                                                                                                                                                                                                     |
-| `name`     | `'exp'`  | Defines the name of the experiment. If not specified, YOLO automatically increments this name for each run, e.g., `exp`, `exp2`, etc., to avoid overwriting previous experiments.                                                                                                                                                   |
-| `exist_ok` | `False`  | Determines whether to overwrite an existing experiment directory if one with the same name already exists. Setting this to `True` allows overwriting, while `False` prevents it.                                                                                                                                                    |
-| `plots`    | `False`  | Controls the generation and saving of training and validation plots. Set to `True` to create plots such as loss curves, [precision](https://www.ultralytics.com/glossary/precision)-[recall](https://www.ultralytics.com/glossary/recall) curves, and sample predictions. Useful for visually tracking model performance over time. |
-| `save`     | `False`  | Enables the saving of training checkpoints and final model weights. Set to `True` to periodically save model states, allowing training to be resumed from these checkpoints or models to be deployed.                                                                                                                               |
+| Argument   | Default  | Description                                                                                                                                                                                                                                                                                               |
+|------------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `project`  | `'runs'` | Specifies the root directory for saving training runs. Each run is saved in a separate subdirectory.                                                                                                                                                                                                      |
+| `name`     | `'exp'`  | Defines the experiment name. If unspecified, YOLO increments this name for each run (e.g., `exp`, `exp2`) to avoid overwriting.                                                                                                                                                                           |
+| `exist_ok` | `False`  | Determines whether to overwrite an existing experiment directory. `True` allows overwriting; `False` prevents it.                                                                                                                                                                                         |
+| `plots`    | `False`  | Controls the generation and saving of training and validation plots. Set to `True` to create plots like loss curves, [precision](https://www.ultralytics.com/glossary/precision)-[recall](https://www.ultralytics.com/glossary/recall) curves, and sample predictions for visual tracking of performance. |
+| `save`     | `False`  | Enables saving training checkpoints and final model weights. Set to `True` to save model states periodically, allowing training resumption or model deployment.                                                                                                                                           |
 
 ## FAQ
 
-### How do I improve the performance of my YOLO model during training?
+### How do I improve my YOLO model's performance during training?
 
-Improving YOLO model performance involves tuning hyperparameters like batch size, learning rate, momentum, and weight decay. Adjusting augmentation settings, selecting the right optimizer, and employing techniques like early stopping or [mixed precision](https://www.ultralytics.com/glossary/mixed-precision) can also help. For detailed guidance on training settings, refer to the [Train Guide](../modes/train.md).
+Improve performance by tuning hyperparameters like batch size, learning rate, momentum, and weight decay. Adjust augmentation settings, select the right optimizer, and use techniques like early stopping or [mixed precision](https://www.ultralytics.com/glossary/mixed-precision). For details, see the [Train Guide](../modes/train.md).
 
-### What are the key hyperparameters to consider for YOLO model accuracy?
+### What are the key hyperparameters for YOLO model accuracy?
 
-Key hyperparameters affecting YOLO model accuracy include:
+Key hyperparameters affecting accuracy include:
 
-- **Batch Size (`batch`)**: Larger batch sizes can stabilize training but may require more memory.
-- **Learning Rate (`lr0`)**: Controls the step size for weight updates; smaller rates offer fine adjustments but slow convergence.
-- **Momentum (`momentum`)**: Helps accelerate gradient vectors in the right directions, dampening oscillations.
-- **Image Size (`imgsz`)**: Larger image sizes can improve accuracy but increase computational load.
+* **Batch Size (`batch`)**: Larger sizes can stabilize training but need more memory.
+* **Learning Rate (`lr0`)**: Smaller rates offer fine adjustments but slower convergence.
+* **Momentum (`momentum`)**: Accelerates gradient vectors, dampening oscillations.
+* **Image Size (`imgsz`)**: Larger sizes improve accuracy but increase computational load.
 
-Adjust these values based on your dataset and hardware capabilities. Explore more in the [Train Settings](#train-settings) section.
+Adjust these based on your dataset and hardware. Learn more in [Train Settings](#train-settings).
 
 ### How do I set the learning rate for training a YOLO model?
 
-The learning rate (`lr0`) is crucial for optimization. A common starting point is `0.01` for SGD or `0.001` for Adam. It's essential to monitor training metrics and adjust if necessary. Use cosine learning rate schedulers (`cos_lr`) or warmup techniques (`warmup_epochs`, `warmup_momentum`) to dynamically modify the rate during training. Find more details in the [Train Guide](../modes/train.md).
+The learning rate (`lr0`) is crucial; start with `0.01` for SGD or `0.001` for Adam. Monitor metrics and adjust as needed. Use cosine learning rate schedulers (`cos_lr`) or warmup (`warmup_epochs`, `warmup_momentum`). Details are in the [Train Guide](../modes/train.md).
 
 ### What are the default inference settings for YOLO models?
 
-Default inference settings include:
+Default settings include:
 
-- **Confidence Threshold (`conf=0.25`)**: Minimum confidence for detections.
-- **IoU Threshold (`iou=0.7`)**: For Non-Maximum Suppression (NMS).
-- **Image Size (`imgsz=640`)**: Resizes input images prior to inference.
-- **Device (`device=None`)**: Selects CPU or GPU for inference.
+* **Confidence Threshold (`conf=0.25`)**: Minimum confidence for detections.
+* **IoU Threshold (`iou=0.7`)**: For [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms).
+* **Image Size (`imgsz=640`)**: Resizes input images.
+* **Device (`device=None`)**: Selects CPU or GPU.
 
-For a comprehensive overview, visit the [Predict Settings](#predict-settings) section and the [Predict Guide](../modes/predict.md).
+For a full overview, see [Predict Settings](#predict-settings) and the [Predict Guide](../modes/predict.md).
 
-### Why should I use mixed precision training with YOLO models?
+### Why use mixed precision training with YOLO models?
 
-Mixed precision training, enabled with `amp=True`, helps reduce memory usage and can speed up training by utilizing the advantages of both FP16 and FP32. This is beneficial for modern GPUs, which support mixed precision natively, allowing more models to fit in memory and enable faster computations without significant loss in accuracy. Learn more about this in the [Train Guide](../modes/train.md).
+[Mixed precision](https://www.ultralytics.com/glossary/mixed-precision) training (`amp=True`) reduces memory usage and speeds up training using FP16 and FP32. It's beneficial for modern GPUs, allowing larger models and faster computations without significant accuracy loss. Learn more in the [Train Guide](../modes/train.md).

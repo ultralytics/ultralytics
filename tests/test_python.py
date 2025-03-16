@@ -18,9 +18,11 @@ from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import MODELS, TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import (
+    ARM64,
     ASSETS,
     DEFAULT_CFG,
     DEFAULT_CFG_PATH,
+    LINUX,
     LOGGER,
     ONLINE,
     ROOT,
@@ -574,6 +576,10 @@ def test_model_embeddings():
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOWorld with CLIP is not supported in Python 3.12")
+@pytest.mark.skipif(
+    checks.IS_PYTHON_3_8 and LINUX and ARM64,
+    reason="YOLOWorld with CLIP is not supported in Python 3.8 and aarch64 Linux",
+)
 def test_yolo_world():
     """Test YOLO world models with CLIP support."""
     model = YOLO(WEIGHTS_DIR / "yolov8s-world.pt")  # no YOLO11n-world model yet

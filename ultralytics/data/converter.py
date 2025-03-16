@@ -690,7 +690,6 @@ def create_synthetic_coco_dataset():
             # Read image filenames from label list file
             label_list_file = path / f"{subset}.txt"
             if label_list_file.exists():
-
                 with open(label_list_file, encoding="utf-8") as f:
                     image_files = [dir / line.strip() for line in f]
 

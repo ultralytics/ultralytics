@@ -62,7 +62,6 @@ class Bboxes:
         self.format = box_format
         # self.normalized = normalized
 
-    
     def convert(self, box_format):
         """
         Convert bounding box format from one type to another.

@@ -1193,8 +1193,8 @@ class RandomPerspective:
         Args:
             labels (Dict): A dictionary containing image data and annotations.
                 Must include:
-                    'img' (ndarray): The input image.
-                    'cls' (ndarray): Class labels.
+                    'img' (np.ndarray): The input image.
+                    'cls' (np.ndarray): Class labels.
                     'instances' (Instances): Object instances with bounding boxes, segments, and keypoints.
                 May include:
                     'mosaic_border' (Tuple[int, int]): Border size for mosaic augmentation.

@@ -8,11 +8,11 @@
 nc: 80 # number of classes
 scales: # model compound scaling constants, i.e. 'model=yolo11n-seg.yaml' will call yolo11-seg.yaml with scale 'n'
   # [depth, width, max_channels]
-  n: [0.50, 0.25, 1024] # summary: 355 layers, 2876848 parameters, 2876832 gradients, 10.5 GFLOPs
-  s: [0.50, 0.50, 1024] # summary: 355 layers, 10113248 parameters, 10113232 gradients, 35.8 GFLOPs
-  m: [0.50, 1.00, 512] # summary: 445 layers, 22420896 parameters, 22420880 gradients, 123.9 GFLOPs
-  l: [1.00, 1.00, 512] # summary: 667 layers, 27678368 parameters, 27678352 gradients, 143.0 GFLOPs
-  x: [1.00, 1.50, 512] # summary: 667 layers, 62142656 parameters, 62142640 gradients, 320.2 GFLOPs
+  n: [0.50, 0.25, 1024] # summary: 203 layers, 2876848 parameters, 2876832 gradients, 10.5 GFLOPs
+  s: [0.50, 0.50, 1024] # summary: 203 layers, 10113248 parameters, 10113232 gradients, 35.8 GFLOPs
+  m: [0.50, 1.00, 512] # summary: 253 layers, 22420896 parameters, 22420880 gradients, 123.9 GFLOPs
+  l: [1.00, 1.00, 512] # summary: 379 layers, 27678368 parameters, 27678352 gradients, 143.0 GFLOPs
+  x: [1.00, 1.50, 512] # summary: 379 layers, 62142656 parameters, 62142640 gradients, 320.2 GFLOPs
 
 # YOLO11n backbone
 backbone:

@@ -95,7 +95,7 @@ The Triton Model Repository is a storage location where Triton can access and lo
     # Add metadata
     parameters {
       key: "metadata"
-      value: {
+      value {
         string_value: "%s"
       }
     }
@@ -125,7 +125,7 @@ The Triton Model Repository is a storage location where Triton can access and lo
         }
       }
     }
-    """ % metadata[0]
+    """ % metadata[0]  # noqa
 
     with open(triton_model_path / "config.pbtxt", "w") as f:
         f.write(data)

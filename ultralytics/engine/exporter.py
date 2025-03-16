@@ -109,7 +109,7 @@ from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_d
 
 
 def export_formats():
-    """Ultralytics YOLO export formats."""
+    """Return a dictionary of Ultralytics YOLO export formats."""
     x = [
         ["PyTorch", "-", ".pt", True, True, []],
         ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize", "nms"]],
@@ -133,17 +133,16 @@ def export_formats():
 
 def validate_args(format, passed_args, valid_args):
     """
-    Validates arguments based on format.
+    Validate arguments based on the export format.
 
     Args:
         format (str): The export format.
         passed_args (Namespace): The arguments used during export.
-        valid_args (dict): List of valid arguments for the format.
+        valid_args (List): List of valid arguments for the format.
 
     Raises:
-        AssertionError: If an argument that's not supported by the export format is used, or if format doesn't have the supported arguments listed.
+        AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    # Only check valid usage of these args
     export_args = ["half", "int8", "dynamic", "keras", "nms", "batch"]
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
@@ -156,7 +155,7 @@ def validate_args(format, passed_args, valid_args):
 
 
 def gd_outputs(gd):
-    """TensorFlow GraphDef model output node names."""
+    """Return TensorFlow GraphDef model output node names."""
     name_list, input_list = [], []
     for node in gd.node:  # tensorflow.core.framework.node_def_pb2.NodeDef
         name_list.append(node.name)
@@ -195,6 +194,7 @@ def arange_patch(args):
         func = torch.arange
 
         def arange(*args, dtype=None, **kwargs):
+            """Return a 1-D tensor of size with values from the interval and common difference."""
             return func(*args, **kwargs).to(dtype)  # cast to dtype instead of passing dtype
 
         torch.arange = arange  # patch
@@ -210,17 +210,17 @@ class Exporter:
 
     Attributes:
         args (SimpleNamespace): Configuration for the exporter.
-        callbacks (list, optional): List of callback functions. Defaults to None.
+        callbacks (List, optional): List of callback functions.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
-        Initializes the Exporter class.
+        Initialize the Exporter class.
 
         Args:
-            cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
-            overrides (dict, optional): Configuration overrides. Defaults to None.
-            _callbacks (dict, optional): Dictionary of callback functions. Defaults to None.
+            cfg (str, optional): Path to a configuration file.
+            overrides (Dict, optional): Configuration overrides.
+            _callbacks (Dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
         if self.args.format.lower() in {"coreml", "mlmodel"}:  # fix attempt for protobuf<3.20.x errors
@@ -230,7 +230,7 @@ class Exporter:
         callbacks.add_integration_callbacks(self)
 
     def __call__(self, model=None) -> str:
-        """Returns list of exported files/dirs after running callbacks."""
+        """Return list of exported files/dirs after running callbacks."""
         self.run_callbacks("on_export_start")
         t = time.time()
         fmt = self.args.format.lower()  # to lowercase
@@ -293,7 +293,8 @@ class Exporter:
         if rknn:
             if not self.args.name:
                 LOGGER.warning(
-                    "WARNING ⚠️ Rockchip RKNN export requires a missing 'name' arg for processor type. Using default name='rk3588'."
+                    "WARNING ⚠️ Rockchip RKNN export requires a missing 'name' arg for processor type. "
+                    "Using default name='rk3588'."
                 )
                 self.args.name = "rk3588"
             self.args.name = self.args.name.lower()
@@ -304,12 +305,13 @@ class Exporter:
             assert not getattr(model, "end2end", False), "TFLite INT8 export not supported for end2end models."
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
+            assert not (tflite and ARM64 and LINUX), "TFLite export with NMS unsupported on ARM64 Linux"
             if getattr(model, "end2end", False):
                 LOGGER.warning("WARNING ⚠️ 'nms=True' is not available for end2end models. Forcing 'nms=False'.")
                 self.args.nms = False
             self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
         if edgetpu:
-            if ARM64 and not LINUX:
+            if not LINUX or ARM64:
                 raise SystemError(
                     "Edge TPU export only supported on non-aarch64 Linux. See https://coral.ai/docs/edgetpu/compiler"
                 )
@@ -331,7 +333,7 @@ class Exporter:
                 f"Using default 'data={self.args.data}'."
             )
         if tfjs and (ARM64 and LINUX):
-            raise SystemError("TensorFlow.js export not supported on ARM64 Linux")
+            raise SystemError("TF.js exports are not currently supported on ARM64 Linux")
 
         # Input
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
@@ -481,7 +483,7 @@ class Exporter:
         return f  # return list of exported files/dirs
 
     def get_int8_calibration_dataloader(self, prefix=""):
-        """Build and return a dataloader suitable for calibration of INT8 models."""
+        """Build and return a dataloader for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
         # TensorRT INT8 calibration should use 2x batch size
@@ -497,7 +499,8 @@ class Exporter:
         n = len(dataset)
         if n < self.args.batch:
             raise ValueError(
-                f"The calibration dataset ({n} images) must have at least as many images as the batch size ('batch={self.args.batch}')."
+                f"The calibration dataset ({n} images) must have at least as many images as the batch size "
+                f"('batch={self.args.batch}')."
             )
         elif n < 300:
             LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
@@ -602,7 +605,7 @@ class Exporter:
         )
 
         def serialize(ov_model, file):
-            """Set RT info, serialize and save metadata YAML."""
+            """Set RT info, serialize, and save metadata YAML."""
             ov_model.set_rt_info("YOLO", ["model_info", "model_type"])
             ov_model.set_rt_info(True, ["model_info", "reverse_input_channels"])
             ov_model.set_rt_info(114, ["model_info", "pad_value"])
@@ -995,9 +998,7 @@ class Exporter:
         try:
             import tensorflow as tf  # noqa
         except ImportError:
-            suffix = "-macos" if MACOS else "-aarch64" if ARM64 else "" if cuda else "-cpu"
-            version = ">=2.0.0"
-            check_requirements(f"tensorflow{suffix}{version}")
+            check_requirements("tensorflow>=2.0.0")
             import tensorflow as tf  # noqa
         check_requirements(
             (
@@ -1005,8 +1006,9 @@ class Exporter:
                 "tf_keras",  # required by 'onnx2tf' package
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
                 "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
+                "ai-edge-litert>=1.2.0",  # required by 'onnx2tf' package
                 "onnx>=1.12.0",
-                "onnx2tf>1.17.5,<=1.26.3",
+                "onnx2tf>=1.26.3",
                 "onnxslim>=0.1.31",
                 "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
@@ -1572,7 +1574,7 @@ class NMSModel(torch.nn.Module):
             x (torch.Tensor): The preprocessed tensor with shape (N, 3, H, W).
 
         Returns:
-            out (torch.Tensor): The post-processed results with shape (N, max_det, 4 + 2 + extra_shape).
+            (torch.Tensor): List of detections, each an (N, max_det, 4 + 2 + extra_shape) Tensor where N is the number of detections after NMS.
         """
         from functools import partial
 

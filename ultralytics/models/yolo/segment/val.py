@@ -18,18 +18,34 @@ class SegmentationValidator(DetectionValidator):
     """
     A class extending the DetectionValidator class for validation based on a segmentation model.
 
-    Example:
-        ```python
-        from ultralytics.models.yolo.segment import SegmentationValidator
+    This validator handles the evaluation of segmentation models, processing both bounding box and mask predictions
+    to compute metrics such as mAP for both detection and segmentation tasks.
 
-        args = dict(model="yolo11n-seg.pt", data="coco8-seg.yaml")
-        validator = SegmentationValidator(args=args)
-        validator()
-        ```
+    Attributes:
+        plot_masks (List): List to store masks for plotting.
+        process (callable): Function to process masks based on save_json and save_txt flags.
+        args (namespace): Arguments for the validator.
+        metrics (SegmentMetrics): Metrics calculator for segmentation tasks.
+        stats (Dict): Dictionary to store statistics during validation.
+
+    Examples:
+        >>> from ultralytics.models.yolo.segment import SegmentationValidator
+        >>> args = dict(model="yolo11n-seg.pt", data="coco8-seg.yaml")
+        >>> validator = SegmentationValidator(args=args)
+        >>> validator()
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
-        """Initialize SegmentationValidator and set task to 'segment', metrics to SegmentMetrics."""
+        """
+        Initialize SegmentationValidator and set task to 'segment', metrics to SegmentMetrics.
+
+        Args:
+            dataloader (torch.utils.data.DataLoader, optional): Dataloader to use for validation.
+            save_dir (Path, optional): Directory to save results.
+            pbar (Any, optional): Progress bar for displaying progress.
+            args (namespace, optional): Arguments for the validator.
+            _callbacks (List, optional): List of callback functions.
+        """
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.plot_masks = None
         self.process = None
@@ -37,13 +53,18 @@ class SegmentationValidator(DetectionValidator):
         self.metrics = SegmentMetrics(save_dir=self.save_dir)
 
     def preprocess(self, batch):
-        """Preprocesses batch by converting masks to float and sending to device."""
+        """Preprocess batch by converting masks to float and sending to device."""
         batch = super().preprocess(batch)
         batch["masks"] = batch["masks"].to(self.device).float()
         return batch
 
     def init_metrics(self, model):
-        """Initialize metrics and select mask processing function based on save_json flag."""
+        """
+        Initialize metrics and select mask processing function based on save_json flag.
+
+        Args:
+            model (torch.nn.Module): Model to validate.
+        """
         super().init_metrics(model)
         self.plot_masks = []
 
@@ -71,26 +92,61 @@ class SegmentationValidator(DetectionValidator):
         )
 
     def postprocess(self, preds):
-        """Post-processes YOLO predictions and returns output detections with proto."""
+        """
+        Post-process YOLO predictions and return output detections with proto.
+
+        Args:
+            preds (List): Raw predictions from the model.
+
+        Returns:
+            p (torch.Tensor): Processed detection predictions.
+            proto (torch.Tensor): Prototype masks for segmentation.
+        """
         p = super().postprocess(preds[0])
         proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         return p, proto
 
     def _prepare_batch(self, si, batch):
-        """Prepares a batch for training or inference by processing images and targets."""
+        """
+        Prepare a batch for training or inference by processing images and targets.
+
+        Args:
+            si (int): Batch index.
+            batch (Dict): Batch data containing images and targets.
+
+        Returns:
+            (Dict): Prepared batch with processed images and targets.
+        """
         prepared_batch = super()._prepare_batch(si, batch)
         midx = [si] if self.args.overlap_mask else batch["batch_idx"] == si
         prepared_batch["masks"] = batch["masks"][midx]
         return prepared_batch
 
     def _prepare_pred(self, pred, pbatch, proto):
-        """Prepares a batch for training or inference by processing images and targets."""
+        """
+        Prepare predictions for evaluation by processing bounding boxes and masks.
+
+        Args:
+            pred (torch.Tensor): Raw predictions from the model.
+            pbatch (Dict): Prepared batch data.
+            proto (torch.Tensor): Prototype masks for segmentation.
+
+        Returns:
+            predn (torch.Tensor): Processed bounding box predictions.
+            pred_masks (torch.Tensor): Processed mask predictions.
+        """
         predn = super()._prepare_pred(pred, pbatch)
         pred_masks = self.process(proto, pred[:, 6:], pred[:, :4], shape=pbatch["imgsz"])
         return predn, pred_masks
 
     def update_metrics(self, preds, batch):
-        """Metrics."""
+        """
+        Update metrics with the current batch predictions and targets.
+
+        Args:
+            preds (List): Predictions from the model.
+            batch (Dict): Batch data containing images and targets.
+        """
         for si, (pred, proto) in enumerate(zip(preds[0], preds[1])):
             self.seen += 1
             npr = len(pred)
@@ -159,7 +215,7 @@ class SegmentationValidator(DetectionValidator):
                 )
 
     def finalize_metrics(self, *args, **kwargs):
-        """Sets speed and confusion matrix for evaluation metrics."""
+        """Set speed and confusion matrix for evaluation metrics."""
         self.metrics.speed = self.speed
         self.metrics.confusion_matrix = self.confusion_matrix
 
@@ -173,9 +229,9 @@ class SegmentationValidator(DetectionValidator):
             gt_bboxes (torch.Tensor): Tensor of shape (M, 4) representing ground truth bounding box coordinates.
                 Each row is of the format [x1, y1, x2, y2].
             gt_cls (torch.Tensor): Tensor of shape (M,) representing ground truth class indices.
-            pred_masks (torch.Tensor | None): Tensor representing predicted masks, if available. The shape should
+            pred_masks (torch.Tensor, optional): Tensor representing predicted masks, if available. The shape should
                 match the ground truth masks.
-            gt_masks (torch.Tensor | None): Tensor of shape (M, H, W) representing ground truth masks, if available.
+            gt_masks (torch.Tensor, optional): Tensor of shape (M, H, W) representing ground truth masks, if available.
             overlap (bool): Flag indicating if overlapping masks should be considered.
             masks (bool): Flag indicating if the batch contains mask data.
 
@@ -186,13 +242,11 @@ class SegmentationValidator(DetectionValidator):
             - If `masks` is True, the function computes IoU between predicted and ground truth masks.
             - If `overlap` is True and `masks` is True, overlapping masks are taken into account when computing IoU.
 
-        Example:
-            ```python
-            detections = torch.tensor([[25, 30, 200, 300, 0.8, 1], [50, 60, 180, 290, 0.75, 0]])
-            gt_bboxes = torch.tensor([[24, 29, 199, 299], [55, 65, 185, 295]])
-            gt_cls = torch.tensor([1, 0])
-            correct_preds = validator._process_batch(detections, gt_bboxes, gt_cls)
-            ```
+        Examples:
+            >>> detections = torch.tensor([[25, 30, 200, 300, 0.8, 1], [50, 60, 180, 290, 0.75, 0]])
+            >>> gt_bboxes = torch.tensor([[24, 29, 199, 299], [55, 65, 185, 295]])
+            >>> gt_cls = torch.tensor([1, 0])
+            >>> correct_preds = validator._process_batch(detections, gt_bboxes, gt_cls)
         """
         if masks:
             if overlap:
@@ -210,7 +264,13 @@ class SegmentationValidator(DetectionValidator):
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
     def plot_val_samples(self, batch, ni):
-        """Plots validation samples with bounding box labels."""
+        """
+        Plot validation samples with bounding box labels and masks.
+
+        Args:
+            batch (Dict): Batch data containing images and targets.
+            ni (int): Batch index.
+        """
         plot_images(
             batch["img"],
             batch["batch_idx"],
@@ -224,7 +284,14 @@ class SegmentationValidator(DetectionValidator):
         )
 
     def plot_predictions(self, batch, preds, ni):
-        """Plots batch predictions with masks and bounding boxes."""
+        """
+        Plot batch predictions with masks and bounding boxes.
+
+        Args:
+            batch (Dict): Batch data containing images.
+            preds (List): Predictions from the model.
+            ni (int): Batch index.
+        """
         plot_images(
             batch["img"],
             *output_to_target(preds[0], max_det=15),  # not set to self.args.max_det due to slow plotting speed
@@ -237,7 +304,16 @@ class SegmentationValidator(DetectionValidator):
         self.plot_masks.clear()
 
     def save_one_txt(self, predn, pred_masks, save_conf, shape, file):
-        """Save YOLO detections to a txt file in normalized coordinates in a specific format."""
+        """
+        Save YOLO detections to a txt file in normalized coordinates in a specific format.
+
+        Args:
+            predn (torch.Tensor): Predictions in the format [x1, y1, x2, y2, conf, cls].
+            pred_masks (torch.Tensor): Predicted masks.
+            save_conf (bool): Whether to save confidence scores.
+            shape (Tuple): Original image shape.
+            file (Path): File path to save the detections.
+        """
         from ultralytics.engine.results import Results
 
         Results(
@@ -250,7 +326,12 @@ class SegmentationValidator(DetectionValidator):
 
     def pred_to_json(self, predn, filename, pred_masks):
         """
-        Save one JSON result.
+        Save one JSON result for COCO evaluation.
+
+        Args:
+            predn (torch.Tensor): Predictions in the format [x1, y1, x2, y2, conf, cls].
+            filename (str): Image filename.
+            pred_masks (numpy.ndarray): Predicted masks.
 
         Examples:
              >>> result = {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}

@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Explore the YOLO11 command line interface (CLI) for easy execution of detection tasks without needing a Python environment.
-keywords: YOLO11 CLI, command line interface, YOLO11 commands, detection tasks, Ultralytics, model training, model prediction
+description: Explore the YOLO command line interface (CLI) for easy execution of detection tasks without needing a Python environment.
+keywords: YOLO CLI, command line interface, YOLO commands, detection tasks, Ultralytics, model training, model prediction
 ---
 
 # Command Line Interface
 
-The Ultralytics command line interface (CLI) allows for simple single-line commands without requiring a Python environment. The CLI requires no customization or Python code. You can run all tasks from the terminal with the `yolo` command.
+The Ultralytics command line interface (CLI) provides a straightforward way to use Ultralytics YOLO models without needing a Python environment. The CLI supports running various tasks directly from the terminal using the `yolo` command, requiring no customization or Python code.
 
 <p align="center">
   <br>
@@ -61,7 +61,7 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
 
     === "Export"
 
-        Export a Ultralytics YOLOv11n classification model to ONNX format with image size 224x128 (no TASK required):
+        Export a YOLO classification model to ONNX format with image size 224x128 (no TASK required):
 
         ```bash
         yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
@@ -82,7 +82,7 @@ The Ultralytics command line interface (CLI) allows for simple single-line comma
 
 Where:
 
-- `TASK` (optional) is one of `[detect, segment, classify, pose, obb]`. If not explicitly passed, Ultralytics YOLO11 will attempt to infer the `TASK` from the model type.
+- `TASK` (optional) is one of `[detect, segment, classify, pose, obb]`. If not explicitly passed, YOLO will attempt to infer the `TASK` from the model type.
 - `MODE` (required) is one of `[train, val, predict, export, track, benchmark]`
 - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults. For a full list of available `ARGS`, see the [Configuration](cfg.md) page and `defaults.yaml`.
 
@@ -96,7 +96,7 @@ Where:
 
 ## Train
 
-Train YOLO11n on the COCO8 dataset for 100 epochs at image size 640. For a full list of available arguments, see the [Configuration](cfg.md) page.
+Train YOLO on the COCO8 dataset for 100 epochs at image size 640. For a full list of available arguments, see the [Configuration](cfg.md) page.
 
 !!! example
 
@@ -118,7 +118,7 @@ Train YOLO11n on the COCO8 dataset for 100 epochs at image size 640. For a full 
 
 ## Val
 
-Validate the [accuracy](https://www.ultralytics.com/glossary/accuracy) of the trained YOLO11n model on the COCO8 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
+Validate the [accuracy](https://www.ultralytics.com/glossary/accuracy) of the trained model on the COCO8 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
 
 !!! example
 
@@ -140,7 +140,7 @@ Validate the [accuracy](https://www.ultralytics.com/glossary/accuracy) of the tr
 
 ## Predict
 
-Use a trained YOLO11n model to run predictions on images.
+Use a trained model to run predictions on images.
 
 !!! example
 
@@ -162,7 +162,7 @@ Use a trained YOLO11n model to run predictions on images.
 
 ## Export
 
-Export a YOLO11n model to a different format like ONNX or CoreML.
+Export a model to a different format like ONNX or CoreML.
 
 !!! example
 
@@ -222,7 +222,7 @@ Override default arguments by passing them in the CLI as `arg=value` pairs.
 
 Override the `default.yaml` configuration file entirely by passing a new file with the `cfg` argument, such as `cfg=custom.yaml`.
 
-To do this, first create a copy of `default.yaml` in your current working directory with the `yolo copy-cfg` command. This action creates a `default_copy.yaml` file.
+To do this, first create a copy of `default.yaml` in your current working directory with the `yolo copy-cfg` command, which creates a `default_copy.yaml` file.
 
 You can then pass this file as `cfg=default_copy.yaml` along with any additional arguments, like `imgsz=320` in this example:
 
@@ -237,9 +237,9 @@ You can then pass this file as `cfg=default_copy.yaml` along with any additional
 
 ## FAQ
 
-### How do I use the Ultralytics YOLO11 command line interface (CLI) for model training?
+### How do I use the Ultralytics YOLO command line interface (CLI) for model training?
 
-To train a YOLO11 model using the CLI, execute a single-line command in the terminal. For example, to train a detection model for 10 epochs with a learning rate of 0.01, run:
+To train a model using the CLI, execute a single-line command in the terminal. For example, to train a detection model for 10 epochs with a [learning rate](https://www.ultralytics.com/glossary/learning-rate) of 0.01, run:
 
 ```bash
 yolo train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
@@ -247,9 +247,9 @@ yolo train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
 
 This command uses the `train` mode with specific arguments. For a full list of available arguments, refer to the [Configuration Guide](cfg.md).
 
-### What tasks can I perform with the Ultralytics YOLO11 CLI?
+### What tasks can I perform with the Ultralytics YOLO CLI?
 
-The Ultralytics YOLO11 CLI supports various tasks, including detection, segmentation, classification, validation, prediction, export, and tracking. For instance:
+The Ultralytics YOLO CLI supports various tasks, including detection, segmentation, classification, validation, prediction, export, and tracking. For instance:
 
 - **Train a Model**: Run `yolo train data=<data.yaml> model=<model.pt> epochs=<num>`.
 - **Run Predictions**: Use `yolo predict model=<model.pt> source=<data_source> imgsz=<image_size>`.
@@ -257,9 +257,9 @@ The Ultralytics YOLO11 CLI supports various tasks, including detection, segmenta
 
 Customize each task with various arguments. For detailed syntax and examples, see the respective sections like [Train](#train), [Predict](#predict), and [Export](#export).
 
-### How can I validate the accuracy of a trained YOLO11 model using the CLI?
+### How can I validate the accuracy of a trained YOLO model using the CLI?
 
-To validate a YOLO11 model's accuracy, use the `val` mode. For example, to validate a pretrained detection model with a batch size of 1 and an image size of 640, run:
+To validate a model's [accuracy](https://www.ultralytics.com/glossary/accuracy), use the `val` mode. For example, to validate a pretrained detection model with a [batch size](https://www.ultralytics.com/glossary/batch-size) of 1 and an image size of 640, run:
 
 ```bash
 yolo val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
@@ -267,7 +267,7 @@ yolo val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
 
 This command evaluates the model on the specified dataset and provides performance metrics. For more details, refer to the [Val](#val) section.
 
-### What formats can I export my YOLO11 models to using the CLI?
+### What formats can I export my YOLO models to using the CLI?
 
 Export YOLO models to various formats such as ONNX, CoreML, and TensorRT. For instance, to export a model to ONNX format, run:
 
@@ -277,9 +277,9 @@ yolo export model=yolo11n.pt format=onnx
 
 For complete details, visit the [Export](../modes/export.md) page.
 
-### How do I customize YOLO11 CLI commands to override default arguments?
+### How do I customize YOLO CLI commands to override default arguments?
 
-To override default arguments in YOLO11 CLI commands, pass them as `arg=value` pairs. For example, to train a model with custom arguments, use:
+To override default arguments in YOLO CLI commands, pass them as `arg=value` pairs. For example, to train a model with custom arguments, use:
 
 ```bash
 yolo train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01

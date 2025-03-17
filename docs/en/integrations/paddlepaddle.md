@@ -29,7 +29,7 @@ The ability to export to PaddlePaddle model format allows you to optimize your [
 
 Developed by Baidu, [PaddlePaddle](https://www.paddlepaddle.org.cn/en) (**PA**rallel **D**istributed **D**eep **LE**arning) is China's first open-source [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) platform. Unlike some frameworks built mainly for research, PaddlePaddle prioritizes ease of use and smooth integration across industries.
 
-It offers tools and resources similar to popular frameworks like [TensorFlow](../integrations/tensorflow.md) and [PyTorch](https://www.ultralytics.com/glossary/pytorch), making it accessible for developers of all experience levels. From farming and factories to service businesses, PaddlePaddle's large developer community of over 4.77 million is helping create and deploy AI applications.
+It offers tools and resources similar to popular frameworks like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and [PyTorch](https://www.ultralytics.com/glossary/pytorch), making it accessible for developers of all experience levels. From farming and factories to service businesses, PaddlePaddle's large developer community of over 4.77 million is helping create and deploy AI applications.
 
 By exporting your Ultralytics YOLO11 models to PaddlePaddle format, you can tap into PaddlePaddle's strengths in performance optimization. PaddlePaddle prioritizes efficient model execution and reduced memory usage. As a result, your YOLO11 models can potentially achieve even better performance, delivering top-notch results in practical scenarios.
 

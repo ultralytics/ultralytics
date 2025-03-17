@@ -154,7 +154,7 @@ Adjust these settings to meet dataset and task requirements. Experimenting with 
 
 Logging, checkpoints, plotting, and file management are important when training a YOLO model:
 
-- **Logging**: Track the model's progress and diagnose issues using libraries like [TensorBoard](https://www.ultralytics.com/integrations/tensorboard) or by writing to a file.
+- **Logging**: Track the model's progress and diagnose issues using libraries like [TensorBoard](https://docs.ultralytics.com/integrations/tensorboard) or by writing to a file.
 - **Checkpoints**: Save the model at regular intervals to resume training or experiment with different configurations.
 - **Plotting**: Visualize performance and training progress using libraries like matplotlib or TensorBoard.
 - **File management**: Organize files generated during training, such as checkpoints, log files, and plots, for easy access and analysis.

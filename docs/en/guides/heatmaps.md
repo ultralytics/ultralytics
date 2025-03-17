@@ -149,7 +149,7 @@ These colormaps are commonly used for visualizing data with different color repr
 
 ## How Heatmaps Work in Ultralytics YOLO11
 
-The [Heatmap solution](../reference/solutions/heatmap/) in Ultralytics YOLO11 extends the [ObjectCounter](../reference/solutions/object_counter/) class to generate and visualize movement patterns in video streams. When initialized, the solution creates a blank heatmap layer that gets updated as objects move through the frame.
+The [Heatmap solution](../reference/solutions/heatmap.md) in Ultralytics YOLO11 extends the [ObjectCounter](../reference/solutions/object_counter.md) class to generate and visualize movement patterns in video streams. When initialized, the solution creates a blank heatmap layer that gets updated as objects move through the frame.
 
 For each detected object, the solution:
 

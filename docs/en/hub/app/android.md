@@ -4,7 +4,7 @@ description: Experience real-time object detection on Android with Ultralytics. 
 keywords: Ultralytics, Android app, real-time object detection, YOLO models, TensorFlow Lite, FP16 quantization, INT8 quantization, hardware delegates, mobile AI, download app
 ---
 
-# Ultralytics Android App: Real-time [Object Detection](https://www.ultralytics.com/glossary/object-detection) with YOLO Models
+# Ultralytics Android App: Real-time Object Detection with YOLO Models
 
 <a href="https://www.ultralytics.com/hub" target="_blank">
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-android-app-detection.avif" alt="Ultralytics HUB preview image"></a>

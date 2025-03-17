@@ -65,7 +65,7 @@ def _plot_curve(
         x (np.ndarray): Data points for the x-axis with length N.
         y (np.ndarray): Corresponding data points for the y-axis with shape (C, N), where C is the number of classes.
         names (List): Names of the classes corresponding to the y-axis data; length C.
-        id (str): Unique identifier for the logged data in wandb.
+        metric_id (str): Unique identifier for the logged data in wandb.
         title (str): Title for the visualization plot.
         x_title (str): Label for the x-axis.
         y_title (str): Label for the y-axis.

@@ -383,7 +383,6 @@ Import the necessary libraries and instantiate the YOLO model for segmentation.
 import time
 
 import rospy
-from sensor_msgs.msg import PointCloud2
 
 from ultralytics import YOLO
 

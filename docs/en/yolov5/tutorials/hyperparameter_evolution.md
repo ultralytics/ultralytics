@@ -9,6 +9,7 @@ keywords: YOLOv5, hyperparameter evolution, genetic algorithms, machine learning
 📚 This guide explains **hyperparameter evolution** for YOLOv5 🚀. Hyperparameter evolution is a method of [Hyperparameter Optimization](https://en.wikipedia.org/wiki/Hyperparameter_optimization) using a [Genetic Algorithm](https://en.wikipedia.org/wiki/Genetic_algorithm) (GA) for optimization.
 
 Hyperparameters in [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) control various aspects of training, and finding optimal values for them can be a challenge. Traditional methods like grid searches can quickly become intractable due to:
+
 1. The high dimensional search space
 2. Unknown correlations among the dimensions
 3. Expensive nature of evaluating the fitness at each point

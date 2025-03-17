@@ -71,20 +71,20 @@ To export and optimize your Ultralytics YOLO model for OpenVINO, you can use the
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO('yolov8n.pt')
+model = YOLO("yolov8n.pt")
 
 # Export the model to OpenVINO format
-model.export(format='openvino', half=True)  # Export with FP16 precision
+model.export(format="openvino", half=True)  # Export with FP16 precision
 ```
 
 After exporting, you can run inference with the optimized model:
 
 ```python
 # Load the OpenVINO model
-ov_model = YOLO('yolov8n_openvino_model/')
+ov_model = YOLO("yolov8n_openvino_model/")
 
 # Run inference with performance hints for latency
-results = ov_model('path/to/image.jpg', verbose=True)
+results = ov_model("path/to/image.jpg", verbose=True)
 ```
 
 ## Conclusion

@@ -52,7 +52,7 @@ To test a deep learning model on the ImageNet10 dataset with an image size of 22
 
 The ImageNet10 dataset contains a subset of images from the original ImageNet dataset. These images are chosen to represent the first 10 classes in the dataset, providing a diverse yet compact dataset for quick testing and evaluation.
 
-![Dataset sample images](https://github.com/ultralytics/docs/releases/download/0/imagenet10-sample-images.avif) 
+![Dataset sample images](https://github.com/ultralytics/docs/releases/download/0/imagenet10-sample-images.avif)
 
 The example showcases the variety and complexity of the images in the ImageNet10 dataset, highlighting its usefulness for sanity checks and quick testing of computer vision models.
 

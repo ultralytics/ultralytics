@@ -29,6 +29,7 @@ The brain tumor dataset is divided into two subsets:
 - **Testing set**: Comprising 223 images, with annotations paired for each one.
 
 The dataset contains two classes:
+
 - **Negative**: Images without brain tumors
 - **Positive**: Images with brain tumors
 
@@ -118,7 +119,7 @@ If you use this dataset in your research or development work, please cite it app
 !!! quote ""
 
     === "BibTeX"
-    
+
         ```bibtex
         @dataset{Ultralytics_Brain_Tumor_Dataset_2023,
             author = {Ultralytics},

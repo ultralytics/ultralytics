@@ -257,7 +257,7 @@ Ultralytics provides ready-to-use solutions for common computer vision applicati
         ```bash
         yolo solutions workout show=True
         yolo solutions workout source="path/to/video/file.mp4"  # specify video file path
-        
+
         # Use keypoints for ab-workouts
         yolo solutions workout kpts=[5, 11, 13]     # left side
         yolo solutions workout kpts=[6, 12, 14]     # right side

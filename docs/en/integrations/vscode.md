@@ -114,14 +114,14 @@ The snippets are named in the most descriptive way possible, but this means ther
 
 These are the current snippet categories available to the Ultralytics-snippets extension. More will be added in the future, so make sure to check for updates and to enable auto-updates for the extension. You can also [request additional snippets](#how-do-i-request-a-new-snippet) to be added if you feel there's any missing.
 
-| Category  | Starting Prefix  | Description                                                                                                                                 |
-| :-------- | :--------------- | :------------------------------------------------------------------------------------------------------------------------------------------ |
-| Examples  | `ultra.examples` | Example code to help learn or for getting started with Ultralytics. Examples are copies of or similar to code from documentation pages.     |
+| Category  | Starting Prefix  | Description                                                                                                                                                                                                           |
+| :-------- | :--------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Examples  | `ultra.examples` | Example code to help learn or for getting started with Ultralytics. Examples are copies of or similar to code from documentation pages.                                                                               |
 | Kwargs    | `ultra.kwargs`   | Speed up development by adding snippets for [train](../modes/train.md), [track](../modes/track.md), [predict](../modes/predict.md), and [val](../modes/val.md) methods with all keyword arguments and default values. |
-| Imports   | `ultra.imports`  | Snippets to quickly import common Ultralytics objects.                                                                                      |
-| Models    | `ultra.yolo`     | Insert code blocks for initializing various [models](../models/index.md) (`yolo`, `sam`, `rtdetr`, etc.), including dropdown configuration options. |
-| Results   | `ultra.result`   | Code blocks for common operations when [working with inference results](../modes/predict.md#working-with-results).                          |
-| Utilities | `ultra.util`     | Provides quick access to common utilities that are built into the Ultralytics package, learn more about these on the [Simple Utilities page](../usage/simple-utilities.md). |
+| Imports   | `ultra.imports`  | Snippets to quickly import common Ultralytics objects.                                                                                                                                                                |
+| Models    | `ultra.yolo`     | Insert code blocks for initializing various [models](../models/index.md) (`yolo`, `sam`, `rtdetr`, etc.), including dropdown configuration options.                                                                   |
+| Results   | `ultra.result`   | Code blocks for common operations when [working with inference results](../modes/predict.md#working-with-results).                                                                                                    |
+| Utilities | `ultra.util`     | Provides quick access to common utilities that are built into the Ultralytics package, learn more about these on the [Simple Utilities page](../usage/simple-utilities.md).                                           |
 
 ### Learning with Examples
 

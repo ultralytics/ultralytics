@@ -212,8 +212,9 @@ model = torch.hub.load("ultralytics/yolov5", "yolov5s", autoshape=False, pretrai
 For use with API services. See [Flask REST API](https://github.com/ultralytics/yolov5/tree/master/utils/flask_rest_api) example for details.
 
 ```python
-from io import BytesIO
 import base64
+from io import BytesIO
+
 from PIL import Image
 
 results = model(im)  # inference

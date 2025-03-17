@@ -103,11 +103,13 @@ The `YOLO` model class provides a high-level wrapper for the Trainer classes. Yo
 from ultralytics import YOLO
 from ultralytics.models.yolo.detect import DetectionTrainer
 
+
 # Create a custom trainer
 class MyCustomTrainer(DetectionTrainer):
     def get_model(self, cfg, weights):
         # Custom model implementation
         ...
+
 
 # Initialize YOLO model
 model = YOLO("yolo11n.pt")

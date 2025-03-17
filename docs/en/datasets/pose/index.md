@@ -15,10 +15,10 @@ The dataset label format used for training YOLO pose models is as follows:
 1. One text file per image: Each image in the dataset has a corresponding text file with the same name as the image file and the ".txt" extension.
 2. One row per object: Each row in the text file corresponds to one object instance in the image.
 3. Object information per row: Each row contains the following information about the object instance:
-   - Object class index: An integer representing the class of the object (e.g., 0 for person, 1 for car, etc.).
-   - Object center coordinates: The x and y coordinates of the center of the object, normalized to be between 0 and 1.
-   - Object width and height: The width and height of the object, normalized to be between 0 and 1.
-   - Object keypoint coordinates: The keypoints of the object, normalized to be between 0 and 1.
+    - Object class index: An integer representing the class of the object (e.g., 0 for person, 1 for car, etc.).
+    - Object center coordinates: The x and y coordinates of the center of the object, normalized to be between 0 and 1.
+    - Object width and height: The width and height of the object, normalized to be between 0 and 1.
+    - Object keypoint coordinates: The keypoints of the object, normalized to be between 0 and 1.
 
 Here is an example of the label format for pose estimation task:
 

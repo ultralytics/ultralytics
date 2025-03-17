@@ -146,19 +146,19 @@ Different optimizers have various strengths and weaknesses. Let's take a glimpse
 
 - **SGD (Stochastic Gradient Descent)**:
 
-  - Updates model parameters using the gradient of the loss function with respect to the parameters.
-  - Simple and efficient but can be slow to converge and might get stuck in local minima.
+    - Updates model parameters using the gradient of the loss function with respect to the parameters.
+    - Simple and efficient but can be slow to converge and might get stuck in local minima.
 
 - **[Adam](https://www.ultralytics.com/glossary/adam-optimizer) (Adaptive Moment Estimation)**:
 
-  - Combines the benefits of both SGD with momentum and RMSProp.
-  - Adjusts the learning rate for each parameter based on estimates of the first and second moments of the gradients.
-  - Well-suited for noisy data and sparse gradients.
-  - Efficient and generally requires less tuning, making it a recommended optimizer for YOLO11.
+    - Combines the benefits of both SGD with momentum and RMSProp.
+    - Adjusts the learning rate for each parameter based on estimates of the first and second moments of the gradients.
+    - Well-suited for noisy data and sparse gradients.
+    - Efficient and generally requires less tuning, making it a recommended optimizer for YOLO11.
 
 - **RMSProp (Root Mean Square Propagation)**:
-  - Adjusts the learning rate for each parameter by dividing the gradient by a running average of the magnitudes of recent gradients.
-  - Helps in handling the vanishing gradient problem and is effective for [recurrent neural networks](https://www.ultralytics.com/glossary/recurrent-neural-network-rnn).
+    - Adjusts the learning rate for each parameter by dividing the gradient by a running average of the magnitudes of recent gradients.
+    - Helps in handling the vanishing gradient problem and is effective for [recurrent neural networks](https://www.ultralytics.com/glossary/recurrent-neural-network-rnn).
 
 For YOLO11, the `optimizer` parameter lets you choose from various optimizers, including SGD, Adam, AdamW, NAdam, RAdam, and RMSProp, or you can set it to `auto` for automatic selection based on model configuration.
 

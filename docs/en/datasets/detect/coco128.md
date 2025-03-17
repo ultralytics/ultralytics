@@ -100,20 +100,20 @@ The Ultralytics COCO128 dataset is a compact subset containing the first 128 ima
 To train a YOLO11 model on the COCO128 dataset, you can use either Python or CLI commands. Here's how:
 
 === "Python"
-    ```python
-    from ultralytics import YOLO
-    
+```python
+from ultralytics import YOLO
+
     # Load a pretrained model
     model = YOLO("yolo11n.pt")
-    
+
     # Train the model
     results = model.train(data="coco128.yaml", epochs=100, imgsz=640)
     ```
 
 === "CLI"
-    ```bash
+`bash
     yolo detect train data=coco128.yaml model=yolo11n.pt epochs=100 imgsz=640
-    ```
+    `
 
 For more training options and parameters, refer to the [Training](../../modes/train.md) documentation.
 

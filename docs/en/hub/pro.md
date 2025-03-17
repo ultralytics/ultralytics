@@ -14,9 +14,9 @@ The Pro Plan provides early access to upcoming features and includes several enh
 
 - **Expanded Storage**: 200GB of storage, compared to the standard 20GB in the free plan
 - **Cloud Training**: Access to [Ultralytics Cloud Training](./cloud-training.md) for one-click model training
-- **Advanced API Access**: 
-  - Access to our [Dedicated Inference API](./inference-api.md#dedicated-inference-api)
-  - Increased rate limits for our [Shared Inference API](./inference-api.md#shared-inference-api)
+- **Advanced API Access**:
+    - Access to our [Dedicated Inference API](./inference-api.md#dedicated-inference-api)
+    - Increased rate limits for our [Shared Inference API](./inference-api.md#shared-inference-api)
 - **Team Collaboration**: Features for [team collaboration](./teams.md) to streamline workflows
 - **Monthly Credits**: $20 monthly credits (or $200 yearly) to cover training costs
 

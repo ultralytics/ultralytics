@@ -48,29 +48,30 @@ For continuous tracking across video frames, you can use the `persist=True` para
 
         ```python
         import cv2
+
         from ultralytics import YOLO
-        
+
         # Load the YOLO model
         model = YOLO("yolo11n.pt")
-        
+
         # Open the video file
         cap = cv2.VideoCapture("path/to/video.mp4")
-        
+
         while cap.isOpened():
             success, frame = cap.read()
             if success:
                 # Run tracking with persistence between frames
                 results = model.track(frame, persist=True)
-                
+
                 # Visualize the results
                 annotated_frame = results[0].plot()
                 cv2.imshow("Tracking", annotated_frame)
-                
+
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
             else:
                 break
-        
+
         cap.release()
         cv2.destroyAllWindows()
         ```

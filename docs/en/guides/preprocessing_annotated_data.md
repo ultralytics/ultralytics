@@ -56,7 +56,7 @@ Once you've cleaned the data, you are ready to split the dataset. Splitting the 
 Consider the following when splitting your dataset:
 
 - **Maintaining Data Distribution**: Ensure that the data distribution of classes is maintained across training, validation, and test sets.
-- **Avoiding Data Leakage**: Typically, data augmentation is done after the dataset is split. Data augmentation and any other preprocessing should only be applied to the training set to prevent information from the validation or test sets from influencing the model training. 
+- **Avoiding Data Leakage**: Typically, data augmentation is done after the dataset is split. Data augmentation and any other preprocessing should only be applied to the training set to prevent information from the validation or test sets from influencing the model training.
 - **Balancing Classes**: For imbalanced datasets, consider techniques such as oversampling the minority class or under-sampling the majority class within the training set.
 
 ### What is Data Augmentation?

@@ -136,8 +136,9 @@ The rows index the label files, each corresponding to an image in your dataset, 
         - By setting `random_state=M` where `M` is a chosen integer, you can obtain repeatable results.
 
     ```python
-    from sklearn.model_selection import KFold
     import random
+
+    from sklearn.model_selection import KFold
 
     random.seed(0)  # for reproducibility
     ksplit = 5
@@ -177,7 +178,6 @@ The rows index the label files, each corresponding to an image in your dataset, 
 
     ```python
     import datetime
-    import os
 
     supported_extensions = [".jpg", ".jpeg", ".png"]
 
@@ -224,6 +224,7 @@ The rows index the label files, each corresponding to an image in your dataset, 
 
     ```python
     import shutil
+
     from tqdm import tqdm
 
     for image, label in tqdm(zip(images, labels), total=len(images), desc="Copying files"):
@@ -270,11 +271,7 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
     for k, dataset_yaml in enumerate(ds_yamls):
         model = YOLO(weights_path, task="detect")
         results[k] = model.train(
-            data=dataset_yaml, 
-            epochs=epochs, 
-            batch=batch, 
-            project=project,
-            name=f"fold_{k+1}"
+            data=dataset_yaml, epochs=epochs, batch=batch, project=project, name=f"fold_{k + 1}"
         )  # include any additional train arguments
     ```
 
@@ -282,7 +279,7 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
 
     ```python
     from ultralytics.data.utils import autosplit
-    
+
     # Automatically split dataset into train/val/test
     autosplit(path="path/to/images", weights=(0.8, 0.2, 0.0), annotated_only=True)
     ```

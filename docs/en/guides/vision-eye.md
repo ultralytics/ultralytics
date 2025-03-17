@@ -92,6 +92,7 @@ Furthermore, some visualization arguments are supported, as listed below:
 VisionEye works by establishing a fixed vision point in the frame and drawing lines from this point to detected objects. This simulates how human vision focuses on multiple objects from a single viewpoint. The solution uses [object tracking](https://docs.ultralytics.com/modes/track/) to maintain consistent identification of objects across frames, creating a visual representation of the spatial relationship between the observer (vision point) and the objects in the scene.
 
 The `process` method in the VisionEye class performs several key operations:
+
 1. Extracts tracks (bounding boxes, classes, and masks) from the input image
 2. Creates an annotator to draw bounding boxes and labels
 3. For each detected object, draws a box label and creates a vision line from the vision point

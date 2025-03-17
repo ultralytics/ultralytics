@@ -149,6 +149,7 @@ reCamera advanced computer vision capabilities and modular design make it suitab
 ### How do I install and set up reCamera for the first time?
 
 To set up your reCamera for the first time, follow these steps:
+
 1. Connect the reCamera to a power source
 2. Connect it to your WiFi network using the [reCamera Quick Start Guide](https://wiki.seeedstudio.com/recamera_getting_started/)
 3. Access the Node-RED web UI by entering the device's IP address in a web browser (or use `192.168.42.1` if connected via USB)
@@ -157,6 +158,7 @@ To set up your reCamera for the first time, follow these steps:
 ### Can I use my custom-trained YOLO11 models with reCamera?
 
 Yes, you can use custom-trained YOLO11 models with reCamera. The process involves:
+
 1. Export your PyTorch model to ONNX format using `model.export(format="onnx", opset=14)`
 2. Convert the ONNX model to MLIR format
 3. Convert the MLIR to cvimodel format for on-device inference
@@ -167,6 +169,7 @@ For detailed instructions, refer to the [Convert and Quantize AI Models](https:/
 ### What makes reCamera different from traditional IP cameras?
 
 Unlike traditional IP cameras that require external hardware for processing, reCamera:
+
 - Integrates AI processing directly on the device with its RISC-V SG200X processor
 - Offers 1 TOPS of computing power for real-time edge AI applications
 - Features a modular design allowing for component upgrades and customization

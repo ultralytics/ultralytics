@@ -143,7 +143,7 @@ Using distance calculation with Ultralytics YOLO11 offers several advantages:
 
 ### Can I perform distance calculation in real-time video streams with Ultralytics YOLO11?
 
-Yes, you can perform distance calculation in real-time video streams with Ultralytics YOLO11. The process involves capturing video frames using [OpenCV](https://www.ultralytics.com/glossary/opencv), running YOLO11 [object detection](https://www.ultralytics.com/glossary/object-detection), and using the `DistanceCalculation` class to calculate distances between objects in successive frames. For a detailed implementation, see the [video stream example](#distance-calculation-using-ultralytics-yolo).
+Yes, you can perform distance calculation in real-time video streams with Ultralytics YOLO11. The process involves capturing video frames using [OpenCV](https://www.ultralytics.com/glossary/opencv), running YOLO11 [object detection](https://www.ultralytics.com/glossary/object-detection), and using the `DistanceCalculation` class to calculate distances between objects in successive frames. For a detailed implementation, see the [video stream example](#distance-calculation-using-ultralytics-yolo11).
 
 ### How do I delete points drawn during distance calculation using Ultralytics YOLO11?
 

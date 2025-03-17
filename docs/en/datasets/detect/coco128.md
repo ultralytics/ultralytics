@@ -88,3 +88,62 @@ If you use the COCO dataset in your research or development work, please cite th
         ```
 
 We would like to acknowledge the COCO Consortium for creating and maintaining this valuable resource for the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. For more information about the COCO dataset and its creators, visit the [COCO dataset website](https://cocodataset.org/#home).
+
+## FAQ
+
+### What is the Ultralytics COCO128 dataset used for?
+
+The Ultralytics COCO128 dataset is a compact subset containing the first 128 images from the COCO train 2017 dataset. It's primarily used for testing and debugging [object detection](https://www.ultralytics.com/glossary/object-detection) models, experimenting with new detection approaches, and validating training pipelines before scaling to larger datasets. Its manageable size makes it perfect for quick iterations while still providing enough diversity to be a meaningful test case.
+
+### How do I train a YOLO11 model using the COCO128 dataset?
+
+To train a YOLO11 model on the COCO128 dataset, you can use either Python or CLI commands. Here's how:
+
+=== "Python"
+    ```python
+    from ultralytics import YOLO
+    
+    # Load a pretrained model
+    model = YOLO("yolo11n.pt")
+    
+    # Train the model
+    results = model.train(data="coco128.yaml", epochs=100, imgsz=640)
+    ```
+
+=== "CLI"
+    ```bash
+    yolo detect train data=coco128.yaml model=yolo11n.pt epochs=100 imgsz=640
+    ```
+
+For more training options and parameters, refer to the [Training](../../modes/train.md) documentation.
+
+### What are the benefits of using mosaic augmentation with COCO128?
+
+Mosaic augmentation, as shown in the sample images, combines multiple training images into a single composite image. This technique offers several benefits when training with COCO128:
+
+- Increases the variety of objects and contexts within each training batch
+- Improves model generalization across different object sizes and aspect ratios
+- Enhances detection performance for objects at various scales
+- Maximizes the utility of a small dataset by creating more diverse training samples
+
+This technique is particularly valuable for smaller datasets like COCO128, helping models learn more robust features from limited data.
+
+### How does COCO128 compare to other COCO dataset variants?
+
+COCO128 (128 images) sits between [COCO8](../detect/coco8.md) (8 images) and the full [COCO](../detect/coco.md) dataset (118K+ images) in terms of size:
+
+- **COCO8**: Contains just 8 images (4 train, 4 val) - ideal for quick tests and debugging
+- **COCO128**: Contains 128 images - balanced between size and diversity
+- **Full COCO**: Contains 118K+ training images - comprehensive but resource-intensive
+
+COCO128 provides a good middle ground, offering more diversity than COCO8 while remaining much more manageable than the full COCO dataset for experimentation and initial model development.
+
+### Can I use COCO128 for tasks other than object detection?
+
+While COCO128 is primarily designed for object detection, the dataset's annotations can be adapted for other computer vision tasks:
+
+- **Instance segmentation**: Using the segmentation masks provided in the annotations
+- **Keypoint detection**: For images containing people with keypoint annotations
+- **Transfer learning**: As a starting point for fine-tuning models for custom tasks
+
+For specialized tasks like [segmentation](../../tasks/segment.md), consider using purpose-built variants like [COCO8-seg](../segment/coco8-seg.md) which include the appropriate annotations.

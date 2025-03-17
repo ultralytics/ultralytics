@@ -280,6 +280,7 @@ def callback(data):
     depth = ros_numpy.numpify(data)
     result = segmentation_model(image)
 
+    all_objects = []
     for index, cls in enumerate(result[0].boxes.cls):
         class_index = int(cls.cpu().numpy())
         name = result[0].names[class_index]
@@ -287,6 +288,7 @@ def callback(data):
         obj = depth[mask == 1]
         obj = obj[~np.isnan(obj)]
         avg_distance = np.mean(obj) if len(obj) else np.inf
+        all_objects.append(f"{name}: {avg_distance:.2f}m")
 
     classes_pub.publish(String(data=str(all_objects)))
 
@@ -325,6 +327,7 @@ while True:
         depth = ros_numpy.numpify(data)
         result = segmentation_model(image)
 
+        all_objects = []
         for index, cls in enumerate(result[0].boxes.cls):
             class_index = int(cls.cpu().numpy())
             name = result[0].names[class_index]
@@ -332,6 +335,7 @@ while True:
             obj = depth[mask == 1]
             obj = obj[~np.isnan(obj)]
             avg_distance = np.mean(obj) if len(obj) else np.inf
+            all_objects.append(f"{name}: {avg_distance:.2f}m")
 
         classes_pub.publish(String(data=str(all_objects)))
 
@@ -379,6 +383,7 @@ Import the necessary libraries and instantiate the YOLO model for segmentation.
 import time
 
 import rospy
+from sensor_msgs.msg import PointCloud2
 
 from ultralytics import YOLO
 
@@ -458,6 +463,7 @@ for index, class_id in enumerate(classes):
     import open3d as o3d
     import ros_numpy
     import rospy
+    from sensor_msgs.msg import PointCloud2
 
     from ultralytics import YOLO
 
@@ -554,7 +560,7 @@ rospy.spin()
 
 ### What are ROS topics and how are they used in Ultralytics YOLO?
 
-ROS topics facilitate communication between nodes in a ROS network by using a publish-subscribe model. A topic is a named channel that nodes use to send and receive messages asynchronously. In the context of Ultralytics YOLO, you can make a node subscribe to an image topic, process the images using YOLO for tasks like detection or segmentation, and publish outcomes to new topics.
+ROS topics facilitate communication between nodes in a ROS network by using a publish-subscribe model. A topic is a named channel that nodes use to send and receive messages asynchronously. In the context of Ultralytics YOLO, you can make a node subscribe to an image topic, process the images using YOLO for tasks like [detection](https://docs.ultralytics.com/tasks/detect/) or [segmentation](https://docs.ultralytics.com/tasks/segment/), and publish outcomes to new topics.
 
 For example, subscribe to a camera topic and process the incoming image for detection:
 
@@ -566,7 +572,7 @@ rospy.Subscriber("/camera/color/image_raw", Image, callback)
 
 Depth images in ROS, represented by `sensor_msgs/Image`, provide the distance of objects from the camera, crucial for tasks like obstacle avoidance, 3D mapping, and localization. By [using depth information](https://en.wikipedia.org/wiki/Depth_map) along with RGB images, robots can better understand their 3D environment.
 
-With YOLO, you can extract segmentation masks from RGB images and apply these masks to depth images to obtain precise 3D object information, improving the robot's ability to navigate and interact with its surroundings.
+With YOLO, you can extract [segmentation masks](https://www.ultralytics.com/glossary/image-segmentation) from RGB images and apply these masks to depth images to obtain precise 3D object information, improving the robot's ability to navigate and interact with its surroundings.
 
 ### How can I visualize 3D point clouds with YOLO in ROS?
 
@@ -576,7 +582,7 @@ To visualize 3D point clouds in ROS with YOLO:
 2. Use YOLO to segment RGB images.
 3. Apply the segmentation mask to the point cloud.
 
-Here's an example using Open3D for visualization:
+Here's an example using [Open3D](https://www.open3d.org/) for visualization:
 
 ```python
 import sys
@@ -623,4 +629,4 @@ for index, class_id in enumerate(classes):
     o3d.visualization.draw_geometries([pcd])
 ```
 
-This approach provides a 3D visualization of segmented objects, useful for tasks like navigation and manipulation.
+This approach provides a 3D visualization of segmented objects, useful for tasks like navigation and manipulation in [robotics applications](https://docs.ultralytics.com/guides/steps-of-a-cv-project/).

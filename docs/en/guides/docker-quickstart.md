@@ -75,7 +75,7 @@ Ultralytics offers several Docker images optimized for various platforms and use
 - **Dockerfile:** GPU image, ideal for training.
 - **Dockerfile-arm64:** For ARM64 architecture, suitable for devices like [Raspberry Pi](raspberry-pi.md).
 - **Dockerfile-cpu:** CPU-only version for inference and non-GPU environments.
-- **Dockerfile-jetson:** Optimized for NVIDIA Jetson devices.
+- **Dockerfile-jetson:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson/) devices.
 - **Dockerfile-python:** Minimal Python environment for lightweight applications.
 - **Dockerfile-conda:** Includes [Miniconda3](https://docs.conda.io/projects/miniconda/en/latest/) and Ultralytics package installed via Conda.
 
@@ -235,11 +235,11 @@ To set up Ultralytics with Docker, first ensure that Docker is installed on your
 sudo docker pull ultralytics/ultralytics:latest
 ```
 
-For detailed steps, refer to our [Docker Quickstart Guide](../quickstart.md).
+For detailed steps, refer to our Docker Quickstart Guide.
 
-### What are the benefits of using Ultralytics Docker images for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) projects?
+### What are the benefits of using Ultralytics Docker images for machine learning projects?
 
-Using Ultralytics Docker images ensures a consistent environment across different machines, replicating the same software and dependencies. This is particularly useful for collaborating across teams, running models on various hardware, and maintaining reproducibility. For GPU-based training, Ultralytics provides optimized Docker images such as `Dockerfile` for general GPU usage and `Dockerfile-jetson` for NVIDIA Jetson devices. Explore [Ultralytics Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics) for more details.
+Using Ultralytics Docker images ensures a consistent environment across different machines, replicating the same software and dependencies. This is particularly useful for [collaborating across teams](https://www.ultralytics.com/blog/ultralytics-integration-can-enhance-your-workflow), running models on various hardware, and maintaining reproducibility. For GPU-based training, Ultralytics provides optimized Docker images such as `Dockerfile` for general GPU usage and `Dockerfile-jetson` for NVIDIA Jetson devices. Explore [Ultralytics Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics) for more details.
 
 ### How can I run Ultralytics YOLO in a Docker container with GPU support?
 
@@ -249,7 +249,7 @@ First, ensure that the NVIDIA Docker runtime is installed and configured. Then, 
 sudo docker run -it --ipc=host --gpus all ultralytics/ultralytics:latest
 ```
 
-This command sets up a Docker container with GPU access. For additional details, see the [Docker Quickstart Guide](../quickstart.md).
+This command sets up a Docker container with GPU access. For additional details, see the Docker Quickstart Guide.
 
 ### How do I visualize YOLO prediction results in a Docker container with a display server?
 
@@ -280,4 +280,4 @@ Yes, you can mount local directories into the Ultralytics Docker container using
 sudo docker run -it --ipc=host --gpus all -v /path/on/host:/path/in/container ultralytics/ultralytics:latest
 ```
 
-Replace `/path/on/host` with the directory on your local machine and `/path/in/container` with the desired path inside the container. This setup allows you to work with your local files within the container. For more information, refer to the relevant section on [mounting local directories](../usage/python.md).
+Replace `/path/on/host` with the directory on your local machine and `/path/in/container` with the desired path inside the container. This setup allows you to work with your local files within the container. For more information, refer to the [Note on File Accessibility](#note-on-file-accessibility) section.

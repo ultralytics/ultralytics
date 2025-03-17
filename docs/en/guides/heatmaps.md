@@ -147,6 +147,19 @@ Additionally, the supported visualization arguments are listed below:
 
 These colormaps are commonly used for visualizing data with different color representations.
 
+## How Heatmaps Work in Ultralytics YOLO11
+
+The [Heatmap solution](../reference/solutions/heatmap/) in Ultralytics YOLO11 extends the [ObjectCounter](../reference/solutions/object_counter/) class to generate and visualize movement patterns in video streams. When initialized, the solution creates a blank heatmap layer that gets updated as objects move through the frame.
+
+For each detected object, the solution:
+
+1. Tracks the object across frames using YOLO11's tracking capabilities
+2. Updates the heatmap intensity at the object's location
+3. Applies a selected colormap to visualize the intensity values
+4. Overlays the colored heatmap on the original frame
+
+The result is a dynamic visualization that builds up over time, revealing traffic patterns, crowd movements, or other spatial behaviors in your video data.
+
 ## FAQ
 
 ### How does Ultralytics YOLO11 generate heatmaps and what are their benefits?

@@ -21,7 +21,7 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
   <strong>Watch:</strong> Object Cropping using Ultralytics YOLO
 </p>
 
-## Advantages of Object Cropping?
+## Advantages of Object Cropping
 
 - **Focused Analysis**: YOLO11 facilitates targeted object cropping, allowing for in-depth examination or processing of individual items within a scene.
 - **Reduced Data Volume**: By extracting only relevant objects, object cropping helps in minimizing data size, making it efficient for storage, transmission, or subsequent computational tasks.
@@ -104,7 +104,7 @@ Object cropping using [Ultralytics YOLO11](https://github.com/ultralytics/ultral
 
 ### Why should I use Ultralytics YOLO11 for object cropping over other solutions?
 
-Ultralytics YOLO11 stands out due to its precision, speed, and ease of use. It allows detailed and accurate object detection and cropping, essential for [focused analysis](#advantages-of-object-cropping) and applications needing high data integrity. Moreover, YOLO11 integrates seamlessly with tools like OpenVINO and TensorRT for deployments requiring real-time capabilities and optimization on diverse hardware. Explore the benefits in the [guide on model export](../modes/export.md).
+Ultralytics YOLO11 stands out due to its precision, speed, and ease of use. It allows detailed and accurate object detection and cropping, essential for [focused analysis](#advantages-of-object-cropping) and applications needing high data integrity. Moreover, YOLO11 integrates seamlessly with tools like [OpenVINO](../integrations/openvino.md) and [TensorRT](../integrations/tensorrt.md) for deployments requiring real-time capabilities and optimization on diverse hardware. Explore the benefits in the [guide on model export](../modes/export.md).
 
 ### How can I reduce the data volume of my dataset using object cropping?
 
@@ -112,8 +112,8 @@ By using Ultralytics YOLO11 to crop only relevant objects from your images or vi
 
 ### Can I use Ultralytics YOLO11 for real-time video analysis and object cropping?
 
-Yes, Ultralytics YOLO11 can process real-time video feeds to detect and crop objects dynamically. The model's high-speed inference capabilities make it ideal for real-time applications such as surveillance, sports analysis, and automated inspection systems. Check out the [tracking and prediction modes](../modes/predict.md) to understand how to implement real-time processing.
+Yes, Ultralytics YOLO11 can process real-time video feeds to detect and crop objects dynamically. The model's high-speed inference capabilities make it ideal for real-time applications such as [surveillance](../solutions/security-alarm-system.md), sports analysis, and automated inspection systems. Check out the [tracking](../modes/track.md) and [prediction modes](../modes/predict.md) to understand how to implement real-time processing.
 
 ### What are the hardware requirements for efficiently running YOLO11 for object cropping?
 
-Ultralytics YOLO11 is optimized for both CPU and GPU environments, but to achieve optimal performance, especially for real-time or high-volume inference, a dedicated GPU (e.g., NVIDIA Tesla, RTX series) is recommended. For deployment on lightweight devices, consider using CoreML for iOS or TFLite for Android. More details on supported devices and formats can be found in our [model deployment options](../guides/model-deployment-options.md).
+Ultralytics YOLO11 is optimized for both CPU and GPU environments, but to achieve optimal performance, especially for real-time or high-volume inference, a dedicated GPU (e.g., NVIDIA Tesla, RTX series) is recommended. For deployment on lightweight devices, consider using [CoreML](../integrations/coreml.md) for iOS or [TFLite](../integrations/tflite.md) for Android. More details on supported devices and formats can be found in our [model deployment options](../guides/model-deployment-options.md).

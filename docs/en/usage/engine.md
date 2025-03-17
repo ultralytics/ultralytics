@@ -58,7 +58,7 @@ trainer = CustomTrainer(overrides={...})
 trainer.train()
 ```
 
-Further customize the trainer by modifying the [loss function](https://www.ultralytics.com/glossary/loss-function) or adding a [callback](https://www.ultralytics.com/glossary/callback) to upload the model to Google Drive every 10 [epochs](https://www.ultralytics.com/glossary/epoch). Here's an example:
+Further customize the trainer by modifying the [loss function](https://www.ultralytics.com/glossary/loss-function) or adding a [callback](callbacks.md) to upload the model to Google Drive every 10 [epochs](https://www.ultralytics.com/glossary/epoch). Here's an example:
 
 ```python
 from ultralytics.models.yolo.detect import DetectionTrainer

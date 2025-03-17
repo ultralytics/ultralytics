@@ -54,19 +54,19 @@ __all__ = (
 )
 
 class WeightedAdd(nn.Module):
-    def __init__(self, channels, eps=1e-4):
-        super(WeightedAdd, self).__init__()
+    def __init__(self, eps=1e-4):
+        super().__init__()
+        self.weights = None
         self.eps = eps
-        self.weights = nn.Parameter(torch.ones(len(channels), dtype=torch.float32))  # Trainable weights
-        self.relu = nn.ReLU()
-
+    
     def forward(self, inputs):
-        assert len(inputs) == len(self.weights), f"Expected {len(self.weights)} inputs, but got {len(inputs)}"
-        weighted_inputs = []
-        for input_tensor, weight in zip(inputs, self.weights):
-            weighted_inputs.append(input_tensor * self.relu(weight))
-        output = sum(weighted_inputs) / (sum(self.relu(self.weights)) + self.eps)
-        return output
+        if self.weights is None:
+            self.weights = nn.Parameter(torch.ones(len(inputs), dtype=torch.float32, device=inputs[0].device))
+        
+        assert len(inputs) == len(self.weights), f"Expected {len(self.weights)} inputs, got {len(inputs)}"
+        weighted_sum = sum(w * x for w, x in zip(self.weights, inputs))
+        norm = sum(self.weights) + self.eps
+        return weighted_sum / norm
 
 class DFL(nn.Module):
     """

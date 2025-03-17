@@ -126,7 +126,7 @@ class HUBTrainingSession:
 
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
         if self.model.is_trained():
-            print(emojis(f"Loading trained HUB model {self.model_url} 🚀"))
+            LOGGER.info(f"Loading trained HUB model {self.model_url} 🚀")
             url = self.model.get_weights_url("best")  # download URL with auth
             self.model_file = checks.check_file(url, download_dir=Path(SETTINGS["weights_dir"]) / "hub" / self.model.id)
             return

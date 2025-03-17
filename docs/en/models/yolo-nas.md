@@ -110,7 +110,7 @@ If you employ YOLO-NAS in your research or development work, please cite SuperGr
         ```bibtex
         @misc{supergradients,
               doi = {10.5281/ZENODO.7789328},
-              url = {https://zenodo.org/record/7789328},
+              url = {https://zenodo.org/records/7789328},
               author = {Aharon,  Shay and {Louis-Dupont} and {Ofri Masad} and Yurkova,  Kate and {Lotem Fridman} and {Lkdci} and Khvedchenya,  Eugene and Rubin,  Ran and Bagrov,  Natan and Tymchenko,  Borys and Keren,  Tomer and Zhilko,  Alexander and {Eran-Deci}},
               title = {Super-Gradients},
               publisher = {GitHub},

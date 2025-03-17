@@ -54,15 +54,12 @@ __all__ = (
 )
 
 class WeightedAdd(nn.Module):
-    def __init__(self, eps=1e-4):
+    def __init__(self, num_inputs, eps=1e-4):
         super().__init__()
-        self.weights = None
+        self.weights = nn.Parameter(torch.ones(num_inputs, dtype=torch.float32))
         self.eps = eps
     
     def forward(self, inputs):
-        if self.weights is None:
-            self.weights = nn.Parameter(torch.ones(len(inputs), dtype=torch.float32, device=inputs[0].device))
-        
         assert len(inputs) == len(self.weights), f"Expected {len(self.weights)} inputs, got {len(inputs)}"
         weighted_sum = sum(w * x for w, x in zip(self.weights, inputs))
         norm = sum(self.weights) + self.eps

@@ -156,6 +156,14 @@ Ultralytics offers two licensing options to accommodate diverse use cases:
 
 Our licensing strategy is designed to ensure that any improvements to our open-source projects are returned to the community. We hold the principles of open source close to our hearts ❤️, and our mission is to guarantee that our contributions can be utilized and expanded upon in ways that are beneficial to all.
 
+## The Evolution of Object Detection
+
+Object detection has evolved significantly over the years, from traditional computer vision techniques to advanced deep learning models. The [YOLO family of models](https://www.ultralytics.com/blog/the-evolution-of-object-detection-and-ultralytics-yolo-models) has been at the forefront of this evolution, consistently pushing the boundaries of what's possible in real-time object detection.
+
+YOLO's unique approach treats object detection as a single regression problem, predicting [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) and class probabilities directly from full images in one evaluation. This revolutionary method has made YOLO models significantly faster than previous two-stage detectors while maintaining high accuracy.
+
+With each new version, YOLO has introduced architectural improvements and innovative techniques that have enhanced performance across various metrics. YOLO11 continues this tradition by incorporating the latest advancements in computer vision research, offering even better speed-accuracy trade-offs for real-world applications.
+
 ## FAQ
 
 ### What is Ultralytics YOLO and how does it improve object detection?

@@ -38,37 +38,37 @@ This comprehensive guide aims to give you an overview and practical insights int
 
 ## [Train](train.md)
 
-Train mode is used for training a YOLO11 model on a custom dataset. In this mode, the model is trained using the specified dataset and hyperparameters. The training process involves optimizing the model's parameters so that it can accurately predict the classes and locations of objects in an image.
+Train mode is used for training a YOLO11 model on a custom dataset. In this mode, the model is trained using the specified dataset and hyperparameters. The training process involves optimizing the model's parameters so that it can accurately predict the classes and locations of objects in an image. Training is essential for creating models that can recognize specific objects relevant to your application.
 
 [Train Examples](train.md){ .md-button }
 
 ## [Val](val.md)
 
-Val mode is used for validating a YOLO11 model after it has been trained. In this mode, the model is evaluated on a validation set to measure its accuracy and generalization performance. This mode can be used to tune the hyperparameters of the model to improve its performance.
+Val mode is used for validating a YOLO11 model after it has been trained. In this mode, the model is evaluated on a validation set to measure its accuracy and generalization performance. Validation helps identify potential issues like [overfitting](https://www.ultralytics.com/glossary/overfitting) and provides metrics such as [mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP) to quantify model performance. This mode is crucial for tuning hyperparameters and improving overall model effectiveness.
 
 [Val Examples](val.md){ .md-button }
 
 ## [Predict](predict.md)
 
-Predict mode is used for making predictions using a trained YOLO11 model on new images or videos. In this mode, the model is loaded from a checkpoint file, and the user can provide images or videos to perform inference. The model predicts the classes and locations of objects in the input images or videos.
+Predict mode is used for making predictions using a trained YOLO11 model on new images or videos. In this mode, the model is loaded from a checkpoint file, and the user can provide images or videos to perform inference. The model identifies and localizes objects in the input media, making it ready for real-world applications. Predict mode is the gateway to applying your trained model to solve practical problems.
 
 [Predict Examples](predict.md){ .md-button }
 
 ## [Export](export.md)
 
-Export mode is used for exporting a YOLO11 model to a format that can be used for deployment. In this mode, the model is converted to a format that can be used by other software applications or hardware devices. This mode is useful when deploying the model to production environments.
+Export mode is used for converting a YOLO11 model to formats suitable for deployment across different platforms and devices. This mode transforms your PyTorch model into optimized formats like ONNX, TensorRT, or CoreML, enabling deployment in production environments. Exporting is essential for integrating your model with various software applications or hardware devices, often resulting in significant performance improvements.
 
 [Export Examples](export.md){ .md-button }
 
 ## [Track](track.md)
 
-Track mode is used for tracking objects in real-time using a YOLO11 model. In this mode, the model is loaded from a checkpoint file, and the user can provide a live video stream to perform real-time object tracking. This mode is useful for applications such as surveillance systems or self-driving cars.
+Track mode extends YOLO11's object detection capabilities to track objects across video frames or live streams. This mode is particularly valuable for applications requiring persistent object identification, such as [surveillance systems](https://www.ultralytics.com/blog/shattering-the-surveillance-status-quo-with-vision-ai) or [self-driving cars](https://www.ultralytics.com/solutions/ai-in-self-driving). Track mode implements sophisticated algorithms like ByteTrack to maintain object identity across frames, even when objects temporarily disappear from view.
 
 [Track Examples](track.md){ .md-button }
 
 ## [Benchmark](benchmark.md)
 
-Benchmark mode is used to profile the speed and accuracy of various export formats for YOLO11. The benchmarks provide information on the size of the exported format, its `mAP50-95` metrics (for object detection, segmentation, and pose) or `accuracy_top5` metrics (for classification), and the inference time in milliseconds per image across various formats like ONNX, OpenVINO, TensorRT, and others. This information can help users choose the optimal export format for their specific use case based on their requirements for speed and accuracy.
+Benchmark mode profiles the speed and accuracy of various export formats for YOLO11. This mode provides comprehensive metrics on model size, accuracy (mAP50-95 for detection tasks or accuracy_top5 for classification), and inference time across different formats like ONNX, [OpenVINO](https://docs.ultralytics.com/integrations/openvino/), and TensorRT. Benchmarking helps you select the optimal export format based on your specific requirements for speed and accuracy in your deployment environment.
 
 [Benchmark Examples](benchmark.md){ .md-button }
 

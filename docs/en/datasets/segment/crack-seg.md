@@ -33,7 +33,9 @@ The division of data within the Crack Segmentation Dataset is outlined as follow
 
 ## Applications
 
-Crack segmentation finds practical applications in infrastructure maintenance, aiding in the identification and assessment of structural damage. It also plays a crucial role in enhancing road safety by enabling automated systems to detect and address pavement cracks for timely repairs.
+Crack segmentation finds practical applications in [infrastructure maintenance](https://www.ultralytics.com/blog/using-ai-for-crack-detection-and-segmentation), aiding in the identification and assessment of structural damage. It also plays a crucial role in enhancing road safety by enabling automated systems to detect and address pavement cracks for timely repairs.
+
+In industrial settings, crack detection using deep learning models like [Ultralytics YOLO](https://docs.ultralytics.com/models/) helps guarantee building integrity in construction, prevents costly downtimes in manufacturing, and makes road and pavement inspections safer and more effective. The ability to automatically identify and classify cracks based on severity levels allows maintenance teams to prioritize repairs efficiently.
 
 ## Dataset YAML
 
@@ -76,7 +78,7 @@ The Crack Segmentation dataset comprises a varied collection of images and video
 
 ![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/crack-segmentation-sample.avif)
 
-- This image presents an example of image object segmentation, featuring annotated bounding boxes with masks outlining identified objects. The dataset includes a diverse array of images taken in different locations, environments, and densities, making it a comprehensive resource for developing models designed for this particular task.
+- This image presents an example of image [instance segmentation](https://docs.ultralytics.com/guides/instance-segmentation-and-tracking/), featuring annotated bounding boxes with masks outlining identified objects. The dataset includes a diverse array of images taken in different locations, environments, and densities, making it a comprehensive resource for developing models designed for this particular task.
 
 - The example underscores the diversity and complexity found in the Crack segmentation dataset, emphasizing the crucial role of high-quality data in computer vision tasks.
 
@@ -138,11 +140,11 @@ To train an Ultralytics YOLO11 model on the Crack Segmentation dataset, use the 
 
 ### Why should I use the Crack Segmentation Dataset for my self-driving car project?
 
-The Crack Segmentation Dataset is exceptionally suited for self-driving car projects due to its diverse collection of 4029 road and wall images, which provide a varied range of scenarios. This diversity enhances the accuracy and robustness of models trained for crack detection, crucial for maintaining road safety and ensuring timely infrastructure repairs.
+The Crack Segmentation Dataset is exceptionally suited for self-driving car projects due to its diverse collection of 4029 road and wall images, which provide a varied range of scenarios. This diversity enhances the accuracy and robustness of models trained for crack detection, crucial for maintaining road safety and ensuring timely infrastructure repairs. The dataset's comprehensive annotations make it ideal for [developing models](https://docs.ultralytics.com/guides/model-training-tips/) that can identify potential hazards on roadways.
 
 ### What unique features does Ultralytics YOLO offer for crack segmentation?
 
-Ultralytics YOLO offers advanced real-time [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and classification capabilities that make it ideal for crack segmentation tasks. Its ability to handle large datasets and complex scenarios ensures high accuracy and efficiency. For example, the model [Training](../../modes/train.md), [Predict](../../modes/predict.md), and [Export](../../modes/export.md) modes cover comprehensive functionalities from training to deployment.
+Ultralytics YOLO offers advanced real-time [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and classification capabilities that make it ideal for crack segmentation tasks. Its ability to handle large datasets and complex scenarios ensures high accuracy and efficiency. For example, the model [Training](../../modes/train.md), [Predict](../../modes/predict.md), and [Export](../../modes/export.md) modes cover comprehensive functionalities from training to deployment. Additionally, YOLO's [anchor-free detection](https://www.ultralytics.com/blog/benefits-ultralytics-yolo11-being-anchor-free-detector) approach improves performance on irregular shapes like cracks.
 
 ### How do I cite the Roboflow Crack Segmentation Dataset in my research paper?
 

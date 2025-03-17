@@ -38,7 +38,7 @@ TF.js provides a range of options to deploy your machine learning models:
 
 - **In-Browser ML Applications:** You can build web applications that run machine learning models directly in the browser. The need for server-side computation is eliminated and the server load is reduced.
 
-- **Node.js Applications::** TensorFlow.js also supports deployment in Node.js environments, enabling the development of server-side machine learning applications. It is particularly useful for applications that require the processing power of a server or access to server-side data.
+- **Node.js Applications:** TensorFlow.js also supports deployment in Node.js environments, enabling the development of server-side machine learning applications. It is particularly useful for applications that require the processing power of a server or access to server-side data.
 
 - **Chrome Extensions:** An interesting deployment scenario is the creation of Chrome extensions with TensorFlow.js. For instance, you can develop an extension that allows users to right-click on an image within any webpage to classify it using a pre-trained ML model. TensorFlow.js can be integrated into everyday web browsing experiences to provide immediate insights or augmentations based on machine learning.
 
@@ -110,7 +110,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ## Deploying Exported YOLO11 TensorFlow.js Models
 
-Now that you have exported your YOLO11 model to the TF.js format, the next step is to deploy it. The primary and recommended first step for running a TF.js is to use the `YOLO("./yolo11n_web_model")` method, as previously shown in the usage code snippet.
+Now that you have exported your YOLO11 model to the TF.js format, the next step is to deploy it. The primary and recommended first step for running a TF.js model is to use the `YOLO("./yolo11n_web_model")` method, as previously shown in the usage code snippet.
 
 However, for in-depth instructions on deploying your TF.js models, take a look at the following resources:
 
@@ -196,7 +196,7 @@ Key features of TensorFlow.js include:
 - **Multiple Backends:** Supports CPU, WebGL for GPU acceleration, WebAssembly (WASM), and WebGPU for advanced operations.
 - **Offline Capabilities:** Models can run directly in the browser without internet connectivity, making it ideal for developing responsive web applications.
 
-For deployment scenarios and more in-depth information, see our section on [Deployment Options with TensorFlow.js](#deploying-exported-yolo11-tensorflowjs-models).
+For deployment scenarios and more in-depth information, see our section on [Deployment Options with TensorFlow.js](#deployment-options-with-tensorflowjs).
 
 ### Can I deploy a YOLO11 model on server-side Node.js applications using TensorFlow.js?
 

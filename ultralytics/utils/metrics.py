@@ -551,8 +551,8 @@ def compute_ap(recall, precision):
         (np.ndarray): Modified recall curve with sentinel values added at the beginning and end.
     """
     # Append sentinel values to beginning and end
-    mrec = np.concatenate(([0.0], recall, [1.0]))
-    mpre = np.concatenate(([1.0], precision, [0.0]))
+    mrec = np.concatenate(([0.0], recall, [recall[-1]], [1.0]))
+    mpre = np.concatenate(([1.0], precision, [0.0], [0.0]))
 
     # Compute the precision envelope
     mpre = np.flip(np.maximum.accumulate(np.flip(mpre)))

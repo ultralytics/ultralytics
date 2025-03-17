@@ -88,7 +88,7 @@ We would like to acknowledge the Stanford team for creating and maintaining this
 
 ### What is the Dog-pose dataset, and how is it used with Ultralytics YOLO11?
 
-The Dog-Pose dataset features 6,773 training and 1,703 test images annotated with 24 keypoints for dog pose estimation. It's designed for training and validating models with [Ultralytics YOLO11](../models/yolo11.md), supporting applications like animal behavior analysis, pet monitoring, and veterinary studies. The dataset's comprehensive annotations make it ideal for developing accurate pose estimation models for canines.
+The Dog-Pose dataset features 6,773 training and 1,703 test images annotated with 24 keypoints for dog pose estimation. It's designed for training and validating models with [Ultralytics YOLO11](../../models/yolo11.md), supporting applications like animal behavior analysis, pet monitoring, and veterinary studies. The dataset's comprehensive annotations make it ideal for developing accurate pose estimation models for canines.
 
 ### How do I train a YOLO11 model using the Dog-pose dataset in Ultralytics?
 

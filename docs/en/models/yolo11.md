@@ -60,7 +60,7 @@ This table provides an overview of the YOLO11 model variants, showcasing their a
 
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLO11"]'></canvas>
 
-!!! performance
+!!! tip "Performance"
 
     === "Detection (COCO)"
 

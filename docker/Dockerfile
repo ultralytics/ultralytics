@@ -49,8 +49,6 @@ RUN yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32 || yolo export mode
 RUN yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32
 # Requires <= Python 3.10, bug with paddlepaddle==2.5.0 https://github.com/PaddlePaddle/X2Paddle/issues/991
 RUN uv pip install --system "paddlepaddle>=2.6.0" x2paddle
-# Fix error: `np.bool` was a deprecated alias for the builtin `bool` segmentation error in Tests
-RUN uv pip install --system numpy==1.23.5
 
 # Remove extra build files
 RUN rm -rf tmp /root/.config/Ultralytics/persistent_cache.json

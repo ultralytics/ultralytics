@@ -87,17 +87,20 @@ class BaseTrainer:
         fitness (float): Current fitness value.
         loss (float): Current loss value.
         tloss (float): Total loss value.
-        loss_names (list): List of loss names.
+        loss_names (List): List of loss names.
         csv (Path): Path to results CSV file.
+        metrics (Dict): Dictionary of metrics.
+        plots (Dict): Dictionary of plots.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
-        Initializes the BaseTrainer class.
+        Initialize the BaseTrainer class.
 
         Args:
             cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
-            overrides (dict, optional): Configuration overrides. Defaults to None.
+            overrides (Dict, optional): Configuration overrides. Defaults to None.
+            _callbacks (List, optional): List of callback functions. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
@@ -156,11 +159,11 @@ class BaseTrainer:
             callbacks.add_integration_callbacks(self)
 
     def add_callback(self, event: str, callback):
-        """Appends the given callback."""
+        """Append the given callback to the event's callback list."""
         self.callbacks[event].append(callback)
 
     def set_callback(self, event: str, callback):
-        """Overrides the existing callbacks with the given callback."""
+        """Override the existing callbacks with the given callback for the specified event."""
         self.callbacks[event] = [callback]
 
     def run_callbacks(self, event: str):
@@ -218,7 +221,7 @@ class BaseTrainer:
         self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
 
     def _setup_ddp(self, world_size):
-        """Initializes and sets the DistributedDataParallel parameters for training."""
+        """Initialize and set the DistributedDataParallel parameters for training."""
         torch.cuda.set_device(RANK)
         self.device = torch.device("cuda", RANK)
         # LOGGER.info(f'DDP info: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
@@ -231,7 +234,7 @@ class BaseTrainer:
         )
 
     def _setup_train(self, world_size):
-        """Builds dataloaders and optimizer on correct rank process."""
+        """Build dataloaders and optimizer on correct rank process."""
         # Model
         self.run_callbacks("on_pretrain_routine_start")
         ckpt = self.setup_model()
@@ -319,7 +322,7 @@ class BaseTrainer:
         self.run_callbacks("on_pretrain_routine_end")
 
     def _do_train(self, world_size=1):
-        """Train completed, evaluate and plot if specified by arguments."""
+        """Train the model with the specified world size."""
         if world_size > 1:
             self._setup_ddp(world_size)
         self._setup_train(world_size)
@@ -455,7 +458,8 @@ class BaseTrainer:
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
             self.run_callbacks("on_fit_epoch_end")
 
-            self._clear_memory()
+            if self._get_memory(fraction=True) > 0.9:
+                self._clear_memory()  # clear if memory utilization > 90%
 
             # Early Stopping
             if RANK != -1:  # if DDP training
@@ -479,7 +483,7 @@ class BaseTrainer:
         self.run_callbacks("teardown")
 
     def auto_batch(self, max_num_obj=0):
-        """Get batch size by calculating memory occupation of model."""
+        """Calculate optimal batch size based on model and device memory constraints."""
         return check_train_batch_size(
             model=self.model,
             imgsz=self.args.imgsz,
@@ -488,18 +492,23 @@ class BaseTrainer:
             max_num_obj=max_num_obj,
         )  # returns batch size
 
-    def _get_memory(self):
-        """Get accelerator memory utilization in GB."""
+    def _get_memory(self, fraction=False):
+        """Get accelerator memory utilization in GB or as a fraction of total memory."""
+        memory, total = 0, 0
         if self.device.type == "mps":
             memory = torch.mps.driver_allocated_memory()
+            if fraction:
+                return __import__("psutil").virtual_memory().percent / 100
         elif self.device.type == "cpu":
-            memory = 0
+            pass
         else:
             memory = torch.cuda.memory_reserved()
-        return memory / (2**30)
+            if fraction:
+                total = torch.cuda.get_device_properties(self.device).total_memory
+        return ((memory / total) if total > 0 else 0) if fraction else (memory / 2**30)
 
     def _clear_memory(self):
-        """Clear accelerator memory on different platforms."""
+        """Clear accelerator memory by calling garbage collector and emptying cache."""
         gc.collect()
 
         if self.device.type == "mps":
@@ -512,7 +521,7 @@ class BaseTrainer:
             torch.cuda.empty_cache()
 
     def read_results_csv(self):
-        """Read results.csv into a dict using pandas."""
+        """Read results.csv into a dictionary using pandas."""
         import pandas as pd  # scope for faster 'import ultralytics'
 
         return pd.read_csv(self.csv).to_dict(orient="list")
@@ -554,9 +563,10 @@ class BaseTrainer:
 
     def get_dataset(self):
         """
-        Get train, val path from data dict if it exists.
+        Get train and validation datasets from data dictionary.
 
-        Returns None if data format is not recognized.
+        Returns:
+            (tuple): A tuple containing the training and validation/test datasets.
         """
         try:
             if self.args.task == "classify":
@@ -573,10 +583,19 @@ class BaseTrainer:
         except Exception as e:
             raise RuntimeError(emojis(f"Dataset '{clean_url(self.args.data)}' error ❌ {e}")) from e
         self.data = data
+        if self.args.single_cls:
+            LOGGER.info("Overriding class names with single class.")
+            self.data["names"] = {0: "item"}
+            self.data["nc"] = 1
         return data["train"], data.get("val") or data.get("test")
 
     def setup_model(self):
-        """Load/create/download model for any task."""
+        """
+        Load, create, or download model for any task.
+
+        Returns:
+            (dict): Optional checkpoint to resume training from.
+        """
         if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
             return
 
@@ -606,9 +625,10 @@ class BaseTrainer:
 
     def validate(self):
         """
-        Runs validation on test set using self.validator.
+        Run validation on test set using self.validator.
 
-        The returned dict is expected to contain "fitness" key.
+        Returns:
+            (tuple): A tuple containing metrics dictionary and fitness score.
         """
         metrics = self.validator(self)
         fitness = metrics.pop("fitness", -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
@@ -642,7 +662,7 @@ class BaseTrainer:
         return {"loss": loss_items} if loss_items is not None else ["loss"]
 
     def set_model_attributes(self):
-        """To set or update model parameters before training."""
+        """Set or update model parameters before training."""
         self.model.names = self.data["names"]
 
     def build_targets(self, preds, targets):
@@ -663,12 +683,12 @@ class BaseTrainer:
         pass
 
     def save_metrics(self, metrics):
-        """Saves training metrics to a CSV file."""
+        """Save training metrics to a CSV file."""
         keys, vals = list(metrics.keys()), list(metrics.values())
         n = len(metrics) + 2  # number of cols
         s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time"] + keys)).rstrip(",") + "\n")  # header
         t = time.time() - self.train_time_start
-        with open(self.csv, "a") as f:
+        with open(self.csv, "a", encoding="utf-8") as f:
             f.write(s + ("%.6g," * n % tuple([self.epoch + 1, t] + vals)).rstrip(",") + "\n")
 
     def plot_metrics(self):
@@ -681,7 +701,7 @@ class BaseTrainer:
         self.plots[path] = {"data": data, "timestamp": time.time()}
 
     def final_eval(self):
-        """Performs final evaluation and validation for object detection YOLO model."""
+        """Perform final evaluation and validation for object detection YOLO model."""
         ckpt = {}
         for f in self.last, self.best:
             if f.exists():
@@ -765,8 +785,7 @@ class BaseTrainer:
 
     def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
         """
-        Constructs an optimizer for the given model, based on the specified optimizer name, learning rate, momentum,
-        weight decay, and number of iterations.
+        Construct an optimizer for the given model.
 
         Args:
             model (torch.nn.Module): The model for which to build an optimizer.

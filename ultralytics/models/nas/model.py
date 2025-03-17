@@ -2,13 +2,10 @@
 """
 YOLO-NAS model interface.
 
-Example:
-    ```python
-    from ultralytics import NAS
-
-    model = NAS("yolo_nas_s")
-    results = model.predict("ultralytics/assets/bus.jpg")
-    ```
+Examples:
+    >>> from ultralytics import NAS
+    >>> model = NAS("yolo_nas_s")
+    >>> results = model.predict("ultralytics/assets/bus.jpg")
 """
 
 from pathlib import Path
@@ -16,6 +13,7 @@ from pathlib import Path
 import torch
 
 from ultralytics.engine.model import Model
+from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.torch_utils import model_info
 
@@ -30,34 +28,39 @@ class NAS(Model):
     This class provides an interface for the YOLO-NAS models and extends the `Model` class from Ultralytics engine.
     It is designed to facilitate the task of object detection using pre-trained or custom-trained YOLO-NAS models.
 
-    Example:
-        ```python
-        from ultralytics import NAS
-
-        model = NAS("yolo_nas_s")
-        results = model.predict("ultralytics/assets/bus.jpg")
-        ```
-
     Attributes:
-        model (str): Path to the pre-trained model or model name. Defaults to 'yolo_nas_s.pt'.
+        model (torch.nn.Module): The loaded YOLO-NAS model.
+        task (str): The task type for the model, defaults to 'detect'.
+        predictor (NASPredictor): The predictor instance for making predictions.
+        validator (NASValidator): The validator instance for model validation.
 
-    Note:
+    Examples:
+        >>> from ultralytics import NAS
+        >>> model = NAS("yolo_nas_s")
+        >>> results = model.predict("ultralytics/assets/bus.jpg")
+
+    Notes:
         YOLO-NAS models only support pre-trained models. Do not provide YAML configuration files.
     """
 
-    def __init__(self, model="yolo_nas_s.pt") -> None:
-        """Initializes the NAS model with the provided or default 'yolo_nas_s.pt' model."""
+    def __init__(self, model: str = "yolo_nas_s.pt") -> None:
+        """Initialize the NAS model with the provided or default model."""
         assert Path(model).suffix not in {".yaml", ".yml"}, "YOLO-NAS models only support pre-trained models."
         super().__init__(model, task="detect")
 
     def _load(self, weights: str, task=None) -> None:
-        """Loads an existing NAS model weights or creates a new NAS model with pretrained weights if not provided."""
+        """
+        Load an existing NAS model weights or create a new NAS model with pretrained weights.
+
+        Args:
+            weights (str): Path to the model weights file or model name.
+            task (str, optional): Task type for the model.
+        """
         import super_gradients
 
         suffix = Path(weights).suffix
         if suffix == ".pt":
             self.model = torch.load(attempt_download_asset(weights))
-
         elif suffix == "":
             self.model = super_gradients.training.models.get(weights, pretrained_weights="coco")
 
@@ -77,18 +80,22 @@ class NAS(Model):
         self.model.yaml = {}  # for info()
         self.model.pt_path = weights  # for export()
         self.model.task = "detect"  # for export()
+        self.model.args = {**DEFAULT_CFG_DICT, **self.overrides}  # for export()
 
-    def info(self, detailed=False, verbose=True):
+    def info(self, detailed: bool = False, verbose: bool = True):
         """
-        Logs model info.
+        Log model information.
 
         Args:
             detailed (bool): Show detailed information about model.
             verbose (bool): Controls verbosity.
+
+        Returns:
+            (dict): Model information dictionary.
         """
         return model_info(self.model, detailed=detailed, verbose=verbose, imgsz=640)
 
     @property
     def task_map(self):
-        """Returns a dictionary mapping tasks to respective predictor and validator classes."""
+        """Return a dictionary mapping tasks to respective predictor and validator classes."""
         return {"detect": {"predictor": NASPredictor, "validator": NASValidator}}

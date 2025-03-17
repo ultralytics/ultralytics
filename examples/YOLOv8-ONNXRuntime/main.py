@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import argparse
+from typing import List, Tuple
 
 import cv2
 import numpy as np
@@ -12,17 +13,35 @@ from ultralytics.utils.checks import check_requirements, check_yaml
 
 
 class YOLOv8:
-    """YOLOv8 object detection model class for handling inference and visualization."""
+    """
+    YOLOv8 object detection model class for handling inference and visualization.
 
-    def __init__(self, onnx_model, input_image, confidence_thres, iou_thres):
+    This class provides functionality to load a YOLOv8 ONNX model, perform inference on images,
+    and visualize the detection results.
+
+    Attributes:
+        onnx_model (str): Path to the ONNX model file.
+        input_image (str): Path to the input image file.
+        confidence_thres (float): Confidence threshold for filtering detections.
+        iou_thres (float): IoU threshold for non-maximum suppression.
+        classes (List[str]): List of class names from the COCO dataset.
+        color_palette (np.ndarray): Random color palette for visualizing different classes.
+        input_width (int): Width dimension of the model input.
+        input_height (int): Height dimension of the model input.
+        img (np.ndarray): The loaded input image.
+        img_height (int): Height of the input image.
+        img_width (int): Width of the input image.
+    """
+
+    def __init__(self, onnx_model: str, input_image: str, confidence_thres: float, iou_thres: float):
         """
-        Initializes an instance of the YOLOv8 class.
+        Initialize an instance of the YOLOv8 class.
 
         Args:
-            onnx_model: Path to the ONNX model.
-            input_image: Path to the input image.
-            confidence_thres: Confidence threshold for filtering detections.
-            iou_thres: IoU (Intersection over Union) threshold for non-maximum suppression.
+            onnx_model (str): Path to the ONNX model.
+            input_image (str): Path to the input image.
+            confidence_thres (float): Confidence threshold for filtering detections.
+            iou_thres (float): IoU threshold for non-maximum suppression.
         """
         self.onnx_model = onnx_model
         self.input_image = input_image
@@ -35,18 +54,44 @@ class YOLOv8:
         # Generate a color palette for the classes
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
 
-    def draw_detections(self, img, box, score, class_id):
+    def letterbox(self, img: np.ndarray, new_shape: Tuple[int, int] = (640, 640)) -> Tuple[np.ndarray, Tuple[int, int]]:
         """
-        Draws bounding boxes and labels on the input image based on the detected objects.
+        Resize and reshape images while maintaining aspect ratio by adding padding.
 
         Args:
-            img: The input image to draw detections on.
-            box: Detected bounding box.
-            score: Corresponding detection score.
-            class_id: Class ID for the detected object.
+            img (np.ndarray): Input image to be resized.
+            new_shape (Tuple[int, int]): Target shape (height, width) for the image.
 
         Returns:
-            None
+            (np.ndarray): Resized and padded image.
+            (Tuple[int, int]): Padding values (top, left) applied to the image.
+        """
+        shape = img.shape[:2]  # current shape [height, width]
+
+        # Scale ratio (new / old)
+        r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
+
+        # Compute padding
+        new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
+        dw, dh = (new_shape[1] - new_unpad[0]) / 2, (new_shape[0] - new_unpad[1]) / 2  # wh padding
+
+        if shape[::-1] != new_unpad:  # resize
+            img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
+        top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
+        left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
+        img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))
+
+        return img, (top, left)
+
+    def draw_detections(self, img: np.ndarray, box: List[float], score: float, class_id: int) -> None:
+        """
+        Draw bounding boxes and labels on the input image based on the detected objects.
+
+        Args:
+            img (np.ndarray): The input image to draw detections on.
+            box (List[float]): Detected bounding box coordinates [x, y, width, height].
+            score (float): Confidence score of the detection.
+            class_id (int): Class ID for the detected object.
         """
         # Extract the coordinates of the bounding box
         x1, y1, w, h = box
@@ -75,12 +120,16 @@ class YOLOv8:
         # Draw the label text on the image
         cv2.putText(img, label, (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
 
-    def preprocess(self):
+    def preprocess(self) -> Tuple[np.ndarray, Tuple[int, int]]:
         """
-        Preprocesses the input image before performing inference.
+        Preprocess the input image before performing inference.
+
+        This method reads the input image, converts its color space, applies letterboxing to maintain aspect ratio,
+        normalizes pixel values, and prepares the image data for model input.
 
         Returns:
-            image_data: Preprocessed image data ready for inference.
+            (np.ndarray): Preprocessed image data ready for inference with shape (1, 3, height, width).
+            (Tuple[int, int]): Padding values (top, left) applied during letterboxing.
         """
         # Read the input image using OpenCV
         self.img = cv2.imread(self.input_image)
@@ -91,8 +140,7 @@ class YOLOv8:
         # Convert the image color space from BGR to RGB
         img = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
 
-        # Resize the image to match the input shape
-        img = cv2.resize(img, (self.input_width, self.input_height))
+        img, pad = self.letterbox(img, (self.input_width, self.input_height))
 
         # Normalize the image data by dividing it by 255.0
         image_data = np.array(img) / 255.0
@@ -104,18 +152,22 @@ class YOLOv8:
         image_data = np.expand_dims(image_data, axis=0).astype(np.float32)
 
         # Return the preprocessed image data
-        return image_data
+        return image_data, pad
 
-    def postprocess(self, input_image, output):
+    def postprocess(self, input_image: np.ndarray, output: List[np.ndarray], pad: Tuple[int, int]) -> np.ndarray:
         """
-        Performs post-processing on the model's output to extract bounding boxes, scores, and class IDs.
+        Perform post-processing on the model's output to extract and visualize detections.
+
+        This method processes the raw model output to extract bounding boxes, scores, and class IDs.
+        It applies non-maximum suppression to filter overlapping detections and draws the results on the input image.
 
         Args:
-            input_image (numpy.ndarray): The input image.
-            output (numpy.ndarray): The output of the model.
+            input_image (np.ndarray): The input image.
+            output (List[np.ndarray]): The output arrays from the model.
+            pad (Tuple[int, int]): Padding values (top, left) used during letterboxing.
 
         Returns:
-            numpy.ndarray: The input image with detections drawn on it.
+            (np.ndarray): The input image with detections drawn on it.
         """
         # Transpose and squeeze the output to match the expected shape
         outputs = np.transpose(np.squeeze(output[0]))
@@ -129,8 +181,9 @@ class YOLOv8:
         class_ids = []
 
         # Calculate the scaling factors for the bounding box coordinates
-        x_factor = self.img_width / self.input_width
-        y_factor = self.img_height / self.input_height
+        gain = min(self.input_height / self.img_height, self.input_width / self.img_height)
+        outputs[:, 0] -= pad[1]
+        outputs[:, 1] -= pad[0]
 
         # Iterate over each row in the outputs array
         for i in range(rows):
@@ -149,10 +202,10 @@ class YOLOv8:
                 x, y, w, h = outputs[i][0], outputs[i][1], outputs[i][2], outputs[i][3]
 
                 # Calculate the scaled coordinates of the bounding box
-                left = int((x - w / 2) * x_factor)
-                top = int((y - h / 2) * y_factor)
-                width = int(w * x_factor)
-                height = int(h * y_factor)
+                left = int((x - w / 2) / gain)
+                top = int((y - h / 2) / gain)
+                width = int(w / gain)
+                height = int(h / gain)
 
                 # Add the class ID, score, and box coordinates to the respective lists
                 class_ids.append(class_id)
@@ -175,12 +228,12 @@ class YOLOv8:
         # Return the modified input image
         return input_image
 
-    def main(self):
+    def main(self) -> np.ndarray:
         """
-        Performs inference using an ONNX model and returns the output image with drawn detections.
+        Perform inference using an ONNX model and return the output image with drawn detections.
 
         Returns:
-            output_img: The output image with drawn detections.
+            (np.ndarray): The output image with drawn detections.
         """
         # Create an inference session using the ONNX model and specify execution providers
         session = ort.InferenceSession(self.onnx_model, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
@@ -194,13 +247,13 @@ class YOLOv8:
         self.input_height = input_shape[3]
 
         # Preprocess the image data
-        img_data = self.preprocess()
+        img_data, pad = self.preprocess()
 
         # Run inference using the preprocessed image data
         outputs = session.run(None, {model_inputs[0].name: img_data})
 
         # Perform post-processing on the outputs to obtain output image.
-        return self.postprocess(self.img, outputs)  # output image
+        return self.postprocess(self.img, outputs, pad)  # output image
 
 
 if __name__ == "__main__":

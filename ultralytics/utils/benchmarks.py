@@ -201,7 +201,23 @@ def benchmark(
 
 
 class RF100Benchmark:
-    """Benchmark YOLO model performance across various formats for speed and accuracy."""
+    """
+    Benchmark YOLO model performance across various formats for speed and accuracy.
+
+    This class provides functionality to benchmark YOLO models on the RF100 dataset collection.
+
+    Attributes:
+        ds_names (List[str]): Names of datasets used for benchmarking.
+        ds_cfg_list (List[Path]): List of paths to dataset configuration files.
+        rf (Roboflow): Roboflow instance for accessing datasets.
+        val_metrics (List[str]): Metrics used for validation.
+
+    Methods:
+        set_key: Set Roboflow API key for accessing datasets.
+        parse_dataset: Parse dataset links and download datasets.
+        fix_yaml: Fix train and validation paths in YAML files.
+        evaluate: Evaluate model performance on validation results.
+    """
 
     def __init__(self):
         """Initialize the RF100Benchmark class for benchmarking YOLO model performance across various formats."""
@@ -234,6 +250,10 @@ class RF100Benchmark:
         Args:
             ds_link_txt (str): Path to the file containing dataset links.
 
+        Returns:
+            ds_names (List[str]): List of dataset names.
+            ds_cfg_list (List[Path]): List of paths to dataset configuration files.
+
         Examples:
             >>> benchmark = RF100Benchmark()
             >>> benchmark.set_key("api_key")
@@ -244,7 +264,7 @@ class RF100Benchmark:
         os.mkdir("ultralytics-benchmarks")
         safe_download("https://github.com/ultralytics/assets/releases/download/v0.0.0/datasets_links.txt")
 
-        with open(ds_link_txt) as file:
+        with open(ds_link_txt, encoding="utf-8") as file:
             for line in file:
                 try:
                     _, url, workspace, project, version = re.split("/+", line.strip())
@@ -262,20 +282,12 @@ class RF100Benchmark:
 
     @staticmethod
     def fix_yaml(path):
-        """
-        Fixes the train and validation paths in a given YAML file.
-
-        Args:
-            path (str): Path to the YAML file to be fixed.
-
-        Examples:
-            >>> RF100Benchmark.fix_yaml("path/to/data.yaml")
-        """
-        with open(path) as file:
+        """Fix the train and validation paths in a given YAML file."""
+        with open(path, encoding="utf-8") as file:
             yaml_data = yaml.safe_load(file)
         yaml_data["train"] = "train/images"
         yaml_data["val"] = "valid/images"
-        with open(path, "w") as file:
+        with open(path, "w", encoding="utf-8") as file:
             yaml.safe_dump(yaml_data, file)
 
     def evaluate(self, yaml_path, val_log_file, eval_log_file, list_ind):
@@ -297,7 +309,7 @@ class RF100Benchmark:
             >>> benchmark.evaluate("path/to/data.yaml", "path/to/val_log.txt", "path/to/eval_log.txt", 0)
         """
         skip_symbols = ["🚀", "⚠️", "💡", "❌"]
-        with open(yaml_path) as stream:
+        with open(yaml_path, encoding="utf-8") as stream:
             class_names = yaml.safe_load(stream)["names"]
         with open(val_log_file, encoding="utf-8") as f:
             lines = f.readlines()
@@ -331,7 +343,7 @@ class RF100Benchmark:
             print("There's only one dict res")
             map_val = [res["map50"] for res in eval_lines][0]
 
-        with open(eval_log_file, "a") as f:
+        with open(eval_log_file, "a", encoding="utf-8") as f:
             f.write(f"{self.ds_names[list_ind]}: {map_val}\n")
 
 
@@ -353,6 +365,14 @@ class ProfileModels:
 
     Methods:
         profile: Profiles the models and prints the result.
+        get_files: Gets all relevant model files.
+        get_onnx_model_info: Extracts metadata from an ONNX model.
+        iterative_sigma_clipping: Applies sigma clipping to remove outliers.
+        profile_tensorrt_model: Profiles a TensorRT model.
+        profile_onnx_model: Profiles an ONNX model.
+        generate_table_row: Generates a table row with model metrics.
+        generate_results_dict: Generates a dictionary of profiling results.
+        print_table: Prints a formatted table of results.
 
     Examples:
         Profile models and print results
@@ -404,7 +424,18 @@ class ProfileModels:
         self.device = device or torch.device(0 if torch.cuda.is_available() else "cpu")
 
     def profile(self):
-        """Profiles YOLO models for speed and accuracy across various formats including ONNX and TensorRT."""
+        """
+        Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.
+
+        Returns:
+            (List[Dict]): List of dictionaries containing profiling results for each model.
+
+        Examples:
+            Profile models and print results
+            >>> from ultralytics.utils.benchmarks import ProfileModels
+            >>> profiler = ProfileModels(["yolo11n.yaml", "yolov8s.yaml"])
+            >>> results = profiler.profile()
+        """
         files = self.get_files()
 
         if not files:
@@ -448,7 +479,12 @@ class ProfileModels:
         return output
 
     def get_files(self):
-        """Returns a list of paths for all relevant model files given by the user."""
+        """
+        Return a list of paths for all relevant model files given by the user.
+
+        Returns:
+            (List[Path]): List of Path objects for the model files.
+        """
         files = []
         for path in self.paths:
             path = Path(path)
@@ -470,7 +506,17 @@ class ProfileModels:
 
     @staticmethod
     def iterative_sigma_clipping(data, sigma=2, max_iters=3):
-        """Applies iterative sigma clipping to data to remove outliers based on specified sigma and iteration count."""
+        """
+        Apply iterative sigma clipping to data to remove outliers.
+
+        Args:
+            data (numpy.ndarray): Input data array.
+            sigma (float): Number of standard deviations to use for clipping.
+            max_iters (int): Maximum number of iterations for the clipping process.
+
+        Returns:
+            (numpy.ndarray): Clipped data array with outliers removed.
+        """
         data = np.array(data)
         for _ in range(max_iters):
             mean, std = np.mean(data), np.std(data)
@@ -481,7 +527,17 @@ class ProfileModels:
         return data
 
     def profile_tensorrt_model(self, engine_file: str, eps: float = 1e-3):
-        """Profiles YOLO model performance with TensorRT, measuring average run time and standard deviation."""
+        """
+        Profile YOLO model performance with TensorRT, measuring average run time and standard deviation.
+
+        Args:
+            engine_file (str): Path to the TensorRT engine file.
+            eps (float): Small epsilon value to prevent division by zero.
+
+        Returns:
+            mean_time (float): Mean inference time in milliseconds.
+            std_time (float): Standard deviation of inference time in milliseconds.
+        """
         if not self.trt or not Path(engine_file).is_file():
             return 0.0, 0.0
 
@@ -510,7 +566,17 @@ class ProfileModels:
         return np.mean(run_times), np.std(run_times)
 
     def profile_onnx_model(self, onnx_file: str, eps: float = 1e-3):
-        """Profiles an ONNX model, measuring average inference time and standard deviation across multiple runs."""
+        """
+        Profile an ONNX model, measuring average inference time and standard deviation across multiple runs.
+
+        Args:
+            onnx_file (str): Path to the ONNX model file.
+            eps (float): Small epsilon value to prevent division by zero.
+
+        Returns:
+            mean_time (float): Mean inference time in milliseconds.
+            std_time (float): Standard deviation of inference time in milliseconds.
+        """
         check_requirements("onnxruntime")
         import onnxruntime as ort
 
@@ -565,7 +631,18 @@ class ProfileModels:
         return np.mean(run_times), np.std(run_times)
 
     def generate_table_row(self, model_name, t_onnx, t_engine, model_info):
-        """Generates a table row string with model performance metrics including inference times and model details."""
+        """
+        Generate a table row string with model performance metrics.
+
+        Args:
+            model_name (str): Name of the model.
+            t_onnx (tuple): ONNX model inference time statistics (mean, std).
+            t_engine (tuple): TensorRT engine inference time statistics (mean, std).
+            model_info (tuple): Model information (layers, params, gradients, flops).
+
+        Returns:
+            (str): Formatted table row string with model metrics.
+        """
         layers, params, gradients, flops = model_info
         return (
             f"| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.1f}±{t_onnx[1]:.1f} ms | {t_engine[0]:.1f}±"
@@ -574,7 +651,18 @@ class ProfileModels:
 
     @staticmethod
     def generate_results_dict(model_name, t_onnx, t_engine, model_info):
-        """Generates a dictionary of profiling results including model name, parameters, GFLOPs, and speed metrics."""
+        """
+        Generate a dictionary of profiling results.
+
+        Args:
+            model_name (str): Name of the model.
+            t_onnx (tuple): ONNX model inference time statistics (mean, std).
+            t_engine (tuple): TensorRT engine inference time statistics (mean, std).
+            model_info (tuple): Model information (layers, params, gradients, flops).
+
+        Returns:
+            (dict): Dictionary containing profiling results.
+        """
         layers, params, gradients, flops = model_info
         return {
             "model/name": model_name,
@@ -586,7 +674,12 @@ class ProfileModels:
 
     @staticmethod
     def print_table(table_rows):
-        """Prints a formatted table of model profiling results, including speed and accuracy metrics."""
+        """
+        Print a formatted table of model profiling results.
+
+        Args:
+            table_rows (List[str]): List of formatted table row strings.
+        """
         gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "GPU"
         headers = [
             "Model",

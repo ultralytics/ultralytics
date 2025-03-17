@@ -112,7 +112,7 @@ By using Ultralytics YOLO11 to crop only relevant objects from your images or vi
 
 ### Can I use Ultralytics YOLO11 for real-time video analysis and object cropping?
 
-Yes, Ultralytics YOLO11 can process real-time video feeds to detect and crop objects dynamically. The model's high-speed inference capabilities make it ideal for real-time applications such as [surveillance](../solutions/security-alarm-system.md), sports analysis, and automated inspection systems. Check out the [tracking](../modes/track.md) and [prediction modes](../modes/predict.md) to understand how to implement real-time processing.
+Yes, Ultralytics YOLO11 can process real-time video feeds to detect and crop objects dynamically. The model's high-speed inference capabilities make it ideal for real-time applications such as [surveillance](security-alarm-system.md), sports analysis, and automated inspection systems. Check out the [tracking](../modes/track.md) and [prediction modes](../modes/predict.md) to understand how to implement real-time processing.
 
 ### What are the hardware requirements for efficiently running YOLO11 for object cropping?
 

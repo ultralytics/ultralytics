@@ -8,7 +8,7 @@ keywords: Ultralytics HUB, YOLO11, custom AI models, model training, model deplo
 
 [Ultralytics HUB](https://www.ultralytics.com/hub) models provide a streamlined solution for training vision AI models on custom datasets.
 
-The process is user-friendly and efficient, involving a simple three-step creation and accelerated training powered by Ultralytics YOLOv8. During training, real-time updates on model metrics are available so that you can monitor each step of the progress. Once training is completed, you can preview your model and easily deploy it to real-world applications. Therefore, [Ultralytics HUB](https://www.ultralytics.com/hub) offers a comprehensive yet straightforward system for model creation, training, evaluation, and deployment.
+The process is user-friendly and efficient, involving a simple three-step creation and accelerated training powered by Ultralytics YOLO11. During training, real-time updates on model metrics are available so that you can monitor each step of the progress. Once training is completed, you can preview your model and easily deploy it to real-world applications. Therefore, [Ultralytics HUB](https://www.ultralytics.com/hub) offers a comprehensive yet straightforward system for model creation, training, evaluation, and deployment.
 
 <p align="center">
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/YVlkq5H2tAQ"

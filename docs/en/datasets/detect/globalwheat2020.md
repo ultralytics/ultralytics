@@ -24,7 +24,7 @@ The Global Wheat Head Dataset is organized into two main subsets:
 
 ## Applications
 
-The Global Wheat Head Dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in wheat head detection tasks. The dataset's diverse set of images, capturing a wide range of appearances, environments, and conditions, make it a valuable resource for researchers and practitioners in the field of [plant phenotyping](https://www.ultralytics.com/blog/ai-in-agriculture-transforming-fruit-detection-and-precision-farming) and crop management.
+The Global Wheat Head Dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in wheat head detection tasks. The dataset's diverse set of images, capturing a wide range of appearances, environments, and conditions, make it a valuable resource for researchers and practitioners in the field of [plant phenotyping](https://www.ultralytics.com/blog/computer-vision-in-agriculture-transforming-fruit-detection-and-precision-farming) and crop management.
 
 ## Dataset YAML
 

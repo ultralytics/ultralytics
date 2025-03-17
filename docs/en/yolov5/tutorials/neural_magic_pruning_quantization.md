@@ -20,6 +20,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
+# Deploy YOLOv5 with Neural Magic's DeepSparse
+
 Welcome to software-delivered AI.
 
 This guide explains how to deploy YOLOv5 with Neural Magic's DeepSparse.
@@ -36,7 +38,7 @@ For the first time, your [deep learning](https://www.ultralytics.com/glossary/de
 - **Infinite Scalability**: Scale vertically to 100s of cores, out with standard Kubernetes, or fully-abstracted with Serverless
 - **Easy Integration**: Clean APIs for integrating your model into an application and monitoring it in production
 
-### How Does DeepSparse Achieve GPU-Class Performance?
+## How Does DeepSparse Achieve GPU-Class Performance?
 
 DeepSparse takes advantage of model sparsity to gain its performance speedup.
 
@@ -48,9 +50,9 @@ Sparsification through pruning and quantization is a broadly studied technique, 
 
 Sparse networks with compressed computation, executed depth-wise in cache, allows DeepSparse to deliver GPU-class performance on CPUs!
 
-### How Do I Create A Sparse Version of YOLOv5 Trained on My Data?
+## How Do I Create A Sparse Version of YOLOv5 Trained on My Data?
 
-Neural Magic's open-source model repository, SparseZoo, contains pre-sparsified checkpoints of each YOLOv5 model. Using SparseML, which is integrated with Ultralytics, you can fine-tune a sparse checkpoint onto your data with a single CLI command.
+Neural Magic's open-source model repository, [SparseZoo](https://sparsezoo.neuralmagic.com/), contains pre-sparsified checkpoints of each YOLOv5 model. Using [SparseML](https://github.com/neuralmagic/sparseml), which is integrated with Ultralytics, you can fine-tune a sparse checkpoint onto your data with a single CLI command.
 
 [Checkout Neural Magic's YOLOv5 documentation for more details](https://docs.neuralmagic.com/computer-vision/object-detection/).
 
@@ -122,7 +124,7 @@ apt-get install libgl1
 
 #### HTTP Server
 
-DeepSparse Server runs on top of the popular FastAPI web framework and Uvicorn web server. With just a single CLI command, you can easily setup a model service endpoint with DeepSparse. The Server supports any Pipeline from DeepSparse, including [object detection](https://www.ultralytics.com/glossary/object-detection) with YOLOv5, enabling you to send raw images to the endpoint and receive the bounding boxes.
+DeepSparse Server runs on top of the popular [FastAPI](https://fastapi.tiangolo.com/) web framework and [Uvicorn](https://www.uvicorn.org/) web server. With just a single CLI command, you can easily setup a model service endpoint with DeepSparse. The Server supports any Pipeline from DeepSparse, including [object detection](https://www.ultralytics.com/glossary/object-detection) with YOLOv5, enabling you to send raw images to the endpoint and receive the bounding boxes.
 
 Spin up the Server with the pruned-quantized YOLOv5s:
 
@@ -155,7 +157,7 @@ labels = annotations["labels"]
 
 #### Annotate CLI
 
-You can also use the annotate command to have the engine save an annotated photo on disk. Try --source 0 to annotate your live webcam feed!
+You can also use the annotate command to have the engine save an annotated photo on disk. Try `--source 0` to annotate your live webcam feed!
 
 ```bash
 deepsparse.object_detection.annotate --model_filepath zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/pruned65_quant-none --source basilica.jpg
@@ -163,7 +165,7 @@ deepsparse.object_detection.annotate --model_filepath zoo:cv/detection/yolov5-s/
 
 Running the above command will create an `annotation-results` folder and save the annotated image inside.
 
-<p align = "center">
+<p align="center">
 <img src="https://github.com/ultralytics/docs/releases/download/0/basilica-annotated.avif" alt="annotated" width="60%">
 </p>
 
@@ -263,4 +265,6 @@ deepsparse.benchmark zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/pruned35
 
 ## Get Started With DeepSparse
 
-**Research or Testing?** DeepSparse Community is free for research and testing. Get started with our [Documentation](https://docs.neuralmagic.com/).
+**Research or Testing?** DeepSparse Community is free for research and testing. Get started with their [Documentation](https://docs.neuralmagic.com/).
+
+For more information on deploying YOLOv5 with DeepSparse, check out the [Neural Magic's DeepSparse documentation](https://docs.neuralmagic.com/products/deepsparse/) and the [Ultralytics blog post on DeepSparse integration](https://www.ultralytics.com/blog/deploy-yolov5-with-neural-magics-deepsparse-for-gpu-class-performance-on-cpus).

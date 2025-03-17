@@ -4,11 +4,13 @@ description: Learn to freeze YOLOv5 layers for efficient transfer learning, redu
 keywords: YOLOv5, transfer learning, freeze layers, machine learning, deep learning, model training, PyTorch, Ultralytics
 ---
 
-📚 This guide explains how to **freeze** YOLOv5 🚀 layers when **[transfer learning](https://www.ultralytics.com/glossary/transfer-learning)**. Transfer learning is a useful way to quickly retrain a model on new data without having to retrain the entire network. Instead, part of the initial weights are frozen in place, and the rest of the weights are used to compute loss and are updated by the optimizer. This requires less resources than normal training and allows for faster training times, though it may also result in reductions to final trained accuracy.
+# Transfer Learning with Frozen Layers in YOLOv5
+
+📚 This guide explains how to **freeze** YOLOv5 🚀 layers when implementing [transfer learning](https://www.ultralytics.com/glossary/transfer-learning). Transfer learning is a powerful technique that allows you to quickly retrain a model on new data without having to retrain the entire network. By freezing part of the initial weights and only updating the rest, you can significantly reduce computational resources and training time, though this approach may slightly impact final model accuracy.
 
 ## Before You Start
 
-Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
+Clone the repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
 git clone https://github.com/ultralytics/yolov5  # clone
@@ -16,9 +18,9 @@ cd yolov5
 pip install -r requirements.txt  # install
 ```
 
-## Freeze Backbone
+## How Layer Freezing Works
 
-All layers that match the train.py `freeze` list in train.py will be frozen by setting their gradients to zero before training starts.
+When you freeze layers in a neural network, you're essentially setting their parameters to be non-trainable. The gradients for these layers are set to zero, preventing any weight updates during backpropagation. This is implemented in YOLOv5's training process as follows:
 
 ```python
 # Freeze
@@ -30,7 +32,9 @@ for k, v in model.named_parameters():
         v.requires_grad = False
 ```
 
-To see a list of module names:
+## Exploring Model Architecture
+
+To effectively freeze specific parts of the model, it's helpful to understand the layer structure. You can view all module names with:
 
 ```python
 for k, v in model.named_parameters():
@@ -46,18 +50,10 @@ model.1.bn.bias
 model.2.cv1.conv.weight
 model.2.cv1.bn.weight
 ...
-model.23.m.0.cv2.bn.weight
-model.23.m.0.cv2.bn.bias
-model.24.m.0.weight
-model.24.m.0.bias
-model.24.m.1.weight
-model.24.m.1.bias
-model.24.m.2.weight
-model.24.m.2.bias
 """
 ```
 
-Looking at the model architecture we can see that the model backbone is layers 0-9:
+The YOLOv5 architecture consists of a backbone (layers 0-9) and a head (remaining layers):
 
 ```yaml
 # YOLOv5 v6.0 backbone
@@ -80,48 +76,42 @@ head:
     - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
     - [[-1, 6], 1, Concat, [1]] # cat backbone P4
     - [-1, 3, C3, [512, False]] # 13
-
-    - [-1, 1, Conv, [256, 1, 1]]
-    - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
-    - [[-1, 4], 1, Concat, [1]] # cat backbone P3
-    - [-1, 3, C3, [256, False]] # 17 (P3/8-small)
-
-    - [-1, 1, Conv, [256, 3, 2]]
-    - [[-1, 14], 1, Concat, [1]] # cat head P4
-    - [-1, 3, C3, [512, False]] # 20 (P4/16-medium)
-
-    - [-1, 1, Conv, [512, 3, 2]]
-    - [[-1, 10], 1, Concat, [1]] # cat head P5
-    - [-1, 3, C3, [1024, False]] # 23 (P5/32-large)
-
-    - [[17, 20, 23], 1, Detect, [nc]] # Detect(P3, P4, P5)
+    # ... remaining head layers
 ```
 
-so we can define the freeze list to contain all modules with 'model.0.' - 'model.9.' in their names:
+## Freezing Options
+
+### Freeze Backbone Only
+
+To freeze only the backbone (layers 0-9), which is useful for adapting the model to new classes while retaining learned feature extraction capabilities:
 
 ```bash
 python train.py --freeze 10
 ```
 
-## Freeze All Layers
+This approach is particularly effective when your new dataset shares similar low-level features with the original training data but has different classes or objects.
 
-To freeze the full model except for the final output convolution layers in Detect(), we set freeze list to contain all modules with 'model.0.' - 'model.23.' in their names:
+### Freeze All Except Detection Layers
+
+To freeze the entire model except for the final output convolution layers in the Detect module:
 
 ```bash
 python train.py --freeze 24
 ```
 
-## Results
+This approach is ideal when you want to maintain most of the model's learned features but need to adapt it to detect a different number of classes.
 
-We train YOLOv5m on VOC on both of the above scenarios, along with a default model (no freezing), starting from the official COCO pretrained `--weights yolov5m.pt`:
+## Performance Comparison
+
+We trained YOLOv5m on the VOC dataset using different freezing strategies, starting from the official COCO pretrained weights:
 
 ```bash
-train.py --batch 48 --weights yolov5m.pt --data voc.yaml --epochs 50 --cache --img 512 --hyp hyp.finetune.yaml
+python train.py --batch 48 --weights yolov5m.pt --data voc.yaml --epochs 50 --cache --img 512 --hyp hyp.finetune.yaml
 ```
 
-### Accuracy Comparison
+### Accuracy Results
 
-The results show that freezing speeds up training, but reduces final [accuracy](https://www.ultralytics.com/glossary/accuracy) slightly.
+The results demonstrate that freezing layers accelerates training but slightly reduces final [accuracy](https://www.ultralytics.com/glossary/accuracy):
 
 ![Freezing training mAP50 results](https://github.com/ultralytics/docs/releases/download/0/freezing-training-map50-results.avif)
 
@@ -129,13 +119,24 @@ The results show that freezing speeds up training, but reduces final [accuracy](
 
 <img width="922" alt="Table results" src="https://github.com/ultralytics/docs/releases/download/0/table-results.avif">
 
-### GPU Utilization Comparison
+### Resource Utilization
 
-Interestingly, the more modules are frozen the less GPU memory is required to train, and the lower GPU utilization. This indicates that larger models, or models trained at larger --image-size may benefit from freezing in order to train faster.
+Freezing more layers reduces GPU memory requirements and utilization, making this technique valuable for training larger models or using higher resolution images:
 
 ![Training GPU memory allocated percent](https://github.com/ultralytics/docs/releases/download/0/training-gpu-memory-allocated-percent.avif)
 
 ![Training GPU memory utilization percent](https://github.com/ultralytics/docs/releases/download/0/training-gpu-memory-utilization-percent.avif)
+
+## When to Use Layer Freezing
+
+Layer freezing in transfer learning is particularly beneficial in scenarios such as:
+
+1. **Limited computational resources**: When GPU memory or processing power is constrained
+2. **Small datasets**: When your new dataset is too small to train a full model without overfitting
+3. **Quick adaptation**: When you need to rapidly adapt a model to a new domain
+4. **Fine-tuning for specific tasks**: When adapting a general model to a specialized application
+
+For more information on transfer learning techniques and their applications, see the [transfer learning glossary entry](https://www.ultralytics.com/glossary/transfer-learning).
 
 ## Supported Environments
 

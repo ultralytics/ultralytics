@@ -8,7 +8,7 @@ keywords: Ultralytics HUB, model management, create project, share project, edit
 
 [Ultralytics HUB](https://www.ultralytics.com/hub) projects provide an effective solution for consolidating and managing your models. If you are working with several models that perform similar tasks or have related purposes, [Ultralytics HUB](https://www.ultralytics.com/hub) projects allow you to group these models together.
 
-This creates a unified and organized workspace that facilitates easier model management, comparison and development. Having similar models or various iterations together can facilitate rapid benchmarking, as you can compare their effectiveness. This can lead to faster, more insightful iterative development and refinement of your models.
+This creates a unified and organized workspace that facilitates easier model management, comparison and development. Having similar models or various iterations together can facilitate rapid benchmarking, as you can compare their effectiveness. This can lead to faster, more insightful [iterative development](https://docs.ultralytics.com/guides/model-training-tips/) and refinement of your models.
 
 <p align="center">
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Gc6K5eKrTNQ"
@@ -166,7 +166,7 @@ Navigate to the Project page of the project where the models you want to reorder
 
 ## Transfer Models
 
-Navigate to the Project page of the project where the model you want to mode is located, open the project actions dropdown and click on the **Transfer** option. This action will trigger the **Transfer Model** dialog.
+Navigate to the Project page of the project where the model you want to move is located, open the project actions dropdown and click on the **Transfer** option. This action will trigger the **Transfer Model** dialog.
 
 ![Ultralytics HUB screenshot of the Project page with an arrow pointing to the Transfer option of one of the models](https://github.com/ultralytics/docs/releases/download/0/hub-transfer-models-1.avif)
 

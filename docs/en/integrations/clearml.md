@@ -180,7 +180,7 @@ ClearML's user-friendly interface allows easy cloning, editing, and enqueuing of
 
 ## Dataset Version Management
 
-ClearML also offers powerful [dataset version management](https://clear.ml/docs/latest/docs/clearml_data/clearml_data/) capabilities that integrate seamlessly with YOLO11 training workflows. This feature allows you to:
+ClearML also offers powerful [dataset version management](https://clear.ml/docs/latest/docs/hyperdatasets/dataset/) capabilities that integrate seamlessly with YOLO11 training workflows. This feature allows you to:
 
 - Version your datasets separately from your code
 - Track which dataset version was used for each experiment

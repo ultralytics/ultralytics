@@ -209,7 +209,7 @@ def test_train_scratch():
     model(SOURCE)
 
 
-@pytest.mark.parametrize("single_cls", [False, True])
+@pytest.mark.parametrize("scls", [False, True])
 def test_train_pretrained(scls):
     """Test training of the YOLO model starting from a pre-trained checkpoint."""
     model = YOLO(WEIGHTS_DIR / "yolo11n-seg.pt")

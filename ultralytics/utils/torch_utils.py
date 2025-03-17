@@ -226,7 +226,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         )  # current pytorch_ocl build requires PyTorch 2.4.0 or 2.4.1
 
         try:
-            import pytorch_ocl  # check if pytorch_ocl is installed
+            import pytorch_ocl # noqa - Importing the module enables pytorch to use the ocl device
         except ModuleNotFoundError:
             raise ModuleNotFoundError(
                 "pytorch_ocl not found. Please install pytorch_ocl from https://github.com/artyom-beilis/pytorch_dlprim/releases/latest"

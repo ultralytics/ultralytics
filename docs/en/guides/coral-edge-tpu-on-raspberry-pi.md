@@ -219,9 +219,9 @@ Make sure to uninstall any previous Coral Edge TPU runtime versions by following
 
 ### Can I export my Ultralytics YOLO11 model to be compatible with Coral Edge TPU?
 
-Yes, you can export your Ultralytics YOLO11 model to be compatible with the Coral Edge TPU. It is recommended to perform the export on Google Colab, an x86_64 Linux machine, or using the [Ultralytics Docker container](docker-quickstart.md). You can also use Ultralytics HUB for exporting. Here is how you can export your model using Python and CLI:
+Yes, you can export your Ultralytics YOLO11 model to be compatible with the Coral Edge TPU. It is recommended to perform the export on Google Colab, an x86_64 Linux machine, or using the [Ultralytics Docker container](docker-quickstart.md). You can also use [Ultralytics HUB](../hub/quickstart.md) for exporting. Here is how you can export your model using Python and CLI:
 
-!!! note "Exporting the model"
+!!! example "Exporting the model"
 
     === "Python"
 
@@ -257,13 +257,13 @@ Then, install or update `tflite-runtime` with the following command:
 pip install -U tflite-runtime
 ```
 
-For a specific wheel, such as TensorFlow 2.15.0 `tflite-runtime`, you can download it from [this link](https://github.com/feranick/TFlite-builds/releases) and install it using `pip`. Detailed instructions are available in the section on running the model [Running the Model](#running-the-model).
+For detailed instructions, refer to the [Running the Model](#running-the-model) section.
 
 ### How do I run inference with an exported YOLO11 model on a Raspberry Pi using the Coral Edge TPU?
 
 After exporting your YOLO11 model to an Edge TPU-compatible format, you can run inference using the following code snippets:
 
-!!! note "Running the model"
+!!! example "Running the model"
 
     === "Python"
 

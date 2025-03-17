@@ -99,7 +99,7 @@ convert_coco(
 
 For additional information about the `convert_coco` function, [visit the reference page](../reference/data/converter.md#ultralytics.data.converter.convert_coco).
 
-### Get [Bounding Box](https://www.ultralytics.com/glossary/bounding-box) Dimensions
+### Get Bounding Box Dimensions
 
 ```python
 import cv2
@@ -689,7 +689,7 @@ make_divisible(7, 2)
 
 ## FAQ
 
-### What utilities are included in the Ultralytics package to enhance [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workflows?
+### What utilities are included in the Ultralytics package to enhance machine learning workflows?
 
 The Ultralytics package includes utilities designed to streamline and optimize machine learning workflows. Key utilities include [auto-annotation](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for labeling datasets, converting [COCO](https://www.ultralytics.com/datasets/detect/coco) to YOLO format with [convert_coco](../reference/data/converter.md#ultralytics.data.converter.convert_coco), compressing images, and dataset auto-splitting. These tools reduce manual effort, ensure consistency, and enhance data processing efficiency.
 

@@ -27,7 +27,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
 - **Resource Optimization:** Object counting facilitates efficient resource management by providing accurate counts, optimizing resource allocation in applications like [inventory management](https://docs.ultralytics.com/guides/analytics/).
 - **Enhanced Security:** Object counting enhances security and surveillance by accurately tracking and counting entities, aiding in proactive [threat detection](https://docs.ultralytics.com/guides/security-alarm-system/).
-- **Informed Decision-Making:** Object counting offers valuable insights for decision-making, optimizing processes in retail, [traffic management](https://docs.ultralytics.com/blog/ai-in-traffic-management-from-congestion-to-coordination/), and various other domains.
+- **Informed Decision-Making:** Object counting offers valuable insights for decision-making, optimizing processes in retail, [traffic management](https://www.ultralytics.com/blog/ai-in-traffic-management-from-congestion-to-coordination/), and various other domains.
 
 ## Real World Applications
 
@@ -165,7 +165,7 @@ For more advanced configurations and options, check out the [RegionCounter solut
 
 Using Ultralytics YOLO11 for object counting offers several advantages:
 
-1. **Resource Optimization:** It facilitates efficient resource management by providing accurate counts, helping optimize resource allocation in industries like [inventory management](https://docs.ultralytics.com/blog/ai-for-smarter-retail-inventory-management/).
+1. **Resource Optimization:** It facilitates efficient resource management by providing accurate counts, helping optimize resource allocation in industries like [inventory management](https://www.ultralytics.com/blog/ai-for-smarter-retail-inventory-management/).
 2. **Enhanced Security:** It enhances security and surveillance by accurately tracking and counting entities, aiding in proactive threat detection and [security systems](https://docs.ultralytics.com/guides/security-alarm-system/).
 3. **Informed Decision-Making:** It offers valuable insights for decision-making, optimizing processes in domains like retail, traffic management, and more.
 4. **Real-time Processing:** YOLO11's architecture enables [real-time inference](https://www.ultralytics.com/glossary/real-time-inference), making it suitable for live video streams and time-sensitive applications.
@@ -214,7 +214,7 @@ In this example, `classes_to_count=[0, 2]` means it counts objects of class `0` 
 
 Ultralytics YOLO11 provides several advantages over other object detection models like [Faster R-CNN](https://docs.ultralytics.com/compare/yolo11-vs-efficientdet/), SSD, and previous YOLO versions:
 
-1. **Speed and Efficiency:** YOLO11 offers real-time processing capabilities, making it ideal for applications requiring high-speed inference, such as surveillance and [autonomous driving](https://docs.ultralytics.com/blog/ai-in-self-driving-cars/).
+1. **Speed and Efficiency:** YOLO11 offers real-time processing capabilities, making it ideal for applications requiring high-speed inference, such as surveillance and [autonomous driving](https://www.ultralytics.com/blog/ai-in-self-driving-cars/).
 2. **[Accuracy](https://www.ultralytics.com/glossary/accuracy):** It provides state-of-the-art accuracy for object detection and tracking tasks, reducing the number of false positives and improving overall system reliability.
 3. **Ease of Integration:** YOLO11 offers seamless integration with various platforms and devices, including mobile and [edge devices](https://docs.ultralytics.com/guides/nvidia-jetson/), which is crucial for modern AI applications.
 4. **Flexibility:** Supports various tasks like object detection, [segmentation](https://docs.ultralytics.com/tasks/segment/), and tracking with configurable models to meet specific use-case requirements.

@@ -18,7 +18,7 @@ The Pro Plan provides early access to upcoming features and includes several enh
     - Access to our [Dedicated Inference API](./inference-api.md#dedicated-inference-api)
     - Increased rate limits for our [Shared Inference API](./inference-api.md#shared-inference-api)
 - **Team Collaboration**: Features for [team collaboration](./teams.md) to streamline workflows
-- **Monthly Credits**: $20 monthly credits (or $200 yearly) to cover training costs
+- **Monthly Credits**: \$20 monthly credits (or \$200 yearly) to cover training costs
 
 ## How to Upgrade
 

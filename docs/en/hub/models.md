@@ -111,7 +111,7 @@ In this step, you will start training you model.
 
 #### a. Ultralytics Cloud
 
-You need to [upgrade](./pro.md#upgrade) to the [Pro Plan](./pro.md) in order to access [Ultralytics Cloud](./cloud-training.md).
+You need to [upgrade](./pro.md#how-to-upgrade) to the [Pro Plan](./pro.md) in order to access [Ultralytics Cloud](./cloud-training.md).
 
 ![Ultralytics HUB screenshot of the Train Model dialog](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-train-model-dialog-4.avif)
 

@@ -259,7 +259,7 @@ Contributing to Ultralytics YOLO open-source repositories improves the software,
 To sign the Contributor License Agreement (CLA), follow the instructions provided by the CLA bot after submitting your pull request. This process ensures that your contributions are properly licensed under the AGPL-3.0 license, maintaining the legal integrity of the open-source project. Add a comment in your pull request stating:
 
 ```
-I have read the CLA Document and I sign the CLA.
+I have read the CLA Document and I sign the CLA
 ```
 
 For more information, see the [CLA Signing](#cla-signing) section.
@@ -270,9 +270,7 @@ Google-style docstrings provide clear, concise documentation for functions and c
 
 ### How can I ensure my changes pass the GitHub Actions CI tests?
 
-Before your pull request can be merged, it must pass all GitHub Actions Continuous Integration (CI) tests. These tests include linting, unit tests, and other checks to ensure the code meets
-
-the project's quality standards. Review the CI output and fix any issues. For detailed information on the CI process and troubleshooting tips, see the [GitHub Actions CI Tests](#github-actions-ci-tests) section.
+Before your pull request can be merged, it must pass all GitHub Actions Continuous Integration (CI) tests. These tests include linting, unit tests, and other checks to ensure the code meets the project's quality standards. Review the CI output and fix any issues. For detailed information on the CI process and troubleshooting tips, see the [GitHub Actions CI Tests](#github-actions-ci-tests) section.
 
 ### How do I report a bug in Ultralytics YOLO repositories?
 

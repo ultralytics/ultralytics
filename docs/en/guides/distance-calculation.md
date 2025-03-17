@@ -129,7 +129,7 @@ Distance calculation with YOLO11 has numerous practical applications:
 
 ### How do I calculate distances between objects using Ultralytics YOLO11?
 
-To calculate distances between objects using [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics), you need to identify the bounding box centroids of the detected objects. This process involves initializing the `DistanceCalculation` class from Ultralytics' `solutions` module and using the model's tracking outputs to calculate the distances. You can refer to the implementation in the [distance calculation example](#distance-calculation-using-ultralytics-yolo).
+To calculate distances between objects using [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics), you need to identify the bounding box centroids of the detected objects. This process involves initializing the `DistanceCalculation` class from Ultralytics' `solutions` module and using the model's tracking outputs to calculate the distances.
 
 ### What are the advantages of using distance calculation with Ultralytics YOLO11?
 

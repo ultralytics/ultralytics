@@ -35,7 +35,7 @@ The dataset contains two classes:
 
 ## Applications
 
-The application of brain tumor detection using computer vision enables [early diagnosis](https://www.ultralytics.com/blog/ai-in-radiology-a-new-era-of-precision-and-efficiency), treatment planning, and monitoring of tumor progression. By analyzing medical imaging data like MRI or CT scans, [computer vision systems](https://docs.ultralytics.com/tasks/detect/) assist in accurately identifying brain tumors, aiding in timely medical intervention and personalized treatment strategies.
+The application of brain tumor detection using computer vision enables [early diagnosis](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency), treatment planning, and monitoring of tumor progression. By analyzing medical imaging data like MRI or CT scans, [computer vision systems](https://docs.ultralytics.com/tasks/detect/) assist in accurately identifying brain tumors, aiding in timely medical intervention and personalized treatment strategies.
 
 Medical professionals can leverage this technology to:
 

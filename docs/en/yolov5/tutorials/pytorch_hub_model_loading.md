@@ -4,6 +4,8 @@ description: Learn how to load YOLOv5 from PyTorch Hub for seamless model infere
 keywords: YOLOv5, PyTorch Hub, model loading, Ultralytics, object detection, machine learning, AI, tutorial, inference
 ---
 
+# Loading YOLOv5 from PyTorch Hub
+
 📚 This guide explains how to load YOLOv5 🚀 from [PyTorch](https://www.ultralytics.com/glossary/pytorch) Hub at [https://pytorch.org/hub/ultralytics_yolov5](https://pytorch.org/hub/ultralytics_yolov5/).
 
 ## Before You Start
@@ -87,12 +89,12 @@ YOLOv5 models contain various inference attributes such as **confidence threshol
 
 ```python
 model.conf = 0.25  # NMS confidence threshold
-iou = 0.45  # NMS IoU threshold
-agnostic = False  # NMS class-agnostic
-multi_label = False  # NMS multiple labels per box
-classes = None  # (optional list) filter by class, i.e. = [0, 15, 16] for COCO persons, cats and dogs
-max_det = 1000  # maximum number of detections per image
-amp = False  # Automatic Mixed Precision (AMP) inference
+model.iou = 0.45  # NMS IoU threshold
+model.agnostic = False  # NMS class-agnostic
+model.multi_label = False  # NMS multiple labels per box
+model.classes = None  # (optional list) filter by class, i.e. = [0, 15, 16] for COCO persons, cats and dogs
+model.max_det = 1000  # maximum number of detections per image
+model.amp = False  # Automatic Mixed Precision (AMP) inference
 
 results = model(im, size=320)  # custom inference size
 ```
@@ -207,9 +209,13 @@ model = torch.hub.load("ultralytics/yolov5", "yolov5s", autoshape=False, pretrai
 
 ### Base64 Results
 
-For use with API services. See https://github.com/ultralytics/yolov5/pull/2291 and [Flask REST API](https://github.com/ultralytics/yolov5/tree/master/utils/flask_rest_api) example for details.
+For use with API services. See [Flask REST API](https://github.com/ultralytics/yolov5/tree/master/utils/flask_rest_api) example for details.
 
 ```python
+from io import BytesIO
+import base64
+from PIL import Image
+
 results = model(im)  # inference
 
 results.ims  # array of original images (as np array) passed to model for inference

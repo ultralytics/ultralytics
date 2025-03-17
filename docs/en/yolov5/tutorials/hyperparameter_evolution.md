@@ -1,12 +1,19 @@
 ---
 comments: true
 description: Learn how to optimize YOLOv5 hyperparameters using genetic algorithms for improved training performance. Step-by-step instructions included.
-keywords: YOLOv5, hyperparameter evolution, genetic algorithms, machine learning, optimization, Ultralytics
+keywords: YOLOv5, hyperparameter evolution, genetic algorithms, machine learning, optimization, Ultralytics, hyperparameter tuning
 ---
+
+# Hyperparameter Evolution for YOLOv5
 
 📚 This guide explains **hyperparameter evolution** for YOLOv5 🚀. Hyperparameter evolution is a method of [Hyperparameter Optimization](https://en.wikipedia.org/wiki/Hyperparameter_optimization) using a [Genetic Algorithm](https://en.wikipedia.org/wiki/Genetic_algorithm) (GA) for optimization.
 
-Hyperparameters in ML control various aspects of training, and finding optimal values for them can be a challenge. Traditional methods like grid searches can quickly become intractable due to 1) the high dimensional search space 2) unknown correlations among the dimensions, and 3) expensive nature of evaluating the fitness at each point, making GA a suitable candidate for hyperparameter searches.
+Hyperparameters in [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) control various aspects of training, and finding optimal values for them can be a challenge. Traditional methods like grid searches can quickly become intractable due to:
+1. The high dimensional search space
+2. Unknown correlations among the dimensions
+3. Expensive nature of evaluating the fitness at each point
+
+This makes genetic algorithms a suitable candidate for hyperparameter searches.
 
 ## Before You Start
 
@@ -72,7 +79,7 @@ def fitness(x):
 
 ## 3. Evolve
 
-Evolution is performed about a base scenario which we seek to improve upon. The base scenario in this example is [finetuning](https://www.ultralytics.com/glossary/fine-tuning) COCO128 for 10 [epochs](https://www.ultralytics.com/glossary/epoch) using pretrained YOLOv5s. The base scenario training command is:
+Evolution is performed about a base scenario which we seek to improve upon. The base scenario in this example is [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) COCO128 for 10 [epochs](https://www.ultralytics.com/glossary/epoch) using pretrained YOLOv5s. The base scenario training command is:
 
 ```bash
 python train.py --epochs 10 --data coco128.yaml --weights yolov5s.pt --cache

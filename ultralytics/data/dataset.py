@@ -36,7 +36,6 @@ from .utils import (
     save_dataset_cache_file,
     verify_image,
     verify_image_label,
-    yaml_load,
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for YOLOv8
@@ -114,7 +113,7 @@ class YOLODataset(BaseDataset):
                     self.label_files,
                     repeat(self.prefix),
                     repeat(self.use_keypoints),
-                    repeat(len(yaml_load(self.data["yaml_file"])["names"])),  # single_cls modifies data["names"]
+                    repeat(len(self.data["names"])),
                     repeat(nkpt),
                     repeat(ndim),
                 ),

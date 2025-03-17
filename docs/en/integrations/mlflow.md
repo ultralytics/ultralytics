@@ -32,7 +32,7 @@ Ensure MLflow is installed. If not, install it using pip:
 pip install mlflow
 ```
 
-Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this is controlled by the settings `mflow` key. See the [settings](../quickstart.md#ultralytics-settings) page for more info.
+Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this is controlled by the settings `mlflow` key. See the [settings](../quickstart.md#ultralytics-settings) page for more info.
 
 !!! example "Update Ultralytics MLflow Settings"
 
@@ -54,7 +54,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
         If you prefer using the command-line interface, the following commands will allow you to modify your settings:
         ```bash
         # Update a setting
-        yolo settings runs_dir='/path/to/runs'
+        yolo settings mlflow=True
 
         # Reset settings to default values
         yolo settings reset
@@ -83,7 +83,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
 3. **Start Local MLflow Server**: To start tracking, use:
 
     ```bash
-    mlflow server --backend-store-uri runs/mlflow'
+    mlflow server --backend-store-uri runs/mlflow
     ```
 
     This will start a local server at http://127.0.0.1:5000 by default and save all mlflow logs to the 'runs/mlflow' directory. To specify a different URI, set the `MLFLOW_TRACKING_URI` environment variable.
@@ -96,7 +96,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
 
 ### Logging
 
-The logging is taken care of by the `on_pretrain_routine_end`, `on_fit_epoch_end`, and `on_train_end` callback functions. These functions are automatically called during the respective stages of the training process, and they handle the logging of parameters, metrics, and artifacts.
+The logging is taken care of by the `on_pretrain_routine_end`, `on_fit_epoch_end`, and `on_train_end` [callback functions](../reference/utils/callbacks/mlflow.md). These functions are automatically called during the respective stages of the training process, and they handle the logging of parameters, metrics, and artifacts.
 
 ## Examples
 
@@ -116,7 +116,7 @@ yolo settings mlflow=False
 
 ## Conclusion
 
-MLflow logging integration with Ultralytics YOLO offers a streamlined way to keep track of your machine learning experiments. It empowers you to monitor performance metrics and manage artifacts effectively, thus aiding in robust model development and deployment. For further details please visit the MLflow [official documentation](https://mlflow.org/docs/latest/index.html).
+MLflow logging integration with Ultralytics YOLO offers a streamlined way to keep track of your [machine learning experiments](https://www.ultralytics.com/blog/log-ultralytics-yolo-experiments-using-mlflow-integration). It empowers you to monitor performance metrics and manage artifacts effectively, thus aiding in robust model development and deployment. For further details please visit the MLflow [official documentation](https://mlflow.org/docs/latest/index.html).
 
 ## FAQ
 
@@ -148,7 +148,7 @@ Next, enable MLflow logging in Ultralytics settings. This can be controlled usin
 
         ```bash
         # Update a setting
-        yolo settings runs_dir='/path/to/runs'
+        yolo settings mlflow=True
 
         # Reset settings to default values
         yolo settings reset
@@ -203,5 +203,7 @@ Integrating MLflow with Ultralytics YOLO offers several benefits for managing yo
 - **Enhanced Experiment Tracking**: Easily track and compare different runs and their outcomes.
 - **Improved Model Reproducibility**: Ensure that your experiments are reproducible by logging all parameters and artifacts.
 - **Performance Monitoring**: Visualize performance metrics over time to make data-driven decisions for model improvements.
+- **Streamlined Workflow**: Automate the logging process to focus more on model development rather than manual tracking.
+- **Collaborative Development**: Share experiment results with team members for better collaboration and knowledge sharing.
 
 For an in-depth look at setting up and leveraging MLflow with Ultralytics YOLO, explore the [MLflow Integration for Ultralytics YOLO](#introduction) documentation.

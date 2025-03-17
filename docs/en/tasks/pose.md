@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Discover how to use YOLO11 for pose estimation tasks. Learn about model training, validation, prediction, and exporting in various formats.
-keywords: pose estimation, YOLO11, Ultralytics, keypoints, model training, image recognition, deep learning
+keywords: pose estimation, YOLO11, Ultralytics, keypoints, model training, image recognition, deep learning, human pose detection, computer vision, real-time tracking
 model_name: yolo11n-pose
 ---
 
@@ -50,7 +50,7 @@ The output of a pose estimation model is a set of points that represent the keyp
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/11)
 
-YOLO11 pretrained Pose models are shown here. Detect, Segment and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
+Ultralytics YOLO11 pretrained Pose models are shown here. Detect, Segment and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
@@ -61,7 +61,7 @@ YOLO11 pretrained Pose models are shown here. Detect, Segment and Pose models ar
 
 ## Train
 
-Train a YOLO11-pose model on the COCO8-pose dataset.
+Train a YOLO11-pose model on the COCO8-pose dataset. The [COCO8-pose dataset](https://docs.ultralytics.com/datasets/pose/coco8-pose/) is a small sample dataset that's perfect for testing and debugging your pose estimation models.
 
 !!! example
 
@@ -94,7 +94,9 @@ Train a YOLO11-pose model on the COCO8-pose dataset.
 
 ### Dataset format
 
-YOLO pose dataset format can be found in detail in the [Dataset Guide](../datasets/pose/index.md). To convert your existing dataset from other formats (like COCO etc.) to YOLO format, please use [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics.
+YOLO pose dataset format can be found in detail in the [Dataset Guide](../datasets/pose/index.md). To convert your existing dataset from other formats (like [COCO](https://docs.ultralytics.com/datasets/pose/coco/) etc.) to YOLO format, please use the [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics.
+
+For custom pose estimation tasks, you can also explore specialized datasets like [Tiger-Pose](https://docs.ultralytics.com/datasets/pose/tiger-pose/) for animal pose estimation, [Hand Keypoints](https://docs.ultralytics.com/datasets/pose/hand-keypoints/) for hand tracking, or [Dog-Pose](https://docs.ultralytics.com/datasets/pose/dog-pose/) for canine pose analysis.
 
 ## Val
 
@@ -128,7 +130,7 @@ Validate trained YOLO11n-pose model [accuracy](https://www.ultralytics.com/gloss
 
 ## Predict
 
-Use a trained YOLO11n-pose model to run predictions on images.
+Use a trained YOLO11n-pose model to run predictions on images. The [predict mode](https://docs.ultralytics.com/modes/predict/) allows you to perform inference on images, videos, or real-time streams.
 
 !!! example
 
@@ -162,7 +164,7 @@ See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
 ## Export
 
-Export a YOLO11n Pose model to a different format like ONNX, CoreML, etc.
+Export a YOLO11n Pose model to a different format like ONNX, CoreML, etc. This allows you to deploy your model on various platforms and devices for [real-time inference](https://www.ultralytics.com/glossary/real-time-inference).
 
 !!! example
 
@@ -213,7 +215,7 @@ model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for trai
 results = model.train(data="your-dataset.yaml", epochs=100, imgsz=640)
 ```
 
-For comprehensive details on training, refer to the [Train Section](#train).
+For comprehensive details on training, refer to the [Train Section](#train). You can also use [Ultralytics HUB](https://www.ultralytics.com/hub) for a no-code approach to training custom pose estimation models.
 
 ### How do I validate a trained YOLO11-pose model?
 
@@ -247,8 +249,8 @@ model = YOLO("path/to/best.pt")  # load a custom trained model
 model.export(format="onnx")
 ```
 
-Refer to the [Export Section](#export) for more details.
+Refer to the [Export Section](#export) for more details. Exported models can be deployed on edge devices for [real-time applications](https://www.ultralytics.com/blog/real-time-inferences-in-vision-ai-solutions-are-making-an-impact) like fitness tracking, sports analysis, or [robotics](https://www.ultralytics.com/blog/from-algorithms-to-automation-ais-role-in-robotics).
 
 ### What are the available Ultralytics YOLO11-pose models and their performance metrics?
 
-Ultralytics YOLO11 offers various pretrained pose models such as YOLO11n-pose, YOLO11s-pose, YOLO11m-pose, among others. These models differ in size, accuracy (mAP), and speed. For instance, the YOLO11n-pose model achieves a mAP<sup>pose</sup>50-95 of 50.4 and an mAP<sup>pose</sup>50 of 80.1. For a complete list and performance details, visit the [Models Section](#models).
+Ultralytics YOLO11 offers various pretrained pose models such as YOLO11n-pose, YOLO11s-pose, YOLO11m-pose, among others. These models differ in size, accuracy (mAP), and speed. For instance, the YOLO11n-pose model achieves a mAP<sup>pose</sup>50-95 of 50.0 and an mAP<sup>pose</sup>50 of 81.0. For a complete list and performance details, visit the [Models Section](#models).

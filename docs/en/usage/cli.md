@@ -235,6 +235,63 @@ You can then pass this file as `cfg=default_copy.yaml` along with any additional
         yolo cfg=default_copy.yaml imgsz=320
         ```
 
+## Solutions Commands
+
+Ultralytics provides ready-to-use solutions for common computer vision applications through the CLI. These solutions simplify implementation of complex tasks like object counting, workout monitoring, and queue management.
+
+!!! example
+
+    === "Count"
+
+        Count objects in a video or live stream:
+
+        ```bash
+        yolo solutions count show=True
+        yolo solutions count source="path/to/video/file.mp4"  # specify video file path
+        ```
+
+    === "Workout"
+
+        Monitor workout exercises using a pose model:
+
+        ```bash
+        yolo solutions workout show=True
+        yolo solutions workout source="path/to/video/file.mp4"  # specify video file path
+
+        # Use keypoints for ab-workouts
+        yolo solutions workout kpts=[5, 11, 13]     # left side
+        yolo solutions workout kpts=[6, 12, 14]     # right side
+        ```
+
+    === "Queue"
+
+        Count objects in a designated queue or region:
+
+        ```bash
+        yolo solutions queue show=True
+        yolo solutions queue source="path/to/video/file.mp4"  # specify video file path
+        yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]    # configure queue coordinates
+        ```
+
+    === "Inference"
+
+        Perform object detection, instance segmentation, or pose estimation in a web browser using Streamlit:
+
+        ```bash
+        yolo solutions inference
+        yolo solutions inference model="path/to/model.pt"   # use custom model
+        ```
+
+    === "Help"
+
+        View available solutions and their options:
+
+        ```bash
+        yolo solutions help
+        ```
+
+For more information on Ultralytics solutions, visit the [Solutions](../solutions/index.md) page.
+
 ## FAQ
 
 ### How do I use the Ultralytics YOLO command line interface (CLI) for model training?
@@ -249,11 +306,12 @@ This command uses the `train` mode with specific arguments. For a full list of a
 
 ### What tasks can I perform with the Ultralytics YOLO CLI?
 
-The Ultralytics YOLO CLI supports various tasks, including detection, segmentation, classification, validation, prediction, export, and tracking. For instance:
+The Ultralytics YOLO CLI supports various tasks, including [detection](../tasks/detect.md), [segmentation](../tasks/segment.md), [classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented bounding box detection](../tasks/obb.md). You can also perform operations like:
 
 - **Train a Model**: Run `yolo train data=<data.yaml> model=<model.pt> epochs=<num>`.
 - **Run Predictions**: Use `yolo predict model=<model.pt> source=<data_source> imgsz=<image_size>`.
 - **Export a Model**: Execute `yolo export model=<model.pt> format=<export_format>`.
+- **Use Solutions**: Run `yolo solutions <solution_name>` for ready-made applications.
 
 Customize each task with various arguments. For detailed syntax and examples, see the respective sections like [Train](#train), [Predict](#predict), and [Export](#export).
 
@@ -265,24 +323,24 @@ To validate a model's [accuracy](https://www.ultralytics.com/glossary/accuracy),
 yolo val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
 ```
 
-This command evaluates the model on the specified dataset and provides performance metrics. For more details, refer to the [Val](#val) section.
+This command evaluates the model on the specified dataset and provides performance metrics like [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map), [precision](https://www.ultralytics.com/glossary/precision), and [recall](https://www.ultralytics.com/glossary/recall). For more details, refer to the [Val](#val) section.
 
 ### What formats can I export my YOLO models to using the CLI?
 
-Export YOLO models to various formats such as ONNX, CoreML, and TensorRT. For instance, to export a model to ONNX format, run:
+You can export YOLO models to various formats including ONNX, TensorRT, CoreML, TensorFlow, and more. For instance, to export a model to ONNX format, run:
 
 ```bash
 yolo export model=yolo11n.pt format=onnx
 ```
 
-For complete details, visit the [Export](../modes/export.md) page.
+The export command supports numerous options to optimize your model for specific deployment environments. For complete details on all available export formats and their specific parameters, visit the [Export](../modes/export.md) page.
 
-### How do I customize YOLO CLI commands to override default arguments?
+### How do I use the pre-built solutions in the Ultralytics CLI?
 
-To override default arguments in YOLO CLI commands, pass them as `arg=value` pairs. For example, to train a model with custom arguments, use:
+Ultralytics provides ready-to-use solutions through the `solutions` command. For example, to count objects in a video:
 
 ```bash
-yolo train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
+yolo solutions count source="path/to/video.mp4"
 ```
 
-For a full list of available arguments and their descriptions, refer to the [Configuration Guide](cfg.md). Ensure arguments are formatted correctly, as shown in the [Overriding Default Arguments](#overriding-default-arguments) section.
+These solutions require minimal configuration and provide immediate functionality for common computer vision tasks. To see all available solutions, run `yolo solutions help`. Each solution has specific parameters that can be customized to fit your needs.

@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Discover YOLOv8, the latest advancement in real-time object detection, optimizing performance with an array of pre-trained models for diverse tasks.
+description: Discover Ultralytics YOLOv8, an advancement in real-time object detection, optimizing performance with an array of pre-trained models for diverse tasks.
 keywords: YOLOv8, real-time object detection, YOLO series, Ultralytics, computer vision, advanced object detection, AI, machine learning, deep learning
 ---
 
@@ -198,7 +198,7 @@ Please note that the DOI is pending and will be added to the citation once it is
 
 ### What is YOLOv8 and how does it differ from previous YOLO versions?
 
-YOLOv8 is the latest iteration in the Ultralytics YOLO series, designed to improve real-time object detection performance with advanced features. Unlike earlier versions, YOLOv8 incorporates an **anchor-free split Ultralytics head**, state-of-the-art [backbone](https://www.ultralytics.com/glossary/backbone) and neck architectures, and offers optimized [accuracy](https://www.ultralytics.com/glossary/accuracy)-speed tradeoff, making it ideal for diverse applications. For more details, check the [Overview](#overview) and [Key Features](#key-features-of-yolov8) sections.
+YOLOv8 is designed to improve real-time object detection performance with advanced features. Unlike earlier versions, YOLOv8 incorporates an **anchor-free split Ultralytics head**, state-of-the-art [backbone](https://www.ultralytics.com/glossary/backbone) and neck architectures, and offers optimized [accuracy](https://www.ultralytics.com/glossary/accuracy)-speed tradeoff, making it ideal for diverse applications. For more details, check the [Overview](#overview) and [Key Features](#key-features-of-yolov8) sections.
 
 ### How can I use YOLOv8 for different computer vision tasks?
 

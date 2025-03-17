@@ -195,7 +195,7 @@ For example, users can load a model, train it, evaluate its performance on a val
 
     === "Export to ONNX"
 
-        Export an official YOLO model to [ONNX](https://www.ultralytics.com/glossary/onnx) with dynamic batch-size and image-size.
+        Export an official YOLO model to [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange) with dynamic batch-size and image-size.
         ```python
         from ultralytics import YOLO
 

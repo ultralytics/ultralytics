@@ -6,7 +6,7 @@ keywords: Seeed Studio reCamera, YOLO11, ONNX export, edge AI, computer vision, 
 
 # Quick Start Guide: Seeed Studio reCamera with Ultralytics YOLO11
 
-[reCamera](https://www.seeedstudio.com/recamera) was introduced for the AI community at [YOLO Vision 2024 (YV24)](https://www.youtube.com/watch?v=rfI5vOo3-_A), [Ultralytics](https://www.ultralytics.com/) annual hybrid event. It is mainly designed for edge AI applications, offering powerful processing capabilities and effortless deployment.
+[reCamera](https://www.seeedstudio.com/recamera) was introduced for the AI community at [YOLO Vision 2024 (YV24)](https://www.youtube.com/watch?v=rfI5vOo3-_A), [Ultralytics](https://www.ultralytics.com/) annual hybrid event. It is mainly designed for [edge AI applications](https://www.ultralytics.com/blog/understanding-the-real-world-applications-of-edge-ai), offering powerful processing capabilities and effortless deployment.
 
 With support for diverse hardware configurations and open-source resources, it serves as an ideal platform for prototyping and deploying innovative [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) [solutions](https://docs.ultralytics.com/solutions/#solutions) at the edge.
 
@@ -16,7 +16,7 @@ With support for diverse hardware configurations and open-source resources, it s
 
 reCamera series is purpose-built for edge AI applications, tailored to meet the needs of developers and innovators. Here's why it stands out:
 
-- **RISC-V Powered Performance**: At its core is the SG200X processor, built on the RISC-V architecture, delivering exceptional performance for edge AI tasks while maintaining energy efficiency. With the ability to execute 1 trillion operations per second (1 TOPS), it handles demanding tasks like real-time object detection easily.
+- **RISC-V Powered Performance**: At its core is the SG200X processor, built on the RISC-V architecture, delivering exceptional performance for edge AI tasks while maintaining energy efficiency. With the ability to execute 1 trillion operations per second (1 TOPS), it handles demanding tasks like real-time [object detection](https://docs.ultralytics.com/tasks/detect/) easily.
 
 - **Optimized Video Technologies**: Supports advanced video compression standards, including H.264 and H.265, to reduce storage and bandwidth requirements without sacrificing quality. Features like HDR imaging, 3D noise reduction, and lens correction ensure professional visuals, even in challenging environments.
 
@@ -73,7 +73,7 @@ Here we will first convert `PyTorch` model to `ONNX` and then convert it to `MLI
 
 ### Export to ONNX
 
-Export an Ultralytics YOLO11 model to ONNX model format.
+Export an Ultralytics YOLO11 model to [ONNX model format](https://docs.ultralytics.com/integrations/onnx/).
 
 #### Installation
 
@@ -136,10 +136,41 @@ reCamera advanced computer vision capabilities and modular design make it suitab
 
 ![Personal protective equipment detection](https://github.com/ultralytics/docs/releases/download/0/personal-protective-equipment-detection.avif)
 
-- **Fire Detection**: The reCamera's real-time processing capabilities make it an excellent choice for fire detection in industrial and residential areas, providing early warnings to prevent potential disasters.
+- **Fire Detection**: The reCamera's real-time processing capabilities make it an excellent choice for [fire detection](https://docs.ultralytics.com/blog/computer-vision-in-fire-detection-and-prevention/) in industrial and residential areas, providing early warnings to prevent potential disasters.
 
-- **Waste Detection**: It can also be utilized for waste detection applications, making it an excellent tool for environmental monitoring and waste management.
+- **Waste Detection**: It can also be utilized for waste detection applications, making it an excellent tool for environmental monitoring and [waste management](https://www.ultralytics.com/blog/simplifying-e-waste-management-with-ai-innovations).
 
 - **Car Parts Detection**: In manufacturing and automotive industries, it aids in detecting and analyzing car parts for quality control, assembly line monitoring, and inventory management.
 
 ![Car parts detection](https://github.com/ultralytics/docs/releases/download/0/carparts-detection.avif)
+
+## FAQ
+
+### How do I install and set up reCamera for the first time?
+
+To set up your reCamera for the first time, follow these steps:
+1. Connect the reCamera to a power source
+2. Connect it to your WiFi network using the [reCamera Quick Start Guide](https://wiki.seeedstudio.com/recamera_getting_started/)
+3. Access the Node-RED web UI by entering the device's IP address in a web browser (or use `192.168.42.1` if connected via USB)
+4. Start using the pre-installed YOLO11 models immediately through the dashboard interface
+
+### Can I use my custom-trained YOLO11 models with reCamera?
+
+Yes, you can use custom-trained YOLO11 models with reCamera. The process involves:
+1. Export your PyTorch model to ONNX format using `model.export(format="onnx", opset=14)`
+2. Convert the ONNX model to MLIR format
+3. Convert the MLIR to cvimodel format for on-device inference
+4. Load the converted model onto your reCamera
+
+For detailed instructions, refer to the [Convert and Quantize AI Models](https://wiki.seeedstudio.com/recamera_model_conversion/) guide.
+
+### What makes reCamera different from traditional IP cameras?
+
+Unlike traditional IP cameras that require external hardware for processing, reCamera:
+- Integrates AI processing directly on the device with its RISC-V SG200X processor
+- Offers 1 TOPS of computing power for real-time edge AI applications
+- Features a modular design allowing for component upgrades and customization
+- Supports advanced video technologies like H.264/H.265 compression, HDR imaging, and 3D noise reduction
+- Comes pre-installed with Ultralytics YOLO11 models for immediate use
+
+These features make reCamera a standalone solution for edge AI applications without requiring additional external processing hardware.

@@ -112,6 +112,7 @@ from ultralytics import YOLO
     ```
 
 === "CLI"
+
 `bash
     yolo detect train data=coco128.yaml model=yolo11n.pt epochs=100 imgsz=640
     `

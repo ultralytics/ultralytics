@@ -115,7 +115,7 @@ With its superior performance, MobileSAM is approximately 5 times smaller and 7 
 
 ## Testing MobileSAM in Ultralytics
 
-Just like the original SAM, we offer a straightforward testing method in Ultralytics, including modes for both Point and Box prompts.
+Just like the original [SAM](sam.md), we offer a straightforward testing method in Ultralytics, including modes for both Point and Box prompts.
 
 ### Model Download
 

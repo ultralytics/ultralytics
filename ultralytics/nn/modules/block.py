@@ -1695,33 +1695,34 @@ class AAttn(nn.Module):
         N = H * W
 
         qk = self.qk(x).flatten(2).transpose(1, 2)
-        v = self.v(x).flatten(2).transpose(1, 2)
+        v = self.v(x)
+        pp = self.pe(v)
+        v = v.flatten(2).transpose(1, 2)
         if self.area > 1:
             qk = qk.reshape(B * self.area, N // self.area, C * 2)
             v = v.reshape(B * self.area, N // self.area, C)
             B, N, _ = qk.shape
-        q, k = (
-            qk.view(B, N, self.num_heads, self.head_dim * 2)
-            .permute(0, 2, 3, 1)
-            .split([self.head_dim, self.head_dim], dim=2)
-        )
-        v = v.view(B, N, self.num_heads, self.head_dim).permute(0, 2, 3, 1)
+
+        q, k = qk.split([C, C], dim=2)
+        q = q.view(B, N, self.num_heads, self.head_dim)
+        k = k.view(B, N, self.num_heads, self.head_dim)
+        v = v.view(B, N, self.num_heads, self.head_dim)
+        q = q.permute(0, 2, 3, 1)
+        k = k.permute(0, 2, 3, 1)
+        v = v.permute(0, 2, 3, 1)
+
         attn = (q.transpose(-2, -1) @ k) * (self.head_dim**-0.5)
         attn = attn.softmax(dim=-1)
         x = v @ attn.transpose(-2, -1)
-        x = x.permute(0, 3, 1, 2)
-        v = v.permute(0, 3, 1, 2)
+        x = x.permute(0, 3, 1, 2)  # (B, num_heads, C, N) --> (B, N, num_heads, C)
 
         if self.area > 1:
             x = x.reshape(B // self.area, N * self.area, C)
-            v = v.reshape(B // self.area, N * self.area, C)
-            B, N, _ = x.shape
+            B, _, _ = x.shape
 
         x = x.reshape(B, H, W, C).permute(0, 3, 1, 2).contiguous()
-        v = v.reshape(B, H, W, C).permute(0, 3, 1, 2).contiguous()
 
-        x = x + self.pe(v)
-        return self.proj(x)
+        return self.proj(x + pp)
 
 
 class ABlock(nn.Module):

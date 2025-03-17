@@ -6,7 +6,7 @@ keywords: ImageWoof dataset, ImageNet subset, dog breeds, image classification, 
 
 # ImageWoof Dataset
 
-The [ImageWoof](https://github.com/fastai/imagenette) dataset is a subset of the [ImageNet](../imagenet/) consisting of 10 classes that are challenging to classify, since they're all dog breeds. It was created as a more difficult task for [image classification](https://www.ultralytics.com/glossary/image-classification) algorithms to solve, aiming at encouraging development of more advanced models.
+The [ImageWoof](https://github.com/fastai/imagenette) dataset is a subset of the [ImageNet](imagenet.md) consisting of 10 classes that are challenging to classify, since they're all dog breeds. It was created as a more difficult task for [image classification](https://www.ultralytics.com/glossary/image-classification) algorithms to solve, aiming at encouraging development of more advanced models.
 
 ## Key Features
 

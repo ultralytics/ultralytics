@@ -576,7 +576,7 @@ class BaseTrainer:
                     self.args.data = data["yaml_file"]  # for validating 'yolo train data=url.zip' usage
         except Exception as e:
             raise RuntimeError(emojis(f"Dataset '{clean_url(self.args.data)}' error ❌ {e}")) from e
-        self.data = data.copy()
+        self.data = data
         if self.args.single_cls:
             LOGGER.info("Overriding class names with single class.")
             self.data["names"] = {0: "item"}

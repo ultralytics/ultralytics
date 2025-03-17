@@ -258,7 +258,7 @@ For example, users can load a model, train it, evaluate its performance on a val
 
 ## Using Trainers
 
-The `YOLO` model class serves as a high-level wrapper for the Trainer classes. Each YOLO task has its own trainer, which inherits from `BaseTrainer`. This architecture allows for greater flexibility and customization in your [machine learning workflows](https://www.ultralytics.com/blog/model-training-tips/).
+The `YOLO` model class serves as a high-level wrapper for the Trainer classes. Each YOLO task has its own trainer, which inherits from `BaseTrainer`. This architecture allows for greater flexibility and customization in your [machine learning workflows](https://docs.ultralytics.com/guides/model-training-tips/).
 
 !!! tip "Detection Trainer Example"
 

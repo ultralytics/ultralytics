@@ -230,7 +230,7 @@ python train.py \
 
 ## Hyperparameter Search with the Comet Optimizer
 
-YOLOv5 is also integrated with [Comet's Optimizer](https://www.comet.com/docs/v2/guides/comet-optimizer/about-optimizer/), making it simple to visualize hyperparameter sweeps in the Comet UI.
+YOLOv5 is also integrated with [Comet's Optimizer](https://www.comet.com/docs/v2/guides/optimizer/configure-optimizer/), making it simple to visualize hyperparameter sweeps in the Comet UI.
 
 ### Configuring an Optimizer Sweep
 

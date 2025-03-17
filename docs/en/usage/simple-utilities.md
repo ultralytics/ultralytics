@@ -691,7 +691,7 @@ make_divisible(7, 2)
 
 ### What utilities are included in the Ultralytics package to enhance machine learning workflows?
 
-The Ultralytics package includes utilities designed to streamline and optimize machine learning workflows. Key utilities include [auto-annotation](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for labeling datasets, converting [COCO](https://www.ultralytics.com/datasets/detect/coco) to YOLO format with [convert_coco](../reference/data/converter.md#ultralytics.data.converter.convert_coco), compressing images, and dataset auto-splitting. These tools reduce manual effort, ensure consistency, and enhance data processing efficiency.
+The Ultralytics package includes utilities designed to streamline and optimize machine learning workflows. Key utilities include [auto-annotation](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for labeling datasets, converting [COCO](https://docs.ultralytics.com/datasets/detect/coco/) to YOLO format with [convert_coco](../reference/data/converter.md#ultralytics.data.converter.convert_coco), compressing images, and dataset auto-splitting. These tools reduce manual effort, ensure consistency, and enhance data processing efficiency.
 
 ### How can I use Ultralytics to auto-label my dataset?
 

@@ -247,7 +247,7 @@ For more validation details, visit the [Val](../modes/val.md) page.
 
 ### What formats can I export a YOLO11 model to?
 
-Ultralytics YOLO11 allows exporting models to various formats such as [ONNX](https://www.ultralytics.com/glossary/onnx), [TensorRT](https://www.ultralytics.com/glossary/tensorrt), [CoreML](https://docs.ultralytics.com/integrations/coreml/), and more to ensure compatibility across different platforms and devices.
+Ultralytics YOLO11 allows exporting models to various formats such as [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange), [TensorRT](https://www.ultralytics.com/glossary/tensorrt), [CoreML](https://docs.ultralytics.com/integrations/coreml/), and more to ensure compatibility across different platforms and devices.
 
 !!! example
 

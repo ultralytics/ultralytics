@@ -104,8 +104,8 @@ export = [
     "keras", # not installed automatically by tensorflow>=2.16
     "flatbuffers>=23.5.26,<100; platform_machine == 'aarch64'", # update old 'flatbuffers' included inside tensorflow package
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
-    "model-compression-toolkit<=2.1.1", # temporarily add for testing
-    "imx500-converter[pt]<=3.14.3", # temporarily add for testing
+    "model-compression-toolkit<=2.1.1", # needed for Sony IMX export
+    "imx500-converter[pt]<=3.14.3", # needed for Sony IMX export
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching

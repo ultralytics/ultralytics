@@ -12,59 +12,93 @@ scales:
   l: [1.00, 1.00, 512]
   x: [1.00, 1.25, 512]
 
-# -----------------------------
-# YOLOv8 Backbone
-# -----------------------------
 backbone:
   - [-1, 1, ResNetLayer, [3, 64, 1, True, 1]]   # P1/2
   - [-1, 1, ResNetLayer, [64, 64, 1, False, 3]]  # P2/4
   - [-1, 1, ResNetLayer, [256, 128, 2, False, 4]] # P3/8
   - [-1, 1, ResNetLayer, [512, 256, 2, False, 6]] # P4/16
   - [-1, 1, ResNetLayer, [1024, 512, 2, False, 3]] # P5/32
-  - [-1, 1, SPPF, [1024, 5]]  # SPPF after P5
+  - [-1, 1, SPPF, [1024, 5]] # P6/64
 
-# -----------------------------
-# BiFPN Implementation (Following EfficientDet)
-# -----------------------------
+# Head with BiFPN and YOLOv8 Detection Heads
 head:
-  # =====================
-  # Top-Down Pathway
-  # =====================
-  - [-1, 1, Conv, [512, 1, 1]]
+  # P3 to P4 path (BiFPN)
+  - [[8, 9], 1, WeightedAdd, []]  # Fuse P3 and P4 (first block)
+  - [-1, 1, Conv, [256, 1, 1]]  # P4/16
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
-  - [[-1, 5], 1, WeightedAdd, [512]]
-  - [-1, 2, C2f, [512, False]]
+  - [[-1, 7], 1, WeightedAdd, []]  # Fuse with P3 (bidirectional)
 
-  - [-1, 1, Conv, [256, 1, 1]]
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
-  - [[-1, 4], 1, WeightedAdd, [256]]
-  - [-1, 2, C2f, [256, False]]
+  # P4 to P5 path (BiFPN)
+  - [[11, 12], 1, WeightedAdd, []]  # Fuse P4 and P5 (second block)
+  - [-1, 1, Conv, [512, 3, 2]]  # P5/32
+  - [[-1, 10], 1, WeightedAdd, []]  # Fuse with P4 (bidirectional)
 
-  # =====================
-  # Bottom-Up Pathway
-  # =====================
-  - [-1, 1, Conv, [256, 3, 2]]
-  - [[-1, 10], 1, WeightedAdd, [512]]
-  - [-1, 2, C2f, [512, False]]
+  # P5 to P6 path (BiFPN)
+  - [[14, 15], 1, WeightedAdd, []]  # Fuse P5 and P6 (third block)
+  - [-1, 1, Conv, [1024, 3, 2]]  # P6/64
+  - [[-1, 11], 1, WeightedAdd, []]  # Fuse with P5 (bidirectional)
 
-  - [-1, 1, Conv, [512, 3, 2]]
-  - [[-1, 6], 1, WeightedAdd, [1024]]
-  - [-1, 2, C2f, [1024, False]]
+  # P6 to P7 path (BiFPN)
+  - [[16, 17], 1, WeightedAdd, []]  # Fuse P6 and P7 (fourth block)
+  - [-1, 1, Conv, [1024, 3, 2]]  # P7/128
+  - [[-1, 12], 1, WeightedAdd, []]  # Fuse with P6 (bidirectional)
 
-  # =====================
-  # Skip Connections (EfficientDet Style)
-  # =====================
-  - [[14, 17], 1, WeightedAdd, [512]]
-  - [-1, 2, C2f, [512, False]]
+  # YOLO Detection Head
+  - [[13, 16, 19], 1, Detect, [nc]]
 
-  - [[18, 20], 1, WeightedAdd, [1024]]
-  - [-1, 2, C2f, [1024, False]]
+# # -----------------------------
+# # YOLOv8 Backbone
+# # -----------------------------
+# backbone:
+#   - [-1, 1, ResNetLayer, [3, 64, 1, True, 1]]   # P1/2
+#   - [-1, 1, ResNetLayer, [64, 64, 1, False, 3]]  # P2/4
+#   - [-1, 1, ResNetLayer, [256, 128, 2, False, 4]] # P3/8
+#   - [-1, 1, ResNetLayer, [512, 256, 2, False, 6]] # P4/16
+#   - [-1, 1, ResNetLayer, [1024, 512, 2, False, 3]] # P5/32
+#   - [-1, 1, SPPF, [1024, 5]]  # SPPF after P5
 
-  # Extra Feature Fusion (EfficientDet Style)
-  - [[14, 17, 20], 1, WeightedAdd, [512]]
-  - [-1, 2, C2f, [512, False]]
+# # -----------------------------
+# # BiFPN Implementation (Following EfficientDet)
+# # -----------------------------
+# head:
+#   # =====================
+#   # Top-Down Pathway
+#   # =====================
+#   - [-1, 1, Conv, [512, 1, 1]]
+#   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+#   - [[-1, 5], 1, WeightedAdd, [512]]
+#   - [-1, 2, C2f, [512, False]]
 
-  # =====================
-  # Detection Head
-  # =====================
-  - [[15, 18, 21], 1, Detect, [nc]]
+#   - [-1, 1, Conv, [256, 1, 1]]
+#   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+#   - [[-1, 4], 1, WeightedAdd, [256]]
+#   - [-1, 2, C2f, [256, False]]
+
+#   # =====================
+#   # Bottom-Up Pathway
+#   # =====================
+#   - [-1, 1, Conv, [256, 3, 2]]
+#   - [[-1, 10], 1, WeightedAdd, [512]]
+#   - [-1, 2, C2f, [512, False]]
+
+#   - [-1, 1, Conv, [512, 3, 2]]
+#   - [[-1, 6], 1, WeightedAdd, [1024]]
+#   - [-1, 2, C2f, [1024, False]]
+
+#   # =====================
+#   # Skip Connections (EfficientDet Style)
+#   # =====================
+#   - [[14, 17], 1, WeightedAdd, [512]]
+#   - [-1, 2, C2f, [512, False]]
+
+#   - [[18, 20], 1, WeightedAdd, [1024]]
+#   - [-1, 2, C2f, [1024, False]]
+
+#   # Extra Feature Fusion (EfficientDet Style)
+#   - [[14, 17, 20], 1, WeightedAdd, [512]]
+#   - [-1, 2, C2f, [512, False]]
+
+#   # =====================
+#   # Detection Head
+#   # =====================
+#   - [[15, 18, 21], 1, Detect, [nc]]

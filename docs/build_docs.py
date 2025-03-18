@@ -262,10 +262,14 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
     elif file_type == "css":
         # Remove CSS comments
         content = re.sub(r"/\*[\s\S]*?\*/", "", content)
+        # Remove whitespace around specific characters
+        content = re.sub(r"\s*([{}:;,])\s*", r"\1", content)
         # Remove empty lines
         content = re.sub(r"^\s*\n", "", content, flags=re.MULTILINE)
         # Collapse multiple spaces to single space
         content = re.sub(r"\s{2,}", " ", content)
+        # For maximum minification, remove all newlines
+        content = re.sub(r"\n", "", content)
     elif file_type == "js":
         # Handle JS single-line comments (preserving http:// and https://)
         lines = content.split("\n")

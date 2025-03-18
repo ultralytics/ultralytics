@@ -15,6 +15,7 @@ keywords: Ultralytics Explorer, CV datasets, semantic search, SQL queries, vecto
 </p>
 
 <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/docs/en/datasets/explorer/explorer.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
+
 Ultralytics Explorer is a tool for exploring CV datasets using semantic search, SQL queries, vector similarity search and even using natural language. It is also a Python API for accessing the same functionality.
 
 <p align="center">
@@ -28,7 +29,7 @@ Ultralytics Explorer is a tool for exploring CV datasets using semantic search, 
   <strong>Watch:</strong> Ultralytics Explorer API | Semantic Search, SQL Queries & Ask AI Features
 </p>
 
-### Installation of optional dependencies
+## Installation of Optional Dependencies
 
 Explorer depends on external libraries for some of its functionality. These are automatically installed on usage. To manually install these dependencies, use the following command:
 
@@ -40,9 +41,9 @@ pip install ultralytics[explorer]
 
     Explorer works on embedding/semantic search & SQL querying and is powered by [LanceDB](https://lancedb.com/) serverless vector database. Unlike traditional in-memory DBs, it is persisted on disk without sacrificing performance, so you can scale locally to large datasets like COCO without running out of memory.
 
-### Explorer API
+## Explorer API
 
-This is a Python API for Exploring your datasets. It also powers the GUI Explorer. You can use this to create your own exploratory notebooks or scripts to get insights into your datasets.
+This is a Python API for exploring your datasets. It also powers the GUI Explorer. You can use this to create your own exploratory notebooks or scripts to get insights into your datasets.
 
 Learn more about the Explorer API [here](api.md).
 
@@ -67,7 +68,7 @@ yolo explorer
 
 ### What is Ultralytics Explorer and how can it help with CV datasets?
 
-Ultralytics Explorer is a powerful tool designed for exploring [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) (CV) datasets through semantic search, SQL queries, vector similarity search, and even natural language. This versatile tool provides both a GUI and a Python API, allowing users to seamlessly interact with their datasets. By leveraging technologies like LanceDB, Ultralytics Explorer ensures efficient, scalable access to large datasets without excessive memory usage. Whether you're performing detailed dataset analysis or exploring data patterns, Ultralytics Explorer streamlines the entire process.
+Ultralytics Explorer is a powerful tool designed for exploring [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) (CV) datasets through semantic search, SQL queries, vector similarity search, and even natural language. This versatile tool provides both a GUI and a Python API, allowing users to seamlessly interact with their datasets. By leveraging technologies like [LanceDB](https://lancedb.com/), Ultralytics Explorer ensures efficient, scalable access to large datasets without excessive memory usage. Whether you're performing detailed dataset analysis or exploring data patterns, Ultralytics Explorer streamlines the entire process.
 
 Learn more about the [Explorer API](api.md).
 
@@ -79,7 +80,7 @@ To manually install the optional dependencies needed for Ultralytics Explorer, y
 pip install ultralytics[explorer]
 ```
 
-These dependencies are essential for the full functionality of semantic search and SQL querying. By including libraries powered by [LanceDB](https://lancedb.com/), the installation ensures that the database operations remain efficient and scalable, even for large datasets like COCO.
+These dependencies are essential for the full functionality of semantic search and SQL querying. By including libraries powered by [LanceDB](https://lancedb.com/), the installation ensures that the database operations remain efficient and scalable, even for large datasets like [COCO](../detect/coco.md).
 
 ### How can I use the GUI version of Ultralytics Explorer?
 
@@ -95,7 +96,7 @@ For storage and scalability information, check out our [installation instruction
 
 ### What is the Ask AI feature in Ultralytics Explorer?
 
-The Ask AI feature in Ultralytics Explorer allows users to interact with their datasets using natural language queries. Powered by OpenAI, this feature enables you to ask complex questions and receive insightful answers without needing to write SQL queries or similar commands. To use this feature, you'll need to set your OpenAI API key the first time you run the GUI:
+The Ask AI feature in Ultralytics Explorer allows users to interact with their datasets using natural language queries. Powered by [OpenAI](https://www.ultralytics.com/blog/openai-gpt-4o-showcases-ai-potential), this feature enables you to ask complex questions and receive insightful answers without needing to write SQL queries or similar commands. To use this feature, you'll need to set your OpenAI API key the first time you run the GUI:
 
 ```bash
 yolo settings openai_api_key="YOUR_API_KEY"

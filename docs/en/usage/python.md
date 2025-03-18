@@ -258,7 +258,7 @@ For example, users can load a model, train it, evaluate its performance on a val
 
 ## Using Trainers
 
-The `YOLO` model class serves as a high-level wrapper for the Trainer classes. Each YOLO task has its own trainer, which inherits from `BaseTrainer`. This architecture allows for greater flexibility and customization in your machine learning workflows.
+The `YOLO` model class serves as a high-level wrapper for the Trainer classes. Each YOLO task has its own trainer, which inherits from `BaseTrainer`. This architecture allows for greater flexibility and customization in your [machine learning workflows](https://docs.ultralytics.com/guides/model-training-tips/).
 
 !!! tip "Detection Trainer Example"
 
@@ -283,7 +283,7 @@ The `YOLO` model class serves as a high-level wrapper for the Trainer classes. E
     trainer = DetectionTrainer(overrides=overrides)
     ```
 
-You can easily customize Trainers to support custom tasks or explore research and development ideas. The modular design of Ultralytics YOLO allows you to adapt the framework to your specific needs, whether you're working on a novel computer vision task or fine-tuning existing models for better performance.
+You can easily customize Trainers to support custom tasks or explore research and development ideas. The modular design of Ultralytics YOLO allows you to adapt the framework to your specific needs, whether you're working on a novel [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) task or fine-tuning existing models for better performance.
 
 [Customization tutorials](engine.md){ .md-button }
 
@@ -320,11 +320,11 @@ Ultralytics YOLO provides various modes to cater to different [machine learning]
 - **[Track](../modes/track.md)**: Real-time object tracking in video streams.
 - **[Benchmark](../modes/benchmark.md)**: Benchmark model performance across different configurations.
 
-Each mode is designed to provide comprehensive functionalities for different stages of model development and deployment.
+Each mode is designed to provide comprehensive functionalities for different stages of [model development and deployment](https://docs.ultralytics.com/guides/model-deployment-options/).
 
 ### How do I train a custom YOLO model using my dataset?
 
-To train a custom YOLO model, you need to specify your dataset and other hyperparameters. Here's a quick example:
+To train a custom YOLO model, you need to specify your dataset and other [hyperparameters](https://www.ultralytics.com/glossary/hyperparameter-tuning). Here's a quick example:
 
 ```python
 from ultralytics import YOLO

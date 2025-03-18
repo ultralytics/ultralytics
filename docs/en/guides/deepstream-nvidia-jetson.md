@@ -358,7 +358,7 @@ The following benchmarks summarizes how YOLO11 models perform at different Tenso
 
         | Format          | Status | Inference time (ms/im) |
         |-----------------|--------|------------------------|
-        | TensorRT (FP32) | ✅      | 14.53                   |
+        | TensorRT (FP32) | ✅      | 14.53                  |
         | TensorRT (FP16) | ✅      | 7.91                   |
         | TensorRT (INT8) | ✅      | 6.05                   |
 
@@ -366,25 +366,25 @@ The following benchmarks summarizes how YOLO11 models perform at different Tenso
 
         | Format          | Status | Inference time (ms/im) |
         |-----------------|--------|------------------------|
-        | TensorRT (FP32) | ✅      | 32.05                   |
-        | TensorRT (FP16) | ✅      | 15.55                   |
-        | TensorRT (INT8) | ✅      | 10.43                   |
+        | TensorRT (FP32) | ✅      | 32.05                  |
+        | TensorRT (FP16) | ✅      | 15.55                  |
+        | TensorRT (INT8) | ✅      | 10.43                  |
 
     === "YOLO11l"
 
         | Format          | Status | Inference time (ms/im) |
         |-----------------|--------|------------------------|
-        | TensorRT (FP32) | ✅      | 39.68                   |
-        | TensorRT (FP16) | ✅      | 19.88                   |
-        | TensorRT (INT8) | ✅      | 13.64                   |
+        | TensorRT (FP32) | ✅      | 39.68                  |
+        | TensorRT (FP16) | ✅      | 19.88                  |
+        | TensorRT (INT8) | ✅      | 13.64                  |
 
     === "YOLO11x"
 
         | Format          | Status | Inference time (ms/im) |
         |-----------------|--------|------------------------|
-        | TensorRT (FP32) | ✅      | 80.65                   |
-        | TensorRT (FP16) | ✅      | 39.06                   |
-        | TensorRT (INT8) | ✅      | 22.83                   |
+        | TensorRT (FP32) | ✅      | 80.65                  |
+        | TensorRT (FP16) | ✅      | 39.06                  |
+        | TensorRT (INT8) | ✅      | 22.83                  |
 
 ## Acknowledgements
 

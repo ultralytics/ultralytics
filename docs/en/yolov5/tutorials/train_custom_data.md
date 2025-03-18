@@ -4,6 +4,8 @@ description: Learn how to train YOLOv5 on your own custom datasets with easy-to-
 keywords: YOLOv5, custom dataset, model training, object detection, machine learning, AI, YOLO model, PyTorch, dataset preparation
 ---
 
+# Train YOLOv5 on Custom Data
+
 📚 This guide explains how to train your own **custom dataset** with [YOLOv5](https://github.com/ultralytics/yolov5) 🚀.
 
 ## Before You Start
@@ -34,7 +36,7 @@ Creating a custom model to detect your objects is an iterative process of collec
 
     For more details see [Ultralytics Licensing](https://www.ultralytics.com/license).
 
-YOLOv5 models must be trained on labelled data in order to learn classes of objects in that data. There are two options for creating your dataset before you start training:
+YOLOv5 models must be trained on labeled data in order to learn classes of objects in that data. There are two options for creating your dataset before you start training:
 
 ## Option 1: Create a <a href="https://roboflow.com/?ref=ultralytics">Roboflow</a> Dataset
 
@@ -248,12 +250,14 @@ You can use [Roboflow Annotate](https://roboflow.com/annotate?ref=ultralytics), 
 
 ### Why should I use Ultralytics HUB for training my YOLO models?
 
-Ultralytics HUB offers an end-to-end platform for training, deploying, and managing YOLO models without needing extensive coding skills. Benefits of using Ultralytics HUB include:
+[Ultralytics HUB](https://www.ultralytics.com/hub) offers an end-to-end platform for training, deploying, and managing YOLO models without needing extensive coding skills. Benefits include:
 
 - **Easy Model Training**: Simplifies the training process with preconfigured environments.
 - **Data Management**: Effortlessly manage datasets and version control.
 - **Real-time Monitoring**: Integrates tools like [Comet](https://bit.ly/yolov5-readme-comet) for real-time metrics tracking and visualization.
 - **Collaboration**: Ideal for team projects with shared resources and easy management.
+
+For a detailed walkthrough, check out [How to train your custom models with Ultralytics HUB](https://www.ultralytics.com/blog/how-to-train-your-custom-models-with-ultralytics-hub).
 
 ### How do I convert my annotated data to YOLOv5 format?
 

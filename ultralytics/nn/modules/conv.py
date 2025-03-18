@@ -635,6 +635,7 @@ class CBAM(nn.Module):
             c1 (int): Number of input channels.
             c2 (int): Number of output channels. Must match `c1` since CBAM does not alter channel dimensions.
             kernel_size (int, optional): Size of the convolutional kernel for spatial attention. Must be 3 or 7. Defaults to 7.
+
         Raises:
             AssertionError: If `c1` does not equal `c2` or if `kernel_size` is not 3 or 7
         """

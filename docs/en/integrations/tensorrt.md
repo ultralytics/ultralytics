@@ -487,7 +487,7 @@ To convert your Ultralytics YOLO11 models to TensorRT format for optimized NVIDI
     from ultralytics import YOLO
 
     model = YOLO("yolo11n.pt")
-    model.export(format="engine")  # creates 'yolov8n.engine'
+    model.export(format="engine")  # creates 'yolo11n.engine'
 
     # Run inference
     model = YOLO("yolo11n.engine")

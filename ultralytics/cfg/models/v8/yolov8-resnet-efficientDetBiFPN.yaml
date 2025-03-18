@@ -13,38 +13,70 @@ scales:
   x: [1.00, 1.25, 512]
 
 backbone:
-  - [-1, 1, ResNetLayer, [3, 64, 1, True, 1]]   # P1/2
-  - [-1, 1, ResNetLayer, [64, 64, 1, False, 3]]  # P2/4
-  - [-1, 1, ResNetLayer, [256, 128, 2, False, 4]] # P3/8
-  - [-1, 1, ResNetLayer, [512, 256, 2, False, 6]] # P4/16
-  - [-1, 1, ResNetLayer, [1024, 512, 2, False, 3]] # P5/32
-  - [-1, 1, SPPF, [1024, 5]] # P6/64
+  - [-1, 1, ResNetLayer, [3, 64, 1, True, 1]]   # P1/2  -> Index 0
+  - [-1, 1, ResNetLayer, [64, 64, 1, False, 3]]  # P2/4  -> Index 1
+  - [-1, 1, ResNetLayer, [256, 128, 2, False, 4]] # P3/8  -> Index 2
+  - [-1, 1, ResNetLayer, [512, 256, 2, False, 6]] # P4/16 -> Index 3
+  - [-1, 1, ResNetLayer, [1024, 512, 2, False, 3]] # P5/32 -> Index 4
+  - [-1, 1, SPPF, [1024, 5]] # P6/64 -> Index 5
 
-# Head with BiFPN and YOLOv8 Detection Heads
+# Neck with BiFPN + YOLO Head
 head:
-  # P3 to P4 path (BiFPN)
-  - [[8, 9], 1, WeightedAdd, []]  # Fuse P3 and P4 (first block)
-  - [-1, 1, Conv, [256, 1, 1]]  # P4/16
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
-  - [[-1, 7], 1, WeightedAdd, []]  # Fuse with P3 (bidirectional)
+  # First BiFPN block
+  - [2, 1, Conv, [256, 1, 1]] # P3/8 -> Index 6
+  - [3, 1, Conv, [256, 1, 1]] # P4/16 -> Index 7
+  - [[6, 7], 1, WeightedAdd, []] # Fuse P3 and P4 -> Index 8
 
-  # P4 to P5 path (BiFPN)
-  - [[11, 12], 1, WeightedAdd, []]  # Fuse P4 and P5 (second block)
-  - [-1, 1, Conv, [512, 3, 2]]  # P5/32
-  - [[-1, 10], 1, WeightedAdd, []]  # Fuse with P4 (bidirectional)
+  - [4, 1, Conv, [512, 1, 1]] # P5/32 -> Index 9
+  - [5, 1, Conv, [512, 1, 1]] # P6/64 -> Index 10
+  - [[9, 10], 1, WeightedAdd, []] # Fuse P5 and P6 -> Index 11
 
-  # P5 to P6 path (BiFPN)
-  - [[14, 15], 1, WeightedAdd, []]  # Fuse P5 and P6 (third block)
-  - [-1, 1, Conv, [1024, 3, 2]]  # P6/64
-  - [[-1, 11], 1, WeightedAdd, []]  # Fuse with P5 (bidirectional)
+  # Second BiFPN block
+  - [8, 1, Conv, [256, 3, 2]] # P3 to P4
+  - [[8, 11], 1, WeightedAdd, []] # Fuse P3 and P5 -> Index 12
 
-  # P6 to P7 path (BiFPN)
-  - [[16, 17], 1, WeightedAdd, []]  # Fuse P6 and P7 (fourth block)
-  - [-1, 1, Conv, [1024, 3, 2]]  # P7/128
-  - [[-1, 12], 1, WeightedAdd, []]  # Fuse with P6 (bidirectional)
+  - [11, 1, Conv, [512, 3, 2]] # P5 to P6
+  - [[10, 12], 1, WeightedAdd, []] # Fuse P4 and P6 -> Index 13
 
   # YOLO Detection Head
-  - [[13, 16, 19], 1, Detect, [nc]]
+  - [8, 1, C2f, [256, False]] # P3 level -> Index 14
+  - [12, 1, C2f, [512, False]] # P4 level -> Index 15
+  - [13, 1, C2f, [1024, False]] # P5 level -> Index 16
+
+  - [[14, 15, 16], 1, Detect, [nc]] # Detect(P3, P4, P5)
+# backbone:
+#   - [-1, 1, ResNetLayer, [3, 64, 1, True, 1]]   # P1/2
+#   - [-1, 1, ResNetLayer, [64, 64, 1, False, 3]]  # P2/4
+#   - [-1, 1, ResNetLayer, [256, 128, 2, False, 4]] # P3/8
+#   - [-1, 1, ResNetLayer, [512, 256, 2, False, 6]] # P4/16
+#   - [-1, 1, ResNetLayer, [1024, 512, 2, False, 3]] # P5/32
+#   - [-1, 1, SPPF, [1024, 5]] # P6/64
+
+# # Head with BiFPN and YOLOv8 Detection Heads
+# head:
+#   # P3 to P4 path (BiFPN)
+#   - [[8, 9], 1, WeightedAdd, []]  # Fuse P3 and P4 (first block)
+#   - [-1, 1, Conv, [256, 1, 1]]  # P4/16
+#   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+#   - [[-1, 7], 1, WeightedAdd, []]  # Fuse with P3 (bidirectional)
+
+#   # P4 to P5 path (BiFPN)
+#   - [[11, 12], 1, WeightedAdd, []]  # Fuse P4 and P5 (second block)
+#   - [-1, 1, Conv, [512, 3, 2]]  # P5/32
+#   - [[-1, 10], 1, WeightedAdd, []]  # Fuse with P4 (bidirectional)
+
+#   # P5 to P6 path (BiFPN)
+#   - [[14, 15], 1, WeightedAdd, []]  # Fuse P5 and P6 (third block)
+#   - [-1, 1, Conv, [1024, 3, 2]]  # P6/64
+#   - [[-1, 11], 1, WeightedAdd, []]  # Fuse with P5 (bidirectional)
+
+#   # P6 to P7 path (BiFPN)
+#   - [[16, 17], 1, WeightedAdd, []]  # Fuse P6 and P7 (fourth block)
+#   - [-1, 1, Conv, [1024, 3, 2]]  # P7/128
+#   - [[-1, 12], 1, WeightedAdd, []]  # Fuse with P6 (bidirectional)
+
+#   # YOLO Detection Head
+#   - [[13, 16, 19], 1, Detect, [nc]]
 
 # # -----------------------------
 # # YOLOv8 Backbone

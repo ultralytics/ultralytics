@@ -251,7 +251,7 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
 
     Typical reductions for Ultralytics Docs are:
         - Total HTML reduction: 2.83% (1301.56 KB saved)
-        - Total CSS reduction: 1.42% (2.12 KB saved)
+        - Total CSS reduction: 1.75% (2.61 KB saved)
         - Total JS reduction: 13.72% (100.88 KB saved)
     """
     if file_type == "html":

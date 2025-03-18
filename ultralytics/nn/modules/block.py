@@ -50,20 +50,9 @@ __all__ = (
     "PSA",
     "SCDown",
     "TorchVision",
-    "WeightedAdd"
 )
 
-class WeightedAdd(nn.Module):
-    def __init__(self, num_inputs, eps=1e-4):
-        super().__init__()
-        self.weights = nn.Parameter(torch.ones(num_inputs, dtype=torch.float32))
-        self.eps = eps
-    
-    def forward(self, inputs):
-        assert len(inputs) == len(self.weights), f"Expected {len(self.weights)} inputs, got {len(inputs)}"
-        weighted_sum = sum(w * x for w, x in zip(self.weights, inputs))
-        norm = sum(self.weights) + self.eps
-        return weighted_sum / norm
+
 
 class DFL(nn.Module):
     """

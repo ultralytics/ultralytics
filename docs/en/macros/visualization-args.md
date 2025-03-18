@@ -22,7 +22,8 @@
     "masks": ["bool", "True", "Display segmentation masks in the visualization output."],
     "probs": ["bool", "True", "Include classification probabilities in the visualization."],
     "filename": ["str", "None", "Path and filename to save the annotated image when `save=True`."],
-    "color_mode": ["str", "'class'", "Specify the coloring mode for visualizations, e.g., 'instance' or 'class'."]
+    "color_mode": ["str", "'class'", "Specify the coloring mode for visualizations, e.g., 'instance' or 'class'."],
+    "txt_color": ["tuple[int, int, int]", "(255, 255, 255)", "RGB text color for classification task annotations."]
 } %}
 
 {%- if not params %}

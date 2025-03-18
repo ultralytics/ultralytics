@@ -57,7 +57,6 @@ from .block import (
     ResNetLayer,
     SCDown,
     TorchVision,
-    WeightedAdd,
 )
 from .conv import (
     CBAM,
@@ -162,5 +161,4 @@ __all__ = (
     "PSA",
     "TorchVision",
     "Index",
-    "WeightedAdd",
 )

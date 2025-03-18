@@ -44,7 +44,7 @@ head:
   - [[-1, 12], 1, WeightedAdd, []]  # Fuse with P6 (bidirectional)
 
   # YOLO Detection Head
-  - [[13, 16, 19], 1, Detect, [nc]]
+  - [[12, 15, 18], 1, Detect, [nc]]
 
 # # -----------------------------
 # # YOLOv8 Backbone

@@ -627,15 +627,19 @@ class CBAM(nn.Module):
         spatial_attention (SpatialAttention): Spatial attention module.
     """
 
-    def __init__(self, c1, kernel_size=7):
+    def __init__(self, c1, c2, kernel_size=7):
         """
-        Initialize CBAM with given parameters.
+        Initialize CBAM (Convolutional Block Attention Module) with given parameters.
 
         Args:
             c1 (int): Number of input channels.
-            kernel_size (int): Size of the convolutional kernel for spatial attention.
+            c2 (int): Number of output channels. Must match `c1` since CBAM does not alter channel dimensions.
+            kernel_size (int, optional): Size of the convolutional kernel for spatial attention. Must be 3 or 7. Defaults to 7.
+        Raises:
+            AssertionError: If `c1` does not equal `c2` or if `kernel_size` is not 3 or 7
         """
         super().__init__()
+        assert c1 == c2, f"CBAM requires c1 == c2. Got c1={c1}, c2={c2}"
         self.channel_attention = ChannelAttention(c1)
         self.spatial_attention = SpatialAttention(kernel_size)
 

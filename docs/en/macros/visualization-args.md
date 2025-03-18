@@ -13,7 +13,16 @@
     "show_labels": ["bool", "True", "Displays labels for each detection in the visual output. Provides immediate understanding of detected objects."],
     "show_conf": ["bool", "True", "Displays the confidence score for each detection alongside the label. Gives insight into the model's certainty for each detection."],
     "show_boxes": ["bool", "True", "Draws bounding boxes around detected objects. Essential for visual identification and location of objects in images or video frames."],
-    "line_width": ["None or int", "None", "Specifies the line width of bounding boxes. If `None`, the line width is automatically adjusted based on the image size. Provides visual customization for clarity."]
+    "line_width": ["None or int", "None", "Specifies the line width of bounding boxes. If `None`, the line width is automatically adjusted based on the image size. Provides visual customization for clarity."],
+    "font_size": ["float", "None", "Text font size for annotations. Scales automatically with image size if set to `None`."],
+    "font": ["str", "'Arial.ttf'", "Font name or path for text annotations in the visualization."],
+    "pil": ["bool", "False", "Return image as a PIL Image object instead of numpy array."],
+    "kpt_radius": ["int", "5", "Radius of keypoints when visualizing pose estimation results."],
+    "kpt_line": ["bool", "True", "Connect keypoints with lines when visualizing pose estimation."],
+    "masks": ["bool", "True", "Display segmentation masks in the visualization output."],
+    "probs": ["bool", "True", "Include classification probabilities in the visualization."],
+    "filename": ["str", "None", "Path and filename to save the annotated image when `save=True`."],
+    "color_mode": ["str", "'class'", "Specify the coloring mode for visualizations, e.g., 'instance' or 'class'."]
 } %}
 
 {%- if not params %}

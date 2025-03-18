@@ -102,6 +102,18 @@ Moreover, the following visualization settings are available:
 {% from "macros/visualization-args.md" import param_table %}
 {{ param_table(["show", "line_width"]) }}
 
+## How It Works
+
+The Security Alarm System uses [object tracking](https://docs.ultralytics.com/modes/track/) to monitor video feeds and detect potential security threats. When the system detects objects that exceed the specified threshold (set by the `records` parameter), it automatically sends an email notification with an image attachment showing the detected objects.
+
+The system leverages the [SecurityAlarm class](https://docs.ultralytics.com/reference/solutions/security_alarm/) which provides methods to:
+
+1. Process frames and extract object detections
+2. Annotate frames with bounding boxes around detected objects
+3. Send email notifications when detection thresholds are exceeded
+
+This implementation is ideal for home security, retail surveillance, and other monitoring applications where immediate notification of detected objects is critical.
+
 ## FAQ
 
 ### How does Ultralytics YOLO11 improve the accuracy of a security alarm system?
@@ -114,7 +126,7 @@ Yes, Ultralytics YOLO11 can be seamlessly integrated with your existing security
 
 ### What are the storage requirements for running Ultralytics YOLO11?
 
-Running Ultralytics YOLO11 on a standard setup typically requires around 5GB of free disk space. This includes space for storing the YOLO11 model and any additional dependencies. For cloud-based solutions, Ultralytics HUB offers efficient project management and dataset handling, which can optimize storage needs. Learn more about the [Pro Plan](../hub/pro.md) for enhanced features including extended storage.
+Running Ultralytics YOLO11 on a standard setup typically requires around 5GB of free disk space. This includes space for storing the YOLO11 model and any additional dependencies. For cloud-based solutions, [Ultralytics HUB](https://docs.ultralytics.com/hub/) offers efficient project management and dataset handling, which can optimize storage needs. Learn more about the [Pro Plan](../hub/pro.md) for enhanced features including extended storage.
 
 ### What makes Ultralytics YOLO11 different from other object detection models like Faster R-CNN or SSD?
 

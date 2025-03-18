@@ -86,7 +86,7 @@ Ultralytics YOLO models operate in different modes, each designed for a specific
 
 ## Train Settings
 
-Training settings for YOLO models include hyperparameters and configurations that affect the model's performance, speed, and [accuracy](https://www.ultralytics.com/glossary/accuracy). Key settings include [batch size](https://www.ultralytics.com/glossary/batch-size), [learning rate](https://www.ultralytics.com/glossary/learning-rate), momentum, and weight decay. The choice of optimizer, [loss function](https://www.ultralytics.com/glossary/loss-function), and dataset composition also impact training. Tuning and experimentation are crucial for optimal performance. For more details, see the [Ultralytics entrypoint function](https://docs.ultralytics.com/reference/cfg/__init__/).
+Training settings for YOLO models include hyperparameters and configurations that affect the model's performance, speed, and [accuracy](https://www.ultralytics.com/glossary/accuracy). Key settings include [batch size](https://www.ultralytics.com/glossary/batch-size), [learning rate](https://www.ultralytics.com/glossary/learning-rate), momentum, and weight decay. The choice of optimizer, [loss function](https://www.ultralytics.com/glossary/loss-function), and dataset composition also impact training. Tuning and experimentation are crucial for optimal performance. For more details, see the [Ultralytics entrypoint function](../reference/cfg/__init__.md).
 
 {% include "macros/train-args.md" %}
 
@@ -154,7 +154,7 @@ Adjust these settings to meet dataset and task requirements. Experimenting with 
 
 Logging, checkpoints, plotting, and file management are important when training a YOLO model:
 
-- **Logging**: Track the model's progress and diagnose issues using libraries like [TensorBoard](https://www.ultralytics.com/integrations/tensorboard) or by writing to a file.
+- **Logging**: Track the model's progress and diagnose issues using libraries like [TensorBoard](https://docs.ultralytics.com/integrations/tensorboard/) or by writing to a file.
 - **Checkpoints**: Save the model at regular intervals to resume training or experiment with different configurations.
 - **Plotting**: Visualize performance and training progress using libraries like matplotlib or TensorBoard.
 - **File management**: Organize files generated during training, such as checkpoints, log files, and plots, for easy access and analysis.
@@ -173,7 +173,7 @@ Effective management of these aspects helps track progress and makes debugging a
 
 ### How do I improve my YOLO model's performance during training?
 
-Improve performance by tuning hyperparameters like batch size, learning rate, momentum, and weight decay. Adjust augmentation settings, select the right optimizer, and use techniques like early stopping or [mixed precision](https://www.ultralytics.com/glossary/mixed-precision). For details, see the [Train Guide](../modes/train.md).
+Improve performance by tuning hyperparameters like [batch size](https://www.ultralytics.com/glossary/batch-size), [learning rate](https://www.ultralytics.com/glossary/learning-rate), momentum, and weight decay. Adjust [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) settings, select the right optimizer, and use techniques like early stopping or [mixed precision](https://www.ultralytics.com/glossary/mixed-precision). For details, see the [Train Guide](../modes/train.md).
 
 ### What are the key hyperparameters for YOLO model accuracy?
 
@@ -188,7 +188,7 @@ Adjust these based on your dataset and hardware. Learn more in [Train Settings](
 
 ### How do I set the learning rate for training a YOLO model?
 
-The learning rate (`lr0`) is crucial; start with `0.01` for SGD or `0.001` for Adam. Monitor metrics and adjust as needed. Use cosine learning rate schedulers (`cos_lr`) or warmup (`warmup_epochs`, `warmup_momentum`). Details are in the [Train Guide](../modes/train.md).
+The learning rate (`lr0`) is crucial; start with `0.01` for SGD or `0.001` for [Adam optimizer](https://www.ultralytics.com/glossary/adam-optimizer). Monitor metrics and adjust as needed. Use cosine learning rate schedulers (`cos_lr`) or warmup (`warmup_epochs`, `warmup_momentum`). Details are in the [Train Guide](../modes/train.md).
 
 ### What are the default inference settings for YOLO models?
 

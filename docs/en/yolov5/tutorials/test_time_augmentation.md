@@ -20,7 +20,7 @@ pip install -r requirements.txt  # install
 
 ## Test Normally
 
-Before trying TTA we want to establish a baseline performance to compare to. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate model available. Other options are `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or you own checkpoint from training a custom dataset `./weights/best.pt`. For details on all available models please see our README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
+Before trying TTA we want to establish a baseline performance to compare to. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate model available. Other options are `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or your own checkpoint from training a custom dataset `./weights/best.pt`. For details on all available models please see our [YOLOv5 documentation](https://docs.ultralytics.com/models/yolov5/).
 
 ```bash
 python val.py --weights yolov5x.pt --data coco.yaml --img 640 --half
@@ -59,7 +59,7 @@ Evaluating pycocotools mAP... saving runs/val/exp/yolov5x_predictions.json...
 
 ## Test with TTA
 
-Append `--augment` to any existing `val.py` command to enable TTA, and increase the image size by about 30% for improved results. Note that inference with TTA enabled will typically take about 2-3X the time of normal inference as the images are being left-right flipped and processed at 3 different resolutions, with the outputs merged before NMS. Part of the speed decrease is simply due to larger image sizes (832 vs 640), while part is due to the actual TTA operations.
+Append `--augment` to any existing `val.py` command to enable TTA, and increase the image size by about 30% for improved results. Note that inference with TTA enabled will typically take about 2-3X the time of normal inference as the images are being left-right flipped and processed at 3 different resolutions, with the outputs merged before [NMS](https://www.ultralytics.com/glossary/non-maximum-suppression-nms). Part of the speed decrease is simply due to larger image sizes (832 vs 640), while part is due to the actual TTA operations.
 
 ```bash
 python val.py --weights yolov5x.pt --data coco.yaml --img 832 --augment --half
@@ -145,7 +145,18 @@ results.print()  # or .show(), .save(), .crop(), .pandas(), etc.
 
 ### Customize
 
-You can customize the TTA ops applied in the YOLOv5 `forward_augment()` method [here](https://github.com/ultralytics/yolov5/blob/8c6f9e15bfc0000d18b976a95b9d7c17d407ec91/models/yolo.py#L125-L137).
+You can customize the TTA operations applied in the YOLOv5 `forward_augment()` method [here](https://github.com/ultralytics/yolov5/blob/8c6f9e15bfc0000d18b976a95b9d7c17d407ec91/models/yolo.py#L125-L137).
+
+## Benefits of Test-Time Augmentation
+
+Test-Time Augmentation offers several key advantages for [object detection](https://www.ultralytics.com/glossary/object-detection) tasks:
+
+- **Improved Accuracy**: As demonstrated in the results above, TTA increases mAP from 0.504 to 0.516 and mAR from 0.681 to 0.696.
+- **Better Small Object Detection**: TTA particularly enhances detection of small objects, with small area AP improving from 0.351 to 0.361.
+- **Increased Robustness**: By testing multiple variations of each image, TTA reduces the impact of viewing angle, lighting, and other environmental factors.
+- **Simple Implementation**: Requires only adding the `--augment` flag to existing commands.
+
+The tradeoff is increased inference time, making TTA more suitable for applications where accuracy is prioritized over speed.
 
 ## Supported Environments
 

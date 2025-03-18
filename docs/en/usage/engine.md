@@ -58,7 +58,7 @@ trainer = CustomTrainer(overrides={...})
 trainer.train()
 ```
 
-Further customize the trainer by modifying the [loss function](https://www.ultralytics.com/glossary/loss-function) or adding a [callback](https://www.ultralytics.com/glossary/callback) to upload the model to Google Drive every 10 [epochs](https://www.ultralytics.com/glossary/epoch). Here's an example:
+Further customize the trainer by modifying the [loss function](https://www.ultralytics.com/glossary/loss-function) or adding a [callback](callbacks.md) to upload the model to Google Drive every 10 [epochs](https://www.ultralytics.com/glossary/epoch). Here's an example:
 
 ```python
 from ultralytics.models.yolo.detect import DetectionTrainer
@@ -95,6 +95,31 @@ For more information on callback triggering events and entry points, see the [Ca
 
 Customize other components like `Validators` and `Predictors` similarly. For more information, refer to the documentation for [Validators](../reference/engine/validator.md) and [Predictors](../reference/engine/predictor.md).
 
+## Using YOLO with Custom Trainers
+
+The `YOLO` model class provides a high-level wrapper for the Trainer classes. You can leverage this architecture for greater flexibility in your machine learning workflows:
+
+```python
+from ultralytics import YOLO
+from ultralytics.models.yolo.detect import DetectionTrainer
+
+
+# Create a custom trainer
+class MyCustomTrainer(DetectionTrainer):
+    def get_model(self, cfg, weights):
+        # Custom model implementation
+        ...
+
+
+# Initialize YOLO model
+model = YOLO("yolo11n.pt")
+
+# Train with custom trainer
+results = model.train(trainer=MyCustomTrainer, data="coco8.yaml", epochs=3)
+```
+
+This approach allows you to maintain the simplicity of the YOLO interface while customizing the underlying training process to suit your specific requirements.
+
 ## FAQ
 
 ### How do I customize the Ultralytics YOLO DetectionTrainer for specific tasks?
@@ -124,6 +149,9 @@ The `BaseTrainer` serves as the foundation for training routines, customizable f
 
 - `get_model(cfg, weights)`: Builds the model to be trained.
 - `get_dataloader()`: Builds the dataloader.
+- `preprocess_batch()`: Handles batch preprocessing before model forward pass.
+- `set_model_attributes()`: Sets model attributes based on dataset information.
+- `get_validator()`: Returns a validator for model evaluation.
 
 For more details on customization and source code, see the [`BaseTrainer` Reference](../reference/engine/trainer.md).
 
@@ -156,6 +184,8 @@ Ultralytics YOLO provides a high-level abstraction over powerful engine executor
 - **Ease of Use**: Both command-line and Python interfaces simplify complex tasks.
 - **Performance**: Optimized for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) and various vision AI applications.
 - **Customization**: Easily extendable for custom models, [loss functions](https://www.ultralytics.com/glossary/loss-function), and dataloaders.
+- **Modularity**: Components can be modified independently without affecting the entire pipeline.
+- **Integration**: Seamlessly works with popular frameworks and tools in the ML ecosystem.
 
 Learn more about YOLO's capabilities by exploring the main [Ultralytics YOLO](https://www.ultralytics.com/yolo) page.
 

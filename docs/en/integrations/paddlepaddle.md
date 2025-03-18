@@ -39,7 +39,7 @@ PaddlePaddle models offer a range of key features that contribute to their flexi
 
 - **Dynamic-to-Static Graph**: PaddlePaddle supports [dynamic-to-static compilation](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/jit/index_en.html), where models can be translated into a static computational graph. This enables optimizations that reduce runtime overhead and boost inference performance.
 
-- **Operator Fusion**: PaddlePaddle, like TensorRT, uses [operator fusion](https://developer.nvidia.com/gtc/2020/video/s21436-vid) to streamline computation and reduce overhead. The framework minimizes memory transfers and computational steps by merging compatible operations, resulting in faster inference.
+- **Operator Fusion**: PaddlePaddle, like [TensorRT](../integrations/tensorrt.md), uses [operator fusion](https://developer.nvidia.com/gtc/2020/video/s21436-vid) to streamline computation and reduce overhead. The framework minimizes memory transfers and computational steps by merging compatible operations, resulting in faster inference.
 
 - **Quantization**: PaddlePaddle supports [quantization techniques](https://www.paddlepaddle.org.cn/documentation/docs/en/api/paddle/quantization/PTQ_en.html), including post-training quantization and quantization-aware training. These techniques allow for the use of lower-precision data representations, effectively boosting performance and reducing model size.
 
@@ -78,7 +78,7 @@ For detailed instructions and best practices related to the installation process
 
 ### Usage
 
-Before diving into the usage instructions, it's important to note that while all [Ultralytics YOLO11 models](../models/index.md) are available for exporting, you can ensure that the model you select supports export functionality [here](../modes/export.md).
+Before diving into the usage instructions, it's important to note that while all [Ultralytics YOLO11 models](../models/yolo11.md) are available for exporting, you can ensure that the model you select supports export functionality [here](../modes/export.md).
 
 !!! example "Usage"
 

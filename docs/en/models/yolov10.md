@@ -4,7 +4,7 @@ description: Discover YOLOv10 for real-time object detection, eliminating NMS an
 keywords: YOLOv10, real-time object detection, NMS-free, deep learning, Tsinghua University, Ultralytics, machine learning, neural networks, performance optimization
 ---
 
-# YOLOv10: Real-Time End-to-End [Object Detection](https://www.ultralytics.com/glossary/object-detection)
+# YOLOv10: Real-Time End-to-End Object Detection
 
 YOLOv10, built on the [Ultralytics](https://www.ultralytics.com/) [Python package](https://pypi.org/project/ultralytics/) by researchers at [Tsinghua University](https://www.tsinghua.edu.cn/en/), introduces a new approach to real-time object detection, addressing both the post-processing and model architecture deficiencies found in previous YOLO versions. By eliminating non-maximum suppression (NMS) and optimizing various model components, YOLOv10 achieves state-of-the-art performance with significantly reduced computational overhead. Extensive experiments demonstrate its superior accuracy-latency trade-offs across multiple model scales.
 
@@ -23,7 +23,7 @@ YOLOv10, built on the [Ultralytics](https://www.ultralytics.com/) [Python packag
 
 ## Overview
 
-Real-time object detection aims to accurately predict object categories and positions in images with low latency. The YOLO series has been at the forefront of this research due to its balance between performance and efficiency. However, reliance on NMS and architectural inefficiencies have hindered optimal performance. YOLOv10 addresses these issues by introducing consistent dual assignments for NMS-free training and a holistic efficiency-accuracy driven model design strategy.
+Real-time object detection aims to accurately predict object categories and positions in images with low latency. The YOLO series has been at the forefront of this research due to its balance between performance and efficiency. However, reliance on NMS and architectural inefficiencies have hindered optimal performance. YOLOv10 addresses these issues by introducing [consistent dual assignments](https://arxiv.org/abs/2405.14458) for NMS-free training and a holistic efficiency-accuracy driven model design strategy.
 
 ### Architecture
 
@@ -58,7 +58,7 @@ YOLOv10 comes in various model scales to cater to different application needs:
 
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv10"]'></canvas>
 
-YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in terms of accuracy and efficiency. For example, YOLOv10s is 1.8x faster than RT-DETR-R18 with similar AP on the COCO dataset, and YOLOv10b has 46% less latency and 25% fewer parameters than YOLOv9-C with the same performance.
+YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in terms of accuracy and efficiency. For example, YOLOv10s is 1.8x faster than [RT-DETR-R18](../models/rtdetr.md) with similar AP on the COCO dataset, and YOLOv10b has 46% less latency and 25% fewer parameters than [YOLOv9-C](../models/yolov9.md) with the same performance.
 
 !!! tip "Performance"
 
@@ -79,7 +79,7 @@ YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in 
 
 ### Consistent Dual Assignments for NMS-Free Training
 
-YOLOv10 employs dual label assignments, combining one-to-many and one-to-one strategies during training to ensure rich supervision and efficient end-to-end deployment. The consistent matching metric aligns the supervision between both strategies, enhancing the quality of predictions during inference.
+YOLOv10 employs dual label assignments, combining one-to-many and one-to-one strategies during training to ensure rich supervision and efficient end-to-end deployment. The consistent matching metric aligns the supervision between both strategies, enhancing the quality of predictions during [inference](../modes/predict.md).
 
 ### Holistic Efficiency-[Accuracy](https://www.ultralytics.com/glossary/accuracy) Driven Model Design
 
@@ -96,7 +96,7 @@ YOLOv10 employs dual label assignments, combining one-to-many and one-to-one str
 
 ## Experiments and Results
 
-YOLOv10 has been extensively tested on standard benchmarks like COCO, demonstrating superior performance and efficiency. The model achieves state-of-the-art results across different variants, showcasing significant improvements in latency and accuracy compared to previous versions and other contemporary detectors.
+YOLOv10 has been extensively tested on standard benchmarks like [COCO](../datasets/detect/coco.md), demonstrating superior performance and efficiency. The model achieves state-of-the-art results across different variants, showcasing significant improvements in latency and accuracy compared to previous versions and other contemporary detectors.
 
 ## Comparisons
 
@@ -106,7 +106,7 @@ Compared to other state-of-the-art detectors:
 
 - YOLOv10s / x are 1.8× / 1.3× faster than RT-DETR-R18 / R101 with similar accuracy
 - YOLOv10b has 25% fewer parameters and 46% lower latency than YOLOv9-C at same accuracy
-- YOLOv10l / x outperform YOLOv8l / x by 0.3 AP / 0.5 AP with 1.8× / 2.3× fewer parameters
+- YOLOv10l / x outperform [YOLOv8l / x](../models/yolov8.md) by 0.3 AP / 0.5 AP with 1.8× / 2.3× fewer parameters
 
 !!! tip "Performance"
 
@@ -232,7 +232,7 @@ Due to the new operations introduced with YOLOv10, not all export formats provid
 
 ## Conclusion
 
-YOLOv10 sets a new standard in real-time object detection by addressing the shortcomings of previous YOLO versions and incorporating innovative design strategies. Its ability to deliver high accuracy with low computational cost makes it an ideal choice for a wide range of real-world applications.
+YOLOv10 sets a new standard in real-time object detection by addressing the shortcomings of previous YOLO versions and incorporating innovative design strategies. Its ability to deliver high accuracy with low computational cost makes it an ideal choice for a wide range of [real-world applications](https://www.ultralytics.com/solutions) including [manufacturing](https://www.ultralytics.com/solutions/ai-in-manufacturing), [retail](https://www.ultralytics.com/blog/ai-in-fashion-retail), and [autonomous vehicles](https://www.ultralytics.com/solutions/ai-in-self-driving).
 
 ## Citations and Acknowledgements
 

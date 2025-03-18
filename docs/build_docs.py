@@ -268,7 +268,7 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
         content = re.sub(r"^\s*\n", "", content, flags=re.MULTILINE)
         # Collapse multiple spaces to single space
         content = re.sub(r"\s{2,}", " ", content)
-        # For maximum minification, remove all newlines
+        # Remove all newlines
         content = re.sub(r"\n", "", content)
     elif file_type == "js":
         # Handle JS single-line comments (preserving http:// and https://)

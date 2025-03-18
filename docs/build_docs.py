@@ -246,7 +246,14 @@ def remove_macros():
 
 
 def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
-    """Remove comments and empty lines from a string of code, preserving newlines and URLs."""
+    """
+    Remove comments and empty lines from a string of code, preserving newlines and URLs.
+
+    Typical reductions for Ultralytics Docs are:
+        - Total HTML reduction: 2.83% (1301.56 KB saved)
+        - Total CSS reduction: 1.42% (2.12 KB saved)
+        - Total JS reduction: 13.72% (100.88 KB saved)
+    """
     if file_type == "html":
         # Remove HTML comments
         content = re.sub(r"<!--[\s\S]*?-->", "", content)
@@ -259,8 +266,6 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
         content = re.sub(r"^\s*\n", "", content, flags=re.MULTILINE)
         # Collapse multiple spaces to single space
         content = re.sub(r"\s{2,}", " ", content)
-        # Remove spaces around CSS specific characters
-        content = re.sub(r"\s*([\{\}\[\]:;,])\s*", r"\1", content)
     elif file_type == "js":
         # Handle JS single-line comments (preserving http:// and https://)
         lines = content.split("\n")
@@ -280,7 +285,7 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
         # Collapse multiple spaces to single space
         content = re.sub(r"\s{2,}", " ", content)
         # Remove spaces around JS specific characters
-        content = re.sub(r"\s*([\+\-\*/=:;,\(\)\{\}\[\]])\s*", r"\1", content)
+        content = re.sub(r"\s*([+\-*/=:;,(){}\[\]])\s*", r"\1", content)
 
     return content
 
@@ -347,6 +352,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    # Total HTML reduction: 2.83% (1301.56 KB saved)
-    # Total CSS reduction: 1.93% (2.88 KB saved)
-    # Total JS reduction: 13.72% (100.88 KB saved)

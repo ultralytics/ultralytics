@@ -21,8 +21,12 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     python3-pip git zip unzip wget curl htop libgl1 libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0 \
+    openjdk-17-jdk openjdk-17-jre \
     && rm -rf /var/lib/apt/lists/*
 
+# Verify Java installation
+RUN java --version
+ 
 # Create working directory
 WORKDIR /ultralytics
 

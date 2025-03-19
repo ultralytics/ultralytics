@@ -173,8 +173,3 @@ pnnx*
 
 # calibration image
 calibration_*.npy
-
-third_party/
-logs/
-tools/
-figures/

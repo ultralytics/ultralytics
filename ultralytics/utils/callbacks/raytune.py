@@ -16,7 +16,7 @@ def on_fit_epoch_end(trainer):
     """
     Sends training metrics to Ray Tune at end of each epoch.
 
-    This function checks if a Ray Tune session is active and reports the current training metrics along with the 
+    This function checks if a Ray Tune session is active and reports the current training metrics along with the
     epoch number to Ray Tune's session.
 
     Args:

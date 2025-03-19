@@ -14,6 +14,7 @@ except ImportError:
 
 try:
     import warnings
+
     # NOTE: suppress 'timm.models.layers is deprecated, please import via timm.layers' from mobileclip usage,
     # when users are using timm version >= 0.9.5.
     with warnings.catch_warnings():

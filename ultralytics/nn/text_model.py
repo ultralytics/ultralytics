@@ -15,7 +15,10 @@ except ImportError:
 try:
     import mobileclip
 except ImportError:
-    checks.check_requirements("git+https://github.com/apple/ml-mobileclip.git")
+    # NOTE: mobileclip repo has an incorrect version of torchvision as dependency,
+    # manually installing other dependencies firstly and install mobileclip with "--no-deps" flag.
+    checks.check_requirements(["open-clip-torch>=2.20.0", "timm>=0.9.5"])
+    checks.check_requirements("git+https://github.com/apple/ml-mobileclip.git", cmds="--no-deps")
     import mobileclip
 
 

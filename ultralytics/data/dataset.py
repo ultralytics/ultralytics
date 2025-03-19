@@ -21,11 +21,11 @@ from .augment import (
     Format,
     Instances,
     LetterBox,
+    LoadVisualPrompt,
     RandomLoadText,
     classify_augmentations,
     classify_transforms,
     v8_transforms,
-    LoadVisualPrompt
 )
 from .base import BaseDataset
 from .utils import (
@@ -234,7 +234,7 @@ class YOLODataset(BaseDataset):
         )
         if self.load_vp:
             if not self.augment:
-                assert(self.batch_size == 1)
+                assert self.batch_size == 1
                 nc = len(self.data["names"])
             else:
                 nc = 80
@@ -361,7 +361,7 @@ class YOLOMultiModalDataset(YOLODataset):
         # NOTE: some categories are concatenated with its synonyms by `/`.
         if not self.single_cls:
             labels["texts"] = [v.split("/") for _, v in self.data["names"].items()]
-        
+
         return labels
 
     def build_transforms(self, hyp=None):
@@ -378,7 +378,9 @@ class YOLOMultiModalDataset(YOLODataset):
         if self.augment and not self.single_cls:
             # NOTE: hard-coded the args for now.
             index = -2 if self.load_vp else -1
-            transforms.insert(index, RandomLoadText(text_model=hyp.text_model, max_samples=min(self.data["nc"], 80), padding=True))
+            transforms.insert(
+                index, RandomLoadText(text_model=hyp.text_model, max_samples=min(self.data["nc"], 80), padding=True)
+            )
         return transforms
 
 
@@ -412,7 +414,9 @@ class GroundingDataset(YOLODataset):
             *args (Any): Additional positional arguments for the parent class.
             **kwargs (Any): Additional keyword arguments for the parent class.
         """
-        assert task == "detect" or task == "segment", "`GroundingDataset` only support `detect` and `segment` task for now!"
+        assert task == "detect" or task == "segment", (
+            "`GroundingDataset` only support `detect` and `segment` task for now!"
+        )
         self.json_file = json_file
         self.grounding_cache = grounding_cache
         super().__init__(*args, task=task, data={}, **kwargs)
@@ -433,18 +437,18 @@ class GroundingDataset(YOLODataset):
         instance_count = 0
         for label in labels:
             instance_count += label["bboxes"].shape[0]
-        
+
         if "final_mixed_train_no_coco_segm" in self.json_file:
-            assert(instance_count == 3662344)
+            assert instance_count == 3662344
         elif "final_mixed_train_no_coco" in self.json_file:
-            assert(instance_count == 3681235)
+            assert instance_count == 3681235
         elif "final_flickr_separateGT_train_segm" in self.json_file:
-            assert(instance_count == 638214)
+            assert instance_count == 638214
         elif "final_flickr_separateGT_train" in self.json_file:
-            assert(instance_count == 640704)
+            assert instance_count == 640704
         else:
-            assert(False)
-    
+            assert False
+
     def get_labels(self):
         """
         Loads annotations from a JSON file, filters, and normalizes bounding boxes for each image.
@@ -454,7 +458,7 @@ class GroundingDataset(YOLODataset):
         """
         if self.grounding_cache:
             """Loads annotations from a JSON file, filters, and normalizes bounding boxes for each image."""
-            cache_path = Path(self.json_file).with_suffix('.cache')
+            cache_path = Path(self.json_file).with_suffix(".cache")
             labels = np.load(str(cache_path), allow_pickle=True)
             self.verify_labels(labels)
             self.im_files = [str(label["im_file"]) for label in labels]
@@ -511,7 +515,7 @@ class GroundingDataset(YOLODataset):
                     }
                 )
         return labels
-    
+
     def build_transforms(self, hyp=None):
         """
         Configures augmentations for training with optional text loading.

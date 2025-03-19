@@ -9,6 +9,7 @@ from pathlib import Path
 
 import torch
 
+from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
     AIFI,
     C1,
@@ -51,6 +52,8 @@ from ultralytics.nn.modules import (
     HGStem,
     ImagePoolingAttn,
     Index,
+    LRPCHead,
+    MaxSigmoidAttnBlock,
     Pose,
     RepC3,
     RepConv,
@@ -65,20 +68,18 @@ from ultralytics.nn.modules import (
     YOLOEDetect,
     YOLOESegment,
     v10Detect,
-    LRPCHead,
-    MaxSigmoidAttnBlock,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2EDetectLoss,
+    TVPDetectLoss,
+    TVPSegmentLoss,
     v8ClassificationLoss,
     v8DetectionLoss,
     v8OBBLoss,
     v8PoseLoss,
     v8SegmentationLoss,
-    TVPDetectLoss,
-    TVPSegmentLoss
 )
 from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.plotting import feature_visualization
@@ -89,10 +90,9 @@ from ultralytics.utils.torch_utils import (
     intersect_dicts,
     model_info,
     scale_img,
+    smart_inference_mode,
     time_sync,
-    smart_inference_mode
 )
-from ultralytics.nn.autobackend import check_class_names
 
 try:
     import thop
@@ -225,10 +225,10 @@ class BaseModel(torch.nn.Module):
                     m.forward = m.forward_fuse
                 device = next(self.model.parameters()).device
                 if isinstance(m, MaxSigmoidAttnBlock):
-                    assert(isinstance(self, YOLOEModel))
+                    assert isinstance(self, YOLOEModel)
                     m.fuse(self.pe.to(device))
-                if isinstance(m, YOLOEDetect) and hasattr(self, 'pe'):
-                    assert(isinstance(self, YOLOEModel))
+                if isinstance(m, YOLOEDetect) and hasattr(self, "pe"):
+                    assert isinstance(self, YOLOEModel)
                     m.fuse(self.pe.to(device))
             self.info(verbose=verbose)
 
@@ -270,7 +270,9 @@ class BaseModel(torch.nn.Module):
         """
         self = super()._apply(fn)
         m = self.model[-1]  # Detect()
-        if isinstance(m, Detect):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect, YOLOESegment
+        if isinstance(
+            m, Detect
+        ):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect, YOLOESegment
             m.stride = fn(m.stride)
             m.anchors = fn(m.anchors)
             m.strides = fn(m.strides)
@@ -800,72 +802,74 @@ class YOLOEModel(DetectionModel):
         """Initialize YOLOE model with given config and parameters."""
         # Randomness
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
-    
+
     @smart_inference_mode()
     def get_text_pe(self, text, batch=80, cache_clip_model=False):
-        assert(not self.training)
-        
+        assert not self.training
         """Set classes in advance so that model could do offline-inference without clip model."""
         from ultralytics.nn.text_model import build_text_model
-        
+
         device = next(self.model.parameters()).device
-        
+
         text_model = self.args.get("text_model")
         if (
             not getattr(self, "clip_model", None) and cache_clip_model
         ):  # for backwards compatibility of models lacking clip_model attribute
             self.clip_model = build_text_model(text_model, device=device)
-            
+
         model = self.clip_model if cache_clip_model else build_text_model(text_model, device=device)
         text_token = model.tokenize(text)
         txt_feats = model.encode_text(text_token)
         txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
-        
+
         head = self.model[-1]
-        assert(isinstance(head, YOLOEDetect))
+        assert isinstance(head, YOLOEDetect)
         return head.get_tpe(txt_feats)
-    
+
     @smart_inference_mode()
     def get_visual_pe(self, img, visual):
         return self(img, vpe=visual, return_vpe=True)
 
     def set_vocab(self, vocab, names):
-        assert(not self.training)
+        assert not self.training
         head = self.model[-1]
-        assert(isinstance(head, YOLOEDetect))
-        
+        assert isinstance(head, YOLOEDetect)
+
         # Cache anchors for head
         device = next(self.parameters()).device
         self(torch.empty(1, 3, self.args["imgsz"], self.args["imgsz"]).to(device))  # warmup
-        
-        self.model[-1].lrpc = nn.ModuleList(LRPCHead(cls, pf[-1], loc[-1], enabled=i!=2) for i, (cls, pf, loc) in enumerate(zip(vocab, head.cv3, head.cv2)))
+
+        self.model[-1].lrpc = nn.ModuleList(
+            LRPCHead(cls, pf[-1], loc[-1], enabled=i != 2)
+            for i, (cls, pf, loc) in enumerate(zip(vocab, head.cv3, head.cv2))
+        )
         for loc_head, cls_head in zip(head.cv2, head.cv3):
-            assert(isinstance(loc_head, nn.Sequential))
-            assert(isinstance(cls_head, nn.Sequential))
+            assert isinstance(loc_head, nn.Sequential)
+            assert isinstance(cls_head, nn.Sequential)
             del loc_head[-1]
             del cls_head[-1]
         self.model[-1].nc = len(names)
         self.names = check_class_names(names)
 
     def get_vocab(self, names):
-        assert(not self.training)
+        assert not self.training
         head = self.model[-1]
-        assert(isinstance(head, YOLOEDetect))
-        assert(not head.is_fused)
-        
+        assert isinstance(head, YOLOEDetect)
+        assert not head.is_fused
+
         tpe = self.get_text_pe(names)
         self.set_classes(names, tpe)
         self.fuse()
 
         vocab = nn.ModuleList()
         for cls_head in head.cv3:
-            assert(isinstance(cls_head, nn.Sequential))
+            assert isinstance(cls_head, nn.Sequential)
             vocab.append(cls_head[-1])
         return vocab
 
     def set_classes(self, names, embeddings):
         """Set classes in advance so that model could do offline-inference without clip model."""
-        assert(embeddings.ndim == 3)
+        assert embeddings.ndim == 3
         self.pe = embeddings
         self.model[-1].nc = len(names)
         self.names = check_class_names(names)
@@ -873,17 +877,18 @@ class YOLOEModel(DetectionModel):
     def get_cls_pe(self, tpe, vpe):
         all_pe = []
         if tpe is not None:
-            assert(tpe.ndim == 3)
+            assert tpe.ndim == 3
             all_pe.append(tpe)
         if vpe is not None:
-            assert(vpe.ndim == 3)
+            assert vpe.ndim == 3
             all_pe.append(vpe)
         if len(all_pe) == 0:
-            all_pe.append(getattr(self, 'pe', torch.zeros(1, 80, 512)))
+            all_pe.append(getattr(self, "pe", torch.zeros(1, 80, 512)))
         return torch.cat(all_pe, dim=1)
 
-    def predict(self, x, profile=False, visualize=False, tpe=None, \
-        augment=False, embed=None, vpe=None, return_vpe=False):
+    def predict(
+        self, x, profile=False, visualize=False, tpe=None, augment=False, embed=None, vpe=None, return_vpe=False
+    ):
         """
         Perform a forward pass through the model.
 
@@ -897,7 +902,7 @@ class YOLOEModel(DetectionModel):
 
         Returns:
             (torch.Tensor): Model's output tensor.
-        """            
+        """
         y, dt, embeddings = [], [], []  # outputs
         b = x.shape[0]
         for m in self.model:  # except the head part
@@ -906,12 +911,12 @@ class YOLOEModel(DetectionModel):
             if profile:
                 self._profile_one_layer(m, x, dt)
             if isinstance(m, C2fAttn):
-                x = m(x, tpe or getattr(self, 'pe', torch.zeros(1, 80, 512)).to(x.device))
+                x = m(x, tpe or getattr(self, "pe", torch.zeros(1, 80, 512)).to(x.device))
             elif isinstance(m, YOLOEDetect):
                 vpe = m.get_vpe(x, vpe) if vpe is not None else None
                 if return_vpe:
-                    assert(vpe is not None)
-                    assert(not self.training)
+                    assert vpe is not None
+                    assert not self.training
                     return vpe
                 cls_pe = self.get_cls_pe(m.get_tpe(tpe), vpe).to(device=x[0].device, dtype=x[0].dtype)
                 if len(cls_pe) != b:
@@ -941,10 +946,11 @@ class YOLOEModel(DetectionModel):
             self.criterion = self.init_criterion()
 
         if preds is None:
-            preds = self.forward(batch["img"], tpe=batch.get("txt_feats", None), 
-                                 vpe=batch["visuals"] if self.args.load_vp else None)
+            preds = self.forward(
+                batch["img"], tpe=batch.get("txt_feats", None), vpe=batch["visuals"] if self.args.load_vp else None
+            )
         return self.criterion(preds, batch)
-    
+
     def init_criterion(self):
         if self.args.load_vp:
             return TVPDetectLoss(self)
@@ -1390,7 +1396,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in frozenset({Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect}):
+        elif m in frozenset(
+            {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect}
+        ):
             args.append([ch[x] for x in f])
             if m is Segment or m is YOLOESegment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)

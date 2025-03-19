@@ -1,17 +1,18 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import itertools
+
+from copy import copy
 
 from ultralytics.data import build_yolo_dataset
 from ultralytics.models import yolo
-from ultralytics.nn.tasks import YOLOEModel, YOLOESegModel
+from ultralytics.nn.tasks import YOLOEModel
 from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.torch_utils import de_parallel
-from copy import copy
+
 from .val import YOLOEDetectValidator
 
-class YOLOETrainer(yolo.detect.DetectionTrainer):
 
+class YOLOETrainer(yolo.detect.DetectionTrainer):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         if overrides is None:
             overrides = {}
@@ -38,7 +39,7 @@ class YOLOETrainer(yolo.detect.DetectionTrainer):
         return YOLOEDetectValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
-    
+
     def build_dataset(self, img_path, mode="train", batch=None):
         """
         Build YOLO Dataset.

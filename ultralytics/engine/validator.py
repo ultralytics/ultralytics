@@ -238,14 +238,14 @@ class BaseValidator:
         self.run_callbacks("on_val_end")
         if self.training:
             model.float()
-            
+
             if self.args.save_json and self.jdict:
                 with open(str(self.save_dir / "predictions.json"), "w") as f:
                     LOGGER.info(f"Saving {f.name}...")
                     json.dump(self.jdict, f)  # flatten and save
                 stats = self.eval_json(stats)  # update stats
-                stats['fitness'] = stats['metrics/mAP50-95(B)']
-            
+                stats["fitness"] = stats["metrics/mAP50-95(B)"]
+
             results = {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")}
             return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
         else:

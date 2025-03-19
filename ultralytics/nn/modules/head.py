@@ -6,8 +6,8 @@ import math
 
 import torch
 import torch.nn as nn
-from torch.nn.init import constant_, xavier_uniform_
 import torch.nn.functional as F
+from torch.nn.init import constant_, xavier_uniform_
 
 from ultralytics.utils.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import fuse_conv_and_bn, smart_inference_mode
@@ -16,7 +16,6 @@ from .block import DFL, BNContrastiveHead, ContrastiveHead, Proto
 from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
-from torch.nn import functional as F
 
 __all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect", "YOLOEDetect", "YOLOESegment"
 
@@ -367,11 +366,11 @@ class SAVPE(nn.Module):
         self.cv1 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3)) for x in ch)
         self.cv1[1].append(nn.Upsample(scale_factor=2))
         self.cv1[2].append(nn.Upsample(scale_factor=4))
-        
+
         self.cv2 = nn.ModuleList(nn.Sequential(Conv(x, c3, 1)) for x in ch)
         self.cv2[1].append(nn.Upsample(scale_factor=2))
         self.cv2[2].append(nn.Upsample(scale_factor=4))
-        
+
         self.c = 16
         self.cv3 = nn.Conv2d(3 * c3, embed, 1)
         self.cv4 = nn.Conv2d(3 * c3, self.c, 3, padding=1)
@@ -381,30 +380,30 @@ class SAVPE(nn.Module):
     def forward(self, x, vp):
         y = [self.cv2[i](xi) for i, xi in enumerate(x)]
         y = self.cv4(torch.cat(y, dim=1))
-        
+
         x = [self.cv1[i](xi) for i, xi in enumerate(x)]
         x = self.cv3(torch.cat(x, dim=1))
-        
-        B, C, H, W = x.shape 
+
+        B, C, H, W = x.shape
 
         Q = vp.shape[1]
-        
+
         x = x.view(B, C, -1)
 
         y = y.reshape(B, 1, self.c, H, W).expand(-1, Q, -1, -1, -1).reshape(B * Q, self.c, H, W)
         vp = vp.reshape(B, Q, 1, H, W).reshape(B * Q, 1, H, W)
-        
+
         y = self.cv6(torch.cat((y, self.cv5(vp)), dim=1))
-        
+
         y = y.reshape(B, Q, self.c, -1)
         vp = vp.reshape(B, Q, 1, -1)
 
         score = y * vp + torch.logical_not(vp) * torch.finfo(y.dtype).min
- 
+
         score = F.softmax(score, dim=-1, dtype=torch.float).to(score.dtype)
 
         aggregated = score.transpose(-2, -3) @ x.reshape(B, self.c, C // self.c, -1).transpose(-1, -2)
-        
+
         return F.normalize(aggregated.transpose(-2, -3).reshape(B, Q, -1), dim=-1, p=2)
 
 
@@ -418,37 +417,39 @@ class LRPCHead(nn.Module):
         self.pf = pf
         self.loc = loc
         self.enabled = enabled
-    
+
     def conv2linear(self, conv):
         assert isinstance(conv, nn.Conv2d) and conv.kernel_size == (1, 1)
         linear = nn.Linear(conv.in_channels, conv.out_channels)
         linear.weight.data = conv.weight.view(conv.out_channels, -1).data
         linear.bias.data = conv.bias.data
         return linear
-    
+
     def forward(self, cls_feat, loc_feat, conf, max_det):
         if self.enabled:
             pf_score = self.pf(cls_feat)[0, 0].flatten(0)
             mask = pf_score.sigmoid() > conf
-            
+
             cls_feat = self.vocab(cls_feat.flatten(2).transpose(-1, -2)[:, mask])
             return (self.loc(loc_feat), cls_feat.transpose(-1, -2)), mask
         else:
             cls_feat = self.vocab(cls_feat)
             loc_feat = self.loc(loc_feat)
-            return (loc_feat, cls_feat.flatten(2)), torch.ones(cls_feat.shape[2] * cls_feat.shape[3], device=cls_feat.device, dtype=torch.bool)
+            return (loc_feat, cls_feat.flatten(2)), torch.ones(
+                cls_feat.shape[2] * cls_feat.shape[3], device=cls_feat.device, dtype=torch.bool
+            )
+
 
 class YOLOEDetect(Detect):
     is_fused = False
-    
     """Head for integrating YOLO detection models with semantic understanding from text embeddings."""
 
     def __init__(self, nc=80, embed=512, with_bn=False, ch=()):
         """Initialize YOLO detection layer with nc classes and layer channels ch."""
         super().__init__(nc, ch)
         c3 = max(ch[0], min(self.nc, 100))
-        assert(c3 <= embed)
-        assert(with_bn == True)
+        assert c3 <= embed
+        assert with_bn is True
         self.cv3 = (
             nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, embed, 1)) for x in ch)
             if self.legacy
@@ -461,66 +462,70 @@ class YOLOEDetect(Detect):
                 for x in ch
             )
         )
-        
+
         self.cv4 = nn.ModuleList(BNContrastiveHead(embed) if with_bn else ContrastiveHead() for _ in ch)
-        
+
         self.reprta = Residual(SwiGLUFFN(embed, embed))
         self.savpe = SAVPE(ch, c3, embed)
         self.embed = embed
-    
+
     @smart_inference_mode()
     def fuse(self, txt_feats):
         if self.is_fused:
             return
-        
-        assert(not self.training)
+
+        assert not self.training
         txt_feats = txt_feats.to(torch.float32).squeeze(0)
         for cls_head, bn_head in zip(self.cv3, self.cv4):
-            assert(isinstance(cls_head, nn.Sequential))
-            assert(isinstance(bn_head, BNContrastiveHead))
+            assert isinstance(cls_head, nn.Sequential)
+            assert isinstance(bn_head, BNContrastiveHead)
             conv = cls_head[-1]
-            assert(isinstance(conv, nn.Conv2d))
+            assert isinstance(conv, nn.Conv2d)
             logit_scale = bn_head.logit_scale
             bias = bn_head.bias
             norm = bn_head.norm
-            
-            t = (txt_feats * logit_scale.exp())
+
+            t = txt_feats * logit_scale.exp()
             conv: nn.Conv2d = fuse_conv_and_bn(conv, norm)
-            
+
             w = conv.weight.data.squeeze(-1).squeeze(-1)
             b = conv.bias.data
-            
+
             w = t @ w
             b1 = (t @ b.reshape(-1).unsqueeze(-1)).squeeze(-1)
             b2 = torch.ones_like(b1) * bias
-            
-            conv = nn.Conv2d(
-                conv.in_channels,
-                w.shape[0],
-                kernel_size=1,
-            ).requires_grad_(False).to(conv.weight.device)
-            
+
+            conv = (
+                nn.Conv2d(
+                    conv.in_channels,
+                    w.shape[0],
+                    kernel_size=1,
+                )
+                .requires_grad_(False)
+                .to(conv.weight.device)
+            )
+
             conv.weight.data.copy_(w.unsqueeze(-1).unsqueeze(-1))
             conv.bias.data.copy_(b1 + b2)
             cls_head[-1] = conv
-            
+
             bn_head.fuse()
-        
+
         del self.reprta
         self.reprta = nn.Identity()
         self.is_fused = True
-    
+
     def get_tpe(self, tpe):
         if tpe is None:
             return None
         return F.normalize(self.reprta(tpe), dim=-1, p=2)
-    
+
     def get_vpe(self, x, vpe):
         if vpe.ndim == 4:
             vpe = self.savpe(x, vpe)
-        assert(vpe.ndim == 3)
+        assert vpe.ndim == 3
         return vpe
-    
+
     def forward(self, x, cls_pe, return_mask=False):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         has_lrpc = hasattr(self, "lrpc")
@@ -529,10 +534,10 @@ class YOLOEDetect(Detect):
             if not has_lrpc:
                 x[i] = torch.cat((self.cv2[i](x[i]), self.cv4[i](self.cv3[i](x[i]), cls_pe)), 1)
             else:
-                assert(self.is_fused)
+                assert self.is_fused
                 cls_feat = self.cv3[i](x[i])
                 loc_feat = self.cv2[i](x[i])
-                assert(isinstance(self.lrpc[i], LRPCHead))
+                assert isinstance(self.lrpc[i], LRPCHead)
                 x[i], mask = self.lrpc[i](cls_feat, loc_feat, self.conf, self.max_det)
                 masks.append(mask)
         if self.training:
@@ -542,19 +547,27 @@ class YOLOEDetect(Detect):
         if not has_lrpc:
             shape = x[0].shape  # BCHW
             x_cat = torch.cat([xi.view(shape[0], self.nc + self.reg_max * 4, -1) for xi in x], 2)
-            if (self.dynamic or self.shape != shape):
+            if self.dynamic or self.shape != shape:
                 self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
                 self.shape = shape
 
-            if self.export and self.format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}:  # avoid TF FlexSplitV ops
+            if self.export and self.format in {
+                "saved_model",
+                "pb",
+                "tflite",
+                "edgetpu",
+                "tfjs",
+            }:  # avoid TF FlexSplitV ops
                 box = x_cat[:, : self.reg_max * 4]
                 cls = x_cat[:, self.reg_max * 4 :]
             else:
                 box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
         else:
             shape = x[0][0].shape
-            if (self.dynamic or self.shape != shape):
-                self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors([b[0] for b in x], self.stride, 0.5))
+            if self.dynamic or self.shape != shape:
+                self.anchors, self.strides = (
+                    x.transpose(0, 1) for x in make_anchors([b[0] for b in x], self.stride, 0.5)
+                )
                 self.shape = shape
             box = torch.cat([xi[0].view(shape[0], self.reg_max * 4, -1) for xi in x], 2)
             cls = torch.cat([xi[1] for xi in x], 2)
@@ -574,7 +587,7 @@ class YOLOEDetect(Detect):
             mask = torch.cat(masks)
             dbox = dbox[:, :, mask]
         y = torch.cat((dbox, cls.sigmoid()), 1)
-        
+
         if not has_lrpc or not return_mask:
             return y if self.export else (y, x)
         else:
@@ -589,15 +602,11 @@ class YOLOEDetect(Detect):
             a[-1].bias.data[:] = 1.0  # box
             # b[-1].bias.data[:] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
             b[-1].bias.data[:] = 0.0
-            c.bias.data[:] = math.log(5 / m.nc / (640 / s) ** 2)  
+            c.bias.data[:] = math.log(5 / m.nc / (640 / s) ** 2)
+
 
 class SwiGLUFFN(nn.Module):
-    def __init__(
-        self,
-        gc,
-        ec,
-        e=4
-    ) -> None:
+    def __init__(self, gc, ec, e=4) -> None:
         super().__init__()
         self.w12 = nn.Linear(gc, e * ec)
         self.w3 = nn.Linear(e * ec // 2, ec)
@@ -608,6 +617,7 @@ class SwiGLUFFN(nn.Module):
         hidden = F.silu(x1) * x2
         return self.w3(hidden)
 
+
 class Residual(nn.Module):
     def __init__(self, m) -> None:
         super().__init__()
@@ -616,17 +626,18 @@ class Residual(nn.Module):
         # For models with l scale, please change the initialization to
         # nn.init.constant_(self.m.w3.weight, 1e-6)
         nn.init.zeros_(self.m.w3.weight)
-        
+
     def forward(self, x):
         return x + self.m(x)
-    
+
+
 class YOLOESegment(YOLOEDetect):
     def __init__(self, nc=80, nm=32, npr=256, embed=512, with_bn=False, ch=()):
         super().__init__(nc, embed, with_bn, ch)
         self.nm = nm
         self.npr = npr
         self.proto = Proto(ch[0], self.npr, self.nm)
-        
+
         c5 = max(ch[0] // 4, self.nm)
         self.cv5 = nn.ModuleList(nn.Sequential(Conv(x, c5, 3), Conv(c5, c5, 3), nn.Conv2d(c5, self.nm, 1)) for x in ch)
 
@@ -637,19 +648,20 @@ class YOLOESegment(YOLOEDetect):
 
         mc = torch.cat([self.cv5[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
         has_lrpc = hasattr(self, "lrpc")
-        
+
         if not has_lrpc:
             x = YOLOEDetect.forward(self, x, text)
         else:
             x, mask = YOLOEDetect.forward(self, x, text, return_mask=True)
-            
+
         if self.training:
             return x, mc, p
 
         if has_lrpc:
             mc = mc[:, :, mask]
-        
+
         return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))
+
 
 class RTDETRDecoder(nn.Module):
     """

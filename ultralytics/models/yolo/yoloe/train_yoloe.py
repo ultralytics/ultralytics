@@ -8,7 +8,6 @@ from ultralytics.utils.torch_utils import de_parallel
 
 
 class YOLOETrainerFromScratch(YOLOETrainer):
-
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         if overrides is None:
             overrides = {}
@@ -31,7 +30,9 @@ class YOLOETrainerFromScratch(YOLOETrainer):
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         if mode != "train":
-            return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=False, stride=gs, load_vp=False)
+            return build_yolo_dataset(
+                self.args, img_path, batch, self.data, mode=mode, rect=False, stride=gs, load_vp=False
+            )
         dataset = [
             build_yolo_dataset(self.args, im_path, batch, self.training_data[im_path], stride=gs, multi_modal=True)
             if isinstance(im_path, str)

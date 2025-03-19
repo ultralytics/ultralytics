@@ -76,8 +76,7 @@ from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel, YOLOEModel
-
+from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
@@ -786,8 +785,6 @@ class Exporter:
         if f.is_dir():
             shutil.rmtree(f)
 
-        bias = [0.0, 0.0, 0.0]
-        scale = 1 / 255
         classifier_config = None
         if self.model.task == "classify":
             classifier_config = ct.ClassifierConfig(list(self.model.names.values())) if self.args.nms else None

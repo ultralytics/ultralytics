@@ -366,12 +366,16 @@ class SegmentationValidator(DetectionValidator):
             pred_json = self.save_dir / "predictions.json"  # predictions
             val = self.data[self.args.split]
             val = val[0] if isinstance(val, list) else val
-            is_lvis_minival = 'minival' in val
-            
+            is_lvis_minival = "minival" in val
+
             anno_json = (
                 self.data["path"]
                 / "annotations"
-                / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{'minival' if is_lvis_minival else 'val'}{'_sc' if self.args.single_cls else ''}.json")
+                / (
+                    "instances_val2017.json"
+                    if self.is_coco
+                    else f"lvis_v1_{'minival' if is_lvis_minival else 'val'}{'_sc' if self.args.single_cls else ''}.json"
+                )
             )  # annotations
 
             pkg = "pycocotools" if self.is_coco else "lvis"
@@ -389,7 +393,7 @@ class SegmentationValidator(DetectionValidator):
                     vals = [COCOeval(anno, pred, "bbox"), COCOeval(anno, pred, "segm")]
                 else:
                     from lvis import LVIS, LVISEval
-                    
+
                     anno = LVIS(str(anno_json))
                     pred = anno._load_json(str(pred_json))
                     vals = [LVISEval(anno, pred, "bbox"), LVISEval(anno, pred, "segm")]
@@ -405,15 +409,16 @@ class SegmentationValidator(DetectionValidator):
                     idx = i * 4 + 2
                     # update mAP50-95 and mAP50
                     stats[self.metrics.keys[idx + 1]], stats[self.metrics.keys[idx]] = (
-                        eval.stats[:2] if self.is_coco else [eval.results["AP"], eval.results["AP50"]])
+                        eval.stats[:2] if self.is_coco else [eval.results["AP"], eval.results["AP50"]]
+                    )
                     if self.is_lvis:
-                        tag = 'B' if i == 0 else 'M'
-                        stats[f'metrics/APr({tag})'] = eval.results["APr"]
-                        stats[f'metrics/APc({tag})'] = eval.results["APc"]
-                        stats[f'metrics/APf({tag})'] = eval.results["APf"]
-                
+                        tag = "B" if i == 0 else "M"
+                        stats[f"metrics/APr({tag})"] = eval.results["APr"]
+                        stats[f"metrics/APc({tag})"] = eval.results["APc"]
+                        stats[f"metrics/APf({tag})"] = eval.results["APf"]
+
                 if self.is_lvis:
-                    stats['fitness'] = stats['metrics/mAP50-95(B)']
+                    stats["fitness"] = stats["metrics/mAP50-95(B)"]
 
             except Exception as e:
                 LOGGER.warning(f"{pkg} unable to run: {e}")

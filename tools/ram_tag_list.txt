@@ -117,7 +117,7 @@ arcade
 arcade machine
 arch
 arch bridge
-archaelogical excavation
+archaeological excavation
 archery
 archipelago
 architect
@@ -594,7 +594,7 @@ broth
 brown
 brown bear
 brownie
-brunch
+branch
 brunette
 brush
 coyote
@@ -1134,7 +1134,7 @@ cosmetics brush
 cosmetics mirror
 cosplay
 costume
-costumer film designer
+customer film designer
 infant bed
 cottage
 cotton
@@ -2309,7 +2309,7 @@ khaki
 kick
 kilt
 kimono
-kindergarden classroom
+kindergarten classroom
 kindergarten
 king
 king crab
@@ -2544,7 +2544,7 @@ mandarin orange
 mandarine
 mane
 manga
-manger
+manager
 mango
 mangosteen
 mangrove
@@ -3507,7 +3507,7 @@ sand sculpture
 sandal
 sandwich
 sanitary napkin
-santa claus
+santa clause
 sapphire
 sardine
 sari
@@ -3692,7 +3692,7 @@ silver
 silver medal
 silverware
 sing
-singe
+single
 singer
 sink
 sip

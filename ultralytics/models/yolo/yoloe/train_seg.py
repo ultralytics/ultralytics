@@ -1,18 +1,17 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import itertools
 
-from ultralytics.data import build_yolo_dataset
-from ultralytics.models import yolo
-from ultralytics.nn.tasks import YOLOEModel, YOLOESegModel
-from ultralytics.utils import DEFAULT_CFG, RANK
-from ultralytics.utils.torch_utils import de_parallel
 from copy import copy
+
+from ultralytics.models import yolo
+from ultralytics.nn.tasks import YOLOESegModel
+from ultralytics.utils import DEFAULT_CFG, RANK
+
 from .train import YOLOETrainer
 from .val import YOLOESegValidator
 
-class YOLOESegTrainer(YOLOETrainer, yolo.segment.SegmentationTrainer):
 
+class YOLOESegTrainer(YOLOETrainer, yolo.segment.SegmentationTrainer):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         if overrides is None:
             overrides = {}

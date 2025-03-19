@@ -4,7 +4,16 @@ from pathlib import Path
 
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, OBBModel, PoseModel, SegmentationModel, WorldModel, YOLOEModel, YOLOESegModel
+from ultralytics.nn.tasks import (
+    ClassificationModel,
+    DetectionModel,
+    OBBModel,
+    PoseModel,
+    SegmentationModel,
+    WorldModel,
+    YOLOEModel,
+    YOLOESegModel,
+)
 from ultralytics.utils import ROOT, yaml_load
 
 
@@ -16,7 +25,7 @@ class YOLO(Model):
         path = Path(model)
         if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
             new_instance = YOLOWorld(path, verbose=verbose)
-        elif "yoloe" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}: # if YOLOE PyTorch model
+        elif "yoloe" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOE PyTorch model
             new_instance = YOLOE(path, task=task, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
@@ -148,19 +157,19 @@ class YOLOE(Model):
         }
 
     def get_text_pe(self, texts):
-        assert(isinstance(self.model, YOLOEModel))
+        assert isinstance(self.model, YOLOEModel)
         return self.model.get_text_pe(texts)
-    
+
     def get_visual_pe(self, img, visual):
-        assert(isinstance(self.model, YOLOEModel))
+        assert isinstance(self.model, YOLOEModel)
         return self.model.get_visual_pe(img, visual)
 
     def set_vocab(self, vocab, names):
-        assert(isinstance(self.model, YOLOEModel))
+        assert isinstance(self.model, YOLOEModel)
         self.model.set_vocab(vocab, names=names)
-    
+
     def get_vocab(self, names):
-        assert(isinstance(self.model, YOLOEModel))
+        assert isinstance(self.model, YOLOEModel)
         return self.model.get_vocab(names)
 
     def set_classes(self, classes, embeddings):
@@ -170,10 +179,10 @@ class YOLOE(Model):
         Args:
             classes (List(str)): A list of categories i.e. ["person"].
         """
-        assert(isinstance(self.model, YOLOEModel))
+        assert isinstance(self.model, YOLOEModel)
         self.model.set_classes(classes, embeddings)
         # Remove background if it's given
-        assert(" " not in classes)
+        assert " " not in classes
         self.model.names = classes
 
         # Reset method class names

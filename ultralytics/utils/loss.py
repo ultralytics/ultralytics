@@ -256,7 +256,7 @@ class v8DetectionLoss:
             optim_loss = loss[1]
         else:
             optim_loss = loss.sum()
-        
+
         return optim_loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 
 
@@ -340,11 +340,19 @@ class v8SegmentationLoss(v8DetectionLoss):
                 loss[1] = self.calculate_segmentation_loss(
                     fg_mask, masks, target_gt_idx, target_bboxes, batch_idx, proto, pred_masks, imgsz, self.overlap
                 )
-            except Exception as e:
+            except Exception:
                 print("Mask loss on cpu")
                 torch.cuda.empty_cache()
                 loss[1] = self.calculate_segmentation_loss(
-                    fg_mask.cpu(), masks.cpu(), target_gt_idx.cpu(), target_bboxes.cpu(), batch_idx.cpu(), proto.cpu().float(), pred_masks.cpu().float(), imgsz.cpu(), self.overlap
+                    fg_mask.cpu(),
+                    masks.cpu(),
+                    target_gt_idx.cpu(),
+                    target_bboxes.cpu(),
+                    batch_idx.cpu(),
+                    proto.cpu().float(),
+                    pred_masks.cpu().float(),
+                    imgsz.cpu(),
+                    self.overlap,
                 ).to(loss.device)
 
         # WARNING: lines below prevent Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
@@ -360,7 +368,7 @@ class v8SegmentationLoss(v8DetectionLoss):
             optim_loss = loss[2]
         else:
             optim_loss = loss.sum()
-        
+
         return optim_loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 
     @staticmethod
@@ -388,7 +396,9 @@ class v8SegmentationLoss(v8DetectionLoss):
         try:
             loss = F.binary_cross_entropy_with_logits(pred_mask, gt_mask, reduction="none")
         except torch.cuda.OutOfMemoryError:
-            loss = F.binary_cross_entropy_with_logits(pred_mask.cpu(), gt_mask.cpu(), reduction="none").to(pred_mask.device)
+            loss = F.binary_cross_entropy_with_logits(pred_mask.cpu(), gt_mask.cpu(), reduction="none").to(
+                pred_mask.device
+            )
             print("Mask loss on cpu")
         return (crop_mask(loss, xyxy).mean(dim=(1, 2)) / area).sum()
 
@@ -758,65 +768,66 @@ class E2EDetectLoss:
         loss_one2one = self.one2one(one2one, batch)
         return loss_one2many[0] + loss_one2one[0], loss_one2many[1] + loss_one2one[1]
 
+
 class TVPDetectLoss:
-    
     def __init__(self, model):
         self.tp_criterion = v8DetectionLoss(model)
         self.vp_criterion = v8DetectionLoss(model)
-    
+
     def __call__(self, preds, batch):
         feats = preds[1] if isinstance(preds, tuple) else preds
-        
-        assert(self.tp_criterion.reg_max == self.vp_criterion.reg_max)
-        
+
+        assert self.tp_criterion.reg_max == self.vp_criterion.reg_max
+
         tp_feats = []
         vp_feats = []
         vnc = feats[0].shape[1] - self.tp_criterion.reg_max * 4 - self.tp_criterion.nc
         if vnc == 0:
             loss = torch.zeros(3, device=self.tp_criterion.device, requires_grad=True)
             return loss.sum(), loss.detach()
-        
+
         self.vp_criterion.nc = vnc
         self.vp_criterion.no = vnc + self.vp_criterion.reg_max * 4
         self.vp_criterion.assigner.num_classes = vnc
-        
-        for box, cls_tp, cls_vp in [xi.split((self.tp_criterion.reg_max * 4, \
-            self.tp_criterion.nc, vnc), dim=1) for xi in feats]:
+
+        for box, cls_tp, cls_vp in [
+            xi.split((self.tp_criterion.reg_max * 4, self.tp_criterion.nc, vnc), dim=1) for xi in feats
+        ]:
             tp_feats.append(torch.cat((box, cls_tp), dim=1))
             vp_feats.append(torch.cat((box, cls_vp), dim=1))
 
         vp_loss = self.vp_criterion(vp_feats, batch)
-        
+
         return vp_loss
-    
+
+
 class TVPSegmentLoss:
-    
     def __init__(self, model):
         self.tp_criterion = v8SegmentationLoss(model)
         self.vp_criterion = v8SegmentationLoss(model)
-    
+
     def __call__(self, preds, batch):
         feats, pred_masks, proto = preds if len(preds) == 3 else preds[1]
-        
-        assert(self.tp_criterion.reg_max == self.vp_criterion.reg_max)
-        
+
+        assert self.tp_criterion.reg_max == self.vp_criterion.reg_max
+
         tp_feats = []
         vp_feats = []
         vnc = feats[0].shape[1] - self.tp_criterion.reg_max * 4 - self.tp_criterion.nc
         if vnc == 0:
             loss = torch.zeros(4, device=self.tp_criterion.device, requires_grad=True)
             return loss.sum(), loss.detach()
-        
+
         self.vp_criterion.nc = vnc
         self.vp_criterion.no = vnc + self.vp_criterion.reg_max * 4
         self.vp_criterion.assigner.num_classes = vnc
-        
-        for box, cls_tp, cls_vp in [xi.split((self.tp_criterion.reg_max * 4, \
-            self.tp_criterion.nc, vnc), dim=1) for xi in feats]:
+
+        for box, cls_tp, cls_vp in [
+            xi.split((self.tp_criterion.reg_max * 4, self.tp_criterion.nc, vnc), dim=1) for xi in feats
+        ]:
             tp_feats.append(torch.cat((box, cls_tp), dim=1))
             vp_feats.append(torch.cat((box, cls_vp), dim=1))
 
         vp_loss = self.vp_criterion((vp_feats, pred_masks, proto), batch)
-        
+
         return vp_loss
-    

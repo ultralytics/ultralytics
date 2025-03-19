@@ -76,7 +76,19 @@ from .conv import (
     RepConv,
     SpatialAttention,
 )
-from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment, WorldDetect, YOLOEDetect, YOLOESegment, v10Detect, LRPCHead
+from .head import (
+    OBB,
+    Classify,
+    Detect,
+    LRPCHead,
+    Pose,
+    RTDETRDecoder,
+    Segment,
+    WorldDetect,
+    YOLOEDetect,
+    YOLOESegment,
+    v10Detect,
+)
 from .transformer import (
     AIFI,
     MLP,

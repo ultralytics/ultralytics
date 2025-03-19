@@ -592,13 +592,13 @@ class MaxSigmoidAttnBlock(nn.Module):
 
     @smart_inference_mode()
     def fuse(self, txt_feats):
-        assert(not self.training)
+        assert not self.training
         guide = self.gl(txt_feats.to(self.gl.weight.dtype))
         guide = guide.view(1, -1, self.nh, self.hc)
         del self.guide
-        self.register_buffer('guide', guide)
+        self.register_buffer("guide", guide)
         del self.gl
-    
+
     def forward(self, x, guide):
         """
         Forward pass of MaxSigmoidAttnBlock.
@@ -617,7 +617,7 @@ class MaxSigmoidAttnBlock(nn.Module):
             guide = guide.view(bs, -1, self.nh, self.hc)
         else:
             guide = self.guide
-            
+
         embed = self.ec(x) if self.ec is not None else x
         embed = embed.view(bs, self.nh, self.hc, h, w)
 
@@ -810,10 +810,10 @@ class BNContrastiveHead(nn.Module):
         del self.bias
         del self.logit_scale
         self.forward = self.forward_fuse
-    
+
     def forward_fuse(self, x, w):
         return x
-    
+
     def forward(self, x, w):
         """
         Forward function of contrastive learning with batch normalization.
@@ -827,7 +827,7 @@ class BNContrastiveHead(nn.Module):
         """
         x = self.norm(x)
         # w = F.normalize(w, dim=-1, p=2)
-        
+
         x = torch.einsum("bchw,bkc->bkhw", x, w)
         return x * self.logit_scale.exp() + self.bias
 

@@ -40,11 +40,11 @@ Crucially, YOLOE's open-world modules introduce **no inference cost** when used 
 
 YOLOE matches or exceeds the accuracy of closed-set YOLO models on standard benchmarks like COCO, without compromising speed or model size. The table below compares YOLOE-L (built on YOLO11) against corresponding [YOLOv8](https://docs.ultralytics.com/models/yolov8/) and YOLO11 models:
 
-| Model                     | COCO mAP<sub>50-95</sub> | Inference Speed (T4)             | Parameters | GFLOPs (640px)     |
-| ------------------------- | ------------------------ | -------------------------------- | ---------- | ------------------ |
-| **YOLOv8-L** (closed-set) | 52.9%                    | **9.06 ms** (110 FPS)            | 43.7 M     | 165.2 B            |
-| **YOLO11-L** (closed-set) | 53.5%                    | **6.2 ms** (130 FPS)             | 26.2 M     | 86.9 B             |
-| **YOLOE-L** (open-vocab)  | 52.6%                    | **6.2 ms** (130 FPS)             | 26.2 M     | 86.9 B<sup>†</sup> |
+| Model                     | COCO mAP<sub>50-95</sub> | Inference Speed (T4)  | Parameters | GFLOPs (640px)     |
+| ------------------------- | ------------------------ | --------------------- | ---------- | ------------------ |
+| **YOLOv8-L** (closed-set) | 52.9%                    | **9.06 ms** (110 FPS) | 43.7 M     | 165.2 B            |
+| **YOLO11-L** (closed-set) | 53.5%                    | **6.2 ms** (130 FPS)  | 26.2 M     | 86.9 B             |
+| **YOLOE-L** (open-vocab)  | 52.6%                    | **6.2 ms** (130 FPS)  | 26.2 M     | 86.9 B<sup>†</sup> |
 
 <sup>†</sup> _YOLO11-L and YOLOE-L have identical architectures (prompt modules disabled in YOLO11-L), resulting in identical inference speed and similar GFLOPs estimates._
 

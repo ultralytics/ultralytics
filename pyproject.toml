@@ -77,7 +77,6 @@ dependencies = [
     "pandas>=1.1.4",
     "seaborn>=0.11.0", # plotting
     "ultralytics-thop>=2.0.0", # FLOPs computation https://github.com/ultralytics/thop
-    "supervision>=0.25.1",
 ]
 
 # Optional dependencies ------------------------------------------------------------------------------------------------

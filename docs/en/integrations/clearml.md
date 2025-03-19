@@ -160,7 +160,7 @@ ClearML offers several advanced features to enhance your MLOps experience.
 
 #### Remote Execution
 
-ClearML's remote execution feature facilitates the reproduction and manipulation of experiments on different machines. It logs essential details like installed packages and uncommitted changes. When a task is enqueued, the ClearML Agent pulls it, recreates the environment, and runs the experiment, reporting back with detailed results.
+ClearML's remote execution feature facilitates the reproduction and manipulation of experiments on different machines. It logs essential details like installed packages and uncommitted changes. When a task is enqueued, the [ClearML Agent](https://clear.ml/docs/latest/docs/clearml_agent/) pulls it, recreates the environment, and runs the experiment, reporting back with detailed results.
 
 Deploying a ClearML Agent is straightforward and can be done on various machines using the following command:
 
@@ -168,7 +168,7 @@ Deploying a ClearML Agent is straightforward and can be done on various machines
 clearml-agent daemon --queue <queues_to_listen_to> [--docker]
 ```
 
-This setup is applicable to cloud VMs, local GPUs, or laptops. ClearML Autoscalers help manage cloud workloads on platforms like AWS, GCP, and Azure, automating the deployment of agents and adjusting resources based on your resource budget.
+This setup is applicable to cloud VMs, local GPUs, or laptops. [ClearML Autoscalers](https://clear.ml/docs/latest/docs/cloud_autoscaling/autoscaling_overview/) help manage cloud workloads on platforms like AWS, GCP, and Azure, automating the deployment of agents and adjusting resources based on your resource budget.
 
 ### Cloning, Editing, and Enqueuing
 
@@ -177,6 +177,27 @@ ClearML's user-friendly interface allows easy cloning, editing, and enqueuing of
 <p align="center"><br>
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/cloning-editing-enqueuing-clearml.avif" alt="Cloning, Editing, and Enqueuing with ClearML">
 </p>
+
+## Dataset Version Management
+
+ClearML also offers powerful [dataset version management](https://clear.ml/docs/latest/docs/hyperdatasets/dataset/) capabilities that integrate seamlessly with YOLO11 training workflows. This feature allows you to:
+
+- Version your datasets separately from your code
+- Track which dataset version was used for each experiment
+- Easily access and download the latest dataset version
+
+To prepare your dataset for ClearML, follow these steps:
+
+1. Organize your dataset with the standard YOLO structure (images, labels, etc.)
+2. Copy the corresponding YAML file to the root of your dataset folder
+3. Upload your dataset using the ClearML Data tool:
+
+```bash
+cd your_dataset_folder
+clearml-data sync --project YOLOv11 --name your_dataset_name --folder .
+```
+
+This command will create a versioned dataset in ClearML that can be referenced in your training scripts, ensuring reproducibility and easy access to your data.
 
 ## Summary
 

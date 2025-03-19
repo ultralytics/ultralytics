@@ -6,7 +6,7 @@ keywords: YOLOv5 export, TFLite, ONNX, CoreML, TensorRT, model conversion, YOLOv
 
 # TFLite, ONNX, CoreML, TensorRT Export
 
-📚 This guide explains how to export a trained YOLOv5 🚀 model from [PyTorch](https://www.ultralytics.com/glossary/pytorch) to ONNX and TorchScript formats.
+📚 This guide explains how to export a trained YOLOv5 🚀 model from [PyTorch](https://www.ultralytics.com/glossary/pytorch) to various deployment formats including ONNX, TensorRT, CoreML and more.
 
 ## Before You Start
 
@@ -20,11 +20,14 @@ pip install -r requirements.txt  # install
 
 For [TensorRT](https://developer.nvidia.com/tensorrt) export example (requires GPU) see our Colab [notebook](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb#scrollTo=VTRwsvA9u7ln&line=2&uniqifier=1) appendix section. <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
 
-## Formats
+## Supported Export Formats
 
-YOLOv5 inference is officially supported in 11 formats:
+YOLOv5 inference is officially supported in 12 formats:
 
-💡 ProTip: Export to ONNX or OpenVINO for up to 3x CPU speedup. See [CPU Benchmarks](https://github.com/ultralytics/yolov5/pull/6613). 💡 ProTip: Export to TensorRT for up to 5x GPU speedup. See [GPU Benchmarks](https://github.com/ultralytics/yolov5/pull/6963).
+!!! tip "Performance Tips"
+
+    - Export to ONNX or OpenVINO for up to 3x CPU speedup. See [CPU Benchmarks](https://github.com/ultralytics/yolov5/pull/6613).
+    - Export to TensorRT for up to 5x GPU speedup. See [GPU Benchmarks](https://github.com/ultralytics/yolov5/pull/6963).
 
 | Format                                                       | `export.py --include` | Model                     |
 | :----------------------------------------------------------- | :-------------------- | :------------------------ |
@@ -103,7 +106,9 @@ This command exports a pretrained YOLOv5s model to TorchScript and ONNX formats.
 python export.py --weights yolov5s.pt --include torchscript onnx
 ```
 
-💡 ProTip: Add `--half` to export models at FP16 half [precision](https://www.ultralytics.com/glossary/precision) for smaller file sizes
+!!! tip
+
+    Add `--half` to export models at FP16 half [precision](https://www.ultralytics.com/glossary/precision) for smaller file sizes
 
 Output:
 

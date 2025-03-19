@@ -84,7 +84,7 @@ extra: # version:
     - icon: fontawesome/brands/linkedin
       link: https://www.linkedin.com/company/ultralytics/
     - icon: fontawesome/brands/x-twitter
-      link: https://twitter.com/ultralytics
+      link: https://x.com/ultralytics
     - icon: fontawesome/brands/youtube
       link: https://youtube.com/ultralytics?sub_confirmation=1
     - icon: fontawesome/brands/docker
@@ -95,6 +95,8 @@ extra: # version:
       link: https://discord.com/invite/ultralytics
     - icon: fontawesome/brands/reddit
       link: https://reddit.com/r/ultralytics
+    - icon: fontawesome/brands/weixin
+      link: https://weixin.qq.com/r/mp/LxckPDfEgWr_rXNf90I9
 
 extra_css:
   - stylesheets/style.css
@@ -268,6 +270,7 @@ nav:
       - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
       - YOLO-World (Real-Time Open-Vocabulary Object Detection): models/yolo-world.md
+      - YOLOE (Real-Time Seeing Anything): models/yoloe.md
   - Datasets:
       - datasets/index.md
       - Detection:

@@ -94,7 +94,7 @@ class BaseDataset(Dataset):
             stride (int, optional): Stride used in the model.
             pad (float, optional): Padding value.
             single_cls (bool, optional): If True, single class training is used.
-            classes (List, optional): List of included classes.
+            classes (list, optional): List of included classes.
             fraction (float, optional): Fraction of dataset to utilize.
         """
         super().__init__()
@@ -179,7 +179,7 @@ class BaseDataset(Dataset):
         Update labels to include only specified classes.
 
         Args:
-            include_class (List, optional): List of classes to include. If None, all classes are included.
+            include_class (list, optional): List of classes to include. If None, all classes are included.
         """
         include_class_array = np.array(include_class).reshape(1, -1)
         for i in range(len(self.labels)):

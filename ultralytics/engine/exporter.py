@@ -210,7 +210,7 @@ class Exporter:
 
     Attributes:
         args (SimpleNamespace): Configuration for the exporter.
-        callbacks (List, optional): List of callback functions.
+        callbacks (list, optional): List of callback functions.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):

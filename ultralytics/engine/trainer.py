@@ -100,7 +100,7 @@ class BaseTrainer:
         Args:
             cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
-            _callbacks (List, optional): List of callback functions. Defaults to None.
+            _callbacks (list, optional): List of callback functions. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)

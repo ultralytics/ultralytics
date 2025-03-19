@@ -827,7 +827,7 @@ class SAM2VideoPredictor(SAM2Predictor):
     Args:
         cfg (dict, Optional): Configuration settings for the predictor. Defaults to DEFAULT_CFG.
         overrides (dict, Optional): Additional configuration overrides. Defaults to None.
-        _callbacks (List, Optional): Custom callbacks to be added. Defaults to None.
+        _callbacks (list, Optional): Custom callbacks to be added. Defaults to None.
 
     Note:
         The `fill_hole_area` attribute is defined but not used in the current implementation.

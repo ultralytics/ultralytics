@@ -554,7 +554,7 @@ class AutoBackend(nn.Module):
             im (torch.Tensor): The image tensor to perform inference on.
             augment (bool): Whether to perform data augmentation during inference. Defaults to False.
             visualize (bool): Whether to visualize the output predictions. Defaults to False.
-            embed (List, optional): A list of feature vectors/embeddings to return.
+            embed (list, optional): A list of feature vectors/embeddings to return.
 
         Returns:
             (torch.Tensor | List[torch.Tensor]): The raw output tensor(s) from the model.

@@ -49,7 +49,7 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
         Args:
             cfg (dict): Configuration for the trainer.
             overrides (dict, optional): Configuration overrides.
-            _callbacks (List, optional): List of callback functions.
+            _callbacks (list, optional): List of callback functions.
         """
         if overrides is None:
             overrides = {}

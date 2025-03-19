@@ -50,7 +50,7 @@ class DetectionValidator(BaseValidator):
             save_dir (Path, optional): Directory to save results.
             pbar (Any, optional): Progress bar for displaying progress.
             args (dict, optional): Arguments for the validator.
-            _callbacks (List, optional): List of callback functions.
+            _callbacks (list, optional): List of callback functions.
         """
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.nt_per_class = None

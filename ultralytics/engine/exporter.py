@@ -1014,7 +1014,7 @@ class Exporter:
                 "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
-                "protobuf>=5",  # tflite_support pins <=4 but >=5 works
+                "protobuf<=4",  # tflite_support pins <=4 but >=5 works
                 "" if checks.IS_PYTHON_3_8 else "ai-edge-litert>=1.2.0",  # ai-edge-litert is missing if onnx2tf==1.27.0
             ),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA

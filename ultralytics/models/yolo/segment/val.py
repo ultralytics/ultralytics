@@ -309,7 +309,7 @@ class SegmentationValidator(DetectionValidator):
             predn (torch.Tensor): Predictions in the format [x1, y1, x2, y2, conf, cls].
             pred_masks (torch.Tensor): Predicted masks.
             save_conf (bool): Whether to save confidence scores.
-            shape (Tuple): Original image shape.
+            shape (tuple): Original image shape.
             file (Path): File path to save the detections.
         """
         from ultralytics.engine.results import Results

@@ -47,8 +47,8 @@ class RegionCounter(BaseSolution):
         Args:
             name (str): Name assigned to the new region.
             polygon_points (List[Tuple]): List of (x, y) coordinates defining the region's polygon.
-            region_color (Tuple): BGR color for region visualization.
-            text_color (Tuple): BGR color for the text within the region.
+            region_color (tuple): BGR color for region visualization.
+            text_color (tuple): BGR color for the text within the region.
         """
         region = self.region_template.copy()
         region.update(

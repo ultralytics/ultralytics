@@ -26,12 +26,12 @@ class DetectionValidator(BaseValidator):
         nt_per_image (np.ndarray): Number of targets per image.
         is_coco (bool): Whether the dataset is COCO.
         is_lvis (bool): Whether the dataset is LVIS.
-        class_map (List): Mapping from model class indices to dataset class indices.
+        class_map (list): Mapping from model class indices to dataset class indices.
         metrics (DetMetrics): Object detection metrics calculator.
         iouv (torch.Tensor): IoU thresholds for mAP calculation.
         niou (int): Number of IoU thresholds.
-        lb (List): List for storing ground truth labels for hybrid saving.
-        jdict (List): List for storing JSON detection results.
+        lb (list): List for storing ground truth labels for hybrid saving.
+        jdict (list): List for storing JSON detection results.
         stats (dict): Dictionary for storing statistics during validation.
 
     Examples:

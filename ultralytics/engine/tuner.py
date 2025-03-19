@@ -39,7 +39,7 @@ class Tuner:
         tune_dir (Path): Directory where evolution logs and results will be saved.
         tune_csv (Path): Path to the CSV file where evolution logs are saved.
         args (dict): Configuration arguments for the tuning process.
-        callbacks (List): Callback functions to be executed during tuning.
+        callbacks (list): Callback functions to be executed during tuning.
         prefix (str): Prefix string for logging messages.
 
     Methods:

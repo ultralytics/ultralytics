@@ -17,7 +17,7 @@ class RegionCounter(BaseSolution):
     Attributes:
         region_template (dict): Template for creating new counting regions with default attributes including name,
             polygon coordinates, and display colors.
-        counting_regions (List): List storing all defined regions, where each entry is based on `region_template`
+        counting_regions (list): List storing all defined regions, where each entry is based on `region_template`
             and includes specific region settings like name, coordinates, and color.
         region_counts (dict): Dictionary storing the count of objects for each named region.
 

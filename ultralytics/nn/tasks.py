@@ -175,7 +175,7 @@ class BaseModel(torch.nn.Module):
         Args:
             m (torch.nn.Module): The layer to be profiled.
             x (torch.Tensor): The input data to the layer.
-            dt (List): A list to store the computation time of the layer.
+            dt (list): A list to store the computation time of the layer.
         """
         c = m == self.model[-1] and isinstance(x, list)  # is final layer list, copy input as inplace fix
         flops = thop.profile(m, inputs=[x.copy() if c else x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs

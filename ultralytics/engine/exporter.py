@@ -138,7 +138,7 @@ def validate_args(format, passed_args, valid_args):
     Args:
         format (str): The export format.
         passed_args (Namespace): The arguments used during export.
-        valid_args (List): List of valid arguments for the format.
+        valid_args (list): List of valid arguments for the format.
 
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.

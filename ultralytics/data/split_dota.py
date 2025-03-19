@@ -165,7 +165,7 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir, allow_background_i
     Args:
         anno (dict): Annotation dict, including `filepath`, `label`, `ori_size` as its keys.
         windows (np.ndarray): Array of windows coordinates with shape (n, 4).
-        window_objs (List): A list of labels inside each window.
+        window_objs (list): A list of labels inside each window.
         im_dir (str): The output directory path of images.
         lb_dir (str): The output directory path of labels.
         allow_background_images (bool): Whether to include background images without labels.

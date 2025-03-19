@@ -22,7 +22,7 @@ class SegmentationValidator(DetectionValidator):
     to compute metrics such as mAP for both detection and segmentation tasks.
 
     Attributes:
-        plot_masks (List): List to store masks for plotting.
+        plot_masks (list): List to store masks for plotting.
         process (callable): Function to process masks based on save_json and save_txt flags.
         args (namespace): Arguments for the validator.
         metrics (SegmentMetrics): Metrics calculator for segmentation tasks.
@@ -94,7 +94,7 @@ class SegmentationValidator(DetectionValidator):
         Post-process YOLO predictions and return output detections with proto.
 
         Args:
-            preds (List): Raw predictions from the model.
+            preds (list): Raw predictions from the model.
 
         Returns:
             p (torch.Tensor): Processed detection predictions.
@@ -142,7 +142,7 @@ class SegmentationValidator(DetectionValidator):
         Update metrics with the current batch predictions and targets.
 
         Args:
-            preds (List): Predictions from the model.
+            preds (list): Predictions from the model.
             batch (dict): Batch data containing images and targets.
         """
         for si, (pred, proto) in enumerate(zip(preds[0], preds[1])):
@@ -287,7 +287,7 @@ class SegmentationValidator(DetectionValidator):
 
         Args:
             batch (dict): Batch data containing images.
-            preds (List): Predictions from the model.
+            preds (list): Predictions from the model.
             ni (int): Batch index.
         """
         plot_images(

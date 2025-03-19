@@ -125,7 +125,7 @@ class YOLOv8Seg:
         Args:
             img (np.ndarray): The original input image.
             prep_img (np.ndarray): The preprocessed image used for inference.
-            outs (List): Model outputs containing predictions and prototype masks.
+            outs (list): Model outputs containing predictions and prototype masks.
 
         Returns:
             (List[Results]): Processed detection results containing bounding boxes and segmentation masks.

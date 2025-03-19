@@ -285,7 +285,7 @@ class Compose:
         Converts the list of transforms to a standard Python list.
 
         Returns:
-            (List): A list containing all the transform objects in the Compose instance.
+            (list): A list containing all the transform objects in the Compose instance.
 
         Examples:
             >>> transforms = [RandomFlip(), RandomPerspective(10), CenterCrop()]

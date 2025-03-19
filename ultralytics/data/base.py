@@ -39,11 +39,11 @@ class BaseDataset(Dataset):
         batch_size (int): Size of batches.
         stride (int): Stride used in the model.
         pad (float): Padding value.
-        buffer (List): Buffer for mosaic images.
+        buffer (list): Buffer for mosaic images.
         max_buffer_length (int): Maximum buffer size.
-        ims (List): List of loaded images.
-        im_hw0 (List): List of original image dimensions (h, w).
-        im_hw (List): List of resized image dimensions (h, w).
+        ims (list): List of loaded images.
+        im_hw0 (list): List of original image dimensions (h, w).
+        im_hw (list): List of resized image dimensions (h, w).
         npy_files (List[Path]): List of numpy file paths.
         cache (str): Cache images to RAM or disk during training.
         transforms (callable): Image transformation function.

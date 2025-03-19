@@ -10,7 +10,7 @@ keywords: YOLOE, open-vocabulary detection, real-time object detection, instance
 
 ![YOLOE Prompting Options](https://github.com/THU-MIG/yoloe/raw/main/figures/visualization.svg)
 
-[YOLOE (Real-Time Seeing Anything)](https://arxiv.org/html/2503.07465v1) is a new advancement in zero-shot, promptable YOLO models, designed for **open-vocabulary** detection and segmentation. Unlike previous YOLO models limited to fixed categories, YOLOE uses text, image, or internal vocabulary prompts, enabling real-time detection of any object class. Built upon YOLOv10 and inspired by [YOLO-World](https://docs.ultralytics.com/models/yolo-world/), YOLOE achieves **state-of-the-art zero-shot performance** with minimal impact on speed and accuracy.
+[YOLOE (Real-Time Seeing Anything)](https://arxiv.org/html/2503.07465v1) is a new advancement in zero-shot, promptable YOLO models, designed for **open-vocabulary** detection and segmentation. Unlike previous YOLO models limited to fixed categories, YOLOE uses text, image, or internal vocabulary prompts, enabling real-time detection of any object class. Built upon YOLOv10 and inspired by [YOLO-World](yolo-world.md), YOLOE achieves **state-of-the-art zero-shot performance** with minimal impact on speed and accuracy.
 
 !!! note "Ultralytics Integration Status 🚧"
 
@@ -34,11 +34,11 @@ YOLOE retains the standard YOLO structure—a convolutional **backbone** (e.g., 
 
 Additionally, YOLOE integrates real-time **instance segmentation** by extending the detection head with a mask prediction branch (similar to YOLACT or YOLOv8-Seg), adding minimal overhead.
 
-Crucially, YOLOE's open-world modules introduce **no inference cost** when used as a regular closed-set YOLO. Post-training, YOLOE parameters can be re-parameterized into a standard YOLO head, preserving identical FLOPs and speed (e.g., matching [YOLO11](https://docs.ultralytics.com/models/yolo11/) exactly).
+Crucially, YOLOE's open-world modules introduce **no inference cost** when used as a regular closed-set YOLO. Post-training, YOLOE parameters can be re-parameterized into a standard YOLO head, preserving identical FLOPs and speed (e.g., matching [YOLO11](yolo11.md) exactly).
 
 ## YOLOE Performance Comparison
 
-YOLOE matches or exceeds the accuracy of closed-set YOLO models on standard benchmarks like COCO, without compromising speed or model size. The table below compares YOLOE-L (built on YOLO11) against corresponding [YOLOv8](https://docs.ultralytics.com/models/yolov8/) and YOLO11 models:
+YOLOE matches or exceeds the accuracy of closed-set YOLO models on standard benchmarks like COCO, without compromising speed or model size. The table below compares YOLOE-L (built on YOLO11) against corresponding [YOLOv8](yolov8.md) and YOLO11 models:
 
 | Model                     | COCO mAP<sub>50-95</sub> | Inference Speed (T4)             | Parameters | GFLOPs (640px)     |
 | ------------------------- | ------------------------ | -------------------------------- | ---------- | ------------------ |
@@ -79,13 +79,13 @@ In summary, YOLOE maintains YOLO's renowned speed and efficiency, surpasses pred
 YOLOE's open-vocabulary detection and segmentation enable diverse applications beyond traditional fixed-class models:
 
 - **Open-World Object Detection:**  
-  Ideal for dynamic scenarios like **robotics**, where robots recognize previously unseen objects using prompts, or **security systems** quickly adapting to new threats (e.g., hazardous items) without retraining.
+  Ideal for dynamic scenarios like [robotics](https://www.ultralytics.com/blog/understanding-the-integration-of-computer-vision-in-robotics), where robots recognize previously unseen objects using prompts, or [security systems](https://www.ultralytics.com/blog/computer-vision-for-theft-prevention-enhancing-security) quickly adapting to new threats (e.g., hazardous items) without retraining.
 
 - **Few-Shot and One-Shot Detection:**  
-  Using visual prompts (SAVPE), YOLOE rapidly learns new objects from single reference images—perfect for **industrial inspection** (identifying parts or defects instantly) or **custom surveillance**, enabling visual searches with minimal setup.
+  Using visual prompts (SAVPE), YOLOE rapidly learns new objects from single reference images—perfect for [industrial inspection](https://www.ultralytics.com/blog/computer-vision-in-manufacturing-improving-production-and-quality) (identifying parts or defects instantly) or **custom surveillance**, enabling visual searches with minimal setup.
 
 - **Large-Vocabulary & Long-Tail Recognition:**  
-  Equipped with a vocabulary of 1000+ classes, YOLOE excels in tasks like **biodiversity monitoring** (detecting rare species), **museum collections**, **retail inventory**, or **e-commerce**, reliably identifying many classes without extensive per-class training.
+  Equipped with a vocabulary of 1000+ classes, YOLOE excels in tasks like [biodiversity monitoring](https://www.ultralytics.com/blog/ai-in-wildlife-conservation) (detecting rare species), **museum collections**, [retail inventory](https://www.ultralytics.com/blog/ai-for-smarter-retail-inventory-management), or **e-commerce**, reliably identifying many classes without extensive per-class training.
 
 - **Interactive Detection and Segmentation:**  
   YOLOE supports real-time interactive applications such as **searchable video/image retrieval**, **augmented reality (AR)**, and intuitive **image editing**, driven by natural inputs (text or visual prompts). Users can dynamically isolate, identify, or edit objects precisely using segmentation masks.
@@ -94,9 +94,9 @@ YOLOE's open-vocabulary detection and segmentation enable diverse applications b
   YOLOE facilitates rapid dataset creation by providing initial bounding box and segmentation annotations, significantly reducing human labeling efforts. Particularly valuable in **analytics of large media collections**, where it can auto-identify objects present, assisting in building specialized models faster.
 
 - **Segmentation for Any Object:**  
-  Extends segmentation capabilities to arbitrary objects through prompts—particularly beneficial for **medical imaging**, **microscopy**, or **satellite imagery analysis**, automatically identifying and precisely segmenting structures without specialized pre-trained models. Unlike models like [SAM](https://docs.ultralytics.com/models/sam/), YOLOE simultaneously recognizes and segments objects automatically, aiding in tasks like **content creation** or **scene understanding**.
+  Extends segmentation capabilities to arbitrary objects through prompts—particularly beneficial for [medical imaging](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency), **microscopy**, or [satellite imagery analysis](https://www.ultralytics.com/blog/using-computer-vision-to-analyse-satellite-imagery), automatically identifying and precisely segmenting structures without specialized pre-trained models. Unlike models like [SAM](sam.md), YOLOE simultaneously recognizes and segments objects automatically, aiding in tasks like **content creation** or **scene understanding**.
 
-Across all these use cases, YOLOE's core advantage is **versatility**, providing a unified model for detection, recognition, and segmentation across dynamic scenarios. Its efficiency ensures real-time performance on resource-constrained devices, ideal for robotics, autonomous driving, defense, and beyond.
+Across all these use cases, YOLOE's core advantage is **versatility**, providing a unified model for detection, recognition, and segmentation across dynamic scenarios. Its efficiency ensures real-time performance on resource-constrained devices, ideal for robotics, [autonomous driving](https://www.ultralytics.com/blog/ai-in-self-driving-cars), defense, and beyond.
 
 !!! tip
 
@@ -109,7 +109,7 @@ Across all these use cases, YOLOE's core advantage is **versatility**, providing
 
 ## Training and Inference
 
-YOLOE integrates seamlessly with the [Ultralytics Python API](https://docs.ultralytics.com/usage/python/) and [CLI](https://docs.ultralytics.com/usage/cli/), similar to other YOLO models (YOLOv8, YOLO-World). Here's how to quickly get started:
+YOLOE integrates seamlessly with the [Ultralytics Python API](../usage/python.md) and [CLI](../usage/cli.md), similar to other YOLO models (YOLOv8, YOLO-World). Here's how to quickly get started:
 
 !!! note "Ultralytics Integration Status 🚧"
 
@@ -172,7 +172,7 @@ Quickly set up YOLOE with Ultralytics by following these steps:
 
 3. **Hardware Requirements**:
 
-    - **Inference**: Recommended GPU (NVIDIA with ≥4-8GB VRAM). Small models run efficiently on edge GPUs (e.g., Jetson) or CPUs at lower resolutions.
+    - **Inference**: Recommended GPU (NVIDIA with ≥4-8GB VRAM). Small models run efficiently on edge GPUs (e.g., [Jetson](../guides/nvidia-jetson.md)) or CPUs at lower resolutions.
     - **Training**: Fine-tuning YOLOE on custom data typically requires just one GPU. Extensive open-vocabulary pre-training (LVIS/Objects365) used by authors required substantial compute (8× RTX 4090 GPUs).
 
 4. **Configuration**:
@@ -239,7 +239,7 @@ For further reading, the original YOLOE paper is available on [arXiv](https://ar
 
 ### How does YOLOE differ from YOLO-World?
 
-While both YOLOE and [YOLO-World](https://docs.ultralytics.com/models/yolo-world/) enable open-vocabulary detection, YOLOE offers several advantages. YOLOE achieves +3.5 AP higher accuracy on LVIS while using 3× less training resources and running 1.4× faster than YOLO-Worldv2. YOLOE also supports three prompting modes (text, visual, and internal vocabulary), whereas YOLO-World primarily focuses on text prompts. Additionally, YOLOE includes built-in instance segmentation capabilities, providing pixel-precise masks for detected objects without additional overhead.
+While both YOLOE and [YOLO-World](yolo-world.md) enable open-vocabulary detection, YOLOE offers several advantages. YOLOE achieves +3.5 AP higher accuracy on LVIS while using 3× less training resources and running 1.4× faster than YOLO-Worldv2. YOLOE also supports three prompting modes (text, visual, and internal vocabulary), whereas YOLO-World primarily focuses on text prompts. Additionally, YOLOE includes built-in [instance segmentation](https://www.ultralytics.com/blog/what-is-instance-segmentation-a-quick-guide) capabilities, providing pixel-precise masks for detected objects without additional overhead.
 
 ### Can I use YOLOE as a regular YOLO model?
 
@@ -261,7 +261,7 @@ YOLOE integrates instance segmentation directly into its architecture by extendi
 
 ### How does YOLOE handle inference with custom prompts?
 
-Similar to [YOLO-World](https://docs.ultralytics.com/models/yolo-world/), YOLOE supports a "prompt-then-detect" strategy that utilizes an offline vocabulary to enhance efficiency. Custom prompts like captions or specific object categories are pre-encoded and stored as offline vocabulary embeddings. This approach streamlines the detection process without requiring retraining. You can dynamically set these prompts within the model to tailor it to specific detection tasks:
+Similar to [YOLO-World](yolo-world.md), YOLOE supports a "prompt-then-detect" strategy that utilizes an offline vocabulary to enhance efficiency. Custom prompts like captions or specific object categories are pre-encoded and stored as offline vocabulary embeddings. This approach streamlines the detection process without requiring retraining. You can dynamically set these prompts within the model to tailor it to specific detection tasks:
 
 ```python
 from ultralytics import YOLO

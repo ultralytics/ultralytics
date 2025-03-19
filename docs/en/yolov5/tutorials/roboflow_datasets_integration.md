@@ -6,7 +6,7 @@ keywords: Roboflow, YOLOv5, data management, dataset labeling, dataset versionin
 
 # Roboflow Datasets
 
-You can now use Roboflow to organize, label, prepare, version, and host your datasets for training YOLOv5 🚀 models. Roboflow is free to use with YOLOv5 if you make your workspace public.
+You can now use [Roboflow](https://roboflow.com/?ref=ultralytics) to organize, label, prepare, version, and host your datasets for training Ultralytics YOLOv5 🚀 models. Roboflow is free to use with YOLOv5 if you make your workspace public.
 
 !!! question "Licensing"
 
@@ -23,7 +23,7 @@ You can upload your data to Roboflow via [web UI](https://docs.roboflow.com/addi
 
 ## Labeling
 
-After uploading data to Roboflow, you can label your data and review previous labels.
+After uploading data to Roboflow, you can label your data and review previous labels. Roboflow Annotate provides tools for efficient labeling, including model-assisted labeling to speed up your workflow.
 
 [![Roboflow Annotate](https://github.com/ultralytics/docs/releases/download/0/roboflow-annotate-1.avif)](https://roboflow.com/annotate)
 
@@ -33,12 +33,17 @@ You can make versions of your dataset with different preprocessing and offline a
 
 ![Roboflow Preprocessing](https://github.com/ultralytics/docs/releases/download/0/roboflow-preprocessing.avif)
 
+## Dataset Management
+
+Roboflow provides robust [dataset management tools](https://docs.roboflow.com/datasets?ref=ultralytics) that help you analyze and improve your data quality before training. Use the Health Check feature to identify class imbalances, annotation inconsistencies, and other potential issues that could affect model performance.
+
 ## Exporting Data
 
 You can download your data in YOLOv5 format to quickly begin training.
 
-```
+```python
 from roboflow import Roboflow
+
 rf = Roboflow(api_key="YOUR API KEY HERE")
 project = rf.workspace().project("YOUR PROJECT")
 dataset = project.version("YOUR VERSION").download("yolov5")
@@ -55,6 +60,10 @@ We have released a custom training tutorial demonstrating all of the above capab
 The real world is messy and your model will invariably encounter situations your dataset didn't anticipate. Using [active learning](https://blog.roboflow.com/what-is-active-learning/?ref=ultralytics) is an important strategy to iteratively improve your dataset and model. With the Roboflow and YOLOv5 integration, you can quickly make improvements on your [model deployments](https://www.ultralytics.com/glossary/model-deployment) by using a battle tested [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) pipeline.
 
 <p align=""><a href="https://roboflow.com/?ref=ultralytics"><img width="1000" src="https://github.com/ultralytics/docs/releases/download/0/roboflow-active-learning.avif" alt="Roboflow active learning"></a></p>
+
+## Ultralytics HUB Integration
+
+[Ultralytics HUB](https://www.ultralytics.com/hub) supports direct integration with Roboflow, allowing you to import datasets from both [Roboflow Universe and Workspaces](https://docs.ultralytics.com/hub/integrations/). This integration streamlines the workflow from data management to model training in a single platform.
 
 ## Supported Environments
 

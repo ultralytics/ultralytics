@@ -1183,7 +1183,7 @@ class SettingsManager(JSONDict):
     Attributes:
         file (Path): The path to the JSON file used for persistence.
         version (str): The version of the settings schema.
-        defaults (Dict): A dictionary containing default settings.
+        defaults (dict): A dictionary containing default settings.
         help_msg (str): A help message for users on how to view and update settings.
 
     Methods:

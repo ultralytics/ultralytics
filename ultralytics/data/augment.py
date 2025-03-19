@@ -86,10 +86,10 @@ class BaseTransform:
         logic.
 
         Args:
-            labels (Dict): A dictionary containing label information, including object instances.
+            labels (dict): A dictionary containing label information, including object instances.
 
         Returns:
-            (Dict): The modified labels dictionary with transformed object instances.
+            (dict): The modified labels dictionary with transformed object instances.
 
         Examples:
             >>> transform = BaseTransform()
@@ -127,11 +127,11 @@ class BaseTransform:
         image and object instances, respectively.
 
         Args:
-            labels (Dict): A dictionary containing image data and annotations. Expected keys include 'img' for
+            labels (dict): A dictionary containing image data and annotations. Expected keys include 'img' for
                 the image data, and 'instances' for object instances.
 
         Returns:
-            (Dict): The input labels dictionary with transformed image and instances.
+            (dict): The input labels dictionary with transformed image and instances.
 
         Examples:
             >>> transform = BaseTransform()
@@ -374,10 +374,10 @@ class BaseMixTransform:
         selects additional images, applies pre-transforms if specified, and then performs the mix transform.
 
         Args:
-            labels (Dict): A dictionary containing label data for an image.
+            labels (dict): A dictionary containing label data for an image.
 
         Returns:
-            (Dict): The transformed labels dictionary, which may include mixed data from other images.
+            (dict): The transformed labels dictionary, which may include mixed data from other images.
 
         Examples:
             >>> transform = BaseMixTransform(dataset, pre_transform=None, p=0.5)
@@ -414,11 +414,11 @@ class BaseMixTransform:
         Mosaic. It modifies the input label dictionary in-place with the augmented data.
 
         Args:
-            labels (Dict): A dictionary containing image and label data. Expected to have a 'mix_labels' key
+            labels (dict): A dictionary containing image and label data. Expected to have a 'mix_labels' key
                 with a list of additional image and label data for mixing.
 
         Returns:
-            (Dict): The modified labels dictionary with augmented data after applying the mix transform.
+            (dict): The modified labels dictionary with augmented data after applying the mix transform.
 
         Examples:
             >>> transform = BaseMixTransform(dataset)
@@ -450,11 +450,11 @@ class BaseMixTransform:
         creating a unified set of text labels and updating class IDs accordingly.
 
         Args:
-            labels (Dict): A dictionary containing label information, including 'texts' and 'cls' fields,
+            labels (dict): A dictionary containing label information, including 'texts' and 'cls' fields,
                 and optionally a 'mix_labels' field with additional label dictionaries.
 
         Returns:
-            (Dict): The updated labels dictionary with unified text labels and updated class IDs.
+            (dict): The updated labels dictionary with unified text labels and updated class IDs.
 
         Examples:
             >>> labels = {
@@ -576,12 +576,12 @@ class Mosaic(BaseMixTransform):
         mosaic augmentation.
 
         Args:
-            labels (Dict): A dictionary containing image data and annotations. Expected keys include:
+            labels (dict): A dictionary containing image data and annotations. Expected keys include:
                 - 'rect_shape': Should be None as rect and mosaic are mutually exclusive.
                 - 'mix_labels': A list of dictionaries containing data for other images to be used in the mosaic.
 
         Returns:
-            (Dict): A dictionary containing the mosaic-augmented image and updated annotations.
+            (dict): A dictionary containing the mosaic-augmented image and updated annotations.
 
         Raises:
             AssertionError: If 'rect_shape' is not None or if 'mix_labels' is empty.
@@ -604,12 +604,12 @@ class Mosaic(BaseMixTransform):
         additional images on either side. It's part of the Mosaic augmentation technique used in object detection.
 
         Args:
-            labels (Dict): A dictionary containing image and label information for the main (center) image.
+            labels (dict): A dictionary containing image and label information for the main (center) image.
                 Must include 'img' key with the image array, and 'mix_labels' key with a list of two
                 dictionaries containing information for the side images.
 
         Returns:
-            (Dict): A dictionary with the mosaic image and updated labels. Keys include:
+            (dict): A dictionary with the mosaic image and updated labels. Keys include:
                 - 'img' (np.ndarray): The mosaic image array with shape (H, W, C).
                 - Other keys from the input labels, updated to reflect the new image dimensions.
 
@@ -663,11 +663,11 @@ class Mosaic(BaseMixTransform):
         updates the corresponding labels for each image in the mosaic.
 
         Args:
-            labels (Dict): A dictionary containing image data and labels for the base image (index 0) and three
+            labels (dict): A dictionary containing image data and labels for the base image (index 0) and three
                 additional images (indices 1-3) in the 'mix_labels' key.
 
         Returns:
-            (Dict): A dictionary containing the mosaic image and updated labels. The 'img' key contains the mosaic
+            (dict): A dictionary containing the mosaic image and updated labels. The 'img' key contains the mosaic
                 image as a numpy array, and other keys contain the combined and adjusted labels for all four images.
 
         Examples:
@@ -721,7 +721,7 @@ class Mosaic(BaseMixTransform):
         and eight additional images from the dataset are placed around it in a 3x3 grid pattern.
 
         Args:
-            labels (Dict): A dictionary containing the input image and its associated labels. It should have
+            labels (dict): A dictionary containing the input image and its associated labels. It should have
                 the following keys:
                 - 'img' (numpy.ndarray): The input image.
                 - 'resized_shape' (Tuple[int, int]): The shape of the resized image (height, width).
@@ -729,7 +729,7 @@ class Mosaic(BaseMixTransform):
                   eight images, each with the same structure as the input labels.
 
         Returns:
-            (Dict): A dictionary containing the mosaic image and updated labels. It includes the following keys:
+            (dict): A dictionary containing the mosaic image and updated labels. It includes the following keys:
                 - 'img' (numpy.ndarray): The final mosaic image.
                 - Other keys from the input labels, updated to reflect the new mosaic arrangement.
 
@@ -794,12 +794,12 @@ class Mosaic(BaseMixTransform):
         values. It also denormalizes the coordinates if they were previously normalized.
 
         Args:
-            labels (Dict): A dictionary containing image and instance information.
+            labels (dict): A dictionary containing image and instance information.
             padw (int): Padding width to be added to the x-coordinates.
             padh (int): Padding height to be added to the y-coordinates.
 
         Returns:
-            (Dict): Updated labels dictionary with adjusted instance coordinates.
+            (dict): Updated labels dictionary with adjusted instance coordinates.
 
         Examples:
             >>> labels = {"img": np.zeros((100, 100, 3)), "instances": Instances(...)}
@@ -823,7 +823,7 @@ class Mosaic(BaseMixTransform):
             mosaic_labels (List[Dict]): A list of label dictionaries for each image in the mosaic.
 
         Returns:
-            (Dict): A dictionary containing concatenated and processed labels for the mosaic image, including:
+            (dict): A dictionary containing concatenated and processed labels for the mosaic image, including:
                 - im_file (str): File path of the first image in the mosaic.
                 - ori_shape (Tuple[int, int]): Original shape of the first image.
                 - resized_shape (Tuple[int, int]): Shape of the mosaic image (imgsz * 2, imgsz * 2).
@@ -932,10 +932,10 @@ class MixUp(BaseMixTransform):
         "mixup: Beyond Empirical Risk Minimization" (https://arxiv.org/abs/1710.09412).
 
         Args:
-            labels (Dict): A dictionary containing the original image and label information.
+            labels (dict): A dictionary containing the original image and label information.
 
         Returns:
-            (Dict): A dictionary containing the mixed-up image and combined label information.
+            (dict): A dictionary containing the mixed-up image and combined label information.
 
         Examples:
             >>> mixer = MixUp(dataset)
@@ -1191,7 +1191,7 @@ class RandomPerspective:
         and keypoints accordingly.
 
         Args:
-            labels (Dict): A dictionary containing image data and annotations.
+            labels (dict): A dictionary containing image data and annotations.
                 Must include:
                     'img' (np.ndarray): The input image.
                     'cls' (np.ndarray): Class labels.
@@ -1200,7 +1200,7 @@ class RandomPerspective:
                     'mosaic_border' (Tuple[int, int]): Border size for mosaic augmentation.
 
         Returns:
-            (Dict): Transformed labels dictionary containing:
+            (dict): Transformed labels dictionary containing:
                 - 'img' (np.ndarray): The transformed image.
                 - 'cls' (np.ndarray): Updated class labels.
                 - 'instances' (Instances): Updated object instances.
@@ -1351,7 +1351,7 @@ class RandomHSV:
         The adjustments are made within the limits set by hgain, sgain, and vgain during initialization.
 
         Args:
-            labels (Dict): A dictionary containing image data and metadata. Must include an 'img' key with
+            labels (dict): A dictionary containing image data and metadata. Must include an 'img' key with
                 the image as a numpy array.
 
         Returns:
@@ -1439,13 +1439,13 @@ class RandomFlip:
         match the flipped image.
 
         Args:
-            labels (Dict): A dictionary containing the following keys:
+            labels (dict): A dictionary containing the following keys:
                 'img' (numpy.ndarray): The image to be flipped.
                 'instances' (ultralytics.utils.instance.Instances): An object containing bounding boxes and
                     optionally keypoints.
 
         Returns:
-            (Dict): The same dictionary with the flipped image and updated instances:
+            (dict): The same dictionary with the flipped image and updated instances:
                 'img' (numpy.ndarray): The flipped image.
                 'instances' (ultralytics.utils.instance.Instances): Updated instances matching the flipped image.
 
@@ -1611,13 +1611,13 @@ class LetterBox:
         to account for resizing and padding applied during letterboxing.
 
         Args:
-            labels (Dict): A dictionary containing image labels and instances.
+            labels (dict): A dictionary containing image labels and instances.
             ratio (Tuple[float, float]): Scaling ratios (width, height) applied to the image.
             padw (float): Padding width added to the image.
             padh (float): Padding height added to the image.
 
         Returns:
-            (Dict): Updated labels dictionary with modified instance coordinates.
+            (dict): Updated labels dictionary with modified instance coordinates.
 
         Examples:
             >>> letterbox = LetterBox(new_shape=(640, 640))
@@ -1879,13 +1879,13 @@ class Albumentations:
         spatial and non-spatial transformations on the input image and its corresponding labels.
 
         Args:
-            labels (Dict): A dictionary containing image data and annotations. Expected keys are:
+            labels (dict): A dictionary containing image data and annotations. Expected keys are:
                 - 'img': numpy.ndarray representing the image
                 - 'cls': numpy.ndarray of class labels
                 - 'instances': object containing bounding boxes and other instance information
 
         Returns:
-            (Dict): The input dictionary with augmented image and updated annotations.
+            (dict): The input dictionary with augmented image and updated annotations.
 
         Examples:
             >>> transform = Albumentations(p=0.5)
@@ -2019,13 +2019,13 @@ class Format:
         applying normalization if required.
 
         Args:
-            labels (Dict): A dictionary containing image and annotation data with the following keys:
+            labels (dict): A dictionary containing image and annotation data with the following keys:
                 - 'img': The input image as a numpy array.
                 - 'cls': Class labels for instances.
                 - 'instances': An Instances object containing bounding boxes, segments, and keypoints.
 
         Returns:
-            (Dict): A dictionary with formatted data, including:
+            (dict): A dictionary with formatted data, including:
                 - 'img': Formatted image tensor.
                 - 'cls': Class label's tensor.
                 - 'bboxes': Bounding boxes tensor in the specified format.
@@ -2222,10 +2222,10 @@ class RandomLoadText:
         new sampled text order.
 
         Args:
-            labels (Dict): A dictionary containing image labels and metadata. Must include 'texts' and 'cls' keys.
+            labels (dict): A dictionary containing image labels and metadata. Must include 'texts' and 'cls' keys.
 
         Returns:
-            (Dict): Updated labels dictionary with new 'cls' and 'texts' entries.
+            (dict): Updated labels dictionary with new 'cls' and 'texts' entries.
 
         Examples:
             >>> loader = RandomLoadText(prompt_format="A photo of {}", neg_samples=(5, 10), max_samples=20)

@@ -78,7 +78,7 @@ class AutoBackend(nn.Module):
         model (torch.nn.Module): The loaded YOLO model.
         device (torch.device): The device (CPU or GPU) on which the model is loaded.
         task (str): The type of task the model performs (detect, segment, classify, pose).
-        names (Dict): A dictionary of class names that the model can detect.
+        names (dict): A dictionary of class names that the model can detect.
         stride (int): The model stride, typically 32 for YOLO models.
         fp16 (bool): Whether the model uses half-precision (FP16) inference.
 

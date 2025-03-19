@@ -48,7 +48,7 @@ class Predictor(BasePredictor):
         device (torch.device): The device (CPU or GPU) on which the model is loaded.
         im (torch.Tensor): The preprocessed input image.
         features (torch.Tensor): Extracted image features.
-        prompts (Dict): Dictionary to store various types of prompts (e.g., bboxes, points, masks).
+        prompts (dict): Dictionary to store various types of prompts (e.g., bboxes, points, masks).
         segment_all (bool): Flag to indicate if full image segmentation should be performed.
         mean (torch.Tensor): Mean values for image normalization.
         std (torch.Tensor): Standard deviation values for image normalization.
@@ -86,7 +86,7 @@ class Predictor(BasePredictor):
         for optimal results.
 
         Args:
-            cfg (Dict): Configuration dictionary containing default settings.
+            cfg (dict): Configuration dictionary containing default settings.
             overrides (Dict | None): Dictionary of values to override default configuration.
             _callbacks (Dict | None): Dictionary of callback functions to customize behavior.
 
@@ -634,7 +634,7 @@ class SAM2Predictor(Predictor):
         device (torch.device): The device (CPU or GPU) on which the model is loaded.
         features (Dict[str, torch.Tensor]): Cached image features for efficient inference.
         segment_all (bool): Flag to indicate if all segments should be predicted.
-        prompts (Dict): Dictionary to store various types of prompts for inference.
+        prompts (dict): Dictionary to store various types of prompts for inference.
 
     Methods:
         get_model: Retrieves and initializes the SAM2 model.
@@ -818,11 +818,11 @@ class SAM2VideoPredictor(SAM2Predictor):
     clearing memory for non-conditional inputs, and setting up callbacks for prediction events.
 
     Attributes:
-        inference_state (Dict): A dictionary to store the current state of inference operations.
+        inference_state (dict): A dictionary to store the current state of inference operations.
         non_overlap_masks (bool): A flag indicating whether masks should be non-overlapping.
         clear_non_cond_mem_around_input (bool): A flag to control clearing non-conditional memory around inputs.
         clear_non_cond_mem_for_multi_obj (bool): A flag to control clearing non-conditional memory for multi-object scenarios.
-        callbacks (Dict): A dictionary of callbacks for various prediction lifecycle events.
+        callbacks (dict): A dictionary of callbacks for various prediction lifecycle events.
 
     Args:
         cfg (Dict, Optional): Configuration settings for the predictor. Defaults to DEFAULT_CFG.
@@ -844,7 +844,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         that control the behavior of the predictor.
 
         Args:
-            cfg (Dict): Configuration dictionary containing default settings.
+            cfg (dict): Configuration dictionary containing default settings.
             overrides (Dict | None): Dictionary of values to override default configuration.
             _callbacks (Dict | None): Dictionary of callback functions to customize behavior.
 
@@ -1284,7 +1284,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         Run tracking on a single frame based on current inputs and previous memory.
 
         Args:
-            output_dict (Dict): The dictionary containing the output states of the tracking process.
+            output_dict (dict): The dictionary containing the output states of the tracking process.
             frame_idx (int): The index of the current frame.
             batch_size (int): The batch size for processing the frame.
             is_init_cond_frame (bool): Indicates if the current frame is an initial conditioning frame.
@@ -1559,7 +1559,7 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         Args:
             frame_idx (int): The index of the current frame.
-            current_out (Dict): The current output dictionary containing multi-object outputs.
+            current_out (dict): The current output dictionary containing multi-object outputs.
             storage_key (str): The key used to store the output in the per-object output dictionary.
         """
         maskmem_features = current_out["maskmem_features"]

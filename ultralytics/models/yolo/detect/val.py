@@ -32,7 +32,7 @@ class DetectionValidator(BaseValidator):
         niou (int): Number of IoU thresholds.
         lb (List): List for storing ground truth labels for hybrid saving.
         jdict (List): List for storing JSON detection results.
-        stats (Dict): Dictionary for storing statistics during validation.
+        stats (dict): Dictionary for storing statistics during validation.
 
     Examples:
         >>> from ultralytics.models.yolo.detect import DetectionValidator
@@ -74,10 +74,10 @@ class DetectionValidator(BaseValidator):
         Preprocess batch of images for YOLO validation.
 
         Args:
-            batch (Dict): Batch containing images and annotations.
+            batch (dict): Batch containing images and annotations.
 
         Returns:
-            (Dict): Preprocessed batch.
+            (dict): Preprocessed batch.
         """
         batch["img"] = batch["img"].to(self.device, non_blocking=True)
         batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255
@@ -154,10 +154,10 @@ class DetectionValidator(BaseValidator):
 
         Args:
             si (int): Batch index.
-            batch (Dict): Batch data containing images and annotations.
+            batch (dict): Batch data containing images and annotations.
 
         Returns:
-            (Dict): Prepared batch with processed annotations.
+            (dict): Prepared batch with processed annotations.
         """
         idx = batch["batch_idx"] == si
         cls = batch["cls"][idx].squeeze(-1)
@@ -176,7 +176,7 @@ class DetectionValidator(BaseValidator):
 
         Args:
             pred (torch.Tensor): Model predictions.
-            pbatch (Dict): Prepared batch information.
+            pbatch (dict): Prepared batch information.
 
         Returns:
             (torch.Tensor): Prepared predictions in native space.
@@ -193,7 +193,7 @@ class DetectionValidator(BaseValidator):
 
         Args:
             preds (List[torch.Tensor]): List of predictions from the model.
-            batch (Dict): Batch data containing ground truth.
+            batch (dict): Batch data containing ground truth.
         """
         for si, pred in enumerate(preds):
             self.seen += 1
@@ -258,7 +258,7 @@ class DetectionValidator(BaseValidator):
         Calculate and return metrics statistics.
 
         Returns:
-            (Dict): Dictionary containing metrics results.
+            (dict): Dictionary containing metrics results.
         """
         stats = {k: torch.cat(v, 0).cpu().numpy() for k, v in self.stats.items()}  # to numpy
         self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=self.nc)
@@ -338,7 +338,7 @@ class DetectionValidator(BaseValidator):
         Plot validation image samples.
 
         Args:
-            batch (Dict): Batch containing images and annotations.
+            batch (dict): Batch containing images and annotations.
             ni (int): Batch index.
         """
         plot_images(
@@ -357,7 +357,7 @@ class DetectionValidator(BaseValidator):
         Plot predicted bounding boxes on input images and save the result.
 
         Args:
-            batch (Dict): Batch containing images and annotations.
+            batch (dict): Batch containing images and annotations.
             preds (List[torch.Tensor]): List of predictions from the model.
             ni (int): Batch index.
         """
@@ -416,10 +416,10 @@ class DetectionValidator(BaseValidator):
         Evaluate YOLO output in JSON format and return performance statistics.
 
         Args:
-            stats (Dict): Current statistics dictionary.
+            stats (dict): Current statistics dictionary.
 
         Returns:
-            (Dict): Updated statistics dictionary with COCO/LVIS evaluation results.
+            (dict): Updated statistics dictionary with COCO/LVIS evaluation results.
         """
         if self.args.save_json and (self.is_coco or self.is_lvis) and len(self.jdict):
             pred_json = self.save_dir / "predictions.json"  # predictions

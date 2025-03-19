@@ -26,7 +26,7 @@ class SegmentationValidator(DetectionValidator):
         process (callable): Function to process masks based on save_json and save_txt flags.
         args (namespace): Arguments for the validator.
         metrics (SegmentMetrics): Metrics calculator for segmentation tasks.
-        stats (Dict): Dictionary to store statistics during validation.
+        stats (dict): Dictionary to store statistics during validation.
 
     Examples:
         >>> from ultralytics.models.yolo.segment import SegmentationValidator
@@ -110,10 +110,10 @@ class SegmentationValidator(DetectionValidator):
 
         Args:
             si (int): Batch index.
-            batch (Dict): Batch data containing images and targets.
+            batch (dict): Batch data containing images and targets.
 
         Returns:
-            (Dict): Prepared batch with processed images and targets.
+            (dict): Prepared batch with processed images and targets.
         """
         prepared_batch = super()._prepare_batch(si, batch)
         midx = [si] if self.args.overlap_mask else batch["batch_idx"] == si
@@ -126,7 +126,7 @@ class SegmentationValidator(DetectionValidator):
 
         Args:
             pred (torch.Tensor): Raw predictions from the model.
-            pbatch (Dict): Prepared batch data.
+            pbatch (dict): Prepared batch data.
             proto (torch.Tensor): Prototype masks for segmentation.
 
         Returns:
@@ -143,7 +143,7 @@ class SegmentationValidator(DetectionValidator):
 
         Args:
             preds (List): Predictions from the model.
-            batch (Dict): Batch data containing images and targets.
+            batch (dict): Batch data containing images and targets.
         """
         for si, (pred, proto) in enumerate(zip(preds[0], preds[1])):
             self.seen += 1
@@ -266,7 +266,7 @@ class SegmentationValidator(DetectionValidator):
         Plot validation samples with bounding box labels and masks.
 
         Args:
-            batch (Dict): Batch data containing images and targets.
+            batch (dict): Batch data containing images and targets.
             ni (int): Batch index.
         """
         plot_images(
@@ -286,7 +286,7 @@ class SegmentationValidator(DetectionValidator):
         Plot batch predictions with masks and bounding boxes.
 
         Args:
-            batch (Dict): Batch data containing images.
+            batch (dict): Batch data containing images.
             preds (List): Predictions from the model.
             ni (int): Batch index.
         """

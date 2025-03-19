@@ -15,8 +15,8 @@ class WorldTrainerFromScratch(WorldTrainer):
     supporting training YOLO-World models with combined vision-language capabilities.
 
     Attributes:
-        cfg (Dict): Configuration dictionary with default parameters for model training.
-        overrides (Dict): Dictionary of parameter overrides to customize the configuration.
+        cfg (dict): Configuration dictionary with default parameters for model training.
+        overrides (dict): Dictionary of parameter overrides to customize the configuration.
         _callbacks (List): List of callback functions to be executed during different stages of training.
 
     Examples:
@@ -126,7 +126,7 @@ class WorldTrainerFromScratch(WorldTrainer):
         Configures the validator with appropriate dataset and split information before running evaluation.
 
         Returns:
-            (Dict): Dictionary containing evaluation metrics and results.
+            (dict): Dictionary containing evaluation metrics and results.
         """
         val = self.args.data["val"]["yolo_data"][0]
         self.validator.args.data = val

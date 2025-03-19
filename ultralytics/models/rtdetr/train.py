@@ -21,8 +21,8 @@ class RTDETRTrainer(DetectionTrainer):
 
     Attributes:
         loss_names (Tuple[str]): Names of the loss components used for training.
-        data (Dict): Dataset configuration containing class count and other parameters.
-        args (Dict): Training arguments and hyperparameters.
+        data (dict): Dataset configuration containing class count and other parameters.
+        args (dict): Training arguments and hyperparameters.
         save_dir (Path): Directory to save training results.
         test_loader (DataLoader): DataLoader for validation/testing data.
 
@@ -91,10 +91,10 @@ class RTDETRTrainer(DetectionTrainer):
         Preprocess a batch of images by scaling and converting to float format.
 
         Args:
-            batch (Dict): Dictionary containing a batch of images, bboxes, and labels.
+            batch (dict): Dictionary containing a batch of images, bboxes, and labels.
 
         Returns:
-            (Dict): Preprocessed batch with ground truth bounding boxes and classes separated by batch index.
+            (dict): Preprocessed batch with ground truth bounding boxes and classes separated by batch index.
         """
         batch = super().preprocess_batch(batch)
         bs = len(batch["img"])

@@ -134,10 +134,10 @@ class RTDETRValidator(DetectionValidator):
 
         Args:
             si (int): Batch index.
-            batch (Dict): Batch data containing images and annotations.
+            batch (dict): Batch data containing images and annotations.
 
         Returns:
-            (Dict): Prepared batch with transformed annotations.
+            (dict): Prepared batch with transformed annotations.
         """
         idx = batch["batch_idx"] == si
         cls = batch["cls"][idx].squeeze(-1)
@@ -157,7 +157,7 @@ class RTDETRValidator(DetectionValidator):
 
         Args:
             pred (torch.Tensor): Raw predictions.
-            pbatch (Dict): Prepared batch information.
+            pbatch (dict): Prepared batch information.
 
         Returns:
             (torch.Tensor): Predictions scaled to original image dimensions.

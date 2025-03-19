@@ -24,7 +24,7 @@ class YOLOv8Seg:
     Attributes:
         session (ort.InferenceSession): ONNX Runtime inference session for model execution.
         imgsz (Tuple[int, int]): Input image size as (height, width) for the model.
-        classes (Dict): Dictionary mapping class indices to class names from the dataset.
+        classes (dict): Dictionary mapping class indices to class names from the dataset.
         conf (float): Confidence threshold for filtering detections.
         iou (float): IoU threshold used by non-maximum suppression.
 

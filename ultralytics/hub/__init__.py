@@ -95,25 +95,31 @@ def export_fmts_hub():
     return list(export_formats()["Argument"][1:]) + ["ultralytics_tflite", "ultralytics_coreml"]
 
 
-def export_model(model_id: str = "", format: str = "torchscript"):
+def export_model(model_id: str = "", output_format: str = "torchscript"):
     """Export a model to the specified format."""
-    assert format in export_fmts_hub(), f"Unsupported export format '{format}', valid formats are {export_fmts_hub()}"
-    r = requests.post(
-        f"{HUB_API_ROOT}/v1/models/{model_id}/export", json={"format": format}, headers={"x-api-key": Auth().api_key}
+    assert output_format in export_fmts_hub(), (
+        f"Unsupported export format '{output_format}', valid formats are {export_fmts_hub()}"
     )
-    assert r.status_code == 200, f"{PREFIX}{format} export failure {r.status_code} {r.reason}"
-    LOGGER.info(f"{PREFIX}{format} export started ✅")
-
-
-def get_export(model_id: str = "", format: str = "torchscript"):
-    """Get an exported model dictionary with download URL."""
-    assert format in export_fmts_hub(), f"Unsupported export format '{format}', valid formats are {export_fmts_hub()}"
     r = requests.post(
-        f"{HUB_API_ROOT}/get-export",
-        json={"apiKey": Auth().api_key, "modelId": model_id, "format": format},
+        f"{HUB_API_ROOT}/v1/models/{model_id}/export",
+        json={"format": output_format},
         headers={"x-api-key": Auth().api_key},
     )
-    assert r.status_code == 200, f"{PREFIX}{format} get_export failure {r.status_code} {r.reason}"
+    assert r.status_code == 200, f"{PREFIX}{output_format} export failure {r.status_code} {r.reason}"
+    LOGGER.info(f"{PREFIX}{output_format} export started ✅")
+
+
+def get_export(model_id: str = "", output_format: str = "torchscript"):
+    """Get an exported model dictionary with download URL."""
+    assert output_format in export_fmts_hub(), (
+        f"Unsupported export format '{output_format}', valid formats are {export_fmts_hub()}"
+    )
+    r = requests.post(
+        f"{HUB_API_ROOT}/get-export",
+        json={"apiKey": Auth().api_key, "modelId": model_id, "format": output_format},
+        headers={"x-api-key": Auth().api_key},
+    )
+    assert r.status_code == 200, f"{PREFIX}{output_format} get_export failure {r.status_code} {r.reason}"
     return r.json()
 
 

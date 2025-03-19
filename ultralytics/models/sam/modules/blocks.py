@@ -190,7 +190,7 @@ class CXBlock(nn.Module):
 
     def forward(self, x):
         """Applies ConvNeXt block operations to input tensor, including convolutions and residual connection."""
-        input = x
+        input_tensor = x
         x = self.dwconv(x)
         x = self.norm(x)
         x = x.permute(0, 2, 3, 1)  # (N, C, H, W) -> (N, H, W, C)
@@ -201,7 +201,7 @@ class CXBlock(nn.Module):
             x = self.gamma * x
         x = x.permute(0, 3, 1, 2)  # (N, H, W, C) -> (N, C, H, W)
 
-        x = input + self.drop_path(x)
+        x = input_tensor + self.drop_path(x)
         return x
 
 

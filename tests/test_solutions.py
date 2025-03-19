@@ -20,7 +20,7 @@ PARKING_MODEL = "solutions_ci_parking_model.pt"  # only for parking management s
 @pytest.mark.slow
 def test_major_solutions():
     """Test the object counting, heatmap, speed estimation, trackzone and queue management solution."""
-    safe_download(url=f"{ASSETS_URL}/{DEMO_VIDEO}", dir=TMP)
+    safe_download(url=f"{ASSETS_URL}/{DEMO_VIDEO}", path=TMP)
     cap = cv2.VideoCapture(str(TMP / DEMO_VIDEO))
     assert cap.isOpened(), "Error reading video file"
     region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
@@ -68,7 +68,7 @@ def test_major_solutions():
     cap.release()
 
     # Test workouts monitoring
-    safe_download(url=f"{ASSETS_URL}/{POSE_VIDEO}", dir=TMP)
+    safe_download(url=f"{ASSETS_URL}/{POSE_VIDEO}", path=TMP)
     cap = cv2.VideoCapture(str(TMP / POSE_VIDEO))
     assert cap.isOpened(), "Error reading video file"
     gym = solutions.AIGym(kpts=[5, 11, 13], show=False)

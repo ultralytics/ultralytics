@@ -847,7 +847,7 @@ USER_CONFIG_DIR = Path(os.getenv("YOLO_CONFIG_DIR") or get_user_config_dir())  #
 SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"
 
 
-def colorstr(*input):
+def colorstr(*text):
     r"""
     Colors a string based on the provided color and style arguments. Utilizes ANSI escape codes.
     See https://en.wikipedia.org/wiki/ANSI_escape_code for more details.
@@ -859,7 +859,7 @@ def colorstr(*input):
     In the second form, 'blue' and 'bold' will be applied by default.
 
     Args:
-        *input (str | Path): A sequence of strings where the first n-1 strings are color and style arguments,
+        *text (str | Path): A sequence of strings where the first n-1 strings are color and style arguments,
                       and the last string is the one to be colored.
 
     Supported Colors and Styles:
@@ -869,13 +869,13 @@ def colorstr(*input):
         Misc: 'end', 'bold', 'underline'
 
     Returns:
-        (str): The input string wrapped with ANSI escape codes for the specified color and style.
+        (str): The text string wrapped with ANSI escape codes for the specified color and style.
 
     Examples:
         >>> colorstr("blue", "bold", "hello world")
         >>> "\033[34m\033[1mhello world\033[0m"
     """
-    *args, string = input if len(input) > 1 else ("blue", "bold", input[0])  # color arguments, string
+    *text, string = text if len(text) > 1 else ("blue", "bold", text[0])  # color arguments, string
     colors = {
         "black": "\033[30m",  # basic colors
         "red": "\033[31m",
@@ -897,7 +897,7 @@ def colorstr(*input):
         "bold": "\033[1m",
         "underline": "\033[4m",
     }
-    return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
+    return "".join(colors[x] for x in text) + f"{string}" + colors["end"]
 
 
 def remove_colorstr(input_string):

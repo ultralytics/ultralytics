@@ -777,12 +777,12 @@ def cuda_memory_usage(device=None):
         yield cuda_info
 
 
-def profile(input, ops, n=10, device=None, max_num_obj=0):
+def profile(obj, ops, n=10, device=None, max_num_obj=0):
     """
     Ultralytics speed, memory and FLOPs profiler.
 
     Args:
-        input (torch.Tensor | List[torch.Tensor]): Input tensor(s) to profile.
+        obj (torch.Tensor | List[torch.Tensor]): Input tensor(s) to profile.
         ops (nn.Module | List[nn.Module]): Model or list of operations to profile.
         n (int, optional): Number of iterations to average. Defaults to 10.
         device (str | torch.device, optional): Device to profile on. Defaults to None.
@@ -807,7 +807,7 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
     )
     gc.collect()  # attempt to free unused memory
     torch.cuda.empty_cache()
-    for x in input if isinstance(input, list) else [input]:
+    for x in obj if isinstance(obj, list) else [obj]:
         x = x.to(device)
         x.requires_grad = True
         for m in ops if isinstance(ops, list) else [ops]:

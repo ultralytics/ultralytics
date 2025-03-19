@@ -138,7 +138,7 @@ def validate_args(format, passed_args, valid_args):
     Args:
         format (str): The export format.
         passed_args (Namespace): The arguments used during export.
-        valid_args (List): List of valid arguments for the format.
+        valid_args (list): List of valid arguments for the format.
 
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
@@ -210,7 +210,7 @@ class Exporter:
 
     Attributes:
         args (SimpleNamespace): Configuration for the exporter.
-        callbacks (List, optional): List of callback functions.
+        callbacks (list, optional): List of callback functions.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -219,8 +219,8 @@ class Exporter:
 
         Args:
             cfg (str, optional): Path to a configuration file.
-            overrides (Dict, optional): Configuration overrides.
-            _callbacks (Dict, optional): Dictionary of callback functions.
+            overrides (dict, optional): Configuration overrides.
+            _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
         if self.args.format.lower() in {"coreml", "mlmodel"}:  # fix attempt for protobuf<3.20.x errors

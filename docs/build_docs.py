@@ -280,7 +280,9 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
 
         # Remove JS multi-line comments and clean whitespace
         content = re.sub(r"/\*[\s\S]*?\*/", "", content)
+        # Remove empty lines
         content = re.sub(r"^\s*\n", "", content, flags=re.MULTILINE)
+        # Collapse multiple spaces to single space
         content = re.sub(r"\s{2,}", " ", content)
 
         # Safe space removal around punctuation and operators (NEVER include colons - breaks JS)

@@ -121,6 +121,11 @@ class BasePredictor:
         self.done_warmup = False
         if self.args.show:
             self.args.show = check_imshow(warn=True)
+        if self.args.classes and self.args.classes == "soft":
+            self.args.classes = None
+            self.args.soft_label = True
+        else:
+            self.args.soft_label = False
 
         # Usable if setup is done
         self.model = None

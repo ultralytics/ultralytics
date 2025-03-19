@@ -15,7 +15,7 @@ class DetectionPredictor(BasePredictor):
     Attributes:
         args (namespace): Configuration arguments for the predictor.
         model (nn.Module): The detection model used for inference.
-        batch (List): Batch of images and metadata for processing.
+        batch (list): Batch of images and metadata for processing.
 
     Methods:
         postprocess: Process raw model predictions into detection results.

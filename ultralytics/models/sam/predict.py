@@ -825,8 +825,8 @@ class SAM2VideoPredictor(SAM2Predictor):
         callbacks (dict): A dictionary of callbacks for various prediction lifecycle events.
 
     Args:
-        cfg (Dict, Optional): Configuration settings for the predictor. Defaults to DEFAULT_CFG.
-        overrides (Dict, Optional): Additional configuration overrides. Defaults to None.
+        cfg (dict, Optional): Configuration settings for the predictor. Defaults to DEFAULT_CFG.
+        overrides (dict, Optional): Additional configuration overrides. Defaults to None.
         _callbacks (List, Optional): Custom callbacks to be added. Defaults to None.
 
     Note:
@@ -1288,7 +1288,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             frame_idx (int): The index of the current frame.
             batch_size (int): The batch size for processing the frame.
             is_init_cond_frame (bool): Indicates if the current frame is an initial conditioning frame.
-            point_inputs (Dict, Optional): Input points and their labels. Defaults to None.
+            point_inputs (dict, Optional): Input points and their labels. Defaults to None.
             mask_inputs (torch.Tensor, Optional): Input binary masks. Defaults to None.
             reverse (bool): Indicates if the tracking should be performed in reverse order.
             run_mem_encoder (bool): Indicates if the memory encoder should be executed.

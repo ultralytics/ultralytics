@@ -31,7 +31,7 @@ class RTDETRDataset(YOLODataset):
         Build transformation pipeline for the dataset.
 
         Args:
-            hyp (Dict, optional): Hyperparameters for transformations.
+            hyp (dict, optional): Hyperparameters for transformations.
 
         Returns:
             (Compose): Composition of transformation functions.

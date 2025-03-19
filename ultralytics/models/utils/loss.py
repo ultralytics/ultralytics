@@ -356,7 +356,7 @@ class RTDETRDetectionLoss(DETRLoss):
             batch (dict): Batch data containing ground truth information.
             dn_bboxes (torch.Tensor, optional): Denoising bounding boxes.
             dn_scores (torch.Tensor, optional): Denoising scores.
-            dn_meta (Dict, optional): Metadata for denoising.
+            dn_meta (dict, optional): Metadata for denoising.
 
         Returns:
             (dict): Dictionary containing total loss and denoising loss if applicable.

@@ -100,7 +100,7 @@ class BaseValidator:
             save_dir (Path, optional): Directory to save results.
             pbar (tqdm.tqdm, optional): Progress bar for displaying progress.
             args (SimpleNamespace, optional): Configuration for the validator.
-            _callbacks (Dict, optional): Dictionary to store various callback functions.
+            _callbacks (dict, optional): Dictionary to store various callback functions.
         """
         self.args = get_cfg(overrides=args)
         self.dataloader = dataloader

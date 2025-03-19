@@ -219,8 +219,8 @@ class Exporter:
 
         Args:
             cfg (str, optional): Path to a configuration file.
-            overrides (Dict, optional): Configuration overrides.
-            _callbacks (Dict, optional): Dictionary of callback functions.
+            overrides (dict, optional): Configuration overrides.
+            _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
         if self.args.format.lower() in {"coreml", "mlmodel"}:  # fix attempt for protobuf<3.20.x errors

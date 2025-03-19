@@ -95,7 +95,7 @@ class HUBTrainingSession:
 
         Args:
             identifier (str): Model identifier used to initialize the HUB training session.
-            args (Dict, optional): Arguments for creating a new model if identifier is not a HUB model URL.
+            args (dict, optional): Arguments for creating a new model if identifier is not a HUB model URL.
 
         Returns:
             (HUBTrainingSession | None): An authenticated session or None if creation fails.

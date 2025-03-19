@@ -42,7 +42,7 @@ class RTDETRTrainer(DetectionTrainer):
         Initialize and return an RT-DETR model for object detection tasks.
 
         Args:
-            cfg (Dict, optional): Model configuration.
+            cfg (dict, optional): Model configuration.
             weights (str, optional): Path to pre-trained model weights.
             verbose (bool): Verbose logging if True.
 

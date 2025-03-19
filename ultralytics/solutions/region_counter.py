@@ -70,7 +70,7 @@ class RegionCounter(BaseSolution):
 
         Returns:
             (SolutionResults): Contains processed image `plot_im`, 'total_tracks' (int, total number of tracked objects),
-                and 'region_counts' (Dict, counts of objects per region).
+                and 'region_counts' (dict, counts of objects per region).
         """
         self.extract_tracks(im0)
         annotator = SolutionAnnotator(im0, line_width=self.line_width)

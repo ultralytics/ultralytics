@@ -13,7 +13,12 @@ except ImportError:
     import clip
 
 try:
-    import mobileclip
+    import warnings
+    # NOTE: suppress 'timm.models.layers is deprecated, please import via timm.layers' from mobileclip usage,
+    # when users are using timm version >= 0.9.5.
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        import mobileclip
 except ImportError:
     # NOTE: mobileclip repo has an incorrect version of torchvision as dependency,
     # manually installing other dependencies firstly and install mobileclip with "--no-deps" flag.

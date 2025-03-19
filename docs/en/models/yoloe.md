@@ -15,7 +15,7 @@ keywords: YOLOE, open-vocabulary detection, real-time object detection, instance
 !!! note "Ultralytics Integration Status 🚧"
 
     The Ultralytics integration for YOLOE is currently under construction 🔨. The usage examples shown in this documentation will work once the integration is complete ✅. Please check back for updates 🔄 or follow our [GitHub repository](https://github.com/ultralytics/ultralytics) 🚀 for the latest developments.
-  
+
 Compared to earlier YOLO models, YOLOE significantly boosts efficiency and accuracy. It improves by **+3.5 AP** over YOLO-Worldv2 on LVIS while using just a third of the training resources and achieving 1.4× faster inference speeds. Fine-tuned on COCO, YOLOE-large surpasses YOLOv8-L by **~0.6 mAP**, using nearly **4× less training time**. This demonstrates YOLOE's exceptional balance of accuracy, efficiency, and versatility. The sections below explore YOLOE's architecture, benchmark comparisons, and integration with the [Ultralytics](https://www.ultralytics.com/) framework.
 
 ## Architecture Overview
@@ -41,12 +41,12 @@ Crucially, YOLOE's open-world modules introduce **no inference cost** when used 
 YOLOE matches or exceeds the accuracy of closed-set YOLO models on standard benchmarks like COCO, without compromising speed or model size. The table below compares YOLOE-L (built on YOLO11) against corresponding [YOLOv8](https://docs.ultralytics.com/models/yolov8/) and YOLO11 models:
 
 | Model                     | COCO mAP<sub>50-95</sub> | Inference Speed (T4)             | Parameters | GFLOPs (640px)     |
-|---------------------------|--------------------------|----------------------------------|------------|--------------------|
+| ------------------------- | ------------------------ | -------------------------------- | ---------- | ------------------ |
 | **YOLOv8-L** (closed-set) | 52.9%                    | **9.06 ms** (110 FPS)            | 43.7 M     | 165.2 B            |
 | **YOLO11-L** (closed-set) | ~53%                     | **7.7 ms**<sup>†</sup> (130 FPS) | 26.2 M     | 232.0 B            |
 | **YOLOE-L** (open-vocab)  | ~53.5%                   | **7.7 ms** (130 FPS)             | 26.2 M     | ~232 B<sup>†</sup> |
 
-<sup>†</sup> *YOLO11-L and YOLOE-L have identical architectures (prompt modules disabled in YOLO11-L), resulting in identical inference speed and similar GFLOPs estimates.*
+<sup>†</sup> _YOLO11-L and YOLOE-L have identical architectures (prompt modules disabled in YOLO11-L), resulting in identical inference speed and similar GFLOPs estimates._
 
 YOLOE-L achieves **~53.5% mAP**, surpassing YOLOv8-L (**52.9%**) with roughly **40% fewer parameters** (26M vs. 43.7M). It processes 640×640 images in **7.7 ms (130 FPS)** compared to YOLOv8-L's **9.06 ms (110 FPS)**, highlighting YOLO11's efficiency. Crucially, YOLOE's open-vocabulary modules incur **no inference cost**, demonstrating a **"no free lunch trade-off"** design.
 
@@ -103,7 +103,7 @@ Across all these use cases, YOLOE's core advantage is **versatility**, providing
     Choose YOLOE's mode based on your needs:
     - **Closed-set mode:** For fixed-class tasks (max speed and accuracy).
     - **Prompted mode:** Add new objects quickly via text or visual prompts.
-    - **Prompt-free open-set mode:** General detection across many categories (ideal for cataloging and discovery).  
+    - **Prompt-free open-set mode:** General detection across many categories (ideal for cataloging and discovery).
 
     Often, combining modes—such as prompt-free discovery followed by targeted prompts—leverages YOLOE's full potential.
 
@@ -114,36 +114,36 @@ YOLOE integrates seamlessly with the [Ultralytics Python API](https://docs.ultra
 !!! note "Ultralytics Integration Status 🚧"
 
     The Ultralytics integration for YOLOE is currently under development 🔨. The examples below demonstrate how the API will work once integration is complete ✅.
- 
+
 !!! Example "Training and inference with YOLOE"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load pre-trained YOLOE model and train on custom data
         model = YOLO("yoloe-s.pt")
         model.train(data="path/to/data.yaml", epochs=50, imgsz=640)
-        
+
         # Run inference using text prompts ("person", "bus")
         model.set_classes(["person", "bus"])
         results = model.predict(source="test_images/street.jpg")
         results[0].save()  # save annotated output
         ```
-    
+
         Here, YOLOE behaves like a standard detector by default but easily switches to prompted detection by specifying classes (`set_classes`). Results contain bounding boxes, masks, and labels.
-    
+
     === "CLI"
-    
+
         ```bash
         # Training YOLOE on custom dataset
         yolo train model=yoloe-s.pt data=path/to/data.yaml epochs=50 imgsz=640
-        
+
         # Inference with text prompts
         yolo predict model=yoloe-s.pt source="test_images/street.jpg" classes="person,bus"
         ```
-    
+
         CLI prompts (`classes`) guide YOLOE similarly to Python's `set_classes`. Visual prompting (image-based queries) currently requires the Python API.
 
 ### Other Supported Tasks
@@ -162,14 +162,16 @@ Quickly set up YOLOE with Ultralytics by following these steps:
 
 1. **Installation**:
    Install or update the Ultralytics package:
-   ```bash
-   pip install -U ultralytics
-   ```
+
+    ```bash
+    pip install -U ultralytics
+    ```
 
 2. **Download YOLOE Weights**:
    Pre-trained YOLOE models (e.g., YOLOE-v8-S/L, YOLOE-11 variants) are available from the YOLOE GitHub releases. Simply download your desired `.pt` file to load into the Ultralytics YOLO class.
 
 3. **Hardware Requirements**:
+
     - **Inference**: Recommended GPU (NVIDIA with ≥4-8GB VRAM). Small models run efficiently on edge GPUs (e.g., Jetson) or CPUs at lower resolutions.
     - **Training**: Fine-tuning YOLOE on custom data typically requires just one GPU. Extensive open-vocabulary pre-training (LVIS/Objects365) used by authors required substantial compute (8× RTX 4090 GPUs).
 
@@ -177,23 +179,27 @@ Quickly set up YOLOE with Ultralytics by following these steps:
    YOLOE configurations use standard Ultralytics YAML files. Default configs (e.g., `yoloe-s.yaml`) typically suffice, but you can modify backbone, classes, or image size as needed.
 
 5. **Running YOLOE**:
+
     - **Quick inference** (prompt-free):
-      ```bash
-      yolo predict model=yoloe-s.pt source="image.jpg"
-      ```
+        ```bash
+        yolo predict model=yoloe-s.pt source="image.jpg"
+        ```
     - **Prompted detection** (text prompt example):
-      ```bash
-      yolo predict model=yoloe-s.pt source="kitchen.jpg" classes="bowl,apple"
-      ```
-      In Python:
-      ```python
-      from ultralytics import YOLO
- 
-      model = YOLO("yoloe-s.pt")
-      model.set_classes(["bowl", "apple"])
-      results = model.predict("kitchen.jpg")
-      results[0].save()
-      ```
+
+        ```bash
+        yolo predict model=yoloe-s.pt source="kitchen.jpg" classes="bowl,apple"
+        ```
+
+        In Python:
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yoloe-s.pt")
+        model.set_classes(["bowl", "apple"])
+        results = model.predict("kitchen.jpg")
+        results[0].save()
+        ```
 
 6. **Integration Tips**:
     - **Class names**: Default YOLOE outputs use LVIS categories; use `set_classes()` to specify your own labels.
@@ -204,7 +210,7 @@ The [Ultralytics documentation](https://docs.ultralytics.com/) provides further 
 
 !!! tip
 
-    **Pro Tip:**  
+    **Pro Tip:**
     To maximize YOLOE's zero-shot accuracy, fine-tune from provided checkpoints rather than training from scratch. Use prompt words aligning with common training labels (see LVIS categories) to improve detection accuracy.
 
 ## Citations and Acknowledgements
@@ -217,13 +223,13 @@ If YOLOE has contributed to your research or project, please cite the original p
 
         ```bibtex
         @misc{wang2025yoloerealtimeseeing,
-              title={YOLOE: Real-Time Seeing Anything}, 
+              title={YOLOE: Real-Time Seeing Anything},
               author={Ao Wang and Lihao Liu and Hui Chen and Zijia Lin and Jungong Han and Guiguang Ding},
               year={2025},
               eprint={2503.07465},
               archivePrefix={arXiv},
               primaryClass={cs.CV},
-              url={https://arxiv.org/abs/2503.07465}, 
+              url={https://arxiv.org/abs/2503.07465},
         }
         ```
 

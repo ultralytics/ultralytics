@@ -18,7 +18,7 @@ class OBBValidator(DetectionValidator):
     satellite imagery where objects can appear at various orientations.
 
     Attributes:
-        args (Dict): Configuration arguments for the validator.
+        args (dict): Configuration arguments for the validator.
         metrics (OBBMetrics): Metrics object for evaluating OBB model performance.
         is_dota (bool): Flag indicating whether the validation dataset is in DOTA format.
 

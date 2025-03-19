@@ -51,7 +51,7 @@ head:
   - [-1, 3, C2f, [256, False]]  # Fuse features  Index 22
 
   # Detection head
-  - [[12, 15, 18], 1, Detect, [nc]]  # Detect from P3, P4, P5
+  - [[18, 21, 24], 1, Detect, [nc]]  # Detect from P3, P4, P5
 
 # backbone:
 #   - [-1, 1, ResNetLayer, [3, 64, 1, True, 1]]   # P1/2 -> Index 0

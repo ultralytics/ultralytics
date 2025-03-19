@@ -271,12 +271,16 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
         # Remove all newlines
         content = re.sub(r"\n", "", content)
     elif file_type == "js":
-        # Handle JS single-line comments (preserving URLs)
-        lines = [
-            line.split("//")[0] if "//" in line and "http://" not in line and "https://" not in line else line
-            for line in content.split("\n")
-        ]
-        content = "\n".join(lines)
+        # Handle JS single-line comments (preserving http:// and https://)
+        lines = content.split("\n")
+        processed_lines = []
+        for line in lines:
+            # Only remove comments if they're not part of a URL
+            if "//" in line and "http://" not in line and "https://" not in line:
+                processed_lines.append(line.split("//")[0])
+            else:
+                processed_lines.append(line)
+        content = "\n".join(processed_lines)
 
         # Remove JS multi-line comments and clean whitespace
         content = re.sub(r"/\*[\s\S]*?\*/", "", content)

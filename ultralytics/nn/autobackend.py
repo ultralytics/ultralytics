@@ -185,6 +185,8 @@ class AutoBackend(nn.Module):
 
         # TorchScript
         elif jit:
+            import torchvision  # noqa - https://github.com/ultralytics/ultralytics/pull/19747
+
             LOGGER.info(f"Loading {w} for TorchScript inference...")
             extra_files = {"config.txt": ""}  # model metadata
             model = torch.jit.load(w, _extra_files=extra_files, map_location=device)

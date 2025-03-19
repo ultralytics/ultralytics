@@ -252,7 +252,7 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
     Typical reductions for Ultralytics Docs are:
         - Total HTML reduction: 2.83% (1301.56 KB saved)
         - Total CSS reduction: 1.75% (2.61 KB saved)
-        - Total JS reduction: 13.72% (100.88 KB saved)
+        - Total JS reduction: 13.51% (99.31 KB saved)
     """
     if file_type == "html":
         # Remove HTML comments
@@ -288,8 +288,14 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
         content = re.sub(r"^\s*\n", "", content, flags=re.MULTILINE)
         # Collapse multiple spaces to single space
         content = re.sub(r"\s{2,}", " ", content)
-        # Remove spaces around JS specific characters
-        content = re.sub(r"\s*([+\-*/=:;,(){}\[\]])\s*", r"\1", content)
+
+        # Safe space removal for punctuation (NEVER include colons - will break JS ternary/objects)
+        content = re.sub(r"\s*([,;{}])\s*", r"\1", content)
+        # Parentheses (preserving function calls and arrow functions)
+        content = re.sub(r"(\w)\s*\(", r"\1(", content)  # function calls
+        content = re.sub(r"\)\s*{", r"){", content)  # function bodies
+        # Basic operators
+        content = re.sub(r"\s*([+\-*/=])\s*", r"\1", content)
 
     return content
 

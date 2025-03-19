@@ -271,31 +271,19 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
         # Remove all newlines
         content = re.sub(r"\n", "", content)
     elif file_type == "js":
-        # Handle JS single-line comments (preserving http:// and https://)
-        lines = content.split("\n")
-        processed_lines = []
-        for line in lines:
-            # Only remove comments if they're not part of a URL
-            if "//" in line and "http://" not in line and "https://" not in line:
-                processed_lines.append(line.split("//")[0])
-            else:
-                processed_lines.append(line)
-        content = "\n".join(processed_lines)
+        # Handle JS single-line comments (preserving URLs)
+        lines = [line.split("//")[0] if "//" in line and "http://" not in line and "https://" not in line else line
+                 for line in content.split("\n")]
+        content = "\n".join(lines)
 
-        # Remove JS multi-line comments
+        # Remove JS multi-line comments and clean whitespace
         content = re.sub(r"/\*[\s\S]*?\*/", "", content)
-        # Remove empty lines
         content = re.sub(r"^\s*\n", "", content, flags=re.MULTILINE)
-        # Collapse multiple spaces to single space
         content = re.sub(r"\s{2,}", " ", content)
 
-        # Safe space removal for punctuation (NEVER include colons - will break JS ternary/objects)
+        # Safe space removal around punctuation and operators (NEVER include colons - breaks JS)
         content = re.sub(r"\s*([,;{}])\s*", r"\1", content)
-        # Parentheses (preserving function calls and arrow functions)
-        content = re.sub(r"(\w)\s*\(", r"\1(", content)  # function calls
-        content = re.sub(r"\)\s*{", r"){", content)  # function bodies
-        # Basic operators
-        content = re.sub(r"\s*([+\-*/=])\s*", r"\1", content)
+        content = re.sub(r"(\w)\s*\(|\)\s*{|\s*([+\-*/=])\s*", lambda m: m.group(0).replace(" ", ""), content)
 
     return content
 

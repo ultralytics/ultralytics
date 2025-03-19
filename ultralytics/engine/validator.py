@@ -145,8 +145,9 @@ class BaseValidator:
         if self.training:
             self.device = trainer.device
             self.data = trainer.data
+
             # Force FP16 val during training
-            self.args.half = self.device.type != "cpu" and trainer.amp
+            self.args.half = self.device.type not in {"cpu", "ocl"} and trainer.amp
             model = trainer.ema.ema or trainer.model
             model = model.half() if self.args.half else model.float()
             # self.model = model

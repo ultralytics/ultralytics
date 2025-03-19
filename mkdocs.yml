@@ -270,6 +270,7 @@ nav:
       - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
       - YOLO-World (Real-Time Open-Vocabulary Object Detection): models/yolo-world.md
+      - YOLOE (Real-Time Seeing Anything): models/yoloe.md
   - Datasets:
       - datasets/index.md
       - Detection:

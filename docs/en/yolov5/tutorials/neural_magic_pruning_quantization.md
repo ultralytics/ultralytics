@@ -214,10 +214,10 @@ At batch 32, DeepSparse achieves 241 images/sec with the pruned-quantized YOLOv5
 ```bash
 deepsparse.benchmark zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/pruned65_quant-none -s sync -b 32 -nstreams 1
 
-> Original Model Path: zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/pruned65_quant-none
-> Batch Size: 32
-> Scenario: sync
-> Throughput (items/sec): 241.2452
+# Original Model Path: zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/pruned65_quant-none
+# Batch Size: 32
+# Scenario: sync
+# Throughput (items/sec): 241.2452
 ```
 
 ### Batch 1 Performance Comparison

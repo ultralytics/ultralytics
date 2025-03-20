@@ -34,7 +34,7 @@ You can either set your credentials through environment variables:
 
 ```shell
 export COMET_API_KEY=YOUR_API_KEY
-export COMET_PROJECT_NAME=<Your Comet Project Name> # This will default to 'yolov5'
+export COMET_PROJECT_NAME=YOUR_COMET_PROJECT_NAME # This will default to 'yolov5'
 ```
 
 Or create a `.comet.config` file in your working directory and set your credentials there:
@@ -44,7 +44,7 @@ Or create a `.comet.config` file in your working directory and set your credenti
 ```
 [comet]
 api_key=YOUR_API_KEY
-project_name=<Your Comet Project Name> # This will default to 'yolov5'
+project_name=YOUR_COMET_PROJECT_NAME # This will default to 'yolov5'
 ```
 
 ### Run the Training Script
@@ -93,11 +93,11 @@ Comet can be configured to log additional data either through command line flags
 
 ```shell
 export COMET_MODE=online # Set whether to run Comet in 'online' or 'offline' mode. Defaults to online
-export COMET_MODEL_NAME=<your model name> #Set the name for the saved model. Defaults to yolov5
+export COMET_MODEL_NAME="yolov5" # Set the name for the saved model. Defaults to yolov5
 export COMET_LOG_CONFUSION_MATRIX=false # Set to disable logging a Comet Confusion Matrix. Defaults to true
-export COMET_MAX_IMAGE_UPLOADS=<number of allowed images to upload to Comet> # Controls how many total image predictions to log to Comet. Defaults to 100.
+export COMET_MAX_IMAGE_UPLOADS=30 # Controls how many total image predictions to log to Comet. Defaults to 100.
 export COMET_LOG_PER_CLASS_METRICS=true # Set to log evaluation metrics for each detected class at the end of training. Defaults to false
-export COMET_DEFAULT_CHECKPOINT_FILENAME=<your checkpoint filename> # Set this if you would like to resume training from a different checkpoint. Defaults to 'last.pt'
+export COMET_DEFAULT_CHECKPOINT_FILENAME="last.pt" # Set this if you would like to resume training from a different checkpoint. Defaults to 'last.pt'
 export COMET_LOG_BATCH_LEVEL_METRICS=true # Set this if you would like to log training metrics at the batch level. Defaults to false.
 export COMET_LOG_PREDICTIONS=true # Set this to false to disable logging model predictions
 ```

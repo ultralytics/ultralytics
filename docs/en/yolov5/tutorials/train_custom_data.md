@@ -158,9 +158,9 @@ All training results are saved to `runs/train/` with incrementing run directorie
 Getting started is easy:
 
 ```shell
-pip install comet_ml  # 1. install
-export COMET_API_KEY=YOUR_API_KEY  # 2. paste API key
-python train.py --img 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt  # 3. train
+pip install comet_ml                                                          # 1. install
+export COMET_API_KEY=YOUR_API_KEY                                             # 2. paste API key
+python train.py --img 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt # 3. train
 ```
 
 To learn more about all the supported Comet features for this integration, check out the [Comet Tutorial](./comet_logging_integration.md). If you'd like to learn more about Comet, head over to our [documentation](https://bit.ly/yolov5-colab-comet-docs). Get started by trying out the Comet Colab Notebook: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1RG0WOQyxlDlo5Km8GogJpIEJlg_5lyYO?usp=sharing)

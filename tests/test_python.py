@@ -196,6 +196,12 @@ def test_track_stream():
             yaml.safe_dump(data, f)
         model.track(video_url, imgsz=160, tracker=tracker)
 
+    # Test Warning raised when detection conf threshold > tracker conf threshold
+    with pytest.warns(UserWarning) as record:
+        model.track(video_url, imgsz=160, tracker="bytetrack.yaml", conf=0.5)
+    assert len(record) == 1
+    assert record[0].message.args[0].startswith("Detection confidence threshold")
+
 
 def test_val():
     """Test the validation mode of the YOLO model."""

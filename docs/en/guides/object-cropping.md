@@ -43,7 +43,7 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         yolo solutions crop show=True
 
         # Pass a source video
-        yolo solutions crop source="path/to/video/file.mp4"
+        yolo solutions crop source="path/to/video.mp4"
 
         # Crop specific classes
         yolo solutions crop classes=[0, 2]
@@ -56,7 +56,7 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
         from ultralytics import solutions
 
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
 
         # Initialize object cropper object

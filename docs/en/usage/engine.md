@@ -107,7 +107,7 @@ from ultralytics.models.yolo.detect import DetectionTrainer
 # Create a custom trainer
 class MyCustomTrainer(DetectionTrainer):
     def get_model(self, cfg, weights):
-        # Custom model implementation
+        """Custom code implementation."""
         ...
 
 

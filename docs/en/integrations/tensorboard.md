@@ -47,7 +47,7 @@ When using Google Colab, it's important to set up TensorBoard before starting yo
 
     === "Python"
 
-        ```python
+        ```bash
         %load_ext tensorboard
         %tensorboard --logdir path/to/runs
         ```
@@ -193,7 +193,7 @@ Yes, you can use TensorBoard in a Google Colab environment to train YOLO11 model
 
     === "Python"
 
-        ```python
+        ```bash
         %load_ext tensorboard
         %tensorboard --logdir path/to/runs
         ```

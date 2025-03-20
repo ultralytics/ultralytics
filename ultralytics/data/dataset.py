@@ -485,11 +485,15 @@ class GroundingDataset(YOLODataset):
 
                 caption = img["caption"]
                 cat_name = " ".join([caption[t[0] : t[1]] for t in ann["tokens_positive"]])
+                if not cat_name:
+                    continue
+
                 if cat_name not in cat2id:
                     cat2id[cat_name] = len(cat2id)
                     texts.append([cat_name])
                 cls = cat2id[cat_name]  # class
                 box = [cls] + box.tolist()
+                # TODO: support reading segments based on `generate_grounding_cache.py`
                 if box not in bboxes:
                     bboxes.append(box)
             lb = np.array(bboxes, dtype=np.float32) if len(bboxes) else np.zeros((0, 5), dtype=np.float32)

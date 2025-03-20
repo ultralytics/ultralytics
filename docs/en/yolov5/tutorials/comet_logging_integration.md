@@ -92,14 +92,14 @@ By default, Comet will log the following items:
 Comet can be configured to log additional data either through command line flags passed to the training script or through environment variables:
 
 ```shell
-export COMET_MODE=online # Set whether to run Comet in 'online' or 'offline' mode. Defaults to online
-export COMET_MODEL_NAME="yolov5" # Set the name for the saved model. Defaults to yolov5
-export COMET_LOG_CONFUSION_MATRIX=false # Set to disable logging a Comet Confusion Matrix. Defaults to true
-export COMET_MAX_IMAGE_UPLOADS=30 # Controls how many total image predictions to log to Comet. Defaults to 100.
-export COMET_LOG_PER_CLASS_METRICS=true # Set to log evaluation metrics for each detected class at the end of training. Defaults to false
+export COMET_MODE=online                           # Set whether to run Comet in 'online' or 'offline' mode. Defaults to online
+export COMET_MODEL_NAME="yolov5"                   # Set the name for the saved model. Defaults to yolov5
+export COMET_LOG_CONFUSION_MATRIX=false            # Set to disable logging a Comet Confusion Matrix. Defaults to true
+export COMET_MAX_IMAGE_UPLOADS=30                  # Controls how many total image predictions to log to Comet. Defaults to 100.
+export COMET_LOG_PER_CLASS_METRICS=true            # Set to log evaluation metrics for each detected class at the end of training. Defaults to false
 export COMET_DEFAULT_CHECKPOINT_FILENAME="last.pt" # Set this if you would like to resume training from a different checkpoint. Defaults to 'last.pt'
-export COMET_LOG_BATCH_LEVEL_METRICS=true # Set this if you would like to log training metrics at the batch level. Defaults to false.
-export COMET_LOG_PREDICTIONS=true # Set this to false to disable logging model predictions
+export COMET_LOG_BATCH_LEVEL_METRICS=true          # Set this if you would like to log training metrics at the batch level. Defaults to false.
+export COMET_LOG_PREDICTIONS=true                  # Set this to false to disable logging model predictions
 ```
 
 ## Logging Checkpoints with Comet

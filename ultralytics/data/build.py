@@ -147,7 +147,6 @@ def build_grounding(cfg, img_path, json_file, batch, mode="train", rect=False, s
         classes=cfg.classes,
         fraction=cfg.fraction if mode == "train" else 1.0,
         load_vp=cfg.load_vp,
-        grounding_cache=cfg.grounding_cache,
     )
 
 

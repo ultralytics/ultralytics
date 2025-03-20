@@ -101,8 +101,8 @@ Validate trained YOLO11n model [accuracy](https://www.ultralytics.com/glossary/a
     === "CLI"
 
         ```bash
-        yolo detect val model=yolo11n.pt  # val official model
-        yolo detect val model=path/to/best.pt  # val custom model
+        yolo detect val model=yolo11n.pt      # val official model
+        yolo detect val model=path/to/best.pt # val custom model
         ```
 
 ## Predict
@@ -136,8 +136,8 @@ Use a trained YOLO11n model to run predictions on images.
     === "CLI"
 
         ```bash
-        yolo detect predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
-        yolo detect predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
+        yolo detect predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'      # predict with official model
+        yolo detect predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg' # predict with custom model
         ```
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
@@ -164,8 +164,8 @@ Export a YOLO11n model to a different format like ONNX, CoreML, etc.
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx  # export custom trained model
+        yolo export model=yolo11n.pt format=onnx      # export official model
+        yolo export model=path/to/best.pt format=onnx # export custom trained model
         ```
 
 Available YOLO11 export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolo11n.onnx`. Usage examples are shown for your model after export completes.

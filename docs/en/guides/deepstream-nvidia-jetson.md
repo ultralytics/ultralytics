@@ -245,8 +245,8 @@ If you want to use INT8 precision for inference, you need to follow the steps be
 5.  Run the following to select 1000 random images from COCO dataset to run calibration
 
     ```bash
-    for jpg in $(ls -1 val2017/*.jpg | sort -R | head -1000); do \
-        cp ${jpg} calibration/; \
+    for jpg in $(ls -1 val2017/*.jpg | sort -R | head -1000); do
+      cp ${jpg} calibration/
     done
     ```
 
@@ -319,10 +319,10 @@ To set up multiple streams under a single deepstream application, you can do the
     [source0]
     enable=1
     type=3
-    uri=<path_to_video>
-    uri=<path_to_video>
-    uri=<path_to_video>
-    uri=<path_to_video>
+    uri=path/to/video1.jpg
+    uri=path/to/video2.jpg
+    uri=path/to/video3.jpg
+    uri=path/to/video4.jpg
     num-sources=4
     ```
 

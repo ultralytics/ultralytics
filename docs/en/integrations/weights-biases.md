@@ -65,14 +65,14 @@ Start by initializing the Weights & Biases environment in your workspace. You ca
         import wandb
 
         # Initialize your Weights & Biases environment
-        wandb.login(key="<API_KEY>")
+        wandb.login(key="YOUR_API_KEY")
         ```
 
     === "CLI"
 
         ```bash
         # Initialize your Weights & Biases environment
-        wandb login <API_KEY>
+        wandb login YOUR_API_KEY
         ```
 
 Navigate to the [Weights & Biases authorization page](https://wandb.ai/authorize) to create and retrieve your API key. Use this key to authenticate your environment with W&B.
@@ -181,7 +181,7 @@ To integrate Weights & Biases with Ultralytics YOLO11:
     ```python
     import wandb
 
-    wandb.login(key="<API_KEY>")
+    wandb.login(key="YOUR_API_KEY")
     ```
 
 3. Train your YOLO11 model with W&B logging enabled:

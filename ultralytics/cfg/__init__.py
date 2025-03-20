@@ -87,13 +87,13 @@ SOLUTIONS_HELP_MSG = f"""
                   at https://docs.ultralytics.com/usage/cfg
                 
     1. Call object counting solution
-        yolo solutions count source="path/to/video/file.mp4" region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
+        yolo solutions count source="path/to/video.mp4" region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
 
     2. Call heatmaps solution
         yolo solutions heatmap colormap=cv2.COLORMAP_PARULA model=yolo11n.pt
 
     3. Call queue management solution
-        yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)] model=yolo11n.pt
+        yolo solutions queue region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]" model=yolo11n.pt
 
     4. Call workouts monitoring solution for push-ups
         yolo solutions workout model=yolo11n-pose.pt kpts=[6, 8, 10]
@@ -102,7 +102,7 @@ SOLUTIONS_HELP_MSG = f"""
         yolo solutions analytics analytics_type="pie"
     
     6. Track objects within specific zones
-        yolo solutions trackzone source="path/to/video/file.mp4" region=[(150, 150), (1130, 150), (1130, 570), (150, 570)]
+        yolo solutions trackzone source="path/to/video.mp4" region="[(150, 150), (1130, 150), (1130, 570), (150, 570)]"
         
     7. Streamlit real-time webcam inference GUI
         yolo streamlit-predict
@@ -130,7 +130,7 @@ CLI_HELP_MSG = f"""
         yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
 
     5. Ultralytics solutions usage
-        yolo solutions count or in {list(SOLUTION_MAP.keys())[1:-1]} source="path/to/video/file.mp4"
+        yolo solutions count or in {list(SOLUTION_MAP.keys())[1:-1]} source="path/to/video.mp4"
 
     6. Run special commands:
         yolo help
@@ -643,7 +643,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
         >>> handle_yolo_solutions(["count"])
 
         Run analytics with custom configuration:
-        >>> handle_yolo_solutions(["analytics", "conf=0.25", "source=path/to/video/file.mp4"])
+        >>> handle_yolo_solutions(["analytics", "conf=0.25", "source=path/to/video.mp4"])
 
         Run inference with custom configuration, requires Streamlit version 1.29.0 or higher.
         >>> handle_yolo_solutions(["inference", "model=yolo11n.pt"])

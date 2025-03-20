@@ -45,7 +45,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         yolo solutions count show=True
 
         # Pass a source video
-        yolo solutions count source="path/to/video/file.mp4"
+        yolo solutions count source="path/to/video.mp4"
 
         # Pass region coordinates
         yolo solutions count region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
@@ -58,7 +58,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
         from ultralytics import solutions
 
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
 
         # region_points = [(20, 400), (1080, 400)]                                      # line counting

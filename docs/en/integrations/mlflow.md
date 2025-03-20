@@ -75,7 +75,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
 2. **Set a Run Name**: Similar to setting a project name, you can set the run name via an environment variable:
 
     ```bash
-    export MLFLOW_RUN=<your_run_name>
+    export MLFLOW_RUN=YOUR_RUN_NAME
     ```
 
     Or use the `name=<name>` argument when training a YOLO model, i.e. `yolo train project=my_project name=my_name`.

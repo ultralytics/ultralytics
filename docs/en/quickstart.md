@@ -201,7 +201,7 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
         ```bash
         yolo solutions count show=True
 
-        yolo solutions count source="path/to/video/file.mp4" # specify video file path
+        yolo solutions count source="path/to/video.mp4" # specify video file path
         ```
 
     === "Workout"
@@ -210,7 +210,7 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
         ```bash
         yolo solutions workout show=True
 
-        yolo solutions workout source="path/to/video/file.mp4" # specify video file path
+        yolo solutions workout source="path/to/video.mp4" # specify video file path
 
         # Use keypoints for ab-workouts
         yolo solutions workout kpts=[5, 11, 13] # left side
@@ -223,7 +223,7 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
         ```bash
         yolo solutions queue show=True
 
-        yolo solutions queue source="path/to/video/file.mp4"  # specify video file path
+        yolo solutions queue source="path/to/video.mp4"  # specify video file path
 
         yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]    # configure queue coordinates
         ```

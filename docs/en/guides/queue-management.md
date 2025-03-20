@@ -44,7 +44,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
         yolo solutions queue show=True
 
         # Pass a source video
-        yolo solutions queue source="path/to/video/file.mp4"
+        yolo solutions queue source="path/to/video.mp4"
 
         # Pass queue coordinates
         yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
@@ -57,7 +57,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
 
         from ultralytics import solutions
 
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
 
         # Video writer

@@ -117,7 +117,7 @@ For more details, refer to the [`SolutionResults` class documentation](https://d
 ```bash
 yolo solutions count show=True # for object counting
 
-yolo solutions source="path/to/video/file.mp4" # specify video file path
+yolo solutions source="path/to/video.mp4" # specify video file path
 ```
 
 ### Contribute to Our Solutions

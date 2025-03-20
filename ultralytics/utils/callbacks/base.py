@@ -205,9 +205,9 @@ def add_integration_callbacks(instance):
         from .mlflow import callbacks as mlflow_cb
         from .neptune import callbacks as neptune_cb
         from .raytune import callbacks as tune_cb
+        from .swanlab import callbacks as swanlab_cb
         from .tensorboard import callbacks as tb_cb
         from .wb import callbacks as wb_cb
-        from .swanlab import callbacks as swanlab_cb
 
         callbacks_list.extend([clear_cb, comet_cb, dvc_cb, mlflow_cb, neptune_cb, tune_cb, tb_cb, wb_cb, swanlab_cb])
 

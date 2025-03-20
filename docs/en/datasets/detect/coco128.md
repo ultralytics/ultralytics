@@ -102,20 +102,20 @@ To train a YOLO11 model on the COCO128 dataset, you can use either Python or CLI
 !!! example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-    
+
         # Load a pretrained model
         model = YOLO("yolo11n.pt")
-    
+
         # Train the model
         results = model.train(data="coco128.yaml", epochs=100, imgsz=640)
         ```
-    
+
 
     === "CLI"
-    
+
         ```bash
         yolo detect train data=coco128.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```

@@ -111,7 +111,7 @@ To perform [object detection](https://www.ultralytics.com/glossary/object-detect
         from ultralytics import FastSAM
 
         # Define an inference source
-        source = "path/to/bus.jpg"
+        source = "https://ultralytics.com/images/zidane.jpg"
 
         # Create a FastSAM model
         model = FastSAM("FastSAM-s.pt")  # or FastSAM-x.pt
@@ -136,7 +136,7 @@ To perform [object detection](https://www.ultralytics.com/glossary/object-detect
 
         ```bash
         # Load a FastSAM model and segment everything with it
-        yolo segment predict model=FastSAM-s.pt source=path/to/bus.jpg imgsz=640
+        yolo segment predict model=FastSAM-s.pt source="https://ultralytics.com/images/zidane.jpg" imgsz=640
         ```
 
 This snippet demonstrates the simplicity of loading a pre-trained model and running a prediction on an image.
@@ -155,7 +155,7 @@ This snippet demonstrates the simplicity of loading a pre-trained model and runn
         predictor = FastSAMPredictor(overrides=overrides)
 
         # Segment everything
-        everything_results = predictor("ultralytics/assets/bus.jpg")
+        everything_results = predictor("https://ultralytics.com/images/bus.jpg")
 
         # Prompt inference
         bbox_results = predictor.prompt(everything_results, bboxes=[[200, 200, 300, 300]])
@@ -209,13 +209,13 @@ To perform object tracking on an image, use the `track` method as shown below:
         model = FastSAM("FastSAM-s.pt")  # or FastSAM-x.pt
 
         # Track with a FastSAM model on a video
-        results = model.track(source="path/to/video.mp4", imgsz=640)
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
-        yolo segment track model=FastSAM-s.pt source="path/to/video/file.mp4" imgsz=640
+        yolo segment track model=FastSAM-s.pt source="https://youtu.be/LNwODJXcvt4" imgsz=640
         ```
 
 ## FastSAM official Usage
@@ -330,7 +330,7 @@ To use FastSAM for inference in Python, you can follow the example below:
 from ultralytics import FastSAM
 
 # Define an inference source
-source = "path/to/bus.jpg"
+source = "https://ultralytics.com/images/bus.jpg"
 
 # Create a FastSAM model
 model = FastSAM("FastSAM-s.pt")  # or FastSAM-x.pt

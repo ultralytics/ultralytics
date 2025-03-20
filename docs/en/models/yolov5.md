@@ -80,7 +80,7 @@ This example provides simple YOLOv5 training and inference examples. For full do
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv5n model on the 'bus.jpg' image
-        results = model("path/to/bus.jpg")
+        results = model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -92,7 +92,7 @@ This example provides simple YOLOv5 training and inference examples. For full do
         yolo train model=yolov5n.pt data=coco8.yaml epochs=100 imgsz=640
 
         # Load a COCO-pretrained YOLOv5n model and run inference on the 'bus.jpg' image
-        yolo predict model=yolov5n.pt source=path/to/bus.jpg
+        yolo predict model=yolov5n.pt source="https://ultralytics.com/images/bus.jpg"
         ```
 
 ## Citations and Acknowledgements

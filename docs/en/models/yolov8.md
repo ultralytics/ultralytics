@@ -153,7 +153,7 @@ Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for obj
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv8n model on the 'bus.jpg' image
-        results = model("path/to/bus.jpg")
+        results = model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
@@ -165,7 +165,7 @@ Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for obj
         yolo train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640
 
         # Load a COCO-pretrained YOLOv8n model and run inference on the 'bus.jpg' image
-        yolo predict model=yolov8n.pt source=path/to/bus.jpg
+        yolo predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
         ```
 
 ## Citations and Acknowledgements

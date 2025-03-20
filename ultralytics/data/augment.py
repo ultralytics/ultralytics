@@ -2342,8 +2342,9 @@ class RandomLoadText:
                     )
 
         assert len(texts) == self.max_samples
-        # labels["texts"] = text
-        labels["texts"] = text_feats
+        labels["texts"] = texts
+        if len(self.pos_embeddings):
+            labels["text_feats"] = text_feats
         return labels
 
     def set_embeddings(self, pos_embeddings, neg_embeddings):

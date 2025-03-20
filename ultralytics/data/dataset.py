@@ -304,7 +304,7 @@ class YOLODataset(BaseDataset):
             value = values[i]
             if k == "img":
                 value = torch.stack(value, 0)
-            if k == "texts":
+            if k == "texts_feats":
                 value = torch.stack(value, 0)
             if k == "visuals":
                 value = torch.nn.utils.rnn.pad_sequence(value, batch_first=True)

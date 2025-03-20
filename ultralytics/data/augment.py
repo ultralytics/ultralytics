@@ -2324,32 +2324,28 @@ class RandomLoadText:
             prompt = self.prompt_format.format(prompts[random.randrange(len(prompts))])
             texts.append(prompt)
 
-        text_feats = [self.pos_embeddings[text] for text in texts]
-        text_feats = torch.stack(text_feats, dim=0) if len(text_feats) > 0 else None
+        if len(self.pos_embeddings):
+            text_feats = [self.pos_embeddings[text] for text in texts]
+            text_feats = torch.stack(text_feats, dim=0) if len(text_feats) > 0 else text_feats
 
         if self.padding:
             valid_labels = len(pos_labels) + len(neg_labels)
             num_padding = self.max_samples - valid_labels
             if num_padding > 0:
-                # texts += random.choices(self.padding_value, k=num_padding)
+                texts += random.choices(self.padding_value, k=num_padding)
 
-                global_neg_cat_len = self.neg_embeddings.shape[0]
-                pad_net_cat_indexs = np.random.choice(np.arange(0, global_neg_cat_len), size=num_padding, replace=False)
-                pad_net_cat_embeddings = self.neg_embeddings[pad_net_cat_indexs]
+                if len(self.neg_embeddings) and len(self.pos_embeddings):
+                    neg_idx = np.random.choice(np.arange(0, len(self.neg_embeddings)), size=num_padding, replace=False)
+                    neg_embeddings = self.neg_embeddings[neg_idx]
+                    text_feats = torch.cat((text_feats, neg_embeddings), dim=0) if len(text_feats) > 0 else neg_embeddings
 
-                if text_feats is not None:
-                    text_feats = torch.cat((text_feats, pad_net_cat_embeddings), dim=0)
-                else:
-                    text_feats = pad_net_cat_embeddings
-
-        assert text_feats.shape[0] == self.max_samples
+        assert len(text_feats) == self.max_samples
+        # labels["texts"] = text
         labels["texts"] = text_feats
         return labels
 
-    def set_pos_embeddings(self, pos_embeddings):
+    def set_embeddings(self, pos_embeddings, neg_embeddings):
         self.pos_embeddings = pos_embeddings
-
-    def set_neg_embeddings(self, neg_embeddings):
         self.neg_embeddings = neg_embeddings
 
 

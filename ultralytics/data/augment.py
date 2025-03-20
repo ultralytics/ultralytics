@@ -2341,7 +2341,7 @@ class RandomLoadText:
                         torch.cat((text_feats, neg_embeddings), dim=0) if len(text_feats) > 0 else neg_embeddings
                     )
 
-        assert len(text_feats) == self.max_samples
+        assert len(texts) == self.max_samples
         # labels["texts"] = text
         labels["texts"] = text_feats
         return labels

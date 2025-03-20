@@ -195,9 +195,9 @@ Artifacts are versioned and also support adding metadata about the dataset. Come
 
 If you would like to use a dataset from Comet Artifacts, set the `path` variable in your dataset `yaml` file to point to the following Artifact resource URL:
 
-```
-# contents of artifact.yaml file
-path: "comet://<workspace name>/<artifact name>:<artifact version or alias>"
+```yaml
+# Contents of artifact.yaml file
+path: "comet://WORKSPACE_NAME>/ARTIFACT_NAME:ARTIFACT_VERSION_OR_ALIAS"
 ```
 
 Then pass this file to your training script in the following way:
@@ -219,7 +219,7 @@ Artifacts also allow you to track the lineage of data as it flows through your e
 
 If your training run is interrupted for any reason, e.g., disrupted internet connection, you can resume the run using the `resume` flag and the Comet Run Path.
 
-The Run Path has the following format `comet://<your workspace name>/<your project name>/<experiment id>`.
+The Run Path has the following format `comet://WORKSPACE_NAME/PROJECT_NAME/EXPERIMENT_ID`.
 
 This will restore the run to its state before the interruption, which includes restoring the model from a checkpoint, restoring all hyperparameters and training arguments, and downloading Comet dataset Artifacts if they were used in the original run. The resumed run will continue logging to the existing Experiment in the Comet UI:
 

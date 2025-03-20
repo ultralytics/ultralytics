@@ -127,8 +127,8 @@ Validate trained YOLO11n-obb model [accuracy](https://www.ultralytics.com/glossa
     === "CLI"
 
         ```bash
-        yolo obb val model=yolo11n-obb.pt data=dota8.yaml  # val official model
-        yolo obb val model=path/to/best.pt data=path/to/data.yaml  # val custom model
+        yolo obb val model=yolo11n-obb.pt data=dota8.yaml         # val official model
+        yolo obb val model=path/to/best.pt data=path/to/data.yaml # val custom model
         ```
 
 ## Predict
@@ -161,7 +161,7 @@ Use a trained YOLO11n-obb model to run predictions on images.
 
         ```bash
         yolo obb predict model=yolo11n-obb.pt source='https://ultralytics.com/images/boats.jpg'  # predict with official model
-        yolo obb predict model=path/to/best.pt source='https://ultralytics.com/images/boats.jpg'  # predict with custom model
+        yolo obb predict model=path/to/best.pt source='https://ultralytics.com/images/boats.jpg' # predict with custom model
         ```
 
 <p align="center">
@@ -200,7 +200,7 @@ Export a YOLO11n-obb model to a different format like ONNX, CoreML, etc.
 
         ```bash
         yolo export model=yolo11n-obb.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx  # export custom trained model
+        yolo export model=path/to/best.pt format=onnx # export custom trained model
         ```
 
 Available YOLO11-obb export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolo11n-obb.onnx`. Usage examples are shown for your model after export completes.

@@ -45,7 +45,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
         yolo solutions workout show=True
 
         # Pass a source video
-        yolo solutions workout source="path/to/video/file.mp4"
+        yolo solutions workout source="path/to/video.mp4"
 
         # Use keypoints for pushups
         yolo solutions workout kpts=[6, 8, 10]
@@ -58,7 +58,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 
         from ultralytics import solutions
 
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
 
         # Video writer
@@ -124,7 +124,7 @@ import cv2
 
 from ultralytics import solutions
 
-cap = cv2.VideoCapture("path/to/video/file.mp4")
+cap = cv2.VideoCapture("path/to/video.mp4")
 assert cap.isOpened(), "Error reading video file"
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
@@ -187,7 +187,7 @@ import cv2
 
 from ultralytics import solutions
 
-cap = cv2.VideoCapture("path/to/video/file.mp4")
+cap = cv2.VideoCapture("path/to/video.mp4")
 assert cap.isOpened(), "Error reading video file"
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 

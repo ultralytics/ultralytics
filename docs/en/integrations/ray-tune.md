@@ -196,7 +196,7 @@ To tune the hyperparameters of your Ultralytics YOLO11 model using Ray Tune, fol
 
     ```bash
     pip install -U ultralytics "ray[tune]"
-    pip install wandb  # optional for logging
+    pip install wandb # optional for logging
     ```
 
 2. **Load your YOLO11 model and start tuning:**

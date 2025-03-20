@@ -190,7 +190,7 @@ Model validation on a dataset is streamlined as follows:
 
         ```bash
         # Track with a YOLO-World model on the video with a specified image size
-        yolo track model=yolov8s-world.pt imgsz=640 source="path/to/video/file.mp4"
+        yolo track model=yolov8s-world.pt imgsz=640 source="path/to/video.mp4"
         ```
 
 !!! note

@@ -102,10 +102,10 @@ If you use the SKU-110k dataset in your research or development work, please cit
 
         ```bibtex
         @inproceedings{goldman2019dense,
-         author    = {Eran Goldman and Roei Herzig and Aviv Eisenschtat and Jacob Goldberger and Tal Hassner},
-         title     = {Precise Detection in Densely Packed Scenes},
-         booktitle = {Proc. Conf. Comput. Vision Pattern Recognition (CVPR)},
-         year      = {2019}
+          author    = {Eran Goldman and Roei Herzig and Aviv Eisenschtat and Jacob Goldberger and Tal Hassner},
+          title     = {Precise Detection in Densely Packed Scenes},
+          booktitle = {Proc. Conf. Comput. Vision Pattern Recognition (CVPR)},
+          year      = {2019}
         }
         ```
 
@@ -179,10 +179,10 @@ If you use the SKU-110k dataset in your research or development work, please cit
 
         ```bibtex
         @inproceedings{goldman2019dense,
-         author    = {Eran Goldman and Roei Herzig and Aviv Eisenschtat and Jacob Goldberger and Tal Hassner},
-         title     = {Precise Detection in Densely Packed Scenes},
-         booktitle = {Proc. Conf. Comput. Vision Pattern Recognition (CVPR)},
-         year      = {2019}
+          author    = {Eran Goldman and Roei Herzig and Aviv Eisenschtat and Jacob Goldberger and Tal Hassner},
+          title     = {Precise Detection in Densely Packed Scenes},
+          booktitle = {Proc. Conf. Comput. Vision Pattern Recognition (CVPR)},
+          year      = {2019}
         }
         ```
 

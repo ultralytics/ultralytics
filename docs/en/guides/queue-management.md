@@ -47,7 +47,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
         yolo solutions queue source="path/to/video.mp4"
 
         # Pass queue coordinates
-        yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
+        yolo solutions queue region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
         ```
 
     === "Python"

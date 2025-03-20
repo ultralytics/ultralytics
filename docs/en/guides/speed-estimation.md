@@ -54,7 +54,7 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
         yolo solutions speed source="path/to/video.mp4"
 
         # Pass region coordinates
-        yolo solutions speed region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
+        yolo solutions speed region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
         ```
 
     === "Python"

@@ -225,7 +225,7 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
 
         yolo solutions queue source="path/to/video.mp4"  # specify video file path
 
-        yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]    # configure queue coordinates
+        yolo solutions queue region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"    # configure queue coordinates
         ```
 
     === "Inference with Streamlit"

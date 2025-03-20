@@ -48,7 +48,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         yolo solutions count source="path/to/video.mp4"
 
         # Pass region coordinates
-        yolo solutions count region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
+        yolo solutions count region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
         ```
 
     === "Python"

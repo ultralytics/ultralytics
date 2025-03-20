@@ -700,7 +700,7 @@ class ImagePoolingAttn(nn.Module):
 
         Args:
             ec (int): Embedding channels.
-            ch (Tuple): Channel dimensions for feature maps.
+            ch (tuple): Channel dimensions for feature maps.
             ct (int): Channel dimension for text embeddings.
             nh (int): Number of attention heads.
             k (int): Kernel size for pooling.

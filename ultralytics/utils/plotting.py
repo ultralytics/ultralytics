@@ -534,7 +534,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     Args:
         boxes (np.ndarray): Bounding box coordinates in format [x, y, width, height].
         cls (np.ndarray): Class indices.
-        names (Dict, optional): Dictionary mapping class indices to class names.
+        names (dict, optional): Dictionary mapping class indices to class names.
         save_dir (Path, optional): Directory to save the plot.
         on_plot (Callable, optional): Function to call after plot is saved.
     """

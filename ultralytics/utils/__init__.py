@@ -995,7 +995,23 @@ def threaded(func):
     """
     Multi-threads a target function by default and returns the thread or function result.
 
-    Use as @threaded decorator. The function runs in a separate thread unless 'threaded=False' is passed.
+    This decorator provides flexible execution of the target function, either in a separate thread or synchronously.
+    By default, the function runs in a thread, but this can be controlled via the 'threaded=False' keyword argument
+    which is removed from kwargs before calling the function.
+
+    Args:
+        func (callable): The function to be potentially executed in a separate thread.
+
+    Returns:
+        (callable): A wrapper function that either returns a daemon thread or the direct function result.
+
+    Example:
+        >>> @threaded
+        ... def process_data(data):
+        ...     return data
+        >>>
+        >>> thread = process_data(my_data)  # Runs in background thread
+        >>> result = process_data(my_data, threaded=False)  # Runs synchronously, returns function result
     """
 
     def wrapper(*args, **kwargs):
@@ -1183,7 +1199,7 @@ class SettingsManager(JSONDict):
     Attributes:
         file (Path): The path to the JSON file used for persistence.
         version (str): The version of the settings schema.
-        defaults (Dict): A dictionary containing default settings.
+        defaults (dict): A dictionary containing default settings.
         help_msg (str): A help message for users on how to view and update settings.
 
     Methods:

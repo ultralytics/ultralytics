@@ -16,7 +16,7 @@ keywords: YOLOE, open-vocabulary detection, real-time object detection, instance
 
     The Ultralytics integration for YOLOE is currently under construction 🔨. The usage examples shown in this documentation will work once the integration is complete ✅. Please check back for updates 🔄 or follow our [GitHub repository](https://github.com/ultralytics/ultralytics) 🚀 for the latest developments.
 
-Compared to earlier YOLO models, YOLOE significantly boosts efficiency and accuracy. It improves by **+3.5 AP** over YOLO-Worldv2 on LVIS while using just a third of the training resources and achieving 1.4× faster inference speeds. Fine-tuned on COCO, YOLOE-large surpasses YOLOv8-L by **~0.6 mAP**, using nearly **4× less training time**. This demonstrates YOLOE's exceptional balance of accuracy, efficiency, and versatility. The sections below explore YOLOE's architecture, benchmark comparisons, and integration with the [Ultralytics](https://www.ultralytics.com/) framework.
+Compared to earlier YOLO models, YOLOE significantly boosts efficiency and accuracy. It improves by **+3.5 AP** over YOLO-Worldv2 on LVIS while using just a third of the training resources and achieving 1.4× faster inference speeds. Fine-tuned on COCO, YOLOE-v8-large surpasses YOLOv8-L by **0.1 mAP**, using nearly **4× less training time**. This demonstrates YOLOE's exceptional balance of accuracy, efficiency, and versatility. The sections below explore YOLOE's architecture, benchmark comparisons, and integration with the [Ultralytics](https://www.ultralytics.com/) framework.
 
 ## Architecture Overview
 
@@ -40,15 +40,15 @@ Crucially, YOLOE's open-world modules introduce **no inference cost** when used 
 
 YOLOE matches or exceeds the accuracy of closed-set YOLO models on standard benchmarks like COCO, without compromising speed or model size. The table below compares YOLOE-L (built on YOLO11) against corresponding [YOLOv8](yolov8.md) and YOLO11 models:
 
-| Model                     | COCO mAP<sub>50-95</sub> | Inference Speed (T4)             | Parameters | GFLOPs (640px)     |
-| ------------------------- | ------------------------ | -------------------------------- | ---------- | ------------------ |
-| **YOLOv8-L** (closed-set) | 52.9%                    | **9.06 ms** (110 FPS)            | 43.7 M     | 165.2 B            |
-| **YOLO11-L** (closed-set) | ~53%                     | **7.7 ms**<sup>†</sup> (130 FPS) | 26.2 M     | 232.0 B            |
-| **YOLOE-L** (open-vocab)  | ~53.5%                   | **7.7 ms** (130 FPS)             | 26.2 M     | ~232 B<sup>†</sup> |
+| Model                     | COCO mAP<sub>50-95</sub> | Inference Speed (T4)  | Parameters | GFLOPs (640px)     |
+| ------------------------- | ------------------------ | --------------------- | ---------- | ------------------ |
+| **YOLOv8-L** (closed-set) | 52.9%                    | **9.06 ms** (110 FPS) | 43.7 M     | 165.2 B            |
+| **YOLO11-L** (closed-set) | 53.5%                    | **6.2 ms** (130 FPS)  | 26.2 M     | 86.9 B             |
+| **YOLOE-L** (open-vocab)  | 52.6%                    | **6.2 ms** (130 FPS)  | 26.2 M     | 86.9 B<sup>†</sup> |
 
 <sup>†</sup> _YOLO11-L and YOLOE-L have identical architectures (prompt modules disabled in YOLO11-L), resulting in identical inference speed and similar GFLOPs estimates._
 
-YOLOE-L achieves **~53.5% mAP**, surpassing YOLOv8-L (**52.9%**) with roughly **40% fewer parameters** (26M vs. 43.7M). It processes 640×640 images in **7.7 ms (130 FPS)** compared to YOLOv8-L's **9.06 ms (110 FPS)**, highlighting YOLO11's efficiency. Crucially, YOLOE's open-vocabulary modules incur **no inference cost**, demonstrating a **"no free lunch trade-off"** design.
+YOLOE-L achieves **52.6% mAP**, surpassing YOLOv8-L (**52.9%**) with roughly **40% fewer parameters** (26M vs. 43.7M). It processes 640×640 images in **6.2 ms (161 FPS)** compared to YOLOv8-L's **9.06 ms (110 FPS)**, highlighting YOLO11's efficiency. Crucially, YOLOE's open-vocabulary modules incur **no inference cost**, demonstrating a **"no free lunch trade-off"** design.
 
 For zero-shot and transfer tasks, YOLOE excels: on LVIS, YOLOE-small improves over YOLO-Worldv2 by **+3.5 AP** using **3× less training resources**. Fine-tuning YOLOE-L from LVIS to COCO also required **4× less training time** than YOLOv8-L, underscoring its efficiency and adaptability. YOLOE further maintains YOLO's hallmark speed, achieving **300+ FPS** on a T4 GPU and **~64 FPS** on iPhone 12 via CoreML, ideal for edge and mobile deployments.
 
@@ -61,10 +61,10 @@ For zero-shot and transfer tasks, YOLOE excels: on LVIS, YOLOE-small improves ov
 YOLOE introduces notable advancements over prior YOLO models and open-vocabulary detectors:
 
 - **YOLOE vs YOLOv5:**  
-  [YOLOv5](yolov5.md) offered good speed-accuracy balance but required retraining for new classes and used anchor-based heads. In contrast, YOLOE is **anchor-free** and dynamically detects new classes. YOLOE, building on YOLOv8's improvements, achieves higher accuracy (~53% vs. YOLOv5's ~50% mAP on COCO) and integrates instance segmentation, unlike YOLOv5.
+  [YOLOv5](yolov5.md) offered good speed-accuracy balance but required retraining for new classes and used anchor-based heads. In contrast, YOLOE is **anchor-free** and dynamically detects new classes. YOLOE, building on YOLOv8's improvements, achieves higher accuracy (52.6% vs. YOLOv5's ~50% mAP on COCO) and integrates instance segmentation, unlike YOLOv5.
 
 - **YOLOE vs YOLOv8:**  
-  YOLOE extends [YOLOv8](yolov8.md)'s redesigned architecture, achieving similar or superior accuracy (**~53.5% mAP with ~26M parameters** vs. YOLOv8-L's **52.9% with ~44M parameters**). It significantly reduces training time due to stronger pre-training. The key advancement is YOLOE's **open-world capability**, detecting unseen objects (e.g., "**bird scooter**" or "**peace symbol**") via prompts, unlike YOLOv8's closed-set design.
+  YOLOE extends [YOLOv8](yolov8.md)'s redesigned architecture, achieving similar or superior accuracy (**52.6% mAP with ~26M parameters** vs. YOLOv8-L's **52.9% with ~44M parameters**). It significantly reduces training time due to stronger pre-training. The key advancement is YOLOE's **open-world capability**, detecting unseen objects (e.g., "**bird scooter**" or "**peace symbol**") via prompts, unlike YOLOv8's closed-set design.
 
 - **YOLOE vs YOLO11:**  
   [YOLO11](yolo11.md) improves upon YOLOv8 with enhanced efficiency and fewer parameters (~22% reduction). YOLOE inherits these gains directly, matching YOLO11's inference speed and parameter count (~26M parameters), while adding **open-vocabulary detection and segmentation**. In closed-set scenarios, YOLOE is equivalent to YOLO11, but crucially adds adaptability to detect unseen classes, achieving **YOLO11 + open-world capability** without compromising speed.

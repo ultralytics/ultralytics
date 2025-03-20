@@ -251,7 +251,7 @@ def cfg2dict(cfg: Union[str, Path, Dict, SimpleNamespace]) -> Dict:
             a string, a dictionary, or a SimpleNamespace object.
 
     Returns:
-        (Dict): Configuration object in dictionary format.
+        (dict): Configuration object in dictionary format.
 
     Examples:
         Convert a YAML file path to a dictionary:
@@ -334,7 +334,7 @@ def check_cfg(cfg: Dict, hard: bool = True) -> None:
     `CFG_FRACTION_KEYS`, `CFG_INT_KEYS`, and `CFG_BOOL_KEYS`.
 
     Args:
-        cfg (Dict): Configuration dictionary to validate.
+        cfg (dict): Configuration dictionary to validate.
         hard (bool): If True, raises exceptions for invalid types and values; if False, attempts to convert them.
 
     Examples:
@@ -424,7 +424,7 @@ def _handle_deprecation(custom: Dict) -> Dict:
     Handles deprecated configuration keys by mapping them to current equivalents with deprecation warnings.
 
     Args:
-        custom (Dict): Configuration dictionary potentially containing deprecated keys.
+        custom (dict): Configuration dictionary potentially containing deprecated keys.
 
     Examples:
         >>> custom_config = {"boxes": True, "hide_labels": "False", "line_thickness": 2}
@@ -463,8 +463,8 @@ def check_dict_alignment(base: Dict, custom: Dict, e: Exception = None) -> None:
     messages for mismatched keys.
 
     Args:
-        base (Dict): The base configuration dictionary containing valid keys.
-        custom (Dict): The custom configuration dictionary to be checked for alignment.
+        base (dict): The base configuration dictionary containing valid keys.
+        custom (dict): The custom configuration dictionary to be checked for alignment.
         e (Exception | None): Optional error instance passed by the calling function.
 
     Raises:

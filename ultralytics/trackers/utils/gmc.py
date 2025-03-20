@@ -19,7 +19,7 @@ class GMC:
         method (str): The tracking method to use. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', 'none'.
         downscale (int): Factor by which to downscale the frames for processing.
         prevFrame (np.ndarray): Previous frame for tracking.
-        prevKeyPoints (List): Keypoints from the previous frame.
+        prevKeyPoints (list): Keypoints from the previous frame.
         prevDescriptors (np.ndarray): Descriptors from the previous frame.
         initializedFirstFrame (bool): Flag indicating if the first frame has been processed.
 

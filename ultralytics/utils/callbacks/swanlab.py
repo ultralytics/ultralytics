@@ -44,8 +44,8 @@ def on_pretrain_routine_start(trainer):
 
 def on_fit_epoch_end(trainer):
     """Record metrics and plot (including training and validation) at the end of each epoch."""
-    swanlab.log(trainer.metrics, step=trainer.epoch + 1)
-    _log_plots(trainer.plots, step=trainer.epoch + 1)
+    swanlab.log(trainer.metrics, step=trainer.epoch + 1, tag="Train/Plots")
+    _log_plots(trainer.plots, step=trainer.epoch + 1, tag="Train/ValPlots")
     _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
     if trainer.epoch == 0:
         swanlab.log(model_info_for_loggers(trainer), step=trainer.epoch + 1)

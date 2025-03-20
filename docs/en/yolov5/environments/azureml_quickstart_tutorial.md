@@ -58,7 +58,7 @@ Install the required dependencies:
 
 ```bash
 pip install -r requirements.txt
-pip install onnx>=1.12.0
+pip install onnx
 ```
 
 ### Perform YOLOv5 tasks

@@ -3,7 +3,7 @@
 import math
 import random
 from copy import deepcopy
-from typing import Tuple, Union, List
+from typing import List, Tuple, Union
 
 import cv2
 import numpy as np
@@ -2338,7 +2338,9 @@ class RandomLoadText:
                 if len(self.pos_embeddings):
                     neg_idx = np.random.choice(np.arange(0, len(self.neg_embeddings)), size=num_padding, replace=False)
                     neg_embeddings = self.neg_embeddings[neg_idx]
-                    text_feats = torch.cat((text_feats, neg_embeddings), dim=0) if len(text_feats) > 0 else neg_embeddings
+                    text_feats = (
+                        torch.cat((text_feats, neg_embeddings), dim=0) if len(text_feats) > 0 else neg_embeddings
+                    )
 
         assert len(text_feats) == self.max_samples
         # labels["texts"] = text

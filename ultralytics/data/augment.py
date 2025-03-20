@@ -2324,13 +2324,8 @@ class RandomLoadText:
             prompt = self.prompt_format.format(prompts[random.randrange(len(prompts))])
             texts.append(prompt)
 
-        txt_feats = []
-        for text in texts:
-            txt_feats.append(self.pos_embeddings[text])
-        if len(txt_feats) != 0:
-            txt_feats = torch.stack(txt_feats, dim=0)
-        else:
-            txt_feats = None
+        text_feats = [self.pos_embeddings[text] for text in texts]
+        text_feats = torch.stack(text_feats, dim=0) if len(text_feats) > 0 else None
 
         if self.padding:
             valid_labels = len(pos_labels) + len(neg_labels)
@@ -2342,13 +2337,13 @@ class RandomLoadText:
                 pad_net_cat_indexs = np.random.choice(np.arange(0, global_neg_cat_len), size=num_padding, replace=False)
                 pad_net_cat_embeddings = self.neg_embeddings[pad_net_cat_indexs]
 
-                if txt_feats is not None:
-                    txt_feats = torch.cat((txt_feats, pad_net_cat_embeddings), dim=0)
+                if text_feats is not None:
+                    text_feats = torch.cat((text_feats, pad_net_cat_embeddings), dim=0)
                 else:
-                    txt_feats = pad_net_cat_embeddings
+                    text_feats = pad_net_cat_embeddings
 
-        assert txt_feats.shape[0] == self.max_samples
-        labels["texts"] = txt_feats
+        assert text_feats.shape[0] == self.max_samples
+        labels["texts"] = text_feats
         return labels
 
     def set_pos_embeddings(self, pos_embeddings):

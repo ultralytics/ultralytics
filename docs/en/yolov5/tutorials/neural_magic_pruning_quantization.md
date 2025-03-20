@@ -184,10 +184,10 @@ At batch 32, ONNX Runtime achieves 42 images/sec with the standard dense YOLOv5s
 ```bash
 deepsparse.benchmark zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/base-none -s sync -b 32 -nstreams 1 -e onnxruntime
 
-> Original Model Path: zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/base-none
-> Batch Size: 32
-> Scenario: sync
-> Throughput (items/sec): 41.9025
+# Original Model Path: zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/base-none
+# Batch Size: 32
+# Scenario: sync
+# Throughput (items/sec): 41.9025
 ```
 
 #### DeepSparse Dense Performance
@@ -199,10 +199,10 @@ At batch 32, DeepSparse achieves 70 images/sec with the standard dense YOLOv5s, 
 ```bash
 deepsparse.benchmark zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/base-none -s sync -b 32 -nstreams 1
 
-> Original Model Path: zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/base-none
-> Batch Size: 32
-> Scenario: sync
-> Throughput (items/sec): 69.5546
+# Original Model Path: zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/base-none
+# Batch Size: 32
+# Scenario: sync
+# Throughput (items/sec): 69.5546
 ```
 
 #### DeepSparse Sparse Performance
@@ -231,10 +231,10 @@ At batch 1, ONNX Runtime achieves 48 images/sec with the standard, dense YOLOv5s
 ```bash
 deepsparse.benchmark zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/base-none -s sync -b 1 -nstreams 1 -e onnxruntime
 
-> Original Model Path: zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/base-none
-> Batch Size: 1
-> Scenario: sync
-> Throughput (items/sec): 48.0921
+# Original Model Path: zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/base-none
+# Batch Size: 1
+# Scenario: sync
+# Throughput (items/sec): 48.0921
 ```
 
 #### DeepSparse Sparse Performance
@@ -244,10 +244,10 @@ At batch 1, DeepSparse achieves 135 items/sec with a pruned-quantized YOLOv5s, *
 ```bash
 deepsparse.benchmark zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/pruned65_quant-none -s sync -b 1 -nstreams 1
 
-> Original Model Path: zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/pruned65_quant-none
-> Batch Size: 1
-> Scenario: sync
-> Throughput (items/sec): 134.9468
+# Original Model Path: zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/pruned65_quant-none
+# Batch Size: 1
+# Scenario: sync
+# Throughput (items/sec): 134.9468
 ```
 
 Since `c6i.8xlarge` instances have VNNI instructions, DeepSparse's throughput can be pushed further if weights are pruned in blocks of 4.
@@ -257,10 +257,10 @@ At batch 1, DeepSparse achieves 180 items/sec with a 4-block pruned-quantized YO
 ```bash
 deepsparse.benchmark zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/pruned35_quant-none-vnni -s sync -b 1 -nstreams 1
 
-> Original Model Path: zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/pruned35_quant-none-vnni
-> Batch Size: 1
-> Scenario: sync
-> Throughput (items/sec): 179.7375
+# Original Model Path: zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/pruned35_quant-none-vnni
+# Batch Size: 1
+# Scenario: sync
+# Throughput (items/sec): 179.7375
 ```
 
 ## Get Started With DeepSparse

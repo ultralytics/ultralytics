@@ -84,6 +84,10 @@ Export an Ultralytics YOLOv8 model to IMX500 format and run inference with the e
 | `device` | `str`            | `cpu`          | Specifies the device of running INT8 calibration process: GPU (`device=0`), CPU (`device=cpu`).                                                                                               |
 | `data`   | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets/) configuration file (default: `coco8.yaml`), essential for quantization.                                                         |
 
+!!! warning
+
+    If you are exporting on a GPU with CUDA support, please pass the argument `device=0` for faster export. 
+
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
 The export process will create an ONNX model for quantization validation, along with a directory named `<model-name>_imx_model`. This directory will include the `packerOut.zip` file, which is essential for packaging the model for deployment on the IMX500 hardware. Additionally, the `<model-name>_imx_model` folder will contain a text file (`labels.txt`) listing all the labels associated with the model.

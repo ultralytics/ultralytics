@@ -276,7 +276,9 @@ class Exporter:
             LOGGER.warning("WARNING ⚠️ IMX only supports int8 export, setting int8=True.")
             self.args.int8 = True
         if imx and self.args.device in {None, "cpu"} and torch.cuda.is_available():
-            LOGGER.warning("WARNING ⚠️ Exporting on CPU while CUDA is available, setting device=0 for faster export on GPU.")
+            LOGGER.warning(
+                "WARNING ⚠️ Exporting on CPU while CUDA is available, setting device=0 for faster export on GPU."
+            )
             self.device = select_device("0")
         if not hasattr(model, "names"):
             model.names = default_class_names()

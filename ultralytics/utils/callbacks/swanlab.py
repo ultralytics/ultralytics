@@ -59,7 +59,7 @@ def on_train_epoch_end(trainer):
         _log_plots(trainer.plots, step=trainer.epoch + 1, tag="Plots")
 
 
-def on_train_end(self, trainer):
+def on_train_end(trainer):
     """Finish training"""
     _log_plots(trainer.validator.plots, step=trainer.epoch + 1, tag="TrainEnd/ValPlots")
     _log_plots(trainer.plots, step=trainer.epoch + 1, tag="TrainEnd/Plots")

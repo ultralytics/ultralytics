@@ -126,6 +126,5 @@ cfg: # (str, optional) for overriding defaults.yaml
 
 # Tracker settings ------------------------------------------------------------------------------------------------------
 tracker: botsort.yaml # (str) tracker type, choices=[botsort.yaml, bytetrack.yaml]
-load_vp: False
-train_pe_path: None
+load_vp: False   # whether to train visual prompt models
 grounding_cache: True

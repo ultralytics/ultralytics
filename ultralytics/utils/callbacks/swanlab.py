@@ -1,8 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING
+from ultralytics.utils import SETTINGS, TESTS_RUNNING
 from ultralytics.utils.torch_utils import model_info_for_loggers
-
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -17,7 +16,7 @@ except (ImportError, AssertionError):
 
 
 def _log_plots(plots: dict, step: int, tag: str):
-    """Record metric plotting and inference images"""
+    """Record metric plotting and inference images."""
     image_list = []
     for (
         name,
@@ -31,8 +30,9 @@ def _log_plots(plots: dict, step: int, tag: str):
     if image_list:
         swanlab.log({tag: image_list}, step=step)
 
+
 def on_pretrain_routine_start(trainer):
-    """Initialize the experiment logger"""
+    """Initialize the experiment logger."""
     swanlab.config["FRAMEWORK"] = "ultralytics"
     if swanlab.get_run() is None:
         swanlab.init(
@@ -52,10 +52,10 @@ def on_fit_epoch_end(trainer):
     _log_plots(trainer.validator.plots, step=trainer.epoch + 1, tag="Train/Plots")
     if trainer.epoch == 0:
         swanlab.log(model_info_for_loggers(trainer), step=trainer.epoch + 1)
-     
-        
+
+
 def on_train_epoch_end(trainer):
-    """Record metrics at the end of each training epoch (training only)"""
+    """Record metrics at the end of each training epoch (training only)."""
     swanlab.log(trainer.label_loss_items(trainer.tloss, prefix="train"), step=trainer.epoch + 1)
     swanlab.log(trainer.lr, step=trainer.epoch + 1)
     if trainer.epoch == 1:
@@ -63,7 +63,7 @@ def on_train_epoch_end(trainer):
 
 
 def on_train_end(trainer):
-    """Finish training"""
+    """Finish training."""
     _log_plots(trainer.validator.plots, step=trainer.epoch + 1, tag="TrainEnd/ValPlots")
     _log_plots(trainer.plots, step=trainer.epoch + 1, tag="TrainEnd/Plots")
     swanlab.finish()

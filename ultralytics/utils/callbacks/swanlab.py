@@ -40,6 +40,9 @@ def on_pretrain_routine_start(trainer):
             name=str(trainer.args.name).replace("/", "-"),
             config=vars(trainer.args),
         )
+    else:
+        run = swanlab.get_run()
+        run.config.update(vars(trainer.args))
 
 
 def on_fit_epoch_end(trainer):

@@ -1,10 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import warnings
 from functools import partial
 from pathlib import Path
 
 import torch
-import warnings
 
 from ultralytics.utils import IterableSimpleNamespace, yaml_load
 from ultralytics.utils.checks import check_yaml
@@ -43,13 +43,12 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
 
     if cfg.tracker_type not in {"bytetrack", "botsort"}:
         raise AssertionError(f"Only 'bytetrack' and 'botsort' are supported for now, but got '{cfg.tracker_type}'")
-    
+
     if predictor.args.conf > cfg.track_low_thresh:
         warnings.warn(
             f"Detection confidence threshold ({predictor.args.conf}) is higher than '{cfg.tracker_type}' expected threshold ({cfg.track_low_thresh}). "
             "This may result in fewer detections than expected being passed to the tracker. Consider lowering the detection confidence threshold."
         )
-
 
     trackers = []
     for _ in range(predictor.dataset.bs):

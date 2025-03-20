@@ -601,9 +601,7 @@ class Model(torch.nn.Module):
             from ultralytics.trackers import register_tracker
 
             register_tracker(self, persist)
-        kwargs["conf"] = (
-            kwargs.get("conf") if kwargs.get("conf") is not None else 0.1
-        )
+        kwargs["conf"] = kwargs.get("conf") if kwargs.get("conf") is not None else 0.1
         kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
         kwargs["mode"] = "track"
         return self.predict(source=source, stream=stream, **kwargs)

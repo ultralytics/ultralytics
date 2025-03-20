@@ -225,7 +225,7 @@ This will restore the run to its state before the interruption, which includes r
 
 ```shell
 python train.py \
-  --resume "comet://<your run path>"
+  --resume "comet://YOUR_RUN_PATH"
 ```
 
 ## Hyperparameter Search with the Comet Optimizer
@@ -248,13 +248,6 @@ python utils/loggers/comet/hpo.py \
   --comet_optimizer_config "utils/loggers/comet/optimizer_config.json" \
   --save-period 1 \
   --bbox_interval 1
-```
-
-### Running a Sweep in Parallel
-
-```shell
-comet optimizer -j <set number of workers> utils/loggers/comet/hpo.py \
-  utils/loggers/comet/optimizer_config.json"
 ```
 
 ## Visualizing Results

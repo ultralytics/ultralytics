@@ -13,9 +13,9 @@ Embark on your journey into the dynamic realm of real-time [object detection](ht
 Prepare for launch by cloning the repository and establishing the environment. This ensures that all the necessary [requirements](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) are installed. Check that you have [**Python>=3.8.0**](https://www.python.org/) and [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/) ready for takeoff.
 
 ```bash
-git clone https://github.com/ultralytics/yolov5  # clone repository
+git clone https://github.com/ultralytics/yolov5 # clone repository
 cd yolov5
-pip install -r requirements.txt  # install dependencies
+pip install -r requirements.txt # install dependencies
 ```
 
 ## Inference with [PyTorch](https://www.ultralytics.com/glossary/pytorch) Hub

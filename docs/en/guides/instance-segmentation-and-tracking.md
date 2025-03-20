@@ -48,7 +48,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
         yolo solutions isegment source="path/to/video.mp4"
 
         # Monitor the specific classes
-        yolo solutions isegment classes=[0, 5]
+        yolo solutions isegment classes="[0, 5]"
         ```
 
     === "Python"

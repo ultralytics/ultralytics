@@ -213,8 +213,8 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
         yolo solutions workout source="path/to/video.mp4" # specify video file path
 
         # Use keypoints for ab-workouts
-        yolo solutions workout kpts=[5, 11, 13] # left side
-        yolo solutions workout kpts=[6, 12, 14] # right side
+        yolo solutions workout kpts="[5, 11, 13]" # left side
+        yolo solutions workout kpts="[6, 12, 14]" # right side
         ```
 
     === "Queue"

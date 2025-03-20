@@ -86,7 +86,7 @@ Export an Ultralytics YOLOv8 model to IMX500 format and run inference with the e
 
 !!! warning
 
-    If you are exporting on a GPU with CUDA support, please pass the argument `device=0` for faster export. 
+    If you are exporting on a GPU with CUDA support, please pass the argument `device=0` for faster export.
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 

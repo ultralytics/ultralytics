@@ -269,8 +269,8 @@ Ultralytics provides ready-to-use solutions for common computer vision applicati
 
         ```bash
         yolo solutions queue show=True
-        yolo solutions queue source="path/to/video.mp4"  # specify video file path
-        yolo solutions queue region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"    # configure queue coordinates
+        yolo solutions queue source="path/to/video.mp4"                                # specify video file path
+        yolo solutions queue region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]" # configure queue coordinates
         ```
 
     === "Inference"

@@ -3,7 +3,7 @@
 import math
 import random
 from copy import deepcopy
-from typing import Tuple, Union
+from typing import Tuple, Union, List
 
 import cv2
 import numpy as np
@@ -2218,7 +2218,7 @@ class RandomLoadText:
         neg_samples: Tuple[int, int] = (80, 80),
         max_samples: int = 80,
         padding: bool = False,
-        padding_value: str = "",
+        padding_value: List[str] = [""],
     ) -> None:
         """
         Initializes the RandomLoadText class for randomly sampling positive and negative texts.
@@ -2259,14 +2259,15 @@ class RandomLoadText:
         self.padding = padding
         self.padding_value = padding_value
 
-        import json
+        self.pos_embeddings = dict()  # placeholder
+        self.neg_embeddings = dict()  # placeholder
 
-        with open("tools/global_grounding_neg_cat.json") as f:
-            self.global_grounding_neg_cats = np.array(json.load(f))
+        # import json
+        # with open("tools/global_grounding_neg_cat.json") as f:
+        #     self.global_grounding_neg_cats = np.array(json.load(f))
 
-        self.global_grounding_neg_embeddings = torch.load(f"tools/{text_model}/global_grounding_neg_embeddings.pt")
-
-        self.train_label_embeddings = torch.load(f"tools/{text_model}/train_label_embeddings.pt")
+        self.neg_embeddings = torch.load(f"tools/{text_model}/global_grounding_neg_embeddings.pt")
+        self.pos_embeddings = torch.load(f"tools/{text_model}/train_label_embeddings.pt")
 
     def __call__(self, labels: dict) -> dict:
         """
@@ -2325,7 +2326,7 @@ class RandomLoadText:
 
         txt_feats = []
         for text in texts:
-            txt_feats.append(self.train_label_embeddings[text])
+            txt_feats.append(self.pos_embeddings[text])
         if len(txt_feats) != 0:
             txt_feats = torch.stack(txt_feats, dim=0)
         else:
@@ -2335,10 +2336,11 @@ class RandomLoadText:
             valid_labels = len(pos_labels) + len(neg_labels)
             num_padding = self.max_samples - valid_labels
             if num_padding > 0:
-                global_neg_cat_len = self.global_grounding_neg_embeddings.shape[0]
-                pad_net_cat_indexs = np.random.choice(np.arange(0, global_neg_cat_len), size=num_padding, replace=False)
+                # texts += random.choices(self.padding_value, k=num_padding)
 
-                pad_net_cat_embeddings = self.global_grounding_neg_embeddings[pad_net_cat_indexs]
+                global_neg_cat_len = self.neg_embeddings.shape[0]
+                pad_net_cat_indexs = np.random.choice(np.arange(0, global_neg_cat_len), size=num_padding, replace=False)
+                pad_net_cat_embeddings = self.neg_embeddings[pad_net_cat_indexs]
 
                 if txt_feats is not None:
                     txt_feats = torch.cat((txt_feats, pad_net_cat_embeddings), dim=0)
@@ -2348,6 +2350,12 @@ class RandomLoadText:
         assert txt_feats.shape[0] == self.max_samples
         labels["texts"] = txt_feats
         return labels
+
+    def set_pos_embeddings(self, pos_embeddings):
+        self.pos_embeddings = pos_embeddings
+
+    def set_neg_embeddings(self, neg_embeddings):
+        self.neg_embeddings = neg_embeddings
 
 
 def v8_transforms(dataset, imgsz, hyp, stretch=False):

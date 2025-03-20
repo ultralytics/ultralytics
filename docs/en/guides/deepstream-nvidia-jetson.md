@@ -319,10 +319,10 @@ To set up multiple streams under a single deepstream application, you can do the
     [source0]
     enable=1
     type=3
-    uri=<path_to_video>
-    uri=<path_to_video>
-    uri=<path_to_video>
-    uri=<path_to_video>
+    uri=path/to/video1.jpg
+    uri=path/to/video2.jpg
+    uri=path/to/video3.jpg
+    uri=path/to/video4.jpg
     num-sources=4
     ```
 

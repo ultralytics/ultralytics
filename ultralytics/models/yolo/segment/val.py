@@ -191,6 +191,8 @@ class SegmentationValidator(DetectionValidator):
             pred_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
             if self.args.plots and self.batch_i < 3:
                 self.plot_masks.append(pred_masks[:15].cpu())  # filter top 15 to plot
+                if pred_masks.shape[0] > 15:
+                    LOGGER.warning("WARNING ⚠️ Larger number of instances detected. Only plotting top 15...")
 
             # Save
             if self.args.save_json:

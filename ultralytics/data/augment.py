@@ -2325,6 +2325,7 @@ class RandomLoadText:
             texts.append(prompt)
 
         if len(self.pos_embeddings):
+            assert len(neg_embeddings), "Expected negative embeddings to be loaded together with positive embeddings."
             text_feats = [self.pos_embeddings[text] for text in texts]
             text_feats = torch.stack(text_feats, dim=0) if len(text_feats) > 0 else text_feats
 
@@ -2334,7 +2335,7 @@ class RandomLoadText:
             if num_padding > 0:
                 texts += random.choices(self.padding_value, k=num_padding)
 
-                if len(self.neg_embeddings) and len(self.pos_embeddings):
+                if len(self.pos_embeddings):
                     neg_idx = np.random.choice(np.arange(0, len(self.neg_embeddings)), size=num_padding, replace=False)
                     neg_embeddings = self.neg_embeddings[neg_idx]
                     text_feats = torch.cat((text_feats, neg_embeddings), dim=0) if len(text_feats) > 0 else neg_embeddings

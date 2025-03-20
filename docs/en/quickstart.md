@@ -382,6 +382,7 @@ The table below overviews the adjustable settings within Ultralytics, including 
 | `raytune`          | `True`                | `bool`    | Option to use [Ray Tune] for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) |
 | `tensorboard`      | `True`                | `bool`    | Option to use [TensorBoard] for visualization                                                                    |
 | `wandb`            | `True`                | `bool`    | Option to use [Weights & Biases] logging                                                                         |
+| `swanlab`          | `True`                | `bool`    | Option to use [Swanlab] for experiment tracking                                                                  |
 | `vscode_msg`       | `True`                | `bool`    | When a VS Code terminal is detected, enables a prompt to download the [Ultralytics-Snippets] extension.          |
 
 Revisit these settings as you progress through projects or experiments to ensure optimal configuration.

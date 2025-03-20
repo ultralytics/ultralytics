@@ -1244,6 +1244,7 @@ class SettingsManager(JSONDict):
             "raytune": True,  # Ray Tune integration
             "tensorboard": True,  # TensorBoard logging
             "wandb": False,  # Weights & Biases logging
+            "swanlab": False,  # Swanlab integration
             "vscode_msg": True,  # VSCode messaging
         }
 

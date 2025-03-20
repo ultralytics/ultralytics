@@ -619,6 +619,7 @@ nav:
               - raytune: reference/utils/callbacks/raytune.md
               - tensorboard: reference/utils/callbacks/tensorboard.md
               - wb: reference/utils/callbacks/wb.md
+              - swanlab: reference/utils/callbacks/swanlab.md
           - checks: reference/utils/checks.md
           - dist: reference/utils/dist.md
           - downloads: reference/utils/downloads.md

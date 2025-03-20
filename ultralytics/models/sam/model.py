@@ -94,7 +94,7 @@ class SAM(Model):
             **kwargs (Any): Additional keyword arguments for prediction.
 
         Returns:
-            (List): The model predictions.
+            (list): The model predictions.
 
         Examples:
             >>> sam = SAM("sam_b.pt")
@@ -124,7 +124,7 @@ class SAM(Model):
             **kwargs (Any): Additional keyword arguments to be passed to the predict method.
 
         Returns:
-            (List): The model predictions, typically containing segmentation masks and other relevant information.
+            (list): The model predictions, typically containing segmentation masks and other relevant information.
 
         Examples:
             >>> sam = SAM("sam_b.pt")

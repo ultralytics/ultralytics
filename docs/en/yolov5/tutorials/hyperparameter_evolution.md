@@ -21,9 +21,9 @@ This makes genetic algorithms a suitable candidate for hyperparameter searches.
 Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
-git clone https://github.com/ultralytics/yolov5  # clone
+git clone https://github.com/ultralytics/yolov5 # clone
 cd yolov5
-pip install -r requirements.txt  # install
+pip install -r requirements.txt # install
 ```
 
 ## 1. Initialize Hyperparameters
@@ -92,19 +92,23 @@ To evolve hyperparameters **specific to this scenario**, starting from our initi
 # Single-GPU
 python train.py --epochs 10 --data coco128.yaml --weights yolov5s.pt --cache --evolve
 
-# Multi-GPU
-for i in 0 1 2 3 4 5 6 7; do
-  sleep $(expr 30 \* $i) &&  # 30-second delay (optional)
-  echo 'Starting GPU '$i'...' &&
-  nohup python train.py --epochs 10 --data coco128.yaml --weights yolov5s.pt --cache --device $i --evolve > evolve_gpu_$i.log &
+# Multi-GPU with delay
+for i in {0..7}; do
+  sleep $((30 * i)) # 30-second delay (optional)
+  echo "Starting GPU $i..."
+  nohup python train.py --epochs 10 --data coco128.yaml --weights yolov5s.pt --cache --device $i --evolve > "evolve_gpu_$i.log" &
 done
 
-# Multi-GPU bash-while (not recommended)
-for i in 0 1 2 3 4 5 6 7; do
-  sleep $(expr 30 \* $i) &&  # 30-second delay (optional)
-  echo 'Starting GPU '$i'...' &&
-  "$(while true; do nohup python train.py... --device $i --evolve 1 > evolve_gpu_$i.log; done)" &
-done
+# Continuous training (use with caution)
+# for i in {0..7}; do
+#   sleep $((30 * i))  # 30-second delay (optional)
+#   echo "Starting continuous training on GPU $i..."
+#   (
+#     while true; do
+#       python train.py --epochs 10 --data coco128.yaml --weights yolov5s.pt --cache --device $i --evolve > "evolve_gpu_$i.log"
+#     done
+#   ) &
+# done
 ```
 
 The default evolution settings will run the base scenario 300 times, i.e. for 300 generations. You can modify generations via the `--evolve` argument, i.e. `python train.py --evolve 1000`.

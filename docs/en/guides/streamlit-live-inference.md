@@ -59,7 +59,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
 
         inf.inference()
 
-        ### Make sure to run the file using command `streamlit run <file-name.py>`
+        # Make sure to run the file using command `streamlit run path/to/file.py`
         ```
 
 This will launch the Streamlit application in your default web browser. You will see the main title, subtitle, and the sidebar with configuration options. Select your desired YOLO11 model, set the confidence and [NMS thresholds](https://www.ultralytics.com/glossary/non-maximum-suppression-nms), and click the "Start" button to begin the real-time object detection.
@@ -79,7 +79,7 @@ You can optionally supply a specific model in Python:
 
         inf.inference()
 
-        ### Make sure to run the file using command `streamlit run <file-name.py>`
+        # Make sure to run the file using command `streamlit run path/to/file.py`
         ```
 
 ## How It Works
@@ -138,7 +138,7 @@ Then, you can create a basic Streamlit application to run live inference:
 
         inf.inference()
 
-        ### Make sure to run the file using command `streamlit run <file-name.py>`
+        # Make sure to run the file using command `streamlit run path/to/file.py`
         ```
 
     === "CLI"
@@ -164,7 +164,7 @@ Discover more about these advantages [here](#advantages-of-live-inference).
 After coding your Streamlit application integrating Ultralytics YOLO11, you can deploy it by running:
 
 ```bash
-streamlit run <file-name.py>
+streamlit run path/to/file.py
 ```
 
 This command will launch the application in your default web browser, enabling you to select YOLO11 models, set confidence and NMS thresholds, and start real-time object detection with a simple click. For a detailed guide, refer to the [Streamlit Application Code](#streamlit-application-code) section.

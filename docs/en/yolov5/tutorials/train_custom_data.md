@@ -159,7 +159,7 @@ Getting started is easy:
 
 ```shell
 pip install comet_ml  # 1. install
-export COMET_API_KEY=<Your API Key>  # 2. paste API key
+export COMET_API_KEY=YOUR_API_KEY  # 2. paste API key
 python train.py --img 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt  # 3. train
 ```
 

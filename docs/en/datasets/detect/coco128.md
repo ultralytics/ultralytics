@@ -113,6 +113,7 @@ To train a YOLO11 model on the COCO128 dataset, you can use either Python or CLI
         results = model.train(data="coco128.yaml", epochs=100, imgsz=640)
         ```
     
+
     === "CLI"
     
         ```bash

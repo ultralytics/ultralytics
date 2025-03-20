@@ -94,14 +94,14 @@ python train.py --epochs 10 --data coco128.yaml --weights yolov5s.pt --cache --e
 
 # Multi-GPU with delay
 for i in {0..7}; do
-  sleep $((30 * i))  # 30-second delay (optional)
+  sleep $((30 * i)) # 30-second delay (optional)
   echo "Starting GPU $i..."
   nohup python train.py --epochs 10 --data coco128.yaml --weights yolov5s.pt --cache --device $i --evolve > "evolve_gpu_$i.log" &
 done
 
 # Continuous training (use with caution)
 # for i in {0..7}; do
-#   sleep $((30 * i))  # 30-second delay (optional) 
+#   sleep $((30 * i))  # 30-second delay (optional)
 #   echo "Starting continuous training on GPU $i..."
 #   (
 #     while true; do

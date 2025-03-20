@@ -130,8 +130,8 @@ Spin up the Server with the pruned-quantized YOLOv5s:
 
 ```bash
 deepsparse.server \
-    --task yolo \
-    --model_path zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/pruned65_quant-none
+  --task yolo \
+  --model_path zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/pruned65_quant-none
 ```
 
 An example request, using Python's `requests` package:

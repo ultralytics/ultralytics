@@ -190,7 +190,9 @@ class SegmentationValidator(DetectionValidator):
 
             pred_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
             if self.args.plots and self.batch_i < 3:
-                self.plot_masks.append(pred_masks[:15].cpu())  # filter top 15 to plot
+                self.plot_masks.append(pred_masks[:50].cpu())  # Limit plotted items for speed
+                if pred_masks.shape[0] > 50:
+                    LOGGER.warning("WARNING ⚠️ Limiting validation plots to first 50 items per image for speed...")
 
             # Save
             if self.args.save_json:
@@ -292,7 +294,7 @@ class SegmentationValidator(DetectionValidator):
         """
         plot_images(
             batch["img"],
-            *output_to_target(preds[0], max_det=15),  # not set to self.args.max_det due to slow plotting speed
+            *output_to_target(preds[0], max_det=50),  # not set to self.args.max_det due to slow plotting speed
             torch.cat(self.plot_masks, dim=0) if len(self.plot_masks) else self.plot_masks,
             paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_pred.jpg",

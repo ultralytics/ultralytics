@@ -29,6 +29,7 @@ class YOLOEPETrainer(DetectionTrainer):
             model.load(weights)
 
         model.eval()
+        # TODO: removed `train_pe_path`
         pe_state = torch.load(self.args.train_pe_path)
         model.set_classes(pe_state["names"], pe_state["pe"])
         model.model[-1].fuse(model.pe)

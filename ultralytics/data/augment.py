@@ -2213,7 +2213,6 @@ class RandomLoadText:
 
     def __init__(
         self,
-        text_model: str,
         prompt_format: str = "{}",
         neg_samples: Tuple[int, int] = (80, 80),
         max_samples: int = 80,
@@ -2266,8 +2265,8 @@ class RandomLoadText:
         # with open("tools/global_grounding_neg_cat.json") as f:
         #     self.global_grounding_neg_cats = np.array(json.load(f))
 
-        self.neg_embeddings = torch.load(f"tools/{text_model}/global_grounding_neg_embeddings.pt")
-        self.pos_embeddings = torch.load(f"tools/{text_model}/train_label_embeddings.pt")
+        # self.neg_embeddings = torch.load(f"global_grounding_neg_embeddings.pt")
+        # self.pos_embeddings = torch.load(f"train_label_embeddings.pt")
 
     def __call__(self, labels: dict) -> dict:
         """

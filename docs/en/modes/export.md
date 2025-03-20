@@ -66,8 +66,8 @@ Export a YOLO11n model to a different format like ONNX or TensorRT. See the Argu
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx  # export custom trained model
+        yolo export model=yolo11n.pt format=onnx      # export official model
+        yolo export model=path/to/best.pt format=onnx # export custom trained model
         ```
 
 ## Arguments
@@ -108,8 +108,8 @@ Exporting a YOLO11 model to ONNX format is straightforward with Ultralytics. It 
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx  # export custom trained model
+        yolo export model=yolo11n.pt format=onnx      # export official model
+        yolo export model=path/to/best.pt format=onnx # export custom trained model
         ```
 
 For more details on the process, including advanced options like handling different input sizes, refer to the [ONNX integration guide](../integrations/onnx.md).
@@ -142,7 +142,7 @@ INT8 quantization is an excellent way to compress the model and speed up inferen
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n.pt format=engine int8=True   # export TensorRT model with INT8 quantization
+        yolo export model=yolo11n.pt format=engine int8=True # export TensorRT model with INT8 quantization
         ```
 
 INT8 quantization can be applied to various formats, such as [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), and [CoreML](../integrations/coreml.md). For optimal quantization results, provide a representative [dataset](https://docs.ultralytics.com/datasets/) using the `data` parameter.

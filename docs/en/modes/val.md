@@ -71,8 +71,8 @@ Validate trained YOLO11n model [accuracy](https://www.ultralytics.com/glossary/a
     === "CLI"
 
         ```bash
-        yolo detect val model=yolo11n.pt  # val official model
-        yolo detect val model=path/to/best.pt  # val custom model
+        yolo detect val model=yolo11n.pt      # val official model
+        yolo detect val model=path/to/best.pt # val custom model
         ```
 
 ## Arguments for YOLO Model Validation

@@ -43,6 +43,7 @@ class TextModel(nn.Module):
     """
 
     def __init__(self):
+        """Initialize the TextModel base class."""
         super().__init__()
 
     @abstractmethod
@@ -72,6 +73,13 @@ class CLIP(TextModel):
     """
 
     def __init__(self, size, device):
+        """
+        Initialize the CLIP text encoder.
+
+        Args:
+            size (str): Model size identifier (e.g., 'ViT-B/32').
+            device (torch.device): Device to load the model on.
+        """
         super().__init__()
         self.model = clip.load(size, device=device)[0]
         self.to(device)
@@ -119,6 +127,13 @@ class MobileCLIP(TextModel):
     config_size_map = {"s0": "s0", "s1": "s1", "s2": "s2", "b": "b", "blt": "b"}
 
     def __init__(self, size, device):
+        """
+        Initialize the MobileCLIP text encoder.
+
+        Args:
+            size (str): Model size identifier (e.g., 's0', 's1', 's2', 'b', 'blt').
+            device (torch.device): Device to load the model on.
+        """
         super().__init__()
         config = self.config_size_map[size]
         self.model = mobileclip.create_model_and_transforms(

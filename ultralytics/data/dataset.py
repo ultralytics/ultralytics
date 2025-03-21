@@ -481,7 +481,7 @@ class GroundingDataset(YOLODataset):
                     continue
 
                 caption = img["caption"]
-                cat_name = " ".join([caption[t[0] : t[1]] for t in ann["tokens_positive"]])
+                cat_name = " ".join([caption[t[0] : t[1]] for t in ann["tokens_positive"]]).lower().strip()
                 if not cat_name:
                     continue
 

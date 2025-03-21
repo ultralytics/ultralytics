@@ -89,9 +89,11 @@ class YOLOEVPPredictorMixin:
         return super().inference(im, vpe=self.prompts, *args, **kwargs)
 
 
+# TODO
 class YOLOEVPDetectPredictor(YOLOEVPPredictorMixin, DetectionPredictor):
+    """Predictor for YOLOE VP detection."""
     pass
 
-
 class YOLOEVPSegPredictor(YOLOEVPPredictorMixin, SegmentationPredictor):
+    """Predictor for YOLOE VP segmentation."""
     pass

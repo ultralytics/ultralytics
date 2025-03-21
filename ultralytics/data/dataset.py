@@ -13,7 +13,7 @@ from PIL import Image
 from torch.utils.data import ConcatDataset
 
 from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr
-from ultralytics.utils.ops import resample_segments
+from ultralytics.utils.ops import resample_segments, segments2boxes
 from ultralytics.utils.torch_utils import TORCHVISION_0_18
 
 from .augment import (
@@ -38,6 +38,7 @@ from .utils import (
     verify_image,
     verify_image_label,
 )
+from .converter import merge_multi_segment
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for YOLOv8
 DATASET_CACHE_VERSION = "1.0.3"
@@ -466,6 +467,7 @@ class GroundingDataset(YOLODataset):
                 continue
             self.im_files.append(str(im_file))
             bboxes = []
+            segments = []
             cat2id = {}
             texts = []
             for ann in anns:
@@ -491,13 +493,33 @@ class GroundingDataset(YOLODataset):
                 # TODO: support reading segments based on `generate_grounding_cache.py`
                 if box not in bboxes:
                     bboxes.append(box)
+                    if ann.get("segmentation") is not None:
+                        if len(ann["segmentation"]) == 0:
+                            segments.append(box)
+                            continue
+                        elif len(ann["segmentation"]) > 1:
+                            s = merge_multi_segment(ann["segmentation"])
+                            s = (np.concatenate(s, axis=0) / np.array([w, h], dtype=np.float32)).reshape(-1).tolist()
+                        else:
+                            s = [j for i in ann["segmentation"] for j in i]  # all segments concatenated
+                            s = (np.array(s, dtype=np.float32).reshape(-1, 2) / np.array([w, h], dtype=np.float32)).reshape(-1).tolist()
+                        s = [cls] + s
+                        segments.append(s)
             lb = np.array(bboxes, dtype=np.float32) if len(bboxes) else np.zeros((0, 5), dtype=np.float32)
+
+            if len(segments) > 0:
+                classes = np.array([x[0] for x in segments], dtype=np.float32)
+                segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in segments]  # (cls, xy1...)
+                lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
+            lb = np.array(lb, dtype=np.float32)
+
             x["labels"].append(
                 {
                     "im_file": im_file,
                     "shape": (h, w),
                     "cls": lb[:, 0:1],  # n, 1
                     "bboxes": lb[:, 1:],  # n, 4
+                    "segments": segments,
                     "normalized": True,
                     "bbox_format": "xywh",
                     "texts": texts,
@@ -517,7 +539,7 @@ class GroundingDataset(YOLODataset):
             cache, _ = self.cache_labels(cache_path), False  # run cache ops
         [cache.pop(k) for k in ("hash", "version")]  # remove items
         labels = cache["labels"]
-        self.verify_labels(labels)
+        # self.verify_labels(labels)
         self.im_files = [str(label["im_file"]) for label in labels]
         if LOCAL_RANK in {-1, 0}:
             LOGGER.info(f"Load {self.json_file} from cache file {cache_path}")

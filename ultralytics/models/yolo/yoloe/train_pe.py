@@ -12,6 +12,7 @@ from ultralytics.utils import RANK
 
 
 class YOLOEPETrainer(DetectionTrainer):
+    """Fine-tune YOLOE model in linear probing way."""
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return YOLOEModel initialized with specified config and weights."""
         # NOTE: This `nc` here is the max number of different text samples in one image, rather than the actual `nc`.
@@ -19,7 +20,7 @@ class YOLOEPETrainer(DetectionTrainer):
         model = YOLOEModel(
             cfg["yaml_file"] if isinstance(cfg, dict) else cfg,
             ch=3,
-            nc=min(self.data["nc"], 80),
+            nc=self.data["nc"],
             verbose=verbose and RANK == -1,
         )
 
@@ -43,6 +44,7 @@ class YOLOEPETrainer(DetectionTrainer):
 
 
 class YOLOEPESegTrainer(SegmentationTrainer):
+    """Fine-tune YOLOESeg model in linear probing way."""
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return YOLOEModel initialized with specified config and weights."""
         # NOTE: This `nc` here is the max number of different text samples in one image, rather than the actual `nc`.
@@ -50,7 +52,7 @@ class YOLOEPESegTrainer(SegmentationTrainer):
         model = YOLOESegModel(
             cfg["yaml_file"] if isinstance(cfg, dict) else cfg,
             ch=3,
-            nc=min(self.data["nc"], 80),
+            nc=self.data["nc"],
             verbose=verbose and RANK == -1,
         )
 
@@ -60,6 +62,7 @@ class YOLOEPESegTrainer(SegmentationTrainer):
             model.load(weights)
 
         model.eval()
+        # TODO: removed `train_pe_path`
         pe_state = torch.load(self.args.train_pe_path)
         model.set_classes(pe_state["names"], pe_state["pe"])
         model.model[-1].fuse(model.pe)
@@ -73,6 +76,7 @@ class YOLOEPESegTrainer(SegmentationTrainer):
 
 
 class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
+    """Train prompt-free YOLOE model."""
     def get_validator(self):
         """Returns a DetectionValidator for YOLO model validation."""
         self.loss_names = "box", "cls", "dfl"

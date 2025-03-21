@@ -224,13 +224,12 @@ class BaseModel(torch.nn.Module):
                 if isinstance(m, RepVGGDW):
                     m.fuse()
                     m.forward = m.forward_fuse
-                device = next(self.model.parameters()).device
-                if isinstance(m, MaxSigmoidAttnBlock):  # TODO: fix this conflict with WorldModel
-                    assert isinstance(self, YOLOEModel)
-                    m.fuse(self.pe.to(device))
-                if isinstance(m, YOLOEDetect) and hasattr(self, "pe"):
-                    assert isinstance(self, YOLOEModel)
-                    m.fuse(self.pe.to(device))
+
+                # YOLOE-specific (TODO: review this section)
+                if isinstance(self, YOLOEModel) and hasattr(self, "pe"):
+                    if isinstance(m, (MaxSigmoidAttnBlock, YOLOEDetect)):
+                        device = next(self.model.parameters()).device
+                        m.fuse(self.pe.to(device))
             self.info(verbose=verbose)
 
         return self

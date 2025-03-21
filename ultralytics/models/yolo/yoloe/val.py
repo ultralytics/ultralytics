@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from copy import deepcopy
 
@@ -15,8 +15,30 @@ from ultralytics.utils.torch_utils import select_device, smart_inference_mode
 
 
 class YOLOEValidatorMixin:
+    """
+    A mixin class for YOLOE model validation that handles both text and visual prompt embeddings.
+
+    This mixin provides functionality to validate YOLOE models using either text or visual prompt embeddings.
+    It includes methods for extracting visual prompt embeddings from samples, preprocessing batches, and
+    running validation with different prompt types.
+
+    Attributes:
+        device (torch.device): The device on which validation is performed.
+        args (namespace): Configuration arguments for validation.
+        dataloader (DataLoader): DataLoader for validation data.
+    """
+
     @smart_inference_mode()
     def get_visual_pe(self, model):
+        """
+        Extract visual prompt embeddings from training samples.
+
+        Args:
+            model (YOLOEModel): The YOLOE model from which to extract visual prompt embeddings.
+
+        Returns:
+            (torch.Tensor): Visual prompt embeddings with shape (1, num_classes, embed_dim).
+        """
         assert isinstance(model, YOLOEModel)
         data_loader, names = self.get_lvis_train_vps_loader(model)
         visual_pe = torch.zeros(len(names), model.model[-1].embed, device=self.device)
@@ -46,12 +68,24 @@ class YOLOEValidatorMixin:
         return visual_pe.unsqueeze(0)
 
     def preprocess(self, batch):
+        """Preprocess batch data, ensuring visuals are on the same device as images."""
         batch = super().preprocess(batch)
         if "visuals" in batch:
             batch["visuals"] = batch["visuals"].to(batch["img"].device)
         return batch
 
     def get_lvis_train_vps_loader(self, model):
+        """
+        Create a dataloader for LVIS training visual prompt samples.
+
+        Args:
+            model (YOLOEModel): The YOLOE model for which to create the dataloader.
+
+        Returns:
+            (tuple): A tuple containing:
+                - lvis_train_vps_loader (DataLoader): DataLoader for LVIS training visual prompt samples.
+                - names (list): List of class names.
+        """
         lvis_train_vps_data = check_det_dataset("lvis_train_vps.yaml")
         lvis_train_vps_loader = build_dataloader(
             build_yolo_dataset(
@@ -72,6 +106,16 @@ class YOLOEValidatorMixin:
         return lvis_train_vps_loader, lvis_train_vps_data["names"]
 
     def add_prefix_for_metric(self, stats, prefix):
+        """
+        Add a prefix to metric keys in stats dictionary.
+
+        Args:
+            stats (dict): Statistics dictionary containing metrics.
+            prefix (str): Prefix to add to metric keys.
+
+        Returns:
+            (dict): Statistics dictionary with prefixed metric keys.
+        """
         prefix_stats = {}
         for k, v in stats.items():
             if k.startswith("metrics"):
@@ -82,6 +126,16 @@ class YOLOEValidatorMixin:
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
+        """
+        Run validation on the model using either text or visual prompt embeddings.
+
+        Args:
+            trainer (object, optional): Trainer object containing the model and device.
+            model (YOLOEModel, optional): Model to validate.
+
+        Returns:
+            (dict): Validation statistics.
+        """
         if trainer is not None:
             self.device = trainer.device
 
@@ -138,13 +192,20 @@ class YOLOEValidatorMixin:
 
 
 class YOLOEDetectValidator(YOLOEValidatorMixin, DetectionValidator):
+    """YOLOE detection validator that supports both text and visual prompt embeddings."""
+
     pass
 
 
 class YOLOESegValidator(YOLOEValidatorMixin, SegmentationValidator):
+    """YOLOE segmentation validator that supports both text and visual prompt embeddings."""
+
     pass
 
 
 class YOLOEPEFreeDetectValidator(DetectionValidator):
+    """YOLOE detection validator that doesn't require prompt embeddings."""
+
     def eval_json(self, stats):
+        """Return stats without additional processing."""
         return stats

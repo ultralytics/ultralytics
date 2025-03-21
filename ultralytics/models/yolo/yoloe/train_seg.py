@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 
 from copy import copy, deepcopy
@@ -14,13 +14,35 @@ from .val import YOLOESegValidator
 
 
 class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
+    """
+    Trainer class for YOLOE segmentation models.
+
+    This class combines YOLOETrainer and SegmentationTrainer to provide training functionality
+    specifically for YOLOE segmentation models.
+
+    Attributes:
+        cfg (dict): Configuration dictionary with training parameters.
+        overrides (dict): Dictionary with parameter overrides.
+        _callbacks (list): List of callback functions for training events.
+    """
+
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         if overrides is None:
             overrides = {}
         super().__init__(cfg, overrides, _callbacks)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """Return YOLOEModel initialized with specified config and weights."""
+        """
+        Return YOLOESegModel initialized with specified config and weights.
+
+        Args:
+            cfg (dict | str): Model configuration dictionary or YAML file path.
+            weights (str, optional): Path to pretrained weights file.
+            verbose (bool): Whether to display model information.
+
+        Returns:
+            (YOLOESegModel): Initialized YOLOE segmentation model.
+        """
         # NOTE: This `nc` here is the max number of different text samples in one image, rather than the actual `nc`.
         # NOTE: Following the official config, nc hard-coded to 80 for now.
         model = YOLOESegModel(
@@ -35,7 +57,12 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
         return model
 
     def get_validator(self):
-        """Returns a DetectionValidator for YOLO model validation."""
+        """
+        Create and return a validator for YOLOE segmentation model evaluation.
+
+        Returns:
+            (YOLOESegValidator): Validator for YOLOE segmentation models.
+        """
         self.loss_names = "box", "seg", "cls", "dfl"
         return YOLOESegValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
@@ -43,10 +70,28 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
 
 
 class YOLOEPESegTrainer(SegmentationTrainer):
-    """Fine-tune YOLOESeg model in linear probing way."""
+    """
+    Fine-tune YOLOESeg model in linear probing way.
+
+    This trainer specializes in fine-tuning YOLOESeg models using a linear probing approach,
+    which involves freezing most of the model and only training specific layers.
+
+    Attributes:
+        Inherits all attributes from SegmentationTrainer.
+    """
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """Return YOLOEModel initialized with specified config and weights."""
+        """
+        Return YOLOESegModel initialized with specified config and weights for linear probing.
+
+        Args:
+            cfg (dict | str): Model configuration dictionary or YAML file path.
+            weights (str, optional): Path to pretrained weights file.
+            verbose (bool): Whether to display model information.
+
+        Returns:
+            (YOLOESegModel): Initialized YOLOE segmentation model configured for linear probing.
+        """
         # NOTE: This `nc` here is the max number of different text samples in one image, rather than the actual `nc`.
         # NOTE: Following the official config, nc hard-coded to 80 for now.
         model = YOLOESegModel(

@@ -1,5 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
-
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from collections import defaultdict
 from copy import copy, deepcopy
@@ -54,7 +53,10 @@ class YOLOETrainer(DetectionTrainer):
         Args:
             img_path (str): Path to the folder containing images.
             mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
-            batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
+            batch (int, optional): Size of batches, this is for `rect`.
+
+        Returns:
+            (Dataset): YOLO dataset configured for training or validation.
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         return build_yolo_dataset(
@@ -62,6 +64,7 @@ class YOLOETrainer(DetectionTrainer):
         )
 
     def preprocess_batch(self, batch):
+        """Process batch for training, moving text features to the appropriate device."""
         batch = super().preprocess_batch(batch)
         batch["txt_feats"] = batch["text_feats"].to(self.device)
         return batch
@@ -71,7 +74,17 @@ class YOLOEPETrainer(DetectionTrainer):
     """Fine-tune YOLOE model in linear probing way."""
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """Return YOLOEModel initialized with specified config and weights."""
+        """
+        Return YOLOEModel initialized with specified config and weights.
+
+        Args:
+            cfg (dict | str, optional): Model configuration.
+            weights (str, optional): Path to pretrained weights.
+            verbose (bool): Whether to display model information.
+
+        Returns:
+            (YOLOEModel): Initialized model with frozen layers except for specific projection layers.
+        """
         # NOTE: This `nc` here is the max number of different text samples in one image, rather than the actual `nc`.
         # NOTE: Following the official config, nc hard-coded to 80 for now.
         model = YOLOEModel(
@@ -169,6 +182,18 @@ class YOLOETrainerFromScratch(YOLOETrainer):
 
     @staticmethod
     def generate_data_embeddings(texts, batch, device="cuda", cache_path="embeddings.pt"):
+        """
+        Generate text embeddings for a list of text samples.
+
+        Args:
+            texts (List[str]): List of text samples to encode.
+            batch (int): Batch size for processing.
+            device (str): Device to use for encoding ('cuda' or 'cpu').
+            cache_path (str | Path): Path to save/load cached embeddings.
+
+        Returns:
+            (dict): Dictionary mapping text samples to their embeddings.
+        """
         if cache_path.exists():
             return torch.load(cache_path)
         from tqdm import tqdm
@@ -188,6 +213,7 @@ class YOLOETrainerFromScratch(YOLOETrainer):
 
     @staticmethod
     def _get_neg_texts(category_freq, threshold=100):
+        """Get negative text samples based on frequency threshold."""
         return [k for k, v in category_freq.items() if v >= threshold]
 
     def get_dataset(self):
@@ -241,6 +267,14 @@ class YOLOETrainerFromScratch(YOLOETrainer):
         pass
 
     def final_eval(self):
+        """
+        Perform final evaluation on the validation dataset.
+
+        Configures the validator with the appropriate dataset and split before running evaluation.
+
+        Returns:
+            (dict): Evaluation metrics.
+        """
         val = self.args.data["val"]["yolo_data"][0]
         self.validator.args.data = val
         self.validator.args.split = "minival" if isinstance(val, str) and "lvis" in val else "val"
@@ -267,7 +301,7 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
     """Train YOLOE model with visual prompts."""
 
     def preprocess_batch(self, batch):
-        """Preprocesses a batch of images for YOLOE training, adjusting formatting and dimensions as needed."""
+        """Preprocesses a batch of images for YOLOE training, moving visual prompts to the appropriate device."""
         batch = super().preprocess_batch(batch)
         batch["visuals"] = batch["visuals"].to(self.device)
         return batch

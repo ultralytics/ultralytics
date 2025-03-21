@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from copy import deepcopy
 
 import numpy as np
@@ -11,6 +13,26 @@ from ultralytics.utils.torch_utils import select_device
 
 
 class YOLOEVPPredictorMixin:
+    """
+    A mixin class for YOLO-EVP (Enhanced Visual Prompting) predictors.
+
+    This mixin provides common functionality for YOLO models that use visual prompting, including
+    model setup, prompt handling, and preprocessing transformations.
+
+    Attributes:
+        model (torch.nn.Module): The YOLO model for inference.
+        device (torch.device): Device to run the model on (CPU or CUDA).
+        prompts (dict): Visual prompts containing class indices and bounding boxes or masks.
+        return_vpe (bool): Whether to return visual prompt embeddings.
+
+    Methods:
+        setup_model: Initialize the YOLO model and set it to evaluation mode.
+        set_return_vpe: Set whether to return visual prompt embeddings.
+        set_prompts: Set the visual prompts for the model.
+        pre_transform: Preprocess images and prompts before inference.
+        inference: Run inference with visual prompts.
+    """
+
     def setup_model(self, model, verbose=True):
         """Initialize YOLO model with given parameters and set it to evaluation mode."""
         device = select_device(self.args.device, verbose=verbose)
@@ -25,13 +47,36 @@ class YOLOEVPPredictorMixin:
         self.return_vpe = False
 
     def set_return_vpe(self, return_vpe):
+        """Set whether to return visual prompt embeddings during inference."""
         self.return_vpe = return_vpe
 
     def set_prompts(self, prompts):
+        """
+        Set the visual prompts for the model.
+
+        Args:
+            prompts (dict): Dictionary containing class indices and bounding boxes or masks.
+                Must include a 'cls' key with class indices.
+        """
         assert "cls" in prompts, "Please provide class index."
         self.prompts = deepcopy(prompts)
 
     def pre_transform(self, im):
+        """
+        Preprocess images and prompts before inference.
+
+        This method applies letterboxing to the input image and transforms the visual prompts
+        (bounding boxes or masks) accordingly.
+
+        Args:
+            im (list): List containing a single input image.
+
+        Returns:
+            (list): Preprocessed image ready for model inference.
+
+        Raises:
+            ValueError: If neither valid bounding boxes nor masks are provided in the prompts.
+        """
         letterbox = LetterBox(
             self.imgsz,
             auto=False,
@@ -67,7 +112,7 @@ class YOLOEVPPredictorMixin:
             for i in range(len(masks)):
                 resized_masks.append(letterbox(image=masks[i]))
             masks = np.stack(resized_masks)
-            masks[masks == 114] = 0
+            masks[masks == 114] = 0  # Reset padding values to 0
 
             labels = dict(img=img, masks=masks, cls=cls)
         else:
@@ -86,12 +131,23 @@ class YOLOEVPPredictorMixin:
         return [labels["img"].transpose(1, 2, 0)]
 
     def inference(self, im, *args, **kwargs):
+        """
+        Run inference with visual prompts.
+
+        Args:
+            im (torch.Tensor): Input image tensor.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            (torch.Tensor): Model prediction results.
+        """
         if self.return_vpe:
             self.vpe = self.model.get_visual_pe(im, visual=self.prompts)
         return super().inference(im, vpe=self.prompts, *args, **kwargs)
 
 
-# TODO
+# TODO: Implement additional functionality
 class YOLOEVPDetectPredictor(YOLOEVPPredictorMixin, DetectionPredictor):
     """Predictor for YOLOE VP detection."""
 

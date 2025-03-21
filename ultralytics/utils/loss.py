@@ -26,7 +26,7 @@ class VarifocalLoss(nn.Module):
 
     @staticmethod
     def forward(pred_score, gt_score, label, alpha=0.75, gamma=2.0):
-        """Compute varfocal loss between predictions and ground truth."""
+        """Compute varifocal loss between predictions and ground truth."""
         weight = alpha * pred_score.sigmoid().pow(gamma) * (1 - label) + gt_score * label
         with autocast(enabled=False):
             loss = (
@@ -770,11 +770,15 @@ class E2EDetectLoss:
 
 
 class TVPDetectLoss:
+    """Criterion class for computing training losses for text-visual prompt detection."""
+
     def __init__(self, model):
+        """Initialize TVPDetectLoss with task-prompt and visual-prompt criteria using the provided model."""
         self.tp_criterion = v8DetectionLoss(model)
         self.vp_criterion = v8DetectionLoss(model)
 
     def __call__(self, preds, batch):
+        """Calculate the loss for text-visual prompt detection."""
         feats = preds[1] if isinstance(preds, tuple) else preds
         assert self.tp_criterion.reg_max == self.vp_criterion.reg_max
 
@@ -788,6 +792,7 @@ class TVPDetectLoss:
         return vp_loss
 
     def _get_vp_features(self, feats):
+        """Extract visual-prompt features from the model output."""
         vp_feats = []
         vnc = feats[0].shape[1] - self.tp_criterion.reg_max * 4 - self.tp_criterion.nc
 
@@ -803,11 +808,15 @@ class TVPDetectLoss:
 
 
 class TVPSegmentLoss(TVPDetectLoss):
+    """Criterion class for computing training losses for text-visual prompt segmentation."""
+
     def __init__(self, model):
+        """Initialize TVPSegmentLoss with task-prompt and visual-prompt criteria using the provided model."""
         self.tp_criterion = v8SegmentationLoss(model)
         self.vp_criterion = v8SegmentationLoss(model)
 
     def __call__(self, preds, batch):
+        """Calculate the loss for text-visual prompt segmentation."""
         feats, pred_masks, proto = preds if len(preds) == 3 else preds[1]
         assert self.tp_criterion.reg_max == self.vp_criterion.reg_max
 

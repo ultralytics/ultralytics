@@ -11,6 +11,8 @@ from ultralytics.models.yolo.detect import DetectionTrainer, DetectionValidator
 from ultralytics.nn.tasks import YOLOEModel
 from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.torch_utils import de_parallel
+from pathlib import Path
+from collections import defaultdict
 
 from .val import YOLOEDetectValidator
 
@@ -126,13 +128,66 @@ class YOLOETrainerFromScratch(YOLOETrainer):
             return build_yolo_dataset(
                 self.args, img_path, batch, self.data, mode=mode, rect=False, stride=gs, load_vp=False
             )
-        dataset = [
+        datasets = [
             build_yolo_dataset(self.args, im_path, batch, self.training_data[im_path], stride=gs, multi_modal=True)
             if isinstance(im_path, str)
             else build_grounding(self.args, im_path["img_path"], im_path["json_file"], batch, stride=gs)
             for im_path in img_path
         ]
-        return YOLOConcatDataset(dataset) if len(dataset) > 1 else dataset[0]
+
+        # TODO: open up an interface to determine whether to do cache
+        category_names = set()
+        for dataset in datasets:
+            if not hasattr(dataset, "category_names"):
+                continue
+            category_names |= dataset.category_names
+
+        category_freq = defaultdict(int)
+        for dataset in datasets:
+            if not hasattr(dataset, "category_freq"):
+                continue
+            for k, v in dataset.category_freq.items():
+                category_freq[k] += v
+        neg_names = self._get_neg_texts(category_freq, threshold=100)
+
+        # TODO: enable to update the path or use a more general way to get the path
+        # TODO: fix: close_mosaic would invalidate this
+        img_path = datasets[0].img_path
+        pos_embeddings = self.generate_data_embeddings(
+            category_names, batch, device=self.device, cache_path=Path(img_path).parent / "pos_embeddings.pt"
+        )
+        neg_embeddings = self.generate_data_embeddings(
+            neg_names, batch, device=self.device, cache_path=Path(img_path).parent / "neg_embeddings.pt"
+        )
+        for dataset in datasets:
+            for i, transform in enumerate(dataset.transforms.transforms):
+                if not hasattr(transform, "set_embeddings"):  # use `0` index as transform is a "Compose" object
+                    continue
+                dataset.transforms.transforms[i].set_embeddings(pos_embeddings, neg_embeddings)
+
+        return YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
+
+    @staticmethod
+    def generate_data_embeddings(texts, batch, device="cuda", cache_path="embeddings.pt"):
+        if cache_path.exists():
+            return torch.load(cache_path)
+        from ultralytics.nn.text_model import build_text_model
+        from tqdm import tqdm
+
+        # TODO: hardcode to mobileclip:blt for now
+        model = build_text_model("mobileclip:blt", device=device)
+        text_tokens = model.tokenize(texts)
+        txt_feats = []
+        for text_token in tqdm(text_tokens.split(batch)):
+            txt_feats.append(model.encode_text(text_token))
+        txt_feats = torch.cat(txt_feats, dim=0).cpu()
+        txt_map = {text: feat for text, feat in zip(texts, txt_feats)}
+        torch.save(txt_map, cache_path)
+        return txt_map
+
+    @staticmethod
+    def _get_neg_texts(category_freq, threshold=100):
+        return [k for k, v in category_freq.items() if v >= threshold]
 
     def get_dataset(self):
         """

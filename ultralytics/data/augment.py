@@ -2143,7 +2143,7 @@ class Format:
 
 class LoadVisualPrompt:
     def __init__(self, augment, scale_factor=1 / 8):
-        self.augment = augment
+        self.augment = augment   # TODO: eliminate this?
         self.scale_factor = scale_factor
 
     def make_mask(self, boxes, h, w):

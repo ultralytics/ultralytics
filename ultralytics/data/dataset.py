@@ -235,10 +235,7 @@ class YOLODataset(BaseDataset):
         if self.load_vp:
             if not self.augment:
                 assert self.batch_size == 1
-                nc = len(self.data["names"])
-            else:
-                nc = 80
-            transforms.append(LoadVisualPrompt(nc=nc, augment=self.augment))
+            transforms.append(LoadVisualPrompt(augment=self.augment))
         return transforms
 
     def close_mosaic(self, hyp):

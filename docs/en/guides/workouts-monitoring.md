@@ -48,7 +48,7 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
         yolo solutions workout source="path/to/video.mp4"
 
         # Use keypoints for pushups
-        yolo solutions workout kpts=[6, 8, 10]
+        yolo solutions workout kpts="[6, 8, 10]"
         ```
 
     === "Python"

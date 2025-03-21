@@ -28,6 +28,7 @@ class YOLOEVPPredictorMixin:
         self.return_vpe = return_vpe
 
     def set_prompts(self, prompts):
+        assert "cls" in prompts, f"Please provide class index."
         self.prompts = deepcopy(prompts)
 
     def pre_transform(self, im):
@@ -38,6 +39,7 @@ class YOLOEVPPredictorMixin:
         )
         assert len(im) == 1
 
+        cls = torch.tensor(self.prompts["cls"]).unsqueeze(-1)
         if "bboxes" in self.prompts and len(self.prompts["bboxes"]) > 0:
             labels = dict(
                 img=im[0],
@@ -47,7 +49,7 @@ class YOLOEVPPredictorMixin:
                     bbox_format="xyxy",
                     normalized=False,
                 ),
-                cls=torch.tensor(self.prompts["cls"]).unsqueeze(-1),
+                cls=cls,
             )
 
             labels = letterbox(labels)
@@ -67,13 +69,13 @@ class YOLOEVPPredictorMixin:
             masks = np.stack(resized_masks)
             masks[masks == 114] = 0
 
-            labels = dict(img=img, masks=masks, cls=torch.tensor(self.prompts["cls"]).unsqueeze(-1))
+            labels = dict(img=img, masks=masks, cls=cls)
         else:
             raise ValueError("Please provide valid bboxes or masks")
 
         labels["img"] = labels["img"].transpose(2, 0, 1)
 
-        load_vp = LoadVisualPrompt(nc=len(self.prompts["cls"]), augment=False)
+        load_vp = LoadVisualPrompt()
         labels = load_vp(labels)
 
         cls = np.unique(self.prompts["cls"])

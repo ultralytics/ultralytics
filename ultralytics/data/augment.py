@@ -2317,7 +2317,7 @@ class RandomLoadText:
             texts.append(prompt)
 
         if len(self.pos_embeddings):
-            assert len(neg_embeddings), "Expected negative embeddings to be loaded together with positive embeddings."
+            assert len(self.neg_embeddings), "Expected negative embeddings to be loaded together with positive embeddings."
             text_feats = [self.pos_embeddings[text] for text in texts]
             text_feats = torch.stack(text_feats, dim=0) if len(text_feats) > 0 else text_feats
 

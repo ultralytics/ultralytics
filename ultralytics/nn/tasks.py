@@ -225,7 +225,7 @@ class BaseModel(torch.nn.Module):
                     m.fuse()
                     m.forward = m.forward_fuse
                 device = next(self.model.parameters()).device
-                if isinstance(m, MaxSigmoidAttnBlock):   # TODO: fix this conflict with WorldModel
+                if isinstance(m, MaxSigmoidAttnBlock):  # TODO: fix this conflict with WorldModel
                     assert isinstance(self, YOLOEModel)
                     m.fuse(self.pe.to(device))
                 if isinstance(m, YOLOEDetect) and hasattr(self, "pe"):
@@ -947,9 +947,7 @@ class YOLOEModel(DetectionModel):
             self.criterion = self.init_criterion()
 
         if preds is None:
-            preds = self.forward(
-                batch["img"], tpe=batch.get("txt_feats", None), vpe=batch["visuals"] if self.args.load_vp else None
-            )
+            preds = self.forward(batch["img"], tpe=batch.get("txt_feats", None), vpe=batch.get("visuals", None))
         return self.criterion(preds, batch)
 
     def init_criterion(self):

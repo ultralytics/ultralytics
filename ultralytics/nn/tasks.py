@@ -61,6 +61,7 @@ from ultralytics.nn.modules import (
     SCDown,
     Segment,
     TorchVision,
+    Timm,
     WorldDetect,
     v10Detect,
 )
@@ -1213,7 +1214,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [c1, c2, *args[1:]]
         elif m is CBFuse:
             c2 = ch[f[-1]]
-        elif m in frozenset({TorchVision, Index}):
+        elif m in frozenset({Timm, TorchVision, Index}):
             c2 = args[0]
             c1 = ch[f]
             args = [*args[1:]]

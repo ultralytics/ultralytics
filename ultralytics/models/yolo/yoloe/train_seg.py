@@ -84,8 +84,8 @@ class YOLOEPESegTrainer(SegmentationTrainer):
     """
     Fine-tune YOLOESeg model in linear probing way.
 
-    This trainer specializes in fine-tuning YOLOESeg models using a linear probing approach,
-    which involves freezing most of the model and only training specific layers.
+    This trainer specializes in fine-tuning YOLOESeg models using a linear probing approach, which involves freezing
+    most of the model and only training specific layers.
     """
 
     def get_model(self, cfg=None, weights=None, verbose=True):

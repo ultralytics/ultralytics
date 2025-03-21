@@ -2336,6 +2336,7 @@ class RandomLoadText:
 
         assert len(texts) == self.max_samples
         labels["texts"] = texts
+        # TODO: enable to use 'texts' as well
         if len(self.pos_embeddings):
             labels["text_feats"] = text_feats
         return labels
@@ -2343,6 +2344,10 @@ class RandomLoadText:
     def set_embeddings(self, pos_embeddings, neg_embeddings):
         self.pos_embeddings = pos_embeddings
         self.neg_embeddings = neg_embeddings
+        assert isinstance(self.pos_embeddings, dict), "Expected positive embeddings to be a dictionary."
+        if isinstance(self.neg_embeddings, dict):
+            self.neg_embeddings = torch.stack(list(self.neg_embeddings.values()), dim=0)
+
 
 
 def v8_transforms(dataset, imgsz, hyp, stretch=False):

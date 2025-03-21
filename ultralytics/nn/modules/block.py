@@ -820,7 +820,11 @@ class BNContrastiveHead(nn.Module):
         self.forward = self.forward_fuse
 
     def forward_fuse(self, x, w):
-        """Passes input out unchanged. TODO: Update or remove?"""
+        """
+        Passes input out unchanged.
+
+        TODO: Update or remove?
+        """
         return x
 
     def forward(self, x, w):

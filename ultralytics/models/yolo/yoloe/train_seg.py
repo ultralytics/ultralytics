@@ -29,10 +29,10 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initialize the YOLOESegTrainer class.
-        
+
         This class combines YOLOETrainer and SegmentationTrainer to provide training functionality
         specifically for YOLOE segmentation models.
-        
+
         Args:
             cfg (Dict): Configuration dictionary with training parameters.
             overrides (Dict, optional): Dictionary with parameter overrides.

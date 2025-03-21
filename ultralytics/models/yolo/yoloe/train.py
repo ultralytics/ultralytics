@@ -22,10 +22,10 @@ class YOLOETrainer(DetectionTrainer):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initialize the YOLOE Trainer with specified configurations.
-        
+
         This method sets up the YOLOE trainer with the provided configuration and overrides, initializing
         the training environment, model, and callbacks for YOLOE object detection training.
-        
+
         Args:
             cfg (Dict): Configuration dictionary with default training settings from DEFAULT_CFG.
             overrides (Dict, optional): Dictionary of parameter overrides for the default configuration.
@@ -130,15 +130,15 @@ class YOLOETrainerFromScratch(YOLOETrainer):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initialize the YOLOETrainerFromScratch class.
-        
+
         This class extends YOLOETrainer to train YOLOE models from scratch. It inherits all functionality from
         the parent class while providing specialized initialization for training without pre-trained weights.
-        
+
         Args:
             cfg (dict, optional): Configuration dictionary with training parameters. Defaults to DEFAULT_CFG.
             overrides (dict, optional): Dictionary of parameter overrides for configuration.
             _callbacks (List, optional): List of callback functions to be executed during training.
-        
+
         Examples:
             >>> from ultralytics.models.yoloe.train import YOLOETrainerFromScratch
             >>> trainer = YOLOETrainerFromScratch()

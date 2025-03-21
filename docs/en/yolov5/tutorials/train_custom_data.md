@@ -13,9 +13,9 @@ keywords: YOLOv5, custom dataset, model training, object detection, machine lear
 Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
-git clone https://github.com/ultralytics/yolov5  # clone
+git clone https://github.com/ultralytics/yolov5 # clone
 cd yolov5
-pip install -r requirements.txt  # install
+pip install -r requirements.txt # install
 ```
 
 ## Train On Custom Data
@@ -119,8 +119,8 @@ The label file corresponding to the above image contains 2 persons (class `0`) a
 Organize your train and val images and labels according to the example below. YOLOv5 assumes `/coco128` is inside a `/datasets` directory **next to** the `/yolov5` directory. **YOLOv5 locates labels automatically for each image** by replacing the last instance of `/images/` in each image path with `/labels/`. For example:
 
 ```bash
-../datasets/coco128/images/im0.jpg  # image
-../datasets/coco128/labels/im0.txt  # label
+../datasets/coco128/images/im0.jpg # image
+../datasets/coco128/labels/im0.txt # label
 ```
 
 <p align="center"><img width="700" src="https://github.com/ultralytics/docs/releases/download/0/yolov5-dataset-structure.avif" alt="YOLOv5 dataset structure"></p>
@@ -158,9 +158,9 @@ All training results are saved to `runs/train/` with incrementing run directorie
 Getting started is easy:
 
 ```shell
-pip install comet_ml  # 1. install
-export COMET_API_KEY=<Your API Key>  # 2. paste API key
-python train.py --img 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt  # 3. train
+pip install comet_ml                                                          # 1. install
+export COMET_API_KEY=YOUR_API_KEY                                             # 2. paste API key
+python train.py --img 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt # 3. train
 ```
 
 To learn more about all the supported Comet features for this integration, check out the [Comet Tutorial](./comet_logging_integration.md). If you'd like to learn more about Comet, head over to our [documentation](https://bit.ly/yolov5-colab-comet-docs). Get started by trying out the Comet Colab Notebook: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1RG0WOQyxlDlo5Km8GogJpIEJlg_5lyYO?usp=sharing)

@@ -11,8 +11,8 @@
 if [ "$#" -gt 0 ]; then
   for opt in "$@"; do
     case "${opt}" in
-    --train) train=true ;;
-    --val) val=true ;;
+      --train) train=true ;;
+      --val) val=true ;;
     esac
   done
 else

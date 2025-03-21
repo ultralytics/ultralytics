@@ -99,23 +99,26 @@ The Ultralytics COCO128 dataset is a compact subset containing the first 128 ima
 
 To train a YOLO11 model on the COCO128 dataset, you can use either Python or CLI commands. Here's how:
 
-=== "Python"
+!!! example "Train Example"
 
-````python
-from ultralytics import YOLO
+    === "Python"
 
-    # Load a pretrained model
-    model = YOLO("yolo11n.pt")
+        ```python
+        from ultralytics import YOLO
 
-    # Train the model
-    results = model.train(data="coco128.yaml", epochs=100, imgsz=640)
-    ```
+        # Load a pretrained model
+        model = YOLO("yolo11n.pt")
 
-=== "CLI"
+        # Train the model
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640)
+        ```
 
-`bash
-    yolo detect train data=coco128.yaml model=yolo11n.pt epochs=100 imgsz=640
-    `
+
+    === "CLI"
+
+        ```bash
+        yolo detect train data=coco128.yaml model=yolo11n.pt epochs=100 imgsz=640
+        ```
 
 For more training options and parameters, refer to the [Training](../../modes/train.md) documentation.
 
@@ -149,4 +152,3 @@ While COCO128 is primarily designed for object detection, the dataset's annotati
 - **Transfer learning**: As a starting point for fine-tuning models for custom tasks
 
 For specialized tasks like [segmentation](../../tasks/segment.md), consider using purpose-built variants like [COCO8-seg](../segment/coco8-seg.md) which include the appropriate annotations.
-````

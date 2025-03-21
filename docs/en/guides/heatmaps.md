@@ -45,13 +45,13 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
         yolo solutions heatmap show=True
 
         # Pass a source video
-        yolo solutions heatmap source="path/to/video/file.mp4"
+        yolo solutions heatmap source="path/to/video.mp4"
 
         # Pass a custom colormap
         yolo solutions heatmap colormap=cv2.COLORMAP_INFERNO
 
         # Heatmaps + object counting
-        yolo solutions heatmap region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
+        yolo solutions heatmap region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
         ```
 
     === "Python"
@@ -61,7 +61,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 
         from ultralytics import solutions
 
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
 
         # Video writer
@@ -175,7 +175,7 @@ import cv2
 
 from ultralytics import solutions
 
-cap = cv2.VideoCapture("path/to/video/file.mp4")
+cap = cv2.VideoCapture("path/to/video.mp4")
 heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, show=True, model="yolo11n.pt")
 
 while cap.isOpened():
@@ -202,7 +202,7 @@ import cv2
 
 from ultralytics import solutions
 
-cap = cv2.VideoCapture("path/to/video/file.mp4")
+cap = cv2.VideoCapture("path/to/video.mp4")
 heatmap = solutions.Heatmap(show=True, model="yolo11n.pt", classes=[0, 2])
 
 while cap.isOpened():

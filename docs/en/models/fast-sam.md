@@ -215,7 +215,7 @@ To perform object tracking on an image, use the `track` method as shown below:
     === "CLI"
 
         ```bash
-        yolo segment track model=FastSAM-s.pt source="path/to/video/file.mp4" imgsz=640
+        yolo segment track model=FastSAM-s.pt source="path/to/video.mp4" imgsz=640
         ```
 
 ## FastSAM official Usage

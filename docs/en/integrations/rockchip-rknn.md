@@ -89,7 +89,7 @@ For detailed instructions and best practices related to the installation process
         ```bash
         # Export a YOLO11n PyTorch model to RKNN format
         # 'name' can be one of rk3588, rk3576, rk3566, rk3568, rk3562, rv1103, rv1106, rv1103b, rv1106b, rk2118
-        yolo export model=yolo11n.pt format=rknn name=rk3588  # creates '/yolo11n_rknn_model'
+        yolo export model=yolo11n.pt format=rknn name=rk3588 # creates '/yolo11n_rknn_model'
         ```
 
 ### Export Arguments

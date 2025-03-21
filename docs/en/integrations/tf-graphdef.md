@@ -97,7 +97,7 @@ Before diving into the usage instructions, it's important to note that while all
 
         ```bash
         # Export a YOLO11n PyTorch model to TF GraphDef format
-        yolo export model=yolo11n.pt format=pb  # creates 'yolo11n.pb'
+        yolo export model=yolo11n.pt format=pb # creates 'yolo11n.pb'
 
         # Run inference with the exported model
         yolo predict model='yolo11n.pb' source='https://ultralytics.com/images/bus.jpg'
@@ -163,7 +163,7 @@ Ultralytics YOLO11 models can be exported to TensorFlow GraphDef (TF GraphDef) f
 
         ```bash
         # Export a YOLO11n PyTorch model to TF GraphDef format
-        yolo export model="yolo11n.pt" format="pb"  # creates 'yolo11n.pb'
+        yolo export model="yolo11n.pt" format="pb" # creates 'yolo11n.pb'
 
         # Run inference with the exported model
         yolo predict model="yolo11n.pb" source="https://ultralytics.com/images/bus.jpg"

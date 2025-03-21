@@ -22,7 +22,7 @@ class PoseValidator(DetectionValidator):
     Attributes:
         sigma (np.ndarray): Sigma values for OKS calculation, either from OKS_SIGMA or ones divided by number of keypoints.
         kpt_shape (List[int]): Shape of the keypoints, typically [17, 3] for COCO format.
-        args (Dict): Arguments for the validator including task set to "pose".
+        args (dict): Arguments for the validator including task set to "pose".
         metrics (PoseMetrics): Metrics object for pose evaluation.
 
     Methods:
@@ -119,7 +119,7 @@ class PoseValidator(DetectionValidator):
 
         Args:
             preds (List[torch.Tensor]): List of prediction tensors from the model.
-            batch (Dict): Batch data containing images and ground truth annotations.
+            batch (dict): Batch data containing images and ground truth annotations.
         """
         for si, pred in enumerate(preds):
             self.seen += 1

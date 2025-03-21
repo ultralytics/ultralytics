@@ -19,7 +19,7 @@ class RTDETRPredictor(BasePredictor):
         imgsz (int): Image size for inference (must be square and scale-filled).
         args (dict): Argument overrides for the predictor.
         model (torch.nn.Module): The loaded RT-DETR model.
-        batch (List): Current batch of processed inputs.
+        batch (list): Current batch of processed inputs.
 
     Examples:
         >>> from ultralytics.utils import ASSETS

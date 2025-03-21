@@ -7,7 +7,7 @@ from ultralytics.models.yolo.segment import SegmentationTrainer
 from ultralytics.nn.tasks import YOLOESegModel
 from ultralytics.utils import DEFAULT_CFG, RANK
 
-from .train import YOLOETrainer
+from .train import YOLOETrainer, YOLOETrainerFromScratch, YOLOEVPTrainer
 from .val import YOLOESegValidator
 import torch
 
@@ -72,3 +72,15 @@ class YOLOEPESegTrainer(SegmentationTrainer):
         model.train()
 
         return model
+
+
+class YOLOESegTrainerFromScratch(YOLOETrainerFromScratch, YOLOESegTrainer):
+    """Trainer for YOLOE segmentation from scratch."""
+
+    pass
+
+
+class YOLOESegVPTrainer(YOLOEVPTrainer, YOLOESegTrainerFromScratch):
+    """Trainer for YOLOE segmentation with VP."""
+
+    pass

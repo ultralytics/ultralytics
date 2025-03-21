@@ -225,7 +225,7 @@ class BaseModel(torch.nn.Module):
                     m.fuse()
                     m.forward = m.forward_fuse
                 device = next(self.model.parameters()).device
-                if isinstance(m, MaxSigmoidAttnBlock):
+                if isinstance(m, MaxSigmoidAttnBlock):   # TODO: fix this conflict with WorldModel
                     assert isinstance(self, YOLOEModel)
                     m.fuse(self.pe.to(device))
                 if isinstance(m, YOLOEDetect) and hasattr(self, "pe"):

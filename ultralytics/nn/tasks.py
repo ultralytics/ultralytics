@@ -797,17 +797,34 @@ class WorldModel(DetectionModel):
 
 
 class YOLOEModel(DetectionModel):
-    """YOLOE Model."""
+    """YOLOE detection model."""
 
     def __init__(self, cfg="yoloe-v8s.yaml", ch=3, nc=None, verbose=True):
-        """Initialize YOLOE model with given config and parameters."""
-        # Randomness
+        """
+        Initialize YOLOE model with given config and parameters.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes.
+            verbose (bool): Whether to display model information.
+        """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     @smart_inference_mode()
     def get_text_pe(self, text, batch=80, cache_clip_model=False):
+        """
+        Set classes in advance so that model could do offline-inference without clip model.
+
+        Args:
+            text (List[str]): List of class names.
+            batch (int): Batch size for processing text tokens.
+            cache_clip_model (bool): Whether to cache the CLIP model.
+
+        Returns:
+            (torch.Tensor): Text positional embeddings.
+        """
         assert not self.training
-        """Set classes in advance so that model could do offline-inference without clip model."""
         from ultralytics.nn.text_model import build_text_model
 
         device = next(self.model.parameters()).device
@@ -829,9 +846,26 @@ class YOLOEModel(DetectionModel):
 
     @smart_inference_mode()
     def get_visual_pe(self, img, visual):
+        """
+        Get visual positional embeddings.
+
+        Args:
+            img (torch.Tensor): Input image tensor.
+            visual (torch.Tensor): Visual features.
+
+        Returns:
+            (torch.Tensor): Visual positional embeddings.
+        """
         return self(img, vpe=visual, return_vpe=True)
 
     def set_vocab(self, vocab, names):
+        """
+        Set vocabulary for the model.
+
+        Args:
+            vocab (list): List of vocabulary items.
+            names (list): List of class names.
+        """
         assert not self.training
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
@@ -853,6 +887,15 @@ class YOLOEModel(DetectionModel):
         self.names = check_class_names(names)
 
     def get_vocab(self, names):
+        """
+        Get vocabulary for the model.
+
+        Args:
+            names (list): List of class names.
+
+        Returns:
+            (nn.ModuleList): List of vocabulary modules.
+        """
         assert not self.training
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
@@ -869,13 +912,29 @@ class YOLOEModel(DetectionModel):
         return vocab
 
     def set_classes(self, names, embeddings):
-        """Set classes in advance so that model could do offline-inference without clip model."""
+        """
+        Set classes in advance so that model could do offline-inference without clip model.
+
+        Args:
+            names (List[str]): List of class names.
+            embeddings (torch.Tensor): Embeddings tensor.
+        """
         assert embeddings.ndim == 3
         self.pe = embeddings
         self.model[-1].nc = len(names)
         self.names = check_class_names(names)
 
     def get_cls_pe(self, tpe, vpe):
+        """
+        Get class positional embeddings.
+
+        Args:
+            tpe (torch.Tensor, optional): Text positional embeddings.
+            vpe (torch.Tensor, optional): Visual positional embeddings.
+
+        Returns:
+            (torch.Tensor): Class positional embeddings.
+        """
         all_pe = []
         if tpe is not None:
             assert tpe.ndim == 3
@@ -897,9 +956,11 @@ class YOLOEModel(DetectionModel):
             x (torch.Tensor): The input tensor.
             profile (bool): If True, profile the computation time for each layer.
             visualize (bool): If True, save feature maps for visualization.
-            txt_feats (torch.Tensor, optional): The text features, use it if it's given.
+            tpe (torch.Tensor, optional): Text positional embeddings.
             augment (bool): If True, perform data augmentation during inference.
-            embed (List, optional): A list of feature vectors/embeddings to return.
+            embed (list, optional): A list of feature vectors/embeddings to return.
+            vpe (torch.Tensor, optional): Visual positional embeddings.
+            return_vpe (bool): If True, return visual positional embeddings.
 
         Returns:
             (torch.Tensor): Model's output tensor.
@@ -951,6 +1012,7 @@ class YOLOEModel(DetectionModel):
         return self.criterion(preds, batch)
 
     def init_criterion(self):
+        """Initialize the loss criterion for the YOLOEModel."""
         if self.args.load_vp:
             return TVPDetectLoss(self)
         else:
@@ -961,7 +1023,15 @@ class YOLOESegModel(YOLOEModel, SegmentationModel):
     """YOLOE segmentation model."""
 
     def __init__(self, cfg="yoloe-v8s-seg.yaml", ch=3, nc=None, verbose=True):
-        """Initialize YOLOE segmentation model with given config and parameters."""
+        """
+        Initialize YOLOE segmentation model with given config and parameters.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes.
+            verbose (bool): Whether to display model information.
+        """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def init_criterion(self):

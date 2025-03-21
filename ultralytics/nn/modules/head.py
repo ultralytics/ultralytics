@@ -80,11 +80,12 @@ class Detect(nn.Module):
         Performs forward pass of the v10Detect module.
 
         Args:
-            x (tensor): Input tensor.
+            x (List[torch.Tensor]): Input feature maps from different levels.
 
         Returns:
-            (dict, tensor): If not in training mode, returns a dictionary containing the outputs of both one2many and one2one detections.
-                           If in training mode, returns a dictionary containing the outputs of one2many and one2one detections separately.
+            (dict | tuple): If in training mode, returns a dictionary containing the outputs of both one2many and
+                one2one detections. If not in training mode, returns processed detections or a tuple with
+                processed detections and raw outputs.
         """
         x_detach = [xi.detach() for xi in x]
         one2one = [
@@ -100,7 +101,15 @@ class Detect(nn.Module):
         return y if self.export else (y, {"one2many": x, "one2one": one2one})
 
     def _inference(self, x):
-        """Decode predicted bounding boxes and class probabilities based on multiple-level feature maps."""
+        """
+        Decode predicted bounding boxes and class probabilities based on multiple-level feature maps.
+
+        Args:
+            x (List[torch.Tensor]): List of feature maps from different detection layers.
+
+        Returns:
+            (torch.Tensor): Concatenated tensor of decoded bounding boxes and class probabilities.
+        """
         # Inference path
         shape = x[0].shape  # BCHW
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
@@ -361,7 +370,10 @@ class WorldDetect(Detect):
 
 
 class SAVPE(nn.Module):
+    """Spatial-Aware Visual Prompt Embedding module for feature enhancement."""
+
     def __init__(self, ch, c3, embed):
+        """Initialize SAVPE module with channels, intermediate channels, and embedding dimension."""
         super().__init__()
         self.cv1 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3)) for x in ch)
         self.cv1[1].append(nn.Upsample(scale_factor=2))
@@ -378,6 +390,7 @@ class SAVPE(nn.Module):
         self.cv6 = nn.Sequential(Conv(2 * self.c, self.c, 3), nn.Conv2d(self.c, self.c, 3, padding=1))
 
     def forward(self, x, vp):
+        """Process input features and visual prompts to generate enhanced embeddings."""
         y = [self.cv2[i](xi) for i, xi in enumerate(x)]
         y = self.cv4(torch.cat(y, dim=1))
 
@@ -408,7 +421,10 @@ class SAVPE(nn.Module):
 
 
 class LRPCHead(nn.Module):
+    """Lightweight Region Proposal and Classification Head for efficient object detection."""
+
     def __init__(self, vocab, pf, loc, enabled=True):
+        """Initialize LRPCHead with vocabulary, proposal filter, and localization components."""
         super().__init__()
         if enabled:
             self.vocab = self.conv2linear(vocab)
@@ -419,6 +435,7 @@ class LRPCHead(nn.Module):
         self.enabled = enabled
 
     def conv2linear(self, conv):
+        """Convert a 1x1 convolutional layer to a linear layer."""
         assert isinstance(conv, nn.Conv2d) and conv.kernel_size == (1, 1)
         linear = nn.Linear(conv.in_channels, conv.out_channels)
         linear.weight.data = conv.weight.view(conv.out_channels, -1).data
@@ -426,6 +443,7 @@ class LRPCHead(nn.Module):
         return linear
 
     def forward(self, cls_feat, loc_feat, conf, max_det):
+        """Process classification and localization features to generate detection proposals."""
         if self.enabled:
             pf_score = self.pf(cls_feat)[0, 0].flatten(0)
             mask = pf_score.sigmoid() > conf
@@ -441,8 +459,9 @@ class LRPCHead(nn.Module):
 
 
 class YOLOEDetect(Detect):
-    is_fused = False
     """Head for integrating YOLO detection models with semantic understanding from text embeddings."""
+
+    is_fused = False
 
     def __init__(self, nc=80, embed=512, with_bn=False, ch=()):
         """Initialize YOLO detection layer with nc classes and layer channels ch."""
@@ -471,6 +490,7 @@ class YOLOEDetect(Detect):
 
     @smart_inference_mode()
     def fuse(self, txt_feats):
+        """Fuse text features with model weights for efficient inference."""
         if self.is_fused:
             return
 
@@ -516,18 +536,20 @@ class YOLOEDetect(Detect):
         self.is_fused = True
 
     def get_tpe(self, tpe):
+        """Get text prompt embeddings with normalization."""
         if tpe is None:
             return None
         return F.normalize(self.reprta(tpe), dim=-1, p=2)
 
     def get_vpe(self, x, vpe):
+        """Get visual prompt embeddings with spatial awareness."""
         if vpe.ndim == 4:
             vpe = self.savpe(x, vpe)
         assert vpe.ndim == 3
         return vpe
 
     def forward(self, x, cls_pe, return_mask=False):
-        """Concatenates and returns predicted bounding boxes and class probabilities."""
+        """Process features with class prompt embeddings to generate detections."""
         has_lrpc = hasattr(self, "lrpc")
         masks = [] if has_lrpc else None
         for i in range(self.nl):
@@ -594,7 +616,7 @@ class YOLOEDetect(Detect):
             return (y, mask) if self.export else ((y, x), mask)
 
     def bias_init(self):
-        """Initialize Detect() biases, WARNING: requires stride availability."""
+        """Initialize biases for detection heads."""
         m = self  # self.model[-1]  # Detect() module
         # cf = torch.bincount(torch.tensor(np.concatenate(dataset.labels, 0)[:, 0]).long(), minlength=nc) + 1
         # ncf = math.log(0.6 / (m.nc - 0.999999)) if cf is None else torch.log(cf / cf.sum())  # nominal class frequency
@@ -606,12 +628,16 @@ class YOLOEDetect(Detect):
 
 
 class SwiGLUFFN(nn.Module):
+    """SwiGLU Feed-Forward Network for transformer-based architectures."""
+
     def __init__(self, gc, ec, e=4) -> None:
+        """Initialize SwiGLU FFN with input dimension, output dimension, and expansion factor."""
         super().__init__()
         self.w12 = nn.Linear(gc, e * ec)
         self.w3 = nn.Linear(e * ec // 2, ec)
 
     def forward(self, x):
+        """Apply SwiGLU transformation to input features."""
         x12 = self.w12(x)
         x1, x2 = x12.chunk(2, dim=-1)
         hidden = F.silu(x1) * x2
@@ -619,7 +645,10 @@ class SwiGLUFFN(nn.Module):
 
 
 class Residual(nn.Module):
+    """Residual connection wrapper for neural network modules."""
+
     def __init__(self, m) -> None:
+        """Initialize residual module with the wrapped module."""
         super().__init__()
         self.m = m
         nn.init.zeros_(self.m.w3.bias)
@@ -628,11 +657,15 @@ class Residual(nn.Module):
         nn.init.zeros_(self.m.w3.weight)
 
     def forward(self, x):
+        """Apply residual connection to input features."""
         return x + self.m(x)
 
 
 class YOLOESegment(YOLOEDetect):
+    """YOLO segmentation head with text embedding capabilities."""
+
     def __init__(self, nc=80, nm=32, npr=256, embed=512, with_bn=False, ch=()):
+        """Initialize YOLOESegment with class count, mask parameters, and embedding dimensions."""
         super().__init__(nc, embed, with_bn, ch)
         self.nm = nm
         self.npr = npr
@@ -754,7 +787,17 @@ class RTDETRDecoder(nn.Module):
         self._reset_parameters()
 
     def forward(self, x, batch=None):
-        """Runs the forward pass of the module, returning bounding box and classification scores for the input."""
+        """
+        Runs the forward pass of the module, returning bounding box and classification scores for the input.
+
+        Args:
+            x (List[torch.Tensor]): List of feature maps from the backbone.
+            batch (dict, optional): Batch information for training.
+
+        Returns:
+            (tuple | torch.Tensor): During training, returns a tuple of bounding boxes, scores, and other metadata.
+                During inference, returns a tensor of shape (bs, 300, 4+nc) containing bounding boxes and class scores.
+        """
         from ultralytics.models.utils.ops import get_cdn_group
 
         # Input projection and embedding
@@ -793,7 +836,19 @@ class RTDETRDecoder(nn.Module):
         return y if self.export else (y, x)
 
     def _generate_anchors(self, shapes, grid_size=0.05, dtype=torch.float32, device="cpu", eps=1e-2):
-        """Generates anchor bounding boxes for given shapes with specific grid size and validates them."""
+        """
+        Generates anchor bounding boxes for given shapes with specific grid size and validates them.
+
+        Args:
+            shapes (list): List of feature map shapes.
+            grid_size (float, optional): Base size of grid cells. Default is 0.05.
+            dtype (torch.dtype, optional): Data type for tensors. Default is torch.float32.
+            device (str, optional): Device to create tensors on. Default is "cpu".
+            eps (float, optional): Small value for numerical stability. Default is 1e-2.
+
+        Returns:
+            (tuple): Tuple containing anchors and valid mask tensors.
+        """
         anchors = []
         for i, (h, w) in enumerate(shapes):
             sy = torch.arange(end=h, dtype=dtype, device=device)
@@ -813,7 +868,15 @@ class RTDETRDecoder(nn.Module):
         return anchors, valid_mask
 
     def _get_encoder_input(self, x):
-        """Processes and returns encoder inputs by getting projection features from input and concatenating them."""
+        """
+        Processes and returns encoder inputs by getting projection features from input and concatenating them.
+
+        Args:
+            x (List[torch.Tensor]): List of feature maps from the backbone.
+
+        Returns:
+            (tuple): Tuple containing processed features and their shapes.
+        """
         # Get projection features
         x = [self.input_proj[i](feat) for i, feat in enumerate(x)]
         # Get encoder inputs
@@ -831,7 +894,18 @@ class RTDETRDecoder(nn.Module):
         return feats, shapes
 
     def _get_decoder_input(self, feats, shapes, dn_embed=None, dn_bbox=None):
-        """Generates and prepares the input required for the decoder from the provided features and shapes."""
+        """
+        Generates and prepares the input required for the decoder from the provided features and shapes.
+
+        Args:
+            feats (torch.Tensor): Processed features from encoder.
+            shapes (list): List of feature map shapes.
+            dn_embed (torch.Tensor, optional): Denoising embeddings. Default is None.
+            dn_bbox (torch.Tensor, optional): Denoising bounding boxes. Default is None.
+
+        Returns:
+            (tuple): Tuple containing embeddings, reference bounding boxes, encoded bounding boxes, and scores.
+        """
         bs = feats.shape[0]
         # Prepare input for decoder
         anchors, valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)

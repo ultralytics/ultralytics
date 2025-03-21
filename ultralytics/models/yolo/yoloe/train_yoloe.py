@@ -1,13 +1,18 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from copy import copy
+
 from ultralytics.data import YOLOConcatDataset, build_grounding, build_yolo_dataset
 from ultralytics.data.utils import check_det_dataset
-from ultralytics.models.yolo.yoloe import YOLOETrainer
+from ultralytics.models.yolo.yoloe import YOLOETrainer, YOLOEPETrainer
+from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import DEFAULT_CFG
 from ultralytics.utils.torch_utils import de_parallel
 
 
 class YOLOETrainerFromScratch(YOLOETrainer):
+    """Train YOLOE models from scratch."""
+
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         if overrides is None:
             overrides = {}
@@ -96,3 +101,19 @@ class YOLOETrainerFromScratch(YOLOETrainer):
         self.validator.args.data = val
         self.validator.args.split = "minival" if isinstance(val, str) and "lvis" in val else "val"
         return super().final_eval()
+
+
+class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
+    """Train prompt-free YOLOE model."""
+
+    def get_validator(self):
+        """Returns a DetectionValidator for YOLO model validation."""
+        self.loss_names = "box", "cls", "dfl"
+        return DetectionValidator(
+            self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
+        )
+
+    def preprocess_batch(self, batch):
+        """Preprocesses a batch of images for YOLOE training, adjusting formatting and dimensions as needed."""
+        batch = super(YOLOETrainer, self).preprocess_batch(batch)
+        return batch

@@ -3,16 +3,16 @@
 
 from copy import copy, deepcopy
 
+import torch
+
 from ultralytics.data import YOLOConcatDataset, build_grounding, build_yolo_dataset
 from ultralytics.data.utils import check_det_dataset
-from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.models.yolo.detect import DetectionTrainer
+from ultralytics.models.yolo.detect import DetectionTrainer, DetectionValidator
 from ultralytics.nn.tasks import YOLOEModel
 from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.torch_utils import de_parallel
 
 from .val import YOLOEDetectValidator
-import torch
 
 
 class YOLOETrainer(DetectionTrainer):

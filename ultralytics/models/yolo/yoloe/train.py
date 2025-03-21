@@ -14,6 +14,7 @@ import torch
 
 
 class YOLOETrainer(DetectionTrainer):
+    """A base trainer for YOLOE training."""
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         if overrides is None:
             overrides = {}

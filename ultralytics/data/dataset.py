@@ -539,6 +539,7 @@ class GroundingDataset(YOLODataset):
         transforms = super().build_transforms(hyp)
         if self.augment and not self.single_cls:
             # NOTE: hard-coded the args for now.
+            # TODO: passing `padding_value=global_grounding_neg_cat` and set pos/neg embeddings for yoloe models
             index = -2 if self.load_vp else -1
             transforms.insert(index, RandomLoadText(max_samples=80, padding=True))
         return transforms

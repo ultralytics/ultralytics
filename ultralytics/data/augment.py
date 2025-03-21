@@ -2142,11 +2142,9 @@ class Format:
 
 
 class LoadVisualPrompt:
-    def __init__(self, nc, augment):
-        self.nc = nc
-        self.min_interval = 5
+    def __init__(self, augment, scale_factor=1 / 8):
         self.augment = augment
-        self.scale_factor = 1 / 8
+        self.scale_factor = scale_factor
 
     def make_mask(self, boxes, h, w):
         x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
@@ -2174,9 +2172,6 @@ class LoadVisualPrompt:
         cls_unique, inverse_indices = torch.unique(cls, sorted=True, return_inverse=True)
         if len(cls_unique) != 0 and self.augment:
             assert len(cls_unique) == cls_unique[-1] + 1
-        elif not self.augment:
-            # assert(len(cls_unique) == 1)
-            pass
         visuals = torch.zeros(len(cls_unique), *masksz)
         for idx, mask in zip(inverse_indices, masks):
             visuals[idx] = torch.logical_or(visuals[idx], mask)

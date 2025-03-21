@@ -777,9 +777,14 @@ class TVPDetectLoss:
     def __call__(self, preds, batch):
         feats = preds[1] if isinstance(preds, tuple) else preds
 
+        vp_feats = self._get_vp_features(feats)
+        vp_loss = self.vp_criterion(vp_feats, batch)
+
+        return vp_loss
+
+    def _get_vp_features(self, feats):
         assert self.tp_criterion.reg_max == self.vp_criterion.reg_max
 
-        tp_feats = []
         vp_feats = []
         vnc = feats[0].shape[1] - self.tp_criterion.reg_max * 4 - self.tp_criterion.nc
         if vnc == 0:
@@ -790,15 +795,11 @@ class TVPDetectLoss:
         self.vp_criterion.no = vnc + self.vp_criterion.reg_max * 4
         self.vp_criterion.assigner.num_classes = vnc
 
-        for box, cls_tp, cls_vp in [
+        for box, _, cls_vp in [
             xi.split((self.tp_criterion.reg_max * 4, self.tp_criterion.nc, vnc), dim=1) for xi in feats
         ]:
-            tp_feats.append(torch.cat((box, cls_tp), dim=1))
             vp_feats.append(torch.cat((box, cls_vp), dim=1))
-
-        vp_loss = self.vp_criterion(vp_feats, batch)
-
-        return vp_loss
+        return vp_feats
 
 
 class TVPSegmentLoss:
@@ -811,7 +812,6 @@ class TVPSegmentLoss:
 
         assert self.tp_criterion.reg_max == self.vp_criterion.reg_max
 
-        tp_feats = []
         vp_feats = []
         vnc = feats[0].shape[1] - self.tp_criterion.reg_max * 4 - self.tp_criterion.nc
         if vnc == 0:
@@ -822,10 +822,9 @@ class TVPSegmentLoss:
         self.vp_criterion.no = vnc + self.vp_criterion.reg_max * 4
         self.vp_criterion.assigner.num_classes = vnc
 
-        for box, cls_tp, cls_vp in [
+        for box, _, cls_vp in [
             xi.split((self.tp_criterion.reg_max * 4, self.tp_criterion.nc, vnc), dim=1) for xi in feats
         ]:
-            tp_feats.append(torch.cat((box, cls_tp), dim=1))
             vp_feats.append(torch.cat((box, cls_vp), dim=1))
 
         vp_loss = self.vp_criterion((vp_feats, pred_masks, proto), batch)

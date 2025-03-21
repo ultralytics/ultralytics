@@ -2142,8 +2142,7 @@ class Format:
 
 
 class LoadVisualPrompt:
-    def __init__(self, augment, scale_factor=1 / 8):
-        self.augment = augment  # TODO: eliminate this?
+    def __init__(self, scale_factor=1 / 8):
         self.scale_factor = scale_factor
 
     def make_mask(self, boxes, h, w):
@@ -2169,12 +2168,12 @@ class LoadVisualPrompt:
 
         cls = labels["cls"].squeeze(-1).to(torch.int)
         cls_unique, inverse_indices = torch.unique(cls, sorted=True, return_inverse=True)
-        if len(cls_unique) != 0 and self.augment:
-            assert len(cls_unique) == cls_unique[-1] + 1
+        # NOTE: `cls` indices from RandomLoadText should be continuous.
+        if len(cls_unique):
+            assert len(cls_unique) == cls_unique[-1] + 1, f"Expected a continuous range of class indices, but got {cls_unique}"
         visuals = torch.zeros(len(cls_unique), *masksz)
         for idx, mask in zip(inverse_indices, masks):
             visuals[idx] = torch.logical_or(visuals[idx], mask)
-        # visuals[0] = masks[random.choice(range(len(masks)))]
         labels["visuals"] = visuals
         return labels
 

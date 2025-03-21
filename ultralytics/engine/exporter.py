@@ -1013,7 +1013,7 @@ class Exporter:
                 "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
-                "protobuf>=5",  # tflite_support pins <=4 but >=5 works
+                "protobuf<=4",  # resolves dependency conflict due to "model-compression-toolkit" and "imx500-converter[pt]"
             ),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
         )
@@ -1222,8 +1222,15 @@ class Exporter:
             raise ValueError("IMX export is not supported for end2end models.")
         if "C2f" not in self.model.__str__():
             raise ValueError("IMX export is only supported for YOLOv8n detection models")
-        check_requirements(("model-compression-toolkit==2.1.1", "sony-custom-layers==0.2.0", "tensorflow==2.12.0"))
-        check_requirements("imx500-converter[pt]==3.14.3")  # Separate requirements for imx500-converter
+        check_requirements(
+            (
+                "model-compression-toolkit<=2.1.1",
+                "sony-custom-layers<=0.2.0",
+                "tensorflow<=2.15.0",
+                "tensorflow-decision-forests<=1.8.1",
+            )
+        )
+        check_requirements("imx500-converter[pt]<=3.14.3")  # Separate requirements for imx500-converter
 
         import model_compression_toolkit as mct
         import onnx

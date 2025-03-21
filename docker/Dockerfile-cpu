@@ -18,10 +18,15 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
 
 # Install linux packages
 # g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package
+# Java is needed for Sony IMX export
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     python3-pip git zip unzip wget curl htop libgl1 libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0 \
+    openjdk-17-jdk openjdk-17-jre \
     && rm -rf /var/lib/apt/lists/*
+
+# Verify Java installation
+RUN java --version
 
 # Create working directory
 WORKDIR /ultralytics
@@ -38,6 +43,8 @@ RUN uv pip install --system -e ".[export]" --extra-index-url https://download.py
 # Run exports to AutoInstall packages
 RUN yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32
 RUN yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32
+RUN yolo export model=tmp/yolov8n.pt format=imx imgsz=32
+
 # Requires Python<=3.10, bug with paddlepaddle==2.5.0 https://github.com/PaddlePaddle/X2Paddle/issues/991
 RUN uv pip install --system "paddlepaddle>=2.6.0" x2paddle
 

@@ -101,6 +101,7 @@ Across all these use cases, YOLOE's core advantage is **versatility**, providing
 !!! tip
 
     Choose YOLOE's mode based on your needs:
+    
     - **Closed-set mode:** For fixed-class tasks (max speed and accuracy).
     - **Prompted mode:** Add new objects quickly via text or visual prompts.
     - **Prompt-free open-set mode:** General detection across many categories (ideal for cataloging and discovery).

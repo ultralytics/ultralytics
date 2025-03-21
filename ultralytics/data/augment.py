@@ -2142,10 +2142,29 @@ class Format:
 
 
 class LoadVisualPrompt:
+    """Creates visual prompts from bounding boxes or masks for model input."""
+
     def __init__(self, scale_factor=1 / 8):
+        """
+        Initialize the LoadVisualPrompt with a scale factor.
+
+        Args:
+            scale_factor (float): Factor to scale the input image dimensions.
+        """
         self.scale_factor = scale_factor
 
     def make_mask(self, boxes, h, w):
+        """
+        Create binary masks from bounding boxes.
+
+        Args:
+            boxes (torch.Tensor): Bounding boxes in xyxy format.
+            h (int): Height of the mask.
+            w (int): Width of the mask.
+
+        Returns:
+            (torch.Tensor): Binary masks with shape (N, h, w).
+        """
         x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
         r = torch.arange(w)[None, None, :]  # rows shape(1,1,w)
         c = torch.arange(h)[None, :, None]  # cols shape(1,h,1)
@@ -2153,6 +2172,15 @@ class LoadVisualPrompt:
         return (r >= x1) * (r < x2) * (c >= y1) * (c < y2)
 
     def __call__(self, labels):
+        """
+        Process labels to create visual prompts.
+
+        Args:
+            labels (dict): Dictionary containing image data and annotations.
+
+        Returns:
+            (dict): Updated labels with visual prompts added.
+        """
         imgsz = labels["img"].shape[1:]
         masksz = (int(imgsz[0] * self.scale_factor), int(imgsz[1] * self.scale_factor))
         if "bboxes" in labels:
@@ -2346,6 +2374,13 @@ class RandomLoadText:
         return labels
 
     def set_embeddings(self, pos_embeddings, neg_embeddings):
+        """
+        Set the positive and negative embeddings for text features.
+
+        Args:
+            pos_embeddings (dict): Dictionary of positive text embeddings.
+            neg_embeddings (dict | torch.Tensor): Dictionary or tensor of negative text embeddings.
+        """
         self.pos_embeddings = pos_embeddings
         self.neg_embeddings = neg_embeddings
         assert isinstance(self.pos_embeddings, dict), "Expected positive embeddings to be a dictionary."

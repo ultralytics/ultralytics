@@ -2161,7 +2161,6 @@ class LoadVisualPrompt:
             bboxes = xywh2xyxy(bboxes) * torch.tensor(masksz)[[1, 0, 1, 0]]  # target boxes
             masks = self.make_mask(bboxes, *masksz).float()
         elif "masks" in labels:
-            assert not self.augment
             masks = (
                 F.interpolate(torch.from_numpy(labels["masks"]).unsqueeze(1), masksz, mode="nearest").squeeze(1).float()
             )

@@ -379,6 +379,18 @@ class YOLOMultiModalDataset(YOLODataset):
             transforms.insert(index, RandomLoadText(max_samples=min(self.data["nc"], 80), padding=True))
         return transforms
 
+    @property
+    def category_names(self):
+        """
+        Return category names for the dataset.
+
+        Returns:
+            (Tuple[str]): List of class names.
+        """
+        names = self.data["names"].values()
+        category_names = {n.strip() for name in names for n in name.split("/")}
+        return category_names
+
 
 class GroundingDataset(YOLODataset):
     """
@@ -562,6 +574,20 @@ class GroundingDataset(YOLODataset):
             index = -2 if self.load_vp else -1
             transforms.insert(index, RandomLoadText(max_samples=80, padding=True))
         return transforms
+
+    @property
+    def category_names(self):
+        return {t.strip() for label in self.labels for text in label["texts"] for t in text}
+
+    @property
+    def category_freq(self):
+        category_freq = defaultdict(int)
+        for label in self.labels:
+            for text in label["texts"]:
+                for t in text:
+                    t = t.strip()
+                    category_freq[t] += 1
+        return category_freq
 
 
 class YOLOConcatDataset(ConcatDataset):

@@ -235,7 +235,7 @@ class YOLODataset(BaseDataset):
         if self.load_vp:
             if not self.augment:
                 assert self.batch_size == 1
-            transforms.append(LoadVisualPrompt(augment=self.augment))
+            transforms.append(LoadVisualPrompt())
         return transforms
 
     def close_mosaic(self, hyp):
@@ -301,7 +301,7 @@ class YOLODataset(BaseDataset):
             value = values[i]
             if k == "img":
                 value = torch.stack(value, 0)
-            if k == "texts_feats":
+            if k == "text_feats":
                 value = torch.stack(value, 0)
             if k == "visuals":
                 value = torch.nn.utils.rnn.pad_sequence(value, batch_first=True)

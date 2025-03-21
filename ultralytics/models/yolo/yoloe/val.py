@@ -141,3 +141,8 @@ class YOLOEDetectValidator(YOLOEValidatorMixin, DetectionValidator):
 
 class YOLOESegValidator(YOLOEValidatorMixin, SegmentationValidator):
     pass
+
+
+class YOLOEPEFreeDetectValidator(DetectionValidator):
+    def eval_json(self, stats):
+        return stats

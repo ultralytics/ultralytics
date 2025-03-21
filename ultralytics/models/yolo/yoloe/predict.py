@@ -136,8 +136,8 @@ class YOLOEVPPredictorMixin:
 
         Args:
             im (torch.Tensor): Input image tensor.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
+            *args (Any): Variable length argument list.
+            **kwargs (Any): Arbitrary keyword arguments.
 
         Returns:
             (torch.Tensor): Model prediction results.

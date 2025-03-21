@@ -86,9 +86,6 @@ class YOLOEPESegTrainer(SegmentationTrainer):
 
     This trainer specializes in fine-tuning YOLOESeg models using a linear probing approach,
     which involves freezing most of the model and only training specific layers.
-
-    Attributes:
-        Inherits all attributes from SegmentationTrainer.
     """
 
     def get_model(self, cfg=None, weights=None, verbose=True):

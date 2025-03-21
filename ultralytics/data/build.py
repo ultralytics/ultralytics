@@ -8,6 +8,7 @@ import numpy as np
 import torch
 from PIL import Image
 from torch.utils.data import dataloader, distributed
+from functools import partial
 
 from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
 from ultralytics.data.loaders import (
@@ -107,7 +108,7 @@ def build_yolo_dataset(
     cfg, img_path, batch, data, mode="train", rect=False, stride=32, multi_modal=False, load_vp=True
 ):
     """Build and return a YOLO dataset based on configuration parameters."""
-    dataset = YOLOMultiModalDataset if multi_modal else YOLODataset
+    dataset = partial(YOLOMultiModalDataset, visual_prompt=cfg.load_vp and load_vp) if multi_modal else YOLODataset
     return dataset(
         img_path=img_path,
         imgsz=cfg.imgsz,
@@ -124,7 +125,6 @@ def build_yolo_dataset(
         classes=cfg.classes,
         data=data,
         fraction=cfg.fraction if mode == "train" else 1.0,
-        load_vp=cfg.load_vp and load_vp,
     )
 
 
@@ -146,7 +146,7 @@ def build_grounding(cfg, img_path, json_file, batch, mode="train", rect=False, s
         task=cfg.task,
         classes=cfg.classes,
         fraction=cfg.fraction if mode == "train" else 1.0,
-        load_vp=cfg.load_vp,
+        visual_prompt=cfg.load_vp,
     )
 
 

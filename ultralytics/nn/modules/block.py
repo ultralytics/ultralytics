@@ -592,6 +592,13 @@ class MaxSigmoidAttnBlock(nn.Module):
 
     @smart_inference_mode()
     def fuse(self, txt_feats):
+        """
+        Fuse text features with the MaxSigmoidAttnBlock module.
+
+        Args:
+            txt_feats (torch.Tensor): Text features to be fused with the attention block, typically with shape
+                (batch_size, embedding_dim).
+        """
         assert not self.training
         guide = self.gl(txt_feats.to(self.gl.weight.dtype))
         guide = guide.view(1, -1, self.nh, self.hc)
@@ -806,12 +813,14 @@ class BNContrastiveHead(nn.Module):
         self.logit_scale = nn.Parameter(-1.0 * torch.ones([]))
 
     def fuse(self):
+        """Fuse the batch normalization layer in the BNContrastiveHead module."""
         del self.norm
         del self.bias
         del self.logit_scale
         self.forward = self.forward_fuse
 
     def forward_fuse(self, x, w):
+        """Passes input out unchanged. TODO: Update or remove?"""
         return x
 
     def forward(self, x, w):

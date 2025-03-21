@@ -378,9 +378,7 @@ class YOLOMultiModalDataset(YOLODataset):
         if self.augment and not self.single_cls:
             # NOTE: hard-coded the args for now.
             index = -2 if self.load_vp else -1
-            transforms.insert(
-                index, RandomLoadText(text_model=hyp.text_model, max_samples=min(self.data["nc"], 80), padding=True)
-            )
+            transforms.insert(index, RandomLoadText(max_samples=min(self.data["nc"], 80), padding=True))
         return transforms
 
 

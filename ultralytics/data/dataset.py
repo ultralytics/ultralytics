@@ -335,6 +335,7 @@ class YOLOMultiModalDataset(YOLODataset):
         Args:
             data (dict, optional): Dataset configuration dictionary.
             task (str): Task type, one of 'detect', 'segment', 'pose', or 'obb'.
+            visual_prompt (bool): Whether to use visual prompts.
             *args (Any): Additional positional arguments for the parent class.
             **kwargs (Any): Additional keyword arguments for the parent class.
         """
@@ -415,7 +416,8 @@ class GroundingDataset(YOLODataset):
 
         Args:
             json_file (str): Path to the JSON file containing annotations.
-            task (str): Must be 'detect' for GroundingDataset.
+            task (str): Must be 'detect' or 'segment' for GroundingDataset.
+            visual_prompt (bool): Whether to use visual prompts.
             *args (Any): Additional positional arguments for the parent class.
             **kwargs (Any): Additional keyword arguments for the parent class.
         """
@@ -439,6 +441,7 @@ class GroundingDataset(YOLODataset):
         return []
 
     def verify_labels(self, labels):
+        """Verify the number of instances in the dataset matches expected counts."""
         instance_count = 0
         for label in labels:
             instance_count += label["bboxes"].shape[0]
@@ -458,8 +461,11 @@ class GroundingDataset(YOLODataset):
         """
         Loads annotations from a JSON file, filters, and normalizes bounding boxes for each image.
 
+        Args:
+            path (Path): Path where to save the cache file.
+
         Returns:
-            (List[dict]): List of label dictionaries, each containing information about an image and its annotations.
+            (dict): Dictionary containing cached labels and related information.
         """
         x = {"labels": []}
         LOGGER.info("Loading annotation file...")
@@ -544,6 +550,12 @@ class GroundingDataset(YOLODataset):
         return x
 
     def get_labels(self):
+        """
+        Load labels from cache or generate them from JSON file.
+
+        Returns:
+            (List[dict]): List of label dictionaries, each containing information about an image and its annotations.
+        """
         cache_path = Path(self.json_file).with_suffix(".cache")
         try:
             cache, _ = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
@@ -581,10 +593,12 @@ class GroundingDataset(YOLODataset):
 
     @property
     def category_names(self):
+        """Return unique category names from the dataset."""
         return {t.strip() for label in self.labels for text in label["texts"] for t in text}
 
     @property
     def category_freq(self):
+        """Return frequency of each category in the dataset."""
         category_freq = defaultdict(int)
         for label in self.labels:
             for text in label["texts"]:

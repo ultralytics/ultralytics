@@ -776,6 +776,11 @@ class TVPDetectLoss:
 
     def __call__(self, preds, batch):
         feats = preds[1] if isinstance(preds, tuple) else preds
+        assert self.tp_criterion.reg_max == self.vp_criterion.reg_max
+
+        if self.tp_criterion.reg_max * 4 + self.tp_criterion.nc == feats[0].shape[1]:
+            loss = torch.zeros(3, device=self.tp_criterion.device, requires_grad=True)
+            return loss.sum(), loss.detach()
 
         vp_feats = self._get_vp_features(feats)
         vp_loss = self.vp_criterion(vp_feats, batch)
@@ -783,13 +788,8 @@ class TVPDetectLoss:
         return vp_loss
 
     def _get_vp_features(self, feats):
-        assert self.tp_criterion.reg_max == self.vp_criterion.reg_max
-
         vp_feats = []
         vnc = feats[0].shape[1] - self.tp_criterion.reg_max * 4 - self.tp_criterion.nc
-        if vnc == 0:
-            loss = torch.zeros(3, device=self.tp_criterion.device, requires_grad=True)
-            return loss.sum(), loss.detach()
 
         self.vp_criterion.nc = vnc
         self.vp_criterion.no = vnc + self.vp_criterion.reg_max * 4
@@ -802,31 +802,20 @@ class TVPDetectLoss:
         return vp_feats
 
 
-class TVPSegmentLoss:
+class TVPSegmentLoss(TVPDetectLoss):
     def __init__(self, model):
         self.tp_criterion = v8SegmentationLoss(model)
         self.vp_criterion = v8SegmentationLoss(model)
 
     def __call__(self, preds, batch):
         feats, pred_masks, proto = preds if len(preds) == 3 else preds[1]
-
         assert self.tp_criterion.reg_max == self.vp_criterion.reg_max
 
-        vp_feats = []
-        vnc = feats[0].shape[1] - self.tp_criterion.reg_max * 4 - self.tp_criterion.nc
-        if vnc == 0:
+        if self.tp_criterion.reg_max * 4 + self.tp_criterion.nc == feats[0].shape[1]:
             loss = torch.zeros(4, device=self.tp_criterion.device, requires_grad=True)
             return loss.sum(), loss.detach()
 
-        self.vp_criterion.nc = vnc
-        self.vp_criterion.no = vnc + self.vp_criterion.reg_max * 4
-        self.vp_criterion.assigner.num_classes = vnc
-
-        for box, _, cls_vp in [
-            xi.split((self.tp_criterion.reg_max * 4, self.tp_criterion.nc, vnc), dim=1) for xi in feats
-        ]:
-            vp_feats.append(torch.cat((box, cls_vp), dim=1))
-
+        vp_feats = self._get_vp_features(feats)
         vp_loss = self.vp_criterion((vp_feats, pred_masks, proto), batch)
 
         return vp_loss

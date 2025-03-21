@@ -46,7 +46,7 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         yolo solutions crop source="path/to/video.mp4"
 
         # Crop specific classes
-        yolo solutions crop classes=[0, 2]
+        yolo solutions crop classes="[0, 2]"
         ```
 
     === "Python"

@@ -28,6 +28,7 @@ from .augment import (
     v8_transforms,
 )
 from .base import BaseDataset
+from .converter import merge_multi_segment
 from .utils import (
     HELP_URL,
     LOGGER,
@@ -38,7 +39,6 @@ from .utils import (
     verify_image,
     verify_image_label,
 )
-from .converter import merge_multi_segment
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for YOLOv8
 DATASET_CACHE_VERSION = "1.0.3"
@@ -512,7 +512,11 @@ class GroundingDataset(YOLODataset):
                             s = (np.concatenate(s, axis=0) / np.array([w, h], dtype=np.float32)).reshape(-1).tolist()
                         else:
                             s = [j for i in ann["segmentation"] for j in i]  # all segments concatenated
-                            s = (np.array(s, dtype=np.float32).reshape(-1, 2) / np.array([w, h], dtype=np.float32)).reshape(-1).tolist()
+                            s = (
+                                (np.array(s, dtype=np.float32).reshape(-1, 2) / np.array([w, h], dtype=np.float32))
+                                .reshape(-1)
+                                .tolist()
+                            )
                         s = [cls] + s
                         segments.append(s)
             lb = np.array(bboxes, dtype=np.float32) if len(bboxes) else np.zeros((0, 5), dtype=np.float32)

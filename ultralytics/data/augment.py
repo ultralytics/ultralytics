@@ -2170,7 +2170,9 @@ class LoadVisualPrompt:
         cls_unique, inverse_indices = torch.unique(cls, sorted=True, return_inverse=True)
         # NOTE: `cls` indices from RandomLoadText should be continuous.
         if len(cls_unique):
-            assert len(cls_unique) == cls_unique[-1] + 1, f"Expected a continuous range of class indices, but got {cls_unique}"
+            assert len(cls_unique) == cls_unique[-1] + 1, (
+                f"Expected a continuous range of class indices, but got {cls_unique}"
+            )
         visuals = torch.zeros(len(cls_unique), *masksz)
         for idx, mask in zip(inverse_indices, masks):
             visuals[idx] = torch.logical_or(visuals[idx], mask)
@@ -2317,7 +2319,9 @@ class RandomLoadText:
             texts.append(prompt)
 
         if len(self.pos_embeddings):
-            assert len(self.neg_embeddings), "Expected negative embeddings to be loaded together with positive embeddings."
+            assert len(self.neg_embeddings), (
+                "Expected negative embeddings to be loaded together with positive embeddings."
+            )
             text_feats = [self.pos_embeddings[text] for text in texts]
             text_feats = torch.stack(text_feats, dim=0) if len(text_feats) > 0 else text_feats
 
@@ -2347,7 +2351,6 @@ class RandomLoadText:
         assert isinstance(self.pos_embeddings, dict), "Expected positive embeddings to be a dictionary."
         if isinstance(self.neg_embeddings, dict):
             self.neg_embeddings = torch.stack(list(self.neg_embeddings.values()), dim=0)
-
 
 
 def v8_transforms(dataset, imgsz, hyp, stretch=False):

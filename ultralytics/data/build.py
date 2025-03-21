@@ -2,13 +2,13 @@
 
 import os
 import random
+from functools import partial
 from pathlib import Path
 
 import numpy as np
 import torch
 from PIL import Image
 from torch.utils.data import dataloader, distributed
-from functools import partial
 
 from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
 from ultralytics.data.loaders import (

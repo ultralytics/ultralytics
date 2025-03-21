@@ -1,7 +1,9 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 
+from collections import defaultdict
 from copy import copy, deepcopy
+from pathlib import Path
 
 import torch
 
@@ -11,8 +13,6 @@ from ultralytics.models.yolo.detect import DetectionTrainer, DetectionValidator
 from ultralytics.nn.tasks import YOLOEModel
 from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.torch_utils import de_parallel
-from pathlib import Path
-from collections import defaultdict
 
 from .val import YOLOEDetectValidator
 
@@ -171,8 +171,9 @@ class YOLOETrainerFromScratch(YOLOETrainer):
     def generate_data_embeddings(texts, batch, device="cuda", cache_path="embeddings.pt"):
         if cache_path.exists():
             return torch.load(cache_path)
-        from ultralytics.nn.text_model import build_text_model
         from tqdm import tqdm
+
+        from ultralytics.nn.text_model import build_text_model
 
         # TODO: hardcode to mobileclip:blt for now
         model = build_text_model("mobileclip:blt", device=device)

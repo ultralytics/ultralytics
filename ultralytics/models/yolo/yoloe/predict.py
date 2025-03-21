@@ -28,7 +28,7 @@ class YOLOEVPPredictorMixin:
         self.return_vpe = return_vpe
 
     def set_prompts(self, prompts):
-        assert "cls" in prompts, f"Please provide class index."
+        assert "cls" in prompts, "Please provide class index."
         self.prompts = deepcopy(prompts)
 
     def pre_transform(self, im):

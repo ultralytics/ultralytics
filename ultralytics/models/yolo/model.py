@@ -109,7 +109,7 @@ class YOLOWorld(Model):
         Set the model's class names for detection.
 
         Args:
-            classes (List(str)): A list of categories i.e. ["person"].
+            classes (list[str]): A list of categories i.e. ["person"].
         """
         self.model.set_classes(classes)
         # Remove background if it's given
@@ -132,6 +132,7 @@ class YOLOE(Model):
 
         Args:
             model (str | Path): Path to the pre-trained model file. Supports *.pt and *.yaml formats.
+            task (str, optional): Task type for the model. Auto-detected if None.
             verbose (bool): If True, prints additional information during initialization.
         """
         super().__init__(model=model, task=task, verbose=verbose)
@@ -159,31 +160,36 @@ class YOLOE(Model):
         }
 
     def get_text_pe(self, texts):
+        """Get text positional embeddings for the given texts."""
         assert isinstance(self.model, YOLOEModel)
         return self.model.get_text_pe(texts)
 
     def get_visual_pe(self, img, visual):
+        """Get visual positional embeddings for the given image and visual features."""
         assert isinstance(self.model, YOLOEModel)
         return self.model.get_visual_pe(img, visual)
 
     def set_vocab(self, vocab, names):
+        """Set vocabulary and class names for the model."""
         assert isinstance(self.model, YOLOEModel)
         self.model.set_vocab(vocab, names=names)
 
     def get_vocab(self, names):
+        """Get vocabulary for the given class names."""
         assert isinstance(self.model, YOLOEModel)
         return self.model.get_vocab(names)
 
     def set_classes(self, classes, embeddings):
         """
-        Set the model's class names for detection.
+        Set the model's class names and embeddings for detection.
 
         Args:
-            classes (List(str)): A list of categories i.e. ["person"].
+            classes (list[str]): A list of categories i.e. ["person"].
+            embeddings (torch.Tensor): Embeddings corresponding to the classes.
         """
         assert isinstance(self.model, YOLOEModel)
         self.model.set_classes(classes, embeddings)
-        # Remove background if it's given
+        # Verify no background class is present
         assert " " not in classes
         self.model.names = classes
 

@@ -56,5 +56,5 @@ class YOLOETrainer(yolo.detect.DetectionTrainer):
 
     def preprocess_batch(self, batch):
         batch = super().preprocess_batch(batch)
-        batch["txt_feats"] = batch["texts"].to(self.device)
+        batch["txt_feats"] = batch["texts_feats"].to(self.device)
         return batch

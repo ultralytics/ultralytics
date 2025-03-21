@@ -70,7 +70,7 @@ class YOLODataset(BaseDataset):
         >>> dataset.get_labels()
     """
 
-    def __init__(self, *args, data=None, task="detect", load_vp=False, **kwargs):
+    def __init__(self, *args, data=None, task="detect", **kwargs):
         """
         Initialize the YOLODataset.
 
@@ -84,7 +84,6 @@ class YOLODataset(BaseDataset):
         self.use_keypoints = task == "pose"
         self.use_obb = task == "obb"
         self.data = data
-        self.load_vp = load_vp
         assert not (self.use_segments and self.use_keypoints), "Can not use both segments and keypoints."
         super().__init__(*args, **kwargs)
 
@@ -233,10 +232,6 @@ class YOLODataset(BaseDataset):
                 bgr=hyp.bgr if self.augment else 0.0,  # only affect training.
             )
         )
-        if self.load_vp:
-            if not self.augment:
-                assert self.batch_size == 1
-            transforms.append(LoadVisualPrompt())
         return transforms
 
     def close_mosaic(self, hyp):
@@ -333,7 +328,7 @@ class YOLOMultiModalDataset(YOLODataset):
         >>> print(batch.keys())  # Should include 'texts'
     """
 
-    def __init__(self, *args, data=None, task="detect", **kwargs):
+    def __init__(self, *args, data=None, task="detect", visual_prompt=False, **kwargs):
         """
         Initialize a YOLOMultiModalDataset.
 
@@ -343,6 +338,7 @@ class YOLOMultiModalDataset(YOLODataset):
             *args (Any): Additional positional arguments for the parent class.
             **kwargs (Any): Additional keyword arguments for the parent class.
         """
+        self.visual_prompt = visual_prompt
         super().__init__(*args, data=data, task=task, **kwargs)
 
     def update_labels_info(self, label):
@@ -375,8 +371,9 @@ class YOLOMultiModalDataset(YOLODataset):
         transforms = super().build_transforms(hyp)
         if self.augment and not self.single_cls:
             # NOTE: hard-coded the args for now.
-            index = -2 if self.load_vp else -1
-            transforms.insert(index, RandomLoadText(max_samples=min(self.data["nc"], 80), padding=True))
+            transforms.insert(-1, RandomLoadText(max_samples=min(self.data["nc"], 80), padding=True))
+        if self.visual_prompt:
+            transforms.append(LoadVisualPrompt())
         return transforms
 
     @property
@@ -412,7 +409,7 @@ class GroundingDataset(YOLODataset):
         >>> len(dataset)  # Number of valid images with annotations
     """
 
-    def __init__(self, *args, task="detect", json_file="", **kwargs):
+    def __init__(self, *args, task="detect", json_file="", visual_prompt=False, **kwargs):
         """
         Initialize a GroundingDataset for object detection.
 
@@ -426,6 +423,7 @@ class GroundingDataset(YOLODataset):
             "`GroundingDataset` only support `detect` and `segment` task for now!"
         )
         self.json_file = json_file
+        self.visual_prompt = visual_prompt
         super().__init__(*args, task=task, data={}, **kwargs)
 
     def get_img_files(self, img_path):
@@ -571,8 +569,10 @@ class GroundingDataset(YOLODataset):
         if self.augment and not self.single_cls:
             # NOTE: hard-coded the args for now.
             # TODO: passing `padding_value=global_grounding_neg_cat` and set pos/neg embeddings for yoloe models
-            index = -2 if self.load_vp else -1
-            transforms.insert(index, RandomLoadText(max_samples=80, padding=True))
+            transform = RandomLoadText(max_samples=80, padding=True)
+            transforms.insert(-1, transform)
+        if self.visual_prompt:
+            transforms.append(LoadVisualPrompt())
         return transforms
 
     @property

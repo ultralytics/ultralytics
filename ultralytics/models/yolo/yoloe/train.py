@@ -177,7 +177,10 @@ class YOLOETrainerFromScratch(YOLOETrainer):
             else build_grounding(self.args, im_path["img_path"], im_path["json_file"], batch, stride=gs)
             for im_path in img_path
         ]
+        self.set_text_embeddings(datasets, batch)  # cache text embeddings to accelerate training
+        return YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
 
+    def set_text_embeddings(self, datasets, batch):
         # TODO: open up an interface to determine whether to do cache
         category_names = set()
         for dataset in datasets:
@@ -187,11 +190,9 @@ class YOLOETrainerFromScratch(YOLOETrainer):
 
         # TODO: enable to update the path or use a more general way to get the path
         img_path = datasets[0].img_path
-        self.text_embeddings = self.generate_data_embeddings(
+        self.text_embeddings = self.generate_text_embeddings(
             category_names, batch, device=self.device, cache_path=Path(img_path).parent / "text_embeddings.pt"
         )
-
-        return YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
 
     def preprocess_batch(self, batch):
         """Process batch for training, moving text features to the appropriate device."""
@@ -204,7 +205,7 @@ class YOLOETrainerFromScratch(YOLOETrainer):
         return batch
 
     @staticmethod
-    def generate_data_embeddings(texts, batch, device="cuda", cache_path="embeddings.pt"):
+    def generate_text_embeddings(texts, batch, device="cuda", cache_path="embeddings.pt"):
         """
         Generate text embeddings for a list of text samples.
 
@@ -320,6 +321,10 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
         """Preprocesses a batch of images for YOLOE training, adjusting formatting and dimensions as needed."""
         batch = super(YOLOETrainer, self).preprocess_batch(batch)
         return batch
+
+    def set_text_embeddings(self, datasets, batch):
+        """No need to set text embeddings for prompt-free fine-tuning."""
+        pass
 
 
 class YOLOEVPTrainer(YOLOETrainerFromScratch):

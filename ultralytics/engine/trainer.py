@@ -524,7 +524,7 @@ class BaseTrainer:
     def _model_train(self):
         """Set model in training mode."""
         self.model.train()
-        # Freeze BN
+        # Freeze BN stat
         for n, m in self.model.named_modules():
             if any(filter(lambda f: f in n, self.freeze_layer_names)) and isinstance(m, nn.BatchNorm2d):
                 m.eval()

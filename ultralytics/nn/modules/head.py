@@ -554,7 +554,7 @@ class YOLOEDetect(Detect):
 
     def forward(self, x, cls_pe, return_mask=False):
         """Process features with class prompt embeddings to generate detections."""
-        has_lrpc = hasattr(self, "lrpc")
+        has_lrpc = hasattr(self, "lrpc")  # for prompt-free inference
         masks = [] if has_lrpc else None
         for i in range(self.nl):
             if not has_lrpc:

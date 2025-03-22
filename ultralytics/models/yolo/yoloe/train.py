@@ -5,6 +5,7 @@ from copy import copy, deepcopy
 from pathlib import Path
 
 import torch
+import itertools
 
 from ultralytics.data import YOLOConcatDataset, build_grounding, build_yolo_dataset
 from ultralytics.data.utils import check_det_dataset
@@ -77,7 +78,7 @@ class YOLOETrainer(DetectionTrainer):
     def preprocess_batch(self, batch):
         """Process batch for training, moving text features to the appropriate device."""
         batch = super().preprocess_batch(batch)
-        batch["txt_feats"] = batch["text_feats"].to(self.device)
+        # batch["txt_feats"] = batch["text_feats"].to(self.device)
         return batch
 
 
@@ -182,30 +183,23 @@ class YOLOETrainerFromScratch(YOLOETrainer):
                 continue
             category_names |= dataset.category_names
 
-        category_freq = defaultdict(int)
-        for dataset in datasets:
-            if not hasattr(dataset, "category_freq"):
-                continue
-            for k, v in dataset.category_freq.items():
-                category_freq[k] += v
-        neg_names = self._get_neg_texts(category_freq, threshold=100)
-
         # TODO: enable to update the path or use a more general way to get the path
-        # TODO: fix: close_mosaic would invalidate this
         img_path = datasets[0].img_path
-        pos_embeddings = self.generate_data_embeddings(
-            category_names, batch, device=self.device, cache_path=Path(img_path).parent / "pos_embeddings.pt"
+        self.text_embeddings = self.generate_data_embeddings(
+            category_names, batch, device=self.device, cache_path=Path(img_path).parent / "text_embeddings.pt"
         )
-        neg_embeddings = self.generate_data_embeddings(
-            neg_names, batch, device=self.device, cache_path=Path(img_path).parent / "neg_embeddings.pt"
-        )
-        for dataset in datasets:
-            for i, transform in enumerate(dataset.transforms.transforms):
-                if not hasattr(transform, "set_embeddings"):  # use `0` index as transform is a "Compose" object
-                    continue
-                dataset.transforms.transforms[i].set_embeddings(pos_embeddings, neg_embeddings)
 
         return YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
+
+    def preprocess_batch(self, batch):
+        """Process batch for training, moving text features to the appropriate device."""
+        batch = super().preprocess_batch(batch)
+
+        texts = list(itertools.chain(*batch["texts"]))
+        txt_feats = torch.stack([self.text_embeddings[text] for text in texts]).to(self.device)
+        txt_feats = txt_feats.reshape(len(batch["texts"]), -1, txt_feats.shape[-1])
+        batch["txt_feats"] = txt_feats
+        return batch
 
     @staticmethod
     def generate_data_embeddings(texts, batch, device="cuda", cache_path="embeddings.pt"):
@@ -237,11 +231,6 @@ class YOLOETrainerFromScratch(YOLOETrainer):
         txt_map = {text: feat for text, feat in zip(texts, txt_feats)}
         torch.save(txt_map, cache_path)
         return txt_map
-
-    @staticmethod
-    def _get_neg_texts(category_freq, threshold=100):
-        """Get negative text samples based on frequency threshold."""
-        return [k for k, v in category_freq.items() if v >= threshold]
 
     def get_dataset(self):
         """

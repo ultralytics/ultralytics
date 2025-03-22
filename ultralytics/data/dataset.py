@@ -354,6 +354,7 @@ class YOLOMultiModalDataset(YOLODataset):
         """
         labels = super().update_labels_info(label)
         # NOTE: some categories are concatenated with its synonyms by `/`.
+        # NOTE: and `RandomLoadText` would randomly select one of them if there are multiple words.
         if not self.single_cls:
             labels["texts"] = [v.split("/") for _, v in self.data["names"].items()]
 
@@ -372,7 +373,13 @@ class YOLOMultiModalDataset(YOLODataset):
         transforms = super().build_transforms(hyp)
         if self.augment and not self.single_cls:
             # NOTE: hard-coded the args for now.
-            transforms.insert(-1, RandomLoadText(max_samples=min(self.data["nc"], 80), padding=True))
+            # NOTE: this implementation is different from official yoloe,
+            # the strategy of selecting negative is restricted in one dataset,
+            # while official pre-saved neg embeddings from all datasets at once.
+            transform = RandomLoadText(
+                max_samples=80, padding=True, padding_value=self._get_neg_texts(self.category_freq)
+            )
+            transforms.insert(-1, transform)
         if self.visual_prompt:
             transforms.append(LoadVisualPrompt())
         return transforms
@@ -388,6 +395,24 @@ class YOLOMultiModalDataset(YOLODataset):
         names = self.data["names"].values()
         category_names = {n.strip() for name in names for n in name.split("/")}
         return category_names
+
+    @property
+    def category_freq(self):
+        """Return frequency of each category in the dataset."""
+        texts = [v.split("/") for v in self.data["names"].values()]
+        category_freq = defaultdict(int)
+        for label in self.labels:
+            for c in label["cls"]:   # to chec
+                text = texts[int(c)]
+                for t in text:
+                    t = t.strip()
+                    category_freq[t] += 1
+        return category_freq
+
+    @staticmethod
+    def _get_neg_texts(category_freq, threshold=100):
+        """Get negative text samples based on frequency threshold."""
+        return [k for k, v in category_freq.items() if v >= threshold]
 
 
 class GroundingDataset(YOLODataset):
@@ -583,8 +608,12 @@ class GroundingDataset(YOLODataset):
         transforms = super().build_transforms(hyp)
         if self.augment and not self.single_cls:
             # NOTE: hard-coded the args for now.
-            # TODO: passing `padding_value=global_grounding_neg_cat` and set pos/neg embeddings for yoloe models
-            transform = RandomLoadText(max_samples=80, padding=True)
+            # NOTE: this implementation is different from official yoloe,
+            # the strategy of selecting negative is restricted in one dataset,
+            # while official pre-saved neg embeddings from all datasets at once.
+            transform = RandomLoadText(
+                max_samples=80, padding=True, padding_value=self._get_neg_texts(self.category_freq)
+            )
             transforms.insert(-1, transform)
         if self.visual_prompt:
             transforms.append(LoadVisualPrompt())
@@ -605,6 +634,11 @@ class GroundingDataset(YOLODataset):
                     t = t.strip()
                     category_freq[t] += 1
         return category_freq
+
+    @staticmethod
+    def _get_neg_texts(category_freq, threshold=100):
+        """Get negative text samples based on frequency threshold."""
+        return [k for k, v in category_freq.items() if v >= threshold]
 
 
 class YOLOConcatDataset(ConcatDataset):

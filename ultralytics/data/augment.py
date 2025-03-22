@@ -2281,16 +2281,6 @@ class RandomLoadText:
         self.padding = padding
         self.padding_value = padding_value
 
-        self.pos_embeddings = dict()  # placeholder
-        self.neg_embeddings = dict()  # placeholder
-
-        # import json
-        # with open("tools/global_grounding_neg_cat.json") as f:
-        #     self.global_grounding_neg_cats = np.array(json.load(f))
-
-        # self.neg_embeddings = torch.load(f"global_grounding_neg_embeddings.pt")
-        # self.pos_embeddings = torch.load(f"train_label_embeddings.pt")
-
     def __call__(self, labels: dict) -> dict:
         """
         Randomly samples positive and negative texts and updates class indices accordingly.
@@ -2346,46 +2336,15 @@ class RandomLoadText:
             prompt = self.prompt_format.format(prompts[random.randrange(len(prompts))])
             texts.append(prompt)
 
-        if len(self.pos_embeddings):
-            assert len(self.neg_embeddings), (
-                "Expected negative embeddings to be loaded together with positive embeddings."
-            )
-            text_feats = [self.pos_embeddings[text] for text in texts]
-            text_feats = torch.stack(text_feats, dim=0) if len(text_feats) > 0 else text_feats
-
         if self.padding:
             valid_labels = len(pos_labels) + len(neg_labels)
             num_padding = self.max_samples - valid_labels
             if num_padding > 0:
                 texts += random.choices(self.padding_value, k=num_padding)
 
-                if len(self.pos_embeddings):
-                    neg_idx = np.random.choice(np.arange(0, len(self.neg_embeddings)), size=num_padding, replace=False)
-                    neg_embeddings = self.neg_embeddings[neg_idx]
-                    text_feats = (
-                        torch.cat((text_feats, neg_embeddings), dim=0) if len(text_feats) > 0 else neg_embeddings
-                    )
-
         assert len(texts) == self.max_samples
         labels["texts"] = texts
-        # TODO: enable to use 'texts' as well
-        if len(self.pos_embeddings):
-            labels["text_feats"] = text_feats
         return labels
-
-    def set_embeddings(self, pos_embeddings, neg_embeddings):
-        """
-        Set the positive and negative embeddings for text features.
-
-        Args:
-            pos_embeddings (dict): Dictionary of positive text embeddings.
-            neg_embeddings (dict | torch.Tensor): Dictionary or tensor of negative text embeddings.
-        """
-        self.pos_embeddings = pos_embeddings
-        self.neg_embeddings = neg_embeddings
-        assert isinstance(self.pos_embeddings, dict), "Expected positive embeddings to be a dictionary."
-        if isinstance(self.neg_embeddings, dict):
-            self.neg_embeddings = torch.stack(list(self.neg_embeddings.values()), dim=0)
 
 
 def v8_transforms(dataset, imgsz, hyp, stretch=False):

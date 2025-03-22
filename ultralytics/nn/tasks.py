@@ -999,18 +999,13 @@ class YOLOEModel(DetectionModel):
             preds (torch.Tensor | List[torch.Tensor], optional): Predictions.
         """
         if not hasattr(self, "criterion"):
-            self.criterion = self.init_criterion()
+            from ultralytics.utils.loss import TVPDetectLoss
+            visual_prompt = batch.get("visuals", None) is not None  # TODO
+            self.criterion = TVPDetectLoss(self) if visual_prompt else self.init_criterion()
 
         if preds is None:
             preds = self.forward(batch["img"], tpe=batch.get("txt_feats", None), vpe=batch.get("visuals", None))
         return self.criterion(preds, batch)
-
-    def init_criterion(self):
-        """Initialize the loss criterion for the YOLOEModel."""
-        if self.args.load_vp:
-            return TVPDetectLoss(self)
-        else:
-            return super().init_criterion()
 
 
 class YOLOESegModel(YOLOEModel, SegmentationModel):

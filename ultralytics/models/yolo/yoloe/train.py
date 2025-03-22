@@ -28,9 +28,9 @@ class YOLOETrainer(DetectionTrainer):
         the training environment, model, and callbacks for YOLOE object detection training.
 
         Args:
-            cfg (Dict): Configuration dictionary with default training settings from DEFAULT_CFG.
-            overrides (Dict, optional): Dictionary of parameter overrides for the default configuration.
-            _callbacks (List, optional): List of callback functions to be applied during training.
+            cfg (dict): Configuration dictionary with default training settings from DEFAULT_CFG.
+            overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
+            _callbacks (list, optional): List of callback functions to be applied during training.
         """
         if overrides is None:
             overrides = {}
@@ -141,7 +141,7 @@ class YOLOETrainerFromScratch(YOLOETrainer):
         Args:
             cfg (dict, optional): Configuration dictionary with training parameters. Defaults to DEFAULT_CFG.
             overrides (dict, optional): Dictionary of parameter overrides for configuration.
-            _callbacks (List, optional): List of callback functions to be executed during training.
+            _callbacks (list, optional): List of callback functions to be executed during training.
 
         Examples:
             >>> from ultralytics.models.yoloe.train import YOLOETrainerFromScratch
@@ -180,6 +180,7 @@ class YOLOETrainerFromScratch(YOLOETrainer):
         return YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
 
     def set_text_embeddings(self, datasets, batch):
+        """Set text embeddings for datasets to accelerate training by caching category names"""
         # TODO: open up an interface to determine whether to do cache
         category_names = set()
         for dataset in datasets:
@@ -330,6 +331,17 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
     """Train YOLOE model with visual prompts."""
 
     def build_dataset(self, img_path, mode="train", batch=None):
+        """
+        Build YOLO Dataset for training or validation with visual prompts.
+        
+        Args:
+            img_path (List[str] | str): Path to the folder containing images or list of paths.
+            mode (str): 'train' mode or 'val' mode, allowing customized augmentations for each mode.
+            batch (int, optional): Size of batches, used for rectangular training/validation.
+        
+        Returns:
+            (Dataset): YOLO dataset configured for training or validation, with visual prompts for training mode.
+        """
         dataset = super().build_dataset(img_path, mode, batch)
         if mode != "train":
             return dataset  # TODO: using text prompt evaluation for visual prompt for now
@@ -341,6 +353,7 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
         return dataset
 
     def _close_dataloader_mosaic(self):
+        """Close mosaic augmentation and add visual prompt loading to the training dataset."""
         super()._close_dataloader_mosaic()
         if isinstance(self.train_loader.dataset, YOLOConcatDataset):
             for d in self.train_loader.dataset.datasets:

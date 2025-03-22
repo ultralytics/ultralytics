@@ -103,6 +103,7 @@ class DetectionValidator(BaseValidator):
             model (torch.nn.Module): Model to validate.
         """
         val = self.data.get(self.args.split, "")  # validation path
+
         self.is_coco = (
             isinstance(val, str)
             and "coco" in val
@@ -423,10 +424,15 @@ class DetectionValidator(BaseValidator):
         """
         if self.args.save_json and (self.is_coco or self.is_lvis) and len(self.jdict):
             pred_json = self.save_dir / "predictions.json"  # predictions
+
             anno_json = (
                 self.data["path"]
                 / "annotations"
-                / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
+                / (
+                    "instances_val2017.json"
+                    if self.is_coco
+                    else f"lvis_v1_{self.args.split}{'_sc' if self.args.single_cls else ''}.json"
+                )
             )  # annotations
             pkg = "pycocotools" if self.is_coco else "lvis"
             LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
@@ -455,8 +461,13 @@ class DetectionValidator(BaseValidator):
                     val.print_results()  # explicitly call print_results
                 # update mAP50-95 and mAP50
                 stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = (
-                    val.stats[:2] if self.is_coco else [val.results["AP50"], val.results["AP"]]
+                    val.stats[:2] if self.is_coco else [val.results["AP"], val.results["AP50"]]
                 )
+                if self.is_lvis:
+                    stats["metrics/APr(B)"] = val.results["APr"]
+                    stats["metrics/APc(B)"] = val.results["APc"]
+                    stats["metrics/APf(B)"] = val.results["APf"]
+                    stats["fitness"] = val.results["AP"]
             except Exception as e:
                 LOGGER.warning(f"{pkg} unable to run: {e}")
         return stats

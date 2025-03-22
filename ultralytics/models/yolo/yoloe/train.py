@@ -331,6 +331,8 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
 
     def build_dataset(self, img_path, mode="train", batch=None):
         dataset = super().build_dataset(img_path, mode, batch)
+        if mode != "train":
+            return dataset  # TODO: using text prompt evaluation for visual prompt for now
         if isinstance(dataset, YOLOConcatDataset):
             for d in dataset.datasets:
                 d.transforms.append(LoadVisualPrompt())

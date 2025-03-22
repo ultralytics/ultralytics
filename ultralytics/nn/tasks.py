@@ -836,7 +836,7 @@ class YOLOEModel(DetectionModel):
 
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
-        return head.get_tpe(txt_feats)   # re-parameterization
+        return head.get_tpe(txt_feats)  # re-parameterization
 
     @smart_inference_mode()
     def get_visual_pe(self, img, visual):

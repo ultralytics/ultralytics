@@ -1,11 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from collections import defaultdict
+import itertools
 from copy import copy, deepcopy
 from pathlib import Path
 
 import torch
-import itertools
 
 from ultralytics.data import YOLOConcatDataset, build_grounding, build_yolo_dataset
 from ultralytics.data.utils import check_det_dataset

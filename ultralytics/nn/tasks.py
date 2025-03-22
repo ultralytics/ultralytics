@@ -823,22 +823,20 @@ class YOLOEModel(DetectionModel):
         from ultralytics.nn.text_model import build_text_model
 
         device = next(self.model.parameters()).device
-
-        # TODO: eliminate `self.arg` usage
-        text_model = self.args.get("text_model", "mobileclip:blt")
         if (
             not getattr(self, "clip_model", None) and cache_clip_model
         ):  # for backwards compatibility of models lacking clip_model attribute
-            self.clip_model = build_text_model(text_model, device=device)
+            self.clip_model = build_text_model("mobileclip:blt", device=device)
 
-        model = self.clip_model if cache_clip_model else build_text_model(text_model, device=device)
+        model = self.clip_model if cache_clip_model else build_text_model("mobileclip:blt", device=device)
         text_token = model.tokenize(text)
-        txt_feats = model.encode_text(text_token)
+        txt_feats = [model.encode_text(token).detach() for token in text_token.split(batch)]
+        txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)
         txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
 
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
-        return head.get_tpe(txt_feats)
+        return head.get_tpe(txt_feats)   # re-parameterization
 
     @smart_inference_mode()
     def get_visual_pe(self, img, visual):

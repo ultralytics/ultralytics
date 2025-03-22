@@ -375,13 +375,17 @@ class SAVPE(nn.Module):
     def __init__(self, ch, c3, embed):
         """Initialize SAVPE module with channels, intermediate channels, and embedding dimension."""
         super().__init__()
-        self.cv1 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3)) for x in ch)
-        self.cv1[1].append(nn.Upsample(scale_factor=2))
-        self.cv1[2].append(nn.Upsample(scale_factor=4))
+        self.cv1 = nn.ModuleList(
+            nn.Sequential(
+                Conv(x, c3, 3), Conv(c3, c3, 3), nn.Upsample(scale_factor=i * 2) if i in {1, 2} else nn.Identity()
+            )
+            for i, x in enumerate(ch)
+        )
 
-        self.cv2 = nn.ModuleList(nn.Sequential(Conv(x, c3, 1)) for x in ch)
-        self.cv2[1].append(nn.Upsample(scale_factor=2))
-        self.cv2[2].append(nn.Upsample(scale_factor=4))
+        self.cv2 = nn.ModuleList(
+            nn.Sequential(Conv(x, c3, 1), nn.Upsample(scale_factor=i * 2) if i in {1, 2} else nn.Identity())
+            for i, x in enumerate(ch)
+        )
 
         self.c = 16
         self.cv3 = nn.Conv2d(3 * c3, embed, 1)

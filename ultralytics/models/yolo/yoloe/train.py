@@ -112,7 +112,7 @@ class YOLOEPETrainer(DetectionTrainer):
             model.load(weights)
 
         model.eval()
-        names = ["object"]
+        names = list(self.data["names"].values())
         # NOTE: `get_text_pe` related to text model and YOLOEDetect.reprta,
         # it'd get correct results as long as loading proper pretrained weights.
         tpe = model.get_text_pe(names)

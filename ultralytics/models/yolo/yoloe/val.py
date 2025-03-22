@@ -146,7 +146,7 @@ class YOLOEValidatorMixin:
 
             names = [name.split("/")[0] for name in list(self.dataloader.dataset.data["names"].values())]
 
-            if not self.args.load_vp:
+            if not self.args.load_vp:  # TODO
                 LOGGER.info("Validate using the text prompt.")
                 tpe = model.get_text_pe(names)
                 model.set_classes(names, tpe)
@@ -171,7 +171,7 @@ class YOLOEValidatorMixin:
                 data = check_det_dataset(self.args.data)
                 names = [name.split("/")[0] for name in list(data["names"].values())]
 
-                if not self.args.load_vp:
+                if not self.args.load_vp:  # TODO
                     LOGGER.info("Validate using the text prompt.")
                     tpe = model.get_text_pe(names)
                     model.set_classes(names, tpe)

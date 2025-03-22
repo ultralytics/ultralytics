@@ -366,9 +366,6 @@ class SegmentationValidator(DetectionValidator):
         """Return COCO-style object detection evaluation metrics."""
         if self.args.save_json and (self.is_lvis or self.is_coco) and len(self.jdict):
             pred_json = self.save_dir / "predictions.json"  # predictions
-            val = self.data[self.args.split]
-            val = val[0] if isinstance(val, list) else val
-            is_lvis_minival = "minival" in val
 
             anno_json = (
                 self.data["path"]
@@ -376,7 +373,7 @@ class SegmentationValidator(DetectionValidator):
                 / (
                     "instances_val2017.json"
                     if self.is_coco
-                    else f"lvis_v1_{'minival' if is_lvis_minival else 'val'}{'_sc' if self.args.single_cls else ''}.json"
+                    else f"lvis_v1_{self.args.split}{'_sc' if self.args.single_cls else ''}.json"
                 )
             )  # annotations
 
@@ -401,7 +398,6 @@ class SegmentationValidator(DetectionValidator):
                     vals = [LVISEval(anno, pred, "bbox"), LVISEval(anno, pred, "segm")]
 
                 for i, eval in enumerate(vals):
-                    print("=" * 40, "BOX EVAL" if i == 0 else "MASK EVAL", "=" * 40)
                     eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
                     eval.evaluate()
                     eval.accumulate()

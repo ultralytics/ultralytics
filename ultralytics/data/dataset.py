@@ -328,18 +328,16 @@ class YOLOMultiModalDataset(YOLODataset):
         >>> print(batch.keys())  # Should include 'texts'
     """
 
-    def __init__(self, *args, data=None, task="detect", visual_prompt=False, **kwargs):
+    def __init__(self, *args, data=None, task="detect", **kwargs):
         """
         Initialize a YOLOMultiModalDataset.
 
         Args:
             data (dict, optional): Dataset configuration dictionary.
             task (str): Task type, one of 'detect', 'segment', 'pose', or 'obb'.
-            visual_prompt (bool): Whether to use visual prompts.
             *args (Any): Additional positional arguments for the parent class.
             **kwargs (Any): Additional keyword arguments for the parent class.
         """
-        self.visual_prompt = visual_prompt
         super().__init__(*args, data=data, task=task, **kwargs)
 
     def update_labels_info(self, label):
@@ -382,8 +380,6 @@ class YOLOMultiModalDataset(YOLODataset):
                 padding_value=self._get_neg_texts(self.category_freq),
             )
             transforms.insert(-1, transform)
-        if self.visual_prompt:
-            transforms.append(LoadVisualPrompt())
         return transforms
 
     @property
@@ -437,14 +433,13 @@ class GroundingDataset(YOLODataset):
         >>> len(dataset)  # Number of valid images with annotations
     """
 
-    def __init__(self, *args, task="detect", json_file="", visual_prompt=False, **kwargs):
+    def __init__(self, *args, task="detect", json_file="", **kwargs):
         """
         Initialize a GroundingDataset for object detection.
 
         Args:
             json_file (str): Path to the JSON file containing annotations.
             task (str): Must be 'detect' or 'segment' for GroundingDataset.
-            visual_prompt (bool): Whether to use visual prompts.
             *args (Any): Additional positional arguments for the parent class.
             **kwargs (Any): Additional keyword arguments for the parent class.
         """
@@ -452,7 +447,6 @@ class GroundingDataset(YOLODataset):
             "`GroundingDataset` only support `detect` and `segment` task for now!"
         )
         self.json_file = json_file
-        self.visual_prompt = visual_prompt
         super().__init__(*args, task=task, data={}, **kwargs)
 
     def get_img_files(self, img_path):
@@ -619,8 +613,6 @@ class GroundingDataset(YOLODataset):
                 padding_value=self._get_neg_texts(self.category_freq),
             )
             transforms.insert(-1, transform)
-        if self.visual_prompt:
-            transforms.append(LoadVisualPrompt())
         return transforms
 
     @property

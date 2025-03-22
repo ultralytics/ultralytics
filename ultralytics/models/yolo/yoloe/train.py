@@ -8,6 +8,7 @@ import torch
 
 from ultralytics.data import YOLOConcatDataset, build_grounding, build_yolo_dataset
 from ultralytics.data.utils import check_det_dataset
+from ultralytics.data.augment import LoadVisualPrompt
 from ultralytics.models.yolo.detect import DetectionTrainer, DetectionValidator
 from ultralytics.nn.tasks import YOLOEModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
@@ -327,6 +328,23 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
 
 class YOLOEVPTrainer(YOLOETrainerFromScratch):
     """Train YOLOE model with visual prompts."""
+
+    def build_dataset(self, img_path, mode="train", batch=None):
+        dataset = super().build_dataset(img_path, mode, batch)
+        if isinstance(dataset, YOLOConcatDataset):
+            for d in dataset.datasets:
+                d.transforms.append(LoadVisualPrompt())
+        else:
+            dataset.transforms.append(LoadVisualPrompt())
+        return dataset
+
+    def _close_dataloader_mosaic(self):
+        super()._close_dataloader_mosaic()
+        if isinstance(self.train_loader.dataset, YOLOConcatDataset):
+            for d in self.train_loader.dataset.datasets:
+                d.transforms.append(LoadVisualPrompt())
+        else:
+            self.train_loader.dataset.transforms.append(LoadVisualPrompt())
 
     def preprocess_batch(self, batch):
         """Preprocesses a batch of images for YOLOE training, moving visual prompts to the appropriate device."""

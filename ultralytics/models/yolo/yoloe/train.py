@@ -10,7 +10,7 @@ from ultralytics.data import YOLOConcatDataset, build_grounding, build_yolo_data
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.detect import DetectionTrainer, DetectionValidator
 from ultralytics.nn.tasks import YOLOEModel
-from ultralytics.utils import DEFAULT_CFG, RANK
+from ultralytics.utils import DEFAULT_CFG, RANK, LOGGER
 from ultralytics.utils.torch_utils import de_parallel
 
 from .val import YOLOEDetectValidator
@@ -275,8 +275,15 @@ class YOLOETrainerFromScratch(YOLOETrainer):
         # NOTE: add path with lvis path
         final_data["path"] = data["val"][0]["path"]
         self.data = final_data
+        if self.args.single_cls:  # consistent with base trainer
+            LOGGER.info("Overriding class names with single class.")
+            self.data["names"] = {0: "object"}
+            self.data["nc"] = 1
         self.training_data = {}
         for d in data["train"]:
+            if self.args.single_cls:
+                d["names"] = {0: "object"}
+                d["nc"] = 1
             self.training_data[d["train"]] = d
         return final_data["train"], final_data["val"][0]
 

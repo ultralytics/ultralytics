@@ -265,7 +265,7 @@ class v8SegmentationLoss(v8DetectionLoss):
 
     def __call__(self, preds, batch):
         """Calculate and return the combined loss for detection and segmentation."""
-        loss = torch.zeros(4, device=self.device)  # box, cls, dfl
+        loss = torch.zeros(4, device=self.device)  # box, seg, cls, dfl
         feats, pred_masks, proto = preds if len(preds) == 3 else preds[1]
         batch_size, _, mask_h, mask_w = proto.shape  # batch size, number of masks, mask height, mask width
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
@@ -774,7 +774,7 @@ class TVPDetectLoss:
 
         if self.tp_criterion.reg_max * 4 + self.tp_criterion.nc == feats[0].shape[1]:
             loss = torch.zeros(3, device=self.tp_criterion.device, requires_grad=True)
-            return loss.sum(), loss.detach()
+            return loss, loss.detach()
 
         vp_feats = self._get_vp_features(feats)
         vp_loss = self.vp_criterion(vp_feats, batch)
@@ -812,7 +812,7 @@ class TVPSegmentLoss(TVPDetectLoss):
 
         if self.tp_criterion.reg_max * 4 + self.tp_criterion.nc == feats[0].shape[1]:
             loss = torch.zeros(4, device=self.tp_criterion.device, requires_grad=True)
-            return loss.sum(), loss.detach()
+            return loss, loss.detach()
 
         vp_feats = self._get_vp_features(feats)
         vp_loss = self.vp_criterion((vp_feats, pred_masks, proto), batch)

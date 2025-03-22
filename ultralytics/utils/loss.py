@@ -805,7 +805,6 @@ class TVPSegmentLoss(TVPDetectLoss):
 
     def __init__(self, model):
         """Initialize TVPSegmentLoss with task-prompt and visual-prompt criteria using the provided model."""
-        self.tp_criterion = v8SegmentationLoss(model)
         self.vp_criterion = v8SegmentationLoss(model)
 
     def __call__(self, preds, batch):

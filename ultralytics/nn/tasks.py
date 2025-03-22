@@ -866,6 +866,7 @@ class YOLOEModel(DetectionModel):
         device = next(self.parameters()).device
         self(torch.empty(1, 3, self.args["imgsz"], self.args["imgsz"]).to(device))  # warmup
 
+        # re-parameterization for prompt-free model
         self.model[-1].lrpc = nn.ModuleList(
             LRPCHead(cls, pf[-1], loc[-1], enabled=i != 2)
             for i, (cls, pf, loc) in enumerate(zip(vocab, head.cv3, head.cv2))

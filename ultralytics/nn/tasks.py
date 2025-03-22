@@ -73,8 +73,6 @@ from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colors
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2EDetectLoss,
-    TVPDetectLoss,
-    TVPSegmentLoss,
     v8ClassificationLoss,
     v8DetectionLoss,
     v8OBBLoss,
@@ -1000,6 +998,7 @@ class YOLOEModel(DetectionModel):
         """
         if not hasattr(self, "criterion"):
             from ultralytics.utils.loss import TVPDetectLoss
+
             visual_prompt = batch.get("visuals", None) is not None  # TODO
             self.criterion = TVPDetectLoss(self) if visual_prompt else self.init_criterion()
 
@@ -1033,6 +1032,7 @@ class YOLOESegModel(YOLOEModel, SegmentationModel):
         """
         if not hasattr(self, "criterion"):
             from ultralytics.utils.loss import TVPSegmentLoss
+
             visual_prompt = batch.get("visuals", None) is not None  # TODO
             self.criterion = TVPSegmentLoss(self) if visual_prompt else self.init_criterion()
 

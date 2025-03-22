@@ -21,7 +21,6 @@ from .augment import (
     Format,
     Instances,
     LetterBox,
-    LoadVisualPrompt,
     RandomLoadText,
     classify_augmentations,
     classify_transforms,

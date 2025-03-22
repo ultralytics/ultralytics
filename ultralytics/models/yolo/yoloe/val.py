@@ -86,7 +86,9 @@ class YOLOEValidatorMixin:
                 - lvis_train_vps_loader (DataLoader): DataLoader for LVIS training visual prompt samples.
                 - names (list): List of class names.
         """
+        # TODO
         lvis_train_vps_data = check_det_dataset("lvis_train_vps.yaml")
+        # TODO
         lvis_train_vps_loader = build_dataloader(
             build_yolo_dataset(
                 self.args,

@@ -1023,12 +1023,22 @@ class YOLOESegModel(YOLOEModel, SegmentationModel):
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
-    def init_criterion(self):
-        """Initialize the loss criterion for the SegmentationModel."""
-        if self.args.load_vp:
-            return TVPSegmentLoss(self)
-        else:
-            return super().init_criterion()
+    def loss(self, batch, preds=None):
+        """
+        Compute loss.
+
+        Args:
+            batch (dict): Batch to compute loss on.
+            preds (torch.Tensor | List[torch.Tensor], optional): Predictions.
+        """
+        if not hasattr(self, "criterion"):
+            from ultralytics.utils.loss import TVPSegmentLoss
+            visual_prompt = batch.get("visuals", None) is not None  # TODO
+            self.criterion = TVPSegmentLoss(self) if visual_prompt else self.init_criterion()
+
+        if preds is None:
+            preds = self.forward(batch["img"], tpe=batch.get("txt_feats", None), vpe=batch.get("visuals", None))
+        return self.criterion(preds, batch)
 
 
 class Ensemble(torch.nn.ModuleList):

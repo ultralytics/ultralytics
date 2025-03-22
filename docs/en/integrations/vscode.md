@@ -14,7 +14,7 @@ keywords: Visual Studio Code, VS Code, deep learning, convolutional neural netwo
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to use Ultralytics Visual Studio Code Extension | Ready-to-Use Code Snippets | Ultralytics YOLO🎉
+  <strong>Watch:</strong> How to use Ultralytics Visual Studio Code Extension | Ready-to-Use Code Snippets | Ultralytics YOLO 🎉
 </p>
 
 ## Features and Benefits

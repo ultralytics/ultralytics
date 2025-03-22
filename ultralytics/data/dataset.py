@@ -377,7 +377,9 @@ class YOLOMultiModalDataset(YOLODataset):
             # the strategy of selecting negative is restricted in one dataset,
             # while official pre-saved neg embeddings from all datasets at once.
             transform = RandomLoadText(
-                max_samples=80, padding=True, padding_value=self._get_neg_texts(self.category_freq)
+                max_samples=min(self.data["nc"], 80),
+                padding=True,
+                padding_value=self._get_neg_texts(self.category_freq),
             )
             transforms.insert(-1, transform)
         if self.visual_prompt:
@@ -612,7 +614,9 @@ class GroundingDataset(YOLODataset):
             # the strategy of selecting negative is restricted in one dataset,
             # while official pre-saved neg embeddings from all datasets at once.
             transform = RandomLoadText(
-                max_samples=80, padding=True, padding_value=self._get_neg_texts(self.category_freq)
+                max_samples=min(self.data["nc"], 80),
+                padding=True,
+                padding_value=self._get_neg_texts(self.category_freq),
             )
             transforms.insert(-1, transform)
         if self.visual_prompt:

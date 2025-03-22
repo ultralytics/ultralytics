@@ -252,12 +252,7 @@ class v8DetectionLoss:
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
 
-        if self.hyp.load_vp:
-            optim_loss = loss[1]
-        else:
-            optim_loss = loss.sum()
-
-        return optim_loss * batch_size, loss.detach()  # loss(box, cls, dfl)
+        return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 
 
 class v8SegmentationLoss(v8DetectionLoss):
@@ -364,12 +359,7 @@ class v8SegmentationLoss(v8DetectionLoss):
         loss[2] *= self.hyp.cls  # cls gain
         loss[3] *= self.hyp.dfl  # dfl gain
 
-        if self.hyp.load_vp:
-            optim_loss = loss[2]
-        else:
-            optim_loss = loss.sum()
-
-        return optim_loss * batch_size, loss.detach()  # loss(box, cls, dfl)
+        return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 
     @staticmethod
     def single_mask_loss(
@@ -546,7 +536,7 @@ class v8PoseLoss(v8DetectionLoss):
         loss[3] *= self.hyp.cls  # cls gain
         loss[4] *= self.hyp.dfl  # dfl gain
 
-        return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
+        return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 
     @staticmethod
     def kpts_decode(anchor_points, pred_kpts):
@@ -731,7 +721,7 @@ class v8OBBLoss(v8DetectionLoss):
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
 
-        return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
+        return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 
     def bbox_decode(self, anchor_points, pred_dist, pred_angle):
         """
@@ -788,8 +778,8 @@ class TVPDetectLoss:
 
         vp_feats = self._get_vp_features(feats)
         vp_loss = self.vp_criterion(vp_feats, batch)
-
-        return vp_loss
+        box_loss = vp_loss[0][1]
+        return box_loss, vp_loss[1]
 
     def _get_vp_features(self, feats):
         """Extract visual-prompt features from the model output."""
@@ -826,5 +816,5 @@ class TVPSegmentLoss(TVPDetectLoss):
 
         vp_feats = self._get_vp_features(feats)
         vp_loss = self.vp_criterion((vp_feats, pred_masks, proto), batch)
-
-        return vp_loss
+        cls_loss = vp_loss[0][2]
+        return cls_loss, vp_loss[1]

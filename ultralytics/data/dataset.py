@@ -506,7 +506,6 @@ class GroundingDataset(YOLODataset):
                     texts.append([cat_name])
                 cls = cat2id[cat_name]  # class
                 box = [cls] + box.tolist()
-                # TODO: support reading segments based on `generate_grounding_cache.py`
                 if box not in bboxes:
                     bboxes.append(box)
                     if ann.get("segmentation") is not None:

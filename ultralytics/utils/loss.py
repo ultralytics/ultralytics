@@ -764,16 +764,19 @@ class TVPDetectLoss:
 
     def __init__(self, model):
         """Initialize TVPDetectLoss with task-prompt and visual-prompt criteria using the provided model."""
-        self.tp_criterion = v8DetectionLoss(model)
         self.vp_criterion = v8DetectionLoss(model)
+        # NOTE: store following info as it's changeable in __call__
+        self.ori_nc = self.vp_criterion.nc
+        self.ori_no = self.vp_criterion.no
+        self.ori_reg_max = self.vp_criterion.reg_max
 
     def __call__(self, preds, batch):
         """Calculate the loss for text-visual prompt detection."""
         feats = preds[1] if isinstance(preds, tuple) else preds
-        assert self.tp_criterion.reg_max == self.vp_criterion.reg_max
+        assert self.ori_reg_max == self.vp_criterion.reg_max  # TODO: remove it
 
-        if self.tp_criterion.reg_max * 4 + self.tp_criterion.nc == feats[0].shape[1]:
-            loss = torch.zeros(3, device=self.tp_criterion.device, requires_grad=True)
+        if self.ori_reg_max * 4 + self.ori_nc == feats[0].shape[1]:
+            loss = torch.zeros(3, device=self.vp_criterion.device, requires_grad=True)
             return loss, loss.detach()
 
         vp_feats = self._get_vp_features(feats)
@@ -784,14 +787,14 @@ class TVPDetectLoss:
     def _get_vp_features(self, feats):
         """Extract visual-prompt features from the model output."""
         vp_feats = []
-        vnc = feats[0].shape[1] - self.tp_criterion.reg_max * 4 - self.tp_criterion.nc
+        vnc = feats[0].shape[1] - self.ori_reg_max * 4 - self.ori_nc
 
         self.vp_criterion.nc = vnc
         self.vp_criterion.no = vnc + self.vp_criterion.reg_max * 4
         self.vp_criterion.assigner.num_classes = vnc
 
         for box, _, cls_vp in [
-            xi.split((self.tp_criterion.reg_max * 4, self.tp_criterion.nc, vnc), dim=1) for xi in feats
+            xi.split((self.ori_reg_max * 4, self.ori_nc, vnc), dim=1) for xi in feats
         ]:
             vp_feats.append(torch.cat((box, cls_vp), dim=1))
         return vp_feats

@@ -224,12 +224,9 @@ class BaseModel(torch.nn.Module):
                 if isinstance(m, RepVGGDW):
                     m.fuse()
                     m.forward = m.forward_fuse
-
-                # YOLOE-specific (TODO: review this section)
-                if isinstance(self, YOLOEModel) and hasattr(self, "pe"):
-                    if isinstance(m, (MaxSigmoidAttnBlock, YOLOEDetect)):
-                        device = next(self.model.parameters()).device
-                        m.fuse(self.pe.to(device))
+                if isinstance(m, YOLOEDetect) and hasattr(self, "pe"):
+                    device = next(self.model.parameters()).device
+                    m.fuse(self.pe.to(device))
             self.info(verbose=verbose)
 
         return self

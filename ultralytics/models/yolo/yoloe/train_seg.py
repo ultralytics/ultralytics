@@ -115,9 +115,11 @@ class YOLOEPESegTrainer(SegmentationTrainer):
             model.load(weights)
 
         model.eval()
-        # TODO: removed `train_pe_path`
-        pe_state = torch.load(self.args.train_pe_path)
-        model.set_classes(pe_state["names"], pe_state["pe"])
+        names = ["object"]
+        # NOTE: `get_text_pe` related to text model and YOLOEDetect.reprta,
+        # it'd get correct results as long as loading proper pretrained weights.
+        tpe = model.get_text_pe(names)
+        model.set_classes(names, tpe)
         model.model[-1].fuse(model.pe)
         model.model[-1].cv3[0][2] = deepcopy(model.model[-1].cv3[0][2]).requires_grad_(True)
         model.model[-1].cv3[1][2] = deepcopy(model.model[-1].cv3[1][2]).requires_grad_(True)

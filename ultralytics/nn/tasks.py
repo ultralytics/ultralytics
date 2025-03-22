@@ -54,7 +54,6 @@ from ultralytics.nn.modules import (
     ImagePoolingAttn,
     Index,
     LRPCHead,
-    MaxSigmoidAttnBlock,
     Pose,
     RepC3,
     RepConv,

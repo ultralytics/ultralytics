@@ -180,7 +180,7 @@ class YOLOETrainerFromScratch(YOLOETrainer):
         return YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
 
     def set_text_embeddings(self, datasets, batch):
-        """Set text embeddings for datasets to accelerate training by caching category names"""
+        """Set text embeddings for datasets to accelerate training by caching category names."""
         # TODO: open up an interface to determine whether to do cache
         category_names = set()
         for dataset in datasets:
@@ -333,12 +333,12 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
     def build_dataset(self, img_path, mode="train", batch=None):
         """
         Build YOLO Dataset for training or validation with visual prompts.
-        
+
         Args:
             img_path (List[str] | str): Path to the folder containing images or list of paths.
             mode (str): 'train' mode or 'val' mode, allowing customized augmentations for each mode.
             batch (int, optional): Size of batches, used for rectangular training/validation.
-        
+
         Returns:
             (Dataset): YOLO dataset configured for training or validation, with visual prompts for training mode.
         """

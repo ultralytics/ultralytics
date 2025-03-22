@@ -91,7 +91,7 @@ Before diving into the usage instructions, it's important to note that while all
 
         ```bash
         # Export a YOLO11n PyTorch model to TF SavedModel format
-        yolo export model=yolo11n.pt format=saved_model  # creates '/yolo11n_saved_model'
+        yolo export model=yolo11n.pt format=saved_model # creates '/yolo11n_saved_model'
 
         # Run inference with the exported model
         yolo predict model='./yolo11n_saved_model' source='https://ultralytics.com/images/bus.jpg'
@@ -147,7 +147,7 @@ Exporting an Ultralytics YOLO model to the TensorFlow SavedModel format is strai
 
         ```bash
         # Export the YOLO11 model to TF SavedModel format
-        yolo export model=yolo11n.pt format=saved_model  # creates '/yolo11n_saved_model'
+        yolo export model=yolo11n.pt format=saved_model # creates '/yolo11n_saved_model'
 
         # Run inference with the exported model
         yolo predict model='./yolo11n_saved_model' source='https://ultralytics.com/images/bus.jpg'

@@ -51,7 +51,7 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
 
         ```bash
         # Export a YOLOv8n PyTorch model to OpenVINO format
-        yolo export model=yolov8n.pt format=openvino  # creates 'yolov8n_openvino_model/'
+        yolo export model=yolov8n.pt format=openvino # creates 'yolov8n_openvino_model/'
 
         # Run inference with the exported model
         yolo predict model=yolov8n_openvino_model source='https://ultralytics.com/images/bus.jpg'
@@ -398,7 +398,7 @@ Exporting YOLOv8 models to the OpenVINO format can significantly enhance CPU spe
 
         ```bash
         # Export a YOLOv8n PyTorch model to OpenVINO format
-        yolo export model=yolov8n.pt format=openvino  # creates 'yolov8n_openvino_model/'
+        yolo export model=yolov8n.pt format=openvino # creates 'yolov8n_openvino_model/'
         ```
 
 For more information, refer to the [export formats documentation](../modes/export.md).

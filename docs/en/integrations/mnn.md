@@ -60,7 +60,7 @@ Before diving into the usage instructions, it's important to note that while all
 
           ```bash
           # Export a YOLO11n PyTorch model to MNN format
-          yolo export model=yolo11n.pt format=mnn  # creates 'yolo11n.mnn'
+          yolo export model=yolo11n.pt format=mnn # creates 'yolo11n.mnn'
 
           # Run inference with the exported model
           yolo predict model='yolo11n.mnn' source='https://ultralytics.com/images/bus.jpg'
@@ -288,9 +288,9 @@ To export your Ultralytics YOLO11 model to MNN format, follow these steps:
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n.pt format=mnn            # creates 'yolo11n.mnn' with fp32 weight
-        yolo export model=yolo11n.pt format=mnn half=True  # creates 'yolo11n.mnn' with fp16 weight
-        yolo export model=yolo11n.pt format=mnn int8=True  # creates 'yolo11n.mnn' with int8 weight
+        yolo export model=yolo11n.pt format=mnn           # creates 'yolo11n.mnn' with fp32 weight
+        yolo export model=yolo11n.pt format=mnn half=True # creates 'yolo11n.mnn' with fp16 weight
+        yolo export model=yolo11n.pt format=mnn int8=True # creates 'yolo11n.mnn' with int8 weight
         ```
 
 For detailed export options, check the [Export](../modes/export.md) page in the documentation.
@@ -321,8 +321,8 @@ To predict with an exported YOLO11 MNN model, use the `predict` function from th
     === "CLI"
 
         ```bash
-        yolo predict model='yolo11n.mnn' source='https://ultralytics.com/images/bus.jpg'              # predict with `fp32`
-        yolo predict model='yolo11n.mnn' source='https://ultralytics.com/images/bus.jpg' --half=True  # predict with `fp16` if device support
+        yolo predict model='yolo11n.mnn' source='https://ultralytics.com/images/bus.jpg'             # predict with `fp32`
+        yolo predict model='yolo11n.mnn' source='https://ultralytics.com/images/bus.jpg' --half=True # predict with `fp16` if device support
         ```
 
 ### What platforms are supported for MNN?

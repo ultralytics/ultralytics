@@ -59,9 +59,9 @@ Once your instance is running, select its checkbox and click Connect to access t
 Logged into your instance, you're now ready to clone the YOLOv5 repository and install dependencies within a Python 3.8 or later environment. YOLOv5's models and datasets will automatically download from the latest [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
-git clone https://github.com/ultralytics/yolov5  # clone repository
+git clone https://github.com/ultralytics/yolov5 # clone repository
 cd yolov5
-pip install -r requirements.txt  # install dependencies
+pip install -r requirements.txt # install dependencies
 ```
 
 With your environment set up, you can begin training, validating, performing inference, and exporting your YOLOv5 models:
@@ -85,11 +85,11 @@ python export.py --weights yolov5s.pt --include onnx coreml tflite
 To add more swap memory, which can be a savior for large datasets, run:
 
 ```bash
-sudo fallocate -l 64G /swapfile  # allocate 64GB swap file
-sudo chmod 600 /swapfile  # modify permissions
-sudo mkswap /swapfile  # set up a Linux swap area
-sudo swapon /swapfile  # activate swap file
-free -h  # verify swap memory
+sudo fallocate -l 64G /swapfile # allocate 64GB swap file
+sudo chmod 600 /swapfile        # modify permissions
+sudo mkswap /swapfile           # set up a Linux swap area
+sudo swapon /swapfile           # activate swap file
+free -h                         # verify swap memory
 ```
 
 And that's it! 🎉 You've successfully created an AWS Deep Learning instance and run YOLOv5. Whether you're just starting with [object detection](https://www.ultralytics.com/glossary/object-detection) or scaling up for production, this setup can help you achieve your machine learning goals. Happy training, validating, and deploying! If you encounter any hiccups along the way, the robust AWS documentation and the active Ultralytics community are here to support you.

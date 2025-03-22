@@ -93,37 +93,37 @@ The Triton Model Repository is a storage location where Triton can access and lo
 
     # (Optional) Enable TensorRT for GPU inference
     # First run will be slow due to TensorRT engine conversion
-    data = """
-    optimization {
-      execution_accelerators {
-        gpu_execution_accelerator {
+    data = f"""
+    optimization {{
+      execution_accelerators {{
+        gpu_execution_accelerator {{
           name: "tensorrt"
-          parameters {
+          parameters {{
             key: "precision_mode"
             value: "FP16"
-          }
-          parameters {
+          }}
+          parameters {{
             key: "max_workspace_size_bytes"
             value: "3221225472"
-          }
-          parameters {
+          }}
+          parameters {{
             key: "trt_engine_cache_enable"
             value: "1"
-          }
-          parameters {
+          }}
+          parameters {{
             key: "trt_engine_cache_path"
             value: "/models/yolo/1"
-          }
-        }
-      }
-    }
-    parameters {
+          }}
+        }}
+      }}
+    }}
+    parameters {{
       key: "metadata"
-      value: {
-        string_value: "%s"
-      }
-    }
-    """ % metadata[0]
+      value: {{
+        string_value: "{metadata[0]}"
+      }}
+    }}
+    """
 
     with open(triton_model_path / "config.pbtxt", "w") as f:
         f.write(data)

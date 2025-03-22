@@ -95,7 +95,7 @@ Before diving into the usage instructions, it's important to note that while all
 
           ```bash
           # Export a YOLO11n PyTorch model to TFLite format
-          yolo export model=yolo11n.pt format=tflite  # creates 'yolo11n_float32.tflite'
+          yolo export model=yolo11n.pt format=tflite # creates 'yolo11n_float32.tflite'
 
           # Run inference with the exported model
           yolo predict model='yolo11n_float32.tflite' source='https://ultralytics.com/images/bus.jpg'
@@ -146,7 +146,7 @@ model.export(format="tflite")  # creates 'yolo11n_float32.tflite'
 For CLI users, you can achieve this with:
 
 ```bash
-yolo export model=yolo11n.pt format=tflite  # creates 'yolo11n_float32.tflite'
+yolo export model=yolo11n.pt format=tflite # creates 'yolo11n_float32.tflite'
 ```
 
 For more details, visit the [Ultralytics export guide](../modes/export.md).

@@ -1,13 +1,13 @@
 ---
 comments: true
-description: Discover Ultralytics HUB, the all-in-one web tool for training and deploying YOLOv5 and YOLOv8 models. Get started quickly with pre-trained models and user-friendly features.
-keywords: Ultralytics HUB, YOLO models, train YOLO, YOLOv5, YOLOv8, object detection, model deployment, machine learning, deep learning, AI tools, dataset upload, model training
+description: Discover Ultralytics HUB, the all-in-one web tool for training and deploying YOLO models. Get started quickly with pre-trained models and user-friendly features.
+keywords: Ultralytics HUB, YOLO models, train YOLO, YOLOv5, YOLOv8, YOLO11, object detection, model deployment, machine learning, deep learning, AI tools, dataset upload, model training
 ---
 
 # Ultralytics HUB
 
 <div align="center">
-<a href="https://www.ultralytics.com/hub" target="_blank"><img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub.avif"></a>
+<a href="https://www.ultralytics.com/hub" target="_blank"><img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub.avif" alt="Ultralytics HUB banner"></a>
 <a href="https://docs.ultralytics.com/zh/hub/">中文</a> |
 <a href="https://docs.ultralytics.com/ko/hub/">한국어</a> |
 <a href="https://docs.ultralytics.com/ja/hub/">日本語</a> |
@@ -22,11 +22,11 @@ keywords: Ultralytics HUB, YOLO models, train YOLO, YOLOv5, YOLOv8, object detec
 <br>
 <br>
 
-<a href="https://github.com/ultralytics/hub/actions/workflows/ci.yaml"><img src="https://github.com/ultralytics/hub/actions/workflows/ci.yaml/badge.svg" alt="CI CPU"></a> <a href="https://colab.research.google.com/github/ultralytics/hub/blob/main/hub.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://discord.com/invite/ultralytics"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a> <a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a> <a href="https://reddit.com/r/ultralytics"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
+<a href="https://github.com/ultralytics/hub/actions/workflows/ci.yml"><img src="https://github.com/ultralytics/hub/actions/workflows/ci.yml/badge.svg" alt="CI CPU"></a> <a href="https://colab.research.google.com/github/ultralytics/hub/blob/main/hub.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://discord.com/invite/ultralytics"><img alt="Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a> <a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a> <a href="https://reddit.com/r/ultralytics"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
 
 </div>
 
-👋 Hello from the [Ultralytics](https://www.ultralytics.com/) Team! We've been working hard these last few months to launch [Ultralytics HUB](https://www.ultralytics.com/hub), a new web tool for training and deploying all your YOLOv5 and YOLOv8 🚀 models from one spot!
+👋 Hello from the [Ultralytics](https://www.ultralytics.com/) Team! We've been working hard these last few months to launch [Ultralytics HUB](https://www.ultralytics.com/hub), a new web tool for training and deploying all your YOLOv5, YOLOv8, and YOLO11 🚀 models from one spot!
 
 We hope that the resources here will help you get the most out of HUB. Please browse the HUB <a href="https://docs.ultralytics.com/">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/hub/issues/new/choose">GitHub</a> for support, and join our <a href="https://discord.com/invite/ultralytics">Discord</a> community for questions and discussions!
 
@@ -84,7 +84,7 @@ To get started with [Ultralytics HUB](https://www.ultralytics.com/hub), follow t
 
 1. **Sign Up:** Create an account on the [Ultralytics HUB](https://www.ultralytics.com/hub).
 2. **Upload Dataset:** Navigate to the [Datasets](datasets.md) section to upload your custom dataset.
-3. **Train Model:** Go to the [Models](models.md) section and select a pre-trained YOLOv5 or YOLOv8 model to start training.
+3. **Train Model:** Go to the [Models](models.md) section and select a pre-trained YOLOv5, YOLOv8, or YOLO11 model to start training.
 4. **Deploy Model:** Once trained, preview and deploy your model using the [Ultralytics HUB App](app/index.md) for real-time tasks.
 
 For a detailed guide, refer to the [Quickstart](quickstart.md) page.
@@ -94,16 +94,17 @@ For a detailed guide, refer to the [Quickstart](quickstart.md) page.
 [Ultralytics HUB](https://www.ultralytics.com/hub) offers several unique benefits:
 
 - **User-Friendly Interface:** Intuitive design for easy dataset uploads and model training.
-- **Pre-Trained Models:** Access to a variety of pre-trained YOLOv5 and YOLOv8 models.
+- **Pre-Trained Models:** Access to a variety of pre-trained YOLO models including YOLOv5, YOLOv8, and YOLO11.
 - **Cloud Training:** Seamless cloud training capabilities, detailed on the [Cloud Training](cloud-training.md) page.
 - **Real-Time Deployment:** Effortlessly deploy models for real-time applications using the [Ultralytics HUB App](app/index.md).
 - **Team Collaboration:** Collaborate with your team efficiently through the [Teams](teams.md) feature.
+- **No-Code Solution:** Train and deploy advanced computer vision models without writing a single line of code.
 
 Explore more about the advantages in our [Ultralytics HUB Blog](https://www.ultralytics.com/blog/ultralytics-hub-a-game-changer-for-computer-vision).
 
 ### Can I use Ultralytics HUB for object detection on mobile devices?
 
-Yes, Ultralytics HUB supports object detection on mobile devices. You can run YOLOv5 and YOLOv8 models on both iOS and Android devices using the Ultralytics HUB App. For more details:
+Yes, Ultralytics HUB supports object detection on mobile devices. You can run YOLO models on both iOS and Android devices using the Ultralytics HUB App. For more details:
 
 - **iOS:** Learn about CoreML acceleration on iPhones and iPads in the [iOS](app/ios.md) section.
 - **Android:** Explore TFLite acceleration on Android devices in the [Android](app/android.md) section.

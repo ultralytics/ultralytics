@@ -6,7 +6,22 @@ keywords: medical-pills dataset, pill detection, pharmaceutical imaging, AI in h
 
 # Medical Pills Dataset
 
-The medical-pills detection dataset is a proof-of-concept (POC) dataset, carefully curated to demonstrate the potential of AI in pharmaceutical applications. It contains labeled images specifically designed to train [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) [models](https://docs.ultralytics.com/models/) for identifying medical-pills. This dataset serves as a foundational resource for automating essential [tasks](https://docs.ultralytics.com/tasks/) such as quality control, packaging automation, and efficient sorting in pharmaceutical workflows. By integrating this dataset into projects, researchers and developers can explore innovative [solutions](https://docs.ultralytics.com/solutions/) that enhance [accuracy](https://www.ultralytics.com/glossary/accuracy), streamline operations, and ultimately contribute to improved healthcare outcomes.
+<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-medical-pills-dataset.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Medical Pills Dataset In Colab"></a>
+
+The medical-pills detection dataset is a proof-of-concept (POC) dataset, carefully curated to demonstrate the potential of AI in pharmaceutical applications. It contains labeled images specifically designed to train [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) [models](https://docs.ultralytics.com/models/) for identifying medical-pills.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/8gePl_Zcs5c"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to train Ultralytics YOLO11 Model on Medical Pills Detection Dataset in <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-medical-pills-dataset.ipynb">Google Colab</a>
+</p>
+
+This dataset serves as a foundational resource for automating essential [tasks](https://docs.ultralytics.com/tasks/) such as quality control, packaging automation, and efficient sorting in pharmaceutical workflows. By integrating this dataset into projects, researchers and developers can explore innovative [solutions](https://docs.ultralytics.com/solutions/) that enhance [accuracy](https://www.ultralytics.com/glossary/accuracy), streamline operations, and ultimately contribute to improved healthcare outcomes.
 
 ## Dataset Structure
 
@@ -22,6 +37,8 @@ Using computer vision for medical-pills detection enables automation in the phar
 - **Pharmaceutical Sorting**: Automating the sorting of pills based on size, shape, or color to enhance production efficiency.
 - **AI Research and Development**: Serving as a benchmark for developing and testing computer vision algorithms in pharmaceutical use cases.
 - **Digital Inventory Systems**: Powering smart inventory solutions by integrating automated pill recognition for real-time stock monitoring and replenishment planning.
+- **Quality Control**: Ensuring consistency in pill production by identifying defects, irregularities, or contamination.
+- **Counterfeit Detection**: Helping identify potentially counterfeit medications by analyzing visual characteristics against known standards.
 
 ## Dataset YAML
 
@@ -87,6 +104,10 @@ The medical-pills dataset features labeled images showcasing the diversity of pi
 
 - **Mosaiced Image**: Displayed is a training batch comprising mosaiced dataset images. Mosaicing enhances training diversity by consolidating multiple images into one, improving model generalization.
 
+## Integration with Other Datasets
+
+For more comprehensive pharmaceutical analysis, consider combining the medical-pills dataset with other related datasets like [package-seg](../segment/package-seg.md) for packaging identification or medical imaging datasets like [brain-tumor](brain-tumor.md) to develop end-to-end healthcare AI solutions.
+
 ## Citations and Acknowledgments
 
 The dataset is available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
@@ -113,20 +134,20 @@ If you use the Medical-pills dataset in your research or development work, pleas
 
 ### What is the structure of the medical-pills dataset?
 
-The dataset includes 92 images for training and 23 images for validation. Each image is annotated with the class `pill`, enabling effective training and evaluation of models.
+The dataset includes 92 images for training and 23 images for validation. Each image is annotated with the class `pill`, enabling effective training and evaluation of models for pharmaceutical applications.
 
 ### How can I train a YOLO11 model on the medical-pills dataset?
 
-You can train a YOLO11 model for 100 epochs with an image size of 640px using the Python or CLI methods provided. Refer to the [Training Example](#usage) section for detailed instructions.
+You can train a YOLO11 model for 100 epochs with an image size of 640px using the Python or CLI methods provided. Refer to the [Training Example](#usage) section for detailed instructions and check the [YOLO11 documentation](../../models/yolo11.md) for more information on model capabilities.
 
 ### What are the benefits of using the medical-pills dataset in AI projects?
 
-The dataset enables automation in pill detection, contributing to counterfeit prevention, quality assurance, and pharmaceutical process optimization.
+The dataset enables automation in pill detection, contributing to counterfeit prevention, quality assurance, and pharmaceutical process optimization. It also serves as a valuable resource for developing AI solutions that can improve medication safety and supply chain efficiency.
 
 ### How do I perform inference on the medical-pills dataset?
 
-Inference can be done using Python or CLI methods with a fine-tuned YOLO11 model. Refer to the [Inference Example](#usage) section for code snippets.
+Inference can be done using Python or CLI methods with a fine-tuned YOLO11 model. Refer to the [Inference Example](#usage) section for code snippets and the [Predict mode documentation](../../modes/predict.md) for additional options.
 
 ### Where can I find the YAML configuration file for the medical-pills dataset?
 
-The YAML file is available at [medical-pills.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/medical-pills.yaml), containing dataset paths, classes, and additional configuration details.
+The YAML file is available at [medical-pills.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/medical-pills.yaml), containing dataset paths, classes, and additional configuration details essential for training models on this dataset.

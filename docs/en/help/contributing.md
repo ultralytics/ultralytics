@@ -11,9 +11,20 @@ Welcome! We're thrilled that you're considering contributing to our [Ultralytics
 <a href="https://github.com/ultralytics/ultralytics/graphs/contributors">
 <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-open-source-contributors.avif" alt="Ultralytics open-source contributors"></a>
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/yMR7BgwHQ3g"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Contribute to Ultralytics Repository | Ultralytics Models, Datasets and Documentation 🚀
+</p>
+
 ## Code of Conduct
 
-To ensure a welcoming and inclusive environment for everyone, all contributors must adhere to our [Code of Conduct](https://docs.ultralytics.com/help/code_of_conduct/). Respect, kindness, and professionalism are at the heart of our community.
+To ensure a welcoming and inclusive environment for everyone, all contributors must adhere to our [Code of Conduct](https://docs.ultralytics.com/help/code-of-conduct/). Respect, kindness, and professionalism are at the heart of our community.
 
 ## Contributing via Pull Requests
 
@@ -109,9 +120,31 @@ When adding new functions or classes, please include [Google-style docstrings](h
 
 All pull requests must pass the GitHub Actions [Continuous Integration](https://docs.ultralytics.com/help/CI/) (CI) tests before they can be merged. These tests include linting, unit tests, and other checks to ensure that your changes meet the project's quality standards. Review the CI output and address any issues that arise.
 
+## Best Practices for Code Contributions
+
+When contributing code to Ultralytics projects, keep these best practices in mind:
+
+- **Avoid code duplication:** Reuse existing code wherever possible and minimize unnecessary arguments.
+- **Make smaller, focused changes:** Focus on targeted modifications rather than large-scale changes.
+- **Simplify when possible:** Look for opportunities to simplify the code or remove unnecessary parts.
+- **Consider compatibility:** Before making changes, consider whether they might break existing code using Ultralytics.
+- **Use consistent formatting:** Tools like [Ruff Formatter](https://github.com/astral-sh/ruff) can help maintain stylistic consistency.
+- **Add appropriate tests:** Include tests for new features to ensure they work as expected.
+
+## Reviewing Pull Requests
+
+Reviewing pull requests is another valuable way to contribute. When reviewing PRs:
+
+- **Check for unit tests:** Verify that the PR includes tests for new features or changes.
+- **Review documentation updates:** Ensure documentation is updated to reflect changes.
+- **Evaluate performance impact:** Consider how changes might affect performance.
+- **Verify CI tests:** Confirm all Continuous Integration tests are passing.
+- **Provide constructive feedback:** Offer specific, clear feedback about any issues or concerns.
+- **Recognize effort:** Acknowledge the author's work to maintain a positive collaborative atmosphere.
+
 ## Reporting Bugs
 
-We highly value bug reports as they help us maintain the quality of our projects. When reporting a bug, please provide a [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum_reproducible_example/)—a simple, clear code example that consistently reproduces the issue. This allows us to quickly identify and resolve the problem.
+We highly value bug reports as they help us maintain the quality of our projects. When reporting a bug, please provide a [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum-reproducible-example/)—a simple, clear code example that consistently reproduces the issue. This allows us to quickly identify and resolve the problem.
 
 ## License
 
@@ -248,7 +281,7 @@ Contributing to Ultralytics YOLO open-source repositories improves the software,
 To sign the Contributor License Agreement (CLA), follow the instructions provided by the CLA bot after submitting your pull request. This process ensures that your contributions are properly licensed under the AGPL-3.0 license, maintaining the legal integrity of the open-source project. Add a comment in your pull request stating:
 
 ```
-I have read the CLA Document and I sign the CLA.
+I have read the CLA Document and I sign the CLA
 ```
 
 For more information, see the [CLA Signing](#cla-signing) section.
@@ -259,10 +292,8 @@ Google-style docstrings provide clear, concise documentation for functions and c
 
 ### How can I ensure my changes pass the GitHub Actions CI tests?
 
-Before your pull request can be merged, it must pass all GitHub Actions Continuous Integration (CI) tests. These tests include linting, unit tests, and other checks to ensure the code meets
-
-the project's quality standards. Review the CI output and fix any issues. For detailed information on the CI process and troubleshooting tips, see the [GitHub Actions CI Tests](#github-actions-ci-tests) section.
+Before your pull request can be merged, it must pass all GitHub Actions Continuous Integration (CI) tests. These tests include linting, unit tests, and other checks to ensure the code meets the project's quality standards. Review the CI output and fix any issues. For detailed information on the CI process and troubleshooting tips, see the [GitHub Actions CI Tests](#github-actions-ci-tests) section.
 
 ### How do I report a bug in Ultralytics YOLO repositories?
 
-To report a bug, provide a clear and concise [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum_reproducible_example/) along with your bug report. This helps developers quickly identify and fix the issue. Ensure your example is minimal yet sufficient to replicate the problem. For more detailed steps on reporting bugs, refer to the [Reporting Bugs](#reporting-bugs) section.
+To report a bug, provide a clear and concise [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum-reproducible-example/) along with your bug report. This helps developers quickly identify and fix the issue. Ensure your example is minimal yet sufficient to replicate the problem. For more detailed steps on reporting bugs, refer to the [Reporting Bugs](#reporting-bugs) section.

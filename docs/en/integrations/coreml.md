@@ -99,11 +99,22 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
         ```bash
         # Export a YOLO11n PyTorch model to CoreML format
-        yolo export model=yolo11n.pt format=coreml  # creates 'yolo11n.mlpackage''
+        yolo export model=yolo11n.pt format=coreml # creates 'yolo11n.mlpackage''
 
         # Run inference with the exported model
         yolo predict model=yolo11n.mlpackage source='https://ultralytics.com/images/bus.jpg'
         ```
+
+### Export Arguments
+
+| Argument | Type             | Default    | Description                                                                                                                                                                                   |
+| -------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format` | `str`            | `'coreml'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
+| `imgsz`  | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
+| `half`   | `bool`           | `False`    | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                                                                  |
+| `int8`   | `bool`           | `False`    | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
+| `nms`    | `bool`           | `False`    | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                           |
+| `batch`  | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                       |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 

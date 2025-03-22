@@ -49,9 +49,9 @@ div.highlight {
   max-height: 75vh;
 }
 
-/* Banner (same as the one on the Ultralytics website) -------------------------------------------------------------- */
+/* Banner ----------------------------------------------------------------------------------------------------------- */
 .md-banner {
-  background-image: url(https://assets-global.website-files.com/646dd1f1a3703e451ba81ecc/66e9a211bf6831d112fd6ce3_banner_yv24.avif);
+  background-image: url(https://github.com/ultralytics/docs/releases/download/0/announcement_bar_yolo11.avif);
   background-size: cover;
   background-position: center;
 }
@@ -62,10 +62,10 @@ div.highlight {
 }
 
 .banner-wrapper,
-.banner-wrapper > .banner-content-wrapper,
-.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper {
+.banner-wrapper > .banner-content-wrapper {
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .banner-wrapper,
@@ -74,73 +74,17 @@ div.highlight {
 }
 
 .banner-wrapper {
-  justify-content: space-between;
-  gap: 16px;
   padding: 16px;
 }
 
-.banner-wrapper > .banner-content-wrapper,
-.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper {
-  justify-content: center;
-}
-
 .banner-wrapper > .banner-content-wrapper {
-  gap: 8px;
-}
-
-.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper {
   gap: 4px;
 }
 
-.banner-wrapper > .banner-content-wrapper > p,
-.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper > p {
-  margin: 0;
-}
-
 .banner-wrapper > .banner-content-wrapper > p {
+  margin: 0;
   font-size: 20px;
   font-weight: 500;
-}
-
-.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper > p,
-.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper > button {
-  font-size: 14px;
-}
-
-.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper > p {
-  color: #f3f3f3;
-}
-
-.banner-wrapper > .banner-button-wrapper,
-.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper,
-.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper > button {
-  border-radius: 100px;
-}
-
-.banner-wrapper > .banner-button-wrapper,
-.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper {
-  padding: 2px;
-  background-color: rgba(222, 255, 56, 0.2);
-}
-
-.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper.large {
-  padding: 4px;
-}
-
-.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper > button {
-  cursor: pointer;
-  min-width: 132px;
-  padding: 10px;
-  font-weight: 500;
-  color: #111f68;
-  background-color: rgb(222, 255, 56);
-}
-
-.banner-wrapper
-  > .banner-button-wrapper
-  > .banner-button-wrapper
-  > button:hover {
-  background-color: rgba(222, 255, 56, 0.85);
 }
 
 @media screen and (min-width: 768px) {
@@ -150,16 +94,15 @@ div.highlight {
   }
 
   .banner-wrapper {
-    gap: 32px;
     padding: 12px;
   }
 
   .banner-wrapper > .banner-content-wrapper {
-    gap: 24px;
+    gap: 16px;
     margin: 0 auto;
   }
 }
-/* Banner (same as the one on the Ultralytics website) -------------------------------------------------------------- */
+/* Banner ----------------------------------------------------------------------------------------------------------- */
 
 /* MkDocs Ultralytics Plugin ---------------------------------------------------------------------------------------- */
 .git-info,

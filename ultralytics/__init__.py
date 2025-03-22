@@ -1,6 +1,6 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-__version__ = "8.3.55"
+__version__ = "8.3.94"
 
 import os
 

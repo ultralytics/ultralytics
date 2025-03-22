@@ -15,13 +15,13 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/mUybgOlSxxA"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/BPYkGt3odNk"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Setup NVIDIA Jetson with Ultralytics YOLO11
+  <strong>Watch:</strong> How to use Ultralytics YOLO11 on NVIDIA JETSON Devices
 </p>
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/nvidia-jetson-ecosystem.avif" alt="NVIDIA Jetson Ecosystem">
@@ -51,7 +51,7 @@ For a more detailed comparison table, please visit the **Technical Specification
 
 ## What is NVIDIA JetPack?
 
-[NVIDIA JetPack SDK](https://developer.nvidia.com/embedded/jetpack) powering the Jetson modules is the most comprehensive solution and provides full development environment for building end-to-end accelerated AI applications and shortens time to market. JetPack includes Jetson Linux with bootloader, Linux kernel, Ubuntu desktop environment, and a complete set of libraries for acceleration of GPU computing, multimedia, graphics, and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). It also includes samples, documentation, and developer tools for both host computer and developer kit, and supports higher level SDKs such as DeepStream for streaming video analytics, Isaac for robotics, and Riva for conversational AI.
+[NVIDIA JetPack SDK](https://developer.nvidia.com/embedded/jetpack) powering the Jetson modules is the most comprehensive solution and provides full development environment for building end-to-end accelerated AI applications and shortens time to market. JetPack includes Jetson Linux with bootloader, Linux kernel, Ubuntu desktop environment, and a complete set of libraries for acceleration of GPU computing, multimedia, graphics, and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). It also includes samples, documentation, and developer tools for both host computer and developer kit, and supports higher level SDKs such as [DeepStream](https://docs.ultralytics.com/guides/deepstream-nvidia-jetson/) for streaming video analytics, Isaac for robotics, and Riva for conversational AI.
 
 ## Flash JetPack to NVIDIA Jetson
 
@@ -177,7 +177,7 @@ pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxr
 
     `pip install numpy==1.23.5`
 
-### Run on JetPack 5.x
+### Run on JetPack 5.1.2
 
 #### Install Ultralytics Package
 
@@ -213,22 +213,11 @@ The above ultralytics installation will install Torch and Torchvision. However, 
     pip uninstall torch torchvision
     ```
 
-2. Install PyTorch 2.1.0 according to JP5.1.3
+2. Install `torch 2.2.0` and `torchvision 0.17.2` according to JP5.1.2
 
     ```bash
-    sudo apt-get install -y libopenblas-base libopenmpi-dev
-    wget https://developer.download.nvidia.com/compute/redist/jp/v512/pytorch/torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl -O torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl
-    pip install torch-2.1.0a0+41361538.nv23.06-cp38-cp38-linux_aarch64.whl
-    ```
-
-3. Install Torchvision v0.16.2 according to PyTorch v2.1.0
-
-    ```bash
-    sudo apt install -y libjpeg-dev zlib1g-dev
-    git clone https://github.com/pytorch/vision torchvision
-    cd torchvision
-    git checkout v0.16.2
-    python3 setup.py install --user
+    pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.2.0-cp38-cp38-linux_aarch64.whl
+    pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.17.2+c1d70fe-cp38-cp38-linux_aarch64.whl
     ```
 
 !!! note
@@ -284,7 +273,7 @@ The YOLO11n model in PyTorch format is converted to TensorRT to run inference wi
 
         ```bash
         # Export a YOLO11n PyTorch model to TensorRT format
-        yolo export model=yolo11n.pt format=engine  # creates 'yolo11n.engine'
+        yolo export model=yolo11n.pt format=engine # creates 'yolo11n.engine'
 
         # Run inference with the exported model
         yolo predict model=yolo11n.engine source='https://ultralytics.com/images/bus.jpg'
@@ -300,10 +289,13 @@ The YOLO11n model in PyTorch format is converted to TensorRT to run inference wi
 
 The following Jetson devices are equipped with DLA hardware:
 
-- Jetson Orin NX 16GB
-- Jetson AGX Orin Series
-- Jetson AGX Xavier Series
-- Jetson Xavier NX Series
+| Jetson Device            | DLA Cores | DLA Max Frequency |
+| ------------------------ | --------- | ----------------- |
+| Jetson AGX Orin Series   | 2         | 1.6 GHz           |
+| Jetson Orin NX 16GB      | 2         | 614 MHz           |
+| Jetson Orin NX 8GB       | 1         | 614 MHz           |
+| Jetson AGX Xavier Series | 2         | 1.4 GHz           |
+| Jetson Xavier NX Series  | 2         | 1.1 GHz           |
 
 !!! example
 
@@ -329,7 +321,8 @@ The following Jetson devices are equipped with DLA hardware:
 
         ```bash
         # Export a YOLO11n PyTorch model to TensorRT format with DLA enabled (only works with FP16 or INT8)
-        yolo export model=yolo11n.pt format=engine device="dla:0" half=True  # dla:0 or dla:1 corresponds to the DLA cores
+        # Once DLA core number is specified at export, it will use the same core at inference
+        yolo export model=yolo11n.pt format=engine device="dla:0" half=True # dla:0 or dla:1 corresponds to the DLA cores
 
         # Run inference with the exported model on the DLA
         yolo predict model=yolo11n.engine source='https://ultralytics.com/images/bus.jpg'
@@ -367,7 +360,7 @@ The below table represents the benchmark results for five different models (YOLO
 
 #### NVIDIA Jetson Orin Nano Super Developer Kit
 
-!!! performance
+!!! tip "Performance"
 
     === "YOLO11n"
 
@@ -463,7 +456,7 @@ The below table represents the benchmark results for five different models (YOLO
 
 #### NVIDIA Jetson Orin NX 16GB
 
-!!! performance
+!!! tip "Performance"
 
     === "YOLO11n"
 
@@ -584,7 +577,7 @@ To reproduce the above Ultralytics benchmarks on all export [formats](../modes/e
         yolo benchmark model=yolo11n.pt data=coco8.yaml imgsz=640
         ```
 
-    Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results use a dataset with a large number of images, i.e. `data='coco8.yaml' (4 val images), or `data='coco.yaml'` (5000 val images).
+    Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results use a dataset with a large number of images, i.e. `data='coco8.yaml'` (4 val images), or `data='coco.yaml'` (5000 val images).
 
 ## Best Practices when using NVIDIA Jetson
 

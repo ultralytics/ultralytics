@@ -87,7 +87,7 @@ Next, let's take look a closer look at the specific augmentations that are appli
 
 ### Blur
 
-The Blur transformation in Albumentations applies a simple blur effect to the image by averaging pixel values within a small square area, or kernel. This is done using OpenCV's `cv2.blur` function, which helps reduce noise in the image, though it also slightly reduces image details.
+The Blur transformation in Albumentations applies a simple blur effect to the image by averaging pixel values within a small square area, or kernel. This is done using OpenCV `cv2.blur` function, which helps reduce noise in the image, though it also slightly reduces image details.
 
 Here are the parameters and values used in this integration:
 
@@ -117,7 +117,7 @@ The ToGray transformation in Albumentations converts an image to grayscale, redu
 
 Here are the parameters and values used in this integration:
 
-- **num_output_channels**: Sets the number of channels in the output image. If this value is more than 1, the single grayscale channel will be replicated to create a multi-channel grayscale image. By default, it's set to 3, giving a grayscale image with three identical channels.
+- **num_output_channels**: Sets the number of channels in the output image. If this value is more than 1, the single grayscale channel will be replicated to create a multichannel grayscale image. By default, it's set to 3, giving a grayscale image with three identical channels.
 
 - **method**: Defines the grayscale conversion method. The default method, "weighted_average", applies a formula (0.299R + 0.587G + 0.114B) that closely aligns with human perception, providing a natural-looking grayscale effect. Other options, like "from_lab", "desaturation", "average", "max", and "pca", offer alternative ways to create grayscale images based on various needs for speed, brightness emphasis, or detail preservation.
 
@@ -135,7 +135,7 @@ Here are the parameters and values used in this integration:
 
 - **clip_limit**: Controls the contrast enhancement range. Set to a default range of (1, 4), it determines the maximum contrast allowed in each tile. Higher values are used for more contrast but may also introduce noise.
 
-- **tile_grid_size**: Defines the size of the grid of tiles, typically as (rows, columns). The default value is (8, 8), meaning the image is divided into an 8x8 grid. Smaller tile sizes provide more localized adjustments, while larger ones create effects closer to global equalization.
+- **tile_grid_size**: Defines the size of the grid of tiles, typically as (rows, columns). The default value is (8, 8), meaning the image is divided into a 8x8 grid. Smaller tile sizes provide more localized adjustments, while larger ones create effects closer to global equalization.
 
 - **p**: The probability of applying CLAHE. Here, p=0.01 introduces the enhancement effect only 1% of the time, ensuring that contrast adjustments are applied sparingly for occasional variation in training images.
 

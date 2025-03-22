@@ -40,17 +40,17 @@ Follow these steps to build the project:
 
 ## 🛠️ Usage
 
-Once built, you can run inference on an image using the following command:
+Once built, you can run inference on an image using the following command with an XML or ONNX model:
 
 ```bash
-./detect <model_path.{onnx, xml}> <image_path.jpg>
+./detect path/to/model.xml path/to/image.jpg
 ```
 
 ## 🔄 Exporting YOLOv8 Models
 
 To use your YOLOv8 model with OpenVINO, you need to export it first. Use the command below to export the model:
 
-```commandline
+```bash
 yolo export model=yolov8s.pt imgsz=640 format=openvino
 ```
 

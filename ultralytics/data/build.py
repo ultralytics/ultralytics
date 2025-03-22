@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import os
 import random
@@ -29,30 +29,49 @@ class InfiniteDataLoader(dataloader.DataLoader):
     """
     Dataloader that reuses workers.
 
-    Uses same syntax as vanilla DataLoader.
+    This dataloader extends the PyTorch DataLoader to provide infinite recycling of workers, which improves efficiency
+    for training loops that need to iterate through the dataset multiple times.
+
+    Attributes:
+        batch_sampler (_RepeatSampler): A sampler that repeats indefinitely.
+        iterator (Iterator): The iterator from the parent DataLoader.
+
+    Methods:
+        __len__: Returns the length of the batch sampler's sampler.
+        __iter__: Creates a sampler that repeats indefinitely.
+        __del__: Ensures workers are properly terminated.
+        reset: Resets the iterator, useful when modifying dataset settings during training.
     """
 
     def __init__(self, *args, **kwargs):
-        """Dataloader that infinitely recycles workers, inherits from DataLoader."""
+        """Initialize the InfiniteDataLoader with the same arguments as DataLoader."""
         super().__init__(*args, **kwargs)
         object.__setattr__(self, "batch_sampler", _RepeatSampler(self.batch_sampler))
         self.iterator = super().__iter__()
 
     def __len__(self):
-        """Returns the length of the batch sampler's sampler."""
+        """Return the length of the batch sampler's sampler."""
         return len(self.batch_sampler.sampler)
 
     def __iter__(self):
-        """Creates a sampler that repeats indefinitely."""
+        """Create an iterator that yields indefinitely from the underlying iterator."""
         for _ in range(len(self)):
             yield next(self.iterator)
 
-    def reset(self):
-        """
-        Reset iterator.
+    def __del__(self):
+        """Ensure that workers are properly terminated when the dataloader is deleted."""
+        try:
+            if not hasattr(self.iterator, "_workers"):
+                return
+            for w in self.iterator._workers:  # force terminate
+                if w.is_alive():
+                    w.terminate()
+            self.iterator._shutdown_workers()  # cleanup
+        except Exception:
+            pass
 
-        This is useful when we want to modify settings of dataset while training.
-        """
+    def reset(self):
+        """Reset the iterator to allow modifications to the dataset during training."""
         self.iterator = self._get_iterator()
 
 
@@ -60,29 +79,32 @@ class _RepeatSampler:
     """
     Sampler that repeats forever.
 
-    Args:
+    This sampler wraps another sampler and yields its contents indefinitely, allowing for infinite iteration
+    over a dataset.
+
+    Attributes:
         sampler (Dataset.sampler): The sampler to repeat.
     """
 
     def __init__(self, sampler):
-        """Initializes an object that repeats a given sampler indefinitely."""
+        """Initialize the _RepeatSampler with a sampler to repeat indefinitely."""
         self.sampler = sampler
 
     def __iter__(self):
-        """Iterates over the 'sampler' and yields its contents."""
+        """Iterate over the sampler indefinitely, yielding its contents."""
         while True:
             yield from iter(self.sampler)
 
 
 def seed_worker(worker_id):  # noqa
-    """Set dataloader worker seed https://pytorch.org/docs/stable/notes/randomness.html#dataloader."""
+    """Set dataloader worker seed for reproducibility across worker processes."""
     worker_seed = torch.initial_seed() % 2**32
     np.random.seed(worker_seed)
     random.seed(worker_seed)
 
 
 def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32, multi_modal=False):
-    """Build YOLO Dataset."""
+    """Build and return a YOLO dataset based on configuration parameters."""
     dataset = YOLOMultiModalDataset if multi_modal else YOLODataset
     return dataset(
         img_path=img_path,
@@ -104,7 +126,7 @@ def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, str
 
 
 def build_grounding(cfg, img_path, json_file, batch, mode="train", rect=False, stride=32):
-    """Build YOLO Dataset."""
+    """Build and return a GroundingDataset based on configuration parameters."""
     return GroundingDataset(
         img_path=img_path,
         json_file=json_file,
@@ -125,7 +147,19 @@ def build_grounding(cfg, img_path, json_file, batch, mode="train", rect=False, s
 
 
 def build_dataloader(dataset, batch, workers, shuffle=True, rank=-1):
-    """Return an InfiniteDataLoader or DataLoader for training or validation set."""
+    """
+    Create and return an InfiniteDataLoader or DataLoader for training or validation.
+
+    Args:
+        dataset (Dataset): Dataset to load data from.
+        batch (int): Batch size for the dataloader.
+        workers (int): Number of worker threads for loading data.
+        shuffle (bool): Whether to shuffle the dataset.
+        rank (int): Process rank in distributed training. -1 for single-GPU training.
+
+    Returns:
+        (InfiniteDataLoader): A dataloader that can be used for training or validation.
+    """
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
     nw = min(os.cpu_count() // max(nd, 1), workers)  # number of workers
@@ -146,7 +180,24 @@ def build_dataloader(dataset, batch, workers, shuffle=True, rank=-1):
 
 
 def check_source(source):
-    """Check source type and return corresponding flag values."""
+    """
+    Check the type of input source and return corresponding flag values.
+
+    Args:
+        source (str | int | Path | List | Tuple | np.ndarray | PIL.Image | torch.Tensor): The input source to check.
+
+    Returns:
+        (tuple): A tuple containing:
+            - source: The processed source.
+            - webcam (bool): Whether the source is a webcam.
+            - screenshot (bool): Whether the source is a screenshot.
+            - from_img (bool): Whether the source is an image or list of images.
+            - in_memory (bool): Whether the source is an in-memory object.
+            - tensor (bool): Whether the source is a torch.Tensor.
+
+    Raises:
+        TypeError: If the source type is unsupported.
+    """
     webcam, screenshot, from_img, in_memory, tensor = False, False, False, False, False
     if isinstance(source, (str, int, Path)):  # int for local usb camera
         source = str(source)
@@ -173,16 +224,16 @@ def check_source(source):
 
 def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False):
     """
-    Loads an inference source for object detection and applies necessary transformations.
+    Load an inference source for object detection and apply necessary transformations.
 
     Args:
-        source (str, Path, Tensor, PIL.Image, np.ndarray): The input source for inference.
-        batch (int, optional): Batch size for dataloaders. Default is 1.
-        vid_stride (int, optional): The frame interval for video sources. Default is 1.
-        buffer (bool, optional): Determined whether stream frames will be buffered. Default is False.
+        source (str | Path | torch.Tensor | PIL.Image | np.ndarray, optional): The input source for inference.
+        batch (int, optional): Batch size for dataloaders.
+        vid_stride (int, optional): The frame interval for video sources.
+        buffer (bool, optional): Whether stream frames will be buffered.
 
     Returns:
-        dataset (Dataset): A dataset object for the specified input source.
+        (Dataset): A dataset object for the specified input source with attached source_type attribute.
     """
     source, stream, screenshot, from_img, in_memory, tensor = check_source(source)
     source_type = source.source_type if in_memory else SourceTypes(stream, screenshot, from_img, tensor)

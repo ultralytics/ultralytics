@@ -16,65 +16,68 @@ The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanc
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/_1CmwUzoxY4"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/DTjtBnSK2fY"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Security Alarm System Project with Ultralytics YOLO11 <a href="https://www.ultralytics.com/glossary/object-detection">Object Detection</a>
+  <strong>Watch:</strong> Security Alarm System with Ultralytics YOLO11 + Solutions <a href="https://www.ultralytics.com/glossary/object-detection">Object Detection</a>
 </p>
-
-### Code
-
+ 
 ???+ note
 
     App Password Generation is necessary
 
 - Navigate to [App Password Generator](https://myaccount.google.com/apppasswords), designate an app name such as "security project," and obtain a 16-digit password. Copy this password and paste it into the designated `password` field in the code below.
 
-!!! example "Security Alarm System using YOLO11 Example"
+!!! example "Security Alarm System using Ultralytics YOLO"
 
     === "Python"
 
-    ```python
-    import cv2
+        ```python
+        import cv2
 
-    from ultralytics import solutions
+        from ultralytics import solutions
 
-    cap = cv2.VideoCapture("Path/to/video/file.mp4")
-    assert cap.isOpened(), "Error reading video file"
+        cap = cv2.VideoCapture("path/to/video.mp4")
+        assert cap.isOpened(), "Error reading video file"
 
-    # Video writer
-    w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-    video_writer = cv2.VideoWriter("security_alarm_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        # Video writer
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        video_writer = cv2.VideoWriter("security_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-    from_email = "abc@gmail.com"  # The sender email address
-    password = "---- ---- ---- ----"  # 16-digits password generated via: https://myaccount.google.com/apppasswords
-    to_email = "xyz@gmail.com"  # The receiver email address
+        from_email = "abc@gmail.com"  # the sender email address
+        password = "---- ---- ---- ----"  # 16-digits password generated via: https://myaccount.google.com/apppasswords
+        to_email = "xyz@gmail.com"  # the receiver email address
 
-    # Init SecurityAlarm
-    security = solutions.SecurityAlarm(
-        show=True,  # Display the output
-        model="yolo11n.pt",  # i.e. YOLO11s.pt
-        records=1,  # Total detections count to send an email about security
-    )
+        # Initialize security alarm object
+        securityalarm = solutions.SecurityAlarm(
+            show=True,  # display the output
+            model="yolo11n.pt",  # i.e. yolo11s.pt, yolo11m.pt
+            records=1,  # total detections count to send an email
+        )
 
-    security.authenticate(from_email, password, to_email)  # Authenticate the email server
+        securityalarm.authenticate(from_email, password, to_email)  # authenticate the email server
 
-    # Process video
-    while cap.isOpened():
-        success, im0 = cap.read()
-        if not success:
-            print("Video frame is empty or video processing has been successfully completed.")
-            break
-        im0 = security.monitor(im0)
-        video_writer.write(im0)
+        # Process video
+        while cap.isOpened():
+            success, im0 = cap.read()
 
-    cap.release()
-    video_writer.release()
-    cv2.destroyAllWindows()
-    ```
+            if not success:
+                print("Video frame is empty or video processing has been successfully completed.")
+                break
+
+            results = securityalarm(im0)
+
+            # print(results)  # access the output
+
+            video_writer.write(results.plot_im)  # write the processed frame.
+
+        cap.release()
+        video_writer.release()
+        cv2.destroyAllWindows()  # destroy all opened windows
+        ```
 
 That's it! When you execute the code, you'll receive a single notification on your email if any object is detected. The notification is sent immediately, not repeatedly. However, feel free to customize the code to suit your project requirements.
 
@@ -82,20 +85,34 @@ That's it! When you execute the code, you'll receive a single notification on yo
 
 <img width="256" src="https://github.com/ultralytics/docs/releases/download/0/email-received-sample.avif" alt="Email Received Sample">
 
-### Arguments `SecurityAlarm`
+### `SecurityAlarm` Arguments
 
 Here's a table with the `SecurityAlarm` arguments:
 
-| Name         | Type   | Default | Description                                             |
-| ------------ | ------ | ------- | ------------------------------------------------------- |
-| `model`      | `str`  | `None`  | Path to Ultralytics YOLO Model File                     |
-| `line_width` | `int`  | `2`     | Line thickness for bounding boxes.                      |
-| `show`       | `bool` | `False` | Flag to control whether to display the video stream.    |
-| `records`    | `int`  | `5`     | Total detections count to send an email about security. |
+{% from "macros/solutions-args.md" import param_table %}
+{{ param_table(["model", "records"]) }}
 
-### Arguments `model.track`
+The `SecurityAlarm` solution supports a variety of `track` parameters:
 
-{% include "macros/track-args.md" %}
+{% from "macros/track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+
+Moreover, the following visualization settings are available:
+
+{% from "macros/visualization-args.md" import param_table %}
+{{ param_table(["show", "line_width"]) }}
+
+## How It Works
+
+The Security Alarm System uses [object tracking](https://docs.ultralytics.com/modes/track/) to monitor video feeds and detect potential security threats. When the system detects objects that exceed the specified threshold (set by the `records` parameter), it automatically sends an email notification with an image attachment showing the detected objects.
+
+The system leverages the [SecurityAlarm class](https://docs.ultralytics.com/reference/solutions/security_alarm/) which provides methods to:
+
+1. Process frames and extract object detections
+2. Annotate frames with bounding boxes around detected objects
+3. Send email notifications when detection thresholds are exceeded
+
+This implementation is ideal for home security, retail surveillance, and other monitoring applications where immediate notification of detected objects is critical.
 
 ## FAQ
 
@@ -109,7 +126,7 @@ Yes, Ultralytics YOLO11 can be seamlessly integrated with your existing security
 
 ### What are the storage requirements for running Ultralytics YOLO11?
 
-Running Ultralytics YOLO11 on a standard setup typically requires around 5GB of free disk space. This includes space for storing the YOLO11 model and any additional dependencies. For cloud-based solutions, Ultralytics HUB offers efficient project management and dataset handling, which can optimize storage needs. Learn more about the [Pro Plan](../hub/pro.md) for enhanced features including extended storage.
+Running Ultralytics YOLO11 on a standard setup typically requires around 5GB of free disk space. This includes space for storing the YOLO11 model and any additional dependencies. For cloud-based solutions, [Ultralytics HUB](https://docs.ultralytics.com/hub/) offers efficient project management and dataset handling, which can optimize storage needs. Learn more about the [Pro Plan](../hub/pro.md) for enhanced features including extended storage.
 
 ### What makes Ultralytics YOLO11 different from other object detection models like Faster R-CNN or SSD?
 

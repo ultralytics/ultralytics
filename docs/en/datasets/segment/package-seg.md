@@ -6,7 +6,20 @@ keywords: Roboflow, Package Segmentation Dataset, computer vision, package ident
 
 # Roboflow Universe Package Segmentation Dataset
 
+<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-package-segmentation-dataset.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Package Segmentation Dataset In Colab"></a>
+
 The [Roboflow](https://roboflow.com/?ref=ultralytics) [Package Segmentation Dataset](https://universe.roboflow.com/factorypackage/factory_package?ref=ultralytics) is a curated collection of images specifically tailored for tasks related to package segmentation in the field of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). This dataset is designed to assist researchers, developers, and enthusiasts working on projects related to package identification, sorting, and handling.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/im7xBCnPURg"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to do Package Segmentation using Ultralytics YOLO11 | Industrial Packages 🎉
+</p>
 
 Containing a diverse set of images showcasing various packages in different contexts and environments, the dataset serves as a valuable resource for training and evaluating segmentation models. Whether you are engaged in logistics, warehouse automation, or any application requiring precise package analysis, the Package Segmentation Dataset provides a targeted and comprehensive set of images to enhance the performance of your computer vision algorithms.
 
@@ -21,6 +34,14 @@ The distribution of data in the Package Segmentation Dataset is structured as fo
 ## Applications
 
 Package segmentation, facilitated by the Package Segmentation Dataset, is crucial for optimizing logistics, enhancing last-mile delivery, improving manufacturing quality control, and contributing to smart city solutions. From e-commerce to security applications, this dataset is a key resource, fostering innovation in computer vision for diverse and efficient package analysis applications.
+
+### Smart Warehouses and Logistics
+
+In modern warehouses, [vision AI solutions](https://www.ultralytics.com/solutions) can streamline operations by automating package identification and sorting. Computer vision models trained on this dataset can quickly detect and segment packages in real-time, even in challenging environments with dim lighting or cluttered spaces. This leads to faster processing times, reduced errors, and improved overall efficiency in logistics operations.
+
+### Quality Control and Damage Detection
+
+Package segmentation models can be used to identify damaged packages by analyzing their shape and appearance. By detecting irregularities or deformations in package outlines, these models help ensure that only intact packages proceed through the supply chain, reducing customer complaints and return rates.
 
 ## Dataset YAML
 
@@ -64,11 +85,23 @@ The Package Segmentation dataset comprises a varied collection of images and vid
 ![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/dataset-sample-image-1.avif)
 
 - This image displays an instance of image [object detection](https://www.ultralytics.com/glossary/object-detection), featuring annotated bounding boxes with masks outlining recognized objects. The dataset incorporates a diverse collection of images taken in different locations, environments, and densities. It serves as a comprehensive resource for developing models specific to this task.
-- The example emphasizes the diversity and complexity present in the VisDrone dataset, underscoring the significance of high-quality sensor data for computer vision tasks involving drones.
+- The example emphasizes the diversity and complexity present in the dataset, underscoring the significance of high-quality data for computer vision tasks involving package segmentation.
+
+## Benefits of Using YOLO11 for Package Segmentation
+
+[Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/) offers several advantages for package segmentation tasks:
+
+1. **Speed and Accuracy Balance**: YOLO11 achieves higher precision with 22% fewer parameters than YOLOv8m, making it ideal for real-time package detection in fast-paced logistics environments.
+
+2. **Adaptability**: Models trained with YOLO11 can adapt to various warehouse conditions, from dim lighting to cluttered spaces.
+
+3. **Scalability**: During peak periods like holiday seasons, YOLO11 models can efficiently scale to handle increased package volumes without compromising performance.
+
+4. **Integration Capabilities**: YOLO11 can be easily integrated with existing warehouse management systems to create end-to-end automated solutions.
 
 ## Citations and Acknowledgments
 
-If you integrate the crack segmentation dataset into your research or development initiatives, please cite the following paper:
+If you integrate the Package Segmentation dataset into your research or development initiatives, please cite the following paper:
 
 !!! quote ""
 

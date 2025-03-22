@@ -96,7 +96,6 @@ class YOLOEValidatorMixin:
                 mode="val",
                 stride=max(int(model.stride.max()), 32),
                 rect=False,
-                load_vp=True,
             ),
             1,
             self.args.workers,

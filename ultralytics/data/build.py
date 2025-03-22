@@ -104,11 +104,9 @@ def seed_worker(worker_id):  # noqa
     random.seed(worker_seed)
 
 
-def build_yolo_dataset(
-    cfg, img_path, batch, data, mode="train", rect=False, stride=32, multi_modal=False, load_vp=True
-):
+def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32, multi_modal=False):
     """Build and return a YOLO dataset based on configuration parameters."""
-    dataset = partial(YOLOMultiModalDataset, visual_prompt=cfg.load_vp and load_vp) if multi_modal else YOLODataset
+    dataset = partial(YOLOMultiModalDataset, visual_prompt=cfg.load_vp) if multi_modal else YOLODataset
     return dataset(
         img_path=img_path,
         imgsz=cfg.imgsz,

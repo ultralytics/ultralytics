@@ -117,7 +117,6 @@ class YOLOEPETrainer(DetectionTrainer):
         # it'd get correct results as long as loading proper pretrained weights.
         tpe = model.get_text_pe(names)
         model.set_classes(names, tpe)
-
         model.model[-1].fuse(model.pe)  # fuse text embeddings to classify head
         model.model[-1].cv3[0][2] = deepcopy(model.model[-1].cv3[0][2]).requires_grad_(True)
         model.model[-1].cv3[1][2] = deepcopy(model.model[-1].cv3[1][2]).requires_grad_(True)

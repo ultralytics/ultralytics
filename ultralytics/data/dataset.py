@@ -674,6 +674,18 @@ class YOLOConcatDataset(ConcatDataset):
         """
         return YOLODataset.collate_fn(batch)
 
+    def close_mosaic(self, hyp):
+        """
+        Sets mosaic, copy_paste and mixup options to 0.0 and builds transformations.
+
+        Args:
+            hyp (dict): Hyperparameters for transforms.
+        """
+        for dataset in self.datasets:
+            if not hasattr(dataset, "close_mosaic"):
+                continue
+            dataset.close_mosaic(hyp)
+
 
 # TODO: support semantic segmentation
 class SemanticDataset(BaseDataset):

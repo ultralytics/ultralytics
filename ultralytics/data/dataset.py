@@ -614,7 +614,7 @@ class GroundingDataset(YOLODataset):
             # the strategy of selecting negative is restricted in one dataset,
             # while official pre-saved neg embeddings from all datasets at once.
             transform = RandomLoadText(
-                max_samples=min(self.data["nc"], 80),
+                max_samples=80,
                 padding=True,
                 padding_value=self._get_neg_texts(self.category_freq),
             )

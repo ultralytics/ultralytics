@@ -3,8 +3,6 @@
 
 from copy import copy, deepcopy
 
-import torch
-
 from ultralytics.models.yolo.segment import SegmentationTrainer
 from ultralytics.nn.tasks import YOLOESegModel
 from ultralytics.utils import DEFAULT_CFG, RANK

@@ -824,7 +824,7 @@ class YOLOEModel(DetectionModel):
 
         device = next(self.model.parameters()).device
 
-        # TODO: eliminte `self.arg` usage
+        # TODO: eliminate `self.arg` usage
         text_model = self.args.get("text_model", "mobileclip:blt")
         if (
             not getattr(self, "clip_model", None) and cache_clip_model

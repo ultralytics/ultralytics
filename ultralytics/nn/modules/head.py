@@ -560,7 +560,7 @@ class YOLOEDetect(Detect):
             if not has_lrpc:
                 x[i] = torch.cat((self.cv2[i](x[i]), self.cv4[i](self.cv3[i](x[i]), cls_pe)), 1)
             else:
-                assert self.is_fused
+                assert self.is_fused, "Prompt-free inference requires model to be fused!"
                 cls_feat = self.cv3[i](x[i])
                 loc_feat = self.cv2[i](x[i])
                 assert isinstance(self.lrpc[i], LRPCHead)

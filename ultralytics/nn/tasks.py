@@ -965,9 +965,7 @@ class YOLOEModel(DetectionModel):
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
             if profile:
                 self._profile_one_layer(m, x, dt)
-            if isinstance(m, C2fAttn):
-                x = m(x, tpe or getattr(self, "pe", torch.zeros(1, 80, 512)).to(x.device))
-            elif isinstance(m, YOLOEDetect):
+            if isinstance(m, YOLOEDetect):
                 vpe = m.get_vpe(x, vpe) if vpe is not None else None
                 if return_vpe:
                     assert vpe is not None

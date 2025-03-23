@@ -81,7 +81,6 @@ class YOLOEVPPredictorMixin:
         img = letterbox(image=im[0])
         bboxes, masks = None, None
         if "bboxes" in self.prompts and len(self.prompts["bboxes"]) > 0:
-            # TODO: scale bboxes to letterboxed image
             bboxes = np.array(self.prompts["bboxes"])
             if bboxes.ndim == 1:
                 bboxes = bboxes[None, :]

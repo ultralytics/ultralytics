@@ -85,8 +85,11 @@ class YOLOEVPPredictorMixin:
             bboxes = np.array(self.prompts["bboxes"])
             if bboxes.ndim == 1:
                 bboxes = bboxes[None, :]
-            bboxes = scale_boxes(im[0].shape[:2], bboxes, img.shape[:2])
-            print(bboxes)
+            dst_shape, src_shape = img.shape[:2] , im[0].shape[:2]
+            gain = min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])  # gain  = old / new
+            bboxes *= gain
+            bboxes[..., 0::2] += round((dst_shape[1] - src_shape[1] * gain) / 2 - 0.1)
+            bboxes[..., 1::2] += round((dst_shape[0] - src_shape[0] * gain) / 2 - 0.1)
         elif "masks" in self.prompts:
             masks = self.prompts["masks"]
 

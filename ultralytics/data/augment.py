@@ -2182,15 +2182,10 @@ class LoadVisualPrompt:
             (dict): Updated labels with visual prompts added.
         """
         imgsz = labels["img"].shape[1:]
-        masksz = (int(imgsz[0] * self.scale_factor), int(imgsz[1] * self.scale_factor))
         bboxes, masks = None, None
         if "bboxes" in labels:
             bboxes = labels["bboxes"]
-            bboxes = xywh2xyxy(bboxes) * torch.tensor(masksz)[[1, 0, 1, 0]]  # target boxes
-        elif "masks" in labels:
-            masks = (
-                F.interpolate(torch.from_numpy(labels["masks"]).unsqueeze(1), masksz, mode="nearest").squeeze(1).float()
-            )
+            bboxes = xywh2xyxy(bboxes) * torch.tensor(imgsz)[[1, 0, 1, 0]]  # denormalize boxes
 
         cls = labels["cls"].squeeze(-1).to(torch.int)
         visuals = self.get_visuals(cls, imgsz, bboxes=bboxes, masks=masks)
@@ -2216,6 +2211,7 @@ class LoadVisualPrompt:
         if bboxes is not None:
             if isinstance(bboxes, np.ndarray):
                 bboxes = torch.from_numpy(bboxes)
+            bboxes *= self.scale_factor
             masks = self.make_mask(bboxes, *masksz).float()
         elif masks is not None:
             if isinstance(masks, np.ndarray):

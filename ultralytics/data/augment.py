@@ -2183,27 +2183,17 @@ class LoadVisualPrompt:
         """
         imgsz = labels["img"].shape[1:]
         masksz = (int(imgsz[0] * self.scale_factor), int(imgsz[1] * self.scale_factor))
+        bboxes, masks = None, None
         if "bboxes" in labels:
             bboxes = labels["bboxes"]
             bboxes = xywh2xyxy(bboxes) * torch.tensor(masksz)[[1, 0, 1, 0]]  # target boxes
-            masks = self.make_mask(bboxes, *masksz).float()
         elif "masks" in labels:
             masks = (
                 F.interpolate(torch.from_numpy(labels["masks"]).unsqueeze(1), masksz, mode="nearest").squeeze(1).float()
             )
-        else:
-            raise ValueError("LoadVisualPrompt must have bboxes or masks in the label")
 
         cls = labels["cls"].squeeze(-1).to(torch.int)
-        cls_unique, inverse_indices = torch.unique(cls, sorted=True, return_inverse=True)
-        # NOTE: `cls` indices from RandomLoadText should be continuous.
-        if len(cls_unique):
-            assert len(cls_unique) == cls_unique[-1] + 1, (
-                f"Expected a continuous range of class indices, but got {cls_unique}"
-            )
-        visuals = torch.zeros(len(cls_unique), *masksz)
-        for idx, mask in zip(inverse_indices, masks):
-            visuals[idx] = torch.logical_or(visuals[idx], mask)
+        visuals = self.get_visuals(cls, imgsz, bboxes=bboxes, masks=masks)
         labels["visuals"] = visuals
         return labels
 
@@ -2219,7 +2209,8 @@ class LoadVisualPrompt:
             masks = F.interpolate(masks.unsqueeze(1), masksz, mode="nearest").squeeze(1).float()
         else:
             raise ValueError("LoadVisualPrompt must have bboxes or masks in the label")
-        category = category.squeeze(-1).to(torch.int)
+        if not isinstance(category, torch.Tensor):
+            category = torch.tensor(category, dtype=torch.int)
         cls_unique, inverse_indices = torch.unique(category, sorted=True, return_inverse=True)
         # NOTE: `cls` indices from RandomLoadText should be continuous.
         if len(cls_unique):

@@ -109,6 +109,7 @@ class YOLOEVPPredictorMixin:
 
         Args:
             im (torch.Tensor): Input image tensor.
+            set_vpe (bool): Whether to set visual prompt embeddings.
             *args (Any): Variable length argument list.
             **kwargs (Any): Arbitrary keyword arguments.
 

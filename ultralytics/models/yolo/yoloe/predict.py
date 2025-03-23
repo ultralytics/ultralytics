@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from ultralytics.data.augment import LetterBox, LoadVisualPrompt
+from ultralytics.data.augment import LoadVisualPrompt
 from ultralytics.models.yolo.detect import DetectionPredictor
 from ultralytics.models.yolo.segment import SegmentationPredictor
 
@@ -102,7 +102,8 @@ class YOLOEVPPredictorMixin:
         return super().inference(im, vpe=self.prompts, *args, **kwargs)
 
     def get_vpe(self, source):
-        """Processes the source to get the visual prompt embeddings (VPE).
+        """
+        Processes the source to get the visual prompt embeddings (VPE).
 
         Args:
             source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | List | Tuple): The source

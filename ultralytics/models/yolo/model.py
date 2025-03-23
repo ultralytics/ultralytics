@@ -243,7 +243,6 @@ class YOLOE(Model):
             self.predictor.set_prompts(visual_prompts)
         if refer_image is not None and len(visual_prompts):
             self.predictor(refer_image, set_vpe=True)
-            # self.set_classes(self.predictor.model.names, visual_embeddings)
             self.predictor = None  # reset predictor
 
         return super().predict(source, stream, **kwargs)

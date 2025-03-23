@@ -16,6 +16,10 @@ on:
         type: boolean
         description: Use Dockerfile
         default: true
+      Dockerfile-nvidia-cuda:
+        type: boolean
+        description: Use Dockerfile-nvidia-cuda
+        default: true
       Dockerfile-cpu:
         type: boolean
         description: Use Dockerfile-cpu
@@ -46,7 +50,7 @@ on:
         default: true
       push:
         type: boolean
-        description: Publish all Images
+        description: Publish to DockerHub and ghcr.io
 
 jobs:
   docker:
@@ -58,6 +62,10 @@ jobs:
       matrix:
         include:
           - dockerfile: "Dockerfile"
+            tags: "latest"
+            platforms: "linux/amd64"
+            runs_on: "ubuntu-latest"
+          - dockerfile: "Dockerfile-nvidia-cuda"
             tags: "latest"
             platforms: "linux/amd64"
             runs_on: "ubuntu-latest"

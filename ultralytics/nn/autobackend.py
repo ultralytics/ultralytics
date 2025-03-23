@@ -555,6 +555,7 @@ class AutoBackend(nn.Module):
             augment (bool): Whether to perform data augmentation during inference. Defaults to False.
             visualize (bool): Whether to visualize the output predictions. Defaults to False.
             embed (list, optional): A list of feature vectors/embeddings to return.
+            **kwargs (Any): Additional keyword arguments for model configuration.
 
         Returns:
             (torch.Tensor | List[torch.Tensor]): The raw output tensor(s) from the model.

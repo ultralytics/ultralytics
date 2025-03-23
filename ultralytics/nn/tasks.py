@@ -221,9 +221,6 @@ class BaseModel(torch.nn.Module):
                 if isinstance(m, RepVGGDW):
                     m.fuse()
                     m.forward = m.forward_fuse
-                if isinstance(m, YOLOEDetect) and hasattr(self, "pe"):
-                    device = next(self.model.parameters()).device
-                    m.fuse(self.pe.to(device))
             self.info(verbose=verbose)
 
         return self
@@ -855,8 +852,8 @@ class YOLOEModel(DetectionModel):
         Set vocabulary for the model.
 
         Args:
-            vocab (list): List of vocabulary items.
-            names (list): List of class names.
+            vocab (nn.ModuleList): List of vocabulary items.
+            names (List[str]): List of class names.
         """
         assert not self.training
         head = self.model[-1]
@@ -896,7 +893,8 @@ class YOLOEModel(DetectionModel):
 
         tpe = self.get_text_pe(names)
         self.set_classes(names, tpe)
-        self.fuse()
+        device = next(self.model.parameters()).device
+        head.fuse(self.pe.to(device))  # fuse prompt embeddings to classify head
 
         vocab = nn.ModuleList()
         for cls_head in head.cv3:

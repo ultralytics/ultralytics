@@ -35,7 +35,6 @@ class YOLOEVPPredictorMixin:
         Args:
             model (torch.nn.Module): Model to load or use.
             verbose (bool): If True, provides detailed logging.
-
         """
         super().setup_model(model, verbose=verbose)
         self.done_warmup = True

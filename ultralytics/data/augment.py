@@ -2201,7 +2201,7 @@ class LoadVisualPrompt:
         """Generate visual masks based on bounding boxes or masks.
 
         Args:
-            category (int or torch.Tensor): The category labels for the objects.
+            category (int | np.ndarray | torch.Tensor): The category labels for the objects.
             shape (tuple): The shape of the image (height, width).
             bboxes (np.ndarray or torch.Tensor, optional): Bounding boxes for the objects, xyxy format. Defaults to None.
             masks (np.ndarray or torch.Tensor, optional): Masks for the objects. Defaults to None.

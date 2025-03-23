@@ -2207,6 +2207,30 @@ class LoadVisualPrompt:
         labels["visuals"] = visuals
         return labels
 
+    def get_visuals(self, category, shape, bboxes=None, masks=None):
+        masksz = (int(shape[0] * self.scale_factor), int(shape[1] * self.scale_factor))
+        if bboxes is not None:
+            if isinstance(bboxes, np.ndarray):
+                bboxes = torch.from_numpy(bboxes)
+            masks = self.make_mask(bboxes, *masksz).float()
+        elif masks is not None:
+            if isinstance(masks, np.ndarray):
+                masks = torch.from_numpy(masks)  # (N, H, W)
+            masks = F.interpolate(masks.unsqueeze(1), masksz, mode="nearest").squeeze(1).float()
+        else:
+            raise ValueError("LoadVisualPrompt must have bboxes or masks in the label")
+        category = category.squeeze(-1).to(torch.int)
+        cls_unique, inverse_indices = torch.unique(category, sorted=True, return_inverse=True)
+        # NOTE: `cls` indices from RandomLoadText should be continuous.
+        if len(cls_unique):
+            assert len(cls_unique) == cls_unique[-1] + 1, (
+                f"Expected a continuous range of class indices, but got {cls_unique}"
+            )
+        visuals = torch.zeros(len(cls_unique), *masksz)
+        for idx, mask in zip(inverse_indices, masks):
+            visuals[idx] = torch.logical_or(visuals[idx], mask)
+        return visuals
+
 
 class RandomLoadText:
     """

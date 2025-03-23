@@ -3,7 +3,8 @@
 # Builds ultralytics/ultralytics:latest-nvidia-cuda image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Image is CUDA-optimized for YOLO11 single/multi-GPU training and inference
 
-# Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:25.02-py3 or nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04
+# Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:25.02-py3 or nvidia/cuda:12.8.1-cudnn-runtime-ubuntu22.04
+# Warning: ubuntu24.04 does not work (TFLite bug)
 FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu22.04
 
 # Set environment variables

@@ -16,6 +16,10 @@ on:
         type: boolean
         description: Use Dockerfile
         default: true
+      Dockerfile-nvidia:
+        type: boolean
+        description: Use Dockerfile-nvidia
+        default: true
       Dockerfile-cpu:
         type: boolean
         description: Use Dockerfile-cpu
@@ -58,6 +62,10 @@ jobs:
       matrix:
         include:
           - dockerfile: "Dockerfile"
+            tags: "latest"
+            platforms: "linux/amd64"
+            runs_on: "ubuntu-latest"
+          - dockerfile: "Dockerfile-nvidia"
             tags: "latest"
             platforms: "linux/amd64"
             runs_on: "ubuntu-latest"

@@ -2158,7 +2158,7 @@ class LoadVisualPrompt:
         Create binary masks from bounding boxes.
 
         Args:
-            boxes (torch.Tensor): Bounding boxes in xyxy format.
+            boxes (torch.Tensor): Bounding boxes in xyxy format, shape: (N, 4).
             h (int): Height of the mask.
             w (int): Width of the mask.
 

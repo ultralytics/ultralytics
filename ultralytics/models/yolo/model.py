@@ -235,15 +235,23 @@ class YOLOE(Model):
             assert "bboxes" in visual_prompts and "cls" in visual_prompts, (
                 f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"
             )
+            assert len(visual_prompts["bboxes"]) == len(visual_prompts["cls"]), (
+                f"Expected equal number of bounding boxes and classes, but got {len(visual_prompts['bboxes'])} and "
+                f"{len(visual_prompts['cls'])} respectively"
+            )
         self.predictor = (predictor or self._smart_load("predictor"))(
             overrides={"task": "segment", "mode": "predict", "save": False, "verbose": False}, _callbacks=self.callbacks
         )
+        cls = set(visual_prompts["cls"])
+        self.model.model[-1].nc = len(cls)
+        self.model.names = [f"object{i}" for i in range(len(cls))]
+
         self.predictor.setup_model(model=self.model)
         if len(visual_prompts):
             self.predictor.set_prompts(visual_prompts)
         if refer_image is not None and len(visual_prompts):
-            self.predictor(refer_image, set_vpe=True)
-            # self.set_classes(self.predictor.model.names, visual_embeddings)
+            vpe = self.predictor.get_vpe(refer_image)
+            self.model.set_classes(self.model.names, vpe)
             self.predictor = None  # reset predictor
 
         return super().predict(source, stream, **kwargs)

@@ -6,7 +6,6 @@ import numpy as np
 from ultralytics.data.augment import LetterBox, LoadVisualPrompt
 from ultralytics.models.yolo.detect import DetectionPredictor
 from ultralytics.models.yolo.segment import SegmentationPredictor
-from ultralytics.utils.torch_utils import select_device
 
 
 class YOLOEVPPredictorMixin:
@@ -30,15 +29,7 @@ class YOLOEVPPredictorMixin:
     """
 
     def setup_model(self, model, verbose=True):
-        """Initialize YOLO model with given parameters and set it to evaluation mode."""
-        device = select_device(self.args.device, verbose=verbose)
-        self.model = model.to(device)
-
-        self.device = device  # update device
-        self.model.fp16 = False
-        self.args.half = False
-        self.model.eval()
-
+        super().setup_model(model, verbose=verbose)
         self.done_warmup = True
 
     def set_prompts(self, prompts):
@@ -67,14 +58,9 @@ class YOLOEVPPredictorMixin:
         Raises:
             ValueError: If neither valid bounding boxes nor masks are provided in the prompts.
         """
-        letterbox = LetterBox(
-            self.imgsz,
-            auto=False,
-            stride=int(self.model.stride[-1].item()),
-        )
         assert len(im) == 1, f"Expected 1 image, but got {len(im)} images!"
+        img = super().pre_transform(im)[0]
 
-        img = letterbox(image=im[0])
         bboxes, masks = None, None
         if "bboxes" in self.prompts and len(self.prompts["bboxes"]) > 0:
             bboxes = np.array(self.prompts["bboxes"])
@@ -88,38 +74,49 @@ class YOLOEVPPredictorMixin:
         elif "masks" in self.prompts:
             masks = self.prompts["masks"]
 
-            resized_masks = [letterbox(image=masks[i]) for i in range(len(masks))]
+            resized_masks = super().pre_transform(masks)
             masks = np.stack(resized_masks)  # (N, H, W)
             masks[masks == 114] = 0  # Reset padding values to 0
         else:
             raise ValueError("Please provide valid bboxes or masks")
 
-        visuals = LoadVisualPrompt().get_visuals(self.prompts["cls"], img.shape[:2], bboxes, masks)
+        cls = self.prompts["cls"]
+        visuals = LoadVisualPrompt().get_visuals(cls, img.shape[:2], bboxes, masks)
 
-        cls = np.unique(self.prompts["cls"])
-        self.prompts = visuals.unsqueeze(0).to(self.device)
-        self.model.model[-1].nc = self.prompts.shape[1]
-        self.model.names = [f"object{cls[i]}" for i in range(self.prompts.shape[1])]
+        self.prompts = visuals.unsqueeze(0).to(self.device)  # (1, N, H, W)
 
         return [img]
 
-    def inference(self, im, set_vpe=False, *args, **kwargs):
+    def inference(self, im, *args, **kwargs):
         """
         Run inference with visual prompts.
 
         Args:
             im (torch.Tensor): Input image tensor.
-            set_vpe (bool): Whether to set visual prompt embeddings.
             *args (Any): Variable length argument list.
             **kwargs (Any): Arbitrary keyword arguments.
 
         Returns:
             (torch.Tensor): Model prediction results.
         """
-        if set_vpe:
-            vpe = self.model(im, vpe=self.prompts, return_vpe=True)
-            self.model.set_classes(self.model.names, vpe)
         return super().inference(im, vpe=self.prompts, *args, **kwargs)
+
+    def get_vpe(self, source):
+        """Processes the source to get the visual prompt embeddings (VPE).
+
+        Args:
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | List | Tuple): The source
+                of the image to make predictions on. Accepts various types including file paths, URLs, PIL
+                images, numpy arrays, and torch tensors.
+
+        Returns:
+            (torch.Tensor): The visual prompt embeddings (VPE) from the model.
+        """
+        self.setup_source(source)
+        assert len(self.dataset) == 1, "get_vpe only supports one image!"
+        for _, im0s, _ in self.dataset:
+            im = self.preprocess(im0s)
+            return self.model(im, vpe=self.prompts, return_vpe=True)
 
 
 # TODO: Implement additional functionality

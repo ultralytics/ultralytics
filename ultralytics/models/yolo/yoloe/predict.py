@@ -52,8 +52,7 @@ class YOLOEVPPredictorMixin:
             prompts (dict): Dictionary containing class indices and bounding boxes or masks.
                 Must include a 'cls' key with class indices.
         """
-        assert "cls" in prompts, "Please provide class index."
-        self.prompts = deepcopy(prompts)
+        self.prompts = prompts
 
     def pre_transform(self, im):
         """

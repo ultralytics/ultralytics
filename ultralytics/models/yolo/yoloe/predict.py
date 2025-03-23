@@ -6,7 +6,6 @@ import numpy as np
 from ultralytics.data.augment import LetterBox, LoadVisualPrompt
 from ultralytics.models.yolo.detect import DetectionPredictor
 from ultralytics.models.yolo.segment import SegmentationPredictor
-from ultralytics.utils.torch_utils import select_device
 
 
 class YOLOEVPPredictorMixin:
@@ -30,15 +29,7 @@ class YOLOEVPPredictorMixin:
     """
 
     def setup_model(self, model, verbose=True):
-        """Initialize YOLO model with given parameters and set it to evaluation mode."""
-        device = select_device(self.args.device, verbose=verbose)
-        self.model = model.to(device)
-
-        self.device = device  # update device
-        self.model.fp16 = False
-        self.args.half = False
-        self.model.eval()
-
+        super().setup_model(model, verbose=verbose)
         self.done_warmup = True
 
     def set_prompts(self, prompts):
@@ -70,7 +61,7 @@ class YOLOEVPPredictorMixin:
         letterbox = LetterBox(
             self.imgsz,
             auto=False,
-            stride=int(self.model.stride[-1].item()),
+            stride=self.model.stride,
         )
         assert len(im) == 1, f"Expected 1 image, but got {len(im)} images!"
 
@@ -101,23 +92,36 @@ class YOLOEVPPredictorMixin:
 
         return [img]
 
-    def inference(self, im, set_vpe=False, *args, **kwargs):
+    def inference(self, im, *args, **kwargs):
         """
         Run inference with visual prompts.
 
         Args:
             im (torch.Tensor): Input image tensor.
-            set_vpe (bool): Whether to set visual prompt embeddings.
             *args (Any): Variable length argument list.
             **kwargs (Any): Arbitrary keyword arguments.
 
         Returns:
             (torch.Tensor): Model prediction results.
         """
-        if set_vpe:
-            vpe = self.model.get_visual_pe(im, visual=self.prompts)
-            self.model.set_classes(self.model.names, vpe)
         return super().inference(im, vpe=self.prompts, *args, **kwargs)
+
+    def get_vpe(self, source):
+        """Processes the source to get the visual prompt embeddings (VPE).
+
+        Args:
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | List | Tuple): The source
+                of the image to make predictions on. Accepts various types including file paths, URLs, PIL
+                images, numpy arrays, and torch tensors.
+
+        Returns:
+            (torch.Tensor): The visual prompt embeddings (VPE) from the model.
+        """
+        self.setup_source(source)
+        assert len(self.dataset) == 1, "get_vpe only supports one image!"
+        for _, im0s, _ in self.dataset:
+            im = self.preprocess(im0s)
+            return self.model(im, vpe=self.prompts, return_vpe=True)
 
 
 # TODO: Implement additional functionality

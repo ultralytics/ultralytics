@@ -10,6 +10,7 @@ from ultralytics.models.yolo.detect import DetectionPredictor
 from ultralytics.models.yolo.segment import SegmentationPredictor
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.torch_utils import select_device
+from ultralytics.utils.ops import scale_boxes
 
 
 class YOLOEVPPredictorMixin:
@@ -75,53 +76,36 @@ class YOLOEVPPredictorMixin:
             auto=False,
             stride=int(self.model.stride[-1].item()),
         )
-        assert len(im) == 1
+        assert len(im) == 1, f"Expected 1 image, but got {len(im)} images!"
 
-        cls = torch.tensor(self.prompts["cls"]).unsqueeze(-1)
+        img = letterbox(image=im[0])
+        bboxes, masks = None, None
         if "bboxes" in self.prompts and len(self.prompts["bboxes"]) > 0:
-            labels = dict(
-                img=im[0],
-                instances=Instances(
-                    bboxes=self.prompts["bboxes"],
-                    segments=np.zeros((0, 1000, 2), dtype=np.float32),
-                    bbox_format="xyxy",
-                    normalized=False,
-                ),
-                cls=cls,
-            )
-
-            labels = letterbox(labels)
-
-            instances = labels.pop("instances")
-            h, w = labels["img"].shape[:2]
-            instances.normalize(w, h)
-            instances.convert_bbox(format="xywh")
-            labels["bboxes"] = torch.from_numpy(instances.bboxes)
+            # TODO: scale bboxes to letterboxed image
+            bboxes = np.array(self.prompts["bboxes"])
+            if bboxes.ndim == 1:
+                bboxes = bboxes[None, :]
+            bboxes = scale_boxes(im[0].shape[:2], bboxes, img.shape[:2])
+            print(bboxes)
         elif "masks" in self.prompts:
             masks = self.prompts["masks"]
 
-            img = letterbox(image=im[0])
             resized_masks = []
             for i in range(len(masks)):
                 resized_masks.append(letterbox(image=masks[i]))
-            masks = np.stack(resized_masks)
+            masks = np.stack(resized_masks)  # (N, H, W)
             masks[masks == 114] = 0  # Reset padding values to 0
-
-            labels = dict(img=img, masks=masks, cls=cls)
         else:
             raise ValueError("Please provide valid bboxes or masks")
 
-        labels["img"] = labels["img"].transpose(2, 0, 1)
-
-        load_vp = LoadVisualPrompt()
-        labels = load_vp(labels)
+        visuals = LoadVisualPrompt().get_visuals(self.prompts["cls"], img.shape[:2], bboxes, masks)
 
         cls = np.unique(self.prompts["cls"])
-        self.prompts = labels["visuals"].unsqueeze(0).to(self.device)
+        self.prompts = visuals.unsqueeze(0).to(self.device)
         self.model.model[-1].nc = self.prompts.shape[1]
         self.model.names = [f"object{cls[i]}" for i in range(self.prompts.shape[1])]
 
-        return [labels["img"].transpose(1, 2, 0)]
+        return [img]
 
     def inference(self, im, set_vpe=False, *args, **kwargs):
         """

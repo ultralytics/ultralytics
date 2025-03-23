@@ -39,7 +39,7 @@ RUN pip install uv
 RUN uv pip install --system -e ".[export]" --break-system-packages
 
 # Creates a symbolic link to make 'python' point to 'python3'
-RUN ln -sf /usr/bin/python3 /usr/bin/python
+RUN which python3 && ln -sf $(which python3) $(dirname $(which python3))/python || echo "Python3 not found"
 
 # Remove extra build files
 RUN rm -rf /root/.config/Ultralytics/persistent_cache.json

@@ -88,7 +88,7 @@ class YOLOEVPPredictorMixin:
         elif "masks" in self.prompts:
             masks = self.prompts["masks"]
 
-            resized_masks = [letterbox(image=masks[i]) for i in range(len(masks))]
+            resized_masks = [letterbox(image=masks[i]) for _ in range(len(masks))]
             masks = np.stack(resized_masks)  # (N, H, W)
             masks[masks == 114] = 0  # Reset padding values to 0
         else:

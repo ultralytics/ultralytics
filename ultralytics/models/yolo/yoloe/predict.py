@@ -98,8 +98,6 @@ class YOLOEVPPredictorMixin:
         visuals = LoadVisualPrompt().get_visuals(cls, img.shape[:2], bboxes, masks)
 
         self.prompts = visuals.unsqueeze(0).to(self.device)  # (1, N, H, W)
-        self.model.model[-1].nc = self.prompts.shape[1]
-        self.model.names = [f"object{i}" for i in range(len(np.unique(cls)))]
 
         return [img]
 

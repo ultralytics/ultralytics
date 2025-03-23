@@ -66,7 +66,7 @@ jobs:
             platforms: "linux/amd64"
             runs_on: "ubuntu-latest"
           - dockerfile: "Dockerfile-nvidia-cuda"
-            tags: "latest"
+            tags: "latest-nvidia-cuda"
             platforms: "linux/amd64"
             runs_on: "ubuntu-latest"
           - dockerfile: "Dockerfile-cpu"

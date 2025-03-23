@@ -4,7 +4,7 @@
 # Image is CUDA-optimized for YOLO11 single/multi-GPU training and inference
 
 # Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:25.02-py3 or nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04
-FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04
+FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu22.04
 
 # Set environment variables
 # Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library" https://github.com/pytorch/pytorch/issues/37377
@@ -60,7 +60,7 @@ RUN rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push
-# t=ultralytics/ultralytics:latest-nvidia && sudo docker build -f docker/Dockerfile -t $t . && sudo docker push $t
+# t=ultralytics/ultralytics:latest-nvidia && sudo docker build --platform linux/amd64 -f docker/Dockerfile-nvidia -t $t . && sudo docker push $t
 
 # Pull and Run with access to all GPUs
 # t=ultralytics/ultralytics:latest-nvidia && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all $t

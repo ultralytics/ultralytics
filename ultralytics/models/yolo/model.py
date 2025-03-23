@@ -211,7 +211,7 @@ class YOLOE(Model):
                 f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"
             )
         self.predictor = (predictor or self._smart_load("predictor"))(
-                overrides={"task": "segment", "mode": "predict", "save": False, "verbose": False}, _callbacks=self.callbacks
+            overrides={"task": "segment", "mode": "predict", "save": False, "verbose": False}, _callbacks=self.callbacks
         )
         self.predictor.setup_model(model=self.model)
         if len(visual_prompts):

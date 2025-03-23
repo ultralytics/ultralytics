@@ -2193,7 +2193,8 @@ class LoadVisualPrompt:
         return labels
 
     def get_visuals(self, category, shape, bboxes=None, masks=None):
-        """Generate visual masks based on bounding boxes or masks.
+        """
+        Generate visual masks based on bounding boxes or masks.
 
         Args:
             category (int | np.ndarray | torch.Tensor): The category labels for the objects.

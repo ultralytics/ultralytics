@@ -1,16 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from copy import deepcopy
 
 import numpy as np
-import torch
 
 from ultralytics.data.augment import LetterBox, LoadVisualPrompt
 from ultralytics.models.yolo.detect import DetectionPredictor
 from ultralytics.models.yolo.segment import SegmentationPredictor
-from ultralytics.utils.instance import Instances
 from ultralytics.utils.torch_utils import select_device
-from ultralytics.utils.ops import scale_boxes
 
 
 class YOLOEVPPredictorMixin:
@@ -84,7 +80,7 @@ class YOLOEVPPredictorMixin:
             bboxes = np.array(self.prompts["bboxes"])
             if bboxes.ndim == 1:
                 bboxes = bboxes[None, :]
-            dst_shape, src_shape = img.shape[:2] , im[0].shape[:2]
+            dst_shape, src_shape = img.shape[:2], im[0].shape[:2]
             gain = min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])  # gain  = old / new
             bboxes *= gain
             bboxes[..., 0::2] += round((dst_shape[1] - src_shape[1] * gain) / 2 - 0.1)

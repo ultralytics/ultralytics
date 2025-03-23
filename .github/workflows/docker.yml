@@ -102,10 +102,7 @@ jobs:
       new_release: ${{ steps.check_tag.outputs.new_release }}
     steps:
       - name: Cleanup disk space
-        # uses: ultralytics/actions/cleanup-disk@main
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          tool-cache: true
+        uses: ultralytics/actions/cleanup-disk@main
 
       - name: Checkout repo
         uses: actions/checkout@v4

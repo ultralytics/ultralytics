@@ -196,3 +196,29 @@ class YOLOE(Model):
         # Reset method class names
         if self.predictor:
             self.predictor.model.names = classes
+
+    def predict(
+        self,
+        source=None,
+        stream: bool = False,
+        visual_prompts: dict = dict(),
+        refer_image=None,
+        predictor=None,
+        **kwargs,
+    ):
+        if len(visual_prompts):
+            assert "bboxes" in visual_prompts and "cls" in visual_prompts, (
+                f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"
+            )
+        self.predictor = (predictor or self._smart_load("predictor"))(
+                overrides={"task": "segment", "mode": "predict", "save": False, "verbose": False}, _callbacks=self.callbacks
+        )
+        self.predictor.setup_model(model=self.model)
+        if len(visual_prompts):
+            self.predictor.set_prompts(visual_prompts)
+        if refer_image is not None and len(visual_prompts):
+            self.predictor(refer_image, set_vpe=True)
+            # self.set_classes(self.predictor.model.names, visual_embeddings)
+            self.predictor = None  # reset predictor
+
+        return super().predict(source, stream, **kwargs)

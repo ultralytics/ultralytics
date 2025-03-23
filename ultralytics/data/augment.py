@@ -2199,11 +2199,11 @@ class LoadVisualPrompt:
         Args:
             category (int | np.ndarray | torch.Tensor): The category labels for the objects.
             shape (tuple): The shape of the image (height, width).
-            bboxes (np.ndarray or torch.Tensor, optional): Bounding boxes for the objects, xyxy format. Defaults to None.
-            masks (np.ndarray or torch.Tensor, optional): Masks for the objects. Defaults to None.
+            bboxes (np.ndarray | torch.Tensor, optional): Bounding boxes for the objects, xyxy format. Defaults to None.
+            masks (np.ndarray | torch.Tensor, optional): Masks for the objects. Defaults to None.
 
         Returns:
-            torch.Tensor: A tensor containing the visual masks for each category.
+            (torch.Tensor): A tensor containing the visual masks for each category.
 
         Raises:
             ValueError: If neither bboxes nor masks are provided.

@@ -23,7 +23,6 @@ class YOLOEVPPredictorMixin:
         model (torch.nn.Module): The YOLO model for inference.
         device (torch.device): Device to run the model on (CPU or CUDA).
         prompts (dict): Visual prompts containing class indices and bounding boxes or masks.
-        return_vpe (bool): Whether to return visual prompt embeddings.
 
     Methods:
         setup_model: Initialize the YOLO model and set it to evaluation mode.
@@ -44,11 +43,6 @@ class YOLOEVPPredictorMixin:
         self.model.eval()
 
         self.done_warmup = True
-        self.return_vpe = False
-
-    def set_return_vpe(self, return_vpe):
-        """Set whether to return visual prompt embeddings during inference."""
-        self.return_vpe = return_vpe
 
     def set_prompts(self, prompts):
         """

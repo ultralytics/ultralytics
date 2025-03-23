@@ -55,6 +55,9 @@ RUN yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32
 # Requires <= Python 3.10, bug with paddlepaddle==2.5.0 https://github.com/PaddlePaddle/X2Paddle/issues/991
 RUN uv pip install --system "paddlepaddle>=2.6.0" x2paddle
 
+# Creates a symbolic link to make 'python' point to 'python3'
+RUN which python3 && ln -sf $(which python3) $(dirname $(which python3))/python || echo "Python3 not found"
+
 # Remove extra build files
 RUN rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 

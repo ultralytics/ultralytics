@@ -208,7 +208,7 @@ class YOLOE(Model):
     ):
         """
         Run prediction on images, videos, directories, streams, etc.
-        
+
         Args:
             source (str | int | PIL.Image | np.ndarray, optional): Source for prediction. Accepts image paths,
                 directory paths, URL/YouTube streams, PIL images, numpy arrays, or webcam indices.
@@ -220,14 +220,13 @@ class YOLOE(Model):
             predictor (callable, optional): Custom predictor function. If None, a predictor is automatically
                 loaded based on the task.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
-        
+
         Returns:
             (List | generator): List of Results objects or generator of Results objects if stream=True.
-        
+
         Examples:
             >>> model = YOLOE("yoloe-v8s-seg.pt")
             >>> results = model.predict("path/to/image.jpg")
-            >>> 
             >>> # With visual prompts
             >>> prompts = {"bboxes": [[10, 20, 100, 200]], "cls": ["person"]}
             >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts)

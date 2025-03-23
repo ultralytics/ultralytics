@@ -242,13 +242,14 @@ class YOLOE(Model):
         self.predictor = (predictor or self._smart_load("predictor"))(
             overrides={"task": "segment", "mode": "predict", "save": False, "verbose": False}, _callbacks=self.callbacks
         )
-        cls = set(visual_prompts["cls"])
-        self.model.model[-1].nc = len(cls)
-        self.model.names = [f"object{i}" for i in range(len(cls))]
+
+        if len(visual_prompts):
+            cls = set(visual_prompts["cls"])
+            self.model.model[-1].nc = len(cls)
+            self.model.names = [f"object{i}" for i in range(len(cls))]
+            self.predictor.set_prompts(visual_prompts)
 
         self.predictor.setup_model(model=self.model)
-        if len(visual_prompts):
-            self.predictor.set_prompts(visual_prompts)
         if refer_image is not None and len(visual_prompts):
             vpe = self.predictor.get_vpe(refer_image)
             self.model.set_classes(self.model.names, vpe)

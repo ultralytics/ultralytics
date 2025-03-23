@@ -130,7 +130,7 @@ class YOLOEVPPredictorMixin:
 
         return [labels["img"].transpose(1, 2, 0)]
 
-    def inference(self, im, *args, **kwargs):
+    def inference(self, im, set_vpe=False, *args, **kwargs):
         """
         Run inference with visual prompts.
 
@@ -142,8 +142,9 @@ class YOLOEVPPredictorMixin:
         Returns:
             (torch.Tensor): Model prediction results.
         """
-        if self.return_vpe:
-            self.vpe = self.model.get_visual_pe(im, visual=self.prompts)
+        if set_vpe:
+            vpe = self.model(im, vpe=self.prompts, return_vpe=True)
+            self.model.set_classes(self.model.names, vpe)
         return super().inference(im, vpe=self.prompts, *args, **kwargs)
 
 

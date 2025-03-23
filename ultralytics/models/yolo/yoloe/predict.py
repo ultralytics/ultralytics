@@ -117,7 +117,7 @@ class YOLOEVPPredictorMixin:
             (torch.Tensor): Model prediction results.
         """
         if set_vpe:
-            vpe = self.model(im, vpe=self.prompts, return_vpe=True)
+            vpe = self.model.get_visual_pe(im, visual=self.prompts)
             self.model.set_classes(self.model.names, vpe)
         return super().inference(im, vpe=self.prompts, *args, **kwargs)
 

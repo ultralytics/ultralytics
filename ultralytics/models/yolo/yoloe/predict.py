@@ -58,14 +58,9 @@ class YOLOEVPPredictorMixin:
         Raises:
             ValueError: If neither valid bounding boxes nor masks are provided in the prompts.
         """
-        letterbox = LetterBox(
-            self.imgsz,
-            auto=False,
-            stride=self.model.stride,
-        )
         assert len(im) == 1, f"Expected 1 image, but got {len(im)} images!"
+        img = super().pre_transform(im)[0]
 
-        img = letterbox(image=im[0])
         bboxes, masks = None, None
         if "bboxes" in self.prompts and len(self.prompts["bboxes"]) > 0:
             bboxes = np.array(self.prompts["bboxes"])
@@ -79,7 +74,7 @@ class YOLOEVPPredictorMixin:
         elif "masks" in self.prompts:
             masks = self.prompts["masks"]
 
-            resized_masks = [letterbox(image=masks[i]) for _ in range(len(masks))]
+            resized_masks = super().pre_transform(masks)
             masks = np.stack(resized_masks)  # (N, H, W)
             masks[masks == 114] = 0  # Reset padding values to 0
         else:

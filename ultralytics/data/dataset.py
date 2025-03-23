@@ -391,8 +391,7 @@ class YOLOMultiModalDataset(YOLODataset):
             (Tuple[str]): List of class names.
         """
         names = self.data["names"].values()
-        category_names = {n.strip() for name in names for n in name.split("/")}
-        return category_names
+        return {n.strip() for name in names for n in name.split("/")}  # category names
 
     @property
     def category_freq(self):
@@ -547,7 +546,7 @@ class GroundingDataset(YOLODataset):
                         segments.append(s)
             lb = np.array(bboxes, dtype=np.float32) if len(bboxes) else np.zeros((0, 5), dtype=np.float32)
 
-            if len(segments) > 0:
+            if segments:
                 classes = np.array([x[0] for x in segments], dtype=np.float32)
                 segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in segments]  # (cls, xy1...)
                 lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)

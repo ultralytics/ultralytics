@@ -201,11 +201,37 @@ class YOLOE(Model):
         self,
         source=None,
         stream: bool = False,
-        visual_prompts: dict = dict(),
+        visual_prompts: dict = {},
         refer_image=None,
         predictor=None,
         **kwargs,
     ):
+        """
+        Run prediction on images, videos, directories, streams, etc.
+        
+        Args:
+            source (str | int | PIL.Image | np.ndarray, optional): Source for prediction. Accepts image paths,
+                directory paths, URL/YouTube streams, PIL images, numpy arrays, or webcam indices.
+            stream (bool): Whether to stream the prediction results. If True, results are yielded as a
+                generator as they are computed.
+            visual_prompts (dict): Dictionary containing visual prompts for the model. Must include 'bboxes' and
+                'cls' keys when non-empty.
+            refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
+            predictor (callable, optional): Custom predictor function. If None, a predictor is automatically
+                loaded based on the task.
+            **kwargs (Any): Additional keyword arguments passed to the predictor.
+        
+        Returns:
+            (List | generator): List of Results objects or generator of Results objects if stream=True.
+        
+        Examples:
+            >>> model = YOLOE("yoloe-v8s-seg.pt")
+            >>> results = model.predict("path/to/image.jpg")
+            >>> 
+            >>> # With visual prompts
+            >>> prompts = {"bboxes": [[10, 20, 100, 200]], "cls": ["person"]}
+            >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts)
+        """
         if len(visual_prompts):
             assert "bboxes" in visual_prompts and "cls" in visual_prompts, (
                 f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"

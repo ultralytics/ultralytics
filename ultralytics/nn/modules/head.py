@@ -430,10 +430,7 @@ class LRPCHead(nn.Module):
     def __init__(self, vocab, pf, loc, enabled=True):
         """Initialize LRPCHead with vocabulary, proposal filter, and localization components."""
         super().__init__()
-        if enabled:
-            self.vocab = self.conv2linear(vocab)
-        else:
-            self.vocab = vocab
+        self.vocab = self.conv2linear(vocab) if enabled else vocab
         self.pf = pf
         self.loc = loc
         self.enabled = enabled
@@ -541,9 +538,7 @@ class YOLOEDetect(Detect):
 
     def get_tpe(self, tpe):
         """Get text prompt embeddings with normalization."""
-        if tpe is None:
-            return None
-        return F.normalize(self.reprta(tpe), dim=-1, p=2)
+        return None if tpe is None else F.normalize(self.reprta(tpe), dim=-1, p=2)
 
     def get_vpe(self, x, vpe):
         """Get visual prompt embeddings with spatial awareness."""

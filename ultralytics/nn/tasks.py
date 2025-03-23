@@ -935,7 +935,7 @@ class YOLOEModel(DetectionModel):
         if vpe is not None:
             assert vpe.ndim == 3
             all_pe.append(vpe)
-        if len(all_pe) == 0:
+        if not all_pe:
             all_pe.append(getattr(self, "pe", torch.zeros(1, 80, 512)))
         return torch.cat(all_pe, dim=1)
 

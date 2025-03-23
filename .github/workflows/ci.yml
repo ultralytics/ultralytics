@@ -247,7 +247,7 @@ jobs:
           python3.11 -m venv env
           source env/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
-      - uses: astral-sh/setup-uv@v4
+      - uses: astral-sh/setup-uv@v5
       - name: Install requirements
         run: |
           uv pip install -e ".[export]" pytest mlflow faster-coco-eval --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
@@ -317,7 +317,7 @@ jobs:
       - name: Install pip packages
         run: |
           # CoreML must be installed before export due to protobuf error from AutoInstall
-          pip install pytest "coremltools>=7.0; platform_system != 'Windows' and python_version <= '3.11'"
+          pip install pytest "coremltools>=8.0; platform_system != 'Windows' and python_version <= '3.12'"
       - name: Check environment
         run: |
           conda list

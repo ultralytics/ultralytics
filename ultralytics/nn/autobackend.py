@@ -78,7 +78,7 @@ class AutoBackend(nn.Module):
         model (torch.nn.Module): The loaded YOLO model.
         device (torch.device): The device (CPU or GPU) on which the model is loaded.
         task (str): The type of task the model performs (detect, segment, classify, pose).
-        names (Dict): A dictionary of class names that the model can detect.
+        names (dict): A dictionary of class names that the model can detect.
         stride (int): The model stride, typically 32 for YOLO models.
         fp16 (bool): Whether the model uses half-precision (FP16) inference.
 
@@ -185,6 +185,8 @@ class AutoBackend(nn.Module):
 
         # TorchScript
         elif jit:
+            import torchvision  # noqa - https://github.com/ultralytics/ultralytics/pull/19747
+
             LOGGER.info(f"Loading {w} for TorchScript inference...")
             extra_files = {"config.txt": ""}  # model metadata
             model = torch.jit.load(w, _extra_files=extra_files, map_location=device)
@@ -281,7 +283,7 @@ class AutoBackend(nn.Module):
         elif engine:
             LOGGER.info(f"Loading {w} for TensorRT inference...")
 
-            if IS_JETSON and PYTHON_VERSION <= "3.8.0":
+            if IS_JETSON and check_version(PYTHON_VERSION, "<=3.8.0"):
                 # fix error: `np.bool` was a deprecated alias for the builtin `bool` for JetPack 4 with Python <= 3.8.0
                 check_requirements("numpy==1.23.5")
 
@@ -552,7 +554,7 @@ class AutoBackend(nn.Module):
             im (torch.Tensor): The image tensor to perform inference on.
             augment (bool): Whether to perform data augmentation during inference. Defaults to False.
             visualize (bool): Whether to visualize the output predictions. Defaults to False.
-            embed (List, optional): A list of feature vectors/embeddings to return.
+            embed (list, optional): A list of feature vectors/embeddings to return.
 
         Returns:
             (torch.Tensor | List[torch.Tensor]): The raw output tensor(s) from the model.

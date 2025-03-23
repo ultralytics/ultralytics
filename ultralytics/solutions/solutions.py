@@ -22,7 +22,7 @@ class BaseSolution:
         LineString (shapely.geometry.LineString): Class for creating line string geometries.
         Polygon (shapely.geometry.Polygon): Class for creating polygon geometries.
         Point (shapely.geometry.Point): Class for creating point geometries.
-        CFG (Dict): Configuration dictionary loaded from a YAML file and updated with kwargs.
+        CFG (dict): Configuration dictionary loaded from a YAML file and updated with kwargs.
         region (List[Tuple[int, int]]): List of coordinate tuples defining a region of interest.
         line_width (int): Width of lines used in visualizations.
         model (ultralytics.YOLO): Loaded YOLO model instance.
@@ -712,7 +712,7 @@ class SolutionResults:
         filled_slots (int): The number of filled slots in a monitored area.
         email_sent (bool): A flag indicating whether an email notification was sent.
         total_tracks (int): The total number of tracked objects.
-        region_counts (Dict): The count of objects within a specific region.
+        region_counts (dict): The count of objects within a specific region.
         speed_dict (Dict[str, float]): A dictionary containing speed information for tracked objects.
         total_crop_objects (int): Total number of cropped objects using ObjectCropper class.
     """

@@ -16,10 +16,6 @@ on:
         type: boolean
         description: Use Dockerfile
         default: true
-      Dockerfile-nvidia-cuda:
-        type: boolean
-        description: Use Dockerfile-nvidia-cuda
-        default: true
       Dockerfile-cpu:
         type: boolean
         description: Use Dockerfile-cpu
@@ -63,10 +59,6 @@ jobs:
         include:
           - dockerfile: "Dockerfile"
             tags: "latest"
-            platforms: "linux/amd64"
-            runs_on: "ubuntu-latest"
-          - dockerfile: "Dockerfile-nvidia-cuda"
-            tags: "latest-nvidia-cuda"
             platforms: "linux/amd64"
             runs_on: "ubuntu-latest"
           - dockerfile: "Dockerfile-cpu"

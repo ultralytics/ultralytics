@@ -335,6 +335,34 @@ There are a couple of best practices to follow in order to enable maximum perfor
 
     When flashing Raspberry Pi OS, you can choose to not install the Desktop environment (Raspberry Pi OS Lite) and this can save a bit of RAM on the device, leaving more space for computer vision processing.
 
+3. Overclock Raspberry Pi 
+
+    If you want a little boost in performance while running Ultralytics YOLO11 models on Raspberry Pi 5, you can overclock the CPU from its base 2.4GHz to 2.9GHz and the GPU from 800MHz to 1GHz. If the system becomes unstable or crashes, reduce the overclock values by 100MHz increments. Ensure proper cooling is in place, as overclocking increases heat generation and may lead to thermal throttling.
+
+    a. Upgrade the software
+
+    ```sh
+    sudo apt update && sudo apt dist-upgrade
+    ```
+
+    b. Open to edit the configuration file
+
+    ```sh
+    sudo nano /boot/firmware/config.txt
+    ```
+
+    c. Add the following lines at the bottom
+
+    ```sh
+    arm_freq=3000
+    gpu_freq=1000
+    force_turbo=1
+    ```
+
+    d. Save and exit by pressing CTRL + X, then Y, and hit ENTER
+
+    e. Reboot the Raspberry Pi
+
 ## Next Steps
 
 Congratulations on successfully setting up YOLO on your Raspberry Pi! For further learning and support, visit [Ultralytics YOLO11 Docs](../index.md) and [Kashmir World Foundation](https://www.kashmirworldfoundation.org/).

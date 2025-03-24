@@ -44,7 +44,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
 # Install pip packages
 RUN pip install uv
-RUN uv pip install --system -e ".[export]" "albumentations>=1.4.6" pycocotools
+RUN uv pip install --system -e ".[export]" albumentations pycocotools "onnxruntime-gpu" tensorrt
 
 # Run exports to AutoInstall packages
 # Edge TPU export fails the first time so is run twice here

@@ -8,7 +8,7 @@ from ultralytics.models.yolo.detect import DetectionPredictor
 from ultralytics.models.yolo.segment import SegmentationPredictor
 
 
-class YOLOEVPPredictorMixin:
+class YOLOEVPDetectPredictor(DetectionPredictor):
     """
     A mixin class for YOLO-EVP (Enhanced Visual Prompting) predictors.
 
@@ -127,14 +127,7 @@ class YOLOEVPPredictorMixin:
             return self.model(im, vpe=self.prompts, return_vpe=True)
 
 
-# TODO: Implement additional functionality
-class YOLOEVPDetectPredictor(YOLOEVPPredictorMixin, DetectionPredictor):
-    """Predictor for YOLOE VP detection."""
-
-    pass
-
-
-class YOLOEVPSegPredictor(YOLOEVPPredictorMixin, SegmentationPredictor):
+class YOLOEVPSegPredictor(YOLOEVPDetectPredictor, SegmentationPredictor):
     """Predictor for YOLOE VP segmentation."""
 
     pass

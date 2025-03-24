@@ -1223,11 +1223,7 @@ class Exporter:
         if "C2f" not in self.model.__str__():
             raise ValueError("IMX export is only supported for YOLOv8n detection models")
         check_requirements(
-            (
-                "model-compression-toolkit<=2.3.0",
-                "sony-custom-layers<=0.2.0",
-                "imx500-converter[pt]<=3.16.1"
-            )
+            ("model-compression-toolkit<=2.3.0", "sony-custom-layers<=0.2.0", "imx500-converter[pt]<=3.16.1")
         )
 
         import model_compression_toolkit as mct

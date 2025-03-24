@@ -182,10 +182,10 @@ def check_version(
     Args:
         current (str): Current version or package name to get version from.
         required (str): Required version or range (in pip-style format).
-        name (str, optional): Name to be used in warning message.
-        hard (bool, optional): If True, raise an AssertionError if the requirement is not met.
-        verbose (bool, optional): If True, print warning message if requirement is not met.
-        msg (str, optional): Extra message to display if verbose.
+        name (str): Name to be used in warning message.
+        hard (bool): If True, raise an AssertionError if the requirement is not met.
+        verbose (bool): If True, print warning message if requirement is not met.
+        msg (str): Extra message to display if verbose.
 
     Returns:
         (bool): True if requirement is met, False otherwise.
@@ -307,7 +307,7 @@ def check_font(font="Arial.ttf"):
         font (str): Path or name of font.
 
     Returns:
-        file (Path): Resolved font file path.
+        (Path): Resolved font file path.
     """
     from matplotlib import font_manager
 
@@ -891,3 +891,4 @@ check_torchvision()  # check torch-torchvision compatibility
 # Define constants
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")
+IS_PYTHON_3_13 = PYTHON_VERSION.startswith("3.13")

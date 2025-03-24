@@ -11,11 +11,11 @@
 if [ "$#" -gt 0 ]; then
   for opt in "$@"; do
     case "${opt}" in
-    --train) train=true ;;
-    --val) val=true ;;
-    --test) test=true ;;
-    --segments) segments=true ;;
-    --sama) sama=true ;;
+      --train) train=true ;;
+      --val) val=true ;;
+      --test) test=true ;;
+      --segments) segments=true ;;
+      --sama) sama=true ;;
     esac
   done
 else

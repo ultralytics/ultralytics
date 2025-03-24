@@ -87,13 +87,13 @@ SOLUTIONS_HELP_MSG = f"""
                   at https://docs.ultralytics.com/usage/cfg
                 
     1. Call object counting solution
-        yolo solutions count source="path/to/video/file.mp4" region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
+        yolo solutions count source="path/to/video.mp4" region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
 
     2. Call heatmaps solution
         yolo solutions heatmap colormap=cv2.COLORMAP_PARULA model=yolo11n.pt
 
     3. Call queue management solution
-        yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)] model=yolo11n.pt
+        yolo solutions queue region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]" model=yolo11n.pt
 
     4. Call workouts monitoring solution for push-ups
         yolo solutions workout model=yolo11n-pose.pt kpts=[6, 8, 10]
@@ -102,7 +102,7 @@ SOLUTIONS_HELP_MSG = f"""
         yolo solutions analytics analytics_type="pie"
     
     6. Track objects within specific zones
-        yolo solutions trackzone source="path/to/video/file.mp4" region=[(150, 150), (1130, 150), (1130, 570), (150, 570)]
+        yolo solutions trackzone source="path/to/video.mp4" region="[(150, 150), (1130, 150), (1130, 570), (150, 570)]"
         
     7. Streamlit real-time webcam inference GUI
         yolo streamlit-predict
@@ -130,7 +130,7 @@ CLI_HELP_MSG = f"""
         yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
 
     5. Ultralytics solutions usage
-        yolo solutions count or in {list(SOLUTION_MAP.keys())[1:-1]} source="path/to/video/file.mp4"
+        yolo solutions count or in {list(SOLUTION_MAP.keys())[1:-1]} source="path/to/video.mp4"
 
     6. Run special commands:
         yolo help
@@ -251,7 +251,7 @@ def cfg2dict(cfg: Union[str, Path, Dict, SimpleNamespace]) -> Dict:
             a string, a dictionary, or a SimpleNamespace object.
 
     Returns:
-        (Dict): Configuration object in dictionary format.
+        (dict): Configuration object in dictionary format.
 
     Examples:
         Convert a YAML file path to a dictionary:
@@ -334,7 +334,7 @@ def check_cfg(cfg: Dict, hard: bool = True) -> None:
     `CFG_FRACTION_KEYS`, `CFG_INT_KEYS`, and `CFG_BOOL_KEYS`.
 
     Args:
-        cfg (Dict): Configuration dictionary to validate.
+        cfg (dict): Configuration dictionary to validate.
         hard (bool): If True, raises exceptions for invalid types and values; if False, attempts to convert them.
 
     Examples:
@@ -424,7 +424,7 @@ def _handle_deprecation(custom: Dict) -> Dict:
     Handles deprecated configuration keys by mapping them to current equivalents with deprecation warnings.
 
     Args:
-        custom (Dict): Configuration dictionary potentially containing deprecated keys.
+        custom (dict): Configuration dictionary potentially containing deprecated keys.
 
     Examples:
         >>> custom_config = {"boxes": True, "hide_labels": "False", "line_thickness": 2}
@@ -463,8 +463,8 @@ def check_dict_alignment(base: Dict, custom: Dict, e: Exception = None) -> None:
     messages for mismatched keys.
 
     Args:
-        base (Dict): The base configuration dictionary containing valid keys.
-        custom (Dict): The custom configuration dictionary to be checked for alignment.
+        base (dict): The base configuration dictionary containing valid keys.
+        custom (dict): The custom configuration dictionary to be checked for alignment.
         e (Exception | None): Optional error instance passed by the calling function.
 
     Raises:
@@ -643,7 +643,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
         >>> handle_yolo_solutions(["count"])
 
         Run analytics with custom configuration:
-        >>> handle_yolo_solutions(["analytics", "conf=0.25", "source=path/to/video/file.mp4"])
+        >>> handle_yolo_solutions(["analytics", "conf=0.25", "source=path/to/video.mp4"])
 
         Run inference with custom configuration, requires Streamlit version 1.29.0 or higher.
         >>> handle_yolo_solutions(["inference", "model=yolo11n.pt"])

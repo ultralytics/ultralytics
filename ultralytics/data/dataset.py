@@ -116,6 +116,7 @@ class YOLODataset(BaseDataset):
                     repeat(len(self.data["names"])),
                     repeat(nkpt),
                     repeat(ndim),
+                    repeat(self.single_cls),
                 ),
             )
             pbar = TQDM(results, desc=desc, total=total)
@@ -407,7 +408,7 @@ class GroundingDataset(YOLODataset):
             img_path (str): Path to the directory containing images.
 
         Returns:
-            (List): Empty list as image files are read in get_labels.
+            (list): Empty list as image files are read in get_labels.
         """
         return []
 
@@ -536,7 +537,7 @@ class ClassificationDataset:
     Attributes:
         cache_ram (bool): Indicates if caching in RAM is enabled.
         cache_disk (bool): Indicates if caching on disk is enabled.
-        samples (List): A list of tuples, each containing the path to an image, its class index, path to its .npy cache
+        samples (list): A list of tuples, each containing the path to an image, its class index, path to its .npy cache
                         file (if caching on disk), and optionally the loaded image array (if caching in RAM).
         torch_transforms (callable): PyTorch transforms to be applied to the images.
         root (str): Root directory of the dataset.
@@ -634,7 +635,7 @@ class ClassificationDataset:
         Verify all images in dataset.
 
         Returns:
-            (List): List of valid samples after verification.
+            (list): List of valid samples after verification.
         """
         desc = f"{self.prefix}Scanning {self.root}..."
         path = Path(self.root).with_suffix(".cache")  # *.cache file path

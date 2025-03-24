@@ -90,12 +90,12 @@ def autocast(enabled: bool, device: str = "cuda"):
     Returns:
         (torch.amp.autocast): The appropriate autocast context manager.
 
-    Note:
+    Notes:
         - For PyTorch versions 1.13 and newer, it uses `torch.amp.autocast`.
         - For older versions, it uses `torch.cuda.autocast`.
 
     Examples:
-        >>> with autocast(amp=True):
+        >>> with autocast(enabled=True):
         ...     # Your mixed precision operations here
         ...     pass
     """
@@ -130,7 +130,7 @@ def get_gpu_info(index):
 
 def select_device(device="", batch=0, newline=False, verbose=True):
     """
-    Selects the appropriate PyTorch device based on the provided arguments.
+    Select the appropriate PyTorch device based on the provided arguments.
 
     The function takes a string specifying the device or a torch.device object and returns a torch.device object
     representing the selected device. The function also validates the number of available devices and raises an
@@ -299,7 +299,18 @@ def fuse_deconv_and_bn(deconv, bn):
 
 
 def model_info(model, detailed=False, verbose=True, imgsz=640):
-    """Print and return detailed model information layer by layer."""
+    """
+    Print and return detailed model information layer by layer.
+
+    Args:
+        model (nn.Module): Model to analyze.
+        detailed (bool, optional): Whether to print detailed layer information. Defaults to False.
+        verbose (bool, optional): Whether to print model information. Defaults to True.
+        imgsz (int | List, optional): Input image size. Defaults to 640.
+
+    Returns:
+        (Tuple[int, int, int, float]): Number of layers, parameters, gradients, and GFLOPs.
+    """
     if not verbose:
         return
     n_p = get_num_params(model)  # number of parameters
@@ -343,6 +354,12 @@ def model_info_for_loggers(trainer):
     """
     Return model info dict with useful model information.
 
+    Args:
+        trainer (ultralytics.engine.trainer.BaseTrainer): The trainer object containing model and validation data.
+
+    Returns:
+        (dict): Dictionary containing model parameters, GFLOPs, and inference speeds.
+
     Examples:
         YOLOv8n info for loggers
         >>> results = {
@@ -368,7 +385,16 @@ def model_info_for_loggers(trainer):
 
 
 def get_flops(model, imgsz=640):
-    """Return a YOLO model's FLOPs."""
+    """
+    Return a YOLO model's FLOPs.
+
+    Args:
+        model (nn.Module): The model to calculate FLOPs for.
+        imgsz (int | List[int], optional): Input image size. Defaults to 640.
+
+    Returns:
+        (float): The model's FLOPs in billions.
+    """
     if not thop:
         return 0.0  # if not installed return 0.0 GFLOPs
 
@@ -392,7 +418,16 @@ def get_flops(model, imgsz=640):
 
 
 def get_flops_with_torch_profiler(model, imgsz=640):
-    """Compute model FLOPs (thop package alternative, but 2-10x slower unfortunately)."""
+    """
+    Compute model FLOPs using torch profiler (alternative to thop package, but 2-10x slower).
+
+    Args:
+        model (nn.Module): The model to calculate FLOPs for.
+        imgsz (int | List[int], optional): Input image size. Defaults to 640.
+
+    Returns:
+        (float): The model's FLOPs in billions.
+    """
     if not TORCH_2_0:  # torch profiler implemented in torch>=2.0
         return 0.0
     model = de_parallel(model)
@@ -430,7 +465,18 @@ def initialize_weights(model):
 
 
 def scale_img(img, ratio=1.0, same_shape=False, gs=32):
-    """Scales and pads an image tensor, optionally maintaining aspect ratio and padding to gs multiple."""
+    """
+    Scales and pads an image tensor, optionally maintaining aspect ratio and padding to gs multiple.
+
+    Args:
+        img (torch.Tensor): Input image tensor.
+        ratio (float, optional): Scaling ratio. Defaults to 1.0.
+        same_shape (bool, optional): Whether to maintain the same shape. Defaults to False.
+        gs (int, optional): Grid size for padding. Defaults to 32.
+
+    Returns:
+        (torch.Tensor): Scaled and padded image tensor.
+    """
     if ratio == 1.0:
         return img
     h, w = img.shape[2:]
@@ -442,7 +488,15 @@ def scale_img(img, ratio=1.0, same_shape=False, gs=32):
 
 
 def copy_attr(a, b, include=(), exclude=()):
-    """Copies attributes from object 'b' to object 'a', with options to include/exclude certain attributes."""
+    """
+    Copies attributes from object 'b' to object 'a', with options to include/exclude certain attributes.
+
+    Args:
+        a (object): Destination object to copy attributes to.
+        b (object): Source object to copy attributes from.
+        include (tuple, optional): Attributes to include. If empty, all attributes are included. Defaults to ().
+        exclude (tuple, optional): Attributes to exclude. Defaults to ().
+    """
     for k, v in b.__dict__.items():
         if (len(include) and k not in include) or k.startswith("_") or k in exclude:
             continue
@@ -451,7 +505,12 @@ def copy_attr(a, b, include=(), exclude=()):
 
 
 def get_latest_opset():
-    """Return the second-most recent ONNX opset version supported by this version of PyTorch, adjusted for maturity."""
+    """
+    Return the second-most recent ONNX opset version supported by this version of PyTorch, adjusted for maturity.
+
+    Returns:
+        (int): The ONNX opset version.
+    """
     if TORCH_1_13:
         # If the PyTorch>=1.13, dynamically compute the latest opset minus one using 'symbolic_opset'
         return max(int(k[14:]) for k in vars(torch.onnx) if "symbolic_opset" in k) - 1
@@ -461,27 +520,69 @@ def get_latest_opset():
 
 
 def intersect_dicts(da, db, exclude=()):
-    """Returns a dictionary of intersecting keys with matching shapes, excluding 'exclude' keys, using da values."""
+    """
+    Returns a dictionary of intersecting keys with matching shapes, excluding 'exclude' keys, using da values.
+
+    Args:
+        da (dict): First dictionary.
+        db (dict): Second dictionary.
+        exclude (tuple, optional): Keys to exclude. Defaults to ().
+
+    Returns:
+        (dict): Dictionary of intersecting keys with matching shapes.
+    """
     return {k: v for k, v in da.items() if k in db and all(x not in k for x in exclude) and v.shape == db[k].shape}
 
 
 def is_parallel(model):
-    """Returns True if model is of type DP or DDP."""
+    """
+    Returns True if model is of type DP or DDP.
+
+    Args:
+        model (nn.Module): Model to check.
+
+    Returns:
+        (bool): True if model is DataParallel or DistributedDataParallel.
+    """
     return isinstance(model, (nn.parallel.DataParallel, nn.parallel.DistributedDataParallel))
 
 
 def de_parallel(model):
-    """De-parallelize a model: returns single-GPU model if model is of type DP or DDP."""
+    """
+    De-parallelize a model: returns single-GPU model if model is of type DP or DDP.
+
+    Args:
+        model (nn.Module): Model to de-parallelize.
+
+    Returns:
+        (nn.Module): De-parallelized model.
+    """
     return model.module if is_parallel(model) else model
 
 
 def one_cycle(y1=0.0, y2=1.0, steps=100):
-    """Returns a lambda function for sinusoidal ramp from y1 to y2 https://arxiv.org/pdf/1812.01187.pdf."""
+    """
+    Returns a lambda function for sinusoidal ramp from y1 to y2 https://arxiv.org/pdf/1812.01187.pdf.
+
+    Args:
+        y1 (float, optional): Initial value. Defaults to 0.0.
+        y2 (float, optional): Final value. Defaults to 1.0.
+        steps (int, optional): Number of steps. Defaults to 100.
+
+    Returns:
+        (function): Lambda function for computing the sinusoidal ramp.
+    """
     return lambda x: max((1 - math.cos(x * math.pi / steps)) / 2, 0) * (y2 - y1) + y1
 
 
 def init_seeds(seed=0, deterministic=False):
-    """Initialize random number generator (RNG) seeds https://pytorch.org/docs/stable/notes/randomness.html."""
+    """
+    Initialize random number generator (RNG) seeds https://pytorch.org/docs/stable/notes/randomness.html.
+
+    Args:
+        seed (int, optional): Random seed. Defaults to 0.
+        deterministic (bool, optional): Whether to set deterministic algorithms. Defaults to False.
+    """
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -510,16 +611,30 @@ def unset_deterministic():
 
 class ModelEMA:
     """
-    Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models. Keeps a moving
-    average of everything in the model state_dict (parameters and buffers).
+    Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models.
 
+    Keeps a moving average of everything in the model state_dict (parameters and buffers).
     For EMA details see https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
 
     To disable EMA set the `enabled` attribute to `False`.
+
+    Attributes:
+        ema (nn.Module): Copy of the model in evaluation mode.
+        updates (int): Number of EMA updates.
+        decay (function): Decay function that determines the EMA weight.
+        enabled (bool): Whether EMA is enabled.
     """
 
     def __init__(self, model, decay=0.9999, tau=2000, updates=0):
-        """Initialize EMA for 'model' with given arguments."""
+        """
+        Initialize EMA for 'model' with given arguments.
+
+        Args:
+            model (nn.Module): Model to create EMA for.
+            decay (float, optional): Maximum EMA decay rate. Defaults to 0.9999.
+            tau (int, optional): EMA decay time constant. Defaults to 2000.
+            updates (int, optional): Initial number of updates. Defaults to 0.
+        """
         self.ema = deepcopy(de_parallel(model)).eval()  # FP32 EMA
         self.updates = updates  # number of EMA updates
         self.decay = lambda x: decay * (1 - math.exp(-x / tau))  # decay exponential ramp (to help early epochs)
@@ -528,7 +643,12 @@ class ModelEMA:
         self.enabled = True
 
     def update(self, model):
-        """Update EMA parameters."""
+        """
+        Update EMA parameters.
+
+        Args:
+            model (nn.Module): Model to update EMA from.
+        """
         if self.enabled:
             self.updates += 1
             d = self.decay(self.updates)
@@ -541,7 +661,14 @@ class ModelEMA:
                     # assert v.dtype == msd[k].dtype == torch.float32, f'{k}: EMA {v.dtype},  model {msd[k].dtype}'
 
     def update_attr(self, model, include=(), exclude=("process_group", "reducer")):
-        """Updates attributes and saves stripped model with optimizer removed."""
+        """
+        Updates attributes and saves stripped model with optimizer removed.
+
+        Args:
+            model (nn.Module): Model to update attributes from.
+            include (tuple, optional): Attributes to include. Defaults to ().
+            exclude (tuple, optional): Attributes to exclude. Defaults to ("process_group", "reducer").
+        """
         if self.enabled:
             copy_attr(self.ema, model, include, exclude)
 
@@ -551,9 +678,9 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
     Strip optimizer from 'f' to finalize training, optionally save as 's'.
 
     Args:
-        f (str): file path to model to strip the optimizer from. Default is 'best.pt'.
-        s (str): file path to save the model with stripped optimizer to. If not provided, 'f' will be overwritten.
-        updates (dict): a dictionary of updates to overlay onto the checkpoint before saving.
+        f (str | Path): File path to model to strip the optimizer from. Defaults to 'best.pt'.
+        s (str, optional): File path to save the model with stripped optimizer to. If not provided, 'f' will be overwritten.
+        updates (dict, optional): A dictionary of updates to overlay onto the checkpoint before saving.
 
     Returns:
         (dict): The combined checkpoint dictionary.
@@ -563,9 +690,6 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
         >>> from ultralytics.utils.torch_utils import strip_optimizer
         >>> for f in Path("path/to/model/checkpoints").rglob("*.pt"):
         >>>    strip_optimizer(f)
-
-    Note:
-        Use `ultralytics.nn.torch_safe_load` for missing modules with `x = torch_safe_load(f)[0]`
     """
     try:
         x = torch.load(f, map_location=torch.device("cpu"))
@@ -613,7 +737,11 @@ def convert_optimizer_state_dict_to_fp16(state_dict):
     """
     Converts the state_dict of a given optimizer to FP16, focusing on the 'state' key for tensor conversions.
 
-    This method aims to reduce storage size without altering 'param_groups' as they contain non-tensor data.
+    Args:
+        state_dict (dict): Optimizer state dictionary.
+
+    Returns:
+        (dict): Converted optimizer state dictionary with FP16 tensors.
     """
     for state in state_dict["state"].values():
         for k, v in state.items():
@@ -652,6 +780,16 @@ def cuda_memory_usage(device=None):
 def profile(input, ops, n=10, device=None, max_num_obj=0):
     """
     Ultralytics speed, memory and FLOPs profiler.
+
+    Args:
+        input (torch.Tensor | List[torch.Tensor]): Input tensor(s) to profile.
+        ops (nn.Module | List[nn.Module]): Model or list of operations to profile.
+        n (int, optional): Number of iterations to average. Defaults to 10.
+        device (str | torch.device, optional): Device to profile on. Defaults to None.
+        max_num_obj (int, optional): Maximum number of objects for simulation. Defaults to 0.
+
+    Returns:
+        (list): Profile results for each operation.
 
     Examples:
         >>> from ultralytics.utils.torch_utils import profile
@@ -721,7 +859,15 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
 
 
 class EarlyStopping:
-    """Early stopping class that stops training when a specified number of epochs have passed without improvement."""
+    """
+    Early stopping class that stops training when a specified number of epochs have passed without improvement.
+
+    Attributes:
+        best_fitness (float): Best fitness value observed.
+        best_epoch (int): Epoch where best fitness was observed.
+        patience (int): Number of epochs to wait after fitness stops improving before stopping.
+        possible_stop (bool): Flag indicating if stopping may occur next epoch.
+    """
 
     def __init__(self, patience=50):
         """
@@ -770,11 +916,12 @@ class FXModel(nn.Module):
     """
     A custom model class for torch.fx compatibility.
 
-    This class extends `torch.nn.Module` and is designed to ensure compatibility with torch.fx for tracing and graph manipulation.
-    It copies attributes from an existing model and explicitly sets the model attribute to ensure proper copying.
+    This class extends `torch.nn.Module` and is designed to ensure compatibility with torch.fx for tracing and graph
+    manipulation. It copies attributes from an existing model and explicitly sets the model attribute to ensure proper
+    copying.
 
-    Args:
-        model (torch.nn.Module): The original model to wrap for torch.fx compatibility.
+    Attributes:
+        model (nn.Module): The original model's layers.
     """
 
     def __init__(self, model):
@@ -782,7 +929,7 @@ class FXModel(nn.Module):
         Initialize the FXModel.
 
         Args:
-            model (torch.nn.Module): The original model to wrap for torch.fx compatibility.
+            model (nn.Module): The original model to wrap for torch.fx compatibility.
         """
         super().__init__()
         copy_attr(self, model)
@@ -793,7 +940,8 @@ class FXModel(nn.Module):
         """
         Forward pass through the model.
 
-        This method performs the forward pass through the model, handling the dependencies between layers and saving intermediate outputs.
+        This method performs the forward pass through the model, handling the dependencies between layers and saving
+        intermediate outputs.
 
         Args:
             x (torch.Tensor): The input tensor to the model.

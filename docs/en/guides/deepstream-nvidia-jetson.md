@@ -245,8 +245,8 @@ If you want to use INT8 precision for inference, you need to follow the steps be
 5.  Run the following to select 1000 random images from COCO dataset to run calibration
 
     ```bash
-    for jpg in $(ls -1 val2017/*.jpg | sort -R | head -1000); do \
-        cp ${jpg} calibration/; \
+    for jpg in $(ls -1 val2017/*.jpg | sort -R | head -1000); do
+      cp ${jpg} calibration/
     done
     ```
 
@@ -319,10 +319,10 @@ To set up multiple streams under a single deepstream application, you can do the
     [source0]
     enable=1
     type=3
-    uri=<path_to_video>
-    uri=<path_to_video>
-    uri=<path_to_video>
-    uri=<path_to_video>
+    uri=path/to/video1.jpg
+    uri=path/to/video2.jpg
+    uri=path/to/video3.jpg
+    uri=path/to/video4.jpg
     num-sources=4
     ```
 
@@ -358,7 +358,7 @@ The following benchmarks summarizes how YOLO11 models perform at different Tenso
 
         | Format          | Status | Inference time (ms/im) |
         |-----------------|--------|------------------------|
-        | TensorRT (FP32) | ✅      | 14.53                   |
+        | TensorRT (FP32) | ✅      | 14.53                  |
         | TensorRT (FP16) | ✅      | 7.91                   |
         | TensorRT (INT8) | ✅      | 6.05                   |
 
@@ -366,25 +366,25 @@ The following benchmarks summarizes how YOLO11 models perform at different Tenso
 
         | Format          | Status | Inference time (ms/im) |
         |-----------------|--------|------------------------|
-        | TensorRT (FP32) | ✅      | 32.05                   |
-        | TensorRT (FP16) | ✅      | 15.55                   |
-        | TensorRT (INT8) | ✅      | 10.43                   |
+        | TensorRT (FP32) | ✅      | 32.05                  |
+        | TensorRT (FP16) | ✅      | 15.55                  |
+        | TensorRT (INT8) | ✅      | 10.43                  |
 
     === "YOLO11l"
 
         | Format          | Status | Inference time (ms/im) |
         |-----------------|--------|------------------------|
-        | TensorRT (FP32) | ✅      | 39.68                   |
-        | TensorRT (FP16) | ✅      | 19.88                   |
-        | TensorRT (INT8) | ✅      | 13.64                   |
+        | TensorRT (FP32) | ✅      | 39.68                  |
+        | TensorRT (FP16) | ✅      | 19.88                  |
+        | TensorRT (INT8) | ✅      | 13.64                  |
 
     === "YOLO11x"
 
         | Format          | Status | Inference time (ms/im) |
         |-----------------|--------|------------------------|
-        | TensorRT (FP32) | ✅      | 80.65                   |
-        | TensorRT (FP16) | ✅      | 39.06                   |
-        | TensorRT (INT8) | ✅      | 22.83                   |
+        | TensorRT (FP32) | ✅      | 80.65                  |
+        | TensorRT (FP16) | ✅      | 39.06                  |
+        | TensorRT (INT8) | ✅      | 22.83                  |
 
 ## Acknowledgements
 

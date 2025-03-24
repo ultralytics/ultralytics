@@ -10,7 +10,7 @@ keywords: Ultralytics, utilities, data processing, auto annotation, YOLO, datase
   <img src="https://github.com/ultralytics/docs/releases/download/0/code-with-perspective.avif" alt="code with perspective">
 </p>
 
-The `ultralytics` package comes with a myriad of utilities that can support, enhance, and speed up your workflows. There are many more available, but here are some that will be useful for most developers. They're also a great reference point to use when learning to program.
+The `ultralytics` package provides a variety of utilities to support, enhance, and accelerate your workflows. While there are many more available, this guide highlights some of the most useful ones for developers, serving as a practical reference for programming with Ultralytics tools.
 
 <p align="center">
   <br>
@@ -27,9 +27,9 @@ The `ultralytics` package comes with a myriad of utilities that can support, enh
 
 ### Auto Labeling / Annotations
 
-Dataset annotation is a very resource intensive and time-consuming process. If you have a YOLO [object detection](https://www.ultralytics.com/glossary/object-detection) model trained on a reasonable amount of data, you can use it and [SAM](../models/sam.md) to auto-annotate additional data (segmentation format).
+Dataset annotation is a resource-intensive and time-consuming process. If you have an Ultralytics YOLO [object detection](https://www.ultralytics.com/glossary/object-detection) model trained on a reasonable amount of data, you can use it with [SAM](../models/sam.md) to auto-annotate additional data in segmentation format.
 
-```{ .py .annotate }
+```python
 from ultralytics.data.annotator import auto_annotate
 
 auto_annotate(
@@ -41,16 +41,16 @@ auto_annotate(
 )
 ```
 
-This function does not return any value. For further details on how the function operates:
+This function does not return any value. For further details:
 
-- [See the reference section for `annotator.auto_annotate`](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for more insight on how the function operates.
-- Use in combination with the [function `segments2boxes`](#convert-segments-to-bounding-boxes) to generate object detection bounding boxes as well
+- See the [reference section for `annotator.auto_annotate`](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for more insight on how the function operates.
+- Use in combination with the [function `segments2boxes`](#convert-segments-to-bounding-boxes) to generate object detection bounding boxes as well.
 
 ### Visualize Dataset Annotations
 
 This function visualizes YOLO annotations on an image before training, helping to identify and correct any wrong annotations that could lead to incorrect detection results. It draws bounding boxes, labels objects with class names, and adjusts text color based on the background's luminance for better readability.
 
-```{ .py .annotate }
+```python
 from ultralytics.data.utils import visualize_image_annotations
 
 label_map = {  # Define the label map with all annotated class labels.
@@ -70,8 +70,7 @@ visualize_image_annotations(
 
 ![Segmentation Masks to YOLO Format](https://github.com/ultralytics/docs/releases/download/0/segmentation-masks-to-yolo-format.avif)
 
-Use to convert a dataset of segmentation mask images to the [`YOLO`](../models/yolo11.md) segmentation format.
-This function takes the directory containing the binary format mask images and converts them into YOLO segmentation format.
+Use this to convert a dataset of segmentation mask images to the [Ultralytics YOLO](../models/yolo11.md) segmentation format. This function takes the directory containing the binary format mask images and converts them into YOLO segmentation format.
 
 The converted masks will be saved in the specified output directory.
 
@@ -85,12 +84,12 @@ convert_segment_masks_to_yolo_seg(masks_dir="path/to/masks_dir", output_dir="pat
 
 ### Convert COCO into YOLO Format
 
-Use to convert COCO JSON annotations into proper YOLO format. For object detection (bounding box) datasets, `use_segments` and `use_keypoints` should both be `False`
+Use this to convert [COCO](https://docs.ultralytics.com/datasets/detect/coco) JSON annotations into the YOLO format. For object detection (bounding box) datasets, set both `use_segments` and `use_keypoints` to `False`.
 
-```{ .py .annotate }
+```python
 from ultralytics.data.converter import convert_coco
 
-convert_coco(  # (1)!
+convert_coco(
     "../datasets/coco/annotations/",
     use_segments=False,
     use_keypoints=False,
@@ -98,21 +97,20 @@ convert_coco(  # (1)!
 )
 ```
 
-1. Nothing returns from this function
+For additional information about the `convert_coco` function, [visit the reference page](../reference/data/converter.md#ultralytics.data.converter.convert_coco).
 
-For additional information about the `convert_coco` function, [visit the reference page](../reference/data/converter.md#ultralytics.data.converter.convert_coco)
+### Get Bounding Box Dimensions
 
-### Get [Bounding Box](https://www.ultralytics.com/glossary/bounding-box) Dimensions
-
-```{.py .annotate }
-from ultralytics.utils.plotting import Annotator
-from ultralytics import YOLO
+```python
 import cv2
 
-model = YOLO('yolo11n.pt')  # Load pretrain or fine-tune model
+from ultralytics import YOLO
+from ultralytics.utils.plotting import Annotator
+
+model = YOLO("yolo11n.pt")  # Load pretrain or fine-tune model
 
 # Process the image
-source = cv2.imread('path/to/image.jpg')
+source = cv2.imread("path/to/image.jpg")
 results = model(source)
 
 # Extract results
@@ -120,13 +118,12 @@ annotator = Annotator(source, example=model.names)
 
 for box in results[0].boxes.xyxy.cpu():
     width, height, area = annotator.get_bbox_dimension(box)
-    print("Bounding Box Width {}, Height {}, Area {}".format(
-        width.item(), height.item(), area.item()))
+    print(f"Bounding Box Width {width.item()}, Height {height.item()}, Area {area.item()}")
 ```
 
 ### Convert Bounding Boxes to Segments
 
-With existing `x y w h` bounding box data, convert to segments using the `yolo_bbox2segment` function. The files for images and annotations need to be organized like this:
+With existing `x y w h` bounding box data, convert to segments using the `yolo_bbox2segment` function. Organize the files for images and annotations as follows:
 
 ```
 data
@@ -142,23 +139,21 @@ data
     └─ NNN.txt
 ```
 
-```{ .py .annotate }
+```python
 from ultralytics.data.converter import yolo_bbox2segment
 
-yolo_bbox2segment(  # (1)!
+yolo_bbox2segment(
     im_dir="path/to/images",
     save_dir=None,  # saved to "labels-segment" in images directory
     sam_model="sam_b.pt",
 )
 ```
 
-1. Nothing returns from this function
-
 [Visit the `yolo_bbox2segment` reference page](../reference/data/converter.md#ultralytics.data.converter.yolo_bbox2segment) for more information regarding the function.
 
 ### Convert Segments to Bounding Boxes
 
-If you have a dataset that uses the [segmentation dataset format](../datasets/segment/index.md) you can easily convert these into up-right (or horizontal) bounding boxes (`x y w h` format) with this function.
+If you have a dataset that uses the [segmentation dataset format](../datasets/segment/index.md), you can easily convert these into upright (or horizontal) bounding boxes (`x y w h` format) with this function.
 
 ```python
 import numpy as np
@@ -180,50 +175,46 @@ segments2boxes([s.reshape(-1, 2) for s in segments])
 #           dtype=float32) # xywh bounding boxes
 ```
 
-To understand how this function works, visit the [reference page](../reference/utils/ops.md#ultralytics.utils.ops.segments2boxes)
+To understand how this function works, visit the [reference page](../reference/utils/ops.md#ultralytics.utils.ops.segments2boxes).
 
 ## Utilities
 
 ### Image Compression
 
-Compresses a single image file to reduced size while preserving its aspect ratio and quality. If the input image is smaller than the maximum dimension, it will not be resized.
+Compress a single image file to a reduced size while preserving its aspect ratio and quality. If the input image is smaller than the maximum dimension, it will not be resized.
 
-```{ .py .annotate }
+```python
 from pathlib import Path
 
 from ultralytics.data.utils import compress_one_image
 
 for f in Path("path/to/dataset").rglob("*.jpg"):
-    compress_one_image(f)  # (1)!
+    compress_one_image(f)
 ```
-
-1. Nothing returns from this function
 
 ### Auto-split Dataset
 
-Automatically split a dataset into `train`/`val`/`test` splits and save the resulting splits into `autosplit_*.txt` files. This function will use random sampling, which is not included when using [`fraction` argument for training](../modes/train.md#train-settings).
+Automatically split a dataset into `train`/`val`/`test` splits and save the resulting splits into `autosplit_*.txt` files. This function uses random sampling, which is excluded when using the [`fraction` argument for training](../modes/train.md#train-settings).
 
-```{ .py .annotate }
+```python
 from ultralytics.data.utils import autosplit
 
-autosplit(  # (1)!
+autosplit(
     path="path/to/images",
     weights=(0.9, 0.1, 0.0),  # (train, validation, test) fractional splits
     annotated_only=False,  # split only images with annotation file when True
 )
 ```
 
-1. Nothing returns from this function
-
 See the [Reference page](../reference/data/utils.md#ultralytics.data.utils.autosplit) for additional details on this function.
 
 ### Segment-polygon to Binary Mask
 
-Convert a single polygon (as list) to a binary mask of the specified image size. Polygon in the form of `[N, 2]` with `N` as the number of `(x, y)` points defining the polygon contour.
+Convert a single polygon (as a list) to a binary mask of the specified image size. The polygon should be in the form of `[N, 2]`, where `N` is the number of `(x, y)` points defining the polygon contour.
 
 !!! warning
 
-    `N` <b><u>must always</b></u> be even.
+    `N` **must always** be even.
 
 ```python
 import numpy as np
@@ -243,9 +234,9 @@ mask = polygon2mask(
 
 ## Bounding Boxes
 
-### Bounding Box (horizontal) Instances
+### Bounding Box (Horizontal) Instances
 
-To manage bounding box data, the `Bboxes` class will help to convert between box coordinate formatting, scale box dimensions, calculate areas, include offsets, and more!
+To manage bounding box data, the `Bboxes` class helps convert between box coordinate formats, scale box dimensions, calculate areas, include offsets, and more.
 
 ```python
 import numpy as np
@@ -281,17 +272,17 @@ print(boxes.bboxes)
 # )
 ```
 
-See the [`Bboxes` reference section](../reference/utils/instance.md#ultralytics.utils.instance.Bboxes) for more attributes and methods available.
+See the [`Bboxes` reference section](../reference/utils/instance.md#ultralytics.utils.instance.Bboxes) for more attributes and methods.
 
 !!! tip
 
-    Many of the following functions (and more) can be accessed using the [`Bboxes` class](#bounding-box-horizontal-instances) but if you prefer to work with the functions directly, see the next subsections on how to import these independently.
+    Many of the following functions (and more) can be accessed using the [`Bboxes` class](#bounding-box-horizontal-instances), but if you prefer to work with the functions directly, see the next subsections for how to import them independently.
 
 ### Scaling Boxes
 
-When scaling and image up or down, corresponding bounding box coordinates can be appropriately scaled to match using `ultralytics.utils.ops.scale_boxes`.
+When scaling an image up or down, you can appropriately scale corresponding bounding box coordinates to match using `ultralytics.utils.ops.scale_boxes`.
 
-```{ .py .annotate }
+```python
 import cv2 as cv
 import numpy as np
 
@@ -322,7 +313,7 @@ new_boxes = scale_boxes(
     xywh=False,
 )
 
-print(new_boxes)  # (1)!
+print(new_boxes)
 # >>> array(
 #     [[  27.454,  277.52,  965.98,   908.2],
 #     [   58.262,  478.27,  294.42,  1083.3],
@@ -333,13 +324,11 @@ print(new_boxes)  # (1)!
 # )
 ```
 
-1. Bounding boxes scaled for the new image size
-
 ### Bounding Box Format Conversions
 
 #### XYXY → XYWH
 
-Convert bounding box coordinates from (x1, y1, x2, y2) format to (x, y, width, height) format where (x1, y1) is the top-left corner and (x2, y2) is the bottom-right corner.
+Convert bounding box coordinates from (x1, y1, x2, y2) format to (x, y, width, height) format, where (x1, y1) is the top-left corner and (x2, y2) is the bottom-right corner.
 
 ```python
 import numpy as np
@@ -386,109 +375,109 @@ for func in (ltwh2xywh, ltwh2xyxy, xywh2ltwh, xywh2xyxy, xywhn2xyxy, xyxy2ltwh, 
     print(help(func))  # print function docstrings
 ```
 
-See docstring for each function or visit the `ultralytics.utils.ops` [reference page](../reference/utils/ops.md) to read more about each function.
+See the docstring for each function or visit the `ultralytics.utils.ops` [reference page](../reference/utils/ops.md) to read more.
 
 ## Plotting
 
 ### Drawing Annotations
 
-Ultralytics includes an Annotator class that can be used to annotate any kind of data. It's easiest to use with [object detection bounding boxes](../modes/predict.md#boxes), [pose key points](../modes/predict.md#keypoints), and [oriented bounding boxes](../modes/predict.md#obb).
+Ultralytics includes an `Annotator` class for annotating various data types. It's best used with [object detection bounding boxes](../modes/predict.md#boxes), [pose keypoints](../modes/predict.md#keypoints), and [oriented bounding boxes](../modes/predict.md#obb).
 
 #### Ultralytics Sweep Annotation
 
-!!! example "Python Examples using YOLO11 🚀"
+!!! example "Python Examples using Ultralytics YOLO 🚀"
 
     === "Python"
 
-    ```python
-    import cv2
+        ```python
+        import cv2
 
-    from ultralytics import YOLO
-    from ultralytics.solutions.solutions import SolutionAnnotator
-    from ultralytics.utils.plotting import colors
+        from ultralytics import YOLO
+        from ultralytics.solutions.solutions import SolutionAnnotator
+        from ultralytics.utils.plotting import colors
 
-    # User defined video path and model file
-    cap = cv2.VideoCapture("Path/to/video/file.mp4")
-    model = YOLO(model="yolo11s-seg.pt")  # Model file i.e. yolo11s.pt or yolo11m-seg.pt
+        # User defined video path and model file
+        cap = cv2.VideoCapture("path/to/video.mp4")
+        model = YOLO(model="yolo11s-seg.pt")  # Model file i.e. yolo11s.pt or yolo11m-seg.pt
 
-    if not cap.isOpened():
-        print("Error: Could not open video.")
-        exit()
+        if not cap.isOpened():
+            print("Error: Could not open video.")
+            exit()
 
-    # Initialize the video writer object.
-    w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-    video_writer = cv2.VideoWriter("ultralytics.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+        # Initialize the video writer object.
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+        video_writer = cv2.VideoWriter("ultralytics.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-    masks = None  # Initialize variable to store masks data
-    f = 0  # Initialize frame count variable for enabling mouse event.
-    line_x = w  # Store width of line.
-    dragging = False  # Initialize bool variable for line dragging.
-    classes = model.names  # Store model classes names for plotting.
-    window_name = "Ultralytics Sweep Annotator"
-
-
-    def drag_line(event, x, y, flags, param):  # Mouse callback for dragging line.
-        global line_x, dragging
-        if event == cv2.EVENT_LBUTTONDOWN or (flags & cv2.EVENT_FLAG_LBUTTON):
-            line_x = max(0, min(x, w))
-            dragging = True
+        masks = None  # Initialize variable to store masks data
+        f = 0  # Initialize frame count variable for enabling mouse event.
+        line_x = w  # Store width of line.
+        dragging = False  # Initialize bool variable for line dragging.
+        classes = model.names  # Store model classes names for plotting.
+        window_name = "Ultralytics Sweep Annotator"
 
 
-    while cap.isOpened():  # Loop over the video capture object.
-        ret, im0 = cap.read()
-        if not ret:
-            break
-        f = f + 1  # Increment frame count.
-        count = 0  # Re-initialize count variable on every frame for precise counts.
-        annotator = SolutionAnnotator(im0)
-        results = model.track(im0, persist=True)  # Track objects using track method.
-        if f == 1:
-            cv2.namedWindow(window_name)
-            cv2.setMouseCallback(window_name, drag_line)
+        def drag_line(event, x, y, flags, param):  # Mouse callback for dragging line.
+            global line_x, dragging
+            if event == cv2.EVENT_LBUTTONDOWN or (flags & cv2.EVENT_FLAG_LBUTTON):
+                line_x = max(0, min(x, w))
+                dragging = True
 
-        if results[0].boxes.id is not None:
-            if results[0].masks is not None:
-                masks = results[0].masks.xy
-            track_ids = results[0].boxes.id.int().cpu().tolist()
-            clss = results[0].boxes.cls.cpu().tolist()
-            boxes = results[0].boxes.xyxy.cpu()
 
-            for mask, box, cls, t_id in zip(masks or [None] * len(boxes), boxes, clss, track_ids):
-                color = colors(t_id, True)  # Assign different color to each tracked object.
-                if mask is not None and mask.size > 0:
-                    # If you want to overlay the masks
-                    # mask[:, 0] = np.clip(mask[:, 0], line_x, w)
-                    # mask_img = cv2.fillPoly(im0.copy(), [mask.astype(int)], color)
-                    # cv2.addWeighted(mask_img, 0.5, im0, 0.5, 0, im0)
+        while cap.isOpened():  # Loop over the video capture object.
+            ret, im0 = cap.read()
+            if not ret:
+                break
+            f = f + 1  # Increment frame count.
+            count = 0  # Re-initialize count variable on every frame for precise counts.
+            annotator = SolutionAnnotator(im0)
+            results = model.track(im0, persist=True)  # Track objects using track method.
+            if f == 1:
+                cv2.namedWindow(window_name)
+                cv2.setMouseCallback(window_name, drag_line)
 
-                    if box[0] > line_x:
-                        count += 1
-                        annotator.seg_bbox(mask=mask, mask_color=color, label=str(classes[cls]))
-                else:
-                    if box[0] > line_x:
-                        count += 1
-                        annotator.box_label(box=box, color=color, label=str(classes[cls]))
+            if results[0].boxes.id is not None:
+                if results[0].masks is not None:
+                    masks = results[0].masks.xy
+                track_ids = results[0].boxes.id.int().cpu().tolist()
+                clss = results[0].boxes.cls.cpu().tolist()
+                boxes = results[0].boxes.xyxy.cpu()
 
-        annotator.sweep_annotator(line_x=line_x, line_y=h, label=f"COUNT:{count}")  # Display the sweep
-        cv2.imshow(window_name, im0)
-        video_writer.write(im0)
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
+                for mask, box, cls, t_id in zip(masks or [None] * len(boxes), boxes, clss, track_ids):
+                    color = colors(t_id, True)  # Assign different color to each tracked object.
+                    if mask is not None and mask.size > 0:
+                        # If you want to overlay the masks
+                        # mask[:, 0] = np.clip(mask[:, 0], line_x, w)
+                        # mask_img = cv2.fillPoly(im0.copy(), [mask.astype(int)], color)
+                        # cv2.addWeighted(mask_img, 0.5, im0, 0.5, 0, im0)
 
-    cap.release()  # Release the video capture.
-    video_writer.release()  # Release the video writer.
-    cv2.destroyAllWindows()  # Destroy all opened windows.
-    ```
+                        if box[0] > line_x:
+                            count += 1
+                            annotator.seg_bbox(mask=mask, mask_color=color, label=str(classes[cls]))
+                    else:
+                        if box[0] > line_x:
+                            count += 1
+                            annotator.box_label(box=box, color=color, label=str(classes[cls]))
+
+            annotator.sweep_annotator(line_x=line_x, line_y=h, label=f"COUNT:{count}")  # Display the sweep
+            cv2.imshow(window_name, im0)
+            video_writer.write(im0)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+
+        cap.release()  # Release the video capture.
+        video_writer.release()  # Release the video writer.
+        cv2.destroyAllWindows()  # Destroy all opened windows.
+        ```
 
 #### Horizontal Bounding Boxes
 
-```{ .py .annotate }
+```python
 import cv2 as cv
 import numpy as np
 
 from ultralytics.utils.plotting import Annotator, colors
 
-names = {  # (1)!
+names = {
     0: "person",
     5: "bus",
     11: "stop sign",
@@ -522,7 +511,7 @@ for nb, box in enumerate(xyxy_boxes):
 image_with_bboxes = ann.result()
 ```
 
-1. Names can be used from `model.names` when [working with detection results](../modes/predict.md#working-with-results)
+Names can be used from `model.names` when [working with detection results](../modes/predict.md#working-with-results).
 
 #### Oriented Bounding Boxes (OBB)
 
@@ -584,7 +573,7 @@ from ultralytics.utils.plotting import colors
 
 model = YOLO("yolo11s.pt")
 names = model.names
-cap = cv2.VideoCapture("path/to/video/file.mp4")
+cap = cv2.VideoCapture("path/to/video.mp4")
 
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 writer = cv2.VideoWriter("Ultralytics circle annotation.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
@@ -624,7 +613,7 @@ from ultralytics.utils.plotting import colors
 
 model = YOLO("yolo11s.pt")
 names = model.names
-cap = cv2.VideoCapture("path/to/video/file.mp4")
+cap = cv2.VideoCapture("path/to/video.mp4")
 
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 writer = cv2.VideoWriter("Ultralytics text annotation.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
@@ -659,7 +648,7 @@ See the [`Annotator` Reference Page](../reference/utils/plotting.md#ultralytics.
 
 ### Code Profiling
 
-Check duration for code to run/process either using `with` or as a decorator.
+Check the duration for code to run/process either using `with` or as a decorator.
 
 ```python
 from ultralytics.utils.ops import Profile
@@ -673,7 +662,7 @@ print(dt)
 
 ### Ultralytics Supported Formats
 
-Want or need to use the formats of [images or videos types supported](../modes/predict.md#image-and-video-formats) by Ultralytics programmatically? Use these constants if you need.
+Need to programmatically use the supported [image or video formats](../modes/predict.md#image-and-video-formats) in Ultralytics? Use these constants if needed:
 
 ```python
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
@@ -687,7 +676,7 @@ print(VID_FORMATS)
 
 ### Make Divisible
 
-Calculates the nearest whole number to `x` to make evenly divisible when divided by `y`.
+Calculate the nearest whole number to `x` that is evenly divisible by `y`.
 
 ```python
 from ultralytics.utils.ops import make_divisible
@@ -700,9 +689,9 @@ make_divisible(7, 2)
 
 ## FAQ
 
-### What utilities are included in the Ultralytics package to enhance [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workflows?
+### What utilities are included in the Ultralytics package to enhance machine learning workflows?
 
-The Ultralytics package includes a variety of utilities designed to streamline and optimize machine learning workflows. Key utilities include [auto-annotation](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for labeling datasets, converting COCO to YOLO format with [convert_coco](../reference/data/converter.md#ultralytics.data.converter.convert_coco), compressing images, and dataset auto-splitting. These tools aim to reduce manual effort, ensure consistency, and enhance data processing efficiency.
+The Ultralytics package includes utilities designed to streamline and optimize machine learning workflows. Key utilities include [auto-annotation](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for labeling datasets, converting [COCO](https://docs.ultralytics.com/datasets/detect/coco/) to YOLO format with [convert_coco](../reference/data/converter.md#ultralytics.data.converter.convert_coco), compressing images, and dataset auto-splitting. These tools reduce manual effort, ensure consistency, and enhance data processing efficiency.
 
 ### How can I use Ultralytics to auto-label my dataset?
 

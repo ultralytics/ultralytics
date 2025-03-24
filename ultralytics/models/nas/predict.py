@@ -19,7 +19,7 @@ class NASPredictor(BasePredictor):
         args (Namespace): Namespace containing various configurations for post-processing including confidence threshold,
             IoU threshold, agnostic NMS flag, maximum detections, and class filtering options.
         model (torch.nn.Module): The YOLO NAS model used for inference.
-        batch (List): Batch of inputs for processing.
+        batch (list): Batch of inputs for processing.
 
     Examples:
         >>> from ultralytics import NAS

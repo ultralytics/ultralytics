@@ -1225,7 +1225,7 @@ class Exporter:
         check_requirements(
             (
                 "model-compression-toolkit<=2.3.0",
-                "sony-custom-layers<=0.3.0",
+                "sony-custom-layers<=0.2.0",
                 "tensorflow<=2.15.0",
             )
         )

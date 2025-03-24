@@ -1226,9 +1226,9 @@ class Exporter:
             (
                 "model-compression-toolkit<=2.3.0",
                 "sony-custom-layers<=0.2.0",
+                "imx500-converter[pt]<=3.16.1"
             )
         )
-        check_requirements("imx500-converter[pt]<=3.16.1")  # Separate requirements for imx500-converter
 
         import model_compression_toolkit as mct
         import onnx

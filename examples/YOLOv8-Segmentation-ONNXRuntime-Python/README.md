@@ -15,8 +15,8 @@ Install the required packages using pip. You will need `ultralytics` for exporti
 
 ```bash
 pip install ultralytics
-pip install onnxruntime-gpu  # For GPU support
-# pip install onnxruntime    # Use this instead if you don't have an NVIDIA GPU
+pip install onnxruntime-gpu # For GPU support
+# pip install onnxruntime # For CPU-only support
 pip install numpy
 pip install opencv-python
 ```
@@ -36,7 +36,7 @@ yolo export model=yolov8s-seg.pt imgsz=640 format=onnx opset=12 simplify
 Perform inference with the exported ONNX model on your images.
 
 ```bash
-python main.py --model <MODEL_PATH> --source <IMAGE_PATH>
+python main.py --model MODEL_PATH --source IMAGE_PATH
 ```
 
 ### Example Output

@@ -75,7 +75,7 @@ sudo fallocate -l 64G /swapfile
 sudo chmod 600 /swapfile
 sudo mkswap /swapfile
 sudo swapon /swapfile
-free -h  # confirm the memory increment
+free -h # confirm the memory increment
 ```
 
 ## Training Custom Datasets

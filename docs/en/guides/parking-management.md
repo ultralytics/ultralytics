@@ -80,7 +80,7 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
         from ultralytics import solutions
 
         # Video capture
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
 
         # Video writer

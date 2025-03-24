@@ -892,3 +892,4 @@ check_torchvision()  # check torch-torchvision compatibility
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")
 IS_PYTHON_3_8 = PYTHON_VERSION.startswith("3.8")
+IS_PYTHON_3_13 = PYTHON_VERSION.startswith("3.13")

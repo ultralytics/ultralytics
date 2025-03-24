@@ -41,7 +41,7 @@ Object blurring with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         yolo solutions blur source="path/to/video.mp4"
 
         # Blur the specific classes
-        yolo solutions blur classes=[0, 5]
+        yolo solutions blur classes="[0, 5]"
         ```
 
     === "Python"

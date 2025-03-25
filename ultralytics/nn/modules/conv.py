@@ -24,8 +24,6 @@ __all__ = (
     "Index",
 )
 
-from ultralytics.nn.modules.activation import FReLU
-
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
     """Pad to 'same' shape outputs."""
@@ -47,7 +45,7 @@ class Conv(nn.Module):
         default_act (nn.Module): Default activation function (SiLU).
     """
 
-    default_act = nn.SiLU  # default activation
+    default_act = nn.SiLU()  # default activation
 
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
         """
@@ -66,9 +64,7 @@ class Conv(nn.Module):
         super().__init__()
         self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
         self.bn = nn.BatchNorm2d(c2)
-        self.act = FReLU(c2) if act is True else act if isinstance(act, nn.Module) else nn.Identity()
-        self.relu = nn.Tanh()
-        self.same = c1 == c2 and k == 1
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
 
     def forward(self, x):
         """
@@ -80,23 +76,19 @@ class Conv(nn.Module):
         Returns:
             (torch.Tensor): Output tensor.
         """
-        # if self.same:
-        #    # return torch.max(x, self.bn(self.conv(x)))
-        #    return x * self.relu(self.bn(self.conv(x)))
-        # else:
         return self.act(self.bn(self.conv(x)))
 
-    # def forward_fuse(self, x):
-    #     """
-    #     Apply convolution and activation without batch normalization.
-    #
-    #     Args:
-    #         x (torch.Tensor): Input tensor.
-    #
-    #     Returns:
-    #         (torch.Tensor): Output tensor.
-    #     """
-    #     return self.act(self.conv(x))
+    def forward_fuse(self, x):
+        """
+        Apply convolution and activation without batch normalization.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            (torch.Tensor): Output tensor.
+        """
+        return self.act(self.conv(x))
 
 
 class Conv2(Conv):

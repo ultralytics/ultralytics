@@ -640,7 +640,7 @@ class ModelEMA:
         self.decay = lambda x: decay * (1 - math.exp(-x / tau))  # decay exponential ramp (to help early epochs)
         for p in self.ema.parameters():
             p.requires_grad_(False)
-        self.enabled = True
+        self.enabled = False
 
     def update(self, model):
         """

@@ -58,9 +58,11 @@ class YOLOEValidatorMixin:
         for batch in pbar:
             batch = self.preprocess(batch)
             preds = model.get_visual_pe(batch["img"], visual=batch["visuals"])
-            assert preds.shape[0] == 1
+            assert preds.shape[0] == 1  # TODO
 
             cls = batch["cls"].squeeze(-1).to(torch.int).unique(sorted=True)
+            if preds.shape[1] == 0:  # handle empty visual prompt
+                continue
             assert len(cls) == 1 and preds.shape[1] == 1
             visual_pe[cls] += preds[0] / cls_visual_num[cls]
 

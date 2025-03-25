@@ -11,8 +11,7 @@ This project is ideal for:
 ---
 
 ## 📸 Demo
-
-<img src="demo.gif" alt="Tracking Demo" width="600"/>
+![yolo-ezgif com-optimize](https://github.com/user-attachments/assets/179f62e1-97ba-4345-b7cd-a6aa80681996)
 
 ---
 

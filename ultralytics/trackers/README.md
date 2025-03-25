@@ -200,8 +200,11 @@ while cap.isOpened():
         results = model.track(frame, persist=True)
 
         # Get the boxes and track IDs
-        boxes = results[0].boxes.xywh.cpu()
-        track_ids = results[0].boxes.id.int().cpu().tolist()
+        if results[0].boxes and results[0].boxes.id is not None:
+            boxes = results[0].boxes.xywh.cpu()
+            track_ids = results[0].boxes.id.int().cpu().tolist()
+        else:
+            pass
 
         # Visualize the results on the frame
         annotated_frame = results[0].plot()

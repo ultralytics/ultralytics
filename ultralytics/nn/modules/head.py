@@ -463,7 +463,6 @@ class YOLOEDetect(Detect):
 
         self.reprta = Residual(SwiGLUFFN(embed, embed))
         self.savpe = SAVPE(ch, c3, embed)
-        self.embed = embed
 
     @smart_inference_mode()
     def fuse(self, txt_feats):

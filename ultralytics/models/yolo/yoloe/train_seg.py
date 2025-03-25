@@ -109,11 +109,12 @@ class YOLOEPESegTrainer(SegmentationTrainer):
 
         del model.model[-1].savpe
 
+        assert weights is not None, "Pretrained weights must be provided for linear probing."
         if weights:
             model.load(weights)
 
         model.eval()
-        names = ["object"]
+        names = list(self.data["names"].values())
         # NOTE: `get_text_pe` related to text model and YOLOEDetect.reprta,
         # it'd get correct results as long as loading proper pretrained weights.
         tpe = model.get_text_pe(names)

@@ -67,7 +67,6 @@ class YOLOEValidatorMixin:
         for batch in pbar:
             batch = self.preprocess(batch)
             preds = model.get_visual_pe(batch["img"], visual=batch["visuals"])  # (B, max_n, embed_dim)
-            # assert preds.shape[0] == 1  # TODO
 
             batch_idx = batch["batch_idx"]
             for i in range(preds.shape[0]):
@@ -76,13 +75,6 @@ class YOLOEValidatorMixin:
                 pad_cls[: len(cls)] = cls
                 for c in cls:
                     visual_pe[c] += preds[i][pad_cls == c].sum(0) / cls_visual_num[c]
-
-            # print(preds.shape, batch["cls"].shape)
-            # cls = batch["cls"].squeeze(-1).to(torch.int).unique(sorted=True)
-            # if preds.shape[1] == 0:  # handle empty visual prompt
-            #     continue
-            # assert len(cls) == 1 and preds.shape[1] == 1
-            # visual_pe[cls] += preds[0] / cls_visual_num[cls]
 
         visual_pe[cls_visual_num != 0] = F.normalize(visual_pe[cls_visual_num != 0], dim=-1, p=2)
         visual_pe[cls_visual_num == 0] = 0

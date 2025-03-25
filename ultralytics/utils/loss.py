@@ -331,24 +331,9 @@ class v8SegmentationLoss(v8DetectionLoss):
             if tuple(masks.shape[-2:]) != (mask_h, mask_w):  # downsample
                 masks = F.interpolate(masks[None], (mask_h, mask_w), mode="nearest")[0]
 
-            try:
-                loss[1] = self.calculate_segmentation_loss(
-                    fg_mask, masks, target_gt_idx, target_bboxes, batch_idx, proto, pred_masks, imgsz, self.overlap
-                )
-            except Exception:
-                print("Mask loss on cpu")
-                torch.cuda.empty_cache()
-                loss[1] = self.calculate_segmentation_loss(
-                    fg_mask.cpu(),
-                    masks.cpu(),
-                    target_gt_idx.cpu(),
-                    target_bboxes.cpu(),
-                    batch_idx.cpu(),
-                    proto.cpu().float(),
-                    pred_masks.cpu().float(),
-                    imgsz.cpu(),
-                    self.overlap,
-                ).to(loss.device)
+            loss[1] = self.calculate_segmentation_loss(
+                fg_mask, masks, target_gt_idx, target_bboxes, batch_idx, proto, pred_masks, imgsz, self.overlap
+            )
 
         # WARNING: lines below prevent Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
         else:
@@ -383,13 +368,7 @@ class v8SegmentationLoss(v8DetectionLoss):
             predicted masks from the prototype masks and predicted mask coefficients.
         """
         pred_mask = torch.einsum("in,nhw->ihw", pred, proto)  # (n, 32) @ (32, 80, 80) -> (n, 80, 80)
-        try:
-            loss = F.binary_cross_entropy_with_logits(pred_mask, gt_mask, reduction="none")
-        except torch.cuda.OutOfMemoryError:
-            loss = F.binary_cross_entropy_with_logits(pred_mask.cpu(), gt_mask.cpu(), reduction="none").to(
-                pred_mask.device
-            )
-            print("Mask loss on cpu")
+        loss = F.binary_cross_entropy_with_logits(pred_mask, gt_mask, reduction="none")
         return (crop_mask(loss, xyxy).mean(dim=(1, 2)) / area).sum()
 
     def calculate_segmentation_loss(

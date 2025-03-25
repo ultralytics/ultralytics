@@ -153,7 +153,7 @@ class YOLOEValidatorMixin:
         return prefix_stats
 
     @smart_inference_mode()
-    def __call__(self, trainer=None, model=None, refer_data=None):
+    def __call__(self, trainer=None, model=None, refer_data=None, load_vp=False):
         """
         Run validation on the model using either text or visual prompt embeddings.
 
@@ -169,14 +169,7 @@ class YOLOEValidatorMixin:
             model = trainer.ema.ema
             names = [name.split("/")[0] for name in list(self.dataloader.dataset.data["names"].values())]
 
-            if not self.args.load_vp:  # TODO
-                LOGGER.info("Validate using the text prompt.")
-                tpe = model.get_text_pe(names)
-                model.set_classes(names, tpe)
-                tp_stats = super().__call__(trainer, model)
-                tp_stats = self.add_prefix_for_metric(tp_stats, "tp")
-                stats = tp_stats
-            else:
+            if load_vp:
                 LOGGER.info("Validate using the visual prompt.")
                 self.args.half = False
                 # directly the same dataloader for visual embeddings extracting during training
@@ -185,8 +178,13 @@ class YOLOEValidatorMixin:
                 vp_stats = super().__call__(trainer, model)
                 vp_stats = self.add_prefix_for_metric(vp_stats, "vp")
                 stats = vp_stats
-
-            return stats
+            else:
+                LOGGER.info("Validate using the text prompt.")
+                tpe = model.get_text_pe(names)
+                model.set_classes(names, tpe)
+                tp_stats = super().__call__(trainer, model)
+                tp_stats = self.add_prefix_for_metric(tp_stats, "tp")
+                stats = tp_stats
         else:
             if isinstance(model, YOLOEModel) and not hasattr(model, "pe"):
                 self.device = select_device(self.args.device, self.args.batch)
@@ -195,14 +193,7 @@ class YOLOEValidatorMixin:
                 data = check_det_dataset(self.args.data)
                 names = [name.split("/")[0] for name in list(data["names"].values())]
 
-                if not self.args.load_vp:  # TODO
-                    LOGGER.info("Validate using the text prompt.")
-                    tpe = model.get_text_pe(names)
-                    model.set_classes(names, tpe)
-                    tp_stats = super().__call__(model=deepcopy(model))
-                    tp_stats = self.add_prefix_for_metric(tp_stats, "tp")
-                    stats = tp_stats
-                else:
+                if load_vp:  # TODO
                     LOGGER.info("Validate using the visual prompt.")
                     self.args.half = False
                     # could use same dataset or refer to extract visual prompt embeddings
@@ -212,10 +203,16 @@ class YOLOEValidatorMixin:
                     vp_stats = super().__call__(model=deepcopy(model))
                     vp_stats = self.add_prefix_for_metric(vp_stats, "vp")
                     stats = vp_stats
-
-                return stats
+                else:
+                    LOGGER.info("Validate using the text prompt.")
+                    tpe = model.get_text_pe(names)
+                    model.set_classes(names, tpe)
+                    tp_stats = super().__call__(model=deepcopy(model))
+                    tp_stats = self.add_prefix_for_metric(tp_stats, "tp")
+                    stats = tp_stats
             else:
                 return super().__call__(trainer, model)
+        return stats
 
 
 class YOLOEDetectValidator(YOLOEValidatorMixin, DetectionValidator):

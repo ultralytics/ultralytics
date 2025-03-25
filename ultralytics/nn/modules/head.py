@@ -547,6 +547,25 @@ class YOLOEDetect(Detect):
         assert vpe.ndim == 3  # (B, N, D)
         return vpe
 
+    def forward_lrpc(self, x, return_mask=False):
+        masks = []
+        assert self.is_fused, "Prompt-free inference requires model to be fused!"
+        for i in range(self.nl):
+            cls_feat = self.cv3[i](x[i])
+            loc_feat = self.cv2[i](x[i])
+            assert isinstance(self.lrpc[i], LRPCHead)
+            x[i], mask = self.lrpc[i](cls_feat, loc_feat, self.conf, self.max_det)
+            masks.append(mask)
+
+        y = super()._inference(x)
+        mask = torch.cat(masks)
+        y = y[:, :, mask]
+
+        if return_mask:
+            return (y, mask) if self.export else ((y, x), mask)
+        else:
+            return y if self.export else (y, x)
+
     def forward(self, x, cls_pe, return_mask=False):
         """Process features with class prompt embeddings to generate detections."""
         has_lrpc = hasattr(self, "lrpc")  # for prompt-free inference

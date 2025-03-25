@@ -1,0 +1,24 @@
+name: Mirror to DagsHub
+
+on:
+  push:
+    branches:
+      - main  # Trigger only when main is updated
+
+jobs:
+  mirror-to-dagshub:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Set up Git
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions@users.noreply.github.com"
+        git config --global credential.helper ""
+
+    - name: Clone Ultralytics repo and push to DagsHub
+      run: |
+        git clone https://github.com/ultralytics/ultralytics.git
+        cd ultralytics
+        git remote add dagshub https://ultralytics-yolo:${{ secrets.DAGSHUB_TOKEN }}@dagshub.com/ultralytics/ultralytics.git
+        git push dagshub main --force

@@ -79,8 +79,8 @@ class Conv(nn.Module):
             (torch.Tensor): Output tensor.
         """
         if self.same:
-            return torch.max(x, self.bn(self.conv(x)))
-            # return x * torch.sigmoid(self.bn(self.conv(x)))
+            # return torch.max(x, self.bn(self.conv(x)))
+            return x * torch.sigmoid(self.bn(self.conv(x)))
         else:
             return self.act(self.bn(self.conv(x)))
 

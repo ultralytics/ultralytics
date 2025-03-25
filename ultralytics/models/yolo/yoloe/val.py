@@ -5,7 +5,8 @@ from copy import deepcopy
 import torch
 from torch.nn import functional as F
 
-from ultralytics.data import build_dataloader, build_yolo_dataset
+from ultralytics.data import YOLOConcatDataset, build_dataloader, build_yolo_dataset
+from ultralytics.data.augment import LoadVisualPrompt
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.models.yolo.model import YOLOEModel
@@ -41,7 +42,15 @@ class YOLOEValidatorMixin:
         """
         assert isinstance(model, YOLOEModel)
         # TODO: support directly using test_loader
-        data_loader, names = self.get_lvis_train_vps_loader(model)
+        # data_loader, names = self.get_lvis_train_vps_loader(model)
+        # TODO: clean this up
+        if self.dataloader is None:
+            self.stride = 32
+            self.data = check_det_dataset(self.args.data)
+            self.dataloader = self.get_dataloader(self.data.get(self.args.split), self.args.batch)
+        data_loader = self.dataloader
+        names = [name.split("/")[0] for name in list(self.dataloader.dataset.data["names"].values())]
+
         visual_pe = torch.zeros(len(names), model.model[-1].embed, device=self.device)
         cls_visual_num = torch.zeros(len(names))
 

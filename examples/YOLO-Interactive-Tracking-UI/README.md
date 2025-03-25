@@ -112,10 +112,3 @@ This project is provided **for educational and research purposes only**.
 The author makes **no guarantees** and assumes **no responsibility** for any use of this code in production or commercial environments.  
 Feel free to modify, extend, and contribute via pull requests. Feedback is always welcome!
 
----
-
-## 🙌 Acknowledgments
-
-- [Ultralytics](https://github.com/ultralytics/ultralytics) for the YOLO ecosystem
-- OpenCV for visualization and user interaction
-- Everyone contributing to making AI more accessible and open ✨

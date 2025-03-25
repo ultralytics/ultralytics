@@ -227,7 +227,7 @@ class AutoBackend(nn.Module):
                 w = next(Path(w).glob("*.onnx"))
                 LOGGER.info(f"Loading {w} for ONNX IMX inference...")
                 import mct_quantizers as mctq
-                from sony_custom_layers.pytorch.object_detection import nms_ort  # noqa
+                from sony_custom_layers.pytorch.nms import nms_ort  # noqa
 
                 session = onnxruntime.InferenceSession(
                     w, mctq.get_ort_session_options(), providers=["CPUExecutionProvider"]

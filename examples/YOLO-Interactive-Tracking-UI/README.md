@@ -3,6 +3,7 @@
 An educational and modular object tracking interface built using [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) and OpenCV — featuring live object detection, manual target selection via mouse click, styled visual overlays (bounding boxes, scope lines), and terminal updates.
 
 This project is ideal for:
+
 - Learning YOLO + tracking integration
 - Demonstrating real-time object tracking
 - Research prototypes with manual interaction
@@ -12,7 +13,7 @@ This project is ideal for:
 
 ## 📸 Demo
 
-<img src="demo.gif" alt="Tracking Demo" width="600"/>
+![yolo-ezgif com-optimize](https://github.com/user-attachments/assets/179f62e1-97ba-4345-b7cd-a6aa80681996)
 
 ---
 
@@ -52,6 +53,8 @@ Make sure you have:
 pip install ultralytics opencv-python torch requests
 ```
 
+> Using a virtual Python environment (eg. venv) is highly recommended.
+
 > ⚠️ Requires **Python 3.8+**
 
 ---
@@ -61,10 +64,11 @@ pip install ultralytics opencv-python torch requests
 ### 1. Download and Export a YOLO Model (to NCNN)
 
 ```bash
-python add_yolo_model.py --model_name yolov5s.pt
+python add_yolo_model.py
 ```
 
-> You can also use `yolov8n.pt`, custom models, or download from a URL interactively.
+> You can interactively enter any versions, or custom models, or download from a URL.
+> Follow the instructions to load a pre-trained model.
 
 ---
 
@@ -75,6 +79,7 @@ python interactive_tracker.py
 ```
 
 Then:
+
 - 🖱 Click on an object to start tracking
 - 🔄 Press `c` to cancel tracking
 - ❌ Press `q` to exit
@@ -110,11 +115,3 @@ You may also modify the appearance of bounding boxes, overlay colors, scope styl
 This project is provided **for educational and research purposes only**.  
 The author makes **no guarantees** and assumes **no responsibility** for any use of this code in production or commercial environments.  
 Feel free to modify, extend, and contribute via pull requests. Feedback is always welcome!
-
----
-
-## 🙌 Acknowledgments
-
-- [Ultralytics](https://github.com/ultralytics/ultralytics) for the YOLO ecosystem
-- OpenCV for visualization and user interaction
-- Everyone contributing to making AI more accessible and open ✨

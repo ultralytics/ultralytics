@@ -52,23 +52,27 @@ Use at your own discretion. Contributions are welcome!
 
 """
 
+import time
+
 import cv2
 import numpy as np
-import time
+
 from ultralytics import YOLO
 
 # ========== USER-CONFIGURABLE PARAMETERS (YOLO & Tracker) ==========
 
-SHOW_FPS = True                   # If True, shows current FPS in top-left corner
+SHOW_FPS = True  # If True, shows current FPS in top-left corner
 
-CONFIDENCE_THRESHOLD = 0.3        # Min confidence for object detection (lower = more detections, possibly more false positives)
-IOU_THRESHOLD = 0.3               # IoU threshold for NMS (higher = less overlap allowed)
-MAX_DETECTION = 20                # Maximum objects per frame (increase for crowded scenes)
+CONFIDENCE_THRESHOLD = (
+    0.3  # Min confidence for object detection (lower = more detections, possibly more false positives)
+)
+IOU_THRESHOLD = 0.3  # IoU threshold for NMS (higher = less overlap allowed)
+MAX_DETECTION = 20  # Maximum objects per frame (increase for crowded scenes)
 
-TRACKER_TYPE = "bytetrack.yaml"   # Tracker config: 'bytetrack.yaml', 'botsort.yaml', etc.
+TRACKER_TYPE = "bytetrack.yaml"  # Tracker config: 'bytetrack.yaml', 'botsort.yaml', etc.
 TRACKER_ARGS = {
-    "persist": True,              # Keep object ID even if momentarily lost (useful for occlusion)
-    "verbose": False              # Print debug info from tracker
+    "persist": True,  # Keep object ID even if momentarily lost (useful for occlusion)
+    "verbose": False,  # Print debug info from tracker
 }
 
 # =================== INITIALIZATION ===================
@@ -81,6 +85,7 @@ selected_bbox = None
 selected_center = None
 object_colors = {}
 
+
 # ========= YOLO-LIKE COLOR GENERATOR =========
 def get_yolo_color(index):
     """Generate vivid, consistent YOLO-style color for high visibility."""
@@ -89,19 +94,26 @@ def get_yolo_color(index):
     bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)[0][0]
     return int(bgr[0]), int(bgr[1]), int(bgr[2])
 
+
 # ========= UTILITY FUNCTIONS =========
 def get_center(x1, y1, x2, y2):
     """Get the center point of a bounding box."""
     return (x1 + x2) // 2, (y1 + y2) // 2
 
+
 def extend_line_from_edge(mid_x, mid_y, direction, img_shape):
     """Extend a line from a bbox edge midpoint to screen border."""
     h, w = img_shape[:2]
-    if direction == "left": return (0, mid_y)
-    if direction == "right": return (w - 1, mid_y)
-    if direction == "up": return (mid_x, 0)
-    if direction == "down": return (mid_x, h - 1)
+    if direction == "left":
+        return (0, mid_y)
+    if direction == "right":
+        return (w - 1, mid_y)
+    if direction == "up":
+        return (mid_x, 0)
+    if direction == "down":
+        return (mid_x, h - 1)
     return mid_x, mid_y
+
 
 def draw_tracking_scope(frame, bbox, color):
     """Draw 'scope lines' from bbox edge midpoints outward."""
@@ -115,6 +127,7 @@ def draw_tracking_scope(frame, bbox, color):
     cv2.line(frame, mid_bottom, extend_line_from_edge(*mid_bottom, "down", frame.shape), color, 2)
     cv2.line(frame, mid_left, extend_line_from_edge(*mid_left, "left", frame.shape), color, 2)
     cv2.line(frame, mid_right, extend_line_from_edge(*mid_right, "right", frame.shape), color, 2)
+
 
 def click_event(event, x, y, flags, param):
     """Allow user to select an object by clicking on it."""
@@ -139,6 +152,7 @@ def click_event(event, x, y, flags, param):
                 selected_object_id, label = best_match
                 print(f"🔵 TRACKING STARTED: {label} (ID {selected_object_id})")
 
+
 cv2.namedWindow("YOLO Tracking")
 cv2.setMouseCallback("YOLO Tracking", click_event)
 
@@ -151,12 +165,7 @@ while cap.isOpened():
         break
 
     results = model.track(
-        frame,
-        conf=CONFIDENCE_THRESHOLD,
-        iou=IOU_THRESHOLD,
-        max_det=MAX_DETECTION,
-        tracker=TRACKER_TYPE,
-        **TRACKER_ARGS
+        frame, conf=CONFIDENCE_THRESHOLD, iou=IOU_THRESHOLD, max_det=MAX_DETECTION, tracker=TRACKER_TYPE, **TRACKER_ARGS
     )
 
     frame_overlay = frame.copy()

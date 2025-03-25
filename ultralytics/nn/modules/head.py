@@ -533,9 +533,7 @@ class YOLOEDetect(Detect):
             masks.append(mask)
         shape = x[0][0].shape
         if self.dynamic or self.shape != shape:
-            self.anchors, self.strides = (
-                x.transpose(0, 1) for x in make_anchors([b[0] for b in x], self.stride, 0.5)
-            )
+            self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors([b[0] for b in x], self.stride, 0.5))
             self.shape = shape
         box = torch.cat([xi[0].view(shape[0], self.reg_max * 4, -1) for xi in x], 2)
         cls = torch.cat([xi[1] for xi in x], 2)

@@ -948,6 +948,7 @@ class MixUp(BaseMixTransform):
         labels["cls"] = np.concatenate([labels["cls"], labels2["cls"]], 0)
         return labels
 
+
 class CutMix(BaseMixTransform):
     """
     Applies CutMix augmentation to image datasets as described in the paper https://arxiv.org/abs/1905.04899.
@@ -1007,7 +1008,7 @@ class CutMix(BaseMixTransform):
         Returns:
             (tuple): (x1, y1, x2, y2) coordinates of the bounding box.
         """
-        cut_ratio = np.sqrt(1. - lam)   
+        cut_ratio = np.sqrt(1.0 - lam)
         cut_w = int(width * cut_ratio)
         cut_h = int(height * cut_ratio)
 
@@ -1057,6 +1058,7 @@ class CutMix(BaseMixTransform):
         labels["cls"] = np.concatenate([labels["cls"], labels2["cls"]], axis=0)
         labels["instances"] = Instances.concatenate([labels["instances"], labels2["instances"]], axis=0)
         return labels
+
 
 class RandomPerspective:
     """

@@ -343,8 +343,6 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
             (Dataset): YOLO dataset configured for training or validation, with visual prompts for training mode.
         """
         dataset = super().build_dataset(img_path, mode, batch)
-        if mode != "train":
-            return dataset  # TODO: using text prompt evaluation for visual prompt for now
         if isinstance(dataset, YOLOConcatDataset):
             for d in dataset.datasets:
                 d.transforms.append(LoadVisualPrompt())

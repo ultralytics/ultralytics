@@ -1,53 +1,54 @@
 """
-YOLO Model Downloader & NCNN Exporter
-=====================================
+YOLO Interactive Tracking UI
+=============================
 
-This script downloads a YOLO model and exports it to NCNN format using Ultralytics' `model.export()` functionality.
-It is designed to work alongside the YOLO-Interactive-Tracking-UI project, placing all files into the `yolo/` directory.
+A user-friendly, educational object tracking UI using Ultralytics YOLO models and OpenCV.
+This script allows users to:
+- Detect and track objects in real-time
+- Click on objects to initiate tracking
+- Display visual overlays such as scope lines, center markers, and bounding boxes
+- Output real-time tracking data in the terminal (ID, bbox, center, confidence)
+- Tune parameters like confidence, IoU, tracker type, and detection limits
 
-📦 Features:
------------
-- Supports any YOLO model (e.g., YOLOv5, YOLOv8, custom .pt models)
-- Detects if model file already exists in the `yolo/` folder
-- If not found, automatically downloads:
-    • YOLOv5 models via `torch.hub`
-    • Other models via custom URL input
-- Automatically exports the model to NCNN format
+Model loading is handled separately via `add_yolo_model.py`, which downloads and prepares your desired model version (e.g., YOLOv8) in NCNN format. Place models inside the `yolo/` folder and configure path accordingly in this script.
 
-📁 Folder Structure:
---------------------
+Folder Structure:
+-----------------
 YOLO-Interactive-Tracking-UI/
-├── yolo/                    # Stores .pt model and NCNN-exported files (.param, .bin)
-├── add_yolo_model.py        # This script: downloads + exports model to NCNN
-├── interactive_tracker.py   # Tracker interface that uses the NCNN model
-└── README.md                # Usage instructions, screenshots, and credits
+├── yolo/                    # Stores NCNN models (.param, .bin)
+├── add_yolo_model.py        # Script to download + convert YOLO model to NCNN
+├── interactive_tracker.py   # Main tracking demo (this file)
+└── README.md                # Instructions and demo info
 
-🛠️ Usage:
-----------
-1. Run this script to add or export a model:
-   python add_yolo_model.py --model_name yolov5s.pt
-
-2. Then run `interactive_tracker.py` and point it to the NCNN model:
+Usage:
+------
+1. Run `add_yolo_model.py` to set up your desired model
+2. Then run this script:
    python interactive_tracker.py
 
-💡 Dependencies:
-----------------
-- Python 3.8+
-- torch (for YOLOv5 model loading)
-- requests (for downloading custom models)
-- ultralytics (for export functionality)
+Controls:
+---------
+- Click on any object to select it for tracking
+- Press 'c' to cancel tracking
+- Press 'q' to quit the application
 
-👤 Author:
-----------
-Alireza Ghaderi  <p30planets@gmail.com>
-📅 October 2024  
+Dependencies:
+-------------
+- Python 3.8+
+- ultralytics >= 8.0.0
+- opencv-python
+
+Author:
+-------
+Created by Alireza Ghaderi  
+📅 March 2025  
 🔗 LinkedIn: https://www.linkedin.com/in/alireza787b/
 
-📜 License & Disclaimer:
-------------------------
-This project is open-source and provided for **educational and research purposes only**.  
-The author makes **no guarantees** and assumes **no responsibility** for improper use or deployment.  
-Feel free to modify, extend, or contribute via pull request.
+License & Disclaimer:
+---------------------
+This project is provided for **educational and demonstration purposes** only.
+The author takes **no responsibility for improper use** or deployment in production systems.
+Use at your own discretion. Contributions are welcome!
 
 """
 

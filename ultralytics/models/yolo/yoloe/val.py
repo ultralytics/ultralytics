@@ -143,16 +143,18 @@ class YOLOEValidatorMixin:
 
             if not self.args.load_vp:  # TODO
                 LOGGER.info("Validate using the text prompt.")
-                tpe = model.get_text_pe(names)
-                model.set_classes(names, tpe)
+                if not hasattr(model, "pe"):  # only set clases once during training
+                    tpe = model.get_text_pe(names)
+                    model.set_classes(names, tpe)
                 tp_stats = super().__call__(trainer, model)
                 tp_stats = self.add_prefix_for_metric(tp_stats, "tp")
                 stats = tp_stats
             else:
                 LOGGER.info("Validate using the visual prompt.")
                 self.args.half = False
-                vpe = self.get_visual_pe(model)
-                model.set_classes(names, vpe)
+                if not hasattr(model, "pe"):  # only set clases once during training
+                    vpe = self.get_visual_pe(model)
+                    model.set_classes(names, vpe)
                 vp_stats = super().__call__(trainer, model)
                 vp_stats = self.add_prefix_for_metric(vp_stats, "vp")
                 stats = vp_stats
@@ -170,7 +172,7 @@ class YOLOEValidatorMixin:
                     LOGGER.info("Validate using the text prompt.")
                     tpe = model.get_text_pe(names)
                     model.set_classes(names, tpe)
-                    tp_stats = super().__call__(trainer, deepcopy(model))
+                    tp_stats = super().__call__(model=deepcopy(model))
                     tp_stats = self.add_prefix_for_metric(tp_stats, "tp")
                     stats = tp_stats
                 else:
@@ -178,7 +180,7 @@ class YOLOEValidatorMixin:
                     self.args.half = False
                     vpe = self.get_visual_pe(model)
                     model.set_classes(names, vpe)
-                    vp_stats = super().__call__(trainer, deepcopy(model))
+                    vp_stats = super().__call__(model=deepcopy(model))
                     vp_stats = self.add_prefix_for_metric(vp_stats, "vp")
                     stats = vp_stats
 

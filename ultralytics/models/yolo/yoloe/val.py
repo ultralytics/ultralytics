@@ -138,12 +138,7 @@ class YOLOEValidatorMixin:
             (dict): Validation statistics.
         """
         if trainer is not None:
-            self.device = trainer.device
-
             model = trainer.ema.ema
-            assert isinstance(model, YOLOEModel)
-            assert not model.training
-
             names = [name.split("/")[0] for name in list(self.dataloader.dataset.data["names"].values())]
 
             if not self.args.load_vp:  # TODO

@@ -1089,9 +1089,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     if act:
         from ultralytics.nn.modules import activation
 
-        # Get activation and instantiate if needed
-        act_fn = getattr(activation, act, eval(act))
-        Conv.default_act = act_fn() if isinstance(act_fn, type) else act_fn
+        # Get activation function
+        Conv.default_act = getattr(activation, act, None) or eval(act)
         if verbose:
             LOGGER.info(f"{colorstr('activation:')} {act}")
 

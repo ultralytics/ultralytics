@@ -197,6 +197,31 @@ class YOLOE(Model):
         if self.predictor:
             self.predictor.model.names = classes
 
+    def val(
+        self,
+        validator=None,
+        load_vp=False,
+        refer_data=None,
+        **kwargs,
+    ):
+        """
+        Validate the model using text or visual prompts.
+
+        Args:
+            load_vp (bool): Whether to load visual prompts. If False, text prompts are used.
+            refer_data (str): Path to the reference data for visual prompts.
+
+        Returns:
+            dict: Validation statistics.
+        """
+        custom = {"rect": False if load_vp else True}  # method defaults
+        args = {**self.overrides, **custom, **kwargs, "mode": "val"}  # highest priority args on the right
+
+        validator = (validator or self._smart_load("validator"))(args=args, _callbacks=self.callbacks)
+        validator(model=self.model, load_vp=load_vp, refer_data=refer_data)
+        self.metrics = validator.metrics
+        return validator.metrics
+
     def predict(
         self,
         source=None,

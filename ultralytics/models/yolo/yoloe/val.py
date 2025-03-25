@@ -34,7 +34,12 @@ class YOLOEValidatorMixin:
         """
         Extract visual prompt embeddings from training samples.
 
+        This function processes a dataloader to compute visual prompt embeddings for each class
+        using a YOLOE model. It normalizes the embeddings and handles cases where no samples
+        exist for a class.
+
         Args:
+            dataloader (torch.utils.data.DataLoader): The dataloader providing training samples.
             model (YOLOEModel): The YOLOE model from which to extract visual prompt embeddings.
 
         Returns:
@@ -82,13 +87,15 @@ class YOLOEValidatorMixin:
         """
         Create a dataloader for LVIS training visual prompt samples.
 
+        This function prepares a dataloader for visual prompt embeddings (VPE) using the LVIS dataset.
+        It applies necessary transformations and configurations to the dataset and returns a dataloader
+        for validation purposes.
+
         Args:
-            model (YOLOEModel): The YOLOE model for which to create the dataloader.
+            data (dict): Dataset configuration dictionary containing paths and settings.
 
         Returns:
-            (tuple): A tuple containing:
-                - lvis_train_vps_loader (DataLoader): DataLoader for LVIS training visual prompt samples.
-                - names (list): List of class names.
+            (torch.utils.data.DataLoader): The dataLoader for visual prompt samples.
         """
         vps_data = check_det_dataset(data)
         dataset = build_yolo_dataset(
@@ -157,12 +164,18 @@ class YOLOEValidatorMixin:
         """
         Run validation on the model using either text or visual prompt embeddings.
 
+        This method validates the model using either text prompts or visual prompts, depending
+        on the `load_vp` flag. It supports validation during training (using a trainer object)
+        or standalone validation with a provided model.
+
         Args:
             trainer (object, optional): Trainer object containing the model and device.
-            model (YOLOEModel, optional): Model to validate.
+            model (YOLOEModel, optional): Model to validate. Required if `trainer` is not provided.
+            refer_data (str, optional): Path to reference data for visual prompts.
+            load_vp (bool): Whether to load visual prompts. If False, text prompts are used.
 
         Returns:
-            (dict): Validation statistics.
+            (dict): Validation statistics containing metrics computed during validation.
         """
         if trainer is not None:
             self.device = trainer.device
@@ -172,7 +185,7 @@ class YOLOEValidatorMixin:
             if load_vp:
                 LOGGER.info("Validate using the visual prompt.")
                 self.args.half = False
-                # directly the same dataloader for visual embeddings extracting during training
+                # Directly use the same dataloader for visual embeddings extracted during training
                 vpe = self.get_visual_pe(self.dataloader, model)
                 model.set_classes(names, vpe)
                 vp_stats = super().__call__(trainer, model)
@@ -193,7 +206,7 @@ class YOLOEValidatorMixin:
                 data = check_det_dataset(self.args.data)
                 names = [name.split("/")[0] for name in list(data["names"].values())]
 
-                if load_vp:  # TODO
+                if load_vp:
                     LOGGER.info("Validate using the visual prompt.")
                     self.args.half = False
                     # TODO: need to check if the names from refer data is consistent with the evaluated dataset

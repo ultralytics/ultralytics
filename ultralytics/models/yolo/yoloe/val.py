@@ -196,7 +196,7 @@ class YOLOEValidatorMixin:
                 if load_vp:  # TODO
                     LOGGER.info("Validate using the visual prompt.")
                     self.args.half = False
-                    # TODO: need to check if the names from refer data is consistent with the evaluted dataset
+                    # TODO: need to check if the names from refer data is consistent with the evaluated dataset
                     # could use same dataset or refer to extract visual prompt embeddings
                     dataloader = self.get_vpe_dataloader(refer_data or self.args.data)
                     vpe = self.get_visual_pe(dataloader, model)

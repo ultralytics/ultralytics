@@ -526,6 +526,7 @@ class YOLOEDetect(Detect):
         return vpe
 
     def forward_lrpc(self, x, return_mask=False):
+        """Process features with fused text embeddings to generate detections for prompt-free model."""
         masks = []
         assert self.is_fused, "Prompt-free inference requires model to be fused!"
         for i in range(self.nl):

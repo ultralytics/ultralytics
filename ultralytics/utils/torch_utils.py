@@ -626,7 +626,7 @@ class ModelEMA:
     """
 
     # def __init__(self, model, decay=0.9999, tau=2000, updates=0):
-    def __init__(self, model, decay=0.9999, tau=10000, updates=0):
+    def __init__(self, model, decay=0.9999, tau=20000, updates=0):
         """
         Initialize EMA for 'model' with given arguments.
 

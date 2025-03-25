@@ -231,17 +231,17 @@ In the following example, we demonstrate how to utilize YOLO11's tracking capabi
 
         if success:
             # Run YOLO11 tracking on the frame, persisting tracks between frames
-            results = model.track(frame, persist=True)
+            results = model.track(frame, persist=True)[0]
 
             # Get the boxes and track IDs
-            if results[0].boxes and results[0].boxes.id is not None:
-                boxes = results[0].boxes.xywh.cpu()
-                track_ids = results[0].boxes.id.int().cpu().tolist()
+            if results.boxes and results.boxes.id is not None:
+                boxes = results.boxes.xywh.cpu()
+                track_ids = results.boxes.id.int().cpu().tolist()
             else:
                 pass
 
             # Visualize the results on the frame
-            annotated_frame = results[0].plot()
+            annotated_frame = results.plot()
 
             # Plot the tracks
             for box, track_id in zip(boxes, track_ids):

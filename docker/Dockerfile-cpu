@@ -39,9 +39,9 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
 # Install pip packages
 RUN pip install uv
-# Neeed lower version of 'numpy' for Sony IMX export
-RUN uv pip install numpy==1.26.4
 RUN uv pip install --system -e ".[export]" --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+# Neeed lower version of 'numpy' for Sony IMX export
+RUN uv pip install --system numpy==1.26.4
 
 # Run exports to AutoInstall packages
 RUN yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32

@@ -556,61 +556,14 @@ class YOLOEDetect(Detect):
             assert isinstance(self.lrpc[i], LRPCHead)
             x[i], mask = self.lrpc[i](cls_feat, loc_feat, self.conf, self.max_det)
             masks.append(mask)
-
-        y = super()._inference(x)
-        mask = torch.cat(masks)
-        y = y[:, :, mask]
-
-        if return_mask:
-            return (y, mask) if self.export else ((y, x), mask)
-        else:
-            return y if self.export else (y, x)
-
-    def forward(self, x, cls_pe, return_mask=False):
-        """Process features with class prompt embeddings to generate detections."""
-        has_lrpc = hasattr(self, "lrpc")  # for prompt-free inference
-        masks = [] if has_lrpc else None
-        for i in range(self.nl):
-            if not has_lrpc:
-                x[i] = torch.cat((self.cv2[i](x[i]), self.cv4[i](self.cv3[i](x[i]), cls_pe)), 1)
-            else:
-                assert self.is_fused, "Prompt-free inference requires model to be fused!"
-                cls_feat = self.cv3[i](x[i])
-                loc_feat = self.cv2[i](x[i])
-                assert isinstance(self.lrpc[i], LRPCHead)
-                x[i], mask = self.lrpc[i](cls_feat, loc_feat, self.conf, self.max_det)
-                masks.append(mask)
-        if self.training:
-            return x
-
-        # Inference path
-        if not has_lrpc:
-            shape = x[0].shape  # BCHW
-            x_cat = torch.cat([xi.view(shape[0], self.nc + self.reg_max * 4, -1) for xi in x], 2)
-            if self.dynamic or self.shape != shape:
-                self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
-                self.shape = shape
-
-            if self.export and self.format in {
-                "saved_model",
-                "pb",
-                "tflite",
-                "edgetpu",
-                "tfjs",
-            }:  # avoid TF FlexSplitV ops
-                box = x_cat[:, : self.reg_max * 4]
-                cls = x_cat[:, self.reg_max * 4 :]
-            else:
-                box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
-        else:
-            shape = x[0][0].shape
-            if self.dynamic or self.shape != shape:
-                self.anchors, self.strides = (
-                    x.transpose(0, 1) for x in make_anchors([b[0] for b in x], self.stride, 0.5)
-                )
-                self.shape = shape
-            box = torch.cat([xi[0].view(shape[0], self.reg_max * 4, -1) for xi in x], 2)
-            cls = torch.cat([xi[1] for xi in x], 2)
+        shape = x[0][0].shape
+        if self.dynamic or self.shape != shape:
+            self.anchors, self.strides = (
+                x.transpose(0, 1) for x in make_anchors([b[0] for b in x], self.stride, 0.5)
+            )
+            self.shape = shape
+        box = torch.cat([xi[0].view(shape[0], self.reg_max * 4, -1) for xi in x], 2)
+        cls = torch.cat([xi[1] for xi in x], 2)
 
         if self.export and self.format in {"tflite", "edgetpu"}:
             # Precompute normalization factor to increase numerical stability
@@ -623,15 +576,56 @@ class YOLOEDetect(Detect):
         else:
             dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
 
-        if has_lrpc:
-            mask = torch.cat(masks)
-            dbox = dbox[:, :, mask]
-        y = torch.cat((dbox, cls.sigmoid()), 1)
+        mask = torch.cat(masks)
+        y = torch.cat((dbox[:, :, mask], cls.sigmoid()), 1)
 
-        if not has_lrpc or not return_mask:
-            return y if self.export else (y, x)
-        else:
+        if return_mask:
             return (y, mask) if self.export else ((y, x), mask)
+        else:
+            return y if self.export else (y, x)
+
+    def forward(self, x, cls_pe, return_mask=False):
+        """Process features with class prompt embeddings to generate detections."""
+        has_lrpc = hasattr(self, "lrpc")  # for prompt-free inference
+        if has_lrpc:
+            return self.forward_lrpc(x, return_mask)
+        for i in range(self.nl):
+            x[i] = torch.cat((self.cv2[i](x[i]), self.cv4[i](self.cv3[i](x[i]), cls_pe)), 1)
+        if self.training:
+            return x
+
+        # Inference path
+        shape = x[0].shape  # BCHW
+        x_cat = torch.cat([xi.view(shape[0], self.nc + self.reg_max * 4, -1) for xi in x], 2)
+        if self.dynamic or self.shape != shape:
+            self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
+            self.shape = shape
+
+        if self.export and self.format in {
+            "saved_model",
+            "pb",
+            "tflite",
+            "edgetpu",
+            "tfjs",
+        }:  # avoid TF FlexSplitV ops
+            box = x_cat[:, : self.reg_max * 4]
+            cls = x_cat[:, self.reg_max * 4 :]
+        else:
+            box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
+
+        if self.export and self.format in {"tflite", "edgetpu"}:
+            # Precompute normalization factor to increase numerical stability
+            # See https://github.com/ultralytics/ultralytics/issues/7371
+            grid_h = shape[2]
+            grid_w = shape[3]
+            grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=box.device).reshape(1, 4, 1)
+            norm = self.strides / (self.stride[0] * grid_size)
+            dbox = self.decode_bboxes(self.dfl(box) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
+        else:
+            dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
+
+        y = torch.cat((dbox, cls.sigmoid()), 1)
+        return y if self.export else (y, x)
 
     def bias_init(self):
         """Initialize biases for detection heads."""

@@ -208,11 +208,13 @@ class YOLOE(Model):
         Validate the model using text or visual prompts.
 
         Args:
+            validator (callable, optional): A callable validator function. If None, a default validator is loaded.
             load_vp (bool): Whether to load visual prompts. If False, text prompts are used.
-            refer_data (str): Path to the reference data for visual prompts.
+            refer_data (str, optional): Path to the reference data for visual prompts.
+            **kwargs: Additional keyword arguments to override default settings.
 
         Returns:
-            dict: Validation statistics.
+            (dict): Validation statistics containing metrics computed during validation.
         """
         custom = {"rect": False if load_vp else True}  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "val"}  # highest priority args on the right

@@ -40,7 +40,7 @@ Dependencies:
 
 Author:
 -------
-Created by Alireza Ghaderi  
+Alireza Ghaderi  <p30planets@gmail.com>
 📅 March 2025  
 🔗 LinkedIn: https://www.linkedin.com/in/alireza787b/
 

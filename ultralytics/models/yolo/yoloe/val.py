@@ -40,6 +40,7 @@ class YOLOEValidatorMixin:
             (torch.Tensor): Visual prompt embeddings with shape (1, num_classes, embed_dim).
         """
         assert isinstance(model, YOLOEModel)
+        # TODO: support directly using test_loader
         data_loader, names = self.get_lvis_train_vps_loader(model)
         visual_pe = torch.zeros(len(names), model.model[-1].embed, device=self.device)
         cls_visual_num = torch.zeros(len(names))

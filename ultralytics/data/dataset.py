@@ -353,8 +353,7 @@ class YOLOMultiModalDataset(YOLODataset):
         labels = super().update_labels_info(label)
         # NOTE: some categories are concatenated with its synonyms by `/`.
         # NOTE: and `RandomLoadText` would randomly select one of them if there are multiple words.
-        if not self.single_cls:
-            labels["texts"] = [v.split("/") for _, v in self.data["names"].items()]
+        labels["texts"] = [v.split("/") for _, v in self.data["names"].items()]
 
         return labels
 
@@ -369,7 +368,7 @@ class YOLOMultiModalDataset(YOLODataset):
             (Compose): Composed transforms including text augmentation if applicable.
         """
         transforms = super().build_transforms(hyp)
-        if self.augment and not self.single_cls:
+        if self.augment:
             # NOTE: hard-coded the args for now.
             # NOTE: this implementation is different from official yoloe,
             # the strategy of selecting negative is restricted in one dataset,
@@ -601,7 +600,7 @@ class GroundingDataset(YOLODataset):
             (Compose): Composed transforms including text augmentation if applicable.
         """
         transforms = super().build_transforms(hyp)
-        if self.augment and not self.single_cls:
+        if self.augment:
             # NOTE: hard-coded the args for now.
             # NOTE: this implementation is different from official yoloe,
             # the strategy of selecting negative is restricted in one dataset,

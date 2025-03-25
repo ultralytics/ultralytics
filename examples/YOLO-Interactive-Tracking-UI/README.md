@@ -3,6 +3,7 @@
 An educational and modular object tracking interface built using [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) and OpenCV — featuring live object detection, manual target selection via mouse click, styled visual overlays (bounding boxes, scope lines), and terminal updates.
 
 This project is ideal for:
+
 - Learning YOLO + tracking integration
 - Demonstrating real-time object tracking
 - Research prototypes with manual interaction
@@ -11,6 +12,7 @@ This project is ideal for:
 ---
 
 ## 📸 Demo
+
 ![yolo-ezgif com-optimize](https://github.com/user-attachments/assets/179f62e1-97ba-4345-b7cd-a6aa80681996)
 
 ---
@@ -50,6 +52,7 @@ Make sure you have:
 ```bash
 pip install ultralytics opencv-python torch requests
 ```
+
 > Using a virtual Python environment (eg. venv) is highly recommended.
 
 > ⚠️ Requires **Python 3.8+**
@@ -76,6 +79,7 @@ python interactive_tracker.py
 ```
 
 Then:
+
 - 🖱 Click on an object to start tracking
 - 🔄 Press `c` to cancel tracking
 - ❌ Press `q` to exit
@@ -111,4 +115,3 @@ You may also modify the appearance of bounding boxes, overlay colors, scope styl
 This project is provided **for educational and research purposes only**.  
 The author makes **no guarantees** and assumes **no responsibility** for any use of this code in production or commercial environments.  
 Feel free to modify, extend, and contribute via pull requests. Feedback is always welcome!
-

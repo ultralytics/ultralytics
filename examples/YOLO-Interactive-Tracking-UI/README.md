@@ -50,6 +50,7 @@ Make sure you have:
 ```bash
 pip install ultralytics opencv-python torch requests
 ```
+> Using a virtual Python environment (eg. venv) is highly recommended.
 
 > ⚠️ Requires **Python 3.8+**
 
@@ -60,10 +61,11 @@ pip install ultralytics opencv-python torch requests
 ### 1. Download and Export a YOLO Model (to NCNN)
 
 ```bash
-python add_yolo_model.py --model_name yolov5s.pt
+python add_yolo_model.py
 ```
 
-> You can also use `yolov8n.pt`, custom models, or download from a URL interactively.
+> You can interactively enter any versions, or custom models, or download from a URL.
+> Follow the instructions to load a pre-trained model.
 
 ---
 

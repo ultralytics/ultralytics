@@ -1006,10 +1006,11 @@ class Exporter:
                 "tf_keras",  # required by 'onnx2tf' package
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
                 "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
+                "ai-edge-litert>=1.2.0",  # required by 'onnx2tf' package
                 "onnx>=1.12.0",
-                "onnx2tf>=1.20.0",
+                "onnx2tf>=1.26.3" if not (ARM64 and LINUX) else "onnx2tf<=1.20.0",
                 "onnxslim>=0.1.31",
-                "tflite_support",
+                "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
                 "protobuf>=5",  # tflite_support pins <=4 but >=5 works

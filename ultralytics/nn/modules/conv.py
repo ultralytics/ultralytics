@@ -63,7 +63,7 @@ class Conv(nn.Module):
         """
         super().__init__()
         self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=True)
-        # self.bn = nn.BatchNorm2d(c2)
+        self.bn = nn.BatchNorm2d(c2)
         self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
 
     def forward(self, x):
@@ -76,19 +76,19 @@ class Conv(nn.Module):
         Returns:
             (torch.Tensor): Output tensor.
         """
-        return self.act(self.conv(x))
+        return self.act(self.bn(self.conv(x)))
 
-    # def forward_fuse(self, x):
-    #     """
-    #     Apply convolution and activation without batch normalization.
-    #
-    #     Args:
-    #         x (torch.Tensor): Input tensor.
-    #
-    #     Returns:
-    #         (torch.Tensor): Output tensor.
-    #     """
-    #     return self.act(self.conv(x))
+    def forward_fuse(self, x):
+        """
+        Apply convolution and activation without batch normalization.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            (torch.Tensor): Output tensor.
+        """
+        return self.act(self.conv(x))
 
 
 class Conv2(Conv):

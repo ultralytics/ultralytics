@@ -625,7 +625,8 @@ class ModelEMA:
         enabled (bool): Whether EMA is enabled.
     """
 
-    def __init__(self, model, decay=0.9999, tau=2000, updates=0):
+    # def __init__(self, model, decay=0.9999, tau=2000, updates=0):
+    def __init__(self, model, decay=0.9999, tau=5000, updates=0):
         """
         Initialize EMA for 'model' with given arguments.
 

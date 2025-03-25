@@ -542,9 +542,9 @@ class YOLOEDetect(Detect):
 
     def get_vpe(self, x, vpe):
         """Get visual prompt embeddings with spatial awareness."""
-        if vpe.ndim == 4:
+        if vpe.ndim == 4:  # (B, N, H, W)
             vpe = self.savpe(x, vpe)
-        assert vpe.ndim == 3
+        assert vpe.ndim == 3  # (B, N, D)
         return vpe
 
     def forward(self, x, cls_pe, return_mask=False):

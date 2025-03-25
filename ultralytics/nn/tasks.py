@@ -836,7 +836,7 @@ class YOLOEModel(DetectionModel):
     @smart_inference_mode()
     def get_visual_pe(self, img, visual):
         """
-        Get visual positional embeddings.
+        Get visual embeddings.
 
         Args:
             img (torch.Tensor): Input image tensor.
@@ -849,7 +849,7 @@ class YOLOEModel(DetectionModel):
 
     def set_vocab(self, vocab, names):
         """
-        Set vocabulary for the model.
+        Set vocabulary for the prompt-free model.
 
         Args:
             vocab (nn.ModuleList): List of vocabulary items.
@@ -878,7 +878,7 @@ class YOLOEModel(DetectionModel):
 
     def get_vocab(self, names):
         """
-        Get vocabulary for the model.
+        Get fused vocabulary layer from the model.
 
         Args:
             names (list): List of class names.

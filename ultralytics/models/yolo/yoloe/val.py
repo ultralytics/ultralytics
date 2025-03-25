@@ -139,6 +139,7 @@ class YOLOEValidatorMixin:
             (dict): Validation statistics.
         """
         if trainer is not None:
+            self.device = trainer.device
             model = trainer.ema.ema
             names = [name.split("/")[0] for name in list(self.dataloader.dataset.data["names"].values())]
 

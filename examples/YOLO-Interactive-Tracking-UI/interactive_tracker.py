@@ -1,5 +1,5 @@
 """
-YOLO Interactive Tracking UI
+YOLO Interactive Tracking UI.
 =============================
 
 A user-friendly, educational object tracking UI using Ultralytics YOLO models and OpenCV.
@@ -41,7 +41,7 @@ Dependencies:
 Author:
 -------
 Alireza Ghaderi  <p30planets@gmail.com>
-📅 March 2025  
+📅 March 2025
 🔗 LinkedIn: https://www.linkedin.com/in/alireza787b/
 
 License & Disclaimer:

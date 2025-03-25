@@ -109,6 +109,26 @@ class YOLOEValidatorMixin:
         )
         return lvis_train_vps_loader, lvis_train_vps_data["names"]
 
+    def build_dataset(self, img_path, mode="val", batch=None):
+        """
+        Build YOLO Dataset.
+
+        Args:
+            img_path (str): Path to the folder containing images.
+            mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
+            batch (int, optional): Size of batches, this is for `rect`.
+
+        Returns:
+            (Dataset): YOLO dataset.
+        """
+        dataset = super().build_dataset(img_path, mode, batch)
+        if isinstance(dataset, YOLOConcatDataset):
+            for d in dataset.datasets:
+                d.transforms.append(LoadVisualPrompt())
+        else:
+            dataset.transforms.append(LoadVisualPrompt())
+        return dataset
+
     def add_prefix_for_metric(self, stats, prefix):
         """
         Add a prefix to metric keys in stats dictionary.

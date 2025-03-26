@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """
 Module provides functionalities for hyperparameter tuning of the Ultralytics YOLO models for object detection, instance
 segmentation, image classification, pose estimation, and multi-object tracking.

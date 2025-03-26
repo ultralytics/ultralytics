@@ -378,6 +378,8 @@ def set_logging(name="LOGGING_NAME", verbose=True):
         - The function sets up a StreamHandler with the appropriate formatter and level.
         - The logger's propagate flag is set to False to prevent duplicate logging in parent loggers.
     """
+    from functools import partial
+
     level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
 
     # Configure the console (stdout) encoding to UTF-8, with checks for compatibility
@@ -409,11 +411,15 @@ def set_logging(name="LOGGING_NAME", verbose=True):
     stream_handler.setFormatter(formatter)
     stream_handler.setLevel(level)
 
+    def format_message(f, emoji, message, prefix=None):
+        f(f"{f.__name__.upper()} {emoji} {prefix if prefix else ''} {message}")
+
     # Set up the logger
     logger = logging.getLogger(name)
     logger.setLevel(level)
     logger.addHandler(stream_handler)
     logger.propagate = False
+    logger.warning, logger.error = [partial(format_message, func, emoji) for func, emoji in zip([logger.warning, logger.error], ["⚠️", "❌"])]
     return logger
 
 

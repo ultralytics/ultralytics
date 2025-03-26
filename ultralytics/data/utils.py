@@ -328,7 +328,7 @@ def check_det_dataset(dataset, autodownload=True):
                 raise SyntaxError(
                     emojis(f"{dataset} '{k}:' key missing ❌.\n'train' and 'val' are required in all data YAMLs.")
                 )
-            LOGGER.info("WARNING ⚠️ renaming data YAML 'validation' key to 'val' to match YOLO format.")
+            LOGGER.warning("renaming data YAML 'validation' key to 'val' to match YOLO format.")
             data["val"] = data.pop("validation")  # replace 'validation' key with 'val' key
     if "names" not in data and "nc" not in data:
         raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
@@ -458,9 +458,9 @@ def check_cls_dataset(dataset, split=""):
                 if k == "train":
                     raise FileNotFoundError(emojis(f"{dataset} '{k}:' no training images found ❌ "))
                 else:
-                    LOGGER.warning(f"{prefix} found {nf} images in {nd} classes: WARNING ⚠️ no images found")
+                    LOGGER.warning(f"found {nf} images in {nd} classes: WARNING ⚠️ no images found", prefix=prefix)  # TODO: WARNING text isn't at the start
             elif nd != nc:
-                LOGGER.warning(f"{prefix} found {nf} images in {nd} classes: ERROR ❌️ requires {nc} classes, not {nd}")
+                LOGGER.error(f"found {nf} images in {nd} classes: ERROR ❌️ requires {nc} classes, not {nd}", prefix=prefix)  # TODO: ERROR text isn't at the start
             else:
                 LOGGER.info(f"{prefix} found {nf} images in {nd} classes ✅ ")
 

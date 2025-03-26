@@ -177,7 +177,7 @@ def try_export(inner_func):
             LOGGER.info(f"{prefix} export success ✅ {dt.t:.1f}s, saved as '{f}' ({file_size(f):.1f} MB)")
             return f, model
         except Exception as e:
-            LOGGER.error(f"{prefix} export failure ❌ {dt.t:.1f}s: {e}")
+            LOGGER.error(f"export failure ❌ {dt.t:.1f}s: {e}", prefix=prefix)  # TODO: Emoji isn't at the start
             raise e
 
     return outer_func
@@ -247,7 +247,7 @@ class Exporter:
             matches = difflib.get_close_matches(fmt, fmts, n=1, cutoff=0.6)  # 60% similarity required to match
             if not matches:
                 raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-            LOGGER.warning(f"WARNING ⚠️ Invalid export format='{fmt}', updating to format='{matches[0]}'")
+            LOGGER.warning(f"Invalid export format='{fmt}', updating to format='{matches[0]}'")
             fmt = matches[0]
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
@@ -503,7 +503,7 @@ class Exporter:
                 f"('batch={self.args.batch}')."
             )
         elif n < 300:
-            LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
+            LOGGER.warning(f">300 images recommended for INT8 calibration, found {n} images.", prefix=prefix)
         return build_dataloader(dataset, batch=batch, workers=0)  # required for batch loading
 
     @try_export
@@ -580,7 +580,7 @@ class Exporter:
                 model_onnx = onnxslim.slim(model_onnx)
 
             except Exception as e:
-                LOGGER.warning(f"{prefix} simplifier failure: {e}")
+                LOGGER.warning(f"simplifier failure: {e}", prefix=prefix)
 
         # Metadata
         for k, v in self.metadata.items():
@@ -728,7 +728,7 @@ class Exporter:
             except Exception as e:
                 release = "20240410"
                 asset = f"pnnx-{release}-{system}.zip"
-                LOGGER.warning(f"{prefix} WARNING ⚠️ PNNX GitHub assets not found: {e}, using default {asset}")
+                LOGGER.warning(f"PNNX GitHub assets not found: {e}, using default {asset}", prefix=prefix)
             unzip_dir = safe_download(f"https://github.com/pnnx/pnnx/releases/download/{release}/{asset}", delete=True)
             if check_is_path_safe(Path.cwd(), unzip_dir):  # avoid path traversal security vulnerability
                 shutil.move(src=unzip_dir / name, dst=pnnx)  # move binary to ROOT
@@ -793,7 +793,7 @@ class Exporter:
             model = IOSDetectModel(self.model, self.im) if self.args.nms else self.model
         else:
             if self.args.nms:
-                LOGGER.warning(f"{prefix} WARNING ⚠️ 'nms=True' is only available for Detect models like 'yolo11n.pt'.")
+                LOGGER.warning(f"'nms=True' is only available for Detect models like 'yolo11n.pt'.", prefix=prefix)
                 # TODO CoreML Segment and Pose model pipelining
             model = self.model
 
@@ -909,7 +909,7 @@ class Exporter:
         if self.args.dynamic:
             shape = self.im.shape
             if shape[0] <= 1:
-                LOGGER.warning(f"{prefix} WARNING ⚠️ 'dynamic=True' model requires max batch size, i.e. 'batch=16'")
+                LOGGER.warning(f"'dynamic=True' model requires max batch size, i.e. 'batch=16'", prefix=prefix)
             profile = builder.create_optimization_profile()
             min_shape = (1, shape[1], 32, 32)  # minimum input shape
             max_shape = (*shape[:2], *(int(max(1, self.args.workspace or 1) * d) for d in shape[2:]))  # max input shape
@@ -1117,7 +1117,7 @@ class Exporter:
     @try_export
     def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):
         """YOLO Edge TPU export https://coral.ai/docs/edgetpu/models-intro/."""
-        LOGGER.warning(f"{prefix} WARNING ⚠️ Edge TPU known bug https://github.com/ultralytics/ultralytics/issues/1185")
+        LOGGER.warning(f"Edge TPU known bug https://github.com/ultralytics/ultralytics/issues/1185", prefix=prefix)
 
         cmd = "edgetpu_compiler --version"
         help_url = "https://coral.ai/docs/edgetpu/compiler/"
@@ -1178,7 +1178,7 @@ class Exporter:
             subprocess.run(cmd, shell=True)
 
         if " " in f:
-            LOGGER.warning(f"{prefix} WARNING ⚠️ your model may not work correctly with spaces in path '{f}'.")
+            LOGGER.warning(f"your model may not work correctly with spaces in path '{f}'.", prefix=prefix)
 
         # Add metadata
         yaml_save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml

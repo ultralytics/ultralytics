@@ -127,7 +127,7 @@ class BaseDataset(Dataset):
         if self.cache == "ram" and self.check_cache_ram():
             if hyp.deterministic:
                 LOGGER.warning(
-                    "WARNING ⚠️ cache='ram' may produce non-deterministic training results. "
+                    "cache='ram' may produce non-deterministic training results. "
                     "Consider cache='disk' as a deterministic alternative if your disk space allows."
                 )
             self.cache_images()
@@ -220,7 +220,7 @@ class BaseDataset(Dataset):
                 try:
                     im = np.load(fn)
                 except Exception as e:
-                    LOGGER.warning(f"{self.prefix}WARNING ⚠️ Removing corrupt *.npy image file {fn} due to: {e}")
+                    LOGGER.warning(f"Removing corrupt *.npy image file {fn} due to: {e}", prefix=self.prefix)
                     Path(fn).unlink(missing_ok=True)
                     im = cv2.imread(f)  # BGR
             else:  # read image

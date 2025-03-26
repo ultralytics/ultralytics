@@ -722,7 +722,6 @@ plugins:
         tasks/segmentation.md: tasks/segment.md
         tasks/keypoints.md: tasks/pose.md
         tasks/tracking.md: modes/track.md
-        SECURITY.md: help/security.md
         help/minimum_reproducible_example.md: help/minimum-reproducible-example.md
         help/code_of_conduct.md: help/code-of-conduct.md
         tutorials/architecture-summary.md: yolov5/tutorials/architecture_description.md

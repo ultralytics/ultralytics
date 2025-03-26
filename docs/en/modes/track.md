@@ -248,7 +248,7 @@ In the following example, we demonstrate how to utilize YOLO11's tracking capabi
                     track.append((float(x), float(y)))  # x, y center point
                     if len(track) > 30:  # retain 30 tracks for 30 frames
                         track.pop(0)
-    
+
                     # Draw the tracking lines
                     points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
                     cv2.polylines(frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)

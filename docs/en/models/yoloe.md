@@ -161,51 +161,127 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
 | ------------------------------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------ |
 | [LVIS minival](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/lvis.yaml) | Detection | [minival.txt](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/lvis.yaml) |
 
+#### Launching training from scratch
+
 !!! note
 
-    `Visual-prompt` and `Prompt-free` models are fine-tuned based on trained-well `Text-prompt` models.
-
-#### Train Text-prompt model
+    `Visual-prompt` models are fine-tuned based on trained-well `Text-prompt` models.
 
 !!! example
 
-    ```python
-    from ultralytics.models.yolo.yoloe import YOLOESegTrainerFromScratch
-    from ultralytics import YOLOE
+    === "Text-prompt model"
+        ```python
+        from ultralytics.models.yolo.yoloe import YOLOESegTrainerFromScratch
+        from ultralytics import YOLOE
 
-    data = dict(
-        train=dict(
-            yolo_data=["Objects365.yaml"],
-            grounding_data=[
-                dict(
-                    img_path="../datasets/flickr/full_images/",
-                    json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
-                ),
-                dict(
-                    img_path="../datasets/mixed_grounding/gqa/images",
-                    json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
-                ),
-            ],
-        ),
-        val=dict(yolo_data=["lvis.yaml"]),
-    )
+        data = dict(
+            train=dict(
+                yolo_data=["Objects365.yaml"],
+                grounding_data=[
+                    dict(
+                        img_path="../datasets/flickr/full_images/",
+                        json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                    ),
+                    dict(
+                        img_path="../datasets/mixed_grounding/gqa/images",
+                        json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                    ),
+                ],
+            ),
+            val=dict(yolo_data=["lvis.yaml"]),
+        )
 
-    model = YOLOE("yoloe-l-seg.yaml")
-    model.train(
-        data=data,
-        batch=128,
-        epochs=30,
-        close_mosaic=2,
-        optimizer="AdamW",
-        lr0=2e-3,
-        warmup_bias_lr=0.0,
-        weight_decay=0.025,
-        momentum=0.9,
-        workers=4,
-        trainer=YOLOESegTrainerFromScratch,
-        device="0,1,2,3,4,5,6,7",
-    )
-    ```
+        model = YOLOE("yoloe-l-seg.yaml")
+        model.train(
+            data=data,
+            batch=128,
+            epochs=30,
+            close_mosaic=2,
+            optimizer="AdamW",
+            lr0=2e-3,
+            warmup_bias_lr=0.0,
+            weight_decay=0.025,
+            momentum=0.9,
+            workers=4,
+            trainer=YOLOESegTrainerFromScratch,
+            device="0,1,2,3,4,5,6,7",
+        )
+        ```
+
+    === "Visual-prompt model"
+
+        Since only the `SAVPE` module needs to be updating during training. 
+        Converting trained-well Text-prompt model to detection model and adopt detection pipeline with less training cost.
+        Noted this step is optional, you can directly start from segmentation as well.
+        ```python
+        from ultralytics import YOLOE
+        import torch
+        det_model = YOLOE("yoloe-l.yaml")
+        state = torch.load("yoloe-l-seg.pt")
+        det_model.load(state["model"])
+        det_model.save("yoloe-l-seg-det.pt")
+        ```
+        Start training:
+        ```python
+        from ultralytics.models.yolo.yoloe import YOLOESegTrainerFromScratch
+        from ultralytics import YOLOE
+
+        data = dict(
+            train=dict(
+                yolo_data=["Objects365.yaml"],
+                grounding_data=[
+                    dict(
+                        img_path="../datasets/flickr/full_images/",
+                        json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                    ),
+                    dict(
+                        img_path="../datasets/mixed_grounding/gqa/images",
+                        json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                    ),
+                ],
+            ),
+            val=dict(yolo_data=["lvis.yaml"]),
+        )
+
+        # freeze every layer except of the savpe module.
+        head_index = len(model.model.model) - 1
+        freeze = list(range(0, head_index))
+        for name, child in model.model.model[-1].named_children():
+            if "savpe" not in name:
+                freeze.append(f"{head_index}.{name}")
+
+        model = YOLOE("yoloe-l-seg.pt")
+        # replace to yoloe-l-seg-det.pt if converted to detection model
+        # model = YOLOE("yoloe-l-seg-det.pt")
+        model.train(
+            data=data,
+            batch=128,
+            epochs=2,
+            close_mosaic=2,
+            optimizer="AdamW",
+            lr0=16e-3,
+            warmup_bias_lr=0.0,
+            weight_decay=0.025,
+            momentum=0.9,
+            workers=4,
+            trainer=YOLOEVPTrainer,
+            device="0,1,2,3,4,5,6,7",
+            freeze=freeze,
+        )
+        ```
+        Convert back to segmentation model after training.
+        ```python
+        from ultralytics import YOLOE
+        from copy import deepcopy
+
+        model = YOLOE(f"yoloe-l-seg.yaml")
+        model.load(f"yoloe-l-seg.pt")
+
+        vp_model = YOLOE(f"yoloe-l-vp.pt")
+        model.model.model[-1].savpe = deepcopy(vp_model.model.model[-1].savpe)
+        model.eval()
+        model.save(f"yoloe-l-seg.pt")
+        ```
 
 ## YOLOE Performance Comparison
 

@@ -1006,7 +1006,7 @@ class Exporter:
                 "tf_keras",  # required by 'onnx2tf' package
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
                 "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
-                "ai-edge-litert>=1.2.0",  # required by 'onnx2tf' package
+                "" if checks.IS_PYTHON_3_8 else "ai-edge-litert>=1.2.0",  # ai-edge-litert is missing if onnx2tf==1.27.0
                 "onnx>=1.12.0",
                 "onnx2tf>=1.26.3" if not (ARM64 and LINUX) else "onnx2tf<=1.20.0",
                 "onnxslim>=0.1.31",

@@ -15,7 +15,7 @@ from ultralytics.utils import LOGGER, TQDM
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
 
 
-class YOLOEValidatorMixin:
+class YOLOEDetectValidator(DetectionValidator):
     """
     A mixin class for YOLOE model validation that handles both text and visual prompt embeddings.
 
@@ -97,12 +97,11 @@ class YOLOEValidatorMixin:
         Returns:
             (torch.utils.data.DataLoader): The dataLoader for visual prompt samples.
         """
-        vps_data = check_det_dataset(data)
         dataset = build_yolo_dataset(
             self.args,
-            vps_data.get(self.args.split, vps_data.get("val")),
+            data.get(self.args.split, data.get("val")),
             self.args.batch,
-            vps_data,
+            data,
             mode="val",
             rect=False,
         )
@@ -120,25 +119,7 @@ class YOLOEValidatorMixin:
         )
         return vps_loader
 
-    def build_vp_dataset(self, img_path, mode="val", batch=None):
-        """
-        Build YOLO Dataset.
-
-        Args:
-            img_path (str): Path to the folder containing images.
-            mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
-            batch (int, optional): Size of batches, this is for `rect`.
-
-        Returns:
-            (Dataset): YOLO dataset.
-        """
-        dataset = super().build_dataset(img_path, mode, batch)
-        if isinstance(dataset, YOLOConcatDataset):
-            for d in dataset.datasets:
-                d.transforms.append(LoadVisualPrompt())
-        else:
-            dataset.transforms.append(LoadVisualPrompt())
-        return dataset
+    # def set_visual_params(self, refer_data=None, load)
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None, refer_data=None, load_vp=False):
@@ -176,11 +157,13 @@ class YOLOEValidatorMixin:
                 model.set_classes(names, tpe)
                 stats = super().__call__(trainer, model)
         else:
+            if refer_data is not None:
+                assert load_vp, "Refer data is only used for visual prompt validation."
             if isinstance(model, YOLOEModel) and not hasattr(model, "pe"):
-                self.device = select_device(self.args.device, self.args.batch)
+                self.device = select_device(self.args.device)
 
                 model.eval().to(self.device)
-                data = check_det_dataset(self.args.data)
+                data = check_det_dataset(refer_data or self.args.data)
                 names = [name.split("/")[0] for name in list(data["names"].values())]
 
                 if load_vp:
@@ -188,7 +171,7 @@ class YOLOEValidatorMixin:
                     self.args.half = False
                     # TODO: need to check if the names from refer data is consistent with the evaluated dataset
                     # could use same dataset or refer to extract visual prompt embeddings
-                    dataloader = self.get_vpe_dataloader(refer_data or self.args.data)
+                    dataloader = self.get_vpe_dataloader(data)
                     vpe = self.get_visual_pe(dataloader, model)
                     model.set_classes(names, vpe)
                     stats = super().__call__(model=deepcopy(model))
@@ -202,13 +185,7 @@ class YOLOEValidatorMixin:
         return stats
 
 
-class YOLOEDetectValidator(YOLOEValidatorMixin, DetectionValidator):
-    """YOLOE detection validator that supports both text and visual prompt embeddings."""
-
-    pass
-
-
-class YOLOESegValidator(YOLOEValidatorMixin, SegmentationValidator):
+class YOLOESegValidator(YOLOEDetectValidator, SegmentationValidator):
     """YOLOE segmentation validator that supports both text and visual prompt embeddings."""
 
     pass

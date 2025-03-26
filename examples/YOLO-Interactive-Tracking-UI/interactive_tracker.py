@@ -1,84 +1,116 @@
 """
-YOLO Interactive Tracking UI
-=============================
+YOLO Interactive Tracking UI (CPU/GPU Version)
+==============================================
 
-A user-friendly, educational object tracking UI using Ultralytics YOLO models and OpenCV.
-This script allows users to:
-- Detect and track objects in real-time
-- Click on objects to initiate tracking
-- Display visual overlays such as scope lines, center markers, and bounding boxes
-- Output real-time tracking data in the terminal (ID, bbox, center, confidence)
-- Tune parameters like confidence, IoU, tracker type, and detection limits
+This is an educational, beginner-friendly demo that shows how to do real-time object detection
+and interactive object tracking using Ultralytics YOLOv8 and OpenCV.
 
-Model loading is handled separately via `add_yolo_model.py`, which downloads and prepares your desired model version (e.g., YOLOv8) in NCNN format. Place models inside the `yolo/` folder and configure path accordingly in this script.
+✅ You can choose to run the model on:
+   - CPU (optimized for devices like Raspberry Pi using NCNN)
+   - GPU (for Jetson Nano or any CUDA-capable desktop)
 
-Folder Structure:
------------------
+🧠 Features:
+------------
+- Real-time object detection and tracking with visual overlays
+- Click on any object to start tracking it
+- Supports both PyTorch (.pt) and NCNN (.param + .bin) models
+- Prints live tracking data (ID, class, confidence, center position)
+- Visual scope lines and object highlights
+
+📦 Folder Structure:
+--------------------
 YOLO-Interactive-Tracking-UI/
-├── yolo/                    # Stores NCNN models (.param, .bin)
-├── add_yolo_model.py        # Script to download + convert YOLO model to NCNN
-├── interactive_tracker.py   # Main tracking demo (this file)
-└── README.md                # Instructions and demo info
+├── yolo/                    # Folder for model files
+│   ├── yolov8n.pt           # PyTorch model for GPU
+│   ├── yolov8n_ncnn.param   # NCNN model for CPU
+│   └── yolov8n_ncnn.bin
+├── interactive_tracker.py   # This script
+└── add_yolo_model.py        # Optional model downloader
 
-Usage:
-------
-1. Run `add_yolo_model.py` to set up your desired model
-2. Then run this script:
-   python interactive_tracker.py
+🔧 Setup Instructions:
+-----------------------
+1. Install Python packages:
+   ```bash
+   pip install ultralytics opencv-python
+   ```
 
-Controls:
+2. If you want GPU acceleration (on CUDA-capable device):
+   ```bash
+   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+   ```
+
+3. Download the right model into the `yolo/` folder:
+   - For GPU: [https://github.com/ultralytics/assets/releases](https://github.com/ultralytics/assets/releases)
+     - Download: `yolov8n.pt`
+   - For CPU (e.g. Raspberry Pi): Use `add_yolo_model.py` to convert to NCNN
+
+🚀 Usage:
 ---------
-- Click on any object to select it for tracking
-- Press 'c' to cancel tracking
-- Press 'q' to quit the application
+Run the script:
+    python interactive_tracker.py
 
-Dependencies:
--------------
-- Python 3.8+
-- ultralytics >= 8.0.0
-- opencv-python
+Toggle options inside script:
+    USE_GPU = True / False
 
-Author:
--------
-Alireza Ghaderi  <p30planets@gmail.com>
-📅 March 2025  
-🔗 LinkedIn: https://www.linkedin.com/in/alireza787b/
+🎮 Controls:
+------------
+- Left click = select object to track
+- Press `c` = cancel/reset tracking
+- Press `q` = quit
 
-License & Disclaimer:
----------------------
-This project is provided for **educational and demonstration purposes** only.
-The author takes **no responsibility for improper use** or deployment in production systems.
-Use at your own discretion. Contributions are welcome!
+👨‍💻 Author:
+------------
+Alireza Ghaderi <p30planets@gmail.com> | LinkedIn: alireza787b
+March 2025
 
+🛡️ Disclaimer:
+---------------
+This is for **learning, demos, and education** only — not for production.
 """
 
 import time
-
 import cv2
 import numpy as np
-
 from ultralytics import YOLO
 
-# ========== USER-CONFIGURABLE PARAMETERS (YOLO & Tracker) ==========
+# ================================
+# 🔧 USER CONFIGURATION SECTION
+# ================================
 
-SHOW_FPS = True  # If True, shows current FPS in top-left corner
+# 🖥️ Toggle this to True if your machine has a CUDA GPU (like Jetson Nano or desktop GPU)
+USE_GPU = False
 
-CONFIDENCE_THRESHOLD = (
-    0.3  # Min confidence for object detection (lower = more detections, possibly more false positives)
-)
-IOU_THRESHOLD = 0.3  # IoU threshold for NMS (higher = less overlap allowed)
-MAX_DETECTION = 20  # Maximum objects per frame (increase for crowded scenes)
+# 🧠 Select the correct model paths for GPU vs CPU
+MODEL_PATH_GPU = "yolo/yolov8n.pt"              # PyTorch model (GPU)
+MODEL_PATH_CPU = "yolo/yolov8n_ncnn_model"      # NCNN model (CPU)
 
-TRACKER_TYPE = "bytetrack.yaml"  # Tracker config: 'bytetrack.yaml', 'botsort.yaml', etc.
+# 🎯 Detection and tracking settings
+SHOW_FPS = True
+CONFIDENCE_THRESHOLD = 0.3
+IOU_THRESHOLD = 0.3
+MAX_DETECTION = 20
+TRACKER_TYPE = "bytetrack.yaml"  # Options: 'bytetrack.yaml', 'botsort.yaml'
 TRACKER_ARGS = {
-    "persist": True,  # Keep object ID even if momentarily lost (useful for occlusion)
-    "verbose": False,  # Print debug info from tracker
+    "persist": True,
+    "verbose": False,
 }
 
-# =================== INITIALIZATION ===================
-# Explicitly set task to avoid warnings; use task='detect'
-model = YOLO("yolo/yolov8s_ncnn_model", task="detect")
-cap = cv2.VideoCapture(0)  # Replace with video path if needed
+# ================================
+# 🚀 MODEL INITIALIZATION
+# ================================
+
+if USE_GPU:
+    print("🚀 Running on GPU using PyTorch (.pt model)...")
+    model = YOLO(MODEL_PATH_GPU)        # Load PyTorch model
+    model.to("cuda")                    # Move to GPU
+else:
+    print("⚙️ Running on CPU using NCNN (.param + .bin)...")
+    model = YOLO(MODEL_PATH_CPU, task="detect")  # Load NCNN model for CPU inference
+
+# ================================
+# 🎥 VIDEO SOURCE (Camera or Video)
+# ================================
+cap = cv2.VideoCapture(0)  # Replace with path to a video file if needed
 
 selected_object_id = None
 selected_bbox = None

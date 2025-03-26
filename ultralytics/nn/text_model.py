@@ -22,7 +22,7 @@ try:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         import mobileclip
-except ImportError:
+except (ImportError, ModuleNotFoundError):
     # MobileCLIP repo has an incorrect version of torchvision as dependency
     # Manually install other dependencies first and install mobileclip with "--no-deps" flag
     checks.check_requirements(["open-clip-torch>=2.20.0", "timm>=0.9.5"])

@@ -1,8 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 
-import torch
 import numpy as np
+import torch
 
 from ultralytics.data.augment import LoadVisualPrompt
 from ultralytics.models.yolo.detect import DetectionPredictor
@@ -87,7 +87,10 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
             assert len(im) == len(category) == len(bboxes), (
                 f"Expected same length for all inputs, but got {len(im)}vs{len(category)}vs{len(bboxes)}!"
             )
-            visuals = [self._process_single_image(img[i].shape[:2], im[i].shape[:2], category[i], bboxes[i]) for i in range(len(img))]
+            visuals = [
+                self._process_single_image(img[i].shape[:2], im[i].shape[:2], category[i], bboxes[i])
+                for i in range(len(img))
+            ]
             self.prompts = torch.nn.utils.rnn.pad_sequence(visuals, batch_first=True).to(self.device)
             return img
 

@@ -11,6 +11,7 @@ from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.models.yolo.model import YOLOEModel
 from ultralytics.models.yolo.segment import SegmentationValidator
+from ultralytics.nn.modules.head import YOLOEDetect
 from ultralytics.utils import LOGGER, TQDM
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
 
@@ -159,29 +160,28 @@ class YOLOEDetectValidator(DetectionValidator):
         else:
             if refer_data is not None:
                 assert load_vp, "Refer data is only used for visual prompt validation."
-            if isinstance(model, YOLOEModel) and not hasattr(model, "pe"):
-                self.device = select_device(self.args.device)
+            self.device = select_device(self.args.device)
 
-                model.eval().to(self.device)
-                data = check_det_dataset(refer_data or self.args.data)
-                names = [name.split("/")[0] for name in list(data["names"].values())]
+            model.eval().to(self.device)
+            data = check_det_dataset(refer_data or self.args.data)
+            names = [name.split("/")[0] for name in list(data["names"].values())]
 
-                if load_vp:
-                    LOGGER.info("Validate using the visual prompt.")
-                    self.args.half = False
-                    # TODO: need to check if the names from refer data is consistent with the evaluated dataset
-                    # could use same dataset or refer to extract visual prompt embeddings
-                    dataloader = self.get_vpe_dataloader(data)
-                    vpe = self.get_visual_pe(dataloader, model)
-                    model.set_classes(names, vpe)
-                    stats = super().__call__(model=deepcopy(model))
-                else:
-                    LOGGER.info("Validate using the text prompt.")
-                    tpe = model.get_text_pe(names)
-                    model.set_classes(names, tpe)
-                    stats = super().__call__(model=deepcopy(model))
-            else:
+            if load_vp:
+                LOGGER.info("Validate using the visual prompt.")
+                self.args.half = False
+                # TODO: need to check if the names from refer data is consistent with the evaluated dataset
+                # could use same dataset or refer to extract visual prompt embeddings
+                dataloader = self.get_vpe_dataloader(data)
+                vpe = self.get_visual_pe(dataloader, model)
+                model.set_classes(names, vpe)
+                stats = super().__call__(model=deepcopy(model))
+            elif isinstance(model.model[-1], YOLOEDetect) and hasattr(model.model[-1], "lrpc"):  # prompt-free
                 return super().__call__(trainer, model)
+            else:
+                LOGGER.info("Validate using the text prompt.")
+                tpe = model.get_text_pe(names)
+                model.set_classes(names, tpe)
+                stats = super().__call__(model=deepcopy(model))
         return stats
 
 
@@ -189,11 +189,3 @@ class YOLOESegValidator(YOLOEDetectValidator, SegmentationValidator):
     """YOLOE segmentation validator that supports both text and visual prompt embeddings."""
 
     pass
-
-
-class YOLOEPEFreeDetectValidator(DetectionValidator):
-    """YOLOE detection validator that doesn't require prompt embeddings."""
-
-    def eval_json(self, stats):
-        """Return stats without additional processing."""
-        return stats

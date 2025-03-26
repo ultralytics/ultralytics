@@ -1220,7 +1220,7 @@ class Exporter:
         )
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")
-        
+
         check_requirements(("model-compression-toolkit>=2.3.0", "sony-custom-layers>=0.3.0", "edge-mdt-tpc>=1.1.0"))
         check_requirements("imx500-converter[pt]>=3.16.1")  # Separate requirements for imx500-converter
 
@@ -1249,31 +1249,28 @@ class Exporter:
                 img = img / 255.0
                 yield [img]
 
-        tpc = get_target_platform_capabilities(tpc_version='4.0', device_type='imx500')
-        
-        
+        tpc = get_target_platform_capabilities(tpc_version="4.0", device_type="imx500")
+
         bit_cfg = mct.core.BitWidthConfig()
         if "C2PSA" in self.model.__str__():  # yolo11
-            if self.model.task == 'detect':
-                layer_names = ['sub', 'mul_2', 'add_14', 'cat_21']
+            if self.model.task == "detect":
+                layer_names = ["sub", "mul_2", "add_14", "cat_21"]
                 weights_memory = 2585350.2439
             else:
-                raise ValueError('Only Detect task currently supported for imx export')
+                raise ValueError("Only Detect task currently supported for imx export")
         else:  # yolov8
-            if self.model.task == 'detect':
-                layer_names = ['sub', 'mul', 'add_6', 'cat_17']
+            if self.model.task == "detect":
+                layer_names = ["sub", "mul", "add_6", "cat_17"]
                 weights_memory = 2550540.8
             else:
-                raise ValueError('Only Detect task currently supported for imx export')
+                raise ValueError("Only Detect task currently supported for imx export")
         for layer_name in layer_names:
-            bit_cfg.set_manual_activation_bit_width([mct.core.common.network_editors.NodeNameFilter(layer_name)],16)
-        
-        
+            bit_cfg.set_manual_activation_bit_width([mct.core.common.network_editors.NodeNameFilter(layer_name)], 16)
 
         config = mct.core.CoreConfig(
             mixed_precision_config=mct.core.MixedPrecisionQuantizationConfig(num_of_images=10),
             quantization_config=mct.core.QuantizationConfig(concat_threshold_update=True),
-            bit_width_config=bit_cfg
+            bit_width_config=bit_cfg,
         )
 
         resource_utilization = mct.core.ResourceUtilization(weights_memory=weights_memory)
@@ -1283,7 +1280,9 @@ class Exporter:
                 model=self.model,
                 representative_data_gen=representative_dataset_gen,
                 target_resource_utilization=resource_utilization,
-                gptq_config=mct.gptq.get_pytorch_gptq_config(n_epochs=1000, use_hessian_based_weights=False, use_hessian_sample_attention=False),
+                gptq_config=mct.gptq.get_pytorch_gptq_config(
+                    n_epochs=1000, use_hessian_based_weights=False, use_hessian_sample_attention=False
+                ),
                 core_config=config,
                 target_platform_capabilities=tpc,
             )[0]

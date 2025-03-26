@@ -36,6 +36,36 @@ Additionally, YOLOE integrates real-time **instance segmentation** by extending 
 
 Crucially, YOLOE's open-world modules introduce **no inference cost** when used as a regular closed-set YOLO. Post-training, YOLOE parameters can be re-parameterized into a standard YOLO head, preserving identical FLOPs and speed (e.g., matching [YOLO11](yolo11.md) exactly).
 
+## Available Models, Supported Tasks, and Operating Modes
+
+This section details the models available with their specific pre-trained weights, the tasks they support, and their compatibility with various operating modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), denoted by ✅ for supported modes and ❌ for unsupported modes.
+### Text/Visual prompt models
+
+| Model Type      | Pre-trained Weights                                                                                     | Tasks Supported                              | Inference | Validation | Training | Export |
+| --------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------       | --------- | ---------- | -------- | ------ |
+| YOLOE-S         | [yoloe-s-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-s-seg.pt)         | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-M         | [yoloe-m-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-m-seg.pt)         | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-L         | [yoloe-l-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-l-seg.pt)         | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-v8-S      | [yoloe-v8s-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8s-seg.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-v8-M      | [yoloe-v8m-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8m-seg.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-v8-L      | [yoloe-v8l-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8l-seg.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+
+### Prompt-free models
+
+| Model Type      | Pre-trained Weights                                                                                       | Tasks Supported                              | Inference | Validation | Training | Export |
+| --------------- | -------------------------------------------------------------------------------------------------------   | --------------------------------------       | --------- | ---------- | -------- | ------ |
+| YOLOE-S-PF      | [yoloe-s-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-s-seg-pf.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-M-PF      | [yoloe-m-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-m-seg-pf.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-L-PF      | [yoloe-l-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-l-seg-pf.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-v8-S-PF   | [yoloe-v8s-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8s-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-v8-M-PF   | [yoloe-v8m-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8m-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-v8-L-PF   | [yoloe-v8l-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8l-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+
+## Usage Examples
+
+The YOLOE models are easy to integrate into your Python applications. Ultralytics provides user-friendly [Python API](../usage/python.md) and [CLI commands](../usage/cli.md) to streamline development.
+<!--TODO-->
+
 ## YOLOE Performance Comparison
 
 YOLOE matches or exceeds the accuracy of closed-set YOLO models on standard benchmarks like COCO, without compromising speed or model size. The table below compares YOLOE-L (built on YOLO11) against corresponding [YOLOv8](yolov8.md) and YOLO11 models:

@@ -97,7 +97,7 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
         )
         ```
 
-    === "Linear probing"
+    === "Linear Probing"
 
         ```python
         from ultralytics import YOLOE

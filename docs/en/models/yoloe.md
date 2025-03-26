@@ -148,7 +148,6 @@ Object detection is straightforward with the `predict` method, as illustrated be
     === "Text Prompt"
 
         ```python
-
         # Initialize a YOLOE model
         model = YOLOWorld("yoloe-l-seg.pt")  # or select yoloe-s/m-seg.pt for different sizes
 
@@ -251,7 +250,6 @@ Object detection is straightforward with the `predict` method, as illustrated be
     === "Text Prompt"
 
         ```python
-
         # Create a YOLOE model
         model = YOLO("yoloe-l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
 
@@ -263,7 +261,6 @@ Object detection is straightforward with the `predict` method, as illustrated be
 
         Be default it's using the prodived dataset to extract visual embeddings for each category.
         ```python
-
         # Create a YOLOE model
         model = YOLO("yoloe-l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
 
@@ -273,7 +270,6 @@ Object detection is straightforward with the `predict` method, as illustrated be
         Alternatively we could use another dataset as a reference dataset to extract visual embeddings for each category.
         Noted this reference dataset should have exactly the same categories as provided dataset.
         ```python
-
         # Create a YOLOE model
         model = YOLO("yoloe-l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
 
@@ -285,7 +281,6 @@ Object detection is straightforward with the `predict` method, as illustrated be
     === "Prompt Free"
 
         ```python
-
         # Create a YOLOE model
         model = YOLO("yoloe-l-seg-pf.pt")  # or select yoloe-m/l-seg-pf.pt for different sizes
 

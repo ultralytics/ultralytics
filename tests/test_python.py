@@ -619,6 +619,7 @@ def test_yoloe():
     model(SOURCE, conf=0.01)
 
     import numpy as np
+
     from ultralytics import YOLOE
     from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 

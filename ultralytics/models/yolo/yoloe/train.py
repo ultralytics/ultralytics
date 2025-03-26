@@ -191,7 +191,7 @@ class YOLOETrainerFromScratch(YOLOETrainer):
         # TODO: enable to update the path or use a more general way to get the path
         img_path = datasets[0].img_path
         self.text_embeddings = self.generate_text_embeddings(
-            category_names, batch, device=self.device, cache_path=Path(img_path).parent / "text_embeddings.pt"
+            category_names, batch, cache_path=Path(img_path).parent / "text_embeddings.pt"
         )
 
     def preprocess_batch(self, batch):
@@ -204,8 +204,7 @@ class YOLOETrainerFromScratch(YOLOETrainer):
         batch["txt_feats"] = txt_feats
         return batch
 
-    @staticmethod
-    def generate_text_embeddings(texts, batch, device="cuda", cache_path="embeddings.pt"):
+    def generate_text_embeddings(self, texts, batch, cache_path="embeddings.pt"):
         """
         Generate text embeddings for a list of text samples.
 
@@ -220,18 +219,9 @@ class YOLOETrainerFromScratch(YOLOETrainer):
         """
         if cache_path.exists():
             return torch.load(cache_path)
-        from tqdm import tqdm
-
-        from ultralytics.nn.text_model import build_text_model
-
-        # TODO: hardcode to mobileclip:blt for now
-        model = build_text_model("mobileclip:blt", device=device)
-        text_tokens = model.tokenize(texts)
-        txt_feats = []
-        for text_token in tqdm(text_tokens.split(batch)):
-            txt_feats.append(model.encode_text(text_token))
-        txt_feats = torch.cat(txt_feats, dim=0).cpu()
-        txt_map = {text: feat for text, feat in zip(texts, txt_feats)}
+        assert self.model is not None
+        txt_feats = self.model.get_text_pe(texts, batch, without_reprta=True)
+        txt_map = {text: feat for text, feat in zip(texts, txt_feats.squeeze(0))}
         torch.save(txt_map, cache_path)
         return txt_map
 

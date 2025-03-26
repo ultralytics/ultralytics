@@ -318,7 +318,6 @@ class Exporter:
             elif self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
                 LOGGER.warning("WARNING ⚠️ Edge TPU export requires batch size 1, setting batch=1.")
                 self.args.batch = 1
-
         if isinstance(model, WorldModel):
             LOGGER.warning(
                 "WARNING ⚠️ YOLOWorld (original version) export is not supported to any format.\n"

@@ -64,7 +64,54 @@ This section details the models available with their specific pre-trained weight
 ## Usage Examples
 
 The YOLOE models are easy to integrate into your Python applications. Ultralytics provides user-friendly [Python API](../usage/python.md) and [CLI commands](../usage/cli.md) to streamline development.
-<!--TODO-->
+
+### Train Usage
+
+#### Fine-Tuning on custom dataset
+
+!!! example
+
+    === "Fine-Tuning the last layer of YOLOE classify head"
+
+        ```python
+        from ultralytics.models.yolo.yoloe.train_seg import YOLOEPESegTrainer
+        from ultralytics import YOLOE
+
+        model = YOLOE("yoloe-s-seg.pt")
+        head_index = len(model.model.model) - 1
+        freeze = [str(f) for f in range(0, head_index)]
+        for name, child in model.model.model[-1].named_children():
+            if "cv3" not in name:
+                freeze.append(f"{head_index}.{name}")
+
+        freeze.extend(
+            [
+                f"{head_index}.cv3.0.0",
+                f"{head_index}.cv3.0.1",
+                f"{head_index}.cv3.1.0",
+                f"{head_index}.cv3.1.1",
+                f"{head_index}.cv3.2.0",
+                f"{head_index}.cv3.2.1",
+            ]
+        )
+        freeze = [str(f) for f in range(0, len(model.model.model))]
+
+        model.train(
+            data="coco128-seg.yaml",
+            epochs=2,
+            close_mosaic=0,
+            batch=16,
+            optimizer="AdamW",
+            lr0=1e-3,
+            warmup_bias_lr=0.0,
+            weight_decay=0.025,
+            momentum=0.9,
+            workers=4,
+            device="0",
+            trainer=YOLOEPESegTrainer,
+            freeze=freeze,
+        )
+        ```
 
 ## YOLOE Performance Comparison
 

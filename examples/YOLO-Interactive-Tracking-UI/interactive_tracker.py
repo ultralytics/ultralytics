@@ -3,7 +3,7 @@ YOLO Interactive Tracking UI (CPU/GPU Version).
 ==============================================
 
 This is an educational, beginner-friendly demo that shows how to do real-time object detection
-and interactive object tracking using Ultralytics YOLOv8 and OpenCV.
+and interactive object tracking using Ultralytics YOLO and OpenCV.
 
 ✅ You can choose to run the model on:
    - CPU (optimized for devices like Raspberry Pi using NCNN)
@@ -38,7 +38,7 @@ YOLO-Interactive-Tracking-UI/
 
 3. Download the right model into the `yolo/` folder:
    - For GPU: [https://github.com/ultralytics/assets/releases](https://github.com/ultralytics/assets/releases)
-     - Download: `yolov8n.pt`
+     - Download: `yolo11n.pt`
    - For CPU (e.g. Raspberry Pi): Use `add_yolo_model.py` to convert to NCNN
 
 🚀 Usage:
@@ -80,8 +80,8 @@ from ultralytics import YOLO
 USE_GPU = False
 
 # 🧠 Select the correct model paths for GPU vs CPU
-MODEL_PATH_GPU = "yolo/yolov8n.pt"  # PyTorch model (GPU)
-MODEL_PATH_CPU = "yolo/yolov8n_ncnn_model"  # NCNN model (CPU)
+MODEL_PATH_GPU = "yolo/yolo11n.pt"  # PyTorch model (GPU)
+MODEL_PATH_CPU = "yolo/yolo11n_ncnn_model"  # NCNN model (CPU)
 
 # 🎯 Detection and tracking settings
 SHOW_FPS = True

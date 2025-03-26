@@ -563,8 +563,7 @@ class YOLOEDetect(Detect):
 
     def forward(self, x, cls_pe, return_mask=False):
         """Process features with class prompt embeddings to generate detections."""
-        has_lrpc = hasattr(self, "lrpc")  # for prompt-free inference
-        if has_lrpc:
+        if hasattr(self, "lrpc"):  # for prompt-free inference
             return self.forward_lrpc(x, return_mask)
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv4[i](self.cv3[i](x[i]), cls_pe)), 1)

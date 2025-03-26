@@ -103,7 +103,6 @@ class DetectionValidator(BaseValidator):
             model (torch.nn.Module): Model to validate.
         """
         val = self.data.get(self.args.split, "")  # validation path
-
         self.is_coco = (
             isinstance(val, str)
             and "coco" in val
@@ -424,7 +423,6 @@ class DetectionValidator(BaseValidator):
         """
         if self.args.save_json and (self.is_coco or self.is_lvis) and len(self.jdict):
             pred_json = self.save_dir / "predictions.json"  # predictions
-
             anno_json = (
                 self.data["path"]
                 / "annotations"

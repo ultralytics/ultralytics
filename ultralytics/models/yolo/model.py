@@ -271,9 +271,13 @@ class YOLOE(Model):
         )
 
         if len(visual_prompts):
-            cls = set(visual_prompts["cls"])
-            self.model.model[-1].nc = len(cls)
-            self.model.names = [f"object{i}" for i in range(len(cls))]
+            num_cls = (
+                max(len(set(c)) for c in visual_prompts["cls"])
+                if isinstance(source, list)  # means multiple images
+                else len(set(visual_prompts["cls"]))
+            )
+            self.model.model[-1].nc = num_cls
+            self.model.names = [f"object{i}" for i in range(num_cls)]
             self.predictor.set_prompts(visual_prompts)
 
         self.predictor.setup_model(model=self.model)

@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 
+import torch
 import numpy as np
 
 from ultralytics.data.augment import LoadVisualPrompt
@@ -65,34 +66,68 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         Raises:
             ValueError: If neither valid bounding boxes nor masks are provided in the prompts.
         """
-        assert len(im) == 1, f"Expected 1 image, but got {len(im)} images!"
-        img = super().pre_transform(im)[0]
+        img = super().pre_transform(im)
+        bboxes = self.prompts.pop("bboxes", None)
+        masks = self.prompts.pop("masks", None)
+        category = self.prompts["cls"]
+        if len(img) == 1:
+            visuals = self._process_single_image(img[0].shape[:2], im[0].shape[:2], category, bboxes, masks)
+            self.prompts = visuals.unsqueeze(0).to(self.device)  # (1, N, H, W)
+            return img
+        else:
+            # NOTE: only supports bboxes as prompts for now
+            assert bboxes is not None, f"Expected bboxes, but got {bboxes}!"
+            # NOTE: needs List[np.ndarray]
+            assert isinstance(bboxes, list) and all(isinstance(b, np.ndarray) for b in bboxes), (
+                f"Expected List[np.ndarray], but got {bboxes}!"
+            )
+            assert isinstance(category, list) and all(isinstance(b, np.ndarray) for b in category), (
+                f"Expected List[np.ndarray], but got {category}!"
+            )
+            assert len(im) == len(category) == len(bboxes), (
+                f"Expected same length for all inputs, but got {len(im)}vs{len(category)}vs{len(bboxes)}!"
+            )
+            visuals = [self._process_single_image(img[i].shape[:2], im[i].shape[:2], category[i], bboxes[i]) for i in range(len(img))]
+            self.prompts = torch.nn.utils.rnn.pad_sequence(visuals, batch_first=True).to(self.device)
+            return img
 
-        bboxes, masks = None, None
-        if "bboxes" in self.prompts and len(self.prompts["bboxes"]) > 0:
-            bboxes = np.array(self.prompts["bboxes"])
+    def _process_single_image(self, dst_shape, src_shape, category, bboxes=None, masks=None):
+        """
+        Processes a single image by resizing bounding boxes or masks and generating visuals.
+
+        Args:
+            dst_shape (tuple): The target shape (height, width) of the image.
+            src_shape (tuple): The original shape (height, width) of the image.
+            category (str): The category of the image for visual prompts.
+            bboxes (list | np.ndarray, optional): A list of bounding boxes in the format [x1, y1, x2, y2]. Defaults to None.
+            masks (np.ndarray, optional): A list of masks corresponding to the image. Defaults to None.
+
+        Returns:
+            visuals: The processed visuals for the image.
+
+        Raises:
+            ValueError: If neither `bboxes` nor `masks` are provided.
+        """
+        if bboxes is not None and len(bboxes):
+            bboxes = np.array(bboxes, dtype=np.float32)
             if bboxes.ndim == 1:
                 bboxes = bboxes[None, :]
-            dst_shape, src_shape = img.shape[:2], im[0].shape[:2]
-            gain = min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])  # gain  = old / new
+            # Calculate scaling factor and adjust bounding boxes
+            gain = min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])  # gain = old / new
             bboxes *= gain
             bboxes[..., 0::2] += round((dst_shape[1] - src_shape[1] * gain) / 2 - 0.1)
             bboxes[..., 1::2] += round((dst_shape[0] - src_shape[0] * gain) / 2 - 0.1)
-        elif "masks" in self.prompts:
-            masks = self.prompts["masks"]
-
+        elif masks is not None:
+            # Resize and process masks
             resized_masks = super().pre_transform(masks)
             masks = np.stack(resized_masks)  # (N, H, W)
             masks[masks == 114] = 0  # Reset padding values to 0
         else:
             raise ValueError("Please provide valid bboxes or masks")
 
-        cls = self.prompts["cls"]
-        visuals = LoadVisualPrompt().get_visuals(cls, img.shape[:2], bboxes, masks)
-
-        self.prompts = visuals.unsqueeze(0).to(self.device)  # (1, N, H, W)
-
-        return [img]
+        # Generate visuals using the visual prompt loader
+        visuals = LoadVisualPrompt().get_visuals(category, dst_shape, bboxes, masks)
+        return visuals
 
     def inference(self, im, *args, **kwargs):
         """

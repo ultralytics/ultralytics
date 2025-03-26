@@ -21,9 +21,6 @@ and interactive object tracking using Ultralytics YOLOv8 and OpenCV.
 --------------------
 YOLO-Interactive-Tracking-UI/
 ├── yolo/                    # Folder for model files
-│   ├── yolov8n.pt           # PyTorch model for GPU
-│   ├── yolov8n_ncnn.param   # NCNN model for CPU
-│   └── yolov8n_ncnn.bin
 ├── interactive_tracker.py   # This script
 └── add_yolo_model.py        # Optional model downloader
 

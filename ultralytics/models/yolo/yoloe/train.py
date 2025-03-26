@@ -34,6 +34,7 @@ class YOLOETrainer(DetectionTrainer):
         """
         if overrides is None:
             overrides = {}
+        overrides["overlap_mask"] = False
         super().__init__(cfg, overrides, _callbacks)
 
     def get_model(self, cfg=None, weights=None, verbose=True):

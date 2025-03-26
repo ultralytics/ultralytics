@@ -170,7 +170,7 @@ def test_youtube():
         model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)
     # Handle internet connection errors and 'urllib.error.HTTPError: HTTP Error 429: Too Many Requests'
     except (urllib.error.HTTPError, ConnectionError) as e:
-        LOGGER.warning(f"WARNING: YouTube Test Error: {e}")
+        LOGGER.warning(f"YouTube Test Error: {e}")
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

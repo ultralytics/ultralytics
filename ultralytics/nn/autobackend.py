@@ -315,7 +315,7 @@ class AutoBackend(nn.Module):
             try:
                 context = model.create_execution_context()
             except Exception as e:  # model is None
-                LOGGER.error(f"ERROR: TensorRT model exported with a different version than {trt.__version__}\n")
+                LOGGER.error(f"TensorRT model exported with a different version than {trt.__version__}\n")
                 raise e
 
             bindings = OrderedDict()
@@ -532,7 +532,7 @@ class AutoBackend(nn.Module):
             end2end = metadata.get("args", {}).get("nms", False)
             dynamic = metadata.get("args", {}).get("dynamic", dynamic)
         elif not (pt or triton or nn_module):
-            LOGGER.warning(f"WARNING ⚠️ Metadata not found for 'model={weights}'")
+            LOGGER.warning(f"Metadata not found for 'model={weights}'")
 
         # Check names
         if "names" not in locals():  # names missing

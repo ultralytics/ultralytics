@@ -177,7 +177,7 @@ def benchmark(
         except Exception as e:
             if verbose:
                 assert type(e) is AssertionError, f"Benchmark failure for {name}: {e}"
-            LOGGER.warning(f"ERROR ❌️ Benchmark failure for {name}: {e}")
+            LOGGER.error(f"Benchmark failure for {name}: {e}")
             y.append([name, emoji, round(file_size(filename), 1), None, None, None])  # mAP, t_inference
 
     # Print results

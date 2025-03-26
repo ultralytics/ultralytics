@@ -171,7 +171,7 @@ class LoadStreams:
             try:
                 cap.release()  # release video capture
             except Exception as e:
-                LOGGER.warning(f"WARNING ⚠️ Could not release VideoCapture object: {e}")
+                LOGGER.warning(f"Could not release VideoCapture object: {e}")
         cv2.destroyAllWindows()
 
     def __iter__(self):
@@ -193,7 +193,7 @@ class LoadStreams:
                 time.sleep(1 / min(self.fps))
                 x = self.imgs[i]
                 if not x:
-                    LOGGER.warning(f"WARNING ⚠️ Waiting for stream {i}")
+                    LOGGER.warning(f"Waiting for stream {i}")
 
             # Get and remove the first frame from imgs buffer
             if self.buffer:
@@ -424,7 +424,7 @@ class LoadImagesAndVideos:
                 else:
                     im0 = imread(path)  # BGR
                 if im0 is None:
-                    LOGGER.warning(f"WARNING ⚠️ Image Read Error {path}")
+                    LOGGER.warning(f"Image Read Error {path}")
                 else:
                     paths.append(path)
                     imgs.append(im0)

@@ -223,7 +223,7 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
         ```
         Start training:
         ```python
-        from ultralytics.models.yolo.yoloe import YOLOESegTrainerFromScratch
+        from ultralytics.models.yolo.yoloe import YOLOEVPTrainer
         from ultralytics import YOLOE
 
         data = dict(
@@ -243,6 +243,10 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
             val=dict(yolo_data=["lvis.yaml"]),
         )
 
+        model = YOLOE("yoloe-l-seg.pt")
+        # replace to yoloe-l-seg-det.pt if converted to detection model
+        # model = YOLOE("yoloe-l-seg-det.pt")
+
         # freeze every layer except of the savpe module.
         head_index = len(model.model.model) - 1
         freeze = list(range(0, head_index))
@@ -250,9 +254,6 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
             if "savpe" not in name:
                 freeze.append(f"{head_index}.{name}")
 
-        model = YOLOE("yoloe-l-seg.pt")
-        # replace to yoloe-l-seg-det.pt if converted to detection model
-        # model = YOLOE("yoloe-l-seg-det.pt")
         model.train(
             data=data,
             batch=128,
@@ -269,7 +270,7 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
             freeze=freeze,
         )
         ```
-        Convert back to segmentation model after training.
+        Convert back to segmentation model after training. Only needed if you converted segmentation model to detection model before training.
         ```python
         from ultralytics import YOLOE
         from copy import deepcopy
@@ -281,6 +282,100 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
         model.model.model[-1].savpe = deepcopy(vp_model.model.model[-1].savpe)
         model.eval()
         model.save(f"yoloe-l-seg.pt")
+        ```
+
+    === "Prompt-free model"
+
+        Similar to visual prompt training, for prompt-free model there's only the specialized prompt embedding needs to be updating during training. 
+        Converting trained-well Text-prompt model to detection model and adopt detection pipeline with less training cost.
+        Noted this step is optional, you can directly start from segmentation as well.
+        ```python
+        from ultralytics import YOLOE
+        import torch
+        det_model = YOLOE("yoloe-l.yaml")
+        state = torch.load("yoloe-l-seg.pt")
+        det_model.load(state["model"])
+        det_model.save("yoloe-l-seg-det.pt")
+        ```
+        Start training:
+        ```python
+        from ultralytics.models.yolo.yoloe import YOLOEVPTrainer
+        from ultralytics import YOLOE
+
+        data = dict(
+            train=dict(
+                yolo_data=["Objects365.yaml"],
+                grounding_data=[
+                    dict(
+                        img_path="../datasets/flickr/full_images/",
+                        json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                    ),
+                    dict(
+                        img_path="../datasets/mixed_grounding/gqa/images",
+                        json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                    ),
+                ],
+            ),
+            val=dict(yolo_data=["lvis.yaml"]),
+        )
+
+        model = YOLOE("yoloe-l-seg.pt")
+        # replace to yoloe-l-seg-det.pt if converted to detection model
+        # model = YOLOE("yoloe-l-seg-det.pt")
+
+        # freeze layers.
+        head_index = len(model.model.model) - 1
+        freeze = [str(f) for f in range(0, head_index)]
+        for name, child in model.model.model[-1].named_children():
+            if "cv3" not in name:
+                freeze.append(f"{head_index}.{name}")
+
+        freeze.extend(
+            [
+                f"{head_index}.cv3.0.0",
+                f"{head_index}.cv3.0.1",
+                f"{head_index}.cv3.1.0",
+                f"{head_index}.cv3.1.1",
+                f"{head_index}.cv3.2.0",
+                f"{head_index}.cv3.2.1",
+            ]
+        )
+
+        model.train(
+            data=data,
+            batch=128,
+            epochs=1,
+            close_mosaic=1,
+            optimizer="AdamW",
+            lr0=2e-3,
+            warmup_bias_lr=0.0,
+            weight_decay=0.025,
+            momentum=0.9,
+            workers=4,
+            trainer=YOLOEPEFreeTrainer,
+            device="0,1,2,3,4,5,6,7",
+            freeze=freeze,
+            single_cls=True,  # this is needed
+        )
+        ```
+        Convert back to segmentation model after training. Only needed if you converted segmentation model to detection model before training.
+        ```python
+        from ultralytics import YOLOE
+        from copy import deepcopy
+        model = YOLOE(f"yoloe-l-seg.pt")
+        model.eval()
+
+        pf_model = YOLOE(f"yoloe-l-pf.pt")
+        names = ["object"]
+        tpe = model.get_text_pe(names)
+        model.set_classes(names, tpe)
+        model.model.model[-1].fuse(model.model.pe)
+
+        model.model.model[-1].cv3[0][2] = deepcopy(pf_model.model.model[-1].cv3[0][2]).requires_grad_(True)
+        model.model.model[-1].cv3[1][2] = deepcopy(pf_model.model.model[-1].cv3[1][2]).requires_grad_(True)
+        model.model.model[-1].cv3[2][2] = deepcopy(pf_model.model.model[-1].cv3[2][2]).requires_grad_(True)
+        del model.model.pe
+        model.save(f"yoloe-l-seg-pf.pt")
         ```
 
 ## YOLOE Performance Comparison

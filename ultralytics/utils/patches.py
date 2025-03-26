@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 """Monkey patches to update/extend functionality of existing functions."""
 
 import time

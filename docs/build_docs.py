@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 """
 Automates building and post-processing of MkDocs documentation, especially for multilingual projects.
 

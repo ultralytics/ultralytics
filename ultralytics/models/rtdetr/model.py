@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 """
 Interface for Baidu's RT-DETR, a Vision Transformer-based real-time object detector.
 

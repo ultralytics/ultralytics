@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 """Base callbacks for Ultralytics training, validation, prediction, and export processes."""
 
 from collections import defaultdict

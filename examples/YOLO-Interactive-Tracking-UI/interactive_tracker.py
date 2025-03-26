@@ -1,5 +1,5 @@
 """
-YOLO Interactive Tracking UI (CPU/GPU Version)
+YOLO Interactive Tracking UI (CPU/GPU Version).
 ==============================================
 
 This is an educational, beginner-friendly demo that shows how to do real-time object detection
@@ -69,8 +69,10 @@ This is for **learning, demos, and education** only — not for production.
 """
 
 import time
+
 import cv2
 import numpy as np
+
 from ultralytics import YOLO
 
 # ================================
@@ -81,8 +83,8 @@ from ultralytics import YOLO
 USE_GPU = False
 
 # 🧠 Select the correct model paths for GPU vs CPU
-MODEL_PATH_GPU = "yolo/yolov8n.pt"              # PyTorch model (GPU)
-MODEL_PATH_CPU = "yolo/yolov8n_ncnn_model"      # NCNN model (CPU)
+MODEL_PATH_GPU = "yolo/yolov8n.pt"  # PyTorch model (GPU)
+MODEL_PATH_CPU = "yolo/yolov8n_ncnn_model"  # NCNN model (CPU)
 
 # 🎯 Detection and tracking settings
 SHOW_FPS = True
@@ -101,8 +103,8 @@ TRACKER_ARGS = {
 
 if USE_GPU:
     print("🚀 Running on GPU using PyTorch (.pt model)...")
-    model = YOLO(MODEL_PATH_GPU)        # Load PyTorch model
-    model.to("cuda")                    # Move to GPU
+    model = YOLO(MODEL_PATH_GPU)  # Load PyTorch model
+    model.to("cuda")  # Move to GPU
 else:
     print("⚙️ Running on CPU using NCNN (.param + .bin)...")
     model = YOLO(MODEL_PATH_CPU, task="detect")  # Load NCNN model for CPU inference

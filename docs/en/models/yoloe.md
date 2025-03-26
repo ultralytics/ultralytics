@@ -163,7 +163,6 @@ Object detection is straightforward with the `predict` method, as illustrated be
         results[0].show()
         ```
     === "Visual Prompt"
-
         Prompts in source image:
         ```python
         import numpy as np
@@ -200,7 +199,6 @@ Object detection is straightforward with the `predict` method, as illustrated be
         # Show results
         results[0].show()
         ```
-
         Prompts in different images:
 
         ```python
@@ -229,6 +227,48 @@ Object detection is straightforward with the `predict` method, as illustrated be
         # Show results
         results[0].show()
         ```
+        Running with multiple images:
+        ```python
+        import numpy as np
+
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
+
+        # Initialize a YOLOE model
+        model = YOLOE("yoloe-11l-seg.pt")
+
+        # Set visual prompt
+        visuals = dict(
+            bboxes=[
+                np.array(
+                    [
+                        [221.52, 405.8, 344.98, 857.54],  # For person
+                        [120, 425, 160, 445],  # For glasses
+                    ],
+                ),
+                np.array([[150, 200, 1150, 700]]),
+            ],
+            cls=[
+                np.array(
+                    [
+                        0,  # For person
+                        1,  # For glasses
+                    ]
+                ),
+                np.array([0]),
+            ],
+        )
+
+        # Execute prediction for specified categories on an image
+        results = model.predict(
+            ["ultralytics/assets/bus.jpg", "ultralytics/assets/zidane.jpg"],
+            visual_prompts=visuals,
+            predictor=YOLOEVPSegPredictor,
+        )
+
+        # Show results
+        results[0].show()
+        ```
 
     === "Prompt free"
         ```python
@@ -242,6 +282,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
 
         # Show results
         results[0].show()
+
         ```
 
 ### Val Usage

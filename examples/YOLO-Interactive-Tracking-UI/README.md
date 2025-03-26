@@ -26,6 +26,7 @@ This project is ideal for:
 - 🔁 Dashed box style for inactive objects
 - 📟 Terminal prints: object class, ID, confidence, center
 - 🎛 Customizable settings:
+
   - FPS display toggle
   - Max detections
   - Tracker backend (`bytetrack`, `botsort`, etc.)
@@ -39,12 +40,12 @@ This project is ideal for:
 
 ## 🧠 Hardware & Model Support
 
-| Platform           | Format Used       | Model Example          | GPU Acceleration | Notes                         |
-|--------------------|-------------------|------------------------|------------------|-------------------------------|
-| Raspberry Pi 4/5   | NCNN (.param/.bin)| `yolov8n_ncnn_model`   | ❌ CPU only       | Lightweight, fast enough      |
-| Jetson Nano        | PyTorch (.pt)     | `yolov8n.pt`           | ✅ CUDA           | Great for GPU acceleration    |
-| Desktop PC w/ GPU  | PyTorch (.pt)     | `yolov8s.pt`           | ✅ CUDA           | Fastest option                |
-| CPU-only laptops   | NCNN (.param/.bin)| `yolov8n_ncnn_model`   | ❌               | Still usable at ~10–15 FPS    |
+| Platform          | Format Used        | Model Example        | GPU Acceleration | Notes                      |
+| ----------------- | ------------------ | -------------------- | ---------------- | -------------------------- |
+| Raspberry Pi 4/5  | NCNN (.param/.bin) | `yolov8n_ncnn_model` | ❌ CPU only      | Lightweight, fast enough   |
+| Jetson Nano       | PyTorch (.pt)      | `yolov8n.pt`         | ✅ CUDA          | Great for GPU acceleration |
+| Desktop PC w/ GPU | PyTorch (.pt)      | `yolov8s.pt`         | ✅ CUDA          | Fastest option             |
+| CPU-only laptops  | NCNN (.param/.bin) | `yolov8n_ncnn_model` | ❌               | Still usable at ~10–15 FPS |
 
 ---
 
@@ -89,9 +90,11 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 ### 1. Prepare a YOLO Model
 
 - For CPU/NCNN:
+
   ```bash
   python add_yolo_model.py
   ```
+
   This will download + convert `yolov8n.pt` to NCNN automatically.
 
 - For GPU:
@@ -158,4 +161,3 @@ The code is well-commented for educational clarity.
 This project is for **educational and demonstration purposes only**.  
 Use it at your own discretion. The author assumes **no liability** for misuse.  
 Feedback, forks, and contributions are always welcome!
-

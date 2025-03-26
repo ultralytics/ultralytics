@@ -250,8 +250,10 @@ Object detection is straightforward with the `predict` method, as illustrated be
     === "Text Prompt"
 
         ```python
+        from ultralytics import YOLOE
+
         # Create a YOLOE model
-        model = YOLO("yoloe-l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+        model = YOLOE("yoloe-l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
 
         # Conduct model validation on the COCO8 example dataset
         metrics = model.val(data="coco8.yaml")
@@ -261,8 +263,10 @@ Object detection is straightforward with the `predict` method, as illustrated be
 
         Be default it's using the prodived dataset to extract visual embeddings for each category.
         ```python
+        from ultralytics import YOLOE
+
         # Create a YOLOE model
-        model = YOLO("yoloe-l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+        model = YOLOE("yoloe-l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
 
         # Conduct model validation on the COCO8 example dataset
         metrics = model.val(data="coco8.yaml", load_vp=True)
@@ -270,8 +274,10 @@ Object detection is straightforward with the `predict` method, as illustrated be
         Alternatively we could use another dataset as a reference dataset to extract visual embeddings for each category.
         Noted this reference dataset should have exactly the same categories as provided dataset.
         ```python
+        from ultralytics import YOLOE
+
         # Create a YOLOE model
-        model = YOLO("yoloe-l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+        model = YOLOE("yoloe-l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
 
         # Conduct model validation on the COCO8 example dataset
         metrics = model.val(data="coco8.yaml", load_vp=True, refer_data="coco128.yaml")
@@ -281,8 +287,10 @@ Object detection is straightforward with the `predict` method, as illustrated be
     === "Prompt Free"
 
         ```python
+        from ultralytics import YOLOE
+
         # Create a YOLOE model
-        model = YOLO("yoloe-l-seg-pf.pt")  # or select yoloe-m/l-seg-pf.pt for different sizes
+        model = YOLOE("yoloe-l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
 
         # Conduct model validation on the COCO8 example dataset
         metrics = model.val(data="coco8.yaml")

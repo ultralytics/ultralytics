@@ -1,6 +1,8 @@
-<!--Ultralytics YOLO 🚀, AGPL-3.0 license-->
+<!--Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license-->
 
-{% extends "base.html" %} {% block announce %}
+<!--Site announcement bar-->
+{% extends "base.html" %}
+{% block announce %}
 <div class="banner-wrapper">
   <div
     class="banner-content-wrapper"
@@ -15,4 +17,14 @@
     />
   </div>
 </div>
+{% endblock %}
+
+<!--Page titles-->
+{% if page.toc|first is defined %}
+{% set _title = page.toc.items[0].title %}
+{% else %}
+{% set _title = page.title|striptags %}
+{% endif %}
+{% block htmltitle %}
+<title>{{ _title }}</title>
 {% endblock %}

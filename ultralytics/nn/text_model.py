@@ -146,10 +146,7 @@ class MobileCLIP(TextModel):
 
     def tokenize(self, texts):
         """Convert input texts to MobileCLIP tokens."""
-        text_tokens = self.tokenizer(texts).to(self.device)
-        # max_len = text_tokens.argmax(dim=-1).max().item() + 1
-        # text_tokens = text_tokens[..., :max_len]
-        return text_tokens
+        return self.tokenizer(texts).to(self.device)
 
     @smart_inference_mode()
     def encode_text(self, texts, dtype=torch.float32):

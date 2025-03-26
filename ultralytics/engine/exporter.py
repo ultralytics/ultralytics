@@ -793,7 +793,7 @@ class Exporter:
             model = IOSDetectModel(self.model, self.im) if self.args.nms else self.model
         else:
             if self.args.nms:
-                LOGGER.warning(f"'nms=True' is only available for Detect models like 'yolo11n.pt'.", prefix=prefix)
+                LOGGER.warning("'nms=True' is only available for Detect models like 'yolo11n.pt'.", prefix=prefix)
                 # TODO CoreML Segment and Pose model pipelining
             model = self.model
 
@@ -909,7 +909,7 @@ class Exporter:
         if self.args.dynamic:
             shape = self.im.shape
             if shape[0] <= 1:
-                LOGGER.warning(f"'dynamic=True' model requires max batch size, i.e. 'batch=16'", prefix=prefix)
+                LOGGER.warning("'dynamic=True' model requires max batch size, i.e. 'batch=16'", prefix=prefix)
             profile = builder.create_optimization_profile()
             min_shape = (1, shape[1], 32, 32)  # minimum input shape
             max_shape = (*shape[:2], *(int(max(1, self.args.workspace or 1) * d) for d in shape[2:]))  # max input shape
@@ -1117,7 +1117,7 @@ class Exporter:
     @try_export
     def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):
         """YOLO Edge TPU export https://coral.ai/docs/edgetpu/models-intro/."""
-        LOGGER.warning(f"Edge TPU known bug https://github.com/ultralytics/ultralytics/issues/1185", prefix=prefix)
+        LOGGER.warning("Edge TPU known bug https://github.com/ultralytics/ultralytics/issues/1185", prefix=prefix)
 
         cmd = "edgetpu_compiler --version"
         help_url = "https://coral.ai/docs/edgetpu/compiler/"

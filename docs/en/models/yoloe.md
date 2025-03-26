@@ -138,6 +138,72 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
         )
         ```
 
+### Train Official Models
+
+#### Prepare datasets
+
+!!! note
+
+    Training official YOLOE models needs segment annotations for train data, here's [the script provided by official team](https://github.com/THU-MIG/yoloe/blob/main/tools/generate_sam_masks.py) that converts `GQA` and `Flickr30k` datasets to segment annotations, powered by [SAM2.1 models](./sam-2.md).
+
+
+- Train data
+
+| Dataset                                                           | Type                                                        | Samples | Boxes | Annotation Files                                                                                                                           |
+| ----------------------------------------------------------------- | ----------------------------------------------------------- | ------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| [Objects365v1](https://opendatalab.com/OpenDataLab/Objects365_v1) | Detection                                                   | 609k    | 9621k | [objects365_train.json](https://opendatalab.com/OpenDataLab/Objects365_v1)                                                                 |
+| [GQA](https://downloads.cs.stanford.edu/nlp/data/gqa/images.zip)  | [Grounding](https://www.ultralytics.com/glossary/grounding) | 621k    | 3681k | [final_mixed_train_no_coco.json](https://huggingface.co/GLIPModel/GLIP/blob/main/mdetr_annotations/final_mixed_train_no_coco.json)         |
+| [Flickr30k](https://shannon.cs.illinois.edu/DenotationGraph/)     | Grounding                                                   | 149k    | 641k  | [final_flickr_separateGT_train.json](https://huggingface.co/GLIPModel/GLIP/blob/main/mdetr_annotations/final_flickr_separateGT_train.json) |
+
+- Val data
+
+| Dataset                                                                                                 | Type      | Annotation Files                                                                                       |
+| ------------------------------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------ |
+| [LVIS minival](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/lvis.yaml) | Detection | [minival.txt](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/lvis.yaml) |
+
+
+!!! example
+
+    === "Text prompt model"
+
+        ```python
+        from ultralytics.models.yolo.yoloe import YOLOESegTrainerFromScratch
+        from ultralytics import YOLOE
+
+        data = dict(
+            train=dict(
+                yolo_data=["Objects365.yaml"],
+                grounding_data=[
+                    dict(
+                        img_path="../datasets/flickr/full_images/",
+                        json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                    ),
+                    dict(
+                        img_path="../datasets/mixed_grounding/gqa/images",
+                        json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                    ),
+                ],
+            ),
+            val=dict(yolo_data=["lvis.yaml"]),
+        )
+
+        model = YOLOE("yoloe-l-seg.yaml")
+        model.train(
+            data=data,
+            batch=128,
+            epochs=30,
+            close_mosaic=2,
+            optimizer="AdamW",
+            lr0=2e-3,
+            warmup_bias_lr=0.0,
+            weight_decay=0.025,
+            momentum=0.9,
+            workers=4,
+            trainer=YOLOESegTrainerFromScratch,
+            device="0,1,2,3,4,5,6,7",
+        )
+        ```
+
 ## YOLOE Performance Comparison
 
 YOLOE matches or exceeds the accuracy of closed-set YOLO models on standard benchmarks like COCO, without compromising speed or model size. The table below compares YOLOE-L (built on YOLO11) against corresponding [YOLOv8](yolov8.md) and YOLO11 models:

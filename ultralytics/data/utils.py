@@ -458,9 +458,13 @@ def check_cls_dataset(dataset, split=""):
                 if k == "train":
                     raise FileNotFoundError(emojis(f"{dataset} '{k}:' no training images found ❌ "))
                 else:
-                    LOGGER.warning(f"found {nf} images in {nd} classes: WARNING ⚠️ no images found", prefix=prefix)  # TODO: WARNING text isn't at the start
+                    LOGGER.warning(
+                        f"found {nf} images in {nd} classes: WARNING ⚠️ no images found", prefix=prefix
+                    )  # TODO: WARNING text isn't at the start
             elif nd != nc:
-                LOGGER.error(f"found {nf} images in {nd} classes: ERROR ❌️ requires {nc} classes, not {nd}", prefix=prefix)  # TODO: ERROR text isn't at the start
+                LOGGER.error(
+                    f"found {nf} images in {nd} classes: ERROR ❌️ requires {nc} classes, not {nd}", prefix=prefix
+                )  # TODO: ERROR text isn't at the start
             else:
                 LOGGER.info(f"{prefix} found {nf} images in {nd} classes ✅ ")
 

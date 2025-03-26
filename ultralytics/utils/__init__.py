@@ -419,7 +419,9 @@ def set_logging(name="LOGGING_NAME", verbose=True):
     logger.setLevel(level)
     logger.addHandler(stream_handler)
     logger.propagate = False
-    logger.warning, logger.error = [partial(format_message, func, emoji) for func, emoji in zip([logger.warning, logger.error], ["⚠️", "❌"])]
+    logger.warning, logger.error = [
+        partial(format_message, func, emoji) for func, emoji in zip([logger.warning, logger.error], ["⚠️", "❌"])
+    ]
     return logger
 
 

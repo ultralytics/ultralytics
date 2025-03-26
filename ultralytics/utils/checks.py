@@ -736,7 +736,8 @@ def check_amp(model):
         if bool(pattern.search(gpu)):
             LOGGER.warning(
                 f"checks failed. AMP training on {gpu} GPU may cause "
-                f"NaN losses or zero-mAP results, so AMP will be disabled during training.", prefix=prefix
+                f"NaN losses or zero-mAP results, so AMP will be disabled during training.",
+                prefix=prefix,
             )
             return False
 

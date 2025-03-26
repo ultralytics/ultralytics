@@ -161,10 +161,13 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
 | ------------------------------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------ |
 | [LVIS minival](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/lvis.yaml) | Detection | [minival.txt](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/lvis.yaml) |
 
+!!! note
+
+    `Visual-prompt` and `Prompt-free` models are fine-tuned based on trained-well `Text-prompt` models.
 
 !!! example
 
-    === "Text prompt model"
+    === "Text-prompt model"
 
         ```python
         from ultralytics.models.yolo.yoloe import YOLOESegTrainerFromScratch

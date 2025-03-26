@@ -23,10 +23,10 @@ keywords: VisionEye, YOLO11, Ultralytics, object mapping, object tracking, dista
         yolo solutions visioneye show=True
 
         # Pass a source video
-        yolo solutions visioneye source="path/to/video/file.mp4"
+        yolo solutions visioneye source="path/to/video.mp4"
 
         # Monitor the specific classes
-        yolo solutions visioneye classes=[0, 5]
+        yolo solutions visioneye classes="[0, 5]"
         ```
 
     === "Python"
@@ -36,7 +36,7 @@ keywords: VisionEye, YOLO11, Ultralytics, object mapping, object tracking, dista
 
         from ultralytics import solutions
 
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
 
         # Video writer
@@ -127,7 +127,7 @@ import cv2
 
 from ultralytics import solutions
 
-cap = cv2.VideoCapture("path/to/video/file.mp4")
+cap = cv2.VideoCapture("path/to/video.mp4")
 assert cap.isOpened(), "Error reading video file"
 
 # Video writer

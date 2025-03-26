@@ -40,7 +40,7 @@ The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanc
 
         from ultralytics import solutions
 
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
 
         # Video writer

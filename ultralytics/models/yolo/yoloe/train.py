@@ -78,7 +78,6 @@ class YOLOETrainer(DetectionTrainer):
     def preprocess_batch(self, batch):
         """Process batch for training, moving text features to the appropriate device."""
         batch = super().preprocess_batch(batch)
-        # batch["txt_feats"] = batch["text_feats"].to(self.device)
         return batch
 
 

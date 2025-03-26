@@ -613,6 +613,7 @@ def test_yoloe():
     """Test YOLOE models with MobileClip support."""
     # Predict
     # text-prompts
+    download("https://docs-assets.developer.apple.com/ml-research/datasets/mobileclip/mobileclip_blt.pt")
     model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")  # no YOLO11n-world model yet
     names = ["person", "bus"]
     model.set_classes(names, model.get_text_pe(names))

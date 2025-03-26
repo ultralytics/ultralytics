@@ -282,7 +282,6 @@ Object detection is straightforward with the `predict` method, as illustrated be
 
         # Show results
         results[0].show()
-
         ```
 
 ### Val Usage

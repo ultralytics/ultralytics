@@ -236,7 +236,6 @@ class BaseValidator:
         self.run_callbacks("on_val_end")
         if self.training:
             model.float()
-
             results = {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")}
             return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
         else:

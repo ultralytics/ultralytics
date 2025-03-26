@@ -822,7 +822,9 @@ class BaseTrainer:
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
                 if "bias" in fullname:  # bias (no decay)
                     g[2].append(param)
-                elif isinstance(module, bn) or "logit_scale" in fullname:  # weight or logit_scale (no decay)
+                elif isinstance(module, bn):  # weight (no decay)
+                    g[1].append(param)
+                elif "logit_scale" in fullname:  # for ContrastiveHead and BNContrastiveHead
                     g[1].append(param)
                 else:  # weight (with decay)
                     g[0].append(param)

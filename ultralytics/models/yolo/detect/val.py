@@ -426,11 +426,7 @@ class DetectionValidator(BaseValidator):
             anno_json = (
                 self.data["path"]
                 / "annotations"
-                / (
-                    "instances_val2017.json"
-                    if self.is_coco
-                    else f"lvis_v1_{self.args.split}{'_sc' if self.args.single_cls else ''}.json"
-                )
+                / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
             )  # annotations
             pkg = "pycocotools" if self.is_coco else "lvis"
             LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")

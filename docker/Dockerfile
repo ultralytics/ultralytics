@@ -50,7 +50,7 @@ RUN uv pip install --system -e ".[export]" albumentations pycocotools "onnxrunti
 # Edge TPU export fails the first time so is run twice here
 RUN yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32 || yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32
 RUN yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32
-RUN uv pip install --system paddlepaddle x2paddle
+RUN uv pip install --system "paddlepaddle<3.0.0" x2paddle
 
 # Remove extra build files
 RUN rm -rf tmp /root/.config/Ultralytics/persistent_cache.json

@@ -93,7 +93,6 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
             workers=4,
             device="0",
             trainer=YOLOEPESegTrainer,
-            freeze=freeze,
         )
         ```
 
@@ -257,8 +256,8 @@ Object detection is straightforward with the `predict` method, as illustrated be
         # Create a YOLOE model
         model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
 
-        # Conduct model validation on the COCO8 example dataset
-        metrics = model.val(data="coco8.yaml")
+        # Conduct model validation on the COCO128-seg example dataset
+        metrics = model.val(data="coco128-seg.yaml")
         ```
 
     === "Visual Prompt"
@@ -270,8 +269,8 @@ Object detection is straightforward with the `predict` method, as illustrated be
         # Create a YOLOE model
         model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
 
-        # Conduct model validation on the COCO8 example dataset
-        metrics = model.val(data="coco8.yaml", load_vp=True)
+        # Conduct model validation on the COCO128-seg example dataset
+        metrics = model.val(data="coco128-seg.yaml", load_vp=True)
         ```
         Alternatively we could use another dataset as a reference dataset to extract visual embeddings for each category.
         Noted this reference dataset should have exactly the same categories as provided dataset.
@@ -281,8 +280,8 @@ Object detection is straightforward with the `predict` method, as illustrated be
         # Create a YOLOE model
         model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
 
-        # Conduct model validation on the COCO8 example dataset
-        metrics = model.val(data="coco8.yaml", load_vp=True, refer_data="coco128.yaml")
+        # Conduct model validation on the COCO128-seg example dataset
+        metrics = model.val(data="coco128-seg.yaml", load_vp=True, refer_data="coco.yaml")
         ```
 
 
@@ -294,8 +293,8 @@ Object detection is straightforward with the `predict` method, as illustrated be
         # Create a YOLOE model
         model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
 
-        # Conduct model validation on the COCO8 example dataset
-        metrics = model.val(data="coco8.yaml")
+        # Conduct model validation on the COCO128-seg example dataset
+        metrics = model.val(data="coco128-seg.yaml")
         ```
 
 Model validation on a dataset is streamlined as follows:

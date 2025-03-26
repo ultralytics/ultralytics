@@ -802,7 +802,7 @@ class YOLOEModel(DetectionModel):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     @smart_inference_mode()
-    def get_text_pe(self, text, batch=80, cache_clip_model=False):
+    def get_text_pe(self, text, batch=80, cache_clip_model=False, without_reprta=False):
         """
         Set classes in advance so that model could do offline-inference without clip model.
 
@@ -810,11 +810,11 @@ class YOLOEModel(DetectionModel):
             text (List[str]): List of class names.
             batch (int): Batch size for processing text tokens.
             cache_clip_model (bool): Whether to cache the CLIP model.
+            without_reprta (bool): Whether to return text embeddings cooperated with reprta module.
 
         Returns:
             (torch.Tensor): Text positional embeddings.
         """
-        assert not self.training
         from ultralytics.nn.text_model import build_text_model
 
         device = next(self.model.parameters()).device
@@ -828,7 +828,10 @@ class YOLOEModel(DetectionModel):
         txt_feats = [model.encode_text(token).detach() for token in text_token.split(batch)]
         txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)
         txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
+        if without_reprta:
+            return txt_feats
 
+        assert not self.training
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
         return head.get_tpe(txt_feats)  # run axuiliary text head

@@ -138,6 +138,110 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
         )
         ```
 
+### Predict Usage
+
+Object detection is straightforward with the `predict` method, as illustrated below:
+
+!!! example
+
+    === "Text Prompt"
+
+        ```python
+        from ultralytics import YOLOE
+
+        # Initialize a YOLOE model
+        model = YOLOWorld("yoloe-l-seg.pt")  # or select yoloe-s/m-seg.pt for different sizes
+
+        # Set text prompt
+        names = ["person", "bus"]
+        model.set_classes(names, model.get_text_pe(names))
+
+        # Execute prediction for specified categories on an image
+        results = model.predict("path/to/image.jpg")
+
+        # Show results
+        results[0].show()
+        ```
+    === "Visual Prompt"
+        
+        Prompts in source image:
+        ```python
+        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
+        from ultralytics import YOLOE
+        import numpy as np
+
+        # Initialize a YOLOE model
+        model = YOLOE("yoloe-l-seg.pt")
+
+        # Set visual prompt
+        visuals = dict(
+            bboxes=np.array(
+                [
+                    [221.52, 405.8, 344.98, 857.54],  # For person
+                    [120, 425, 160, 445],  # For glasses
+                ],
+            ),
+            cls=np.array(
+                [
+                    0,  # For person
+                    1,  # For glasses
+                ]
+            ),
+        )
+
+        # Execute prediction for specified categories on an image
+        results = model.predict(
+            "ultralytics/assets/bus.jpg",
+            visual_prompts=visuals,
+            predictor=YOLOEVPSegPredictor,
+        )
+
+        # Show results
+        results[0].show()
+        ```
+
+        Prompts in different images:
+
+        ```python
+        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
+        from ultralytics import YOLOE
+        import numpy as np
+
+        # Initialize a YOLOE model
+        model = YOLOE("yoloe-l-seg.pt")
+
+        # Set visual prompt
+        visuals = dict(
+            bboxes=np.array([221.52, 405.8, 344.98, 857.54])
+            cls=np.array([0])
+        )
+
+        # Execute prediction for specified categories on an image
+        results = model.predict(
+            "ultralytics/assets/zidane.jpg",
+            refer_image="ultralytics/assets/bus.jpg",
+            visual_prompts=visuals,
+            predictor=YOLOEVPSegPredictor,
+        )
+
+        # Show results
+        results[0].show()
+        ```
+
+    === "Prompt free"
+        ```python
+        from ultralytics import YOLOE
+
+        # Initialize a YOLOE model
+        model = YOLOE("yoloe-l-seg-pf.pt")
+
+        # Execute prediction for specified categories on an image
+        results = model.predict("path/to/image.jpg")
+
+        # Show results
+        results[0].show()
+        ```
+
 ### Train Official Models
 
 #### Prepare datasets

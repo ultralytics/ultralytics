@@ -39,7 +39,7 @@ Crucially, YOLOE's open-world modules introduce **no inference cost** when used 
 ## Available Models, Supported Tasks, and Operating Modes
 
 This section details the models available with their specific pre-trained weights, the tasks they support, and their compatibility with various operating modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), denoted by ✅ for supported modes and ❌ for unsupported modes.
-### Text/Visual prompt models
+### Text/Visual Prompt models
 
 | Model Type      | Pre-trained Weights                                                                                     | Tasks Supported                              | Inference | Validation | Training | Export |
 | --------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------       | --------- | ---------- | -------- | ------ |
@@ -50,7 +50,7 @@ This section details the models available with their specific pre-trained weight
 | YOLOE-v8-M      | [yoloe-v8m-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8m-seg.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 | YOLOE-v8-L      | [yoloe-v8l-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8l-seg.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 
-### Prompt-free models
+### Prompt Free models
 
 | Model Type      | Pre-trained Weights                                                                                       | Tasks Supported                              | Inference | Validation | Training | Export |
 | --------------- | -------------------------------------------------------------------------------------------------------   | --------------------------------------       | --------- | ---------- | -------- | ------ |
@@ -212,8 +212,8 @@ Object detection is straightforward with the `predict` method, as illustrated be
 
         # Set visual prompt
         visuals = dict(
-            bboxes=np.array([221.52, 405.8, 344.98, 857.54])
-            cls=np.array([0])
+            bboxes=np.array([221.52, 405.8, 344.98, 857.54]),
+            cls=np.array([0]),
         )
 
         # Execute prediction for specified categories on an image
@@ -324,11 +324,11 @@ Model validation on a dataset is streamlined as follows:
 
 !!! note
 
-    `Visual-prompt` models are fine-tuned based on trained-well `Text-prompt` models.
+    `Visual Prompt` models are fine-tuned based on trained-well `Text Prompt` models.
 
 !!! example
 
-    === "Text-prompt model"
+    === "Text Prompt"
         ```python
         from ultralytics.models.yolo.yoloe import YOLOESegTrainerFromScratch
         from ultralytics import YOLOE
@@ -367,7 +367,7 @@ Model validation on a dataset is streamlined as follows:
         )
         ```
 
-    === "Visual-prompt model"
+    === "Visual Prompt"
 
         Since only the `SAVPE` module needs to be updating during training. 
         Converting trained-well Text-prompt model to detection model and adopt detection pipeline with less training cost.
@@ -443,7 +443,7 @@ Model validation on a dataset is streamlined as follows:
         model.save(f"yoloe-l-seg.pt")
         ```
 
-    === "Prompt-free model"
+    === "Prompt Free"
 
         Similar to visual prompt training, for prompt-free model there's only the specialized prompt embedding needs to be updating during training. 
         Converting trained-well Text-prompt model to detection model and adopt detection pipeline with less training cost.

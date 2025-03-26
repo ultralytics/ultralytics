@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from collections.abc import Callable
 from types import SimpleNamespace
 from typing import Any, List, Optional

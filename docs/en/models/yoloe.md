@@ -148,8 +148,10 @@ Object detection is straightforward with the `predict` method, as illustrated be
     === "Text Prompt"
 
         ```python
+        from ultralytics import YOLOE
+
         # Initialize a YOLOE model
-        model = YOLOWorld("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
+        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
 
         # Set text prompt
         names = ["person", "bus"]

@@ -44,23 +44,23 @@ This section details the models available with their specific pre-trained weight
 
 | Model Type | Pre-trained Weights                                                                                 | Tasks Supported                              | Inference | Validation | Training | Export |
 | ---------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLOE-S    | [yoloe-s-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-s-seg.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-M    | [yoloe-m-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-m-seg.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-L    | [yoloe-l-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-l-seg.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-v8-S | [yoloe-v8s-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8s-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-v8-M | [yoloe-v8m-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8m-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-v8-L | [yoloe-v8l-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8l-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-11S  | [yoloe-11s-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-11s-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-11M  | [yoloe-11m-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-11m-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-11L  | [yoloe-11l-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-11l-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-v8S  | [yoloe-v8s-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8s-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-v8M  | [yoloe-v8m-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8m-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-v8L  | [yoloe-v8l-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8l-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 
 ### Prompt Free models
 
 | Model Type    | Pre-trained Weights                                                                                       | Tasks Supported                              | Inference | Validation | Training | Export |
 | ------------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLOE-S-PF    | [yoloe-s-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-s-seg-pf.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-M-PF    | [yoloe-m-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-m-seg-pf.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-L-PF    | [yoloe-l-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-l-seg-pf.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-v8-S-PF | [yoloe-v8s-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8s-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-v8-M-PF | [yoloe-v8m-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8m-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-v8-L-PF | [yoloe-v8l-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8l-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-11S-PF  | [yoloe-11s-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-11s-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-11M-PF  | [yoloe-11m-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-11m-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-11L-PF  | [yoloe-11l-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-11l-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-v8S-PF  | [yoloe-v8s-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8s-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-v8M-PF  | [yoloe-v8m-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8m-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-v8L-PF  | [yoloe-v8l-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yoloe-v8l-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 
 ## Usage Examples
 
@@ -78,7 +78,7 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
         from ultralytics import YOLOE
         from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
 
-        model = YOLOE("yoloe-s-seg.pt")
+        model = YOLOE("yoloe-11s-seg.pt")
 
         model.train(
             data="coco128-seg.yaml",
@@ -103,7 +103,7 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
         from ultralytics import YOLOE
         from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
 
-        model = YOLOE("yoloe-s-seg.pt")
+        model = YOLOE("yoloe-11s-seg.pt")
         head_index = len(model.model.model) - 1
         freeze = [str(f) for f in range(0, head_index)]
         for name, child in model.model.model[-1].named_children():
@@ -149,7 +149,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
 
         ```python
         # Initialize a YOLOE model
-        model = YOLOWorld("yoloe-l-seg.pt")  # or select yoloe-s/m-seg.pt for different sizes
+        model = YOLOWorld("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
 
         # Set text prompt
         names = ["person", "bus"]
@@ -171,7 +171,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
         from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         # Initialize a YOLOE model
-        model = YOLOE("yoloe-l-seg.pt")
+        model = YOLOE("yoloe-11l-seg.pt")
 
         # Set visual prompt
         visuals = dict(
@@ -209,7 +209,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
         from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         # Initialize a YOLOE model
-        model = YOLOE("yoloe-l-seg.pt")
+        model = YOLOE("yoloe-11l-seg.pt")
 
         # Set visual prompt
         visuals = dict(
@@ -234,7 +234,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
         from ultralytics import YOLOE
 
         # Initialize a YOLOE model
-        model = YOLOE("yoloe-l-seg-pf.pt")
+        model = YOLOE("yoloe-11l-seg-pf.pt")
 
         # Execute prediction for specified categories on an image
         results = model.predict("path/to/image.jpg")
@@ -253,7 +253,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
 
         # Conduct model validation on the COCO8 example dataset
         metrics = model.val(data="coco8.yaml")
@@ -266,7 +266,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
 
         # Conduct model validation on the COCO8 example dataset
         metrics = model.val(data="coco8.yaml", load_vp=True)
@@ -277,7 +277,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
 
         # Conduct model validation on the COCO8 example dataset
         metrics = model.val(data="coco8.yaml", load_vp=True, refer_data="coco128.yaml")
@@ -290,7 +290,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
 
         # Conduct model validation on the COCO8 example dataset
         metrics = model.val(data="coco8.yaml")
@@ -350,7 +350,7 @@ Model validation on a dataset is streamlined as follows:
             val=dict(yolo_data=["lvis.yaml"]),
         )
 
-        model = YOLOE("yoloe-l-seg.yaml")
+        model = YOLOE("yoloe-11l-seg.yaml")
         model.train(
             data=data,
             batch=128,
@@ -377,10 +377,10 @@ Model validation on a dataset is streamlined as follows:
 
         from ultralytics import YOLOE
 
-        det_model = YOLOE("yoloe-l.yaml")
-        state = torch.load("yoloe-l-seg.pt")
+        det_model = YOLOE("yoloe-11l.yaml")
+        state = torch.load("yoloe-11l-seg.pt")
         det_model.load(state["model"])
-        det_model.save("yoloe-l-seg-det.pt")
+        det_model.save("yoloe-11l-seg-det.pt")
         ```
         Start training:
         ```python
@@ -404,9 +404,9 @@ Model validation on a dataset is streamlined as follows:
             val=dict(yolo_data=["lvis.yaml"]),
         )
 
-        model = YOLOE("yoloe-l-seg.pt")
-        # replace to yoloe-l-seg-det.pt if converted to detection model
-        # model = YOLOE("yoloe-l-seg-det.pt")
+        model = YOLOE("yoloe-11l-seg.pt")
+        # replace to yoloe-11l-seg-det.pt if converted to detection model
+        # model = YOLOE("yoloe-11l-seg-det.pt")
 
         # freeze every layer except of the savpe module.
         head_index = len(model.model.model) - 1
@@ -437,13 +437,13 @@ Model validation on a dataset is streamlined as follows:
 
         from ultralytics import YOLOE
 
-        model = YOLOE("yoloe-l-seg.yaml")
-        model.load("yoloe-l-seg.pt")
+        model = YOLOE("yoloe-11l-seg.yaml")
+        model.load("yoloe-11l-seg.pt")
 
-        vp_model = YOLOE("yoloe-l-vp.pt")
+        vp_model = YOLOE("yoloe-11l-vp.pt")
         model.model.model[-1].savpe = deepcopy(vp_model.model.model[-1].savpe)
         model.eval()
-        model.save("yoloe-l-seg.pt")
+        model.save("yoloe-11l-seg.pt")
         ```
 
     === "Prompt Free"
@@ -456,10 +456,10 @@ Model validation on a dataset is streamlined as follows:
 
         from ultralytics import YOLOE
 
-        det_model = YOLOE("yoloe-l.yaml")
-        state = torch.load("yoloe-l-seg.pt")
+        det_model = YOLOE("yoloe-11l.yaml")
+        state = torch.load("yoloe-11l-seg.pt")
         det_model.load(state["model"])
-        det_model.save("yoloe-l-seg-det.pt")
+        det_model.save("yoloe-11l-seg-det.pt")
         ```
         Start training:
         ```python
@@ -482,9 +482,9 @@ Model validation on a dataset is streamlined as follows:
             val=dict(yolo_data=["lvis.yaml"]),
         )
 
-        model = YOLOE("yoloe-l-seg.pt")
-        # replace to yoloe-l-seg-det.pt if converted to detection model
-        # model = YOLOE("yoloe-l-seg-det.pt")
+        model = YOLOE("yoloe-11l-seg.pt")
+        # replace to yoloe-11l-seg-det.pt if converted to detection model
+        # model = YOLOE("yoloe-11l-seg-det.pt")
 
         # freeze layers.
         head_index = len(model.model.model) - 1
@@ -527,10 +527,10 @@ Model validation on a dataset is streamlined as follows:
 
         from ultralytics import YOLOE
 
-        model = YOLOE("yoloe-l-seg.pt")
+        model = YOLOE("yoloe-11l-seg.pt")
         model.eval()
 
-        pf_model = YOLOE("yoloe-l-pf.pt")
+        pf_model = YOLOE("yoloe-11l-seg-pf.pt")
         names = ["object"]
         tpe = model.get_text_pe(names)
         model.set_classes(names, tpe)
@@ -540,7 +540,7 @@ Model validation on a dataset is streamlined as follows:
         model.model.model[-1].cv3[1][2] = deepcopy(pf_model.model.model[-1].cv3[1][2]).requires_grad_(True)
         model.model.model[-1].cv3[2][2] = deepcopy(pf_model.model.model[-1].cv3[2][2]).requires_grad_(True)
         del model.model.pe
-        model.save("yoloe-l-seg-pf.pt")
+        model.save("yoloe-11l-seg-pf.pt")
         ```
 
 ## YOLOE Performance Comparison
@@ -631,7 +631,7 @@ YOLOE integrates seamlessly with the [Ultralytics Python API](../usage/python.md
         from ultralytics import YOLO
 
         # Load pre-trained YOLOE model and train on custom data
-        model = YOLO("yoloe-s.pt")
+        model = YOLO("yoloe-11s.pt")
         model.train(data="path/to/data.yaml", epochs=50, imgsz=640)
 
         # Run inference using text prompts ("person", "bus")
@@ -646,10 +646,10 @@ YOLOE integrates seamlessly with the [Ultralytics Python API](../usage/python.md
 
         ```bash
         # Training YOLOE on custom dataset
-        yolo train model=yoloe-s.pt data=path/to/data.yaml epochs=50 imgsz=640
+        yolo train model=yoloe-11s.pt data=path/to/data.yaml epochs=50 imgsz=640
 
         # Inference with text prompts
-        yolo predict model=yoloe-s.pt source="test_images/street.jpg" classes="person,bus"
+        yolo predict model=yoloe-11s.pt source="test_images/street.jpg" classes="person,bus"
         ```
 
         CLI prompts (`classes`) guide YOLOE similarly to Python's `set_classes`. Visual prompting (image-based queries) currently requires the Python API.

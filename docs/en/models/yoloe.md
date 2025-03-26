@@ -71,10 +71,35 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
 
 !!! example
 
-    === "Fine-Tuning the last layer of YOLOE classify head"
+    === "Fine-Tuning"
 
         ```python
-        from ultralytics.models.yolo.yoloe.train_seg import YOLOEPESegTrainer
+        from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
+        from ultralytics import YOLOE
+
+        model = YOLOE("yoloe-s-seg.pt")
+
+        model.train(
+            data="coco128-seg.yaml",
+            epochs=80,
+            close_mosaic=10,
+            batch=128,
+            optimizer="AdamW",
+            lr0=1e-3,
+            warmup_bias_lr=0.0,
+            weight_decay=0.025,
+            momentum=0.9,
+            workers=4,
+            device="0",
+            trainer=YOLOEPESegTrainer,
+            freeze=freeze,
+        )
+        ```
+
+    === "Linear probing"
+
+        ```python
+        from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
         from ultralytics import YOLOE
 
         model = YOLOE("yoloe-s-seg.pt")

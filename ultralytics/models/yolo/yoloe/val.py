@@ -140,25 +140,6 @@ class YOLOEValidatorMixin:
             dataset.transforms.append(LoadVisualPrompt())
         return dataset
 
-    def add_prefix_for_metric(self, stats, prefix):
-        """
-        Add a prefix to metric keys in stats dictionary.
-
-        Args:
-            stats (dict): Statistics dictionary containing metrics.
-            prefix (str): Prefix to add to metric keys.
-
-        Returns:
-            (dict): Statistics dictionary with prefixed metric keys.
-        """
-        prefix_stats = {}
-        for k, v in stats.items():
-            if k.startswith("metrics"):
-                prefix_stats[f"{prefix}_{k}"] = v
-            else:
-                prefix_stats[k] = v
-        return prefix_stats
-
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None, refer_data=None, load_vp=False):
         """
@@ -188,16 +169,12 @@ class YOLOEValidatorMixin:
                 # Directly use the same dataloader for visual embeddings extracted during training
                 vpe = self.get_visual_pe(self.dataloader, model)
                 model.set_classes(names, vpe)
-                vp_stats = super().__call__(trainer, model)
-                vp_stats = self.add_prefix_for_metric(vp_stats, "vp")
-                stats = vp_stats
+                stats = super().__call__(trainer, model)
             else:
                 LOGGER.info("Validate using the text prompt.")
                 tpe = model.get_text_pe(names)
                 model.set_classes(names, tpe)
-                tp_stats = super().__call__(trainer, model)
-                tp_stats = self.add_prefix_for_metric(tp_stats, "tp")
-                stats = tp_stats
+                stats = super().__call__(trainer, model)
         else:
             if isinstance(model, YOLOEModel) and not hasattr(model, "pe"):
                 self.device = select_device(self.args.device, self.args.batch)
@@ -214,16 +191,12 @@ class YOLOEValidatorMixin:
                     dataloader = self.get_vpe_dataloader(refer_data or self.args.data)
                     vpe = self.get_visual_pe(dataloader, model)
                     model.set_classes(names, vpe)
-                    vp_stats = super().__call__(model=deepcopy(model))
-                    vp_stats = self.add_prefix_for_metric(vp_stats, "vp")
-                    stats = vp_stats
+                    stats = super().__call__(model=deepcopy(model))
                 else:
                     LOGGER.info("Validate using the text prompt.")
                     tpe = model.get_text_pe(names)
                     model.set_classes(names, tpe)
-                    tp_stats = super().__call__(model=deepcopy(model))
-                    tp_stats = self.add_prefix_for_metric(tp_stats, "tp")
-                    stats = tp_stats
+                    stats = super().__call__(model=deepcopy(model))
             else:
                 return super().__call__(trainer, model)
         return stats

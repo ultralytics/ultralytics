@@ -120,8 +120,6 @@ class YOLOEDetectValidator(DetectionValidator):
         )
         return vps_loader
 
-    # def set_visual_params(self, refer_data=None, load)
-
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None, refer_data=None, load_vp=False):
         """

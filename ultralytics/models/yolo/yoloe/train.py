@@ -210,7 +210,6 @@ class YOLOETrainerFromScratch(YOLOETrainer):
         Args:
             texts (List[str]): List of text samples to encode.
             batch (int): Batch size for processing.
-            device (str): Device to use for encoding ('cuda' or 'cpu').
             cache_path (str | Path): Path to save/load cached embeddings.
 
         Returns:

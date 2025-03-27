@@ -272,9 +272,12 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = fmts_dict["Arguments"][flags.index(True) + 1]
         validate_args(fmt, self.args, fmt_keys)
-        if imx and not self.args.int8:
-            LOGGER.warning("WARNING ⚠️ IMX only supports int8 export, setting int8=True.")
-            self.args.int8 = True
+        if imx:
+            if not self.args.int8:
+                LOGGER.warning("WARNING ⚠️ IMX export requires int8=True, setting int8=True.")
+                self.args.int8 = True
+            if model.task != "detect":
+                raise ValueError("IMX export only supported for detection models.")
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)
@@ -1220,7 +1223,6 @@ class Exporter:
         )
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")
-
         check_requirements(("model-compression-toolkit>=2.3.0", "sony-custom-layers>=0.3.0", "edge-mdt-tpc>=1.1.0"))
         check_requirements("imx500-converter[pt]>=3.16.1")  # Separate requirements for imx500-converter
 
@@ -1235,10 +1237,10 @@ class Exporter:
             out = subprocess.run(
                 ["java", "--version"], check=True, capture_output=True
             )  # Java 17 is required for imx500-converter
-            if "openjdk 17" not in str(out.stdout):
+            if "openjdk 21" not in str(out.stdout):
                 raise FileNotFoundError
         except FileNotFoundError:
-            c = ["apt", "install", "-y", "openjdk-17-jdk", "openjdk-17-jre"]
+            c = ["apt", "install", "-y", "openjdk-21-jdk", "openjdk-21-jre"]
             if is_sudo_available():
                 c.insert(0, "sudo")
             subprocess.run(c, check=True)
@@ -1253,17 +1255,11 @@ class Exporter:
 
         bit_cfg = mct.core.BitWidthConfig()
         if "C2PSA" in self.model.__str__():  # yolo11
-            if self.model.task == "detect":
-                layer_names = ["sub", "mul_2", "add_14", "cat_21"]
-                weights_memory = 2585350.2439
-            else:
-                raise ValueError("Only Detect task currently supported for imx export")
+            layer_names = ["sub", "mul_2", "add_14", "cat_21"]
+            weights_memory = 2585350.2439
         else:  # yolov8
-            if self.model.task == "detect":
-                layer_names = ["sub", "mul", "add_6", "cat_17"]
-                weights_memory = 2550540.8
-            else:
-                raise ValueError("Only Detect task currently supported for imx export")
+            layer_names = ["sub", "mul", "add_6", "cat_17"]
+            weights_memory = 2550540.8
         for layer_name in layer_names:
             bit_cfg.set_manual_activation_bit_width([mct.core.common.network_editors.NodeNameFilter(layer_name)], 16)
 

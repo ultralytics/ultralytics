@@ -1235,11 +1235,11 @@ class Exporter:
         # Install Java>=17
         try:
             java_output = subprocess.run(["java", "--version"], check=True, capture_output=True).stdout.decode()
-            version_match = re.search(r"openjdk (\d+)", java_output)
+            version_match = re.search(r"(?:openjdk|java) (\d+)", java_output)
             java_version = int(version_match.group(1)) if version_match else 0
             assert java_version >= 17, "Java version too old"
         except (FileNotFoundError, subprocess.CalledProcessError, AssertionError):
-            cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y", "default-jdk"]
+            cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y", "default-jre"]
             subprocess.run(cmd, check=True)
 
         def representative_dataset_gen(dataloader=self.get_int8_calibration_dataloader(prefix)):

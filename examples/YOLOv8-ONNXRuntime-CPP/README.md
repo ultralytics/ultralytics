@@ -6,9 +6,9 @@ This example provides a practical guide on performing inference with [Ultralytic
 
 ## ✨ Benefits
 
--   **Deployment-Friendly:** Well-suited for deployment in industrial and production environments.
--   **Performance:** Offers faster [inference latency](https://www.ultralytics.com/glossary/inference-latency) compared to OpenCV's DNN module on both CPU and [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit).
--   **Acceleration:** Supports FP32 and [FP16 (Half Precision)](https://www.ultralytics.com/glossary/half-precision) inference acceleration using [NVIDIA CUDA](https://developer.nvidia.com/cuda-toolkit).
+- **Deployment-Friendly:** Well-suited for deployment in industrial and production environments.
+- **Performance:** Offers faster [inference latency](https://www.ultralytics.com/glossary/inference-latency) compared to OpenCV's DNN module on both CPU and [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit).
+- **Acceleration:** Supports FP32 and [FP16 (Half Precision)](https://www.ultralytics.com/glossary/half-precision) inference acceleration using [NVIDIA CUDA](https://developer.nvidia.com/cuda-toolkit).
 
 ## ☕ Note
 
@@ -50,7 +50,9 @@ To potentially gain further performance on compatible hardware (like NVIDIA GPUs
 
 ```python
 import onnx
-from onnxconverter_common import float16 # Ensure you have onnxconverter-common installed: pip install onnxconverter-common
+from onnxconverter_common import (
+    float16,
+)  # Ensure you have onnxconverter-common installed: pip install onnxconverter-common
 
 # Load your FP32 ONNX model
 fp32_model_path = "yolov8n.onnx"
@@ -63,14 +65,13 @@ model_fp16 = float16.convert_float_to_float16(model)
 fp16_model_path = "yolov8n_fp16.onnx"
 onnx.save(model_fp16, fp16_model_path)
 print(f"Model converted and saved to {fp16_model_path}")
-
 ```
 
 ## 📂 Download COCO YAML File
 
 This example uses class names defined in a YAML file. You'll need the `coco.yaml` file, which corresponds to the standard [COCO dataset](https://docs.ultralytics.com/datasets/detect/coco/) classes. Download it directly:
 
--   [Download coco.yaml](https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml)
+- [Download coco.yaml](https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco.yaml)
 
 Save this file in the same directory where you plan to run the executable, or adjust the path in the C++ code accordingly.
 
@@ -78,14 +79,14 @@ Save this file in the same directory where you plan to run the executable, or ad
 
 Ensure you have the following dependencies installed:
 
-| Dependency                                                              | Version       | Notes                                                                                                                                                           |
-| :---------------------------------------------------------------------- | :------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [ONNX Runtime](https://onnxruntime.ai/docs/install/)                    | >=1.14.1      | Download pre-built binaries or build from source. Ensure GPU version if using CUDA.                                                                             |
-| [OpenCV](https://opencv.org/releases/)                                  | >=4.0.0       | Required for image loading and preprocessing.                                                                                                                   |
-| C++ Compiler                                                            | C++17 Support | Needed for features like `<filesystem>`. ([GCC](https://gcc.gnu.org/), [Clang](https://clang.llvm.org/), [MSVC](https://visualstudio.microsoft.com/vs/features/cplusplus/)) |
-| [CMake](https://cmake.org/download/)                                    | >=3.18        | Cross-platform build system generator. Version 3.18+ recommended for better CUDA support discovery.                                                             |
-| [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) (Optional)    | >=11.4, <12.0 | Required for GPU acceleration via ONNX Runtime's CUDA Execution Provider. **Must be CUDA 11.x**.                                                                  |
-| [cuDNN](https://developer.nvidia.com/cudnn) (CUDA required)             | =8.x          | Required by CUDA Execution Provider. **Must be cuDNN 8.x** compatible with your CUDA 11.x version.                                                               |
+| Dependency                                                           | Version       | Notes                                                                                                                                                                       |
+| :------------------------------------------------------------------- | :------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ONNX Runtime](https://onnxruntime.ai/docs/install/)                 | >=1.14.1      | Download pre-built binaries or build from source. Ensure GPU version if using CUDA.                                                                                         |
+| [OpenCV](https://opencv.org/releases/)                               | >=4.0.0       | Required for image loading and preprocessing.                                                                                                                               |
+| C++ Compiler                                                         | C++17 Support | Needed for features like `<filesystem>`. ([GCC](https://gcc.gnu.org/), [Clang](https://clang.llvm.org/), [MSVC](https://visualstudio.microsoft.com/vs/features/cplusplus/)) |
+| [CMake](https://cmake.org/download/)                                 | >=3.18        | Cross-platform build system generator. Version 3.18+ recommended for better CUDA support discovery.                                                                         |
+| [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) (Optional) | >=11.4, <12.0 | Required for GPU acceleration via ONNX Runtime's CUDA Execution Provider. **Must be CUDA 11.x**.                                                                            |
+| [cuDNN](https://developer.nvidia.com/cudnn) (CUDA required)          | =8.x          | Required by CUDA Execution Provider. **Must be cuDNN 8.x** compatible with your CUDA 11.x version.                                                                          |
 
 **Important Notes:**
 
@@ -95,12 +96,14 @@ Ensure you have the following dependencies installed:
 ## 🛠️ Build Instructions
 
 1.  **Clone the Repository:**
+
     ```bash
     git clone https://github.com/ultralytics/examples.git
     cd examples/YOLOv8-ONNXRuntime-CPP
     ```
 
 2.  **Create Build Directory:**
+
     ```bash
     mkdir build && cd build
     ```
@@ -117,9 +120,10 @@ Ensure you have the following dependencies installed:
     ```
 
     **CMake Options:**
-    -   `-DONNXRUNTIME_ROOT=<path>`: **(Required)** Path to the extracted ONNX Runtime library.
-    -   `-DCMAKE_BUILD_TYPE=Release`: (Optional) Build in Release mode for optimizations.
-    -   If CMake struggles to find OpenCV, you might need to set `-DOpenCV_DIR=/path/to/opencv/build`.
+
+    - `-DONNXRUNTIME_ROOT=<path>`: **(Required)** Path to the extracted ONNX Runtime library.
+    - `-DCMAKE_BUILD_TYPE=Release`: (Optional) Build in Release mode for optimizations.
+    - If CMake struggles to find OpenCV, you might need to set `-DOpenCV_DIR=/path/to/opencv/build`.
 
 4.  **Build the Project:**
     Use the build tool generated by CMake (e.g., Make, Ninja, Visual Studio).
@@ -138,9 +142,10 @@ Ensure you have the following dependencies installed:
 ## 🚀 Usage
 
 Before running, ensure:
--   The exported `.onnx` model file (e.g., `yolov8n.onnx`) is accessible.
--   The `coco.yaml` file is accessible.
--   Any required shared libraries for ONNX Runtime and OpenCV are in the system's PATH or accessible by the executable.
+
+- The exported `.onnx` model file (e.g., `yolov8n.onnx`) is accessible.
+- The `coco.yaml` file is accessible.
+- Any required shared libraries for ONNX Runtime and OpenCV are in the system's PATH or accessible by the executable.
 
 Modify the `main.cpp` file (or create a configuration mechanism) to set the parameters:
 

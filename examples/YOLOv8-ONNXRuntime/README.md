@@ -47,7 +47,7 @@ Before running inference, you need a YOLOv8 model in the ONNX format (`.onnx`). 
 Example export command:
 
 ```bash
-yolo export model=yolov8n.pt format=onnx  # Export yolov8n model to ONNX
+yolo export model=yolov8n.pt format=onnx # Export yolov8n model to ONNX
 ```
 
 ### Running Inference

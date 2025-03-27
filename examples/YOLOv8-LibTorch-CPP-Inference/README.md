@@ -6,11 +6,11 @@ This example demonstrates how to perform inference using [Ultralytics YOLOv8](ht
 
 Ensure you have the following dependencies installed before proceeding:
 
-| Dependency   | Version  | Resource                                      |
-| :----------- | :------- | :-------------------------------------------- |
-| OpenCV       | >=4.0.0  | [https://opencv.org/](https://opencv.org/)    |
-| C++ Standard | >=17     | [https://isocpp.org/](https://isocpp.org/)    |
-| CMake        | >=3.18   | [https://cmake.org/](https://cmake.org/)      |
+| Dependency   | Version  | Resource                                     |
+| :----------- | :------- | :------------------------------------------- |
+| OpenCV       | >=4.0.0  | [https://opencv.org/](https://opencv.org/)   |
+| C++ Standard | >=17     | [https://isocpp.org/](https://isocpp.org/)   |
+| CMake        | >=3.18   | [https://cmake.org/](https://cmake.org/)     |
 | Libtorch     | >=1.12.1 | [https://pytorch.org/](https://pytorch.org/) |
 
 You can download the required version of LibTorch from the official [PyTorch](https://pytorch.org/) website. Make sure to select the correct version corresponding to your system and CUDA version (if using GPU).
@@ -21,12 +21,14 @@ Follow these steps to run the C++ inference example:
 
 1.  **Clone the Ultralytics Repository:**
     Use [Git](https://git-scm.com/) to clone the repository containing the example code and necessary files.
+
     ```bash
     git clone https://github.com/ultralytics/ultralytics
     ```
 
 2.  **Install Ultralytics:**
     Navigate to the cloned directory and install the `ultralytics` package using [pip](https://pip.pypa.io/en/stable/). This step is necessary for exporting the model. Refer to the [Ultralytics Quickstart Guide](https://docs.ultralytics.com/quickstart/) for detailed installation instructions.
+
     ```bash
     cd ultralytics
     pip install .
@@ -34,12 +36,14 @@ Follow these steps to run the C++ inference example:
 
 3.  **Navigate to the Example Directory:**
     Change the directory to the C++ LibTorch inference example.
+
     ```bash
     cd examples/YOLOv8-LibTorch-CPP-Inference
     ```
 
 4.  **Build the Project:**
     Create a build directory, use [CMake](https://cmake.org/) to configure the project, and then compile it using [Make](https://www.gnu.org/software/make/). You might need to specify the path to your LibTorch and OpenCV installations if they are not found automatically by CMake.
+
     ```bash
     mkdir build
     cd build

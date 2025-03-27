@@ -107,7 +107,7 @@ Additionally, you can choose between different video classification models:
 
 ### 3. Why Combine Action Recognition with YOLOv8?
 
-[Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) excels at fast and accurate [object detection](https://docs.ultralytics.com/tasks/detect/) and tracking in video streams. Combining it with action recognition allows the system not only to locate individuals (using YOLOv8's detection capabilities) but also to understand *what* they are doing. This synergy provides a richer analysis of video content, crucial for applications like automated surveillance, sports analytics, or human-robot interaction. See our blog post on [object detection and tracking](https://www.ultralytics.com/blog/object-detection-and-tracking-with-ultralytics-yolov8).
+[Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) excels at fast and accurate [object detection](https://docs.ultralytics.com/tasks/detect/) and tracking in video streams. Combining it with action recognition allows the system not only to locate individuals (using YOLOv8's detection capabilities) but also to understand _what_ they are doing. This synergy provides a richer analysis of video content, crucial for applications like automated surveillance, sports analytics, or human-robot interaction. See our blog post on [object detection and tracking](https://www.ultralytics.com/blog/object-detection-and-tracking-with-ultralytics-yolov8).
 
 ### 4. Can I Employ Other YOLO Versions?
 

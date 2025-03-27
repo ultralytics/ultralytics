@@ -56,7 +56,7 @@ results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)  # Track
 ```bash
 # CLI
 # Perform tracking with various models using the command line interface
-yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4"      # Official Detect model
+yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" # Official Detect model
 # yolo track model=yolo11n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # Official Segment model
 # yolo track model=yolo11n-pose.pt source="https://youtu.be/LNwODJXcvt4" # Official Pose model
 # yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4" # Custom trained model
@@ -118,6 +118,7 @@ Here is a Python script using [OpenCV (`cv2`)](https://opencv.org/) and Ultralyt
 ```python
 # Python
 import cv2
+
 from ultralytics import YOLO
 
 # Load the YOLO11 model
@@ -165,8 +166,10 @@ In the following example, we demonstrate how to utilize YOLO11's tracking capabi
 ```python
 # Python
 from collections import defaultdict
+
 import cv2
 import numpy as np
+
 from ultralytics import YOLO
 
 # Load the YOLO11 model
@@ -239,8 +242,11 @@ Finally, after all threads have finished, the script closes all OpenCV windows u
 ```python
 # Python
 import threading
+
 import cv2
+
 from ultralytics import YOLO
+
 
 def run_tracker_in_thread(filename, model, file_index):
     """
@@ -261,7 +267,7 @@ def run_tracker_in_thread(filename, model, file_index):
         cv2.imshow(f"Tracking_Stream_{file_index}", res_plotted)  # Display the results
 
         key = cv2.waitKey(1)  # Wait for a key event
-        if key == ord('q'):  # Check if the 'q' key was pressed
+        if key == ord("q"):  # Check if the 'q' key was pressed
             break  # Exit the loop if 'q' is pressed
 
     video.release()  # Release the video capture object

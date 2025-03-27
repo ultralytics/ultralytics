@@ -8,6 +8,7 @@ Follow these simple steps to get the example running on your local machine.
 
 1.  **Clone the Repository:**
     If you haven't already, clone the Ultralytics repository to access the example code:
+
     ```bash
     git clone https://github.com/ultralytics/ultralytics.git
     cd ultralytics/examples/YOLOv8-OpenCV-ONNX-Python/
@@ -15,6 +16,7 @@ Follow these simple steps to get the example running on your local machine.
 
 2.  **Install Requirements:**
     Install the necessary Python packages listed in the `requirements.txt` file. We recommend using a virtual environment.
+
     ```bash
     pip install -r requirements.txt
     ```
@@ -32,6 +34,7 @@ If you want to use a different Ultralytics YOLOv8 model or one you've trained yo
 
 1.  **Install Ultralytics:**
     If you don't have it installed, get the latest `ultralytics` package:
+
     ```bash
     pip install ultralytics
     ```

@@ -48,7 +48,7 @@ To request an Enterprise License for commercial use, please complete the form at
 </div>
 </div>
 
-## <div align="center">Documentation</div>
+## 📄 Documentation
 
 See below for a quickstart install and usage examples, and see our [Docs](https://docs.ultralytics.com/) for full documentation on training, validation, prediction and deployment.
 
@@ -74,50 +74,51 @@ For alternative installation methods including [Conda](https://anaconda.org/cond
 
 ### CLI
 
-YOLO may be used directly in the Command Line Interface (CLI) with a `yolo` command:
+You can use Ultralytics YOLO directly from the Command Line Interface (CLI) with the `yolo` command:
 
 ```bash
+# Predict using a pretrained YOLO11n model on an image
 yolo predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'
 ```
 
-`yolo` can be used for a variety of tasks and modes and accepts additional arguments, e.g. `imgsz=640`. See the YOLO [CLI Docs](https://docs.ultralytics.com/usage/cli/) for examples.
+The `yolo` command supports various tasks and modes, accepting additional arguments like `imgsz=640`. Explore the YOLO [CLI Docs](https://docs.ultralytics.com/usage/cli/) for more examples.
 
 ### Python
 
-YOLO may also be used directly in a Python environment, and accepts the same [arguments](https://docs.ultralytics.com/usage/cfg/) as in the CLI example above:
+Ultralytics YOLO can also be integrated directly into your Python projects. It accepts the same [configuration arguments](https://docs.ultralytics.com/usage/cfg/) as the CLI:
 
 ```python
 from ultralytics import YOLO
 
-# Load a model
+# Load a pretrained YOLO11n model
 model = YOLO("yolo11n.pt")
 
-# Train the model
+# Train the model on the COCO8 dataset for 100 epochs
 train_results = model.train(
-    data="coco8.yaml",  # path to dataset YAML
-    epochs=100,  # number of training epochs
-    imgsz=640,  # training image size
-    device="cpu",  # device to run on, i.e. device=0 or device=0,1,2,3 or device=cpu
+    data="coco8.yaml",  # Path to dataset configuration file
+    epochs=100,         # Number of training epochs
+    imgsz=640,          # Image size for training
+    device="cpu",       # Device to run on (e.g., 'cpu', '0', '0,1,2,3')
 )
 
-# Evaluate model performance on the validation set
+# Evaluate the model's performance on the validation set
 metrics = model.val()
 
 # Perform object detection on an image
-results = model("path/to/image.jpg")
-results[0].show()
+results = model("path/to/image.jpg") # Predict on an image
+results[0].show() # Display results
 
-# Export the model to ONNX format
-path = model.export(format="onnx")  # return path to exported model
+# Export the model to ONNX format for deployment
+path = model.export(format="onnx")  # Returns the path to the exported model
 ```
 
-See YOLO [Python Docs](https://docs.ultralytics.com/usage/python/) for more examples.
+Discover more examples in the YOLO [Python Docs](https://docs.ultralytics.com/usage/python/).
 
 </details>
 
-## <div align="center">Models</div>
+## ✨ Models
 
-YOLO11 [Detect](https://docs.ultralytics.com/tasks/detect/), [Segment](https://docs.ultralytics.com/tasks/segment/) and [Pose](https://docs.ultralytics.com/tasks/pose/) models pretrained on the [COCO](https://docs.ultralytics.com/datasets/detect/coco/) dataset are available here, as well as YOLO11 [Classify](https://docs.ultralytics.com/tasks/classify/) models pretrained on the [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/) dataset. [Track](https://docs.ultralytics.com/modes/track/) mode is available for all Detect, Segment and Pose models. All [Models](https://docs.ultralytics.com/models/) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
+Ultralytics YOLO11 offers models pretrained on the [COCO](https://docs.ultralytics.com/datasets/detect/coco/) dataset for [Detection](https://docs.ultralytics.com/tasks/detect/), [Segmentation](https://docs.ultralytics.com/tasks/segment/), and [Pose Estimation](https://docs.ultralytics.com/tasks/pose/). Additionally, [Classification](https://docs.ultralytics.com/tasks/classify/) models pretrained on the [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/) dataset are available. [Tracking](https://docs.ultralytics.com/modes/track/) mode is compatible with all Detection, Segmentation, and Pose models. All [Models](https://docs.ultralytics.com/models/) are automatically downloaded from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) upon first use.
 
 <a href="https://docs.ultralytics.com/tasks/" target="_blank">
     <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-tasks-banner.avif" alt="Ultralytics YOLO supported tasks">
@@ -127,7 +128,7 @@ YOLO11 [Detect](https://docs.ultralytics.com/tasks/detect/), [Segment](https://d
 
 <details open><summary>Detection (COCO)</summary>
 
-See [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examples with these models trained on [COCO](https://docs.ultralytics.com/datasets/detect/coco/), which include 80 pre-trained classes.
+Explore the [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examples. These models are trained on the [COCO dataset](https://cocodataset.org/), featuring 80 object classes.
 
 | Model                                                                                | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT10<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
@@ -137,8 +138,8 @@ See [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examp
 | [YOLO11l](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11l.pt) | 640                   | 53.4                 | 238.6 ± 1.4                    | 6.2 ± 0.1                           | 25.3               | 86.9              |
 | [YOLO11x](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x.pt) | 640                   | 54.7                 | 462.8 ± 6.7                    | 11.3 ± 0.2                          | 56.9               | 194.9             |
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val detect data=coco.yaml device=0`
-- **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val detect data=coco.yaml batch=1 device=0|cpu`
+- **mAP<sup>val</sup>** values refer to single-model single-scale performance on the [COCO val2017](https://cocodataset.org/) dataset. See [YOLO Performance Metrics](https://docs.ultralytics.com/guides/yolo-performance-metrics/) for details. <br>Reproduce with `yolo val detect data=coco.yaml device=0`
+- **Speed** metrics are averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. CPU speeds measured with [ONNX](https://onnx.ai/) export. GPU speeds measured with [TensorRT](https://developer.nvidia.com/tensorrt) export. <br>Reproduce with `yolo val detect data=coco.yaml batch=1 device=0|cpu`
 
 </details>
 

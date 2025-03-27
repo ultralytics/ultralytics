@@ -235,7 +235,7 @@ We're excited to see your ideas come to life and appreciate your commitment to a
 
 ### Why should I contribute to Ultralytics YOLO open-source repositories?
 
-Contributing to Ultralytics YOLO open-source repositories improves the software, making it more robust and feature-rich for the entire community. Contributions can include code enhancements, bug fixes, documentation improvements, and new feature implementations. Additionally, contributing allows you to collaborate with other skilled developers and experts in the field, enhancing your own skills and reputation. For details on how to get started, refer to the [Contributing via Pull Requests](#-contributing-via-pull-requests) section.
+Contributing to Ultralytics YOLO open-source repositories improves the software, making it more robust and feature-rich for the entire community. Contributions can include code enhancements, bug fixes, documentation improvements, and new feature implementations. Additionally, contributing allows you to collaborate with other skilled developers and experts in the field, enhancing your own skills and reputation. For details on how to get started, refer to the [Contributing via Pull Requests](#contributing-via-pull-requests) section.
 
 ### How do I sign the Contributor License Agreement (CLA) for Ultralytics YOLO?
 
@@ -245,20 +245,20 @@ To sign the Contributor License Agreement (CLA), follow the instructions provide
 I have read the CLA Document and I sign the CLA
 ```
 
-For more information, see the [CLA Signing](#-cla-signing) section.
+For more information, see the [CLA Signing](#cla-signing) section.
 
 ### What are Google-style docstrings, and why are they required for Ultralytics YOLO contributions?
 
-Google-style docstrings provide clear, concise documentation for functions and classes, improving code readability and maintainability. These docstrings outline the function's purpose, arguments, and return values with specific formatting rules. When contributing to Ultralytics YOLO, following Google-style docstrings ensures that your additions are well-documented and easily understood. For examples and guidelines, visit the [Google-Style Docstrings](#-google-style-docstrings) section.
+Google-style docstrings provide clear, concise documentation for functions and classes, improving code readability and maintainability. These docstrings outline the function's purpose, arguments, and return values with specific formatting rules. When contributing to Ultralytics YOLO, following Google-style docstrings ensures that your additions are well-documented and easily understood. For examples and guidelines, visit the [Google-Style Docstrings](#google-style-docstrings) section.
 
 ### How can I ensure my changes pass the GitHub Actions CI tests?
 
-Before your pull request can be merged, it must pass all GitHub Actions Continuous Integration (CI) tests. These tests include linting, unit tests, and other checks to ensure the code meets the project's quality standards. Review the CI output and fix any issues. For detailed information on the CI process and troubleshooting tips, see the [GitHub Actions CI Tests](#-github-actions-ci-tests) section.
+Before your pull request can be merged, it must pass all GitHub Actions Continuous Integration (CI) tests. These tests include linting, unit tests, and other checks to ensure the code meets the project's quality standards. Review the CI output and fix any issues. For detailed information on the CI process and troubleshooting tips, see the [GitHub Actions CI Tests](#github-actions-ci-tests) section.
 
 ### How do I report a bug in Ultralytics YOLO repositories?
 
-To report a bug, provide a clear and concise [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum-reproducible-example/) along with your bug report. This helps developers quickly identify and fix the issue. Ensure your example is minimal yet sufficient to replicate the problem. For more detailed steps on reporting bugs, refer to the [Reporting Bugs](#-reporting-bugs) section.
+To report a bug, provide a clear and concise [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum-reproducible-example/) along with your bug report. This helps developers quickly identify and fix the issue. Ensure your example is minimal yet sufficient to replicate the problem. For more detailed steps on reporting bugs, refer to the [Reporting Bugs](#reporting-bugs) section.
 
 ### What does the AGPL-3.0 license mean if I use Ultralytics YOLO in my own project?
 
-If you use Ultralytics YOLO code or models (licensed under AGPL-3.0) in your project, the AGPL-3.0 license requires that your entire project (the derivative work) must also be licensed under AGPL-3.0 and its complete source code must be made publicly available. This ensures that the open-source nature of the software is preserved throughout its derivatives. If you cannot meet these requirements, you need to obtain an [Enterprise License](https://www.ultralytics.com/license). See the [Open-Sourcing Your Project](#-open-sourcing-your-project-with-yolo--agpl-30-compliance) section for details.
+If you use Ultralytics YOLO code or models (licensed under AGPL-3.0) in your project, the AGPL-3.0 license requires that your entire project (the derivative work) must also be licensed under AGPL-3.0 and its complete source code must be made publicly available. This ensures that the open-source nature of the software is preserved throughout its derivatives. If you cannot meet these requirements, you need to obtain an [Enterprise License](https://www.ultralytics.com/license). See the [Open-Sourcing Your Project](#open-sourcing-your-project-with-yolo--agpl-30-compliance) section for details.

@@ -152,7 +152,7 @@ Ultralytics uses the [GNU Affero General Public License v3.0 (AGPL-3.0)](https:/
 
 We encourage all contributors to familiarize themselves with the terms of the [AGPL-3.0 license](https://www.gnu.org/licenses/agpl-3.0.html) to contribute effectively and ethically to the Ultralytics open-source community.
 
-## 🌍 Open-Sourcing Your Project with YOLO & AGPL-3.0 Compliance
+## 🌍 Open-Sourcing Your YOLO Project Under AGPL-3.0
 
 Using Ultralytics YOLO models or code in your project? The [AGPL-3.0 license](https://www.gnu.org/licenses/agpl-3.0.html) requires that your entire derivative work also be open-sourced under AGPL-3.0. This ensures modifications and larger projects built upon open-source foundations remain open.
 
@@ -261,4 +261,4 @@ To report a bug, provide a clear and concise [Minimum Reproducible Example](http
 
 ### What does the AGPL-3.0 license mean if I use Ultralytics YOLO in my own project?
 
-If you use Ultralytics YOLO code or models (licensed under AGPL-3.0) in your project, the AGPL-3.0 license requires that your entire project (the derivative work) must also be licensed under AGPL-3.0 and its complete source code must be made publicly available. This ensures that the open-source nature of the software is preserved throughout its derivatives. If you cannot meet these requirements, you need to obtain an [Enterprise License](https://www.ultralytics.com/license). See the [Open-Sourcing Your Project](#open-sourcing-your-project-with-yolo--agpl-30-compliance) section for details.
+If you use Ultralytics YOLO code or models (licensed under AGPL-3.0) in your project, the AGPL-3.0 license requires that your entire project (the derivative work) must also be licensed under AGPL-3.0 and its complete source code must be made publicly available. This ensures that the open-source nature of the software is preserved throughout its derivatives. If you cannot meet these requirements, you need to obtain an [Enterprise License](https://www.ultralytics.com/license). See the [Open-Sourcing Your Project](#open-sourcing-your-yolo-project-under-agpl-30) section for details.

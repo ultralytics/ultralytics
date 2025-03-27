@@ -98,7 +98,7 @@ train_results = model.train(
     data="coco8.yaml",  # 数据集配置文件路径
     epochs=100,  # 训练周期数
     imgsz=640,  # 训练图像尺寸
-    device="cpu",  # 运行设备（例如 'cpu', '0', '0,1,2,3'）
+    device="cpu",  # 运行设备（例如 'cpu', 0, [0,1,2,3]）
 )
 
 # 评估模型在验证集上的性能

@@ -150,32 +150,34 @@ If you prefer not to open-source your project, consider obtaining an [Enterprise
 Complying means making the **complete corresponding source code** of your project publicly available under the AGPL-3.0 license.
 
 1. **Choose Your Starting Point:**
-    * **Fork Ultralytics YOLO:** Directly fork the [Ultralytics YOLO repository](https://github.com/ultralytics/ultralytics) if building closely upon it.
-    * **Use Ultralytics Template:** Start with the [Ultralytics template repository](https://github.com/ultralytics/template) for a clean, modular setup integrating YOLO.
+
+   - **Fork Ultralytics YOLO:** Directly fork the [Ultralytics YOLO repository](https://github.com/ultralytics/ultralytics) if building closely upon it.
+   - **Use Ultralytics Template:** Start with the [Ultralytics template repository](https://github.com/ultralytics/template) for a clean, modular setup integrating YOLO.
 
 2. **License Your Project:**
-    * Add an `LICENSE` file containing the full text of the [AGPL-3.0 license](https://www.gnu.org/licenses/agpl-3.0.txt).
-    * Add a notice at the top of each source file indicating the license.
+
+   - Add an `LICENSE` file containing the full text of the [AGPL-3.0 license](https://www.gnu.org/licenses/agpl-3.0.txt).
+   - Add a notice at the top of each source file indicating the license.
 
 3. **Publish Your Source Code:**
-    * Make your **entire project's source code** publicly accessible (e.g., on GitHub). This includes:
-        * The complete larger application or system that incorporates the YOLO model or code.
-        * Any modifications made to the original Ultralytics YOLO code.
-        * Scripts for training, validation, inference.
-        * [Model weights](https://www.ultralytics.com/glossary/model-weights) if modified or fine-tuned.
-        * [Configuration files](https://docs.ultralytics.com/usage/cfg/), environment setups (`requirements.txt`, [`Dockerfiles`](https://docs.docker.com/engine/reference/builder/)).
-        * Backend and frontend code if it's part of a [web application](https://en.wikipedia.org/wiki/Web_application).
-        * Any [third-party libraries](<https://en.wikipedia.org/wiki/Library_(computing)#Third-party>) you've modified.
-        * [Training data](https://www.ultralytics.com/glossary/training-data) if required to run/retrain *and* redistributable.
-        
+
+   - Make your **entire project's source code** publicly accessible (e.g., on GitHub). This includes:
+     - The complete larger application or system that incorporates the YOLO model or code.
+     - Any modifications made to the original Ultralytics YOLO code.
+     - Scripts for training, validation, inference.
+     - [Model weights](https://www.ultralytics.com/glossary/model-weights) if modified or fine-tuned.
+     - [Configuration files](https://docs.ultralytics.com/usage/cfg/), environment setups (`requirements.txt`, [`Dockerfiles`](https://docs.docker.com/engine/reference/builder/)).
+     - Backend and frontend code if it's part of a [web application](https://en.wikipedia.org/wiki/Web_application).
+     - Any [third-party libraries](<https://en.wikipedia.org/wiki/Library_(computing)#Third-party>) you've modified.
+     - [Training data](https://www.ultralytics.com/glossary/training-data) if required to run/retrain _and_ redistributable.
 
 4. **Document Clearly:**
-    * Update your `README.md` to state that the project is licensed under AGPL-3.0.
-    * Include clear instructions on how to set up, build, and run your project from the source code.
-    * Attribute Ultralytics YOLO appropriately, linking back to the [original repository](https://github.com/ultralytics/ultralytics). Example:
-      ```markdown
-      This project utilizes code from [Ultralytics YOLO](https://github.com/ultralytics/ultralytics), licensed under AGPL-3.0.
-      ```
+   - Update your `README.md` to state that the project is licensed under AGPL-3.0.
+   - Include clear instructions on how to set up, build, and run your project from the source code.
+   - Attribute Ultralytics YOLO appropriately, linking back to the [original repository](https://github.com/ultralytics/ultralytics). Example:
+     ```markdown
+     This project utilizes code from [Ultralytics YOLO](https://github.com/ultralytics/ultralytics), licensed under AGPL-3.0.
+     ```
 
 ### Example Repository Structure
 

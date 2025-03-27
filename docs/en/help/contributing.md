@@ -28,19 +28,14 @@ To ensure a welcoming and inclusive environment for everyone, all contributors m
 
 ## Contributing via Pull Requests
 
-We greatly appreciate contributions in the form of pull requests. To make the review process as smooth as possible, please follow these steps:
+We greatly appreciate contributions in the form of pull requests (PRs). To make the review process as smooth as possible, please follow these steps:
 
-1. **[Fork the repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo):** Start by forking the Ultralytics YOLO repository to your GitHub account.
-
-2. **[Create a branch](https://docs.github.com/en/desktop/making-changes-in-a-branch/managing-branches-in-github-desktop):** Create a new branch in your forked repository with a clear, descriptive name that reflects your changes.
-
-3. **Make your changes:** Ensure your code adheres to the project's style guidelines and does not introduce any new errors or warnings.
-
-4. **[Test your changes](https://github.com/ultralytics/ultralytics/tree/main/tests):** Before submitting, test your changes locally to confirm they work as expected and don't cause any new issues.
-
-5. **[Commit your changes](https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop):** Commit your changes with a concise and descriptive commit message. If your changes address a specific issue, include the issue number in your commit message.
-
-6. **[Create a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request):** Submit a pull request from your forked repository to the main Ultralytics YOLO repository. Provide a clear and detailed explanation of your changes and how they improve the project.
+1.  **[Fork the repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo):** Start by forking the relevant Ultralytics repository (e.g., [ultralytics/ultralytics](https://github.com/ultralytics/ultralytics)) to your GitHub account.
+2.  **[Create a branch](https://docs.github.com/en/desktop/making-changes-in-a-branch/managing-branches-in-github-desktop):** Create a new branch in your forked repository with a clear, descriptive name reflecting your changes (e.g., `fix-issue-123`, `add-feature-xyz`).
+3.  **Make your changes:** Implement your improvements or fixes. Ensure your code adheres to the project's style guidelines and doesn't introduce new errors or warnings.
+4.  **Test your changes:** Before submitting, test your changes locally to confirm they work as expected and don't cause regressions. Add tests if you're introducing new functionality.
+5.  **[Commit your changes](https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop):** Commit your changes with concise and descriptive commit messages. If your changes address a specific issue, include the issue number (e.g., `Fix #123: Corrected calculation error.`).
+6.  **[Create a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request):** Submit a pull request from your branch to the `main` branch of the original Ultralytics repository. Provide a clear title and a detailed description explaining the purpose and scope of your changes.
 
 ### CLA Signing
 
@@ -48,7 +43,7 @@ Before we can merge your pull request, you must sign our [Contributor License Ag
 
 After submitting your pull request, the CLA bot will guide you through the signing process. To sign the CLA, simply add a comment in your PR stating:
 
-```
+```text
 I have read the CLA Document and I sign the CLA
 ```
 
@@ -144,7 +139,12 @@ Reviewing pull requests is another valuable way to contribute. When reviewing PR
 
 ## Reporting Bugs
 
-We highly value bug reports as they help us maintain the quality of our projects. When reporting a bug, please provide a [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum-reproducible-example/)—a simple, clear code example that consistently reproduces the issue. This allows us to quickly identify and resolve the problem.
+We highly value bug reports as they help us improve the quality and reliability of our projects. When reporting a bug via GitHub Issues:
+
+- **Check existing issues:** Search first to see if the bug has already been reported.
+- **Provide a [Minimum Reproducible Example](../help/minimum-reproducible-example/):** Create a small, self-contained code snippet that consistently reproduces the issue. This is crucial for efficient debugging.
+- **Describe the environment:** Specify your operating system, Python version, relevant library versions (e.g., `torch`, `ultralytics`), and hardware (CPU/GPU).
+- **Explain expected vs. actual behavior:** Clearly state what you expected to happen and what actually occurred. Include any error messages or tracebacks.
 
 ## License
 

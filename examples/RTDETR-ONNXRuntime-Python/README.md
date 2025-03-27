@@ -42,10 +42,10 @@ python main.py --model rtdetr-l.onnx --img image.jpg --conf-thres 0.5 --iou-thre
 
 **Arguments:**
 
--   `--model`: Path to the RT-DETR [ONNX model file](https://docs.ultralytics.com/modes/export/) (e.g., `rtdetr-l.onnx`). You can easily [export Ultralytics models](https://docs.ultralytics.com/modes/export/) to ONNX format. Find more models on the [Ultralytics Models](https://docs.ultralytics.com/models/) page.
--   `--img`: Path to the input image file (e.g., `image.jpg`).
--   `--conf-thres`: Confidence threshold for filtering detections. Only detections with a score higher than this value will be kept. Learn more about thresholds in our guide on [YOLO performance metrics](https://docs.ultralytics.com/guides/yolo-performance-metrics/).
--   `--iou-thres`: [Intersection over Union (IoU)](https://www.ultralytics.com/glossary/intersection-over-union-iou) threshold used for [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) to remove redundant [bounding boxes](https://www.ultralytics.com/glossary/bounding-box).
+- `--model`: Path to the RT-DETR [ONNX model file](https://docs.ultralytics.com/modes/export/) (e.g., `rtdetr-l.onnx`). You can easily [export Ultralytics models](https://docs.ultralytics.com/modes/export/) to ONNX format. Find more models on the [Ultralytics Models](https://docs.ultralytics.com/models/) page.
+- `--img`: Path to the input image file (e.g., `image.jpg`).
+- `--conf-thres`: Confidence threshold for filtering detections. Only detections with a score higher than this value will be kept. Learn more about thresholds in our guide on [YOLO performance metrics](https://docs.ultralytics.com/guides/yolo-performance-metrics/).
+- `--iou-thres`: [Intersection over Union (IoU)](https://www.ultralytics.com/glossary/intersection-over-union-iou) threshold used for [Non-Maximum Suppression (NMS)](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) to remove redundant [bounding boxes](https://www.ultralytics.com/glossary/bounding-box).
 
 Adjust the `--conf-thres` and `--iou-thres` values based on your specific requirements for detection sensitivity and overlap removal.
 

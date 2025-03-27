@@ -71,15 +71,15 @@ Learn more about inference arguments in the Ultralytics [Predict Mode documentat
 
 The script accepts several command-line arguments for customization:
 
--   `--source`: Path to the input video file.
--   `--device`: Computation device (`cpu` or GPU ID like `0`).
--   `--save-img`: Boolean flag to save output frames with detections.
--   `--view-img`: Boolean flag to display the output video stream in real-time.
--   `--weights`: Path to the [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) model file (`.pt`). Defaults typically use a standard model like `yolov8n.pt`.
--   `--classes`: Filter detections by specific class IDs (e.g., `--classes 0 2 3` to detect classes 0, 2, and 3).
--   `--line-thickness`: Thickness of the [bounding box](https://www.ultralytics.com/glossary/bounding-box) lines.
--   `--region-thickness`: Thickness of the lines defining the counting regions.
--   `--track-thickness`: Thickness of the object tracking lines.
+- `--source`: Path to the input video file.
+- `--device`: Computation device (`cpu` or GPU ID like `0`).
+- `--save-img`: Boolean flag to save output frames with detections.
+- `--view-img`: Boolean flag to display the output video stream in real-time.
+- `--weights`: Path to the [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) model file (`.pt`). Defaults typically use a standard model like `yolov8n.pt`.
+- `--classes`: Filter detections by specific class IDs (e.g., `--classes 0 2 3` to detect classes 0, 2, and 3).
+- `--line-thickness`: Thickness of the [bounding box](https://www.ultralytics.com/glossary/bounding-box) lines.
+- `--region-thickness`: Thickness of the lines defining the counting regions.
+- `--track-thickness`: Thickness of the object tracking lines.
 
 Explore different models and training options in the [Ultralytics documentation](https://docs.ultralytics.com/).
 
@@ -100,19 +100,19 @@ from shapely.geometry import Polygon
 counting_regions = [
     {
         "name": "Region 1 (Pentagon)",
-        "polygon": Polygon([(50, 80), (250, 20), (450, 80), (400, 350), (100, 350)]), # 5-point polygon
+        "polygon": Polygon([(50, 80), (250, 20), (450, 80), (400, 350), (100, 350)]),  # 5-point polygon
         "counts": 0,
         "dragging": False,
         "region_color": (255, 42, 4),  # BGR color for region
-        "text_color": (255, 255, 255), # BGR color for text
+        "text_color": (255, 255, 255),  # BGR color for text
     },
     {
         "name": "Region 2 (Rectangle)",
-        "polygon": Polygon([(200, 250), (440, 250), (440, 550), (200, 550)]), # 4-point polygon (rectangle)
+        "polygon": Polygon([(200, 250), (440, 250), (440, 550), (200, 550)]),  # 4-point polygon (rectangle)
         "counts": 0,
         "dragging": False,
-        "region_color": (37, 255, 225), # BGR color for region
-        "text_color": (0, 0, 0),        # BGR color for text
+        "region_color": (37, 255, 225),  # BGR color for region
+        "text_color": (0, 0, 0),  # BGR color for text
     },
 ]
 ```

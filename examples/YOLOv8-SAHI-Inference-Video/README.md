@@ -50,15 +50,15 @@ This script processes the video frame by frame, applying SAHI's slicing and infe
 
 The script `yolov8_sahi.py` accepts several command-line arguments to customize the inference process:
 
--   `--source`: **Required**. Path to the input video file (e.g., `"../path/to/video.mp4"`).
--   `--weights`: Optional. Path to the YOLO11 model weights file (e.g., `"yolo11n.pt"`, `"yolo11s.pt"`). Defaults to `"yolo11n.pt"`. You can download various models or use your custom-trained ones. See [Ultralytics YOLO models](https://docs.ultralytics.com/models/) for more options.
--   `--save-vid`: Optional. Flag to save the output video with detection results. Saved to `runs/detect/predict`.
--   `--conf-thres`: Optional. Confidence threshold for object detection. Defaults to `0.25`.
--   `--iou-thres`: Optional. Intersection Over Union (IoU) threshold for Non-Maximum Suppression (NMS). Defaults to `0.7`.
--   `--slice-height`: Optional. Height of each image slice for SAHI. Defaults to `1024`.
--   `--slice-width`: Optional. Width of each image slice for SAHI. Defaults to `1024`.
--   `--overlap-height-ratio`: Optional. Overlap ratio between adjacent slices vertically. Defaults to `0.2`.
--   `--overlap-width-ratio`: Optional. Overlap ratio between adjacent slices horizontally. Defaults to `0.2`.
+- `--source`: **Required**. Path to the input video file (e.g., `"../path/to/video.mp4"`).
+- `--weights`: Optional. Path to the YOLO11 model weights file (e.g., `"yolo11n.pt"`, `"yolo11s.pt"`). Defaults to `"yolo11n.pt"`. You can download various models or use your custom-trained ones. See [Ultralytics YOLO models](https://docs.ultralytics.com/models/) for more options.
+- `--save-vid`: Optional. Flag to save the output video with detection results. Saved to `runs/detect/predict`.
+- `--conf-thres`: Optional. Confidence threshold for object detection. Defaults to `0.25`.
+- `--iou-thres`: Optional. Intersection Over Union (IoU) threshold for Non-Maximum Suppression (NMS). Defaults to `0.7`.
+- `--slice-height`: Optional. Height of each image slice for SAHI. Defaults to `1024`.
+- `--slice-width`: Optional. Width of each image slice for SAHI. Defaults to `1024`.
+- `--overlap-height-ratio`: Optional. Overlap ratio between adjacent slices vertically. Defaults to `0.2`.
+- `--overlap-width-ratio`: Optional. Overlap ratio between adjacent slices horizontally. Defaults to `0.2`.
 
 Experiment with these options, especially slice dimensions and overlap ratios, to optimize detection performance for your specific [video processing](https://en.wikipedia.org/wiki/Video_processing) task and target object sizes. Using appropriate [datasets](https://docs.ultralytics.com/datasets/) for training can also significantly impact performance.
 

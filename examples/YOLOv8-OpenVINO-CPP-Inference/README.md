@@ -4,26 +4,27 @@ Welcome to the [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/)
 
 ## 🌟 Features
 
--   🚀 **Model Format Support**: Compatible with [ONNX](https://onnx.ai/) and [OpenVINO Intermediate Representation (IR)](https://docs.openvino.ai/2023.3/openvino_docs_MO_DG_IR_and_opsets.html) formats. Check the [Ultralytics ONNX integration](https://docs.ultralytics.com/integrations/onnx/) for more details.
--   ⚡ **Precision Options**: Run models in **FP32**, **FP16** ([half-precision](https://www.ultralytics.com/glossary/half-precision)), and **INT8** ([quantization](https://www.ultralytics.com/glossary/model-quantization)) precisions for optimized performance.
--   🔄 **Dynamic Shape Loading**: Easily handle models with dynamic input shapes, common in many [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
+- 🚀 **Model Format Support**: Compatible with [ONNX](https://onnx.ai/) and [OpenVINO Intermediate Representation (IR)](https://docs.openvino.ai/2023.3/openvino_docs_MO_DG_IR_and_opsets.html) formats. Check the [Ultralytics ONNX integration](https://docs.ultralytics.com/integrations/onnx/) for more details.
+- ⚡ **Precision Options**: Run models in **FP32**, **FP16** ([half-precision](https://www.ultralytics.com/glossary/half-precision)), and **INT8** ([quantization](https://www.ultralytics.com/glossary/model-quantization)) precisions for optimized performance.
+- 🔄 **Dynamic Shape Loading**: Easily handle models with dynamic input shapes, common in many [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
 
 ## 📋 Dependencies
 
 To ensure smooth execution, please make sure you have the following dependencies installed:
 
-| Dependency                                           | Version  |
-| --------------------------------------------------- | ------- |
+| Dependency                                            | Version  |
+| ----------------------------------------------------- | -------- |
 | [OpenVINO](https://docs.openvino.ai/latest/home.html) | >=2023.3 |
-| [OpenCV](https://opencv.org/)                        | >=4.5.0  |
-| [C++](https://en.cppreference.com/w/)                | >=14     |
-| [CMake](https://cmake.org/documentation/)            | >=3.12.0 |
+| [OpenCV](https://opencv.org/)                         | >=4.5.0  |
+| [C++](https://en.cppreference.com/w/)                 | >=14     |
+| [CMake](https://cmake.org/documentation/)             | >=3.12.0 |
 
 ## ⚙️ Build Instructions
 
 Follow these steps to build the project:
 
 1.  Clone the Ultralytics repository:
+
     ```bash
     git clone https://github.com/ultralytics/ultralytics.git
     cd ultralytics/examples/YOLOv8-OpenVINO-CPP-Inference

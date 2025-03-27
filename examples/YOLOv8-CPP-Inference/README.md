@@ -48,7 +48,7 @@ You need to export your trained PyTorch models to the [ONNX](https://onnx.ai/) f
 Use the Ultralytics CLI to export. Ensure you specify the desired `imgsz` and `opset`. For compatibility with this example, `opset=12` is recommended.
 
 ```bash
-yolo export model=yolov8s.pt imgsz=640,480 format=onnx opset=12  # Example: 640x480 resolution
+yolo export model=yolov8s.pt imgsz=640,480 format=onnx opset=12 # Example: 640x480 resolution
 ```
 
 **Exporting YOLOv5 Models:**
@@ -64,21 +64,21 @@ Place the generated `.onnx` files (e.g., `yolov8s.onnx`, `yolov5s.onnx`) into th
 
 **Example Output:**
 
-*yolov8s.onnx:*
+_yolov8s.onnx:_
 
 ![YOLOv8 ONNX Output](https://user-images.githubusercontent.com/40023722/217356132-a4cecf2e-2729-4acb-b80a-6559022d7707.png)
 
-*yolov5s.onnx:*
+_yolov5s.onnx:_
 
 ![YOLOv5 ONNX Output](https://user-images.githubusercontent.com/40023722/217357005-07464492-d1da-42e3-98a7-fc753f87d5e6.png)
 
 ## 📝 Notes
 
--   This repository utilizes the [OpenCV DNN API](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html) to run [ONNX](https://onnx.ai/) exported models of YOLOv5 and Ultralytics YOLOv8.
--   While not explicitly tested, it might theoretically work for other YOLO architectures like YOLOv6 and YOLOv7 if their ONNX export formats are compatible.
--   The example models are exported with a rectangular resolution (640x480), but the code should handle models exported with different resolutions. Consider using techniques like [letterboxing](https://docs.ultralytics.com/modes/predict/#letterbox) if your input images have different aspect ratios than the model's training resolution, especially for square `imgsz` exports.
--   The `main` branch version includes a simple GUI wrapper using [Qt](https://www.qt.io/). However, the core logic resides in the `Inference` class (`inference.h`, `inference.cpp`).
--   A key part of the `Inference` class demonstrates how to handle the output differences between YOLOv5 and YOLOv8 models, effectively transposing YOLOv8's output format to match the structure expected from YOLOv5 for consistent post-processing.
+- This repository utilizes the [OpenCV DNN API](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html) to run [ONNX](https://onnx.ai/) exported models of YOLOv5 and Ultralytics YOLOv8.
+- While not explicitly tested, it might theoretically work for other YOLO architectures like YOLOv6 and YOLOv7 if their ONNX export formats are compatible.
+- The example models are exported with a rectangular resolution (640x480), but the code should handle models exported with different resolutions. Consider using techniques like [letterboxing](https://docs.ultralytics.com/modes/predict/#letterbox) if your input images have different aspect ratios than the model's training resolution, especially for square `imgsz` exports.
+- The `main` branch version includes a simple GUI wrapper using [Qt](https://www.qt.io/). However, the core logic resides in the `Inference` class (`inference.h`, `inference.cpp`).
+- A key part of the `Inference` class demonstrates how to handle the output differences between YOLOv5 and YOLOv8 models, effectively transposing YOLOv8's output format to match the structure expected from YOLOv5 for consistent post-processing.
 
 ## 🤝 Contributing
 

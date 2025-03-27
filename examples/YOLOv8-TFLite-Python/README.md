@@ -20,18 +20,18 @@ For more details, refer to the official [TFLite Python quickstart guide](https:/
 
 Alternatively, you can install the full TensorFlow package. This includes the TFLite interpreter along with the complete TensorFlow library.
 
--   **CPU-Only:** Suitable if you don't have an NVIDIA GPU or don't need GPU acceleration.
+- **CPU-Only:** Suitable if you don't have an NVIDIA GPU or don't need GPU acceleration.
 
-    ```bash
-    pip install tensorflow
-    ```
+  ```bash
+  pip install tensorflow
+  ```
 
--   **GPU Support:** To leverage NVIDIA GPU acceleration for potentially faster inference, install `tensorflow` with GPU support. Ensure you have the necessary [NVIDIA drivers](https://www.nvidia.com/Download/index.aspx) and CUDA toolkit installed.
+- **GPU Support:** To leverage NVIDIA GPU acceleration for potentially faster inference, install `tensorflow` with GPU support. Ensure you have the necessary [NVIDIA drivers](https://www.nvidia.com/Download/index.aspx) and CUDA toolkit installed.
 
-    ```bash
-    # Check TensorFlow documentation for specific CUDA/cuDNN version requirements
-    pip install tensorflow[and-cuda] # Or follow specific instructions on TF website
-    ```
+  ```bash
+  # Check TensorFlow documentation for specific CUDA/cuDNN version requirements
+  pip install tensorflow[and-cuda] # Or follow specific instructions on TF website
+  ```
 
 Visit the official [TensorFlow installation guide](https://www.tensorflow.org/install) for detailed instructions, including GPU setup.
 
@@ -43,7 +43,7 @@ Follow these steps to run inference with your exported YOLOv8 TFLite model.
     First, export your trained Ultralytics YOLOv8 model (e.g., `yolov8n.pt`) to the TFLite format using the `yolo export` command. This example exports an INT8 quantized model for optimal performance on edge devices. You can also export FP32 or FP16 models by adjusting the `format` and quantization arguments. Refer to the Ultralytics [Export mode documentation](https://docs.ultralytics.com/modes/export/) for more options.
 
     ```bash
-    yolo export model=yolov8n.pt imgsz=640 format=tflite int8=True  # Exports yolov8n_saved_model/yolov8n_full_integer_quant.tflite
+    yolo export model=yolov8n.pt imgsz=640 format=tflite int8=True # Exports yolov8n_saved_model/yolov8n_full_integer_quant.tflite
     ```
 
     The export process will create a directory (e.g., `yolov8n_saved_model`) containing the `.tflite` model file and potentially a `metadata.yaml` file with class names and other model details.
@@ -53,18 +53,18 @@ Follow these steps to run inference with your exported YOLOv8 TFLite model.
 
     ```bash
     python main.py \
-        --model yolov8n_saved_model/yolov8n_full_integer_quant.tflite \
-        --img image.jpg \
-        --conf 0.25 \
-        --iou 0.45 \
-        --metadata yolov8n_saved_model/metadata.yaml
+      --model yolov8n_saved_model/yolov8n_full_integer_quant.tflite \
+      --img image.jpg \
+      --conf 0.25 \
+      --iou 0.45 \
+      --metadata yolov8n_saved_model/metadata.yaml
     ```
 
-    -   `--model`: Path to the exported `.tflite` model file.
-    -   `--img`: Path to the input image for detection.
-    -   `--conf`: Minimum [confidence threshold](https://www.ultralytics.com/glossary/confidence) for detections (e.g., 0.25).
-    -   `--iou`: [Intersection over Union (IoU)](https://www.ultralytics.com/glossary/intersection-over-union-iou) threshold for Non-Maximum Suppression (NMS).
-    -   `--metadata`: Path to the `metadata.yaml` file generated during export (contains class names).
+    - `--model`: Path to the exported `.tflite` model file.
+    - `--img`: Path to the input image for detection.
+    - `--conf`: Minimum [confidence threshold](https://www.ultralytics.com/glossary/confidence) for detections (e.g., 0.25).
+    - `--iou`: [Intersection over Union (IoU)](https://www.ultralytics.com/glossary/intersection-over-union-iou) threshold for Non-Maximum Suppression (NMS).
+    - `--metadata`: Path to the `metadata.yaml` file generated during export (contains class names).
 
 ## ✅ Output
 

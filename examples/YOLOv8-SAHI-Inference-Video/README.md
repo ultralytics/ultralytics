@@ -6,7 +6,7 @@ This tutorial guides you through running Ultralytics YOLO11 inference on video f
 
 ## 📋 Table of Contents
 
-- [Step 1: Install Required Libraries](#%EF%B8%8F-step-1-install-required-libraries)
+- [Step 1: Install Required Libraries](#-step-1-install-required-libraries)
 - [Step 2: Run Inference with SAHI using Ultralytics YOLO11](#-step-2-run-inference-with-sahi-using-ultralytics-yolo11)
 - [Usage Options](#-usage-options)
 - [Contribute](#-contribute)

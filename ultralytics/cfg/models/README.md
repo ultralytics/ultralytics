@@ -1,3 +1,5 @@
+<a href="https://www.ultralytics.com/" target="_blank"><img src="https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg" width="320" alt="Ultralytics logo"></a>
+
 # Ultralytics Model Configurations
 
 Welcome to the [Ultralytics](https://www.ultralytics.com/) Models configuration directory! This directory contains a comprehensive collection of pre-configured model configuration files (`*.yaml`). These files serve as blueprints for creating custom [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo11/) models, meticulously crafted and fine-tuned by the Ultralytics team. Our goal is to provide optimal performance across a diverse range of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks, including [object detection](https://docs.ultralytics.com/tasks/detect/), [image segmentation](https://docs.ultralytics.com/tasks/segment/), pose estimation, and [object tracking](https://docs.ultralytics.com/modes/track/).

@@ -12,7 +12,7 @@ In this hands-on tutorial, we'll show you how to supercharge your object detecto
 
 ## Install Dependencies
 
-Let's install the required dependencies (make sure to use a virtual environment):
+Let's install the required dependencies:
 
 - `lightly-train` for pretraining, with support for `ultralytics`' YOLO models
 - [`supervision`](https://github.com/roboflow/supervision) to visualize some of the annotated pictures

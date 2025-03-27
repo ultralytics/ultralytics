@@ -251,6 +251,7 @@ Ultralytics YOLO11 提供了在 [COCO](https://docs.ultralytics.com/datasets/det
 我们依靠社区协作蓬勃发展！没有像您这样的开发者的贡献，Ultralytics YOLO 不会成为如今的 SOTA 模型。请参阅我们的[贡献指南](https://docs.ultralytics.com/help/contributing/)开始贡献。我们也欢迎您的反馈——通过完成我们的[调查](https://www.ultralytics.com/survey?utm_source=github&utm_medium=social&utm_campaign=Survey)分享您的体验。非常**感谢** 🙏 每一位贡献者！
 
 <!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=1280 -->
+
 [![Ultralytics open-source contributors](https://github.com/ultralytics/assets/raw/main/im/image-contributors.png)](https://github.com/ultralytics/ultralytics/graphs/contributors)
 
 我们期待您的贡献，帮助 Ultralytics 生态系统变得更加完善！

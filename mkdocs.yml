@@ -413,6 +413,7 @@ nav:
       - IBM Watsonx: integrations/ibm-watsonx.md
       - JupyterLab: integrations/jupyterlab.md
       - Kaggle: integrations/kaggle.md
+      - LightlyTrain: integrations/lightlytrain.md
       - MLflow: integrations/mlflow.md
       - Neural Magic: integrations/neural-magic.md
       - ONNX: integrations/onnx.md

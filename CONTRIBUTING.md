@@ -133,7 +133,7 @@ Ultralytics uses the [GNU Affero General Public License v3.0 (AGPL-3.0)](https:/
 
 We encourage all contributors to familiarize themselves with the terms of the [AGPL-3.0 license](https://www.gnu.org/licenses/agpl-3.0.html) to contribute effectively and ethically to the Ultralytics open-source community.
 
-## 🌍 Open-Sourcing Your Project with YOLO & AGPL-3.0 Compliance
+## 🌍 Open-Sourcing Your YOLO Project Under AGPL-3.0
 
 Using Ultralytics YOLO models or code in your project? The [AGPL-3.0 license](https://www.gnu.org/licenses/agpl-3.0.html) requires that your entire derivative work also be open-sourced under AGPL-3.0. This ensures modifications and larger projects built upon open-source foundations remain open.
 
@@ -151,33 +151,33 @@ Complying means making the **complete corresponding source code** of your projec
 
 1. **Choose Your Starting Point:**
 
-   - **Fork Ultralytics YOLO:** Directly fork the [Ultralytics YOLO repository](https://github.com/ultralytics/ultralytics) if building closely upon it.
-   - **Use Ultralytics Template:** Start with the [Ultralytics template repository](https://github.com/ultralytics/template) for a clean, modular setup integrating YOLO.
+    - **Fork Ultralytics YOLO:** Directly fork the [Ultralytics YOLO repository](https://github.com/ultralytics/ultralytics) if building closely upon it.
+    - **Use Ultralytics Template:** Start with the [Ultralytics template repository](https://github.com/ultralytics/template) for a clean, modular setup integrating YOLO.
 
 2. **License Your Project:**
 
-   - Add an `LICENSE` file containing the full text of the [AGPL-3.0 license](https://www.gnu.org/licenses/agpl-3.0.txt).
-   - Add a notice at the top of each source file indicating the license.
+    - Add an `LICENSE` file containing the full text of the [AGPL-3.0 license](https://www.gnu.org/licenses/agpl-3.0.txt).
+    - Add a notice at the top of each source file indicating the license.
 
 3. **Publish Your Source Code:**
 
-   - Make your **entire project's source code** publicly accessible (e.g., on GitHub). This includes:
-     - The complete larger application or system that incorporates the YOLO model or code.
-     - Any modifications made to the original Ultralytics YOLO code.
-     - Scripts for training, validation, inference.
-     - [Model weights](https://www.ultralytics.com/glossary/model-weights) if modified or fine-tuned.
-     - [Configuration files](https://docs.ultralytics.com/usage/cfg/), environment setups (`requirements.txt`, [`Dockerfiles`](https://docs.docker.com/engine/reference/builder/)).
-     - Backend and frontend code if it's part of a [web application](https://en.wikipedia.org/wiki/Web_application).
-     - Any [third-party libraries](<https://en.wikipedia.org/wiki/Library_(computing)#Third-party>) you've modified.
-     - [Training data](https://www.ultralytics.com/glossary/training-data) if required to run/retrain _and_ redistributable.
+    - Make your **entire project's source code** publicly accessible (e.g., on GitHub). This includes:
+        - The complete larger application or system that incorporates the YOLO model or code.
+        - Any modifications made to the original Ultralytics YOLO code.
+        - Scripts for training, validation, inference.
+        - [Model weights](https://www.ultralytics.com/glossary/model-weights) if modified or fine-tuned.
+        - [Configuration files](https://docs.ultralytics.com/usage/cfg/), environment setups (`requirements.txt`, [`Dockerfiles`](https://docs.docker.com/engine/reference/builder/)).
+        - Backend and frontend code if it's part of a [web application](https://en.wikipedia.org/wiki/Web_application).
+        - Any [third-party libraries](<https://en.wikipedia.org/wiki/Library_(computing)#Third-party>) you've modified.
+        - [Training data](https://www.ultralytics.com/glossary/training-data) if required to run/retrain _and_ redistributable.
 
 4. **Document Clearly:**
-   - Update your `README.md` to state that the project is licensed under AGPL-3.0.
-   - Include clear instructions on how to set up, build, and run your project from the source code.
-   - Attribute Ultralytics YOLO appropriately, linking back to the [original repository](https://github.com/ultralytics/ultralytics). Example:
-     ```markdown
-     This project utilizes code from [Ultralytics YOLO](https://github.com/ultralytics/ultralytics), licensed under AGPL-3.0.
-     ```
+    - Update your `README.md` to state that the project is licensed under AGPL-3.0.
+    - Include clear instructions on how to set up, build, and run your project from the source code.
+    - Attribute Ultralytics YOLO appropriately, linking back to the [original repository](https://github.com/ultralytics/ultralytics). Example:
+        ```markdown
+        This project utilizes code from [Ultralytics YOLO](https://github.com/ultralytics/ultralytics), licensed under AGPL-3.0.
+        ```
 
 ### Example Repository Structure
 
@@ -216,7 +216,7 @@ We're excited to see your ideas come to life and appreciate your commitment to a
 
 ### Why should I contribute to Ultralytics YOLO open-source repositories?
 
-Contributing to Ultralytics YOLO open-source repositories improves the software, making it more robust and feature-rich for the entire community. Contributions can include code enhancements, bug fixes, documentation improvements, and new feature implementations. Additionally, contributing allows you to collaborate with other skilled developers and experts in the field, enhancing your own skills and reputation. For details on how to get started, refer to the [Contributing via Pull Requests](#-contributing-via-pull-requests) section.
+Contributing to Ultralytics YOLO open-source repositories improves the software, making it more robust and feature-rich for the entire community. Contributions can include code enhancements, bug fixes, documentation improvements, and new feature implementations. Additionally, contributing allows you to collaborate with other skilled developers and experts in the field, enhancing your own skills and reputation. For details on how to get started, refer to the [Contributing via Pull Requests](#contributing-via-pull-requests) section.
 
 ### How do I sign the Contributor License Agreement (CLA) for Ultralytics YOLO?
 
@@ -226,20 +226,20 @@ To sign the Contributor License Agreement (CLA), follow the instructions provide
 I have read the CLA Document and I sign the CLA
 ```
 
-For more information, see the [CLA Signing](#-cla-signing) section.
+For more information, see the [CLA Signing](#cla-signing) section.
 
 ### What are Google-style docstrings, and why are they required for Ultralytics YOLO contributions?
 
-Google-style docstrings provide clear, concise documentation for functions and classes, improving code readability and maintainability. These docstrings outline the function's purpose, arguments, and return values with specific formatting rules. When contributing to Ultralytics YOLO, following Google-style docstrings ensures that your additions are well-documented and easily understood. For examples and guidelines, visit the [Google-Style Docstrings](#-google-style-docstrings) section.
+Google-style docstrings provide clear, concise documentation for functions and classes, improving code readability and maintainability. These docstrings outline the function's purpose, arguments, and return values with specific formatting rules. When contributing to Ultralytics YOLO, following Google-style docstrings ensures that your additions are well-documented and easily understood. For examples and guidelines, visit the [Google-Style Docstrings](#google-style-docstrings) section.
 
 ### How can I ensure my changes pass the GitHub Actions CI tests?
 
-Before your pull request can be merged, it must pass all GitHub Actions Continuous Integration (CI) tests. These tests include linting, unit tests, and other checks to ensure the code meets the project's quality standards. Review the CI output and fix any issues. For detailed information on the CI process and troubleshooting tips, see the [GitHub Actions CI Tests](#-github-actions-ci-tests) section.
+Before your pull request can be merged, it must pass all GitHub Actions Continuous Integration (CI) tests. These tests include linting, unit tests, and other checks to ensure the code meets the project's quality standards. Review the CI output and fix any issues. For detailed information on the CI process and troubleshooting tips, see the [GitHub Actions CI Tests](#github-actions-ci-tests) section.
 
 ### How do I report a bug in Ultralytics YOLO repositories?
 
-To report a bug, provide a clear and concise [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum-reproducible-example/) along with your bug report. This helps developers quickly identify and fix the issue. Ensure your example is minimal yet sufficient to replicate the problem. For more detailed steps on reporting bugs, refer to the [Reporting Bugs](#-reporting-bugs) section.
+To report a bug, provide a clear and concise [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum-reproducible-example/) along with your bug report. This helps developers quickly identify and fix the issue. Ensure your example is minimal yet sufficient to replicate the problem. For more detailed steps on reporting bugs, refer to the [Reporting Bugs](#reporting-bugs) section.
 
 ### What does the AGPL-3.0 license mean if I use Ultralytics YOLO in my own project?
 
-If you use Ultralytics YOLO code or models (licensed under AGPL-3.0) in your project, the AGPL-3.0 license requires that your entire project (the derivative work) must also be licensed under AGPL-3.0 and its complete source code must be made publicly available. This ensures that the open-source nature of the software is preserved throughout its derivatives. If you cannot meet these requirements, you need to obtain an [Enterprise License](https://www.ultralytics.com/license). See the [Open-Sourcing Your Project](#-open-sourcing-your-project-with-yolo--agpl-30-compliance) section for details.
+If you use Ultralytics YOLO code or models (licensed under AGPL-3.0) in your project, the AGPL-3.0 license requires that your entire project (the derivative work) must also be licensed under AGPL-3.0 and its complete source code must be made publicly available. This ensures that the open-source nature of the software is preserved throughout its derivatives. If you cannot meet these requirements, you need to obtain an [Enterprise License](https://www.ultralytics.com/license). See the [Open-Sourcing Your Project](#open-sourcing-your-yolo-project-under-agpl-30) section for details.

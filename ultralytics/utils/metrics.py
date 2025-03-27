@@ -727,7 +727,7 @@ class Metric(SimpleClass):
         return maps
 
     def fitness(self):
-        """Model fitness as a weighted combination of metrics."""
+        """Model fitness as a weighted combination of metrics. why"""
         #  w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
         w = [0.4, 0.4, 0.1, 0.1]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
         w = [0.05, 0.9, 0.03, 0.02]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]

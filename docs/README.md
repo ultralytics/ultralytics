@@ -48,11 +48,11 @@ mkdocs serve
 ```
 
 - **Command Breakdown:**
-  - `mkdocs`: The main MkDocs command-line interface tool.
-  - `serve`: The subcommand used to build and locally serve your documentation site.
+    - `mkdocs`: The main MkDocs command-line interface tool.
+    - `serve`: The subcommand used to build and locally serve your documentation site.
 - **Note:**
-  - `mkdocs serve` includes live reloading, automatically updating the preview in your browser as you save changes to the documentation files.
-  - To stop the local server, simply press `CTRL+C` in your terminal.
+    - `mkdocs serve` includes live reloading, automatically updating the preview in your browser as you save changes to the documentation files.
+    - To stop the local server, simply press `CTRL+C` in your terminal.
 
 ## 🌍 Building and Serving Multi-Language
 
@@ -98,13 +98,13 @@ To deploy your MkDocs documentation site, choose a hosting provider and configur
 * **GitHub Pages Deployment Example:**
   If deploying to GitHub Pages, you can use the built-in command:
 
-  ```bash
-  mkdocs gh-deploy
-  ```
+    ```bash
+    mkdocs gh-deploy
+    ```
 
-  After deployment, you might need to update the "Custom domain" settings in your repository's settings page if you wish to use a personalized URL.
+    After deployment, you might need to update the "Custom domain" settings in your repository's settings page if you wish to use a personalized URL.
 
-  ![GitHub Pages Custom Domain Setting](https://user-images.githubusercontent.com/26833433/210150206-9e86dcd7-10af-43e4-9eb2-9518b3799eac.png)
+    ![GitHub Pages Custom Domain Setting](https://user-images.githubusercontent.com/26833433/210150206-9e86dcd7-10af-43e4-9eb2-9518b3799eac.png)
 
 - For detailed instructions on various deployment methods, consult the official [MkDocs Deploying your docs guide](https://www.mkdocs.org/user-guide/deploying-your-docs/).
 

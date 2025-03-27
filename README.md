@@ -250,8 +250,7 @@ Experience seamless AI with [Ultralytics HUB](https://hub.ultralytics.com), the 
 
 We thrive on community collaboration! Ultralytics YOLO wouldn't be the SOTA model it is without contributions from developers like you. Please see our [Contributing Guide](https://docs.ultralytics.com/help/contributing/) to get started. We also welcome your feedback—share your experience by completing our [Survey](https://www.ultralytics.com/survey?utm_source=github&utm_medium=social&utm_campaign=Survey). A huge **Thank You** 🙏 to everyone who contributes!
 
-<!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=990 -->
-
+<!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=1280 -->
 <a href="https://github.com/ultralytics/ultralytics/graphs/contributors">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/image-contributors.png" alt="Ultralytics open-source contributors"></a>
 

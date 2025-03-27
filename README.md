@@ -22,7 +22,7 @@
 </div>
 <br>
 
-[Ultralytics](https://www.ultralytics.com/) YOLO11 is a cutting-edge, state-of-the-art (SOTA) model that builds upon the success of previous [YOLO](https://www.ultralytics.com/yolo) versions. It introduces new features and improvements to further boost performance and flexibility. Ultralytics YOLO11 is designed to be **fast**, **accurate**, and **easy to use**, making it an excellent choice for a wide range of [object detection](https://docs.ultralytics.com/tasks/detect/), [tracking](https://docs.ultralytics.com/modes/track/), [instance segmentation](https://docs.ultralytics.com/tasks/segment/), [image classification](https://docs.ultralytics.com/tasks/classify/), and [pose estimation](https://docs.ultralytics.com/tasks/pose/) tasks.
+[Ultralytics](https://www.ultralytics.com/) delivers cutting-edge, state-of-the-art (SOTA) [YOLO models](https://www.ultralytics.com/yolo), leveraging years of foundational R&D in computer vision and AI. Our models continuously evolve, introducing new features and improvements to boost performance and flexibility. Ultralytics' YOLO implementations are designed to be **fast**, **accurate**, and **easy to use**, making them an excellent choice for a wide range of [object detection](https://docs.ultralytics.com/tasks/detect/), [tracking](https://docs.ultralytics.com/modes/track/), [instance segmentation](https://docs.ultralytics.com/tasks/segment/), [image classification](https://docs.ultralytics.com/tasks/classify/), and [pose estimation](https://docs.ultralytics.com/tasks/pose/) tasks.
 
 We hope the resources here help you get the most out of YOLO. Please browse the [Ultralytics Docs](https://docs.ultralytics.com/) for detailed documentation, raise an issue on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) for support or questions, and join the conversation on [Discord](https://discord.com/invite/ultralytics), [Reddit](https://reddit.com/r/ultralytics), and the [Ultralytics Community Forums](https://community.ultralytics.com/)!
 
@@ -262,7 +262,7 @@ We look forward to your contributions!
 Ultralytics offers two licensing options to suit different needs:
 
 - **AGPL-3.0 License**: This [OSI-approved](https://opensource.org/licenses/) open-source license is perfect for students, researchers, and enthusiasts. It encourages open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for full details.
-- **Enterprise License**: Designed for commercial use, this license allows for the seamless integration of Ultralytics software and AI models into commercial products and services, bypassing the open-source requirements of AGPL-3.0. If your use case involves commercial deployment, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
+- **Ultralytics Enterprise License**: Designed for commercial use, this license allows for the seamless integration of Ultralytics software and AI models into commercial products and services, bypassing the open-source requirements of AGPL-3.0. If your use case involves commercial deployment, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
 
 ## 📞 Contact
 

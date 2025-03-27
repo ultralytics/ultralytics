@@ -50,23 +50,8 @@ __all__ = (
     "PSA",
     "SCDown",
     "TorchVision",
-    "WeightedAdd",
 )
 
-class WeightedAdd(nn.Module):
-    """Trainable Weighted Feature Fusion for BiFPN."""
-
-    def __init__(self, channels, eps=1e-4):
-        super().__init__()
-        self.weights = nn.Parameter(torch.ones(3))  # Three inputs to fuse
-        self.eps = eps  # Avoid division by zero
-        self.conv = nn.Conv2d(channels, channels, 1, 1, bias=False)
-
-    def forward(self, x):
-        weights = torch.relu(self.weights)
-        weights = weights / (torch.sum(weights, dim=0) + self.eps)  # Normalize weights
-        fused = sum(w * f for w, f in zip(weights, x))  # Weighted sum
-        return self.conv(fused)  # Apply 1x1 conv to refine output
 
 class DFL(nn.Module):
     """

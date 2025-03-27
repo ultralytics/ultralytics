@@ -29,8 +29,8 @@ Ultralytics YOLO extends its object detection features to provide robust and ver
 
 Ultralytics YOLO supports the following tracking algorithms. They can be enabled by passing the relevant YAML configuration file such as `tracker=tracker_type.yaml`:
 
-- **BoT-SORT** - Use `botsort.yaml` to enable this tracker. Based on the [BoT-SORT paper](https://arxiv.org/abs/2206.14651) and [code](https://github.com/NirAharon/BoT-SORT).
-- **ByteTrack** - Use `bytetrack.yaml` to enable this tracker. Based on the [ByteTrack paper](https://arxiv.org/abs/2110.06864) and [code](https://github.com/ifzhang/ByteTrack).
+- **BoT-SORT:** Use [`botsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/botsort.yaml) to enable this tracker. Based on the [BoT-SORT paper](https://arxiv.org/abs/2206.14651) and official [code implementation](https://github.com/NirAharon/BoT-SORT).
+- **ByteTrack:** Use [`bytetrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml) to enable this tracker. Based on the [ByteTrack paper](https://arxiv.org/abs/2110.06864) and official [code implementation](https://github.com/ifzhang/ByteTrack).
 
 The default tracker is BoT-SORT.
 
@@ -71,7 +71,7 @@ As can be seen in the above usage, tracking is available for all [Detect](https:
 
 ### Tracking Arguments
 
-Tracking configuration shares properties with Predict mode, such as `conf`, `iou`, and `show`. For further configurations, refer to the [Predict mode](https://docs.ultralytics.com/modes/predict/) documentation.
+Tracking configuration shares properties with Predict mode, such as `conf`, `iou`, and `show`. For further configurations, refer to the [Predict mode documentation](https://docs.ultralytics.com/modes/predict/).
 
 ```python
 # Python
@@ -107,7 +107,7 @@ results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker="custom_tra
 yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" tracker='custom_tracker.yaml'
 ```
 
-For a comprehensive list of tracking arguments, refer to the [Tracking Configuration](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) documentation.
+For a comprehensive list of tracking arguments, refer to the [Tracking Configuration files](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) available in the repository.
 
 ## 🐍 Python Examples
 

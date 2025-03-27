@@ -19,11 +19,12 @@
     <a href="https://www.kaggle.com/models/ultralytics/yolo11"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open Ultralytics In Kaggle"></a>
     <a href="https://mybinder.org/v2/gh/ultralytics/ultralytics/HEAD?labpath=examples%2Ftutorial.ipynb"><img src="https://mybinder.org/badge_logo.svg" alt="Open Ultralytics In Binder"></a>
 </div>
+</div>
 <br>
 
-[Ultralytics](https://www.ultralytics.com/) [YOLO11](https://github.com/ultralytics/ultralytics) is a cutting-edge, state-of-the-art (SOTA) model that builds upon the success of previous YOLO versions and introduces new features and improvements to further boost performance and flexibility. YOLO11 is designed to be fast, accurate, and easy to use, making it an excellent choice for a wide range of object detection and tracking, instance segmentation, image classification and pose estimation tasks.
+[Ultralytics](https://www.ultralytics.com/) YOLO11 is a cutting-edge, state-of-the-art (SOTA) model that builds upon the success of previous [YOLO](https://www.ultralytics.com/yolo) versions. It introduces new features and improvements to further boost performance and flexibility. Ultralytics YOLO11 is designed to be **fast**, **accurate**, and **easy to use**, making it an excellent choice for a wide range of [object detection](https://docs.ultralytics.com/tasks/detect/), [tracking](https://docs.ultralytics.com/modes/track/), [instance segmentation](https://docs.ultralytics.com/tasks/segment/), [image classification](https://docs.ultralytics.com/tasks/classify/), and [pose estimation](https://docs.ultralytics.com/tasks/pose/) tasks.
 
-We hope that the resources here will help you get the most out of YOLO. Please browse the Ultralytics <a href="https://docs.ultralytics.com/">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/ultralytics/issues/new/choose">GitHub</a> for support, questions, or discussions, become a member of the Ultralytics <a href="https://discord.com/invite/ultralytics">Discord</a>, <a href="https://reddit.com/r/ultralytics">Reddit</a> and <a href="https://community.ultralytics.com/">Forums</a>!
+We hope the resources here help you get the most out of YOLO. Please browse the [Ultralytics Docs](https://docs.ultralytics.com/) for detailed documentation, raise an issue on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) for support or questions, and join the conversation on [Discord](https://discord.com/invite/ultralytics), [Reddit](https://reddit.com/r/ultralytics), and the [Ultralytics Community Forums](https://community.ultralytics.com/)!
 
 To request an Enterprise License for commercial use, please complete the form at [Ultralytics Licensing](https://www.ultralytics.com/license).
 
@@ -46,7 +47,7 @@ To request an Enterprise License for commercial use, please complete the form at
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="space">
   <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="2%" alt="Ultralytics Discord"></a>
 </div>
-</div>
+
 
 ## 📄 Documentation
 

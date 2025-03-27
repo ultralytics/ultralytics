@@ -75,6 +75,8 @@ from .conv import (
     LightConv,
     RepConv,
     SpatialAttention,
+    BiFPN_Concat2,
+    BiFPN_Concat3,
 )
 from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment, WorldDetect, v10Detect
 from .transformer import (
@@ -162,4 +164,6 @@ __all__ = (
     "PSA",
     "TorchVision",
     "Index",
+    "BiFPN_Concat2",
+    "BiFPN_Concat3",
 )

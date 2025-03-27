@@ -26,9 +26,6 @@ RUN apt-get update && \
     openjdk-17-jdk openjdk-17-jre \
     && rm -rf /var/lib/apt/lists/*
 
-# Verify Java installation
-RUN java --version
-
 # Create working directory
 WORKDIR /ultralytics
 

@@ -50,7 +50,7 @@ float letterbox(cv::Mat &input_image, cv::Mat &output_image, const std::vector<i
                0, 0, cv::INTER_AREA);
 
     cv::copyMakeBorder(output_image, output_image, top, bottom, left, right,
-                       cv::BORDER_CONSTANT, cv::Scalar(114.));
+                       cv::BORDER_CONSTANT, cv::Scalar(114., 114., 114));
     return resize_scale;
 }
 

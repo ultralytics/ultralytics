@@ -1,3 +1,5 @@
+<a href="https://www.ultralytics.com/" target="_blank"><img src="https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg" width="320" alt="Ultralytics logo"></a>
+
 # Ultralytics YOLO Examples
 
 Welcome to the Ultralytics examples directory! This collection showcases practical applications and detailed walkthroughs for integrating [Ultralytics YOLO models](https://docs.ultralytics.com/models/) into various real-world projects. Explore Python scripts and Jupyter notebooks designed to help you leverage the power of models like [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) for tasks like [object detection](https://docs.ultralytics.com/tasks/detect/), [instance segmentation](https://docs.ultralytics.com/tasks/segment/), [pose estimation](https://docs.ultralytics.com/tasks/pose/), and more.

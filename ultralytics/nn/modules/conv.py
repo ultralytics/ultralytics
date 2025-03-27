@@ -22,7 +22,8 @@ __all__ = (
     "Concat",
     "RepConv",
     "Index",
-    "BiFPN",
+    "BiFPN_Concat2",
+    "BiFPN_Concat3",
 )
 
 

@@ -142,7 +142,7 @@ Reviewing pull requests is another valuable way to contribute. When reviewing PR
 We highly value bug reports as they help us improve the quality and reliability of our projects. When reporting a bug via [GitHub Issues](https://github.com/ultralytics/ultralytics/issues):
 
 - **Check existing issues:** Search first to see if the bug has already been reported.
-- **Provide a [Minimum Reproducible Example](../help/minimum-reproducible-example/):** Create a small, self-contained code snippet that consistently reproduces the issue. This is crucial for efficient debugging.
+- **Provide a [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum-reproducible-example/):** Create a small, self-contained code snippet that consistently reproduces the issue. This is crucial for efficient debugging.
 - **Describe the environment:** Specify your operating system, Python version, relevant library versions (e.g., [`torch`](https://pytorch.org/), [`ultralytics`](https://github.com/ultralytics/ultralytics)), and hardware ([CPU](https://en.wikipedia.org/wiki/Central_processing_unit)/[GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit)).
 - **Explain expected vs. actual behavior:** Clearly state what you expected to happen and what actually occurred. Include any error messages or tracebacks.
 
@@ -274,7 +274,7 @@ We're excited to see your ideas come to life and appreciate your commitment to a
 
 ### Why should I contribute to Ultralytics YOLO open-source repositories?
 
-Contributing to Ultralytics YOLO open-source repositories improves the software, making it more robust and feature-rich for the entire community. Contributions can include code enhancements, bug fixes, documentation improvements, and new feature implementations. Additionally, contributing allows you to collaborate with other skilled developers and experts in the field, enhancing your own skills and reputation. For details on how to get started, refer to the [Contributing via Pull Requests](#contributing-via-pull-requests) section.
+Contributing to Ultralytics YOLO open-source repositories improves the software, making it more robust and feature-rich for the entire community. Contributions can include code enhancements, bug fixes, documentation improvements, and new feature implementations. Additionally, contributing allows you to collaborate with other skilled developers and experts in the field, enhancing your own skills and reputation. For details on how to get started, refer to the [Contributing via Pull Requests](#-contributing-via-pull-requests) section.
 
 ### How do I sign the Contributor License Agreement (CLA) for Ultralytics YOLO?
 
@@ -288,7 +288,7 @@ For more information, see the [CLA Signing](#-cla-signing) section.
 
 ### What are Google-style docstrings, and why are they required for Ultralytics YOLO contributions?
 
-Google-style docstrings provide clear, concise documentation for functions and classes, improving code readability and maintainability. These docstrings outline the function's purpose, arguments, and return values with specific formatting rules. When contributing to Ultralytics YOLO, following Google-style docstrings ensures that your additions are well-documented and easily understood. For examples and guidelines, visit the [Google-Style Docstrings](#️-google-style-docstrings) section.
+Google-style docstrings provide clear, concise documentation for functions and classes, improving code readability and maintainability. These docstrings outline the function's purpose, arguments, and return values with specific formatting rules. When contributing to Ultralytics YOLO, following Google-style docstrings ensures that your additions are well-documented and easily understood. For examples and guidelines, visit the [Google-Style Docstrings](#-google-style-docstrings) section.
 
 ### How can I ensure my changes pass the GitHub Actions CI tests?
 
@@ -296,4 +296,4 @@ Before your pull request can be merged, it must pass all GitHub Actions Continuo
 
 ### How do I report a bug in Ultralytics YOLO repositories?
 
-To report a bug, provide a clear and concise [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum-reproducible-example/) along with your bug report. This helps developers quickly identify and fix the issue. Ensure your example is minimal yet sufficient to replicate the problem. For more detailed steps on reporting bugs, refer to the [Reporting Bugs](#reporting-bugs) section.
+To report a bug, provide a clear and concise [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum-reproducible-example/) along with your bug report. This helps developers quickly identify and fix the issue. Ensure your example is minimal yet sufficient to replicate the problem. For more detailed steps on reporting bugs, refer to the [Reporting Bugs](#-reporting-bugs) section.

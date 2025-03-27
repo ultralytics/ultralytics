@@ -22,11 +22,11 @@
 </div>
 <br>
 
-[Ultralytics](https://www.ultralytics.com/) 凭借多年在计算机视觉和人工智能领域的基础研发，创造了尖端的、业界领先水平 (SOTA) 的 [YOLO 模型](https://www.ultralytics.com/yolo)。我们的模型不断发展，引入新功能和改进以提升性能和灵活性。Ultralytics 的 YOLO 实现旨在做到**快速**、**准确**且**易于使用**，使其成为广泛的[目标检测](https://docs.ultralytics.com/tasks/detect/)、[跟踪](https://docs.ultralytics.com/modes/track/)、[实例分割](https://docs.ultralytics.com/tasks/segment/)、[图像分类](https://docs.ultralytics.com/tasks/classify/)和[姿态估计](https://docs.ultralytics.com/tasks/pose/)任务的绝佳选择。
+[Ultralytics](https://www.ultralytics.com/) 基于多年在计算机视觉和人工智能领域的基础研究，创建了尖端的、代表业界领先水平 (SOTA) 的 [YOLO 模型](https://www.ultralytics.com/yolo)。我们的模型为提升性能和灵活性而不断更新，具有**速度快**、**精度高**、**易于使用**的特点。它们在 [目标检测](https://docs.ultralytics.com/tasks/detect/)、[目标跟踪](https://docs.ultralytics.com/modes/track/)、[实例分割](https://docs.ultralytics.com/tasks/segment/)、[图像分类](https://docs.ultralytics.com/tasks/classify/) 和 [姿态估计](https://docs.ultralytics.com/tasks/pose/) 等任务上表现出色。
 
-我们希望这里的资源能帮助您充分利用 YOLO。请浏览 [Ultralytics 文档](https://docs.ultralytics.com/)获取详细文档，在 [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) 上提出 issue 以获得支持或提问，并加入 [Discord](https://discord.com/invite/ultralytics)、[Reddit](https://reddit.com/r/ultralytics) 和 [Ultralytics 社区论坛](https://community.ultralytics.com/)参与讨论！
+请在 [Ultralytics 文档](https://docs.ultralytics.com/) 中查找详细文档。通过 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues/new/choose) 获取支持。欢迎在 [Discord](https://discord.com/invite/ultralytics)、[Reddit](https://reddit.com/r/ultralytics) 和 [Ultralytics 社区论坛](https://community.ultralytics.com/) 上参与讨论！
 
-如需申请用于商业用途的企业许可证，请在 [Ultralytics 许可](https://www.ultralytics.com/license) 页面填写表格。
+如需用于商业用途，请在 [Ultralytics 许可页面](https://www.ultralytics.com/license) 申请企业许可证。
 
 <a href="https://docs.ultralytics.com/models/yolo11/" target="_blank">
   <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/yolo/performance-comparison.png" alt="YOLO11 performance plots">

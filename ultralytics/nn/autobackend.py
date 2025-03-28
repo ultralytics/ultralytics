@@ -488,6 +488,7 @@ class AutoBackend(nn.Module):
 
             model = TritonRemoteModel(w)
             metadata = model.metadata
+            names = model.class_names
 
         # RKNN
         elif rknn:

@@ -170,7 +170,7 @@ Once your model is trained you can use your best checkpoint `best.pt` to:
 - [Validate](https://github.com/ultralytics/yolov5/blob/master/val.py) [accuracy](https://www.ultralytics.com/glossary/accuracy) on train, val and test splits
 - [Export](./model_export.md) to [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), Keras, ONNX, TFlite, TF.js, CoreML and TensorRT formats
 - [Evolve](./hyperparameter_evolution.md) hyperparameters to improve performance
-- [Improve](https://docs.roboflow.com/adding-data/upload-api?ref=ultralytics) your model by sampling real-world images and adding them to your dataset
+- [Improve](https://docs.ultralytics.com/yolov5/tutorials/tips_for_best_training_results/) your model by sampling real-world images and adding them to your dataset
 
 ## Supported Environments
 
@@ -194,7 +194,7 @@ This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultraly
 
 Training YOLOv5 on a custom dataset involves several steps:
 
-1. **Prepare Your Dataset**: Collect and label images. Use tools like [Roboflow](https://roboflow.com/?ref=ultralytics) to organize data and export in [YOLOv5 format](https://roboflow.com/formats/yolov5-pytorch-txt?ref=ultralytics).
+1. **Prepare Your Dataset**: Collect and label images. Organize your data and export in [YOLO format](https://docs.ultralytics.com/datasets/detect/).
 2. **Setup Environment**: Clone the YOLOv5 repo and install dependencies:
     ```bash
     git clone https://github.com/ultralytics/yolov5
@@ -206,10 +206,6 @@ Training YOLOv5 on a custom dataset involves several steps:
     ```bash
     python train.py --img 640 --epochs 3 --data dataset.yaml --weights yolov5s.pt
     ```
-
-### What tools can I use to annotate my YOLOv5 dataset?
-
-You can use [Roboflow Annotate](https://roboflow.com/annotate?ref=ultralytics), an intuitive web-based tool for labeling images. It supports team collaboration and exports in YOLOv5 format. After collecting images, use Roboflow to create and manage annotations efficiently. Other options include tools like LabelImg and CVAT for local annotations.
 
 ### Why should I use Ultralytics HUB for training my YOLO models?
 

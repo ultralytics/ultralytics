@@ -27,9 +27,9 @@ In this guide, we are going to showcase how to find, label, and organize data fo
 - Upload custom YOLO11 model weights for testing and deployment
 - Gather Data for Training a Custom YOLO11 Model
 
-Roboflow provides two services that can help you collect data for YOLO11 models: [Universe](https://universe.roboflow.com/?ref=ultralytics) and [Collect](https://github.com/roboflow/roboflow-collect?ref=ultralytics).
+Roboflow offers two primary services to assist in data collection for Ultralytics [YOLO models](../../models/): Universe and Collect. For more general information on data collection, see our [Data Collection and Annotation Guide](../../guides/data-collection-and-annotation/).
 
-Universe is an online repository with over 250,000 vision datasets totalling over 100 million images.
+Roboflow Universe is an extensive online repository featuring over 250,000 vision [datasets](../../datasets/), encompassing more than 100 million images.
 
 <p align="center">
 <img src="https://github.com/ultralytics/docs/releases/download/0/roboflow-universe.avif" alt="Roboflow Universe" width="800">
@@ -53,9 +53,9 @@ If you want to gather images yourself, try [Collect](https://github.com/roboflow
 
 ## Upload, Convert and Label Data for YOLO11 Format
 
-[Roboflow Annotate](https://docs.roboflow.com/annotate/use-roboflow-annotate?ref=ultralytics) is an online annotation tool for use in labeling images for [object detection](https://www.ultralytics.com/glossary/object-detection), classification, and segmentation.
+Roboflow Annotate is an online tool designed for labeling images for various computer vision tasks, including [object detection](../../tasks/detect/), [classification](../../tasks/classify/), and [segmentation](../../tasks/segment/).
 
-To label data for a YOLO11 object detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), or classification model, first create a project in Roboflow.
+To label data for an Ultralytics YOLO model (supporting detection, instance segmentation, classification, pose, and OBB), start by creating a project in Roboflow.
 
 <p align="center">
 <img src="https://github.com/ultralytics/docs/releases/download/0/create-roboflow-project.avif" alt="Create a Roboflow project" width="400">
@@ -77,9 +77,9 @@ To label with bounding boxes, press the `B` key on your keyboard or click the bo
 
 A pop-up will appear asking you to select a class for your annotation once you have created an annotation.
 
-To label with polygons, press the `P` key on your keyboard, or the polygon icon in the sidebar. With the polygon annotation tool enabled, click on individual points in the image to draw a polygon.
+For polygon annotation (used in [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation)), press `P` or click the polygon icon. Click points around the object to draw the polygon.
 
-Roboflow offers a SAM-based label assistant with which you can label images faster than ever. SAM (Segment Anything Model) is a state-of-the-art computer vision model that can precisely label images. With SAM, you can significantly speed up the image labeling process. Annotating images with polygons becomes as simple as a few clicks, rather than the tedious process of precisely clicking points around an object.
+Roboflow integrates a [SAM (Segment Anything Model)](../../models/sam.md)-based label assistant to accelerate annotation. SAM is a cutting-edge model that precisely labels objects with minimal clicks.
 
 To use the label assistant, click the cursor icon in the sidebar, SAM will be loaded for use in your project.
 

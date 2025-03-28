@@ -162,7 +162,6 @@ class YOLODataset(BaseDataset):
         Returns:
             (List[dict]): List of label dictionaries, each containing information about an image and its annotations.
         """
-
         images_folder = self.data.get("images_folder", "images")
         labels_folder = self.data.get("labels_folder", "labels")
 

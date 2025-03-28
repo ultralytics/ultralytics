@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # This action mirrors the Ultralytics repository to other platforms like GitLab.
 # It runs only when the main branch is updated by the repository owner.
 # Additional platforms can be added by uncommenting the relevant sections.

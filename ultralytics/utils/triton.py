@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 import json
-from typing import Dict, List
+from typing import Any, Dict, List, Tuple
 from urllib.parse import urlsplit
 import tritonclient.http as httpclient
 import tritonclient.grpc as grpcclient
@@ -108,7 +108,10 @@ class TritonRemoteModel:
             f'class_{i}' for i in range(self.outputs_shapes[0][1] - 4)
         ]
     
-    def _create_input_sample(self):
+    def _create_input_sample(self) -> None:
+        """
+        Create a sample input for the model.
+        """
         has_dynamic_shapes = any(
                 -1 in input_shape for input_shape in self.inputs_shapes
             )
@@ -119,7 +122,10 @@ class TritonRemoteModel:
                 np.ones(input_shape).astype(np_input_format)
             )
 
-    def _fill_output_dynamic_axis(self):
+    def _fill_output_dynamic_axis(self) -> None:
+        """
+        Fill real values in the dynamic axis of the output shapes.
+        """
         has_dynamic_shapes = any(
                 -1 in output_shape for output_shape in self.outputs_shapes
             )
@@ -132,14 +138,33 @@ class TritonRemoteModel:
                 ]
             self.cuda_shm = start_cuda_shm_flag
 
-    def pad_batch(self, batch: np.ndarray):
+    def pad_batch(self, batch: np.ndarray) -> Tuple[np.ndarray, int]:
+        """
+        Pad the batch to the maximum batch size.
+
+        Args:
+            batch (np.ndarray): The batch to be padded.
+
+        Returns:
+            Tuple[np.ndarray, int]: The padded batch and the number of padding elements.
+        """
         padding_size = self.max_batch_size - batch.shape[0]
         if padding_size > 0:
             pad = np.zeros([padding_size, *batch.shape[1:]], dtype=batch.dtype)
             batch = np.concatenate((batch, pad), axis=0)
         return batch, padding_size
     
-    def split_on_batches(self, input_data: np.ndarray):
+    def split_on_batches(self, input_data: np.ndarray) -> Tuple[List[np.ndarray], List[int]]:
+        """
+        Split the input data into batches.
+
+        Args:
+            input_data (np.ndarray): The input data to be split.
+
+        Returns:
+            Tuple[List[np.ndarray], List[int]]: A list of batches and 
+                a list of padding values in each batch.
+        """
         batches = []
         paddings = []
         for i in range(0, len(input_data), self.max_batch_size):
@@ -152,7 +177,17 @@ class TritonRemoteModel:
 
         return batches, paddings
     
-    def _create_batches(self, *inputs_data: np.ndarray):
+    def _create_batches(self, *inputs_data: np.ndarray) -> Tuple[Dict[str, List[np.ndarray]], List[int]]:
+        """
+        Create batches from the inputs data.
+
+        Args:
+            *inputs_data (np.ndarray): The inputs data.
+
+        Returns:
+            Tuple[Dict[str, List[np.ndarray]], List[int]]: A dictionary of batches for each input 
+                and a list of paddings for each batch.
+        """
         inputs_batches = dict()
         paddings = []
         for input_data, np_format, input_name in zip(inputs_data, self.np_inputs_dtypes, self.inputs_names):
@@ -163,7 +198,16 @@ class TritonRemoteModel:
             inputs_batches[input_name] = input_batches
         return inputs_batches, paddings
     
-    def _parse_io_params(self, io_params: List[Dict]):
+    def _parse_io_params(self, io_params: List[Dict]) -> Tuple[List[str], List[np.dtype], List[List[int]], List[str]]:
+        """
+        Parse the input/output parameters from the model config.
+
+        Args:
+            io_params (List[Dict]): The input/output parameters.
+
+        Returns:
+            Tuple[List[str], List[np.dtype], List[List[int]], List[str]]: The input/output dtypes, shapes, and names.
+        """
         triton_dtypes = []
         np_dtypes = []
         shapes = []
@@ -177,10 +221,20 @@ class TritonRemoteModel:
         return triton_dtypes, np_dtypes, shapes, names
 
     @staticmethod
-    def _insert_batch_size_to_shapes(shapes: List[List], insert_batch_size: int):
+    def _insert_batch_size_to_shapes(shapes: List[List], insert_batch_size: int) -> List[List[int]]:
+        """
+        Insert the batch size to the shapes.
+
+        Args:
+            shapes (List[List]): Shapes from config
+            insert_batch_size (int): Value for insert batch size to shape
+
+        Returns:
+            List[List[int]]: Result shape
+        """
         return [[insert_batch_size] + shape for shape in shapes]
 
-    def _load_model_config(self, user_max_batch_size: int):
+    def _load_model_config(self, user_max_batch_size: int) -> None:
         if self.scheme == "grpc":
             config = self.triton_client.get_model_config(self.model_name, as_json=True)
             config = config["config"]
@@ -212,10 +266,22 @@ class TritonRemoteModel:
                 )
         self.metadata = eval(config.get("parameters", {}).get("metadata", {}).get("string_value", "None"))
     
-    def _generate_shm_name(self, ioname):
+    def _generate_shm_name(self, ioname: str) -> str:
+        """
+        Generate shared region name
+
+        Args:
+            ioname (str): Input/output name
+
+        Returns:
+            str: Shared region name
+        """
         return f'{self.shm_region_prefix}_{ioname}'
 
-    def _register_cuda_shm_regions(self):
+    def _register_cuda_shm_regions(self) -> None:
+        """
+        Register CUDA shared memory regions in Triton
+        """
         if self.scheme == "grpc":
             regions_statuses = self.triton_client.get_cuda_shared_memory_status(as_json=True)['regions']
             registrated_regions = [region for region in regions_statuses.keys()]
@@ -230,27 +296,66 @@ class TritonRemoteModel:
                 shm_handle._triton_shm_name, cudashm.get_raw_handle(shm_handle), 0, shm_handle._byte_size
             )
 
-    def _create_shm_handle(self, shape, dtype, name):
-        """Create a CUDA shared memory handle for a given shape, dtype, and name."""
+    def _create_cuda_shm_handle(self, shape: List[int], dtype: np.dtype, name: str) -> Any:
+        """
+        Create CUDA shared memory handle
+
+        Args:
+            shape (List[int]): Shape of cuda shared memory region
+            dtype (np.dtype): Data type of input/output data
+            name (str): Input/output name
+
+        Returns:
+            Any: CUDA shared memory handle
+        """
+        # Create a CUDA shared memory handle for a given shape, dtype, and name
         byte_size = int(np.prod(shape) * np.dtype(dtype).itemsize)
         shm_name = self._generate_shm_name(name)
         return cudashm.create_shared_memory_region(shm_name, byte_size, 0)
 
-    def _create_shm_handles_for_io(self, shapes, dtypes, names):
-        """Helper method to create SHM handles for inputs or outputs."""
-        return [self._create_shm_handle(shape, dtype, name) 
+    def _create_cuda_shm_handles_for_io(self, shapes: List[List[int]], 
+                                        dtypes: List[np.dtype], 
+                                        names: List[str]) -> List[Any]:
+        """
+        Create CUDA shared memory handles for inputs or outputs
+
+        Args:
+            shapes (List[List[int]]): Shapes of cuda shared memory regions
+            dtypes (List[np.dtype]): Data types of input/output data
+            names (List[str]): Input/output names
+
+        Returns:
+            List[Any]: CUDA shared memory handles
+        """
+        return [self._create_cuda_shm_handle(shape, dtype, name) 
                 for shape, dtype, name in zip(shapes, dtypes, names)]
 
-    def _create_input_output_shm_handles(self):
-        """Create CUDA shared memory handles for both inputs and outputs."""
-        self.input_shm_handles = self._create_shm_handles_for_io(
+    def _create_input_output_shm_handles(self) -> None:
+        """
+        Create CUDA shared memory handles for inputs and outputs
+        """
+        # Create CUDA shared memory handles for both inputs and outputs
+        self.input_shm_handles = self._create_cuda_shm_handles_for_io(
             self.inputs_shapes, self.np_inputs_dtypes, self.inputs_names
         )
-        self.output_shm_handles = self._create_shm_handles_for_io(
+        self.output_shm_handles = self._create_cuda_shm_handles_for_io(
             self.outputs_shapes, self.np_outputs_dtypes, self.outputs_names
         )
 
-    def _create_triton_input(self, input_data: np.ndarray, input_name: str, config_input_format: str, shm_handle = None):
+    def _create_triton_input(self, input_data: np.ndarray, input_name: str, 
+                             config_input_format: str, shm_handle = None) -> Any:
+        """
+        Create triton InferInput
+
+        Args:
+            input_data (np.ndarray): data for send to model
+            input_name (str): name of input
+            config_input_format (str): triton input format
+            shm_handle (_type_, optional): CUDA shared memory handle. Defaults to None.
+
+        Returns:
+            Any: triton InferInput for sending request
+        """
         infer_input = self.client_type.InferInput(input_name, input_data.shape, config_input_format)
         if self.cuda_shm:
             cudashm.set_shared_memory_region(shm_handle, [input_data])
@@ -259,7 +364,18 @@ class TritonRemoteModel:
             infer_input.set_data_from_numpy(input_data)
         return infer_input
 
-    def _create_triton_output(self, output_name: str, binary: bool = True, shm_handle = None):
+    def _create_triton_output(self, output_name: str, binary: bool = True, shm_handle = None) -> Any:
+        """
+        Create triton InferRequestedOutput
+
+        Args:
+            output_name (str): output name
+            binary (bool, optional): Whether the output is binary. Defaults to True.
+            shm_handle (_type_, optional): CUDA shared memory handle. Defaults to None.
+
+        Returns:
+            Any: triton InferRequestedOutput for receiving response
+        """
         if self.scheme == "grpc":
             infer_output = self.client_type.InferRequestedOutput(output_name)
         else:
@@ -268,7 +384,17 @@ class TritonRemoteModel:
             infer_output.set_shared_memory(shm_handle._triton_shm_name, shm_handle._byte_size)
         return infer_output
 
-    def _postprocess_triton_result(self, triton_response, padding_size):
+    def _postprocess_triton_result(self, triton_response: Any, padding_size: int) -> Dict[str, np.ndarray]:
+        """
+        Postprocess triton response
+
+        Args:
+            triton_response (Any): triton response
+            padding_size (int): padding size for unpad output data
+
+        Returns:
+            Dict[str, np.ndarray]: dict of output name and output data
+        """
         result = dict()
         for output_name, shm_op_handle in zip(self.outputs_names, self.output_shm_handles):
             if self.cuda_shm:
@@ -290,7 +416,7 @@ class TritonRemoteModel:
                 
         return result
 
-    def __call__(self, *inputs: np.ndarray):
+    def __call__(self, *inputs: np.ndarray) -> List[np.ndarray]:
         """
         Call the model with the given inputs.
 

@@ -273,9 +273,12 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = fmts_dict["Arguments"][flags.index(True) + 1]
         validate_args(fmt, self.args, fmt_keys)
-        if imx and not self.args.int8:
-            LOGGER.warning("WARNING ⚠️ IMX only supports int8 export, setting int8=True.")
-            self.args.int8 = True
+        if imx:
+            if not self.args.int8:
+                LOGGER.warning("WARNING ⚠️ IMX export requires int8=True, setting int8=True.")
+                self.args.int8 = True
+            if model.task != "detect":
+                raise ValueError("IMX export only supported for detection models.")
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)
@@ -1221,14 +1224,13 @@ class Exporter:
         )
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")
-        if "C2f" not in self.model.__str__():
-            raise ValueError("IMX export is only supported for YOLOv8n detection models")
-        check_requirements(("model-compression-toolkit>=2.3.0", "sony-custom-layers>=0.3.0"))
+        check_requirements(("model-compression-toolkit>=2.3.0", "sony-custom-layers>=0.3.0", "edge-mdt-tpc>=1.1.0"))
         check_requirements("imx500-converter[pt]>=3.16.1")  # Separate requirements for imx500-converter
 
         import model_compression_toolkit as mct
         import onnx
-        from sony_custom_layers.pytorch.nms import multiclass_nms
+        from edgemdt_tpc import get_target_platform_capabilities
+        from sony_custom_layers.pytorch import multiclass_nms
 
         LOGGER.info(f"\n{prefix} starting export with model_compression_toolkit {mct.__version__}...")
 
@@ -1248,23 +1250,34 @@ class Exporter:
                 img = img / 255.0
                 yield [img]
 
-        tpc = mct.get_target_platform_capabilities(
-            fw_name="pytorch", target_platform_name="imx500", target_platform_version="v1"
-        )
+        tpc = get_target_platform_capabilities(tpc_version="4.0", device_type="imx500")
+
+        bit_cfg = mct.core.BitWidthConfig()
+        if "C2PSA" in self.model.__str__():  # yolo11
+            layer_names = ["sub", "mul_2", "add_14", "cat_21"]
+            weights_memory = 2585350.2439
+        else:  # yolov8
+            layer_names = ["sub", "mul", "add_6", "cat_17"]
+            weights_memory = 2550540.8
+        for layer_name in layer_names:
+            bit_cfg.set_manual_activation_bit_width([mct.core.common.network_editors.NodeNameFilter(layer_name)], 16)
 
         config = mct.core.CoreConfig(
             mixed_precision_config=mct.core.MixedPrecisionQuantizationConfig(num_of_images=10),
             quantization_config=mct.core.QuantizationConfig(concat_threshold_update=True),
+            bit_width_config=bit_cfg,
         )
 
-        resource_utilization = mct.core.ResourceUtilization(weights_memory=3146176 * 0.76)
+        resource_utilization = mct.core.ResourceUtilization(weights_memory=weights_memory)
 
         quant_model = (
             mct.gptq.pytorch_gradient_post_training_quantization(  # Perform Gradient-Based Post Training Quantization
                 model=self.model,
                 representative_data_gen=representative_dataset_gen,
                 target_resource_utilization=resource_utilization,
-                gptq_config=mct.gptq.get_pytorch_gptq_config(n_epochs=1000, use_hessian_based_weights=False),
+                gptq_config=mct.gptq.get_pytorch_gptq_config(
+                    n_epochs=1000, use_hessian_based_weights=False, use_hessian_sample_attention=False
+                ),
                 core_config=config,
                 target_platform_capabilities=tpc,
             )[0]

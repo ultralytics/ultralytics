@@ -5,10 +5,12 @@
 # Additional platforms can be added by uncommenting the relevant sections.
 
 name: Mirror Repository
+
 on:
   push:
     branches:
       - main
+
 jobs:
   mirror:
     runs-on: ubuntu-latest

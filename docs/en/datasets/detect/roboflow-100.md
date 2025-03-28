@@ -104,9 +104,7 @@ For more ideas and inspiration on real-world applications, be sure to check out 
 
 ## Usage
 
-The Roboflow 100 dataset is available on both [GitHub](https://github.com/roboflow/roboflow-100-benchmark).
-
-You can access it directly from the Roboflow 100 GitHub repository. In addition, on Roboflow Universe, you have the flexibility to download individual datasets by simply clicking the export button within each dataset.
+The Roboflow 100 dataset is available on [GitHub](https://github.com/roboflow/roboflow-100-benchmark). You can access and download the dataset directly from the Roboflow 100 GitHub repository.
 
 ## Sample Data and Annotations
 

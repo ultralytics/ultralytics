@@ -6,7 +6,7 @@ keywords: Roboflow, Ultralytics YOLO, data labeling, computer vision, model trai
 
 # Roboflow
 
-[Roboflow](https://roboflow.com/?ref=ultralytics) has everything you need to build and deploy [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models. Connect Roboflow at any step in your pipeline with APIs and SDKs, or use the end-to-end interface to automate the entire process from image to inference. Whether you're in need of [data labeling](https://www.ultralytics.com/glossary/data-labeling), [model training](https://docs.ultralytics.com/modes/train/), or [model deployment](https://docs.ultralytics.com/guides/model-deployment-options/), Roboflow provides the building blocks to bring custom computer vision solutions to your project. 
+[Roboflow](https://roboflow.com/?ref=ultralytics) has everything you need to build and deploy [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models. Connect Roboflow at any step in your pipeline with APIs and SDKs, or use the end-to-end interface to automate the entire process from image to inference. Whether you're in need of [data labeling](https://www.ultralytics.com/glossary/data-labeling), [model training](https://docs.ultralytics.com/modes/train/), or [model deployment](https://docs.ultralytics.com/guides/model-deployment-options/), Roboflow provides the building blocks to bring custom computer vision solutions to your project.
 
 !!! question "Licensing"
 
@@ -221,7 +221,6 @@ You can use Vector Analysis to:
 - Find clusters of images;
 - Identify clusters where the model performs poorly, and;
 - Visualize commonalities between images on which the model performs poorly.
-
 
 ## Learning Resources
 

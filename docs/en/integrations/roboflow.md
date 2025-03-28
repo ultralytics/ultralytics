@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to gather, label, and deploy data for custom YOLO11 models using Roboflow's powerful tools. Optimize your computer vision pipeline effortlessly.
-keywords: Roboflow, YOLO11, data labeling, computer vision, model training, model deployment, dataset management, automated image annotation, AI tools
+description: Learn how to gather, label, and deploy data for custom Ultralytics YOLO models using Roboflow's powerful tools. Optimize your computer vision pipeline effortlessly.
+keywords: Roboflow, Ultralytics YOLO, data labeling, computer vision, model training, model deployment, dataset management, automated image annotation, AI tools
 ---
 
 # Roboflow
@@ -10,10 +10,10 @@ keywords: Roboflow, YOLO11, data labeling, computer vision, model training, mode
 
 !!! question "Licensing"
 
-    Ultralytics offers two licensing options:
+    Ultralytics offers two licensing options to accommodate different use cases:
 
-    - The [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE), an [OSI-approved](https://opensource.org/license) open-source license ideal for students and enthusiasts.
-    - The [Enterprise License](https://www.ultralytics.com/license) for businesses seeking to incorporate our AI models into their products and services.
+    - **AGPL-3.0 License**: This [OSI-approved open-source license](https://www.ultralytics.com/legal/agpl-3-0-software-license) is ideal for students and enthusiasts, promoting open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for more details.
+    - **Enterprise License**: Designed for commercial use, this license allows for the seamless integration of Ultralytics software and AI models into commercial products and services. If your scenario involves commercial applications, please reach out via [Ultralytics Licensing](https://www.ultralytics.com/license).
 
     For more details see [Ultralytics Licensing](https://www.ultralytics.com/license).
 
@@ -69,7 +69,7 @@ Next, upload your images, and any pre-existing annotations you have from other t
 
 Select the batch of images you have uploaded on the Annotate page to which you are taken after uploading images. Then, click "Start Annotating" to label images.
 
-To label with bounding boxes, press the `B` key on your keyboard or click the box icon in the sidebar. Click on a point where you want to start your [bounding box](https://www.ultralytics.com/glossary/bounding-box), then drag to create the box:
+For [bounding box](https://www.ultralytics.com/glossary/bounding-box) annotation, press `B` or click the box icon. Click and drag to create the box.
 
 <p align="center">
 <img src="https://github.com/ultralytics/docs/releases/download/0/annotating-an-image-in-roboflow.avif" alt="Annotating an image in Roboflow" width="800">

@@ -36,7 +36,7 @@ head:
   - [-1, 3, C2f, [256]]  # Fuse features  Index 14
 
   - [-1, 1, Conv, [512, 3, 2]]  # P4 to P5  Index 15
-  - [[-1, 7], 1, BiFPN_Concat2, [1]]  # Merge P5 with downsampled P4  Index 16
+  - [[-1, 5], 1, BiFPN_Concat2, [1]]  # Merge P5 with downsampled P4  Index 16
   - [-1, 3, C2f, [512]]  # Fuse features  Index 17
 
   # Repeat BiFPN (iteration 2)

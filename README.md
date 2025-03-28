@@ -1,6 +1,6 @@
 <div align="center">
   <p>
-    <a href="https://www.ultralytics.com/blog/all-you-need-to-know-about-ultralytics-yolo11-and-its-applications" target="_blank">
+    <a href="https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai" target="_blank">
       <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png" alt="Ultralytics YOLO banner"></a>
   </p>
 
@@ -19,13 +19,14 @@
     <a href="https://www.kaggle.com/models/ultralytics/yolo11"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open Ultralytics In Kaggle"></a>
     <a href="https://mybinder.org/v2/gh/ultralytics/ultralytics/HEAD?labpath=examples%2Ftutorial.ipynb"><img src="https://mybinder.org/badge_logo.svg" alt="Open Ultralytics In Binder"></a>
 </div>
+</div>
 <br>
 
-[Ultralytics](https://www.ultralytics.com/) [YOLO11](https://github.com/ultralytics/ultralytics) is a cutting-edge, state-of-the-art (SOTA) model that builds upon the success of previous YOLO versions and introduces new features and improvements to further boost performance and flexibility. YOLO11 is designed to be fast, accurate, and easy to use, making it an excellent choice for a wide range of object detection and tracking, instance segmentation, image classification and pose estimation tasks.
+[Ultralytics](https://www.ultralytics.com/) creates cutting-edge, state-of-the-art (SOTA) [YOLO models](https://www.ultralytics.com/yolo) built on years of foundational research in computer vision and AI. Constantly updated for performance and flexibility, our models are **fast**, **accurate**, and **easy to use**. They excel at [object detection](https://docs.ultralytics.com/tasks/detect/), [tracking](https://docs.ultralytics.com/modes/track/), [instance segmentation](https://docs.ultralytics.com/tasks/segment/), [image classification](https://docs.ultralytics.com/tasks/classify/), and [pose estimation](https://docs.ultralytics.com/tasks/pose/) tasks.
 
-We hope that the resources here will help you get the most out of YOLO. Please browse the Ultralytics <a href="https://docs.ultralytics.com/">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/ultralytics/issues/new/choose">GitHub</a> for support, questions, or discussions, become a member of the Ultralytics <a href="https://discord.com/invite/ultralytics">Discord</a>, <a href="https://reddit.com/r/ultralytics">Reddit</a> and <a href="https://community.ultralytics.com/">Forums</a>!
+Find detailed documentation in the [Ultralytics Docs](https://docs.ultralytics.com/). Get support via [GitHub Issues](https://github.com/ultralytics/ultralytics/issues/new/choose). Join discussions on [Discord](https://discord.com/invite/ultralytics), [Reddit](https://reddit.com/r/ultralytics), and the [Ultralytics Community Forums](https://community.ultralytics.com/)!
 
-To request an Enterprise License please complete the form at [Ultralytics Licensing](https://www.ultralytics.com/license).
+Request an Enterprise License for commercial use at [Ultralytics Licensing](https://www.ultralytics.com/license).
 
 <a href="https://docs.ultralytics.com/models/yolo11/" target="_blank">
   <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/yolo/performance-comparison.png" alt="YOLO11 performance plots">
@@ -46,16 +47,15 @@ To request an Enterprise License please complete the form at [Ultralytics Licens
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="space">
   <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="2%" alt="Ultralytics Discord"></a>
 </div>
-</div>
 
-## <div align="center">Documentation</div>
+## 📄 Documentation
 
-See below for a quickstart install and usage examples, and see our [Docs](https://docs.ultralytics.com/) for full documentation on training, validation, prediction and deployment.
+See below for quickstart installation and usage examples. For comprehensive guidance on training, validation, prediction, and deployment, refer to our full [Ultralytics Docs](https://docs.ultralytics.com/).
 
 <details open>
 <summary>Install</summary>
 
-Pip install the Ultralytics package including all [requirements](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) in a [**Python>=3.8**](https://www.python.org/) environment with [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/).
+Install the `ultralytics` package, including all [requirements](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml), in a [**Python>=3.8**](https://www.python.org/) environment with [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/).
 
 [![PyPI - Version](https://img.shields.io/pypi/v/ultralytics?logo=pypi&logoColor=white)](https://pypi.org/project/ultralytics/) [![Ultralytics Downloads](https://static.pepy.tech/badge/ultralytics)](https://www.pepy.tech/projects/ultralytics) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ultralytics?logo=python&logoColor=gold)](https://pypi.org/project/ultralytics/)
 
@@ -63,7 +63,7 @@ Pip install the Ultralytics package including all [requirements](https://github.
 pip install ultralytics
 ```
 
-For alternative installation methods including [Conda](https://anaconda.org/conda-forge/ultralytics), [Docker](https://hub.docker.com/r/ultralytics/ultralytics), and Git, please refer to the [Quickstart Guide](https://docs.ultralytics.com/quickstart/).
+For alternative installation methods, including [Conda](https://anaconda.org/conda-forge/ultralytics), [Docker](https://hub.docker.com/r/ultralytics/ultralytics), and building from source via Git, please consult the [Quickstart Guide](https://docs.ultralytics.com/quickstart/).
 
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/ultralytics?logo=condaforge)](https://anaconda.org/conda-forge/ultralytics) [![Docker Image Version](https://img.shields.io/docker/v/ultralytics/ultralytics?sort=semver&logo=docker)](https://hub.docker.com/r/ultralytics/ultralytics) [![Ultralytics Docker Pulls](https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker)](https://hub.docker.com/r/ultralytics/ultralytics)
 
@@ -74,50 +74,51 @@ For alternative installation methods including [Conda](https://anaconda.org/cond
 
 ### CLI
 
-YOLO may be used directly in the Command Line Interface (CLI) with a `yolo` command:
+You can use Ultralytics YOLO directly from the Command Line Interface (CLI) with the `yolo` command:
 
 ```bash
+# Predict using a pretrained YOLO11n model on an image
 yolo predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'
 ```
 
-`yolo` can be used for a variety of tasks and modes and accepts additional arguments, e.g. `imgsz=640`. See the YOLO [CLI Docs](https://docs.ultralytics.com/usage/cli/) for examples.
+The `yolo` command supports various tasks and modes, accepting additional arguments like `imgsz=640`. Explore the YOLO [CLI Docs](https://docs.ultralytics.com/usage/cli/) for more examples.
 
 ### Python
 
-YOLO may also be used directly in a Python environment, and accepts the same [arguments](https://docs.ultralytics.com/usage/cfg/) as in the CLI example above:
+Ultralytics YOLO can also be integrated directly into your Python projects. It accepts the same [configuration arguments](https://docs.ultralytics.com/usage/cfg/) as the CLI:
 
 ```python
 from ultralytics import YOLO
 
-# Load a model
+# Load a pretrained YOLO11n model
 model = YOLO("yolo11n.pt")
 
-# Train the model
+# Train the model on the COCO8 dataset for 100 epochs
 train_results = model.train(
-    data="coco8.yaml",  # path to dataset YAML
-    epochs=100,  # number of training epochs
-    imgsz=640,  # training image size
-    device="cpu",  # device to run on, i.e. device=0 or device=0,1,2,3 or device=cpu
+    data="coco8.yaml",  # Path to dataset configuration file
+    epochs=100,  # Number of training epochs
+    imgsz=640,  # Image size for training
+    device="cpu",  # Device to run on (e.g., 'cpu', 0, [0,1,2,3])
 )
 
-# Evaluate model performance on the validation set
+# Evaluate the model's performance on the validation set
 metrics = model.val()
 
 # Perform object detection on an image
-results = model("path/to/image.jpg")
-results[0].show()
+results = model("path/to/image.jpg")  # Predict on an image
+results[0].show()  # Display results
 
-# Export the model to ONNX format
-path = model.export(format="onnx")  # return path to exported model
+# Export the model to ONNX format for deployment
+path = model.export(format="onnx")  # Returns the path to the exported model
 ```
 
-See YOLO [Python Docs](https://docs.ultralytics.com/usage/python/) for more examples.
+Discover more examples in the YOLO [Python Docs](https://docs.ultralytics.com/usage/python/).
 
 </details>
 
-## <div align="center">Models</div>
+## ✨ Models
 
-YOLO11 [Detect](https://docs.ultralytics.com/tasks/detect/), [Segment](https://docs.ultralytics.com/tasks/segment/) and [Pose](https://docs.ultralytics.com/tasks/pose/) models pretrained on the [COCO](https://docs.ultralytics.com/datasets/detect/coco/) dataset are available here, as well as YOLO11 [Classify](https://docs.ultralytics.com/tasks/classify/) models pretrained on the [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/) dataset. [Track](https://docs.ultralytics.com/modes/track/) mode is available for all Detect, Segment and Pose models. All [Models](https://docs.ultralytics.com/models/) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
+Ultralytics YOLO11 offers models pretrained on the [COCO](https://docs.ultralytics.com/datasets/detect/coco/) dataset for [Detection](https://docs.ultralytics.com/tasks/detect/), [Segmentation](https://docs.ultralytics.com/tasks/segment/), and [Pose Estimation](https://docs.ultralytics.com/tasks/pose/). Additionally, [Classification](https://docs.ultralytics.com/tasks/classify/) models pretrained on the [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/) dataset are available. [Tracking](https://docs.ultralytics.com/modes/track/) mode is compatible with all Detection, Segmentation, and Pose models. All [Models](https://docs.ultralytics.com/models/) are automatically downloaded from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) upon first use.
 
 <a href="https://docs.ultralytics.com/tasks/" target="_blank">
     <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-tasks-banner.avif" alt="Ultralytics YOLO supported tasks">
@@ -127,7 +128,7 @@ YOLO11 [Detect](https://docs.ultralytics.com/tasks/detect/), [Segment](https://d
 
 <details open><summary>Detection (COCO)</summary>
 
-See [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examples with these models trained on [COCO](https://docs.ultralytics.com/datasets/detect/coco/), which include 80 pre-trained classes.
+Explore the [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examples. These models are trained on the [COCO dataset](https://cocodataset.org/), featuring 80 object classes.
 
 | Model                                                                                | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT10<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
@@ -137,14 +138,14 @@ See [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examp
 | [YOLO11l](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11l.pt) | 640                   | 53.4                 | 238.6 ± 1.4                    | 6.2 ± 0.1                           | 25.3               | 86.9              |
 | [YOLO11x](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x.pt) | 640                   | 54.7                 | 462.8 ± 6.7                    | 11.3 ± 0.2                          | 56.9               | 194.9             |
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val detect data=coco.yaml device=0`
-- **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val detect data=coco.yaml batch=1 device=0|cpu`
+- **mAP<sup>val</sup>** values refer to single-model single-scale performance on the [COCO val2017](https://cocodataset.org/) dataset. See [YOLO Performance Metrics](https://docs.ultralytics.com/guides/yolo-performance-metrics/) for details. <br>Reproduce with `yolo val detect data=coco.yaml device=0`
+- **Speed** metrics are averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. CPU speeds measured with [ONNX](https://onnx.ai/) export. GPU speeds measured with [TensorRT](https://developer.nvidia.com/tensorrt) export. <br>Reproduce with `yolo val detect data=coco.yaml batch=1 device=0|cpu`
 
 </details>
 
 <details><summary>Segmentation (COCO)</summary>
 
-See [Segmentation Docs](https://docs.ultralytics.com/tasks/segment/) for usage examples with these models trained on [COCO-Seg](https://docs.ultralytics.com/datasets/segment/coco/), which include 80 pre-trained classes.
+Refer to the [Segmentation Docs](https://docs.ultralytics.com/tasks/segment/) for usage examples. These models are trained on [COCO-Seg](https://docs.ultralytics.com/datasets/segment/coco/), including 80 classes.
 
 | Model                                                                                        | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT10<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | -------------------------------------------------------------------------------------------- | --------------------- | -------------------- | --------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
@@ -154,14 +155,14 @@ See [Segmentation Docs](https://docs.ultralytics.com/tasks/segment/) for usage e
 | [YOLO11l-seg](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11l-seg.pt) | 640                   | 53.4                 | 42.9                  | 344.2 ± 3.2                    | 7.8 ± 0.2                           | 27.6               | 142.2             |
 | [YOLO11x-seg](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x-seg.pt) | 640                   | 54.7                 | 43.8                  | 664.5 ± 3.2                    | 15.8 ± 0.7                          | 62.1               | 319.0             |
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val segment data=coco.yaml device=0`
-- **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val segment data=coco.yaml batch=1 device=0|cpu`
+- **mAP<sup>val</sup>** values are for single-model single-scale on the [COCO val2017](https://cocodataset.org/) dataset. See [YOLO Performance Metrics](https://docs.ultralytics.com/guides/yolo-performance-metrics/) for details. <br>Reproduce with `yolo val segment data=coco.yaml device=0`
+- **Speed** metrics are averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. CPU speeds measured with [ONNX](https://onnx.ai/) export. GPU speeds measured with [TensorRT](https://developer.nvidia.com/tensorrt) export. <br>Reproduce with `yolo val segment data=coco.yaml batch=1 device=0|cpu`
 
 </details>
 
 <details><summary>Classification (ImageNet)</summary>
 
-See [Classification Docs](https://docs.ultralytics.com/tasks/classify/) for usage examples with these models trained on [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/), which include 1000 pretrained classes.
+Consult the [Classification Docs](https://docs.ultralytics.com/tasks/classify/) for usage examples. These models are trained on [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/), covering 1000 classes.
 
 | Model                                                                                        | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT10<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 224 |
 | -------------------------------------------------------------------------------------------- | --------------------- | ---------------- | ---------------- | ------------------------------ | ----------------------------------- | ------------------ | ------------------------ |
@@ -171,14 +172,14 @@ See [Classification Docs](https://docs.ultralytics.com/tasks/classify/) for usag
 | [YOLO11l-cls](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11l-cls.pt) | 224                   | 78.3             | 94.3             | 23.2 ± 0.3                     | 2.8 ± 0.0                           | 12.9               | 6.2                      |
 | [YOLO11x-cls](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x-cls.pt) | 224                   | 79.5             | 94.9             | 41.4 ± 0.9                     | 3.8 ± 0.0                           | 28.4               | 13.7                     |
 
-- **acc** values are model accuracies on the [ImageNet](https://www.image-net.org/) dataset validation set. <br>Reproduce by `yolo val classify data=path/to/ImageNet device=0`
-- **Speed** averaged over ImageNet val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu`
+- **acc** values represent model accuracy on the [ImageNet](https://www.image-net.org/) dataset validation set. <br>Reproduce with `yolo val classify data=path/to/ImageNet device=0`
+- **Speed** metrics are averaged over ImageNet val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. CPU speeds measured with [ONNX](https://onnx.ai/) export. GPU speeds measured with [TensorRT](https://developer.nvidia.com/tensorrt) export. <br>Reproduce with `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu`
 
 </details>
 
 <details><summary>Pose (COCO)</summary>
 
-See [Pose Docs](https://docs.ultralytics.com/tasks/pose/) for usage examples with these models trained on [COCO-Pose](https://docs.ultralytics.com/datasets/pose/coco/), which include 1 pre-trained class, person.
+See the [Pose Estimation Docs](https://docs.ultralytics.com/tasks/pose/) for usage examples. These models are trained on [COCO-Pose](https://docs.ultralytics.com/datasets/pose/coco/), focusing on the 'person' class.
 
 | Model                                                                                          | size<br><sup>(pixels) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT10<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ---------------------------------------------------------------------------------------------- | --------------------- | --------------------- | ------------------ | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
@@ -188,14 +189,14 @@ See [Pose Docs](https://docs.ultralytics.com/tasks/pose/) for usage examples wit
 | [YOLO11l-pose](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11l-pose.pt) | 640                   | 66.1                  | 89.9               | 247.7 ± 1.1                    | 6.4 ± 0.1                           | 26.2               | 90.7              |
 | [YOLO11x-pose](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x-pose.pt) | 640                   | 69.5                  | 91.1               | 488.0 ± 13.9                   | 12.1 ± 0.2                          | 58.8               | 203.3             |
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO Keypoints val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val pose data=coco-pose.yaml device=0`
-- **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val pose data=coco-pose.yaml batch=1 device=0|cpu`
+- **mAP<sup>val</sup>** values are for single-model single-scale on the [COCO Keypoints val2017](https://docs.ultralytics.com/datasets/pose/coco/) dataset. See [YOLO Performance Metrics](https://docs.ultralytics.com/guides/yolo-performance-metrics/) for details. <br>Reproduce with `yolo val pose data=coco-pose.yaml device=0`
+- **Speed** metrics are averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. CPU speeds measured with [ONNX](https://onnx.ai/) export. GPU speeds measured with [TensorRT](https://developer.nvidia.com/tensorrt) export. <br>Reproduce with `yolo val pose data=coco-pose.yaml batch=1 device=0|cpu`
 
 </details>
 
-<details><summary>OBB (DOTAv1)</summary>
+<details><summary>Oriented Bounding Boxes (DOTAv1)</summary>
 
-See [OBB Docs](https://docs.ultralytics.com/tasks/obb/) for usage examples with these models trained on [DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v2/#dota-v10/), which include 15 pre-trained classes.
+Check the [OBB Docs](https://docs.ultralytics.com/tasks/obb/) for usage examples. These models are trained on [DOTAv1](https://docs.ultralytics.com/datasets/obb/dota-v2/#dota-v10/), including 15 classes.
 
 | Model                                                                                        | size<br><sup>(pixels) | mAP<sup>test<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT10<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | -------------------------------------------------------------------------------------------- | --------------------- | ------------------ | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
@@ -205,16 +206,16 @@ See [OBB Docs](https://docs.ultralytics.com/tasks/obb/) for usage examples with 
 | [YOLO11l-obb](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11l-obb.pt) | 1024                  | 81.0               | 712.5 ± 5.0                    | 13.5 ± 0.6                          | 26.2               | 232.0             |
 | [YOLO11x-obb](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x-obb.pt) | 1024                  | 81.3               | 1408.6 ± 7.7                   | 28.6 ± 1.0                          | 58.8               | 520.2             |
 
-- **mAP<sup>test</sup>** values are for single-model multiscale on [DOTAv1](https://captain-whu.github.io/DOTA/index.html) dataset. <br>Reproduce by `yolo val obb data=DOTAv1.yaml device=0 split=test` and submit merged results to [DOTA evaluation](https://captain-whu.github.io/DOTA/evaluation.html).
-- **Speed** averaged over DOTAv1 val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu`
+- **mAP<sup>test</sup>** values are for single-model multiscale performance on the [DOTAv1 test set](https://captain-whu.github.io/DOTA/dataset.html). <br>Reproduce by `yolo val obb data=DOTAv1.yaml device=0 split=test` and submit merged results to the [DOTA evaluation server](https://captain-whu.github.io/DOTA/evaluation.html).
+- **Speed** metrics are averaged over [DOTAv1 val images](https://docs.ultralytics.com/datasets/obb/dota-v2/#dota-v10) using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. CPU speeds measured with [ONNX](https://onnx.ai/) export. GPU speeds measured with [TensorRT](https://developer.nvidia.com/tensorrt) export. <br>Reproduce by `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu`
 
 </details>
 
-## <div align="center">Integrations</div>
+## 🧩 Integrations
 
-Our key integrations with leading AI platforms extend the functionality of Ultralytics' offerings, enhancing tasks like dataset labeling, training, visualization, and model management. Discover how Ultralytics, in collaboration with [W&B](https://docs.wandb.ai/guides/integrations/ultralytics/), [Comet](https://bit.ly/yolov8-readme-comet), [Roboflow](https://roboflow.com/?ref=ultralytics) and [OpenVINO](https://docs.ultralytics.com/integrations/openvino/), can optimize your AI workflow.
+Our key integrations with leading AI platforms extend the functionality of Ultralytics' offerings, enhancing tasks like dataset labeling, training, visualization, and model management. Discover how Ultralytics, in collaboration with partners like [Weights & Biases](https://docs.ultralytics.com/integrations/weights-biases/), [Comet ML](https://docs.ultralytics.com/integrations/comet/), [Roboflow](https://docs.ultralytics.com/integrations/roboflow/), and [Intel OpenVINO](https://docs.ultralytics.com/integrations/openvino/), can optimize your AI workflow. Explore more at [Ultralytics Integrations](https://docs.ultralytics.com/integrations/).
 
-<a href="https://www.ultralytics.com/hub" target="_blank">
+<a href="https://docs.ultralytics.com/integrations/" target="_blank">
     <img width="100%" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png" alt="Ultralytics active learning integrations">
 </a>
 <br>
@@ -224,46 +225,47 @@ Our key integrations with leading AI platforms extend the functionality of Ultra
   <a href="https://www.ultralytics.com/hub">
     <img src="https://github.com/ultralytics/assets/raw/main/partners/logo-ultralytics-hub.png" width="10%" alt="Ultralytics HUB logo"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="15%" height="0" alt="space">
-  <a href="https://docs.wandb.ai/guides/integrations/ultralytics/">
-    <img src="https://github.com/ultralytics/assets/raw/main/partners/logo-wb.png" width="10%" alt="ClearML logo"></a>
+  <a href="https://docs.ultralytics.com/integrations/weights-biases/">
+    <img src="https://github.com/ultralytics/assets/raw/main/partners/logo-wb.png" width="10%" alt="Weights & Biases logo"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="15%" height="0" alt="space">
-  <a href="https://bit.ly/yolov8-readme-comet">
+  <a href="https://docs.ultralytics.com/integrations/comet/">
     <img src="https://github.com/ultralytics/assets/raw/main/partners/logo-comet.png" width="10%" alt="Comet ML logo"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="15%" height="0" alt="space">
-  <a href="https://bit.ly/yolov5-neuralmagic">
-    <img src="https://github.com/ultralytics/assets/raw/main/partners/logo-neuralmagic.png" width="10%" alt="NeuralMagic logo"></a>
+  <a href="https://docs.ultralytics.com/integrations/neural-magic/">
+    <img src="https://github.com/ultralytics/assets/raw/main/partners/logo-neuralmagic.png" width="10%" alt="Neural Magic logo"></a>
 </div>
 
-|                                                         Ultralytics HUB 🚀                                                         |                                                               W&B                                                               |                                                                       Comet ⭐ NEW                                                                        |                                              Neural Magic                                              |
-| :--------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------: |
-| Streamline YOLO workflows: Label, train, and deploy effortlessly with [Ultralytics HUB](https://www.ultralytics.com/hub). Try now! | Track experiments, hyperparameters, and results with [Weights & Biases](https://docs.wandb.ai/guides/integrations/ultralytics/) | Free forever, [Comet](https://bit.ly/yolov5-readme-comet) lets you save YOLO11 models, resume training, and interactively visualize and debug predictions | Run YOLO11 inference up to 6x faster with [Neural Magic DeepSparse](https://bit.ly/yolov5-neuralmagic) |
+|                                                       Ultralytics HUB 🌟                                                       |                                                          Weights & Biases                                                           |                                                                               Comet                                                                               |                                                         Neural Magic                                                          |
+| :----------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------: |
+| Streamline YOLO workflows: Label, train, and deploy effortlessly with [Ultralytics HUB](https://hub.ultralytics.com). Try now! | Track experiments, hyperparameters, and results with [Weights & Biases](https://docs.ultralytics.com/integrations/weights-biases/). | Free forever, [Comet ML](https://docs.ultralytics.com/integrations/comet/) lets you save YOLO11 models, resume training, and interactively visualize predictions. | Run YOLO11 inference up to 6x faster with [Neural Magic DeepSparse](https://docs.ultralytics.com/integrations/neural-magic/). |
 
-## <div align="center">Ultralytics HUB</div>
+## 🌟 Ultralytics HUB
 
-Experience seamless AI with [Ultralytics HUB](https://www.ultralytics.com/hub) ⭐, the all-in-one solution for data visualization, YOLO11 🚀 model training and deployment, without any coding. Transform images into actionable insights and bring your AI visions to life with ease using our cutting-edge platform and user-friendly [Ultralytics App](https://www.ultralytics.com/app-install). Start your journey for **Free** now!
+Experience seamless AI with [Ultralytics HUB](https://hub.ultralytics.com), the all-in-one platform for data visualization, training YOLO models, and deployment—no coding required. Transform images into actionable insights and bring your AI visions to life effortlessly using our cutting-edge platform and user-friendly [Ultralytics App](https://www.ultralytics.com/app-install). Start your journey for **Free** today!
 
 <a href="https://www.ultralytics.com/hub" target="_blank">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png" alt="Ultralytics HUB preview image"></a>
 
-## <div align="center">Contribute</div>
+## 🤝 Contribute
 
-We love your input! Ultralytics YOLO would not be possible without help from our community. Please see our [Contributing Guide](https://docs.ultralytics.com/help/contributing/) to get started, and fill out our [Survey](https://www.ultralytics.com/survey?utm_source=github&utm_medium=social&utm_campaign=Survey) to send us feedback on your experience. Thank you 🙏 to all our contributors!
+We thrive on community collaboration! Ultralytics YOLO wouldn't be the SOTA model it is without contributions from developers like you. Please see our [Contributing Guide](https://docs.ultralytics.com/help/contributing/) to get started. We also welcome your feedback—share your experience by completing our [Survey](https://www.ultralytics.com/survey?utm_source=github&utm_medium=social&utm_campaign=Survey). A huge **Thank You** 🙏 to everyone who contributes!
 
-<!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=990 -->
+<!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=1280 -->
 
-<a href="https://github.com/ultralytics/ultralytics/graphs/contributors">
-<img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/image-contributors.png" alt="Ultralytics open-source contributors"></a>
+[![Ultralytics open-source contributors](https://github.com/ultralytics/assets/raw/main/im/image-contributors.png)](https://github.com/ultralytics/ultralytics/graphs/contributors)
 
-## <div align="center">License</div>
+We look forward to your contributions to help make the Ultralytics ecosystem even better!
 
-Ultralytics offers two licensing options to accommodate diverse use cases:
+## 📜 License
 
-- **AGPL-3.0 License**: This [OSI-approved](https://opensource.org/license) open-source license is ideal for students and enthusiasts, promoting open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for more details.
-- **Enterprise License**: Designed for commercial use, this license permits seamless integration of Ultralytics software and AI models into commercial goods and services, bypassing the open-source requirements of AGPL-3.0. If your scenario involves embedding our solutions into a commercial offering, reach out through [Ultralytics Licensing](https://www.ultralytics.com/license).
+Ultralytics offers two licensing options to suit different needs:
 
-## <div align="center">Contact</div>
+- **AGPL-3.0 License**: This [OSI-approved](https://opensource.org/licenses/) open-source license is perfect for students, researchers, and enthusiasts. It encourages open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for full details.
+- **Ultralytics Enterprise License**: Designed for commercial use, this license allows for the seamless integration of Ultralytics software and AI models into commercial products and services, bypassing the open-source requirements of AGPL-3.0. If your use case involves commercial deployment, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
 
-For Ultralytics bug reports and feature requests please visit [GitHub Issues](https://github.com/ultralytics/ultralytics/issues). Become a member of the Ultralytics [Discord](https://discord.com/invite/ultralytics), [Reddit](https://www.reddit.com/r/ultralytics/), or [Forums](https://community.ultralytics.com/) for asking questions, sharing projects, learning discussions, or for help with all things Ultralytics!
+## 📞 Contact
+
+For bug reports and feature requests related to Ultralytics software, please visit [GitHub Issues](https://github.com/ultralytics/ultralytics/issues). For questions, discussions, and community support, join our active communities on [Discord](https://discord.com/invite/ultralytics), [Reddit](https://www.reddit.com/r/ultralytics/), and the [Ultralytics Community Forums](https://community.ultralytics.com/). We're here to help with all things Ultralytics!
 
 <br>
 <div align="center">

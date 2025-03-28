@@ -8,7 +8,7 @@ keywords: Roboflow, Crack Segmentation Dataset, Ultralytics, transportation safe
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-crack-segmentation-dataset.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Crack Segmentation Dataset In Colab"></a>
 
-The [Roboflow](https://roboflow.com/?ref=ultralytics) [Crack Segmentation Dataset](https://universe.roboflow.com/university-bswxt/crack-bphdr?ref=ultralytics) stands out as an extensive resource designed specifically for individuals involved in transportation and public safety studies. It is equally beneficial for those working on the development of self-driving car models or simply exploring [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications for recreational purposes.
+The Roboflow [Crack Segmentation Dataset](https://universe.roboflow.com/university-bswxt/crack-bphdr?ref=ultralytics) stands out as an extensive resource designed specifically for individuals involved in transportation and public safety studies. It is equally beneficial for those working on the development of self-driving car models or simply exploring [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications for recreational purposes.
 
 <p align="center">
   <br>
@@ -95,7 +95,6 @@ If you incorporate the crack segmentation dataset into your research or developm
             title = { crack Dataset },
             type = { Open Source Dataset },
             author = { University },
-            howpublished = { \url{ https://universe.roboflow.com/university-bswxt/crack-bphdr } },
             url = { https://universe.roboflow.com/university-bswxt/crack-bphdr },
             journal = { Roboflow Universe },
             publisher = { Roboflow },
@@ -111,7 +110,7 @@ We would like to acknowledge the Roboflow team for creating and maintaining the 
 
 ### What is the Roboflow Crack Segmentation Dataset?
 
-The [Roboflow Crack Segmentation Dataset](https://universe.roboflow.com/university-bswxt/crack-bphdr?ref=ultralytics) is a comprehensive collection of 4029 static images designed specifically for transportation and public safety studies. It is ideal for tasks such as self-driving car model development and infrastructure maintenance. The dataset includes training, testing, and validation sets, aiding in accurate crack detection and segmentation.
+The Roboflow Crack Segmentation Dataset is a comprehensive collection of 4029 static images designed specifically for transportation and public safety studies. It is ideal for tasks such as self-driving car model development and infrastructure maintenance. The dataset includes training, testing, and validation sets, aiding in accurate crack detection and segmentation.
 
 ### How do I train a model using the Crack Segmentation Dataset with Ultralytics YOLO11?
 
@@ -159,7 +158,6 @@ If you incorporate the Crack Segmentation Dataset into your research, please use
             title = { crack Dataset },
             type = { Open Source Dataset },
             author = { University },
-            howpublished = { \url{ https://universe.roboflow.com/university-bswxt/crack-bphdr } },
             url = { https://universe.roboflow.com/university-bswxt/crack-bphdr },
             journal = { Roboflow Universe },
             publisher = { Roboflow },

@@ -20,9 +20,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Fetch all history for mirroring
+      - name: Run Git Config
+        run: |
+          git config --global user.name "UltralyticsAssistant"
+          git config --global user.email "web@ultralytics.com"
       - name: Push to DagsHub
         run: |
-          git remote add dagshub https://ultralytics-yolo:${{ secrets.DAGSHUB_TOKEN }}@dagshub.com/ultralytics/ultralytics.git
+          git remote add dagshub https://glenn-jocher:${{ secrets.DAGSHUB_TOKEN }}@dagshub.com/Ultralytics/ultralytics.git
           git push dagshub main --force
 
       # - name: Push to Gitee

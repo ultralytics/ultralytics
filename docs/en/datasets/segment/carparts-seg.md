@@ -92,7 +92,6 @@ If you integrate the Carparts Segmentation dataset into your research or develop
                 title = { car-seg Dataset },
                 type = { Open Source Dataset },
                 author = { Gianmarco Russo },
-                howpublished = { \url{ https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm } },
                 url = { https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm },
                 journal = { Roboflow Universe },
                 publisher = { Roboflow },
@@ -102,7 +101,7 @@ If you integrate the Carparts Segmentation dataset into your research or develop
             }
         ```
 
-We extend our thanks to the [Roboflow](https://roboflow.com/?ref=ultralytics) team for their dedication in developing and managing the Carparts Segmentation dataset, a valuable resource for vehicle maintenance and research projects. For additional details about the Carparts Segmentation dataset and its creators, please visit the [CarParts Segmentation Dataset Page](https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm?ref=ultralytics).
+We extend our thanks to the [Roboflow](https://roboflow.com/?ref=ultralytics) team for their dedication in developing and managing the Carparts Segmentation dataset, a valuable resource for vehicle maintenance and research projects.
 
 ## FAQ
 
@@ -159,5 +158,3 @@ The dataset configuration file for the Carparts Segmentation dataset, `carparts-
 ### Why should I use the Carparts Segmentation Dataset?
 
 The Carparts Segmentation Dataset provides rich, annotated data essential for developing high-[accuracy](https://www.ultralytics.com/glossary/accuracy) segmentation models in automotive computer vision. This dataset's diversity and detailed annotations improve model training, making it ideal for applications like vehicle maintenance automation, enhancing vehicle safety systems, and supporting [autonomous driving technologies](https://www.ultralytics.com/blog/ai-in-self-driving-cars). Partnering with a robust dataset accelerates AI development and ensures better model performance.
-
-For more details, visit the [CarParts Segmentation Dataset Page](https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm?ref=ultralytics).

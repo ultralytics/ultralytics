@@ -112,7 +112,6 @@ If you integrate the Package Segmentation dataset into your research or developm
             title = { factory_package Dataset },
             type = { Open Source Dataset },
             author = { factorypackage },
-            howpublished = { \url{ https://universe.roboflow.com/factorypackage/factory_package } },
             url = { https://universe.roboflow.com/factorypackage/factory_package },
             journal = { Roboflow Universe },
             publisher = { Roboflow },

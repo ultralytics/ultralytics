@@ -226,9 +226,8 @@ You can use Vector Analysis to:
 
 Want to learn more about using Roboflow for creating YOLO11 models? The following resources may be helpful in your work.
 
-- [Train YOLO11 on a Custom Dataset](https://github.com/roboflow/notebooks/blob/main/notebooks/train-yolov8-object-detection-on-custom-dataset.ipynb): Follow our interactive notebook that shows you how to train a YOLO11 model on a custom dataset.
+- [Train YOLO11 on a Custom Dataset](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb): Follow our interactive notebook that shows you how to train a YOLO11 model on a custom dataset.
 - [Autodistill](https://docs.autodistill.com/): Use large foundation vision models to label data for specific models. You can label images for use in training YOLO11 classification, detection, and segmentation models with Autodistill.
-- [Supervision](https://supervision.roboflow.com/?ref=ultralytics): A Python package with helpful utilities for use in working with computer vision models. You can use supervision to filter detections, compute confusion matrices, and more, all in a few lines of Python code.
 - [Roboflow Blog](https://blog.roboflow.com/?ref=ultralytics): The Roboflow Blog features over 500 articles on computer vision, covering topics from how to train a YOLO11 model to annotation best practices.
 - [Roboflow YouTube channel](https://www.youtube.com/@Roboflow): Browse dozens of in-depth computer vision guides on our YouTube channel, covering topics from training YOLO11 models to automated image labeling.
 

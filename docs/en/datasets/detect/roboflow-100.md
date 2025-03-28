@@ -6,7 +6,17 @@ keywords: Roboflow 100, Ultralytics, object detection, dataset, benchmarking, ma
 
 # Roboflow 100 Dataset
 
-Roboflow 100, developed by [Roboflow](https://roboflow.com/?ref=ultralytics) and sponsored by Intel, is a groundbreaking [object detection](../../tasks/detect.md) benchmark. It includes 100 diverse datasets sampled from over 90,000 public datasets. This benchmark is designed to test the adaptability of models to various domains, including healthcare, aerial imagery, and video games.
+Roboflow 100, sponsored by [Intel](https://www.intel.com), is a groundbreaking [object detection](../../tasks/detect.md) benchmark. It includes 100 diverse datasets sampled from over 90,000 public datasets. This benchmark is designed to test the adaptability of models to various domains, including healthcare, aerial imagery, and video games.
+
+!!! question "Licensing"
+
+    Ultralytics offers two licensing options:
+
+    - The [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE), an [OSI-approved](https://opensource.org/license) open-source license ideal for students and enthusiasts.
+    - The [Enterprise License](https://www.ultralytics.com/license) for businesses seeking to incorporate our AI models into their products and services.
+
+    For more details see [Ultralytics Licensing](https://www.ultralytics.com/license).
+
 
 <p align="center">
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/roboflow-100-overview.avif" alt="Roboflow 100 Overview">
@@ -97,7 +107,7 @@ For more ideas and inspiration on real-world applications, be sure to check out 
 
 ## Usage
 
-The Roboflow 100 dataset is available on both [GitHub](https://github.com/roboflow/roboflow-100-benchmark) and [Roboflow Universe](https://universe.roboflow.com/roboflow-100?ref=ultralytics).
+The Roboflow 100 dataset is available on both [GitHub](https://github.com/roboflow/roboflow-100-benchmark).
 
 You can access it directly from the Roboflow 100 GitHub repository. In addition, on Roboflow Universe, you have the flexibility to download individual datasets by simply clicking the export button within each dataset.
 
@@ -135,7 +145,7 @@ If you are interested in exploring more datasets to enhance your object detectio
 
 ### What is the Roboflow 100 dataset, and why is it significant for object detection?
 
-The **Roboflow 100** dataset, developed by [Roboflow](https://roboflow.com/?ref=ultralytics) and sponsored by Intel, is a crucial [object detection](../../tasks/detect.md) benchmark. It features 100 diverse datasets from over 90,000 public datasets, covering domains such as healthcare, aerial imagery, and video games. This diversity ensures that models can adapt to various real-world scenarios, enhancing their robustness and performance across different applications and environments.
+The **Roboflow 100** dataset is an [object detection](../../tasks/detect.md) benchmark. It features 100 diverse datasets from over 90,000 public datasets, covering domains such as healthcare, aerial imagery, and video games. This diversity ensures that models can adapt to various real-world scenarios, enhancing their robustness and performance across different applications and environments.
 
 ### How can I use the Roboflow 100 dataset for benchmarking my object detection models?
 
@@ -196,10 +206,6 @@ The **Roboflow 100** dataset spans seven domains, each providing unique challeng
 7. **Real World**: 50 datasets, 110,615 images, 495 classes
 
 This setup allows for extensive and varied testing of models across different real-world applications, making it an excellent resource for developing versatile computer vision systems.
-
-### How do I access and download the Roboflow 100 dataset?
-
-The **Roboflow 100** dataset is accessible on [GitHub](https://github.com/roboflow/roboflow-100-benchmark) and [Roboflow Universe](https://universe.roboflow.com/roboflow-100?ref=ultralytics). You can download the entire dataset from GitHub or select individual datasets on Roboflow Universe using the export button. This flexibility allows you to focus on specific domains or use cases that are most relevant to your research or application.
 
 ### What should I include when citing the Roboflow 100 dataset in my research?
 

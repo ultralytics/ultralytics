@@ -61,7 +61,7 @@ Dataset benchmarking evaluates [machine learning](https://www.ultralytics.com/gl
 
         # Initialize RF100Benchmark and set API key
         benchmark = RF100Benchmark()
-        benchmark.set_key(api_key="YOUR_ROBOFLOW_API_KEY")
+        benchmark.set_key(api_key="YOUR_API_KEY")
 
         # Parse dataset and define file paths
         names, cfg_yamls = benchmark.parse_dataset()

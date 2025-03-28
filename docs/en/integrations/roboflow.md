@@ -27,9 +27,9 @@ In this guide, we are going to showcase how to find, label, and organize data fo
 - Upload custom YOLO11 model weights for testing and deployment
 - Gather Data for Training a Custom YOLO11 Model
 
-Roboflow offers two primary services to assist in data collection for Ultralytics [YOLO models](../../models/): Universe and Collect. For more general information on data collection, see our [Data Collection and Annotation Guide](../../guides/data-collection-and-annotation/).
+Roboflow offers two primary services to assist in data collection for Ultralytics [YOLO models](../models/index.md): Universe and Collect. For more general information on data collection, see our [Data Collection and Annotation Guide](../guides/data-collection-and-annotation.md).
 
-Roboflow Universe is an extensive online repository featuring over 250,000 vision [datasets](../../datasets/), encompassing more than 100 million images.
+Roboflow Universe is an extensive online repository featuring over 250,000 vision [datasets](../datasets/index.md), encompassing more than 100 million images.
 
 <p align="center">
 <img src="https://github.com/ultralytics/docs/releases/download/0/roboflow-universe.avif" alt="Roboflow Universe" width="800">
@@ -47,13 +47,13 @@ For YOLO11, select "YOLO11" as the export format:
 <img src="https://github.com/ultralytics/docs/releases/download/0/roboflow-universe-dataset-export-1.avif" alt="Roboflow Universe dataset export" width="800">
 </p>
 
-Universe also has a page that aggregates all public fine-tuned YOLO11 models uploaded to Roboflow. You can use this page to explore pre-trained models you can use for testing or for automated data labeling) or to prototype with Roboflow inference.
+Universe also has a page that aggregates all public fine-tuned YOLO11 models uploaded to Roboflow. You can use this page to explore pre-trained models you can use for testing or for automated data labeling.
 
 If you want to gather images yourself, try Collect, an open source project that allows you to automatically gather images using a webcam on the edge. You can use text or image prompts with Collect to instruct what data should be collected, allowing you to capture only the useful data you need to build your vision model.
 
 ## Upload, Convert and Label Data for YOLO11 Format
 
-Roboflow Annotate is an online tool designed for labeling images for various computer vision tasks, including [object detection](../../tasks/detect/), [classification](../../tasks/classify/), and [segmentation](../../tasks/segment/).
+Roboflow Annotate is an online tool designed for labeling images for various computer vision tasks, including [object detection](../tasks/detect.md), [classification](../tasks/classify.md), and [segmentation](../tasks/segment.md).
 
 To label data for an Ultralytics YOLO model (supporting detection, instance segmentation, classification, pose, and OBB), start by creating a project in Roboflow.
 
@@ -79,7 +79,7 @@ A pop-up will appear asking you to select a class for your annotation once you h
 
 For polygon annotation (used in [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation)), press `P` or click the polygon icon. Click points around the object to draw the polygon.
 
-Roboflow integrates a [SAM (Segment Anything Model)](../../models/sam.md)-based label assistant to accelerate annotation. SAM is a cutting-edge model that precisely labels objects with minimal clicks.
+Roboflow integrates a [SAM (Segment Anything Model)](../models/sam.md)-based label assistant to accelerate annotation. SAM is a cutting-edge model that precisely labels objects with minimal clicks.
 
 To use the label assistant, click the cursor icon in the sidebar, SAM will be loaded for use in your project.
 

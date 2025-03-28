@@ -16,21 +16,21 @@ After a dataset is imported in [Ultralytics HUB](https://www.ultralytics.com/hub
 
 ### Roboflow
 
-You can easily filter the [Roboflow](https://roboflow.com/?ref=ultralytics) datasets on the [Ultralytics HUB](https://www.ultralytics.com/hub) [Datasets](https://hub.ultralytics.com/datasets) page.
+You can easily filter the Roboflow datasets on the [Ultralytics HUB](https://www.ultralytics.com/hub) [Datasets](https://hub.ultralytics.com/datasets) page.
 
 ![Ultralytics HUB screenshot of the Datasets page with Roboflow provider filter](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-datasets-page-roboflow-filter.avif)
 
-[Ultralytics HUB](https://www.ultralytics.com/hub) supports two types of integrations with [Roboflow](https://roboflow.com/?ref=ultralytics), [Universe](#universe) and [Workspace](#workspace).
+[Ultralytics HUB](https://www.ultralytics.com/hub) supports two types of integrations with Roboflow, [Universe](#universe) and [Workspace](#workspace).
 
 #### Universe
 
-The [Roboflow](https://roboflow.com/?ref=ultralytics) Universe integration allows you to import one dataset at a time into [Ultralytics HUB](https://www.ultralytics.com/hub) from [Roboflow](https://roboflow.com/?ref=ultralytics).
+The Roboflow Universe integration allows you to import one dataset at a time into [Ultralytics HUB](https://www.ultralytics.com/hub) from Roboflow.
 
 ##### Import
 
-When you export a [Roboflow](https://roboflow.com/?ref=ultralytics) dataset, select the [Ultralytics HUB](https://www.ultralytics.com/hub) format. This action will redirect you to [Ultralytics HUB](https://www.ultralytics.com/hub) and trigger the **Dataset Import** dialog.
+When you export a Roboflow dataset, select the [Ultralytics HUB](https://www.ultralytics.com/hub) format. This action will redirect you to [Ultralytics HUB](https://www.ultralytics.com/hub) and trigger the **Dataset Import** dialog.
 
-You can import your [Roboflow](https://roboflow.com/?ref=ultralytics) dataset by clicking on the **Import** button.
+You can import your Roboflow dataset by clicking on the **Import** button.
 
 ![Ultralytics HUB screenshot of the Dataset Import dialog with an arrow pointing to the Import button](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-dataset-import-dialog.avif)
 
@@ -40,33 +40,33 @@ Next, [train a model](./models.md#train-model) on your dataset.
 
 ##### Remove
 
-Navigate to the Dataset page of the [Roboflow](https://roboflow.com/?ref=ultralytics) dataset you want to remove, open the dataset actions dropdown and click on the **Remove** option.
+Navigate to the Dataset page of the Roboflow dataset you want to remove, open the dataset actions dropdown and click on the **Remove** option.
 
 ![Ultralytics HUB screenshot of the Dataset page of a Roboflow Universe dataset with an arrow pointing to the Remove option](https://github.com/ultralytics/docs/releases/download/0/hub-roboflow-universe-remove.avif)
 
 ??? tip
 
-    You can remove an imported [Roboflow](https://roboflow.com/?ref=ultralytics) dataset directly from the [Datasets](https://hub.ultralytics.com/datasets) page.
+    You can remove an imported Roboflow dataset directly from the [Datasets](https://hub.ultralytics.com/datasets) page.
 
     ![Ultralytics HUB screenshot of the Datasets page with an arrow pointing to the Remove option of one of the Roboflow Universe datasets](https://github.com/ultralytics/docs/releases/download/0/hub-roboflow-remove-option.avif)
 
 #### Workspace
 
-The [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace integration allows you to import an entire [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace at once into [Ultralytics HUB](https://www.ultralytics.com/hub).
+The Roboflow Workspace integration allows you to import an entire Roboflow Workspace at once into [Ultralytics HUB](https://www.ultralytics.com/hub).
 
 ##### Import
 
 Navigate to the [Integrations](https://hub.ultralytics.com/settings?tab=integrations) page by clicking on the **Integrations** button in the sidebar.
 
-Type your [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace private API key and click on the **Add** button.
+Type your Roboflow Workspace private API key and click on the **Add** button.
 
 ??? tip
 
-    You can click on the **Get my API key** button which will redirect you to the settings of your [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace from where you can obtain your private API key.
+    You can click on the **Get my API key** button which will redirect you to the settings of your Roboflow Workspace from where you can obtain your private API key.
 
 ![Ultralytics HUB screenshot of the Integrations page with an arrow pointing to the Integrations button in the sidebar and one to the Add button](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-integrations-page.avif)
 
-This will connect your [Ultralytics HUB](https://www.ultralytics.com/hub) account with your [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace and make your [Roboflow](https://roboflow.com/?ref=ultralytics) datasets available in [Ultralytics HUB](https://www.ultralytics.com/hub).
+This will connect your [Ultralytics HUB](https://www.ultralytics.com/hub) account with your Roboflow Workspace and make your Roboflow datasets available in [Ultralytics HUB](https://www.ultralytics.com/hub).
 
 ![Ultralytics HUB screenshot of the Integrations page with an arrow pointing to one of the connected workspaces](https://github.com/ultralytics/docs/releases/download/0/hub-roboflow-workspace-import-2.avif)
 
@@ -76,19 +76,19 @@ Next, [train a model](./models.md#train-model) on your dataset.
 
 ##### Remove
 
-Navigate to the [Integrations](https://hub.ultralytics.com/settings?tab=integrations) page by clicking on the **Integrations** button in the sidebar and click on the **Unlink** button of the [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace you want to remove.
+Navigate to the [Integrations](https://hub.ultralytics.com/settings?tab=integrations) page by clicking on the **Integrations** button in the sidebar and click on the **Unlink** button of the Roboflow Workspace you want to remove.
 
 ![Ultralytics HUB screenshot of the Integrations page  with an arrow pointing to the Integrations button in the sidebar and one to the Unlink button of one of the connected workspaces](https://github.com/ultralytics/docs/releases/download/0/hub-roboflow-workspace-remove-1.avif)
 
 ??? tip
 
-    You can remove a connected [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace directly from the Dataset page of one of the datasets from your [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace.
+    You can remove a connected Roboflow Workspace directly from the Dataset page of one of the datasets from your Roboflow Workspace.
 
     ![Ultralytics HUB screenshot of the Dataset page of a Roboflow Workspace dataset with an arrow pointing to the remove option](https://github.com/ultralytics/docs/releases/download/0/hub-roboflow-workspace-remove-2.avif)
 
 ??? tip
 
-    You can remove a connected [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace directly from the [Datasets](https://hub.ultralytics.com/datasets) page.
+    You can remove a connected Roboflow Workspace directly from the [Datasets](https://hub.ultralytics.com/datasets) page.
 
     ![Ultralytics HUB screenshot of the Datasets page with an arrow pointing to the Remove option of one of the Roboflow Workspace datasets](https://github.com/ultralytics/docs/releases/download/0/hub-roboflow-remove-option.avif)
 

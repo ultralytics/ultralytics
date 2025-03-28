@@ -4,11 +4,11 @@ description: Explore the extensive Roboflow Crack Segmentation Dataset, perfect 
 keywords: Roboflow, Crack Segmentation Dataset, Ultralytics, transportation safety, public safety, self-driving cars, computer vision, road safety, infrastructure maintenance, dataset
 ---
 
-# Roboflow Universe Crack Segmentation Dataset
+# Crack Segmentation Dataset
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-crack-segmentation-dataset.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Crack Segmentation Dataset In Colab"></a>
 
-The Roboflow [Crack Segmentation Dataset](https://universe.roboflow.com/university-bswxt/crack-bphdr?ref=ultralytics) stands out as an extensive resource designed specifically for individuals involved in transportation and public safety studies. It is equally beneficial for those working on the development of self-driving car models or simply exploring [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications for recreational purposes.
+The [Crack Segmentation Dataset](https://universe.roboflow.com/university-bswxt/crack-bphdr?ref=ultralytics) stands out as an extensive resource designed specifically for individuals involved in transportation and public safety studies. It is equally beneficial for those working on the development of self-driving car models or simply exploring [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications for recreational purposes.
 
 <p align="center">
   <br>
@@ -108,9 +108,9 @@ We would like to acknowledge the Roboflow team for creating and maintaining the 
 
 ## FAQ
 
-### What is the Roboflow Crack Segmentation Dataset?
+### What is the Crack Segmentation Dataset?
 
-The Roboflow Crack Segmentation Dataset is a comprehensive collection of 4029 static images designed specifically for transportation and public safety studies. It is ideal for tasks such as self-driving car model development and infrastructure maintenance. The dataset includes training, testing, and validation sets, aiding in accurate crack detection and segmentation.
+The Crack Segmentation Dataset is a comprehensive collection of 4029 static images designed specifically for transportation and public safety studies. It is ideal for tasks such as self-driving car model development and infrastructure maintenance. The dataset includes training, testing, and validation sets, aiding in accurate crack detection and segmentation.
 
 ### How do I train a model using the Crack Segmentation Dataset with Ultralytics YOLO11?
 
@@ -145,7 +145,7 @@ The Crack Segmentation Dataset is exceptionally suited for self-driving car proj
 
 Ultralytics YOLO offers advanced real-time [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and classification capabilities that make it ideal for crack segmentation tasks. Its ability to handle large datasets and complex scenarios ensures high accuracy and efficiency. For example, the model [Training](../../modes/train.md), [Predict](../../modes/predict.md), and [Export](../../modes/export.md) modes cover comprehensive functionalities from training to deployment. Additionally, YOLO's [anchor-free detection](https://www.ultralytics.com/blog/benefits-ultralytics-yolo11-being-anchor-free-detector) approach improves performance on irregular shapes like cracks.
 
-### How do I cite the Roboflow Crack Segmentation Dataset in my research paper?
+### How do I cite the Crack Segmentation Dataset in my research paper?
 
 If you incorporate the Crack Segmentation Dataset into your research, please use the following BibTeX reference:
 

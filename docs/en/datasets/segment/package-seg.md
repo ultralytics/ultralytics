@@ -4,11 +4,11 @@ description: Explore the Roboflow Package Segmentation Dataset. Optimize logisti
 keywords: Roboflow, Package Segmentation Dataset, computer vision, package identification, logistics, warehouse automation, segmentation models, training data
 ---
 
-# Roboflow Universe Package Segmentation Dataset
+# Package Segmentation Dataset
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-package-segmentation-dataset.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Package Segmentation Dataset In Colab"></a>
 
-The [Roboflow](https://roboflow.com/?ref=ultralytics) [Package Segmentation Dataset](https://universe.roboflow.com/factorypackage/factory_package?ref=ultralytics) is a curated collection of images specifically tailored for tasks related to package segmentation in the field of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). This dataset is designed to assist researchers, developers, and enthusiasts working on projects related to package identification, sorting, and handling.
+The [Package Segmentation Dataset](https://universe.roboflow.com/factorypackage/factory_package?ref=ultralytics) is a curated collection of images specifically tailored for tasks related to package segmentation in the field of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). This dataset is designed to assist researchers, developers, and enthusiasts working on projects related to package identification, sorting, and handling.
 
 <p align="center">
   <br>
@@ -125,9 +125,9 @@ We express our gratitude to the Roboflow team for their efforts in creating and 
 
 ## FAQ
 
-### What is the Roboflow Package Segmentation Dataset and how can it help in computer vision projects?
+### What is the Package Segmentation Dataset and how can it help in computer vision projects?
 
-The [Roboflow Package Segmentation Dataset](https://universe.roboflow.com/factorypackage/factory_package?ref=ultralytics) is a curated collection of images tailored for tasks involving package segmentation. It includes diverse images of packages in various contexts, making it invaluable for training and evaluating segmentation models. This dataset is particularly useful for applications in logistics, warehouse automation, and any project requiring precise package analysis. It helps optimize logistics and enhance vision models for accurate package identification and sorting.
+The [Package Segmentation Dataset](https://universe.roboflow.com/factorypackage/factory_package?ref=ultralytics) is a curated collection of images tailored for tasks involving package segmentation. It includes diverse images of packages in various contexts, making it invaluable for training and evaluating segmentation models. This dataset is particularly useful for applications in logistics, warehouse automation, and any project requiring precise package analysis. It helps optimize logistics and enhance vision models for accurate package identification and sorting.
 
 ### How do I train an Ultralytics YOLO11 model on the Package Segmentation Dataset?
 

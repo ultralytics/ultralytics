@@ -8,9 +8,13 @@ keywords: Visual Studio Code, VS Code, deep learning, convolutional neural netwo
 
 <p align="center">
   <br>
-    <img src="https://github.com/ultralytics/docs/releases/download/0/snippet-prediction-preview.avif" alt="Snippet Prediction Preview">
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/EXIpyYVEjoI"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
   <br>
-  Run example code using Ultralytics YOLO in under 20 seconds! 🚀
+  <strong>Watch:</strong> How to use Ultralytics Visual Studio Code Extension | Ready-to-Use Code Snippets | Ultralytics YOLO 🎉
 </p>
 
 ## Features and Benefits
@@ -26,6 +30,13 @@ keywords: Visual Studio Code, VS Code, deep learning, convolutional neural netwo
 ✅ Want to speed up your development cycle when working with Ultralytics?
 
 If you use Visual Studio Code and answered 'yes' to any of the above, then the Ultralytics-snippets extension for VS Code is here to help! Read on to learn more about the extension, how to install it, and how to use it.
+
+<p align="center">
+  <br>
+    <img src="https://github.com/ultralytics/docs/releases/download/0/snippet-prediction-preview.avif" alt="Snippet Prediction Preview">
+  <br>
+  Run example code using Ultralytics YOLO in under 20 seconds! 🚀
+</p>
 
 ## Inspired by the Ultralytics Community
 

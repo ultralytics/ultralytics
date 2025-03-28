@@ -26,7 +26,7 @@ keywords: VisionEye, YOLO11, Ultralytics, object mapping, object tracking, dista
         yolo solutions visioneye source="path/to/video.mp4"
 
         # Monitor the specific classes
-        yolo solutions visioneye classes=[0, 5]
+        yolo solutions visioneye classes="[0, 5]"
         ```
 
     === "Python"

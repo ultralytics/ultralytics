@@ -403,10 +403,12 @@ class Instances:
         self.segments[..., 1] = self.segments[..., 1].clip(0, h)
         if self.keypoints is not None:
             # Set out of bounds visibility to zero
-            self.keypoints[..., 2][(self.keypoints[..., 0] < 0)
+            self.keypoints[..., 2][
+                (self.keypoints[..., 0] < 0)
                 | (self.keypoints[..., 0] > w)
                 | (self.keypoints[..., 1] < 0)
-                | (self.keypoints[..., 1] > h)] = 0.0
+                | (self.keypoints[..., 1] > h)
+            ] = 0.0
 
     def remove_zero_area_boxes(self):
         """

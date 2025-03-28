@@ -58,6 +58,7 @@ TensorFlow.js:
 import gc
 import json
 import os
+import re
 import shutil
 import subprocess
 import time
@@ -665,7 +666,7 @@ class Exporter:
     @try_export
     def export_paddle(self, prefix=colorstr("PaddlePaddle:")):
         """YOLO Paddle export."""
-        check_requirements(("paddlepaddle-gpu" if torch.cuda.is_available() else "paddlepaddle>=3.0.0", "x2paddle"))
+        check_requirements(("paddlepaddle-gpu" if torch.cuda.is_available() else "paddlepaddle<3.0.0", "x2paddle"))
         import x2paddle  # noqa
         from x2paddle.convert import pytorch2paddle  # noqa
 
@@ -1231,17 +1232,15 @@ class Exporter:
 
         LOGGER.info(f"\n{prefix} starting export with model_compression_toolkit {mct.__version__}...")
 
+        # Install Java>=17
         try:
-            out = subprocess.run(
-                ["java", "--version"], check=True, capture_output=True
-            )  # Java 17 is required for imx500-converter
-            if "openjdk 17" not in str(out.stdout):
-                raise FileNotFoundError
-        except FileNotFoundError:
-            c = ["apt", "install", "-y", "openjdk-17-jdk", "openjdk-17-jre"]
-            if is_sudo_available():
-                c.insert(0, "sudo")
-            subprocess.run(c, check=True)
+            java_output = subprocess.run(["java", "--version"], check=True, capture_output=True).stdout.decode()
+            version_match = re.search(r"(?:openjdk|java) (\d+)", java_output)
+            java_version = int(version_match.group(1)) if version_match else 0
+            assert java_version >= 17, "Java version too old"
+        except (FileNotFoundError, subprocess.CalledProcessError, AssertionError):
+            cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y", "default-jre"]
+            subprocess.run(cmd, check=True)
 
         def representative_dataset_gen(dataloader=self.get_int8_calibration_dataloader(prefix)):
             for batch in dataloader:

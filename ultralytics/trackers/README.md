@@ -197,17 +197,17 @@ while cap.isOpened():
 
     if success:
         # Run YOLO11 tracking on the frame, persisting tracks between frames
-        results = model.track(frame, persist=True)[0]
+        result = model.track(frame, persist=True)[0]
 
         # Get the boxes and track IDs
-        if results.boxes and results.boxes.id is not None:
-            boxes = results.boxes.xywh.cpu()
-            track_ids = results.boxes.id.int().cpu().tolist()
+        if result.boxes and result.boxes.id is not None:
+            boxes = result.boxes.xywh.cpu()
+            track_ids = result.boxes.id.int().cpu().tolist()
         else:
             pass
 
-        # Visualize the results on the frame
-        annotated_frame = results.plot()
+        # Visualize the result on the frame
+        annotated_frame = result.plot()
 
         # Plot the tracks
         for box, track_id in zip(boxes, track_ids):

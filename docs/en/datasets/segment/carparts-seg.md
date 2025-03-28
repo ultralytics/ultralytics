@@ -101,7 +101,7 @@ If you integrate the Carparts Segmentation dataset into your research or develop
             }
         ```
 
-We extend our thanks to the [Roboflow](https://roboflow.com/?ref=ultralytics) team for their dedication in developing and managing the Carparts Segmentation dataset, a valuable resource for vehicle maintenance and research projects.
+We extend our thanks to the Roboflow team for their dedication in developing and managing the Carparts Segmentation dataset, a valuable resource for vehicle maintenance and research projects.
 
 ## FAQ
 

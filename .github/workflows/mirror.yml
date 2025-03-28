@@ -7,9 +7,10 @@
 name: Mirror Repository
 
 on:
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
+  workflow_dispatch:
 
 jobs:
   mirror:
@@ -20,21 +21,22 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Fetch all history for mirroring
+      - name: Run Git Config
+        run: |
+          git config --global user.name "UltralyticsAssistant"
+          git config --global user.email "web@ultralytics.com"
       - name: Push to DagsHub
         run: |
-          git remote add dagshub https://ultralytics-yolo:${{ secrets.DAGSHUB_TOKEN }}@dagshub.com/ultralytics/ultralytics.git
+          git remote add dagshub https://glenn-jocher:${{ secrets.DAGSHUB_TOKEN }}@dagshub.com/Ultralytics/ultralytics.git
           git push dagshub main --force
-
       # - name: Push to Gitee
       #   run: |
       #     git remote add gitee https://ultralytics:${{ secrets.GITEE_TOKEN }}@gitee.com/ultralytics/ultralytics.git
       #     git push gitee main --force
-
       # - name: Push to GitCode
       #   run: |
       #     git remote add gitcode https://ultralytics:${{ secrets.GITCODE_TOKEN }}@gitcode.net/ultralytics/ultralytics.git
       #     git push gitcode main --force
-
       # - name: Push to Bitbucket
       #   run: |
       #     git remote add bitbucket https://ultralytics:${{ secrets.BITBUCKET_APP_PASSWORD }}@bitbucket.org/ultralytics/ultralytics.git

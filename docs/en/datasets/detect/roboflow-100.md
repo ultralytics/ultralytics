@@ -17,7 +17,6 @@ Roboflow 100, sponsored by [Intel](https://www.intel.com), is a groundbreaking [
 
     For more details see [Ultralytics Licensing](https://www.ultralytics.com/license).
 
-
 <p align="center">
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/roboflow-100-overview.avif" alt="Roboflow 100 Overview">
 </p>

@@ -21,7 +21,6 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
   <strong>Watch:</strong> Ultralytics YOLO11 Deployment and Integrations
 </p>
 
-
 ## Training Integrations
 
 - [Amazon SageMaker](amazon-sagemaker.md): Leverage Amazon SageMaker to efficiently build, train, and deploy Ultralytics models, providing an all-in-one platform for the ML lifecycle.

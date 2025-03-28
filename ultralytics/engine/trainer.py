@@ -245,7 +245,7 @@ class BaseTrainer:
             if isinstance(self.args.freeze, list)
             else range(self.args.freeze)
             if isinstance(self.args.freeze, int)
-            else range(int(len(self.model.model.model) * self.args.freeze))
+            else range(int(len(self.model.model) * self.args.freeze))
             if isinstance(self.args.freeze, float) and 0.0 <= self.args.freeze <= 1.0
             else []
         )

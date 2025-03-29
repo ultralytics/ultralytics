@@ -6,7 +6,7 @@ keywords: Roboflow 100, Ultralytics, object detection, dataset, benchmarking, ma
 
 # Roboflow 100 Dataset
 
-Roboflow 100, sponsored by [Intel](https://www.intel.com), is a groundbreaking [object detection](../../tasks/detect.md) benchmark dataset. It includes 100 diverse datasets sampled from over 90,000 public datasets available on Roboflow Universe. This benchmark is specifically designed to test the adaptability of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models, like [Ultralytics YOLO models](../../models.md), to various domains, including healthcare, aerial imagery, and video games.
+Roboflow 100, sponsored by [Intel](https://www.intel.com), is a groundbreaking [object detection](../../tasks/detect.md) benchmark dataset. It includes 100 diverse datasets sampled from over 90,000 public datasets available on Roboflow Universe. This benchmark is specifically designed to test the adaptability of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models, like [Ultralytics YOLO models](../../models/yolo11.md), to various domains, including healthcare, aerial imagery, and video games.
 
 !!! question "Licensing"
 
@@ -22,10 +22,10 @@ Roboflow 100, sponsored by [Intel](https://www.intel.com), is a groundbreaking [
 ## Key Features
 
 - Includes 100 datasets across seven distinct domains: Aerial, Video games, Microscopic, Underwater, Documents, Electromagnetic, and Real World.
-- The benchmark comprises 224,714 images across 805 classes, representing over 11,170 hours of labeling efforts.
-- All images are preprocessed and resized to 640x640 pixels.
+- The benchmark comprises 224,714 images across 805 classes, representing over 11,170 hours of [data labeling](https://www.ultralytics.com/glossary/data-labeling) efforts.
+- All images are [preprocessed](https://www.ultralytics.com/glossary/data-preprocessing) and resized to 640x640 pixels.
 - Focuses on eliminating class ambiguity and filters out underrepresented classes for cleaner evaluation.
-- Annotations include [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) for objects, making it suitable for [training](../../modes/train.md) and evaluating object detection models.
+- Annotations include [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) for objects, making it suitable for [training](../../modes/train.md) and evaluating object detection models using metrics like [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map).
 
 ## Dataset Structure
 
@@ -39,11 +39,11 @@ The Roboflow 100 dataset is organized into seven categories, each containing a u
 - **Electromagnetic**: 12 datasets, 36,381 images, 41 classes.
 - **Real World**: 50 datasets, 110,615 images, 495 classes.
 
-This structure provides a diverse and extensive testing ground for [object detection](https://www.ultralytics.com/glossary/object-detection) models, reflecting a wide array of real-world application scenarios.
+This structure provides a diverse and extensive testing ground for [object detection](https://www.ultralytics.com/glossary/object-detection) models, reflecting a wide array of real-world application scenarios found in various [Ultralytics Solutions](https://www.ultralytics.com/solutions).
 
 ## Benchmarking
 
-Dataset [benchmarking](../../modes/benchmark.md) involves evaluating the performance of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models on specific datasets using standardized metrics. Common metrics include [accuracy](https://www.ultralytics.com/glossary/accuracy), [mean Average Precision (mAP)](https://www.ultralytics.com/glossary/mean-average-precision-map), and [F1-score](https://www.ultralytics.com/glossary/f1-score).
+Dataset [benchmarking](../../modes/benchmark.md) involves evaluating the performance of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models on specific datasets using standardized metrics. Common metrics include [accuracy](https://www.ultralytics.com/glossary/accuracy), mean Average Precision (mAP), and [F1-score](https://www.ultralytics.com/glossary/f1-score). You can learn more about these in our [YOLO Performance Metrics guide](../../guides/yolo-performance-metrics.md).
 
 !!! tip "Benchmarking"
 
@@ -64,7 +64,7 @@ Dataset [benchmarking](../../modes/benchmark.md) involves evaluating the perform
 
         # Initialize RF100Benchmark and set API key
         benchmark = RF100Benchmark()
-        benchmark.set_key(api_key="YOUR_API_KEY")
+        benchmark.set_key(api_key="YOUR_ROBOFLOW_API_KEY")
 
         # Parse dataset and define file paths
         names, cfg_yamls = benchmark.parse_dataset()
@@ -98,12 +98,12 @@ Dataset [benchmarking](../../modes/benchmark.md) involves evaluating the perform
 Roboflow 100 is invaluable for various applications related to [computer vision](https://www.ultralytics.com/blog/everything-you-need-to-know-about-computer-vision-in-2025) and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl). Researchers and engineers can leverage this benchmark to:
 
 - Evaluate the performance of object detection models in a multi-domain context.
-- Test the adaptability and robustness of models to real-world scenarios beyond common [benchmark datasets](https://www.ultralytics.com/glossary/benchmark-dataset).
+- Test the adaptability and [robustness](https://en.wikipedia.org/wiki/Robustness_(computer_science)) of models to real-world scenarios beyond common [benchmark datasets](https://www.ultralytics.com/glossary/benchmark-dataset) like [COCO](https://cocodataset.org/#home) or [PASCAL VOC](http://host.robots.ox.ac.uk/pascal/VOC/).
 - Benchmark the capabilities of object detection models across diverse datasets, including specialized areas like healthcare, aerial imagery, and video games.
 - Compare model performance across different [neural network](https://www.ultralytics.com/glossary/neural-network-nn) architectures and [optimization](https://www.ultralytics.com/glossary/optimization-algorithm) techniques.
-- Identify domain-specific challenges that may require specialized model training or [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) approaches.
+- Identify domain-specific challenges that may require specialized [model training tips](../../guides/model-training-tips.md) or [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) approaches like [transfer learning](https://www.ultralytics.com/glossary/transfer-learning).
 
-For more ideas and inspiration on real-world applications, explore [our guides on practical projects](../../guides/index.md).
+For more ideas and inspiration on real-world applications, explore [our guides on practical projects](../../guides/index.md) or check out [Ultralytics HUB](https://www.ultralytics.com/hub) for streamlined model training and deployment.
 
 ## Usage
 
@@ -159,7 +159,7 @@ The **Roboflow 100** dataset spans seven diverse domains, offering unique challe
 6.  **Electromagnetic**: 12 datasets (e.g., radar signatures, spectral data visualizations).
 7.  **Real World**: 50 datasets (a broad category including everyday objects, scenes, retail, etc.).
 
-This variety makes RF100 an excellent resource for assessing the generalizability of computer vision models.
+This variety makes RF100 an excellent resource for assessing the [generalizability](https://en.wikipedia.org/wiki/Generalization_(learning)) of computer vision models.
 
 ### What should I include when citing the Roboflow 100 dataset in my research?
 

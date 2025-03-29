@@ -54,7 +54,7 @@ For Ultralytics YOLO11, select "YOLO11" as the export format:
 <img src="https://github.com/ultralytics/docs/releases/download/0/roboflow-universe-dataset-export-1.avif" alt="Roboflow Universe dataset export format selection" width="800">
 </p>
 
-Universe also features a page aggregating public fine-tuned YOLO11 models uploaded to Roboflow. This can be useful for exploring pre-trained models for testing or automated data labeling.
+Universe also features a page aggregating public fine-tuned YOLO models uploaded to Roboflow. This can be useful for exploring pre-trained models for testing or automated data labeling.
 
 ### Roboflow Collect
 
@@ -176,9 +176,9 @@ Select the "YOLO11" format for compatibility with Ultralytics training pipelines
 
 ## Upload Custom YOLO11 Model Weights for Testing and Deployment
 
-Roboflow offers a scalable API for deployed models and SDKs compatible with devices like NVIDIA Jetson, Luxonis OAK, Raspberry Pi, and GPU-based systems. Explore various [model deployment options](../guides/model-deployment-options.md) in our guides.
+Roboflow offers a scalable API for deployed models and SDKs compatible with devices like [NVIDIA Jetson](https://developer.nvidia.com/embedded-computing), [Luxonis OAK](https://luxonis.com/), [Raspberry Pi](https://www.raspberrypi.org/), and GPU-based systems. Explore various [model deployment options](../guides/model-deployment-options.md) in our guides.
 
-You can deploy YOLO11 models by uploading their weights to Roboflow using a simple Python script.
+You can deploy YOLO11 models by uploading their weights to Roboflow using a simple [Python](https://www.python.org/) script.
 
 You can deploy YOLO11 models by uploading YOLO11 weights to Roboflow. You can do this in a few lines of Python code. Create a new Python file and add the following code:
 
@@ -195,11 +195,11 @@ dataset = project.version(VERSION).download("yolov8")
 project.version(dataset.version).deploy(model_type="yolov8", model_path=f"{HOME}/runs/detect/train/")
 ```
 
-In this code, replace the project ID and version ID with the values for your account and project.
+In this code, replace `your-workspace-id`, `your-project-id`, and the `VERSION` number with the values specific to your Roboflow account and project. Ensure the `MODEL_PATH` correctly points to the directory containing your trained `best.pt` weights file.
 
-When you run the code above, you will be asked to authenticate. Then, your model will be uploaded and an API will be created for your project. This process can take up to 30 minutes to complete.
+When you run the code above, you will be asked to authenticate (usually via an API key). Then, your model will be uploaded, and an API endpoint will be created for your project. This process can take up to 30 minutes to complete.
 
-To test your model and find deployment instructions for supported SDKs, go to the "Deploy" tab in the Roboflow sidebar. At the top of this page, a widget will appear with which you can test your model. You can use your webcam for live testing or upload images or videos.
+To test your model and find deployment instructions for supported SDKs, go to the "Deploy" tab in the Roboflow sidebar. At the top of this page, a widget will appear allowing you to test your model using your webcam or by uploading images or videos.
 
 <p align="center">
 <img src="https://github.com/ultralytics/docs/releases/download/0/running-inference-example-image.avif" alt="Running inference on an example image using the Roboflow deployment widget" width="800">
@@ -217,7 +217,7 @@ After uploading a model, access the model evaluation tool via your model page on
 <img src="https://github.com/ultralytics/docs/releases/download/0/roboflow-model-evaluation.avif" alt="Initiating a Roboflow model evaluation" width="800">
 </p>
 
-This tool displays a [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix) illustrating model performance and an interactive vector analysis plot using CLIP embeddings. These features help identify areas for model improvement.
+This tool displays a [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix) illustrating model performance and an interactive vector analysis plot using [CLIP](https://openai.com/research/clip) embeddings. These features help identify areas for model improvement.
 
 The confusion matrix pop-up:
 
@@ -243,7 +243,7 @@ Vector Analysis helps:
 
 Explore these resources to learn more about using Roboflow with Ultralytics YOLO11:
 
-- **[Train YOLO11 on a Custom Dataset (Colab)](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb)**: An interactive notebook guiding you through training YOLO11 on your data.
+- **[Train YOLO11 on a Custom Dataset (Colab)](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb)**: An interactive [Google Colab](https://colab.research.google.com/) notebook guiding you through training YOLO11 on your data.
 - **[YOLO11 Documentation](../models/yolo11.md)**: Learn about training, exporting, and deploying YOLO11 models.
 - **[Ultralytics Blog](https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai)**: Features articles on computer vision, including YOLO11 training and annotation best practices.
 - **[Ultralytics YouTube Channel](https://www.youtube.com/@Ultralytics)**: Offers in-depth video guides on computer vision topics, from model training to automated labeling.

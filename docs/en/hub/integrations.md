@@ -10,7 +10,7 @@ Learn about [Ultralytics HUB](https://www.ultralytics.com/hub) integrations with
 
 ## Datasets
 
-Seamlessly import your datasets into Ultralytics HUB for efficient [model training](https://docs.ultralytics.com/modes/train/).
+Seamlessly import your datasets into Ultralytics HUB for efficient [model training](../../modes/train/).
 
 Once a dataset is imported, you can [train a model](./models.md#train-model) on it just as you would with native Ultralytics HUB datasets.
 
@@ -96,7 +96,7 @@ Navigate to the **Integrations** page via the sidebar. Click the **Unlink** butt
 
 ### Exports
 
-After you train a model, you can [export it](./models.md#deploy-model) to 13 different formats using the [Export mode](https://docs.ultralytics.com/modes/export/), including popular ones like [ONNX](https://onnx.ai/), [OpenVINO](https://docs.openvino.ai/), [CoreML](https://developer.apple.com/documentation/coreml), [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), and [PaddlePaddle](https://www.paddlepaddle.org.cn/en).
+After you train a model, you can [export it](./models.md#deploy-model) to 13 different formats using the [Export mode](../../modes/export/), including popular ones like [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange), [OpenVINO](../../integrations/openvino/), [CoreML](../../integrations/coreml/), [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), and [PaddlePaddle](../../integrations/paddlepaddle/).
 
 ![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Export card and all formats exported](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-deploy-export-formats.avif)
 
@@ -108,9 +108,9 @@ The available export formats are detailed in the table below.
 
 We are continuously working to expand Ultralytics HUB's integration capabilities. Upcoming features include:
 
-- Additional [Dataset Integrations](https://docs.ultralytics.com/datasets/)
+- Additional [Dataset Integrations](../../datasets/)
 - Detailed Export Integration Guides
-- Step-by-Step [Tutorials](https://docs.ultralytics.com/guides/) for Each Integration
+- Step-by-Step [Tutorials](../../guides/) for Each Integration
 
 ## Stay Updated 🚧
 
@@ -126,4 +126,4 @@ Your feedback is crucial in shaping the future of Ultralytics HUB. Share your th
 
 ## Thank You, Community! 🌍
 
-Your [contributions](https://docs.ultralytics.com/help/contributing/) and engagement inspire our continuous innovation in AI and machine learning. Stay tuned for more exciting updates from Ultralytics!
+Your [contributions](../../help/contributing/) and engagement inspire our continuous innovation in AI and [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml). Stay tuned for more exciting updates from Ultralytics!

@@ -36,7 +36,7 @@ GITHUB_ASSETS_NAMES = frozenset(
     + ["mobile_sam.pt"]
     + ["calibration_image_sample_data_20x128x128x3_float32.npy.zip"]
 )
-GITHUB_ASSETS_STEMS = frozenset(Path(k).stem for k in GITHUB_ASSETS_NAMES)
+GITHUB_ASSETS_STEMS = frozenset(k.rsplit(".", 1)[0] for k in GITHUB_ASSETS_NAMES)
 
 
 def is_url(url, check=False):

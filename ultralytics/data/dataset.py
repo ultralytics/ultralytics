@@ -295,11 +295,9 @@ class YOLODataset(BaseDataset):
         values = list(zip(*[list(b.values()) for b in batch]))
         for i, k in enumerate(keys):
             value = values[i]
-            if k == "img":
+            if k == "img" or k == "text_feats":
                 value = torch.stack(value, 0)
-            if k == "text_feats":
-                value = torch.stack(value, 0)
-            if k == "visuals":
+            elif k == "visuals":
                 value = torch.nn.utils.rnn.pad_sequence(value, batch_first=True)
             if k in {"masks", "keypoints", "bboxes", "cls", "segments", "obb"}:
                 value = torch.cat(value, 0)
@@ -441,9 +439,7 @@ class GroundingDataset(YOLODataset):
             *args (Any): Additional positional arguments for the parent class.
             **kwargs (Any): Additional keyword arguments for the parent class.
         """
-        assert task == "detect" or task == "segment", (
-            "`GroundingDataset` only support `detect` and `segment` task for now!"
-        )
+        assert task in {"detect","segment"}, "GroundingDataset currently only supports `detect` and `segment` tasks"
         self.json_file = json_file
         super().__init__(*args, task=task, data={}, **kwargs)
 
@@ -461,10 +457,7 @@ class GroundingDataset(YOLODataset):
 
     def verify_labels(self, labels):
         """Verify the number of instances in the dataset matches expected counts."""
-        instance_count = 0
-        for label in labels:
-            instance_count += label["bboxes"].shape[0]
-
+        instance_count = sum(label["bboxes"].shape[0] for label in labels)
         if "final_mixed_train_no_coco_segm" in self.json_file:
             assert instance_count == 3662344
         elif "final_mixed_train_no_coco" in self.json_file:

@@ -765,16 +765,16 @@ class TVPDetectLoss:
 
     def _get_vp_features(self, feats):
         """Extract visual-prompt features from the model output."""
-        vp_feats = []
         vnc = feats[0].shape[1] - self.ori_reg_max * 4 - self.ori_nc
 
         self.vp_criterion.nc = vnc
         self.vp_criterion.no = vnc + self.vp_criterion.reg_max * 4
         self.vp_criterion.assigner.num_classes = vnc
 
-        for box, _, cls_vp in [xi.split((self.ori_reg_max * 4, self.ori_nc, vnc), dim=1) for xi in feats]:
-            vp_feats.append(torch.cat((box, cls_vp), dim=1))
-        return vp_feats
+        return [
+            torch.cat((box, cls_vp), dim=1)
+            for box, _, cls_vp in [xi.split((self.ori_reg_max * 4, self.ori_nc, vnc), dim=1) for xi in feats]
+        ]
 
 
 class TVPSegmentLoss(TVPDetectLoss):

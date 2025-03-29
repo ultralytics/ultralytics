@@ -220,7 +220,7 @@ class YOLOETrainerFromScratch(YOLOETrainer):
             return torch.load(cache_path)
         assert self.model is not None
         txt_feats = self.model.get_text_pe(texts, batch, without_reprta=True)
-        txt_map = {text: feat for text, feat in zip(texts, txt_feats.squeeze(0))}
+        txt_map = dict(zip(texts, txt_feats.squeeze(0)))
         torch.save(txt_map, cache_path)
         return txt_map
 

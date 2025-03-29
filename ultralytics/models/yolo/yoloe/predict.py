@@ -73,7 +73,6 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         if len(img) == 1:
             visuals = self._process_single_image(img[0].shape[:2], im[0].shape[:2], category, bboxes, masks)
             self.prompts = visuals.unsqueeze(0).to(self.device)  # (1, N, H, W)
-            return img
         else:
             # NOTE: only supports bboxes as prompts for now
             assert bboxes is not None, f"Expected bboxes, but got {bboxes}!"
@@ -92,7 +91,8 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
                 for i in range(len(img))
             ]
             self.prompts = torch.nn.utils.rnn.pad_sequence(visuals, batch_first=True).to(self.device)
-            return img
+
+        return img
 
     def _process_single_image(self, dst_shape, src_shape, category, bboxes=None, masks=None):
         """
@@ -129,8 +129,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
             raise ValueError("Please provide valid bboxes or masks")
 
         # Generate visuals using the visual prompt loader
-        visuals = LoadVisualPrompt().get_visuals(category, dst_shape, bboxes, masks)
-        return visuals
+        return LoadVisualPrompt().get_visuals(category, dst_shape, bboxes, masks)
 
     def inference(self, im, *args, **kwargs):
         """

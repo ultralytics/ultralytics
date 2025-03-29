@@ -216,7 +216,7 @@ class YOLOE(Model):
         Returns:
             (dict): Validation statistics containing metrics computed during validation.
         """
-        custom = {"rect": False if load_vp else True}  # method defaults
+        custom = {"rect": not load_vp}  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "val"}  # highest priority args on the right
 
         validator = (validator or self._smart_load("validator"))(args=args, _callbacks=self.callbacks)

@@ -111,14 +111,13 @@ class YOLOEDetectValidator(DetectionValidator):
                 d.transforms.append(LoadVisualPrompt())
         else:
             dataset.transforms.append(LoadVisualPrompt())
-        vps_loader = build_dataloader(
+        return build_dataloader(
             dataset,
             self.args.batch,
             self.args.workers,
             shuffle=False,
             rank=-1,
         )
-        return vps_loader
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None, refer_data=None, load_vp=False):
@@ -149,12 +148,11 @@ class YOLOEDetectValidator(DetectionValidator):
                 # Directly use the same dataloader for visual embeddings extracted during training
                 vpe = self.get_visual_pe(self.dataloader, model)
                 model.set_classes(names, vpe)
-                stats = super().__call__(trainer, model)
             else:
                 LOGGER.info("Validate using the text prompt.")
                 tpe = model.get_text_pe(names)
                 model.set_classes(names, tpe)
-                stats = super().__call__(trainer, model)
+            stats = super().__call__(trainer, model)
         else:
             if refer_data is not None:
                 assert load_vp, "Refer data is only used for visual prompt validation."

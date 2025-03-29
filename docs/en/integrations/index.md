@@ -21,10 +21,6 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
   <strong>Watch:</strong> Ultralytics YOLO11 Deployment and Integrations
 </p>
 
-## Datasets Integrations
-
-- [Roboflow](roboflow.md): Facilitate seamless dataset management for Ultralytics models, offering robust annotation, preprocessing, and augmentation capabilities.
-
 ## Training Integrations
 
 - [Amazon SageMaker](amazon-sagemaker.md): Leverage Amazon SageMaker to efficiently build, train, and deploy Ultralytics models, providing an all-in-one platform for the ML lifecycle.
@@ -98,6 +94,10 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 - [Rockchip RKNN](rockchip-rknn.md): Developed by [Rockchip](https://www.rock-chips.com/), RKNN is a specialized neural network inference framework optimized for Rockchip's hardware platforms, particularly their NPUs. It facilitates efficient deployment of AI models on edge devices, enabling high-performance inference in real-time applications.
 
 - [Seeed Studio reCamera](seeedstudio-recamera.md): Developed by [Seeed Studio](https://www.seeedstudio.com/), the reCamera is a cutting-edge edge AI device designed for real-time computer vision applications. Powered by the RISC-V-based SG200X processor, it delivers high-performance AI inference with energy efficiency. Its modular design, advanced video processing capabilities, and support for flexible deployment make it an ideal choice for various use cases, including safety monitoring, environmental applications, and manufacturing.
+
+## Datasets Integrations
+
+- [Roboflow](roboflow.md): Facilitate dataset labelling and management for Ultralytics models, offering annotation tools to label images.
 
 ### Export Formats
 

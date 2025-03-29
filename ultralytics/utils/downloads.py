@@ -16,7 +16,6 @@ from ultralytics.utils import LOGGER, TQDM, checks, clean_url, emojis, is_online
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
 GITHUB_ASSETS_REPO = "ultralytics/assets"
 GITHUB_ASSETS_NAMES = frozenset(
-    {
         [f"yolov8{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb", "-oiv7")]
         + [f"yolo11{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb")]
         + [f"yolo12{k}{suffix}.pt" for k in "nsmlx" for suffix in ("",)]  # detect models only currently
@@ -34,9 +33,8 @@ GITHUB_ASSETS_NAMES = frozenset(
         + [f"rtdetr-{k}.pt" for k in "lx"]
         + ["mobile_sam.pt"]
         + ["calibration_image_sample_data_20x128x128x3_float32.npy.zip"]
-    }
 )
-GITHUB_ASSETS_STEMS = frozenset({Path(k).stem for k in GITHUB_ASSETS_NAMES})
+GITHUB_ASSETS_STEMS = frozenset(Path(k).stem for k in GITHUB_ASSETS_NAMES)
 
 
 def is_url(url, check=False):

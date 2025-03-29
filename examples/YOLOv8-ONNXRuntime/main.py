@@ -181,7 +181,7 @@ class YOLOv8:
         class_ids = []
 
         # Calculate the scaling factors for the bounding box coordinates
-        gain = min(self.input_height / self.img_height, self.input_width / self.img_height)
+        gain = min(self.input_height / self.img_height, self.input_width / self.img_width)
         outputs[:, 0] -= pad[1]
         outputs[:, 1] -= pad[0]
 

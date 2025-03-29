@@ -29,6 +29,8 @@ GITHUB_ASSETS_NAMES = frozenset(
     + [f"yolov10{k}.pt" for k in "nsmblx"]
     + [f"yolo_nas_{k}.pt" for k in "sml"]
     + [f"sam_{k}.pt" for k in "bl"]
+    + [f"sam2_{k}.pt" for k in "blst"]
+    + [f"sam2.1_{k}.pt" for k in "blst"]
     + [f"FastSAM-{k}.pt" for k in "sx"]
     + [f"rtdetr-{k}.pt" for k in "lx"]
     + ["mobile_sam.pt"]

@@ -55,7 +55,7 @@ head:
   - [-1, 3, C2f, [256]]  # Fuse features  Index 26
 
   - [-1, 1, Conv, [512, 3, 2]]  # P4 to P5  Index 27
-  - [[-1, 5], 1, BiFPN_Concat2, [1]]  # Merge P5 with downsampled P4  Index 28
+  - [[-1, 17], 1, BiFPN_Concat2, [1]]  # Merge P5 with downsampled P4  Index 28
   - [-1, 3, C2f, [512]]  # Fuse features  Index 29
   # Detection head
   - [[23, 26, 29], 1, Detect, [nc]]  # Detect from P3, P4, P5

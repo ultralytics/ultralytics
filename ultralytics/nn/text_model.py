@@ -18,9 +18,8 @@ try:
     import warnings
 
     # Suppress 'timm.models.layers is deprecated, please import via timm.layers' warning from mobileclip usage
-    # when users are using timm version >= 0.9.5
     with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
+        warnings.filterwarnings("ignore", category=FutureWarning)
         import mobileclip
 except (ImportError, ModuleNotFoundError):
     # MobileCLIP repo has an incorrect version of torchvision as dependency

@@ -120,7 +120,7 @@ The Crack Segmentation Dataset is a collection of 4029 static images designed fo
 
 ### How do I train a model using the Crack Segmentation Dataset with Ultralytics YOLO11?
 
-To train an [Ultralytics YOLO11](../../models/yolo11/) model on this dataset, use the provided Python or CLI examples. Detailed instructions and parameters are available on the model [Training](../../modes/train.md) page. You can manage your training process using tools like [Ultralytics HUB](https://www.ultralytics.com/hub).
+To train an [Ultralytics YOLO11](../../models/yolo11.md) model on this dataset, use the provided Python or CLI examples. Detailed instructions and parameters are available on the model [Training](../../modes/train.md) page. You can manage your training process using tools like [Ultralytics HUB](https://www.ultralytics.com/hub).
 
 !!! example "Train Example"
 
@@ -153,22 +153,4 @@ Ultralytics YOLO provides real-time [object detection](https://www.ultralytics.c
 
 ### How do I cite the Crack Segmentation Dataset?
 
-If using this dataset in your work, please cite it using the provided BibTeX entry to give appropriate credit to the creators:
-
-!!! quote ""
-
-    === "BibTeX"
-
-        ```bibtex
-        @misc{ crack-bphdr_dataset,
-            title = { crack Dataset },
-            type = { Open Source Dataset },
-            author = { University },
-            url = { https://universe.roboflow.com/university-bswxt/crack-bphdr },
-            journal = { Roboflow Universe },
-            publisher = { Roboflow },
-            year = { 2022 },
-            month = { dec },
-            note = { visited on 2024-01-23 },
-        }
-        ```
+If using this dataset in your work, please cite it using the provided BibTeX entry above to give appropriate credit to the creators.

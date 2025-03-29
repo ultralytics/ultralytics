@@ -8,7 +8,7 @@ keywords: Package Segmentation Dataset, computer vision, package identification,
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-package-segmentation-dataset.ipynb" target="_blank"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Package Segmentation Dataset In Colab"></a>
 
-The [Package Segmentation Dataset](https://universe.roboflow.com/factorypackage/factory_package?ref=ultralytics) is a curated collection of images specifically tailored for tasks related to package segmentation within the field of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). This dataset is designed to assist researchers, developers, and enthusiasts working on projects involving package identification, sorting, and handling, primarily focusing on [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) tasks.
+The Package Segmentation Dataset, available on Roboflow Universe, is a curated collection of images specifically tailored for tasks related to package segmentation within the field of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). This dataset is designed to assist researchers, developers, and enthusiasts working on projects involving package identification, sorting, and handling, primarily focusing on [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) tasks.
 
 <p align="center">
   <br>
@@ -45,7 +45,7 @@ Package segmentation models can be used to identify damaged packages by analyzin
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file defines the dataset configuration, including paths, classes, and other essential details. For the Package Segmentation dataset, the `package-seg.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml)
+A YAML (Yet Another Markup Language) file defines the dataset configuration, including paths, classes, and other essential details. For the Package Segmentation dataset, the `package-seg.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml).
 
 !!! example "ultralytics/cfg/datasets/package-seg.yaml"
 

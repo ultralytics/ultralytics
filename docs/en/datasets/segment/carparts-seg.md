@@ -8,9 +8,9 @@ keywords: Carparts Segmentation Dataset, computer vision, automotive AI, vehicle
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-carparts-segmentation-dataset.ipynb" target="_blank"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Carparts Segmentation Dataset In Colab"></a>
 
-The [Carparts Segmentation Dataset](https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm?ref=ultralytics) is a curated collection of images and videos designed for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications, specifically focusing on [segmentation tasks](https://docs.ultralytics.com/tasks/segment/) related to car parts. Hosted on Roboflow Universe, this dataset provides a diverse set of visuals captured from multiple perspectives, offering valuable annotated examples for training and testing segmentation models.
+The [Carparts Segmentation Dataset](https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm?ref=ultralytics) is a curated collection of images and videos designed for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications, specifically focusing on [segmentation tasks](https://docs.ultralytics.com/tasks/segment/). Hosted on Roboflow Universe, this dataset provides a diverse set of visuals captured from multiple perspectives, offering valuable [annotated](https://www.ultralytics.com/glossary/data-labeling) examples for training and testing segmentation models.
 
-Whether you're working on [automotive research](https://www.ultralytics.com/solutions/ai-in-automotive), developing AI solutions for vehicle maintenance, or exploring computer vision applications, the Carparts Segmentation Dataset serves as a valuable resource for enhancing the [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency of your projects using models like Ultralytics YOLO.
+Whether you're working on [automotive research](https://www.ultralytics.com/solutions/ai-in-automotive), developing AI solutions for vehicle maintenance, or exploring computer vision applications, the Carparts Segmentation Dataset serves as a valuable resource for enhancing the [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency of your projects using models like [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo11.md).
 
 <p align="center">
   <br>
@@ -27,9 +27,9 @@ Whether you're working on [automotive research](https://www.ultralytics.com/solu
 
 The data distribution within the Carparts Segmentation Dataset is organized as follows:
 
-- **Training set**: Includes 3156 images, each accompanied by its corresponding annotations. This set is used for training the [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model.
-- **Testing set**: Comprises 276 images, with each one paired with its respective annotations. This set is used to evaluate the model's performance after training.
-- **Validation set**: Consists of 401 images, each having corresponding annotations. This set is used during training to tune [hyperparameters](https://docs.ultralytics.com/guides/hyperparameter-tuning/) and prevent [overfitting](https://www.ultralytics.com/glossary/overfitting).
+- **Training set**: Includes 3156 images, each accompanied by its corresponding annotations. This set is used for [training](https://www.ultralytics.com/glossary/training-data) the [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) [model](https://www.ultralytics.com/glossary/foundation-model).
+- **Testing set**: Comprises 276 images, with each one paired with its respective annotations. This set is used to evaluate the model's performance after training using [test data](https://www.ultralytics.com/glossary/test-data).
+- **Validation set**: Consists of 401 images, each having corresponding annotations. This set is used during training to tune [hyperparameters](https://docs.ultralytics.com/guides/hyperparameter-tuning/) and prevent [overfitting](https://www.ultralytics.com/glossary/overfitting) using [validation data](https://www.ultralytics.com/glossary/validation-data).
 
 ## Applications
 

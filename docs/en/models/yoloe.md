@@ -162,8 +162,11 @@ Object detection is straightforward with the `predict` method, as illustrated be
         # Show results
         results[0].show()
         ```
+
     === "Visual Prompt"
+    
         Prompts in source image:
+
         ```python
         import numpy as np
 
@@ -199,6 +202,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
         # Show results
         results[0].show()
         ```
+
         Prompts in different images:
 
         ```python
@@ -227,7 +231,9 @@ Object detection is straightforward with the `predict` method, as illustrated be
         # Show results
         results[0].show()
         ```
+
         Running with multiple images:
+
         ```python
         import numpy as np
 
@@ -271,6 +277,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
         ```
 
     === "Prompt free"
+    
         ```python
         from ultralytics import YOLOE
 
@@ -303,6 +310,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
     === "Visual Prompt"
 
         Be default it's using the prodived dataset to extract visual embeddings for each category.
+        
         ```python
         from ultralytics import YOLOE
 
@@ -312,8 +320,10 @@ Object detection is straightforward with the `predict` method, as illustrated be
         # Conduct model validation on the COCO128-seg example dataset
         metrics = model.val(data="coco128-seg.yaml", load_vp=True)
         ```
+        
         Alternatively we could use another dataset as a reference dataset to extract visual embeddings for each category.
-        Noted this reference dataset should have exactly the same categories as provided dataset.
+        Note this reference dataset should have exactly the same categories as provided dataset.
+        
         ```python
         from ultralytics import YOLOE
 
@@ -412,7 +422,8 @@ Model validation on a dataset is streamlined as follows:
 
         Since only the `SAVPE` module needs to be updating during training.
         Converting trained-well Text-prompt model to detection model and adopt detection pipeline with less training cost.
-        Noted this step is optional, you can directly start from segmentation as well.
+        Note this step is optional, you can directly start from segmentation as well.
+        
         ```python
         import torch
 
@@ -423,7 +434,9 @@ Model validation on a dataset is streamlined as follows:
         det_model.load(state["model"])
         det_model.save("yoloe-11l-seg-det.pt")
         ```
+        
         Start training:
+        
         ```python
         from ultralytics import YOLOE
         from ultralytics.models.yolo.yoloe import YOLOEVPTrainer
@@ -472,7 +485,9 @@ Model validation on a dataset is streamlined as follows:
             freeze=freeze,
         )
         ```
+        
         Convert back to segmentation model after training. Only needed if you converted segmentation model to detection model before training.
+        
         ```python
         from copy import deepcopy
 
@@ -491,7 +506,8 @@ Model validation on a dataset is streamlined as follows:
 
         Similar to visual prompt training, for prompt-free model there's only the specialized prompt embedding needs to be updating during training.
         Converting trained-well Text-prompt model to detection model and adopt detection pipeline with less training cost.
-        Noted this step is optional, you can directly start from segmentation as well.
+        Note this step is optional, you can directly start from segmentation as well.
+        
         ```python
         import torch
 
@@ -562,7 +578,9 @@ Model validation on a dataset is streamlined as follows:
             single_cls=True,  # this is needed
         )
         ```
+        
         Convert back to segmentation model after training. Only needed if you converted segmentation model to detection model before training.
+        
         ```python
         from copy import deepcopy
 

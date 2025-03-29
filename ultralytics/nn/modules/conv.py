@@ -394,7 +394,7 @@ class BiFPN_Concat3(nn.Module):
     def __init__(self, dimension=1):
         super(BiFPN_Concat3, self).__init__()
         self.d = dimension
-        self.w = nn.Parameter(torch.ones(2, dtype=torch.float32), requires_grad=True)
+        self.w = nn.Parameter(torch.ones(3, dtype=torch.float32), requires_grad=True)
         self.epsilon = 0.0001
 
     def forward(self, x):

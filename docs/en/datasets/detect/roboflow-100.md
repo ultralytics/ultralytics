@@ -98,7 +98,7 @@ Dataset [benchmarking](../../modes/benchmark.md) involves evaluating the perform
 Roboflow 100 is invaluable for various applications related to [computer vision](https://www.ultralytics.com/blog/everything-you-need-to-know-about-computer-vision-in-2025) and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl). Researchers and engineers can leverage this benchmark to:
 
 - Evaluate the performance of object detection models in a multi-domain context.
-- Test the adaptability and [robustness](https://en.wikipedia.org/wiki/Robustness_(computer_science)) of models to real-world scenarios beyond common [benchmark datasets](https://www.ultralytics.com/glossary/benchmark-dataset) like [COCO](https://cocodataset.org/#home) or [PASCAL VOC](http://host.robots.ox.ac.uk/pascal/VOC/).
+- Test the adaptability and [robustness](<https://en.wikipedia.org/wiki/Robustness_(computer_science)>) of models to real-world scenarios beyond common [benchmark datasets](https://www.ultralytics.com/glossary/benchmark-dataset) like [COCO](https://cocodataset.org/#home) or [PASCAL VOC](http://host.robots.ox.ac.uk/pascal/VOC/).
 - Benchmark the capabilities of object detection models across diverse datasets, including specialized areas like healthcare, aerial imagery, and video games.
 - Compare model performance across different [neural network](https://www.ultralytics.com/glossary/neural-network-nn) architectures and [optimization](https://www.ultralytics.com/glossary/optimization-algorithm) techniques.
 - Identify domain-specific challenges that may require specialized [model training tips](../../guides/model-training-tips.md) or [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) approaches like [transfer learning](https://www.ultralytics.com/glossary/transfer-learning).
@@ -159,7 +159,7 @@ The **Roboflow 100** dataset spans seven diverse domains, offering unique challe
 6.  **Electromagnetic**: 12 datasets (e.g., radar signatures, spectral data visualizations).
 7.  **Real World**: 50 datasets (a broad category including everyday objects, scenes, retail, etc.).
 
-This variety makes RF100 an excellent resource for assessing the [generalizability](https://en.wikipedia.org/wiki/Generalization_(learning)) of computer vision models.
+This variety makes RF100 an excellent resource for assessing the [generalizability](<https://en.wikipedia.org/wiki/Generalization_(learning)>) of computer vision models.
 
 ### What should I include when citing the Roboflow 100 dataset in my research?
 

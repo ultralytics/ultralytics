@@ -6,7 +6,7 @@ keywords: Ultralytics HUB, Roboflow integration, dataset import, model training,
 
 # Ultralytics HUB Integrations
 
-Learn about [Ultralytics HUB](https://www.ultralytics.com/hub) integrations with various platforms and formats to streamline your AI workflows.
+Learn about [Ultralytics HUB](https://www.ultralytics.com/hub) integrations with various platforms and formats to streamline your [AI](https://www.ultralytics.com/glossary/artificial-intelligence-ai) workflows.
 
 ## Datasets
 

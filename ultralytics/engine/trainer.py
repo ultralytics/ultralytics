@@ -495,7 +495,10 @@ class BaseTrainer:
         if self.device.type == "mps":
             memory = torch.mps.driver_allocated_memory()
             if fraction:
-                return __import__("psutil").virtual_memory().percent / 100
+                if hasattr(torch.mps, "recommended_max_memory"):
+                    total = torch.mps.recommended_max_memory()
+                else:
+                    return __import__("psutil").virtual_memory().percent / 100
         elif self.device.type == "cpu":
             pass
         else:

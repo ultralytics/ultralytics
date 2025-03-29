@@ -81,7 +81,7 @@ def on_pretrain_routine_start(trainer) -> None:
             )
         task.connect(vars(trainer.args), name="General")
     except Exception as e:
-        LOGGER.warning(f"WARNING ⚠️ ClearML installed but not initialized correctly, not logging this run. {e}")
+        LOGGER.warning(f"ClearML installed but not initialized correctly, not logging this run. {e}")
 
 
 def on_train_epoch_end(trainer) -> None:

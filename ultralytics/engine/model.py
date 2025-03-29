@@ -528,7 +528,7 @@ class Model(torch.nn.Module):
         """
         if source is None:
             source = ASSETS
-            LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using 'source={source}'.")
+            LOGGER.warning(f"'source' is missing. Using 'source={source}'.")
 
         is_cli = (ARGV[0].endswith("yolo") or ARGV[0].endswith("ultralytics")) and any(
             x in ARGV for x in ("predict", "track", "mode=predict", "mode=track")

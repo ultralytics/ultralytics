@@ -112,7 +112,7 @@ def _resume_or_create_experiment(args: SimpleNamespace) -> None:
         experiment.log_other("Created from", "ultralytics")
 
     except Exception as e:
-        LOGGER.warning(f"WARNING ⚠️ Comet installed but not initialized correctly, not logging this run. {e}")
+        LOGGER.warning(f"Comet installed but not initialized correctly, not logging this run. {e}")
 
 
 def _fetch_trainer_metadata(trainer) -> dict:

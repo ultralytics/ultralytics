@@ -403,7 +403,7 @@ class HUBTrainingSession:
                 )
                 shutil.copy(last, weights)  # copy last.pt to best.pt
             else:
-                LOGGER.warning(f"{PREFIX} WARNING ⚠️ Model upload issue. Missing model {weights}.")
+                LOGGER.warning(f"WARNING ⚠️ Model upload issue. Missing model {weights}.", prefix=PREFIX)
                 return
 
         self.request_queue(

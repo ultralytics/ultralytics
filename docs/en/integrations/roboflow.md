@@ -193,9 +193,9 @@ rf = roboflow.Roboflow()
 
 # Define your workspace and project details
 WORKSPACE_ID = "your-workspace-id"  # Replace with your actual Workspace ID
-PROJECT_ID = "your-project-id"    # Replace with your actual Project ID
-VERSION = 1                       # Replace with your desired dataset version number
-MODEL_PATH = "path/to/your/runs/detect/train/" # Replace with the path to your YOLO11 training results directory
+PROJECT_ID = "your-project-id"  # Replace with your actual Project ID
+VERSION = 1  # Replace with your desired dataset version number
+MODEL_PATH = "path/to/your/runs/detect/train/"  # Replace with the path to your YOLO11 training results directory
 
 # Get project and version
 project = rf.workspace(WORKSPACE_ID).project(PROJECT_ID)
@@ -203,7 +203,9 @@ dataset = project.version(VERSION)
 
 # Upload model weights for deployment
 # Ensure model_path points to the directory containing 'best.pt'
-project.version(dataset.version).deploy(model_type="yolov8", model_path=MODEL_PATH) # Note: Use "yolov8" as model_type for YOLO11 compatibility in Roboflow deployment
+project.version(dataset.version).deploy(
+    model_type="yolov8", model_path=MODEL_PATH
+)  # Note: Use "yolov8" as model_type for YOLO11 compatibility in Roboflow deployment
 
 print(f"Model from {MODEL_PATH} uploaded to Roboflow project {PROJECT_ID}, version {VERSION}.")
 print("Deployment may take up to 30 minutes.")

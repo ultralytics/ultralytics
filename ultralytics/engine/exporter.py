@@ -126,7 +126,7 @@ def export_formats():
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
-        ["IMX", "imx", "_imx_model", True, True, ["int8"]],
+        ["IMX", "imx", "_imx_model", True, True, ["batch", "int8"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
@@ -268,6 +268,11 @@ class Exporter:
             dla = self.args.device.split(":")[-1]
             self.args.device = "0"  # update device to "0"
             assert dla in {"0", "1"}, f"Expected self.args.device='dla:0' or 'dla:1, but got {self.args.device}."
+        if imx and self.args.device is None and torch.cuda.is_available():
+            LOGGER.warning(
+                "WARNING ⚠️ Exporting on CPU while CUDA is available, setting device=0 for faster export on GPU."
+            )
+            self.args.device = "0"  # update device to "0"
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
 
         # Argument compatibility checks

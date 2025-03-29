@@ -8,7 +8,7 @@ keywords: Crack Segmentation Dataset, Ultralytics, transportation safety, public
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-crack-segmentation-dataset.ipynb" target="_blank"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Crack Segmentation Dataset In Colab"></a>
 
-The [Crack Segmentation Dataset](https://universe.roboflow.com/university-bswxt/crack-bphdr?ref=ultralytics) is an extensive resource designed for individuals involved in transportation and public safety studies. It is also beneficial for developing [self-driving car](https://www.ultralytics.com/blog/ai-in-self-driving-cars) models or exploring various [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications. This dataset is part of the broader collection available on the Ultralytics [Datasets Hub](../../datasets/).
+The [Crack Segmentation Dataset](https://universe.roboflow.com/university-bswxt/crack-bphdr?ref=ultralytics) is an extensive resource designed for individuals involved in transportation and public safety studies. It is also beneficial for developing [self-driving car](https://www.ultralytics.com/blog/ai-in-self-driving-cars) models or exploring various [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications. This dataset is part of the broader collection available on the Ultralytics [Datasets Hub](../../datasets/index.md).
 
 <p align="center">
   <br>
@@ -35,7 +35,7 @@ The Crack Segmentation Dataset is organized into three subsets:
 
 Crack segmentation finds practical applications in [infrastructure maintenance](https://www.ultralytics.com/blog/using-ai-for-crack-detection-and-segmentation), aiding in the identification and assessment of structural damage in buildings, bridges, and roads. It also plays a crucial role in enhancing [road safety](https://www.who.int/news-room/fact-sheets/detail/road-traffic-injuries) by enabling automated systems to detect pavement cracks for timely repairs.
 
-In industrial settings, crack detection using deep learning models like [Ultralytics YOLO11](../../models/yolo11/) helps ensure building integrity in construction, prevents costly downtimes in [manufacturing](https://www.ultralytics.com/solutions/ai-in-manufacturing), and makes road inspections safer and more effective. Automatically identifying and classifying cracks allows maintenance teams to prioritize repairs efficiently, contributing to better [model evaluation insights](../../guides/model-evaluation-insights/).
+In industrial settings, crack detection using deep learning models like [Ultralytics YOLO11](../../models/yolo11.md) helps ensure building integrity in construction, prevents costly downtimes in [manufacturing](https://www.ultralytics.com/solutions/ai-in-manufacturing), and makes road inspections safer and more effective. Automatically identifying and classifying cracks allows maintenance teams to prioritize repairs efficiently, contributing to better [model evaluation insights](../../guides/model-evaluation-insights.md).
 
 ## Dataset YAML
 
@@ -49,7 +49,7 @@ A [YAML](https://www.ultralytics.com/glossary/yaml) (Yet Another Markup Language
 
 ## Usage
 
-To train the Ultralytics YOLO11n model on the Crack Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following [Python](https://www.python.org/) code snippets. Refer to the model [Training](../../modes/train.md) documentation page for a comprehensive list of available arguments and configurations like [hyperparameter tuning](../../guides/hyperparameter-tuning/).
+To train the Ultralytics YOLO11n model on the Crack Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following [Python](https://www.python.org/) code snippets. Refer to the model [Training](../../modes/train.md) documentation page for a comprehensive list of available arguments and configurations like [hyperparameter tuning](../../guides/hyperparameter-tuning.md).
 
 !!! example "Train Example"
 
@@ -84,7 +84,7 @@ The Crack Segmentation dataset contains a diverse collection of images captured 
 
 ![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/crack-segmentation-sample.avif)
 
-- This image demonstrates [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), featuring annotated [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) with masks outlining identified cracks. The dataset includes images from different locations and environments, making it a comprehensive resource for developing robust models for this task. Techniques like [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) can further enhance dataset diversity. Learn more about instance segmentation and tracking in our [guide](../../guides/instance-segmentation-and-tracking/).
+- This image demonstrates [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), featuring annotated [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) with masks outlining identified cracks. The dataset includes images from different locations and environments, making it a comprehensive resource for developing robust models for this task. Techniques like [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) can further enhance dataset diversity. Learn more about instance segmentation and tracking in our [guide](../../guides/instance-segmentation-and-tracking.md).
 
 - The example highlights the diversity within the Crack Segmentation dataset, emphasizing the importance of high-quality data for training effective computer vision models.
 
@@ -116,7 +116,7 @@ We acknowledge the team responsible for creating and curating the Crack Segmenta
 
 ### What is the Crack Segmentation Dataset?
 
-The Crack Segmentation Dataset is a collection of 4029 static images designed for transportation and public safety studies. It's suitable for tasks like [self-driving car](https://www.ultralytics.com/blog/ai-in-self-driving-cars) model development and [infrastructure maintenance](https://www.ultralytics.com/blog/using-ai-for-crack-detection-and-segmentation). It includes training, testing, and validation sets for crack detection and [segmentation](../../tasks/segment/) tasks.
+The Crack Segmentation Dataset is a collection of 4029 static images designed for transportation and public safety studies. It's suitable for tasks like [self-driving car](https://www.ultralytics.com/blog/ai-in-self-driving-cars) model development and [infrastructure maintenance](https://www.ultralytics.com/blog/using-ai-for-crack-detection-and-segmentation). It includes training, testing, and validation sets for crack detection and [segmentation](../../tasks/segment.md) tasks.
 
 ### How do I train a model using the Crack Segmentation Dataset with Ultralytics YOLO11?
 
@@ -145,11 +145,11 @@ To train an [Ultralytics YOLO11](../../models/yolo11.md) model on this dataset, 
 
 ### Why use the Crack Segmentation Dataset for self-driving car projects?
 
-This dataset is valuable for self-driving car projects due to its diverse images of roads and walls, covering various real-world scenarios. This diversity improves the robustness of models trained for crack detection, which is crucial for road safety and infrastructure assessment. The detailed annotations aid in [developing models](../../guides/model-training-tips/) that can accurately identify potential road hazards.
+This dataset is valuable for self-driving car projects due to its diverse images of roads and walls, covering various real-world scenarios. This diversity improves the robustness of models trained for crack detection, which is crucial for road safety and infrastructure assessment. The detailed annotations aid in [developing models](../../guides/model-training-tips.md) that can accurately identify potential road hazards.
 
 ### What features does Ultralytics YOLO offer for crack segmentation?
 
-Ultralytics YOLO provides real-time [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and classification capabilities, making it highly suitable for crack segmentation tasks. It efficiently handles large datasets and complex scenarios. The framework includes comprehensive modes for [Training](../../modes/train.md), [Prediction](../../modes/predict.md), and [Exporting](../../modes/export.md) models. YOLO's [anchor-free detection](https://www.ultralytics.com/blog/benefits-ultralytics-yolo11-being-anchor-free-detector) approach can improve performance on irregular shapes like cracks, and performance can be measured using standard [metrics](../../guides/yolo-performance-metrics/).
+Ultralytics YOLO provides real-time [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and classification capabilities, making it highly suitable for crack segmentation tasks. It efficiently handles large datasets and complex scenarios. The framework includes comprehensive modes for [Training](../../modes/train.md), [Prediction](../../modes/predict.md), and [Exporting](../../modes/export.md) models. YOLO's [anchor-free detection](https://www.ultralytics.com/blog/benefits-ultralytics-yolo11-being-anchor-free-detector) approach can improve performance on irregular shapes like cracks, and performance can be measured using standard [metrics](../../guides/yolo-performance-metrics.md).
 
 ### How do I cite the Crack Segmentation Dataset?
 

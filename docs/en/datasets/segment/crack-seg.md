@@ -110,7 +110,7 @@ If you use the Crack Segmentation dataset in your research or development work, 
         }
         ```
 
-We acknowledge the team responsible for creating and curating the Crack Segmentation dataset, providing a valuable resource for the computer vision community, particularly for projects related to road safety and infrastructure assessment.
+We acknowledge the team at Roboflow for making the Crack Segmentation dataset available, providing a valuable resource for the computer vision community, particularly for projects related to road safety and infrastructure assessment.
 
 ## FAQ
 

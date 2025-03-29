@@ -439,7 +439,7 @@ class GroundingDataset(YOLODataset):
             *args (Any): Additional positional arguments for the parent class.
             **kwargs (Any): Additional keyword arguments for the parent class.
         """
-        assert task in {"detect","segment"}, "GroundingDataset currently only supports `detect` and `segment` tasks"
+        assert task in {"detect", "segment"}, "GroundingDataset currently only supports `detect` and `segment` tasks"
         self.json_file = json_file
         super().__init__(*args, task=task, data={}, **kwargs)
 

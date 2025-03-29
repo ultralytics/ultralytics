@@ -8,7 +8,7 @@ keywords: Package Segmentation Dataset, computer vision, package identification,
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-package-segmentation-dataset.ipynb" target="_blank" rel="noopener noreferrer"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Package Segmentation Dataset In Colab"></a>
 
-The [Package Segmentation Dataset](https://universe.roboflow.com/factorypackage/factory_package?ref=ultralytics){: target="_blank" rel="noopener noreferrer"} is a curated collection of images specifically tailored for tasks related to package segmentation in the field of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). This dataset is designed to assist researchers, developers, and enthusiasts working on projects related to package identification, sorting, and handling, primarily focusing on [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) tasks.
+The [Package Segmentation Dataset](https://universe.roboflow.com/factorypackage/factory_package?ref=ultralytics){: target="\_blank" rel="noopener noreferrer"} is a curated collection of images specifically tailored for tasks related to package segmentation in the field of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). This dataset is designed to assist researchers, developers, and enthusiasts working on projects related to package identification, sorting, and handling, primarily focusing on [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) tasks.
 
 <p align="center">
   <br>
@@ -45,7 +45,7 @@ Package segmentation models can be used to identify damaged packages by analyzin
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the Package Segmentation dataset, the `package-seg.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml){: target="_blank" rel="noopener noreferrer"}.
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the Package Segmentation dataset, the `package-seg.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml){: target="\_blank" rel="noopener noreferrer"}.
 
 !!! example "ultralytics/cfg/datasets/package-seg.yaml"
 
@@ -141,12 +141,15 @@ We express our gratitude to the creators of the Package Segmentation dataset for
 ## FAQ
 
 ### What is the Package Segmentation Dataset and how can it help in computer vision projects?
+
 - The Package Segmentation Dataset is a curated collection of images tailored for tasks involving package [image segmentation](https://www.ultralytics.com/glossary/image-segmentation). It includes diverse images of packages in various contexts, making it invaluable for training and evaluating segmentation models. This dataset is particularly useful for applications in logistics, warehouse automation, and any project requiring precise package analysis.
 
 ### How do I train an Ultralytics YOLO11 model on the Package Segmentation Dataset?
+
 - You can train an [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/)n model using both Python and CLI methods. Use the code snippets provided in the [Usage](#usage) section. Refer to the model [Training](../../modes/train.md) page for more details on arguments and configurations.
 
 ### What are the components of the Package Segmentation Dataset, and how is it structured?
+
 - The dataset is structured into three main components:
     - **Training set**: Contains 1920 images with annotations.
     - **Testing set**: Comprises 89 images with corresponding annotations.
@@ -154,7 +157,9 @@ We express our gratitude to the creators of the Package Segmentation dataset for
 - This structure ensures a balanced dataset for thorough model training, validation, and testing.
 
 ### Why should I use Ultralytics YOLO11 with the Package Segmentation Dataset?
+
 - Ultralytics YOLO11 provides state-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) and segmentation tasks. Using it with the Package Segmentation Dataset allows you to leverage YOLO11's capabilities for precise package segmentation, which is especially beneficial for industries like logistics and warehouse automation.
 
 ### How can I access and use the package-seg.yaml file for the Package Segmentation Dataset?
+
 - The `package-seg.yaml` file is hosted on Ultralytics' GitHub repository and contains essential information about the dataset's paths, classes, and configuration. You can download it from [here](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml). This file is crucial for configuring your models to utilize the dataset efficiently. For more insights and practical examples, explore our [Usage](https://docs.ultralytics.com/usage/python/) section.

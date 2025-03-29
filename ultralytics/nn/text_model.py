@@ -138,7 +138,9 @@ class MobileCLIP(TextModel):
         config = self.config_size_map[size]
         file = f"mobileclip_{size}.pt"
         if not Path(file).is_file():
-            checks.check_file(f"https://docs-assets.developer.apple.com/ml-research/datasets/mobileclip/{file}")
+            from ultralytics import download
+
+            download(f"https://docs-assets.developer.apple.com/ml-research/datasets/mobileclip/{file}")
         self.model = mobileclip.create_model_and_transforms(f"mobileclip_{config}", pretrained=file, device=device)[0]
         self.tokenizer = mobileclip.get_tokenizer(f"mobileclip_{config}")
         self.to(device)

@@ -10,7 +10,7 @@ keywords: Carparts Segmentation Dataset, computer vision, automotive AI, vehicle
 
 The Carparts Segmentation Dataset, available on Roboflow Universe, is a curated collection of images and videos designed for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications, specifically focusing on [segmentation tasks](https://docs.ultralytics.com/tasks/segment/). Hosted on Roboflow Universe, this dataset provides a diverse set of visuals captured from multiple perspectives, offering valuable [annotated](https://www.ultralytics.com/glossary/data-labeling) examples for training and testing segmentation models.
 
-Whether you're working on [automotive research](https://www.ultralytics.com/solutions/ai-in-automotive), developing AI solutions for vehicle maintenance, or exploring computer vision applications, the Carparts Segmentation Dataset serves as a valuable resource for enhancing the [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency of your projects using models like [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo11.md).
+Whether you're working on [automotive research](https://www.ultralytics.com/solutions/ai-in-automotive), developing AI solutions for vehicle maintenance, or exploring computer vision applications, the Carparts Segmentation Dataset serves as a valuable resource for enhancing the [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency of your projects using models like [Ultralytics YOLO](../../models/yolo11.md).
 
 <p align="center">
   <br>

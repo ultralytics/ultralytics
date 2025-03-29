@@ -13,9 +13,9 @@ keywords: YOLOv5, custom dataset, model training, object detection, machine lear
 First, clone the YOLOv5 repository and install the necessary dependencies from `requirements.txt`. Ensure you have a [**Python>=3.8.0**](https://www.python.org/) environment with [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/) installed. Models and datasets will be downloaded automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases) if they are not found locally.
 
 ```bash
-git clone https://github.com/ultralytics/yolov5  # Clone the repository
+git clone https://github.com/ultralytics/yolov5 # Clone the repository
 cd yolov5
-pip install -r requirements.txt  # Install dependencies
+pip install -r requirements.txt # Install dependencies
 ```
 
 ## Train On Custom Data
@@ -55,6 +55,7 @@ YOLOv5 models require labeled data to learn object classes. There are several wa
 The dataset configuration file (e.g., `coco128.yaml`) defines the structure and classes of your dataset. [COCO128](https://docs.ultralytics.com/datasets/detect/coco128/) is a small example dataset using the first 128 images from the larger [COCO](https://docs.ultralytics.com/datasets/detect/coco/) dataset, useful for testing the training pipeline and checking for [overfitting](https://www.ultralytics.com/glossary/overfitting).
 
 The `dataset.yaml` file specifies:
+
 - `path`: The root directory for the dataset.
 - `train`, `val`, `test`: Relative paths to directories containing images or text files listing image paths.
 - `names`: A dictionary mapping class indices (starting from 0) to class names.
@@ -66,19 +67,19 @@ Here's the structure for `coco128.yaml` ([view on GitHub](https://github.com/ult
 path: ../datasets/coco128
 
 # Train/val/test sets: specify directories, *.txt files, or lists
-train: images/train2017  # 128 images
-val: images/train2017    # 128 images
-test:  # Optional test images
+train: images/train2017 # 128 images
+val: images/train2017 # 128 images
+test: # Optional test images
 
 # Classes (80 COCO classes)
 names:
-  0: person
-  1: bicycle
-  2: car
-  # ... (rest of the classes)
-  77: teddy bear
-  78: hair drier
-  79: toothbrush
+    0: person
+    1: bicycle
+    2: car
+    # ... (rest of the classes)
+    77: teddy bear
+    78: hair drier
+    79: toothbrush
 ```
 
 ### 1.2 Create Labels
@@ -86,6 +87,7 @@ names:
 Use an annotation tool (like CVAT or LabelImg) for [data labeling](https://www.ultralytics.com/glossary/data-labeling). Export your annotations in the **YOLO format**. This format requires one `*.txt` file for each image. If an image has no objects, no `*.txt` file is needed.
 
 The `*.txt` file format specifications are:
+
 - One row per object [bounding box](https://www.ultralytics.com/glossary/bounding-box).
 - Each row follows the format: `class_index x_center y_center width height`.
 - Coordinates must be **normalized** (values between 0 and 1). To normalize, divide the pixel values of `x_center` and `width` by the image width, and `y_center` and `height` by the image height.
@@ -104,8 +106,8 @@ Structure your [datasets](https://docs.ultralytics.com/datasets/) directory as s
 YOLOv5 automatically finds the labels for each image by replacing the last occurrence of `/images/` in the image path with `/labels/`. For example:
 
 ```bash
-../datasets/coco128/images/im0.jpg  # Image file path
-../datasets/coco128/labels/im0.txt  # Corresponding label file path
+../datasets/coco128/images/im0.jpg # Image file path
+../datasets/coco128/labels/im0.txt # Corresponding label file path
 ```
 
 The expected directory structure:
@@ -138,6 +140,7 @@ Choose a [pretrained model](https://docs.ultralytics.com/models/#pretrained-mode
 ## 3. Train
 
 Start the [training process](https://docs.ultralytics.com/modes/train/) using the `train.py` script. Key arguments include:
+
 - `--img`: Defines the input [image size](https://docs.ultralytics.com/usage/cfg/#image-size) (e.g., `--img 640`).
 - `--batch`: Determines the [batch size](https://www.ultralytics.com/glossary/batch-size) (e.g., `--batch 16`).
 - `--epochs`: Specifies the number of training [epochs](https://www.ultralytics.com/glossary/epoch) (e.g., `--epochs 100`).
@@ -196,6 +199,7 @@ ClearML tracks experiments, model uploads, comparisons, uncommitted code changes
 ### Local Logging
 
 Training results are automatically logged using [TensorBoard](https://docs.ultralytics.com/integrations/tensorboard/) and as [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) files in the `runs/train/exp` directory. This includes:
+
 - Training and validation statistics.
 - Sample images with augmentations (mosaics).
 - Ground truth labels and model predictions.

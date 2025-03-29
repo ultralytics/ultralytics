@@ -6,7 +6,7 @@ keywords: Package Segmentation Dataset, computer vision, package identification,
 
 # Package Segmentation Dataset
 
-<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-package-segmentation-dataset.ipynb" target="_blank" rel="noopener noreferrer"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Package Segmentation Dataset In Colab"></a>
+<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-package-segmentation-dataset.ipynb" target="_blank"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Package Segmentation Dataset In Colab"></a>
 
 The [Package Segmentation Dataset](https://universe.roboflow.com/factorypackage/factory_package?ref=ultralytics) is a curated collection of images specifically tailored for tasks related to package segmentation within the field of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). This dataset is designed to assist researchers, developers, and enthusiasts working on projects involving package identification, sorting, and handling, primarily focusing on [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) tasks.
 
@@ -162,4 +162,4 @@ We express our gratitude to the creators of the Package Segmentation dataset for
 
 ### How can I access and use the package-seg.yaml file for the Package Segmentation Dataset?
 
-- The `package-seg.yaml` file is hosted on Ultralytics' GitHub repository and contains essential information about the dataset's paths, classes, and configuration. You can view or download it from [here](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml){: target="\_blank" rel="noopener noreferrer"}. This file is crucial for configuring your models to utilize the dataset efficiently. For more insights and practical examples, explore our [Python Usage](https://docs.ultralytics.com/usage/python/) section.
+- The `package-seg.yaml` file is hosted on Ultralytics' GitHub repository and contains essential information about the dataset's paths, classes, and configuration. You can view or download it from [here](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml). This file is crucial for configuring your models to utilize the dataset efficiently. For more insights and practical examples, explore our [Python Usage](https://docs.ultralytics.com/usage/python/) section.

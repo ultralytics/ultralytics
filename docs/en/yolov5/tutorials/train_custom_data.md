@@ -6,7 +6,7 @@ keywords: YOLOv5, custom dataset, model training, object detection, machine lear
 
 # Train YOLOv5 on Custom Data
 
-📚 This guide explains how to train your own **custom dataset** using the [YOLOv5](https://github.com/ultralytics/yolov5) model 🚀. Training custom models is a fundamental step in tailoring [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) solutions to specific real-world applications beyond generic object detection.
+📚 This guide explains how to train your own **custom dataset** using the [YOLOv5](https://github.com/ultralytics/yolov5) model 🚀. Training custom models is a fundamental step in tailoring [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) solutions to specific real-world applications beyond generic [object detection](https://docs.ultralytics.com/tasks/detect/).
 
 ## Before You Start
 
@@ -29,7 +29,7 @@ Developing a custom [object detection](https://docs.ultralytics.com/tasks/detect
 
 1.  **Collect & Organize Images**: Gather images relevant to your specific task. High-quality, diverse data is crucial. See our guide on [Data Collection and Annotation](https://docs.ultralytics.com/guides/data-collection-and-annotation/).
 2.  **Label Objects**: Annotate the objects of interest within your images accurately.
-3.  **Train a Model**: Use the labeled data to train your YOLOv5 model. Leverage [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) by starting with pretrained weights.
+3.  **Train a Model**: Use the labeled data to [train](https://docs.ultralytics.com/modes/train/) your YOLOv5 model. Leverage [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) by starting with pretrained weights.
 4.  **Deploy & Predict**: Utilize the trained model for [inference](https://docs.ultralytics.com/modes/predict/) on new, unseen data.
 5.  **Collect Edge Cases**: Identify scenarios where the model performs poorly ([edge cases](https://en.wikipedia.org/wiki/Edge_case)) and add similar data to your dataset to improve robustness. Repeat the cycle.
 
@@ -170,7 +170,7 @@ YOLOv5 seamlessly integrates with various tools for visualizing training progres
 
 ### Comet Logging and Visualization 🌟 NEW
 
-[Comet](https://bit.ly/yolov5-readme-comet) is fully integrated for comprehensive experiment tracking. Visualize metrics live, save hyperparameters, manage datasets and model checkpoints, and analyze model predictions using interactive [Comet Custom Panels](https://bit.ly/yolov5-colab-comet-panels).
+[Comet](https://docs.ultralytics.com/integrations/comet/) is fully integrated for comprehensive experiment tracking. Visualize metrics live, save hyperparameters, manage datasets and model checkpoints, and analyze model predictions using interactive [Comet Custom Panels](https://bit.ly/yolov5-colab-comet-panels).
 
 Getting started is straightforward:
 
@@ -186,10 +186,10 @@ Dive deeper into the supported features in our [Comet Integration Guide](https:/
 
 ### ClearML Logging and Automation 🌟 NEW
 
-[ClearML](https://clear.ml/) integration enables detailed experiment tracking, dataset version management, and even remote execution of training runs. Activate ClearML with these simple steps:
+[ClearML](https://docs.ultralytics.com/integrations/clearml/) integration enables detailed experiment tracking, dataset version management, and even remote execution of training runs. Activate ClearML with these simple steps:
 
 - Install the package: `pip install clearml`
-- Initialize ClearML: Run `clearml-init` once to connect to your ClearML server (either self-hosted or the free tier).
+- Initialize ClearML: Run `clearml-init` once to connect to your ClearML server (either self-hosted or the [free tier](https://clear.ml/)).
 
 ClearML automatically captures experiment details, model uploads, comparisons, uncommitted code changes, and installed packages, ensuring full reproducibility. You can easily schedule training tasks on remote agents and manage dataset versions using ClearML Data. Explore the [ClearML Integration Guide](https://docs.ultralytics.com/integrations/clearml/) for comprehensive details.
 

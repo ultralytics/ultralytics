@@ -21,11 +21,11 @@ Roboflow 100, sponsored by [Intel](https://www.intel.com), is a groundbreaking [
 
 ## Key Features
 
-- Includes 100 datasets across seven distinct domains: Aerial, Video games, Microscopic, Underwater, Documents, Electromagnetic, and Real World.
-- The benchmark comprises 224,714 images across 805 classes, representing over 11,170 hours of [data labeling](https://www.ultralytics.com/glossary/data-labeling) efforts.
-- All images are [preprocessed](https://www.ultralytics.com/glossary/data-preprocessing) and resized to 640x640 pixels.
-- Focuses on eliminating class ambiguity and filters out underrepresented classes for cleaner evaluation.
-- Annotations include [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) for objects, making it suitable for [training](../../modes/train.md) and evaluating object detection models using metrics like [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map).
+- **Diverse Domains**: Includes 100 datasets across seven distinct domains: Aerial, Video games, Microscopic, Underwater, Documents, Electromagnetic, and Real World.
+- **Scale**: The benchmark comprises 224,714 images across 805 classes, representing over 11,170 hours of [data labeling](https://www.ultralytics.com/glossary/data-labeling) effort.
+- **Standardization**: All images are [preprocessed](https://www.ultralytics.com/glossary/data-preprocessing) and resized to 640x640 pixels for consistent evaluation.
+- **Clean Evaluation**: Focuses on eliminating class ambiguity and filters out underrepresented classes to ensure cleaner [model evaluation](../../guides/model-evaluation-insights.md).
+- **Annotations**: Includes [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) for objects, suitable for [training](../../modes/train.md) and evaluating object detection models using metrics like [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map).
 
 ## Dataset Structure
 
@@ -45,7 +45,7 @@ This structure provides a diverse and extensive testing ground for [object detec
 
 Dataset [benchmarking](../../modes/benchmark.md) involves evaluating the performance of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models on specific datasets using standardized metrics. Common metrics include [accuracy](https://www.ultralytics.com/glossary/accuracy), mean Average Precision (mAP), and [F1-score](https://www.ultralytics.com/glossary/f1-score). You can learn more about these in our [YOLO Performance Metrics guide](../../guides/yolo-performance-metrics.md).
 
-!!! tip "Benchmarking"
+!!! tip "Benchmarking Results"
 
     Benchmarking results using the provided script will be stored in the `ultralytics-benchmarks/` directory, specifically in `evaluation.txt`.
 
@@ -103,7 +103,7 @@ Roboflow 100 is invaluable for various applications related to [computer vision]
 - Compare model performance across different [neural network](https://www.ultralytics.com/glossary/neural-network-nn) architectures and [optimization](https://www.ultralytics.com/glossary/optimization-algorithm) techniques.
 - Identify domain-specific challenges that may require specialized [model training tips](../../guides/model-training-tips.md) or [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) approaches like [transfer learning](https://www.ultralytics.com/glossary/transfer-learning).
 
-For more ideas and inspiration on real-world applications, explore [our guides on practical projects](../../guides/index.md) or check out [Ultralytics HUB](https://www.ultralytics.com/hub) for streamlined model training and deployment.
+For more ideas and inspiration on real-world applications, explore [our guides on practical projects](../../guides/index.md) or check out [Ultralytics HUB](https://www.ultralytics.com/hub) for streamlined [model training](../../modes/train.md) and [deployment](../../guides/model-deployment-options.md).
 
 ## Usage
 
@@ -111,7 +111,7 @@ The Roboflow 100 dataset, including metadata and download links, is available on
 
 ## Sample Data and Annotations
 
-Roboflow 100 consists of datasets with diverse images captured from various angles and domains. Below are examples of annotated images included in the RF100 benchmark, showcasing the variety of objects and scenes.
+Roboflow 100 consists of datasets with diverse images captured from various angles and domains. Below are examples of annotated images included in the RF100 benchmark, showcasing the variety of objects and scenes. Techniques like [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) can further enhance the diversity during training.
 
 <p align="center">
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/sample-data-annotations.avif" alt="Sample Data and Annotations">

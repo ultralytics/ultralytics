@@ -818,9 +818,8 @@ class YOLOEModel(DetectionModel):
         from ultralytics.nn.text_model import build_text_model
 
         device = next(self.model.parameters()).device
-        if (
-            not getattr(self, "clip_model", None) and cache_clip_model
-        ):  # for backwards compatibility of models lacking clip_model attribute
+        if not getattr(self, "clip_model", None) and cache_clip_model:
+            # For backwards compatibility of models lacking clip_model attribute
             self.clip_model = build_text_model("mobileclip:blt", device=device)
 
         model = self.clip_model if cache_clip_model else build_text_model("mobileclip:blt", device=device)

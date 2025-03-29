@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from abc import abstractmethod
+from pathlib import Path
 
 import torch
 import torch.nn as nn
@@ -135,9 +136,10 @@ class MobileCLIP(TextModel):
         """
         super().__init__()
         config = self.config_size_map[size]
-        self.model = mobileclip.create_model_and_transforms(
-            f"mobileclip_{config}", pretrained=f"mobileclip_{size}.pt", device=device
-        )[0]
+        file = f"mobileclip_{size}.pt"
+        if not Path(file).is_file():
+            checks.check_file(f"https://docs-assets.developer.apple.com/ml-research/datasets/mobileclip/{file}")
+        self.model = mobileclip.create_model_and_transforms(f"mobileclip_{config}", pretrained=file, device=device)[0]
         self.tokenizer = mobileclip.get_tokenizer(f"mobileclip_{config}")
         self.to(device)
         self.device = device

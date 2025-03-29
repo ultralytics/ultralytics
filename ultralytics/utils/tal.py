@@ -75,7 +75,7 @@ class TaskAlignedAssigner(nn.Module):
 
         try:
             return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
-        except torch.OutOfMemoryError:
+        except torch.cuda.OutOfMemoryError:
             # Move tensors to CPU, compute, then move back to original device
             LOGGER.warning("WARNING: CUDA OutOfMemoryError in TaskAlignedAssigner, using CPU")
             cpu_tensors = [t.cpu() for t in (pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)]

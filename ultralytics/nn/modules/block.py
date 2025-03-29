@@ -771,7 +771,7 @@ class ContrastiveHead(nn.Module):
 
 class BNContrastiveHead(nn.Module):
     """
-    Batch Norm Contrastive Head for YOLO-World using batch norm instead of l2-normalization.
+    Batch Norm Contrastive Head using batch norm instead of l2-normalization.
 
     Args:
         embed_dims (int): Embed dimensions of text and image features.
@@ -791,6 +791,21 @@ class BNContrastiveHead(nn.Module):
         # use -1.0 is more stable
         self.logit_scale = nn.Parameter(-1.0 * torch.ones([]))
 
+    def fuse(self):
+        """Fuse the batch normalization layer in the BNContrastiveHead module."""
+        del self.norm
+        del self.bias
+        del self.logit_scale
+        self.forward = self.forward_fuse
+
+    def forward_fuse(self, x, w):
+        """
+        Passes input out unchanged.
+
+        TODO: Update or remove?
+        """
+        return x
+
     def forward(self, x, w):
         """
         Forward function of contrastive learning with batch normalization.
@@ -804,6 +819,7 @@ class BNContrastiveHead(nn.Module):
         """
         x = self.norm(x)
         w = F.normalize(w, dim=-1, p=2)
+
         x = torch.einsum("bchw,bkc->bkhw", x, w)
         return x * self.logit_scale.exp() + self.bias
 

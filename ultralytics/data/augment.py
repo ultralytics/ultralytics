@@ -3,19 +3,20 @@
 import math
 import random
 from copy import deepcopy
-from typing import Tuple, Union
+from typing import List, Tuple, Union
 
 import cv2
 import numpy as np
 import torch
 from PIL import Image
+from torch.nn import functional as F
 
 from ultralytics.data.utils import polygons2masks, polygons2masks_overlap
 from ultralytics.utils import LOGGER, colorstr
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
-from ultralytics.utils.ops import segment2box, xyxyxyxy2xywhr
+from ultralytics.utils.ops import segment2box, xywh2xyxy, xyxyxyxy2xywhr
 from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
@@ -2140,6 +2141,99 @@ class Format:
         return masks, instances, cls
 
 
+class LoadVisualPrompt:
+    """Creates visual prompts from bounding boxes or masks for model input."""
+
+    def __init__(self, scale_factor=1 / 8):
+        """
+        Initialize the LoadVisualPrompt with a scale factor.
+
+        Args:
+            scale_factor (float): Factor to scale the input image dimensions.
+        """
+        self.scale_factor = scale_factor
+
+    def make_mask(self, boxes, h, w):
+        """
+        Create binary masks from bounding boxes.
+
+        Args:
+            boxes (torch.Tensor): Bounding boxes in xyxy format, shape: (N, 4).
+            h (int): Height of the mask.
+            w (int): Width of the mask.
+
+        Returns:
+            (torch.Tensor): Binary masks with shape (N, h, w).
+        """
+        x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
+        r = torch.arange(w)[None, None, :]  # rows shape(1,1,w)
+        c = torch.arange(h)[None, :, None]  # cols shape(1,h,1)
+
+        return (r >= x1) * (r < x2) * (c >= y1) * (c < y2)
+
+    def __call__(self, labels):
+        """
+        Process labels to create visual prompts.
+
+        Args:
+            labels (dict): Dictionary containing image data and annotations.
+
+        Returns:
+            (dict): Updated labels with visual prompts added.
+        """
+        imgsz = labels["img"].shape[1:]
+        bboxes, masks = None, None
+        if "bboxes" in labels:
+            bboxes = labels["bboxes"]
+            bboxes = xywh2xyxy(bboxes) * torch.tensor(imgsz)[[1, 0, 1, 0]]  # denormalize boxes
+
+        cls = labels["cls"].squeeze(-1).to(torch.int)
+        visuals = self.get_visuals(cls, imgsz, bboxes=bboxes, masks=masks)
+        labels["visuals"] = visuals
+        return labels
+
+    def get_visuals(self, category, shape, bboxes=None, masks=None):
+        """
+        Generate visual masks based on bounding boxes or masks.
+
+        Args:
+            category (int | np.ndarray | torch.Tensor): The category labels for the objects.
+            shape (tuple): The shape of the image (height, width).
+            bboxes (np.ndarray | torch.Tensor, optional): Bounding boxes for the objects, xyxy format. Defaults to None.
+            masks (np.ndarray | torch.Tensor, optional): Masks for the objects. Defaults to None.
+
+        Returns:
+            (torch.Tensor): A tensor containing the visual masks for each category.
+
+        Raises:
+            ValueError: If neither bboxes nor masks are provided.
+        """
+        masksz = (int(shape[0] * self.scale_factor), int(shape[1] * self.scale_factor))
+        if bboxes is not None:
+            if isinstance(bboxes, np.ndarray):
+                bboxes = torch.from_numpy(bboxes)
+            bboxes *= self.scale_factor
+            masks = self.make_mask(bboxes, *masksz).float()
+        elif masks is not None:
+            if isinstance(masks, np.ndarray):
+                masks = torch.from_numpy(masks)  # (N, H, W)
+            masks = F.interpolate(masks.unsqueeze(1), masksz, mode="nearest").squeeze(1).float()
+        else:
+            raise ValueError("LoadVisualPrompt must have bboxes or masks in the label")
+        if not isinstance(category, torch.Tensor):
+            category = torch.tensor(category, dtype=torch.int)
+        cls_unique, inverse_indices = torch.unique(category, sorted=True, return_inverse=True)
+        # NOTE: `cls` indices from RandomLoadText should be continuous.
+        # if len(cls_unique):
+        #     assert len(cls_unique) == cls_unique[-1] + 1, (
+        #         f"Expected a continuous range of class indices, but got {cls_unique}"
+        #     )
+        visuals = torch.zeros(len(cls_unique), *masksz)
+        for idx, mask in zip(inverse_indices, masks):
+            visuals[idx] = torch.logical_or(visuals[idx], mask)
+        return visuals
+
+
 class RandomLoadText:
     """
     Randomly samples positive and negative texts and updates class indices accordingly.
@@ -2172,7 +2266,7 @@ class RandomLoadText:
         neg_samples: Tuple[int, int] = (80, 80),
         max_samples: int = 80,
         padding: bool = False,
-        padding_value: str = "",
+        padding_value: List[str] = [""],
     ) -> None:
         """
         Initializes the RandomLoadText class for randomly sampling positive and negative texts.
@@ -2246,7 +2340,8 @@ class RandomLoadText:
         neg_labels = random.sample(neg_labels, k=neg_samples)
 
         sampled_labels = pos_labels + neg_labels
-        random.shuffle(sampled_labels)
+        # Randomness
+        # random.shuffle(sampled_labels)
 
         label2ids = {label: i for i, label in enumerate(sampled_labels)}
         valid_idx = np.zeros(len(labels["instances"]), dtype=bool)
@@ -2271,8 +2366,9 @@ class RandomLoadText:
             valid_labels = len(pos_labels) + len(neg_labels)
             num_padding = self.max_samples - valid_labels
             if num_padding > 0:
-                texts += [self.padding_value] * num_padding
+                texts += random.choices(self.padding_value, k=num_padding)
 
+        assert len(texts) == self.max_samples
         labels["texts"] = texts
         return labels
 

@@ -364,29 +364,56 @@ class SegmentationValidator(DetectionValidator):
 
     def eval_json(self, stats):
         """Return COCO-style object detection evaluation metrics."""
-        if self.args.save_json and self.is_coco and len(self.jdict):
-            anno_json = self.data["path"] / "annotations/instances_val2017.json"  # annotations
+        if self.args.save_json and (self.is_lvis or self.is_coco) and len(self.jdict):
             pred_json = self.save_dir / "predictions.json"  # predictions
-            LOGGER.info(f"\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...")
-            try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
-                check_requirements("pycocotools>=2.0.6")
-                from pycocotools.coco import COCO  # noqa
-                from pycocotools.cocoeval import COCOeval  # noqa
 
+            anno_json = (
+                self.data["path"]
+                / "annotations"
+                / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
+            )  # annotations
+
+            pkg = "pycocotools" if self.is_coco else "lvis"
+            LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
+            try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"
-                anno = COCO(str(anno_json))  # init annotations api
-                pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
-                for i, eval in enumerate([COCOeval(anno, pred, "bbox"), COCOeval(anno, pred, "segm")]):
-                    if self.is_coco:
-                        eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
+                check_requirements("pycocotools>=2.0.6" if self.is_coco else "lvis>=0.5.3")
+                if self.is_coco:
+                    from pycocotools.coco import COCO  # noqa
+                    from pycocotools.cocoeval import COCOeval  # noqa
+
+                    anno = COCO(str(anno_json))  # init annotations api
+                    pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
+                    vals = [COCOeval(anno, pred, "bbox"), COCOeval(anno, pred, "segm")]
+                else:
+                    from lvis import LVIS, LVISEval
+
+                    anno = LVIS(str(anno_json))
+                    pred = anno._load_json(str(pred_json))
+                    vals = [LVISEval(anno, pred, "bbox"), LVISEval(anno, pred, "segm")]
+
+                for i, eval in enumerate(vals):
+                    eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
                     eval.evaluate()
                     eval.accumulate()
                     eval.summarize()
+                    if self.is_lvis:
+                        eval.print_results()
                     idx = i * 4 + 2
-                    stats[self.metrics.keys[idx + 1]], stats[self.metrics.keys[idx]] = eval.stats[
-                        :2
-                    ]  # update mAP50-95 and mAP50
+                    # update mAP50-95 and mAP50
+                    stats[self.metrics.keys[idx + 1]], stats[self.metrics.keys[idx]] = (
+                        eval.stats[:2] if self.is_coco else [eval.results["AP"], eval.results["AP50"]]
+                    )
+                    if self.is_lvis:
+                        tag = "B" if i == 0 else "M"
+                        stats[f"metrics/APr({tag})"] = eval.results["APr"]
+                        stats[f"metrics/APc({tag})"] = eval.results["APc"]
+                        stats[f"metrics/APf({tag})"] = eval.results["APf"]
+
+                if self.is_lvis:
+                    stats["fitness"] = stats["metrics/mAP50-95(B)"]
+
             except Exception as e:
-                LOGGER.warning(f"pycocotools unable to run: {e}")
+                LOGGER.warning(f"{pkg} unable to run: {e}")
         return stats

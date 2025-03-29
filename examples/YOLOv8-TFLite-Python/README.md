@@ -1,6 +1,6 @@
 # Running Ultralytics YOLOv8 with TFLite Runtime
 
-This guide demonstrates how to perform inference using an Ultralytics [YOLOv8](https://docs.ultralytics.com/models/yolov8/) model exported to the [TensorFlow Lite (TFLite)](https://www.tensorflow.org/lite/) format. TFLite is a popular choice for deploying machine learning models on mobile, embedded, and IoT devices due to its optimization for on-device inference with low latency and a small binary size. This example supports FP32, FP16, and INT8 quantized TFLite models.
+This guide demonstrates how to perform inference using an Ultralytics [YOLOv8](https://docs.ultralytics.com/models/yolov8/) model exported to the [TensorFlow Lite (TFLite)](https://ai.google.dev/edge/litert) format. TFLite is a popular choice for deploying machine learning models on mobile, embedded, and IoT devices due to its optimization for on-device inference with low latency and a small binary size. This example supports FP32, FP16, and INT8 quantized TFLite models.
 
 ## ⚙️ Installation
 
@@ -14,7 +14,7 @@ The `tflite-runtime` package is a smaller package that includes the bare minimum
 pip install tflite-runtime
 ```
 
-For more details, refer to the official [TFLite Python quickstart guide](https://www.tensorflow.org/lite/guide/python).
+For more details, refer to the official [TFLite Python quickstart guide](https://ai.google.dev/edge/litert/microcontrollers/python).
 
 ### Installing Full `tensorflow` Package (CPU or GPU)
 

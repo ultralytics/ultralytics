@@ -235,13 +235,13 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
     <img src="https://github.com/ultralytics/assets/raw/main/partners/logo-neuralmagic.png" width="10%" alt="Neural Magic logo"></a>
 </div>
 
-|                                              Ultralytics HUB 🌟                                              |                                              Weights & Biases                                               |                                                               Comet                                                                |                                                       Neural Magic                                                       |
-| :----------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------: |
-| 简化 YOLO 工作流程：使用 [Ultralytics HUB](https://hub.ultralytics.com) 轻松进行标注、训练和部署。立即试用！ | 使用 [Weights & Biases](https://docs.ultralytics.com/integrations/weights-biases/) 跟踪实验、超参数和结果。 | 永久免费的 [Comet ML](https://docs.ultralytics.com/integrations/comet/) 让您能够保存 YOLO 模型、恢复训练并交互式地可视化预测结果。 | 使用 [Neural Magic DeepSparse](https://docs.ultralytics.com/integrations/neural-magic/)，将 YOLO 推理速度提高多达 6 倍。 |
+|                                              Ultralytics HUB 🌟                                               |                                              Weights & Biases                                               |                                                               Comet                                                                |                                                       Neural Magic                                                       |
+| :-----------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------: |
+| 简化 YOLO 工作流程：使用 [Ultralytics HUB](https://hub.ultralytics.com/) 轻松进行标注、训练和部署。立即试用！ | 使用 [Weights & Biases](https://docs.ultralytics.com/integrations/weights-biases/) 跟踪实验、超参数和结果。 | 永久免费的 [Comet ML](https://docs.ultralytics.com/integrations/comet/) 让您能够保存 YOLO 模型、恢复训练并交互式地可视化预测结果。 | 使用 [Neural Magic DeepSparse](https://docs.ultralytics.com/integrations/neural-magic/)，将 YOLO 推理速度提高多达 6 倍。 |
 
 ## 🌟 Ultralytics HUB
 
-通过 [Ultralytics HUB](https://hub.ultralytics.com) 体验无缝 AI，这是一个集数据可视化、训练 YOLO 模型和部署于一体的平台——无需编码。使用我们尖端的平台和用户友好的 [Ultralytics App](https://www.ultralytics.com/app-install)，轻松将图像转化为可操作的见解，并将您的 AI 愿景变为现实。立即**免费**开始您的旅程！
+通过 [Ultralytics HUB](https://hub.ultralytics.com/) 体验无缝 AI，这是一个集数据可视化、训练 YOLO 模型和部署于一体的平台——无需编码。使用我们尖端的平台和用户友好的 [Ultralytics App](https://www.ultralytics.com/app-install)，轻松将图像转化为可操作的见解，并将您的 AI 愿景变为现实。立即**免费**开始您的旅程！
 
 <a href="https://www.ultralytics.com/hub" target="_blank">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png" alt="Ultralytics HUB preview image"></a>
@@ -260,12 +260,12 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 
 Ultralytics 提供两种许可选项以满足不同需求：
 
-- **AGPL-3.0 许可证**：这种经 [OSI 批准](https://opensource.org/licenses/)的开源许可证非常适合学生、研究人员和爱好者。它鼓励开放协作和知识共享。有关完整详细信息，请参阅 [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) 文件。
+- **AGPL-3.0 许可证**：这种经 [OSI 批准](https://opensource.org/license)的开源许可证非常适合学生、研究人员和爱好者。它鼓励开放协作和知识共享。有关完整详细信息，请参阅 [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) 文件。
 - **Ultralytics 企业许可证**：专为商业用途设计，此许可证允许将 Ultralytics 软件和 AI 模型无缝集成到商业产品和服务中，绕过 AGPL-3.0 的开源要求。如果您的使用场景涉及商业部署，请通过 [Ultralytics 授权许可](https://www.ultralytics.com/license)与我们联系。
 
 ## 📞 联系方式
 
-有关 Ultralytics 软件的错误报告和功能请求，请访问 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues)。如有疑问、讨论和社区支持，请加入我们在 [Discord](https://discord.com/invite/ultralytics)、[Reddit](https://www.reddit.com/r/ultralytics/) 和 [Ultralytics 社区论坛](https://community.ultralytics.com/)上的活跃社区。我们随时为您提供有关 Ultralytics 的所有帮助！
+有关 Ultralytics 软件的错误报告和功能请求，请访问 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues)。如有疑问、讨论和社区支持，请加入我们在 [Discord](https://discord.com/invite/ultralytics)、[Reddit](https://www.reddit.com/r/ultralytics/?rdt=44154) 和 [Ultralytics 社区论坛](https://community.ultralytics.com/)上的活跃社区。我们随时为您提供有关 Ultralytics 的所有帮助！
 
 <br>
 <div align="center">

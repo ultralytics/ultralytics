@@ -599,7 +599,7 @@ def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False,
     adjustments to the bounding box.
 
     Args:
-        xyxy (torch.Tensor or list): A tensor or list representing the bounding box in xyxy format.
+        xyxy (torch.Tensor | list): A tensor or list representing the bounding box in xyxy format.
         im (np.ndarray): The input image.
         file (Path, optional): The path where the cropped image will be saved.
         gain (float, optional): A multiplicative factor to increase the size of the bounding box.

@@ -136,7 +136,7 @@ reCamera advanced computer vision capabilities and modular design make it suitab
 
 ![Personal protective equipment detection](https://github.com/ultralytics/docs/releases/download/0/personal-protective-equipment-detection.avif)
 
-- **Fire Detection**: The reCamera's real-time processing capabilities make it an excellent choice for [fire detection](https://www.ultralytics.com/blog/computer-vision-in-fire-detection-and-prevention/) in industrial and residential areas, providing early warnings to prevent potential disasters.
+- **Fire Detection**: The reCamera's real-time processing capabilities make it an excellent choice for [fire detection](https://www.ultralytics.com/blog/computer-vision-in-fire-detection-and-prevention) in industrial and residential areas, providing early warnings to prevent potential disasters.
 
 - **Waste Detection**: It can also be utilized for waste detection applications, making it an excellent tool for environmental monitoring and [waste management](https://www.ultralytics.com/blog/simplifying-e-waste-management-with-ai-innovations).
 

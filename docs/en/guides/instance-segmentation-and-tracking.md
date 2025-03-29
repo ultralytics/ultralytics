@@ -118,7 +118,7 @@ YOLO11 can be used in [waste management facilities](https://www.ultralytics.com/
 
 ### Autonomous Vehicles
 
-In [self-driving cars](https://www.ultralytics.com/solutions/ai-in-self-driving), instance segmentation helps identify and track pedestrians, vehicles, traffic signs, and other road elements at the pixel level. This precise understanding of the environment is crucial for navigation and safety decisions. YOLO11's real-time performance makes it ideal for these time-sensitive applications.
+In [self-driving cars](https://www.ultralytics.com/solutions/ai-in-automotive), instance segmentation helps identify and track pedestrians, vehicles, traffic signs, and other road elements at the pixel level. This precise understanding of the environment is crucial for navigation and safety decisions. YOLO11's real-time performance makes it ideal for these time-sensitive applications.
 
 ### Medical Imaging
 

@@ -23,7 +23,7 @@ Ultralytics YOLO11 is a versatile AI framework that supports multiple [computer 
 
 ## [Detection](detect.md)
 
-Detection is the primary task supported by YOLO11. It involves identifying objects in an image or video frame and drawing bounding boxes around them. The detected objects are classified into different categories based on their features. YOLO11 can detect multiple objects in a single image or video frame with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed, making it ideal for real-time applications like [surveillance systems](https://www.ultralytics.com/blog/shattering-the-surveillance-status-quo-with-vision-ai) and [autonomous vehicles](https://www.ultralytics.com/solutions/ai-in-self-driving).
+Detection is the primary task supported by YOLO11. It involves identifying objects in an image or video frame and drawing bounding boxes around them. The detected objects are classified into different categories based on their features. YOLO11 can detect multiple objects in a single image or video frame with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed, making it ideal for real-time applications like [surveillance systems](https://www.ultralytics.com/blog/shattering-the-surveillance-status-quo-with-vision-ai) and [autonomous vehicles](https://www.ultralytics.com/solutions/ai-in-automotive).
 
 [Detection Examples](detect.md){ .md-button }
 

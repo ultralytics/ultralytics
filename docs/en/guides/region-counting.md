@@ -34,6 +34,8 @@ keywords: object counting, regions, YOLO11, computer vision, Ultralytics, effici
 | ![People Counting in Different Region using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/people-counting-different-region-ultralytics-yolov8.avif) | ![Crowd Counting in Different Region using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/crowd-counting-different-region-ultralytics-yolov8.avif) |
 |                                                           People Counting in Different Region using Ultralytics YOLO11                                                            |                                                           Crowd Counting in Different Region using Ultralytics YOLO11                                                           |
 
+## Usage Examples
+
 !!! example "Region counting using Ultralytics YOLO"
 
     === "Python"
@@ -128,7 +130,7 @@ Follow these steps to run object counting in Ultralytics YOLO11:
     python yolov8_region_counter.py --source "path/to/video.mp4" --save-img
     ```
 
-For more options, visit the [Run Region Counting](https://github.com/ultralytics/ultralytics/blob/main/examples/YOLOv8-Region-Counter/readme.md) section.
+For more options, visit the [Usage Examples](#usage-examples) section.
 
 ### Why should I use Ultralytics YOLO11 for object counting in regions?
 

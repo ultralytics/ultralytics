@@ -232,7 +232,7 @@ Due to the new operations introduced with YOLOv10, not all export formats provid
 
 ## Conclusion
 
-YOLOv10 sets a new standard in real-time object detection by addressing the shortcomings of previous YOLO versions and incorporating innovative design strategies. Its ability to deliver high accuracy with low computational cost makes it an ideal choice for a wide range of [real-world applications](https://www.ultralytics.com/solutions) including [manufacturing](https://www.ultralytics.com/solutions/ai-in-manufacturing), [retail](https://www.ultralytics.com/blog/ai-in-fashion-retail), and [autonomous vehicles](https://www.ultralytics.com/solutions/ai-in-self-driving).
+YOLOv10 sets a new standard in real-time object detection by addressing the shortcomings of previous YOLO versions and incorporating innovative design strategies. Its ability to deliver high accuracy with low computational cost makes it an ideal choice for a wide range of [real-world applications](https://www.ultralytics.com/solutions) including [manufacturing](https://www.ultralytics.com/solutions/ai-in-manufacturing), [retail](https://www.ultralytics.com/blog/ai-in-fashion-retail), and [autonomous vehicles](https://www.ultralytics.com/solutions/ai-in-automotive).
 
 ## Citations and Acknowledgements
 

@@ -176,7 +176,7 @@ Select the "YOLO11" format for compatibility with Ultralytics training pipelines
 
 ## Upload Custom YOLO11 Model Weights for Testing and Deployment
 
-Roboflow offers a scalable API for deployed models and SDKs compatible with devices like [NVIDIA Jetson](https://developer.nvidia.com/embedded-computing), [Luxonis OAK](https://luxonis.com/), [Raspberry Pi](../guides/raspberry-pi.md), and GPU-based systems. Explore various [model deployment options](../guides/model-deployment-options.md) in our guides.
+Roboflow offers a scalable API for deployed models and SDKs compatible with devices like [NVIDIA Jetson](https://developer.nvidia.com/embedded-computing), [Luxonis OAK](https://www.luxonis.com/), [Raspberry Pi](../guides/raspberry-pi.md), and GPU-based systems. Explore various [model deployment options](../guides/model-deployment-options.md) in our guides.
 
 You can deploy YOLO11 models by uploading their weights to Roboflow using a simple [Python](https://www.python.org/) script.
 

@@ -12,7 +12,7 @@ You can also explore other quickstart options for YOLOv5, such as our [Colab Not
 
 ## Prerequisites
 
-1. **Docker**: Install Docker from the [official Docker website](https://docs.docker.com/get-docker/).
+1. **Docker**: Install Docker from the [official Docker website](https://docs.docker.com/get-started/get-docker/).
 2. **NVIDIA Driver** (for GPU support): Version 455.23 or higher. Download from [NVIDIA's website](https://www.nvidia.com/Download/index.aspx).
 3. **NVIDIA Docker Runtime** (for GPU support): Allows Docker to interact with your local GPU. Follow the installation instructions below.
 

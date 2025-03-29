@@ -6,7 +6,7 @@ keywords: Roboflow 100, Ultralytics, object detection, dataset, benchmarking, ma
 
 # Roboflow 100 Dataset
 
-Roboflow 100, sponsored by [Intel](https://www.intel.com), is a groundbreaking [object detection](../../tasks/detect.md) benchmark dataset. It includes 100 diverse datasets sampled from over 90,000 public datasets available on Roboflow Universe. This benchmark is specifically designed to test the adaptability of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models, like [Ultralytics YOLO models](../../models/), to various domains, including healthcare, aerial imagery, and video games.
+Roboflow 100, sponsored by [Intel](https://www.intel.com), is a groundbreaking [object detection](../../tasks/detect.md) benchmark dataset. It includes 100 diverse datasets sampled from over 90,000 public datasets available on Roboflow Universe. This benchmark is specifically designed to test the adaptability of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models, like [Ultralytics YOLO models](../../models.md), to various domains, including healthcare, aerial imagery, and video games.
 
 !!! question "Licensing"
 

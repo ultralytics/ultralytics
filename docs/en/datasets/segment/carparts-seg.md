@@ -58,7 +58,7 @@ A [YAML](https://www.ultralytics.com/glossary/yaml) (Yet Another Markup Language
 
 ## Usage
 
-To train an [Ultralytics YOLO11](../models/yolo11.md) model on the Carparts Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following code snippets. Refer to the model [Training](../../modes/train.md) page for a comprehensive list of available arguments and [training tips](https://docs.ultralytics.com/guides/model-training-tips/).
+To train an [Ultralytics YOLO11](../../models/yolo11.md) model on the Carparts Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following code snippets. Refer to the model [Training](../../modes/train.md) page for a comprehensive list of available arguments and [training tips](https://docs.ultralytics.com/guides/model-training-tips/).
 
 !!! example "Train Example"
 
@@ -135,7 +135,7 @@ The Carparts Segmentation Dataset is a specialized collection of images and vide
 
 ### How can I use the Carparts Segmentation Dataset with Ultralytics YOLO11?
 
-You can train an [Ultralytics YOLO11](../models/yolo11.md) segmentation model using this dataset. Load a pretrained model (e.g., `yolo11n-seg.pt`) and initiate training using the provided Python or CLI examples, referencing the `carparts-seg.yaml` configuration file. Check the [Training Guide](../../modes/train.md) for detailed instructions.
+You can train an [Ultralytics YOLO11](../../models/yolo11.md) segmentation model using this dataset. Load a pretrained model (e.g., `yolo11n-seg.pt`) and initiate training using the provided Python or CLI examples, referencing the `carparts-seg.yaml` configuration file. Check the [Training Guide](../../modes/train.md) for detailed instructions.
 
 !!! example "Train Example Snippet"
 

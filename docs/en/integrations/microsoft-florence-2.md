@@ -1,3 +1,9 @@
+---
+comments: true
+description: TODO ADD DESCRIPTION
+keywords: TODO ADD KEYWORDS
+---
+
 # Microsoft Florence-2 Integration with Ultralytics Python Package
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-use-florence-2-for-object-detection-image-captioning-ocr-and-segmentation.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="How to use florence-2 for object detection, image-captioning, ocr and segmentation"></a>
@@ -51,7 +57,7 @@ Florence-2 supports a variety of vision and vision-language tasks through the us
 }
 ```
 
-- **Instance Segmentation:** Recognize object instances and delineate their shapes with pixel-wise masks. Florence-2 can produce segmentation results by outputting polygon coordinates for object masks . In practice, a segmentation task can be activated via a prompt <REFERRING_EXPRESSION_SEGMENTATION>, and the model’s text output encodes the mask as a series of vertices in the image.
+- **Instance Segmentation:** Recognize object instances and delineate their shapes with pixel-wise masks. Florence-2 can produce segmentation results by outputting polygon coordinates for object masks . In practice, a segmentation task can be activated via a prompt <REFERRING_EXPRESSION_SEGMENTATION>, and the model's text output encodes the mask as a series of vertices in the image.
 
 ```str
 {

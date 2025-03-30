@@ -194,12 +194,9 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
         LOGGER.debug(f"COMET WARNING: Image: {image_path} has no bounding boxes predictions")
         return None
 
-    label_index_offset = 0
-    if class_map is not None:
         # offset to align indices of class labels (starting from zero)
         # with prediction's category ID indices (can start from one)
-        label_index_offset = sorted(class_map)[0]
-
+    label_index_offset = sorted(class_map)[0] if class_map is not None else 0
     try:
         # import pycotools utilities to decompress annotations for various tasks, e.g. segmentation
         from pycocotools.mask import decode  # noqa
@@ -221,8 +218,8 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
             segments = prediction.get("segmentation", None)
             if segments is not None:
                 segments = _extract_segmentation_annotation(segments, decode)
-                if segments is not None:
-                    annotation_data["points"] = segments
+            if segments is not None:
+                annotation_data["points"] = segments
 
         data.append(annotation_data)
 

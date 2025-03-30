@@ -82,11 +82,17 @@ names:
     79: toothbrush
 ```
 
-### 1.2 Create Labels
+### 1.2 Leverage Models for Automated Labeling
 
-Utilize an annotation tool such as [CVAT](https://github.com/cvat-ai/cvat) or [LabelImg](https://github.com/HumanSignal/labelImg) for the crucial task of [data labeling](https://www.ultralytics.com/glossary/data-labeling). Export your annotations in the **YOLO format**. This format mandates one `*.txt` file for each image. If an image contains no objects, no corresponding `*.txt` file is necessary.
+While manual labeling using tools is a common approach, the process can be time-consuming. Recent advancements in foundation models offer possibilities for automating or semi-automating the annotation process, potentially speeding up dataset creation significantly. Here are a few examples of models that can assist with generating labels:
 
-The `*.txt` file format specifications are precise:
+- **[Google Gemini](https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-use-google-gemini-models-for-object-detection-image-captioning-and-ocr.ipynb)**: Large multimodal models like Gemini possess powerful image understanding capabilities. They can be prompted to identify and locate objects within images, generating bounding boxes or descriptions that can be converted into YOLO format labels. Explore its potential in the provided tutorial notebook.
+- **[SAM2 (Segment Anything Model 2)](https://docs.ultralytics.com/models/sam-2/)**: Foundation models focused on segmentation, like SAM2, can identify and delineate objects with high precision. While primarily for segmentation, the resulting masks can often be converted into bounding box annotations suitable for object detection tasks.
+- **[YOLOWorld](https://docs.ultralytics.com/models/yolo-world/)**: This model offers open-vocabulary detection capabilities. You can provide text descriptions of the objects you're interested in, and YOLOWorld can locate them in images _without_ prior training on those specific classes. This can be used as a starting point for generating initial labels, which can then be refined.
+
+Using these models can provide a "pre-labeling" step, reducing the manual effort required. However, it's crucial to review and refine automatically generated labels to ensure accuracy and consistency, as the quality directly impacts the performance of your trained YOLOv5 model. After generating (and potentially refining) your labels, ensure they adhere to the **YOLO format**: one `*.txt` file per image, with each line representing an object as `class_index x_center y_center width height` (normalized coordinates, zero-indexed class). If an image has no objects of interest, no corresponding `*.txt` file is needed.
+
+The YOLO format `*.txt` file specifications are precise:
 
 - One row per object [bounding box](https://www.ultralytics.com/glossary/bounding-box).
 - Each row must contain: `class_index x_center y_center width height`.
@@ -258,7 +264,7 @@ This badge indicates that all YOLOv5 [GitHub Actions](https://github.com/ultraly
 
 Training YOLOv5 on a custom dataset involves several key steps:
 
-1.  **Prepare Your Dataset**: Collect images and annotate them using a suitable tool. Export annotations in the required [YOLO format](https://docs.ultralytics.com/datasets/detect/). Organize images and labels into `train/` and `val/` (and optionally `test/`) directories.
+1.  **Prepare Your Dataset**: Collect images and annotate them. Ensure annotations are in the required [YOLO format](https://docs.ultralytics.com/datasets/detect/). Organize images and labels into `train/` and `val/` (and optionally `test/`) directories. Consider using models like [Google Gemini](https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-use-google-gemini-models-for-object-detection-image-captioning-and-ocr.ipynb), [SAM2](https://docs.ultralytics.com/models/sam-2/), or [YOLOWorld](https://docs.ultralytics.com/models/yolo-world/) to assist with or automate the labeling process (see Section 1.2).
 2.  **Set Up Your Environment**: Clone the YOLOv5 repository and install dependencies using `pip install -r requirements.txt`.
     ```bash
     git clone https://github.com/ultralytics/yolov5
@@ -285,14 +291,14 @@ For a practical walkthrough, check out our blog post: [How to Train Your Custom 
 
 ### How do I convert my annotated data to the YOLOv5 format?
 
-After annotating images using tools like CVAT or LabelImg, you must export the labels into the specific **YOLO format** required by YOLOv5:
+Whether you annotate manually or use automated tools (like those mentioned in Section 1.2), the final labels must be in the specific **YOLO format** required by YOLOv5:
 
 - Create one `.txt` file for each image. The filename should match the image filename (e.g., `image1.jpg` corresponds to `image1.txt`). Place these files in a `labels/` directory parallel to your `images/` directory (e.g., `../datasets/mydataset/labels/train/`).
 - Each line within a `.txt` file represents one object annotation and follows the format: `class_index center_x center_y width height`.
 - Coordinates (`center_x`, `center_y`, `width`, `height`) must be **normalized** (values between 0.0 and 1.0) relative to the image's dimensions.
 - Class indices are **zero-based** (the first class is `0`, the second is `1`, etc.).
 
-Many annotation tools offer direct export to YOLO format. If yours doesn't, you may need a conversion script. Ensure your final dataset structure adheres to the example provided in the guide. For more details, see our [Data Collection and Annotation Guide](https://docs.ultralytics.com/guides/data-collection-and-annotation/).
+Many manual annotation tools offer direct export to YOLO format. If using automated models, you will need scripts or processes to convert their output (e.g., bounding box coordinates, segmentation masks) into this specific normalized text format. Ensure your final dataset structure adheres to the example provided in the guide. For more details, see our [Data Collection and Annotation Guide](https://docs.ultralytics.com/guides/data-collection-and-annotation/).
 
 ### What are the licensing options for using YOLOv5 in commercial applications?
 

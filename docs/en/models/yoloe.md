@@ -309,7 +309,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
 
     === "Visual Prompt"
 
-        Be default it's using the prodived dataset to extract visual embeddings for each category.
+        Be default it's using the provided dataset to extract visual embeddings for each category.
 
         ```python
         from ultralytics import YOLOE

@@ -40,7 +40,7 @@ Carparts Segmentation finds applications in various domains including:
 - **E-commerce Cataloging**: Automatically tagging and categorizing car parts in online stores for [e-commerce](https://en.wikipedia.org/wiki/E-commerce) platforms.
 - **Traffic Monitoring**: Analyzing vehicle components in traffic surveillance footage.
 - **Autonomous Vehicles**: Enhancing the perception systems of [self-driving cars](https://www.ultralytics.com/blog/ai-in-self-driving-cars) to better understand surrounding vehicles.
-- **Insurance Processing**: Automating damage assessment by identifying affected car parts during [insurance claims](https://www.investopedia.com/terms/i/insurance-claim.asp).
+- **Insurance Processing**: Automating damage assessment by identifying affected car parts during insurance claims.
 - **Recycling**: Sorting vehicle components for efficient recycling processes.
 - **Smart City Initiatives**: Contributing data for urban planning and traffic management systems within [Smart Cities](https://en.wikipedia.org/wiki/Smart_city).
 

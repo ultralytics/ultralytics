@@ -332,9 +332,6 @@ class AutoAnnotator:
             visuals_output_dir (str, optional): Directory path to save the visualized images.
                 If None, it defaults to a directory named like '{output_dir}_visuals'
                 (e.g., "labels_florence2_visuals"). Created if it doesn't exist. Defaults to None.
-
-        Returns:
-            None: This method performs operations and saves files as side effects.
         """
         total_start_time = time.time()
 

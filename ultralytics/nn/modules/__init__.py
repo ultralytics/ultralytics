@@ -51,6 +51,7 @@ from .block import (
     HGBlock,
     HGStem,
     ImagePoolingAttn,
+    MaxSigmoidAttnBlock,
     Proto,
     RepC3,
     RepNCSPELAN4,
@@ -76,7 +77,19 @@ from .conv import (
     RepConv,
     SpatialAttention,
 )
-from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment, WorldDetect, v10Detect
+from .head import (
+    OBB,
+    Classify,
+    Detect,
+    LRPCHead,
+    Pose,
+    RTDETRDecoder,
+    Segment,
+    WorldDetect,
+    YOLOEDetect,
+    YOLOESegment,
+    v10Detect,
+)
 from .transformer import (
     AIFI,
     MLP,
@@ -144,8 +157,12 @@ __all__ = (
     "ResNetLayer",
     "OBB",
     "WorldDetect",
+    "YOLOEDetect",
+    "YOLOESegment",
     "v10Detect",
+    "LRPCHead",
     "ImagePoolingAttn",
+    "MaxSigmoidAttnBlock",
     "ContrastiveHead",
     "BNContrastiveHead",
     "RepNCSPELAN4",

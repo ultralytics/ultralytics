@@ -1932,3 +1932,4 @@ class Timm(nn.Module):
             return y
         else:
             return y[-1]
+

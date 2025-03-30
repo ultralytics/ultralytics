@@ -110,16 +110,16 @@ class AutoAnnotator:
         self.model = None
         self.processor = None
         self.torch_dtype = None
-        self.m_id = None # Store model ID
+        self.m_id = None  # Store model ID
         self.device = select_device()  # Select device using ultralytics util
 
         self.default_task_prompt = "<CAPTION_TO_PHRASE_GROUNDING>"  # Default task prompt for grounding/detection
         self.od_task_prompt = "<OD>"  # Default task prompt when no classes are provided (general object detection)
 
         self.img_width = 0  # input image width (will be updated per image)
-        self.img_height = 0 # input image height (will be updated per image)
+        self.img_height = 0  # input image height (will be updated per image)
 
-        self.torch_dtype = torch.float16 if self.device=="cuda:0" else torch.float32  # required for processing inputs
+        self.torch_dtype = torch.float16 if self.device == "cuda:0" else torch.float32  # required for processing inputs
         self._load_model("florence-2" if model is None else model)  # Model initialization
 
     def _load_model(self, model_name):
@@ -137,8 +137,7 @@ class AutoAnnotator:
             Exception: If model loading fails for other reasons.
         """
         if model_name.lower() == "florence-2":
-
-            check_requirements("transformers==4.49.0") # Check transformer version
+            check_requirements("transformers==4.49.0")  # Check transformer version
             from transformers import AutoModelForCausalLM, AutoProcessor
 
             self.m_id = "microsoft/Florence-2-base-ft"  # Use large model by default for florence-2 alias
@@ -149,18 +148,14 @@ class AutoAnnotator:
                 self.m_id,
                 # use_flash_attention_2=False,
                 torch_dtype=self.torch_dtype,
-                trust_remote_code=True
+                trust_remote_code=True,
             ).to(self.device)
 
             # Generate the input data for model processing from the given prompt and image
-            self.processor = AutoProcessor.from_pretrained(
-                self.m_id,
-                trust_remote_code=True
-            )
+            self.processor = AutoProcessor.from_pretrained(self.m_id, trust_remote_code=True)
             LOGGER.info(f"✅ Model {self.m_id} loaded successfully on {self.device}.")
         else:
-            LOGGER.warning(f"⚠️ Model '{model_name}' is not supported. "
-                           f"Defaulting to 'florence-2' ({self.m_id}).")
+            LOGGER.warning(f"⚠️ Model '{model_name}' is not supported. Defaulting to 'florence-2' ({self.m_id}).")
             if self.m_id is None:  # Direct call
                 self._load_model("florence-2")
 
@@ -189,7 +184,7 @@ class AutoAnnotator:
             data_path = Path(data)
             if data_path.is_dir():
                 for ext in IMG_FORMATS:
-                    image_paths.extend(data_path.glob(f'*.{ext}'))  # Use dot here
+                    image_paths.extend(data_path.glob(f"*.{ext}"))  # Use dot here
             elif "*" in str(data_path) or "?" in str(data_path):
                 image_paths.extend([Path(p) for p in glob.glob(str(data_path), recursive=True)])
             elif data_path.is_file():
@@ -240,14 +235,14 @@ class AutoAnnotator:
 
         if save_visuals:
             if not visuals_output_dir:
-                 if path_output_dir:
-                      visuals_output_dir = path_output_dir.parent / f"{path_output_dir.name}_visuals"
-                 else:
-                      visuals_output_dir = Path("./labels_visuals")
+                if path_output_dir:
+                    visuals_output_dir = path_output_dir.parent / f"{path_output_dir.name}_visuals"
+                else:
+                    visuals_output_dir = Path("./labels_visuals")
             path_visuals_dir = Path(visuals_output_dir)
             path_visuals_dir.mkdir(parents=True, exist_ok=True)
 
-        return path_output_dir, path_visuals_dir, save # Return updated save status
+        return path_output_dir, path_visuals_dir, save  # Return updated save status
 
     def _process(self, im0, task_prompt, text_input=None):
         """
@@ -274,12 +269,12 @@ class AutoAnnotator:
         # Generate model predictions (token IDs)
         # with torch.no_grad(): # Ensure inference mode
         output_ids = self.model.generate(
-                input_ids=inputs["input_ids"],
-                pixel_values=inputs["pixel_values"],
-                max_new_tokens=1024,  # Set maximum number of tokens to generate
-                early_stopping=False,
-                num_beams=3,
-            )
+            input_ids=inputs["input_ids"],
+            pixel_values=inputs["pixel_values"],
+            max_new_tokens=1024,  # Set maximum number of tokens to generate
+            early_stopping=False,
+            num_beams=3,
+        )
 
         # Decode generated token IDs into text, results is a list, keep special tokens for post-processing
         output_text = self.processor.batch_decode(output_ids, skip_special_tokens=False)[0]
@@ -288,24 +283,25 @@ class AutoAnnotator:
             # Pass the base task_prompt used for generation
             parsed_results = self.processor.post_process_generation(
                 output_text,
-                task=task_prompt, # Use the base task prompt
-                image_size=(self.img_width, self.img_height), # Use W, H format
+                task=task_prompt,  # Use the base task prompt
+                image_size=(self.img_width, self.img_height),  # Use W, H format
             )
             return parsed_results
 
         except Exception as e:
             LOGGER.error(f"❌ Error during post-processing: {e}")
             LOGGER.error(f"⚠️ Generated text was: {output_text}")
-            return {"bboxes": [], "labels": []} # Return empty structure on error
+            return {"bboxes": [], "labels": []}  # Return empty structure on error
 
-    def annotate(self,
-                 data,  # Can be image path, dir, glob, list, or numpy array
-                 classes=None,  # List of classes for detection (optional)
-                 save=True,  # Save annotation files
-                 output_dir="labels",  # Directory to save annotation files
-                 save_visuals=True,  # Save annotated images
-                 visuals_output_dir=None, # Directory for visuals (defaults relative to output_dir)
-                 ):
+    def annotate(
+        self,
+        data,  # Can be image path, dir, glob, list, or numpy array
+        classes=None,  # List of classes for detection (optional)
+        save=True,  # Save annotation files
+        output_dir="labels",  # Directory to save annotation files
+        save_visuals=True,  # Save annotated images
+        visuals_output_dir=None,  # Directory for visuals (defaults relative to output_dir)
+    ):
         """
         Performs auto-annotation on images using the loaded Florence-2 model.
 
@@ -352,15 +348,15 @@ class AutoAnnotator:
         # Determine task prompt and text input based on classes
         if classes:
             if not all(isinstance(c, str) for c in classes):
-                 LOGGER.error("❌ 'classes' must be a comma-separated string. i.e 'person, car, bus, truck'")
-                 return
+                LOGGER.error("❌ 'classes' must be a comma-separated string. i.e 'person, car, bus, truck'")
+                return
             task_prompt = self.default_task_prompt
             text_input = f"{classes}"
             LOGGER.info(f"🤩 Using grounding prompt for classes: {classes}")
         else:
-            task_prompt = self.od_task_prompt # Use Object Detection prompt
+            task_prompt = self.od_task_prompt  # Use Object Detection prompt
             text_input = None
-            label_map = {} # Will be built dynamically based on detected labels if no classes are given
+            label_map = {}  # Will be built dynamically based on detected labels if no classes are given
             LOGGER.info("No classes provided, using general object detection prompt.")
 
         # Prepare output directories
@@ -372,7 +368,7 @@ class AutoAnnotator:
         for i, img_source in enumerate(tqdm(image_paths, desc="Annotating Images")):
             try:
                 img_path = Path(img_source)  # Load Image
-                img_name = img_path.stem # Name without extension
+                img_name = img_path.stem  # Name without extension
                 im0 = cv2.imread(str(img_path))
                 if im0 is None:
                     LOGGER.warning(f"⚠️ Could not read image: {img_path}, skipping.")
@@ -385,22 +381,22 @@ class AutoAnnotator:
                 labels = results.get("labels") or []
 
                 # Ensure results format is consistent (dict with 'bboxes', 'labels')
-                if not isinstance(results, dict) or 'bboxes' not in results or not labels:
+                if not isinstance(results, dict) or "bboxes" not in results or not labels:
                     LOGGER.warning(f"⚠️ Unexpected result format for {img_name}: {results}. Skipping image save.")
                     continue
 
                 annotator = Annotator(im0)
 
                 if not classes:  # build label_map dynamically
-                     unique_labels = sorted(list(set(labels)))
-                     if not label_map: # First time or if previously empty
-                          label_map = {name: idx for idx, name in enumerate(unique_labels)}
-                     else: # Update map only with new labels found in this image
-                          current_max_idx = max(label_map.values()) if label_map else -1
-                          for label in unique_labels:
-                              if label not in label_map:
-                                  current_max_idx += 1
-                                  label_map[label] = current_max_idx
+                    unique_labels = sorted(list(set(labels)))
+                    if not label_map:  # First time or if previously empty
+                        label_map = {name: idx for idx, name in enumerate(unique_labels)}
+                    else:  # Update map only with new labels found in this image
+                        current_max_idx = max(label_map.values()) if label_map else -1
+                        for label in unique_labels:
+                            if label not in label_map:
+                                current_max_idx += 1
+                                label_map[label] = current_max_idx
 
                 # Process detections
                 yolo_lines = []
@@ -408,7 +404,7 @@ class AutoAnnotator:
                 for idx, (box, label) in enumerate(zip(results.get("bboxes", []), labels)):
                     if label in label_map:  # Get class index from map
                         class_index = label_map[label]
-                    elif not classes: # OD task and label not seen before (should have been added above)
+                    elif not classes:  # OD task and label not seen before (should have been added above)
                         LOGGER.warning(f"⚠️ Label '{label}' detected but missing from dynamic map, Rebuilding map.")
                         current_max_idx = max(label_map.values()) if label_map else -1
                         label_map[label] = current_max_idx + 1
@@ -434,11 +430,11 @@ class AutoAnnotator:
                             with open(output_ann_path, "w") as f:
                                 f.write("\n".join(yolo_lines))
                         except Exception as e:
-                             LOGGER.error(f"❌ Failed to write annotation file {output_ann_path}: {e}")
+                            LOGGER.error(f"❌ Failed to write annotation file {output_ann_path}: {e}")
 
                 # Save result image
                 if save_visuals and path_visuals_dir:
-                    output_vis_path = path_visuals_dir / f"{img_name}.png" # Save as png
+                    output_vis_path = path_visuals_dir / f"{img_name}.png"  # Save as png
                     annotated_image = annotator.result()
                     try:
                         cv2.imwrite(str(output_vis_path), annotated_image)
@@ -448,7 +444,9 @@ class AutoAnnotator:
                 processed_count += 1
 
             except Exception as e:
-                LOGGER.error(f"❌ Failed to process image {img_source or 'input array'} due to error: {e}", exc_info=True) # Add traceback
+                LOGGER.error(
+                    f"❌ Failed to process image {img_source or 'input array'} due to error: {e}", exc_info=True
+                )  # Add traceback
 
         total_end_time = time.time()
         LOGGER.info(f"Annotation process finished for {processed_count}/{num_images} images.")

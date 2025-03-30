@@ -566,6 +566,11 @@ nav:
               - world:
                   - train: reference/models/yolo/world/train.md
                   - train_world: reference/models/yolo/world/train_world.md
+              - yoloe:
+                  - predict: reference/models/yolo/yoloe/predict.md
+                  - train: reference/models/yolo/yoloe/train.md
+                  - train_seg: reference/models/yolo/yoloe/train_seg.md
+                  - val: reference/models/yolo/yoloe/val.md
       - nn:
           - autobackend: reference/nn/autobackend.md
           - modules:
@@ -576,24 +581,25 @@ nav:
               - transformer: reference/nn/modules/transformer.md
               - utils: reference/nn/modules/utils.md
           - tasks: reference/nn/tasks.md
+          - text_model: reference/nn/text_model.md
       - solutions:
-          - solutions: reference/solutions/solutions.md
-          - object_counter: reference/solutions/object_counter.md
-          - object_cropper: reference/solutions/object_cropper.md
-          - object_blurrer: reference/solutions/object_blurrer.md
           - ai_gym: reference/solutions/ai_gym.md
-          - region_counter: reference/solutions/region_counter.md
-          - security_alarm: reference/solutions/security_alarm.md
+          - analytics: reference/solutions/analytics.md
+          - distance_calculation: reference/solutions/distance_calculation.md
           - heatmap: reference/solutions/heatmap.md
           - instance_segmentation: reference/solutions/instance_segmentation.md
-          - visioneye_mapping: reference/solutions/vision_eye.md
-          - speed_estimation: reference/solutions/speed_estimation.md
-          - distance_calculation: reference/solutions/distance_calculation.md
-          - queue_management: reference/solutions/queue_management.md
+          - object_blurrer: reference/solutions/object_blurrer.md
+          - object_counter: reference/solutions/object_counter.md
+          - object_cropper: reference/solutions/object_cropper.md
           - parking_management: reference/solutions/parking_management.md
-          - analytics: reference/solutions/analytics.md
+          - queue_management: reference/solutions/queue_management.md
+          - region_counter: reference/solutions/region_counter.md
+          - security_alarm: reference/solutions/security_alarm.md
+          - solutions: reference/solutions/solutions.md
+          - speed_estimation: reference/solutions/speed_estimation.md
           - streamlit_inference: reference/solutions/streamlit_inference.md
           - trackzone: reference/solutions/trackzone.md
+          - vision_eye: reference/solutions/vision_eye.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md

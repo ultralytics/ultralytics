@@ -1,20 +1,20 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import glob
+import time
 from pathlib import Path
 from typing import List, Optional, Union
 
-from ultralytics import SAM, YOLO
 import cv2
-import time
 import torch
-import glob
 from tqdm import tqdm
 
+from ultralytics import SAM, YOLO
 from ultralytics.data.utils import IMG_FORMATS
-from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.torch_utils import select_device
-from ultralytics.utils.plotting import Annotator, colors
 from ultralytics.utils import LOGGER
+from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.utils.torch_utils import select_device
 
 
 def auto_annotate(
@@ -94,6 +94,7 @@ class AutoAnnotator:
         m_id (str): The model identifier string (e.g., "microsoft/Florence-2-base-ft").
         torch_dtype (torch.dtype): The data type used for model tensors (float16 or float32).
     """
+
     def __init__(self, model=None):
         """
         Initializes the AutoAnnotator class with a specified model.

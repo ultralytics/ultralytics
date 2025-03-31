@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Documentation for YOLOE trainer classes in Ultralytics, supporting various training approaches including standard training, linear probing, training from scratch, prompt-free training, and visual prompt training for object detection models.
+keywords: YOLOE, object detection, trainers, YOLOETrainer, YOLOEPETrainer, YOLOETrainerFromScratch, YOLOEPEFreeTrainer, YOLOEVPTrainer, linear probing, visual prompts, text embeddings, Ultralytics, deep learning
 ---
 
 # Reference for `ultralytics/models/yolo/yoloe/train.py`

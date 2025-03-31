@@ -95,6 +95,7 @@ from ultralytics.utils import (
     colorstr,
     get_default_args,
     yaml_save,
+    checks,
 )
 from ultralytics.utils.checks import (
     check_imgsz,

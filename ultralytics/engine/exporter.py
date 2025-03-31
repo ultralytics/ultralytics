@@ -1254,7 +1254,7 @@ class Exporter:
         tpc = get_target_platform_capabilities(tpc_version="4.0", device_type="imx500")
 
         bit_cfg = mct.core.BitWidthConfig()
-        if "C2PSA" in self.model.__str__():  # yolo11
+        if "C2PSA" in self.model.__str__():  # YOLO11
             layer_names = ["sub", "mul_2", "add_14", "cat_21"]
             weights_memory = 2585350.2439
         else:  # yolov8

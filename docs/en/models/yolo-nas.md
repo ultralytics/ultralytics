@@ -6,6 +6,10 @@ keywords: YOLO-NAS, Deci AI, object detection, deep learning, Neural Architectur
 
 # YOLO-NAS
 
+!!! note "Important Update"
+
+    Please note that [Deci](https://www.linkedin.com/company/deciai/), the original creators of YOLO-NAS, have been acquired by NVIDIA. As a result, these models are no longer actively maintained by Deci. Ultralytics continues to support the usage of these models, but no further updates from the original team are expected.
+
 ## Overview
 
 Developed by Deci AI, YOLO-NAS is a groundbreaking object detection foundational model. It is the product of advanced [Neural Architecture Search](https://www.ultralytics.com/glossary/neural-architecture-search-nas) technology, meticulously designed to address the limitations of previous YOLO models. With significant improvements in quantization support and [accuracy](https://www.ultralytics.com/glossary/accuracy)-latency trade-offs, YOLO-NAS represents a major leap in object detection.
@@ -110,7 +114,7 @@ If you employ YOLO-NAS in your research or development work, please cite SuperGr
         ```bibtex
         @misc{supergradients,
               doi = {10.5281/ZENODO.7789328},
-              url = {https://zenodo.org/record/7789328},
+              url = {https://zenodo.org/records/7789328},
               author = {Aharon,  Shay and {Louis-Dupont} and {Ofri Masad} and Yurkova,  Kate and {Lotem Fridman} and {Lkdci} and Khvedchenya,  Eugene and Rubin,  Ran and Bagrov,  Natan and Tymchenko,  Borys and Keren,  Tomer and Zhilko,  Alexander and {Eran-Deci}},
               title = {Super-Gradients},
               publisher = {GitHub},

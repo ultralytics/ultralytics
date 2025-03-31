@@ -622,7 +622,7 @@ def segments2boxes(segments):
     Convert segment labels to box labels, i.e. (cls, xy1, xy2, ...) to (cls, xywh).
 
     Args:
-        segments (List): List of segments, each segment is a list of points, each point is a list of x, y coordinates.
+        segments (list): List of segments, each segment is a list of points, each point is a list of x, y coordinates.
 
     Returns:
         (np.ndarray): The xywh coordinates of the bounding boxes.
@@ -639,11 +639,11 @@ def resample_segments(segments, n=1000):
     Inputs a list of segments (n,2) and returns a list of segments (n,2) up-sampled to n points each.
 
     Args:
-        segments (List): A list of (n,2) arrays, where n is the number of points in the segment.
+        segments (list): A list of (n,2) arrays, where n is the number of points in the segment.
         n (int): Number of points to resample the segment to.
 
     Returns:
-        segments (List): The resampled segments.
+        segments (list): The resampled segments.
     """
     for i, s in enumerate(segments):
         if len(s) == n:
@@ -820,7 +820,7 @@ def masks2segments(masks, strategy="all"):
         strategy (str): 'all' or 'largest'.
 
     Returns:
-        (List): List of segment masks.
+        (list): List of segment masks.
     """
     from ultralytics.data.converter import merge_multi_segment
 

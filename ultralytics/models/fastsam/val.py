@@ -17,7 +17,7 @@ class FastSAMValidator(SegmentationValidator):
         save_dir (Path): The directory where validation results will be saved.
         pbar (tqdm.tqdm): A progress bar object for displaying validation progress.
         args (SimpleNamespace): Additional arguments for customization of the validation process.
-        _callbacks (List): List of callback functions to be invoked during validation.
+        _callbacks (list): List of callback functions to be invoked during validation.
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
@@ -29,7 +29,7 @@ class FastSAMValidator(SegmentationValidator):
             save_dir (Path, optional): Directory to save results.
             pbar (tqdm.tqdm): Progress bar for displaying progress.
             args (SimpleNamespace): Configuration for the validator.
-            _callbacks (List): List of callback functions to be invoked during validation.
+            _callbacks (list): List of callback functions to be invoked during validation.
 
         Notes:
             Plots for ConfusionMatrix and other related metrics are disabled in this class to avoid errors.

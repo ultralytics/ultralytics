@@ -92,10 +92,10 @@ from ultralytics.utils import (
     WINDOWS,
     __version__,
     callbacks,
+    checks,
     colorstr,
     get_default_args,
     yaml_save,
-    checks,
 )
 from ultralytics.utils.checks import (
     check_imgsz,

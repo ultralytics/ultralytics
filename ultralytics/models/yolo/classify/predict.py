@@ -17,7 +17,7 @@ class ClassificationPredictor(BasePredictor):
     and postprocessing predictions to generate classification results.
 
     Attributes:
-        args (Dict): Configuration arguments for the predictor.
+        args (dict): Configuration arguments for the predictor.
         _legacy_transform_name (str): Name of the legacy transform class for backward compatibility.
 
     Methods:

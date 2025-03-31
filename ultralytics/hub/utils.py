@@ -177,7 +177,7 @@ class Events:
     Attributes:
         url (str): The URL to send anonymous events.
         rate_limit (float): The rate limit in seconds for sending events.
-        metadata (Dict): A dictionary containing metadata about the environment.
+        metadata (dict): A dictionary containing metadata about the environment.
         enabled (bool): A flag to enable or disable Events based on certain conditions.
     """
 

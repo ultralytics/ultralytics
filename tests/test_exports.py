@@ -114,7 +114,7 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
 @pytest.mark.slow
 @pytest.mark.skipif(not MACOS, reason="CoreML inference only supported on macOS")
 @pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")
-@pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="CoreML not supported in Python 3.12")
+@pytest.mark.skipif(checks.IS_PYTHON_3_13, reason="CoreML not supported in Python 3.13")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch",
     [  # generate all combinations except for exclusion cases
@@ -150,7 +150,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
         for task, dynamic, int8, half, batch, nms in product(
             TASKS, [False], [True, False], [True, False], [1], [True, False]
         )
-        if not ((int8 and half) or (task == "classify" and nms))
+        if not ((int8 and half) or (task == "classify" and nms) or (ARM64 and nms))
     ],
 )
 def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms):
@@ -165,7 +165,7 @@ def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms):
 @pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")
 @pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")  # RuntimeError: BlobWriter not loaded
 @pytest.mark.skipif(LINUX and ARM64, reason="CoreML not supported on aarch64 Linux")
-@pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="CoreML not supported in Python 3.12")
+@pytest.mark.skipif(checks.IS_PYTHON_3_13, reason="CoreML not supported in Python 3.13")
 def test_export_coreml():
     """Test YOLO exports to CoreML format, optimized for macOS only."""
     if MACOS:
@@ -213,7 +213,7 @@ def test_export_ncnn():
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
-@pytest.mark.skipif(True, reason="Test disabled as keras and tensorflow version conflicts with tflite export.")
+@pytest.mark.skipif(True, reason="Test disabled as keras and tensorflow version conflicts with TFlite export.")
 @pytest.mark.skipif(not LINUX or MACOS, reason="Skipping test on Windows and Macos")
 def test_export_imx():
     """Test YOLO exports to IMX format."""

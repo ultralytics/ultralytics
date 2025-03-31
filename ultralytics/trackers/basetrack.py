@@ -38,7 +38,7 @@ class BaseTrack:
         is_activated (bool): Flag indicating whether the track is currently active.
         state (TrackState): Current state of the track.
         history (OrderedDict): Ordered history of the track's states.
-        features (List): List of features extracted from the object for tracking.
+        features (list): List of features extracted from the object for tracking.
         curr_feature (Any): The current feature of the object being tracked.
         score (float): The confidence score of the tracking.
         start_frame (int): The frame number where tracking started.

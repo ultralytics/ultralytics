@@ -20,7 +20,7 @@ class Inference:
 
     Attributes:
         st (module): Streamlit module for UI creation.
-        temp_dict (Dict): Temporary dictionary to store the model path and other configuration.
+        temp_dict (dict): Temporary dictionary to store the model path and other configuration.
         model_path (str): Path to the loaded model.
         model (YOLO): The YOLO model instance.
         source (str): Selected video source (webcam or video file).

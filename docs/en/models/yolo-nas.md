@@ -98,10 +98,10 @@ We offer three variants of the YOLO-NAS models: Small (s), Medium (m), and Large
 Below is a detailed overview of each model, including links to their pre-trained weights, the tasks they support, and their compatibility with different operating modes.
 
 | Model Type | Pre-trained Weights                                                                           | Tasks Supported                        | Inference | Validation | Training | Export |
-| ---------- | --------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolo_nas_s.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
-| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolo_nas_m.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
-| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolo_nas_l.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
+| ---------- |-----------------------------------------------------------------------------------------------| -------------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_s.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
+| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_m.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
+| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_l.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
 
 ## Citations and Acknowledgements
 
@@ -168,6 +168,6 @@ YOLO-NAS models support various object detection tasks and modes such as inferen
 
 Yes, Ultralytics provides pre-trained YOLO-NAS models that you can access directly. These models are pre-trained on datasets like COCO, ensuring high performance in terms of both speed and accuracy. You can download these models using the links provided in the [Pre-trained Models](#pre-trained-models) section. Here are some examples:
 
-- [YOLO-NAS-s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolo_nas_s.pt)
-- [YOLO-NAS-m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolo_nas_m.pt)
-- [YOLO-NAS-l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolo_nas_l.pt)
+- [YOLO-NAS-s](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_s.pt)
+- [YOLO-NAS-m](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_m.pt)
+- [YOLO-NAS-l](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_l.pt)

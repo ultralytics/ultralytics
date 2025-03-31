@@ -51,7 +51,7 @@ class RTDETR(Model):
         Returns a task map for RT-DETR, associating tasks with corresponding Ultralytics classes.
 
         Returns:
-            (Dict): A dictionary mapping task names to Ultralytics task classes for the RT-DETR model.
+            (dict): A dictionary mapping task names to Ultralytics task classes for the RT-DETR model.
         """
         return {
             "detect": {

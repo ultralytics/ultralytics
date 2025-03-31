@@ -89,7 +89,7 @@ Before diving into the usage instructions, it's important to note that while all
 
         ```bash
         # Export a YOLO11n PyTorch model to TFLite Edge TPU format
-        yolo export model=yolo11n.pt format=edgetpu  # creates 'yolo11n_full_integer_quant_edgetpu.tflite'
+        yolo export model=yolo11n.pt format=edgetpu # creates 'yolo11n_full_integer_quant_edgetpu.tflite'
 
         # Run inference with the exported model
         yolo predict model=yolo11n_full_integer_quant_edgetpu.tflite source='https://ultralytics.com/images/bus.jpg'
@@ -154,7 +154,7 @@ To export a YOLO11 model to TFLite Edge TPU format, you can follow these steps:
 
         ```bash
         # Export a YOLO11n PyTorch model to TFLite Edge TPU format
-        yolo export model=yolo11n.pt format=edgetpu  # creates 'yolo11n_full_integer_quant_edgetpu.tflite'
+        yolo export model=yolo11n.pt format=edgetpu # creates 'yolo11n_full_integer_quant_edgetpu.tflite'
 
         # Run inference with the exported model
         yolo predict model=yolo11n_full_integer_quant_edgetpu.tflite source='https://ultralytics.com/images/bus.jpg'

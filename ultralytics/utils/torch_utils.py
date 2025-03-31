@@ -789,7 +789,7 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
         max_num_obj (int, optional): Maximum number of objects for simulation. Defaults to 0.
 
     Returns:
-        (List): Profile results for each operation.
+        (list): Profile results for each operation.
 
     Examples:
         >>> from ultralytics.utils.torch_utils import profile

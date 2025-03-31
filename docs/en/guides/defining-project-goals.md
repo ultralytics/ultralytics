@@ -4,7 +4,7 @@ description: Learn how to define clear goals and objectives for your computer vi
 keywords: computer vision, project planning, problem statement, measurable objectives, dataset preparation, model selection, YOLO11, Ultralytics
 ---
 
-# A Practical Guide for Defining Your [Computer Vision](https://www.ultralytics.com/glossary/computer-vision-cv) Project
+# A Practical Guide for Defining Your Computer Vision Project
 
 ## Introduction
 
@@ -123,7 +123,7 @@ Connecting with other computer vision enthusiasts can be incredibly helpful for 
 
 ## Conclusion
 
-Defining a clear problem and setting measurable goals is key to a successful computer vision project. We've highlighted the importance of being clear and focused from the start. Having specific goals helps avoid oversight. Also, staying connected with others in the community through platforms like GitHub or Discord is important for learning and staying current. In short, good planning and engaging with the community is a huge part of successful computer vision projects.
+Defining a clear problem and setting measurable goals is key to a successful computer vision project. We've highlighted the importance of being clear and focused from the start. Having specific goals helps avoid oversight. Also, staying connected with others in the community through platforms like [GitHub](https://github.com/ultralytics/ultralytics) or [Discord](https://discord.com/invite/ultralytics) is important for learning and staying current. In short, good planning and engaging with the community is a huge part of successful computer vision projects.
 
 ## FAQ
 

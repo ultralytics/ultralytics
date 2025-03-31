@@ -88,7 +88,7 @@ We would like to acknowledge the Stanford team for creating and maintaining this
 
 ### What is the Dog-pose dataset, and how is it used with Ultralytics YOLO11?
 
-The Dog-Pose dataset features 6,000 images annotated with 17 keypoints for dog pose estimation. Ideal for training and validating models with [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/), it supports applications like animal behavior analysis and veterinary studies.
+The Dog-Pose dataset features 6,773 training and 1,703 test images annotated with 24 keypoints for dog pose estimation. It's designed for training and validating models with [Ultralytics YOLO11](../../models/yolo11.md), supporting applications like animal behavior analysis, pet monitoring, and veterinary studies. The dataset's comprehensive annotations make it ideal for developing accurate pose estimation models for canines.
 
 ### How do I train a YOLO11 model using the Dog-pose dataset in Ultralytics?
 
@@ -120,22 +120,31 @@ For a comprehensive list of training arguments, refer to the model [Training](..
 
 The Dog-pose dataset offers several benefits:
 
-**Large and Diverse Dataset**: With 6,000 images, it provides a substantial amount of data covering a wide range of dog poses, breeds, and contexts, enabling robust model training and evaluation.
+**Large and Diverse Dataset**: With over 8,400 images, it provides substantial data covering a wide range of dog poses, breeds, and contexts, enabling robust model training and evaluation.
 
-**Pose-specific Annotations**: Offers detailed annotations for pose estimation, ensuring high-quality data for training pose detection models.
+**Detailed Keypoint Annotations**: Each image includes 24 keypoints with 3 dimensions per keypoint (x, y, visibility), offering precise annotations for training accurate pose detection models.
 
-**Real-World Scenarios**: Includes images from varied environments, enhancing the model's ability to generalize to real-world applications.
+**Real-World Scenarios**: Includes images from varied environments, enhancing the model's ability to generalize to real-world applications like [pet monitoring](https://www.ultralytics.com/blog/custom-training-ultralytics-yolo11-for-dog-pose-estimation) and behavior analysis.
 
-**Model Performance Improvement**: The diversity and scale of the dataset help improve model accuracy and robustness, particularly for tasks involving fine-grained pose estimation.
+**Transfer Learning Advantage**: The dataset works well with [transfer learning](https://www.ultralytics.com/blog/understanding-few-shot-zero-shot-and-transfer-learning) techniques, allowing models pre-trained on human pose datasets to adapt to dog-specific features.
 
 For more about its features and usage, see the [Dataset Introduction](#introduction) section.
 
 ### How does mosaicing benefit the YOLO11 training process using the Dog-pose dataset?
 
-Mosaicing, as illustrated in the sample images from the Dog-pose dataset, merges multiple images into a single composite, enriching the diversity of objects and scenes in each training batch. This approach enhances the model's capacity to generalize across different object sizes, aspect ratios, and contexts, leading to improved performance. For example images, refer to the [Sample Images and Annotations](#sample-images-and-annotations) section.
+Mosaicing, as illustrated in the sample images from the Dog-pose dataset, merges multiple images into a single composite, enriching the diversity of objects and scenes in each training batch. This technique offers several benefits:
+
+- Increases the variety of dog poses, sizes, and backgrounds in each batch
+- Improves the model's ability to detect dogs in different contexts and scales
+- Enhances generalization by exposing the model to more diverse visual patterns
+- Reduces overfitting by creating novel combinations of training examples
+
+This approach leads to more robust models that perform better in real-world scenarios. For example images, refer to the [Sample Images and Annotations](#sample-images-and-annotations) section.
 
 ### Where can I find the Dog-pose dataset YAML file and how do I use it?
 
-The Dog-pose dataset YAML file can be found [here](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/dog-pose.yaml). This file defines the dataset configuration, including paths, classes, and other relevant information. Use this file with the YOLO11 training scripts as mentioned in the [Train Example](#how-do-i-train-a-yolo11-model-using-the-dog-pose-dataset-in-ultralytics) section.
+The Dog-pose dataset YAML file can be found [here](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/dog-pose.yaml). This file defines the dataset configuration, including paths, classes, keypoint details, and other relevant information. The YAML specifies 24 keypoints with 3 dimensions per keypoint, making it suitable for detailed pose estimation tasks.
+
+To use this file with YOLO11 training scripts, simply reference it in your training command as shown in the [Usage](#usage) section. The dataset will be automatically downloaded when first used, making setup straightforward.
 
 For more FAQs and detailed documentation, visit the [Ultralytics Documentation](https://docs.ultralytics.com/).

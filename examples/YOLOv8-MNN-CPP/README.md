@@ -12,11 +12,11 @@ Welcome to the [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/)
 
 To ensure smooth execution, please make sure you have the following dependencies installed:
 
-| Dependency                                            | Version  |
-| ----------------------------------------------------- | -------- |
-| [MNN](https://mnn-docs.readthedocs.io/en/latest/)     | >=2.0.0  |
-| [C++](https://en.cppreference.com/w/)                 | >=14     |
-| [CMake](https://cmake.org/documentation/)             | >=3.12.0 |
+| Dependency                                        | Version  |
+| ------------------------------------------------- | -------- |
+| [MNN](https://mnn-docs.readthedocs.io/en/latest/) | >=2.0.0  |
+| [C++](https://en.cppreference.com/w/)             | >=14     |
+| [CMake](https://cmake.org/documentation/)         | >=3.12.0 |
 
 ## ⚙️ Build Instructions
 
@@ -29,31 +29,36 @@ Follow these steps to build the project:
     cd ultralytics/examples/YOLOv8-MNN-CPP
     ```
 
-2. Clone MNN repository:
+2.  Clone MNN repository:
+
     ```bash
     git clone https://github.com/alibaba/MNN.git
     cd MNN
     ```
 
-3. Build MNN library:
+3.  Build MNN library:
+
     ```bash
     mkdir build && cd build
     cmake -DMNN_BUILD_OPENCV=ON -DBUILD_SHARED_LIBS=OFF -DMNN_IMGCODECS=ON ..
     make -j4
     ```
+
     Note: If you encounter any issues during the build process, refer to the [MNN documentation](https://mnn-docs.readthedocs.io/en/latest/) for troubleshooting.
 
-4. Copy the MNN library to the project directory:
+4.  Copy the MNN library to the project directory:
+
     ```bash
     cd ../..
     mkdir -p lib
     cp MNN/build/libMNN.dylib \
-    MNN/build/express/libMNN_Express.dylib \
-    MNN/build/ tools/cv/libMNNOpenCV.dylib libs
+      MNN/build/express/libMNN_Express.dylib \
+      MNN/build/ tools/cv/libMNNOpenCV.dylib libs
 
     cp -r MNN/include .
     cp -r MNN/tools/cv/include .
     ```
+
     Note: The library paths may vary based on your system configuration. Make sure to update the paths accordingly.
 
 5.  Create a build directory and compile the project using CMake:
@@ -81,11 +86,13 @@ or
 For more details on exporting and optimizing models for MNN, refer to the [MNN documentation](https://mnn-docs.readthedocs.io/en/latest/).
 
 ## 🛠️ Usage
+
 ```bash
 yolo predict model='yolov8n.mnn' source='assets/bus.jpg'
 ```
 
 Output:
+
 ```
 ultralytics/examples/YOLOv8-MNN-CPP/assets/bus.jpg: 640x640 4 persons, 1 bus, 84.6ms
 Speed: 20.1ms preprocess, 84.6ms inference, 28.4ms postprocess per image at shape (1, 3, 640, 640)
@@ -97,6 +104,7 @@ Results saved to runs/detect/predict
 ```
 
 Output:
+
 ```
 The device supports: i8sdot:0, fp16:0, i8mm: 0, sve2: 0, sme2: 0
 Prediction: 0 person 0.86

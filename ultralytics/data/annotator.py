@@ -1,22 +1,23 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from pathlib import Path
+from typing import List, Optional, Union
 
 from ultralytics import SAM, YOLO
 
 
 def auto_annotate(
-    data,
-    det_model="yolo11x.pt",
-    sam_model="sam_b.pt",
-    device="",
-    conf=0.25,
-    iou=0.45,
-    imgsz=640,
-    max_det=300,
-    classes=None,
-    output_dir=None,
-):
+    data: Union[str, Path],
+    det_model: str = "yolo11x.pt",
+    sam_model: str = "sam_b.pt",
+    device: str = "",
+    conf: float = 0.25,
+    iou: float = 0.45,
+    imgsz: int = 640,
+    max_det: int = 300,
+    classes: Optional[List[int]] = None,
+    output_dir: Optional[Union[str, Path]] = None,
+) -> None:
     """
     Automatically annotate images using a YOLO object detection model and a SAM segmentation model.
 

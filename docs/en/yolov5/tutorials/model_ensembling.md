@@ -4,9 +4,11 @@ description: Learn how to use YOLOv5 model ensembling during testing and inferen
 keywords: YOLOv5, model ensembling, testing, inference, mAP, Recall, Ultralytics, object detection, PyTorch
 ---
 
-📚 This guide explains how to use YOLOv5 🚀 **model ensembling** during testing and inference for improved mAP and [Recall](https://www.ultralytics.com/glossary/recall).
+# YOLOv5 Model Ensembling
 
-From [https://en.wikipedia.org/wiki/Ensemble_learning](https://en.wikipedia.org/wiki/Ensemble_learning):
+📚 This guide explains how to use Ultralytics YOLOv5 🚀 **model ensembling** during testing and inference for improved mAP and [Recall](https://www.ultralytics.com/glossary/recall).
+
+From [ensemble learning](https://en.wikipedia.org/wiki/Ensemble_learning):
 
 > Ensemble modeling is a process where multiple diverse models are created to predict an outcome, either by using many different modeling algorithms or using different [training data](https://www.ultralytics.com/glossary/training-data) sets. The ensemble model then aggregates the prediction of each base model and results in once final prediction for the unseen data. The motivation for using ensemble models is to reduce the generalization error of the prediction. As long as the base models are diverse and independent, the prediction error of the model decreases when the ensemble approach is used. The approach seeks the wisdom of crowds in making a prediction. Even though the ensemble model has multiple base models within the model, it acts and performs as a single model.
 
@@ -15,14 +17,14 @@ From [https://en.wikipedia.org/wiki/Ensemble_learning](https://en.wikipedia.org/
 Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
-git clone https://github.com/ultralytics/yolov5  # clone
+git clone https://github.com/ultralytics/yolov5 # clone
 cd yolov5
-pip install -r requirements.txt  # install
+pip install -r requirements.txt # install
 ```
 
 ## Test Normally
 
-Before ensembling we want to establish the baseline performance of a single model. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate model available. Other options are `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or you own checkpoint from training a custom dataset `./weights/best.pt`. For details on all available models please see our README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
+Before ensembling, establish the baseline performance of a single model. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate model available. Other options are `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or your own checkpoint from training a custom dataset `./weights/best.pt`. For details on all available models, see the [pretrained checkpoints table](https://docs.ultralytics.com/models/yolov5/).
 
 ```bash
 python val.py --weights yolov5x.pt --data coco.yaml --img 640 --half
@@ -30,7 +32,7 @@ python val.py --weights yolov5x.pt --data coco.yaml --img 640 --half
 
 Output:
 
-```shell
+```output
 val: data=./data/coco.yaml, weights=['yolov5x.pt'], batch_size=32, imgsz=640, conf_thres=0.001, iou_thres=0.65, task=val, device=, single_cls=False, augment=False, verbose=False, save_txt=False, save_hybrid=False, save_conf=False, save_json=True, project=runs/val, name=exp, exist_ok=False, half=True
 YOLOv5 🚀 v5.0-267-g6a3ee7c torch 1.9.0+cu102 CUDA:0 (Tesla P100-PCIE-16GB, 16280.875MB)
 
@@ -61,7 +63,7 @@ Evaluating pycocotools mAP... saving runs/val/exp/yolov5x_predictions.json...
 
 ## Ensemble Test
 
-Multiple pretrained models may be ensembled together at test and inference time by simply appending extra models to the `--weights` argument in any existing val.py or detect.py command. This example tests an ensemble of 2 models together:
+Multiple pretrained models can be ensembled together at test and inference time by simply appending extra models to the `--weights` argument in any existing val.py or detect.py command. This example tests an ensemble of 2 models together:
 
 - YOLOv5x
 - YOLOv5l6
@@ -72,7 +74,7 @@ python val.py --weights yolov5x.pt yolov5l6.pt --data coco.yaml --img 640 --half
 
 Output:
 
-```shell
+```output
 val: data=./data/coco.yaml, weights=['yolov5x.pt', 'yolov5l6.pt'], batch_size=32, imgsz=640, conf_thres=0.001, iou_thres=0.6, task=val, device=, single_cls=False, augment=False, verbose=False, save_txt=False, save_hybrid=False, save_conf=False, save_json=True, project=runs/val, name=exp, exist_ok=False, half=True
 YOLOv5 🚀 v5.0-267-g6a3ee7c torch 1.9.0+cu102 CUDA:0 (Tesla P100-PCIE-16GB, 16280.875MB)
 
@@ -113,7 +115,7 @@ python detect.py --weights yolov5x.pt yolov5l6.pt --img 640 --source data/images
 
 Output:
 
-```bash
+```output
 YOLOv5 🚀 v5.0-267-g6a3ee7c torch 1.9.0+cu102 CUDA:0 (Tesla P100-PCIE-16GB, 16280.875MB)
 
 Fusing layers...
@@ -129,6 +131,28 @@ Done. (0.223s)
 ```
 
 <img src="https://github.com/ultralytics/docs/releases/download/0/yolo-inference-result.avif" width="500" alt="YOLO inference result">
+
+## Benefits of Model Ensembling
+
+Model ensembling with YOLOv5 offers several advantages:
+
+1. **Improved Accuracy**: As demonstrated in the examples above, ensembling multiple models increases mAP from 0.504 to 0.515 and mAR from 0.681 to 0.689.
+2. **Better Generalization**: Combining diverse models helps reduce overfitting and improves performance on varied data.
+3. **Enhanced Robustness**: Ensembles are typically more robust to noise and outliers in the data.
+4. **Complementary Strengths**: Different models may excel at detecting different types of objects or in different environmental conditions.
+
+The primary trade-off is increased inference time, as shown in the speed metrics (22.4ms for single model vs. 39.5ms for ensemble).
+
+## When to Use Model Ensembling
+
+Consider using model ensembling in these scenarios:
+
+- When accuracy is more important than inference speed
+- For critical applications where false negatives must be minimized
+- When processing challenging images with varied lighting, occlusion, or scale
+- During competitions or benchmarking where maximum performance is required
+
+For real-time applications with strict latency requirements, single model inference may be more appropriate.
 
 ## Supported Environments
 

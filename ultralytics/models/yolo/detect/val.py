@@ -455,8 +455,13 @@ class DetectionValidator(BaseValidator):
                     val.print_results()  # explicitly call print_results
                 # update mAP50-95 and mAP50
                 stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = (
-                    val.stats[:2] if self.is_coco else [val.results["AP50"], val.results["AP"]]
+                    val.stats[:2] if self.is_coco else [val.results["AP"], val.results["AP50"]]
                 )
+                if self.is_lvis:
+                    stats["metrics/APr(B)"] = val.results["APr"]
+                    stats["metrics/APc(B)"] = val.results["APc"]
+                    stats["metrics/APf(B)"] = val.results["APf"]
+                    stats["fitness"] = val.results["AP"]
             except Exception as e:
                 LOGGER.warning(f"{pkg} unable to run: {e}")
         return stats

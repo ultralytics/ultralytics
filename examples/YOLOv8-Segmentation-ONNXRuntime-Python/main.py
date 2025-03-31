@@ -24,7 +24,7 @@ class YOLOv8Seg:
     Attributes:
         session (ort.InferenceSession): ONNX Runtime inference session for model execution.
         imgsz (Tuple[int, int]): Input image size as (height, width) for the model.
-        classes (Dict): Dictionary mapping class indices to class names from the dataset.
+        classes (dict): Dictionary mapping class indices to class names from the dataset.
         conf (float): Confidence threshold for filtering detections.
         iou (float): IoU threshold used by non-maximum suppression.
 
@@ -125,7 +125,7 @@ class YOLOv8Seg:
         Args:
             img (np.ndarray): The original input image.
             prep_img (np.ndarray): The preprocessed image used for inference.
-            outs (List): Model outputs containing predictions and prototype masks.
+            outs (list): Model outputs containing predictions and prototype masks.
 
         Returns:
             (List[Results]): Processed detection results containing bounding boxes and segmentation masks.

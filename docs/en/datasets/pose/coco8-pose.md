@@ -82,7 +82,7 @@ We would like to acknowledge the COCO Consortium for creating and maintaining th
 
 ### What is the COCO8-Pose dataset, and how is it used with Ultralytics YOLO11?
 
-The COCO8-Pose dataset is a small, versatile pose detection dataset that includes the first 8 images from the COCO train 2017 set, with 4 images for training and 4 for validation. It's designed for testing and debugging object detection models and experimenting with new detection approaches. This dataset is ideal for quick experiments with [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/). For more details on dataset configuration, check out the dataset YAML file [here](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-pose.yaml).
+The COCO8-Pose dataset is a small, versatile pose detection dataset that includes the first 8 images from the COCO train 2017 set, with 4 images for training and 4 for validation. It's designed for testing and debugging object detection models and experimenting with new detection approaches. This dataset is ideal for quick experiments with [Ultralytics YOLO11](../../models/yolo11.md). For more details on dataset configuration, check out the dataset YAML file [here](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-pose.yaml).
 
 ### How do I train a YOLO11 model using the COCO8-Pose dataset in Ultralytics?
 

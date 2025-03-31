@@ -28,7 +28,7 @@ The VisDrone dataset is organized into five main subsets, each focusing on a spe
 1. **Task 1**: Object detection in images
 2. **Task 2**: Object detection in videos
 3. **Task 3**: Single-object tracking
-4. **Task 4**: Multi-object tracking
+4. **Task 4**: [Multi-object tracking](../index.md#multi-object-tracking)
 5. **Task 5**: Crowd counting
 
 ## Applications
@@ -76,7 +76,7 @@ The VisDrone dataset contains a diverse set of images and videos captured by dro
 
 ![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/visdrone-object-detection-sample.avif)
 
-- **Task 1**: [Object detection](https://www.ultralytics.com/glossary/object-detection) in images - This image demonstrates an example of object detection in images, where objects are annotated with bounding boxes. The dataset provides a wide variety of images taken from different locations, environments, and densities to facilitate the development of models for this task.
+- **Task 1**: [Object detection](https://www.ultralytics.com/glossary/object-detection) in images - This image demonstrates an example of object detection in images, where objects are annotated with [bounding boxes](https://www.ultralytics.com/glossary/bounding-box). The dataset provides a wide variety of images taken from different locations, environments, and densities to facilitate the development of models for this task.
 
 The example showcases the variety and complexity of the data in the VisDrone dataset and highlights the importance of high-quality sensor data for drone-based computer vision tasks.
 

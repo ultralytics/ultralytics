@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn to create line graphs, bar plots, and pie charts using Python with guided instructions and code snippets. Maximize your data visualization skills!.
+description: Learn to create line graphs, bar plots, and pie charts using Python with guided instructions and code snippets. Maximize your data visualization skills!
 keywords: Ultralytics, YOLO11, data visualization, line graphs, bar plots, pie charts, Python, analytics, tutorial, guide
 ---
 
@@ -38,10 +38,10 @@ This guide provides a comprehensive overview of three fundamental types of [data
     === "CLI"
 
         ```bash
-         yolo solutions analytics show=True
+        yolo solutions analytics show=True
 
         # Pass the source
-        yolo solutions analytics source="path/to/video/file.mp4"
+        yolo solutions analytics source="path/to/video.mp4"
 
         # Generate the pie chart
         yolo solutions analytics analytics_type="pie" show=True
@@ -60,7 +60,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
         from ultralytics import solutions
 
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
 
         # Video writer
@@ -118,7 +118,7 @@ Additionally, the following visualization arguments are supported:
 
 ## Conclusion
 
-Understanding when and how to use different types of visualizations is crucial for effective data analysis. Line graphs, bar plots, and pie charts are fundamental tools that can help you convey your data's story more clearly and effectively.
+Understanding when and how to use different types of visualizations is crucial for effective data analysis. Line graphs, bar plots, and pie charts are fundamental tools that can help you convey your data's story more clearly and effectively. The Ultralytics YOLO11 Analytics solution provides a streamlined way to generate these visualizations from your [object detection](https://www.ultralytics.com/glossary/object-detection) and tracking results, making it easier to extract meaningful insights from your visual data.
 
 ## FAQ
 
@@ -138,7 +138,7 @@ import cv2
 
 from ultralytics import solutions
 
-cap = cv2.VideoCapture("Path/to/video/file.mp4")
+cap = cv2.VideoCapture("path/to/video.mp4")
 assert cap.isOpened(), "Error reading video file"
 
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -170,7 +170,7 @@ out.release()
 cv2.destroyAllWindows()
 ```
 
-For further details on configuring the `Analytics` class, visit the [Analytics using Ultralytics YOLO11 📊](#analytics-using-ultralytics-yolo11) section.
+For further details on configuring the `Analytics` class, visit the [Analytics using Ultralytics YOLO11](#analytics-using-ultralytics-yolo11) section.
 
 ### What are the benefits of using Ultralytics YOLO11 for creating bar plots?
 
@@ -188,7 +188,7 @@ import cv2
 
 from ultralytics import solutions
 
-cap = cv2.VideoCapture("Path/to/video/file.mp4")
+cap = cv2.VideoCapture("path/to/video.mp4")
 assert cap.isOpened(), "Error reading video file"
 
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -238,7 +238,7 @@ import cv2
 
 from ultralytics import solutions
 
-cap = cv2.VideoCapture("Path/to/video/file.mp4")
+cap = cv2.VideoCapture("path/to/video.mp4")
 assert cap.isOpened(), "Error reading video file"
 
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
@@ -283,7 +283,7 @@ import cv2
 
 from ultralytics import solutions
 
-cap = cv2.VideoCapture("Path/to/video/file.mp4")
+cap = cv2.VideoCapture("path/to/video.mp4")
 assert cap.isOpened(), "Error reading video file"
 
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))

@@ -1,3 +1,5 @@
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 // tablesort.filesize.min.js
 !(function () {
   function r(t) {

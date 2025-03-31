@@ -33,11 +33,11 @@ An educational and modular object tracking interface built using [Ultralytics YO
 ## Hardware & Model Support
 
 | Platform          | Format Used        | Model Example        | GPU Acceleration | Notes                      |
-|-------------------|--------------------|----------------------|------------------|----------------------------|
-| Raspberry Pi 4/5  | NCNN (.param/.bin) | `yolov8n_ncnn_model` | ❌ CPU only       | Lightweight, fast enough   |
-| Jetson Nano       | PyTorch (.pt)      | `yolov8n.pt`         | ✅ CUDA           | Great for GPU acceleration |
-| Desktop PC w/ GPU | PyTorch (.pt)      | `yolov8s.pt`         | ✅ CUDA           | Fastest option             |
-| CPU-only laptops  | NCNN (.param/.bin) | `yolov8n_ncnn_model` | ❌                | Still usable at ~10–15 FPS |
+| ----------------- | ------------------ | -------------------- | ---------------- | -------------------------- |
+| Raspberry Pi 4/5  | NCNN (.param/.bin) | `yolov8n_ncnn_model` | ❌ CPU only      | Lightweight, fast enough   |
+| Jetson Nano       | PyTorch (.pt)      | `yolov8n.pt`         | ✅ CUDA          | Great for GPU acceleration |
+| Desktop PC w/ GPU | PyTorch (.pt)      | `yolov8s.pt`         | ✅ CUDA          | Fastest option             |
+| CPU-only laptops  | NCNN (.param/.bin) | `yolov8n_ncnn_model` | ❌               | Still usable at ~10–15 FPS |
 
 ## 📁 Project Structure
 
@@ -122,15 +122,13 @@ TRACKER_TYPE = "bytetrack.yaml"
 
 You can also change bounding box styles, text font, colors, etc. The code is well-commented for educational clarity.
 
-
 ## 👤 Author
 
 - Connect with author: [here](https://www.linkedin.com/in/alireza787b)
 - Published Date ![Published Date](https://img.shields.io/badge/published_Date-2025--04--01-purple)
 
-
 ## License & Disclaimer
 
-This project is released under the **AGPL-3.0 license**. For full licensing terms, please visit the [Ultralytics YOLO License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE). 
+This project is released under the **AGPL-3.0 license**. For full licensing terms, please visit the [Ultralytics YOLO License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
 
 It is intended solely for educational and demonstration purposes. Please use it responsibly and at your own discretion. The author assumes no liability for any misuse or unintended consequences. Feedback, forks, and contributions are highly encouraged and always appreciated!

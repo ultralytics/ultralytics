@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # This is file for Ultralytics Solutions tests: https://docs.ultralytics.com/solutions/,
 # It includes every solution excluding DistanceCalculation and Security Alarm System.
 

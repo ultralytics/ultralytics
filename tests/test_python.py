@@ -209,10 +209,13 @@ def test_train_scratch():
     model(SOURCE)
 
 
-def test_train_pretrained():
+@pytest.mark.parametrize("scls", [False, True])
+def test_train_pretrained(scls):
     """Test training of the YOLO model starting from a pre-trained checkpoint."""
     model = YOLO(WEIGHTS_DIR / "yolo11n-seg.pt")
-    model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, cache="ram", copy_paste=0.5, mixup=0.5, name=0)
+    model.train(
+        data="coco8-seg.yaml", epochs=1, imgsz=32, cache="ram", copy_paste=0.5, mixup=0.5, name=0, single_cls=scls
+    )
     model(SOURCE)
 
 
@@ -603,6 +606,62 @@ def test_yolo_world():
         close_mosaic=1,
         trainer=WorldTrainerFromScratch,
     )
+
+
+@pytest.mark.skipif(checks.IS_PYTHON_3_12 or not TORCH_1_9, reason="YOLOE with CLIP is not supported in Python 3.12")
+def test_yoloe():
+    """Test YOLOE models with MobileClip support."""
+    # Predict
+    # text-prompts
+    model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    names = ["person", "bus"]
+    model.set_classes(names, model.get_text_pe(names))
+    model(SOURCE, conf=0.01)
+
+    import numpy as np
+
+    from ultralytics import YOLOE
+    from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
+
+    # visual-prompts
+    visuals = dict(
+        bboxes=np.array(
+            [[221.52, 405.8, 344.98, 857.54], [120, 425, 160, 445]],
+        ),
+        cls=np.array([0, 1]),
+    )
+    model.predict(
+        SOURCE,
+        visual_prompts=visuals,
+        predictor=YOLOEVPSegPredictor,
+    )
+
+    # Val
+    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    # text prompts
+    model.val(data="coco128-seg.yaml", imgsz=32)
+    # visual prompts
+    model.val(data="coco128-seg.yaml", load_vp=True, imgsz=32)
+
+    # Train, fine-tune
+    from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
+
+    model = YOLOE("yoloe-11s-seg.pt")
+    model.train(
+        data="coco128-seg.yaml",
+        epochs=1,
+        close_mosaic=1,
+        trainer=YOLOEPESegTrainer,
+        imgsz=32,
+    )
+
+    # prompt-free
+    # predict
+    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg-pf.pt")
+    model.predict(SOURCE)
+    # val
+    model = YOLOE("yoloe-11s-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+    model.val(data="coco128-seg.yaml", imgsz=32)
 
 
 def test_yolov10():

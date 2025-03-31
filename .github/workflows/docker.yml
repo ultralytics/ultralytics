@@ -46,7 +46,7 @@ on:
         default: true
       push:
         type: boolean
-        description: Publish all Images
+        description: Publish to DockerHub and ghcr.io
 
 jobs:
   docker:

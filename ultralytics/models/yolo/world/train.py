@@ -32,8 +32,8 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
         clip (module): The CLIP module for text-image understanding.
         text_model (module): The text encoder model from CLIP.
         model (WorldModel): The YOLO World model being trained.
-        data (Dict): Dataset configuration containing class information.
-        args (Dict): Training arguments and configuration.
+        data (dict): Dataset configuration containing class information.
+        args (dict): Training arguments and configuration.
 
     Examples:
         >>> from ultralytics.models.yolo.world import WorldModel
@@ -47,9 +47,9 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
         Initialize a WorldTrainer object with given arguments.
 
         Args:
-            cfg (Dict): Configuration for the trainer.
-            overrides (Dict, optional): Configuration overrides.
-            _callbacks (List, optional): List of callback functions.
+            cfg (dict): Configuration for the trainer.
+            overrides (dict, optional): Configuration overrides.
+            _callbacks (list, optional): List of callback functions.
         """
         if overrides is None:
             overrides = {}

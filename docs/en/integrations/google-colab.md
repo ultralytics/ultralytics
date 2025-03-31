@@ -85,11 +85,23 @@ There are many options for training and evaluating YOLO11 models, so what makes 
 
 - **Extensions and Widgets:** Google Colab allows for adding functionality through third-party extensions and interactive widgets.
 
+## Tips for Working with YOLO11 on Google Colab
+
+To make the most of your Google Colab experience when working with YOLO11 models, consider these practical tips:
+
+- **Enable GPU Acceleration:** Always enable GPU acceleration in the runtime settings to significantly speed up training.
+- **Maintain a Stable Connection:** Since Colab runs in the cloud, ensure you have a stable internet connection to prevent interruptions during training.
+- **Organize Your Files:** Store your datasets and models in Google Drive or GitHub for easy access and management within Colab.
+- **Optimize Memory Usage:** If you encounter memory limitations on the free tier, try reducing image size or batch size during training.
+- **Save Regularly:** Due to Colab's session time limits, save your model and results frequently to avoid losing progress.
+
 ## Keep Learning about Google Colab
 
 If you'd like to dive deeper into Google Colab, here are a few resources to guide you.
 
 - **[Training Custom Datasets with Ultralytics YOLO11 in Google Colab](https://www.ultralytics.com/blog/training-custom-datasets-with-ultralytics-yolov8-in-google-colab)**: Learn how to train custom datasets with Ultralytics YOLO11 on Google Colab. This comprehensive blog post will take you through the entire process, from initial setup to the training and evaluation stages.
+
+- **[Image Segmentation with Ultralytics YOLO11 on Google Colab](https://www.ultralytics.com/blog/image-segmentation-with-ultralytics-yolo11-on-google-colab)**: Explore how to perform image segmentation tasks using YOLO11 in the Google Colab environment, with practical examples using datasets like the Roboflow Carparts Segmentation Dataset.
 
 - **[Curated Notebooks](https://colab.google/notebooks/)**: Here you can explore a series of organized and educational notebooks, each grouped by specific topic areas.
 
@@ -97,11 +109,11 @@ If you'd like to dive deeper into Google Colab, here are a few resources to guid
 
 ## Summary
 
-We've discussed how you can easily experiment with Ultralytics YOLO11 models on Google Colab. You can use Google Colab to train and evaluate your models on GPUs and TPUs with a few clicks.
+We've discussed how you can easily experiment with Ultralytics YOLO11 models on Google Colab. You can use Google Colab to train and evaluate your models on GPUs and TPUs with a few clicks, making it an accessible platform for developers without high-end hardware.
 
 For more details, visit [Google Colab's FAQ page](https://research.google.com/colaboratory/intl/en-GB/faq.html).
 
-Interested in more YOLO11 integrations? Visit the [Ultralytics integration guide page](index.md) to explore additional tools and capabilities that can improve your machine-learning projects.
+Interested in more YOLO11 integrations? Visit the [Ultralytics integration guide page](index.md) to explore additional tools and capabilities that can improve your machine-learning projects, or check out [Kaggle integration](kaggle.md) for another cloud-based alternative.
 
 ## FAQ
 

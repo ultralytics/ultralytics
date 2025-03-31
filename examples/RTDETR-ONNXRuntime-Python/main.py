@@ -25,7 +25,7 @@ class RTDETR:
         conf_thres (float): Confidence threshold for filtering detections.
         iou_thres (float): IoU threshold for non-maximum suppression.
         session (ort.InferenceSession): ONNX runtime inference session.
-        model_input (List): Model input metadata.
+        model_input (list): Model input metadata.
         input_width (int): Width dimension required by the model.
         input_height (int): Height dimension required by the model.
         classes (List[str]): List of class names from COCO dataset.

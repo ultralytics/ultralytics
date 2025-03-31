@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Find best practices, optimization strategies, and troubleshooting advice for training computer vision models. Improve your model training efficiency and accuracy.
+description: Learn best practices for training computer vision models, including batch size optimization, mixed precision training, early stopping, and optimizer selection for improved efficiency and accuracy.
 keywords: Model Training Machine Learning, AI Model Training, Number of Epochs, How to Train a Model in Machine Learning, Machine Learning Best Practices, What is Model Training
 ---
 
@@ -23,7 +23,7 @@ One of the most important steps when working on a [computer vision project](./st
 
 So, what is [model training](../modes/train.md)? Model training is the process of teaching your model to recognize visual patterns and make predictions based on your data. It directly impacts the performance and accuracy of your application. In this guide, we'll cover best practices, optimization techniques, and troubleshooting tips to help you train your computer vision models effectively.
 
-## How to Train a [Machine Learning](https://www.ultralytics.com/glossary/machine-learning-ml) Model
+## How to Train a Machine Learning Model
 
 A computer vision model is trained by adjusting its internal parameters to minimize errors. Initially, the model is fed a large set of labeled images. It makes predictions about what is in these images, and the predictions are compared to the actual labels or contents to calculate errors. These errors show how far off the model's predictions are from the true values.
 
@@ -89,7 +89,7 @@ Mixed precision training uses both 16-bit (FP16) and 32-bit (FP32) floating-poin
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/mixed-precision-training-overview.avif" alt="Mixed Precision Training Overview">
 </p>
 
-To implement mixed precision training, you'll need to modify your training scripts and ensure your hardware (like GPUs) supports it. Many modern [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) frameworks, such as [Tensorflow](https://www.ultralytics.com/glossary/tensorflow), offer built-in support for mixed precision.
+To implement mixed precision training, you'll need to modify your training scripts and ensure your hardware (like GPUs) supports it. Many modern [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) frameworks, such as [PyTorch](https://www.ultralytics.com/glossary/pytorch) and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), offer built-in support for mixed precision.
 
 Mixed precision training is straightforward when working with YOLO11. You can use the `amp` flag in your training configuration. Setting `amp=True` enables Automatic Mixed Precision (AMP) training. Mixed precision training is a simple yet effective way to optimize your model training process.
 
@@ -104,11 +104,11 @@ The `pretrained` parameter makes transfer learning easy with YOLO11. Setting `pr
 There are a couple of other techniques to consider when handling a large dataset:
 
 - **[Learning Rate](https://www.ultralytics.com/glossary/learning-rate) Schedulers**: Implementing learning rate schedulers dynamically adjusts the learning rate during training. A well-tuned learning rate can prevent the model from overshooting minima and improve stability. When training YOLO11, the `lrf` parameter helps manage learning rate scheduling by setting the final learning rate as a fraction of the initial rate.
-- **Distributed Training**: For handling large datasets, distributed training can be a game-changer. You can reduce the training time by spreading the training workload across multiple GPUs or machines.
+- **Distributed Training**: For handling large datasets, distributed training can be a game-changer. You can reduce the training time by spreading the training workload across multiple GPUs or machines. This approach is particularly valuable for enterprise-scale projects with substantial computational resources.
 
 ## The Number of Epochs To Train For
 
-When training a model, an epoch refers to one complete pass through the entire training dataset. During an epoch, the model processes each example in the training set once and updates its parameters based on the learning algorithm. Multiple epochs are usually needed to allow the model to learn and refine its parameters over time.
+When training a model, an [epoch](https://www.ultralytics.com/glossary/epoch) refers to one complete pass through the entire training dataset. During an epoch, the model processes each example in the training set once and updates its parameters based on the learning algorithm. Multiple epochs are usually needed to allow the model to learn and refine its parameters over time.
 
 A common question that comes up is how to determine the number of epochs to train the model for. A good starting point is 300 epochs. If the model overfits early, you can reduce the number of epochs. If [overfitting](https://www.ultralytics.com/glossary/overfitting) does not occur after 300 epochs, you can extend the training to 600, 1200, or more epochs.
 
@@ -118,7 +118,7 @@ However, the ideal number of epochs can vary based on your dataset's size and pr
 
 Early stopping is a valuable technique for optimizing model training. By monitoring validation performance, you can halt training once the model stops improving. You can save computational resources and prevent overfitting.
 
-The process involves setting a patience parameter that determines how many [epochs](https://www.ultralytics.com/glossary/epoch) to wait for an improvement in validation metrics before stopping training. If the model's performance does not improve within these epochs, training is stopped to avoid wasting time and resources.
+The process involves setting a patience parameter that determines how many epochs to wait for an improvement in validation metrics before stopping training. If the model's performance does not improve within these epochs, training is stopped to avoid wasting time and resources.
 
 <p align="center">
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/early-stopping-overview.avif" alt="Early Stopping Overview">
@@ -130,7 +130,7 @@ For YOLO11, you can enable early stopping by setting the patience parameter in y
 
 There are two options for training your model: cloud training and local training.
 
-Cloud training offers scalability and powerful hardware and is ideal for handling large datasets and complex models. Platforms like Google Cloud, AWS, and Azure provide on-demand access to high-performance GPUs and TPUs, speeding up training times and enabling experiments with larger models. However, cloud training can be expensive, especially for long periods, and data transfer can add to costs and latency.
+Cloud training offers scalability and powerful hardware and is ideal for handling large datasets and complex models. Platforms like [Google Cloud](https://cloud.google.com/), [AWS](https://aws.amazon.com/), and [Azure](https://azure.microsoft.com/) provide on-demand access to high-performance GPUs and TPUs, speeding up training times and enabling experiments with larger models. However, cloud training can be expensive, especially for long periods, and data transfer can add to costs and latency.
 
 Local training provides greater control and customization, letting you tailor your environment to specific needs and avoid ongoing cloud costs. It can be more economical for long-term projects, and since your data stays on-premises, it's more secure. However, local hardware may have resource limitations and require maintenance, which can lead to longer training times for large models.
 
@@ -149,7 +149,7 @@ Different optimizers have various strengths and weaknesses. Let's take a glimpse
     - Updates model parameters using the gradient of the loss function with respect to the parameters.
     - Simple and efficient but can be slow to converge and might get stuck in local minima.
 
-- **Adam (Adaptive Moment Estimation)**:
+- **[Adam](https://www.ultralytics.com/glossary/adam-optimizer) (Adaptive Moment Estimation)**:
 
     - Combines the benefits of both SGD with momentum and RMSProp.
     - Adjusts the learning rate for each parameter based on estimates of the first and second moments of the gradients.

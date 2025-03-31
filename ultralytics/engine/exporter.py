@@ -493,6 +493,7 @@ class Exporter:
         dataset = YOLODataset(
             data[self.args.split or "val"],
             data=data,
+            fraction=self.args.fraction,
             task=self.model.task,
             imgsz=self.imgsz[0],
             augment=False,

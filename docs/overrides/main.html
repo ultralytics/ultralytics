@@ -1,5 +1,6 @@
-<!--Ultralytics YOLO 🚀, AGPL-3.0 license-->
+<!-- Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license -->
 
+<!--Site announcement bar-->
 {% extends "base.html" %} {% block announce %}
 <div class="banner-wrapper">
   <div
@@ -15,4 +16,14 @@
     />
   </div>
 </div>
+{% endblock %}
+
+<!--Page titles-->
+{% block htmltitle %} {% if page.toc|first is defined %} {% set
+page_specific_title = page.toc.items[0].title %} {% else %} {% set
+page_specific_title = page.title | striptags %} {% endif %}
+<title>
+  {%- if page_specific_title -%} {{ page_specific_title }} - {{ config.site_name
+  }} {%- else -%} {{ config.site_name }} {%- endif -%}
+</title>
 {% endblock %}

@@ -6,7 +6,7 @@ keywords: DOTA dataset, object detection, aerial images, oriented bounding boxes
 
 # DOTA Dataset with OBB
 
-[DOTA](https://captain-whu.github.io/DOTA/index.html) stands as a specialized dataset, emphasizing [object detection](https://www.ultralytics.com/glossary/object-detection) in aerial images. Originating from the DOTA series of datasets, it offers annotated images capturing a diverse array of aerial scenes with Oriented Bounding Boxes (OBB).
+[DOTA](https://captain-whu.github.io/DOTA/index.html) stands as a specialized dataset, emphasizing [object detection](https://www.ultralytics.com/glossary/object-detection) in aerial images. Originating from the DOTA series of datasets, it offers annotated images capturing a diverse array of aerial scenes with [Oriented Bounding Boxes (OBB)](https://docs.ultralytics.com/datasets/obb/).
 
 ![DOTA classes visual](https://github.com/ultralytics/docs/releases/download/0/dota-classes-visual.avif)
 
@@ -54,7 +54,7 @@ DOTA exhibits a structured layout tailored for OBB object detection challenges:
 
 ## Applications
 
-DOTA serves as a benchmark for training and evaluating models specifically tailored for aerial image analysis. With the inclusion of OBB annotations, it provides a unique challenge, enabling the development of specialized object detection models that cater to aerial imagery's nuances.
+DOTA serves as a benchmark for training and evaluating models specifically tailored for aerial image analysis. With the inclusion of OBB annotations, it provides a unique challenge, enabling the development of specialized [object detection](https://docs.ultralytics.com/tasks/detect/) models that cater to aerial imagery's nuances. The dataset is particularly valuable for applications in remote sensing, surveillance, and environmental monitoring.
 
 ## Dataset YAML
 
@@ -68,7 +68,7 @@ Typically, datasets incorporate a YAML (Yet Another Markup Language) file detail
 
 ## Split DOTA images
 
-To train DOTA dataset, we split original DOTA images with high-resolution into images with 1024x1024 resolution in multiscale way.
+To train DOTA dataset, we split original DOTA images with high-resolution into images with 1024x1024 resolution in multiscale way. This preprocessing step is crucial for efficient training as the original images can be extremely large.
 
 !!! example "Split images"
 
@@ -95,7 +95,7 @@ To train DOTA dataset, we split original DOTA images with high-resolution into i
 
 ## Usage
 
-To train a model on the DOTA v1 dataset, you can utilize the following code snippets. Always refer to your model's documentation for a thorough list of available arguments.
+To train a model on the DOTA v1 dataset, you can utilize the following code snippets. Always refer to your model's documentation for a thorough list of available arguments. For those looking to experiment with a smaller subset first, consider using the [DOTA8 dataset](https://docs.ultralytics.com/datasets/obb/dota8/), which contains just 8 images for quick testing.
 
 !!! warning
 
@@ -130,7 +130,7 @@ Having a glance at the dataset illustrates its depth:
 
 - **DOTA examples**: This snapshot underlines the complexity of aerial scenes and the significance of Oriented [Bounding Box](https://www.ultralytics.com/glossary/bounding-box) annotations, capturing objects in their natural orientation.
 
-The dataset's richness offers invaluable insights into object detection challenges exclusive to aerial imagery.
+The dataset's richness offers invaluable insights into object detection challenges exclusive to aerial imagery. The [DOTA-v2.0 dataset](https://www.ultralytics.com/blog/exploring-the-best-computer-vision-datasets-in-2025) has become particularly popular for remote sensing and aerial surveillance projects due to its comprehensive annotations and diverse object categories.
 
 ## Citations and Acknowledgments
 
@@ -163,11 +163,11 @@ The [DOTA dataset](https://captain-whu.github.io/DOTA/index.html) is a specializ
 
 ### How does the DOTA dataset handle different scales and orientations in images?
 
-DOTA utilizes Oriented Bounding Boxes (OBB) for annotation, which are represented by rotated rectangles encapsulating objects regardless of their orientation. This method ensures that objects, whether small or at different angles, are accurately captured. The dataset's multiscale images, ranging from 800 × 800 to 20,000 × 20,000 pixels, further allow for the detection of both small and large objects effectively.
+DOTA utilizes Oriented Bounding Boxes (OBB) for annotation, which are represented by rotated rectangles encapsulating objects regardless of their orientation. This method ensures that objects, whether small or at different angles, are accurately captured. The dataset's multiscale images, ranging from 800 × 800 to 20,000 × 20,000 pixels, further allow for the detection of both small and large objects effectively. This approach is particularly valuable for aerial imagery where objects appear at various angles and scales.
 
 ### How can I train a model using the DOTA dataset?
 
-To train a model on the DOTA dataset, you can use the following example with Ultralytics YOLO:
+To train a model on the DOTA dataset, you can use the following example with [Ultralytics YOLO](https://docs.ultralytics.com/tasks/obb/):
 
 !!! example "Train Example"
 

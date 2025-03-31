@@ -35,15 +35,15 @@ class Model(torch.nn.Module):
     loaded from local files, Ultralytics HUB, or Triton Server.
 
     Attributes:
-        callbacks (Dict): A dictionary of callback functions for various events during model operations.
+        callbacks (dict): A dictionary of callback functions for various events during model operations.
         predictor (BasePredictor): The predictor object used for making predictions.
         model (torch.nn.Module): The underlying PyTorch model.
         trainer (BaseTrainer): The trainer object used for training the model.
-        ckpt (Dict): The checkpoint data if the model is loaded from a *.pt file.
+        ckpt (dict): The checkpoint data if the model is loaded from a *.pt file.
         cfg (str): The configuration of the model if loaded from a *.yaml file.
         ckpt_path (str): The path to the checkpoint file.
-        overrides (Dict): A dictionary of overrides for model configuration.
-        metrics (Dict): The latest training/validation metrics.
+        overrides (dict): A dictionary of overrides for model configuration.
+        metrics (dict): The latest training/validation metrics.
         session (HUBTrainingSession): The Ultralytics HUB session, if applicable.
         task (str): The type of task the model is intended for.
         model_name (str): The name of the model.
@@ -685,7 +685,7 @@ class Model(torch.nn.Module):
                 - format (str): Export format name for specific benchmarking.
 
         Returns:
-            (Dict): A dictionary containing the results of the benchmarking process, including metrics for
+            (dict): A dictionary containing the results of the benchmarking process, including metrics for
                 different export formats.
 
         Raises:
@@ -853,7 +853,7 @@ class Model(torch.nn.Module):
                 overrides and defaults to configure the tuning process.
 
         Returns:
-            (Dict): Results of the hyperparameter search, including best parameters and performance metrics.
+            (dict): Results of the hyperparameter search, including best parameters and performance metrics.
 
         Raises:
             TypeError: If the model is not a PyTorch model.

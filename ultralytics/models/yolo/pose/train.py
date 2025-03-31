@@ -16,9 +16,9 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
     of pose keypoints alongside bounding boxes.
 
     Attributes:
-        args (Dict): Configuration arguments for training.
+        args (dict): Configuration arguments for training.
         model (PoseModel): The pose estimation model being trained.
-        data (Dict): Dataset configuration including keypoint shape information.
+        data (dict): Dataset configuration including keypoint shape information.
         loss_names (Tuple[str]): Names of the loss components used in training.
 
     Methods:

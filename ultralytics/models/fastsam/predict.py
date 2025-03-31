@@ -20,7 +20,7 @@ class FastSAMPredictor(SegmentationPredictor):
     single-class segmentation.
 
     Attributes:
-        prompts (Dict): Dictionary containing prompt information for segmentation (bboxes, points, labels, texts).
+        prompts (dict): Dictionary containing prompt information for segmentation (bboxes, points, labels, texts).
         device (torch.device): Device on which model and tensors are processed.
         clip_model (Any, optional): CLIP model for text-based prompting, loaded on demand.
         clip_preprocess (Any, optional): CLIP preprocessing function for images, loaded on demand.

@@ -21,10 +21,12 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
   <strong>Watch:</strong> How to Implement Queue Management with Ultralytics YOLO11 | Airport and Metro Station
 </p>
 
-## Advantages of Queue Management?
+## Advantages of Queue Management
 
 - **Reduced Waiting Times:** Queue management systems efficiently organize queues, minimizing wait times for customers. This leads to improved satisfaction levels as customers spend less time waiting and more time engaging with products or services.
 - **Increased Efficiency:** Implementing queue management allows businesses to allocate resources more effectively. By analyzing queue data and optimizing staff deployment, businesses can streamline operations, reduce costs, and improve overall productivity.
+- **Real-time Insights:** YOLO11-powered queue management provides instant data on queue lengths and wait times, enabling managers to make informed decisions quickly.
+- **Enhanced Customer Experience:** By reducing frustration associated with long waits, businesses can significantly improve customer satisfaction and loyalty.
 
 ## Real World Applications
 
@@ -42,10 +44,10 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
         yolo solutions queue show=True
 
         # Pass a source video
-        yolo solutions queue source="path/to/video/file.mp4"
+        yolo solutions queue source="path/to/video.mp4"
 
         # Pass queue coordinates
-        yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
+        yolo solutions queue region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
         ```
 
     === "Python"
@@ -55,7 +57,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
 
         from ultralytics import solutions
 
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
 
         # Video writer
@@ -106,6 +108,15 @@ Additionally, the following visualization parameters are available:
 
 {% from "macros/visualization-args.md" import param_table %}
 {{ param_table(["show", "line_width"]) }}
+
+## Implementation Strategies
+
+When implementing queue management with YOLO11, consider these best practices:
+
+1. **Strategic Camera Placement:** Position cameras to capture the entire queue area without obstructions.
+2. **Define Appropriate Queue Regions:** Carefully set queue boundaries based on the physical layout of your space.
+3. **Adjust Detection Confidence:** Fine-tune the confidence threshold based on lighting conditions and crowd density.
+4. **Integrate with Existing Systems:** Connect your queue management solution with digital signage or staff notification systems for automated responses.
 
 ## FAQ
 
@@ -194,4 +205,4 @@ Ultralytics YOLO11 is used in various real-world applications for queue manageme
 - **Healthcare:** Optimizes patient flow in clinics and hospitals.
 - **Banks:** Enhances customer service by managing queues efficiently in banks.
 
-Check our [blog on real-world queue management](https://www.ultralytics.com/blog/revolutionizing-queue-management-with-ultralytics-yolov8-and-openvino) to learn more.
+Check our [blog on real-world queue management](https://www.ultralytics.com/blog/a-look-at-real-time-queue-monitoring-enabled-by-computer-vision) to learn more about how computer vision is transforming queue monitoring across industries.

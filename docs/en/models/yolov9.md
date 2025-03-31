@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Explore YOLOv9, the latest leap in real-time object detection, featuring innovations like PGI and GELAN, and achieving new benchmarks in efficiency and accuracy.
+description: Explore YOLOv9, a leap in real-time object detection, featuring innovations like PGI and GELAN, and achieving new benchmarks in efficiency and accuracy.
 keywords: YOLOv9, object detection, real-time, PGI, GELAN, deep learning, MS COCO, AI, neural networks, model efficiency, accuracy, Ultralytics
 ---
 
@@ -86,9 +86,12 @@ By benchmarking, you can ensure that your model not only performs well in contro
 
 ## Performance on MS COCO Dataset
 
-The performance of YOLOv9 on the [COCO dataset](../datasets/detect/coco.md) exemplifies its significant advancements in real-time object detection, setting new benchmarks across various model sizes. Table 1 presents a comprehensive comparison of state-of-the-art real-time object detectors, illustrating YOLOv9's superior efficiency and [accuracy](https://www.ultralytics.com/glossary/accuracy).
+<script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script defer src="../../javascript/benchmark.js"></script>
 
-**Table 1. Comparison of State-of-the-Art Real-Time Object Detectors**
+<canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv9"]'></canvas>
+
+The performance of YOLOv9 on the [COCO dataset](../datasets/detect/coco.md) exemplifies its significant advancements in real-time object detection, setting new benchmarks across various model sizes. Table 1 presents a comprehensive comparison of state-of-the-art real-time object detectors, illustrating YOLOv9's superior efficiency and [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
 !!! tip "Performance"
 

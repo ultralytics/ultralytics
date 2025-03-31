@@ -91,13 +91,22 @@ Before diving into the usage instructions, it's important to note that while all
 
           ```bash
           # Export a YOLO11n PyTorch model to NCNN format
-          yolo export model=yolo11n.pt format=ncnn  # creates '/yolo11n_ncnn_model'
+          yolo export model=yolo11n.pt format=ncnn # creates '/yolo11n_ncnn_model'
 
           # Run inference with the exported model
           yolo predict model='./yolo11n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
           ```
 
-For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).
+### Export Arguments
+
+| Argument | Type             | Default  | Description                                                                                                                             |
+| -------- | ---------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `format` | `str`            | `'ncnn'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
+| `imgsz`  | `int` or `tuple` | `640`    | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
+| `half`   | `bool`           | `False`  | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.            |
+| `batch`  | `int`            | `1`      | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+
+For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
 ## Deploying Exported YOLO11 NCNN Models
 
@@ -139,7 +148,7 @@ To export your Ultralytics YOLO11 model to NCNN format, follow these steps:
 
 - **CLI**: Use the `yolo` command with the `export` argument.
     ```bash
-    yolo export model=yolo11n.pt format=ncnn  # creates '/yolo11n_ncnn_model'
+    yolo export model=yolo11n.pt format=ncnn # creates '/yolo11n_ncnn_model'
     ```
 
 For detailed export options, check the [Export](../modes/export.md) page in the documentation.

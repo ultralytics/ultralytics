@@ -6,9 +6,13 @@ keywords: YOLO-NAS, Deci AI, object detection, deep learning, Neural Architectur
 
 # YOLO-NAS
 
+!!! note "Important Update"
+
+    Please note that [Deci](https://www.linkedin.com/company/deciai/), the original creators of YOLO-NAS, have been acquired by NVIDIA. As a result, these models are no longer actively maintained by Deci. Ultralytics continues to support the usage of these models, but no further updates from the original team are expected.
+
 ## Overview
 
-Developed by Deci AI, YOLO-NAS is a groundbreaking object detection foundational model. It is the product of advanced Neural Architecture Search technology, meticulously designed to address the limitations of previous YOLO models. With significant improvements in quantization support and [accuracy](https://www.ultralytics.com/glossary/accuracy)-latency trade-offs, YOLO-NAS represents a major leap in object detection.
+Developed by Deci AI, YOLO-NAS is a groundbreaking object detection foundational model. It is the product of advanced [Neural Architecture Search](https://www.ultralytics.com/glossary/neural-architecture-search-nas) technology, meticulously designed to address the limitations of previous YOLO models. With significant improvements in quantization support and [accuracy](https://www.ultralytics.com/glossary/accuracy)-latency trade-offs, YOLO-NAS represents a major leap in object detection.
 
 ![Model example image](https://github.com/ultralytics/docs/releases/download/0/yolo-nas-coco-map-metrics.avif) **Overview of YOLO-NAS.** YOLO-NAS employs quantization-aware blocks and selective quantization for optimal performance. The model, when converted to its INT8 quantized version, experiences a minimal precision drop, a significant improvement over other models. These advancements culminate in a superior architecture with unprecedented object detection capabilities and outstanding performance.
 
@@ -22,14 +26,18 @@ Developed by Deci AI, YOLO-NAS is a groundbreaking object detection foundational
 
 Experience the power of next-generation object detection with the pre-trained YOLO-NAS models provided by Ultralytics. These models are designed to deliver top-notch performance in terms of both speed and accuracy. Choose from a variety of options tailored to your specific needs:
 
-| Model            | mAP   | Latency (ms) |
-| ---------------- | ----- | ------------ |
-| YOLO-NAS S       | 47.5  | 3.21         |
-| YOLO-NAS M       | 51.55 | 5.85         |
-| YOLO-NAS L       | 52.22 | 7.87         |
-| YOLO-NAS S INT-8 | 47.03 | 2.36         |
-| YOLO-NAS M INT-8 | 51.0  | 3.78         |
-| YOLO-NAS L INT-8 | 52.1  | 4.78         |
+!!! tip "Performance"
+
+    === "Detection (COCO)"
+
+        | Model            | mAP   | Latency (ms) |
+        | ---------------- | ----- | ------------ |
+        | YOLO-NAS S       | 47.5  | 3.21         |
+        | YOLO-NAS M       | 51.55 | 5.85         |
+        | YOLO-NAS L       | 52.22 | 7.87         |
+        | YOLO-NAS S INT-8 | 47.03 | 2.36         |
+        | YOLO-NAS M INT-8 | 51.0  | 3.78         |
+        | YOLO-NAS L INT-8 | 52.1  | 4.78         |
 
 Each model variant is designed to offer a balance between [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP) and latency, helping you optimize your object detection tasks for both performance and speed.
 
@@ -106,7 +114,7 @@ If you employ YOLO-NAS in your research or development work, please cite SuperGr
         ```bibtex
         @misc{supergradients,
               doi = {10.5281/ZENODO.7789328},
-              url = {https://zenodo.org/record/7789328},
+              url = {https://zenodo.org/records/7789328},
               author = {Aharon,  Shay and {Louis-Dupont} and {Ofri Masad} and Yurkova,  Kate and {Lotem Fridman} and {Lkdci} and Khvedchenya,  Eugene and Rubin,  Ran and Bagrov,  Natan and Tymchenko,  Borys and Keren,  Tomer and Zhilko,  Alexander and {Eran-Deci}},
               title = {Super-Gradients},
               publisher = {GitHub},

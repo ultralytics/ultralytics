@@ -32,8 +32,8 @@ MobileSAM is trained on a single GPU with a 100k dataset (1% of the original ima
 This table presents the available models with their specific pre-trained weights, the tasks they support, and their compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), indicated by ✅ emojis for supported modes and ❌ emojis for unsupported modes.
 
 | Model Type | Pre-trained Weights                                                                           | Tasks Supported                              | Inference | Validation | Training | Export |
-| ---------- | --------------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
-| MobileSAM  | [mobile_sam.pt](https://github.com/ultralytics/assets/releases/download/v8.2.0/mobile_sam.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| ---------- |-----------------------------------------------------------------------------------------------| -------------------------------------------- | --------- | ---------- | -------- | ------ |
+| MobileSAM  | [mobile_sam.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/mobile_sam.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
 
 ## MobileSAM Comparison vs YOLO
 
@@ -234,7 +234,7 @@ MobileSAM is ideal for mobile applications due to its lightweight architecture a
 
 ### How was MobileSAM trained, and is the training code available?
 
-MobileSAM was trained on a single GPU with a 100k dataset, which is 1% of the original images, in less than a day. While the training code will be made available in the future, you can currently explore other aspects of MobileSAM in the [MobileSAM GitHub repository](https://github.com/ultralytics/assets/releases/download/v8.2.0/mobile_sam.pt). This repository includes pre-trained weights and implementation details for various applications.
+MobileSAM was trained on a single GPU with a 100k dataset, which is 1% of the original images, in less than a day. While the training code will be made available in the future, you can currently explore other aspects of MobileSAM in the [MobileSAM GitHub repository](https://github.com/ultralytics/assets/releases/download/v8.3.0/mobile_sam.pt). This repository includes pre-trained weights and implementation details for various applications.
 
 ### What are the primary use cases for MobileSAM?
 

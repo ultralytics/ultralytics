@@ -26,7 +26,7 @@ class QueueManager(BaseSolution):
         display_output: Displays the processed output.
 
     Examples:
-        >>> cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        >>> cap = cv2.VideoCapture("path/to/video.mp4")
         >>> queue_manager = QueueManager(region=[100, 100, 200, 200, 300, 300])
         >>> while cap.isOpened():
         >>>     success, im0 = cap.read()

@@ -81,6 +81,7 @@ class NAS(Model):
         self.model.pt_path = weights  # for export()
         self.model.task = "detect"  # for export()
         self.model.args = {**DEFAULT_CFG_DICT, **self.overrides}  # for export()
+        self.model.eval()
 
     def info(self, detailed: bool = False, verbose: bool = True):
         """

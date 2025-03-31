@@ -62,7 +62,7 @@ While ONNX models are commonly used on CPUs, they can also be deployed on the fo
 
 ## Exporting YOLO11 Models to ONNX
 
-You can expand model compatibility and deployment flexibility by converting YOLO11 models to ONNX format.
+You can expand model compatibility and deployment flexibility by converting YOLO11 models to ONNX format. [Ultralytics YOLO11](../models/yolo11.md) provides a straightforward export process that can significantly enhance your model's performance across different platforms.
 
 ### Installation
 
@@ -107,13 +107,15 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
         ```bash
         # Export a YOLO11n PyTorch model to ONNX format
-        yolo export model=yolo11n.pt format=onnx  # creates 'yolo11n.onnx'
+        yolo export model=yolo11n.pt format=onnx # creates 'yolo11n.onnx'
 
         # Run inference with the exported model
         yolo predict model=yolo11n.onnx source='https://ultralytics.com/images/bus.jpg'
         ```
 
 ### Export Arguments
+
+When exporting your YOLO11 model to ONNX format, you can customize the process using various arguments to optimize for your specific deployment needs:
 
 | Argument   | Type             | Default  | Description                                                                                                                                 |
 | ---------- | ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -138,9 +140,13 @@ Once you've successfully exported your Ultralytics YOLO11 models to ONNX format,
 
 - **[ONNX Tutorials on GitHub](https://github.com/onnx/tutorials)**: A collection of comprehensive tutorials that cover various aspects of using and implementing ONNX models in different scenarios.
 
+- **[Triton Inference Server](../guides/triton-inference-server.md)**: Learn how to deploy your ONNX models with NVIDIA's Triton Inference Server for high-performance, scalable deployments.
+
 ## Summary
 
 In this guide, you've learned how to export Ultralytics YOLO11 models to ONNX format to increase their interoperability and performance across various platforms. You were also introduced to the ONNX Runtime and ONNX deployment options.
+
+ONNX export is just one of many [export formats](../modes/export.md) supported by Ultralytics YOLO11, allowing you to deploy your models in virtually any environment. Depending on your specific needs, you might also want to explore other export options like [TensorRT](../integrations/tensorrt.md) for maximum GPU performance or [CoreML](../integrations/coreml.md) for Apple devices.
 
 For further details on usage, visit the [ONNX official documentation](https://onnx.ai/onnx/intro/).
 
@@ -176,7 +182,7 @@ To export your YOLO11 models to ONNX format using Ultralytics, follow these step
 
         ```bash
         # Export a YOLO11n PyTorch model to ONNX format
-        yolo export model=yolo11n.pt format=onnx  # creates 'yolo11n.onnx'
+        yolo export model=yolo11n.pt format=onnx # creates 'yolo11n.onnx'
 
         # Run inference with the exported model
         yolo predict model=yolo11n.onnx source='https://ultralytics.com/images/bus.jpg'
@@ -191,6 +197,7 @@ Using ONNX Runtime for deploying YOLO11 models offers several advantages:
 - **Cross-platform compatibility**: ONNX Runtime supports various platforms, such as Windows, macOS, and Linux, ensuring your models run smoothly across different environments.
 - **Hardware acceleration**: ONNX Runtime can leverage hardware-specific optimizations for CPUs, GPUs, and dedicated accelerators, providing high-performance inference.
 - **Framework interoperability**: Models trained in popular frameworks like [PyTorch](https://www.ultralytics.com/glossary/pytorch) or TensorFlow can be easily converted to ONNX format and run using ONNX Runtime.
+- **Performance optimization**: ONNX Runtime can provide up to 3x CPU speedup compared to native PyTorch models, making it ideal for deployment scenarios where GPU resources are limited.
 
 Learn more by checking the [ONNX Runtime documentation](https://onnxruntime.ai/docs/api/python/api_summary.html).
 
@@ -202,6 +209,7 @@ YOLO11 models exported to ONNX can be deployed on various platforms including:
 - **GPUs**: Leveraging NVIDIA CUDA for high-performance GPU acceleration.
 - **Edge devices**: Running lightweight models on edge and mobile devices for real-time, on-device inference.
 - **Web browsers**: Executing models directly within web browsers for interactive web-based applications.
+- **Cloud services**: Deploying on cloud platforms that support ONNX format for scalable inference.
 
 For more information, explore our guide on [model deployment options](../guides/model-deployment-options.md).
 
@@ -212,6 +220,7 @@ Using ONNX format for Ultralytics YOLO11 models provides numerous benefits:
 - **Interoperability**: ONNX allows models to be transferred between different machine learning frameworks seamlessly.
 - **Performance Optimization**: ONNX Runtime can enhance model performance by utilizing hardware-specific optimizations.
 - **Flexibility**: ONNX supports various deployment environments, enabling you to use the same model on different platforms without modification.
+- **Standardization**: ONNX provides a standardized format that is widely supported across the industry, ensuring long-term compatibility.
 
 Refer to the comprehensive guide on [exporting YOLO11 models to ONNX](https://www.ultralytics.com/blog/export-and-optimize-a-yolov8-model-for-inference-on-openvino).
 
@@ -222,5 +231,7 @@ When exporting YOLO11 models to ONNX, you might encounter common issues such as 
 1. Verify that you have the correct version of required dependencies installed.
 2. Check the official [ONNX documentation](https://onnx.ai/onnx/intro/) for supported operators and features.
 3. Review the error messages for clues and consult the [Ultralytics Common Issues guide](../guides/yolo-common-issues.md).
+4. Try using different export arguments like `simplify=True` or adjusting the `opset` version.
+5. For dynamic input size issues, set `dynamic=True` during export.
 
 If issues persist, contact Ultralytics support for further assistance.

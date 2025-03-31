@@ -54,7 +54,7 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
         - **Fedora**: `sudo dnf install python3-tkinter`
         - **Arch**: `sudo pacman -S tk`
         - **Windows**: Reinstall Python and enable the checkbox `tcl/tk and IDLE` on **Optional Features** during installation
-        - **MacOS**: Reinstall Python from [https://www.python.org/downloads/mac-osx/](https://www.python.org/downloads/macos/) or `brew install python-tk`
+        - **MacOS**: Reinstall Python from [https://www.python.org/downloads/macos/](https://www.python.org/downloads/macos/) or `brew install python-tk`
 
     === "Python"
 
@@ -80,7 +80,7 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
         from ultralytics import solutions
 
         # Video capture
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
 
         # Video writer

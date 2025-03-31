@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from collections.abc import Callable
 from types import SimpleNamespace
 from typing import Any, List, Optional
@@ -193,12 +194,9 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
         LOGGER.debug(f"COMET WARNING: Image: {image_path} has no bounding boxes predictions")
         return None
 
-    label_index_offset = 0
-    if class_map is not None:
         # offset to align indices of class labels (starting from zero)
         # with prediction's category ID indices (can start from one)
-        label_index_offset = sorted(class_map)[0]
-
+    label_index_offset = sorted(class_map)[0] if class_map is not None else 0
     try:
         # import pycotools utilities to decompress annotations for various tasks, e.g. segmentation
         from pycocotools.mask import decode  # noqa
@@ -220,8 +218,8 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
             segments = prediction.get("segmentation", None)
             if segments is not None:
                 segments = _extract_segmentation_annotation(segments, decode)
-                if segments is not None:
-                    annotation_data["points"] = segments
+            if segments is not None:
+                annotation_data["points"] = segments
 
         data.append(annotation_data)
 
@@ -378,6 +376,12 @@ def _log_model(experiment, trainer) -> None:
     experiment.log_model(model_name, file_or_folder=str(trainer.best), file_name="best.pt", overwrite=True)
 
 
+def _log_image_batches(experiment, trainer, curr_step: int) -> None:
+    """Log samples of images batches for train, validation, and test."""
+    _log_images(experiment, trainer.save_dir.glob("train_batch*.jpg"), curr_step)
+    _log_images(experiment, trainer.save_dir.glob("val_batch*.jpg"), curr_step)
+
+
 def on_pretrain_routine_start(trainer) -> None:
     """Creates or resumes a CometML experiment at the start of a YOLO pre-training routine."""
     _resume_or_create_experiment(trainer.args)
@@ -441,8 +445,7 @@ def on_train_end(trainer) -> None:
 
     _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch)
     _log_image_predictions(experiment, trainer.validator, curr_step)
-    _log_images(experiment, trainer.save_dir.glob("train_batch*.jpg"), curr_step)
-    _log_images(experiment, trainer.save_dir.glob("val_batch*.jpg"), curr_step)
+    _log_image_batches(experiment, trainer, curr_step)
     experiment.end()
 
     global _comet_image_prediction_count

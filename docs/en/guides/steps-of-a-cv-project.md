@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Discover essential steps for launching a successful computer vision project, from defining goals to model deployment and maintenance. Boost your AI capabilities now!.
+description: Discover essential steps for launching a successful computer vision project, from defining goals to model deployment and maintenance. Boost your AI capabilities now!
 keywords: Computer Vision, AI, Object Detection, Image Classification, Instance Segmentation, Data Annotation, Model Training, Model Evaluation, Model Deployment
 ---
 
@@ -21,7 +21,7 @@ Computer vision is a subfield of [artificial intelligence](https://www.ultralyti
   <strong>Watch:</strong> How to Do <a href="https://www.ultralytics.com/glossary/computer-vision-cv">Computer Vision</a> Projects | A Step-by-Step Guide
 </p>
 
-Computer vision techniques like [object detection](../tasks/detect.md), [image classification](../tasks/classify.md), and [instance segmentation](../tasks/segment.md) can be applied across various industries, from [autonomous driving](https://www.ultralytics.com/solutions/ai-in-self-driving) to [medical imaging](https://www.ultralytics.com/solutions/ai-in-healthcare) to gain valuable insights.
+Computer vision techniques like [object detection](../tasks/detect.md), [image classification](../tasks/classify.md), and [instance segmentation](../tasks/segment.md) can be applied across various industries, from [autonomous driving](https://www.ultralytics.com/solutions/ai-in-automotive) to [medical imaging](https://www.ultralytics.com/solutions/ai-in-healthcare) to gain valuable insights.
 
 Working on your own computer vision projects is a great way to understand and learn more about computer vision. However, a computer vision project can consist of many steps, and it might seem confusing at first. By the end of this guide, you'll be familiar with the steps involved in a computer vision project. We'll walk through everything from the beginning to the end of a project, explaining why each part is important. Let's get started and make your computer vision project a success!
 
@@ -98,9 +98,9 @@ However, if you choose to collect images or take your own pictures, you'll need 
 
 [Data collection and annotation](./data-collection-and-annotation.md) can be a time-consuming manual effort. Annotation tools can help make this process easier. Here are some useful open annotation tools: [LabeI Studio](https://github.com/HumanSignal/label-studio), [CVAT](https://github.com/cvat-ai/cvat), and [Labelme](https://github.com/wkentaro/labelme).
 
-## Step 3: [Data Augmentation](https://www.ultralytics.com/glossary/data-augmentation) and Splitting Your Dataset
+## Step 3: Data Augmentation and Splitting Your Dataset
 
-After collecting and annotating your image data, it's important to first split your dataset into training, validation, and test sets before performing data augmentation. Splitting your dataset before augmentation is crucial to test and validate your model on original, unaltered data. It helps accurately assess how well the model generalizes to new, unseen data.
+After collecting and annotating your image data, it's important to first split your dataset into training, validation, and test sets before performing [data augmentation](https://www.ultralytics.com/glossary/data-augmentation). Splitting your dataset before augmentation is crucial to test and validate your model on original, unaltered data. It helps accurately assess how well the model generalizes to new, unseen data.
 
 Here's how to split your data:
 
@@ -114,7 +114,7 @@ After splitting your data, you can perform data augmentation by applying transfo
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/examples-of-data-augmentations.avif" alt="Examples of Data Augmentations">
 </p>
 
-Libraries like [OpenCV](https://www.ultralytics.com/glossary/opencv), Albumentations, and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) offer flexible augmentation functions that you can use. Additionally, some libraries, such as Ultralytics, have [built-in augmentation settings](../modes/train.md) directly within its model training function, simplifying the process.
+Libraries like [OpenCV](https://www.ultralytics.com/glossary/opencv), [Albumentations](../integrations/albumentations.md), and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) offer flexible augmentation functions that you can use. Additionally, some libraries, such as Ultralytics, have [built-in augmentation settings](../modes/train.md) directly within its model training function, simplifying the process.
 
 To understand your data better, you can use tools like [Matplotlib](https://matplotlib.org/) or [Seaborn](https://seaborn.pydata.org/) to visualize the images and analyze their distribution and characteristics. Visualizing your data helps identify patterns, anomalies, and the effectiveness of your augmentation techniques. You can also use [Ultralytics Explorer](../datasets/explorer/index.md), a tool for exploring computer vision datasets with semantic search, SQL queries, and vector similarity search.
 
@@ -139,14 +139,15 @@ Libraries like Ultralytics simplify the training process. You can [start trainin
 
 It's important to keep in mind that proper dataset management is vital for efficient training. Use version control for datasets to track changes and ensure reproducibility. Tools like [DVC (Data Version Control)](../integrations/dvc.md) can help manage large datasets.
 
-## Step 5: Model Evaluation and Model [Finetuning](https://www.ultralytics.com/glossary/fine-tuning)
+## Step 5: Model Evaluation and Model Finetuning
 
-It's important to assess your model's performance using various metrics and refine it to improve [accuracy](https://www.ultralytics.com/glossary/accuracy). [Evaluating](../modes/val.md) helps identify areas where the model excels and where it may need improvement. Fine-tuning ensures the model is optimized for the best possible performance.
+It's important to assess your model's performance using various metrics and refine it to improve [accuracy](https://www.ultralytics.com/glossary/accuracy). [Evaluating](../modes/val.md) helps identify areas where the model excels and where it may need improvement. [Fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) ensures the model is optimized for the best possible performance.
 
 - **[Performance Metrics](./yolo-performance-metrics.md):** Use metrics like accuracy, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and F1-score to evaluate your model's performance. These metrics provide insights into how well your model is making predictions.
 - **[Hyperparameter Tuning](./hyperparameter-tuning.md):** Adjust hyperparameters to optimize model performance. Techniques like grid search or random search can help find the best hyperparameter values.
+- **Fine-Tuning:** Make small adjustments to the model architecture or training process to enhance performance. This might involve tweaking [learning rates](https://www.ultralytics.com/glossary/learning-rate), [batch sizes](https://www.ultralytics.com/glossary/batch-size), or other model parameters.
 
-- Fine-Tuning: Make small adjustments to the model architecture or training process to enhance performance. This might involve tweaking [learning rates](https://www.ultralytics.com/glossary/learning-rate), [batch sizes](https://www.ultralytics.com/glossary/batch-size), or other model parameters.
+For a deeper understanding of model evaluation and fine-tuning techniques, check out our [model evaluation insights guide](./model-evaluation-insights.md).
 
 ## Step 6: Model Testing
 
@@ -154,17 +155,18 @@ In this step, you can make sure that your model performs well on completely unse
 
 It's important to thoroughly test and debug any common issues that may arise. Test your model on a separate test dataset that was not used during training or validation. This dataset should represent real-world scenarios to ensure the model's performance is consistent and reliable.
 
-Also, address common problems such as overfitting, [underfitting](https://www.ultralytics.com/glossary/underfitting), and data leakage. Use techniques like cross-validation and [anomaly detection](https://www.ultralytics.com/glossary/anomaly-detection) to identify and fix these issues.
+Also, address common problems such as overfitting, [underfitting](https://www.ultralytics.com/glossary/underfitting), and data leakage. Use techniques like [cross-validation](https://www.ultralytics.com/glossary/cross-validation) and [anomaly detection](https://www.ultralytics.com/glossary/anomaly-detection) to identify and fix these issues. For comprehensive testing strategies, refer to our [model testing guide](./model-testing.md).
 
-## Step 7: [Model Deployment](https://www.ultralytics.com/glossary/model-deployment)
+## Step 7: Model Deployment
 
-Once your model has been thoroughly tested, it's time to deploy it. Deployment involves making your model available for use in a production environment. Here are the steps to deploy a computer vision model:
+Once your model has been thoroughly tested, it's time to deploy it. [Model deployment](https://www.ultralytics.com/glossary/model-deployment) involves making your model available for use in a production environment. Here are the steps to deploy a computer vision model:
 
-- Setting Up the Environment: Configure the necessary infrastructure for your chosen deployment option, whether it's cloud-based (AWS, Google Cloud, Azure) or edge-based (local devices, IoT).
-
+- **Setting Up the Environment:** Configure the necessary infrastructure for your chosen deployment option, whether it's cloud-based (AWS, Google Cloud, Azure) or edge-based (local devices, IoT).
 - **[Exporting the Model](../modes/export.md):** Export your model to the appropriate format (e.g., ONNX, TensorRT, CoreML for YOLO11) to ensure compatibility with your deployment platform.
 - **Deploying the Model:** Deploy the model by setting up APIs or endpoints and integrating it with your application.
-- **Ensuring Scalability**: Implement load balancers, auto-scaling groups, and monitoring tools to manage resources and handle increasing data and user requests.
+- **Ensuring Scalability:** Implement load balancers, auto-scaling groups, and monitoring tools to manage resources and handle increasing data and user requests.
+
+For more detailed guidance on deployment strategies and best practices, check out our [model deployment practices guide](./model-deployment-practices.md).
 
 ## Step 8: Monitoring, Maintenance, and Documentation
 
@@ -176,7 +178,7 @@ Monitoring tools can help you track key performance indicators (KPIs) and detect
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/model-monitoring-maintenance-loop.avif" alt="Model Monitoring">
 </p>
 
-In addition to monitoring and maintenance, documentation is also key. Thoroughly document the entire process, including model architecture, training procedures, hyperparameters, data preprocessing steps, and any changes made during deployment and maintenance. Good documentation ensures reproducibility and makes future updates or troubleshooting easier. By effectively monitoring, maintaining, and documenting your model, you can ensure it remains accurate, reliable, and easy to manage over its lifecycle.
+In addition to monitoring and maintenance, documentation is also key. Thoroughly document the entire process, including model architecture, training procedures, hyperparameters, data preprocessing steps, and any changes made during deployment and maintenance. Good documentation ensures reproducibility and makes future updates or troubleshooting easier. By effectively [monitoring, maintaining, and documenting your model](./model-monitoring-and-maintenance.md), you can ensure it remains accurate, reliable, and easy to manage over its lifecycle.
 
 ## Engaging with the Community
 
@@ -221,11 +223,11 @@ Splitting your dataset before augmentation helps validate model performance on o
 - **Validation Set**: 10-15% for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning).
 - **Test Set**: Remaining 10-15% for final evaluation.
 
-After splitting, apply data augmentation techniques like rotation, scaling, and flipping to increase dataset diversity. Libraries such as Albumentations and OpenCV can help. Ultralytics also offers [built-in augmentation settings](../modes/train.md) for convenience.
+After splitting, apply data augmentation techniques like rotation, scaling, and flipping to increase dataset diversity. Libraries such as [Albumentations](../integrations/albumentations.md) and OpenCV can help. Ultralytics also offers [built-in augmentation settings](../modes/train.md) for convenience.
 
 ### How can I export my trained computer vision model for deployment?
 
-Exporting your model ensures compatibility with different deployment platforms. Ultralytics provides multiple formats, including ONNX, TensorRT, and CoreML. To export your YOLO11 model, follow this guide:
+Exporting your model ensures compatibility with different deployment platforms. Ultralytics provides multiple formats, including [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), and [CoreML](../integrations/coreml.md). To export your YOLO11 model, follow this guide:
 
 - Use the `export` function with the desired format parameter.
 - Ensure the exported model fits the specifications of your deployment environment (e.g., edge devices, cloud).
@@ -234,4 +236,4 @@ For more information, check out the [model export guide](../modes/export.md).
 
 ### What are the best practices for monitoring and maintaining a deployed computer vision model?
 
-Continuous monitoring and maintenance are essential for a model's long-term success. Implement tools for tracking Key Performance Indicators (KPIs) and detecting anomalies. Regularly retrain the model with updated data to counteract model drift. Document the entire process, including model architecture, hyperparameters, and changes, to ensure reproducibility and ease of future updates. Learn more in our [monitoring and maintenance guide](#step-8-monitoring-maintenance-and-documentation).
+Continuous monitoring and maintenance are essential for a model's long-term success. Implement tools for tracking Key Performance Indicators (KPIs) and detecting anomalies. Regularly retrain the model with updated data to counteract model drift. Document the entire process, including model architecture, hyperparameters, and changes, to ensure reproducibility and ease of future updates. Learn more in our [monitoring and maintenance guide](./model-monitoring-and-maintenance.md).

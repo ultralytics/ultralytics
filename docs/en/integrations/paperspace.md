@@ -6,7 +6,7 @@ keywords: YOLO11, Paperspace Gradient, MLOps, machine learning, training, GPUs, 
 
 # YOLO11 Model Training Made Simple with Paperspace Gradient
 
-Training computer vision models like [YOLO11](https://github.com/ultralytics/ultralytics) can be complicated. It involves managing large datasets, using different types of computer hardware like GPUs, TPUs, and CPUs, and making sure data flows smoothly during the training process. Typically, developers end up spending a lot of time managing their computer systems and environments. It can be frustrating when you just want to focus on building the best model.
+Training computer vision models like [YOLO11](../models/yolo11.md) can be complicated. It involves managing large datasets, using different types of computer hardware like GPUs, TPUs, and CPUs, and making sure data flows smoothly during the training process. Typically, developers end up spending a lot of time managing their computer systems and environments. It can be frustrating when you just want to focus on building the best model.
 
 This is where a platform like Paperspace Gradient can make things simpler. Paperspace Gradient is a MLOps platform that lets you build, train, and deploy [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models all in one place. With Gradient, developers can focus on training their YOLO11 models without the hassle of managing infrastructure and environments.
 
@@ -24,7 +24,7 @@ This is where a platform like Paperspace Gradient can make things simpler. Paper
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/paperspace-gradient-overview.avif" alt="PaperSpace Gradient Overview">
 </p>
 
-Paperspace Gradient is a suite of tools designed to make working with AI and machine learning in the cloud much faster and easier. Gradient addresses the entire machine learning development process, from building and training models to deploying them.
+Paperspace Gradient is a suite of tools designed to make working with AI and machine learning in the cloud much faster and easier. Gradient addresses the entire [machine learning lifecycle](https://www.ultralytics.com/blog/measuring-ai-performance-to-weigh-the-impact-of-your-innovations), from building and training models to deploying them.
 
 Within its toolkit, it includes support for Google's TPUs via a job runner, comprehensive support for Jupyter notebooks and containers, and new programming language integrations. Its focus on language integration particularly stands out, allowing users to easily adapt their existing Python projects to use the most advanced GPU infrastructure available.
 
@@ -32,7 +32,7 @@ Within its toolkit, it includes support for Google's TPUs via a job runner, comp
 
 Paperspace Gradient makes training a YOLO11 model possible with a few clicks. Thanks to the integration, you can access the [Paperspace console](https://console.paperspace.com/github/ultralytics/ultralytics) and start training your model immediately. For a detailed understanding of the model training process and best practices, refer to our [YOLO11 Model Training guide](../modes/train.md).
 
-Sign in and then click on the “Start Machine” button shown in the image below. In a few seconds, a managed GPU environment will start up, and then you can run the notebook's cells.
+Sign in and then click on the "Start Machine" button shown in the image below. In a few seconds, a managed GPU environment will start up, and then you can run the notebook's cells.
 
 ![Training YOLO11 Using Paperspace Gradient](https://github.com/ultralytics/docs/releases/download/0/start-machine-button.avif)
 
@@ -51,9 +51,9 @@ Explore more capabilities of YOLO11 and Paperspace Gradient in a discussion with
 
 ## Key Features of Paperspace Gradient
 
-As you explore the Paperspace console, you'll see how each step of the machine-learning workflow is supported and enhanced. Here are some things to look out for:
+As you explore the [Paperspace console](https://console.paperspace.com/github/ultralytics/ultralytics), you'll see how each step of the machine-learning workflow is supported and enhanced. Here are some things to look out for:
 
-- **One-Click Notebooks:** Gradient provides pre-configured Jupyter Notebooks specifically tailored for YOLO11, eliminating the need for environment setup and dependency management. Simply choose the desired notebook and start experimenting immediately.
+- **One-Click Notebooks:** Gradient provides pre-configured [Jupyter Notebooks](../integrations/jupyterlab.md) specifically tailored for YOLO11, eliminating the need for environment setup and dependency management. Simply choose the desired notebook and start experimenting immediately.
 
 - **Hardware Flexibility:** Choose from a range of machine types with varying CPU, GPU, and TPU configurations to suit your training needs and budget. Gradient handles all the backend setup, allowing you to focus on model development.
 
@@ -79,7 +79,7 @@ While many options are available for training, deploying, and evaluating YOLO11 
 
 ## Summary
 
-This guide explored the Paperspace Gradient integration for training YOLO11 models. Gradient provides the tools and infrastructure to accelerate your AI development journey from effortless model training and evaluation to streamlined deployment options.
+This guide explored the [Paperspace Gradient integration](https://www.ultralytics.com/blog/ultralytics-x-paperspace-advancing-object-detection-capabilities-through-partnership) for training YOLO11 models. Gradient provides the tools and infrastructure to accelerate your AI development journey from effortless model training and evaluation to streamlined deployment options.
 
 For further exploration, visit [PaperSpace's official documentation](https://docs.digitalocean.com/products/paperspace/).
 
@@ -89,7 +89,7 @@ Also, visit the [Ultralytics integration guide page](index.md) to learn more abo
 
 ### How do I train a YOLO11 model using Paperspace Gradient?
 
-Training a YOLO11 model with Paperspace Gradient is straightforward and efficient. First, sign in to the [Paperspace console](https://console.paperspace.com/github/ultralytics/ultralytics). Next, click the “Start Machine” button to initiate a managed GPU environment. Once the environment is ready, you can run the notebook's cells to start training your YOLO11 model. For detailed instructions, refer to our [YOLO11 Model Training guide](../modes/train.md).
+Training a YOLO11 model with Paperspace Gradient is straightforward and efficient. First, sign in to the [Paperspace console](https://console.paperspace.com/github/ultralytics/ultralytics). Next, click the "Start Machine" button to initiate a managed GPU environment. Once the environment is ready, you can run the notebook's cells to start training your YOLO11 model. For detailed instructions, refer to our [YOLO11 Model Training guide](../modes/train.md).
 
 ### What are the advantages of using Paperspace Gradient for YOLO11 projects?
 
@@ -108,8 +108,8 @@ Ultralytics YOLO11 stands out for its real-time object detection capabilities an
 
 ### Can I deploy my YOLO11 model on edge devices using Paperspace Gradient?
 
-Yes, you can deploy YOLO11 models on edge devices using Paperspace Gradient. The platform supports various deployment formats like TFLite and Edge TPU, which are optimized for edge devices. After training your model on Gradient, refer to our [export guide](../modes/export.md) for instructions on converting your model to the desired format.
+Yes, you can deploy YOLO11 models on edge devices using Paperspace Gradient. The platform supports various deployment formats like [TFLite](../integrations/tflite.md) and [Edge TPU](../integrations/edge-tpu.md), which are optimized for edge devices. After training your model on Gradient, refer to our [export guide](../modes/export.md) for instructions on converting your model to the desired format.
 
 ### How does experiment tracking in Paperspace Gradient help improve YOLO11 training?
 
-Experiment tracking in Paperspace Gradient streamlines the model development process by automatically logging hyperparameters, metrics, and code changes. This allows you to easily compare different training runs, identify optimal configurations, and reproduce successful experiments.
+Experiment tracking in Paperspace Gradient streamlines the model development process by automatically logging hyperparameters, metrics, and code changes. This allows you to easily compare different training runs, identify optimal configurations, and reproduce successful experiments. Similar functionality can be found in other [experiment tracking tools](../integrations/clearml.md) that integrate with Ultralytics YOLO11.

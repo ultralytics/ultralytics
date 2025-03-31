@@ -22,7 +22,7 @@ class ClassificationTrainer(BaseTrainer):
 
     Attributes:
         model (ClassificationModel): The classification model to be trained.
-        data (Dict): Dictionary containing dataset information including class names and number of classes.
+        data (dict): Dictionary containing dataset information including class names and number of classes.
         loss_names (List[str]): Names of the loss functions used during training.
         validator (ClassificationValidator): Validator instance for model evaluation.
 

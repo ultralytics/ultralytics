@@ -20,7 +20,7 @@ This guide shows you how to deploy YOLO11 using Neural Magic's DeepSparse, how t
 
 ## Benefits of Integrating Neural Magic's DeepSparse with YOLO11
 
-Before diving into how to deploy YOLOV8 using DeepSparse, let's understand the benefits of using DeepSparse. Some key advantages include:
+Before diving into how to deploy YOLO11 using DeepSparse, let's understand the benefits of using DeepSparse. Some key advantages include:
 
 - **Enhanced Inference Speed**: Achieves up to 525 FPS (on YOLO11n), significantly speeding up YOLO11's inference capabilities compared to traditional methods.
 
@@ -42,7 +42,7 @@ Before diving into how to deploy YOLOV8 using DeepSparse, let's understand the b
 
 - **Cost-Effective and Scalable Solution**: Reduces operational expenses and offers scalable deployment of advanced object detection models.
 
-## How Does Neural Magic's DeepSparse Technology Works?
+## How Does Neural Magic's DeepSparse Technology Work?
 
 Neural Magic's Deep Sparse technology is inspired by the human brain's efficiency in neural network computation. It adopts two key principles from the brain as follows:
 
@@ -54,15 +54,15 @@ Neural Magic's Deep Sparse technology is inspired by the human brain's efficienc
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/neural-magic-deepsparse-technology.avif" alt="How Neural Magic's DeepSparse Technology Works ">
 </p>
 
-For more details on how Neural Magic's DeepSparse technology work, check out [their blog post](https://neuralmagic.com/blog/how-neural-magics-deep-sparse-technology-works/).
+For more details on how Neural Magic's DeepSparse technology works, check out [their blog post](https://neuralmagic.com/blog/how-neural-magics-deep-sparse-technology-works/).
 
 ## Creating A Sparse Version of YOLO11 Trained on a Custom Dataset
 
-SparseZoo, an open-source model repository by Neural Magic, offers [a collection of pre-sparsified YOLO11 model checkpoints](https://sparsezoo.neuralmagic.com/?modelSet=computer_vision&searchModels=yolo). With SparseML, seamlessly integrated with Ultralytics, users can effortlessly fine-tune these sparse checkpoints on their specific datasets using a straightforward command-line interface.
+[SparseZoo](https://sparsezoo.neuralmagic.com/), an open-source model repository by Neural Magic, offers [a collection of pre-sparsified YOLO11 model checkpoints](https://sparsezoo.neuralmagic.com/?modelSet=computer_vision&searchModels=yolo). With [SparseML](https://github.com/neuralmagic/sparseml), seamlessly integrated with Ultralytics, users can effortlessly fine-tune these sparse checkpoints on their specific datasets using a straightforward command-line interface.
 
-Checkout [Neural Magic's SparseML YOLO11 documentation](https://github.com/neuralmagic/sparseml/tree/main/integrations/ultralytics-yolov8) for more details.
+Check out [Neural Magic's SparseML YOLO11 documentation](https://github.com/neuralmagic/sparseml/tree/main/integrations/ultralytics-yolov8) for more details.
 
-## Usage: Deploying YOLOV8 using DeepSparse
+## Usage: Deploying YOLO11 using DeepSparse
 
 Deploying YOLO11 with Neural Magic's DeepSparse involves a few straightforward steps. Before diving into the usage instructions, be sure to check out the range of [YOLO11 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements. Here's how you can get started.
 
@@ -81,7 +81,7 @@ To install the required packages, run:
 
 ### Step 2: Exporting YOLO11 to ONNX Format
 
-DeepSparse Engine requires YOLO11 models in ONNX format. Exporting your model to this format is essential for compatibility with DeepSparse. Use the following command to export YOLO11 models:
+DeepSparse Engine requires YOLO11 models in [ONNX format](../integrations/onnx.md). Exporting your model to this format is essential for compatibility with DeepSparse. Use the following command to export YOLO11 models:
 
 !!! tip "Model Export"
 
@@ -118,7 +118,7 @@ With your YOLO11 model in ONNX format, you can deploy and run inferences using D
 
 ### Step 4: Benchmarking Performance
 
-It's important to check that your YOLO11 model is performing optimally on DeepSparse. You can benchmark your model's performance to analyze throughput and latency:
+It's important to check that your YOLO11 model is performing optimally on DeepSparse. You can [benchmark](../modes/benchmark.md) your model's performance to analyze throughput and latency:
 
 !!! tip "Benchmarking"
 
@@ -151,7 +151,7 @@ Running the annotate command processes your specified image, detecting objects, 
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/image-annotation-feature.avif" alt="Image Annotation Feature">
 </p>
 
-After running the eval command, you will receive detailed output metrics such as [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and mAP (mean Average Precision). This provides a comprehensive view of your model's performance on the dataset. This functionality is particularly useful for fine-tuning and optimizing your YOLO11 models for specific use cases, ensuring high accuracy and efficiency.
+After running the eval command, you will receive detailed output metrics such as [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) (mean Average Precision). This provides a comprehensive view of your model's performance on the dataset. This functionality is particularly useful for fine-tuning and optimizing your YOLO11 models for specific use cases, ensuring high accuracy and efficiency.
 
 ## Summary
 

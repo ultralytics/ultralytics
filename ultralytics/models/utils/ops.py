@@ -18,7 +18,7 @@ class HungarianMatcher(nn.Module):
     function that considers classification scores, bounding box coordinates, and optionally, mask predictions.
 
     Attributes:
-        cost_gain (Dict): Dictionary of cost coefficients: 'class', 'bbox', 'giou', 'mask', and 'dice'.
+        cost_gain (dict): Dictionary of cost coefficients: 'class', 'bbox', 'giou', 'mask', and 'dice'.
         use_fl (bool): Indicates whether to use Focal Loss for the classification cost calculation.
         with_mask (bool): Indicates whether the model makes mask predictions.
         num_sample_points (int): The number of sample points used in mask cost calculation.
@@ -150,7 +150,7 @@ def get_cdn_group(
     Get contrastive denoising training group with positive and negative samples from ground truths.
 
     Args:
-        batch (Dict): A dict that includes 'gt_cls' (torch.Tensor with shape (num_gts, )), 'gt_bboxes'
+        batch (dict): A dict that includes 'gt_cls' (torch.Tensor with shape (num_gts, )), 'gt_bboxes'
             (torch.Tensor with shape (num_gts, 4)), 'gt_groups' (List[int]) which is a list of batch size length
             indicating the number of gts of each image.
         num_classes (int): Number of classes.

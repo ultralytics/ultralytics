@@ -158,7 +158,7 @@ class ObjectCounter(BaseSolution):
 
         Returns:
             (SolutionResults): Contains processed image `im0`, 'in_count' (int, count of objects entering the region),
-                'out_count' (int, count of objects exiting the region), 'classwise_count' (Dict, per-class object count),
+                'out_count' (int, count of objects exiting the region), 'classwise_count' (dict, per-class object count),
                 and 'total_tracks' (int, total number of tracked objects).
 
         Examples:

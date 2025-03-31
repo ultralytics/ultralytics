@@ -76,8 +76,8 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
         sudo docker pull $t
 
         # Run the ultralytics image in a container with GPU support
-        sudo docker run -it --ipc=host --gpus all $t  # all GPUs
-        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # specify GPUs
+        sudo docker run -it --ipc=host --gpus all $t            # all GPUs
+        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t # specify GPUs
         ```
 
     === "Git clone"
@@ -122,8 +122,8 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
         sudo docker pull $t
 
         # Run the ultralytics image in a container with GPU support
-        sudo docker run -it --ipc=host --gpus all $t  # all GPUs
-        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # specify GPUs
+        sudo docker run -it --ipc=host --gpus all $t            # all GPUs
+        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t # specify GPUs
         ```
 
         The above command initializes a Docker container with the latest `ultralytics` image. The `-it` flags assign a pseudo-TTY and keep stdin open, allowing interaction with the container. The `--ipc=host` flag sets the IPC (Inter-Process Communication) namespace to the host, which is essential for sharing memory between processes. The `--gpus all` flag enables access to all available GPUs inside the container, crucial for tasks requiring GPU computation.
@@ -201,7 +201,7 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
         ```bash
         yolo solutions count show=True
 
-        yolo solutions count source="path/to/video/file.mp4"  # specify video file path
+        yolo solutions count source="path/to/video.mp4" # specify video file path
         ```
 
     === "Workout"
@@ -210,11 +210,11 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
         ```bash
         yolo solutions workout show=True
 
-        yolo solutions workout source="path/to/video/file.mp4"  # specify video file path
+        yolo solutions workout source="path/to/video.mp4" # specify video file path
 
         # Use keypoints for ab-workouts
-        yolo solutions workout kpts=[5, 11, 13]     # left side
-        yolo solutions workout kpts=[6, 12, 14]     # right side
+        yolo solutions workout kpts="[5, 11, 13]" # left side
+        yolo solutions workout kpts="[6, 12, 14]" # right side
         ```
 
     === "Queue"
@@ -223,18 +223,18 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
         ```bash
         yolo solutions queue show=True
 
-        yolo solutions queue source="path/to/video/file.mp4"  # specify video file path
+        yolo solutions queue source="path/to/video.mp4" # specify video file path
 
-        yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]    # configure queue coordinates
+        yolo solutions queue region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]" # configure queue coordinates
         ```
 
     === "Inference with Streamlit"
 
-        Perform object detection, instance segmentation, or pose estimation in a web browser using [Streamlit](https://www.ultralytics.com/reference/solutions/streamlit_inference):
+        Perform object detection, instance segmentation, or pose estimation in a web browser using [Streamlit](https://docs.ultralytics.com/reference/solutions/streamlit_inference/):
         ```bash
         yolo solutions inference
 
-        yolo solutions inference model="path/to/model.pt"   # use model fine-tuned with Ultralytics Python package
+        yolo solutions inference model="path/to/model.pt" # use model fine-tuned with Ultralytics Python package
         ```
 
     === "Special"

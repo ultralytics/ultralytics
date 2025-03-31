@@ -78,7 +78,7 @@ class AutoBackend(nn.Module):
         model (torch.nn.Module): The loaded YOLO model.
         device (torch.device): The device (CPU or GPU) on which the model is loaded.
         task (str): The type of task the model performs (detect, segment, classify, pose).
-        names (Dict): A dictionary of class names that the model can detect.
+        names (dict): A dictionary of class names that the model can detect.
         stride (int): The model stride, typically 32 for YOLO models.
         fp16 (bool): Whether the model uses half-precision (FP16) inference.
 
@@ -185,6 +185,8 @@ class AutoBackend(nn.Module):
 
         # TorchScript
         elif jit:
+            import torchvision  # noqa - https://github.com/ultralytics/ultralytics/pull/19747
+
             LOGGER.info(f"Loading {w} for TorchScript inference...")
             extra_files = {"config.txt": ""}  # model metadata
             model = torch.jit.load(w, _extra_files=extra_files, map_location=device)
@@ -220,12 +222,12 @@ class AutoBackend(nn.Module):
                 session = onnxruntime.InferenceSession(w, providers=providers)
             else:
                 check_requirements(
-                    ["model-compression-toolkit==2.1.1", "sony-custom-layers[torch]==0.2.0", "onnxruntime-extensions"]
+                    ["model-compression-toolkit>=2.3.0", "sony-custom-layers[torch]>=0.3.0", "onnxruntime-extensions"]
                 )
                 w = next(Path(w).glob("*.onnx"))
                 LOGGER.info(f"Loading {w} for ONNX IMX inference...")
                 import mct_quantizers as mctq
-                from sony_custom_layers.pytorch.object_detection import nms_ort  # noqa
+                from sony_custom_layers.pytorch.nms import nms_ort  # noqa
 
                 session = onnxruntime.InferenceSession(
                     w, mctq.get_ort_session_options(), providers=["CPUExecutionProvider"]
@@ -433,7 +435,7 @@ class AutoBackend(nn.Module):
         # PaddlePaddle
         elif paddle:
             LOGGER.info(f"Loading {w} for PaddlePaddle inference...")
-            check_requirements("paddlepaddle-gpu" if cuda else "paddlepaddle")
+            check_requirements("paddlepaddle-gpu" if cuda else "paddlepaddle<3.0.0")
             import paddle.inference as pdi  # noqa
 
             w = Path(w)
@@ -544,7 +546,7 @@ class AutoBackend(nn.Module):
 
         self.__dict__.update(locals())  # assign all variables to self
 
-    def forward(self, im, augment=False, visualize=False, embed=None):
+    def forward(self, im, augment=False, visualize=False, embed=None, **kwargs):
         """
         Runs inference on the YOLOv8 MultiBackend model.
 
@@ -552,7 +554,8 @@ class AutoBackend(nn.Module):
             im (torch.Tensor): The image tensor to perform inference on.
             augment (bool): Whether to perform data augmentation during inference. Defaults to False.
             visualize (bool): Whether to visualize the output predictions. Defaults to False.
-            embed (List, optional): A list of feature vectors/embeddings to return.
+            embed (list, optional): A list of feature vectors/embeddings to return.
+            **kwargs (Any): Additional keyword arguments for model configuration.
 
         Returns:
             (torch.Tensor | List[torch.Tensor]): The raw output tensor(s) from the model.
@@ -565,7 +568,7 @@ class AutoBackend(nn.Module):
 
         # PyTorch
         if self.pt or self.nn_module:
-            y = self.model(im, augment=augment, visualize=visualize, embed=embed)
+            y = self.model(im, augment=augment, visualize=visualize, embed=embed, **kwargs)
 
         # TorchScript
         elif self.jit:

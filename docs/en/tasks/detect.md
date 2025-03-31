@@ -101,8 +101,8 @@ Validate trained YOLO11n model [accuracy](https://www.ultralytics.com/glossary/a
     === "CLI"
 
         ```bash
-        yolo detect val model=yolo11n.pt  # val official model
-        yolo detect val model=path/to/best.pt  # val custom model
+        yolo detect val model=yolo11n.pt      # val official model
+        yolo detect val model=path/to/best.pt # val custom model
         ```
 
 ## Predict
@@ -136,8 +136,8 @@ Use a trained YOLO11n model to run predictions on images.
     === "CLI"
 
         ```bash
-        yolo detect predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
-        yolo detect predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
+        yolo detect predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'      # predict with official model
+        yolo detect predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg' # predict with custom model
         ```
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
@@ -164,8 +164,8 @@ Export a YOLO11n model to a different format like ONNX, CoreML, etc.
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx  # export custom trained model
+        yolo export model=yolo11n.pt format=onnx      # export official model
+        yolo export model=path/to/best.pt format=onnx # export custom trained model
         ```
 
 Available YOLO11 export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolo11n.onnx`. Usage examples are shown for your model after export completes.
@@ -247,7 +247,7 @@ For more validation details, visit the [Val](../modes/val.md) page.
 
 ### What formats can I export a YOLO11 model to?
 
-Ultralytics YOLO11 allows exporting models to various formats such as ONNX, TensorRT, CoreML, and more to ensure compatibility across different platforms and devices.
+Ultralytics YOLO11 allows exporting models to various formats such as [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange), [TensorRT](https://www.ultralytics.com/glossary/tensorrt), [CoreML](https://docs.ultralytics.com/integrations/coreml/), and more to ensure compatibility across different platforms and devices.
 
 !!! example
 
@@ -275,9 +275,9 @@ Check the full list of supported formats and instructions on the [Export](../mod
 
 Ultralytics YOLO11 is designed to offer state-of-the-art performance for object detection, segmentation, and pose estimation. Here are some key advantages:
 
-1. **Pretrained Models**: Utilize models pretrained on popular datasets like COCO and ImageNet for faster development.
+1. **Pretrained Models**: Utilize models pretrained on popular datasets like [COCO](https://docs.ultralytics.com/datasets/detect/coco/) and [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/) for faster development.
 2. **High Accuracy**: Achieves impressive mAP scores, ensuring reliable object detection.
-3. **Speed**: Optimized for real-time inference, making it ideal for applications requiring swift processing.
+3. **Speed**: Optimized for [real-time inference](https://www.ultralytics.com/glossary/real-time-inference), making it ideal for applications requiring swift processing.
 4. **Flexibility**: Export models to various formats like ONNX and TensorRT for deployment across multiple platforms.
 
 Explore our [Blog](https://www.ultralytics.com/blog) for use cases and success stories showcasing YOLO11 in action.

@@ -23,10 +23,10 @@ keywords: VisionEye, YOLO11, Ultralytics, object mapping, object tracking, dista
         yolo solutions visioneye show=True
 
         # Pass a source video
-        yolo solutions visioneye source="path/to/video/file.mp4"
+        yolo solutions visioneye source="path/to/video.mp4"
 
         # Monitor the specific classes
-        yolo solutions visioneye classes=[0, 5]
+        yolo solutions visioneye classes="[0, 5]"
         ```
 
     === "Python"
@@ -36,7 +36,7 @@ keywords: VisionEye, YOLO11, Ultralytics, object mapping, object tracking, dista
 
         from ultralytics import solutions
 
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
 
         # Video writer
@@ -87,6 +87,31 @@ Furthermore, some visualization arguments are supported, as listed below:
 {% from "macros/visualization-args.md" import param_table %}
 {{ param_table(["show", "line_width"]) }}
 
+## How VisionEye Works
+
+VisionEye works by establishing a fixed vision point in the frame and drawing lines from this point to detected objects. This simulates how human vision focuses on multiple objects from a single viewpoint. The solution uses [object tracking](https://docs.ultralytics.com/modes/track/) to maintain consistent identification of objects across frames, creating a visual representation of the spatial relationship between the observer (vision point) and the objects in the scene.
+
+The `process` method in the VisionEye class performs several key operations:
+
+1. Extracts tracks (bounding boxes, classes, and masks) from the input image
+2. Creates an annotator to draw bounding boxes and labels
+3. For each detected object, draws a box label and creates a vision line from the vision point
+4. Returns the annotated image with tracking statistics
+
+This approach is particularly useful for applications requiring spatial awareness and object relationship visualization, such as surveillance systems, autonomous navigation, and interactive installations.
+
+## Applications of VisionEye
+
+VisionEye object mapping has numerous practical applications across various industries:
+
+- **Security and Surveillance**: Monitor multiple objects of interest from a fixed camera position
+- **Retail Analytics**: Track customer movement patterns in relation to store displays
+- **Sports Analysis**: Analyze player positioning and movement from a coach's perspective
+- **Autonomous Vehicles**: Visualize how a vehicle "sees" and prioritizes objects in its environment
+- **Human-Computer Interaction**: Create more intuitive interfaces that respond to spatial relationships
+
+By combining VisionEye with other Ultralytics solutions like [distance calculation](https://docs.ultralytics.com/guides/distance-calculation/) or [speed estimation](https://docs.ultralytics.com/guides/speed-estimation/), you can build comprehensive systems that not only track objects but also understand their spatial relationships and behaviors.
+
 ## Note
 
 For any inquiries, feel free to post your questions in the [Ultralytics Issue Section](https://github.com/ultralytics/ultralytics/issues/new/choose) or the discussion section mentioned below.
@@ -102,7 +127,7 @@ import cv2
 
 from ultralytics import solutions
 
-cap = cv2.VideoCapture("path/to/video/file.mp4")
+cap = cv2.VideoCapture("path/to/video.mp4")
 assert cap.isOpened(), "Error reading video file"
 
 # Video writer

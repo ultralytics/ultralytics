@@ -1,6 +1,6 @@
 ---
-description: Documentation for YOLOE trainer classes in Ultralytics, supporting various training approaches including standard training, linear probing, training from scratch, prompt-free training, and visual prompt training for object detection models.
-keywords: YOLOE, object detection, trainers, YOLOETrainer, YOLOEPETrainer, YOLOETrainerFromScratch, YOLOEPEFreeTrainer, YOLOEVPTrainer, linear probing, visual prompts, text embeddings, Ultralytics, deep learning
+description: Learn about YOLOE enhanced visual prompting (EVP) predictors in Ultralytics, which enable object detection and segmentation models to use visual prompts during inference for improved performance.
+keywords: YOLOE, EVP, visual prompts, computer vision, object detection, segmentation, bounding boxes, masks, predictors, YOLOEVPDetectPredictor, YOLOEVPSegPredictor, Ultralytics, inference
 ---
 
 # Reference for `ultralytics/models/yolo/yoloe/train.py`

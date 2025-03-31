@@ -249,6 +249,7 @@ class BaseTrainer:
         )
         always_freeze_names = [".dfl"]  # always freeze these layers
         freeze_layer_names = [f"model.{x}." for x in freeze_list] + always_freeze_names
+        self.freeze_layer_names = freeze_layer_names
         for k, v in self.model.named_parameters():
             # v.register_hook(lambda x: torch.nan_to_num(x))  # NaN to 0 (commented for erratic training results)
             if any(x in k for x in freeze_layer_names):
@@ -350,7 +351,7 @@ class BaseTrainer:
                 warnings.simplefilter("ignore")  # suppress 'Detected lr_scheduler.step() before optimizer.step()'
                 self.scheduler.step()
 
-            self.model.train()
+            self._model_train()
             if RANK != -1:
                 self.train_loader.sampler.set_epoch(epoch)
             pbar = enumerate(self.train_loader)
@@ -381,7 +382,8 @@ class BaseTrainer:
                 # Forward
                 with autocast(self.amp):
                     batch = self.preprocess_batch(batch)
-                    self.loss, self.loss_items = self.model(batch)
+                    loss, self.loss_items = self.model(batch)
+                    self.loss = loss.sum()
                     if RANK != -1:
                         self.loss *= world_size
                     self.tloss = (
@@ -496,9 +498,7 @@ class BaseTrainer:
             memory = torch.mps.driver_allocated_memory()
             if fraction:
                 return __import__("psutil").virtual_memory().percent / 100
-        elif self.device.type == "cpu":
-            pass
-        else:
+        elif self.device.type != "cpu":
             memory = torch.cuda.memory_reserved()
             if fraction:
                 total = torch.cuda.get_device_properties(self.device).total_memory
@@ -519,6 +519,14 @@ class BaseTrainer:
         import pandas as pd  # scope for faster 'import ultralytics'
 
         return pd.read_csv(self.csv).to_dict(orient="list")
+
+    def _model_train(self):
+        """Set model in training mode."""
+        self.model.train()
+        # Freeze BN stat
+        for n, m in self.model.named_modules():
+            if any(filter(lambda f: f in n, self.freeze_layer_names)) and isinstance(m, nn.BatchNorm2d):
+                m.eval()
 
     def save_model(self):
         """Save model training checkpoints with additional metadata."""
@@ -720,7 +728,7 @@ class BaseTrainer:
 
                 # Check that resume data YAML exists, otherwise strip to force re-download of dataset
                 ckpt_args = attempt_load_weights(last).args
-                if not Path(ckpt_args["data"]).exists():
+                if not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists():
                     ckpt_args["data"] = self.args.data
 
                 resume = True
@@ -812,7 +820,8 @@ class BaseTrainer:
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
                 if "bias" in fullname:  # bias (no decay)
                     g[2].append(param)
-                elif isinstance(module, bn):  # weight (no decay)
+                elif isinstance(module, bn) or "logit_scale" in fullname:  # weight (no decay)
+                    # ContrastiveHead and BNContrastiveHead included here with 'logit_scale'
                     g[1].append(param)
                 else:  # weight (with decay)
                     g[0].append(param)

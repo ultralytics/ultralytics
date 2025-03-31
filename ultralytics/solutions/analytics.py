@@ -33,7 +33,7 @@ class Analytics(BaseSolution):
         fig (Figure): Matplotlib figure object for the chart.
         ax (Axes): Matplotlib axes object for the chart.
         canvas (FigureCanvas): Canvas for rendering the chart.
-        lines (Dict): Dictionary to store line objects for area charts.
+        lines (dict): Dictionary to store line objects for area charts.
         color_mapping (Dict[str, str]): Dictionary mapping class labels to colors for consistent visualization.
 
     Methods:

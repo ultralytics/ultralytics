@@ -230,7 +230,7 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
 
     === "Inference with Streamlit"
 
-        Perform object detection, instance segmentation, or pose estimation in a web browser using [Streamlit](https://docs.ultralytics.com/reference/solutions/streamlit_inference):
+        Perform object detection, instance segmentation, or pose estimation in a web browser using [Streamlit](https://docs.ultralytics.com/reference/solutions/streamlit_inference/):
         ```bash
         yolo solutions inference
 

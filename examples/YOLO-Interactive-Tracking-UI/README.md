@@ -39,7 +39,7 @@ An educational and modular object tracking interface built using [Ultralytics YO
 | Desktop PC w/ GPU | PyTorch (.pt)      | `yolov8s.pt`         | ✅ CUDA          | Fastest option             |
 | CPU-only laptops  | NCNN (.param/.bin) | `yolov8n_ncnn_model` | ❌               | Still usable at ~10–15 FPS |
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 YOLO-Interactive-Tracking-UI/

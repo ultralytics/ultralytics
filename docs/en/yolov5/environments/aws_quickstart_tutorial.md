@@ -6,7 +6,7 @@ keywords: YOLOv5, AWS, Deep Learning, Machine Learning, AWS EC2, YOLOv5 setup, D
 
 # YOLOv5 🚀 on AWS Deep Learning Instance: Your Complete Guide
 
-Setting up a high-performance deep learning environment can be daunting for newcomers, but fear not! 🛠️ With this guide, we'll walk you through the process of getting YOLOv5 up and running on an AWS Deep Learning instance. By leveraging the power of Amazon Web Services (AWS), even those new to [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) can get started quickly and cost-effectively. The AWS platform's scalability is perfect for both experimentation and production deployment.
+Setting up a high-performance deep learning environment can be daunting for newcomers, but fear not! 🛠️ With this guide, we'll walk you through the process of getting [YOLOv5](https://docs.ultralytics.com/models/yolov5/) up and running on an AWS Deep Learning instance. By leveraging the power of Amazon Web Services (AWS), even those new to [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) can get started quickly and cost-effectively. The AWS platform's scalability is perfect for both experimentation and production deployment.
 
 Other quickstart options for YOLOv5 include our [Colab Notebook](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb) <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>, [GCP Deep Learning VM](./google_cloud_quickstart_tutorial.md), and our Docker image at [Docker Hub](https://hub.docker.com/r/ultralytics/yolov5) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>.
 
@@ -59,12 +59,12 @@ Once your instance is running, select its checkbox and click Connect to access t
 Logged into your instance, you're now ready to clone the YOLOv5 repository and install dependencies within a Python 3.8 or later environment. YOLOv5's models and datasets will automatically download from the latest [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
-git clone https://github.com/ultralytics/yolov5  # clone repository
+git clone https://github.com/ultralytics/yolov5 # clone repository
 cd yolov5
-pip install -r requirements.txt  # install dependencies
+pip install -r requirements.txt # install dependencies
 ```
 
-With your environment set up, you can begin training, validating, performing inference, and exporting your YOLOv5 models:
+With your environment set up, you can begin [training](https://docs.ultralytics.com/modes/train/), [validating](https://docs.ultralytics.com/modes/val/), performing [inference](https://docs.ultralytics.com/modes/predict/), and [exporting](https://docs.ultralytics.com/modes/export/) your YOLOv5 models:
 
 ```bash
 # Train a model on your data
@@ -85,11 +85,11 @@ python export.py --weights yolov5s.pt --include onnx coreml tflite
 To add more swap memory, which can be a savior for large datasets, run:
 
 ```bash
-sudo fallocate -l 64G /swapfile  # allocate 64GB swap file
-sudo chmod 600 /swapfile  # modify permissions
-sudo mkswap /swapfile  # set up a Linux swap area
-sudo swapon /swapfile  # activate swap file
-free -h  # verify swap memory
+sudo fallocate -l 64G /swapfile # allocate 64GB swap file
+sudo chmod 600 /swapfile        # modify permissions
+sudo mkswap /swapfile           # set up a Linux swap area
+sudo swapon /swapfile           # activate swap file
+free -h                         # verify swap memory
 ```
 
 And that's it! 🎉 You've successfully created an AWS Deep Learning instance and run YOLOv5. Whether you're just starting with [object detection](https://www.ultralytics.com/glossary/object-detection) or scaling up for production, this setup can help you achieve your machine learning goals. Happy training, validating, and deploying! If you encounter any hiccups along the way, the robust AWS documentation and the active Ultralytics community are here to support you.

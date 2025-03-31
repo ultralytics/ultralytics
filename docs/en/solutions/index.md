@@ -115,9 +115,9 @@ For more details, refer to the [`SolutionResults` class documentation](https://d
     - **ARGS** (optional) are custom `arg=value` pairs, such as `show_in=True`, to override default settings.
 
 ```bash
-yolo solutions count show=True  # for object counting
+yolo solutions count show=True # for object counting
 
-yolo solutions source="path/to/video/file.mp4"  # specify video file path
+yolo solutions source="path/to/video.mp4" # specify video file path
 ```
 
 ### Contribute to Our Solutions

@@ -20,11 +20,11 @@ The [Objects365](https://www.objects365.org/) dataset is a large-scale, high-qua
 The Objects365 dataset is organized into a single set of images with corresponding annotations:
 
 - **Images**: The dataset includes 2 million high-resolution images, each containing a variety of objects across 365 categories.
-- **Annotations**: The images are annotated with over 30 million bounding boxes, providing comprehensive ground truth information for object detection tasks.
+- **Annotations**: The images are annotated with over 30 million bounding boxes, providing comprehensive ground truth information for [object detection](https://docs.ultralytics.com/tasks/detect/) tasks.
 
 ## Applications
 
-The Objects365 dataset is widely used for training and evaluating deep learning models in object detection tasks. The dataset's diverse set of object categories and high-quality annotations make it a valuable resource for researchers and practitioners in the field of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv).
+The Objects365 dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in object detection tasks. The dataset's diverse set of object categories and high-quality annotations make it a valuable resource for researchers and practitioners in the field of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv).
 
 ## Dataset YAML
 
@@ -130,7 +130,7 @@ The Objects365 dataset offers several advantages for object detection tasks:
 
 1. **Diversity**: It includes 2 million images with objects in diverse scenarios, covering 365 categories.
 2. **High-quality Annotations**: Over 30 million bounding boxes provide comprehensive ground truth data.
-3. **Performance**: Models pre-trained on Objects365 significantly outperform those trained on datasets like ImageNet, leading to better generalization.
+3. **Performance**: Models pre-trained on Objects365 significantly outperform those trained on datasets like [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/), leading to better generalization.
 
 ### Where can I find the YAML configuration file for the Objects365 dataset?
 

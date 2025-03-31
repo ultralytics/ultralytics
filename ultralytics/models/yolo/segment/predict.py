@@ -13,9 +13,9 @@ class SegmentationPredictor(DetectionPredictor):
     prediction results.
 
     Attributes:
-        args (Dict): Configuration arguments for the predictor.
+        args (dict): Configuration arguments for the predictor.
         model (torch.nn.Module): The loaded YOLO segmentation model.
-        batch (List): Current batch of images being processed.
+        batch (list): Current batch of images being processed.
 
     Methods:
         postprocess: Applies non-max suppression and processes detections.

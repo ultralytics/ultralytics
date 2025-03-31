@@ -20,7 +20,7 @@ class ClassificationValidator(BaseValidator):
         targets (List[torch.Tensor]): Ground truth class labels.
         pred (List[torch.Tensor]): Model predictions.
         metrics (ClassifyMetrics): Object to calculate and store classification metrics.
-        names (Dict): Mapping of class indices to class names.
+        names (dict): Mapping of class indices to class names.
         nc (int): Number of classes.
         confusion_matrix (ConfusionMatrix): Matrix to evaluate model performance across classes.
 

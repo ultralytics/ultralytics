@@ -45,13 +45,13 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
         yolo solutions heatmap show=True
 
         # Pass a source video
-        yolo solutions heatmap source="path/to/video/file.mp4"
+        yolo solutions heatmap source="path/to/video.mp4"
 
         # Pass a custom colormap
         yolo solutions heatmap colormap=cv2.COLORMAP_INFERNO
 
         # Heatmaps + object counting
-        yolo solutions heatmap region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
+        yolo solutions heatmap region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
         ```
 
     === "Python"
@@ -61,7 +61,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 
         from ultralytics import solutions
 
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
 
         # Video writer
@@ -147,6 +147,19 @@ Additionally, the supported visualization arguments are listed below:
 
 These colormaps are commonly used for visualizing data with different color representations.
 
+## How Heatmaps Work in Ultralytics YOLO11
+
+The [Heatmap solution](../reference/solutions/heatmap.md) in Ultralytics YOLO11 extends the [ObjectCounter](../reference/solutions/object_counter.md) class to generate and visualize movement patterns in video streams. When initialized, the solution creates a blank heatmap layer that gets updated as objects move through the frame.
+
+For each detected object, the solution:
+
+1. Tracks the object across frames using YOLO11's tracking capabilities
+2. Updates the heatmap intensity at the object's location
+3. Applies a selected colormap to visualize the intensity values
+4. Overlays the colored heatmap on the original frame
+
+The result is a dynamic visualization that builds up over time, revealing traffic patterns, crowd movements, or other spatial behaviors in your video data.
+
 ## FAQ
 
 ### How does Ultralytics YOLO11 generate heatmaps and what are their benefits?
@@ -162,7 +175,7 @@ import cv2
 
 from ultralytics import solutions
 
-cap = cv2.VideoCapture("path/to/video/file.mp4")
+cap = cv2.VideoCapture("path/to/video.mp4")
 heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, show=True, model="yolo11n.pt")
 
 while cap.isOpened():
@@ -189,7 +202,7 @@ import cv2
 
 from ultralytics import solutions
 
-cap = cv2.VideoCapture("path/to/video/file.mp4")
+cap = cv2.VideoCapture("path/to/video.mp4")
 heatmap = solutions.Heatmap(show=True, model="yolo11n.pt", classes=[0, 2])
 
 while cap.isOpened():

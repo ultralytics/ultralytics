@@ -17,11 +17,11 @@ The [ImageNet10](https://github.com/ultralytics/assets/releases/download/v0.0.0/
 
 ## Dataset Structure
 
-The ImageNet10 dataset, like the original ImageNet, is organized using the WordNet hierarchy. Each of the 10 classes in ImageNet10 is described by a synset (a collection of synonymous terms). The images in ImageNet10 are annotated with one or more synsets, providing a compact resource for testing models to recognize various objects and their relationships.
+The ImageNet10 dataset, like the original [ImageNet](../classify/imagenet.md), is organized using the WordNet hierarchy. Each of the 10 classes in ImageNet10 is described by a synset (a collection of synonymous terms). The images in ImageNet10 are annotated with one or more synsets, providing a compact resource for testing models to recognize various objects and their relationships.
 
 ## Applications
 
-The ImageNet10 dataset is useful for quickly testing and debugging computer vision models and pipelines. Its small size allows for rapid iteration, making it ideal for continuous integration tests and sanity checks. It can also be used for fast preliminary testing of new models or changes to existing models before moving on to full-scale testing with the complete ImageNet dataset.
+The ImageNet10 dataset is useful for quickly testing and debugging computer vision models and pipelines. Its small size allows for rapid iteration, making it ideal for [continuous integration](../../help/CI.md) tests and sanity checks. It can also be used for fast preliminary testing of new models or changes to existing models before moving on to full-scale testing with the complete [ImageNet dataset](../classify/imagenet.md).
 
 ## Usage
 
@@ -52,7 +52,9 @@ To test a deep learning model on the ImageNet10 dataset with an image size of 22
 
 The ImageNet10 dataset contains a subset of images from the original ImageNet dataset. These images are chosen to represent the first 10 classes in the dataset, providing a diverse yet compact dataset for quick testing and evaluation.
 
-![Dataset sample images](https://github.com/ultralytics/docs/releases/download/0/imagenet10-sample-images.avif) The example showcases the variety and complexity of the images in the ImageNet10 dataset, highlighting its usefulness for sanity checks and quick testing of computer vision models.
+![Dataset sample images](https://github.com/ultralytics/docs/releases/download/0/imagenet10-sample-images.avif)
+
+The example showcases the variety and complexity of the images in the ImageNet10 dataset, highlighting its usefulness for sanity checks and quick testing of computer vision models.
 
 ## Citations and Acknowledgments
 
@@ -122,6 +124,6 @@ The ImageNet10 dataset has several key features:
 - **CI and Sanity Checks**: Ideally suited for continuous integration tests and sanity checks.
 - **Not for Benchmarking**: While useful for quick model evaluations, it is not designed for extensive benchmarking.
 
-### Where can I download the ImageNet10 dataset?
+### How does ImageNet10 compare to other small datasets like ImageNette?
 
-You can download the ImageNet10 dataset from the [Ultralytics GitHub releases page](https://github.com/ultralytics/assets/releases/download/v0.0.0/imagenet10.zip). For more detailed information about its structure and applications, refer to the [ImageNet10 Dataset](imagenet10.md) page.
+While both [ImageNet10](imagenet10.md) and [ImageNette](imagenette.md) are subsets of ImageNet, they serve different purposes. ImageNet10 contains just 20 images (2 per class) from the first 10 classes of ImageNet, making it extremely lightweight for CI testing and quick sanity checks. In contrast, ImageNette contains thousands of images across 10 easily distinguishable classes, making it more suitable for actual model training and development. ImageNet10 is designed for verification of pipeline functionality, while ImageNette is better for meaningful but faster-than-full-ImageNet training experiments.

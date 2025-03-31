@@ -43,14 +43,14 @@ class FastSAM(Model):
             source (str | PIL.Image | numpy.ndarray): Input source for prediction, can be a file path, URL, PIL image,
                 or numpy array.
             stream (bool): Whether to enable real-time streaming mode for video inputs.
-            bboxes (List): Bounding box coordinates for prompted segmentation in format [[x1, y1, x2, y2], ...].
-            points (List): Point coordinates for prompted segmentation in format [[x, y], ...].
-            labels (List): Class labels for prompted segmentation.
-            texts (List): Text prompts for segmentation guidance.
+            bboxes (list): Bounding box coordinates for prompted segmentation in format [[x1, y1, x2, y2], ...].
+            points (list): Point coordinates for prompted segmentation in format [[x, y], ...].
+            labels (list): Class labels for prompted segmentation.
+            texts (list): Text prompts for segmentation guidance.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
-            (List): List of Results objects containing the prediction results.
+            (list): List of Results objects containing the prediction results.
         """
         prompts = dict(bboxes=bboxes, points=points, labels=labels, texts=texts)
         return super().predict(source, stream, prompts=prompts, **kwargs)

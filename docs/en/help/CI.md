@@ -53,7 +53,7 @@ By integrating with Codecov, we aim to maintain and improve the quality of our c
 
 ### Coverage Results
 
-To quickly get a glimpse of the code coverage status of the `ultralytics` python package, we have included a badge and sunburst visual of the `ultralytics` coverage results. These images show the percentage of code covered by our tests, offering an at-a-glance metric of our testing efforts. For full details please see https://codecov.io/github/ultralytics/ultralytics.
+To quickly get a glimpse of the code coverage status of the `ultralytics` python package, we have included a badge and sunburst visual of the `ultralytics` coverage results. These images show the percentage of code covered by our tests, offering an at-a-glance metric of our testing efforts. For full details please see [https://codecov.io/github/ultralytics/ultralytics](https://app.codecov.io/github/ultralytics/ultralytics).
 
 | Repository                                                | Code Coverage                                                                                                                                           |
 | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -77,7 +77,7 @@ Ultralytics uses a specific CI action to [check for broken links](https://github
 
 ### Why is CodeQL analysis important for Ultralytics' codebase?
 
-[CodeQL analysis](https://github.com/ultralytics/ultralytics/actions/workflows/codeql.yaml) is crucial for Ultralytics as it performs semantic code analysis to find potential security vulnerabilities and maintain high-quality standards. With CodeQL, we can proactively identify and mitigate risks in our code, helping us deliver robust and secure software solutions.
+[CodeQL analysis](https://github.com/ultralytics/ultralytics/actions/workflows/codeql.yaml) is crucial for Ultralytics as it performs semantic code analysis to find potential security vulnerabilities and maintain high-quality standards. With CodeQL, we can proactively identify and mitigate risks in our code, helping us deliver robust and secure [software solutions](https://www.ultralytics.com/solutions).
 
 ### How does Ultralytics utilize Docker for deployment?
 
@@ -85,7 +85,7 @@ Ultralytics employs Docker to validate the deployment of our projects through a 
 
 ### What is the role of automated PyPI publishing in Ultralytics?
 
-Automated [PyPI publishing](https://github.com/ultralytics/ultralytics/actions/workflows/publish.yml) ensures that our projects can be packaged and published without errors. This step is essential for distributing Ultralytics' Python packages, allowing users to easily install and use our tools via the Python Package Index (PyPI).
+Automated [PyPI publishing](https://github.com/ultralytics/ultralytics/actions/workflows/publish.yml) ensures that our projects can be packaged and published without errors. This step is essential for distributing Ultralytics' Python packages, allowing users to easily install and use our tools via the [Python Package Index (PyPI)](https://pypi.org/project/ultralytics/).
 
 ### How does Ultralytics measure code coverage and why is it important?
 

@@ -380,6 +380,7 @@ Model validation on a dataset is streamlined as follows:
 !!! example
 
     === "Text Prompt"
+
         ```python
         from ultralytics import YOLOE
         from ultralytics.models.yolo.yoloe import YOLOESegTrainerFromScratch

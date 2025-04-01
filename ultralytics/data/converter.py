@@ -124,15 +124,16 @@ def coco80_to_coco91_class():
     Converts 80-index (val2014) to 91-index (paper).
     For details see https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/.
 
-    Example:
-        ```python
-        import numpy as np
+    Examples:
+        >>> import numpy as np
+        >>> a = np.loadtxt("data/coco.names", dtype="str", delimiter="\n")
+        >>> b = np.loadtxt("data/coco_paper.names", dtype="str", delimiter="\n")
 
-        a = np.loadtxt("data/coco.names", dtype="str", delimiter="\n")
-        b = np.loadtxt("data/coco_paper.names", dtype="str", delimiter="\n")
-        x1 = [list(a[i] == b).index(True) + 1 for i in range(80)]  # darknet to coco
-        x2 = [list(b[i] == a).index(True) if any(b[i] == a) else None for i in range(91)]  # coco to darknet
-        ```
+        Convert the darknet to COCO format
+        >>> x1 = [list(a[i] == b).index(True) + 1 for i in range(80)]
+
+        Convert the COCO to darknet format
+        >>> x2 = [list(b[i] == a).index(True) if any(b[i] == a) else None for i in range(91)]
     """
     return [
         1,
@@ -227,7 +228,7 @@ def convert_coco(
     lvis=False,
 ):
     """
-    Converts COCO dataset annotations to a YOLO annotation format  suitable for training YOLO models.
+    Converts COCO dataset annotations to a YOLO annotation format suitable for training YOLO models.
 
     Args:
         labels_dir (str, optional): Path to directory containing COCO dataset annotation files.
@@ -237,15 +238,20 @@ def convert_coco(
         cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
         lvis (bool, optional): Whether to convert data in lvis dataset way.
 
-    Example:
-        ```python
-        from ultralytics.data.converter import convert_coco
+    Examples:
+        >>> from ultralytics.data.converter import convert_coco
 
-        convert_coco("../datasets/coco/annotations/", use_segments=True, use_keypoints=False, cls91to80=False)
-        convert_coco(
-            "../datasets/lvis/annotations/", use_segments=True, use_keypoints=False, cls91to80=False, lvis=True
-        )
-        ```
+        Convert COCO annotations to YOLO format
+        >>> convert_coco("../datasets/coco/annotations/", use_segments=True, use_keypoints=False, cls91to80=False)
+
+        Convert LVIS annotations to YOLO format
+        >>> convert_coco(
+        >>>    "../datasets/lvis/annotations/",
+        ...     use_segments=True,
+        ...     use_keypoints=False,
+        ...     cls91to80=False,
+        ...     lvis=True
+        ... )
 
     Output:
         Generates output files in the specified output directory.
@@ -323,7 +329,7 @@ def convert_coco(
                         )
 
             # Write
-            with open((fn / f).with_suffix(".txt"), "a") as file:
+            with open((fn / f).with_suffix(".txt"), "a", encoding="utf-8") as file:
                 for i in range(len(bboxes)):
                     if use_keypoints:
                         line = (*(keypoints[i]),)  # cls, box, keypoints
@@ -334,7 +340,8 @@ def convert_coco(
                     file.write(("%g " * len(line)).rstrip() % line + "\n")
 
         if lvis:
-            with open((Path(save_dir) / json_file.name.replace("lvis_v1_", "").replace(".json", ".txt")), "a") as f:
+            filename = Path(save_dir) / json_file.name.replace("lvis_v1_", "").replace(".json", ".txt")
+            with open(filename, "a", encoding="utf-8") as f:
                 f.writelines(f"{line}\n" for line in image_txt)
 
     LOGGER.info(f"{'LVIS' if lvis else 'COCO'} data converted successfully.\nResults saved to {save_dir.resolve()}")
@@ -352,13 +359,11 @@ def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
         output_dir (str): The path to the directory where the converted YOLO segmentation masks will be stored.
         classes (int): Total classes in the dataset i.e. for COCO classes=80
 
-    Example:
-        ```python
-        from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
+    Examples:
+        >>> from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
 
-        # The classes here is the total classes in the dataset, for COCO dataset we have 80 classes
-        convert_segment_masks_to_yolo_seg("path/to/masks_directory", "path/to/output/directory", classes=80)
-        ```
+        The classes here is the total classes in the dataset, for COCO dataset we have 80 classes
+        >>> convert_segment_masks_to_yolo_seg("path/to/masks_directory", "path/to/output/directory", classes=80)
 
     Notes:
         The expected directory structure for the masks is:
@@ -411,7 +416,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir, output_dir, classes):
                         yolo_format_data.append(yolo_format)
             # Save Ultralytics YOLO format data to file
             output_path = Path(output_dir) / f"{mask_path.stem}.txt"
-            with open(output_path, "w") as file:
+            with open(output_path, "w", encoding="utf-8") as file:
                 for item in yolo_format_data:
                     line = " ".join(map(str, item))
                     file.write(line + "\n")
@@ -428,12 +433,9 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
     Args:
         dota_root_path (str): The root directory path of the DOTA dataset.
 
-    Example:
-        ```python
-        from ultralytics.data.converter import convert_dota_to_yolo_obb
-
-        convert_dota_to_yolo_obb("path/to/DOTA")
-        ```
+    Examples:
+        >>> from ultralytics.data.converter import convert_dota_to_yolo_obb
+        >>> convert_dota_to_yolo_obb("path/to/DOTA")
 
     Notes:
         The directory structure assumed for the DOTA dataset:
@@ -587,9 +589,9 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt", device=None):
     Args:
         im_dir (str | Path): Path to image directory to convert.
         save_dir (str | Path): Path to save the generated labels, labels will be saved
-            into `labels-segment` in the same directory level of `im_dir` if save_dir is None. Default: None.
-        sam_model (str): Segmentation model to use for intermediate segmentation data; optional.
-        device (int | str): The specific device to run SAM models. Default: None.
+            into `labels-segment` in the same directory level of `im_dir` if save_dir is None.
+        sam_model (str): Segmentation model to use for intermediate segmentation data.
+        device (int | str): The specific device to run SAM models.
 
     Notes:
         The input directory structure assumed for dataset:
@@ -605,7 +607,6 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt", device=None):
     """
     from ultralytics import SAM
     from ultralytics.data import YOLODataset
-    from ultralytics.utils import LOGGER
     from ultralytics.utils.ops import xywh2xyxy
 
     # NOTE: add placeholder to pass class index check
@@ -639,7 +640,7 @@ def yolo_bbox2segment(im_dir, save_dir=None, sam_model="sam_b.pt", device=None):
                 continue
             line = (int(cls[i]), *s.reshape(-1))
             texts.append(("%g " * len(line)).rstrip() % line)
-        with open(txt_file, "a") as f:
+        with open(txt_file, "a", encoding="utf-8") as f:
             f.writelines(text + "\n" for text in texts)
     LOGGER.info(f"Generated segment labels saved in {save_dir}")
 
@@ -689,7 +690,7 @@ def create_synthetic_coco_dataset():
             # Read image filenames from label list file
             label_list_file = dir / f"{subset}.txt"
             if label_list_file.exists():
-                with open(label_list_file) as f:
+                with open(label_list_file, encoding="utf-8") as f:
                     image_files = [dir / line.strip() for line in f]
 
                 # Submit all tasks

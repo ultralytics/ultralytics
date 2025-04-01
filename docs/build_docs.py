@@ -1,27 +1,23 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
-Automates the building and post-processing of MkDocs documentation, particularly for projects with multilingual content.
-It streamlines the workflow for generating localized versions of the documentation and updating HTML links to ensure
-they are correctly formatted.
+Automates building and post-processing of MkDocs documentation, especially for multilingual projects.
+
+This script streamlines generating localized documentation and updating HTML links for correct formatting.
 
 Key Features:
-    - Automated building of MkDocs documentation: The script compiles both the main documentation and
-      any localized versions specified in separate MkDocs configuration files.
-    - Post-processing of generated HTML files: After the documentation is built, the script updates all
-      HTML files to remove the '.md' extension from internal links. This ensures that links in the built
-      HTML documentation correctly point to other HTML pages rather than Markdown files, which is crucial
-      for proper navigation within the web-based documentation.
+    - Automated building of MkDocs documentation: Compiles main documentation and localized versions from separate
+      MkDocs configuration files.
+    - Post-processing of generated HTML files: Updates HTML files to remove '.md' from internal links, ensuring
+      correct navigation in web-based documentation.
 
 Usage:
-    - Run the script from the root directory of your MkDocs project.
-    - Ensure that MkDocs is installed and that all MkDocs configuration files (main and localized versions)
-      are present in the project directory.
-    - The script first builds the documentation using MkDocs, then scans the generated HTML files in the 'site'
-      directory to update the internal links.
-    - It's ideal for projects where the documentation is written in Markdown and needs to be served as a static website.
+    - Run from the root directory of your MkDocs project.
+    - Ensure MkDocs is installed and configuration files (main and localized) are present.
+    - The script builds documentation using MkDocs, then scans HTML files in 'site' to update links.
+    - Ideal for projects with Markdown documentation served as a static website.
 
 Note:
-    - This script is built to be run in an environment where Python and MkDocs are installed and properly configured.
+    - Requires Python and MkDocs to be installed and configured.
 """
 
 import json
@@ -47,7 +43,7 @@ def create_vercel_config():
         json.dump(config, f, indent=2)
 
 
-def prepare_docs_markdown(clone_repos=True):
+def prepare_docs_markdown(clone_repos: bool = True):
     """Build docs using mkdocs."""
     print("Removing existing build artifacts")
     shutil.rmtree(SITE, ignore_errors=True)
@@ -90,7 +86,7 @@ def update_page_title(file_path: Path, new_title: str):
         file.write(updated_content)
 
 
-def update_html_head(script=""):
+def update_html_head(script: str = ""):
     """Update the HTML head section of each file."""
     html_files = Path(SITE).rglob("*.html")
     for html_file in tqdm(html_files, desc="Processing HTML files"):
@@ -108,7 +104,7 @@ def update_html_head(script=""):
                 file.write(new_html_content)
 
 
-def update_subdir_edit_links(subdir="", docs_url=""):
+def update_subdir_edit_links(subdir: str = "", docs_url: str = ""):
     """Update the HTML head section of each file."""
     if str(subdir[0]) == "/":
         subdir = str(subdir[0])[1:]
@@ -128,7 +124,7 @@ def update_subdir_edit_links(subdir="", docs_url=""):
 
 
 def update_markdown_files(md_filepath: Path):
-    """Creates or updates a Markdown file, ensuring frontmatter is present."""
+    """Create or update a Markdown file, ensuring frontmatter is present."""
     if md_filepath.exists():
         content = md_filepath.read_text().strip()
 
@@ -165,7 +161,7 @@ def update_markdown_files(md_filepath: Path):
 
 
 def update_docs_html():
-    """Updates titles, edit links, head sections, and converts plaintext links in HTML documentation."""
+    """Update titles, edit links, head sections, and convert plaintext links in HTML documentation."""
     # Update 404 titles
     update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")
 
@@ -200,7 +196,7 @@ def update_docs_html():
         shutil.rmtree(macros_dir)
 
 
-def convert_plaintext_links_to_html(content):
+def convert_plaintext_links_to_html(content: str) -> str:
     """Convert plaintext links to HTML hyperlinks in the main content area only."""
     soup = BeautifulSoup(content, "html.parser")
 
@@ -224,7 +220,7 @@ def convert_plaintext_links_to_html(content):
 
 
 def remove_macros():
-    """Removes the /macros directory and related entries in sitemap.xml from the built site."""
+    """Remove the /macros directory and related entries in sitemap.xml from the built site."""
     shutil.rmtree(SITE / "macros", ignore_errors=True)
     (SITE / "sitemap.xml.gz").unlink(missing_ok=True)
 
@@ -249,31 +245,59 @@ def remove_macros():
     print(f"Removed {len(macros_indices)} URLs containing '/macros/' from {sitemap}")
 
 
-def remove_comments_and_empty_lines(content, file_type):
-    """Removes comments and empty lines from a string of code, preserving newlines and URLs."""
-    if file_type == "html":
-        # Remove HTML comments, preserving newline after comment
-        # content = re.sub(r"<!--(.*?)-->\n?", r"\n", content, flags=re.DOTALL)
-        pass
-    elif file_type == "css":
-        # Remove CSS comments, preserving newline after comment
-        # content = re.sub(r"/\*.*?\*/\n?", r"\n", content, flags=re.DOTALL)
-        pass
-    elif file_type == "js":
-        # Remove JS single-line comments, preserving newline and URLs
-        # content = re.sub(r"(?<!:)//(.*?)\n", r"\n", content, flags=re.DOTALL)
-        # Remove JS multi-line comments, preserving newline after comment
-        # content = re.sub(r"/\*.*?\*/\n?", r"\n", content, flags=re.DOTALL)
-        pass
+def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
+    """
+    Remove comments and empty lines from a string of code, preserving newlines and URLs.
 
-    # Remove empty lines
-    content = re.sub(r"^\s*\n", "", content, flags=re.MULTILINE)
+    Typical reductions for Ultralytics Docs are:
+        - Total HTML reduction: 2.83% (1301.56 KB saved)
+        - Total CSS reduction: 1.75% (2.61 KB saved)
+        - Total JS reduction: 13.51% (99.31 KB saved)
+    """
+    if file_type == "html":
+        # Remove HTML comments
+        content = re.sub(r"<!--[\s\S]*?-->", "", content)
+        # Only remove empty lines for HTML, preserve indentation
+        content = re.sub(r"^\s*$\n", "", content, flags=re.MULTILINE)
+    elif file_type == "css":
+        # Remove CSS comments
+        content = re.sub(r"/\*[\s\S]*?\*/", "", content)
+        # Remove whitespace around specific characters
+        content = re.sub(r"\s*([{}:;,])\s*", r"\1", content)
+        # Remove empty lines
+        content = re.sub(r"^\s*\n", "", content, flags=re.MULTILINE)
+        # Collapse multiple spaces to single space
+        content = re.sub(r"\s{2,}", " ", content)
+        # Remove all newlines
+        content = re.sub(r"\n", "", content)
+    elif file_type == "js":
+        # Handle JS single-line comments (preserving http:// and https://)
+        lines = content.split("\n")
+        processed_lines = []
+        for line in lines:
+            # Only remove comments if they're not part of a URL
+            if "//" in line and "http://" not in line and "https://" not in line:
+                processed_lines.append(line.split("//")[0])
+            else:
+                processed_lines.append(line)
+        content = "\n".join(processed_lines)
+
+        # Remove JS multi-line comments and clean whitespace
+        content = re.sub(r"/\*[\s\S]*?\*/", "", content)
+        # Remove empty lines
+        content = re.sub(r"^\s*\n", "", content, flags=re.MULTILINE)
+        # Collapse multiple spaces to single space
+        content = re.sub(r"\s{2,}", " ", content)
+
+        # Safe space removal around punctuation and operators (NEVER include colons - breaks JS)
+        content = re.sub(r"\s*([,;{}])\s*", r"\1", content)
+        content = re.sub(r"(\w)\s*\(|\)\s*{|\s*([+\-*/=])\s*", lambda m: m.group(0).replace(" ", ""), content)
 
     return content
 
 
-def minify_files(html=True, css=True, js=True):
-    """Minifies HTML, CSS, and JS files and prints total reduction stats."""
+def minify_files(html: bool = True, css: bool = True, js: bool = True):
+    """Minify HTML, CSS, and JS files and print total reduction stats."""
     minify, compress, jsmin = None, None, None
     try:
         if html:
@@ -308,7 +332,7 @@ def minify_files(html=True, css=True, js=True):
 
 
 def main():
-    """Builds docs, updates titles and edit links, minifies HTML, and prints local server command."""
+    """Build docs, update titles and edit links, minify HTML, and print local server command."""
     prepare_docs_markdown()
 
     # Build the main documentation

@@ -101,7 +101,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
         ```bash
         # Export a YOLO11n PyTorch model to TensorRT format
-        yolo export model=yolo11n.pt format=engine  # creates 'yolo11n.engine''
+        yolo export model=yolo11n.pt format=engine # creates 'yolo11n.engine''
 
         # Run inference with the exported model
         yolo predict model=yolo11n.engine source='https://ultralytics.com/images/bus.jpg'
@@ -120,7 +120,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 | `workspace` | `float` or `None` | `None`         | Sets the maximum workspace size in GiB for TensorRT optimizations, balancing memory usage and performance; use `None` for auto-allocation by TensorRT up to device maximum.                   |
 | `nms`       | `bool`            | `False`        | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                           |
 | `batch`     | `int`             | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                       |
-| `data`      | `str`             | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets) configuration file (default: `coco8.yaml`), essential for quantization.                                                          |
+| `data`      | `str`             | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets/) configuration file (default: `coco8.yaml`), essential for quantization.                                                         |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -192,7 +192,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
         ```bash
         # Export a YOLO11n PyTorch model to TensorRT format with INT8 quantization
-        yolo export model=yolo11n.pt format=engine batch=8 workspace=4 int8=True data=coco.yaml  # creates 'yolov8n.engine''
+        yolo export model=yolo11n.pt format=engine batch=8 workspace=4 int8=True data=coco.yaml # creates 'yolov8n.engine''
 
         # Run inference with the exported TensorRT quantized model
         yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'
@@ -487,7 +487,7 @@ To convert your Ultralytics YOLO11 models to TensorRT format for optimized NVIDI
     from ultralytics import YOLO
 
     model = YOLO("yolo11n.pt")
-    model.export(format="engine")  # creates 'yolov8n.engine'
+    model.export(format="engine")  # creates 'yolo11n.engine'
 
     # Run inference
     model = YOLO("yolo11n.engine")

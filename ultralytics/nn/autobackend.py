@@ -19,11 +19,7 @@ from ultralytics.utils.downloads import attempt_download_asset, is_url
 
 
 def check_class_names(names):
-    """
-    Check class names.
-
-    Map imagenet class codes to human-readable names if required. Convert lists to dicts.
-    """
+    """Check class names and convert to dict format if needed."""
     if isinstance(names, list):  # names is a list
         names = dict(enumerate(names))  # convert to dict
     if isinstance(names, dict):
@@ -78,8 +74,23 @@ class AutoBackend(nn.Module):
             | IMX                   | *_imx_model/      |
             | RKNN                  | *_rknn_model/     |
 
-    This class offers dynamic backend switching capabilities based on the input model format, making it easier to deploy
-    models across various platforms.
+    Attributes:
+        model (torch.nn.Module): The loaded YOLO model.
+        device (torch.device): The device (CPU or GPU) on which the model is loaded.
+        task (str): The type of task the model performs (detect, segment, classify, pose).
+        names (dict): A dictionary of class names that the model can detect.
+        stride (int): The model stride, typically 32 for YOLO models.
+        fp16 (bool): Whether the model uses half-precision (FP16) inference.
+
+    Methods:
+        forward: Run inference on an input image.
+        from_numpy: Convert numpy array to tensor.
+        warmup: Warm up the model with a dummy input.
+        _model_type: Determine the model type from file path.
+
+    Examples:
+        >>> model = AutoBackend(weights="yolov8n.pt", device="cuda")
+        >>> results = model(img)
     """
 
     @torch.no_grad()
@@ -101,7 +112,7 @@ class AutoBackend(nn.Module):
             weights (str | torch.nn.Module): Path to the model weights file or a module instance. Defaults to 'yolo11n.pt'.
             device (torch.device): Device to run the model on. Defaults to CPU.
             dnn (bool): Use OpenCV DNN module for ONNX inference. Defaults to False.
-            data (str | Path | optional): Path to the additional data.yaml file containing class names. Optional.
+            data (str | Path | optional): Path to the additional data.yaml file containing class names.
             fp16 (bool): Enable half-precision inference. Supported only on specific backends. Defaults to False.
             batch (int): Batch-size to assume for inference.
             fuse (bool): Fuse Conv2D + BatchNorm layers for optimization. Defaults to True.
@@ -132,7 +143,7 @@ class AutoBackend(nn.Module):
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
-        end2end = False  # default end2end
+        end2end, dynamic = False, False
         model, metadata, task = None, None, None
 
         # Set device
@@ -174,6 +185,8 @@ class AutoBackend(nn.Module):
 
         # TorchScript
         elif jit:
+            import torchvision  # noqa - https://github.com/ultralytics/ultralytics/pull/19747
+
             LOGGER.info(f"Loading {w} for TorchScript inference...")
             extra_files = {"config.txt": ""}  # model metadata
             model = torch.jit.load(w, _extra_files=extra_files, map_location=device)
@@ -209,12 +222,12 @@ class AutoBackend(nn.Module):
                 session = onnxruntime.InferenceSession(w, providers=providers)
             else:
                 check_requirements(
-                    ["model-compression-toolkit==2.1.1", "sony-custom-layers[torch]==0.2.0", "onnxruntime-extensions"]
+                    ["model-compression-toolkit>=2.3.0", "sony-custom-layers[torch]>=0.3.0", "onnxruntime-extensions"]
                 )
                 w = next(Path(w).glob("*.onnx"))
                 LOGGER.info(f"Loading {w} for ONNX IMX inference...")
                 import mct_quantizers as mctq
-                from sony_custom_layers.pytorch.object_detection import nms_ort  # noqa
+                from sony_custom_layers.pytorch.nms import nms_ort  # noqa
 
                 session = onnxruntime.InferenceSession(
                     w, mctq.get_ort_session_options(), providers=["CPUExecutionProvider"]
@@ -244,7 +257,7 @@ class AutoBackend(nn.Module):
         # OpenVINO
         elif xml:
             LOGGER.info(f"Loading {w} for OpenVINO inference...")
-            check_requirements("openvino>=2024.0.0,<2025.0.0")
+            check_requirements("openvino>=2024.0.0,!=2025.0.0")
             import openvino as ov
 
             core = ov.Core()
@@ -270,7 +283,7 @@ class AutoBackend(nn.Module):
         elif engine:
             LOGGER.info(f"Loading {w} for TensorRT inference...")
 
-            if IS_JETSON and PYTHON_VERSION <= "3.8.0":
+            if IS_JETSON and check_version(PYTHON_VERSION, "<=3.8.0"):
                 # fix error: `np.bool` was a deprecated alias for the builtin `bool` for JetPack 4 with Python <= 3.8.0
                 check_requirements("numpy==1.23.5")
 
@@ -422,7 +435,7 @@ class AutoBackend(nn.Module):
         # PaddlePaddle
         elif paddle:
             LOGGER.info(f"Loading {w} for PaddlePaddle inference...")
-            check_requirements("paddlepaddle-gpu" if cuda else "paddlepaddle")
+            check_requirements("paddlepaddle-gpu" if cuda else "paddlepaddle<3.0.0")
             import paddle.inference as pdi  # noqa
 
             w = Path(w)
@@ -517,6 +530,7 @@ class AutoBackend(nn.Module):
             names = metadata["names"]
             kpt_shape = metadata.get("kpt_shape")
             end2end = metadata.get("args", {}).get("nms", False)
+            dynamic = metadata.get("args", {}).get("dynamic", dynamic)
         elif not (pt or triton or nn_module):
             LOGGER.warning(f"WARNING ⚠️ Metadata not found for 'model={weights}'")
 
@@ -532,18 +546,19 @@ class AutoBackend(nn.Module):
 
         self.__dict__.update(locals())  # assign all variables to self
 
-    def forward(self, im, augment=False, visualize=False, embed=None):
+    def forward(self, im, augment=False, visualize=False, embed=None, **kwargs):
         """
         Runs inference on the YOLOv8 MultiBackend model.
 
         Args:
             im (torch.Tensor): The image tensor to perform inference on.
-            augment (bool): whether to perform data augmentation during inference, defaults to False
-            visualize (bool): whether to visualize the output predictions, defaults to False
+            augment (bool): Whether to perform data augmentation during inference. Defaults to False.
+            visualize (bool): Whether to visualize the output predictions. Defaults to False.
             embed (list, optional): A list of feature vectors/embeddings to return.
+            **kwargs (Any): Additional keyword arguments for model configuration.
 
         Returns:
-            (tuple): Tuple containing the raw output tensor, and processed output for visualization (if visualize=True)
+            (torch.Tensor | List[torch.Tensor]): The raw output tensor(s) from the model.
         """
         b, ch, h, w = im.shape  # batch, channel, height, width
         if self.fp16 and im.dtype != torch.float16:
@@ -553,7 +568,7 @@ class AutoBackend(nn.Module):
 
         # PyTorch
         if self.pt or self.nn_module:
-            y = self.model(im, augment=augment, visualize=visualize, embed=embed)
+            y = self.model(im, augment=augment, visualize=visualize, embed=embed, **kwargs)
 
         # TorchScript
         elif self.jit:
@@ -775,10 +790,13 @@ class AutoBackend(nn.Module):
     def _model_type(p="path/to/model.pt"):
         """
         Takes a path to a model file and returns the model type. Possibles types are pt, jit, onnx, xml, engine, coreml,
-        saved_model, pb, tflite, edgetpu, tfjs, ncnn or paddle.
+        saved_model, pb, tflite, edgetpu, tfjs, ncnn, mnn, imx or paddle.
 
         Args:
-            p (str): path to the model file. Defaults to path/to/model.pt
+            p (str): Path to the model file. Defaults to path/to/model.pt
+
+        Returns:
+            (List[bool]): List of booleans indicating the model type.
 
         Examples:
             >>> model = AutoBackend(weights="path/to/model.onnx")

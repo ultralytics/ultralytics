@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Learn to export Ultralytics YOLOv8 models to Sony's IMX500 format to optimize your models for efficient deployment.
+description: Learn to export Ultralytics YOLOv8 models to Sony's IMX500 format for efficient edge AI deployment on Raspberry Pi AI Camera with on-chip processing.
 keywords: Sony, IMX500, IMX 500, Atrios, MCT, model export, quantization, pruning, deep learning optimization, Raspberry Pi AI Camera, edge AI, PyTorch, IMX
 ---
 
@@ -80,7 +80,7 @@ Export an Ultralytics YOLOv8 model to IMX500 format and run inference with the e
 | `format` | `str`            | `'imx'`        | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
 | `imgsz`  | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
 | `int8`   | `bool`           | `True`         | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
-| `data`   | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets) configuration file (default: `coco8.yaml`), essential for quantization.                                                          |
+| `data`   | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets/) configuration file (default: `coco8.yaml`), essential for quantization.                                                         |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -146,7 +146,7 @@ After obtaining `packerOut.zip` from the IMX500 conversion process, you can pass
 Step 1: Package the model into RPK file
 
 ```bash
-imx500-package -i <path to packerOut.zip> -o <output folder>
+imx500-package -i path/to/packerOut.zip -o path/to/output/folder
 ```
 
 The above will generate a `network.rpk` file inside the specified output folder.
@@ -156,14 +156,14 @@ Step 2: Clone `picamera2` repository, install it and navigate to the imx500 exam
 ```bash
 git clone https://github.com/raspberrypi/picamera2
 cd picamera2
-pip install -e .  --break-system-packages
+pip install -e . --break-system-packages
 cd examples/imx500
 ```
 
 Step 3: Run YOLOv8 object detection, using the labels.txt file that has been generated during the IMX500 export.
 
 ```bash
-python imx500_object_detection_demo.py --model <path to network.rpk> --fps 17 --bbox-normalization --ignore-dash-labels --bbox-order xy --labels <path to labels.txt>
+python imx500_object_detection_demo.py --model path/to/network.rpk --fps 17 --bbox-normalization --ignore-dash-labels --bbox-order xy --labels path/to/labels.txt
 ```
 
 Then you will be able to see live inference output as follows
@@ -309,7 +309,7 @@ After exporting to IMX500 format:
 1. Use the packager tool to create an RPK file:
 
     ```bash
-    imx500-package -i <path to packerOut.zip> -o <output folder>
+    imx500-package -i path/to/packerOut.zip -o path/to/output/folder
     ```
 
 2. Clone and install picamera2:
@@ -322,5 +322,5 @@ After exporting to IMX500 format:
 3. Run inference using the generated RPK file:
 
     ```bash
-    python imx500_object_detection_demo.py --model <path to network.rpk> --fps 17 --bbox-normalization --labels <path to labels.txt>
+    python imx500_object_detection_demo.py --model path/to/network.rpk --fps 17 --bbox-normalization --labels path/to/labels.txt
     ```

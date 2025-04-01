@@ -84,7 +84,7 @@ convert_segment_masks_to_yolo_seg(masks_dir="path/to/masks_dir", output_dir="pat
 
 ### Convert COCO into YOLO Format
 
-Use this to convert [COCO](https://docs.ultralytics.com/datasets/detect/coco) JSON annotations into the YOLO format. For object detection (bounding box) datasets, set both `use_segments` and `use_keypoints` to `False`.
+Use this to convert [COCO](https://docs.ultralytics.com/datasets/detect/coco/) JSON annotations into the YOLO format. For object detection (bounding box) datasets, set both `use_segments` and `use_keypoints` to `False`.
 
 ```python
 from ultralytics.data.converter import convert_coco

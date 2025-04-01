@@ -484,18 +484,18 @@ class DetectionValidator(BaseValidator):
                         stats["metrics/APc(B)"] = val.stats_as_dict["APc"]
                         stats["metrics/APf(B)"] = val.stats_as_dict["APf"]
                         stats["fitness"] = val.stats_as_dict["AP_all"]
-                    
+
                 else:
                     stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = (
                         val.stats[:2] if self.is_coco else [val.results["AP50"], val.results["AP"]]
                     )
-                
+
                     if self.is_lvis:
                         stats["metrics/APr(B)"] = val.results["APr"]
                         stats["metrics/APc(B)"] = val.results["APc"]
                         stats["metrics/APf(B)"] = val.results["APf"]
                         stats["fitness"] = val.results["AP"]
-                
+
             except Exception as e:
                 LOGGER.warning(f"{pkg} unable to run: {e}")
         return stats

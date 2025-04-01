@@ -1258,7 +1258,7 @@ class Exporter:
             layer_names = ["sub", "mul_2", "add_14", "cat_21"]
             weights_memory = 2585350.2439
             n_layers = 320  # 320 layers for YOLO11n
-        else:  # yolov8
+        else:  # YOLOv8
             layer_names = ["sub", "mul", "add_6", "cat_17"]
             weights_memory = 2550540.8
             n_layers = 226  # 226 layers for YOLOv8n

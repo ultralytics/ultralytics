@@ -284,6 +284,7 @@ class YOLOE(Model):
         if refer_image is not None and len(visual_prompts):
             vpe = self.predictor.get_vpe(refer_image)
             self.model.set_classes(self.model.names, vpe)
+            self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
             self.predictor = None  # reset predictor
 
         return super().predict(source, stream, **kwargs)

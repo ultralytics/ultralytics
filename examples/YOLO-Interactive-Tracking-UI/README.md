@@ -1,117 +1,128 @@
 # Ultralytics YOLO Interactive Tracking UI 🎯
 
-An educational and modular object tracking interface built using [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) and OpenCV. This project is ideal for:
+A modular, educational real-time object detection and tracking UI built with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) and OpenCV.
 
-- Learning [Ultralytics YOLO](https://docs.ultralytics.com/) + [object tracking](https://docs.ultralytics.com/modes/track/) integration
-- Testing on edge devices ([Raspberry Pi](https://docs.ultralytics.com/guides/raspberry-pi/), [NVIDIA Jetson Nano](https://docs.ultralytics.com/guides/nvidia-jetson/), etc.)
-- Building real-time, interactive tracking demos
-- Enhancing vision pipelines with UX-friendly overlays
+This project is ideal for:
 
-## Project Demo
+- Learning how to integrate [YOLO](https://docs.ultralytics.com) with [object tracking](https://docs.ultralytics.com/modes/track/)
+- Testing on edge devices (e.g., Raspberry Pi, Jetson Nano)
+- Real-time demos with interactive user input
+- Enhancing CV pipelines with tracking UI/UX overlays
+
+---
+
+## 📽️ Demo
 
 ![yolo-ezgif com-optimize](https://github.com/user-attachments/assets/179f62e1-97ba-4345-b7cd-a6aa80681996)
 
-## Features
+---
 
-- ✅ Real-time object detection using Ultralytics YOLOv8
-- 🖱️ Click on any object to begin tracking it
-- 🟩 YOLO-style bounding boxes with class names and confidence
-- 🔭 Scope lines + center marker for selected tracked object
-- 🔁 Dashed box style for inactive objects
-- 📟 Terminal prints: object class, ID, confidence, center
-- 🎛 Customizable settings:
+## ✨ Features
 
-  - FPS display toggle
-  - Max detections
-  - Tracker backend (`bytetrack`, `botsort`, etc.)
-  - Confidence / IoU thresholds
+- ✅ Real-time object detection and visual tracking
+- 🖱️ Click on any object to initiate tracking
+- 🟢 Scope lines and bold bounding box for active tracking
+- 🟡 Dashed boxes for passive (non-tracked) objects
+- 📟 Live terminal updates with object ID, label, confidence, center
+- ⚙️ Configurable thresholds and tracker engine (e.g. `bytetrack`, `botsort`)
+- 💡 Supports:
+  - ✅ PyTorch `.pt` models for GPU (Jetson, desktop with CUDA)
+  - ✅ NCNN `.param + .bin` models for CPU-only (Raspberry Pi, ARM)
 
-- Supports both:
-  - ✅ PyTorch models (`.pt`) for GPU (Jetson/desktop)
-  - ✅ NCNN models (`.param`/`.bin`) for CPU-only (Pi, ARM boards)
+---
 
-## Hardware & Model Support
+## 💻 Hardware & Model Compatibility
 
-| Platform          | Format Used        | Model Example        | GPU Acceleration | Notes                      |
-| ----------------- | ------------------ | -------------------- | ---------------- | -------------------------- |
-| Raspberry Pi 4/5  | NCNN (.param/.bin) | `yolov8n_ncnn_model` | ❌ CPU only      | Lightweight, fast enough   |
-| Jetson Nano       | PyTorch (.pt)      | `yolov8n.pt`         | ✅ CUDA          | Great for GPU acceleration |
-| Desktop PC w/ GPU | PyTorch (.pt)      | `yolov8s.pt`         | ✅ CUDA          | Fastest option             |
-| CPU-only laptops  | NCNN (.param/.bin) | `yolov8n_ncnn_model` | ❌               | Still usable at ~10–15 FPS |
+| Platform          | Model Format        | Example Model          | GPU Acceleration | Notes                             |
+|------------------|---------------------|------------------------|------------------|-----------------------------------|
+| Raspberry Pi 4/5 | NCNN (.param/.bin)  | `yolov8n_ncnn_model`   | ❌ CPU only      | Recommended format for Pi/ARM     |
+| Jetson Nano      | PyTorch (.pt)       | `yolov8n.pt`           | ✅ CUDA          | Real-time performance possible     |
+| Desktop w/ GPU   | PyTorch (.pt)       | `yolov8s.pt`           | ✅ CUDA          | Best performance                  |
+| CPU-only laptops | NCNN (.param/.bin)  | `yolov8n_ncnn_model`   | ❌               | Decent performance (~10–15 FPS)  |
 
-## Project Structure
+---
+
+## 📁 Project Structure
 
 ```
 YOLO-Interactive-Tracking-UI/
-├── yolo/                    # Store your models here (.pt or .ncnn)
-├── add_yolo_model.py        # Helper: downloads + exports YOLO to NCNN
-├── interactive_tracker.py   # Main OpenCV tracking + UI demo
-└── README.md                # You're reading it
+├── interactive_tracker.py   # Main Python tracking UI script
+├── yolo11s.pt               # (Optional) Place PyTorch model here
+├── yolov8n_ncnn_model      # (Optional) Place NCNN model here
+└── README.md                # You're here!
 ```
 
-## Installation
+> ✅ You are now free to organize model files as you wish. Set the full or relative path directly in `interactive_tracker.py`.
 
-### Python (3.8+ required)
+---
+
+## ⚙️ Installation
+
+### Basic Dependencies
 
 ```bash
 pip install ultralytics opencv-python
 ```
 
-> You can use `venv` or `conda` if you prefer virtual environments.
+> Use a virtual environment like `venv` or `conda` (recommended).
 
-### Optional: GPU Support (PyTorch + CUDA)
+---
 
-If you're using a CUDA GPU (desktop or Jetson Nano):
+### Optional: Enable GPU (for PyTorch models)
 
-```bash
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+Install PyTorch based on your system and CUDA version:  
+👉 https://pytorch.org/get-started/locally/
+
+---
+
+## 🚀 Usage
+
+### Step 1: Download or convert your model manually
+
+- From Ultralytics: https://github.com/ultralytics/assets/releases
+- Supported formats:
+  - `yolov8n.pt` (for GPU with PyTorch)
+  - `yolov8n_ncnn_model` (for CPU with NCNN)
+
+---
+
+### Step 2: Configure the script
+
+Edit the top of `interactive_tracker.py`:
+
+```python
+USE_GPU = True  # Set to False for Raspberry Pi or CPU-only systems
+
+MODEL_PATH_GPU = "yolov8n.pt"
+MODEL_PATH_CPU = "yolov8n_ncnn_model"  # Path without file extension
 ```
 
-> Replace `cu118` with your CUDA version if needed.
+---
 
-## Quick Start
-
-### 1. Prepare a YOLO Model
-
-- For CPU/NCNN:
-
-  ```bash
-  python add_yolo_model.py
-  ```
-
-  This will download + convert `yolov8n.pt` to NCNN automatically.
-
-- For GPU:
-  Download `.pt` models like `yolov8n.pt` or `yolov8s.pt` from [Ultralytics assets](https://github.com/ultralytics/assets/releases).
-
-Place them in the `yolo/` folder.
-
-### 2. Run the Object Tracking
+### Step 3: Run the tracker
 
 ```bash
 python interactive_tracker.py
 ```
 
-Inside the script, configure this block to toggle CPU vs GPU:
+---
+
+### Controls
+
+- 🖱️ Left-click → Select an object to track
+- 🔄 Press `c` → Cancel/reset tracking
+- ❌ Press `q` → Quit the app
+
+---
+
+## 🛠 Customization
+
+All config options are at the top of `interactive_tracker.py`:
 
 ```python
-USE_GPU = True  # Set to False for Raspberry Pi or CPU-only
-```
-
-### 3. Controls
-
-- 🖱️ Left click: Select an object to track
-- 🔄 Press `c`: Cancel/reset tracking
-- ❌ Press `q`: Quit the app
-
-## Customization
-
-In `interactive_tracker.py`, modify the following:
-
-```python
-USE_GPU = True  # GPU (CUDA) or False for CPU
-MODEL_PATH_GPU = "yolo/yolov8n.pt"
-MODEL_PATH_CPU = "yolo/yolov8n_ncnn_model"
+USE_GPU = True or False
+MODEL_PATH_GPU = "yolov8n.pt"
+MODEL_PATH_CPU = "yolov8n_ncnn_model"
 
 CONFIDENCE_THRESHOLD = 0.3
 IOU_THRESHOLD = 0.3
@@ -120,15 +131,25 @@ SHOW_FPS = True
 TRACKER_TYPE = "bytetrack.yaml"
 ```
 
-You can also change bounding box styles, text font, colors, etc. The code is well-commented for educational clarity.
+Other things you can tweak:
+- Colors, line styles, fonts
+- Tracker type (e.g., try `botsort.yaml`)
+- Object filters, click behavior, frame source (webcam/video)
+
+---
 
 ## 👤 Author
 
-- Connect with author: [here](https://www.linkedin.com/in/alireza787b)
-- Published Date ![Published Date](https://img.shields.io/badge/published_Date-2025--04--01-purple)
+**Alireza Ghaderi**  
+📅 March 2025  
+🔗 [LinkedIn – alireza787b](https://www.linkedin.com/in/alireza787b)
 
-## License & Disclaimer
+---
 
-This project is released under the **AGPL-3.0 license**. For full licensing terms, please visit the [Ultralytics YOLO License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
+## 📜 License & Disclaimer
 
-It is intended solely for educational and demonstration purposes. Please use it responsibly and at your own discretion. The author assumes no liability for any misuse or unintended consequences. Feedback, forks, and contributions are highly encouraged and always appreciated!
+Released under the **AGPL-3.0 License**.  
+Refer to [Ultralytics License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) for details.
+
+> This project is for **educational and demo purposes** only.  
+> Use at your own discretion. Contributions and feedback are welcome!

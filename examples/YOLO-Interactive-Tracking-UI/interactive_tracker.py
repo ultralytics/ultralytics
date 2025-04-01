@@ -1,69 +1,86 @@
 """
-YOLO Interactive Tracking UI (CPU/GPU Version).
-==============================================
+YOLO Interactive Tracking UI (CPU & GPU Toggle)
+===============================================
 
-This is an educational, beginner-friendly demo that shows how to do real-time object detection
-and interactive object tracking using Ultralytics YOLO and OpenCV.
+An educational demo showcasing real-time object detection and interactive tracking
+using Ultralytics YOLO + OpenCV — with a clean UI, click-to-track functionality,
+and live terminal feedback.
 
-✅ You can choose to run the model on:
-   - CPU (optimized for devices like Raspberry Pi using NCNN)
-   - GPU (for Jetson Nano or any CUDA-capable desktop)
-
-🧠 Features:
+🎯 Features:
 ------------
-- Real-time object detection and tracking with visual overlays
-- Click on any object to start tracking it
-- Supports both PyTorch (.pt) and NCNN (.param + .bin) models
-- Prints live tracking data (ID, class, confidence, center position)
-- Visual scope lines and object highlights
+- Real-time object detection and visual tracking
+- Click on any detected object to begin tracking it
+- Visual overlays: bounding boxes, scope lines, center markers, object IDs
+- Live terminal output with object ID, class name, confidence, and center position
+- Supports both:
+  - ✅ PyTorch (.pt) models — for GPU inference (Jetson, CUDA-enabled PC)
+  - ✅ NCNN (.param + .bin) models — for CPU-only environments (Raspberry Pi, ARM)
 
-📦 Folder Structure:
---------------------
-YOLO-Interactive-Tracking-UI/
-├── yolo/                    # Folder for model files
-├── interactive_tracker.py   # This script
-└── add_yolo_model.py        # Optional model downloader
+🧠 CPU vs GPU Support:
+----------------------
+- Set `USE_GPU = True` for GPU (requires PyTorch and CUDA)
+- Set `USE_GPU = False` for CPU-only (NCNN models)
+- Toggle easily in the config section at the top of the script
 
-🔧 Setup Instructions:
------------------------
-1. Install Python packages:
-   ```bash
-   pip install ultralytics opencv-python
-   ```
+🧩 Requirements:
+----------------
+- Python 3.8 or higher
+- Install core dependencies:
+  ```bash
+  pip install ultralytics opencv-python
+  ```
 
-2. If you want GPU acceleration (on CUDA-capable device):
-   ```bash
-   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-   ```
+🔧 For PyTorch Models:
+----------------------
+If using a `.pt` model (GPU-enabled):
+- Visit the official PyTorch install page:
+  👉 https://pytorch.org/get-started/locally/
+- Follow instructions based on your system (CUDA or CPU)
 
-3. Download the right model into the `yolo/` folder:
-   - For GPU: [https://github.com/ultralytics/assets/releases](https://github.com/ultralytics/assets/releases)
-     - Download: `yolo11n.pt`
-   - For CPU (e.g. Raspberry Pi): Use `add_yolo_model.py` to convert to NCNN
+📦 Model File Examples:
+------------------------
+Place your model in the same folder or use an absolute path.
 
-🚀 Usage:
----------
-Run the script:
-    python interactive_tracker.py
-
-Toggle options inside script:
-    USE_GPU = True / False
+Examples:
+    - `yolov8n.pt`           → PyTorch model for GPU
+    - `yolov8n_ncnn_model`   → NCNN model for CPU (consists of `.param` + `.bin`)
 
 🎮 Controls:
 ------------
-- Left click = select object to track
-- Press `c` = cancel/reset tracking
-- Press `q` = quit
+- 🖱️  Click on any object to track it
+- 🔄 Press `c` to reset tracking
+- ❌ Press `q` to quit the application
 
-👨‍💻 Author:
+🚀 How to Run:
+--------------
+1. Open the script and configure these lines at the top:
+
+USE_GPU = True  # or False
+MODEL_PATH_GPU = "yolov8n.pt"
+MODEL_PATH_CPU = "yolov8n_ncnn_model"
+
+2. Then run:
+
+python interactive_tracker.py
+
+
+💡 Tip:
+-------
+- Use lightweight models (`yolov8n`, `yolov8s`) for smoother real-time performance
+- NCNN models are best for Raspberry Pi and ARM-based devices
+
+🧑‍💻 Author:
 ------------
-Alireza Ghaderi <p30planets@gmail.com> | LinkedIn: alireza787b
-March 2025
+Alireza Ghaderi  
+📅 March 2025  
+🔗 https://linkedin.com/in/alireza787b
 
-🛡️ Disclaimer:
----------------
-This is for **learning, demos, and education** only — not for production.
+🔒 License:
+-----------
+This code is for educational and demo use only. Use at your own discretion.
 """
+
+
 
 import time
 
@@ -80,8 +97,8 @@ from ultralytics import YOLO
 USE_GPU = False
 
 # 🧠 Select the correct model paths for GPU vs CPU
-MODEL_PATH_GPU = "yolo/yolo11n.pt"  # PyTorch model (GPU)
-MODEL_PATH_CPU = "yolo/yolo11n_ncnn_model"  # NCNN model (CPU)
+MODEL_PATH_GPU = "yolo11n.pt"  # PyTorch model (GPU)
+MODEL_PATH_CPU = "yolo11n_ncnn_model"  # NCNN model (CPU)
 
 # 🎯 Detection and tracking settings
 SHOW_FPS = True
@@ -118,10 +135,11 @@ object_colors = {}
 
 
 # ========= YOLO-LIKE COLOR GENERATOR =========
-def get_yolo_color(index):
-    """Generate vivid, consistent YOLO-style color for high visibility."""
-    hue = (index * 0.61803398875) % 1.0  # Golden ratio
-    hsv = np.array([[[int(hue * 179), 255, 255]]], dtype=np.uint8)
+def get_yolo_color(index, brightness_adjustment=1.0):
+    """Generate vivid YOLO-style color with adjustable brightness."""
+    hue = (index * 0.61803398875) % 1.0
+    brightness = min(255, 255 * brightness_adjustment)
+    hsv = np.array([[[int(hue * 179), 255, brightness]]], dtype=np.uint8)
     bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)[0][0]
     return int(bgr[0]), int(bgr[1]), int(bgr[2])
 

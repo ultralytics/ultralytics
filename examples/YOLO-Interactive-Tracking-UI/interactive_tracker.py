@@ -95,8 +95,8 @@ from ultralytics import YOLO
 USE_GPU = False
 
 # 🧠 Select the correct model paths for GPU vs CPU
-MODEL_PATH_GPU = "yolo11n.pt"  # PyTorch model (GPU)
-MODEL_PATH_CPU = "yolo11n_ncnn_model"  # NCNN model (CPU)
+MODEL_PATH_GPU = "yolo11s.pt"  # PyTorch model (GPU)
+MODEL_PATH_CPU = "yolo11s.pt"  # PyTorch or NCNN model (CPU)
 
 # 🎯 Detection and tracking settings
 SHOW_FPS = True

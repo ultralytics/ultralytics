@@ -17,8 +17,7 @@ PARKING_VIDEO = "solution_ci_parking_demo.mp4"  # only for parking management so
 PARKING_AREAS_JSON = "solution_ci_parking_areas.json"  # only for parking management solution
 PARKING_MODEL = "solutions_ci_parking_model.pt"  # only for parking management solution
 
-
-@pytest.mark.slow
+@pytest.mark.skipif(sys.platform == "linux", reason="Skipping tests for Linux based OS")
 def test_major_solutions():
     """Test the object counting, heatmap, speed estimation, trackzone and queue management solution."""
     safe_download(url=f"{ASSETS_URL}/{DEMO_VIDEO}", dir=TMP)
@@ -97,7 +96,7 @@ def test_major_solutions():
     cap.release()
 
 
-@pytest.mark.slow
+@pytest.mark.skipif(sys.platform == "linux", reason="Skipping tests for Linux based OS")
 def test_streamlit_predict():
     """Test streamlit predict live inference solution."""
     solutions.Inference().inference()

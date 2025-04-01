@@ -67,6 +67,8 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
             ValueError: If neither valid bounding boxes nor masks are provided in the prompts.
         """
         img = super().pre_transform(im)
+        if isinstance(self.prompts, torch.Tensor):
+            return img
         bboxes = self.prompts.pop("bboxes", None)
         masks = self.prompts.pop("masks", None)
         category = self.prompts["cls"]

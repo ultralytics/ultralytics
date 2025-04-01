@@ -4,6 +4,7 @@ import json
 from collections import defaultdict
 from itertools import repeat
 from multiprocessing import Pool
+from multiprocessing.threading import ThreadPool
 from pathlib import Path
 
 import cv2
@@ -30,6 +31,7 @@ from .base import BaseDataset
 from .utils import (
     HELP_URL,
     LOGGER,
+    DATASET_THRESHOLD,
     get_hash,
     img2label_paths,
     load_dataset_cache_file,
@@ -105,7 +107,13 @@ class YOLODataset(BaseDataset):
                 "'kpt_shape' in data.yaml missing or incorrect. Should be a list with [number of "
                 "keypoints, number of dims (2 for x,y or 3 for x,y,visible)], i.e. 'kpt_shape: [17, 3]'"
             )
-        with Pool(NUM_THREADS) as pool:
+
+        if total > DATASET_THRESHOLD:
+            multiprocessing_pool = Pool
+        else:
+            multiprocessing_pool = ThreadPool
+
+        with multiprocessing_pool(NUM_THREADS) as pool:
             results = pool.imap(
                 func=verify_image_label,
                 iterable=zip(
@@ -655,7 +663,13 @@ class ClassificationDataset:
         except (FileNotFoundError, AssertionError, AttributeError):
             # Run scan if *.cache retrieval failed
             nf, nc, msgs, samples, x = 0, 0, [], [], {}
-            with Pool(NUM_THREADS) as pool:
+
+            if len(self.samples) > DATASET_THRESHOLD:
+                multiprocessing_pool = Pool
+            else:
+                multiprocessing_pool = ThreadPool
+
+            with multiprocessing_pool(NUM_THREADS) as pool:
                 results = pool.imap(func=verify_image, iterable=zip(self.samples, repeat(self.prefix)))
                 pbar = TQDM(results, desc=desc, total=len(self.samples))
                 for sample, nf_f, nc_f, msg in pbar:

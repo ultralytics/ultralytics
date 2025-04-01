@@ -39,6 +39,7 @@ IMG_FORMATS = {"bmp", "dng", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp",
 VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv", "webm"}  # video suffixes
 PIN_MEMORY = str(os.getenv("PIN_MEMORY", True)).lower() == "true"  # global pin_memory for dataloaders
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
+DATASET_THRESHOLD = os.getenv("ULTRALYTICS_DATASET_THRESHOLD", 1000)
 
 
 def img2label_paths(img_paths):
@@ -524,9 +525,9 @@ class HUBDatasetStats:
         if not str(path).endswith(".zip"):  # path is data.yaml
             return False, None, path
         unzip_dir = unzip_file(path, path=path.parent)
-        assert unzip_dir.is_dir(), (
-            f"Error unzipping {path}, {unzip_dir} not found. path/to/abc.zip MUST unzip to path/to/abc/"
-        )
+        assert (
+            unzip_dir.is_dir()
+        ), f"Error unzipping {path}, {unzip_dir} not found. path/to/abc.zip MUST unzip to path/to/abc/"
         return True, str(unzip_dir), find_dataset_yaml(unzip_dir)  # zipped, data_dir, yaml_path
 
     def _hub_ops(self, f):

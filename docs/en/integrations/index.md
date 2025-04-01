@@ -21,10 +21,6 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
   <strong>Watch:</strong> Ultralytics YOLO11 Deployment and Integrations
 </p>
 
-## Datasets Integrations
-
-- [Roboflow](roboflow.md): Facilitate seamless dataset management for Ultralytics models, offering robust annotation, preprocessing, and augmentation capabilities.
-
 ## Training Integrations
 
 - [Amazon SageMaker](amazon-sagemaker.md): Leverage Amazon SageMaker to efficiently build, train, and deploy Ultralytics models, providing an all-in-one platform for the ML lifecycle.
@@ -95,6 +91,14 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [SONY IMX500](sony-imx500.md): Optimize and deploy [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
 
+- [Rockchip RKNN](rockchip-rknn.md): Developed by [Rockchip](https://www.rock-chips.com/), RKNN is a specialized neural network inference framework optimized for Rockchip's hardware platforms, particularly their NPUs. It facilitates efficient deployment of AI models on edge devices, enabling high-performance inference in real-time applications.
+
+- [Seeed Studio reCamera](seeedstudio-recamera.md): Developed by [Seeed Studio](https://www.seeedstudio.com/), the reCamera is a cutting-edge edge AI device designed for real-time computer vision applications. Powered by the RISC-V-based SG200X processor, it delivers high-performance AI inference with energy efficiency. Its modular design, advanced video processing capabilities, and support for flexible deployment make it an ideal choice for various use cases, including safety monitoring, environmental applications, and manufacturing.
+
+## Datasets Integrations
+
+- [Roboflow](roboflow.md): Facilitate dataset labelling and management for Ultralytics models, offering annotation tools to label images.
+
 ### Export Formats
 
 We also support a variety of model export formats for deployment in different environments. Here are the available formats:
@@ -105,7 +109,7 @@ Explore the links to learn more about each integration and how to get the most o
 
 ## Contribute to Our Integrations
 
-We're always excited to see how the community integrates Ultralytics YOLO with other technologies, tools, and platforms! If you have successfully integrated YOLO with a new system or have valuable insights to share, consider contributing to our Integrations Docs.
+We're always excited to see how the community integrates Ultralytics YOLO with other technologies, tools, and platforms! If you have successfully integrated YOLO with a new system or have valuable insights to share, consider [contributing to our Integrations Docs](../help/contributing.md).
 
 By writing a guide or tutorial, you can help expand our documentation and provide real-world examples that benefit the community. It's an excellent way to contribute to the growing ecosystem around Ultralytics YOLO.
 
@@ -117,22 +121,16 @@ Let's collaborate to make the Ultralytics YOLO ecosystem more expansive and feat
 
 ### What is Ultralytics HUB, and how does it streamline the ML workflow?
 
-Ultralytics HUB is a cloud-based platform designed to make machine learning (ML) workflows for Ultralytics models seamless and efficient. By using this tool, you can easily upload datasets, train models, perform real-time tracking, and deploy YOLO11 models without needing extensive coding skills. You can explore the key features on the [Ultralytics HUB](https://hub.ultralytics.com/) page and get started quickly with our [Quickstart](https://docs.ultralytics.com/hub/quickstart/) guide.
-
-### How do I integrate Ultralytics YOLO models with Roboflow for dataset management?
-
-Integrating Ultralytics YOLO models with Roboflow enhances dataset management by providing robust tools for annotation, preprocessing, and augmentation. To get started, follow the steps on the [Roboflow](roboflow.md) integration page. This partnership ensures efficient dataset handling, which is crucial for developing accurate and robust YOLO models.
+[Ultralytics HUB](https://www.ultralytics.com/hub) is a cloud-based platform designed to make machine learning workflows for Ultralytics models seamless and efficient. By using this tool, you can easily upload datasets, train models, perform real-time tracking, and deploy YOLO models without needing extensive coding skills. The platform serves as a centralized workspace where you can manage your entire ML pipeline from data preparation to deployment. You can explore the key features on the [Ultralytics HUB](https://hub.ultralytics.com/) page and get started quickly with our [Quickstart](https://docs.ultralytics.com/hub/quickstart/) guide.
 
 ### Can I track the performance of my Ultralytics models using MLFlow?
 
-Yes, you can. Integrating MLFlow with Ultralytics models allows you to track experiments, improve reproducibility, and streamline the entire ML lifecycle. Detailed instructions for setting up this integration can be found on the [MLFlow](mlflow.md) integration page. This integration is particularly useful for monitoring model metrics and managing the ML workflow efficiently.
+Yes, you can. Integrating [MLFlow](https://mlflow.org/) with Ultralytics models allows you to track experiments, improve reproducibility, and streamline the entire ML lifecycle. Detailed instructions for setting up this integration can be found on the [MLFlow](mlflow.md) integration page. This integration is particularly useful for monitoring model metrics, comparing different training runs, and managing the ML workflow efficiently. MLFlow provides a centralized platform to log parameters, metrics, and artifacts, making it easier to understand model behavior and make data-driven improvements.
 
 ### What are the benefits of using Neural Magic for YOLO11 model optimization?
 
-Neural Magic optimizes YOLO11 models by leveraging techniques like Quantization Aware Training (QAT) and pruning, resulting in highly efficient, smaller models that perform better on resource-limited hardware. Check out the [Neural Magic](neural-magic.md) integration page to learn how to implement these optimizations for superior performance and leaner models. This is especially beneficial for deployment on edge devices.
+[Neural Magic](https://neuralmagic.com/) optimizes YOLO11 models by leveraging techniques like Quantization Aware Training (QAT) and pruning, resulting in highly efficient, smaller models that perform better on resource-limited hardware. Check out the [Neural Magic](neural-magic.md) integration page to learn how to implement these optimizations for superior performance and leaner models. This is especially beneficial for deployment on edge devices where computational resources are constrained. Neural Magic's DeepSparse engine can deliver up to 6x faster inference on CPUs, making it possible to run complex models without specialized hardware.
 
 ### How do I deploy Ultralytics YOLO models with Gradio for interactive demos?
 
-To deploy Ultralytics YOLO models with Gradio for interactive [object detection](https://www.ultralytics.com/glossary/object-detection) demos, you can follow the steps outlined on the [Gradio](gradio.md) integration page. Gradio allows you to create easy-to-use web interfaces for real-time model inference, making it an excellent tool for showcasing your YOLO model's capabilities in a user-friendly format suitable for both developers and end-users.
-
-By addressing these common questions, we aim to improve user experience and provide valuable insights into the powerful capabilities of Ultralytics products. Incorporating these FAQs will not only enhance the documentation but also drive more organic traffic to the Ultralytics website.
+To deploy Ultralytics YOLO models with [Gradio](https://www.gradio.app/) for interactive [object detection](https://www.ultralytics.com/glossary/object-detection) demos, you can follow the steps outlined on the [Gradio](gradio.md) integration page. Gradio allows you to create easy-to-use web interfaces for real-time model inference, making it an excellent tool for showcasing your YOLO model's capabilities in a user-friendly format suitable for both developers and end-users. With just a few lines of code, you can build interactive applications that demonstrate your model's performance on custom inputs, facilitating better understanding and evaluation of your computer vision solutions.

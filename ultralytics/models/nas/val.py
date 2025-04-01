@@ -17,34 +17,23 @@ class NASValidator(DetectionValidator):
     ultimately producing the final detections.
 
     Attributes:
-        args (Namespace): Namespace containing various configurations for post-processing, such as confidence and IoU.
+        args (Namespace): Namespace containing various configurations for post-processing, such as confidence and IoU
+            thresholds.
         lb (torch.Tensor): Optional tensor for multilabel NMS.
 
-    Example:
-        ```python
-        from ultralytics import NAS
+    Examples:
+        >>> from ultralytics import NAS
+        >>> model = NAS("yolo_nas_s")
+        >>> validator = model.validator
+        Assumes that raw_preds are available
+        >>> final_preds = validator.postprocess(raw_preds)
 
-        model = NAS("yolo_nas_s")
-        validator = model.validator
-        # Assumes that raw_preds are available
-        final_preds = validator.postprocess(raw_preds)
-        ```
-
-    Note:
+    Notes:
         This class is generally not instantiated directly but is used internally within the `NAS` class.
     """
 
     def postprocess(self, preds_in):
         """Apply Non-maximum suppression to prediction outputs."""
-        boxes = ops.xyxy2xywh(preds_in[0][0])
-        preds = torch.cat((boxes, preds_in[0][1]), -1).permute(0, 2, 1)
-        return ops.non_max_suppression(
-            preds,
-            self.args.conf,
-            self.args.iou,
-            labels=self.lb,
-            multi_label=False,
-            agnostic=self.args.single_cls or self.args.agnostic_nms,
-            max_det=self.args.max_det,
-            max_time_img=0.5,
-        )
+        boxes = ops.xyxy2xywh(preds_in[0][0])  # Convert bounding box format from xyxy to xywh
+        preds = torch.cat((boxes, preds_in[0][1]), -1).permute(0, 2, 1)  # Concatenate boxes with scores and permute
+        return super().postprocess(preds)

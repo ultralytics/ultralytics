@@ -5,10 +5,9 @@ import json
 import cv2
 import numpy as np
 
-from ultralytics.solutions.solutions import BaseSolution
+from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import LOGGER
-from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.plotting import Annotator
+from ultralytics.utils.checks import check_imshow
 
 
 class ParkingPtsSelection:
@@ -48,10 +47,25 @@ class ParkingPtsSelection:
     """
 
     def __init__(self):
-        """Initializes the ParkingPtsSelection class, setting up UI and properties for parking zone point selection."""
-        check_requirements("tkinter")
-        import tkinter as tk
-        from tkinter import filedialog, messagebox
+        """Initialize the ParkingPtsSelection class, setting up UI and properties for parking zone point selection."""
+        try:  # check if tkinter installed
+            import tkinter as tk
+            from tkinter import filedialog, messagebox
+        except ImportError:  # Display error with recommendations
+            import platform
+
+            install_cmd = {
+                "Linux": "sudo apt install python3-tk (Debian/Ubuntu) | sudo dnf install python3-tkinter (Fedora) | "
+                "sudo pacman -S tk (Arch)",
+                "Windows": "reinstall Python and enable the checkbox `tcl/tk and IDLE` on **Optional Features** during installation",
+                "Darwin": "reinstall Python from https://www.python.org/downloads/mac-osx/ or `brew install python-tk`",
+            }.get(platform.system(), "Unknown OS. Check your Python installation.")
+
+            LOGGER.warning(f"WARNING ⚠️  Tkinter is not configured or supported. Potential fix: {install_cmd}")
+            return
+
+        if not check_imshow(warn=True):
+            return
 
         self.tk, self.filedialog, self.messagebox = tk, filedialog, messagebox
         self.master = self.tk.Tk()  # Reference to the main application window or parent widget
@@ -92,7 +106,7 @@ class ParkingPtsSelection:
         self.canvas_max_width, self.canvas_max_height = 1280, 720
 
     def upload_image(self):
-        """Uploads and displays an image on the canvas, resizing it to fit within specified dimensions."""
+        """Upload and display an image on the canvas, resizing it to fit within specified dimensions."""
         from PIL import Image, ImageTk  # scope because ImageTk requires tkinter package
 
         self.image = Image.open(self.filedialog.askopenfilename(filetypes=[("Image Files", "*.png *.jpg *.jpeg")]))
@@ -116,7 +130,7 @@ class ParkingPtsSelection:
         self.rg_data.clear(), self.current_box.clear()
 
     def on_canvas_click(self, event):
-        """Handles mouse clicks to add points for bounding boxes on the canvas."""
+        """Handle mouse clicks to add points for bounding boxes on the canvas."""
         self.current_box.append((event.x, event.y))
         self.canvas.create_oval(event.x - 3, event.y - 3, event.x + 3, event.y + 3, fill="red")
         if len(self.current_box) == 4:
@@ -125,12 +139,12 @@ class ParkingPtsSelection:
             self.current_box.clear()
 
     def draw_box(self, box):
-        """Draws a bounding box on the canvas using the provided coordinates."""
+        """Draw a bounding box on the canvas using the provided coordinates."""
         for i in range(4):
             self.canvas.create_line(box[i], box[(i + 1) % 4], fill="blue", width=2)
 
     def remove_last_bounding_box(self):
-        """Removes the last bounding box from the list and redraws the canvas."""
+        """Remove the last bounding box from the list and redraw the canvas."""
         if not self.rg_data:
             self.messagebox.showwarning("Warning", "No bounding boxes to remove.")
             return
@@ -138,14 +152,14 @@ class ParkingPtsSelection:
         self.redraw_canvas()
 
     def redraw_canvas(self):
-        """Redraws the canvas with the image and all bounding boxes."""
+        """Redraw the canvas with the image and all bounding boxes."""
         self.canvas.delete("all")
         self.canvas.create_image(0, 0, anchor=self.tk.NW, image=self.canvas_image)
         for box in self.rg_data:
             self.draw_box(box)
 
     def save_to_json(self):
-        """Saves the selected parking zone points to a JSON file with scaled coordinates."""
+        """Save the selected parking zone points to a JSON file with scaled coordinates."""
         scale_w, scale_h = self.imgw / self.canvas.winfo_width(), self.imgh / self.canvas.winfo_height()
         data = [{"points": [(int(x * scale_w), int(y * scale_h)) for x, y in box]} for box in self.rg_data]
 
@@ -174,17 +188,17 @@ class ParkingManagement(BaseSolution):
         dc (Tuple[int, int, int]): RGB color tuple for centroid visualization of detected objects.
 
     Methods:
-        process_data: Processes model data for parking lot management and visualization.
+        process: Processes the input image for parking lot management and visualization.
 
     Examples:
         >>> from ultralytics.solutions import ParkingManagement
-        >>> parking_manager = ParkingManagement(model="yolov8n.pt", json_file="parking_regions.json")
+        >>> parking_manager = ParkingManagement(model="yolo11n.pt", json_file="parking_regions.json")
         >>> print(f"Occupied spaces: {parking_manager.pr_info['Occupancy']}")
         >>> print(f"Available spaces: {parking_manager.pr_info['Available']}")
     """
 
     def __init__(self, **kwargs):
-        """Initializes the parking management system with a YOLO model and visualization settings."""
+        """Initialize the parking management system with a YOLO model and visualization settings."""
         super().__init__(**kwargs)
 
         self.json_file = self.CFG["json_file"]  # Load JSON data
@@ -201,9 +215,9 @@ class ParkingManagement(BaseSolution):
         self.occ = (0, 255, 0)  # occupied region color
         self.dc = (255, 0, 189)  # centroid color for each box
 
-    def process_data(self, im0):
+    def process(self, im0):
         """
-        Processes the model data for parking lot management.
+        Process the input image for parking lot management and visualization.
 
         This function analyzes the input image, extracts tracks, and determines the occupancy status of parking
         regions defined in the JSON file. It annotates the image with occupied and available parking spots,
@@ -212,14 +226,18 @@ class ParkingManagement(BaseSolution):
         Args:
             im0 (np.ndarray): The input inference image.
 
+        Returns:
+            (SolutionResults): Contains processed image `plot_im`, 'filled_slots' (number of occupied parking slots),
+                'available_slots' (number of available parking slots), and 'total_tracks' (total number of tracked objects).
+
         Examples:
             >>> parking_manager = ParkingManagement(json_file="parking_regions.json")
             >>> image = cv2.imread("parking_lot.jpg")
-            >>> parking_manager.process_data(image)
+            >>> results = parking_manager.process(image)
         """
         self.extract_tracks(im0)  # extract tracks from im0
         es, fs = len(self.json), 0  # empty slots, filled slots
-        annotator = Annotator(im0, self.line_width)  # init annotator
+        annotator = SolutionAnnotator(im0, self.line_width)  # init annotator
 
         for region in self.json:
             # Convert points to a NumPy array with the correct dtype and reshape properly
@@ -242,5 +260,14 @@ class ParkingManagement(BaseSolution):
         self.pr_info["Occupancy"], self.pr_info["Available"] = fs, es
 
         annotator.display_analytics(im0, self.pr_info, (104, 31, 17), (255, 255, 255), 10)
-        self.display_output(im0)  # display output with base class function
-        return im0  # return output image for more usage
+
+        plot_im = annotator.result()
+        self.display_output(plot_im)  # display output with base class function
+
+        # Return SolutionResults
+        return SolutionResults(
+            plot_im=plot_im,
+            filled_slots=self.pr_info["Occupancy"],
+            available_slots=self.pr_info["Available"],
+            total_tracks=len(self.track_ids),
+        )

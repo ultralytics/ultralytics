@@ -16,17 +16,19 @@ YOLOv4 stands for You Only Look Once version 4. It is a real-time object detecti
 
 ## Architecture
 
-YOLOv4 makes use of several innovative features that work together to optimize its performance. These include Weighted-Residual-Connections (WRC), Cross-Stage-Partial-connections (CSP), Cross mini-Batch Normalization (CmBN), Self-adversarial-training (SAT), Mish-activation, Mosaic [data augmentation](https://www.ultralytics.com/glossary/data-augmentation), DropBlock [regularization](https://www.ultralytics.com/glossary/regularization), and CIoU loss. These features are combined to achieve state-of-the-art results.
+YOLOv4 makes use of several innovative features that work together to optimize its performance. These include Weighted-Residual-Connections (WRC), Cross-Stage-Partial-connections (CSP), Cross mini-[Batch Normalization](https://www.ultralytics.com/glossary/batch-normalization) (CmBN), Self-adversarial-training (SAT), Mish-activation, Mosaic [data augmentation](https://www.ultralytics.com/glossary/data-augmentation), DropBlock [regularization](https://www.ultralytics.com/glossary/regularization), and CIoU loss. These features are combined to achieve state-of-the-art results.
 
-A typical object detector is composed of several parts including the input, the backbone, the neck, and the head. The backbone of YOLOv4 is pre-trained on ImageNet and is used to predict classes and bounding boxes of objects. The backbone could be from several models including VGG, ResNet, ResNeXt, or DenseNet. The neck part of the detector is used to collect feature maps from different stages and usually includes several bottom-up paths and several top-down paths. The head part is what is used to make the final object detections and classifications.
+A typical object detector is composed of several parts including the input, the [backbone](https://www.ultralytics.com/glossary/backbone), the neck, and the head. The backbone of YOLOv4 is pre-trained on [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/) and is used to predict classes and [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) of objects. The backbone could be from several models including VGG, ResNet, ResNeXt, or DenseNet. The neck part of the detector is used to collect [feature maps](https://www.ultralytics.com/glossary/feature-maps) from different stages and usually includes several bottom-up paths and several top-down paths. The head part is what is used to make the final object detections and classifications.
 
 ## Bag of Freebies
 
-YOLOv4 also makes use of methods known as "bag of freebies," which are techniques that improve the accuracy of the model during training without increasing the cost of inference. Data augmentation is a common bag of freebies technique used in object detection, which increases the variability of the input images to improve the robustness of the model. Some examples of data augmentation include photometric distortions (adjusting the brightness, contrast, hue, saturation, and noise of an image) and geometric distortions (adding random scaling, cropping, flipping, and rotating). These techniques help the model to generalize better to different types of images.
+YOLOv4 also makes use of methods known as "bag of freebies," which are techniques that improve the [accuracy](https://www.ultralytics.com/glossary/accuracy) of the model during training without increasing the cost of inference. [Data augmentation](https://www.ultralytics.com/blog/the-ultimate-guide-to-data-augmentation-in-2025) is a common bag of freebies technique used in [object detection](https://www.ultralytics.com/glossary/object-detection), which increases the variability of the input images to improve the robustness of the model. Some examples of data augmentation include photometric distortions (adjusting the brightness, contrast, hue, saturation, and noise of an image) and geometric distortions (adding random scaling, cropping, flipping, and rotating). These techniques help the model to generalize better to different types of images.
 
 ## Features and Performance
 
-YOLOv4 is designed for optimal speed and accuracy in object detection. The architecture of YOLOv4 includes CSPDarknet53 as the backbone, PANet as the neck, and YOLOv3 as the detection head. This design allows YOLOv4 to perform object detection at an impressive speed, making it suitable for real-time applications. YOLOv4 also excels in accuracy, achieving state-of-the-art results in object detection benchmarks.
+YOLOv4 is designed for optimal speed and accuracy in object detection. The architecture of YOLOv4 includes CSPDarknet53 as the backbone, PANet as the neck, and YOLOv3 as the [detection head](https://www.ultralytics.com/glossary/detection-head). This design allows YOLOv4 to perform object detection at an impressive speed, making it suitable for real-time applications. YOLOv4 also excels in accuracy, achieving state-of-the-art results in object detection benchmarks like [COCO](https://docs.ultralytics.com/datasets/detect/coco/).
+
+When compared to other models in the YOLO family, such as [YOLOv5](https://docs.ultralytics.com/models/yolov5/) and [YOLOv7](https://docs.ultralytics.com/models/yolov7/), YOLOv4 maintains a strong position in the balance between speed and accuracy. While newer models may offer certain advantages, YOLOv4's architectural innovations continue to make it relevant for many applications requiring real-time performance.
 
 ## Usage Examples
 
@@ -46,7 +48,9 @@ We regret any inconvenience this may cause and will strive to update this docume
 
 ## Conclusion
 
-YOLOv4 is a powerful and efficient object detection model that strikes a balance between speed and accuracy. Its use of unique features and bag of freebies techniques during training allows it to perform excellently in real-time object detection tasks. YOLOv4 can be trained and used by anyone with a conventional GPU, making it accessible and practical for a wide range of applications.
+YOLOv4 is a powerful and efficient object detection model that strikes a balance between speed and accuracy. Its use of unique features and bag of freebies techniques during training allows it to perform excellently in real-time object detection tasks. YOLOv4 can be trained and used by anyone with a conventional GPU, making it accessible and practical for a wide range of applications including [surveillance systems](https://www.ultralytics.com/blog/shattering-the-surveillance-status-quo-with-vision-ai), [autonomous vehicles](https://www.ultralytics.com/solutions/ai-in-automotive), and [industrial automation](https://www.ultralytics.com/blog/improving-manufacturing-with-computer-vision).
+
+For those looking to implement object detection in their projects, YOLOv4 remains a strong contender, especially when real-time performance is a priority. While Ultralytics currently focuses on supporting newer YOLO versions like [YOLOv8](https://docs.ultralytics.com/models/yolov8/) and [YOLO11](https://docs.ultralytics.com/models/yolo11/), the architectural innovations introduced in YOLOv4 have influenced the development of these later models.
 
 ## Citations and Acknowledgements
 
@@ -77,7 +81,7 @@ YOLOv4, which stands for "You Only Look Once version 4," is a state-of-the-art r
 
 ### How does the architecture of YOLOv4 enhance its performance?
 
-The architecture of YOLOv4 includes several key components: the backbone, the neck, and the head. The backbone, which can be models like VGG, ResNet, or CSPDarknet53, is pre-trained to predict classes and bounding boxes. The neck, utilizing PANet, connects feature maps from different stages for comprehensive data extraction. Finally, the head, which uses configurations from YOLOv3, makes the final object detections. YOLOv4 also employs "bag of freebies" techniques like mosaic data augmentation and DropBlock regularization, further optimizing its speed and accuracy.
+The architecture of YOLOv4 includes several key components: the [backbone](https://www.ultralytics.com/glossary/backbone), the neck, and the head. The backbone, which can be models like VGG, ResNet, or CSPDarknet53, is pre-trained to predict classes and bounding boxes. The neck, utilizing PANet, connects [feature maps](https://www.ultralytics.com/glossary/feature-maps) from different stages for comprehensive data extraction. Finally, the head, which uses configurations from YOLOv3, makes the final object detections. YOLOv4 also employs "bag of freebies" techniques like mosaic data augmentation and DropBlock regularization, further optimizing its speed and accuracy.
 
 ### What are "bag of freebies" in the context of YOLOv4?
 

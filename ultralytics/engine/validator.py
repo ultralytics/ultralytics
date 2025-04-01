@@ -35,8 +35,7 @@ from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import LOGGER, TQDM, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.ops import Profile
-from ultralytics.utils.torch_utils import (de_parallel, select_device,
-                                           smart_inference_mode)
+from ultralytics.utils.torch_utils import de_parallel, select_device, smart_inference_mode
 
 
 class BaseValidator:

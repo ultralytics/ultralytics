@@ -1,0 +1,43 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# This action mirrors the Ultralytics repository to other platforms like GitLab.
+# It runs only when the main branch is updated by the repository owner.
+# Additional platforms can be added by uncommenting the relevant sections.
+
+name: Mirror Repository
+
+on:
+  # push:
+  #   branches:
+  #     - main
+  workflow_dispatch:
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
+    steps:
+      - name: Checkout Source Repository (${{ github.repository }})
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for mirroring
+      - name: Run Git Config
+        run: |
+          git config --global user.name "UltralyticsAssistant"
+          git config --global user.email "web@ultralytics.com"
+      - name: Push to DagsHub
+        run: |
+          git remote add dagshub https://glenn-jocher:${{ secrets.DAGSHUB_TOKEN }}@dagshub.com/Ultralytics/ultralytics.git
+          git push dagshub main --force
+      # - name: Push to Gitee
+      #   run: |
+      #     git remote add gitee https://ultralytics:${{ secrets.GITEE_TOKEN }}@gitee.com/ultralytics/ultralytics.git
+      #     git push gitee main --force
+      # - name: Push to GitCode
+      #   run: |
+      #     git remote add gitcode https://ultralytics:${{ secrets.GITCODE_TOKEN }}@gitcode.net/ultralytics/ultralytics.git
+      #     git push gitcode main --force
+      # - name: Push to Bitbucket
+      #   run: |
+      #     git remote add bitbucket https://ultralytics:${{ secrets.BITBUCKET_APP_PASSWORD }}@bitbucket.org/ultralytics/ultralytics.git
+      #     git push bitbucket main --force

@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLO, open-source, contribution, pull request, code of co
 
 Welcome! We're thrilled that you're considering contributing to our [Ultralytics](https://www.ultralytics.com/) [open-source](https://github.com/ultralytics) projects. Your involvement not only helps enhance the quality of our repositories but also benefits the entire [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. This guide provides clear guidelines and best practices to help you get started.
 
-[![Ultralytics open-source contributors](https://github.com/ultralytics/assets/raw/main/im/image-contributors.png)](https://github.com/ultralytics/ultralytics/graphs/contributors)
+[![Ultralytics open-source contributors](https://raw.githubusercontent.com/ultralytics/assets/main/im/image-contributors.png)](https://github.com/ultralytics/ultralytics/graphs/contributors)
 
 <p align="center">
   <br>
@@ -184,7 +184,7 @@ Complying means making the **complete corresponding source code** of your projec
         - Any modifications made to the original Ultralytics YOLO code.
         - Scripts for training, validation, inference.
         - [Model weights](https://www.ultralytics.com/glossary/model-weights) if modified or fine-tuned.
-        - [Configuration files](https://docs.ultralytics.com/usage/cfg/), environment setups (`requirements.txt`, [`Dockerfiles`](https://docs.docker.com/engine/reference/builder/)).
+        - [Configuration files](https://docs.ultralytics.com/usage/cfg/), environment setups (`requirements.txt`, [`Dockerfiles`](https://docs.docker.com/reference/dockerfile/)).
         - Backend and frontend code if it's part of a [web application](https://en.wikipedia.org/wiki/Web_application).
         - Any [third-party libraries](<https://en.wikipedia.org/wiki/Library_(computing)#Third-party>) you've modified.
         - [Training data](https://www.ultralytics.com/glossary/training-data) if required to run/retrain _and_ redistributable.

@@ -495,7 +495,6 @@ class DetectionValidator(BaseValidator):
                         stats["metrics/APc(B)"] = val.results["APc"]
                         stats["metrics/APf(B)"] = val.results["APf"]
                         stats["fitness"] = val.results["AP"]
-
             except Exception as e:
                 LOGGER.warning(f"{pkg} unable to run: {e}")
         return stats

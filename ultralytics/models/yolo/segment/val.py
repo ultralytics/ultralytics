@@ -386,7 +386,6 @@ class SegmentationValidator(DetectionValidator):
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"
-
                 if pkg == "faster-coco-eval":
                     from faster_coco_eval import COCO, COCOeval_faster
 
@@ -417,7 +416,6 @@ class SegmentationValidator(DetectionValidator):
                     eval.evaluate()
                     eval.accumulate()
                     eval.summarize()
-
                     if pkg == "lvis":
                         eval.print_results()
 

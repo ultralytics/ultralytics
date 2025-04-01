@@ -4,7 +4,7 @@ import json
 from collections import defaultdict
 from itertools import repeat
 from multiprocessing import Pool
-from multiprocessing.threading import ThreadPool
+from multiprocessing.pool import ThreadPool
 from pathlib import Path
 
 import cv2

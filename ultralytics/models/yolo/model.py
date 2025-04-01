@@ -278,7 +278,7 @@ class YOLOE(Model):
             )
             self.model.model[-1].nc = num_cls
             self.model.names = [f"object{i}" for i in range(num_cls)]
-            self.predictor.set_prompts(visual_prompts)
+            self.predictor.set_prompts(visual_prompts.copy())
 
         self.predictor.setup_model(model=self.model)
         if refer_image is not None and len(visual_prompts):

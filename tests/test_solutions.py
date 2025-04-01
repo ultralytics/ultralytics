@@ -160,7 +160,7 @@ def test_parking_management():
     process_video(solution, str(TMP / PARKING_VIDEO))
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 def test_streamlit_inference():
     """Test streamlit predict live inference solution."""
     solutions.Inference().inference()

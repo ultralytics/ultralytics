@@ -1,5 +1,5 @@
 """
-YOLO Interactive Tracking UI (CPU & GPU Toggle)
+YOLO Interactive Tracking UI (CPU & GPU Toggle).
 ===============================================
 
 An educational demo showcasing real-time object detection and interactive tracking
@@ -71,16 +71,14 @@ python interactive_tracker.py
 
 🧑‍💻 Author:
 ------------
-Alireza Ghaderi  
-📅 March 2025  
+Alireza Ghaderi
+📅 March 2025
 🔗 https://linkedin.com/in/alireza787b
 
 🔒 License:
 -----------
 This code is for educational and demo use only. Use at your own discretion.
 """
-
-
 
 import time
 

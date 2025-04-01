@@ -30,7 +30,6 @@ from .augment import (
 from .base import BaseDataset
 from .converter import merge_multi_segment
 from .utils import (
-    DATASET_THRESHOLD,
     HELP_URL,
     LOGGER,
     get_hash,
@@ -109,12 +108,8 @@ class YOLODataset(BaseDataset):
                 "keypoints, number of dims (2 for x,y or 3 for x,y,visible)], i.e. 'kpt_shape: [17, 3]'"
             )
 
-        if total > DATASET_THRESHOLD:
-            multiprocessing_pool = Pool
-        else:
-            multiprocessing_pool = ThreadPool
-
-        with multiprocessing_pool(NUM_THREADS) as pool:
+        # Use Pool for larger datasets and Threadpool for smaller datasets for lower latency
+        with (Pool if total > 1000 else ThreadPool)(NUM_THREADS) as pool:
             results = pool.imap(
                 func=verify_image_label,
                 iterable=zip(
@@ -817,12 +812,8 @@ class ClassificationDataset:
             # Run scan if *.cache retrieval failed
             nf, nc, msgs, samples, x = 0, 0, [], [], {}
 
-            if len(self.samples) > DATASET_THRESHOLD:
-                multiprocessing_pool = Pool
-            else:
-                multiprocessing_pool = ThreadPool
-
-            with multiprocessing_pool(NUM_THREADS) as pool:
+        # Use Pool for larger datasets and Threadpool for smaller datasets for lower latency
+        with (Pool if total > 1000 else ThreadPool)(NUM_THREADS) as pool:
                 results = pool.imap(func=verify_image, iterable=zip(self.samples, repeat(self.prefix)))
                 pbar = TQDM(results, desc=desc, total=len(self.samples))
                 for sample, nf_f, nc_f, msg in pbar:

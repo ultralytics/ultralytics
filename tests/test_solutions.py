@@ -10,6 +10,7 @@ from tests import TMP
 from ultralytics import solutions
 from ultralytics.utils import ASSETS_URL
 from ultralytics.utils.downloads import safe_download
+from ultralytics.utils import IS_RASPBERRYPI, LINUX
 
 DEMO_VIDEO = "solutions_ci_demo.mp4"  # for all the solutions, except workout and parking
 POSE_VIDEO = "solution_ci_pose_demo.mp4"  # only for workouts monitoring solution
@@ -17,8 +18,8 @@ PARKING_VIDEO = "solution_ci_parking_demo.mp4"  # only for parking management so
 PARKING_AREAS_JSON = "solution_ci_parking_areas.json"  # only for parking management solution
 PARKING_MODEL = "solutions_ci_parking_model.pt"  # only for parking management solution
 
-
 @pytest.mark.slow
+@pytest.mark.skipif(LINUX or IS_RASPBERRYPI, reason="Skipping tests for Linux based OS")
 def test_major_solutions():
     """Test the object counting, heatmap, speed estimation, trackzone and queue management solution."""
     safe_download(url=f"{ASSETS_URL}/{DEMO_VIDEO}", dir=TMP)
@@ -96,8 +97,8 @@ def test_major_solutions():
         _ = parkingmanager(im0)
     cap.release()
 
-
 @pytest.mark.slow
+@pytest.mark.skipif(LINUX or IS_RASPBERRYPI, reason="Skipping tests for Linux based OS")
 def test_streamlit_predict():
     """Test streamlit predict live inference solution."""
     solutions.Inference().inference()

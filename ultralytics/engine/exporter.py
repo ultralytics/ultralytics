@@ -1257,16 +1257,16 @@ class Exporter:
         if "C2PSA" in self.model.__str__():  # YOLO11
             layer_names = ["sub", "mul_2", "add_14", "cat_21"]
             weights_memory = 2585350.2439
-            n_layers = 320 # 320 layers for YOLO11n
+            n_layers = 320  # 320 layers for YOLO11n
         else:  # yolov8
             layer_names = ["sub", "mul", "add_6", "cat_17"]
             weights_memory = 2550540.8
-            n_layers = 226 # 226 layers for YOLOv8n
-        
-        # Check if the model has the expected number of layers 
+            n_layers = 226  # 226 layers for YOLOv8n
+
+        # Check if the model has the expected number of layers
         if [layer for layer in self.model.modules()] != n_layers:
             raise ValueError("IMX export only supported for YOLOv8n and YOLO11n models.")
-            
+
         for layer_name in layer_names:
             bit_cfg.set_manual_activation_bit_width([mct.core.common.network_editors.NodeNameFilter(layer_name)], 16)
 

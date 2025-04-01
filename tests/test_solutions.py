@@ -8,9 +8,8 @@ import pytest
 
 from tests import TMP
 from ultralytics import solutions
-from ultralytics.utils import ASSETS_URL
+from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, LINUX
 from ultralytics.utils.downloads import safe_download
-from ultralytics.utils import IS_RASPBERRYPI, LINUX
 
 DEMO_VIDEO = "solutions_ci_demo.mp4"  # for all the solutions, except workout and parking
 POSE_VIDEO = "solution_ci_pose_demo.mp4"  # only for workouts monitoring solution

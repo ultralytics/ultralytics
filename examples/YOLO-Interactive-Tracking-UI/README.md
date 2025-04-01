@@ -147,10 +147,7 @@ Other things you can tweak:
 
 ---
 
-## 📜 License & Disclaimer
-
-Released under the **AGPL-3.0 License**.  
-Refer to [Ultralytics License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) for details.
+## 📜 Disclaimer
 
 > This project is for **educational and demo purposes** only.  
 > Use at your own discretion. Contributions and feedback are welcome!

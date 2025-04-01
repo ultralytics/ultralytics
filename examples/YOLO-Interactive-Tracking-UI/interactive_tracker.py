@@ -255,18 +255,18 @@ while cap.isOpened():
         label = f"{model.names[class_id]} ID {track_id} ({conf:.2f})"
 
         if track_id == selected_object_id:
-            cv2.rectangle(frame, (x1, y1), (x2, y2), color, 4)
+            cv2.rectangle(frame, (x1, y1), (x2, y2), color, 5)
             draw_tracking_scope(frame, (x1, y1, x2, y2), color)
             cv2.circle(frame, get_center(x1, y1, x2, y2), 6, color, -1)
             label = f"*ACTIVE* {label}"
         else:
             # Dashed box
             for i in range(x1, x2, 10):
-                cv2.line(frame_overlay, (i, y1), (i + 5, y1), color, 2)
-                cv2.line(frame_overlay, (i, y2), (i + 5, y2), color, 2)
+                cv2.line(frame_overlay, (i, y1), (i + 5, y1), color, 3)
+                cv2.line(frame_overlay, (i, y2), (i + 5, y2), color, 3)
             for i in range(y1, y2, 10):
-                cv2.line(frame_overlay, (x1, i), (x1, i + 5), color, 2)
-                cv2.line(frame_overlay, (x2, i), (x2, i + 5), color, 2)
+                cv2.line(frame_overlay, (x1, i), (x1, i + 5), color, 3)
+                cv2.line(frame_overlay, (x2, i), (x2, i + 5), color, 3)
 
         cv2.putText(frame, label, (x1 + 5, y1 + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 

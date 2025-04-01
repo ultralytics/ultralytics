@@ -812,8 +812,8 @@ class ClassificationDataset:
             # Run scan if *.cache retrieval failed
             nf, nc, msgs, samples, x = 0, 0, [], [], {}
 
-        # Use Pool for larger datasets and Threadpool for smaller datasets for lower latency
-        with (Pool if total > 1000 else ThreadPool)(NUM_THREADS) as pool:
+            # Use Pool for larger datasets and Threadpool for smaller datasets for lower latency
+            with (Pool if total > 1000 else ThreadPool)(NUM_THREADS) as pool:
                 results = pool.imap(func=verify_image, iterable=zip(self.samples, repeat(self.prefix)))
                 pbar = TQDM(results, desc=desc, total=len(self.samples))
                 for sample, nf_f, nc_f, msg in pbar:

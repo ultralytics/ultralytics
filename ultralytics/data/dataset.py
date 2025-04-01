@@ -30,9 +30,9 @@ from .augment import (
 from .base import BaseDataset
 from .converter import merge_multi_segment
 from .utils import (
+    DATASET_THRESHOLD,
     HELP_URL,
     LOGGER,
-    DATASET_THRESHOLD,
     get_hash,
     img2label_paths,
     load_dataset_cache_file,

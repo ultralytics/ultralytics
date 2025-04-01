@@ -41,6 +41,7 @@ import yaml
 from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
+from ultralytics.nn.tasks import OBBModel
 from ultralytics.utils import ARM64, ASSETS, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR
 from ultralytics.utils.checks import IS_PYTHON_3_13, check_imgsz, check_requirements, check_yolo, is_rockchip
 from ultralytics.utils.downloads import safe_download
@@ -126,6 +127,7 @@ def benchmark(
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
             if i == 11:  # Paddle
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
+                assert not isinstance(model, OBBModel), "YOLO OBB Paddle mAP bug in https://github.com/ultralytics/ultralytics/pull/19902"
                 assert not is_end2end, "End-to-end models not supported by PaddlePaddle yet"
                 assert LINUX or MACOS, "Windows Paddle exports not supported yet"
             if i == 12:  # MNN

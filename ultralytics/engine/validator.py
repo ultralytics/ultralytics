@@ -223,7 +223,7 @@ class BaseValidator:
 
     def match_predictions(self, pred_classes, true_classes, iou, use_scipy=False):
         """
-        Matches predictions to ground truth objects using IoU.
+        Matches predictions to ground truth objects (pred_classes, true_classes) using IoU.
 
         Args:
             pred_classes (torch.Tensor): Predicted class indices of shape(N,).
@@ -234,12 +234,15 @@ class BaseValidator:
         Returns:
             (torch.Tensor): Correct tensor of shape(N,10) for 10 IoU thresholds.
         """
+        # Dx10 matrix, where D - detections, 10 - IoU thresholds
         correct = torch.zeros((pred_classes.shape[0], self.iouv.shape[0]), dtype=torch.bool, device=iou.device)
+        # LxD matrix where L - labels (rows), D - detections (columns)
         correct_class = true_classes[:, None] == pred_classes
         iou *= correct_class
         for i, threshold in enumerate(self.iouv):
             if use_scipy:
-                import scipy.optimize
+                # WARNING: known issue that reduces mAP in https://github.com/ultralytics/ultralytics/pull/4708
+                import scipy.optimize  # scope import to avoid importing for all commands
 
                 cost_matrix = iou * (iou >= threshold)
                 if cost_matrix.any():
@@ -248,7 +251,7 @@ class BaseValidator:
                     if valid.any():
                         correct[detections_idx[valid], i] = True
             else:
-                matches = (iou >= threshold).nonzero(as_tuple=True)
+                matches = (iou >= threshold).nonzero(as_tuple=True)  # IoU > threshold and classes match
                 if matches[0].numel():
                     similarity = iou[matches]
                     sorted_indices = similarity.argsort(descending=True).unique_consecutive()

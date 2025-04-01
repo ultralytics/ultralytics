@@ -17,6 +17,7 @@ PARKING_VIDEO = "solution_ci_parking_demo.mp4"  # only for parking management so
 PARKING_AREAS_JSON = "solution_ci_parking_areas.json"  # only for parking management solution
 PARKING_MODEL = "solutions_ci_parking_model.pt"  # only for parking management solution
 
+
 @pytest.mark.slow
 @pytest.mark.skipif(LINUX or IS_RASPBERRYPI, reason="Skipping tests for Linux based OS")
 def test_major_solutions():
@@ -95,6 +96,7 @@ def test_major_solutions():
             break
         _ = parkingmanager(im0)
     cap.release()
+
 
 @pytest.mark.slow
 @pytest.mark.skipif(LINUX or IS_RASPBERRYPI, reason="Skipping tests for Linux based OS")

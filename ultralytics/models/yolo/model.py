@@ -267,7 +267,14 @@ class YOLOE(Model):
                 f"{len(visual_prompts['cls'])} respectively"
             )
         self.predictor = (predictor or self._smart_load("predictor"))(
-            overrides={"task": "segment", "mode": "predict", "save": False, "verbose": False}, _callbacks=self.callbacks
+            overrides={
+                "task": self.model.task,
+                "mode": "predict",
+                "save": False,
+                "verbose": refer_image is None,
+                "batch": 1,
+            },
+            _callbacks=self.callbacks,
         )
 
         if len(visual_prompts):
@@ -281,6 +288,10 @@ class YOLOE(Model):
             self.predictor.set_prompts(visual_prompts.copy())
 
         self.predictor.setup_model(model=self.model)
+        self.predictor.setup_source(source)  # setup source in advance
+        if refer_image is None and self.predictor.dataset.mode in {"video", "stream"}:
+            # NOTE: set the first frame as refer image for videos/streams inference
+            refer_image = next(iter(self.predictor.dataset))[1][0]
         if refer_image is not None and len(visual_prompts):
             vpe = self.predictor.get_vpe(refer_image)
             self.model.set_classes(self.model.names, vpe)

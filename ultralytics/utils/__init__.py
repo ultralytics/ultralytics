@@ -411,8 +411,14 @@ def set_logging(name="LOGGING_NAME", verbose=True):
     stream_handler.setFormatter(formatter)
     stream_handler.setLevel(level)
 
-    def format_message(f, emoji, message, prefix=None):
-        f(f"{f.__name__.upper()} {emoji} {prefix if prefix else ''} {message}")
+    def format_message(func, emoji, message, prefix=None):
+        breakpoint()
+        if all([s not in message.lower() for s in ("warning", "error", "⚠️", "❌")]):
+            # TODO: format all warning and error logs to use this
+            func(emojis(f"{func.__name__.upper()} {emoji} {prefix if prefix else ''} {message}"))
+        else:
+            # fallback if the message is not formatted yet
+            func(message)
 
     # Set up the logger
     logger = logging.getLogger(name)

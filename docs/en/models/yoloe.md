@@ -212,7 +212,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
 
         # Set visual prompt
         visuals = dict(
-            bboxes=np.array([221.52, 405.8, 344.98, 857.54]),
+            bboxes=np.array([[221.52, 405.8, 344.98, 857.54]]),
             cls=np.array([0]),
         )
 

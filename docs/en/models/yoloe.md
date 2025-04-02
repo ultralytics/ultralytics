@@ -675,10 +675,6 @@ Across all these use cases, YOLOE's core advantage is **versatility**, providing
 
 YOLOE integrates seamlessly with the [Ultralytics Python API](../usage/python.md) and [CLI](../usage/cli.md), similar to other YOLO models (YOLOv8, YOLO-World). Here's how to quickly get started:
 
-!!! note "Ultralytics Integration Status 🚧"
-
-    The Ultralytics integration for YOLOE is currently under development 🔨. The examples below demonstrate how the API will work once integration is complete ✅.
-
 !!! Example "Training and inference with YOLOE"
 
     === "Python"

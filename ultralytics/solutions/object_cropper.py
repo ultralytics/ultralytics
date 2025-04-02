@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+from typing import Any
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionResults
 from ultralytics.utils.plotting import save_one_box
@@ -21,7 +22,7 @@ class ObjectCropper(BaseSolution):
         conf (float): Confidence threshold for filtering detections.
 
     Methods:
-        process: Crops detected objects from the input image and saves them to the output directory.
+        process: Crop detected objects from the input image and save them to the output directory.
 
     Examples:
         >>> cropper = ObjectCropper()
@@ -30,7 +31,7 @@ class ObjectCropper(BaseSolution):
         >>> print(f"Total cropped objects: {cropper.crop_idx}")
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Initialize the ObjectCropper class for cropping objects from detected bounding boxes.
 
@@ -51,7 +52,7 @@ class ObjectCropper(BaseSolution):
         self.iou = self.CFG["iou"]
         self.conf = self.CFG["conf"]
 
-    def process(self, im0):
+    def process(self, im0) -> SolutionResults:
         """
         Crop detected objects from the input image and save them as separate images.
 
@@ -59,7 +60,8 @@ class ObjectCropper(BaseSolution):
             im0 (numpy.ndarray): The input image containing detected objects.
 
         Returns:
-            (SolutionResults): A SolutionResults object containing the total number of cropped objects and processed image.
+            (SolutionResults): A SolutionResults object containing the total number of cropped objects and processed
+                image.
 
         Examples:
             >>> cropper = ObjectCropper()
@@ -67,9 +69,15 @@ class ObjectCropper(BaseSolution):
             >>> results = cropper.process(frame)
             >>> print(f"Total cropped objects: {results.total_crop_objects}")
         """
-        results = self.model.predict(
-            im0, classes=self.classes, conf=self.conf, iou=self.iou, device=self.CFG["device"]
-        )[0]
+        with self.profilers[0]:
+            results = self.model.predict(
+                im0,
+                classes=self.classes,
+                conf=self.conf,
+                iou=self.iou,
+                device=self.CFG["device"],
+                verbose=False,
+            )[0]
 
         for box in results.boxes:
             self.crop_idx += 1

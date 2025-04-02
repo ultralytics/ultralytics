@@ -142,9 +142,12 @@ To train a YOLO11 model using JupyterLab:
 
 5. Visualize training results using JupyterLab's built-in plotting capabilities:
 
-    ```ipython
-    %matplotlib inline
+    ```python
+    import matplotlib
+
     from ultralytics.utils.plotting import plot_results
+
+    matplotlib.use("inline")  # or 'notebook' for interactive
     plot_results(results)
     ```
 
@@ -200,12 +203,10 @@ JupyterLab's interactive environment allows for quick iterations and real-time f
 When working with JupyterLab and YOLO11, you might encounter some common issues. Here's how to handle them:
 
 1. GPU memory issues:
-
     - Use `torch.cuda.empty_cache()` to clear GPU memory between runs.
     - Adjust [batch size](https://www.ultralytics.com/glossary/batch-size) or image size to fit your GPU memory.
 
 2. Package conflicts:
-
     - Create a separate conda environment for your YOLO11 projects to avoid conflicts.
     - Use `!pip install package_name` in a notebook cell to install missing packages.
 

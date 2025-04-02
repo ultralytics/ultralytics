@@ -1,11 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from copy import copy
+from pathlib import Path
+from typing import Dict, Optional, Union
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import SegmentationModel
 from ultralytics.utils import DEFAULT_CFG, RANK
-from ultralytics.utils.plotting import plot_images, plot_results
+from ultralytics.utils.plotting import plot_results
 
 
 class SegmentationTrainer(yolo.detect.DetectionTrainer):
@@ -25,7 +27,7 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: Optional[Dict] = None, _callbacks=None):
         """
         Initialize a SegmentationTrainer object.
 
@@ -33,7 +35,7 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         functionality. It sets the task to 'segment' and prepares the trainer for training segmentation models.
 
         Args:
-            cfg (dict): Configuration dictionary with default training settings. Defaults to DEFAULT_CFG.
+            cfg (dict): Configuration dictionary with default training settings.
             overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
             _callbacks (list, optional): List of callback functions to be executed during training.
 
@@ -48,13 +50,15 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         overrides["task"] = "segment"
         super().__init__(cfg, overrides, _callbacks)
 
-    def get_model(self, cfg=None, weights=None, verbose=True):
+    def get_model(
+        self, cfg: Optional[Union[Dict, str]] = None, weights: Optional[Union[str, Path]] = None, verbose: bool = True
+    ):
         """
         Initialize and return a SegmentationModel with specified configuration and weights.
 
         Args:
-            cfg (dict | str | None): Model configuration. Can be a dictionary, a path to a YAML file, or None.
-            weights (str | Path | None): Path to pretrained weights file.
+            cfg (dict | str, optional): Model configuration. Can be a dictionary, a path to a YAML file, or None.
+            weights (str | Path, optional): Path to pretrained weights file.
             verbose (bool): Whether to display model information during initialization.
 
         Returns:
@@ -78,46 +82,6 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
 
-    def plot_training_samples(self, batch, ni):
-        """
-        Plot training sample images with labels, bounding boxes, and masks.
-
-        This method creates a visualization of training batch images with their corresponding labels, bounding boxes,
-        and segmentation masks, saving the result to a file for inspection and debugging.
-
-        Args:
-            batch (dict): Dictionary containing batch data with the following keys:
-                'img': Images tensor
-                'batch_idx': Batch indices for each box
-                'cls': Class labels tensor (squeezed to remove last dimension)
-                'bboxes': Bounding box coordinates tensor
-                'masks': Segmentation masks tensor
-                'im_file': List of image file paths
-            ni (int): Current training iteration number, used for naming the output file.
-
-        Examples:
-            >>> trainer = SegmentationTrainer()
-            >>> batch = {
-            ...     "img": torch.rand(16, 3, 640, 640),
-            ...     "batch_idx": torch.zeros(16),
-            ...     "cls": torch.randint(0, 80, (16, 1)),
-            ...     "bboxes": torch.rand(16, 4),
-            ...     "masks": torch.rand(16, 640, 640),
-            ...     "im_file": ["image1.jpg", "image2.jpg"],
-            ... }
-            >>> trainer.plot_training_samples(batch, ni=5)
-        """
-        plot_images(
-            batch["img"],
-            batch["batch_idx"],
-            batch["cls"].squeeze(-1),
-            batch["bboxes"],
-            masks=batch["masks"],
-            paths=batch["im_file"],
-            fname=self.save_dir / f"train_batch{ni}.jpg",
-            on_plot=self.on_plot,
-        )
-
     def plot_metrics(self):
-        """Plots training/val metrics."""
+        """Plot training/validation metrics."""
         plot_results(file=self.csv, segment=True, on_plot=self.on_plot)  # save results.png

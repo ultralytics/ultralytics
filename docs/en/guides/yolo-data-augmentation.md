@@ -354,7 +354,7 @@ Then launch the training with the Python API:
 - **Purpose**: Helps models learn robust features and prevents over-reliance on specific image regions. For example, in facial recognition systems, random erasing helps models become more robust to partial occlusions like sunglasses, face masks, or other objects that might partially cover facial features. This improves real-world performance by forcing the model to identify individuals using multiple facial characteristics rather than depending solely on distinctive features that might be obscured.
 - **Ultralytics' implementation**: [classify_augmentations()](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.classify_augmentations)
 - **Note**:
-    - The `erasing` augmentation comes with a `scale`, `ratio`, and `value` hyperparameters that cannot be changed with the [current implementation](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py#L2502). Their default values are `(0.02, 0.33)`, `(0.3, 3.3)`, and `0`, respectively, as stated in the PyTorch [documentation](https://pytorch.org/vision/main/generated/torchvision.transforms.RandomErasing.html).
+    - The `erasing` augmentation comes with a `scale`, `ratio`, and `value` hyperparameters that cannot be changed with the [current implementation](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py#L2502). Their default values are `(0.02, 0.33)`, `(0.3, 3.3)`, and `0`, respectively, as stated in the PyTorch [documentation](https://docs.pytorch.org/vision/main/generated/torchvision.transforms.RandomErasing.html).
     - The upper limit of the `erasing` hyperparameter is set to `0.9` to avoid applying the transformation to all images.
 
 |                                                            **`erasing` off**                                                            |                                                         **`erasing` on (example 1)**                                                          |                                                         **`erasing` on (example 2)**                                                          |                                                         **`erasing` on (example 3)**                                                          |
@@ -382,3 +382,7 @@ You can find the full list of applied transformations in our [technical document
 ### When starting a training, I don't see any reference to albumentations. Why?
 
 Check if the `albumentations` package is installed. If not, you can install it by running `pip install albumentations`. Once installed, the package should be automatically detected and used by Ultralytics.
+
+### How do I customize my augmentations?
+
+You can customize augmentations by creating a custom dataset class and trainer. For example, you can replace the default Ultralytics classification augmentations with PyTorch's [torchvision.transforms.Resize](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.Resize.html) or other transforms. See the [custom training example](../tasks/classify.md#train) in the classification documentation for implementation details.

@@ -15,6 +15,7 @@ from ultralytics.nn.tasks import (
     YOLOESegModel,
 )
 from ultralytics.utils import ROOT, yaml_load
+from ultralytics.data.build import load_inference_source
 
 
 class YOLO(Model):
@@ -267,7 +268,14 @@ class YOLOE(Model):
                 f"{len(visual_prompts['cls'])} respectively"
             )
         self.predictor = (predictor or self._smart_load("predictor"))(
-            overrides={"task": "segment", "mode": "predict", "save": False, "verbose": False}, _callbacks=self.callbacks
+            overrides={
+                "task": self.model.task,
+                "mode": "predict",
+                "save": False,
+                "verbose": refer_image is None,
+                "batch": 1,
+            },
+            _callbacks=self.callbacks,
         )
 
         if len(visual_prompts):
@@ -281,6 +289,12 @@ class YOLOE(Model):
             self.predictor.set_prompts(visual_prompts.copy())
 
         self.predictor.setup_model(model=self.model)
+
+        if refer_image is None:
+            dataset = load_inference_source(source)
+            if dataset.mode in {"video", "stream"}:
+                # NOTE: set the first frame as refer image for videos/streams inference
+                refer_image = next(iter(dataset))[1][0]
         if refer_image is not None and len(visual_prompts):
             vpe = self.predictor.get_vpe(refer_image)
             self.model.set_classes(self.model.names, vpe)

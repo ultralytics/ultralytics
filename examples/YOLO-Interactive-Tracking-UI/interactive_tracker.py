@@ -79,8 +79,11 @@ Alireza Ghaderi
 -----------
 This code is for educational and demo use only. Use at your own discretion.
 """
+
 import time
+
 import cv2
+
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Colors
 
@@ -128,8 +131,10 @@ object_colors = {}
 # 🧩 HELPER FUNCTIONS
 # ================================
 
+
 def get_center(x1, y1, x2, y2):
     return (x1 + x2) // 2, (y1 + y2) // 2
+
 
 def extend_line_from_edge(mid_x, mid_y, direction, img_shape):
     h, w = img_shape[:2]
@@ -143,6 +148,7 @@ def extend_line_from_edge(mid_x, mid_y, direction, img_shape):
         return (mid_x, h - 1)
     return mid_x, mid_y
 
+
 def draw_tracking_scope(frame, bbox, color):
     x1, y1, x2, y2 = bbox
     mid_top = ((x1 + x2) // 2, y1)
@@ -154,11 +160,13 @@ def draw_tracking_scope(frame, bbox, color):
     cv2.line(frame, mid_left, extend_line_from_edge(*mid_left, "left", frame.shape), color, 2)
     cv2.line(frame, mid_right, extend_line_from_edge(*mid_right, "right", frame.shape), color, 2)
 
+
 def draw_label_with_bg(img, text, position, color, font_scale=0.6, thickness=1):
     (w, h), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
     x, y = position
     cv2.rectangle(img, (x - 2, y - h - 4), (x + w + 2, y + 2), (0, 0, 0), -1)  # Background box
     cv2.putText(img, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, thickness, cv2.LINE_AA)
+
 
 def click_event(event, x, y, flags, param):
     global selected_object_id
@@ -182,6 +190,7 @@ def click_event(event, x, y, flags, param):
                 selected_object_id, label = best_match
                 print(f"🔵 TRACKING STARTED: {label} (ID {selected_object_id})")
 
+
 cv2.namedWindow("YOLO Tracking")
 cv2.setMouseCallback("YOLO Tracking", click_event)
 
@@ -196,12 +205,7 @@ while cap.isOpened():
         break
 
     results = model.track(
-        frame,
-        conf=CONFIDENCE_THRESHOLD,
-        iou=IOU_THRESHOLD,
-        max_det=MAX_DETECTION,
-        tracker=TRACKER_TYPE,
-        **TRACKER_ARGS
+        frame, conf=CONFIDENCE_THRESHOLD, iou=IOU_THRESHOLD, max_det=MAX_DETECTION, tracker=TRACKER_TYPE, **TRACKER_ARGS
     )
 
     frame_overlay = frame.copy()

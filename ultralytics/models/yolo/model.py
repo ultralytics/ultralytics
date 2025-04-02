@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from ultralytics.data.build import load_inference_source
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import (
@@ -15,7 +16,6 @@ from ultralytics.nn.tasks import (
     YOLOESegModel,
 )
 from ultralytics.utils import ROOT, yaml_load
-from ultralytics.data.build import load_inference_source
 
 
 class YOLO(Model):

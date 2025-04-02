@@ -1,9 +1,7 @@
-
 import torch
 import torch.nn as nn
 
 __all__ = ["BiFPN_Concat", "BiFPN_Concat2", "BiFPN_Concat3"]
-
 
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation

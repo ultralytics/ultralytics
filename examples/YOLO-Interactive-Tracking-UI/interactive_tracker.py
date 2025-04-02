@@ -79,11 +79,8 @@ Alireza Ghaderi
 -----------
 This code is for educational and demo use only. Use at your own discretion.
 """
-
 import time
-
 import cv2
-
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Colors
 
@@ -91,58 +88,50 @@ from ultralytics.utils.plotting import Colors
 # 🔧 USER CONFIGURATION SECTION
 # ================================
 
-# 🖥️ Toggle this to True if your machine has a CUDA GPU (like Jetson Nano or desktop GPU)
-USE_GPU = False
+USE_GPU = False  # Set True if running with CUDA
+MODEL_PATH_GPU = "yolo11s.pt"
+MODEL_PATH_CPU = "yolo11s.pt"
 
-# 🧠 Select the correct model paths for GPU vs CPU
-MODEL_PATH_GPU = "yolo11s.pt"  # PyTorch model (GPU)
-MODEL_PATH_CPU = "yolo11s.pt"  # PyTorch or NCNN model (CPU)
-
-# 🎯 Detection and tracking settings
 SHOW_FPS = True
 CONFIDENCE_THRESHOLD = 0.3
 IOU_THRESHOLD = 0.3
 MAX_DETECTION = 20
-TRACKER_TYPE = "bytetrack.yaml"  # Options: 'bytetrack.yaml', 'botsort.yaml'
-TRACKER_ARGS = {
-    "persist": True,
-    "verbose": False,
-}
+TRACKER_TYPE = "bytetrack.yaml"
+TRACKER_ARGS = {"persist": True, "verbose": False}
 
-# Initialize the Colors object
 colors = Colors()
 
 # ================================
 # 🚀 MODEL INITIALIZATION
 # ================================
 
+print("🚀 Initializing model...")
 if USE_GPU:
-    print("🚀 Running on GPU using PyTorch (.pt model)...")
-    model = YOLO(MODEL_PATH_GPU)  # Load PyTorch model
-    model.to("cuda")  # Move to GPU
+    print("Using GPU...")
+    model = YOLO(MODEL_PATH_GPU)
+    model.to("cuda")
 else:
-    print("⚙️ Running on CPU using NCNN (.param + .bin)...")
-    model = YOLO(MODEL_PATH_CPU, task="detect")  # Load NCNN model for CPU inference
+    print("Using CPU...")
+    model = YOLO(MODEL_PATH_CPU, task="detect")
 
 # ================================
-# 🎥 VIDEO SOURCE (Camera or Video)
+# 🎥 VIDEO SOURCE
 # ================================
-cap = cv2.VideoCapture(0)  # Replace with path to a video file if needed
+cap = cv2.VideoCapture(0)
 
 selected_object_id = None
 selected_bbox = None
 selected_center = None
 object_colors = {}
 
+# ================================
+# 🧩 HELPER FUNCTIONS
+# ================================
 
-# ========= UTILITY FUNCTIONS =========
 def get_center(x1, y1, x2, y2):
-    """Get the center point of a bounding box."""
     return (x1 + x2) // 2, (y1 + y2) // 2
 
-
 def extend_line_from_edge(mid_x, mid_y, direction, img_shape):
-    """Extend a line from a bbox edge midpoint to screen border."""
     h, w = img_shape[:2]
     if direction == "left":
         return (0, mid_y)
@@ -154,27 +143,28 @@ def extend_line_from_edge(mid_x, mid_y, direction, img_shape):
         return (mid_x, h - 1)
     return mid_x, mid_y
 
-
 def draw_tracking_scope(frame, bbox, color):
-    """Draw 'scope lines' from bbox edge midpoints outward."""
     x1, y1, x2, y2 = bbox
     mid_top = ((x1 + x2) // 2, y1)
     mid_bottom = ((x1 + x2) // 2, y2)
     mid_left = (x1, (y1 + y2) // 2)
     mid_right = (x2, (y1 + y2) // 2)
-
     cv2.line(frame, mid_top, extend_line_from_edge(*mid_top, "up", frame.shape), color, 2)
     cv2.line(frame, mid_bottom, extend_line_from_edge(*mid_bottom, "down", frame.shape), color, 2)
     cv2.line(frame, mid_left, extend_line_from_edge(*mid_left, "left", frame.shape), color, 2)
     cv2.line(frame, mid_right, extend_line_from_edge(*mid_right, "right", frame.shape), color, 2)
 
+def draw_label_with_bg(img, text, position, color, font_scale=0.6, thickness=1):
+    (w, h), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
+    x, y = position
+    cv2.rectangle(img, (x - 2, y - h - 4), (x + w + 2, y + 2), (0, 0, 0), -1)  # Background box
+    cv2.putText(img, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, thickness, cv2.LINE_AA)
 
 def click_event(event, x, y, flags, param):
-    """Allow user to select an object by clicking on it."""
     global selected_object_id
     if event == cv2.EVENT_LBUTTONDOWN:
         detections = results[0].boxes.data if results[0].boxes is not None else []
-        if len(detections) > 0:
+        if detections is not None:
             min_area = float("inf")
             best_match = None
             for track in detections:
@@ -192,11 +182,12 @@ def click_event(event, x, y, flags, param):
                 selected_object_id, label = best_match
                 print(f"🔵 TRACKING STARTED: {label} (ID {selected_object_id})")
 
-
 cv2.namedWindow("YOLO Tracking")
 cv2.setMouseCallback("YOLO Tracking", click_event)
 
-# ========== MAIN LOOP ==========
+# ================================
+# 🔄 MAIN LOOP
+# ================================
 fps_counter, fps_timer, fps_display = 0, time.time(), 0
 
 while cap.isOpened():
@@ -205,20 +196,23 @@ while cap.isOpened():
         break
 
     results = model.track(
-        frame, conf=CONFIDENCE_THRESHOLD, iou=IOU_THRESHOLD, max_det=MAX_DETECTION, tracker=TRACKER_TYPE, **TRACKER_ARGS
+        frame,
+        conf=CONFIDENCE_THRESHOLD,
+        iou=IOU_THRESHOLD,
+        max_det=MAX_DETECTION,
+        tracker=TRACKER_TYPE,
+        **TRACKER_ARGS
     )
 
     frame_overlay = frame.copy()
     detections = results[0].boxes.data if results[0].boxes is not None else []
-
     detected_objects = []
     tracked_info = ""
 
-    # ========== DETECTION HANDLING ==========
     for track in detections:
         track = track.tolist()
         if len(track) < 6:
-            continue  # Skip incomplete data
+            continue
         x1, y1, x2, y2 = map(int, track[:4])
         conf = float(track[5])
         class_id = int(track[6]) if len(track) >= 7 else int(track[5])
@@ -226,7 +220,6 @@ while cap.isOpened():
 
         label_name = model.names[class_id]
         color = object_colors.setdefault(track_id, tuple(reversed(colors(track_id, False))))
-
         detected_objects.append(f"{label_name} (ID {track_id}, {conf:.2f})")
 
         if track_id == selected_object_id:
@@ -234,7 +227,15 @@ while cap.isOpened():
             selected_center = get_center(x1, y1, x2, y2)
             tracked_info = f"🔴 TRACKING: {label_name} (ID {track_id}) | BBox: {selected_bbox} | Center: {selected_center} | Confidence: {conf:.2f}"
 
-    # ========== DRAW VISUALIZATION ==========
+    # Optional: Spotlight effect (focus on tracked object)
+    if selected_bbox:
+        mask = frame.copy()
+        overlay = frame.copy()
+        overlay[:] = (0, 0, 0)
+        x1, y1, x2, y2 = selected_bbox
+        mask[y1:y2, x1:x2] = frame[y1:y2, x1:x2]
+        frame = cv2.addWeighted(overlay, 0.3, mask, 0.7, 0)
+
     for track in detections:
         track = track.tolist()
         if len(track) < 6:
@@ -244,16 +245,22 @@ while cap.isOpened():
         class_id = int(track[6]) if len(track) >= 7 else int(track[5])
         track_id = int(track[4]) if len(track) == 7 else -1
         color = object_colors.setdefault(track_id, tuple(reversed(colors(track_id, False))))
-
         label = f"{model.names[class_id]} ID {track_id} ({conf:.2f})"
 
         if track_id == selected_object_id:
+            # Highlight selected object
             cv2.rectangle(frame, (x1, y1), (x2, y2), color, 5)
             draw_tracking_scope(frame, (x1, y1, x2, y2), color)
-            cv2.circle(frame, get_center(x1, y1, x2, y2), 6, color, -1)
+            center = get_center(x1, y1, x2, y2)
+            cv2.circle(frame, center, 6, color, -1)
+
+            # Pulsing circle for attention
+            pulse_radius = 8 + int(4 * abs(time.time() % 1 - 0.5))
+            cv2.circle(frame, center, pulse_radius, color, 2)
+
             label = f"*ACTIVE* {label}"
         else:
-            # Dashed box
+            # Draw dashed box for other objects
             for i in range(x1, x2, 10):
                 cv2.line(frame_overlay, (i, y1), (i + 5, y1), color, 3)
                 cv2.line(frame_overlay, (i, y2), (i + 5, y2), color, 3)
@@ -261,27 +268,25 @@ while cap.isOpened():
                 cv2.line(frame_overlay, (x1, i), (x1, i + 5), color, 3)
                 cv2.line(frame_overlay, (x2, i), (x2, i + 5), color, 3)
 
-        cv2.putText(frame, label, (x1 + 5, y1 + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+        draw_label_with_bg(frame, label, (x1 + 5, y1 + 20), color)
 
-    # ========== FPS DISPLAY ==========
     if SHOW_FPS:
         fps_counter += 1
         if time.time() - fps_timer >= 1.0:
             fps_display = fps_counter
             fps_counter = 0
             fps_timer = time.time()
-        cv2.putText(frame, f"FPS: {fps_display}", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+        cv2.putText(frame, f"FPS: {fps_display}", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
-    # ========== SHOW FRAME ==========
+    # Blend overlays and show result
     blended_frame = cv2.addWeighted(frame_overlay, 0.5, frame, 0.5, 0)
     cv2.imshow("YOLO Tracking", blended_frame)
 
-    # ========== TERMINAL OUTPUT ==========
+    # Terminal logging
     print(f"🟡 DETECTED {len(detections)} OBJECT(S): {' | '.join(detected_objects)}")
     if tracked_info:
         print(tracked_info)
 
-    # ========== KEYBOARD CONTROL ==========
     key = cv2.waitKey(1) & 0xFF
     if key == ord("q"):
         break

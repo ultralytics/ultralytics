@@ -86,6 +86,8 @@ import cv2
 import numpy as np
 
 from ultralytics import YOLO
+from ultralytics.utils.plotting import Colors
+
 
 # ================================
 # 🔧 USER CONFIGURATION SECTION
@@ -109,6 +111,9 @@ TRACKER_ARGS = {
     "verbose": False,
 }
 
+# Initialize the Colors object
+colors = Colors()
+
 # ================================
 # 🚀 MODEL INITIALIZATION
 # ================================
@@ -130,16 +135,6 @@ selected_object_id = None
 selected_bbox = None
 selected_center = None
 object_colors = {}
-
-
-# ========= YOLO-LIKE COLOR GENERATOR =========
-def get_yolo_color(index, brightness_adjustment=1.0):
-    """Generate vivid YOLO-style color with adjustable brightness."""
-    hue = (index * 0.61803398875) % 1.0
-    brightness = min(255, 255 * brightness_adjustment)
-    hsv = np.array([[[int(hue * 179), 255, brightness]]], dtype=np.uint8)
-    bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)[0][0]
-    return int(bgr[0]), int(bgr[1]), int(bgr[2])
 
 
 # ========= UTILITY FUNCTIONS =========
@@ -232,7 +227,8 @@ while cap.isOpened():
         track_id = int(track[4]) if len(track) == 7 else -1
 
         label_name = model.names[class_id]
-        color = object_colors.setdefault(track_id, get_yolo_color(track_id))
+        color = object_colors.setdefault(track_id, tuple(reversed(colors(track_id, False))))
+
         detected_objects.append(f"{label_name} (ID {track_id}, {conf:.2f})")
 
         if track_id == selected_object_id:
@@ -249,7 +245,10 @@ while cap.isOpened():
         conf = float(track[5])
         class_id = int(track[6]) if len(track) >= 7 else int(track[5])
         track_id = int(track[4]) if len(track) == 7 else -1
-        color = object_colors.setdefault(track_id, get_yolo_color(track_id))
+        color = object_colors.setdefault(track_id, tuple(reversed(colors(track_id, False))))
+
+        
+
         label = f"{model.names[class_id]} ID {track_id} ({conf:.2f})"
 
         if track_id == selected_object_id:

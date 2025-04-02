@@ -972,7 +972,7 @@ class YOLOEModel(DetectionModel):
                     assert not self.training
                     return vpe
                 cls_pe = self.get_cls_pe(m.get_tpe(tpe), vpe).to(device=x[0].device, dtype=x[0].dtype)
-                if len(cls_pe) != b:
+                if cls_pe.shape[0] != b or m.export:
                     cls_pe = cls_pe.repeat(b, 1, 1)
                 x = m(x, cls_pe)
             else:

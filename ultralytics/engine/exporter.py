@@ -1264,7 +1264,7 @@ class Exporter:
             n_layers = 226  # 226 layers for YOLOv8n
 
         # Check if the model has the expected number of layers
-        if [layer for layer in self.model.modules()] != n_layers:
+        if len([layer for layer in self.model.modules()]) != n_layers:
             raise ValueError("IMX export only supported for YOLOv8n and YOLO11n models.")
 
         for layer_name in layer_names:

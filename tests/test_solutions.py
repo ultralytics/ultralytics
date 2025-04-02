@@ -4,7 +4,7 @@
 # It includes every solution excluding DistanceCalculation and Security Alarm System.
 
 import cv2
-
+import pytest
 from tests import TMP
 from ultralytics import solutions
 from ultralytics.utils import ASSETS_URL
@@ -154,12 +154,13 @@ def process_video(solution, video_path, needs_frame_count=False):
 
 
 # @pytest.mark.slow
-# @pytest.mark.parametrize("name, solution_class, needs_frame_count, video, kwargs", SOLUTIONS)
-# def test_solution(name, solution_class, needs_frame_count, video, kwargs):
-#     """Test individual Ultralytics solution."""
-#     safe_download(url=f"{ASSETS_URL}/{video}", dir=TMP)
-#     solution = solution_class(**kwargs)
-#     process_video(solution, str(TMP / video), needs_frame_count)
+@pytest.mark.parametrize("name, solution_class, needs_frame_count, video, kwargs", SOLUTIONS)
+def test_solution(name, solution_class, needs_frame_count, video, kwargs):
+    """Test individual Ultralytics solution."""
+    safe_download(url=f"{ASSETS_URL}/{video}", dir=TMP)
+    print(solution_class)
+    solution = solution_class(**kwargs)
+    process_video(solution, str(TMP / video), needs_frame_count)
 
 
 # @pytest.mark.slow
@@ -176,6 +177,6 @@ def test_parking_management():
 
 
 # @pytest.mark.slow
-# def test_streamlit_inference():
-#     """Test streamlit predict live inference solution."""
-#     solutions.Inference().inference()
+def test_streamlit_inference():
+    """Test streamlit predict live inference solution."""
+    solutions.Inference().inference()

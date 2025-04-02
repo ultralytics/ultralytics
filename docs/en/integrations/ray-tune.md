@@ -4,7 +4,7 @@ description: Optimize YOLO11 model performance with Ray Tune. Learn efficient hy
 keywords: YOLO11, Ray Tune, hyperparameter tuning, model optimization, machine learning, deep learning, AI, Ultralytics, Weights & Biases
 ---
 
-# Efficient [Hyperparameter Tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) with Ray Tune and YOLO11
+# Efficient Hyperparameter Tuning with Ray Tune and YOLO11
 
 Hyperparameter tuning is vital in achieving peak model performance by discovering the optimal set of hyperparameters. This involves running trials with different hyperparameters and evaluating each trial's performance.
 
@@ -196,7 +196,7 @@ To tune the hyperparameters of your Ultralytics YOLO11 model using Ray Tune, fol
 
     ```bash
     pip install -U ultralytics "ray[tune]"
-    pip install wandb  # optional for logging
+    pip install wandb # optional for logging
     ```
 
 2. **Load your YOLO11 model and start tuning:**
@@ -263,11 +263,11 @@ This setup will allow you to monitor the tuning process, track hyperparameter co
 
 Ray Tune offers numerous advantages for hyperparameter optimization:
 
-- **Advanced Search Strategies:** Utilizes algorithms like Bayesian Optimization and HyperOpt for efficient parameter search.
+- **Advanced Search Strategies:** Utilizes algorithms like [Bayesian Optimization](https://www.ultralytics.com/glossary/bayesian-network) and HyperOpt for efficient parameter search.
 - **Parallelism:** Supports parallel execution of multiple trials, significantly speeding up the tuning process.
 - **Early Stopping:** Employs strategies like ASHA to terminate under-performing trials early, saving computational resources.
 
-Ray Tune seamlessly integrates with Ultralytics YOLO11, providing an easy-to-use interface for tuning hyperparameters effectively. To get started, check out the [Efficient Hyperparameter Tuning with Ray Tune and YOLO11](../guides/hyperparameter-tuning.md) guide.
+Ray Tune seamlessly integrates with Ultralytics YOLO11, providing an easy-to-use interface for tuning hyperparameters effectively. To get started, check out the [Hyperparameter Tuning](../guides/hyperparameter-tuning.md) guide.
 
 ### How can I define a custom search space for YOLO11 hyperparameter tuning?
 

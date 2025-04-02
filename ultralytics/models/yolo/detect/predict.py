@@ -9,15 +9,25 @@ class DetectionPredictor(BasePredictor):
     """
     A class extending the BasePredictor class for prediction based on a detection model.
 
-    Example:
-        ```python
-        from ultralytics.utils import ASSETS
-        from ultralytics.models.yolo.detect import DetectionPredictor
+    This predictor specializes in object detection tasks, processing model outputs into meaningful detection results
+    with bounding boxes and class predictions.
 
-        args = dict(model="yolo11n.pt", source=ASSETS)
-        predictor = DetectionPredictor(overrides=args)
-        predictor.predict_cli()
-        ```
+    Attributes:
+        args (namespace): Configuration arguments for the predictor.
+        model (nn.Module): The detection model used for inference.
+        batch (list): Batch of images and metadata for processing.
+
+    Methods:
+        postprocess: Process raw model predictions into detection results.
+        construct_results: Build Results objects from processed predictions.
+        construct_result: Create a single Result object from a prediction.
+
+    Examples:
+        >>> from ultralytics.utils import ASSETS
+        >>> from ultralytics.models.yolo.detect import DetectionPredictor
+        >>> args = dict(model="yolo11n.pt", source=ASSETS)
+        >>> predictor = DetectionPredictor(overrides=args)
+        >>> predictor.predict_cli()
     """
 
     def postprocess(self, preds, img, orig_imgs, **kwargs):
@@ -41,15 +51,15 @@ class DetectionPredictor(BasePredictor):
 
     def construct_results(self, preds, img, orig_imgs):
         """
-        Constructs a list of result objects from the predictions.
+        Construct a list of Results objects from model predictions.
 
         Args:
-            preds (List[torch.Tensor]): List of predicted bounding boxes and scores.
-            img (torch.Tensor): The image after preprocessing.
+            preds (List[torch.Tensor]): List of predicted bounding boxes and scores for each image.
+            img (torch.Tensor): Batch of preprocessed images used for inference.
             orig_imgs (List[np.ndarray]): List of original images before preprocessing.
 
         Returns:
-            (list): List of result objects containing the original images, image paths, class names, and bounding boxes.
+            (List[Results]): List of Results objects containing detection information for each image.
         """
         return [
             self.construct_result(pred, img, orig_img, img_path)
@@ -58,16 +68,16 @@ class DetectionPredictor(BasePredictor):
 
     def construct_result(self, pred, img, orig_img, img_path):
         """
-        Constructs the result object from the prediction.
+        Construct a single Results object from one image prediction.
 
         Args:
-            pred (torch.Tensor): The predicted bounding boxes and scores.
-            img (torch.Tensor): The image after preprocessing.
-            orig_img (np.ndarray): The original image before preprocessing.
-            img_path (str): The path to the original image.
+            pred (torch.Tensor): Predicted boxes and scores with shape (N, 6) where N is the number of detections.
+            img (torch.Tensor): Preprocessed image tensor used for inference.
+            orig_img (np.ndarray): Original image before preprocessing.
+            img_path (str): Path to the original image file.
 
         Returns:
-            (Results): The result object containing the original image, image path, class names, and bounding boxes.
+            (Results): Results object containing the original image, image path, class names, and scaled bounding boxes.
         """
         pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
         return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6])

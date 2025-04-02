@@ -46,7 +46,7 @@ on:
         default: true
       push:
         type: boolean
-        description: Publish all Images
+        description: Publish to DockerHub and ghcr.io
 
 jobs:
   docker:
@@ -88,7 +88,7 @@ jobs:
           # - dockerfile: "Dockerfile-conda"
           #   tags: "latest-conda"
           #   platforms: "linux/amd64"
-    
+
     runs-on: ${{ matrix.runs_on }}
     outputs:
       new_release: ${{ steps.check_tag.outputs.new_release }}

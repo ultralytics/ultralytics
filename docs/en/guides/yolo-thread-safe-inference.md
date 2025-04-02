@@ -20,7 +20,7 @@ While this sounds like a limitation, threads can still provide concurrency, espe
 
 ## The Danger of Shared Model Instances
 
-Instantiating a YOLO model outside your threads and sharing this instance across multiple threads can lead to race conditions, where the internal state of the model is inconsistently modified due to concurrent accesses. This is particularly problematic when the model or its components hold state that is not designed to be thread-safe.
+Instantiating a YOLO model outside your threads and sharing this instance across multiple threads can lead to [race conditions](https://www.ultralytics.com/glossary/algorithmic-bias), where the internal state of the model is inconsistently modified due to concurrent accesses. This is particularly problematic when the model or its components hold state that is not designed to be thread-safe.
 
 ### Non-Thread-Safe Example: Single Model Instance
 
@@ -106,11 +106,36 @@ Thread(target=thread_safe_predict, args=("image2.jpg",)).start()
 
 In this example, each thread creates its own `YOLO` instance. This prevents any thread from interfering with the model state of another, thus ensuring that each thread performs inference safely and without unexpected interactions with the other threads.
 
+## Using ThreadingLocked Decorator
+
+Ultralytics provides a `ThreadingLocked` decorator that can be used to ensure thread-safe execution of functions. This decorator uses a lock to ensure that only one thread at a time can execute the decorated function.
+
+```python
+from ultralytics import YOLO
+from ultralytics.utils import ThreadingLocked
+
+# Create a model instance
+model = YOLO("yolo11n.pt")
+
+
+# Decorate the predict method to make it thread-safe
+@ThreadingLocked()
+def thread_safe_predict(image_path):
+    """Thread-safe prediction using a shared model instance."""
+    results = model.predict(image_path)
+    return results
+
+
+# Now you can safely call this function from multiple threads
+```
+
+The `ThreadingLocked` decorator is particularly useful when you need to share a model instance across threads but want to ensure that only one thread can access it at a time. This approach can save memory compared to creating a new model instance for each thread, but it may reduce concurrency as threads will need to wait for the lock to be released.
+
 ## Conclusion
 
 When using YOLO models with Python's `threading`, always instantiate your models within the thread that will use them to ensure thread safety. This practice avoids race conditions and makes sure that your inference tasks run reliably.
 
-For more advanced scenarios and to further optimize your multi-threaded inference performance, consider using process-based parallelism with `multiprocessing` or leveraging a task queue with dedicated worker processes.
+For more advanced scenarios and to further optimize your multi-threaded inference performance, consider using process-based parallelism with [multiprocessing](https://docs.python.org/3/library/multiprocessing.html) or leveraging a task queue with dedicated worker processes.
 
 ## FAQ
 
@@ -146,6 +171,7 @@ To run multi-threaded YOLO model inference safely in Python, follow these best p
 1. Instantiate YOLO models within each thread rather than sharing a single model instance across threads.
 2. Use Python's `multiprocessing` module for parallel processing to avoid issues related to Global Interpreter Lock (GIL).
 3. Release the GIL by using operations performed by YOLO's underlying C libraries.
+4. Consider using the `ThreadingLocked` decorator for shared model instances when memory is a concern.
 
 Example for thread-safe model instantiation:
 
@@ -177,7 +203,7 @@ For detailed guidance, check the [Non-Thread-Safe Example: Single Model Instance
 
 ### How does Python's Global Interpreter Lock (GIL) affect YOLO model inference?
 
-Python's Global Interpreter Lock (GIL) allows only one thread to execute Python bytecode at a time, which can limit the performance of CPU-bound multi-threading tasks. However, for I/O-bound operations or processes that use libraries releasing the GIL, like YOLO's C libraries, you can still achieve concurrency. For enhanced performance, consider using process-based parallelism with Python's `multiprocessing` module.
+Python's Global Interpreter Lock (GIL) allows only one thread to execute Python bytecode at a time, which can limit the performance of CPU-bound multi-threading tasks. However, for I/O-bound operations or processes that use libraries releasing the GIL, like YOLO's underlying C libraries, you can still achieve concurrency. For enhanced performance, consider using process-based parallelism with Python's `multiprocessing` module.
 
 For more about threading in Python, see the [Understanding Python Threading](#understanding-python-threading) section.
 

@@ -33,6 +33,7 @@ class SourceTypes:
         stream (bool): Flag indicating if the input source is a video stream.
         screenshot (bool): Flag indicating if the input source is a screenshot.
         from_img (bool): Flag indicating if the input source is an image file.
+        tensor (bool): Flag indicating if the input source is a tensor.
 
     Examples:
         >>> source_types = SourceTypes(stream=True, screenshot=False, from_img=False)

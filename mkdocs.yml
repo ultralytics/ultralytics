@@ -84,7 +84,7 @@ extra: # version:
     - icon: fontawesome/brands/linkedin
       link: https://www.linkedin.com/company/ultralytics/
     - icon: fontawesome/brands/x-twitter
-      link: https://twitter.com/ultralytics
+      link: https://x.com/ultralytics
     - icon: fontawesome/brands/youtube
       link: https://youtube.com/ultralytics?sub_confirmation=1
     - icon: fontawesome/brands/docker
@@ -95,6 +95,8 @@ extra: # version:
       link: https://discord.com/invite/ultralytics
     - icon: fontawesome/brands/reddit
       link: https://reddit.com/r/ultralytics
+    - icon: fontawesome/brands/weixin
+      link: https://weixin.qq.com/r/mp/LxckPDfEgWr_rXNf90I9
 
 extra_css:
   - stylesheets/style.css
@@ -268,6 +270,7 @@ nav:
       - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
       - YOLO-World (Real-Time Open-Vocabulary Object Detection): models/yolo-world.md
+      - YOLOE (Real-Time Seeing Anything): models/yoloe.md
   - Datasets:
       - datasets/index.md
       - Detection:
@@ -321,7 +324,7 @@ nav:
           - DOTA8: datasets/obb/dota8.md
       - Multi-Object Tracking:
           - datasets/track/index.md
-  - Solutions 🚀 NEW:
+  - Solutions 🚀:
       - solutions/index.md
       - Object Counting: guides/object-counting.md
       - Object Cropping: guides/object-cropping.md
@@ -331,7 +334,7 @@ nav:
       - Security Alarm System: guides/security-alarm-system.md
       - Heatmaps: guides/heatmaps.md
       - Instance Segmentation with Object Tracking: guides/instance-segmentation-and-tracking.md
-      - VisionEye Mapping: guides/vision-eye.md
+      - VisionEye View Objects Mapping: guides/vision-eye.md
       - Speed Estimation: guides/speed-estimation.md
       - Distance Calculation: guides/distance-calculation.md
       - Queue Management: guides/queue-management.md
@@ -394,7 +397,6 @@ nav:
               - Hyperparameter evolution: yolov5/tutorials/hyperparameter_evolution.md
               - Transfer learning with frozen layers: yolov5/tutorials/transfer_learning_with_frozen_layers.md
               - Architecture Summary: yolov5/tutorials/architecture_description.md
-              - Roboflow Datasets: yolov5/tutorials/roboflow_datasets_integration.md
               - Neural Magic's DeepSparse: yolov5/tutorials/neural_magic_pruning_quantization.md
               - Comet Logging: yolov5/tutorials/comet_logging_integration.md
               - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
@@ -564,6 +566,11 @@ nav:
               - world:
                   - train: reference/models/yolo/world/train.md
                   - train_world: reference/models/yolo/world/train_world.md
+              - yoloe:
+                  - predict: reference/models/yolo/yoloe/predict.md
+                  - train: reference/models/yolo/yoloe/train.md
+                  - train_seg: reference/models/yolo/yoloe/train_seg.md
+                  - val: reference/models/yolo/yoloe/val.md
       - nn:
           - autobackend: reference/nn/autobackend.md
           - modules:
@@ -574,12 +581,16 @@ nav:
               - transformer: reference/nn/modules/transformer.md
               - utils: reference/nn/modules/utils.md
           - tasks: reference/nn/tasks.md
+          - text_model: reference/nn/text_model.md
       - solutions:
           - ai_gym: reference/solutions/ai_gym.md
           - analytics: reference/solutions/analytics.md
           - distance_calculation: reference/solutions/distance_calculation.md
           - heatmap: reference/solutions/heatmap.md
+          - instance_segmentation: reference/solutions/instance_segmentation.md
+          - object_blurrer: reference/solutions/object_blurrer.md
           - object_counter: reference/solutions/object_counter.md
+          - object_cropper: reference/solutions/object_cropper.md
           - parking_management: reference/solutions/parking_management.md
           - queue_management: reference/solutions/queue_management.md
           - region_counter: reference/solutions/region_counter.md
@@ -588,6 +599,7 @@ nav:
           - speed_estimation: reference/solutions/speed_estimation.md
           - streamlit_inference: reference/solutions/streamlit_inference.md
           - trackzone: reference/solutions/trackzone.md
+          - vision_eye: reference/solutions/vision_eye.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md
@@ -709,7 +721,6 @@ plugins:
         tasks/segmentation.md: tasks/segment.md
         tasks/keypoints.md: tasks/pose.md
         tasks/tracking.md: modes/track.md
-        SECURITY.md: help/security.md
         help/minimum_reproducible_example.md: help/minimum-reproducible-example.md
         help/code_of_conduct.md: help/code-of-conduct.md
         tutorials/architecture-summary.md: yolov5/tutorials/architecture_description.md
@@ -721,7 +732,7 @@ plugins:
         tutorials/nvidia-jetson.md: guides/nvidia-jetson.md
         tutorials/pruning-sparsity.md: yolov5/tutorials/model_pruning_and_sparsity.md
         tutorials/pytorch-hub.md: yolov5/tutorials/pytorch_hub_model_loading.md
-        tutorials/roboflow.md: yolov5/tutorials/roboflow_datasets_integration.md
+        tutorials/roboflow.md: integrations/index.md
         tutorials/test-time-augmentation.md: yolov5/tutorials/test_time_augmentation.md
         tutorials/torchscript-onnx-coreml-export.md: yolov5/tutorials/model_export.md
         tutorials/train-custom-datasets.md: yolov5/tutorials/train_custom_data.md
@@ -731,7 +742,7 @@ plugins:
         yolov5/pytorch_hub.md: yolov5/tutorials/pytorch_hub_model_loading.md
         yolov5/hyp_evolution.md: yolov5/tutorials/hyperparameter_evolution.md
         yolov5/pruning_sparsity.md: yolov5/tutorials/model_pruning_and_sparsity.md
-        yolov5/roboflow.md: yolov5/tutorials/roboflow_datasets_integration.md
+        yolov5/roboflow.md: integrations/index.md
         yolov5/comet.md: yolov5/tutorials/comet_logging_integration.md
         yolov5/clearml.md: yolov5/tutorials/clearml_logging_integration.md
         yolov5/tta.md: yolov5/tutorials/test_time_augmentation.md
@@ -754,7 +765,7 @@ plugins:
         yolov5/tutorials/model_export_tutorial.md: yolov5/tutorials/model_export.md
         yolov5/tutorials/jetson_nano_tutorial.md: guides/nvidia-jetson.md
         yolov5/tutorials/yolov5_model_ensembling_tutorial.md: yolov5/tutorials/model_ensembling.md
-        yolov5/tutorials/roboflow_integration.md: yolov5/tutorials/roboflow_datasets_integration.md
+        yolov5/tutorials/roboflow_integration.md: integrations/index.md
         yolov5/tutorials/pruning_and_sparsity_tutorial.md: yolov5/tutorials/model_pruning_and_sparsity.md
         yolov5/tutorials/yolov5_transfer_learning_with_frozen_layers_tutorial.md: yolov5/tutorials/transfer_learning_with_frozen_layers.md
         yolov5/tutorials/transfer_learning_with_frozen_layers_tutorial.md: yolov5/tutorials/transfer_learning_with_frozen_layers.md
@@ -766,12 +777,13 @@ plugins:
         yolov5/tutorials/yolov5_pruning_and_sparsity_tutorial.md: yolov5/tutorials/model_pruning_and_sparsity.md
         yolov5/tutorials/yolov5_jetson_nano_tutorial.md: guides/nvidia-jetson.md
         yolov5/tutorials/running_on_jetson_nano.md: guides/nvidia-jetson.md
-        yolov5/tutorials/yolov5_roboflow_integration.md: yolov5/tutorials/roboflow_datasets_integration.md
+        yolov5/tutorials/yolov5_roboflow_integration.md: integrations/index.md
         yolov5/tutorials/hyperparameter_evolution_tutorial.md: yolov5/tutorials/hyperparameter_evolution.md
         yolov5/tutorials/yolov5_hyperparameter_evolution_tutorial.md: yolov5/tutorials/hyperparameter_evolution.md
         yolov5/tutorials/clearml_integration_tutorial.md: yolov5/tutorials/clearml_logging_integration.md
         yolov5/tutorials/test_time_augmentation_tutorial.md: yolov5/tutorials/test_time_augmentation.md
         yolov5/tutorials/yolov5_test_time_augmentation_tutorial.md: yolov5/tutorials/test_time_augmentation.md
+        yolov5/tutorials/roboflow_datasets_integration.md: integrations/index.md
         yolov5/environments/yolov5_amazon_web_services_quickstart_tutorial.md: yolov5/environments/aws_quickstart_tutorial.md
         yolov5/environments/yolov5_google_cloud_platform_quickstart_tutorial.md: yolov5/environments/google_cloud_quickstart_tutorial.md
         yolov5/environments/yolov5_docker_image_quickstart_tutorial.md: yolov5/environments/docker_image_quickstart_tutorial.md

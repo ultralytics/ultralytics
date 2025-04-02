@@ -89,15 +89,18 @@ class BaseTrainer:
         tloss (float): Total loss value.
         loss_names (list): List of loss names.
         csv (Path): Path to results CSV file.
+        metrics (dict): Dictionary of metrics.
+        plots (dict): Dictionary of plots.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
-        Initializes the BaseTrainer class.
+        Initialize the BaseTrainer class.
 
         Args:
             cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
+            _callbacks (list, optional): List of callback functions. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
@@ -156,11 +159,11 @@ class BaseTrainer:
             callbacks.add_integration_callbacks(self)
 
     def add_callback(self, event: str, callback):
-        """Appends the given callback."""
+        """Append the given callback to the event's callback list."""
         self.callbacks[event].append(callback)
 
     def set_callback(self, event: str, callback):
-        """Overrides the existing callbacks with the given callback."""
+        """Override the existing callbacks with the given callback for the specified event."""
         self.callbacks[event] = [callback]
 
     def run_callbacks(self, event: str):
@@ -216,7 +219,7 @@ class BaseTrainer:
         self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
 
     def _setup_ddp(self, world_size):
-        """Initializes and sets the DistributedDataParallel parameters for training."""
+        """Initialize and set the DistributedDataParallel parameters for training."""
         torch.cuda.set_device(RANK)
         self.device = torch.device("cuda", RANK)
         # LOGGER.info(f'DDP info: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
@@ -229,7 +232,7 @@ class BaseTrainer:
         )
 
     def _setup_train(self, world_size):
-        """Builds dataloaders and optimizer on correct rank process."""
+        """Build dataloaders and optimizer on correct rank process."""
         # Model
         self.run_callbacks("on_pretrain_routine_start")
         ckpt = self.setup_model()
@@ -246,6 +249,7 @@ class BaseTrainer:
         )
         always_freeze_names = [".dfl"]  # always freeze these layers
         freeze_layer_names = [f"model.{x}." for x in freeze_list] + always_freeze_names
+        self.freeze_layer_names = freeze_layer_names
         for k, v in self.model.named_parameters():
             # v.register_hook(lambda x: torch.nan_to_num(x))  # NaN to 0 (commented for erratic training results)
             if any(x in k for x in freeze_layer_names):
@@ -317,7 +321,7 @@ class BaseTrainer:
         self.run_callbacks("on_pretrain_routine_end")
 
     def _do_train(self, world_size=1):
-        """Train completed, evaluate and plot if specified by arguments."""
+        """Train the model with the specified world size."""
         if world_size > 1:
             self._setup_ddp(world_size)
         self._setup_train(world_size)
@@ -347,7 +351,7 @@ class BaseTrainer:
                 warnings.simplefilter("ignore")  # suppress 'Detected lr_scheduler.step() before optimizer.step()'
                 self.scheduler.step()
 
-            self.model.train()
+            self._model_train()
             if RANK != -1:
                 self.train_loader.sampler.set_epoch(epoch)
             pbar = enumerate(self.train_loader)
@@ -378,7 +382,8 @@ class BaseTrainer:
                 # Forward
                 with autocast(self.amp):
                     batch = self.preprocess_batch(batch)
-                    self.loss, self.loss_items = self.model(batch)
+                    loss, self.loss_items = self.model(batch)
+                    self.loss = loss.sum()
                     if RANK != -1:
                         self.loss *= world_size
                     self.tloss = (
@@ -477,7 +482,7 @@ class BaseTrainer:
         self.run_callbacks("teardown")
 
     def auto_batch(self, max_num_obj=0):
-        """Get batch size by calculating memory occupation of model."""
+        """Calculate optimal batch size based on model and device memory constraints."""
         return check_train_batch_size(
             model=self.model,
             imgsz=self.args.imgsz,
@@ -487,22 +492,20 @@ class BaseTrainer:
         )  # returns batch size
 
     def _get_memory(self, fraction=False):
-        """Get accelerator memory utilization in GB or fraction."""
+        """Get accelerator memory utilization in GB or as a fraction of total memory."""
         memory, total = 0, 0
         if self.device.type == "mps":
             memory = torch.mps.driver_allocated_memory()
             if fraction:
-                total = torch.mps.get_mem_info()[0]
-        elif self.device.type == "cpu":
-            pass
-        else:
+                return __import__("psutil").virtual_memory().percent / 100
+        elif self.device.type != "cpu":
             memory = torch.cuda.memory_reserved()
             if fraction:
                 total = torch.cuda.get_device_properties(self.device).total_memory
         return ((memory / total) if total > 0 else 0) if fraction else (memory / 2**30)
 
     def _clear_memory(self):
-        """Clear accelerator memory on different platforms."""
+        """Clear accelerator memory by calling garbage collector and emptying cache."""
         gc.collect()
         if self.device.type == "mps":
             torch.mps.empty_cache()
@@ -512,10 +515,18 @@ class BaseTrainer:
             torch.cuda.empty_cache()
 
     def read_results_csv(self):
-        """Read results.csv into a dict using pandas."""
+        """Read results.csv into a dictionary using pandas."""
         import pandas as pd  # scope for faster 'import ultralytics'
 
         return pd.read_csv(self.csv).to_dict(orient="list")
+
+    def _model_train(self):
+        """Set model in training mode."""
+        self.model.train()
+        # Freeze BN stat
+        for n, m in self.model.named_modules():
+            if any(filter(lambda f: f in n, self.freeze_layer_names)) and isinstance(m, nn.BatchNorm2d):
+                m.eval()
 
     def save_model(self):
         """Save model training checkpoints with additional metadata."""
@@ -554,9 +565,10 @@ class BaseTrainer:
 
     def get_dataset(self):
         """
-        Get train, val path from data dict if it exists.
+        Get train and validation datasets from data dictionary.
 
-        Returns None if data format is not recognized.
+        Returns:
+            (tuple): A tuple containing the training and validation/test datasets.
         """
         try:
             if self.args.task == "classify":
@@ -580,7 +592,12 @@ class BaseTrainer:
         return data["train"], data.get("val") or data.get("test")
 
     def setup_model(self):
-        """Load/create/download model for any task."""
+        """
+        Load, create, or download model for any task.
+
+        Returns:
+            (dict): Optional checkpoint to resume training from.
+        """
         if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
             return
 
@@ -610,9 +627,10 @@ class BaseTrainer:
 
     def validate(self):
         """
-        Runs validation on test set using self.validator.
+        Run validation on test set using self.validator.
 
-        The returned dict is expected to contain "fitness" key.
+        Returns:
+            (tuple): A tuple containing metrics dictionary and fitness score.
         """
         metrics = self.validator(self)
         fitness = metrics.pop("fitness", -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
@@ -646,7 +664,7 @@ class BaseTrainer:
         return {"loss": loss_items} if loss_items is not None else ["loss"]
 
     def set_model_attributes(self):
-        """To set or update model parameters before training."""
+        """Set or update model parameters before training."""
         self.model.names = self.data["names"]
 
     def build_targets(self, preds, targets):
@@ -667,7 +685,7 @@ class BaseTrainer:
         pass
 
     def save_metrics(self, metrics):
-        """Saves training metrics to a CSV file."""
+        """Save training metrics to a CSV file."""
         keys, vals = list(metrics.keys()), list(metrics.values())
         n = len(metrics) + 2  # number of cols
         s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time"] + keys)).rstrip(",") + "\n")  # header
@@ -685,7 +703,7 @@ class BaseTrainer:
         self.plots[path] = {"data": data, "timestamp": time.time()}
 
     def final_eval(self):
-        """Performs final evaluation and validation for object detection YOLO model."""
+        """Perform final evaluation and validation for object detection YOLO model."""
         ckpt = {}
         for f in self.last, self.best:
             if f.exists():
@@ -710,7 +728,7 @@ class BaseTrainer:
 
                 # Check that resume data YAML exists, otherwise strip to force re-download of dataset
                 ckpt_args = attempt_load_weights(last).args
-                if not Path(ckpt_args["data"]).exists():
+                if not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists():
                     ckpt_args["data"] = self.args.data
 
                 resume = True
@@ -769,8 +787,7 @@ class BaseTrainer:
 
     def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
         """
-        Constructs an optimizer for the given model, based on the specified optimizer name, learning rate, momentum,
-        weight decay, and number of iterations.
+        Construct an optimizer for the given model.
 
         Args:
             model (torch.nn.Module): The model for which to build an optimizer.
@@ -803,7 +820,8 @@ class BaseTrainer:
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
                 if "bias" in fullname:  # bias (no decay)
                     g[2].append(param)
-                elif isinstance(module, bn):  # weight (no decay)
+                elif isinstance(module, bn) or "logit_scale" in fullname:  # weight (no decay)
+                    # ContrastiveHead and BNContrastiveHead included here with 'logit_scale'
                     g[1].append(param)
                 else:  # weight (with decay)
                     g[0].append(param)

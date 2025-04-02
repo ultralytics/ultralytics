@@ -21,10 +21,12 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
   <strong>Watch:</strong> How to Implement Queue Management with Ultralytics YOLO11 | Airport and Metro Station
 </p>
 
-## Advantages of Queue Management?
+## Advantages of Queue Management
 
 - **Reduced Waiting Times:** Queue management systems efficiently organize queues, minimizing wait times for customers. This leads to improved satisfaction levels as customers spend less time waiting and more time engaging with products or services.
 - **Increased Efficiency:** Implementing queue management allows businesses to allocate resources more effectively. By analyzing queue data and optimizing staff deployment, businesses can streamline operations, reduce costs, and improve overall productivity.
+- **Real-time Insights:** YOLO11-powered queue management provides instant data on queue lengths and wait times, enabling managers to make informed decisions quickly.
+- **Enhanced Customer Experience:** By reducing frustration associated with long waits, businesses can significantly improve customer satisfaction and loyalty.
 
 ## Real World Applications
 
@@ -33,7 +35,7 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
 | ![Queue management at airport ticket counter using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/queue-management-airport-ticket-counter-ultralytics-yolov8.avif) | ![Queue monitoring in crowd using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/queue-monitoring-crowd-ultralytics-yolov8.avif) |
 |                                                               Queue management at airport ticket counter Using Ultralytics YOLO11                                                               |                                                         Queue monitoring in crowd Ultralytics YOLO11                                                          |
 
-!!! example "Queue Management using YOLO11 Example"
+!!! example "Queue Management using Ultralytics YOLO"
 
     === "CLI"
 
@@ -42,10 +44,10 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
         yolo solutions queue show=True
 
         # Pass a source video
-        yolo solutions queue source="path/to/video/file.mp4"
+        yolo solutions queue source="path/to/video.mp4"
 
         # Pass queue coordinates
-        yolo solutions queue region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
+        yolo solutions queue region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
         ```
 
     === "Python"
@@ -55,53 +57,66 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
 
         from ultralytics import solutions
 
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
-
+        cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
         # Video writer
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("queue_management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Define queue region points
-        queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # Define queue region points
-        # queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]  # Define queue polygon points
+        # Define queue points
+        queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # region points
+        # queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]    # polygon points
 
-        # Init Queue Manager
-        queue = solutions.QueueManager(
-            show=True,  # Display the output
-            model="yolo11n.pt",  # Path to the YOLO11 model file
-            region=queue_region,  # Pass queue region points
-            # classes=[0, 2],  # If you want to count specific classes i.e person and car with COCO pretrained model.
-            # line_width=2,  # Adjust the line width for bounding boxes and text display
+        # Initialize queue manager object
+        queuemanager = solutions.QueueManager(
+            show=True,  # display the output
+            model="yolo11n.pt",  # path to the YOLO11 model file
+            region=queue_region,  # pass queue region points
         )
 
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
             if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
+                print("Video frame is empty or processing is complete.")
                 break
-            out = queue.process_queue(im0)
-            video_writer.write(im0)
+            results = queuemanager(im0)
+
+            # print(results)  # access the output
+
+            video_writer.write(results.plot_im)  # write the processed frame.
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-### Arguments `QueueManager`
+### `QueueManager` Arguments
 
-| Name         | Type   | Default                    | Description                                          |
-| ------------ | ------ | -------------------------- | ---------------------------------------------------- |
-| `model`      | `str`  | `None`                     | Path to Ultralytics YOLO Model File                  |
-| `region`     | `list` | `[(20, 400), (1260, 400)]` | List of points defining the queue region.            |
-| `line_width` | `int`  | `2`                        | Line thickness for bounding boxes.                   |
-| `show`       | `bool` | `False`                    | Flag to control whether to display the video stream. |
+Here's a table with the `QueueManager` arguments:
 
-### Arguments `model.track`
+{% from "macros/solutions-args.md" import param_table %}
+{{ param_table(["model", "region"]) }}
 
-{% include "macros/track-args.md" %}
+The `QueueManagement` solution also support some `track` arguments:
+
+{% from "macros/track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+
+Additionally, the following visualization parameters are available:
+
+{% from "macros/visualization-args.md" import param_table %}
+{{ param_table(["show", "line_width"]) }}
+
+## Implementation Strategies
+
+When implementing queue management with YOLO11, consider these best practices:
+
+1. **Strategic Camera Placement:** Position cameras to capture the entire queue area without obstructions.
+2. **Define Appropriate Queue Regions:** Carefully set queue boundaries based on the physical layout of your space.
+3. **Adjust Detection Confidence:** Fine-tune the confidence threshold based on lighting conditions and crowd density.
+4. **Integrate with Existing Systems:** Connect your queue management solution with digital signage or staff notification systems for automated responses.
 
 ## FAQ
 
@@ -124,19 +139,17 @@ from ultralytics import solutions
 cap = cv2.VideoCapture("path/to/video.mp4")
 queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
-queue = solutions.QueueManager(
+queuemanager = solutions.QueueManager(
     model="yolo11n.pt",
     region=queue_region,
     line_width=3,
+    show=True,
 )
 
 while cap.isOpened():
     success, im0 = cap.read()
     if success:
-        out = queue.process_queue(im0)
-        cv2.imshow("Queue Management", im0)
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
+        results = queuemanager(im0)
 
 cap.release()
 cv2.destroyAllWindows()
@@ -192,4 +205,4 @@ Ultralytics YOLO11 is used in various real-world applications for queue manageme
 - **Healthcare:** Optimizes patient flow in clinics and hospitals.
 - **Banks:** Enhances customer service by managing queues efficiently in banks.
 
-Check our [blog on real-world queue management](https://www.ultralytics.com/blog/revolutionizing-queue-management-with-ultralytics-yolov8-and-openvino) to learn more.
+Check our [blog on real-world queue management](https://www.ultralytics.com/blog/a-look-at-real-time-queue-monitoring-enabled-by-computer-vision) to learn more about how computer vision is transforming queue monitoring across industries.

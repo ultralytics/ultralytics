@@ -11,29 +11,34 @@ class OBBPredictor(DetectionPredictor):
     """
     A class extending the DetectionPredictor class for prediction based on an Oriented Bounding Box (OBB) model.
 
-    Example:
-        ```python
-        from ultralytics.utils import ASSETS
-        from ultralytics.models.yolo.obb import OBBPredictor
+    This predictor handles oriented bounding box detection tasks, processing images and returning results with rotated
+    bounding boxes.
 
-        args = dict(model="yolo11n-obb.pt", source=ASSETS)
-        predictor = OBBPredictor(overrides=args)
-        predictor.predict_cli()
-        ```
+    Attributes:
+        args (namespace): Configuration arguments for the predictor.
+        model (torch.nn.Module): The loaded YOLO OBB model.
+
+    Examples:
+        >>> from ultralytics.utils import ASSETS
+        >>> from ultralytics.models.yolo.obb import OBBPredictor
+        >>> args = dict(model="yolo11n-obb.pt", source=ASSETS)
+        >>> predictor = OBBPredictor(overrides=args)
+        >>> predictor.predict_cli()
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initializes OBBPredictor with optional model and data configuration overrides."""
+        """Initialize OBBPredictor with optional model and data configuration overrides."""
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "obb"
 
     def construct_result(self, pred, img, orig_img, img_path):
         """
-        Constructs the result object from the prediction.
+        Construct the result object from the prediction.
 
         Args:
-            pred (torch.Tensor): The predicted bounding boxes, scores, and rotation angles.
-            img (torch.Tensor): The image after preprocessing.
+            pred (torch.Tensor): The predicted bounding boxes, scores, and rotation angles with shape (N, 6) where
+                the last dimension contains [x, y, w, h, confidence, class_id, angle].
+            img (torch.Tensor): The image after preprocessing with shape (B, C, H, W).
             orig_img (np.ndarray): The original image before preprocessing.
             img_path (str): The path to the original image.
 

@@ -278,12 +278,13 @@ class YOLOE(Model):
             )
             self.model.model[-1].nc = num_cls
             self.model.names = [f"object{i}" for i in range(num_cls)]
-            self.predictor.set_prompts(visual_prompts)
+            self.predictor.set_prompts(visual_prompts.copy())
 
         self.predictor.setup_model(model=self.model)
         if refer_image is not None and len(visual_prompts):
             vpe = self.predictor.get_vpe(refer_image)
             self.model.set_classes(self.model.names, vpe)
+            self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
             self.predictor = None  # reset predictor
 
         return super().predict(source, stream, **kwargs)

@@ -5,6 +5,7 @@
 
 import cv2
 import pytest
+
 from tests import TMP
 from ultralytics import solutions
 from ultralytics.utils import ASSETS_URL

@@ -67,10 +67,6 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
             ValueError: If neither valid bounding boxes nor masks are provided in the prompts.
         """
         img = super().pre_transform(im)
-        # NOTE: this is for multi-frames sources like videos/streams,
-        # which uses the first frame to extract corresponding embeddings and reuse them for the rest frames
-        if isinstance(self.prompts, torch.Tensor):
-            return img
         bboxes = self.prompts.pop("bboxes", None)
         masks = self.prompts.pop("masks", None)
         category = self.prompts["cls"]

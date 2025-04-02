@@ -83,11 +83,9 @@ This code is for educational and demo use only. Use at your own discretion.
 import time
 
 import cv2
-import numpy as np
 
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Colors
-
 
 # ================================
 # 🔧 USER CONFIGURATION SECTION
@@ -246,8 +244,6 @@ while cap.isOpened():
         class_id = int(track[6]) if len(track) >= 7 else int(track[5])
         track_id = int(track[4]) if len(track) == 7 else -1
         color = object_colors.setdefault(track_id, tuple(reversed(colors(track_id, False))))
-
-        
 
         label = f"{model.names[class_id]} ID {track_id} ({conf:.2f})"
 

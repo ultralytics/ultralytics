@@ -5,7 +5,6 @@
 
 import cv2
 import pytest
-
 from tests import TMP
 from ultralytics import solutions
 from ultralytics.utils import ASSETS_URL
@@ -17,87 +16,167 @@ PARKING_VIDEO = "solution_ci_parking_demo.mp4"  # only for parking management so
 PARKING_AREAS_JSON = "solution_ci_parking_areas.json"  # only for parking management solution
 PARKING_MODEL = "solutions_ci_parking_model.pt"  # only for parking management solution
 
+# Pre-defined arguments values
+SHOW = False
+MODEL_FILE = "yolo11n.pt"  # model file used for solutions, except parking management and instance segmentation
+REGION = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # for object counting, speed estimation and queue management
 
-@pytest.mark.slow
-def test_major_solutions():
-    """Test the object counting, heatmap, speed estimation, trackzone and queue management solution."""
-    safe_download(url=f"{ASSETS_URL}/{DEMO_VIDEO}", dir=TMP)
-    cap = cv2.VideoCapture(str(TMP / DEMO_VIDEO))
-    assert cap.isOpened(), "Error reading video file"
-    region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
-    counter = solutions.ObjectCounter(region=region_points, model="yolo11n.pt", show=False)  # Test object counter
-    heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, model="yolo11n.pt", show=False)  # Test heatmaps
-    heatmapcounter = solutions.Heatmap(
-        colormap=cv2.COLORMAP_PARULA, model="yolo11n.pt", show=False, region=region_points
-    )  # Test heatmaps with object counting
-    speed = solutions.SpeedEstimator(region=region_points, model="yolo11n.pt", show=False)  # Test speed estimation
-    queue = solutions.QueueManager(region=region_points, model="yolo11n.pt", show=False)  # Test queue management
-    lineanalytics = solutions.Analytics(analytics_type="line", model="yolo11n.pt", show=False)  # Line analytics
-    pieanalytics = solutions.Analytics(analytics_type="pie", model="yolo11n.pt", show=False)  # Pie analytics
-    baranalytics = solutions.Analytics(analytics_type="bar", model="yolo11n.pt", show=False)  # Bar analytics
-    areaanalytics = solutions.Analytics(analytics_type="area", model="yolo11n.pt", show=False)  # Area analytics
-    trackzone = solutions.TrackZone(region=region_points, model="yolo11n.pt", show=False)  # Track zone monitoring
-    objectcropper = solutions.ObjectCropper(
-        model="yolo11n.pt", show=False, crop_dir=str(TMP / "cropped-detections")
-    )  # Object cropping
-    objectblurrer = solutions.ObjectBlurrer(blur_ratio=0.5, model="yolo11n.pt", show=False)  # Object blurring
-    isegment = solutions.InstanceSegmentation(model="yolo11n-seg.pt", show=False)  # Instance segmentation
-    visioneye = solutions.VisionEye(model="yolo11n.pt", show=False)  # Vision Eye solution
-    regioncounter = solutions.RegionCounter(region=region_points, model="yolo11n.pt", show=False)  # Region counter
-    frame_count = 0  # Required for analytics
+# Solution test configs: (name, class, needs_frame_count, video, kwargs)
+SOLUTIONS = [
+    # Object counting test
+    (
+        "ObjectCounter",
+        solutions.ObjectCounter,
+        False,
+        DEMO_VIDEO,
+        {"region": REGION, "model": MODEL_FILE, "show": SHOW},
+    ),
+    # Heatmap test
+    (
+        "Heatmap",
+        solutions.Heatmap,
+        False,
+        DEMO_VIDEO,
+        {"colormap": cv2.COLORMAP_PARULA, "model": MODEL_FILE, "show": SHOW},
+    ),
+    # Heatmap with object counting test
+    (
+        "HeatmapWithRegion",
+        solutions.Heatmap,
+        False,
+        DEMO_VIDEO,
+        {"colormap": cv2.COLORMAP_PARULA, "region": REGION, "model": MODEL_FILE, "show": SHOW},
+    ),
+    # Speedestimation test
+    (
+        "SpeedEstimator",
+        solutions.SpeedEstimator,
+        False,
+        DEMO_VIDEO,
+        {"region": REGION, "model": MODEL_FILE, "show": SHOW},
+    ),
+    # Queue management test
+    (
+        "QueueManager",
+        solutions.QueueManager,
+        False,
+        DEMO_VIDEO,
+        {"region": REGION, "model": MODEL_FILE, "show": SHOW},
+    ),
+    # Line analytics test
+    (
+        "LineAnalytics",
+        solutions.Analytics,
+        True,
+        DEMO_VIDEO,
+        {"analytics_type": "line", "model": MODEL_FILE, "show": SHOW},
+    ),
+    # Pie analytics test
+    (
+        "PieAnalytics",
+        solutions.Analytics,
+        True,
+        DEMO_VIDEO,
+        {"analytics_type": "pie", "model": MODEL_FILE, "show": SHOW},
+    ),
+    # Bar analytics test
+    (
+        "BarAnalytics",
+        solutions.Analytics,
+        True,
+        DEMO_VIDEO,
+        {"analytics_type": "bar", "model": MODEL_FILE, "show": SHOW},
+    ),
+    # Area analytics test
+    (
+        "AreaAnalytics",
+        solutions.Analytics,
+        True,
+        DEMO_VIDEO,
+        {"analytics_type": "area", "model": MODEL_FILE, "show": SHOW},
+    ),
+    # Trackzone test
+    ("TrackZone", solutions.TrackZone, False, DEMO_VIDEO, {"region": REGION, "model": MODEL_FILE, "show": SHOW}),
+    # Object crop test
+    (
+        "ObjectCropper",
+        solutions.ObjectCropper,
+        False,
+        DEMO_VIDEO,
+        {"crop_dir": str(TMP / "cropped-detections"), "model": MODEL_FILE, "show": SHOW},
+    ),
+    # Object blur test
+    (
+        "ObjectBlurrer",
+        solutions.ObjectBlurrer,
+        False,
+        DEMO_VIDEO,
+        {"blur_ratio": 0.5, "model": MODEL_FILE, "show": SHOW},
+    ),
+    # Instance segmentation test
+    (
+        "InstanceSegmentation",
+        solutions.InstanceSegmentation,
+        False,
+        DEMO_VIDEO,
+        {"model": "yolo11n-seg.pt", "show": SHOW},
+    ),
+    # Visioneye test
+    ("VisionEye", solutions.VisionEye, False, DEMO_VIDEO, {"model": MODEL_FILE, "show": SHOW}),
+    # Regioncounter test
+    (
+        "RegionCounter",
+        solutions.RegionCounter,
+        False,
+        DEMO_VIDEO,
+        {"region": REGION, "model": MODEL_FILE, "show": SHOW},
+    ),
+    # Special video case
+    ("AIGym", solutions.AIGym, False, POSE_VIDEO, {"kpts": [5, 11, 13], "show": SHOW}),
+]
+
+
+def process_video(solution, video_path, needs_frame_count=False):
+    """Process video with solution, feeding frames and optional frame count."""
+    cap = cv2.VideoCapture(video_path)
+    assert cap.isOpened(), f"Error reading video file {video_path}"
+
+    frame_count = 0
     while cap.isOpened():
         success, im0 = cap.read()
         if not success:
             break
         frame_count += 1
-        original_im0 = im0.copy()
-        _ = counter(original_im0.copy())
-        _ = heatmap(original_im0.copy())
-        _ = heatmapcounter(original_im0.copy())
-        _ = speed(original_im0.copy())
-        _ = queue(original_im0.copy())
-        _ = lineanalytics(original_im0.copy(), frame_count)
-        _ = pieanalytics(original_im0.copy(), frame_count)
-        _ = baranalytics(original_im0.copy(), frame_count)
-        _ = areaanalytics(original_im0.copy(), frame_count)
-        _ = trackzone(original_im0.copy())
-        _ = objectcropper(original_im0.copy())
-        _ = isegment(original_im0.copy())
-        _ = objectblurrer(original_im0.copy())
-        _ = visioneye(original_im0.copy())
-        _ = regioncounter(original_im0.copy())
+        args = [im0.copy(), frame_count] if needs_frame_count else [im0.copy()]
+        _ = solution(*args)
+
     cap.release()
 
-    # Test workouts monitoring
-    safe_download(url=f"{ASSETS_URL}/{POSE_VIDEO}", dir=TMP)
-    cap = cv2.VideoCapture(str(TMP / POSE_VIDEO))
-    assert cap.isOpened(), "Error reading video file"
-    gym = solutions.AIGym(kpts=[5, 11, 13], show=False)
-    while cap.isOpened():
-        success, im0 = cap.read()
-        if not success:
-            break
-        _ = gym(im0)
-    cap.release()
 
-    # Test parking management
+# @pytest.mark.slow
+@pytest.mark.parametrize("name, solution_class, needs_frame_count, video, kwargs", SOLUTIONS)
+def test_solution(name, solution_class, needs_frame_count, video, kwargs):
+    """Test individual Ultralytics solution."""
+    safe_download(url=f"{ASSETS_URL}/{video}", dir=TMP)
+    print(solution_class)
+    solution = solution_class(**kwargs)
+    process_video(solution, str(TMP / video), needs_frame_count)
+
+
+# @pytest.mark.slow
+def test_parking_management():
+    """Test ParkingManagement solution."""
     safe_download(url=f"{ASSETS_URL}/{PARKING_VIDEO}", dir=TMP)
     safe_download(url=f"{ASSETS_URL}/{PARKING_AREAS_JSON}", dir=TMP)
     safe_download(url=f"{ASSETS_URL}/{PARKING_MODEL}", dir=TMP)
-    cap = cv2.VideoCapture(str(TMP / PARKING_VIDEO))
-    assert cap.isOpened(), "Error reading video file"
-    parkingmanager = solutions.ParkingManagement(
+
+    solution = solutions.ParkingManagement(
         json_file=str(TMP / PARKING_AREAS_JSON), model=str(TMP / PARKING_MODEL), show=False
     )
-    while cap.isOpened():
-        success, im0 = cap.read()
-        if not success:
-            break
-        _ = parkingmanager(im0)
-    cap.release()
+    process_video(solution, str(TMP / PARKING_VIDEO))
 
 
-@pytest.mark.slow
-def test_streamlit_predict():
+# @pytest.mark.slow
+def test_streamlit_inference():
     """Test streamlit predict live inference solution."""
     solutions.Inference().inference()

@@ -66,7 +66,7 @@ python interactive_tracker.py
 
 
 Tip:
--------
+---
 - Use lightweight models (`yolo11n`, `yolo11s`) for smoother real-time performance
 - NCNN models are best for Raspberry Pi and ARM-based devices
 
@@ -78,7 +78,7 @@ Tip:
 
 ## License & Disclaimer
 
-This project is released under the **AGPL-3.0 license**. For full licensing terms, please visit the [Ultralytics YOLO License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE). 
+This project is released under the **AGPL-3.0 license**. For full licensing terms, please visit the [Ultralytics YOLO License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
 
 It is intended solely for educational and demonstration purposes. Please use it responsibly and at your own discretion. The author assumes no liability for any misuse or unintended consequences. Feedback, forks, and contributions are highly encouraged and always appreciated!
 
@@ -100,16 +100,18 @@ USE_GPU = False  # Set True if running with CUDA
 MODEL_PATH_GPU = "yolo11s.pt"
 MODEL_PATH_CPU = "yolo11s.pt"
 
-SHOW_FPS = True                   # If True, shows current FPS in top-left corner
+SHOW_FPS = True  # If True, shows current FPS in top-left corner
 
-CONFIDENCE_THRESHOLD = 0.3        # Min confidence for object detection (lower = more detections, possibly more false positives)
-IOU_THRESHOLD = 0.3               # IoU threshold for NMS (higher = less overlap allowed)
-MAX_DETECTION = 20                # Maximum objects per frame (increase for crowded scenes)
+CONFIDENCE_THRESHOLD = (
+    0.3  # Min confidence for object detection (lower = more detections, possibly more false positives)
+)
+IOU_THRESHOLD = 0.3  # IoU threshold for NMS (higher = less overlap allowed)
+MAX_DETECTION = 20  # Maximum objects per frame (increase for crowded scenes)
 
-TRACKER_TYPE = "bytetrack.yaml"   # Tracker config: 'bytetrack.yaml', 'botsort.yaml', etc.
+TRACKER_TYPE = "bytetrack.yaml"  # Tracker config: 'bytetrack.yaml', 'botsort.yaml', etc.
 TRACKER_ARGS = {
-    "persist": True,              # Keep frames history as a stream for contineous tracking
-    "verbose": False              # Print debug info from tracker
+    "persist": True,  # Keep frames history as a stream for continuous tracking
+    "verbose": False,  # Print debug info from tracker
 }
 
 
@@ -131,7 +133,7 @@ else:
 # ================================
 # 🎥 VIDEO SOURCE
 # ================================
-cap = cv2.VideoCapture(0) # Replace with video path if needed
+cap = cv2.VideoCapture(0)  # Replace with video path if needed
 
 selected_object_id = None
 selected_bbox = None

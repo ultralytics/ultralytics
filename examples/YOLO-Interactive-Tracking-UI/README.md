@@ -77,7 +77,6 @@ Install PyTorch based on your system and CUDA version:
 
 - **Official YOLO Models:**  
   For official YOLO models (e.g., `yolov11s.pt` or `yolov8s.pt`), simply specify the model name as `MODEL_PATH_CPU` or `MODEL_PATH_GPU`. These models will be auto-downloaded and cached, or you can manually download them from [Ultralytics Assets Releases](https://github.com/ultralytics/assets/releases) and place them in the folder.
-  
 - **Custom YOLO Models:**  
   If you're using a custom YOLO model, ensure the model file is in the project folder or provide its relative path in the parameters.
 
@@ -89,7 +88,7 @@ Install PyTorch based on your system and CUDA version:
 
 ### Step 2: Configure the Script
 
-Edit the top global paramters of `interactive_tracker.py`:
+Edit the top global parameters of `interactive_tracker.py`:
 
 ```python
 USE_GPU = False  # Set to True for running on GPU
@@ -99,14 +98,15 @@ MODEL_PATH_GPU = "yolov11s.pt"  # Model that will be run if USE_GPU = True
 MODEL_PATH_CPU = "yolov11s.pt"  # or "yolov11s_ncnn_model", Model that will be run if USE_GPU = False
 
 
-SHOW_FPS = True                   # If True, shows current FPS in top-left corner
+SHOW_FPS = True  # If True, shows current FPS in top-left corner
 
-CONFIDENCE_THRESHOLD = 0.3        # Min confidence for object detection (lower = more detections, possibly more false positives)
-IOU_THRESHOLD = 0.3               # IoU threshold for NMS (higher = less overlap allowed)
-MAX_DETECTION = 20                # Maximum objects per frame (increase for crowded scenes)
+CONFIDENCE_THRESHOLD = (
+    0.3  # Min confidence for object detection (lower = more detections, possibly more false positives)
+)
+IOU_THRESHOLD = 0.3  # IoU threshold for NMS (higher = less overlap allowed)
+MAX_DETECTION = 20  # Maximum objects per frame (increase for crowded scenes)
 
-TRACKER_TYPE = "bytetrack.yaml"   # Tracker config: 'bytetrack.yaml', 'botsort.yaml', etc.
-
+TRACKER_TYPE = "bytetrack.yaml"  # Tracker config: 'bytetrack.yaml', 'botsort.yaml', etc.
 ```
 
 ---
@@ -125,7 +125,6 @@ python interactive_tracker.py
 - 🔄 Press `c` → Cancel/reset tracking
 - ❌ Press `q` → Quit the app
 
-
 ---
 
 ## Author
@@ -133,9 +132,8 @@ python interactive_tracker.py
 - Connect with author: [here](https://www.linkedin.com/in/alireza787b)
 - Published Date ![Published Date](https://img.shields.io/badge/published_Date-2025--04--01-purple)
 
-
 ## License & Disclaimer
 
-This project is released under the **AGPL-3.0 license**. For full licensing terms, please visit the [Ultralytics YOLO License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE). 
+This project is released under the **AGPL-3.0 license**. For full licensing terms, please visit the [Ultralytics YOLO License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
 
 It is intended solely for educational and demonstration purposes. Please use it responsibly and at your own discretion. The author assumes no liability for any misuse or unintended consequences. Feedback, forks, and contributions are highly encouraged and always appreciated!

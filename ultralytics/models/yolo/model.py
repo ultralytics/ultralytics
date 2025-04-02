@@ -15,6 +15,7 @@ from ultralytics.nn.tasks import (
     YOLOESegModel,
 )
 from ultralytics.utils import ROOT, yaml_load
+from ultralytics.data.build import load_inference_source
 
 
 class YOLO(Model):
@@ -290,10 +291,10 @@ class YOLOE(Model):
         self.predictor.setup_model(model=self.model)
 
         if refer_image is None:
-            self.predictor.setup_source(source)  # setup source to get source type
-            if self.predictor.dataset.mode in {"video", "stream"}:
+            dataset = load_inference_source(source)
+            if dataset.mode in {"video", "stream"}:
                 # NOTE: set the first frame as refer image for videos/streams inference
-                refer_image = next(iter(self.predictor.dataset))[1][0]
+                refer_image = next(iter(dataset))[1][0]
         if refer_image is not None and len(visual_prompts):
             vpe = self.predictor.get_vpe(refer_image)
             self.model.set_classes(self.model.names, vpe)

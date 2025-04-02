@@ -4,7 +4,6 @@
 # It includes every solution excluding DistanceCalculation and Security Alarm System.
 
 import cv2
-import pytest
 
 from tests import TMP
 from ultralytics import solutions

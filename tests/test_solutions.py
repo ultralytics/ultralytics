@@ -129,7 +129,6 @@ def process_video(solution, video_path, needs_frame_count=False):
 def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     """Test individual Ultralytics solution."""
     safe_download(url=f"{ASSETS_URL}/{video}", dir=TMP)
-    print(solution_class)
     solution = solution_class(**kwargs)
     process_video(solution, str(TMP / video), needs_frame_count)
 

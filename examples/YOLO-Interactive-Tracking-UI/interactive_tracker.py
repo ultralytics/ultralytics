@@ -1,12 +1,12 @@
 """
-YOLO Interactive Tracking UI (CPU & GPU Toggle).
+YOLO Interactive Tracking UI (CPU & GPU Enabled).
 ===============================================
 
 An educational demo showcasing real-time object detection and interactive tracking
 using Ultralytics YOLO + OpenCV — with a clean UI, click-to-track functionality,
 and live terminal feedback.
 
-🎯 Features:
+Features:
 ------------
 - Real-time object detection and visual tracking
 - Click on any detected object to begin tracking it
@@ -16,13 +16,13 @@ and live terminal feedback.
   - ✅ PyTorch (.pt) models — for GPU inference (Jetson, CUDA-enabled PC)
   - ✅ NCNN (.param + .bin) models — for CPU-only environments (Raspberry Pi, ARM)
 
-🧠 CPU vs GPU Support:
+CPU vs GPU Support:
 ----------------------
 - Set `USE_GPU = True` for GPU (requires PyTorch and CUDA)
 - Set `USE_GPU = False` for CPU-only (NCNN models)
 - Toggle easily in the config section at the top of the script
 
-🧩 Requirements:
+Requirements:
 ----------------
 - Python 3.8 or higher
 - Install core dependencies:
@@ -30,54 +30,59 @@ and live terminal feedback.
   pip install ultralytics opencv-python
   ```
 
-🔧 For PyTorch Models:
+
+For PyTorch Models:
 ----------------------
-If using a `.pt` model (GPU-enabled):
+If using a `.pt` model:
 - Visit the official PyTorch install page:
   👉 https://pytorch.org/get-started/locally/
 - Follow instructions based on your system (CUDA or CPU)
 
-📦 Model File Examples:
+Model File Examples:
 ------------------------
-Place your model in the same folder or use an absolute path.
+Place your model in the same folder or use an absolute path or if using official model, let the system automatically download the model.
 
 Examples:
-    - `yolov8n.pt`           → PyTorch model for GPU
-    - `yolov8n_ncnn_model`   → NCNN model for CPU (consists of `.param` + `.bin`)
+    - `yolov11s.pt`           → PyTorch model
+    - `yolov11s_ncnn_model`   → NCNN model (consists of `.param` + `.bin`)
 
-🎮 Controls:
+Controls:
 ------------
 - 🖱️  Click on any object to track it
 - 🔄 Press `c` to reset tracking
 - ❌ Press `q` to quit the application
 
-🚀 How to Run:
+How to Run:
 --------------
 1. Open the script and configure these lines at the top:
 
 USE_GPU = True  # or False
-MODEL_PATH_GPU = "yolov8n.pt"
-MODEL_PATH_CPU = "yolov8n_ncnn_model"
+MODEL_PATH_GPU = "yolov11s.pt"
+MODEL_PATH_CPU = "yolov11s_ncnn_model"
 
 2. Then run:
 
 python interactive_tracker.py
 
 
-💡 Tip:
+Tip:
 -------
-- Use lightweight models (`yolov8n`, `yolov8s`) for smoother real-time performance
+- Use lightweight models (`yolo11n`, `yolo11s`) for smoother real-time performance
 - NCNN models are best for Raspberry Pi and ARM-based devices
 
-🧑‍💻 Author:
-------------
-Alireza Ghaderi
-📅 March 2025
-🔗 https://linkedin.com/in/alireza787b
+## Author
 
-🔒 License:
------------
-This code is for educational and demo use only. Use at your own discretion.
+- Connect with author: [here](https://www.linkedin.com/in/alireza787b)
+- Published Date ![Published Date](https://img.shields.io/badge/published_Date-2025--04--01-purple)
+
+
+## License & Disclaimer
+
+This project is released under the **AGPL-3.0 license**. For full licensing terms, please visit the [Ultralytics YOLO License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE). 
+
+It is intended solely for educational and demonstration purposes. Please use it responsibly and at your own discretion. The author assumes no liability for any misuse or unintended consequences. Feedback, forks, and contributions are highly encouraged and always appreciated!
+
+
 """
 
 import time
@@ -95,12 +100,18 @@ USE_GPU = False  # Set True if running with CUDA
 MODEL_PATH_GPU = "yolo11s.pt"
 MODEL_PATH_CPU = "yolo11s.pt"
 
-SHOW_FPS = True
-CONFIDENCE_THRESHOLD = 0.3
-IOU_THRESHOLD = 0.3
-MAX_DETECTION = 20
-TRACKER_TYPE = "bytetrack.yaml"
-TRACKER_ARGS = {"persist": True, "verbose": False}
+SHOW_FPS = True                   # If True, shows current FPS in top-left corner
+
+CONFIDENCE_THRESHOLD = 0.3        # Min confidence for object detection (lower = more detections, possibly more false positives)
+IOU_THRESHOLD = 0.3               # IoU threshold for NMS (higher = less overlap allowed)
+MAX_DETECTION = 20                # Maximum objects per frame (increase for crowded scenes)
+
+TRACKER_TYPE = "bytetrack.yaml"   # Tracker config: 'bytetrack.yaml', 'botsort.yaml', etc.
+TRACKER_ARGS = {
+    "persist": True,              # Keep frames history as a stream for contineous tracking
+    "verbose": False              # Print debug info from tracker
+}
+
 
 colors = Colors()
 
@@ -120,7 +131,7 @@ else:
 # ================================
 # 🎥 VIDEO SOURCE
 # ================================
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0) # Replace with video path if needed
 
 selected_object_id = None
 selected_bbox = None

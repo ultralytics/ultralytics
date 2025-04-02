@@ -292,7 +292,8 @@ class BasePredictor:
 
         with self._lock:  # for thread-safe inference
             # Setup source every time predict is called
-            self.setup_source(source if source is not None else self.args.source)
+            if not self.dataset:
+                self.setup_source(source if source is not None else self.args.source)
 
             # Check if save_dir/ label file exists
             if self.args.save or self.args.save_txt:

@@ -297,15 +297,16 @@ class C2f(nn.Module):
 
     def forward(self, x):
         """Forward pass through C2f layer."""
-        y = list(self.cv1(x).chunk(2, 1))
-        y.extend(m(y[-1]) for m in self.m)
+        y = [self.cv1(x)]
+        split = y[0].chunk(2, 1)[1]
+        y.extend(m(y[-1] if i else split) for i, m in enumerate(self.m))
         return self.cv2(torch.cat(y, 1))
 
     def forward_split(self, x):
         """Forward pass using split() instead of chunk()."""
-        y = self.cv1(x).split((self.c, self.c), 1)
-        y = [y[0], y[1]]
-        y.extend(m(y[-1]) for m in self.m)
+        y = [self.cv1(x)]
+        split = y[0].split((self.c, self.c), 1)[1]
+        y.extend(m(y[-1] if i else split) for i, m in enumerate(self.m))
         return self.cv2(torch.cat(y, 1))
 
 

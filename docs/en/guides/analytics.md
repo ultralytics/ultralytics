@@ -38,7 +38,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
     === "CLI"
 
         ```bash
-         yolo solutions analytics show=True
+        yolo solutions analytics show=True
 
         # pass the source
         yolo solutions analytics source="path/to/video/file.mp4"

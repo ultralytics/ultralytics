@@ -276,30 +276,26 @@ class RepConv(nn.Module):
         if hasattr(self, "id_tensor"):
             self.__delattr__("id_tensor")
 
+
 # BiFPNLayer Implementation
 class BiFPN(nn.Module):
-    def __init__(self, input_channels,
-                 output_channels):
+    def __init__(self, input_channels, output_channels):
         super().__init__()
         # Convolutional layers for feature fusion
-        self.conv1 = nn.Conv2d(input_channels,
-                               input_channels // 2,
-                               kernel_size=1)
-        self.conv2 = nn.Conv2d(input_channels // 2,
-                               output_channels,
-                               kernel_size=3,
-                               padding=1)
-        
+        self.conv1 = nn.Conv2d(input_channels, input_channels // 2, kernel_size=1)
+        self.conv2 = nn.Conv2d(input_channels // 2, output_channels, kernel_size=3, padding=1)
+
         # Activation function
         self.relu = nn.ReLU()
 
-    def forward(self,x):
+    def forward(self, x):
         print("First shape: ", x.shape)
         x = self.relu(self.conv1(x))
         print("Second shape: ", x.shape)
         x = self.relu(self.conv2(x))
         print("Third shape: ", x.shape)
         return x
+
 
 class ChannelAttention(nn.Module):
     """Channel-attention module https://github.com/open-mmlab/mmdetection/tree/v3.0.0rc1/configs/rtmdet."""
@@ -375,10 +371,11 @@ class Index(nn.Module):
         """
         return x[self.index]
 
+
 ##########################################
 class BiFPN_Concat2(nn.Module):
     def __init__(self, dimension=1):
-        super(BiFPN_Concat2, self).__init__()
+        super().__init__()
         self.d = dimension
         self.w = nn.Parameter(torch.ones(2, dtype=torch.float32), requires_grad=True)
         self.epsilon = 0.0001
@@ -386,13 +383,13 @@ class BiFPN_Concat2(nn.Module):
     def forward(self, x):
         w = self.w
         weight = w / (torch.sum(w, dim=0) + self.epsilon)
-        x = [weight[0] * x[0], weight[1] *x [1]]
+        x = [weight[0] * x[0], weight[1] * x[1]]
         return torch.cat(x, self.d)
 
 
 class BiFPN_Concat3(nn.Module):
     def __init__(self, dimension=1):
-        super(BiFPN_Concat3, self).__init__()
+        super().__init__()
         self.d = dimension
         self.w = nn.Parameter(torch.ones(3, dtype=torch.float32), requires_grad=True)
         self.epsilon = 0.0001

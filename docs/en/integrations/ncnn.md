@@ -91,7 +91,7 @@ Before diving into the usage instructions, it's important to note that while all
 
           ```bash
           # Export a YOLO11n PyTorch model to NCNN format
-          yolo export model=yolo11n.pt format=ncnn  # creates '/yolo11n_ncnn_model'
+          yolo export model=yolo11n.pt format=ncnn # creates '/yolo11n_ncnn_model'
 
           # Run inference with the exported model
           yolo predict model='./yolo11n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
@@ -148,7 +148,7 @@ To export your Ultralytics YOLO11 model to NCNN format, follow these steps:
 
 - **CLI**: Use the `yolo` command with the `export` argument.
     ```bash
-    yolo export model=yolo11n.pt format=ncnn  # creates '/yolo11n_ncnn_model'
+    yolo export model=yolo11n.pt format=ncnn # creates '/yolo11n_ncnn_model'
     ```
 
 For detailed export options, check the [Export](../modes/export.md) page in the documentation.

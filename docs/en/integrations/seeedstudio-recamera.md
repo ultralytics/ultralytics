@@ -74,7 +74,7 @@ For detailed instructions and best practices related to the installation process
 
         ```bash
         # Export a YOLO11n PyTorch model to ONNX format
-        yolo export model=yolo11n.pt format=onnx  # creates 'yolo11n.onnx'
+        yolo export model=yolo11n.pt format=onnx # creates 'yolo11n.onnx'
         ```
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).

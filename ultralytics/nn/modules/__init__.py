@@ -16,9 +16,8 @@ Example:
     os.system(f"onnxslim {f} {f} && open {f}")  # pip install onnxslim
     ```
 """
-from .BiFPN import (BiFPN_Concat, BiFPN_Concat2, BiFPN_Concat3)
 
-
+from .BiFPN import BiFPN_Concat, BiFPN_Concat2, BiFPN_Concat3
 from .block import (
     C1,
     C2,
@@ -62,6 +61,8 @@ from .block import (
 )
 from .conv import (
     CBAM,
+    BiFPN_Concat2,
+    BiFPN_Concat3,
     ChannelAttention,
     Concat,
     Conv,
@@ -75,8 +76,6 @@ from .conv import (
     LightConv,
     RepConv,
     SpatialAttention,
-    BiFPN_Concat2,
-    BiFPN_Concat3,
 )
 from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment, WorldDetect, v10Detect
 from .transformer import (

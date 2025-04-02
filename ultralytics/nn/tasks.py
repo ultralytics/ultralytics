@@ -25,6 +25,8 @@ from ultralytics.nn.modules import (
     SPPF,
     AConv,
     ADown,
+    BiFPN_Concat2,
+    BiFPN_Concat3,
     Bottleneck,
     BottleneckCSP,
     C2f,
@@ -63,7 +65,6 @@ from ultralytics.nn.modules import (
     TorchVision,
     WorldDetect,
     v10Detect,
-    BiFPN,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -87,11 +88,11 @@ from ultralytics.utils.torch_utils import (
     time_sync,
 )
 
-from ultralytics.nn.modules import (BiFPN_Concat, BiFPN_Concat2, BiFPN_Concat3)
 try:
     import thop
 except ImportError:
     thop = None
+
 
 class BaseModel(torch.nn.Module):
     """The BaseModel class serves as a base class for all the models in the Ultralytics YOLO family."""

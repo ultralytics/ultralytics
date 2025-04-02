@@ -1,13 +1,9 @@
 
-import math
-import warnings
-
 import torch
 import torch.nn as nn
 
 __all__ = ["BiFPN_Concat", "BiFPN_Concat2", "BiFPN_Concat3"]
 
-from sympy.physics.paulialgebra import epsilon
 
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
@@ -17,6 +13,7 @@ def autopad(k, p=None, d=1):  # kernel, padding, dilation
     if p is None:
         p = k // 2 if isinstance(k, int) else [x // 2 for x in k]  # auto-pad
     return p
+
 
 class Conv(nn.Module):
     # Standard convolution with args(ch_in, ch_out, kernel, stride, padding, groups, dilation, activation)
@@ -37,16 +34,16 @@ class Conv(nn.Module):
 
 class BiFPN_Concat(nn.Module):
     def __init__(self, dimension=1):
-        super(BiFPN_Concat, self).__init__()
+        super().__init__()
         self.d = dimension
         self.w = nn.Parameter(torch.ones(3, dtype=torch.float32), requires_grad=True)
         self.epsilon = 0.0001
 
     def forward(self, x):
-            w = self.w
-            weight = w / (torch.sum(w, dim=0) + self.epsilon)
-            x = [weight[0] * x[0], weight[1] * x[1]]
-            return torch.cat(x, self.d)
+        w = self.w
+        weight = w / (torch.sum(w, dim=0) + self.epsilon)
+        x = [weight[0] * x[0], weight[1] * x[1]]
+        return torch.cat(x, self.d)
 
 
 # class BiFPN_Concat(nn.Module):
@@ -76,9 +73,9 @@ class BiFPN_Concat(nn.Module):
 #         return x * torch.sigmoid(x)
 #
 # class BiFPN_Concat(nn.Module):
-#     def __init__(self, lenght):
+#     def __init__(self, length):
 #         super().__init__()
-#         self.weight = nn.Parameter(torch.ones(lenght, dtype=torch.float32), requires_grad=True)
+#         self.weight = nn.Parameter(torch.ones(length, dtype=torch.float32), requires_grad=True)
 #         self.swish = swish()
 #         self.epsilon = 0.0001
 #
@@ -89,9 +86,10 @@ class BiFPN_Concat(nn.Module):
 #         result = torch.sum(stacked_feature_maps, dim=0)
 #         return result
 
+
 class BiFPN_Concat2(nn.Module):
     def __init__(self, dimension=1):
-        super(BiFPN_Concat2, self).__init__()
+        super().__init__()
         self.d = dimension
         self.w = nn.Parameter(torch.ones(2, dtype=torch.float32), requires_grad=True)
         self.epsilon = 0.0001
@@ -99,13 +97,13 @@ class BiFPN_Concat2(nn.Module):
     def forward(self, x):
         w = self.w
         weight = w / (torch.sum(w, dim=0) + self.epsilon)
-        x = [weight[0] * x[0], weight[1] *x [1]]
+        x = [weight[0] * x[0], weight[1] * x[1]]
         return torch.cat(x, self.d)
 
 
 class BiFPN_Concat3(nn.Module):
     def __init__(self, dimension=1):
-        super(BiFPN_Concat3, self).__init__()
+        super().__init__()
         self.d = dimension
         self.w = nn.Parameter(torch.ones(2, dtype=torch.float32), requires_grad=True)
         self.epsilon = 0.0001

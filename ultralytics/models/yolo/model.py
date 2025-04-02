@@ -267,7 +267,8 @@ class YOLOE(Model):
                 f"{len(visual_prompts['cls'])} respectively"
             )
         self.predictor = (predictor or self._smart_load("predictor"))(
-            overrides={"task": "segment", "mode": "predict", "save": False, "verbose": False}, _callbacks=self.callbacks
+            overrides={"task": self.model.task, "mode": "predict", "save": False, "verbose": refer_image is None},
+            _callbacks=self.callbacks,
         )
 
         if len(visual_prompts):

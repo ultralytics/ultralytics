@@ -84,10 +84,10 @@ To run the tracker on video streams, use a trained Detect, Segment or Pose model
 
         ```bash
         # Perform tracking with various models using the command line interface
-        yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4"  # Official Detect model
+        yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4"      # Official Detect model
         yolo track model=yolo11n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # Official Segment model
-        yolo track model=yolo11n-pose.pt source="https://youtu.be/LNwODJXcvt4"  # Official Pose model
-        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4"  # Custom trained model
+        yolo track model=yolo11n-pose.pt source="https://youtu.be/LNwODJXcvt4" # Official Pose model
+        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4" # Custom trained model
 
         # Track using ByteTrack tracker
         yolo track model=path/to/best.pt tracker="bytetrack.yaml"
@@ -231,29 +231,30 @@ In the following example, we demonstrate how to utilize YOLO11's tracking capabi
 
         if success:
             # Run YOLO11 tracking on the frame, persisting tracks between frames
-            results = model.track(frame, persist=True)
+            result = model.track(frame, persist=True)[0]
 
             # Get the boxes and track IDs
-            boxes = results[0].boxes.xywh.cpu()
-            track_ids = results[0].boxes.id.int().cpu().tolist()
+            if result.boxes and result.boxes.id is not None:
+                boxes = result.boxes.xywh.cpu()
+                track_ids = result.boxes.id.int().cpu().tolist()
 
-            # Visualize the results on the frame
-            annotated_frame = results[0].plot()
+                # Visualize the result on the frame
+                frame = result.plot()
 
-            # Plot the tracks
-            for box, track_id in zip(boxes, track_ids):
-                x, y, w, h = box
-                track = track_history[track_id]
-                track.append((float(x), float(y)))  # x, y center point
-                if len(track) > 30:  # retain 90 tracks for 90 frames
-                    track.pop(0)
+                # Plot the tracks
+                for box, track_id in zip(boxes, track_ids):
+                    x, y, w, h = box
+                    track = track_history[track_id]
+                    track.append((float(x), float(y)))  # x, y center point
+                    if len(track) > 30:  # retain 30 tracks for 30 frames
+                        track.pop(0)
 
-                # Draw the tracking lines
-                points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
-                cv2.polylines(annotated_frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
+                    # Draw the tracking lines
+                    points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
+                    cv2.polylines(frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
 
             # Display the annotated frame
-            cv2.imshow("YOLO11 Tracking", annotated_frame)
+            cv2.imshow("YOLO11 Tracking", frame)
 
             # Break the loop if 'q' is pressed
             if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -275,13 +276,13 @@ In the provided Python script, we make use of Python's `threading` module to run
 
 To ensure that each thread receives the correct parameters (the video file, the model to use and the file index), we define a function `run_tracker_in_thread` that accepts these parameters and contains the main tracking loop. This function reads the video frame by frame, runs the tracker, and displays the results.
 
-Two different models are used in this example: `yolo11n.pt` and `yolo11n-seg.pt`, each tracking objects in a different video file. The video files are specified in `video_file1` and `video_file2`.
+Two different models are used in this example: `yolo11n.pt` and `yolo11n-seg.pt`, each tracking objects in a different video file. The video files are specified in `SOURCES`.
 
 The `daemon=True` parameter in `threading.Thread` means that these threads will be closed as soon as the main program finishes. We then start the threads with `start()` and use `join()` to make the main thread wait until both tracker threads have finished.
 
 Finally, after all threads have completed their task, the windows displaying the results are closed using `cv2.destroyAllWindows()`.
 
-!!! example "Streaming for-loop with tracking"
+!!! example "Multithreaded tracking implementation"
 
     ```python
     import threading
@@ -344,7 +345,7 @@ Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosys
 
 ### What is Multi-Object Tracking and how does Ultralytics YOLO support it?
 
-Multi-object tracking in video analytics involves both identifying objects and maintaining a unique ID for each detected object across video frames. Ultralytics YOLO supports this by providing real-time tracking along with object IDs, facilitating tasks such as security surveillance and sports analytics. The system uses trackers like BoT-SORT and ByteTrack, which can be configured via YAML files.
+Multi-object tracking in video analytics involves both identifying objects and maintaining a unique ID for each detected object across video frames. Ultralytics YOLO supports this by providing real-time tracking along with object IDs, facilitating tasks such as security surveillance and sports analytics. The system uses trackers like [BoT-SORT](https://github.com/NirAharon/BoT-SORT) and [ByteTrack](https://github.com/ifzhang/ByteTrack), which can be configured via YAML files.
 
 ### How do I configure a custom tracker for Ultralytics YOLO?
 
@@ -418,11 +419,13 @@ To run object tracking on multiple video streams simultaneously, you can use Pyt
 
 Multi-object tracking with Ultralytics YOLO has numerous applications, including:
 
-- **Transportation:** Vehicle tracking for traffic management and autonomous driving.
+- **Transportation:** Vehicle tracking for traffic management and [autonomous driving](https://www.ultralytics.com/blog/ai-in-self-driving-cars).
 - **Retail:** People tracking for in-store analytics and security.
 - **Aquaculture:** Fish tracking for monitoring aquatic environments.
+- **Sports Analytics:** Tracking players and equipment for performance analysis.
+- **Security Systems:** [Monitoring suspicious activities](https://www.ultralytics.com/blog/security-alarm-system-projects-with-ultralytics-yolov8) and creating [security alarms](https://docs.ultralytics.com/guides/security-alarm-system/).
 
-These applications benefit from Ultralytics YOLO's ability to process high-frame-rate videos in real time.
+These applications benefit from Ultralytics YOLO's ability to process high-frame-rate videos in real time with exceptional accuracy.
 
 ### How can I visualize object tracks over multiple video frames with Ultralytics YOLO?
 
@@ -467,4 +470,4 @@ To visualize object tracks over multiple video frames, you can use the YOLO mode
     cv2.destroyAllWindows()
     ```
 
-This script will plot the tracking lines showing the movement paths of the tracked objects over time.
+This script will plot the tracking lines showing the movement paths of the tracked objects over time, providing valuable insights into object behavior and patterns.

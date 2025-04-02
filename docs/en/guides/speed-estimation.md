@@ -8,7 +8,7 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 
 ## What is Speed Estimation?
 
-[Speed estimation](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects) is the process of calculating the rate of movement of an object within a given context, often employed in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications. Using [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/) you can now calculate the speed of object using [object tracking](../modes/track.md) alongside distance and time data, crucial for tasks like traffic and surveillance. The accuracy of speed estimation directly influences the efficiency and reliability of various applications, making it a key component in the advancement of intelligent systems and real-time decision-making processes.
+[Speed estimation](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects) is the process of calculating the rate of movement of an object within a given context, often employed in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications. Using [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/) you can now calculate the speed of objects using [object tracking](../modes/track.md) alongside distance and time data, crucial for tasks like traffic monitoring and surveillance. The accuracy of speed estimation directly influences the efficiency and reliability of various applications, making it a key component in the advancement of intelligent systems and real-time decision-making processes.
 
 <p align="center">
   <br>
@@ -25,10 +25,10 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 
     For deeper insights into speed estimation, check out our blog post: [Ultralytics YOLO11 for Speed Estimation in Computer Vision Projects](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects)
 
-## Advantages of Speed Estimation?
+## Advantages of Speed Estimation
 
 - **Efficient Traffic Control:** Accurate speed estimation aids in managing traffic flow, enhancing safety, and reducing congestion on roadways.
-- **Precise Autonomous Navigation:** In autonomous systems like self-driving cars, reliable speed estimation ensures safe and accurate vehicle navigation.
+- **Precise Autonomous Navigation:** In autonomous systems like [self-driving cars](https://www.ultralytics.com/solutions/ai-in-automotive), reliable speed estimation ensures safe and accurate vehicle navigation.
 - **Enhanced Surveillance Security:** Speed estimation in surveillance analytics helps identify unusual behaviors or potential threats, improving the effectiveness of security measures.
 
 ## Real World Applications
@@ -38,9 +38,9 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 | ![Speed Estimation on Road using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/speed-estimation-on-road-using-ultralytics-yolov8.avif) | ![Speed Estimation on Bridge using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/speed-estimation-on-bridge-using-ultralytics-yolov8.avif) |
 |                                                          Speed Estimation on Road using Ultralytics YOLO11                                                           |                                                           Speed Estimation on Bridge using Ultralytics YOLO11                                                            |
 
-???+ warning "Speed is Estimate"
+???+ warning "Speed is an Estimate"
 
-    Speed will be an estimate and may not be completely accurate. Additionally, the estimation can vary depending on GPU speed.
+    Speed will be an estimate and may not be completely accurate. Additionally, the estimation can vary depending on GPU speed and environmental factors.
 
 !!! example "Speed Estimation using Ultralytics YOLO"
 
@@ -51,10 +51,10 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
         yolo solutions speed show=True
 
         # Pass a source video
-        yolo solutions speed source="path/to/video/file.mp4"
+        yolo solutions speed source="path/to/video.mp4"
 
         # Pass region coordinates
-        yolo solutions speed region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
+        yolo solutions speed region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
         ```
 
     === "Python"
@@ -64,7 +64,7 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 
         from ultralytics import solutions
 
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
 
         # Video writer
@@ -132,7 +132,7 @@ import cv2
 
 from ultralytics import solutions
 
-cap = cv2.VideoCapture("path/to/video/file.mp4")
+cap = cv2.VideoCapture("path/to/video.mp4")
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 video_writer = cv2.VideoWriter("speed_estimation.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
@@ -163,13 +163,13 @@ Using Ultralytics YOLO11 for speed estimation offers significant advantages in t
 
 - **Enhanced Safety**: Accurately estimate vehicle speeds to detect over-speeding and improve road safety.
 - **Real-Time Monitoring**: Benefit from YOLO11's real-time object detection capability to monitor traffic flow and congestion effectively.
-- **Scalability**: Deploy the model on various hardware setups, from edge devices to servers, ensuring flexible and scalable solutions for large-scale implementations.
+- **Scalability**: Deploy the model on various hardware setups, from [edge devices](https://docs.ultralytics.com/guides/nvidia-jetson/) to servers, ensuring flexible and scalable solutions for large-scale implementations.
 
 For more applications, see [advantages of speed estimation](#advantages-of-speed-estimation).
 
 ### Can YOLO11 be integrated with other AI frameworks like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) or [PyTorch](https://www.ultralytics.com/glossary/pytorch)?
 
-Yes, YOLO11 can be integrated with other AI frameworks like TensorFlow and PyTorch. Ultralytics provides support for exporting YOLO11 models to various formats like ONNX, TensorRT, and CoreML, ensuring smooth interoperability with other ML frameworks.
+Yes, YOLO11 can be integrated with other AI frameworks like TensorFlow and PyTorch. Ultralytics provides support for exporting YOLO11 models to various formats like [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), and [CoreML](../integrations/coreml.md), ensuring smooth interoperability with other ML frameworks.
 
 To export a YOLO11 model to ONNX format:
 
@@ -186,14 +186,3 @@ The [accuracy](https://www.ultralytics.com/glossary/accuracy) of speed estimatio
 **Note**: Always consider margin of error and validate the estimates with ground truth data when possible.
 
 For further accuracy improvement tips, check the [Arguments `SpeedEstimator` section](#speedestimator-arguments).
-
-### Why choose Ultralytics YOLO11 over other object detection models like TensorFlow Object Detection API?
-
-Ultralytics YOLO11 offers several advantages over other object detection models, such as the TensorFlow Object Detection API:
-
-- **Real-Time Performance**: YOLO11 is optimized for real-time detection, providing high speed and accuracy.
-- **Ease of Use**: Designed with a user-friendly interface, YOLO11 simplifies model training and deployment.
-- **Versatility**: Supports multiple tasks, including object detection, segmentation, and pose estimation.
-- **Community and Support**: YOLO11 is backed by an active community and extensive documentation, ensuring developers have the resources they need.
-
-For more information on the benefits of YOLO11, explore our detailed [model page](../models/yolov8.md).

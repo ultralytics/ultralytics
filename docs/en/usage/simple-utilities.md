@@ -84,7 +84,7 @@ convert_segment_masks_to_yolo_seg(masks_dir="path/to/masks_dir", output_dir="pat
 
 ### Convert COCO into YOLO Format
 
-Use this to convert [COCO](https://docs.ultralytics.com/datasets/detect/coco) JSON annotations into the YOLO format. For object detection (bounding box) datasets, set both `use_segments` and `use_keypoints` to `False`.
+Use this to convert [COCO](https://docs.ultralytics.com/datasets/detect/coco/) JSON annotations into the YOLO format. For object detection (bounding box) datasets, set both `use_segments` and `use_keypoints` to `False`.
 
 ```python
 from ultralytics.data.converter import convert_coco
@@ -99,7 +99,7 @@ convert_coco(
 
 For additional information about the `convert_coco` function, [visit the reference page](../reference/data/converter.md#ultralytics.data.converter.convert_coco).
 
-### Get [Bounding Box](https://www.ultralytics.com/glossary/bounding-box) Dimensions
+### Get Bounding Box Dimensions
 
 ```python
 import cv2
@@ -397,7 +397,7 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
         from ultralytics.utils.plotting import colors
 
         # User defined video path and model file
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         model = YOLO(model="yolo11s-seg.pt")  # Model file i.e. yolo11s.pt or yolo11m-seg.pt
 
         if not cap.isOpened():
@@ -573,7 +573,7 @@ from ultralytics.utils.plotting import colors
 
 model = YOLO("yolo11s.pt")
 names = model.names
-cap = cv2.VideoCapture("path/to/video/file.mp4")
+cap = cv2.VideoCapture("path/to/video.mp4")
 
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 writer = cv2.VideoWriter("Ultralytics circle annotation.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
@@ -613,7 +613,7 @@ from ultralytics.utils.plotting import colors
 
 model = YOLO("yolo11s.pt")
 names = model.names
-cap = cv2.VideoCapture("path/to/video/file.mp4")
+cap = cv2.VideoCapture("path/to/video.mp4")
 
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 writer = cv2.VideoWriter("Ultralytics text annotation.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
@@ -689,9 +689,9 @@ make_divisible(7, 2)
 
 ## FAQ
 
-### What utilities are included in the Ultralytics package to enhance [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workflows?
+### What utilities are included in the Ultralytics package to enhance machine learning workflows?
 
-The Ultralytics package includes utilities designed to streamline and optimize machine learning workflows. Key utilities include [auto-annotation](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for labeling datasets, converting [COCO](https://www.ultralytics.com/datasets/detect/coco) to YOLO format with [convert_coco](../reference/data/converter.md#ultralytics.data.converter.convert_coco), compressing images, and dataset auto-splitting. These tools reduce manual effort, ensure consistency, and enhance data processing efficiency.
+The Ultralytics package includes utilities designed to streamline and optimize machine learning workflows. Key utilities include [auto-annotation](../reference/data/annotator.md#ultralytics.data.annotator.auto_annotate) for labeling datasets, converting [COCO](https://docs.ultralytics.com/datasets/detect/coco/) to YOLO format with [convert_coco](../reference/data/converter.md#ultralytics.data.converter.convert_coco), compressing images, and dataset auto-splitting. These tools reduce manual effort, ensure consistency, and enhance data processing efficiency.
 
 ### How can I use Ultralytics to auto-label my dataset?
 

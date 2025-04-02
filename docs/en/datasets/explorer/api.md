@@ -326,11 +326,11 @@ ax.set_zlabel("Component 3")
 plt.show()
 ```
 
-Start creating your own CV dataset exploration reports using the Explorer API. For inspiration, check out the
+Start creating your own CV dataset exploration reports using the Explorer API. For inspiration, check out the [VOC Exploration Example](explorer.md).
 
 ## Apps Built Using Ultralytics Explorer
 
-Try our GUI Demo based on Explorer API
+Try our [GUI Demo](dashboard.md) based on Explorer API
 
 ## Coming Soon
 

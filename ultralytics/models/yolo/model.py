@@ -288,7 +288,7 @@ class YOLOE(Model):
             self.predictor.set_prompts(visual_prompts.copy())
 
         self.predictor.setup_model(model=self.model)
-        
+
         if refer_image is None:
             self.predictor.setup_source(source)  # setup source to get source type
             if self.predictor.dataset.mode in {"video", "stream"}:

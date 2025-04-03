@@ -48,7 +48,7 @@ jobs:
           python-version: "3.x"
       - uses: astral-sh/setup-uv@v5
       - name: Install Dependencies
-        run: uv pip install --system ruff black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
+        run: uv pip install --system ruff black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-ultralytics-plugin mkdocs-macros-plugin
       - name: Ruff fixes
         continue-on-error: true
         run: |

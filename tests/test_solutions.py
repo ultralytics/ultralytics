@@ -107,21 +107,21 @@ SOLUTIONS = [
     #     {"crop_dir": str(TMP / "cropped-detections"), "model": MODEL_FILE, "show": SHOW},
     # ),
     # Object blur test
-    (
-        "ObjectBlurrer",
-        solutions.ObjectBlurrer,
-        False,
-        DEMO_VIDEO,
-        {"blur_ratio": 0.5, "model": MODEL_FILE, "show": SHOW},
-    ),
-    # # Instance segmentation test
     # (
-    #     "InstanceSegmentation",
-    #     solutions.InstanceSegmentation,
+    #     "ObjectBlurrer",
+    #     solutions.ObjectBlurrer,
     #     False,
     #     DEMO_VIDEO,
-    #     {"model": "yolo11n-seg.pt", "show": SHOW},
+    #     {"blur_ratio": 0.5, "model": MODEL_FILE, "show": SHOW},
     # ),
+    # Instance segmentation test
+    (
+        "InstanceSegmentation",
+        solutions.InstanceSegmentation,
+        False,
+        DEMO_VIDEO,
+        {"model": "yolo11n-seg.pt", "show": SHOW},
+    ),
     # # Visioneye test
     # ("VisionEye", solutions.VisionEye, False, DEMO_VIDEO, {"model": MODEL_FILE, "show": SHOW}),
     # # Regioncounter test

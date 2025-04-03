@@ -35,10 +35,10 @@ from .utils import (
     get_hash,
     img2label_paths,
     load_dataset_cache_file,
+    pooling_threshold,
     save_dataset_cache_file,
     verify_image,
     verify_image_label,
-    pooling_threshold,
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for YOLOv8

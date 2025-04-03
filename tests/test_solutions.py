@@ -72,22 +72,22 @@ SOLUTIONS = [
     #     DEMO_VIDEO,
     #     {"analytics_type": "line", "model": MODEL_FILE, "show": SHOW},
     # ),
-    # Pie analytics test
-    (
-        "PieAnalytics",
-        solutions.Analytics,
-        True,
-        DEMO_VIDEO,
-        {"analytics_type": "pie", "model": MODEL_FILE, "show": SHOW},
-    ),
-    # # Bar analytics test
+    # # Pie analytics test
     # (
-    #     "BarAnalytics",
+    #     "PieAnalytics",
     #     solutions.Analytics,
     #     True,
     #     DEMO_VIDEO,
-    #     {"analytics_type": "bar", "model": MODEL_FILE, "show": SHOW},
+    #     {"analytics_type": "pie", "model": MODEL_FILE, "show": SHOW},
     # ),
+    # Bar analytics test
+    (
+        "BarAnalytics",
+        solutions.Analytics,
+        True,
+        DEMO_VIDEO,
+        {"analytics_type": "bar", "model": MODEL_FILE, "show": SHOW},
+    ),
     # # Area analytics test
     # (
     #     "AreaAnalytics",

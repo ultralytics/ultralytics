@@ -266,7 +266,7 @@ class SolutionAnnotator(Annotator):
 
         # Draw small circles at the corner points
         for point in reg_pts:
-            cv2.circle(self.im, (point[0], point[1]), thickness * 2, color, -1)  # -1 fills the circle
+            cv2.circle(self.im, (int(point[0]), int(point[1])), thickness * 2, color, -1)  # -1 fills the circle
 
     def queue_counts_display(self, label, points=None, region_color=(255, 255, 255), txt_color=(0, 0, 0)):
         """

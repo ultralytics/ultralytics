@@ -41,21 +41,21 @@ SOLUTIONS = [
     #     {"colormap": cv2.COLORMAP_PARULA, "model": MODEL_FILE, "show": SHOW},
     # ),
     # Heatmap with object counting test
-    (
-        "HeatmapWithRegion",
-        solutions.Heatmap,
-        False,
-        DEMO_VIDEO,
-        {"colormap": cv2.COLORMAP_PARULA, "region": REGION, "model": MODEL_FILE, "show": SHOW},
-    ),
-    # # Speedestimation test
     # (
-    #     "SpeedEstimator",
-    #     solutions.SpeedEstimator,
+    #     "HeatmapWithRegion",
+    #     solutions.Heatmap,
     #     False,
     #     DEMO_VIDEO,
-    #     {"region": REGION, "model": MODEL_FILE, "show": SHOW},
+    #     {"colormap": cv2.COLORMAP_PARULA, "region": REGION, "model": MODEL_FILE, "show": SHOW},
     # ),
+    # Speedestimation test
+    (
+        "SpeedEstimator",
+        solutions.SpeedEstimator,
+        False,
+        DEMO_VIDEO,
+        {"region": REGION, "model": MODEL_FILE, "show": SHOW},
+    ),
     # # Queue management test
     # (
     #     "QueueManager",

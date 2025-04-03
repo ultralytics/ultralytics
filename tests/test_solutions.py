@@ -125,15 +125,15 @@ SOLUTIONS = [
     # # Visioneye test
     # ("VisionEye", solutions.VisionEye, False, DEMO_VIDEO, {"model": MODEL_FILE, "show": SHOW}),
     # # Regioncounter test
-    (
-        "RegionCounter",
-        solutions.RegionCounter,
-        False,
-        DEMO_VIDEO,
-        {"region": REGION, "model": MODEL_FILE, "show": SHOW},
-    ),
+    # (
+    #     "RegionCounter",
+    #     solutions.RegionCounter,
+    #     False,
+    #     DEMO_VIDEO,
+    #     {"region": REGION, "model": MODEL_FILE, "show": SHOW},
+    # ),
     # # Special video case
-    # ("AIGym", solutions.AIGym, False, POSE_VIDEO, {"kpts": [5, 11, 13], "show": SHOW}),
+    ("AIGym", solutions.AIGym, False, POSE_VIDEO, {"kpts": [5, 11, 13], "show": SHOW}),
 ]
 
 

@@ -115,7 +115,6 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
                 f"{head_index}.cv3.2.1",
             ]
         )
-        freeze = [str(f) for f in range(0, len(model.model.model))]
 
         model.train(
             data="coco128-seg.yaml",

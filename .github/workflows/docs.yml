@@ -103,7 +103,7 @@ jobs:
         run: |
           git clone --depth 1 --branch gh-pages https://github.com/ultralytics/docs.git docs-repo
           cd docs-repo
-          rm -rf *
+          find . -mindepth 1 -not -name "vercel.json" -exec rm -rf {} \; 2>/dev/null || true
           cp -R ../site/* .
           echo "${{ secrets.INDEXNOW_KEY_DOCS }}" > "${{ secrets.INDEXNOW_KEY_DOCS }}.txt"
           git add .

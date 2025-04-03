@@ -36,13 +36,6 @@ SITE = DOCS.parent / "site"
 LINK_PATTERN = re.compile(r"(https?://[^\s()<>]*[^\s()<>.,:;!?\'\"])")
 
 
-def create_vercel_config():
-    """Create vercel.json in the site directory with customized configuration settings."""
-    config = {"trailingSlash": True}
-    with open(SITE / "vercel.json", "w") as f:
-        json.dump(config, f, indent=2)
-
-
 def prepare_docs_markdown(clone_repos: bool = True):
     """Build docs using mkdocs."""
     print("Removing existing build artifacts")
@@ -339,7 +332,6 @@ def main():
     print(f"Building docs from {DOCS}")
     subprocess.run(f"mkdocs build -f {DOCS.parent}/mkdocs.yml --strict", check=True, shell=True)
     remove_macros()
-    create_vercel_config()
     print(f"Site built at {SITE}")
 
     # Update docs HTML pages

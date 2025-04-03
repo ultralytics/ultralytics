@@ -18,19 +18,19 @@
 
   Tablesort.extend(
     "filesize",
-    t => filesizeRegex.test(t),
+    (t) => filesizeRegex.test(t),
     (t, e) => {
       t = r(t);
       e = r(e);
       return (isNaN(e) ? 0 : e) - (isNaN(t) ? 0 : t);
-    }
+    },
   );
 })();
 
 // tablesort.dotsep.min.js
 Tablesort.extend(
   "dotsep",
-  t => /^(\d+\.)+\d+$/.test(t),
+  (t) => /^(\d+\.)+\d+$/.test(t),
   (t, r) => {
     t = t.split(".");
     r = r.split(".");
@@ -44,28 +44,31 @@ Tablesort.extend(
       }
     }
     return 0;
-  }
+  },
 );
 
 // tablesort.number.min.js
 (function () {
-  const cleanNumber = i => i.split("±")[0].trim().replace(/[^\-?0-9.]/g, "");
+  const cleanNumber = (i) =>
+    i
+      .split("±")[0]
+      .trim()
+      .replace(/[^\-?0-9.]/g, "");
   const compareNumber = (a, b) => (parseFloat(a) || 0) - (parseFloat(b) || 0);
 
   Tablesort.extend(
     "number",
-    item => (
+    (item) =>
       item.match(/^[-+]?[£\x24Û¢´€]?\d+\s*([,\.]\d{0,2})/) || // Prefixed currency
       item.match(/^[-+]?\d+\s*([,\.]\d{0,2})?[£\x24Û¢´€]/) || // Suffixed currency
-      item.match(/^[-+]?(\d)*-?([,\.]){0,1}-?(\d)+([E,e][\-+][\d]+)?%?$/) // Number
-    ),
-    (a, b) => compareNumber(cleanNumber(b), cleanNumber(a))
+      item.match(/^[-+]?(\d)*-?([,\.]){0,1}-?(\d)+([E,e][\-+][\d]+)?%?$/), // Number
+    (a, b) => compareNumber(cleanNumber(b), cleanNumber(a)),
   );
 })();
 
 // subscribe
 document$.subscribe(() => {
-  document.querySelectorAll("article table:not([class])").forEach(table => {
+  document.querySelectorAll("article table:not([class])").forEach((table) => {
     new Tablesort(table);
   });
 });

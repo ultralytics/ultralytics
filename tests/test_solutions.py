@@ -97,15 +97,15 @@ SOLUTIONS = [
     #     {"analytics_type": "area", "model": MODEL_FILE, "show": SHOW},
     # ),
     # Trackzone test
-    ("TrackZone", solutions.TrackZone, False, DEMO_VIDEO, {"region": REGION, "model": MODEL_FILE, "show": SHOW}),
-    # # Object crop test
-    # (
-    #     "ObjectCropper",
-    #     solutions.ObjectCropper,
-    #     False,
-    #     DEMO_VIDEO,
-    #     {"crop_dir": str(TMP / "cropped-detections"), "model": MODEL_FILE, "show": SHOW},
-    # ),
+    # ("TrackZone", solutions.TrackZone, False, DEMO_VIDEO, {"region": REGION, "model": MODEL_FILE, "show": SHOW}),
+    # Object crop test
+    (
+        "ObjectCropper",
+        solutions.ObjectCropper,
+        False,
+        DEMO_VIDEO,
+        {"crop_dir": str(TMP / "cropped-detections"), "model": MODEL_FILE, "show": SHOW},
+    ),
     # # Object blur test
     # (
     #     "ObjectBlurrer",

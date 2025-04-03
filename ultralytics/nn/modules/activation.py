@@ -62,15 +62,13 @@ class FReLU(nn.Module):
 
 
 class SwiGLU(nn.Module):
-    def __init__(self, gc, ec, e=4) -> None:
+    def __init__(self, c1) -> None:
         """Initialize SwiGLU FFN with input dimension, output dimension, and expansion factor."""
         super().__init__()
-        self.w12 = nn.Linear(gc, e * ec)
-        self.w3 = nn.Linear(e * ec // 2, ec)
+        self.w12 = nn.Linear(c1, 2 * c1)
 
     def forward(self, x):
         """Apply SwiGLU transformation to input features."""
         x12 = self.w12(x)
         x1, x2 = x12.chunk(2, dim=-1)
-        hidden = F.silu(x1) * x2
-        return self.w3(hidden)
+        return F.silu(x1) * x2

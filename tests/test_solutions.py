@@ -157,6 +157,7 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     solution = solution_class(**kwargs)
     process_video(solution, str(TMP / video), needs_frame_count)
 
+
 @pytest.mark.slow
 def test_streamlit_inference():
     """Test streamlit predict live inference solution."""

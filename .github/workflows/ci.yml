@@ -282,7 +282,7 @@ jobs:
       #   run: sudo bash -c "sleep 10; reboot" &
 
   Conda:
-    if: github.repository == 'ultralytics/ultralytics'
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')
     continue-on-error: true
     runs-on: ${{ matrix.os }}
     strategy:
@@ -351,7 +351,7 @@ jobs:
 
   Summary:
     runs-on: ubuntu-latest
-    needs: [Tests, Conda]
+    needs: [HUB, Benchmarks, Tests, GPU, RaspberryPi, Conda]
     if: always()
     steps:
       - name: Check for failure and notify

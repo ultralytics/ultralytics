@@ -151,7 +151,7 @@ def process_video(solution, video_path, needs_frame_count=False):
 def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     """Test individual Ultralytics solution."""
     safe_download(url=f"{ASSETS_URL}/{video}", dir=TMP)
-    if name=="ParkingManager":
+    if name == "ParkingManager":
         safe_download(url=f"{ASSETS_URL}/{PARKING_AREAS_JSON}", dir=TMP)
         safe_download(url=f"{ASSETS_URL}/{PARKING_MODEL}", dir=TMP)
     solution = solution_class(**kwargs)

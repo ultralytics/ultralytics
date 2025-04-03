@@ -230,7 +230,7 @@ class AutoBackend(nn.Module):
                 from sony_custom_layers.pytorch.nms import nms_ort  # noqa
 
                 session_options = mctq.get_ort_session_options()
-                session_options.enable_mem_reuse = False
+                session_options.enable_mem_reuse = False  # fix the shape mismatch from onnxruntime
                 session = onnxruntime.InferenceSession(w, session_options, providers=["CPUExecutionProvider"])
                 task = "detect"
 

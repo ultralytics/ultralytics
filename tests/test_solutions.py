@@ -65,21 +65,21 @@ SOLUTIONS = [
     #     {"region": REGION, "model": MODEL_FILE, "show": SHOW},
     # ),
     # Line analytics test
-    (
-        "LineAnalytics",
-        solutions.Analytics,
-        True,
-        DEMO_VIDEO,
-        {"analytics_type": "line", "model": MODEL_FILE, "show": SHOW},
-    ),
-    # # Pie analytics test
     # (
-    #     "PieAnalytics",
+    #     "LineAnalytics",
     #     solutions.Analytics,
     #     True,
     #     DEMO_VIDEO,
-    #     {"analytics_type": "pie", "model": MODEL_FILE, "show": SHOW},
+    #     {"analytics_type": "line", "model": MODEL_FILE, "show": SHOW},
     # ),
+    # Pie analytics test
+    (
+        "PieAnalytics",
+        solutions.Analytics,
+        True,
+        DEMO_VIDEO,
+        {"analytics_type": "pie", "model": MODEL_FILE, "show": SHOW},
+    ),
     # # Bar analytics test
     # (
     #     "BarAnalytics",

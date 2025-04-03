@@ -183,7 +183,9 @@ class BasePredictor:
         same_shapes = len({x.shape for x in im}) == 1
         letterbox = LetterBox(
             self.imgsz,
-            auto=same_shapes and (self.model.pt or (getattr(self.model, "dynamic", False) and not self.model.imx)),
+            auto=same_shapes
+            and (self.model.pt or (getattr(self.model, "dynamic", False) and not self.model.imx))
+            and self.args.rect,
             stride=self.model.stride,
         )
         return [letterbox(image=x) for x in im]

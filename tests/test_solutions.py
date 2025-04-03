@@ -49,21 +49,21 @@ SOLUTIONS = [
     #     {"colormap": cv2.COLORMAP_PARULA, "region": REGION, "model": MODEL_FILE, "show": SHOW},
     # ),
     # Speedestimation test
-    (
-        "SpeedEstimator",
-        solutions.SpeedEstimator,
-        False,
-        DEMO_VIDEO,
-        {"region": REGION, "model": MODEL_FILE, "show": SHOW},
-    ),
-    # # Queue management test
     # (
-    #     "QueueManager",
-    #     solutions.QueueManager,
+    #     "SpeedEstimator",
+    #     solutions.SpeedEstimator,
     #     False,
     #     DEMO_VIDEO,
     #     {"region": REGION, "model": MODEL_FILE, "show": SHOW},
     # ),
+    # Queue management test
+    (
+        "QueueManager",
+        solutions.QueueManager,
+        False,
+        DEMO_VIDEO,
+        {"region": REGION, "model": MODEL_FILE, "show": SHOW},
+    ),
     # # Line analytics test
     # (
     #     "LineAnalytics",

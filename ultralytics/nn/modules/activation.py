@@ -3,6 +3,7 @@
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 class AGLU(nn.Module):
@@ -58,3 +59,18 @@ class FReLU(nn.Module):
             torch.Tensor: Output tensor after applying FReLU activation.
         """
         return torch.max(x, self.bn(self.conv(x)))
+
+
+class SwiGLU(nn.Module):
+    def __init__(self, gc, ec, e=4) -> None:
+        """Initialize SwiGLU FFN with input dimension, output dimension, and expansion factor."""
+        super().__init__()
+        self.w12 = nn.Linear(gc, e * ec)
+        self.w3 = nn.Linear(e * ec // 2, ec)
+
+    def forward(self, x):
+        """Apply SwiGLU transformation to input features."""
+        x12 = self.w12(x)
+        x1, x2 = x12.chunk(2, dim=-1)
+        hidden = F.silu(x1) * x2
+        return self.w3(hidden)

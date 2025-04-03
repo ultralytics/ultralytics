@@ -25,21 +25,21 @@ REGION = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # for object counting
 # Solution test configs: (name, class, needs_frame_count, video, kwargs)
 SOLUTIONS = [
     # Object counting test
-    (
-        "ObjectCounter",
-        solutions.ObjectCounter,
-        False,
-        DEMO_VIDEO,
-        {"region": REGION, "model": MODEL_FILE, "show": SHOW},
-    ),
-    # # Heatmap test
     # (
-    #     "Heatmap",
-    #     solutions.Heatmap,
+    #     "ObjectCounter",
+    #     solutions.ObjectCounter,
     #     False,
     #     DEMO_VIDEO,
-    #     {"colormap": cv2.COLORMAP_PARULA, "model": MODEL_FILE, "show": SHOW},
+    #     {"region": REGION, "model": MODEL_FILE, "show": SHOW},
     # ),
+    # Heatmap test
+    (
+        "Heatmap",
+        solutions.Heatmap,
+        False,
+        DEMO_VIDEO,
+        {"colormap": cv2.COLORMAP_PARULA, "model": MODEL_FILE, "show": SHOW},
+    ),
     # # Heatmap with object counting test
     # (
     #     "HeatmapWithRegion",

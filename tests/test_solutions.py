@@ -89,15 +89,15 @@ SOLUTIONS = [
     #     {"analytics_type": "bar", "model": MODEL_FILE, "show": SHOW},
     # ),
     # Area analytics test
-    (
-        "AreaAnalytics",
-        solutions.Analytics,
-        True,
-        DEMO_VIDEO,
-        {"analytics_type": "area", "model": MODEL_FILE, "show": SHOW},
-    ),
-    # # Trackzone test
-    # ("TrackZone", solutions.TrackZone, False, DEMO_VIDEO, {"region": REGION, "model": MODEL_FILE, "show": SHOW}),
+    # (
+    #     "AreaAnalytics",
+    #     solutions.Analytics,
+    #     True,
+    #     DEMO_VIDEO,
+    #     {"analytics_type": "area", "model": MODEL_FILE, "show": SHOW},
+    # ),
+    # Trackzone test
+    ("TrackZone", solutions.TrackZone, False, DEMO_VIDEO, {"region": REGION, "model": MODEL_FILE, "show": SHOW}),
     # # Object crop test
     # (
     #     "ObjectCropper",

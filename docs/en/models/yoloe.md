@@ -160,6 +160,11 @@ Object detection is straightforward with the `predict` method, as illustrated be
 
     === "Visual Prompt"
 
+        !!! note
+
+            If `source` is a video/stream, the first frame of the video/stream will be automatically used as `refer_image`, or you could directly pass any frame from the video/stream to `refer_image` argument.
+
+
         Prompts in source image:
 
         ```python

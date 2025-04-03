@@ -6,7 +6,7 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 
-from ultralytics.utils import LOGGER, checks
+from ultralytics.utils import checks
 from ultralytics.utils.torch_utils import smart_inference_mode
 
 try:
@@ -180,14 +180,12 @@ def build_text_model(variant, device=None):
         (TextModel): Instantiated text encoding model.
 
     Raises:
-        AssertionError: If the specified variant is not supported.
+        ValueError: If the specified variant is not supported.
     """
-    LOGGER.info(f"Build text model {variant}")
     base, size = variant.split(":")
     if base == "clip":
         return CLIP(size, device)
     elif base == "mobileclip":
         return MobileCLIP(size, device)
     else:
-        print("Variant not found")
-        assert False
+        raise ValueError(f"Unrecognized base model: '{base}'. Supported base models: 'clip', 'mobileclip'.")

@@ -87,13 +87,7 @@ SOLUTIONS = [
         DEMO_VIDEO,
         {"analytics_type": "area", "model": MODEL_FILE, "show": SHOW},
     ),
-    (
-        "TrackZone",
-        solutions.TrackZone,
-        False,
-        DEMO_VIDEO,
-        {"region": REGION, "model": MODEL_FILE, "show": SHOW}
-    ),
+    ("TrackZone", solutions.TrackZone, False, DEMO_VIDEO, {"region": REGION, "model": MODEL_FILE, "show": SHOW}),
     (
         "ObjectCropper",
         solutions.ObjectCropper,
@@ -115,13 +109,7 @@ SOLUTIONS = [
         DEMO_VIDEO,
         {"model": "yolo11n-seg.pt", "show": SHOW},
     ),
-    (
-        "VisionEye",
-        solutions.VisionEye,
-        False,
-        DEMO_VIDEO,
-        {"model": MODEL_FILE, "show": SHOW}
-    ),
+    ("VisionEye", solutions.VisionEye, False, DEMO_VIDEO, {"model": MODEL_FILE, "show": SHOW}),
     (
         "RegionCounter",
         solutions.RegionCounter,
@@ -129,13 +117,7 @@ SOLUTIONS = [
         DEMO_VIDEO,
         {"region": REGION, "model": MODEL_FILE, "show": SHOW},
     ),
-    (
-        "AIGym",
-        solutions.AIGym,
-        False,
-        POSE_VIDEO,
-        {"kpts": [5, 11, 13], "show": SHOW}
-    ),
+    ("AIGym", solutions.AIGym, False, POSE_VIDEO, {"kpts": [5, 11, 13], "show": SHOW}),
 ]
 
 

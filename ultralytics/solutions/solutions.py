@@ -263,7 +263,6 @@ class SolutionAnnotator(Annotator):
             thickness (int): Line thickness for drawing the region.
         """
         cv2.polylines(self.im, [np.array(reg_pts, dtype=np.int32)], isClosed=True, color=color, thickness=thickness)
-
         # Draw small circles at the corner points
         for point in reg_pts:
             cv2.circle(self.im, (point[0], point[1]), thickness * 2, color, -1)  # -1 fills the circle

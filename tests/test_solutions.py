@@ -57,21 +57,21 @@ SOLUTIONS = [
     #     {"region": REGION, "model": MODEL_FILE, "show": SHOW},
     # ),
     # Queue management test
-    (
-        "QueueManager",
-        solutions.QueueManager,
-        False,
-        DEMO_VIDEO,
-        {"region": REGION, "model": MODEL_FILE, "show": SHOW},
-    ),
-    # # Line analytics test
     # (
-    #     "LineAnalytics",
-    #     solutions.Analytics,
-    #     True,
+    #     "QueueManager",
+    #     solutions.QueueManager,
+    #     False,
     #     DEMO_VIDEO,
-    #     {"analytics_type": "line", "model": MODEL_FILE, "show": SHOW},
+    #     {"region": REGION, "model": MODEL_FILE, "show": SHOW},
     # ),
+    # Line analytics test
+    (
+        "LineAnalytics",
+        solutions.Analytics,
+        True,
+        DEMO_VIDEO,
+        {"analytics_type": "line", "model": MODEL_FILE, "show": SHOW},
+    ),
     # # Pie analytics test
     # (
     #     "PieAnalytics",

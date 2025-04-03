@@ -65,10 +65,10 @@ class SwiGLU(nn.Module):
     def __init__(self, c1) -> None:
         """Initialize SwiGLU FFN with input dimension, output dimension, and expansion factor."""
         super().__init__()
-        self.w12 = nn.Linear(c1, 2 * c1)
+        self.w12 = nn.Conv2d(c1, 2 * c1, 1, 1, 0)
 
     def forward(self, x):
         """Apply SwiGLU transformation to input features."""
         x12 = self.w12(x)
-        x1, x2 = x12.chunk(2, dim=-1)
+        x1, x2 = x12.chunk(2, dim=1)
         return F.silu(x1) * x2

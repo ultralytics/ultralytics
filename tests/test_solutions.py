@@ -157,20 +157,6 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     solution = solution_class(**kwargs)
     process_video(solution, str(TMP / video), needs_frame_count)
 
-
-# @pytest.mark.slow
-# def test_parking_management():
-#     """Test ParkingManagement solution."""
-#     safe_download(url=f"{ASSETS_URL}/{PARKING_VIDEO}", dir=TMP)
-#     safe_download(url=f"{ASSETS_URL}/{PARKING_AREAS_JSON}", dir=TMP)
-#     safe_download(url=f"{ASSETS_URL}/{PARKING_MODEL}", dir=TMP)
-#
-#     solution = solutions.ParkingManagement(
-#         json_file=str(TMP / PARKING_AREAS_JSON), model=str(TMP / PARKING_MODEL), show=False
-#     )
-#     process_video(solution, str(TMP / PARKING_VIDEO))
-
-
 @pytest.mark.slow
 def test_streamlit_inference():
     """Test streamlit predict live inference solution."""

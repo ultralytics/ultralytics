@@ -6,6 +6,7 @@ import math
 import numpy as np
 import torch
 import torch.nn as nn
+from .activation import FReLU
 
 __all__ = (
     "Conv",
@@ -65,6 +66,7 @@ class Conv(nn.Module):
         self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
         self.bn = nn.BatchNorm2d(c2)
         self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+        # self.act = FReLU(c2) if act is True else act if isinstance(act, nn.Module) else nn.Identity()
 
     def forward(self, x):
         """

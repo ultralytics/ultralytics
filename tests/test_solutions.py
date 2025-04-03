@@ -150,7 +150,8 @@ def process_video(solution, video_path, needs_frame_count=False):
         if not success:
             break
         frame_count += 1
-        args = [im0.copy(), frame_count] if needs_frame_count else [im0.copy()]
+        im_copy = im0.copy()
+        args = [im_copy, frame_count] if needs_frame_count else [im_copy]
         _ = solution(*args)
 
     cap.release()

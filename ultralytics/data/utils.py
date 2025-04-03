@@ -10,6 +10,7 @@ import zipfile
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from tarfile import is_tarfile
+from collections import Counter
 
 import cv2
 import numpy as np
@@ -709,3 +710,11 @@ def save_dataset_cache_file(prefix, path, x, version):
         LOGGER.info(f"{prefix}New cache created: {path}")
     else:
         LOGGER.warning(f"{prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable, cache not saved.")
+
+
+def pooling_threshold(img_paths):
+    """Returns the pooling threshold for a list of image paths."""
+    fmt, fmt_count = Counter(os.path.splitext(path)[1].lower() for path in img_paths).most_common(1)[0]
+    if fmt == ".png" and fmt_count > 100:
+        return 100
+    return 10000

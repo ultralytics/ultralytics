@@ -38,6 +38,7 @@ from .utils import (
     save_dataset_cache_file,
     verify_image,
     verify_image_label,
+    pooling_threshold,
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for YOLOv8
@@ -109,7 +110,7 @@ class YOLODataset(BaseDataset):
             )
 
         # Use Pool for larger datasets and Threadpool for smaller datasets for lower latency
-        with (Pool if total > 1000 else ThreadPool)(NUM_THREADS) as pool:
+        with (Pool if total > pooling_threshold(self.im_files) else ThreadPool)(NUM_THREADS) as pool:
             results = pool.imap(
                 func=verify_image_label,
                 iterable=zip(
@@ -813,7 +814,7 @@ class ClassificationDataset:
             nf, nc, msgs, samples, x = 0, 0, [], [], {}
 
             # Use Pool for larger datasets and Threadpool for smaller datasets for lower latency
-            with (Pool if len(self.samples) > 1000 else ThreadPool)(NUM_THREADS) as pool:
+            with (Pool if len(self.samples) > pooling_threshold(self.im_files) else ThreadPool)(NUM_THREADS) as pool:
                 results = pool.imap(func=verify_image, iterable=zip(self.samples, repeat(self.prefix)))
                 pbar = TQDM(results, desc=desc, total=len(self.samples))
                 for sample, nf_f, nc_f, msg in pbar:

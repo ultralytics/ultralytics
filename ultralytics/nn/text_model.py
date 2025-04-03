@@ -6,7 +6,7 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 
-from ultralytics.utils import LOGGER, checks
+from ultralytics.utils import checks
 from ultralytics.utils.torch_utils import smart_inference_mode
 
 try:

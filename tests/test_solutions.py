@@ -13,7 +13,8 @@ from ultralytics.utils.downloads import safe_download
 
 # Pre-defined arguments values
 SHOW = False
-DEMO_VIDEO = "solutions_ci_demo.mp4"  # for all the solutions, except workout and parking
+DEMO_VIDEO = "solutions_ci_demo.mp4"  # for all the solutions, except workout, object cropping and parking management
+CROP_VIDEO = "decelera_landscape_min.mov"  # for object cropping solution
 POSE_VIDEO = "solution_ci_pose_demo.mp4"  # only for workouts monitoring solution
 PARKING_VIDEO = "solution_ci_parking_demo.mp4"  # only for parking management solution
 PARKING_AREAS_JSON = "solution_ci_parking_areas.json"  # only for parking management solution
@@ -91,7 +92,7 @@ SOLUTIONS = [
         "ObjectCropper",
         solutions.ObjectCropper,
         False,
-        DEMO_VIDEO,
+        CROP_VIDEO,
         {"crop_dir": str(TMP / "cropped-detections"), "model": MODEL_FILE, "show": SHOW},
     ),
     (

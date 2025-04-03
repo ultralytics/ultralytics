@@ -7,10 +7,10 @@ import random
 import subprocess
 import time
 import zipfile
+from collections import Counter
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from tarfile import is_tarfile
-from collections import Counter
 
 import cv2
 import numpy as np

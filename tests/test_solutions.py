@@ -11,14 +11,13 @@ from ultralytics import solutions
 from ultralytics.utils import ASSETS_URL
 from ultralytics.utils.downloads import safe_download
 
+# Pre-defined arguments values
+SHOW = True
 DEMO_VIDEO = "solutions_ci_demo.mp4"  # for all the solutions, except workout and parking
 POSE_VIDEO = "solution_ci_pose_demo.mp4"  # only for workouts monitoring solution
 PARKING_VIDEO = "solution_ci_parking_demo.mp4"  # only for parking management solution
 PARKING_AREAS_JSON = "solution_ci_parking_areas.json"  # only for parking management solution
 PARKING_MODEL = "solutions_ci_parking_model.pt"  # only for parking management solution
-
-# Pre-defined arguments values
-SHOW = False
 MODEL_FILE = "yolo11n.pt"  # model file used for solutions, except parking management and instance segmentation
 REGION = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # for object counting, speed estimation and queue management
 
@@ -36,7 +35,7 @@ SOLUTIONS = [
         solutions.Heatmap,
         False,
         DEMO_VIDEO,
-        {"colormap": cv2.COLORMAP_PARULA, "model": MODEL_FILE, "show": SHOW},
+        {"colormap": cv2.COLORMAP_PARULA, "model": MODEL_FILE, "show": SHOW, "region": None},
     ),
     (
         "HeatmapWithRegion",
@@ -117,16 +116,22 @@ SOLUTIONS = [
         DEMO_VIDEO,
         {"region": REGION, "model": MODEL_FILE, "show": SHOW},
     ),
-    ("AIGym", solutions.AIGym, False, POSE_VIDEO, {"kpts": [5, 11, 13], "show": SHOW}),
+    ("AIGym", solutions.AIGym, False, POSE_VIDEO, {"kpts": [6, 8, 10], "show": SHOW}),
     (
         "ParkingManager",
         solutions.ParkingManagement,
         False,
         PARKING_VIDEO,
-        {"model": MODEL_FILE, "show": SHOW, "json_file": str(TMP / PARKING_AREAS_JSON)},
+        {"model": str(TMP / PARKING_MODEL), "show": SHOW, "json_file": str(TMP / PARKING_AREAS_JSON)},
+    ),
+    (
+        "StreamlitInference",
+        solutions.Inference,
+        False,
+        None,  # streamlit application don't require video file
+        {},  # streamlit application don't accept arguments
     ),
 ]
-
 
 def process_video(solution, video_path, needs_frame_count=False):
     """Process video with solution, feeding frames and optional frame count."""
@@ -145,7 +150,6 @@ def process_video(solution, video_path, needs_frame_count=False):
 
     cap.release()
 
-
 @pytest.mark.slow
 @pytest.mark.parametrize("name, solution_class, needs_frame_count, video, kwargs", SOLUTIONS)
 def test_solution(name, solution_class, needs_frame_count, video, kwargs):
@@ -155,10 +159,4 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
         safe_download(url=f"{ASSETS_URL}/{PARKING_AREAS_JSON}", dir=TMP)
         safe_download(url=f"{ASSETS_URL}/{PARKING_MODEL}", dir=TMP)
     solution = solution_class(**kwargs)
-    process_video(solution, str(TMP / video), needs_frame_count)
-
-
-@pytest.mark.slow
-def test_streamlit_inference():
-    """Test streamlit predict live inference solution."""
-    solutions.Inference().inference()
+    solution.inference() if name == "StreamlitInference" else process_video(solution, str(TMP / video), needs_frame_count)

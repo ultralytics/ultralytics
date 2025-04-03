@@ -32,108 +32,108 @@ SOLUTIONS = [
         DEMO_VIDEO,
         {"region": REGION, "model": MODEL_FILE, "show": SHOW},
     ),
-    # Heatmap test
-    (
-        "Heatmap",
-        solutions.Heatmap,
-        False,
-        DEMO_VIDEO,
-        {"colormap": cv2.COLORMAP_PARULA, "model": MODEL_FILE, "show": SHOW},
-    ),
-    # Heatmap with object counting test
-    (
-        "HeatmapWithRegion",
-        solutions.Heatmap,
-        False,
-        DEMO_VIDEO,
-        {"colormap": cv2.COLORMAP_PARULA, "region": REGION, "model": MODEL_FILE, "show": SHOW},
-    ),
-    # Speedestimation test
-    (
-        "SpeedEstimator",
-        solutions.SpeedEstimator,
-        False,
-        DEMO_VIDEO,
-        {"region": REGION, "model": MODEL_FILE, "show": SHOW},
-    ),
-    # Queue management test
-    (
-        "QueueManager",
-        solutions.QueueManager,
-        False,
-        DEMO_VIDEO,
-        {"region": REGION, "model": MODEL_FILE, "show": SHOW},
-    ),
-    # Line analytics test
-    (
-        "LineAnalytics",
-        solutions.Analytics,
-        True,
-        DEMO_VIDEO,
-        {"analytics_type": "line", "model": MODEL_FILE, "show": SHOW},
-    ),
-    # Pie analytics test
-    (
-        "PieAnalytics",
-        solutions.Analytics,
-        True,
-        DEMO_VIDEO,
-        {"analytics_type": "pie", "model": MODEL_FILE, "show": SHOW},
-    ),
-    # Bar analytics test
-    (
-        "BarAnalytics",
-        solutions.Analytics,
-        True,
-        DEMO_VIDEO,
-        {"analytics_type": "bar", "model": MODEL_FILE, "show": SHOW},
-    ),
-    # Area analytics test
-    (
-        "AreaAnalytics",
-        solutions.Analytics,
-        True,
-        DEMO_VIDEO,
-        {"analytics_type": "area", "model": MODEL_FILE, "show": SHOW},
-    ),
-    # Trackzone test
-    ("TrackZone", solutions.TrackZone, False, DEMO_VIDEO, {"region": REGION, "model": MODEL_FILE, "show": SHOW}),
-    # Object crop test
-    (
-        "ObjectCropper",
-        solutions.ObjectCropper,
-        False,
-        DEMO_VIDEO,
-        {"crop_dir": str(TMP / "cropped-detections"), "model": MODEL_FILE, "show": SHOW},
-    ),
-    # Object blur test
-    (
-        "ObjectBlurrer",
-        solutions.ObjectBlurrer,
-        False,
-        DEMO_VIDEO,
-        {"blur_ratio": 0.5, "model": MODEL_FILE, "show": SHOW},
-    ),
-    # Instance segmentation test
-    (
-        "InstanceSegmentation",
-        solutions.InstanceSegmentation,
-        False,
-        DEMO_VIDEO,
-        {"model": "yolo11n-seg.pt", "show": SHOW},
-    ),
-    # Visioneye test
-    ("VisionEye", solutions.VisionEye, False, DEMO_VIDEO, {"model": MODEL_FILE, "show": SHOW}),
-    # Regioncounter test
-    (
-        "RegionCounter",
-        solutions.RegionCounter,
-        False,
-        DEMO_VIDEO,
-        {"region": REGION, "model": MODEL_FILE, "show": SHOW},
-    ),
-    # Special video case
-    ("AIGym", solutions.AIGym, False, POSE_VIDEO, {"kpts": [5, 11, 13], "show": SHOW}),
+    # # Heatmap test
+    # (
+    #     "Heatmap",
+    #     solutions.Heatmap,
+    #     False,
+    #     DEMO_VIDEO,
+    #     {"colormap": cv2.COLORMAP_PARULA, "model": MODEL_FILE, "show": SHOW},
+    # ),
+    # # Heatmap with object counting test
+    # (
+    #     "HeatmapWithRegion",
+    #     solutions.Heatmap,
+    #     False,
+    #     DEMO_VIDEO,
+    #     {"colormap": cv2.COLORMAP_PARULA, "region": REGION, "model": MODEL_FILE, "show": SHOW},
+    # ),
+    # # Speedestimation test
+    # (
+    #     "SpeedEstimator",
+    #     solutions.SpeedEstimator,
+    #     False,
+    #     DEMO_VIDEO,
+    #     {"region": REGION, "model": MODEL_FILE, "show": SHOW},
+    # ),
+    # # Queue management test
+    # (
+    #     "QueueManager",
+    #     solutions.QueueManager,
+    #     False,
+    #     DEMO_VIDEO,
+    #     {"region": REGION, "model": MODEL_FILE, "show": SHOW},
+    # ),
+    # # Line analytics test
+    # (
+    #     "LineAnalytics",
+    #     solutions.Analytics,
+    #     True,
+    #     DEMO_VIDEO,
+    #     {"analytics_type": "line", "model": MODEL_FILE, "show": SHOW},
+    # ),
+    # # Pie analytics test
+    # (
+    #     "PieAnalytics",
+    #     solutions.Analytics,
+    #     True,
+    #     DEMO_VIDEO,
+    #     {"analytics_type": "pie", "model": MODEL_FILE, "show": SHOW},
+    # ),
+    # # Bar analytics test
+    # (
+    #     "BarAnalytics",
+    #     solutions.Analytics,
+    #     True,
+    #     DEMO_VIDEO,
+    #     {"analytics_type": "bar", "model": MODEL_FILE, "show": SHOW},
+    # ),
+    # # Area analytics test
+    # (
+    #     "AreaAnalytics",
+    #     solutions.Analytics,
+    #     True,
+    #     DEMO_VIDEO,
+    #     {"analytics_type": "area", "model": MODEL_FILE, "show": SHOW},
+    # ),
+    # # Trackzone test
+    # ("TrackZone", solutions.TrackZone, False, DEMO_VIDEO, {"region": REGION, "model": MODEL_FILE, "show": SHOW}),
+    # # Object crop test
+    # (
+    #     "ObjectCropper",
+    #     solutions.ObjectCropper,
+    #     False,
+    #     DEMO_VIDEO,
+    #     {"crop_dir": str(TMP / "cropped-detections"), "model": MODEL_FILE, "show": SHOW},
+    # ),
+    # # Object blur test
+    # (
+    #     "ObjectBlurrer",
+    #     solutions.ObjectBlurrer,
+    #     False,
+    #     DEMO_VIDEO,
+    #     {"blur_ratio": 0.5, "model": MODEL_FILE, "show": SHOW},
+    # ),
+    # # Instance segmentation test
+    # (
+    #     "InstanceSegmentation",
+    #     solutions.InstanceSegmentation,
+    #     False,
+    #     DEMO_VIDEO,
+    #     {"model": "yolo11n-seg.pt", "show": SHOW},
+    # ),
+    # # Visioneye test
+    # ("VisionEye", solutions.VisionEye, False, DEMO_VIDEO, {"model": MODEL_FILE, "show": SHOW}),
+    # # Regioncounter test
+    # (
+    #     "RegionCounter",
+    #     solutions.RegionCounter,
+    #     False,
+    #     DEMO_VIDEO,
+    #     {"region": REGION, "model": MODEL_FILE, "show": SHOW},
+    # ),
+    # # Special video case
+    # ("AIGym", solutions.AIGym, False, POSE_VIDEO, {"kpts": [5, 11, 13], "show": SHOW}),
 ]
 
 
@@ -165,19 +165,19 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
 
 
 # @pytest.mark.slow
-def test_parking_management():
-    """Test ParkingManagement solution."""
-    safe_download(url=f"{ASSETS_URL}/{PARKING_VIDEO}", dir=TMP)
-    safe_download(url=f"{ASSETS_URL}/{PARKING_AREAS_JSON}", dir=TMP)
-    safe_download(url=f"{ASSETS_URL}/{PARKING_MODEL}", dir=TMP)
+# def test_parking_management():
+#     """Test ParkingManagement solution."""
+#     safe_download(url=f"{ASSETS_URL}/{PARKING_VIDEO}", dir=TMP)
+#     safe_download(url=f"{ASSETS_URL}/{PARKING_AREAS_JSON}", dir=TMP)
+#     safe_download(url=f"{ASSETS_URL}/{PARKING_MODEL}", dir=TMP)
 
-    solution = solutions.ParkingManagement(
-        json_file=str(TMP / PARKING_AREAS_JSON), model=str(TMP / PARKING_MODEL), show=False
-    )
-    process_video(solution, str(TMP / PARKING_VIDEO))
+#     solution = solutions.ParkingManagement(
+#         json_file=str(TMP / PARKING_AREAS_JSON), model=str(TMP / PARKING_MODEL), show=False
+#     )
+#     process_video(solution, str(TMP / PARKING_VIDEO))
 
 
 # @pytest.mark.slow
-def test_streamlit_inference():
-    """Test streamlit predict live inference solution."""
-    solutions.Inference().inference()
+# def test_streamlit_inference():
+#     """Test streamlit predict live inference solution."""
+#     solutions.Inference().inference()

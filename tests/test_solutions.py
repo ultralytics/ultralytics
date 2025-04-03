@@ -99,21 +99,21 @@ SOLUTIONS = [
     # Trackzone test
     # ("TrackZone", solutions.TrackZone, False, DEMO_VIDEO, {"region": REGION, "model": MODEL_FILE, "show": SHOW}),
     # Object crop test
-    (
-        "ObjectCropper",
-        solutions.ObjectCropper,
-        False,
-        DEMO_VIDEO,
-        {"crop_dir": str(TMP / "cropped-detections"), "model": MODEL_FILE, "show": SHOW},
-    ),
-    # # Object blur test
     # (
-    #     "ObjectBlurrer",
-    #     solutions.ObjectBlurrer,
+    #     "ObjectCropper",
+    #     solutions.ObjectCropper,
     #     False,
     #     DEMO_VIDEO,
-    #     {"blur_ratio": 0.5, "model": MODEL_FILE, "show": SHOW},
+    #     {"crop_dir": str(TMP / "cropped-detections"), "model": MODEL_FILE, "show": SHOW},
     # ),
+    # Object blur test
+    (
+        "ObjectBlurrer",
+        solutions.ObjectBlurrer,
+        False,
+        DEMO_VIDEO,
+        {"blur_ratio": 0.5, "model": MODEL_FILE, "show": SHOW},
+    ),
     # # Instance segmentation test
     # (
     #     "InstanceSegmentation",

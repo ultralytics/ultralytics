@@ -184,8 +184,8 @@ class BasePredictor:
         letterbox = LetterBox(
             self.imgsz,
             auto=same_shapes
-            and (self.model.pt or (getattr(self.model, "dynamic", False) and not self.model.imx))
-            and self.args.rect,
+            and self.args.rect
+            and (self.model.pt or (getattr(self.model, "dynamic", False) and not self.model.imx)),
             stride=self.model.stride,
         )
         return [letterbox(image=x) for x in im]

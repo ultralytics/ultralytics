@@ -133,6 +133,7 @@ SOLUTIONS = [
     ),
 ]
 
+
 def process_video(solution, video_path, needs_frame_count=False):
     """Process video with solution, feeding frames and optional frame count."""
     cap = cv2.VideoCapture(video_path)
@@ -150,6 +151,7 @@ def process_video(solution, video_path, needs_frame_count=False):
 
     cap.release()
 
+
 @pytest.mark.slow
 @pytest.mark.parametrize("name, solution_class, needs_frame_count, video, kwargs", SOLUTIONS)
 def test_solution(name, solution_class, needs_frame_count, video, kwargs):
@@ -159,4 +161,6 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
         safe_download(url=f"{ASSETS_URL}/{PARKING_AREAS_JSON}", dir=TMP)
         safe_download(url=f"{ASSETS_URL}/{PARKING_MODEL}", dir=TMP)
     solution = solution_class(**kwargs)
-    solution.inference() if name == "StreamlitInference" else process_video(solution, str(TMP / video), needs_frame_count)
+    solution.inference() if name == "StreamlitInference" else process_video(
+        solution, str(TMP / video), needs_frame_count
+    )

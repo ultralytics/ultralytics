@@ -40,8 +40,6 @@
       return (
         (t = r(t)),
         (e = r(e)),
-        (e = e),
-        (t = t),
         (e = parseFloat(e)),
         (t = parseFloat(t)),
         (e = isNaN(e) ? 0 : e) - (t = isNaN(t) ? 0 : t)
@@ -60,8 +58,12 @@ Tablesort.extend(
     (t = t.split(".")), (r = r.split("."));
     for (var e, n, i = 0, s = t.length; i < s; i++)
       if ((e = parseInt(t[i], 10)) !== (n = parseInt(r[i], 10))) {
-        if (n < e) return -1;
-        if (e < n) return 1;
+        if (n < e) {
+          return -1;
+        }
+        if (e < n) {
+          return 1;
+        }
       }
     return 0;
   },

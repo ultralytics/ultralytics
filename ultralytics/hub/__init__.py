@@ -111,7 +111,6 @@ def export_model(model_id: str = "", format: str = "torchscript"):
         >>> from ultralytics import hub
         >>> hub.export_model(model_id="your_model_id", format="torchscript")
     """
-
     assert format in export_fmts_hub(), f"Unsupported export format '{format}', valid formats are {export_fmts_hub()}"
     r = requests.post(
         f"{HUB_API_ROOT}/v1/models/{model_id}/export", json={"format": format}, headers={"x-api-key": Auth().api_key}
@@ -135,7 +134,6 @@ def get_export(model_id: str = "", format: str = "torchscript"):
         >>> from ultralytics import hub
         >>> hub.get_export(model_id="your_model_id", format="torchscript")
     """
-
     assert format in export_fmts_hub(), f"Unsupported export format '{format}', valid formats are {export_fmts_hub()}"
     r = requests.post(
         f"{HUB_API_ROOT}/get-export",

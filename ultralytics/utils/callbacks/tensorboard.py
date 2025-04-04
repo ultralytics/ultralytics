@@ -51,7 +51,7 @@ def _log_tensorboard_graph(trainer) -> None:
     approach for models like RTDETR that may require special handling.
 
     Args:
-        trainer: The trainer object containing the model to visualize. Must have attributes:
+        trainer (BaseTrainer): The trainer object containing the model to visualize. Must have attributes:
             - model: PyTorch model to visualize
             - args: Configuration arguments with 'imgsz' attribute
 

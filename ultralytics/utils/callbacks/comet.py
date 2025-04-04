@@ -484,7 +484,7 @@ def on_fit_epoch_end(trainer) -> None:
     and image predictions (if enabled).
 
     Args:
-        trainer: The YOLO trainer object containing training state, metrics, and configuration.
+        trainer (BaseTrainer): The YOLO trainer object containing training state, metrics, and configuration.
 
     Examples:
         >>> # Inside a training loop

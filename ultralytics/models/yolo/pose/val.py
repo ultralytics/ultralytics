@@ -20,7 +20,7 @@ class PoseValidator(DetectionValidator):
     specialized metrics for pose evaluation.
 
     Attributes:
-        sigma (np.ndarray): Sigma values for OKS calculation, either from OKS_SIGMA or ones divided by number of keypoints.
+        sigma (np.ndarray): Sigma values for OKS calculation, either OKS_SIGMA or ones divided by number of keypoints.
         kpt_shape (List[int]): Shape of the keypoints, typically [17, 3] for COCO format.
         args (dict): Arguments for the validator including task set to "pose".
         metrics (PoseMetrics): Metrics object for pose evaluation.
@@ -310,10 +310,9 @@ class PoseValidator(DetectionValidator):
         Save YOLO pose detections to a text file in normalized coordinates.
 
         Args:
-            predn (torch.Tensor): Prediction boxes and scores with shape (N, 6) for
-                (x1, y1, x2, y2, conf, cls).
-            pred_kpts (torch.Tensor): Predicted keypoints with shape (N, K, D) where K is the number of
-                keypoints and D is the dimension (typically 3 for x, y, visibility).
+            predn (torch.Tensor): Prediction boxes and scores with shape (N, 6) for (x1, y1, x2, y2, conf, cls).
+            pred_kpts (torch.Tensor): Predicted keypoints with shape (N, K, D) where K is the number of keypoints
+                and D is the dimension (typically 3 for x, y, visibility).
             save_conf (bool): Whether to save confidence scores.
             shape (tuple): Original image shape (height, width).
             file (Path): Output file path to save detections.

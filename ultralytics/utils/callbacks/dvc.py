@@ -77,8 +77,8 @@ def _log_confusion_matrix(validator) -> None:
     the matrix into lists of target and prediction labels.
 
     Args:
-        validator: The validator object containing the confusion matrix and class names.
-                   Must have attributes: confusion_matrix.matrix, confusion_matrix.task, and names.
+        validator (BaseValidator): The validator object containing the confusion matrix and class names.
+            Must have attributes: confusion_matrix.matrix, confusion_matrix.task, and names.
 
     Returns:
         None
@@ -134,7 +134,7 @@ def on_fit_epoch_end(trainer) -> None:
     information. Additionally, it logs training and validation plots and advances the DVCLive step counter.
 
     Args:
-        trainer: The trainer object containing training state, metrics, and plots.
+        trainer (BaseTrainer): The trainer object containing training state, metrics, and plots.
 
     Notes:
         This function only performs logging operations when DVCLive logging is active and during a training epoch.
@@ -168,7 +168,7 @@ def on_train_end(trainer) -> None:
     validation plots, and confusion matrix for later analysis.
 
     Args:
-        trainer: The trainer object containing training state, metrics, and validation results.
+        trainer (BaseTrainer): The trainer object containing training state, metrics, and validation results.
 
     Examples:
         >>> # Inside a custom training loop

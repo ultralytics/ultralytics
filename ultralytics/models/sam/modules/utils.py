@@ -63,7 +63,7 @@ def select_closest_cond_frames(frame_idx, cond_frame_outputs, max_cond_frame_num
 def get_1d_sine_pe(pos_inds, dim, temperature=10000):
     """
     Generate 1D sinusoidal positional embeddings for given positions and dimensions.
-        
+
     Args:
         pos_inds (torch.Tensor): Position indices for which to generate embeddings.
         dim (int): Dimension of the positional embeddings. Should be an even number.
@@ -90,19 +90,19 @@ def get_1d_sine_pe(pos_inds, dim, temperature=10000):
 def init_t_xy(end_x: int, end_y: int):
     """
     Initialize 1D and 2D coordinate tensors for a grid of specified dimensions.
-    
+
     This function creates coordinate tensors for a grid with dimensions end_x × end_y. It generates a linear index tensor
     and corresponding x and y coordinate tensors.
-    
+
     Args:
         end_x (int): Width of the grid (number of columns).
         end_y (int): Height of the grid (number of rows).
-    
+
     Returns:
         t (torch.Tensor): Linear indices for each position in the grid, with shape (end_x * end_y).
         t_x (torch.Tensor): X-coordinates for each position, with shape (end_x * end_y).
         t_y (torch.Tensor): Y-coordinates for each position, with shape (end_x * end_y).
-    
+
     Examples:
         >>> t, t_x, t_y = init_t_xy(3, 2)
         >>> print(t)
@@ -121,22 +121,22 @@ def init_t_xy(end_x: int, end_y: int):
 def compute_axial_cis(dim: int, end_x: int, end_y: int, theta: float = 10000.0):
     """
     Compute axial complex exponential positional encodings for 2D spatial positions in a grid.
-    
+
     This function generates complex exponential positional encodings for a 2D grid of spatial positions,
     using separate frequency components for the x and y dimensions.
-    
+
     Args:
         dim (int): Dimension of the positional encoding.
         end_x (int): Width of the 2D grid.
         end_y (int): Height of the 2D grid.
         theta (float, optional): Scaling factor for frequency computation.
-    
+
     Returns:
-        freqs_cis_x (torch.Tensor): Complex exponential positional encodings for x-dimension with shape 
+        freqs_cis_x (torch.Tensor): Complex exponential positional encodings for x-dimension with shape
             (end_x*end_y, dim//4).
-        freqs_cis_y (torch.Tensor): Complex exponential positional encodings for y-dimension with shape 
+        freqs_cis_y (torch.Tensor): Complex exponential positional encodings for y-dimension with shape
             (end_x*end_y, dim//4).
-    
+
     Examples:
         >>> dim, end_x, end_y = 128, 8, 8
         >>> freqs_cis_x, freqs_cis_y = compute_axial_cis(dim, end_x, end_y)
@@ -159,17 +159,17 @@ def compute_axial_cis(dim: int, end_x: int, end_y: int, theta: float = 10000.0):
 def reshape_for_broadcast(freqs_cis: torch.Tensor, x: torch.Tensor):
     """
     Reshape frequency tensor for broadcasting with input tensor.
-    
+
     Reshapes a frequency tensor to ensure dimensional compatibility for broadcasting with an input tensor.
     This function is typically used in positional encoding operations.
-    
+
     Args:
         freqs_cis (torch.Tensor): Frequency tensor with shape matching the last two dimensions of x.
         x (torch.Tensor): Input tensor to broadcast with.
-    
+
     Returns:
         (torch.Tensor): Reshaped frequency tensor ready for broadcasting with the input tensor.
-    
+
     Raises:
         AssertionError: If the shape of freqs_cis doesn't match the last two dimensions of x.
     """
@@ -188,10 +188,10 @@ def apply_rotary_enc(
 ):
     """
     Apply rotary positional encoding to query and key tensors.
-    
+
     This function applies rotary positional encoding (RoPE) to query and key tensors using complex-valued frequency
     components. RoPE is a technique that injects relative position information into self-attention mechanisms.
-    
+
     Args:
         xq (torch.Tensor): Query tensor to encode with positional information.
         xk (torch.Tensor): Key tensor to encode with positional information.
@@ -199,11 +199,11 @@ def apply_rotary_enc(
             last two dimensions of xq.
         repeat_freqs_k (bool, optional): Whether to repeat frequency components along sequence length dimension
             to match key sequence length.
-    
+
     Returns:
         xq_out (torch.Tensor): Query tensor with rotary positional encoding applied.
         xk_out (torch.Tensor): Key tensor with rotary positional encoding applied, or original xk if xk is empty.
-    
+
     Examples:
         >>> import torch
         >>> xq = torch.randn(2, 8, 16, 64)  # [batch, heads, seq_len, dim]

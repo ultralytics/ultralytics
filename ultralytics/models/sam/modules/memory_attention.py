@@ -62,7 +62,7 @@ class MemoryAttentionLayer(nn.Module):
     ):
         """
         Initialize a memory attention layer with self-attention, cross-attention, and feedforward components.
-            
+
         Args:
             d_model (int): Dimensionality of the model.
             dim_feedforward (int): Dimensionality of the feedforward network.
@@ -195,17 +195,17 @@ class MemoryAttention(nn.Module):
     ):
         """
         Initialize MemoryAttention with specified layers and normalization for sequential data processing.
-        
+
         This class implements a multi-layer attention mechanism that combines self-attention and cross-attention
         for processing sequential data, particularly useful in transformer-like architectures.
-        
+
         Args:
             d_model (int): The dimension of the model's hidden state.
             pos_enc_at_input (bool): Whether to apply positional encoding at the input.
             layer (nn.Module): The attention layer to be used in the module.
             num_layers (int): The number of attention layers.
             batch_first (bool): Whether the input tensors are in batch-first format.
-        
+
         Examples:
             >>> d_model = 256
             >>> layer = MemoryAttentionLayer(d_model)
@@ -236,7 +236,7 @@ class MemoryAttention(nn.Module):
     ) -> torch.Tensor:
         """
         Process inputs through attention layers, applying self and cross-attention with positional encoding.
-        
+
         Args:
             curr (torch.Tensor): Self-attention input tensor, representing the current state.
             memory (torch.Tensor): Cross-attention input tensor, representing memory information.

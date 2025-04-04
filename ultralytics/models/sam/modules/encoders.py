@@ -388,14 +388,14 @@ class MemoryEncoder(nn.Module):
     ):
         """
         Initialize the MemoryEncoder for encoding pixel features and masks into memory representations.
-        
+
         This encoder processes pixel-level features and masks, fusing them to generate encoded memory representations
         suitable for downstream tasks in image segmentation models like SAM (Segment Anything Model).
-        
+
         Args:
             out_dim (int): Output dimension of the encoded features.
             in_dim (int): Input dimension of the pixel features. Default is 256.
-        
+
         Examples:
             >>> encoder = MemoryEncoder(out_dim=256, in_dim=256)
             >>> pix_feat = torch.randn(1, 256, 64, 64)
@@ -472,15 +472,15 @@ class ImageEncoder(nn.Module):
     ):
         """
         Initialize the ImageEncoder with trunk and neck networks for feature extraction and refinement.
-        
+
         This encoder combines a trunk network for feature extraction with a neck network for feature refinement
         and positional encoding generation. It can optionally discard the lowest resolution features.
-        
+
         Args:
             trunk (nn.Module): The trunk network for initial feature extraction.
             neck (nn.Module): The neck network for feature refinement and positional encoding generation.
             scalp (int): Number of lowest resolution feature levels to discard.
-        
+
         Examples:
             >>> trunk = SomeTrunkNetwork()
             >>> neck = SomeNeckNetwork()
@@ -719,11 +719,11 @@ class Hiera(nn.Module):
     ):
         """
         Initialize a Hiera model, a hierarchical vision transformer for efficient multiscale feature extraction.
-        
+
         Hiera is a hierarchical vision transformer architecture designed for efficient multiscale feature extraction
         in image processing tasks. It uses a series of transformer blocks organized into stages, with optional
         pooling and global attention mechanisms.
-        
+
         Args:
             embed_dim (int): Initial embedding dimension for the model.
             num_heads (int): Initial number of attention heads.
@@ -737,7 +737,7 @@ class Hiera(nn.Module):
             window_spec (Tuple[int, ...]): Window sizes for each stage when not using global attention.
             global_att_blocks (Tuple[int, ...]): Indices of blocks that use global attention.
             return_interm_layers (bool): Whether to return intermediate layer outputs.
-        
+
         Examples:
             >>> model = Hiera(embed_dim=96, num_heads=1, stages=(2, 3, 16, 3))
             >>> input_tensor = torch.randn(1, 3, 224, 224)
@@ -821,16 +821,16 @@ class Hiera(nn.Module):
     def forward(self, x: torch.Tensor) -> List[torch.Tensor]:
         """
         Perform forward pass through Hiera model, extracting multiscale features from input images.
-        
+
         Args:
             x (torch.Tensor): Input tensor with shape (B, C, H, W) representing a batch of images.
-        
+
         Returns:
             (List[torch.Tensor]): List of feature maps at different scales, each with shape (B, C_i, H_i, W_i), where
                 C_i is the channel dimension and H_i, W_i are the spatial dimensions at scale i. The list is ordered
                 from highest resolution (fine features) to lowest resolution (coarse features) if return_interm_layers
                 is True, otherwise contains only the final output.
-        
+
         Examples:
             >>> model = Hiera(embed_dim=96, num_heads=1, stages=(2, 3, 16, 3))
             >>> input_tensor = torch.randn(1, 3, 224, 224)

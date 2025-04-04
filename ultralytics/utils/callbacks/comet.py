@@ -157,11 +157,11 @@ def _scale_bounding_box_to_original_image_shape(
 def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, class_name_map=None) -> Optional[dict]:
     """
     Format ground truth annotations for object detection.
-    
+
     This function processes ground truth annotations from a batch of images for object detection tasks. It extracts
     bounding boxes, class labels, and other metadata for a specific image in the batch, and formats them for
     visualization or evaluation.
-    
+
     Args:
         img_idx (int): Index of the image in the batch to process.
         image_path (str | Path): Path to the image file.
@@ -173,7 +173,7 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
             - 'resized_shape': Resized image shapes
             - 'ratio_pad': Ratio and padding information
         class_name_map (dict | None, optional): Mapping from class indices to class names.
-    
+
     Returns:
         (dict | None): Formatted ground truth annotations with the following structure:
             - 'boxes': List of box coordinates [x, y, width, height]
@@ -311,17 +311,17 @@ def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch) -> None:
 def _log_images(experiment, image_paths, curr_step, annotations=None) -> None:
     """
     Log images to the experiment with optional annotations.
-    
+
     This function logs images to a Comet ML experiment, optionally including annotation data for visualization
     such as bounding boxes or segmentation masks.
-    
+
     Args:
         experiment (comet_ml.Experiment): The Comet ML experiment to log images to.
         image_paths (List[Path]): List of paths to images that will be logged.
         curr_step (int): Current training step/iteration for tracking in the experiment timeline.
         annotations (List[List[dict]], optional): Nested list of annotation dictionaries for each image. Each annotation
             contains visualization data like bounding boxes, labels, and confidence scores.
-    
+
     Returns:
         None
     """
@@ -337,16 +337,16 @@ def _log_images(experiment, image_paths, curr_step, annotations=None) -> None:
 def _log_image_predictions(experiment, validator, curr_step) -> None:
     """
     Log predicted boxes for a single image during training.
-    
+
     This function logs image predictions to a Comet ML experiment during model validation. It processes
     validation data and formats both ground truth and prediction annotations for visualization in the Comet
     dashboard. The function respects configured limits on the number of images to log.
-    
+
     Args:
         experiment (comet_ml.Experiment): The Comet ML experiment to log to.
         validator (BaseValidator): The validator instance containing validation data and predictions.
         curr_step (int): The current training step for logging timeline.
-    
+
     Notes:
         This function uses global state to track the number of logged predictions across calls.
         It only logs predictions for supported tasks defined in COMET_SUPPORTED_TASKS.
@@ -400,16 +400,16 @@ def _log_image_predictions(experiment, validator, curr_step) -> None:
 def _log_plots(experiment, trainer) -> None:
     """
     Log evaluation plots and label plots for the experiment.
-    
+
     This function logs various evaluation plots and confusion matrices to the experiment tracking system. It handles
     different types of metrics (SegmentMetrics, PoseMetrics, DetMetrics, OBBMetrics) and logs the appropriate plots
     for each type.
-    
+
     Args:
         experiment (comet_ml.Experiment): The Comet ML experiment to log plots to.
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer object containing validation metrics and save
             directory information.
-    
+
     Examples:
         >>> from ultralytics.utils.callbacks.comet import _log_plots
         >>> _log_plots(experiment, trainer)
@@ -474,18 +474,18 @@ def on_train_epoch_end(trainer) -> None:
 def on_fit_epoch_end(trainer) -> None:
     """
     Log model assets at the end of each epoch during training.
-    
+
     This function is called at the end of each training epoch to log metrics, learning rates, and model information
-    to a Comet ML experiment. It also logs model assets, confusion matrices, and image predictions based on 
+    to a Comet ML experiment. It also logs model assets, confusion matrices, and image predictions based on
     configuration settings.
-    
+
     The function retrieves the current Comet ML experiment and logs various training metrics. If it's the first epoch,
     it also logs model information. On specified save intervals, it logs the model, confusion matrix (if enabled),
     and image predictions (if enabled).
-    
+
     Args:
         trainer: The YOLO trainer object containing training state, metrics, and configuration.
-    
+
     Examples:
         >>> # Inside a training loop
         >>> on_fit_epoch_end(trainer)  # Log metrics and assets to Comet ML

@@ -67,8 +67,10 @@ class SegmentationValidator(DetectionValidator):
         """
         super().init_metrics(model)
         self.plot_masks = []
+
         if self.args.save_json:
-            check_requirements("pycocotools>=2.0.6")
+            if not check_requirements("faster-coco-eval>=1.6.5", install=False):
+                check_requirements("pycocotools>=2.0.6")
         # more accurate vs faster
         self.process = ops.process_mask_native if self.args.save_json or self.args.save_txt else ops.process_mask
         self.stats = dict(tp_m=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
@@ -336,7 +338,10 @@ class SegmentationValidator(DetectionValidator):
         Examples:
              >>> result = {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
         """
-        from pycocotools.mask import encode  # noqa
+        if check_requirements("faster-coco-eval>=1.6.5", install=False):
+            from faster_coco_eval.core.mask import encode  # noqa
+        elif check_requirements("pycocotools>=2.0.6"):
+            from pycocotools.mask import encode  # noqa
 
         def single_encode(x):
             """Encode predicted masks as RLE and append results to jdict."""
@@ -365,6 +370,10 @@ class SegmentationValidator(DetectionValidator):
     def eval_json(self, stats):
         """Return COCO-style object detection evaluation metrics."""
         if self.args.save_json and (self.is_lvis or self.is_coco) and len(self.jdict):
+            if check_requirements("faster-coco-eval>=1.6.5", install=False):
+                pkg = "faster-coco-eval"
+            elif check_requirements("pycocotools>=2.0.6" if self.is_coco else "lvis>=0.5.3"):
+                pkg = "pycocotools" if self.is_coco else "lvis"
             pred_json = self.save_dir / "predictions.json"  # predictions
 
             anno_json = (
@@ -373,43 +382,66 @@ class SegmentationValidator(DetectionValidator):
                 / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
             )  # annotations
 
-            pkg = "pycocotools" if self.is_coco else "lvis"
             LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"
-                check_requirements("pycocotools>=2.0.6" if self.is_coco else "lvis>=0.5.3")
-                if self.is_coco:
-                    from pycocotools.coco import COCO  # noqa
-                    from pycocotools.cocoeval import COCOeval  # noqa
+                if pkg == "faster-coco-eval":
+                    from faster_coco_eval import COCO, COCOeval_faster
 
+                    extra_kwargs = dict(print_function=print, lvis_style=self.is_lvis)
                     anno = COCO(str(anno_json))  # init annotations api
                     pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
-                    vals = [COCOeval(anno, pred, "bbox"), COCOeval(anno, pred, "segm")]
+                    vals = [
+                        COCOeval_faster(anno, pred, "bbox", **extra_kwargs),
+                        COCOeval_faster(anno, pred, "segm", **extra_kwargs),
+                    ]
                 else:
-                    from lvis import LVIS, LVISEval
+                    if self.is_coco:
+                        from pycocotools.coco import COCO  # noqa
+                        from pycocotools.cocoeval import COCOeval  # noqa
 
-                    anno = LVIS(str(anno_json))
-                    pred = anno._load_json(str(pred_json))
-                    vals = [LVISEval(anno, pred, "bbox"), LVISEval(anno, pred, "segm")]
+                        anno = COCO(str(anno_json))  # init annotations api
+                        pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
+                        vals = [COCOeval(anno, pred, "bbox"), COCOeval(anno, pred, "segm")]
+                    else:
+                        from lvis import LVIS, LVISEval
+
+                        anno = LVIS(str(anno_json))
+                        pred = anno._load_json(str(pred_json))
+                        vals = [LVISEval(anno, pred, "bbox"), LVISEval(anno, pred, "segm")]
 
                 for i, eval in enumerate(vals):
                     eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
                     eval.evaluate()
                     eval.accumulate()
                     eval.summarize()
-                    if self.is_lvis:
+                    if pkg == "lvis":
                         eval.print_results()
+
                     idx = i * 4 + 2
                     # update mAP50-95 and mAP50
-                    stats[self.metrics.keys[idx + 1]], stats[self.metrics.keys[idx]] = (
-                        eval.stats[:2] if self.is_coco else [eval.results["AP"], eval.results["AP50"]]
-                    )
+                    if pkg == "faster-coco-eval":
+                        stats[self.metrics.keys[idx + 1]], stats[self.metrics.keys[idx]] = (
+                            eval.stats_as_dict["AP_all"],
+                            eval.stats_as_dict["AP_50"],
+                        )
+                    else:
+                        stats[self.metrics.keys[idx + 1]], stats[self.metrics.keys[idx]] = (
+                            eval.stats[:2] if self.is_coco else [eval.results["AP"], eval.results["AP50"]]
+                        )
+
                     if self.is_lvis:
                         tag = "B" if i == 0 else "M"
-                        stats[f"metrics/APr({tag})"] = eval.results["APr"]
-                        stats[f"metrics/APc({tag})"] = eval.results["APc"]
-                        stats[f"metrics/APf({tag})"] = eval.results["APf"]
+                        stats[f"metrics/APr({tag})"] = (
+                            eval.stats_as_dict["APr"] if pkg == "faster-coco-eval" else eval.results["APr"]
+                        )
+                        stats[f"metrics/APc({tag})"] = (
+                            eval.stats_as_dict["APc"] if pkg == "faster-coco-eval" else eval.results["APr"]
+                        )
+                        stats[f"metrics/APf({tag})"] = (
+                            eval.stats_as_dict["APf"] if pkg == "faster-coco-eval" else eval.results["APr"]
+                        )
 
                 if self.is_lvis:
                     stats["fitness"] = stats["metrics/mAP50-95(B)"]

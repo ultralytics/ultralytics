@@ -31,7 +31,7 @@ for k, v in model.named_parameters():
     v.requires_grad = True  # Ensure all parameters are initially trainable
     if any(x in k for x in freeze):
         print(f"Freezing layer: {k}")
-        v.requires_grad = False # Disable gradient calculation for frozen layers
+        v.requires_grad = False  # Disable gradient calculation for frozen layers
 ```
 
 ## Exploring Model Architecture
@@ -85,7 +85,7 @@ head:
 
 ## Freezing Options
 
-You can control which layers are frozen using the `--freeze` argument in the training command. This argument specifies the index of the first *unfrozen* module; all modules before this index will have their weights frozen.
+You can control which layers are frozen using the `--freeze` argument in the training command. This argument specifies the index of the first _unfrozen_ module; all modules before this index will have their weights frozen.
 
 ### Freeze Backbone Only
 
@@ -121,10 +121,10 @@ python train.py --batch 48 --weights yolov5m.pt --data voc.yaml --epochs 50 --ca
 The results show that freezing layers can accelerate training significantly but may lead to a slight reduction in final [mAP (mean Average Precision)](https://www.ultralytics.com/glossary/mean-average-precision-map). Training all layers generally yields the best accuracy, while freezing more layers offers faster training at the cost of potentially lower performance.
 
 ![Training mAP50 results comparing different freezing strategies](https://github.com/ultralytics/docs/releases/download/0/freezing-training-map50-results.avif)
-*mAP50 comparison during training*
+_mAP50 comparison during training_
 
 ![Training mAP50-95 results comparing different freezing strategies](https://github.com/ultralytics/docs/releases/download/0/freezing-training-map50-95-results.avif)
-*mAP50-95 comparison during training*
+_mAP50-95 comparison during training_
 
 <img width="922" alt="Table summarizing performance results" src="https://github.com/ultralytics/docs/releases/download/0/table-results.avif">
 *Summary table of performance metrics*
@@ -134,10 +134,10 @@ The results show that freezing layers can accelerate training significantly but 
 Freezing more layers substantially reduces [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit) memory requirements and overall utilization. This makes transfer learning with frozen layers an attractive option when working with limited hardware resources, allowing for training larger models or using larger image sizes than might otherwise be possible.
 
 ![GPU memory allocated percentage during training](https://github.com/ultralytics/docs/releases/download/0/training-gpu-memory-allocated-percent.avif)
-*GPU Memory Allocated (%)*
+_GPU Memory Allocated (%)_
 
 ![GPU memory utilization percentage during training](https://github.com/ultralytics/docs/releases/download/0/training-gpu-memory-utilization-percent.avif)
-*GPU Utilization (%)*
+_GPU Utilization (%)_
 
 ## When to Use Layer Freezing
 

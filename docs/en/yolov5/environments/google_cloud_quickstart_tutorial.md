@@ -6,7 +6,7 @@ keywords: YOLOv5, Google Cloud Platform, GCP, Deep Learning VM, object detection
 
 # Mastering YOLOv5 Deployment on Google Cloud Platform (GCP) Deep Learning VM
 
-Embarking on the journey of [artificial intelligence (AI)](https://www.ultralytics.com/glossary/artificial-intelligence-ai) and [machine learning (ML)](https://www.ultralytics.com/glossary/machine-learning-ml) can be exhilarating, especially when you leverage the power and flexibility of a [cloud computing](https://www.ultralytics.com/glossary/cloud-computing) platform. Google Cloud Platform (GCP) offers robust tools tailored for ML enthusiasts and professionals alike. One such tool is the Deep Learning VM, preconfigured for data science and ML tasks. In this tutorial, we will navigate the process of setting up [Ultralytics YOLOv5](../models/yolov5/) on a [GCP Deep Learning VM](https://cloud.google.com/deep-learning-vm). Whether you're taking your first steps in ML or you're a seasoned practitioner, this guide provides a clear pathway to implementing [object detection](https://www.ultralytics.com/glossary/object-detection) models powered by YOLOv5.
+Embarking on the journey of [artificial intelligence (AI)](https://www.ultralytics.com/glossary/artificial-intelligence-ai) and [machine learning (ML)](https://www.ultralytics.com/glossary/machine-learning-ml) can be exhilarating, especially when you leverage the power and flexibility of a [cloud computing](https://www.ultralytics.com/glossary/cloud-computing) platform. Google Cloud Platform (GCP) offers robust tools tailored for ML enthusiasts and professionals alike. One such tool is the Deep Learning VM, preconfigured for data science and ML tasks. In this tutorial, we will navigate the process of setting up [Ultralytics YOLOv5](../../models/yolov5.md) on a [GCP Deep Learning VM](https://cloud.google.com/deep-learning-vm). Whether you're taking your first steps in ML or you're a seasoned practitioner, this guide provides a clear pathway to implementing [object detection](https://www.ultralytics.com/glossary/object-detection) models powered by YOLOv5.
 
 🆓 Plus, if you're a new GCP user, you're in luck with a [$300 free credit offer](https://cloud.google.com/free/docs/free-cloud-features#free-trial) to kickstart your projects.
 
@@ -91,7 +91,7 @@ free -h
 
 To train YOLOv5 on your custom dataset within GCP, follow these general steps:
 
-1.  Prepare your dataset according to the YOLOv5 format (images and corresponding label files). See our [datasets overview](../../datasets/) for guidance.
+1.  Prepare your dataset according to the YOLOv5 format (images and corresponding label files). See our [datasets overview](../../datasets/index.md) for guidance.
 2.  Upload your dataset to your GCP VM using `gcloud compute scp` or the web console's SSH feature.
 3.  Create a dataset configuration YAML file (`custom_dataset.yaml`) that specifies the paths to your training and validation data, the number of classes, and class names.
 4.  Begin the [training process](../../modes/train.md) using your custom dataset YAML and potentially starting from pre-trained weights:
@@ -123,10 +123,10 @@ This approach allows you to store large datasets and trained models securely and
 
 ## Concluding Thoughts
 
-Congratulations! You are now equipped to harness the capabilities of Ultralytics YOLOv5 combined with the computational power of Google Cloud Platform. This setup provides scalability, efficiency, and versatility for your object detection projects. Whether for personal exploration, academic research, or building industrial [solutions](../../../solutions/), you have taken a significant step into the world of AI and ML on the cloud.
+Congratulations! You are now equipped to harness the capabilities of Ultralytics YOLOv5 combined with the computational power of Google Cloud Platform. This setup provides scalability, efficiency, and versatility for your object detection projects. Whether for personal exploration, academic research, or building industrial [solutions](../../solutions/index.md), you have taken a significant step into the world of AI and ML on the cloud.
 
-Consider using [Ultralytics HUB](../../../hub/) for a streamlined, no-code experience to train and manage your models.
+Consider using [Ultralytics HUB](../../hub/index.md) for a streamlined, no-code experience to train and manage your models.
 
 Remember to document your progress, share insights with the vibrant Ultralytics community, and utilize resources like [GitHub discussions](https://github.com/ultralytics/yolov5/discussions) for collaboration and support. Now, go forth and innovate with YOLOv5 and GCP!
 
-Want to continue enhancing your ML skills? Dive into our [documentation](../../quickstart/) and explore the [Ultralytics Blog](https://www.ultralytics.com/blog) for more tutorials and insights. Let your AI adventure continue!
+Want to continue enhancing your ML skills? Dive into our [documentation](../../quickstart.md) and explore the [Ultralytics Blog](https://www.ultralytics.com/blog) for more tutorials and insights. Let your AI adventure continue!

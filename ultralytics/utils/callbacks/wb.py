@@ -99,7 +99,22 @@ def _plot_curve(
 
 
 def _log_plots(plots, step):
-    """Logs plots from the input dictionary if they haven't been logged already at the specified step."""
+    """
+    Log plots to WandB at a specific step if they haven't been logged already.
+    
+    This function checks each plot in the input dictionary against previously processed plots and logs
+    new or updated plots to WandB at the specified step.
+    
+    Args:
+        plots (dict): Dictionary of plots to log, where keys are plot names and values are dictionaries
+            containing plot metadata including timestamps.
+        step (int): The step/epoch at which to log the plots in the WandB run.
+    
+    Notes:
+        - The function uses a shallow copy of the plots dictionary to prevent modification during iteration
+        - Plots are identified by their stem name (filename without extension)
+        - Each plot is logged as a WandB Image object
+    """
     for name, params in plots.copy().items():  # shallow copy to prevent plots dict changing during iteration
         timestamp = params["timestamp"]
         if _processed_plots.get(name) != timestamp:

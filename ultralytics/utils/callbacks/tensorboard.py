@@ -24,14 +24,42 @@ except (ImportError, AssertionError, TypeError, AttributeError):
 
 
 def _log_scalars(scalars: dict, step: int = 0) -> None:
-    """Logs scalar values to TensorBoard."""
+    """
+    Log scalar values to TensorBoard.
+    
+    Args:
+        scalars (dict): Dictionary of scalar values to log to TensorBoard. Keys are scalar names and values are the
+            corresponding scalar values.
+        step (int): Global step value to record with the scalar values. Used for x-axis in TensorBoard graphs.
+    
+    Examples:
+        >>> # Log training metrics
+        >>> metrics = {'loss': 0.5, 'accuracy': 0.95}
+        >>> _log_scalars(metrics, step=100)
+    """
     if WRITER:
         for k, v in scalars.items():
             WRITER.add_scalar(k, v, step)
 
 
 def _log_tensorboard_graph(trainer) -> None:
-    """Log model graph to TensorBoard."""
+    """
+    Log model graph to TensorBoard.
+    
+    This function attempts to visualize the model architecture in TensorBoard by tracing the model with a dummy input
+    tensor. It first tries a simple method suitable for YOLO models, and if that fails, falls back to a more complex
+    approach for models like RTDETR that may require special handling.
+    
+    Args:
+        trainer: The trainer object containing the model to visualize. Must have attributes:
+            - model: PyTorch model to visualize
+            - args: Configuration arguments with 'imgsz' attribute
+    
+    Notes:
+        This function requires TensorBoard integration to be enabled and the global WRITER to be initialized.
+        It handles potential warnings from the PyTorch JIT tracer and attempts to gracefully handle different
+        model architectures.
+    """
     # Input image
     imgsz = trainer.args.imgsz
     imgsz = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz

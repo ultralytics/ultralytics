@@ -15,14 +15,14 @@ __all__ = "multi_scale_deformable_attn_pytorch", "inverse_sigmoid"
 def _get_clones(module, n):
     """
     Create a list of cloned modules from the given module.
-    
+
     Args:
         module (nn.Module): The module to be cloned.
         n (int): Number of clones to create.
-    
+
     Returns:
         (nn.ModuleList): A ModuleList containing n clones of the input module.
-    
+
     Examples:
         >>> import torch.nn as nn
         >>> layer = nn.Linear(10, 10)
@@ -36,17 +36,17 @@ def _get_clones(module, n):
 def bias_init_with_prob(prior_prob=0.01):
     """
     Initialize conv/fc bias value according to a given probability value.
-    
+
     This function calculates the bias initialization value based on a prior probability using the inverse error function.
     It's commonly used in object detection models to initialize classification layers with a specific positive prediction
     probability.
-    
+
     Args:
-        prior_prob (float, optional): Prior probability for bias initialization. 
-    
+        prior_prob (float, optional): Prior probability for bias initialization.
+
     Returns:
         (float): Bias initialization value calculated from the prior probability.
-    
+
     Examples:
         >>> bias = bias_init_with_prob(0.01)
         >>> print(f"Bias initialization value: {bias:.4f}")
@@ -58,16 +58,16 @@ def bias_init_with_prob(prior_prob=0.01):
 def linear_init(module):
     """
     Initialize the weights and biases of a linear module.
-    
+
     This function initializes the weights of a linear module using a uniform distribution within bounds calculated
     from the input dimension. If the module has a bias, it is also initialized.
-    
+
     Args:
         module (nn.Module): Linear module to initialize.
-    
+
     Returns:
         (nn.Module): The initialized module.
-    
+
     Examples:
         >>> import torch.nn as nn
         >>> linear = nn.Linear(10, 5)
@@ -82,17 +82,17 @@ def linear_init(module):
 def inverse_sigmoid(x, eps=1e-5):
     """
     Calculate the inverse sigmoid function for a tensor.
-    
+
     This function applies the inverse of the sigmoid function to a tensor, which is useful in various neural network
     operations, particularly in attention mechanisms and coordinate transformations.
-    
+
     Args:
         x (torch.Tensor): Input tensor with values in range [0, 1].
         eps (float, optional): Small epsilon value to prevent numerical instability.
-    
+
     Returns:
         (torch.Tensor): Tensor after applying the inverse sigmoid function.
-    
+
     Examples:
         >>> x = torch.tensor([0.2, 0.5, 0.8])
         >>> inverse_sigmoid(x)
@@ -112,10 +112,10 @@ def multi_scale_deformable_attn_pytorch(
 ) -> torch.Tensor:
     """
     Implement multi-scale deformable attention in PyTorch.
-    
+
     This function performs deformable attention across multiple feature map scales, allowing the model to attend to
     different spatial locations with learned offsets.
-    
+
     Args:
         value (torch.Tensor): The value tensor with shape (bs, num_keys, num_heads, embed_dims).
         value_spatial_shapes (torch.Tensor): Spatial shapes of the value tensor with shape (num_levels, 2).
@@ -123,10 +123,10 @@ def multi_scale_deformable_attn_pytorch(
             (bs, num_queries, num_heads, num_levels, num_points, 2).
         attention_weights (torch.Tensor): The attention weights with shape
             (bs, num_queries, num_heads, num_levels, num_points).
-    
+
     Returns:
         (torch.Tensor): The output tensor with shape (bs, num_queries, embed_dims).
-    
+
     References:
         https://github.com/IDEA-Research/detrex/blob/main/detrex/layers/multi_scale_deform_attn.py
     """

@@ -103,8 +103,14 @@ jobs:
         run: |
           git clone --depth 1 --branch gh-pages https://github.com/ultralytics/docs.git docs-repo
           cd docs-repo
-          rm -rf *
+          if [ -f "vercel.json" ]; then
+            cp vercel.json /tmp/vercel.json
+          fi          
+          rm -rf *          
           cp -R ../site/* .
+          if [ -f "/tmp/vercel.json" ]; then
+            cp /tmp/vercel.json .
+          fi
           echo "${{ secrets.INDEXNOW_KEY_DOCS }}" > "${{ secrets.INDEXNOW_KEY_DOCS }}.txt"
           git add .
           if git diff --staged --quiet; then

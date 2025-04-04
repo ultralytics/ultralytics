@@ -42,10 +42,10 @@ class OBBValidator(DetectionValidator):
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """
         Initialize OBBValidator and set task to 'obb', metrics to OBBMetrics.
-        
+
         This constructor initializes an OBBValidator instance for validating Oriented Bounding Box (OBB) models.
         It extends the DetectionValidator class and configures it specifically for the OBB task.
-        
+
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
             save_dir (str | Path, optional): Directory to save results.
@@ -93,7 +93,7 @@ class OBBValidator(DetectionValidator):
     def _prepare_batch(self, si, batch):
         """
         Prepare batch data for OBB validation with proper scaling and formatting.
-            
+
         Args:
             si (int): Batch index to process.
             batch (dict): Dictionary containing batch data with keys:
@@ -121,7 +121,7 @@ class OBBValidator(DetectionValidator):
     def _prepare_pred(self, pred, pbatch):
         """
         Prepare predictions by scaling bounding boxes to original image dimensions.
-            
+
         This method takes prediction tensors containing bounding box coordinates and scales them from the model's
         input dimensions to the original image dimensions using the provided batch information.
 
@@ -144,7 +144,7 @@ class OBBValidator(DetectionValidator):
     def plot_predictions(self, batch, preds, ni):
         """
         Plot predicted bounding boxes on input images and save the result.
-            
+
         Args:
             batch (dict): Batch data containing images, file paths, and other metadata.
             preds (list): List of prediction tensors for each image in the batch.
@@ -168,7 +168,7 @@ class OBBValidator(DetectionValidator):
     def pred_to_json(self, predn, filename):
         """
         Convert YOLO predictions to COCO JSON format with rotated bounding box information.
-        
+
         Args:
             predn (torch.Tensor): Prediction tensor containing bounding box coordinates, confidence scores,
                 class predictions, and rotation angles with shape (N, 6+) where the last column is the angle.
@@ -200,7 +200,7 @@ class OBBValidator(DetectionValidator):
     def save_one_txt(self, predn, save_conf, shape, file):
         """
         Save YOLO OBB (Oriented Bounding Box) detections to a text file in normalized coordinates.
-            
+
         Args:
             predn (torch.Tensor): Predicted detections with shape (N, 7) containing bounding boxes, confidence scores,
                 class predictions, and angles in format (x, y, w, h, conf, cls, angle).

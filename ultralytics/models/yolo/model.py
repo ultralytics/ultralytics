@@ -24,21 +24,21 @@ class YOLO(Model):
     def __init__(self, model="yolo11n.pt", task=None, verbose=False):
         """
         Initialize a YOLO model.
-        
+
         This constructor initializes a YOLO model, automatically switching to specialized model types
         (YOLOWorld or YOLOE) based on the model filename.
-        
+
         Args:
             model (str | Path): Model name or path to model file, i.e. 'yolo11n.pt', 'yolov8n.yaml'.
             task (str | None): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'.
                 Defaults to auto-detection based on model.
             verbose (bool): Display model info on load.
-        
+
         Examples:
             >>> from ultralytics import YOLO
-            >>> model = YOLO('yolov8n.pt')  # load a pretrained YOLOv8n detection model
-            >>> model = YOLO('yolov8n-seg.pt')  # load a pretrained YOLOv8n segmentation model
-            >>> model = YOLO('yolo11n.pt')  # load a pretrained YOLOv11n detection model
+            >>> model = YOLO("yolov8n.pt")  # load a pretrained YOLOv8n detection model
+            >>> model = YOLO("yolov8n-seg.pt")  # load a pretrained YOLOv8n segmentation model
+            >>> model = YOLO("yolo11n.pt")  # load a pretrained YOLOv11n detection model
         """
         path = Path(model)
         if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
@@ -185,17 +185,17 @@ class YOLOE(Model):
     def get_visual_pe(self, img, visual):
         """
         Get visual positional embeddings for the given image and visual features.
-        
+
         This method extracts positional embeddings from visual features based on the input image. It requires
         that the model is an instance of YOLOEModel.
-        
+
         Args:
             img (torch.Tensor): Input image tensor.
             visual (torch.Tensor): Visual features extracted from the image.
-        
+
         Returns:
             (torch.Tensor): Visual positional embeddings.
-        
+
         Examples:
             >>> model = YOLOE("yoloe-v8s.pt")
             >>> img = torch.rand(1, 3, 640, 640)
@@ -208,7 +208,7 @@ class YOLOE(Model):
     def set_vocab(self, vocab, names):
         """
         Set vocabulary and class names for the YOLOE model.
-            
+
         This method configures the vocabulary and class names used by the model for text processing and
         classification tasks. The model must be an instance of YOLOEModel.
 

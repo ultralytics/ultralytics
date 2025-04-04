@@ -110,6 +110,9 @@ def test_triton():
     # Check Triton inference
     YOLO(f"http://localhost:8000/{model_name}", "detect")(SOURCE)  # exported model inference
 
+    # Check Triton inference with cuda shared memory
+    YOLO(f"http://localhost:8000/{model_name}?cuda_shm=True", "detect")(SOURCE)  # exported model inference
+
     # Kill and remove the container at the end of the test
     subprocess.call(f"docker kill {container_id}", shell=True)
 

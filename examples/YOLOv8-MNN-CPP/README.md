@@ -61,9 +61,9 @@ Follow these steps to build the project:
     ```
 
     Note:
+
     - The library paths may vary based on your system configuration. Make sure to update the paths accordingly.
     - Replace .dylib with .so for Linux or .dll for Windows.
-
 
 5.  Create a build directory and compile the project using CMake:
     ```bash
@@ -104,6 +104,7 @@ yolo predict model='yolov8n.mnn' source='bus.jpg'
 ```
 
 Output:
+
 ```
 ultralytics/examples/YOLOv8-MNN-CPP/assets/bus.jpg: 640x640 4 persons, 1 bus, 84.6ms
 Speed: 9.7ms preprocess, 128.7ms inference, 12.4ms postprocess per image at shape (1, 3, 640, 640)

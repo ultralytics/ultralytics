@@ -28,15 +28,15 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initialize a SegmentationTrainer object.
-        
+
         This initializes a trainer for segmentation tasks, extending the detection trainer with segmentation-specific
         functionality. It sets the task to 'segment' and prepares the trainer for training segmentation models.
-        
+
         Args:
             cfg (dict): Configuration dictionary with default training settings. Defaults to DEFAULT_CFG.
             overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
             _callbacks (list, optional): List of callback functions to be executed during training.
-        
+
         Examples:
             >>> from ultralytics.models.yolo.segment import SegmentationTrainer
             >>> args = dict(model="yolov8n-seg.pt", data="coco8-seg.yaml", epochs=3)
@@ -51,7 +51,7 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
     def get_model(self, cfg=None, weights=None, verbose=True):
         """
         Initialize and return a SegmentationModel with specified configuration and weights.
-            
+
         Args:
             cfg (dict | str | None): Model configuration. Can be a dictionary, a path to a YAML file, or None.
             weights (str | Path | None): Path to pretrained weights file.
@@ -81,10 +81,10 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
     def plot_training_samples(self, batch, ni):
         """
         Plot training sample images with labels, bounding boxes, and masks.
-        
+
         This method creates a visualization of training batch images with their corresponding labels, bounding boxes,
         and segmentation masks, saving the result to a file for inspection and debugging.
-        
+
         Args:
             batch (dict): Dictionary containing batch data with the following keys:
                 'img': Images tensor
@@ -94,16 +94,16 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
                 'masks': Segmentation masks tensor
                 'im_file': List of image file paths
             ni (int): Current training iteration number, used for naming the output file.
-        
+
         Examples:
             >>> trainer = SegmentationTrainer()
             >>> batch = {
-            ...     'img': torch.rand(16, 3, 640, 640),
-            ...     'batch_idx': torch.zeros(16),
-            ...     'cls': torch.randint(0, 80, (16, 1)),
-            ...     'bboxes': torch.rand(16, 4),
-            ...     'masks': torch.rand(16, 640, 640),
-            ...     'im_file': ['image1.jpg', 'image2.jpg']
+            ...     "img": torch.rand(16, 3, 640, 640),
+            ...     "batch_idx": torch.zeros(16),
+            ...     "cls": torch.randint(0, 80, (16, 1)),
+            ...     "bboxes": torch.rand(16, 4),
+            ...     "masks": torch.rand(16, 640, 640),
+            ...     "im_file": ["image1.jpg", "image2.jpg"],
             ... }
             >>> trainer.plot_training_samples(batch, ni=5)
         """

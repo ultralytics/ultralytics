@@ -38,19 +38,19 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initialize a PoseTrainer object for training YOLO pose estimation models.
-        
+
         This initializes a trainer specialized for pose estimation tasks, setting the task to 'pose' and
         handling specific configurations needed for keypoint detection models.
-        
+
         Args:
             cfg (dict, optional): Default configuration dictionary containing training parameters.
             overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
             _callbacks (list, optional): List of callback functions to be executed during training.
-        
+
         Notes:
             This trainer will automatically set the task to 'pose' regardless of what is provided in overrides.
             A warning is issued when using Apple MPS device due to known bugs with pose models.
-        
+
         Examples:
             >>> from ultralytics.models.yolo.pose import PoseTrainer
             >>> args = dict(model="yolov8n-pose.pt", data="coco8-pose.yaml", epochs=3)
@@ -71,7 +71,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
     def get_model(self, cfg=None, weights=None, verbose=True):
         """
         Get pose estimation model with specified configuration and weights.
-            
+
         Args:
             cfg (str | Path | dict | None): Model configuration file path or dictionary.
             weights (str | Path | None): Path to the model weights file.
@@ -101,7 +101,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
     def plot_training_samples(self, batch, ni):
         """
         Plot a batch of training samples with annotated class labels, bounding boxes, and keypoints.
-            
+
         Args:
             batch (dict): Dictionary containing batch data with the following keys:
                 - img (torch.Tensor): Batch of images

@@ -85,20 +85,20 @@ class GCPRegions:
     def _ping_region(region: str, attempts: int = 1) -> Tuple[str, float, float, float, float]:
         """
         Ping a specified GCP region and measure network latency statistics.
-            
+
         Args:
                 region (str): The GCP region identifier to ping (e.g., 'us-central1').
                 attempts (int): Number of ping attempts to make for calculating statistics.
-            
+
         Returns:
                 region (str): The GCP region identifier that was pinged.
                 mean_latency (float): Mean latency in milliseconds, or infinity if all pings failed.
                 min_latency (float): Minimum latency in milliseconds, or infinity if all pings failed.
                 max_latency (float): Maximum latency in milliseconds, or infinity if all pings failed.
                 std_dev (float): Standard deviation of latencies in milliseconds, or infinity if all pings failed.
-                
+
         Examples:
-                >>> region, mean, min_lat, max_lat, std = GCPRegions._ping_region('us-central1', attempts=3)
+                >>> region, mean, min_lat, max_lat, std = GCPRegions._ping_region("us-central1", attempts=3)
                 >>> print(f"Region {region} has mean latency: {mean:.2f}ms")
         """
         url = f"https://{region}-docker.pkg.dev"

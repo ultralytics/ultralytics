@@ -43,7 +43,7 @@ results.print()  # Other options: .show(), .save(), .crop(), .pandas(), etc.
 Harness `detect.py` for versatile [inference](../modes/predict.md) on various sources. It automatically fetches [models](https://github.com/ultralytics/yolov5/tree/master/models) from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases) and saves results with ease. This script is ideal for command-line usage and integrating YOLOv5 into larger systems.
 
 ```bash
-python detect.py --weights yolov5s.pt --source 0                             # webcam
+python detect.py --weights yolov5s.pt --source 0                              # webcam
 python detect.py --weights yolov5s.pt --source image.jpg                      # image
 python detect.py --weights yolov5s.pt --source video.mp4                      # video
 python detect.py --weights yolov5s.pt --source screen                         # screenshot

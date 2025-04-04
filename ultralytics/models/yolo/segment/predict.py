@@ -31,12 +31,37 @@ class SegmentationPredictor(DetectionPredictor):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initialize the SegmentationPredictor with configuration, overrides, and callbacks."""
+        """
+        Initialize the SegmentationPredictor with configuration, overrides, and callbacks.
+        
+        This class specializes in processing segmentation model outputs, handling both bounding boxes and masks in the
+        prediction results.
+        
+        Args:
+            cfg (dict): Configuration for the predictor. Defaults to Ultralytics DEFAULT_CFG.
+            overrides (dict, optional): Configuration overrides that take precedence over cfg.
+            _callbacks (list, optional): List of callback functions to be invoked during prediction.
+        """
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "segment"
 
     def postprocess(self, preds, img, orig_imgs):
-        """Apply non-max suppression and process detections for each image in the input batch."""
+        """
+        Apply non-max suppression and process segmentation detections for each image in the input batch.
+            
+        Args:
+            preds (tuple): Model predictions, containing bounding boxes, scores, classes, and mask coefficients.
+            img (torch.Tensor): Input image tensor in model format, with shape (B, C, H, W).
+            orig_imgs (list | torch.Tensor | np.ndarray): Original image or batch of images.
+
+        Returns:
+            (list): List of Results objects containing the segmentation predictions for each image in the batch.
+                   Each Results object includes both bounding boxes and segmentation masks.
+
+        Examples:
+            >>> predictor = SegmentationPredictor(overrides=dict(model="yolov8n-seg.pt"))
+            >>> results = predictor.postprocess(preds, img, orig_img)
+        """
         # Extract protos - tuple if PyTorch model or array if exported
         protos = preds[1][-1] if isinstance(preds[1], tuple) else preds[1]
         return super().postprocess(preds[0], img, orig_imgs, protos=protos)

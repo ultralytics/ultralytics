@@ -31,7 +31,26 @@ class DetectionPredictor(BasePredictor):
     """
 
     def postprocess(self, preds, img, orig_imgs, **kwargs):
-        """Post-processes predictions and returns a list of Results objects."""
+        """
+        Post-process predictions and return a list of Results objects.
+            
+        This method applies non-maximum suppression to raw model predictions and prepares them for visualization and
+        further analysis.
+
+        Args:
+            preds (torch.Tensor): Raw predictions from the model.
+            img (torch.Tensor): Processed input image tensor in model input format.
+            orig_imgs (torch.Tensor | list): Original input images before preprocessing.
+            **kwargs (Any): Additional keyword arguments.
+
+        Returns:
+            (list): List of Results objects containing the post-processed predictions.
+
+        Examples:
+            >>> predictor = DetectionPredictor(overrides=dict(model="yolov8n.pt"))
+            >>> results = predictor.predict("path/to/image.jpg")
+            >>> processed_results = predictor.postprocess(preds, img, orig_imgs)
+        """
         preds = ops.non_max_suppression(
             preds,
             self.args.conf,

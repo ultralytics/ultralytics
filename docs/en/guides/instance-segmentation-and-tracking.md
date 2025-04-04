@@ -45,10 +45,10 @@ There are two types of instance segmentation tracking available in the Ultralyti
         yolo solutions isegment show=True
 
         # Pass a source video
-        yolo solutions isegment source="path/to/video/file.mp4"
+        yolo solutions isegment source="path/to/video.mp4"
 
         # Monitor the specific classes
-        yolo solutions isegment classes=[0, 5]
+        yolo solutions isegment classes="[0, 5]"
         ```
 
     === "Python"
@@ -58,7 +58,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
 
         from ultralytics import solutions
 
-        cap = cv2.VideoCapture("Path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
 
         # Video writer
@@ -118,7 +118,7 @@ YOLO11 can be used in [waste management facilities](https://www.ultralytics.com/
 
 ### Autonomous Vehicles
 
-In [self-driving cars](https://www.ultralytics.com/solutions/ai-in-self-driving), instance segmentation helps identify and track pedestrians, vehicles, traffic signs, and other road elements at the pixel level. This precise understanding of the environment is crucial for navigation and safety decisions. YOLO11's real-time performance makes it ideal for these time-sensitive applications.
+In [self-driving cars](https://www.ultralytics.com/solutions/ai-in-automotive), instance segmentation helps identify and track pedestrians, vehicles, traffic signs, and other road elements at the pixel level. This precise understanding of the environment is crucial for navigation and safety decisions. YOLO11's real-time performance makes it ideal for these time-sensitive applications.
 
 ### Medical Imaging
 
@@ -143,7 +143,7 @@ import cv2
 
 from ultralytics import solutions
 
-cap = cv2.VideoCapture("Path/to/video/file.mp4")
+cap = cv2.VideoCapture("path/to/video.mp4")
 assert cap.isOpened(), "Error reading video file"
 
 # Video writer

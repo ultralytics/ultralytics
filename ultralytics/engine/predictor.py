@@ -82,9 +82,9 @@ class BasePredictor:
         plotted_img (numpy.ndarray): Last plotted image.
         source_type (SimpleNamespace): Type of input source.
         seen (int): Number of images processed.
-        windows (List): List of window names for visualization.
+        windows (list): List of window names for visualization.
         batch (tuple): Current batch data.
-        results (List): Current batch results.
+        results (list): Current batch results.
         transforms (callable): Image transforms for classification.
         callbacks (dict): Callback functions for different events.
         txt_path (Path): Path to save text results.
@@ -183,7 +183,9 @@ class BasePredictor:
         same_shapes = len({x.shape for x in im}) == 1
         letterbox = LetterBox(
             self.imgsz,
-            auto=same_shapes and (self.model.pt or (getattr(self.model, "dynamic", False) and not self.model.imx)),
+            auto=same_shapes
+            and self.args.rect
+            and (self.model.pt or (getattr(self.model, "dynamic", False) and not self.model.imx)),
             stride=self.model.stride,
         )
         return [letterbox(image=x) for x in im]

@@ -8,13 +8,13 @@ keywords: Ultralytics, YOLO11, NVIDIA Jetson, JetPack, AI deployment, embedded s
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/wWmXKIteRLA"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/hvGqrVT2wPg"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Run Multiple Streams with DeepStream SDK on Jetson Nano using Ultralytics YOLO11
+  <strong>Watch:</strong> How to use Ultralytics YOLO11 models with NVIDIA Deepstream on Jetson Orin NX 🚀
 </p>
 
 This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLO11 on [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) devices using DeepStream SDK and TensorRT. Here we use TensorRT to maximize the inference performance on the Jetson platform.
@@ -66,16 +66,12 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     git clone https://github.com/marcoslucianops/DeepStream-Yolo
     ```
 
-3.  Copy the `export_yoloV8.py` file from `DeepStream-Yolo/utils` directory to the `ultralytics` folder
+3.  Copy the `export_yolo11.py` file from `DeepStream-Yolo/utils` directory to the `ultralytics` folder
 
     ```bash
-    cp ~/DeepStream-Yolo/utils/export_yoloV8.py ~/ultralytics
+    cp ~/DeepStream-Yolo/utils/export_yolo11.py ~/ultralytics
     cd ultralytics
     ```
-
-    !!! note
-
-        `export_yoloV8.py` works for both YOLOv8 and YOLO11 models.
 
 4.  Download Ultralytics YOLO11 detection model (.pt) of your choice from [YOLO11 releases](https://github.com/ultralytics/assets/releases). Here we use [yolo11s.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s.pt).
 
@@ -90,12 +86,12 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
 5.  Convert model to ONNX
 
     ```bash
-    python3 export_yoloV8.py -w yolo11s.pt
+    python3 export_yolo11.py -w yolo11s.pt
     ```
 
     !!! note "Pass the below arguments to the above command"
 
-        For DeepStream 6.0.1, use opset 12 or lower. The default opset is 16.
+        For DeepStream 5.1, remove the `--dynamic` arg and use `opset` 12 or lower. The default `opset` is 17.
 
         ```bash
         --opset 12
@@ -169,7 +165,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     make -C nvdsinfer_custom_impl_Yolo clean && make -C nvdsinfer_custom_impl_Yolo
     ```
 
-9.  Edit the `config_infer_primary_yoloV8.txt` file according to your model (for YOLO11s with 80 classes)
+9.  Edit the `config_infer_primary_yolo11.txt` file according to your model (for YOLO11s with 80 classes)
 
     ```bash
     [property]
@@ -186,7 +182,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     ...
     [primary-gie]
     ...
-    config-file=config_infer_primary_yoloV8.txt
+    config-file=config_infer_primary_yolo11.txt
     ```
 
 11. You can also change the video source in `deepstream_app_config` file. Here a default video file is loaded
@@ -212,7 +208,7 @@ deepstream-app -c deepstream_app_config.txt
 
 !!! tip
 
-    If you want to convert the model to FP16 precision, simply set `model-engine-file=model_b1_gpu0_fp16.engine` and `network-mode=2` inside `config_infer_primary_yoloV8.txt`
+    If you want to convert the model to FP16 precision, simply set `model-engine-file=model_b1_gpu0_fp16.engine` and `network-mode=2` inside `config_infer_primary_yolo11.txt`
 
 ## INT8 Calibration
 
@@ -245,8 +241,8 @@ If you want to use INT8 precision for inference, you need to follow the steps be
 5.  Run the following to select 1000 random images from COCO dataset to run calibration
 
     ```bash
-    for jpg in $(ls -1 val2017/*.jpg | sort -R | head -1000); do \
-        cp ${jpg} calibration/; \
+    for jpg in $(ls -1 val2017/*.jpg | sort -R | head -1000); do
+      cp ${jpg} calibration/
     done
     ```
 
@@ -271,7 +267,7 @@ If you want to use INT8 precision for inference, you need to follow the steps be
 
         Higher INT8_CALIB_BATCH_SIZE values will result in more accuracy and faster calibration speed. Set it according to you GPU memory.
 
-8.  Update the `config_infer_primary_yoloV8.txt` file
+8.  Update the `config_infer_primary_yolo11.txt` file
 
     From
 
@@ -303,6 +299,17 @@ deepstream-app -c deepstream_app_config.txt
 
 ## MultiStream Setup
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/wWmXKIteRLA"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Run Multiple Streams with DeepStream SDK on Jetson Nano using Ultralytics YOLO11 🎉
+</p>
+
 To set up multiple streams under a single deepstream application, you can do the following changes to the `deepstream_app_config.txt` file
 
 1. Change the rows and columns to build a grid display according to the number of streams you want to have. For example, for 4 streams, we can add 2 rows and 2 columns.
@@ -319,10 +326,10 @@ To set up multiple streams under a single deepstream application, you can do the
     [source0]
     enable=1
     type=3
-    uri=<path_to_video>
-    uri=<path_to_video>
-    uri=<path_to_video>
-    uri=<path_to_video>
+    uri=path/to/video1.jpg
+    uri=path/to/video2.jpg
+    uri=path/to/video3.jpg
+    uri=path/to/video4.jpg
     num-sources=4
     ```
 
@@ -406,12 +413,12 @@ Yes, the guide for deploying Ultralytics YOLO11 with the DeepStream SDK and Tens
 
 ### How can I convert a YOLO11 model to ONNX for DeepStream?
 
-To convert a YOLO11 model to ONNX format for deployment with DeepStream, use the `utils/export_yoloV8.py` script from the [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) repository.
+To convert a YOLO11 model to ONNX format for deployment with DeepStream, use the `utils/export_yolo11.py` script from the [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) repository.
 
 Here's an example command:
 
 ```bash
-python3 utils/export_yoloV8.py -w yolo11s.pt --opset 12 --simplify
+python3 utils/export_yolo11.py -w yolo11s.pt --opset 12 --simplify
 ```
 
 For more details on model conversion, check out our [model export section](../modes/export.md).

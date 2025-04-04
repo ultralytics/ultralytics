@@ -1,3 +1,5 @@
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 // Apply theme colors based on dark/light mode
 const applyTheme = (isDark) => {
   document.body.setAttribute(

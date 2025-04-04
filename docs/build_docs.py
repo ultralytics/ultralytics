@@ -20,7 +20,6 @@ Note:
     - Requires Python and MkDocs to be installed and configured.
 """
 
-import json
 import os
 import re
 import shutil
@@ -34,13 +33,6 @@ os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is 
 DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 LINK_PATTERN = re.compile(r"(https?://[^\s()<>]*[^\s()<>.,:;!?\'\"])")
-
-
-def create_vercel_config():
-    """Create vercel.json in the site directory with customized configuration settings."""
-    config = {"trailingSlash": True}
-    with open(SITE / "vercel.json", "w") as f:
-        json.dump(config, f, indent=2)
 
 
 def prepare_docs_markdown(clone_repos: bool = True):
@@ -252,7 +244,7 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
     Typical reductions for Ultralytics Docs are:
         - Total HTML reduction: 2.83% (1301.56 KB saved)
         - Total CSS reduction: 1.75% (2.61 KB saved)
-        - Total JS reduction: 13.72% (100.88 KB saved)
+        - Total JS reduction: 13.51% (99.31 KB saved)
     """
     if file_type == "html":
         # Remove HTML comments
@@ -282,14 +274,16 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
                 processed_lines.append(line)
         content = "\n".join(processed_lines)
 
-        # Remove JS multi-line comments
+        # Remove JS multi-line comments and clean whitespace
         content = re.sub(r"/\*[\s\S]*?\*/", "", content)
         # Remove empty lines
         content = re.sub(r"^\s*\n", "", content, flags=re.MULTILINE)
         # Collapse multiple spaces to single space
         content = re.sub(r"\s{2,}", " ", content)
-        # Remove spaces around JS specific characters
-        content = re.sub(r"\s*([+\-*/=:;,(){}\[\]])\s*", r"\1", content)
+
+        # Safe space removal around punctuation and operators (NEVER include colons - breaks JS)
+        content = re.sub(r"\s*([,;{}])\s*", r"\1", content)
+        content = re.sub(r"(\w)\s*\(|\)\s*{|\s*([+\-*/=])\s*", lambda m: m.group(0).replace(" ", ""), content)
 
     return content
 
@@ -337,7 +331,6 @@ def main():
     print(f"Building docs from {DOCS}")
     subprocess.run(f"mkdocs build -f {DOCS.parent}/mkdocs.yml --strict", check=True, shell=True)
     remove_macros()
-    create_vercel_config()
     print(f"Site built at {SITE}")
 
     # Update docs HTML pages

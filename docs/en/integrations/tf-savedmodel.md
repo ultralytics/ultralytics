@@ -38,7 +38,7 @@ TF SavedModel provides a range of options to deploy your machine learning models
 
 - **TensorFlow Serving:** TensorFlow Serving is a flexible, high-performance serving system designed for production environments. It natively supports TF SavedModels, making it easy to deploy and serve your models on cloud platforms, on-premises servers, or [edge devices](https://docs.ultralytics.com/guides/raspberry-pi/).
 
-- **Cloud Platforms:** Major cloud providers like [Google Cloud Platform (GCP)](https://cloud.google.com/ai-platform), [Amazon Web Services (AWS)](https://aws.amazon.com/sagemaker/), and [Microsoft Azure](https://azure.microsoft.com/en-us/services/machine-learning/) offer services for deploying and running TensorFlow models, including TF SavedModels. These services provide scalable and managed infrastructure, allowing you to deploy and scale your models easily.
+- **Cloud Platforms:** Major cloud providers like [Google Cloud Platform (GCP)](https://cloud.google.com/vertex-ai), [Amazon Web Services (AWS)](https://aws.amazon.com/sagemaker/), and [Microsoft Azure](https://azure.microsoft.com/en-us/services/machine-learning/) offer services for deploying and running TensorFlow models, including TF SavedModels. These services provide scalable and managed infrastructure, allowing you to deploy and scale your models easily.
 
 - **Mobile and Embedded Devices:** [TensorFlow Lite](https://docs.ultralytics.com/integrations/tflite/), a lightweight solution for running machine learning models on mobile, embedded, and IoT devices, supports converting TF SavedModels to the TensorFlow Lite format. This allows you to deploy your models on a wide range of devices, from smartphones and tablets to microcontrollers and edge devices.
 
@@ -91,7 +91,7 @@ Before diving into the usage instructions, it's important to note that while all
 
         ```bash
         # Export a YOLO11n PyTorch model to TF SavedModel format
-        yolo export model=yolo11n.pt format=saved_model  # creates '/yolo11n_saved_model'
+        yolo export model=yolo11n.pt format=saved_model # creates '/yolo11n_saved_model'
 
         # Run inference with the exported model
         yolo predict model='./yolo11n_saved_model' source='https://ultralytics.com/images/bus.jpg'
@@ -158,7 +158,7 @@ Exporting an Ultralytics YOLO model to the TensorFlow SavedModel format is strai
 
         ```bash
         # Export the YOLO11 model to TF SavedModel format
-        yolo export model=yolo11n.pt format=saved_model  # creates '/yolo11n_saved_model'
+        yolo export model=yolo11n.pt format=saved_model # creates '/yolo11n_saved_model'
 
         # Run inference with the exported model
         yolo predict model='./yolo11n_saved_model' source='https://ultralytics.com/images/bus.jpg'

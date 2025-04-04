@@ -8,9 +8,13 @@ keywords: Visual Studio Code, VS Code, deep learning, convolutional neural netwo
 
 <p align="center">
   <br>
-    <img src="https://github.com/ultralytics/docs/releases/download/0/snippet-prediction-preview.avif" alt="Snippet Prediction Preview">
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/EXIpyYVEjoI"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
   <br>
-  Run example code using Ultralytics YOLO in under 20 seconds! 🚀
+  <strong>Watch:</strong> How to use Ultralytics Visual Studio Code Extension | Ready-to-Use Code Snippets | Ultralytics YOLO 🎉
 </p>
 
 ## Features and Benefits
@@ -27,13 +31,20 @@ keywords: Visual Studio Code, VS Code, deep learning, convolutional neural netwo
 
 If you use Visual Studio Code and answered 'yes' to any of the above, then the Ultralytics-snippets extension for VS Code is here to help! Read on to learn more about the extension, how to install it, and how to use it.
 
+<p align="center">
+  <br>
+    <img src="https://github.com/ultralytics/docs/releases/download/0/snippet-prediction-preview.avif" alt="Snippet Prediction Preview">
+  <br>
+  Run example code using Ultralytics YOLO in under 20 seconds! 🚀
+</p>
+
 ## Inspired by the Ultralytics Community
 
 The inspiration to build this extension came from the Ultralytics Community. Questions from the Community around similar topics and examples fueled the development for this project. Additionally, as some of the Ultralytics Team also uses VS Code, we also use it as a tool to accelerate our work too ⚡.
 
 ## Why VS Code?
 
-[Visual Studio Code](https://code.visualstudio.com/) is extremely popular with developers worldwide and has ranked most popular by the Stack Overflow Developer Survey in [2021](https://survey.stackoverflow.co/2021#section-most-popular-technologies-integrated-development-environment), [2022](https://survey.stackoverflow.co/2022/#section-most-popular-technologies-integrated-development-environment), [2023](https://survey.stackoverflow.co/2023/#section-most-popular-technologies-integrated-development-environment), and [2024](https://survey.stackoverflow.co/2024/technology/#1-integrated-development-environment). Due to VS Code's high level of customization, built-in features, broad compatibility, and extensibility, it's no surprise that so many developers are using it. Given the popularity in the wider developer community and within the Ultralytics [Discord](https://ultralytics.com/discord), [Discourse](https://community.ultralytics.com), [Reddit](https://reddit.com/r/Ultralytics), and [GitHub](https://github.com/ultralytics) Communities, it made sense to build a VS Code extension to help streamline your workflow and boost your productivity.
+[Visual Studio Code](https://code.visualstudio.com/) is extremely popular with developers worldwide and has ranked most popular by the Stack Overflow Developer Survey in [2021](https://survey.stackoverflow.co/2021#section-most-popular-technologies-integrated-development-environment), [2022](https://survey.stackoverflow.co/2022/#section-most-popular-technologies-integrated-development-environment), [2023](https://survey.stackoverflow.co/2023/#section-most-popular-technologies-integrated-development-environment), and [2024](https://survey.stackoverflow.co/2024/technology/#1-integrated-development-environment). Due to VS Code's high level of customization, built-in features, broad compatibility, and extensibility, it's no surprise that so many developers are using it. Given the popularity in the wider developer community and within the Ultralytics [Discord](https://discord.com/invite/ultralytics), [Discourse](https://community.ultralytics.com/), [Reddit](https://reddit.com/r/Ultralytics), and [GitHub](https://github.com/ultralytics) Communities, it made sense to build a VS Code extension to help streamline your workflow and boost your productivity.
 
 Want to let us know what you use for developing code? Head over to our Discourse [community poll](https://community.ultralytics.com/t/what-do-you-use-to-write-code/89/1) and let us know! While you're there, maybe check out some of our favorite computer vision, machine learning, AI, and developer [memes](https://community.ultralytics.com/c/off-topic/memes-jokes/11), or even post your favorite!
 

@@ -199,8 +199,8 @@ class Results(SimpleClass):
         probs (Probs | None): Classification probabilities.
         keypoints (Keypoints | None): Detected keypoints.
         obb (OBB | None): Oriented bounding boxes.
-        speed (Dict): Dictionary containing inference speed information.
-        names (Dict): Dictionary mapping class indices to class names.
+        speed (dict): Dictionary containing inference speed information.
+        names (dict): Dictionary mapping class indices to class names.
         path (str): Path to the input image file.
         save_dir (str | None): Directory to save results.
 
@@ -243,7 +243,7 @@ class Results(SimpleClass):
         Args:
             orig_img (numpy.ndarray): The original image as a numpy array.
             path (str): The path to the image file.
-            names (Dict): A dictionary of class names.
+            names (dict): A dictionary of class names.
             boxes (torch.Tensor | None): A 2D tensor of bounding box coordinates for each detection.
             masks (torch.Tensor | None): A 3D tensor of detection masks, where each mask is a binary image.
             probs (torch.Tensor | None): A 1D tensor of probabilities of each class for classification task.

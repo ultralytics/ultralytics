@@ -238,7 +238,7 @@ These resources will help you tackle challenges and stay updated on the latest t
 
 In this guide, we've explored the different deployment options for YOLO11. We've also discussed the important factors to consider when making your choice. These options allow you to customize your model for various environments and performance requirements, making it suitable for real-world applications.
 
-Don't forget that the YOLO11 and [Ultralytics community](https://github.com/ultralytics/ultralytics/discussions) is a valuable source of help. Connect with other developers and experts to learn unique tips and solutions you might not find in regular documentation. Keep seeking knowledge, exploring new ideas, and sharing your experiences.
+Don't forget that the YOLO11 and [Ultralytics community](https://github.com/orgs/ultralytics/discussions) is a valuable source of help. Connect with other developers and experts to learn unique tips and solutions you might not find in regular documentation. Keep seeking knowledge, exploring new ideas, and sharing your experiences.
 
 Happy deploying!
 

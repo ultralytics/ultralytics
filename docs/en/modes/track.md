@@ -84,10 +84,10 @@ To run the tracker on video streams, use a trained Detect, Segment or Pose model
 
         ```bash
         # Perform tracking with various models using the command line interface
-        yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4"  # Official Detect model
+        yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4"      # Official Detect model
         yolo track model=yolo11n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # Official Segment model
-        yolo track model=yolo11n-pose.pt source="https://youtu.be/LNwODJXcvt4"  # Official Pose model
-        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4"  # Custom trained model
+        yolo track model=yolo11n-pose.pt source="https://youtu.be/LNwODJXcvt4" # Official Pose model
+        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4" # Custom trained model
 
         # Track using ByteTrack tracker
         yolo track model=path/to/best.pt tracker="bytetrack.yaml"
@@ -231,29 +231,30 @@ In the following example, we demonstrate how to utilize YOLO11's tracking capabi
 
         if success:
             # Run YOLO11 tracking on the frame, persisting tracks between frames
-            results = model.track(frame, persist=True)
+            result = model.track(frame, persist=True)[0]
 
             # Get the boxes and track IDs
-            boxes = results[0].boxes.xywh.cpu()
-            track_ids = results[0].boxes.id.int().cpu().tolist()
+            if result.boxes and result.boxes.id is not None:
+                boxes = result.boxes.xywh.cpu()
+                track_ids = result.boxes.id.int().cpu().tolist()
 
-            # Visualize the results on the frame
-            annotated_frame = results[0].plot()
+                # Visualize the result on the frame
+                frame = result.plot()
 
-            # Plot the tracks
-            for box, track_id in zip(boxes, track_ids):
-                x, y, w, h = box
-                track = track_history[track_id]
-                track.append((float(x), float(y)))  # x, y center point
-                if len(track) > 30:  # retain 30 tracks for 30 frames
-                    track.pop(0)
+                # Plot the tracks
+                for box, track_id in zip(boxes, track_ids):
+                    x, y, w, h = box
+                    track = track_history[track_id]
+                    track.append((float(x), float(y)))  # x, y center point
+                    if len(track) > 30:  # retain 30 tracks for 30 frames
+                        track.pop(0)
 
-                # Draw the tracking lines
-                points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
-                cv2.polylines(annotated_frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
+                    # Draw the tracking lines
+                    points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
+                    cv2.polylines(frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
 
             # Display the annotated frame
-            cv2.imshow("YOLO11 Tracking", annotated_frame)
+            cv2.imshow("YOLO11 Tracking", frame)
 
             # Break the loop if 'q' is pressed
             if cv2.waitKey(1) & 0xFF == ord("q"):

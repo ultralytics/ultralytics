@@ -58,6 +58,7 @@ TensorFlow.js:
 import gc
 import json
 import os
+import re
 import shutil
 import subprocess
 import time
@@ -114,18 +115,32 @@ def export_formats():
         ["PyTorch", "-", ".pt", True, True, []],
         ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize", "nms"]],
         ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"]],
-        ["OpenVINO", "openvino", "_openvino_model", True, False, ["batch", "dynamic", "half", "int8", "nms"]],
-        ["TensorRT", "engine", ".engine", False, True, ["batch", "dynamic", "half", "int8", "simplify", "nms"]],
+        [
+            "OpenVINO",
+            "openvino",
+            "_openvino_model",
+            True,
+            False,
+            ["batch", "dynamic", "half", "int8", "nms", "fraction"],
+        ],
+        [
+            "TensorRT",
+            "engine",
+            ".engine",
+            False,
+            True,
+            ["batch", "dynamic", "half", "int8", "simplify", "nms", "fraction"],
+        ],
         ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "half", "int8", "nms"]],
         ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True, ["batch", "int8", "keras", "nms"]],
         ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"]],
-        ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "half", "int8", "nms"]],
+        ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "half", "int8", "nms", "fraction"]],
         ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, []],
         ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "half", "int8", "nms"]],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
-        ["IMX", "imx", "_imx_model", True, True, ["int8"]],
+        ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
@@ -138,12 +153,12 @@ def validate_args(format, passed_args, valid_args):
     Args:
         format (str): The export format.
         passed_args (Namespace): The arguments used during export.
-        valid_args (List): List of valid arguments for the format.
+        valid_args (list): List of valid arguments for the format.
 
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    export_args = ["half", "int8", "dynamic", "keras", "nms", "batch"]
+    export_args = ["half", "int8", "dynamic", "keras", "nms", "batch", "fraction"]
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
@@ -210,7 +225,7 @@ class Exporter:
 
     Attributes:
         args (SimpleNamespace): Configuration for the exporter.
-        callbacks (List, optional): List of callback functions.
+        callbacks (list, optional): List of callback functions.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -219,8 +234,8 @@ class Exporter:
 
         Args:
             cfg (str, optional): Path to a configuration file.
-            overrides (Dict, optional): Configuration overrides.
-            _callbacks (Dict, optional): Dictionary of callback functions.
+            overrides (dict, optional): Configuration overrides.
+            _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
         if self.args.format.lower() in {"coreml", "mlmodel"}:  # fix attempt for protobuf<3.20.x errors
@@ -326,6 +341,7 @@ class Exporter:
                 "See https://docs.ultralytics.com/models/yolo-world for details."
             )
             model.clip_model = None  # openvino int8 export error: https://github.com/ultralytics/ultralytics/pull/18445
+
         if self.args.int8 and not self.args.data:
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
@@ -491,6 +507,7 @@ class Exporter:
         dataset = YOLODataset(
             data[self.args.split or "val"],
             data=data,
+            fraction=self.args.fraction,
             task=self.model.task,
             imgsz=self.imgsz[0],
             augment=False,
@@ -634,7 +651,7 @@ class Exporter:
             # Generate calibration data for integer quantization
             ignored_scope = None
             if isinstance(self.model.model[-1], Detect):
-                # Includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
+                # Includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect
                 head_module_name = ".".join(list(self.model.named_modules())[-1][0].split(".")[:2])
                 ignored_scope = nncf.IgnoredScope(  # ignore operations
                     patterns=[
@@ -665,7 +682,7 @@ class Exporter:
     @try_export
     def export_paddle(self, prefix=colorstr("PaddlePaddle:")):
         """YOLO Paddle export."""
-        check_requirements(("paddlepaddle-gpu" if torch.cuda.is_available() else "paddlepaddle", "x2paddle"))
+        check_requirements(("paddlepaddle-gpu" if torch.cuda.is_available() else "paddlepaddle>=3.0.0", "x2paddle"))
         import x2paddle  # noqa
         from x2paddle.convert import pytorch2paddle  # noqa
 
@@ -773,7 +790,7 @@ class Exporter:
     def export_coreml(self, prefix=colorstr("CoreML:")):
         """YOLO CoreML export."""
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
-        check_requirements("coremltools>=6.0,<=6.2" if mlmodel else "coremltools>=7.0")
+        check_requirements("coremltools>=6.0,<=6.2" if mlmodel else "coremltools>=8.0")
         import coremltools as ct  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
@@ -796,12 +813,12 @@ class Exporter:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ 'nms=True' is only available for Detect models like 'yolo11n.pt'.")
                 # TODO CoreML Segment and Pose model pipelining
             model = self.model
-
         ts = torch.jit.trace(model.eval(), self.im, strict=False)  # TorchScript model
         ct_model = ct.convert(
             ts,
-            inputs=[ct.ImageType("image", shape=self.im.shape, scale=scale, bias=bias)],
+            inputs=[ct.ImageType("image", shape=self.im.shape, scale=scale, bias=bias)],  # expects ct.TensorType
             classifier_config=classifier_config,
+            minimum_deployment_target=ct.target.iOS16,
             convert_to="neuralnetwork" if mlmodel else "mlprogram",
         )
         bits, mode = (8, "kmeans") if self.args.int8 else (16, "linear") if self.args.half else (32, None)
@@ -1222,26 +1239,24 @@ class Exporter:
             raise ValueError("IMX export is not supported for end2end models.")
         if "C2f" not in self.model.__str__():
             raise ValueError("IMX export is only supported for YOLOv8n detection models")
-        check_requirements(("model-compression-toolkit==2.1.1", "sony-custom-layers==0.2.0", "tensorflow==2.12.0"))
-        check_requirements("imx500-converter[pt]==3.14.3")  # Separate requirements for imx500-converter
+        check_requirements(("model-compression-toolkit>=2.3.0", "sony-custom-layers>=0.3.0"))
+        check_requirements("imx500-converter[pt]>=3.16.1")  # Separate requirements for imx500-converter
 
         import model_compression_toolkit as mct
         import onnx
-        from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
+        from sony_custom_layers.pytorch.nms import multiclass_nms
 
         LOGGER.info(f"\n{prefix} starting export with model_compression_toolkit {mct.__version__}...")
 
+        # Install Java>=17
         try:
-            out = subprocess.run(
-                ["java", "--version"], check=True, capture_output=True
-            )  # Java 17 is required for imx500-converter
-            if "openjdk 17" not in str(out.stdout):
-                raise FileNotFoundError
-        except FileNotFoundError:
-            c = ["apt", "install", "-y", "openjdk-17-jdk", "openjdk-17-jre"]
-            if is_sudo_available():
-                c.insert(0, "sudo")
-            subprocess.run(c, check=True)
+            java_output = subprocess.run(["java", "--version"], check=True, capture_output=True).stdout.decode()
+            version_match = re.search(r"(?:openjdk|java) (\d+)", java_output)
+            java_version = int(version_match.group(1)) if version_match else 0
+            assert java_version >= 17, "Java version too old"
+        except (FileNotFoundError, subprocess.CalledProcessError, AssertionError):
+            cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y", "default-jre"]
+            subprocess.run(cmd, check=True)
 
         def representative_dataset_gen(dataloader=self.get_int8_calibration_dataloader(prefix)):
             for batch in dataloader:

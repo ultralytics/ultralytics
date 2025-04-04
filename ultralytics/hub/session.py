@@ -26,13 +26,13 @@ class HUBTrainingSession:
     Attributes:
         model_id (str): Identifier for the YOLO model being trained.
         model_url (str): URL for the model in Ultralytics HUB.
-        rate_limits (Dict): Rate limits for different API calls (in seconds).
-        timers (Dict): Timers for rate limiting.
-        metrics_queue (Dict): Queue for the model's metrics.
-        metrics_upload_failed_queue (Dict): Queue for metrics that failed to upload.
-        model (Dict): Model data fetched from Ultralytics HUB.
+        rate_limits (dict): Rate limits for different API calls (in seconds).
+        timers (dict): Timers for rate limiting.
+        metrics_queue (dict): Queue for the model's metrics.
+        metrics_upload_failed_queue (dict): Queue for metrics that failed to upload.
+        model (dict): Model data fetched from Ultralytics HUB.
         model_file (str): Path to the model file.
-        train_args (Dict): Arguments for training the model.
+        train_args (dict): Arguments for training the model.
         client (HUBClient): Client for interacting with Ultralytics HUB.
         filename (str): Filename of the model.
 
@@ -95,7 +95,7 @@ class HUBTrainingSession:
 
         Args:
             identifier (str): Model identifier used to initialize the HUB training session.
-            args (Dict, optional): Arguments for creating a new model if identifier is not a HUB model URL.
+            args (dict, optional): Arguments for creating a new model if identifier is not a HUB model URL.
 
         Returns:
             (HUBTrainingSession | None): An authenticated session or None if creation fails.
@@ -141,7 +141,7 @@ class HUBTrainingSession:
         Initialize a HUB training session with the specified model arguments.
 
         Args:
-            model_args (Dict): Arguments for creating the model, including batch size, epochs, image size, etc.
+            model_args (dict): Arguments for creating the model, including batch size, epochs, image size, etc.
 
         Returns:
             (None): If the model could not be created.

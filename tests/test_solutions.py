@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# This is file for Ultralytics Solutions tests: https://docs.ultralytics.com/solutions/,
-# It includes every solution excluding DistanceCalculation and Security Alarm System.
+# Tests Ultralytics Solutions: https://docs.ultralytics.com/solutions/,
+# including every solution excluding DistanceCalculation and Security Alarm System.
 
 import cv2
 import pytest
@@ -152,7 +152,7 @@ def process_video(solution, video_path, needs_frame_count=False):
 
     cap.release()
 
-
+@pytest.mark.slow
 @pytest.mark.parametrize("name, solution_class, needs_frame_count, video, kwargs", SOLUTIONS)
 def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     """Test individual Ultralytics solution."""

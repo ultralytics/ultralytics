@@ -814,7 +814,7 @@ class ClassificationDataset:
             nf, nc, msgs, samples, x = 0, 0, [], [], {}
 
             # Use Pool for larger datasets and Threadpool for smaller datasets for lower latency
-            with (Pool if len(self.samples) > pooling_threshold([p for p, _ in self.samples]) else ThreadPool)(
+            with (Pool if len(self.samples) > pooling_threshold([t[0] for t in self.samples]) else ThreadPool)(
                 NUM_THREADS
             ) as pool:
                 results = pool.imap(func=verify_image, iterable=zip(self.samples, repeat(self.prefix)))

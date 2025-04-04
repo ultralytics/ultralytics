@@ -468,7 +468,7 @@ class BaseTrainer:
             if self.stop:
                 break  # must break all DDP ranks
             epoch += 1
-            if self.ema:
+            if self.args.sema and self.ema:
                 self.model.load_state_dict(self.ema.ema.state_dict())
 
         if RANK in {-1, 0}:

@@ -47,7 +47,30 @@ class PoseValidator(DetectionValidator):
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
-        """Initialize a PoseValidator object with custom parameters and assigned attributes."""
+        """
+        Initialize a PoseValidator object for pose estimation validation.
+        
+        This validator is specifically designed for pose estimation tasks, handling keypoints and implementing
+        specialized metrics for pose evaluation.
+        
+        Args:
+            dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
+            save_dir (Path | str, optional): Directory to save results.
+            pbar (Any, optional): Progress bar for displaying progress.
+            args (dict, optional): Arguments for the validator including task set to "pose".
+            _callbacks (list, optional): List of callback functions to be executed during validation.
+        
+        Examples:
+            >>> from ultralytics.models.yolo.pose import PoseValidator
+            >>> args = dict(model="yolov8n-pose.pt", data="coco8-pose.yaml")
+            >>> validator = PoseValidator(args=args)
+            >>> validator()
+        
+        Notes:
+            This class extends DetectionValidator with pose-specific functionality. It initializes with sigma values
+            for OKS calculation and sets up PoseMetrics for evaluation. A warning is displayed when using Apple MPS
+            due to a known bug with pose models.
+        """
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.sigma = None
         self.kpt_shape = None
@@ -91,7 +114,20 @@ class PoseValidator(DetectionValidator):
         self.stats = dict(tp_p=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
     def _prepare_batch(self, si, batch):
-        """Prepare a batch for processing by converting keypoints to float and scaling to original dimensions."""
+        """
+        Prepare a batch for processing by converting keypoints to float and scaling to original dimensions.
+            
+        Args:
+            si (int): Batch index.
+            batch (dict): Dictionary containing batch data with keys like 'keypoints', 'batch_idx', etc.
+
+        Returns:
+            pbatch (dict): Prepared batch with keypoints scaled to original image dimensions.
+
+        Notes:
+            This method extends the parent class's _prepare_batch method by adding keypoint processing.
+            Keypoints are scaled from normalized coordinates to original image dimensions.
+        """
         pbatch = super()._prepare_batch(si, batch)
         kpts = batch["keypoints"][batch["batch_idx"] == si]
         h, w = pbatch["imgsz"]
@@ -103,7 +139,23 @@ class PoseValidator(DetectionValidator):
         return pbatch
 
     def _prepare_pred(self, pred, pbatch):
-        """Prepare and scale keypoints in predictions for pose processing."""
+        """
+        Prepare and scale keypoints in predictions for pose processing.
+            
+        This method extends the parent class's _prepare_pred method to handle keypoint scaling. It first calls
+        the parent method to get the basic prediction boxes, then extracts and scales the keypoint coordinates
+        to match the original image dimensions.
+
+        Args:
+            pred (torch.Tensor): Raw prediction tensor from the model.
+            pbatch (dict): Processed batch dictionary containing image information including:
+                - imgsz: Image size used for inference
+                - ori_shape: Original image shape
+                - ratio_pad: Ratio and padding information for coordinate scaling
+
+        Returns:
+            predn (torch.Tensor): Processed prediction boxes scaled to original image dimensions.
+        """
         predn = super()._prepare_pred(pred, pbatch)
         nk = pbatch["kpts"].shape[1]
         pred_kpts = predn[:, 6:].view(len(predn), nk, -1)
@@ -204,7 +256,19 @@ class PoseValidator(DetectionValidator):
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
     def plot_val_samples(self, batch, ni):
-        """Plot and save validation set samples with ground truth bounding boxes and keypoints."""
+        """
+        Plot and save validation set samples with ground truth bounding boxes and keypoints.
+            
+        Args:
+            batch (dict): Dictionary containing batch data with keys:
+                - img (torch.Tensor): Batch of images
+                - batch_idx (torch.Tensor): Batch indices for each image
+                - cls (torch.Tensor): Class labels
+                - bboxes (torch.Tensor): Bounding box coordinates
+                - keypoints (torch.Tensor): Keypoint coordinates
+                - im_file (list): List of image file paths
+            ni (int): Batch index used for naming the output file
+        """
         plot_images(
             batch["img"],
             batch["batch_idx"],
@@ -218,7 +282,18 @@ class PoseValidator(DetectionValidator):
         )
 
     def plot_predictions(self, batch, preds, ni):
-        """Plot and save model predictions with bounding boxes and keypoints."""
+        """
+        Plot and save model predictions with bounding boxes and keypoints.
+            
+        Args:
+            batch (dict): Dictionary containing batch data including images, file paths, and other metadata.
+            preds (List[torch.Tensor]): List of prediction tensors from the model, each containing bounding boxes,
+                confidence scores, class predictions, and keypoints.
+            ni (int): Batch index used for naming the output file.
+
+        The function extracts keypoints from predictions, converts predictions to target format, and plots them
+        on the input images. The resulting visualization is saved to the specified save directory.
+        """
         pred_kpts = torch.cat([p[:, 6:].view(-1, *self.kpt_shape) for p in preds], 0)
         plot_images(
             batch["img"],
@@ -231,7 +306,22 @@ class PoseValidator(DetectionValidator):
         )  # pred
 
     def save_one_txt(self, predn, pred_kpts, save_conf, shape, file):
-        """Save YOLO detections to a txt file in normalized coordinates in a specific format."""
+        """
+        Save YOLO pose detections to a text file in normalized coordinates.
+            
+        Args:
+            predn (torch.Tensor): Prediction boxes and scores with shape (N, 6) for
+                (x1, y1, x2, y2, conf, cls).
+            pred_kpts (torch.Tensor): Predicted keypoints with shape (N, K, D) where K is the number of
+                keypoints and D is the dimension (typically 3 for x, y, visibility).
+            save_conf (bool): Whether to save confidence scores.
+            shape (tuple): Original image shape (height, width).
+            file (Path): Output file path to save detections.
+
+        Notes:
+            The output format is: class_id x_center y_center width height [confidence] [keypoints]
+            where keypoints are normalized x, y, visibility values for each point.
+        """
         from ultralytics.engine.results import Results
 
         Results(
@@ -243,7 +333,23 @@ class PoseValidator(DetectionValidator):
         ).save_txt(file, save_conf=save_conf)
 
     def pred_to_json(self, predn, filename):
-        """Convert YOLO predictions to COCO JSON format."""
+        """
+        Convert YOLO predictions to COCO JSON format.
+            
+        This method takes prediction tensors and a filename, converts the bounding boxes from YOLO format
+        to COCO format, and appends the results to the internal JSON dictionary (self.jdict).
+
+        Args:
+            predn (torch.Tensor): Prediction tensor containing bounding boxes, confidence scores, class IDs,
+                and keypoints, with shape (N, 6+K) where N is the number of predictions and K is the flattened
+                keypoints dimension.
+            filename (str | Path): Path to the image file for which predictions are being processed.
+
+        Notes:
+            The method extracts the image ID from the filename stem (either as an integer if numeric, or as a string),
+            converts bounding boxes from xyxy to xywh format, and adjusts coordinates from center to top-left corner
+            before saving to the JSON dictionary.
+        """
         stem = Path(filename).stem
         image_id = int(stem) if stem.isnumeric() else stem
         box = ops.xyxy2xywh(predn[:, :4])  # xywh

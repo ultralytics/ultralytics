@@ -13,10 +13,10 @@ from .torch_utils import TORCH_1_9
 def find_free_network_port() -> int:
     """
     Find a free port on localhost.
-    
+
     It is useful in single-node training when we don't want to connect to a real main node but have to set the
     `MASTER_PORT` environment variable.
-    
+
     Returns:
         (int): The available network port number.
     """
@@ -28,17 +28,17 @@ def find_free_network_port() -> int:
 def generate_ddp_file(trainer):
     """
     Generate a DDP (Distributed Data Parallel) file for multi-GPU training.
-    
+
     This function creates a temporary Python file that enables distributed training across multiple GPUs.
     The file contains the necessary configuration to initialize the trainer in a distributed environment.
-    
+
     Args:
         trainer (object): The trainer object containing training configuration and arguments.
                          Must have args attribute and be a class instance.
-    
+
     Returns:
         (str): Path to the generated temporary DDP file.
-    
+
     Notes:
         The generated file is saved in the USER_CONFIG_DIR/DDP directory and includes:
         - Trainer class import
@@ -78,11 +78,11 @@ if __name__ == "__main__":
 def generate_ddp_command(world_size, trainer):
     """
     Generate command for distributed training.
-    
+
     Args:
         world_size (int): Number of processes to spawn for distributed training.
         trainer (object): The trainer object containing configuration for distributed training.
-    
+
     Returns:
         cmd (List[str]): The command to execute for distributed training.
         file (str): Path to the temporary file created for DDP training.
@@ -101,14 +101,14 @@ def generate_ddp_command(world_size, trainer):
 def ddp_cleanup(trainer, file):
     """
     Delete temporary file if created during distributed data parallel (DDP) training.
-    
+
     This function checks if the provided file contains the trainer's ID in its name, indicating it was created
     as a temporary file for DDP training, and deletes it if so.
-    
+
     Args:
         trainer (object): The trainer object used for distributed training.
         file (str): Path to the file that might need to be deleted.
-    
+
     Examples:
         >>> trainer = YOLOTrainer()
         >>> file = "/tmp/ddp_temp_123456789.py"

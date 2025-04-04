@@ -29,14 +29,14 @@ class OBBPredictor(DetectionPredictor):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initialize OBBPredictor with optional model and data configuration overrides.
-        
+
         This constructor sets up an OBBPredictor instance for oriented bounding box detection tasks.
-        
+
         Args:
             cfg (dict, optional): Default configuration for the predictor.
             overrides (dict, optional): Configuration overrides that take precedence over the default config.
             _callbacks (list, optional): List of callback functions to be invoked during prediction.
-        
+
         Examples:
             >>> from ultralytics.utils import ASSETS
             >>> from ultralytics.models.yolo.obb import OBBPredictor

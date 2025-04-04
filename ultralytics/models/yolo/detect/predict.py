@@ -33,7 +33,7 @@ class DetectionPredictor(BasePredictor):
     def postprocess(self, preds, img, orig_imgs, **kwargs):
         """
         Post-process predictions and return a list of Results objects.
-            
+
         This method applies non-maximum suppression to raw model predictions and prepares them for visualization and
         further analysis.
 

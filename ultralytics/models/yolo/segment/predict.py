@@ -33,10 +33,10 @@ class SegmentationPredictor(DetectionPredictor):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initialize the SegmentationPredictor with configuration, overrides, and callbacks.
-        
+
         This class specializes in processing segmentation model outputs, handling both bounding boxes and masks in the
         prediction results.
-        
+
         Args:
             cfg (dict): Configuration for the predictor. Defaults to Ultralytics DEFAULT_CFG.
             overrides (dict, optional): Configuration overrides that take precedence over cfg.
@@ -48,7 +48,7 @@ class SegmentationPredictor(DetectionPredictor):
     def postprocess(self, preds, img, orig_imgs):
         """
         Apply non-max suppression and process segmentation detections for each image in the input batch.
-            
+
         Args:
             preds (tuple): Model predictions, containing bounding boxes, scores, classes, and mask coefficients.
             img (torch.Tensor): Input image tensor in model format, with shape (B, C, H, W).

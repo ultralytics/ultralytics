@@ -38,10 +38,10 @@ class ClassificationPredictor(BasePredictor):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initialize the ClassificationPredictor with the specified configuration and set task to 'classify'.
-        
+
         This constructor initializes a ClassificationPredictor instance, which extends BasePredictor for classification
         tasks. It ensures the task is set to 'classify' regardless of input configuration.
-        
+
         Args:
             cfg (dict): Default configuration dictionary containing prediction settings. Defaults to DEFAULT_CFG.
             overrides (dict, optional): Configuration overrides that take precedence over cfg.

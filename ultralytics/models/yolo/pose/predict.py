@@ -29,15 +29,15 @@ class PosePredictor(DetectionPredictor):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initialize PosePredictor, a specialized predictor for pose estimation tasks.
-        
+
         This initializer sets up a PosePredictor instance, configuring it for pose detection tasks and handling
         device-specific warnings for Apple MPS.
-        
+
         Args:
             cfg (Any): Configuration for the predictor. Default is DEFAULT_CFG.
             overrides (dict, optional): Configuration overrides that take precedence over cfg.
             _callbacks (list, optional): List of callback functions to be invoked during prediction.
-        
+
         Examples:
             >>> from ultralytics.utils import ASSETS
             >>> from ultralytics.models.yolo.pose import PosePredictor

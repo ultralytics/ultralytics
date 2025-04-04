@@ -65,7 +65,15 @@ class Conv(nn.Module):
         super().__init__()
         self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
         self.bn = nn.BatchNorm2d(c2)
-        act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity
+        act = (
+            self.default_act
+            if act is True
+            else act
+            if isinstance(act, nn.Module)
+            else eval(act)
+            if isinstance(act, str)
+            else nn.Identity
+        )
         self.act = act(c2) if act in {FReLU, SwiGLU} else act()
 
     def forward(self, x):

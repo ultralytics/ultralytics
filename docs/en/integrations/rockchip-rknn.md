@@ -100,7 +100,7 @@ For detailed instructions and best practices related to the installation process
 | `imgsz`  | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
 | `batch`  | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
 | `name`   | `str`            | `'rk3588'` | Specifies the Rockchip model (rk3588, rk3576, rk3566, rk3568, rk3562, rv1103, rv1106, rv1103b, rv1106b, rk2118)                         |
-| `device`    | `str`             | `None`          | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                            |
+| `device` | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                               |
 
 !!! tip
 

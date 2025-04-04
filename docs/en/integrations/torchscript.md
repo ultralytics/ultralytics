@@ -114,7 +114,7 @@ Before diving into the usage instructions, it's important to note that while all
 | `optimize` | `bool`           | `False`         | Applies optimization for mobile devices, potentially reducing model size and improving performance.                                     |
 | `nms`      | `bool`           | `False`         | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                     |
 | `batch`    | `int`            | `1`             | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
-| `device`    | `str`             | `None`          | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                      |
+| `device`   | `str`            | `None`          | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 

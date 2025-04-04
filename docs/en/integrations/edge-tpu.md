@@ -101,7 +101,7 @@ Before diving into the usage instructions, it's important to note that while all
 | -------- | ---------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `format` | `str`            | `'edgetpu'` | Target format for the exported model, defining compatibility with various deployment environments.                                |
 | `imgsz`  | `int` or `tuple` | `640`       | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions. |
-| `device`    | `str`             | `None`          | Specifies the device for exporting: CPU (`device=cpu`).                                                             |
+| `device` | `str`            | `None`      | Specifies the device for exporting: CPU (`device=cpu`).                                                                           |
 
 !!! tip
 

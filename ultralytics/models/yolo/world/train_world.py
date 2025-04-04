@@ -43,7 +43,35 @@ class WorldTrainerFromScratch(WorldTrainer):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initialize a WorldTrainerFromScratch object with given configuration and callbacks."""
+        """
+        Initialize a WorldTrainerFromScratch object.
+        
+        This initializes a trainer for YOLO-World models from scratch, supporting mixed datasets including both
+        object detection and grounding datasets for vision-language capabilities.
+        
+        Args:
+            cfg (dict): Configuration dictionary with default parameters for model training.
+            overrides (dict, optional): Dictionary of parameter overrides to customize the configuration.
+            _callbacks (list, optional): List of callback functions to be executed during different stages of training.
+        
+        Examples:
+            >>> from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
+            >>> from ultralytics import YOLOWorld
+            >>> data = dict(
+            ...     train=dict(
+            ...         yolo_data=["Objects365.yaml"],
+            ...         grounding_data=[
+            ...             dict(
+            ...                 img_path="../datasets/flickr30k/images",
+            ...                 json_file="../datasets/flickr30k/final_flickr_separateGT_train.json",
+            ...             ),
+            ...         ],
+            ...     ),
+            ...     val=dict(yolo_data=["lvis.yaml"]),
+            ... )
+            >>> model = YOLOWorld("yolov8s-worldv2.yaml")
+            >>> model.train(data=data, trainer=WorldTrainerFromScratch)
+        """
         if overrides is None:
             overrides = {}
         super().__init__(cfg, overrides, _callbacks)

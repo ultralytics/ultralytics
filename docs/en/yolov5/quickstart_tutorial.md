@@ -6,7 +6,7 @@ keywords: YOLOv5, Quickstart, real-time object detection, AI, ML, PyTorch, infer
 
 # YOLOv5 Quickstart 🚀
 
-Embark on your journey into the dynamic realm of real-time [object detection](https://www.ultralytics.com/glossary/object-detection) with Ultralytics YOLOv5! This guide is crafted to serve as a comprehensive starting point for AI enthusiasts and professionals aiming to master YOLOv5. From initial setup to advanced training techniques, we've got you covered. By the end of this guide, you'll have the knowledge to implement YOLOv5 into your projects confidently. Let's ignite the engines and soar into YOLOv5!
+Embark on your journey into the dynamic realm of real-time [object detection](https://www.ultralytics.com/glossary/object-detection) with Ultralytics YOLOv5! This guide is crafted to serve as a comprehensive starting point for AI enthusiasts and professionals aiming to master YOLOv5. From initial setup to advanced [training techniques](../../modes/train.md), we've got you covered. By the end of this guide, you'll have the knowledge to implement YOLOv5 into your projects confidently. Let's ignite the engines and soar into YOLOv5!
 
 ## Install
 
@@ -18,9 +18,9 @@ cd yolov5
 pip install -r requirements.txt # install dependencies
 ```
 
-## Inference with [PyTorch](https://www.ultralytics.com/glossary/pytorch) Hub
+## Inference with PyTorch Hub
 
-Experience the simplicity of YOLOv5 [PyTorch Hub](./tutorials/pytorch_hub_model_loading.md) inference, where [models](https://github.com/ultralytics/yolov5/tree/master/models) are seamlessly downloaded from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
+Experience the simplicity of YOLOv5 [PyTorch Hub](./tutorials/pytorch_hub_model_loading.md) inference, where [models](https://github.com/ultralytics/yolov5/tree/master/models) are seamlessly downloaded from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases). This method leverages the power of [PyTorch](https://www.ultralytics.com/glossary/pytorch) for easy model loading and execution.
 
 ```python
 import torch
@@ -40,33 +40,42 @@ results.print()  # Other options: .show(), .save(), .crop(), .pandas(), etc.
 
 ## Inference with detect.py
 
-Harness `detect.py` for versatile inference on various sources. It automatically fetches [models](https://github.com/ultralytics/yolov5/tree/master/models) from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases) and saves results with ease.
+Harness `detect.py` for versatile [inference](../modes/predict.md) on various sources. It automatically fetches [models](https://github.com/ultralytics/yolov5/tree/master/models) from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases) and saves results with ease. This script is ideal for command-line usage and integrating YOLOv5 into larger systems.
 
 ```bash
 python detect.py --weights yolov5s.pt --source 0                             # webcam
-python detect.py --weights yolov5s.pt --sourceimage.jpg                      # image
-python detect.py --weights yolov5s.pt --sourcevideo.mp4                      # video
-python detect.py --weights yolov5s.pt --sourcescreen                         # screenshot
-python detect.py --weights yolov5s.pt --sourcepath/                          # directory
-python detect.py --weights yolov5s.pt --sourcelist.txt                       # list of images
-python detect.py --weights yolov5s.pt --sourcelist.streams                   # list of streams
-python detect.py --weights yolov5s.pt --source'path/*.jpg'                   # glob
-python detect.py --weights yolov5s.pt --source'https://youtu.be/LNwODJXcvt4' # YouTube
-python detect.py --weights yolov5s.pt --source'rtsp://example.com/media.mp4' # RTSP, RTMP, HTTP stream
+python detect.py --weights yolov5s.pt --source image.jpg                      # image
+python detect.py --weights yolov5s.pt --source video.mp4                      # video
+python detect.py --weights yolov5s.pt --source screen                         # screenshot
+python detect.py --weights yolov5s.pt --source path/                          # directory
+python detect.py --weights yolov5s.pt --source list.txt                       # list of images
+python detect.py --weights yolov5s.pt --source list.streams                   # list of streams
+python detect.py --weights yolov5s.pt --source 'path/*.jpg'                   # glob pattern
+python detect.py --weights yolov5s.pt --source 'https://youtu.be/LNwODJXcvt4' # YouTube video
+python detect.py --weights yolov5s.pt --source 'rtsp://example.com/media.mp4' # RTSP, RTMP, HTTP stream
 ```
 
 ## Training
 
-Replicate the YOLOv5 [COCO](https://github.com/ultralytics/yolov5/blob/master/data/scripts/get_coco.sh) benchmarks with the instructions below. The necessary [models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) are pulled directly from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases). Training YOLOv5n/s/m/l/x on a V100 GPU should typically take 1/2/4/6/8 days respectively (note that [Multi-GPU](./tutorials/multi_gpu_training.md) setups work faster). Maximize performance by using the highest possible `--batch-size` or use `--batch-size -1` for the YOLOv5 [AutoBatch](https://github.com/ultralytics/yolov5/pull/5092) feature. The following [batch sizes](https://www.ultralytics.com/glossary/batch-size) are ideal for V100-16GB GPUs.
+Replicate the YOLOv5 [COCO dataset](https://cocodataset.org/#home) benchmarks with the instructions below. The necessary [models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) are pulled directly from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases). Training YOLOv5n/s/m/l/x on a V100 GPU should typically take 1/2/4/6/8 days respectively (note that [Multi-GPU training](./tutorials/multi_gpu_training.md) setups work faster). Maximize performance by using the highest possible `--batch-size` or use `--batch-size -1` for the YOLOv5 [AutoBatch](https://github.com/ultralytics/yolov5/pull/5092) feature. The following [batch sizes](https://www.ultralytics.com/glossary/batch-size) are ideal for V100-16GB GPUs.
 
 ```bash
-python train.py --data coco.yaml --epochs 300 --weights '' --cfg yolov5n.yaml --batch-size 128
+# Train YOLOv5n on COCO128 for 3 epochs
+python train.py --data coco128.yaml --epochs 3 --weights yolov5n.pt --batch-size 128
+
+# Train YOLOv5s on COCO for 300 epochs
 python train.py --data coco.yaml --epochs 300 --weights '' --cfg yolov5s.yaml --batch-size 64
+
+# Train YOLOv5m on COCO for 300 epochs
 python train.py --data coco.yaml --epochs 300 --weights '' --cfg yolov5m.yaml --batch-size 40
+
+# Train YOLOv5l on COCO for 300 epochs
 python train.py --data coco.yaml --epochs 300 --weights '' --cfg yolov5l.yaml --batch-size 24
+
+# Train YOLOv5x on COCO for 300 epochs
 python train.py --data coco.yaml --epochs 300 --weights '' --cfg yolov5x.yaml --batch-size 16
 ```
 
-<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/yolov5-training-curves.avif" alt="YOLO training curves">
+<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/yolov5-training-curves.avif" alt="YOLOv5 training curves showing mAP and loss metrics over epochs for different model sizes on the COCO dataset">
 
-To conclude, YOLOv5 is not only a state-of-the-art tool for object detection but also a testament to the power of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) in transforming the way we interact with the world through visual understanding. As you progress through this guide and begin applying YOLOv5 to your projects, remember that you are at the forefront of a technological revolution, capable of achieving remarkable feats. Should you need further insights or support from fellow visionaries, you're invited to our [GitHub repository](https://github.com/ultralytics/yolov5) home to a thriving community of developers and researchers. Keep exploring, keep innovating, and enjoy the marvels of YOLOv5. Happy detecting! 🌠🔍
+To conclude, YOLOv5 is not only a state-of-the-art tool for object detection but also a testament to the power of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) in transforming the way we interact with the world through visual understanding. As you progress through this guide and begin applying YOLOv5 to your projects, remember that you are at the forefront of a technological revolution, capable of achieving remarkable feats. Should you need further insights or support from fellow visionaries, you're invited to our [GitHub repository](https://github.com/ultralytics/yolov5), home to a thriving community of developers and researchers. Explore further resources like [Ultralytics HUB](https://www.ultralytics.com/hub) for dataset management and model training, or check out our [Solutions](https://www.ultralytics.com/solutions) page for real-world applications. Keep exploring, keep innovating, and enjoy the marvels of YOLOv5. Happy detecting! 🌠🔍

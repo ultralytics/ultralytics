@@ -19,11 +19,35 @@ class RTDETRDataset(YOLODataset):
     """
 
     def __init__(self, *args, data=None, **kwargs):
-        """Initialize the RTDETRDataset class by inheriting from the YOLODataset class."""
+        """
+        Initialize the RTDETRDataset class by inheriting from the YOLODataset class.
+        
+        This constructor sets up a dataset specifically optimized for the RT-DETR (Real-Time DEtection and TRacking)
+        model, building upon the base YOLODataset functionality.
+        
+        Args:
+            *args (Any): Variable length argument list passed to the parent YOLODataset class.
+            data (Dict | None): Dictionary containing dataset information. If None, default values will be used.
+            **kwargs (Any): Additional keyword arguments passed to the parent YOLODataset class.
+        """
         super().__init__(*args, data=data, **kwargs)
 
     def load_image(self, i, rect_mode=False):
-        """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
+        """
+        Load one image from dataset index 'i'.
+        
+        Args:
+            i (int): Index of the image to load.
+            rect_mode (bool, optional): Whether to use rectangular mode for batch inference.
+        
+        Returns:
+            im (numpy.ndarray): The loaded image.
+            resized_hw (tuple): Height and width of the resized image with shape (2,).
+        
+        Examples:
+            >>> dataset = RTDETRDataset(...)
+            >>> image, hw = dataset.load_image(0)
+        """
         return super().load_image(i=i, rect_mode=rect_mode)
 
     def build_transforms(self, hyp=None):

@@ -6,7 +6,7 @@ keywords: YOLOv5, AzureML, machine learning, compute instance, quickstart, model
 
 # Ultralytics YOLOv5 🚀 on AzureML Quickstart
 
-Welcome to the Ultralytics [YOLOv5](../models/yolov5.md) quickstart guide for Microsoft Azure Machine Learning (AzureML)! This guide will walk you through setting up YOLOv5 on an AzureML compute instance, covering everything from creating a virtual environment to training and running inference with the model.
+Welcome to the Ultralytics [YOLOv5](../../models/yolov5.md) quickstart guide for Microsoft Azure Machine Learning (AzureML)! This guide will walk you through setting up YOLOv5 on an AzureML compute instance, covering everything from creating a virtual environment to training and running inference with the model.
 
 ## What is Azure?
 
@@ -144,4 +144,4 @@ After creating the kernel, refresh your browser. When you open or create a `.ipy
     python val.py --weights yolov5s.pt --data coco128.yaml --img 640
     ```
 
-Congratulations! You've successfully set up and run Ultralytics YOLOv5 on AzureML. For further exploration, consider checking out other [Ultralytics Integrations](../../integrations/) or the detailed [YOLOv5 documentation](../). You might also find the [AzureML documentation](https://learn.microsoft.com/en-us/azure/machine-learning/?view=azureml-api-2) useful for advanced scenarios like distributed training or model deployment as an endpoint.
+Congratulations! You've successfully set up and run Ultralytics YOLOv5 on AzureML. For further exploration, consider checking out other [Ultralytics Integrations](../../integrations/index.md) or the detailed [YOLOv5 documentation](../index.md). You might also find the [AzureML documentation](https://learn.microsoft.com/en-us/azure/machine-learning/?view=azureml-api-2) useful for advanced scenarios like distributed training or model deployment as an endpoint.

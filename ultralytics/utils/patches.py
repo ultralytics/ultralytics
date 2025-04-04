@@ -15,13 +15,17 @@ _imshow = cv2.imshow  # copy to avoid recursion errors
 def imread(filename: str, flags: int = cv2.IMREAD_COLOR):
     """
     Read an image from a file.
-
+    
     Args:
         filename (str): Path to the file to read.
-        flags (int, optional): Flag that can take values of cv2.IMREAD_*.
-
+        flags (int): Flag that can take values of cv2.IMREAD_*. Controls how the image is read.
+    
     Returns:
         (np.ndarray): The read image.
+    
+    Examples:
+        >>> img = imread('path/to/image.jpg')
+        >>> img = imread('path/to/image.jpg', cv2.IMREAD_GRAYSCALE)
     """
     return cv2.imdecode(np.fromfile(filename, np.uint8), flags)
 
@@ -29,14 +33,21 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR):
 def imwrite(filename: str, img: np.ndarray, params=None):
     """
     Write an image to a file.
-
+    
     Args:
         filename (str): Path to the file to write.
         img (np.ndarray): Image to write.
         params (List[int], optional): Additional parameters for image encoding.
-
+    
     Returns:
-        (bool): True if the file was written, False otherwise.
+        (bool): True if the file was written successfully, False otherwise.
+    
+    Examples:
+        >>> import numpy as np
+        >>> img = np.zeros((100, 100, 3), dtype=np.uint8)  # Create a black image
+        >>> success = imwrite('output.jpg', img)  # Write image to file
+        >>> print(success)
+        True
     """
     try:
         cv2.imencode(Path(filename).suffix, img, params)[1].tofile(filename)
@@ -48,10 +59,20 @@ def imwrite(filename: str, img: np.ndarray, params=None):
 def imshow(winname: str, mat: np.ndarray):
     """
     Display an image in the specified window.
-
+    
+    This function is a wrapper around OpenCV's imshow function that displays an image in a named window. It is 
+    particularly useful for visualizing images during development and debugging.
+    
     Args:
-        winname (str): Name of the window.
-        mat (np.ndarray): Image to be shown.
+        winname (str): Name of the window where the image will be displayed. If a window with this name already
+            exists, the image will be displayed in that window.
+        mat (np.ndarray): Image to be shown. Should be a valid numpy array representing an image.
+    
+    Examples:
+        >>> import numpy as np
+        >>> img = np.zeros((300, 300, 3), dtype=np.uint8)  # Create a black image
+        >>> img[:100, :100] = [255, 0, 0]  # Add a blue square
+        >>> imshow('Example Window', img)  # Display the image
     """
     _imshow(winname.encode("unicode_escape").decode(), mat)
 
@@ -64,17 +85,17 @@ _torch_save = torch.save
 def torch_load(*args, **kwargs):
     """
     Load a PyTorch model with updated arguments to avoid warnings.
-
+    
     This function wraps torch.load and adds the 'weights_only' argument for PyTorch 1.13.0+ to prevent warnings.
-
+    
     Args:
         *args (Any): Variable length argument list to pass to torch.load.
         **kwargs (Any): Arbitrary keyword arguments to pass to torch.load.
-
+    
     Returns:
         (Any): The loaded PyTorch object.
-
-    Note:
+    
+    Notes:
         For PyTorch versions 2.0 and above, this function automatically sets 'weights_only=False'
         if the argument is not provided, to avoid deprecation warnings.
     """
@@ -89,13 +110,20 @@ def torch_load(*args, **kwargs):
 def torch_save(*args, **kwargs):
     """
     Save PyTorch objects with retry mechanism for robustness.
-
+    
     This function wraps torch.save with 3 retries and exponential backoff in case of save failures, which can occur
     due to device flushing delays or antivirus scanning.
-
+    
     Args:
         *args (Any): Positional arguments to pass to torch.save.
         **kwargs (Any): Keyword arguments to pass to torch.save.
+    
+    Returns:
+        (Any): Result of torch.save operation if successful, None otherwise.
+    
+    Examples:
+        >>> model = torch.nn.Linear(10, 1)
+        >>> torch_save(model.state_dict(), 'model.pt')
     """
     for i in range(4):  # 3 retries
         try:

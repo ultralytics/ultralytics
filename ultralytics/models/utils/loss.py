@@ -67,7 +67,7 @@ class DETRLoss(nn.Module):
     def _get_loss_class(self, pred_scores, targets, gt_scores, num_gts, postfix=""):
         """
         Compute classification loss based on predictions, target values, and ground truth scores.
-            
+
         Args:
             pred_scores (torch.Tensor): Predicted class scores with shape (batch_size, num_queries, num_classes).
             targets (torch.Tensor): Target class indices with shape (batch_size, num_queries).
@@ -107,7 +107,7 @@ class DETRLoss(nn.Module):
     def _get_loss_bbox(self, pred_bboxes, gt_bboxes, postfix=""):
         """
         Compute bounding box and GIoU losses for predicted and ground truth bounding boxes.
-            
+
         Args:
             pred_bboxes (torch.Tensor): Predicted bounding boxes with shape (batch_size, num_queries, 4).
             gt_bboxes (torch.Tensor): Ground truth bounding boxes with shape (N, 4), where N is the total

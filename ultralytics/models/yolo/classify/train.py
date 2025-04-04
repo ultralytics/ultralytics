@@ -50,15 +50,15 @@ class ClassificationTrainer(BaseTrainer):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initialize a ClassificationTrainer object.
-        
+
         This constructor sets up a trainer for image classification tasks, configuring the task type and default
         image size if not specified.
-        
+
         Args:
             cfg (dict, optional): Default configuration dictionary containing training parameters.
             overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
             _callbacks (list, optional): List of callback functions to be executed during training.
-        
+
         Examples:
             >>> from ultralytics.models.yolo.classify import ClassificationTrainer
             >>> args = dict(model="yolo11n-cls.pt", data="imagenet10", epochs=3)

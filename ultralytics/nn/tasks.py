@@ -1349,7 +1349,10 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         depth, width, max_channels = scales[scale]
 
     if act:
-        Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU()
+        from ultralytics.nn.modules import activation
+
+        # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU()
+        Conv.default_act = getattr(activation, act, None) or eval(act)
         if verbose:
             LOGGER.info(f"{colorstr('activation:')} {act}")  # print
 

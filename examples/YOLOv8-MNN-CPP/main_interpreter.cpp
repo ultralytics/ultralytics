@@ -87,11 +87,7 @@ public:
         }
     }
 
-    VARP preprocess(const std::string &imagePath, int targetSize, float &scale, VARP &originalImage) {
-        const clock_t begin_time = clock();
-        originalImage = MNN::CV::imread(imagePath.c_str());
-
-        const clock_t begin_time2 = clock();
+    VARP preprocess(VARP &originalImage, int targetSize, float &scale) {
         const auto dims = originalImage->getInfo()->dim;
         const int ih = dims[0], iw = dims[1];
         const int len = (ih >= iw ? ih : iw);
@@ -102,7 +98,6 @@ public:
         auto pads = _Const(static_cast<void*>(padvals), {3, 2}, NCHW, halide_type_of<int>());
         auto padded  = _Pad(originalImage, pads, CONSTANT);
 
-        const clock_t begin_time3 = clock();
         auto resized = MNN::CV::resize(padded, MNN::CV::Size(targetSize, targetSize),
                                         0, 0, MNN::CV::INTER_LINEAR, -1,
                                         {0.f, 0.f, 0.f},
@@ -116,12 +111,10 @@ public:
 
     // Run inference by copying preprocessed data into input tensor.
     void runInference(VARP input) {
-        const clock_t begin_time = clock();
         auto tmp_input = MNN::Tensor::create(inputDims, halide_type_of<float>(),
                                               const_cast<void*>(input->readMap<void>()),
                                               MNN::Tensor::CAFFE);
         inputTensor->copyFromHostTensor(tmp_input);
-        const clock_t begin_time2 = clock();
         interpreter->runSession(session);
     }
 
@@ -212,22 +205,22 @@ int main(int argc, const char* argv[]) {
         thread = atoi(argv[5]);
     }
 
-    Inference inf;
-    if (!inf.loadModel(argv[1], backend, precision, thread))
+    Inference infer;
+    if (!infer.loadModel(argv[1], backend, precision, thread))
         return 1;
 
     const clock_t begin_time = clock();
     float scale = 1.0f;
-    VARP originalImage;
-    VARP input = inf.preprocess(argv[2], 640, scale, originalImage);
+    VARP originalImage = imread(argv[2]);
+    VARP input = infer.preprocess(originalImage, 640, scale);
     auto preprocess_time = 1000.0 * (clock() - begin_time) / CLOCKS_PER_SEC;
 
     const clock_t begin_time2 = clock();
-    inf.runInference(input);
+    infer.runInference(input);
     auto inference_time = 1000.0 * (clock() - begin_time2) / CLOCKS_PER_SEC;
     const clock_t begin_time3 = clock();
-    inf.postprocess(scale, originalImage);
-    //Speed: 20.1ms preprocess, 84.6ms inference, 28.4ms postprocess per image at shape (1, 3, 640, 640
+    infer.postprocess(scale, originalImage);
+
     auto postprocess_time = 1000.0 * (clock() - begin_time3) / CLOCKS_PER_SEC;
     printf("Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess\n",
         preprocess_time, inference_time, postprocess_time);

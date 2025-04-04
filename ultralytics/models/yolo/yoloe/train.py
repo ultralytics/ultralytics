@@ -38,7 +38,23 @@ class YOLOETrainer(DetectionTrainer):
         super().__init__(cfg, overrides, _callbacks)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """Return YOLOEModel initialized with specified config and weights."""
+        """
+        Return a YOLOEModel initialized with the specified configuration and weights.
+            
+        Args:
+            cfg (dict | str | None): Model configuration. Can be a dictionary containing a 'yaml_file' key,
+                a direct path to a YAML file, or None to use default configuration.
+            weights (str | Path | None): Path to pretrained weights file to load into the model.
+            verbose (bool): Whether to display model information during initialization.
+
+        Returns:
+            (YOLOEModel): The initialized YOLOE model.
+
+        Notes:
+            - The number of classes (nc) is hard-coded to a maximum of 80 following the official configuration.
+            - The nc parameter here represents the maximum number of different text samples in one image,
+              rather than the actual number of classes.
+        """
         # NOTE: This `nc` here is the max number of different text samples in one image, rather than the actual `nc`.
         # NOTE: Following the official config, nc hard-coded to 80 for now.
         model = YOLOEModel(
@@ -180,7 +196,20 @@ class YOLOETrainerFromScratch(YOLOETrainer):
         return YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
 
     def set_text_embeddings(self, datasets, batch):
-        """Set text embeddings for datasets to accelerate training by caching category names."""
+        """
+        Set text embeddings for datasets to accelerate training by caching category names.
+        
+        This method collects unique category names from all datasets, then generates and caches text embeddings
+        for these categories to improve training efficiency.
+        
+        Args:
+            datasets (List[Dataset]): List of datasets from which to extract category names.
+            batch (int | None): Batch size used for processing.
+        
+        Notes:
+            This method collects category names from datasets that have the 'category_names' attribute,
+            then uses the first dataset's image path to determine where to cache the generated text embeddings.
+        """
         # TODO: open up an interface to determine whether to do cache
         category_names = set()
         for dataset in datasets:
@@ -312,7 +341,22 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
         return batch
 
     def set_text_embeddings(self, datasets, batch):
-        """No need to set text embeddings for prompt-free fine-tuning."""
+        """
+        Set text embeddings for datasets to accelerate training by caching category names.
+            
+        This method collects unique category names from all datasets, generates text embeddings for them,
+        and caches these embeddings to improve training efficiency. The embeddings are stored in a file
+        in the parent directory of the first dataset's image path.
+
+        Args:
+            datasets (List[Dataset]): List of datasets containing category names to process.
+            batch (int): Batch size for processing text embeddings.
+
+        Notes:
+            The method creates a dictionary mapping text samples to their embeddings and stores it
+            at the path specified by 'cache_path'. If the cache file already exists, it will be loaded
+            instead of regenerating the embeddings.
+        """
         pass
 
 

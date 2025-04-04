@@ -22,7 +22,28 @@ def is_box_near_crop_edge(
 
 
 def batch_iterator(batch_size: int, *args) -> Generator[List[Any], None, None]:
-    """Yields batches of data from input arguments with specified batch size for efficient processing."""
+    """
+    Yield batches of data from input arguments with specified batch size for efficient processing.
+    
+    This function takes a batch size and any number of iterables, then yields batches of elements from those
+    iterables. All input iterables must have the same length.
+    
+    Args:
+        batch_size (int): Size of each batch to yield.
+        *args (Any): Variable length input iterables to batch. All iterables must have the same length.
+    
+    Yields:
+        (List[Any]): A list of batched elements from each input iterable.
+    
+    Examples:
+        >>> data = [1, 2, 3, 4, 5]
+        >>> labels = ['a', 'b', 'c', 'd', 'e']
+        >>> for batch in batch_iterator(2, data, labels):
+        ...     print(batch)
+        [[1, 2], ['a', 'b']]
+        [[3, 4], ['c', 'd']]
+        [[5], ['e']]
+    """
     assert args and all(len(a) == len(args[0]) for a in args), "Batched iteration must have same-size inputs."
     n_batches = len(args[0]) // batch_size + int(len(args[0]) % batch_size != 0)
     for b in range(n_batches):

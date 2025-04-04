@@ -31,7 +31,21 @@ class HungarianMatcher(nn.Module):
     """
 
     def __init__(self, cost_gain=None, use_fl=True, with_mask=False, num_sample_points=12544, alpha=0.25, gamma=2.0):
-        """Initialize a HungarianMatcher module for optimal assignment of predicted and ground truth bounding boxes."""
+        """
+        Initialize a HungarianMatcher module for optimal assignment of predicted and ground truth bounding boxes.
+        
+        The HungarianMatcher uses a cost function that considers classification scores, bounding box coordinates,
+        and optionally mask predictions to perform optimal bipartite matching between predictions and ground truths.
+        
+        Args:
+            cost_gain (dict, optional): Dictionary of cost coefficients for different components of the matching cost.
+                Should contain keys 'class', 'bbox', 'giou', 'mask', and 'dice'.
+            use_fl (bool, optional): Whether to use Focal Loss for the classification cost calculation.
+            with_mask (bool, optional): Whether the model makes mask predictions.
+            num_sample_points (int, optional): Number of sample points used in mask cost calculation.
+            alpha (float, optional): Alpha factor in Focal Loss calculation.
+            gamma (float, optional): Gamma factor in Focal Loss calculation.
+        """
         super().__init__()
         if cost_gain is None:
             cost_gain = {"class": 1, "bbox": 5, "giou": 2, "mask": 1, "dice": 1}

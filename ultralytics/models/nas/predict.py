@@ -40,16 +40,16 @@ class NASPredictor(DetectionPredictor):
             post-processing operations to generate the final detection results compatible with Ultralytics
             result visualization and analysis tools.
         
-            Args:
+        Args:
                 preds_in (list): Raw predictions from the NAS model, typically containing bounding boxes and class scores.
                 img (torch.Tensor): Input image tensor that was fed to the model, with shape (B, C, H, W).
                 orig_imgs (list | torch.Tensor | np.ndarray): Original images before preprocessing, used for scaling
                     coordinates back to original dimensions.
         
-            Returns:
+        Returns:
                 (list): List of Results objects containing the processed predictions for each image in the batch.
         
-            Examples:
+        Examples:
                 >>> predictor = NAS("yolo_nas_s").predictor
                 >>> results = predictor.postprocess(raw_preds, img, orig_imgs)
         """

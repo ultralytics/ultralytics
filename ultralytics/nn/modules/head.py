@@ -12,7 +12,7 @@ from torch.nn.init import constant_, xavier_uniform_
 from ultralytics.utils.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import fuse_conv_and_bn, smart_inference_mode
 
-from .block import DFL, BNContrastiveHead, ContrastiveHead, Proto, SwiGLUFFN, Residual
+from .block import DFL, BNContrastiveHead, ContrastiveHead, Proto, SwiGLUFFN, Residual, SAVPE
 from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
@@ -343,61 +343,6 @@ class WorldDetect(Detect):
         for a, b, s in zip(m.cv2, m.cv3, m.stride):  # from
             a[-1].bias.data[:] = 1.0  # box
             # b[-1].bias.data[:] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
-
-
-class SAVPE(nn.Module):
-    """Spatial-Aware Visual Prompt Embedding module for feature enhancement."""
-
-    def __init__(self, ch, c3, embed):
-        """Initialize SAVPE module with channels, intermediate channels, and embedding dimension."""
-        super().__init__()
-        self.cv1 = nn.ModuleList(
-            nn.Sequential(
-                Conv(x, c3, 3), Conv(c3, c3, 3), nn.Upsample(scale_factor=i * 2) if i in {1, 2} else nn.Identity()
-            )
-            for i, x in enumerate(ch)
-        )
-
-        self.cv2 = nn.ModuleList(
-            nn.Sequential(Conv(x, c3, 1), nn.Upsample(scale_factor=i * 2) if i in {1, 2} else nn.Identity())
-            for i, x in enumerate(ch)
-        )
-
-        self.c = 16
-        self.cv3 = nn.Conv2d(3 * c3, embed, 1)
-        self.cv4 = nn.Conv2d(3 * c3, self.c, 3, padding=1)
-        self.cv5 = nn.Conv2d(1, self.c, 3, padding=1)
-        self.cv6 = nn.Sequential(Conv(2 * self.c, self.c, 3), nn.Conv2d(self.c, self.c, 3, padding=1))
-
-    def forward(self, x, vp):
-        """Process input features and visual prompts to generate enhanced embeddings."""
-        y = [self.cv2[i](xi) for i, xi in enumerate(x)]
-        y = self.cv4(torch.cat(y, dim=1))
-
-        x = [self.cv1[i](xi) for i, xi in enumerate(x)]
-        x = self.cv3(torch.cat(x, dim=1))
-
-        B, C, H, W = x.shape
-
-        Q = vp.shape[1]
-
-        x = x.view(B, C, -1)
-
-        y = y.reshape(B, 1, self.c, H, W).expand(-1, Q, -1, -1, -1).reshape(B * Q, self.c, H, W)
-        vp = vp.reshape(B, Q, 1, H, W).reshape(B * Q, 1, H, W)
-
-        y = self.cv6(torch.cat((y, self.cv5(vp)), dim=1))
-
-        y = y.reshape(B, Q, self.c, -1)
-        vp = vp.reshape(B, Q, 1, -1)
-
-        score = y * vp + torch.logical_not(vp) * torch.finfo(y.dtype).min
-
-        score = F.softmax(score, dim=-1, dtype=torch.float).to(score.dtype)
-
-        aggregated = score.transpose(-2, -3) @ x.reshape(B, self.c, C // self.c, -1).transpose(-1, -2)
-
-        return F.normalize(aggregated.transpose(-2, -3).reshape(B, Q, -1), dim=-1, p=2)
 
 
 class LRPCHead(nn.Module):

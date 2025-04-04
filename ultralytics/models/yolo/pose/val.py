@@ -49,23 +49,23 @@ class PoseValidator(DetectionValidator):
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """
         Initialize a PoseValidator object for pose estimation validation.
-        
+
         This validator is specifically designed for pose estimation tasks, handling keypoints and implementing
         specialized metrics for pose evaluation.
-        
+
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
             save_dir (Path | str, optional): Directory to save results.
             pbar (Any, optional): Progress bar for displaying progress.
             args (dict, optional): Arguments for the validator including task set to "pose".
             _callbacks (list, optional): List of callback functions to be executed during validation.
-        
+
         Examples:
             >>> from ultralytics.models.yolo.pose import PoseValidator
             >>> args = dict(model="yolov8n-pose.pt", data="coco8-pose.yaml")
             >>> validator = PoseValidator(args=args)
             >>> validator()
-        
+
         Notes:
             This class extends DetectionValidator with pose-specific functionality. It initializes with sigma values
             for OKS calculation and sets up PoseMetrics for evaluation. A warning is displayed when using Apple MPS
@@ -116,7 +116,7 @@ class PoseValidator(DetectionValidator):
     def _prepare_batch(self, si, batch):
         """
         Prepare a batch for processing by converting keypoints to float and scaling to original dimensions.
-            
+
         Args:
             si (int): Batch index.
             batch (dict): Dictionary containing batch data with keys like 'keypoints', 'batch_idx', etc.
@@ -141,7 +141,7 @@ class PoseValidator(DetectionValidator):
     def _prepare_pred(self, pred, pbatch):
         """
         Prepare and scale keypoints in predictions for pose processing.
-            
+
         This method extends the parent class's _prepare_pred method to handle keypoint scaling. It first calls
         the parent method to get the basic prediction boxes, then extracts and scales the keypoint coordinates
         to match the original image dimensions.
@@ -258,7 +258,7 @@ class PoseValidator(DetectionValidator):
     def plot_val_samples(self, batch, ni):
         """
         Plot and save validation set samples with ground truth bounding boxes and keypoints.
-            
+
         Args:
             batch (dict): Dictionary containing batch data with keys:
                 - img (torch.Tensor): Batch of images
@@ -284,7 +284,7 @@ class PoseValidator(DetectionValidator):
     def plot_predictions(self, batch, preds, ni):
         """
         Plot and save model predictions with bounding boxes and keypoints.
-            
+
         Args:
             batch (dict): Dictionary containing batch data including images, file paths, and other metadata.
             preds (List[torch.Tensor]): List of prediction tensors from the model, each containing bounding boxes,
@@ -308,7 +308,7 @@ class PoseValidator(DetectionValidator):
     def save_one_txt(self, predn, pred_kpts, save_conf, shape, file):
         """
         Save YOLO pose detections to a text file in normalized coordinates.
-            
+
         Args:
             predn (torch.Tensor): Prediction boxes and scores with shape (N, 6) for
                 (x1, y1, x2, y2, conf, cls).
@@ -335,7 +335,7 @@ class PoseValidator(DetectionValidator):
     def pred_to_json(self, predn, filename):
         """
         Convert YOLO predictions to COCO JSON format.
-            
+
         This method takes prediction tensors and a filename, converts the bounding boxes from YOLO format
         to COCO format, and appends the results to the internal JSON dictionary (self.jdict).
 

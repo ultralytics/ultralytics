@@ -51,17 +51,17 @@ class ClassificationValidator(BaseValidator):
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """
         Initialize ClassificationValidator with dataloader, save directory, and other parameters.
-        
+
         This validator handles the validation process for classification models, including metrics calculation,
         confusion matrix generation, and visualization of results.
-        
+
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to use for validation.
             save_dir (str | Path, optional): Directory to save results.
             pbar (bool, optional): Display a progress bar.
             args (dict, optional): Arguments containing model and validation configuration.
             _callbacks (list, optional): List of callback functions to be called during validation.
-        
+
         Examples:
             >>> from ultralytics.models.yolo.classify import ClassificationValidator
             >>> args = dict(model="yolo11n-cls.pt", data="imagenet10")
@@ -96,7 +96,7 @@ class ClassificationValidator(BaseValidator):
     def update_metrics(self, preds, batch):
         """
         Update running metrics with model predictions and batch targets.
-            
+
         Args:
             preds (torch.Tensor): Model predictions, typically logits or probabilities for each class.
             batch (dict): Batch data containing images and class labels.
@@ -111,7 +111,7 @@ class ClassificationValidator(BaseValidator):
     def finalize_metrics(self, *args, **kwargs):
         """
         Finalize metrics including confusion matrix and processing speed.
-            
+
         This method processes the accumulated predictions and targets to generate the confusion matrix,
         optionally plots it, and updates the metrics object with speed information.
 
@@ -152,7 +152,7 @@ class ClassificationValidator(BaseValidator):
     def get_dataloader(self, dataset_path, batch_size):
         """
         Build and return a data loader for classification validation.
-            
+
         Args:
             dataset_path (str | Path): Path to the dataset directory.
             batch_size (int): Number of samples per batch.
@@ -171,14 +171,14 @@ class ClassificationValidator(BaseValidator):
     def plot_val_samples(self, batch, ni):
         """
         Plot validation image samples with their ground truth labels.
-            
+
         Args:
             batch (dict): Dictionary containing batch data with 'img' (images) and 'cls' (class labels).
             ni (int): Batch index used for naming the output file.
 
         Examples:
             >>> validator = ClassificationValidator()
-            >>> batch = {'img': torch.rand(16, 3, 224, 224), 'cls': torch.randint(0, 10, (16,))}
+            >>> batch = {"img": torch.rand(16, 3, 224, 224), "cls": torch.randint(0, 10, (16,))}
             >>> validator.plot_val_samples(batch, 0)
         """
         plot_images(
@@ -193,7 +193,7 @@ class ClassificationValidator(BaseValidator):
     def plot_predictions(self, batch, preds, ni):
         """
         Plot images with their predicted class labels and save the visualization.
-            
+
         Args:
             batch (dict): Batch data containing images and other information.
             preds (torch.Tensor): Model predictions with shape (batch_size, num_classes).

@@ -217,7 +217,7 @@ class SegmentationValidator(DetectionValidator):
     def finalize_metrics(self, *args, **kwargs):
         """
         Finalize evaluation metrics by setting the speed attribute in the metrics object.
-            
+
         This method is called at the end of validation to set the processing speed for the metrics calculations.
         It transfers the validator's speed measurement to the metrics object for reporting.
 

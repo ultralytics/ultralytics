@@ -49,7 +49,8 @@ Follow these steps to build the project:
 
 4.  Copy the MNN library to the project directory:
 
-    Replace .dylib with .so for Linux or .dll for Windows. 
+    Replace .dylib with .so for Linux or .dll for Windows.
+
     ```bash
     cd ../..
     mkdir -p lib
@@ -88,14 +89,18 @@ or
 For more details on exporting and optimizing models for MNN, refer to the [MNN documentation](https://mnn-docs.readthedocs.io/en/latest/).
 
 ## 🛠️ Usage
-<<<<<<< Updated upstream
-=======
+
+# <<<<<<< Updated upstream
+
 ### Ultralytics CLI in Python
+
 Download example image or use your own:
+
 ```
 wget https://ultralytics.com/images/bus.jpg .
 ```
->>>>>>> Stashed changes
+
+> > > > > > > Stashed changes
 
 ```bash
 yolo predict model='yolov8n.mnn' source='bus.jpg'
@@ -110,6 +115,7 @@ Results saved to runs/detect/predict
 ```
 
 ### MNN Express in C++
+
 ```bash
 ./build/main yolov8n.mnn bus.jpg
 ```
@@ -128,10 +134,13 @@ Speed: 35.6ms preprocess, 386.0ms inference, 68.3ms postprocess
 ```
 
 ### MNN Inference in C++
+
 ```
 ./build/main_interpreter yolov8n.mnn bus.jpg
 ```
+
 Output:
+
 ```
 The device supports: i8sdot:0, fp16:0, i8mm: 0, sve2: 0, sme2: 0
 Detection: box = {48.63, 399.30, 243.65, 902.90}, class = person, score = 0.86

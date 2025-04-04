@@ -1875,3 +1875,37 @@ class A2C2f(nn.Module):
         if self.gamma is not None:
             return x + self.gamma.view(-1, len(self.gamma), 1, 1) * y
         return y
+
+
+class SwiGLUFFN(nn.Module):
+    """SwiGLU Feed-Forward Network for transformer-based architectures."""
+
+    def __init__(self, gc, ec, e=4) -> None:
+        """Initialize SwiGLU FFN with input dimension, output dimension, and expansion factor."""
+        super().__init__()
+        self.w12 = nn.Linear(gc, e * ec)
+        self.w3 = nn.Linear(e * ec // 2, ec)
+
+    def forward(self, x):
+        """Apply SwiGLU transformation to input features."""
+        x12 = self.w12(x)
+        x1, x2 = x12.chunk(2, dim=-1)
+        hidden = F.silu(x1) * x2
+        return self.w3(hidden)
+
+
+class Residual(nn.Module):
+    """Residual connection wrapper for neural network modules."""
+
+    def __init__(self, m) -> None:
+        """Initialize residual module with the wrapped module."""
+        super().__init__()
+        self.m = m
+        nn.init.zeros_(self.m.w3.bias)
+        # For models with l scale, please change the initialization to
+        # nn.init.constant_(self.m.w3.weight, 1e-6)
+        nn.init.zeros_(self.m.w3.weight)
+
+    def forward(self, x):
+        """Apply residual connection to input features."""
+        return x + self.m(x)

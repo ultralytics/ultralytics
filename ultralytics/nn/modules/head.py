@@ -12,7 +12,7 @@ from torch.nn.init import constant_, xavier_uniform_
 from ultralytics.utils.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import fuse_conv_and_bn, smart_inference_mode
 
-from .block import DFL, BNContrastiveHead, ContrastiveHead, Proto
+from .block import DFL, BNContrastiveHead, ContrastiveHead, Proto, SwiGLUFFN, Residual
 from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
@@ -583,40 +583,6 @@ class YOLOEDetect(Detect):
             # b[-1].bias.data[:] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
             b[-1].bias.data[:] = 0.0
             c.bias.data[:] = math.log(5 / m.nc / (640 / s) ** 2)
-
-
-class SwiGLUFFN(nn.Module):
-    """SwiGLU Feed-Forward Network for transformer-based architectures."""
-
-    def __init__(self, gc, ec, e=4) -> None:
-        """Initialize SwiGLU FFN with input dimension, output dimension, and expansion factor."""
-        super().__init__()
-        self.w12 = nn.Linear(gc, e * ec)
-        self.w3 = nn.Linear(e * ec // 2, ec)
-
-    def forward(self, x):
-        """Apply SwiGLU transformation to input features."""
-        x12 = self.w12(x)
-        x1, x2 = x12.chunk(2, dim=-1)
-        hidden = F.silu(x1) * x2
-        return self.w3(hidden)
-
-
-class Residual(nn.Module):
-    """Residual connection wrapper for neural network modules."""
-
-    def __init__(self, m) -> None:
-        """Initialize residual module with the wrapped module."""
-        super().__init__()
-        self.m = m
-        nn.init.zeros_(self.m.w3.bias)
-        # For models with l scale, please change the initialization to
-        # nn.init.constant_(self.m.w3.weight, 1e-6)
-        nn.init.zeros_(self.m.w3.weight)
-
-    def forward(self, x):
-        """Apply residual connection to input features."""
-        return x + self.m(x)
 
 
 class YOLOESegment(YOLOEDetect):

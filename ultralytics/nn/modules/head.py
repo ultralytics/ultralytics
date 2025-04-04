@@ -364,7 +364,7 @@ class LRPCHead(nn.Module):
         linear.bias.data = conv.bias.data
         return linear
 
-    def forward(self, cls_feat, loc_feat, conf, max_det):
+    def forward(self, cls_feat, loc_feat, conf):
         """Process classification and localization features to generate detection proposals."""
         if self.enabled:
             pf_score = self.pf(cls_feat)[0, 0].flatten(0)
@@ -478,7 +478,7 @@ class YOLOEDetect(Detect):
             cls_feat = self.cv3[i](x[i])
             loc_feat = self.cv2[i](x[i])
             assert isinstance(self.lrpc[i], LRPCHead)
-            x[i], mask = self.lrpc[i](cls_feat, loc_feat, self.conf, self.max_det)
+            x[i], mask = self.lrpc[i](cls_feat, loc_feat, getattr(self, "conf", 0.001))
             masks.append(mask)
         shape = x[0][0].shape
         if self.dynamic or self.shape != shape:

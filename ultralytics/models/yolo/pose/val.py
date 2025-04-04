@@ -318,8 +318,8 @@ class PoseValidator(DetectionValidator):
             file (Path): Output file path to save detections.
 
         Notes:
-            The output format is: class_id x_center y_center width height [confidence] [keypoints]
-            where keypoints are normalized x, y, visibility values for each point.
+            The output format is: class_id x_center y_center width height confidence keypoints where keypoints are
+            normalized (x, y, visibility) values for each point.
         """
         from ultralytics.engine.results import Results
 

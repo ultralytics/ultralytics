@@ -33,10 +33,10 @@ except ImportError:
 class TextModel(nn.Module):
     """
     Abstract base class for text encoding models.
-    
+
     This class defines the interface for text encoding models used in vision-language tasks. Subclasses must implement
     the tokenize and encode_text methods.
-    
+
     Methods:
         tokenize: Convert input texts to tokens.
         encode_text: Encode tokenized texts into feature vectors.
@@ -60,23 +60,23 @@ class TextModel(nn.Module):
 class CLIP(TextModel):
     """
     Implements OpenAI's CLIP (Contrastive Language-Image Pre-training) text encoder.
-    
+
     This class provides a text encoder based on OpenAI's CLIP model, which can convert text into feature vectors
     that are aligned with corresponding image features in a shared embedding space.
-    
+
     Attributes:
         model (clip.model.CLIP): The loaded CLIP model.
         device (torch.device): Device where the model is loaded.
-    
+
     Methods:
         tokenize: Convert input texts to CLIP tokens.
         encode_text: Encode tokenized texts into normalized feature vectors.
-    
+
     Examples:
         >>> from ultralytics.models.sam import CLIP
         >>> import torch
-        >>> device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        >>> clip_model = CLIP(size='ViT-B/32', device=device)
+        >>> device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        >>> clip_model = CLIP(size="ViT-B/32", device=device)
         >>> tokens = clip_model.tokenize(["a photo of a cat", "a photo of a dog"])
         >>> text_features = clip_model.encode_text(tokens)
         >>> print(text_features.shape)
@@ -85,18 +85,18 @@ class CLIP(TextModel):
     def __init__(self, size, device):
         """
         Initialize the CLIP text encoder.
-        
+
         This class implements the TextModel interface using OpenAI's CLIP model for text encoding. It loads
         a pre-trained CLIP model of the specified size and prepares it for text encoding tasks.
-        
+
         Args:
             size (str): Model size identifier (e.g., 'ViT-B/32').
             device (torch.device): Device to load the model on.
-        
+
         Examples:
             >>> import torch
             >>> from ultralytics.models.sam.modules.clip import CLIP
-            >>> clip_model = CLIP('ViT-B/32', device=torch.device('cuda:0'))
+            >>> clip_model = CLIP("ViT-B/32", device=torch.device("cuda:0"))
             >>> text_features = clip_model.encode_text(["a photo of a cat", "a photo of a dog"])
         """
         super().__init__()
@@ -108,7 +108,7 @@ class CLIP(TextModel):
     def tokenize(self, texts):
         """
         Convert input texts to CLIP tokens.
-            
+
         Args:
             texts (str | List[str]): Input text or list of texts to tokenize.
 
@@ -116,7 +116,7 @@ class CLIP(TextModel):
             (torch.Tensor): Tokenized text tensor with shape (batch_size, context_length) ready for model processing.
 
         Examples:
-            >>> model = CLIP('ViT-B/32', device='cpu')
+            >>> model = CLIP("ViT-B/32", device="cpu")
             >>> tokens = model.tokenize("a photo of a cat")
             >>> print(tokens.shape)  # torch.Size([1, 77])
         """
@@ -126,19 +126,19 @@ class CLIP(TextModel):
     def encode_text(self, texts, dtype=torch.float32):
         """
         Encode tokenized texts into normalized feature vectors.
-        
+
         This method processes tokenized text inputs through the CLIP model to generate feature vectors, which are then
         normalized to unit length. These normalized vectors can be used for text-image similarity comparisons.
-        
+
         Args:
             texts (torch.Tensor): Tokenized text inputs, typically created using the tokenize() method.
             dtype (torch.dtype, optional): Data type for output features. Default is torch.float32.
-        
+
         Returns:
             (torch.Tensor): Normalized text feature vectors with unit length (L2 norm = 1).
-        
+
         Examples:
-            >>> clip_model = CLIP('ViT-B/32', device='cuda')
+            >>> clip_model = CLIP("ViT-B/32", device="cuda")
             >>> tokens = clip_model.tokenize(["a photo of a cat", "a photo of a dog"])
             >>> features = clip_model.encode_text(tokens)
             >>> features.shape
@@ -152,23 +152,23 @@ class CLIP(TextModel):
 class MobileCLIP(TextModel):
     """
     Implement Apple's MobileCLIP text encoder for efficient text encoding.
-    
+
     This class implements the TextModel interface using Apple's MobileCLIP model, providing efficient text encoding
     capabilities for vision-language tasks.
-    
+
     Attributes:
         model (mobileclip.model.MobileCLIP): The loaded MobileCLIP model.
         tokenizer (callable): Tokenizer function for processing text inputs.
         device (torch.device): Device where the model is loaded.
         config_size_map (dict): Mapping from size identifiers to model configuration names.
-    
+
     Methods:
         tokenize: Convert input texts to MobileCLIP tokens.
         encode_text: Encode tokenized texts into normalized feature vectors.
-    
+
     Examples:
-        >>> device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        >>> text_encoder = MobileCLIP(size='s0', device=device)
+        >>> device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        >>> text_encoder = MobileCLIP(size="s0", device=device)
         >>> tokens = text_encoder.tokenize(["a photo of a cat", "a photo of a dog"])
         >>> features = text_encoder.encode_text(tokens)
     """
@@ -178,17 +178,17 @@ class MobileCLIP(TextModel):
     def __init__(self, size, device):
         """
         Initialize the MobileCLIP text encoder.
-        
+
         This class implements the TextModel interface using Apple's MobileCLIP model for efficient text encoding.
-        
+
         Args:
             size (str): Model size identifier (e.g., 's0', 's1', 's2', 'b', 'blt').
             device (torch.device): Device to load the model on.
-        
+
         Examples:
             >>> from ultralytics.nn.modules import MobileCLIP
             >>> import torch
-            >>> model = MobileCLIP('s0', device=torch.device('cpu'))
+            >>> model = MobileCLIP("s0", device=torch.device("cpu"))
             >>> tokens = model.tokenize(["a photo of a cat", "a photo of a dog"])
             >>> features = model.encode_text(tokens)
         """
@@ -208,7 +208,7 @@ class MobileCLIP(TextModel):
     def tokenize(self, texts):
         """
         Convert input texts to MobileCLIP tokens.
-            
+
         Args:
             texts (list[str]): List of text strings to tokenize.
 
@@ -216,8 +216,8 @@ class MobileCLIP(TextModel):
             (torch.Tensor): Tokenized text inputs with shape (batch_size, sequence_length).
 
         Examples:
-            >>> model = MobileCLIP('s0', 'cpu')
-            >>> tokens = model.tokenize(['a photo of a cat', 'a photo of a dog'])
+            >>> model = MobileCLIP("s0", "cpu")
+            >>> tokens = model.tokenize(["a photo of a cat", "a photo of a dog"])
         """
         return self.tokenizer(texts).to(self.device)
 
@@ -225,16 +225,16 @@ class MobileCLIP(TextModel):
     def encode_text(self, texts, dtype=torch.float32):
         """
         Encode tokenized texts into normalized feature vectors.
-        
+
         Args:
             texts (torch.Tensor): Tokenized text inputs.
             dtype (torch.dtype, optional): Data type for output features.
-        
+
         Returns:
             (torch.Tensor): Normalized text feature vectors with L2 normalization applied.
-        
+
         Examples:
-            >>> model = MobileCLIP('s0', device='cpu')
+            >>> model = MobileCLIP("s0", device="cpu")
             >>> tokens = model.tokenize(["a photo of a cat", "a photo of a dog"])
             >>> features = model.encode_text(tokens)
             >>> features.shape
@@ -248,14 +248,14 @@ class MobileCLIP(TextModel):
 def build_text_model(variant, device=None):
     """
     Build a text encoding model based on the specified variant.
-    
+
     Args:
         variant (str): Model variant in format "base:size" (e.g., "clip:ViT-B/32" or "mobileclip:s0").
         device (torch.device, optional): Device to load the model on.
-    
+
     Returns:
         (TextModel): Instantiated text encoding model.
-    
+
     Examples:
         >>> model = build_text_model("clip:ViT-B/32", device=torch.device("cuda"))
         >>> model = build_text_model("mobileclip:s0", device=torch.device("cpu"))

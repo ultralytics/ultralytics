@@ -52,7 +52,7 @@ It's best practice to use a virtual environment to manage dependencies. We'll us
 Create a Conda environment (e.g., `yolov5env`) with a specific Python version and activate it:
 
 ```bash
-conda create --name yolov5env -y python=3.10  # Create a new Conda environment
+conda create --name yolov5env -y python=3.10 # Create a new Conda environment
 conda activate yolov5env                     # Activate the environment
 conda install pip -y                         # Ensure pip is installed
 ```
@@ -62,7 +62,7 @@ conda install pip -y                         # Ensure pip is installed
 Clone the official Ultralytics YOLOv5 repository from [GitHub](https://github.com/) using [Git](https://git-scm.com/):
 
 ```bash
-git clone https://github.com/ultralytics/yolov5  # Clone the repository
+git clone https://github.com/ultralytics/yolov5 # Clone the repository
 cd yolov5                                       # Navigate into the directory
 # Initialize submodules (if any, though YOLOv5 typically doesn't require this step)
 # git submodule update --init --recursive
@@ -73,36 +73,36 @@ cd yolov5                                       # Navigate into the directory
 Install the necessary Python packages listed in the `requirements.txt` file. We also install [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange) for model export capabilities.
 
 ```bash
-pip install -r requirements.txt  # Install core dependencies
-pip install onnx>=1.12.0         # Install ONNX for exporting
+pip install -r requirements.txt # Install core dependencies
+pip install onnx > =1.12.0      # Install ONNX for exporting
 ```
 
 ### 4. Perform YOLOv5 Tasks
 
 With the setup complete, you can now train, validate, perform inference, and export your YOLOv5 model.
 
--   **Train** the model on a dataset like [COCO128](../../datasets/detect/coco128.md). Check the [Training Mode](../../modes/train.md) documentation for more details.
+- **Train** the model on a dataset like [COCO128](../../datasets/detect/coco128.md). Check the [Training Mode](../../modes/train.md) documentation for more details.
 
     ```bash
     # Start training using yolov5s pretrained weights on the COCO128 dataset
     python train.py --data coco128.yaml --weights yolov5s.pt --img 640 --epochs 10 --batch 16
     ```
 
--   **Validate** the trained model's performance using metrics like [Precision](https://www.ultralytics.com/glossary/precision), [Recall](https://www.ultralytics.com/glossary/recall), and [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map). See the [Validation Mode](../../modes/val.md) guide for options.
+- **Validate** the trained model's performance using metrics like [Precision](https://www.ultralytics.com/glossary/precision), [Recall](https://www.ultralytics.com/glossary/recall), and [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map). See the [Validation Mode](../../modes/val.md) guide for options.
 
     ```bash
     # Validate the yolov5s model on the COCO128 validation set
     python val.py --weights yolov5s.pt --data coco128.yaml --img 640
     ```
 
--   **Run Inference** on new images or videos. Explore the [Prediction Mode](../../modes/predict.md) documentation for various inference sources.
+- **Run Inference** on new images or videos. Explore the [Prediction Mode](../../modes/predict.md) documentation for various inference sources.
 
     ```bash
     # Run inference with yolov5s on sample images
     python detect.py --weights yolov5s.pt --source data/images --img 640
     ```
 
--   **Export** the model to different formats like ONNX, [TensorRT](https://www.ultralytics.com/glossary/tensorrt), or [CoreML](https://docs.ultralytics.com/integrations/coreml/) for deployment. Refer to the [Export Mode](../../modes/export.md) guide and the [ONNX Integration](../../integrations/onnx.md) page.
+- **Export** the model to different formats like ONNX, [TensorRT](https://www.ultralytics.com/glossary/tensorrt), or [CoreML](https://docs.ultralytics.com/integrations/coreml/) for deployment. Refer to the [Export Mode](../../modes/export.md) guide and the [ONNX Integration](../../integrations/onnx.md) page.
 
     ```bash
     # Export yolov5s to ONNX format
@@ -132,13 +132,13 @@ After creating the kernel, refresh your browser. When you open or create a `.ipy
 
 ### Running Commands in Notebook Cells
 
--   **Python Cells:** Code in Python cells will automatically execute using the selected `yolov5env` kernel.
+- **Python Cells:** Code in Python cells will automatically execute using the selected `yolov5env` kernel.
 
--   **Bash Cells:** To run shell commands, use the `%%bash` magic command at the beginning of the cell. Remember to activate your Conda environment within each bash cell, as they don't automatically inherit the notebook's kernel environment context.
+- **Bash Cells:** To run shell commands, use the `%%bash` magic command at the beginning of the cell. Remember to activate your Conda environment within each bash cell, as they don't automatically inherit the notebook's kernel environment context.
 
     ```bash
     %%bash
-    source activate yolov5env  # Activate environment within the cell
+    source activate yolov5env # Activate environment within the cell
 
     # Example: Run validation using the activated environment
     python val.py --weights yolov5s.pt --data coco128.yaml --img 640

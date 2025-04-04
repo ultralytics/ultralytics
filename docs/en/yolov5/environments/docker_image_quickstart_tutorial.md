@@ -33,9 +33,9 @@ Next, install the NVIDIA Container Toolkit. The commands below are typical for D
 ```bash
 # Add NVIDIA package repositories (refer to official guide for latest setup)
 curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
-  && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
-    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
-    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+  && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+  | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
+    | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
 
 # Update package list and install the toolkit
 sudo apt-get update
@@ -114,19 +114,20 @@ You are now inside the running YOLOv5 Docker container! From here, you can execu
 
 ```bash
 # Train a YOLOv5 model on your custom dataset (ensure data is mounted or downloaded)
-python train.py --data your_dataset.yaml --weights yolov5s.pt --img 640  # Start training
+python train.py --data your_dataset.yaml --weights yolov5s.pt --img 640 # Start training
 
 # Validate the trained model's performance (Precision, Recall, mAP)
-python val.py --weights path/to/your/best.pt --data your_dataset.yaml  # Validate accuracy
+python val.py --weights path/to/your/best.pt --data your_dataset.yaml # Validate accuracy
 
 # Run inference on images or videos using a trained model
-python detect.py --weights yolov5s.pt --source path/to/your/images_or_videos  # Perform detection
+python detect.py --weights yolov5s.pt --source path/to/your/images_or_videos # Perform detection
 
 # Export the trained model to various formats like ONNX, CoreML, or TFLite for deployment
-python export.py --weights yolov5s.pt --include onnx coreml tflite  # Export model
+python export.py --weights yolov5s.pt --include onnx coreml tflite # Export model
 ```
 
 Explore the documentation for detailed usage of different modes:
+
 - [Train](../../modes/train.md)
 - [Validate](../../modes/val.md)
 - [Predict](../../modes/predict.md)

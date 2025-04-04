@@ -36,22 +36,22 @@ class NASPredictor(DetectionPredictor):
         """
         Postprocess NAS model predictions to generate final detection results.
 
-            This method takes raw predictions from a YOLO NAS model, converts bounding box formats, and applies
-            post-processing operations to generate the final detection results compatible with Ultralytics
-            result visualization and analysis tools.
+        This method takes raw predictions from a YOLO NAS model, converts bounding box formats, and applies
+        post-processing operations to generate the final detection results compatible with Ultralytics
+        result visualization and analysis tools.
 
         Args:
-                preds_in (list): Raw predictions from the NAS model, typically containing bounding boxes and class scores.
-                img (torch.Tensor): Input image tensor that was fed to the model, with shape (B, C, H, W).
-                orig_imgs (list | torch.Tensor | np.ndarray): Original images before preprocessing, used for scaling
-                    coordinates back to original dimensions.
+            preds_in (list): Raw predictions from the NAS model, typically containing bounding boxes and class scores.
+            img (torch.Tensor): Input image tensor that was fed to the model, with shape (B, C, H, W).
+            orig_imgs (list | torch.Tensor | np.ndarray): Original images before preprocessing, used for scaling
+                coordinates back to original dimensions.
 
         Returns:
-                (list): List of Results objects containing the processed predictions for each image in the batch.
+            (list): List of Results objects containing the processed predictions for each image in the batch.
 
         Examples:
-                >>> predictor = NAS("yolo_nas_s").predictor
-                >>> results = predictor.postprocess(raw_preds, img, orig_imgs)
+            >>> predictor = NAS("yolo_nas_s").predictor
+            >>> results = predictor.postprocess(raw_preds, img, orig_imgs)
         """
         boxes = ops.xyxy2xywh(preds_in[0][0])
         preds = torch.cat((boxes, preds_in[0][1]), -1).permute(0, 2, 1)  # concatenate with class scores

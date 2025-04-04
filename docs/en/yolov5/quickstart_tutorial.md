@@ -6,7 +6,7 @@ keywords: YOLOv5, Quickstart, real-time object detection, AI, ML, PyTorch, infer
 
 # YOLOv5 Quickstart 🚀
 
-Embark on your journey into the dynamic realm of real-time [object detection](https://www.ultralytics.com/glossary/object-detection) with Ultralytics YOLOv5! This guide is crafted to serve as a comprehensive starting point for AI enthusiasts and professionals aiming to master YOLOv5. From initial setup to advanced [training techniques](../../modes/train.md), we've got you covered. By the end of this guide, you'll have the knowledge to implement YOLOv5 into your projects confidently using state-of-the-art [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) methods. Let's ignite the engines and soar into YOLOv5!
+Embark on your journey into the dynamic realm of real-time [object detection](https://www.ultralytics.com/glossary/object-detection) with Ultralytics YOLOv5! This guide is crafted to serve as a comprehensive starting point for AI enthusiasts and professionals aiming to master YOLOv5. From initial setup to advanced [training techniques](../modes/train.md), we've got you covered. By the end of this guide, you'll have the knowledge to implement YOLOv5 into your projects confidently using state-of-the-art [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) methods. Let's ignite the engines and soar into YOLOv5!
 
 ## Install
 

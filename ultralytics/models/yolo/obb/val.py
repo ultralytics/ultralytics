@@ -174,9 +174,6 @@ class OBBValidator(DetectionValidator):
                 class predictions, and rotation angles with shape (N, 6+) where the last column is the angle.
             filename (str | Path): Path to the image file for which predictions are being processed.
 
-        Returns:
-            None: Results are appended to the internal jdict list attribute.
-
         Notes:
             This method processes rotated bounding box predictions and converts them to both rbox format
             (x, y, w, h, angle) and polygon format (x1, y1, x2, y2, x3, y3, x4, y4) before adding them
@@ -207,9 +204,6 @@ class OBBValidator(DetectionValidator):
             save_conf (bool): Whether to save confidence scores in the text file.
             shape (tuple): Original image shape in format (height, width).
             file (Path | str): Output file path to save detections.
-
-        Returns:
-            None
 
         Examples:
             >>> validator = OBBValidator()

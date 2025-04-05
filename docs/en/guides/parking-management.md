@@ -139,7 +139,8 @@ Using Ultralytics YOLO11 for smart parking yields numerous benefits:
 - **Efficiency**: Optimizes the use of parking spaces and decreases congestion.
 - **Safety and Security**: Enhances surveillance and ensures the safety of vehicles and pedestrians.
 - **Environmental Impact**: Helps reduce emissions by minimizing vehicle idle times. Explore more benefits in the [Advantages of Parking Management System section](#advantages-of-parking-management-system).
-- 
+-
+
 ### How can I define parking spaces using Ultralytics YOLO11?
 
 Defining parking spaces is straightforward with Ultralytics YOLO11:

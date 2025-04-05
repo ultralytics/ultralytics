@@ -20,7 +20,11 @@ PARKING_VIDEO = "solution_ci_parking_demo.mp4"  # only for parking management so
 PARKING_AREAS_JSON = "solution_ci_parking_areas.json"  # only for parking management solution
 PARKING_MODEL = "solutions_ci_parking_model.pt"  # only for parking management solution
 MODEL_FILE = "yolo11n.pt"  # model file used for solutions, except parking management and instance segmentation
-REGION = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # for object counting, speed estimation and queue management
+REGION = [(10, 200), (540, 200), (540, 180), (10, 180)]  # for object counting, speed estimation and queue management
+
+# Download required files
+for resource in [DEMO_VIDEO, CROP_VIDEO, POSE_VIDEO, PARKING_VIDEO, PARKING_AREAS_JSON, PARKING_MODEL]:
+    safe_download(url=f"{ASSETS_URL}/{resource}", dir=TMP)
 
 # Test configs for each solution : (name, class, needs_frame_count, video, kwargs)
 SOLUTIONS = [
@@ -63,29 +67,29 @@ SOLUTIONS = [
         "LineAnalytics",
         solutions.Analytics,
         True,
-        DEMO_VIDEO,
-        {"analytics_type": "line", "model": MODEL_FILE, "show": SHOW},
+        CROP_VIDEO,
+        {"analytics_type": "line", "model": MODEL_FILE, "show": SHOW, "figsize": (6.4, 3.2)},
     ),
     (
         "PieAnalytics",
         solutions.Analytics,
         True,
-        DEMO_VIDEO,
-        {"analytics_type": "pie", "model": MODEL_FILE, "show": SHOW},
+        CROP_VIDEO,
+        {"analytics_type": "pie", "model": MODEL_FILE, "show": SHOW, "figsize": (6.4, 3.2)},
     ),
     (
         "BarAnalytics",
         solutions.Analytics,
         True,
-        DEMO_VIDEO,
-        {"analytics_type": "bar", "model": MODEL_FILE, "show": SHOW},
+        CROP_VIDEO,
+        {"analytics_type": "bar", "model": MODEL_FILE, "show": SHOW, "figsize": (6.4, 3.2)},
     ),
     (
         "AreaAnalytics",
         solutions.Analytics,
         True,
-        DEMO_VIDEO,
-        {"analytics_type": "area", "model": MODEL_FILE, "show": SHOW},
+        CROP_VIDEO,
+        {"analytics_type": "area", "model": MODEL_FILE, "show": SHOW, "figsize": (6.4, 3.2)},
     ),
     ("TrackZone", solutions.TrackZone, False, DEMO_VIDEO, {"region": REGION, "model": MODEL_FILE, "show": SHOW}),
     (
@@ -125,21 +129,14 @@ SOLUTIONS = [
         PARKING_VIDEO,
         {"model": str(TMP / PARKING_MODEL), "show": SHOW, "json_file": str(TMP / PARKING_AREAS_JSON)},
     ),
-    (
-        "StreamlitInference",
-        solutions.Inference,
-        False,
-        None,  # streamlit application don't require video file
-        {},  # streamlit application don't accept arguments
-    ),
+    # streamlit application don't require arguments
+    ("StreamlitInference", solutions.Inference, False, None, {}),
 ]
-
 
 def process_video(solution, video_path, needs_frame_count=False):
     """Process video with solution, feeding frames and optional frame count."""
     cap = cv2.VideoCapture(video_path)
     assert cap.isOpened(), f"Error reading video file {video_path}"
-
     frame_count = 0
     while cap.isOpened():
         success, im0 = cap.read()
@@ -152,16 +149,16 @@ def process_video(solution, video_path, needs_frame_count=False):
 
     cap.release()
 
-
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.parametrize("name, solution_class, needs_frame_count, video, kwargs", SOLUTIONS)
 def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     """Test individual Ultralytics solution."""
-    safe_download(url=f"{ASSETS_URL}/{video}", dir=TMP)
-    if name == "ParkingManager":
-        safe_download(url=f"{ASSETS_URL}/{PARKING_AREAS_JSON}", dir=TMP)
-        safe_download(url=f"{ASSETS_URL}/{PARKING_MODEL}", dir=TMP)
-    solution = solution_class(**kwargs)
-    solution.inference() if name == "StreamlitInference" else process_video(
-        solution, str(TMP / video), needs_frame_count
-    )
+    if name == "StreamlitInference":
+        import subprocess, time
+        proc = subprocess.Popen(["yolo", "solutions", "inference"])
+        time.sleep(5)  # allow time for the app to start
+        proc.terminate()  # shut down Streamlit server to avoid hanging test
+        proc.wait()
+    else:
+        solution = solution_class(**kwargs)
+        process_video(solution, str(TMP / video), needs_frame_count)

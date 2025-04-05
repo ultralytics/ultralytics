@@ -1019,7 +1019,6 @@ class Exporter:
             import tensorflow as tf  # noqa
         check_requirements(
             (
-                "importlib",  # required for export with Python 3.12: https://github.com/neovim/pynvim/issues/538
                 "keras",  # required by 'onnx2tf' package
                 "tf_keras",  # required by 'onnx2tf' package
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package

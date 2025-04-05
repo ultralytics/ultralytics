@@ -145,13 +145,20 @@ class Inference:
         if not isinstance(self.selected_ind, list):  # Ensure selected_options is a list
             self.selected_ind = list(self.selected_ind)
 
-    def inference(self):
-        """Perform real-time object detection inference on video or webcam feed."""
+    def inference(self, test=True):
+        """
+        Perform real-time object detection inference on video or webcam feed.
+
+        Args:
+            test (bool): Only used to test the streamlit application
+        """
         self.web_ui()  # Initialize the web interface
         self.sidebar()  # Create the sidebar
         self.source_upload()  # Upload the video source
         self.configure()  # Configure the app
 
+        if test:
+            return
         if self.st.sidebar.button("Start"):
             stop_button = self.st.button("Stop")  # Button to stop the inference
             cap = cv2.VideoCapture(self.vid_file_name)  # Capture the video

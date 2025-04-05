@@ -3,6 +3,7 @@
 import json
 from collections import defaultdict
 from itertools import repeat
+from multiprocessing import Pool
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 
@@ -34,6 +35,7 @@ from .utils import (
     get_hash,
     img2label_paths,
     load_dataset_cache_file,
+    pooling_threshold,
     save_dataset_cache_file,
     verify_image,
     verify_image_label,
@@ -106,7 +108,9 @@ class YOLODataset(BaseDataset):
                 "'kpt_shape' in data.yaml missing or incorrect. Should be a list with [number of "
                 "keypoints, number of dims (2 for x,y or 3 for x,y,visible)], i.e. 'kpt_shape: [17, 3]'"
             )
-        with ThreadPool(NUM_THREADS) as pool:
+
+        # Use Pool for larger datasets and Threadpool for smaller datasets for lower latency
+        with (Pool if total > pooling_threshold(self.im_files) else ThreadPool)(NUM_THREADS) as pool:
             results = pool.imap(
                 func=verify_image_label,
                 iterable=zip(
@@ -808,7 +812,11 @@ class ClassificationDataset:
         except (FileNotFoundError, AssertionError, AttributeError):
             # Run scan if *.cache retrieval failed
             nf, nc, msgs, samples, x = 0, 0, [], [], {}
-            with ThreadPool(NUM_THREADS) as pool:
+
+            # Use Pool for larger datasets and Threadpool for smaller datasets for lower latency
+            with (Pool if len(self.samples) > pooling_threshold([t[0] for t in self.samples]) else ThreadPool)(
+                NUM_THREADS
+            ) as pool:
                 results = pool.imap(func=verify_image, iterable=zip(self.samples, repeat(self.prefix)))
                 pbar = TQDM(results, desc=desc, total=len(self.samples))
                 for sample, nf_f, nc_f, msg in pbar:

@@ -728,15 +728,17 @@ class ClassificationDataset:
             self.samples = self.samples[: round(len(self.samples) * args.fraction)]
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
+        self.samples = self.verify_images()
+        self.samples = [list(x) + [Path(x[0]).with_suffix(".npy"), None] for x in self.samples]
         if self.cache_ram:
-            LOGGER.warning(
-                "WARNING ⚠️ Classification `cache_ram` training has known memory leak in "
-                "https://github.com/ultralytics/ultralytics/issues/9824, setting `cache_ram=False`."
-            )
-            self.cache_ram = False
+            LOGGER.info(f"{self.prefix}Caching {len(self.samples)} images into RAM (one-time preload)...")
+            self.img_cache = {}
+            for i, (f, _, _, _) in enumerate(self.samples):
+                img = cv2.imread(f)
+                if img is None:
+                    raise FileNotFoundError(f"Failed to read image: {f}")
+                self.img_cache[i] = img
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
-        self.samples = self.verify_images()  # filter out bad images
-        self.samples = [list(x) + [Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
         scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
         self.torch_transforms = (
             classify_augmentations(
@@ -766,8 +768,7 @@ class ClassificationDataset:
         """
         f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
         if self.cache_ram:
-            if im is None:  # Warning: two separate if statements required here, do not combine this with previous line
-                im = self.samples[i][3] = cv2.imread(f)
+            im = self.img_cache[i]  # shared RAM access (safe for concurrent reads)
         elif self.cache_disk:
             if not fn.exists():  # load npy
                 np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)

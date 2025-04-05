@@ -96,7 +96,7 @@ SOLUTIONS = [
         "ObjectCropper",
         solutions.ObjectCropper,
         False,
-        DEMO_VIDEO,
+        CROP_VIDEO,
         {"crop_dir": str(TMP / "cropped-detections"), "model": MODEL_FILE, "show": SHOW},
     ),
     (
@@ -129,15 +129,9 @@ SOLUTIONS = [
         PARKING_VIDEO,
         {"model": str(TMP / PARKING_MODEL), "show": SHOW, "json_file": str(TMP / PARKING_AREAS_JSON)},
     ),
-    (
-        "StreamlitInference",
-        solutions.Inference,
-        False,
-        None,  # streamlit application don't require video file
-        {},  # streamlit application don't accept arguments
-    ),
+    # streamlit application don't require arguments
+    ("StreamlitInference", solutions.Inference, False, None, {}),
 ]
-
 
 def process_video(solution, video_path, needs_frame_count=False):
     """Process video with solution, feeding frames and optional frame count."""
@@ -155,12 +149,16 @@ def process_video(solution, video_path, needs_frame_count=False):
 
     cap.release()
 
-
 # @pytest.mark.slow
 @pytest.mark.parametrize("name, solution_class, needs_frame_count, video, kwargs", SOLUTIONS)
 def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     """Test individual Ultralytics solution."""
-    solution = solution_class(**kwargs)
-    solution.inference() if name == "StreamlitInference" else process_video(
-        solution, str(TMP / video), needs_frame_count
-    )
+    if name == "StreamlitInference":
+        import subprocess, time
+        proc = subprocess.Popen(["yolo", "solutions", "inference"])
+        time.sleep(5)  # allow time for the app to start
+        proc.terminate()  # shut down Streamlit server to avoid hanging test
+        proc.wait()
+    else:
+        solution = solution_class(**kwargs)
+        process_video(solution, str(TMP / video), needs_frame_count)

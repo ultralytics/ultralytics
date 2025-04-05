@@ -117,7 +117,7 @@ The **COCO8-Seg dataset** is ideal for its manageability and diversity within a 
 
 ### Where can I find the YAML configuration file for the COCO8-Seg dataset?
 
-The YAML configuration file for the **COCO8-Seg dataset** is available in the Ultralytics repository. You can access the file directly [here](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-seg.yaml). The YAML file includes essential information about dataset paths, classes, and configuration settings required for model training and validation.
+The YAML configuration file for the **COCO8-Seg dataset** is available in the Ultralytics repository. You can access the file directly at <https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-seg.yaml>. The YAML file includes essential information about dataset paths, classes, and configuration settings required for model training and validation.
 
 ### What are some benefits of using mosaicing during training with the COCO8-Seg dataset?
 

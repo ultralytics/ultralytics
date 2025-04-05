@@ -1,8 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.solutions.solutions import BaseSolution, SolutionResults
-from ultralytics.utils.plotting import colors
 from ultralytics.engine.results import Results
+from ultralytics.solutions.solutions import BaseSolution, SolutionResults
+
 
 class InstanceSegmentation(BaseSolution):
     """

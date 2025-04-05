@@ -1019,7 +1019,7 @@ class Exporter:
             import tensorflow as tf  # noqa
         check_requirements(
             (
-                "cement==2.10.14",  # required for export with Python 3.12
+                "Pynvim>=0.5.0",  # required for export with Python 3.12
                 "keras",  # required by 'onnx2tf' package
                 "tf_keras",  # required by 'onnx2tf' package
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package

@@ -133,6 +133,7 @@ SOLUTIONS = [
     ("StreamlitInference", solutions.Inference, False, None, {}),
 ]
 
+
 def process_video(solution, video_path, needs_frame_count=False):
     """Process video with solution, feeding frames and optional frame count."""
     cap = cv2.VideoCapture(video_path)
@@ -149,6 +150,7 @@ def process_video(solution, video_path, needs_frame_count=False):
 
     cap.release()
 
+
 # @pytest.mark.slow
 @pytest.mark.parametrize("name, solution_class, needs_frame_count, video, kwargs", SOLUTIONS)
 def test_solution(name, solution_class, needs_frame_count, video, kwargs):
@@ -156,6 +158,7 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     if name == "StreamlitInference":
         import subprocess
         import time
+
         proc = subprocess.Popen(["yolo", "solutions", "inference"])
         time.sleep(5)  # allow time for the app to start
         proc.terminate()  # shut down Streamlit server to avoid hanging test

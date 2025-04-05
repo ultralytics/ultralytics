@@ -104,7 +104,7 @@ Paperspace Gradient offers several unique advantages for training and deploying 
 
 ### Why should I choose Ultralytics YOLO11 over other object detection models?
 
-Ultralytics YOLO11 stands out for its real-time object detection capabilities and high [accuracy](https://www.ultralytics.com/glossary/accuracy). Its seamless integration with platforms like Paperspace Gradient enhances productivity by simplifying the training and deployment process. YOLO11 supports various use cases, from security systems to retail inventory management. Discover the full range of YOLO11’s capabilities and benefits in our [YOLO11 overview](https://www.ultralytics.com/yolo).
+Ultralytics YOLO11 stands out for its real-time object detection capabilities and high [accuracy](https://www.ultralytics.com/glossary/accuracy). Its seamless integration with platforms like Paperspace Gradient enhances productivity by simplifying the training and deployment process. YOLO11 supports various use cases, from security systems to retail inventory management. Discover the full range of YOLO11's capabilities and benefits in our [YOLO11 overview](https://www.ultralytics.com/yolo).
 
 ### Can I deploy my YOLO11 model on edge devices using Paperspace Gradient?
 

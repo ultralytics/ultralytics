@@ -187,7 +187,7 @@ PaddlePaddle offers several key advantages for model deployment:
 - **Operator Fusion**: By merging compatible operations, it reduces computational overhead.
 - **Quantization Techniques**: Supports both post-training and quantization-aware training, enabling lower-[precision](https://www.ultralytics.com/glossary/precision) data representations for improved performance.
 
-You can achieve enhanced results by exporting your Ultralytics YOLO11 models to PaddlePaddle, ensuring flexibility and high performance across various applications and hardware platforms. Explore PaddlePaddle’s key features and capabilities in the [official PaddlePaddle documentation](https://www.paddlepaddle.org.cn/en)..
+You can achieve enhanced results by exporting your Ultralytics YOLO11 models to PaddlePaddle, ensuring flexibility and high performance across various applications and hardware platforms. Explore PaddlePaddle's key features and capabilities in the [official PaddlePaddle documentation](https://www.paddlepaddle.org.cn/en)..
 
 ### Why should I choose PaddlePaddle for deploying my YOLO11 models?
 

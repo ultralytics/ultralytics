@@ -53,7 +53,7 @@ class Analytics(BaseSolution):
 
         self.type = self.CFG["analytics_type"]  # extract type of analytics
         self.x_label = "Classes" if self.type in {"bar", "pie"} else "Frame#"
-        self.y_label = "Total Counts"
+        self.y_label = "Total Counts" if self.type in {"bar", "area", "line"} else ""
 
         # Predefined data
         self.bg_color = "#F3F3F3"  # background color of frame

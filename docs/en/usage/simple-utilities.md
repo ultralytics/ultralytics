@@ -449,7 +449,7 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
                     if box_data > line_x:
                         count += 1
                         results = Results(
-                            im0, path="test.png", names=classes, boxes=box.data, masks=None if mask is None else mask.data
+                            im0, path=None, names=classes, boxes=box.data, masks=None if mask is None else mask.data
                         )
                         im0 = results.plot(
                             boxes=True,  # display bounding box

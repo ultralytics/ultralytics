@@ -122,7 +122,7 @@ class BaseSolution:
         self.track_data = self.tracks[0].obb or self.tracks[0].boxes  # Extract tracks for OBB or object detection
 
         self.masks = (
-            self.tracks[0].masks.xy if hasattr(self.tracks[0], "masks") and self.tracks[0].masks is not None else None
+            self.tracks[0].masks if hasattr(self.tracks[0], "masks") and self.tracks[0].masks is not None else None
         )
 
         if self.track_data and self.track_data.id is not None:
@@ -225,7 +225,6 @@ class SolutionAnnotator(Annotator):
         plot_angle_and_count_and_stage: Visualizes angle, step count, and stage for workout monitoring.
         plot_distance_and_line: Displays the distance between centroids and connects them with a line.
         display_objects_labels: Annotates bounding boxes with object class labels.
-        segmentation_mask: Draws mask for segmented objects and optionally labels them.
         sweep_annotator: Visualizes a vertical sweep line and optional label.
         visioneye: Maps and connects object centroids to a visual "eye" point.
         circle_label: Draws a circular label within a bounding box.
@@ -518,50 +517,6 @@ class SolutionAnnotator(Annotator):
             self.tf,
             lineType=cv2.LINE_AA,
         )
-
-    def segmentation_mask(self, mask, mask_color=(255, 0, 255), label=None, alpha=0.5):
-        """
-        Draw an optimized segmentation mask with smooth corners, highlighted edge, and dynamic text box size.
-
-        Args:
-            mask (np.ndarray): A 2D array of shape (N, 2) containing the object mask.
-            mask_color (Tuple[int, int, int]): RGB color for the mask.
-            label (str, optional): Text label for the object.
-            alpha (float): Transparency level (0 = fully transparent, 1 = fully opaque).
-        """
-        if mask.size == 0:
-            return
-
-        overlay = self.im.copy()
-        mask = np.int32([mask])
-
-        # Approximate polygon for smooth corners with epsilon
-        refined_mask = cv2.approxPolyDP(mask, 0.002 * cv2.arcLength(mask, True), True)
-
-        # Apply a highlighter effect by drawing a thick outer shadow
-        cv2.polylines(overlay, [refined_mask], isClosed=True, color=mask_color, thickness=self.lw * 3)
-        cv2.fillPoly(overlay, [refined_mask], mask_color)  # draw mask with primary color
-
-        # Apply an inner glow effect for extra clarity
-        cv2.polylines(overlay, [refined_mask], isClosed=True, color=mask_color, thickness=self.lw)
-
-        self.im = cv2.addWeighted(overlay, alpha, self.im, 1 - alpha, 0)  # blend overlay with the original image
-
-        # Draw label if provided
-        if label:
-            text_size, _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, self.sf, self.tf)
-            text_x, text_y = refined_mask[0][0][0], refined_mask[0][0][1]
-            rect_start, rect_end = (text_x - 5, text_y - text_size[1] - 5), (text_x + text_size[0] + 5, text_y + 5)
-            cv2.rectangle(self.im, rect_start, rect_end, mask_color, -1)
-            cv2.putText(
-                self.im,
-                label,
-                (text_x, text_y),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                self.sf,
-                self.get_txt_color(mask_color),
-                self.tf,
-            )
 
     def sweep_annotator(self, line_x=0, line_y=0, label=None, color=(221, 0, 186), txt_color=(255, 255, 255)):
         """

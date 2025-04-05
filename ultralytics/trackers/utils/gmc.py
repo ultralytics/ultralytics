@@ -156,7 +156,7 @@ class GMC:
         try:
             (_, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria, None, 1)
         except Exception as e:
-            LOGGER.warning(f"WARNING: find transform failed. Set warp as identity {e}")
+            LOGGER.warning(f"find transform failed. Set warp as identity {e}")
 
         return H
 

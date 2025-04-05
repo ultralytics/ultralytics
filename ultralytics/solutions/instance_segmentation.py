@@ -68,13 +68,12 @@ class InstanceSegmentation(BaseSolution):
             self.LOGGER.warning("⚠️ No masks detected! Ensure you're using a supported Ultralytics segmentation model.")
             plot_im = im0
         else:
-            results = Results(im0, path="test.png", names=self.names, boxes=self.track_data.data, masks=self.masks.data)
+            results = Results(im0, path=None, names=self.names, boxes=self.track_data.data, masks=self.masks.data)
             plot_im = results.plot(
                 line_width=self.line_width,
                 boxes=self.show_boxes,
                 conf=self.show_conf,
                 labels=self.show_labels,
-                im_gpu=None,
                 color_mode="instance",
             )
 

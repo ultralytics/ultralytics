@@ -31,7 +31,7 @@ Many people want to run their models on an embedded or mobile device such as a R
 
 ## Edge TPU on Raspberry Pi with TensorFlow Lite (New)⭐
 
-The [existing guide](https://coral.ai/docs/accelerator/get-started/) by Coral on how to use the Edge TPU with a Raspberry Pi is outdated, and the current Coral Edge TPU runtime builds do not work with the current TensorFlow Lite runtime versions anymore. In addition to that, Google seems to have completely abandoned the Coral project, and there have not been any updates between 2021 and 2024. This guide will show you how to get the Edge TPU working with the latest versions of the TensorFlow Lite runtime and an updated Coral Edge TPU runtime on a Raspberry Pi single board computer (SBC).
+The [existing guide](https://coral.ai/docs/accelerator/get-started/) by Coral on how to use the Edge TPU with a Raspberry Pi is outdated, and the current Coral Edge TPU runtime builds do not work with the current TensorFlow Lite runtime versions anymore. In addition to that, Google seems to have completely abandoned the Coral project, and there have not been any updates between 2021 and 2025. This guide will show you how to get the Edge TPU working with the latest versions of the TensorFlow Lite runtime and an updated Coral Edge TPU runtime on a Raspberry Pi single board computer (SBC).
 
 ## Prerequisites
 
@@ -103,7 +103,7 @@ To use the Edge TPU, you need to convert your model into a compatible format. It
     === "CLI"
 
         ```bash
-        yolo export model=path/to/model.pt format=edgetpu  # Export an official model or custom model
+        yolo export model=path/to/model.pt format=edgetpu # Export an official model or custom model
         ```
 
 The exported model will be saved in the `<model_name>_saved_model/` folder with the name `<model_name>_full_integer_quant_edgetpu.tflite`. It is important that your model ends with the suffix `_edgetpu.tflite`, otherwise ultralytics doesn't know that you're using an Edge TPU model.
@@ -143,7 +143,7 @@ Now you can run inference using the following code:
     === "CLI"
 
         ```bash
-        yolo predict model=path/to/<model_name>_full_integer_quant_edgetpu.tflite source=path/to/source.png  # Load an official model or custom model
+        yolo predict model=path/to/MODEL_NAME_full_integer_quant_edgetpu.tflite source=path/to/source.png # Load an official model or custom model
         ```
 
 Find comprehensive information on the [Predict](../modes/predict.md) page for full prediction mode details.
@@ -219,9 +219,9 @@ Make sure to uninstall any previous Coral Edge TPU runtime versions by following
 
 ### Can I export my Ultralytics YOLO11 model to be compatible with Coral Edge TPU?
 
-Yes, you can export your Ultralytics YOLO11 model to be compatible with the Coral Edge TPU. It is recommended to perform the export on Google Colab, an x86_64 Linux machine, or using the [Ultralytics Docker container](docker-quickstart.md). You can also use Ultralytics HUB for exporting. Here is how you can export your model using Python and CLI:
+Yes, you can export your Ultralytics YOLO11 model to be compatible with the Coral Edge TPU. It is recommended to perform the export on Google Colab, an x86_64 Linux machine, or using the [Ultralytics Docker container](docker-quickstart.md). You can also use [Ultralytics HUB](../hub/quickstart.md) for exporting. Here is how you can export your model using Python and CLI:
 
-!!! note "Exporting the model"
+!!! example "Exporting the model"
 
     === "Python"
 
@@ -238,7 +238,7 @@ Yes, you can export your Ultralytics YOLO11 model to be compatible with the Cora
     === "CLI"
 
         ```bash
-        yolo export model=path/to/model.pt format=edgetpu  # Export an official model or custom model
+        yolo export model=path/to/model.pt format=edgetpu # Export an official model or custom model
         ```
 
 For more information, refer to the [Export Mode](../modes/export.md) documentation.
@@ -257,13 +257,13 @@ Then, install or update `tflite-runtime` with the following command:
 pip install -U tflite-runtime
 ```
 
-For a specific wheel, such as TensorFlow 2.15.0 `tflite-runtime`, you can download it from [this link](https://github.com/feranick/TFlite-builds/releases) and install it using `pip`. Detailed instructions are available in the section on running the model [Running the Model](#running-the-model).
+For detailed instructions, refer to the [Running the Model](#running-the-model) section.
 
 ### How do I run inference with an exported YOLO11 model on a Raspberry Pi using the Coral Edge TPU?
 
 After exporting your YOLO11 model to an Edge TPU-compatible format, you can run inference using the following code snippets:
 
-!!! note "Running the model"
+!!! example "Running the model"
 
     === "Python"
 
@@ -280,7 +280,7 @@ After exporting your YOLO11 model to an Edge TPU-compatible format, you can run 
     === "CLI"
 
         ```bash
-        yolo predict model=path/to/edgetpu_model.tflite source=path/to/source.png  # Load an official model or custom model
+        yolo predict model=path/to/edgetpu_model.tflite source=path/to/source.png # Load an official model or custom model
         ```
 
 Comprehensive details on full prediction mode features can be found on the [Predict Page](../modes/predict.md).

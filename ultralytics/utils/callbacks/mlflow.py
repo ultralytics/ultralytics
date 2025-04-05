@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 MLflow Logging for Ultralytics YOLO.
 
@@ -39,7 +39,7 @@ except (ImportError, AssertionError):
     mlflow = None
 
 
-def sanitize_dict(x):
+def sanitize_dict(x: dict) -> dict:
     """Sanitize dictionary keys by removing parentheses and converting values to floats."""
     return {k.replace("(", "").replace(")", ""): float(v) for k, v in x.items()}
 

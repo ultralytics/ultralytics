@@ -10,7 +10,7 @@ keywords: Ultralytics Explorer GUI, semantic search, vector similarity, SQL quer
 
     As of **`ultralytics>=8.3.10`**, Ultralytics explorer support has been deprecated. But don't worry! You can now access similar and even enhanced functionality through [Ultralytics HUB](https://hub.ultralytics.com/), our intuitive no-code platform designed to streamline your workflow. With Ultralytics HUB, you can continue exploring, visualizing, and managing your data effortlessly, all without writing a single line of code. Make sure to check it out and take advantage of its powerful features!🚀
 
-Explorer GUI is like a playground build using [Ultralytics Explorer API](api.md). It allows you to run semantic/vector similarity search, SQL queries and even search using natural language using our ask AI feature powered by LLMs.
+Explorer GUI is like a playground built using [Ultralytics Explorer API](api.md). It allows you to run semantic/vector similarity search, SQL queries and even search using natural language using our ask AI feature powered by LLMs.
 
 <p>
     <img width="1709" alt="Explorer Dashboard Screenshot 1" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-1.avif">
@@ -40,7 +40,7 @@ pip install ultralytics[explorer]
 
 ## Vector Semantic Similarity Search
 
-Semantic search is a technique for finding similar images to a given image. It is based on the idea that similar images will have similar [embeddings](https://www.ultralytics.com/glossary/embeddings). In the UI, you can select one of more images and search for the images similar to them. This can be useful when you want to find images similar to a given image or a set of images that don't perform as expected.
+[Semantic search](https://www.ultralytics.com/glossary/semantic-search) is a technique for finding similar images to a given image. It is based on the idea that similar images will have similar [embeddings](https://www.ultralytics.com/glossary/embeddings). In the UI, you can select one or more images and search for the images similar to them. This can be useful when you want to find images similar to a given image or a set of images that don't perform as expected.
 
 For example:
 In this VOC Exploration dashboard, user selects a couple airplane images like this:
@@ -63,7 +63,7 @@ This allows you to write how you want to filter your dataset using natural langu
 <img width="1709" alt="Explorer Dashboard Screenshot 4" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-4.avif">
 </p>
 
-Note: This works using LLMs under the hood so the results are probabilistic and might get things wrong sometimes
+Note: This works using [Large Language Models](https://www.ultralytics.com/glossary/large-language-model-llm) under the hood so the results are probabilistic and might get things wrong sometimes
 
 ## Run SQL queries on your CV datasets
 
@@ -77,7 +77,7 @@ WHERE labels LIKE '%person%' AND labels LIKE '%dog%'
 <img width="1707" alt="Explorer Dashboard Screenshot 5" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-5.avif">
 </p>
 
-This is a Demo build using the Explorer API. You can use the API to build your own exploratory notebooks or scripts to get insights into your datasets. Learn more about the Explorer API [here](api.md).
+This is a Demo built using the Explorer API. You can use the API to build your own exploratory notebooks or scripts to get insights into your datasets. Learn more about the Explorer API [here](api.md).
 
 ## FAQ
 

@@ -119,7 +119,7 @@ Just like the original [SAM](sam.md), we offer a straightforward testing method 
 
 ### Model Download
 
-You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blob/master/weights/mobile_sam.pt).
+You can download the MobileSAM pretrained weights at <https://github.com/ultralytics/assets/releases/download/v8.3.0/mobile_sam.pt>.
 
 ### Point Prompt
 
@@ -210,7 +210,7 @@ If you find MobileSAM useful in your research or development work, please consid
 
 ### What is MobileSAM and how does it differ from the original SAM model?
 
-MobileSAM is a lightweight, fast [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) model designed for mobile applications. It retains the same pipeline as the original SAM but replaces the heavyweight ViT-H encoder (632M parameters) with a smaller Tiny-ViT encoder (5M parameters). This change results in MobileSAM being approximately 5 times smaller and 7 times faster than the original SAM. For instance, MobileSAM operates at about 12ms per image, compared to the original SAM's 456ms. You can learn more about the MobileSAM implementation in various projects [here](https://github.com/ChaoningZhang/MobileSAM).
+MobileSAM is a lightweight, fast [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) model designed for mobile applications. It retains the same pipeline as the original SAM but replaces the heavyweight ViT-H encoder (632M parameters) with a smaller Tiny-ViT encoder (5M parameters). This change results in MobileSAM being approximately 5 times smaller and 7 times faster than the original SAM. For instance, MobileSAM operates at about 12ms per image, compared to the original SAM's 456ms. You can learn more about the MobileSAM implementation in various projects at the [MobileSAM GitHub repository](https://github.com/ChaoningZhang/MobileSAM).
 
 ### How can I test MobileSAM using Ultralytics?
 

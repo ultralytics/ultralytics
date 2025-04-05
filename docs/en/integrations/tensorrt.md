@@ -506,7 +506,7 @@ Using TensorRT to optimize YOLO11 models offers several benefits:
 - **Layer Fusion**: Combines multiple layers into single operations, reducing computational complexity.
 - **Kernel Auto-Tuning**: Automatically selects optimized GPU kernels for each model layer, ensuring maximum performance.
 
-For more information, explore the detailed features of TensorRT [here](https://developer.nvidia.com/tensorrt) and read our [TensorRT overview section](#tensorrt).
+To learn more, explore the [official TensorRT documentation from NVIDIA](https://developer.nvidia.com/tensorrt) and our [in-depth TensorRT overview](#tensorrt).
 
 ### Can I use INT8 quantization with TensorRT for YOLO11 models?
 

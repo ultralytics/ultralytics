@@ -161,6 +161,6 @@ def process_video(solution, video_path, needs_frame_count=False):
 def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     """Test individual Ultralytics solution."""
     solution = solution_class(**kwargs)
-    solution.inference(test_ui=True) if name == "StreamlitInference" else process_video(
+    solution.inference() if name == "StreamlitInference" else process_video(
         solution, str(TMP / video), needs_frame_count
     )

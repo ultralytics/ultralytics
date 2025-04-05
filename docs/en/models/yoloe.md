@@ -12,9 +12,16 @@ keywords: YOLOE, open-vocabulary detection, real-time object detection, instance
 
 [YOLOE (Real-Time Seeing Anything)](https://arxiv.org/html/2503.07465v1) is a new advancement in zero-shot, promptable YOLO models, designed for **open-vocabulary** detection and segmentation. Unlike previous YOLO models limited to fixed categories, YOLOE uses text, image, or internal vocabulary prompts, enabling real-time detection of any object class. Built upon YOLOv10 and inspired by [YOLO-World](yolo-world.md), YOLOE achieves **state-of-the-art zero-shot performance** with minimal impact on speed and accuracy.
 
-!!! note "Ultralytics Integration Status 🚧"
-
-    The Ultralytics integration for YOLOE is currently under construction 🔨. The usage examples shown in this documentation will work once the integration is complete ✅. Please check back for updates 🔄 or follow our [GitHub repository](https://github.com/ultralytics/ultralytics) 🚀 for the latest developments.
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/HMOoM2NwFIQ"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to use YOLOE with Ultralytics Python package: Open Vocabulary & Real-Time Seeing Anything 🚀
+</p>
 
 Compared to earlier YOLO models, YOLOE significantly boosts efficiency and accuracy. It improves by **+3.5 AP** over YOLO-Worldv2 on LVIS while using just a third of the training resources and achieving 1.4× faster inference speeds. Fine-tuned on COCO, YOLOE-v8-large surpasses YOLOv8-L by **0.1 mAP**, using nearly **4× less training time**. This demonstrates YOLOE's exceptional balance of accuracy, efficiency, and versatility. The sections below explore YOLOE's architecture, benchmark comparisons, and integration with the [Ultralytics](https://www.ultralytics.com/) framework.
 
@@ -119,7 +126,6 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
                 f"{head_index}.cv3.2.1",
             ]
         )
-        freeze = [str(f) for f in range(0, len(model.model.model))]
 
         model.train(
             data="coco128-seg.yaml",
@@ -164,6 +170,11 @@ Object detection is straightforward with the `predict` method, as illustrated be
         ```
 
     === "Visual Prompt"
+
+        !!! note
+
+            If `source` is a video/stream, the first frame of the video/stream will be automatically used as `refer_image`, or you could directly pass any frame from the video/stream to `refer_image` argument.
+
 
         Prompts in source image:
 
@@ -216,7 +227,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
 
         # Set visual prompt
         visuals = dict(
-            bboxes=np.array([221.52, 405.8, 344.98, 857.54]),
+            bboxes=np.array([[221.52, 405.8, 344.98, 857.54]]),
             cls=np.array([0]),
         )
 
@@ -678,10 +689,6 @@ Across all these use cases, YOLOE's core advantage is **versatility**, providing
 ## Training and Inference
 
 YOLOE integrates seamlessly with the [Ultralytics Python API](../usage/python.md) and [CLI](../usage/cli.md), similar to other YOLO models (YOLOv8, YOLO-World). Here's how to quickly get started:
-
-!!! note "Ultralytics Integration Status 🚧"
-
-    The Ultralytics integration for YOLOE is currently under development 🔨. The examples below demonstrate how the API will work once integration is complete ✅.
 
 !!! Example "Training and inference with YOLOE"
 

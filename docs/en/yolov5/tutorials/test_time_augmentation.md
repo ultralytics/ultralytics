@@ -145,7 +145,7 @@ results.print()  # or .show(), .save(), .crop(), .pandas(), etc.
 
 ### Customize
 
-You can customize the TTA operations applied in the YOLOv5 `forward_augment()` method [here](https://github.com/ultralytics/yolov5/blob/8c6f9e15bfc0000d18b976a95b9d7c17d407ec91/models/yolo.py#L125-L137).
+You can customize the TTA operations applied in the [YOLOv5 `forward_augment()` method](https://github.com/ultralytics/yolov5/blob/8c6f9e15bfc0000d18b976a95b9d7c17d407ec91/models/yolo.py#L125-L137).
 
 ## Benefits of Test-Time Augmentation
 

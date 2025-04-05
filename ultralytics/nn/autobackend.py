@@ -229,9 +229,9 @@ class AutoBackend(nn.Module):
                 import mct_quantizers as mctq
                 from sony_custom_layers.pytorch.nms import nms_ort  # noqa
 
-                session = onnxruntime.InferenceSession(
-                    w, mctq.get_ort_session_options(), providers=["CPUExecutionProvider"]
-                )
+                session_options = mctq.get_ort_session_options()
+                session_options.enable_mem_reuse = False  # fix the shape mismatch from onnxruntime
+                session = onnxruntime.InferenceSession(w, session_options, providers=["CPUExecutionProvider"])
                 task = "detect"
 
             output_names = [x.name for x in session.get_outputs()]

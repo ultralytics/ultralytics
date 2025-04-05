@@ -79,6 +79,7 @@ def run_ray_tune(
         "bgr": tune.uniform(0.0, 1.0),  # image channel BGR (probability)
         "mosaic": tune.uniform(0.0, 1.0),  # image mixup (probability)
         "mixup": tune.uniform(0.0, 1.0),  # image mixup (probability)
+        "cutmix": tune.uniform(0.0, 1.0),
         "copy_paste": tune.uniform(0.0, 1.0),  # segment copy-paste (probability)
     }
 

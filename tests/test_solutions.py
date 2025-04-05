@@ -154,7 +154,8 @@ def process_video(solution, video_path, needs_frame_count=False):
 def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     """Test individual Ultralytics solution."""
     if name == "StreamlitInference":
-        import subprocess, time
+        import subprocess
+        import time
         proc = subprocess.Popen(["yolo", "solutions", "inference"])
         time.sleep(5)  # allow time for the app to start
         proc.terminate()  # shut down Streamlit server to avoid hanging test

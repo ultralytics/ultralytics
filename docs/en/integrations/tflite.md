@@ -201,7 +201,7 @@ For more information on deployment options, see our detailed [deployment guide](
 If you encounter errors while exporting YOLO11 models to TFLite, common solutions include:
 
 - **Check package compatibility**: Ensure you're using compatible versions of Ultralytics and TensorFlow. Refer to our [installation guide](../quickstart.md).
-- **Model support**: Verify that the specific YOLO11 model supports TFLite export by checking [here](../modes/export.md).
+- **Model support**: Verify that the specific YOLO11 model supports TFLite export by checking the Ultralytics [export documentation page](../modes/export.md).
 - **Quantization issues**: When using INT8 quantization, make sure your dataset path is correctly specified in the `data` parameter.
 
 For additional troubleshooting tips, visit our [Common Issues guide](../guides/yolo-common-issues.md).

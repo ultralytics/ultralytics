@@ -395,7 +395,6 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
         from ultralytics import YOLO
         from ultralytics.engine.results import Results
         from ultralytics.solutions.solutions import SolutionAnnotator
-        from ultralytics.utils.plotting import colors
 
         # User defined video path and model file
         cap = cv2.VideoCapture("path/to/video/file.mp4")
@@ -447,7 +446,6 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
 
                 for mask, box, cls, t_id in zip(masks or [None] * len(boxes), boxes, clss, track_ids):
                     box_data = box.xyxy.cpu().tolist()[0][0]
-                    color = colors(t_id, True)
                     if box_data > line_x:
                         count += 1
                         results = Results(

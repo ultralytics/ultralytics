@@ -913,7 +913,7 @@ class YOLOEModel(DetectionModel):
             embeddings (torch.Tensor): Embeddings tensor.
         """
         assert not hasattr(self.model[-1], "lrpc"), (
-            "Prompt-free model does not support setting classses. Please try with Text/Visual prompt models!"
+            "Prompt-free model does not support setting classes. Please try with Text/Visual prompt models!"
         )
         assert embeddings.ndim == 3
         self.pe = embeddings

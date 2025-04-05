@@ -397,7 +397,7 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
         from ultralytics.solutions.solutions import SolutionAnnotator
 
         # User defined video path and model file
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         model = YOLO(model="yolo11s-seg.pt")  # Model file i.e. yolo11s.pt or yolo11m-seg.pt
 
         if not cap.isOpened():

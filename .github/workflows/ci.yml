@@ -317,7 +317,7 @@ jobs:
       - name: Install pip packages
         run: |
           # CoreML must be installed before export due to protobuf error from AutoInstall
-          pip install pytest "coremltools>=8.0; platform_system != 'Windows' and python_version <= '3.12'"
+          pip install pytest "coremltools>=8.0; platform_system != 'Windows' and python_version <= '3.13'"
       - name: Check environment
         run: |
           conda list

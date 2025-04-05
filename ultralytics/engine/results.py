@@ -138,6 +138,7 @@ class BaseTensor(SimpleClass):
         Args:
             *args (Any): Variable length argument list to be passed to torch.Tensor.to().
             **kwargs (Any): Arbitrary keyword arguments to be passed to torch.Tensor.to().
+            **kwargs (Any): Arbitrary keyword arguments to be passed to torch.Tensor.to().
 
         Returns:
             (BaseTensor): A new BaseTensor instance with the data moved to the specified device and/or dtype.

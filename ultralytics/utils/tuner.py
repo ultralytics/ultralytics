@@ -123,15 +123,23 @@ def run_ray_tune(
 
     # Create the Ray Tune hyperparameter search tuner
     tune_dir = get_save_dir(
-        get_cfg(DEFAULT_CFG, train_args), name=train_args.pop("name", "tune")
+        get_cfg(
+            DEFAULT_CFG,
+            {**train_args, **{"exist_ok": train_args.pop("resume", False)}},  # resume w/ same tune_dir
+        ),
+        name=train_args.pop("name", "tune"),  # runs/{task}/{tune_dir}
     ).resolve()  # must be absolute dir
     tune_dir.mkdir(parents=True, exist_ok=True)
-    tuner = tune.Tuner(
-        trainable_with_resources,
-        param_space=space,
-        tune_config=tune.TuneConfig(scheduler=asha_scheduler, num_samples=max_samples),
-        run_config=RunConfig(callbacks=tuner_callbacks, storage_path=tune_dir),
-    )
+    if tune.Tuner.can_restore(tune_dir):
+        LOGGER.info(f"{colorstr('Tuner: ')} Resuming tuning run {tune_dir}...")
+        tuner = tune.Tuner.restore(str(tune_dir), trainable=trainable_with_resources, resume_errored=True)
+    else:
+        tuner = tune.Tuner(
+            trainable_with_resources,
+            param_space=space,
+            tune_config=tune.TuneConfig(scheduler=asha_scheduler, num_samples=max_samples),
+            run_config=RunConfig(callbacks=tuner_callbacks, storage_path=tune_dir.parent, name=tune_dir.name),
+        )
 
     # Run the hyperparameter search
     tuner.fit()

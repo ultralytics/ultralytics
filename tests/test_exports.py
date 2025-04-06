@@ -4,6 +4,7 @@ import shutil
 import uuid
 from itertools import product
 from pathlib import Path
+import io
 
 import pytest
 
@@ -167,12 +168,19 @@ def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms):
 @pytest.mark.skipif(LINUX and ARM64, reason="CoreML not supported on aarch64 Linux")
 @pytest.mark.skipif(checks.IS_PYTHON_3_13, reason="CoreML not supported in Python 3.13")
 def test_export_coreml():
-    """Test YOLO exports to CoreML format, optimized for macOS only."""
-    if MACOS:
-        file = YOLO(MODEL).export(format="coreml", imgsz=32)
-        YOLO(file)(SOURCE, imgsz=32)  # model prediction only supported on macOS for nms=False models
-    else:
+    """Test YOLO exports to CoreML format and check for errors."""
+    # Capture stdout and stderr
+    stdout, stderr = io.StringIO(), io.StringIO()
+    with redirect_stdout(stdout), redirect_stderr(stderr):
         YOLO(MODEL).export(format="coreml", nms=True, imgsz=32)
+        if MACOS:
+            file = YOLO(MODEL).export(format="coreml", imgsz=32)
+            YOLO(file)(SOURCE, imgsz=32)  # model prediction only supported on macOS for nms=False models
+
+    # Check captured output for errors
+    output = stdout.getvalue() + stderr.getvalue()
+    assert "Error" not in output, f"CoreML export produced errors: {output}"
+    assert "You will not be able to run predict()" not in output, "CoreML export has predict() error"
 
 
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")

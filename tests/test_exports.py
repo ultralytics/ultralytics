@@ -4,6 +4,7 @@ import shutil
 import uuid
 from itertools import product
 from pathlib import Path
+import io
 
 import pytest
 

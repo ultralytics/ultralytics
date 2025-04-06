@@ -126,12 +126,11 @@ In the code snippet above, we create a YOLO model with the "yolo11n.pt" pretrain
 
 ## Resuming An Interrupted Hyperparameter Tuning Session With Ray Tune
 
-You can resume an interrupted Ray Tune session by passing `resume=True`. You can optionally pass the directory `name` used by Ray Tune under `runs/{task}` to resume. Otherwise, it would resume the last interrupted session. You don't need to provide the `iterations` and `space` again, but you need to provide the rest of the training arguments again including `data` and `epochs`. 
+You can resume an interrupted Ray Tune session by passing `resume=True`. You can optionally pass the directory `name` used by Ray Tune under `runs/{task}` to resume. Otherwise, it would resume the last interrupted session. You don't need to provide the `iterations` and `space` again, but you need to provide the rest of the training arguments again including `data` and `epochs`.
 
 !!! example "Resuming an interrupted Ray Tune session"
 
     ```python
-
     from ultralytics import YOLO
 
     # Define a YOLO model
@@ -141,7 +140,7 @@ You can resume an interrupted Ray Tune session by passing `resume=True`. You can
     results = model.tune(use_ray=True, data="coco8.yaml", epochs=50, resume=True)
 
     # Resume Ray Tune run with name 'tune_exp_2'
-    results = model.tune(use_ray=True, data="coco8.yaml", epochs=50, name='tune_exp_2', resume=True)
+    results = model.tune(use_ray=True, data="coco8.yaml", epochs=50, name="tune_exp_2", resume=True)
     ```
 
 ## Processing Ray Tune Results

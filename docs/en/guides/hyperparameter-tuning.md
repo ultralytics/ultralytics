@@ -141,7 +141,6 @@ Here's how to define a search space and use the `model.tune()` method to utilize
 
 You can resume an interrupted hyperparameter tuning session by passing `resume=True`. You can optionally pass the directory `name` used under `runs/{task}` to resume. Otherwise, it would resume the last interrupted session. You also need to provide all the previous training arguments including `data`, `epochs`, `iterations` and `space`.
 
-
 !!! example "Using `resume=True` with `model.tune()`"
 
     ```python

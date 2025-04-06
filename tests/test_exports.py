@@ -175,7 +175,7 @@ def test_export_coreml():
         if MACOS:
             file = YOLO(MODEL).export(format="coreml", imgsz=32)
             YOLO(file)(SOURCE, imgsz=32)  # model prediction only supported on macOS for nms=False models
-    
+
     # Check captured output for errors
     output = stdout.getvalue() + stderr.getvalue()
     assert "Error" not in output, f"CoreML export produced errors: {output}"

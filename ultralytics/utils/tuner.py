@@ -95,7 +95,7 @@ def run_ray_tune(
         return results.results_dict
 
     # Get search space
-    if not space:
+    if not space and not train_args.get("resume"):
         space = default_space
         LOGGER.warning("WARNING ⚠️ search space not provided, using default search space.")
 

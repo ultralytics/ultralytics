@@ -6,6 +6,7 @@ import platform
 import zipfile
 from collections import OrderedDict, namedtuple
 from pathlib import Path
+from typing import List, Optional, Union
 
 import cv2
 import numpy as np

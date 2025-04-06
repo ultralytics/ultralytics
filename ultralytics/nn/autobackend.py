@@ -96,14 +96,14 @@ class AutoBackend(nn.Module):
     @torch.no_grad()
     def __init__(
         self,
-        weights="yolo11n.pt",
-        device=torch.device("cpu"),
-        dnn=False,
-        data=None,
-        fp16=False,
-        batch=1,
-        fuse=True,
-        verbose=True,
+        weights: Union[str, List[str], torch.nn.Module] = "yolo11n.pt",
+        device: torch.device = torch.device("cpu"),
+        dnn: bool = False,
+        data: Optional[Union[str, Path]] = None,
+        fp16: bool = False,
+        batch: int = 1,
+        fuse: bool = True,
+        verbose: bool = True,
     ):
         """
         Initialize the AutoBackend for inference.

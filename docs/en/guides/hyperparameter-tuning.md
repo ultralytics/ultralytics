@@ -137,6 +137,32 @@ Here's how to define a search space and use the `model.tune()` method to utilize
         )
         ```
 
+## Resuming An Interrupted Hyperparameter Tuning Session
+
+You can resume an interrupted hyperparameter tuning session by passing `resume=True`. You can optionally pass the directory `name` used under `runs/{task}` to resume. Otherwise, it would resume the last interrupted session. You also need to provide all the previous training arguments including `data`, `epochs`, `iterations` and `space`.
+
+
+!!! example "Using `resume=True` with `model.tune()`"
+
+    ```python
+    from ultralytics import YOLO
+
+    # Define a YOLO model
+    model = YOLO("yolo11n.pt")
+
+    # Define search space
+    search_space = {
+        "lr0": (1e-5, 1e-1),
+        "degrees": (0.0, 45.0),
+    }
+
+    # Resume previous run
+    results = model.tune(data="coco8.yaml", epochs=50, iterations=300, space=search_space, resume=True)
+
+    # Resume tuning run with name 'tune_exp'
+    results = model.tune(data="coco8.yaml", epochs=50, iterations=300, space=search_space, name="tune_exp", resume=True)
+    ```
+
 ## Results
 
 After you've successfully completed the hyperparameter tuning process, you will obtain several files and directories that encapsulate the results of the tuning. The following describes each:

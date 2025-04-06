@@ -128,7 +128,7 @@ In the code snippet above, we create a YOLO model with the "yolo11n.pt" pretrain
 
 You can resume an interrupted Ray Tune session by passing `resume=True`. You can optionally pass the directory `name` used by Ray Tune under `runs/{task}` to resume. Otherwise, it would resume the last interrupted session. You don't need to provide the `iterations` and `space` again, but you need to provide the rest of the training arguments again including `data` and `epochs`.
 
-!!! example "Resuming an interrupted Ray Tune session"
+!!! example "Using `resume=True` with `model.tune()`"
 
     ```python
     from ultralytics import YOLO

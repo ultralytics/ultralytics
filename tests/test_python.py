@@ -5,12 +5,14 @@ import csv
 import urllib
 from copy import copy
 from pathlib import Path
+
 import cv2
 import numpy as np
 import pytest
 import torch
 import yaml
 from PIL import Image
+
 from tests import CFG, MODEL, SOURCE, SOURCES_LIST, TMP
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import MODELS, TASK2DATA, TASKS

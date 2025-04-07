@@ -106,7 +106,7 @@ export = [
 ]
 solutions = [
     "shapely>=2.0.0,<2.1.0",    # shapely for point and polygon data matching
-    "streamlit>=1.29.0,<1.44.0",    # for live inference on web browser, i.e `yolo streamlit-predict`
+    "streamlit>=1.29.0,<1.45.0",    # for live inference on web browser, i.e `yolo streamlit-predict`
 ]
 logging = [
     "comet", # https://docs.ultralytics.com/integrations/comet/

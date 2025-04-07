@@ -52,7 +52,7 @@ class BaseSolution:
             is_cli (bool): Enables CLI mode if set to True.
             **kwargs (Any): Additional configuration parameters that override defaults.
         """
-        check_requirements("shapely>=2.0.0")
+        check_requirements("shapely>=2.0.0,<2.1.0")
         from shapely.geometry import LineString, Point, Polygon
         from shapely.prepared import prep
 

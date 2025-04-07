@@ -386,14 +386,18 @@ def model_info_for_loggers(trainer):
 
 def get_flops(model, imgsz=640):
     """
-    Return a YOLO model's FLOPs.
+    Calculate FLOPs (floating point operations) for a model in billions.
+
+    Attempts two calculation methods: first with a stride-based tensor for efficiency,
+    then falls back to full image size if needed (e.g., for RTDETR models). Returns 0.0
+    if thop library is unavailable or calculation fails.
 
     Args:
         model (nn.Module): The model to calculate FLOPs for.
         imgsz (int | List[int], optional): Input image size. Defaults to 640.
 
     Returns:
-        (float): The model's FLOPs in billions.
+        (float): The model FLOPs in billions.
     """
     if not thop:
         return 0.0  # if not installed return 0.0 GFLOPs
@@ -404,13 +408,13 @@ def get_flops(model, imgsz=640):
         if not isinstance(imgsz, list):
             imgsz = [imgsz, imgsz]  # expand if int/float
         try:
-            # Use stride size for input tensor
+            # Method 1: Use stride-based input tensor
             stride = max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32  # max stride
             im = torch.empty((1, p.shape[1], stride, stride), device=p.device)  # input image in BCHW format
             flops = thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1e9 * 2  # stride GFLOPs
             return flops * imgsz[0] / stride * imgsz[1] / stride  # imgsz GFLOPs
         except Exception:
-            # Use actual image size for input tensor (i.e. required for RTDETR models)
+            # Method 2: Use actual image size (required for RTDETR models)
             im = torch.empty((1, p.shape[1], *imgsz), device=p.device)  # input image in BCHW format
             return thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1e9 * 2  # imgsz GFLOPs
     except Exception:
@@ -611,10 +615,10 @@ def unset_deterministic():
 
 class ModelEMA:
     """
-    Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models.
+    Updated Exponential Moving Average (EMA) implementation.
 
     Keeps a moving average of everything in the model state_dict (parameters and buffers).
-    For EMA details see https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
+    For EMA details see References.
 
     To disable EMA set the `enabled` attribute to `False`.
 
@@ -623,6 +627,10 @@ class ModelEMA:
         updates (int): Number of EMA updates.
         decay (function): Decay function that determines the EMA weight.
         enabled (bool): Whether EMA is enabled.
+
+    References:
+        - https://github.com/rwightman/pytorch-image-models
+        - https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
     """
 
     def __init__(self, model, decay=0.9999, tau=2000, updates=0):

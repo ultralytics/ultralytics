@@ -818,7 +818,7 @@ class Exporter:
             ts,
             inputs=[ct.ImageType("image", shape=self.im.shape, scale=scale, bias=bias)],  # expects ct.TensorType
             classifier_config=classifier_config,
-            minimum_deployment_target=ct.target.iOS16,
+            minimum_deployment_target=ct.target.iOS15,  # warning: >=16 causes pipeline errors
             convert_to="neuralnetwork" if mlmodel else "mlprogram",
         )
         bits, mode = (8, "kmeans") if self.args.int8 else (16, "linear") if self.args.half else (32, None)
@@ -1464,7 +1464,7 @@ class Exporter:
 
         # 3. Create NMS protobuf
         nms_spec = ct.proto.Model_pb2.Model()
-        nms_spec.specificationVersion = 5
+        nms_spec.specificationVersion = 9
         for i in range(2):
             decoder_output = model._spec.description.output[i].SerializeToString()
             nms_spec.description.input.add()
@@ -1517,7 +1517,7 @@ class Exporter:
         pipeline.spec.description.output[1].ParseFromString(nms_model._spec.description.output[1].SerializeToString())
 
         # Update metadata
-        pipeline.spec.specificationVersion = 5
+        pipeline.spec.specificationVersion = 9
         pipeline.spec.description.metadata.userDefined.update(
             {"IoU threshold": str(nms.iouThreshold), "Confidence threshold": str(nms.confidenceThreshold)}
         )

@@ -42,7 +42,7 @@ def test_export_openvino():
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, nms",
@@ -75,7 +75,7 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, simplify, nms",
     [  # generate all combinations except for exclusion cases
@@ -95,7 +95,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
     Path(file).unlink()  # cleanup
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, nms",
     [  # generate all combinations except for exclusion cases
@@ -113,7 +113,7 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
     Path(file).unlink()  # cleanup
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 @pytest.mark.skipif(not MACOS, reason="CoreML inference only supported on macOS")
 @pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")
 @pytest.mark.skipif(checks.IS_PYTHON_3_13, reason="CoreML not supported in Python 3.13")
@@ -139,7 +139,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
     shutil.rmtree(file)  # cleanup
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
 @pytest.mark.skipif(
     not LINUX or IS_RASPBERRYPI,
@@ -208,14 +208,14 @@ def test_export_paddle():
     YOLO(MODEL).export(format="paddle", imgsz=32)
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 def test_export_mnn():
     """Test YOLO exports to MNN format (WARNING: MNN test must precede NCNN test or CI error on Windows)."""
     file = YOLO(MODEL).export(format="mnn", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 def test_export_ncnn():
     """Test YOLO exports to NCNN format."""
     file = YOLO(MODEL).export(format="ncnn", imgsz=32)

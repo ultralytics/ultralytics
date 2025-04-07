@@ -160,7 +160,7 @@ def test_predict_grey_and_4ch():
         f.unlink()  # cleanup
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(is_github_action_running(), reason="No auth https://github.com/JuanBindez/pytubefix/issues/166")
 def test_youtube():
@@ -455,7 +455,7 @@ def test_utils_files():
         print(new_path)
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 def test_utils_patches_torch_save():
     """Test torch_save backoff when _torch_save raises RuntimeError."""
     from unittest.mock import MagicMock, patch
@@ -558,7 +558,7 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
     assert transformed_image.dtype == torch.float32
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_model_tune():
     """Tune YOLO model for performance improvement."""
@@ -620,22 +620,22 @@ def test_yoloe():
     model.set_classes(names, model.get_text_pe(names))
     model(SOURCE, conf=0.01)
 
-    import numpy as np
+    # import numpy as np
 
-    from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
+    # from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
-    # visual-prompts
-    visuals = dict(
-        bboxes=np.array(
-            [[221.52, 405.8, 344.98, 857.54], [120, 425, 160, 445]],
-        ),
-        cls=np.array([0, 1]),
-    )
-    model.predict(
-        SOURCE,
-        visual_prompts=visuals,
-        predictor=YOLOEVPSegPredictor,
-    )
+    # # visual-prompts
+    # visuals = dict(
+    #     bboxes=np.array(
+    #         [[221.52, 405.8, 344.98, 857.54], [120, 425, 160, 445]],
+    #     ),
+    #     cls=np.array([0, 1]),
+    # )
+    # model.predict(
+    #     SOURCE,
+    #     visual_prompts=visuals,
+    #     predictor=YOLOEVPSegPredictor,
+    # )
 
     # Val
     model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")

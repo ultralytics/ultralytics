@@ -9,6 +9,7 @@ import re
 import shutil
 import subprocess
 import time
+from ast import literal_eval
 from importlib import metadata
 from pathlib import Path
 from typing import Optional
@@ -138,7 +139,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     elif isinstance(imgsz, (list, tuple)):
         imgsz = list(imgsz)
     elif isinstance(imgsz, str):  # i.e. '640' or '[640,640]'
-        imgsz = [int(imgsz)] if imgsz.isnumeric() else eval(imgsz)
+        imgsz = [int(imgsz)] if imgsz.isnumeric() else literal_eval(imgsz)
     else:
         raise TypeError(
             f"'imgsz={imgsz}' is of invalid type {type(imgsz).__name__}. "

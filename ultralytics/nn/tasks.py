@@ -4,6 +4,7 @@ import contextlib
 import pickle
 import re
 import types
+from ast import literal_eval
 from copy import deepcopy
 from pathlib import Path
 
@@ -1352,7 +1353,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         depth, width, max_channels = scales[scale]
 
     if act:
-        Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU()
+        Conv.default_act = literal_eval(act)  # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU()
         if verbose:
             LOGGER.info(f"{colorstr('activation:')} {act}")  # print
 
@@ -1576,10 +1577,10 @@ def guess_model_task(model):
     if isinstance(model, torch.nn.Module):  # PyTorch model
         for x in "model.args", "model.model.args", "model.model.model.args":
             with contextlib.suppress(Exception):
-                return eval(x)["task"]
+                return literal_eval(x)["task"]
         for x in "model.yaml", "model.model.yaml", "model.model.model.yaml":
             with contextlib.suppress(Exception):
-                return cfg2task(eval(x))
+                return cfg2task(literal_eval(x))
         for m in model.modules():
             if isinstance(m, (Segment, YOLOESegment)):
                 return "segment"

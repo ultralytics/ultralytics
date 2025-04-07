@@ -3,6 +3,7 @@
 import shutil
 import subprocess
 import sys
+from ast import literal_eval
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Dict, List, Union
@@ -818,7 +819,7 @@ def smart_value(v: str) -> Any:
         return False
     else:
         try:
-            return eval(v)
+            return literal_eval(v)
         except Exception:
             return v
 

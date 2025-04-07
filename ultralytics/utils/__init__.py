@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import contextlib
 import importlib.metadata
@@ -13,6 +13,7 @@ import sys
 import threading
 import time
 import uuid
+import warnings
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
@@ -23,10 +24,11 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import tqdm
 import yaml
-from tqdm import tqdm as tqdm_original
 
 from ultralytics import __version__
+from ultralytics.utils.patches import imread, imshow, imwrite, torch_load, torch_save  # for patches
 
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv("RANK", -1))
@@ -51,6 +53,20 @@ PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = torch.__version__
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
 IS_VSCODE = os.environ.get("TERM_PROGRAM", False) == "vscode"
+RKNN_CHIPS = frozenset(
+    {
+        "rk3588",
+        "rk3576",
+        "rk3566",
+        "rk3568",
+        "rk3562",
+        "rv1103",
+        "rv1106",
+        "rv1103b",
+        "rv1106b",
+        "rk2118",
+    }
+)  # Rockchip processors available for export
 HELP_MSG = """
     Examples for running Ultralytics:
 
@@ -110,16 +126,18 @@ HELP_MSG = """
 
 # Settings and Environment Variables
 torch.set_printoptions(linewidth=320, precision=4, profile="default")
-np.set_printoptions(linewidth=320, formatter={"float_kind": "{:11.5g}".format})  # format short g, %precision=5
+np.set_printoptions(linewidth=320, formatter=dict(float_kind="{:11.5g}".format))  # format short g, %precision=5
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
-os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # for deterministic training to avoid CUDA warning
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warnings in Colab
 os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
 
+if TQDM_RICH := str(os.getenv("YOLO_TQDM_RICH", False)).lower() == "true":
+    from tqdm import rich
 
-class TQDM(tqdm_original):
+
+class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
     """
     A custom TQDM progress bar class that extends the original tqdm functionality.
 
@@ -162,7 +180,8 @@ class TQDM(tqdm_original):
             ...     # Your code here
             ...     pass
         """
-        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)  # logical 'and' with default value if passed
+        warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
+        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)
 
@@ -285,17 +304,24 @@ def plt_settings(rcparams=None, backend="Agg"):
     """
     Decorator to temporarily set rc parameters and the backend for a plotting function.
 
-    Example:
-        decorator: @plt_settings({"font.size": 12})
-        context manager: with plt_settings({"font.size": 12}):
-
     Args:
-        rcparams (dict): Dictionary of rc parameters to set.
+        rcparams (dict, optional): Dictionary of rc parameters to set.
         backend (str, optional): Name of the backend to use. Defaults to 'Agg'.
 
     Returns:
-        (Callable): Decorated function with temporarily set rc parameters and backend. This decorator can be
-            applied to any function that needs to have specific matplotlib rc parameters and backend for its execution.
+        (Callable): Decorated function with temporarily set rc parameters and backend.
+
+    Examples:
+        >>> @plt_settings({"font.size": 12})
+        >>> def plot_function():
+        ...     plt.figure()
+        ...     plt.plot([1, 2, 3])
+        ...     plt.show()
+
+        >>> with plt_settings({"font.size": 12}):
+        ...     plt.figure()
+        ...     plt.plot([1, 2, 3])
+        ...     plt.show()
     """
     if rcparams is None:
         rcparams = {"font.size": 11}
@@ -338,6 +364,9 @@ def set_logging(name="LOGGING_NAME", verbose=True):
         name (str): Name of the logger. Defaults to "LOGGING_NAME".
         verbose (bool): Flag to set logging level to INFO if True, ERROR otherwise. Defaults to True.
 
+    Returns:
+        (logging.Logger): Configured logger object.
+
     Examples:
         >>> set_logging(name="ultralytics", verbose=True)
         >>> logger = logging.getLogger("ultralytics")
@@ -357,7 +386,7 @@ def set_logging(name="LOGGING_NAME", verbose=True):
 
         class CustomFormatter(logging.Formatter):
             def format(self, record):
-                """Sets up logging with UTF-8 encoding and configurable verbosity."""
+                """Format log records with UTF-8 encoding for Windows compatibility."""
                 return emojis(super().format(record))
 
         try:
@@ -401,25 +430,23 @@ def emojis(string=""):
 
 class ThreadingLocked:
     """
-    A decorator class for ensuring thread-safe execution of a function or method. This class can be used as a decorator
-    to make sure that if the decorated function is called from multiple threads, only one thread at a time will be able
-    to execute the function.
+    A decorator class for ensuring thread-safe execution of a function or method.
+
+    This class can be used as a decorator to make sure that if the decorated function is called from multiple threads,
+    only one thread at a time will be able to execute the function.
 
     Attributes:
         lock (threading.Lock): A lock object used to manage access to the decorated function.
 
-    Example:
-        ```python
-        from ultralytics.utils import ThreadingLocked
-
-        @ThreadingLocked()
-        def my_function():
-            # Your code here
-        ```
+    Examples:
+        >>> from ultralytics.utils import ThreadingLocked
+        >>> @ThreadingLocked()
+        >>> def my_function():
+        ...    # Your code here
     """
 
     def __init__(self):
-        """Initializes the decorator class for thread-safe execution of a function or method."""
+        """Initialize the decorator class with a threading lock."""
         self.lock = threading.Lock()
 
     def __call__(self, f):
@@ -520,8 +547,7 @@ DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
 def read_device_model() -> str:
     """
-    Reads the device model information from the system and caches it for quick access. Used by is_jetson() and
-    is_raspberrypi().
+    Reads the device model information from the system and caches it for quick access.
 
     Returns:
         (str): Kernel release information.
@@ -577,6 +603,16 @@ def is_jupyter():
     return IS_COLAB or IS_KAGGLE
 
 
+def is_runpod():
+    """
+    Check if the current script is running inside a RunPod container.
+
+    Returns:
+        (bool): True if running in RunPod, False otherwise.
+    """
+    return "RUNPOD_POD_ID" in os.environ
+
+
 def is_docker() -> bool:
     """
     Determine if the script is running inside a Docker container.
@@ -593,7 +629,7 @@ def is_docker() -> bool:
 
 def is_raspberrypi() -> bool:
     """
-    Determines if the Python environment is running on a Raspberry Pi by checking the device model information.
+    Determines if the Python environment is running on a Raspberry Pi.
 
     Returns:
         (bool): True if running on a Raspberry Pi, False otherwise.
@@ -603,7 +639,7 @@ def is_raspberrypi() -> bool:
 
 def is_jetson() -> bool:
     """
-    Determines if the Python environment is running on an NVIDIA Jetson device by checking the device model information.
+    Determines if the Python environment is running on an NVIDIA Jetson device.
 
     Returns:
         (bool): True if running on an NVIDIA Jetson device, False otherwise.
@@ -683,8 +719,7 @@ def is_github_action_running() -> bool:
 
 def get_git_dir():
     """
-    Determines whether the current file is part of a git repository and if so, returns the repository root directory. If
-    the current file is not part of a git repository, returns None.
+    Determines whether the current file is part of a git repository and if so, returns the repository root directory.
 
     Returns:
         (Path | None): Git root directory if found or None if not found.
@@ -696,8 +731,7 @@ def get_git_dir():
 
 def is_git_dir():
     """
-    Determines whether the current file is part of a git repository. If the current file is not part of a git
-    repository, returns None.
+    Determines whether the current file is part of a git repository.
 
     Returns:
         (bool): True if current file is part of a git repository.
@@ -913,7 +947,7 @@ class TryExcept(contextlib.ContextDecorator):
     def __exit__(self, exc_type, value, traceback):
         """Defines behavior when exiting a 'with' block, prints error message if necessary."""
         if self.verbose and value:
-            print(emojis(f"{self.msg}{': ' if self.msg else ''}{value}"))
+            LOGGER.warning(f"{self.msg}{': ' if self.msg else ''}{value}")
         return True
 
 
@@ -961,7 +995,23 @@ def threaded(func):
     """
     Multi-threads a target function by default and returns the thread or function result.
 
-    Use as @threaded decorator. The function runs in a separate thread unless 'threaded=False' is passed.
+    This decorator provides flexible execution of the target function, either in a separate thread or synchronously.
+    By default, the function runs in a thread, but this can be controlled via the 'threaded=False' keyword argument
+    which is removed from kwargs before calling the function.
+
+    Args:
+        func (callable): The function to be potentially executed in a separate thread.
+
+    Returns:
+        (callable): A wrapper function that either returns a daemon thread or the direct function result.
+
+    Examples:
+        >>> @threaded
+        ... def process_data(data):
+        ...     return data
+        >>>
+        >>> thread = process_data(my_data)  # Runs in background thread
+        >>> result = process_data(my_data, threaded=False)  # Runs synchronously, returns function result
     """
 
     def wrapper(*args, **kwargs):
@@ -978,8 +1028,10 @@ def threaded(func):
 
 def set_sentry():
     """
-    Initialize the Sentry SDK for error tracking and reporting. Only used if sentry_sdk package is installed and
-    sync=True in settings. Run 'yolo settings' to see and update settings.
+    Initialize the Sentry SDK for error tracking and reporting.
+
+    Only used if sentry_sdk package is installed and sync=True in settings. Run 'yolo settings' to see and update
+    settings.
 
     Conditions required to send errors (ALL conditions must be met or no errors will be reported):
         - sentry_sdk package is installed
@@ -990,11 +1042,6 @@ def set_sentry():
         - running with rank -1 or 0
         - online environment
         - CLI used to run package (checked with 'yolo' as the name of the main CLI command)
-
-    The function also configures Sentry SDK to ignore KeyboardInterrupt and FileNotFoundError exceptions and to exclude
-    events with 'out of memory' in their exception message.
-
-    Additionally, the function sets custom tags and user information for Sentry events.
     """
     if (
         not SETTINGS["sync"]
@@ -1042,7 +1089,7 @@ def set_sentry():
         auto_enabling_integrations=False,
         traces_sample_rate=1.0,
         release=__version__,
-        environment="production",  # 'dev' or 'production'
+        environment="runpod" if is_runpod() else "production",
         before_send=before_send,
         ignore_errors=[KeyboardInterrupt, FileNotFoundError],
     )
@@ -1100,7 +1147,7 @@ class JSONDict(dict):
         """Save the current state of the dictionary to the JSON file."""
         try:
             self.file_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.file_path, "w") as f:
+            with open(self.file_path, "w", encoding="utf-8") as f:
                 json.dump(dict(self), f, indent=2, default=self._json_default)
         except Exception as e:
             print(f"Error writing to {self.file_path}: {e}")
@@ -1152,7 +1199,7 @@ class SettingsManager(JSONDict):
     Attributes:
         file (Path): The path to the JSON file used for persistence.
         version (str): The version of the settings schema.
-        defaults (Dict): A dictionary containing default settings.
+        defaults (dict): A dictionary containing default settings.
         help_msg (str): A help message for users on how to view and update settings.
 
     Methods:
@@ -1217,7 +1264,7 @@ class SettingsManager(JSONDict):
 
     def _validate_settings(self):
         """Validate the current settings and reset if necessary."""
-        correct_keys = set(self.keys()) == set(self.defaults.keys())
+        correct_keys = frozenset(self.keys()) == frozenset(self.defaults.keys())
         correct_types = all(isinstance(self.get(k), type(v)) for k, v in self.defaults.items())
         correct_version = self.get("settings_version", "") == self.version
 
@@ -1312,8 +1359,6 @@ TESTS_RUNNING = is_pytest_running() or is_github_action_running()
 set_sentry()
 
 # Apply monkey patches
-from ultralytics.utils.patches import imread, imshow, imwrite, torch_load, torch_save
-
 torch.load = torch_load
 torch.save = torch_save
 if WINDOWS:

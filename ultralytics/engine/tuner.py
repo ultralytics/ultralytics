@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 Module provides functionalities for hyperparameter tuning of the Ultralytics YOLO models for object detection, instance
 segmentation, image classification, pose estimation, and multi-object tracking.
@@ -7,14 +7,11 @@ Hyperparameter tuning is the process of systematically searching for the optimal
 that yield the best model performance. This is particularly crucial in deep learning models like YOLO,
 where small changes in hyperparameters can lead to significant differences in model accuracy and efficiency.
 
-Example:
-    Tune hyperparameters for YOLOv8n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
-    ```python
-    from ultralytics import YOLO
-
-    model = YOLO("yolo11n.pt")
-    model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
-    ```
+Examples:
+    Tune hyperparameters for YOLO11n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
+    >>> from ultralytics import YOLO
+    >>> model = YOLO("yolo11n.pt")
+    >>> model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
 """
 
 import random
@@ -32,39 +29,33 @@ from ultralytics.utils.plotting import plot_tune_results
 
 class Tuner:
     """
-    Class responsible for hyperparameter tuning of YOLO models.
+    A class for hyperparameter tuning of YOLO models.
 
-    The class evolves YOLO model hyperparameters over a given number of iterations
-    by mutating them according to the search space and retraining the model to evaluate their performance.
+    The class evolves YOLO model hyperparameters over a given number of iterations by mutating them according to the
+    search space and retraining the model to evaluate their performance.
 
     Attributes:
         space (dict): Hyperparameter search space containing bounds and scaling factors for mutation.
         tune_dir (Path): Directory where evolution logs and results will be saved.
         tune_csv (Path): Path to the CSV file where evolution logs are saved.
+        args (dict): Configuration arguments for the tuning process.
+        callbacks (list): Callback functions to be executed during tuning.
+        prefix (str): Prefix string for logging messages.
 
     Methods:
-        _mutate(hyp: dict) -> dict:
-            Mutates the given hyperparameters within the bounds specified in `self.space`.
+        _mutate: Mutates the given hyperparameters within the specified bounds.
+        __call__: Executes the hyperparameter evolution across multiple iterations.
 
-        __call__():
-            Executes the hyperparameter evolution across multiple iterations.
-
-    Example:
-        Tune hyperparameters for YOLOv8n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
-        ```python
-        from ultralytics import YOLO
-
-        model = YOLO("yolo11n.pt")
-        model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
-        ```
+    Examples:
+        Tune hyperparameters for YOLO11n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
+        >>> from ultralytics import YOLO
+        >>> model = YOLO("yolo11n.pt")
+        >>> model.tune(
+        ...     data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False
+        ... )
 
         Tune with custom search space.
-        ```python
-        from ultralytics import YOLO
-
-        model = YOLO("yolo11n.pt")
-        model.tune(space={key1: val1, key2: val2})  # custom search space dictionary
-        ```
+        >>> model.tune(space={key1: val1, key2: val2})  # custom search space dictionary
     """
 
     def __init__(self, args=DEFAULT_CFG, _callbacks=None):
@@ -72,7 +63,8 @@ class Tuner:
         Initialize the Tuner with configurations.
 
         Args:
-            args (dict, optional): Configuration for hyperparameter evolution.
+            args (dict): Configuration for hyperparameter evolution.
+            _callbacks (list, optional): Callback functions to be executed during tuning.
         """
         self.space = args.pop("space", None) or {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
@@ -101,7 +93,9 @@ class Tuner:
             "copy_paste": (0.0, 1.0),  # segment copy-paste (probability)
         }
         self.args = get_cfg(overrides=args)
-        self.tune_dir = get_save_dir(self.args, name="tune")
+        self.args.exist_ok = self.args.resume  # resume w/ same tune_dir
+        self.tune_dir = get_save_dir(self.args, name=self.args.name or "tune")
+        self.args.name, self.args.exist_ok, self.args.resume = (None, False, False)  # reset to not affect training
         self.tune_csv = self.tune_dir / "tune_results.csv"
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.prefix = colorstr("Tuner: ")
@@ -113,7 +107,7 @@ class Tuner:
 
     def _mutate(self, parent="single", n=5, mutation=0.8, sigma=0.2):
         """
-        Mutates the hyperparameters based on bounds and scaling factors specified in `self.space`.
+        Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.
 
         Args:
             parent (str): Parent selection method: 'single' or 'weighted'.
@@ -140,7 +134,7 @@ class Tuner:
             # Mutate
             r = np.random  # method
             r.seed(int(time.time()))
-            g = np.array([v[2] if len(v) == 3 else 1.0 for k, v in self.space.items()])  # gains 0-1
+            g = np.array([v[2] if len(v) == 3 else 1.0 for v in self.space.values()])  # gains 0-1
             ng = len(self.space)
             v = np.ones(ng)
             while all(v == 1):  # mutate until a change occurs (prevent duplicates)
@@ -159,27 +153,33 @@ class Tuner:
 
     def __call__(self, model=None, iterations=10, cleanup=True):
         """
-        Executes the hyperparameter evolution process when the Tuner instance is called.
+        Execute the hyperparameter evolution process when the Tuner instance is called.
 
         This method iterates through the number of iterations, performing the following steps in each iteration:
+
         1. Load the existing hyperparameters or initialize new ones.
         2. Mutate the hyperparameters using the `mutate` method.
         3. Train a YOLO model with the mutated hyperparameters.
         4. Log the fitness score and mutated hyperparameters to a CSV file.
 
         Args:
-           model (Model): A pre-initialized YOLO model to be used for training.
-           iterations (int): The number of generations to run the evolution for.
-           cleanup (bool): Whether to delete iteration weights to reduce storage space used during tuning.
+            model (Model): A pre-initialized YOLO model to be used for training.
+            iterations (int): The number of generations to run the evolution for.
+            cleanup (bool): Whether to delete iteration weights to reduce storage space used during tuning.
 
         Note:
-           The method utilizes the `self.tune_csv` Path object to read and log hyperparameters and fitness scores.
-           Ensure this path is set correctly in the Tuner instance.
+            The method utilizes the `self.tune_csv` Path object to read and log hyperparameters and fitness scores.
+            Ensure this path is set correctly in the Tuner instance.
         """
         t0 = time.time()
         best_save_dir, best_metrics = None, None
         (self.tune_dir / "weights").mkdir(parents=True, exist_ok=True)
-        for i in range(iterations):
+        start = 0
+        if self.tune_csv.exists():
+            x = np.loadtxt(self.tune_csv, ndmin=2, delimiter=",", skiprows=1)
+            start = x.shape[0]
+            LOGGER.info(f"{self.prefix}Resuming tuning run {self.tune_dir} from iteration {start + 1}...")
+        for i in range(start, iterations):
             # Mutate hyperparameters
             mutated_hyp = self._mutate()
             LOGGER.info(f"{self.prefix}Starting iteration {i + 1}/{iterations} with hyperparameters: {mutated_hyp}")
@@ -190,8 +190,9 @@ class Tuner:
             weights_dir = save_dir / "weights"
             try:
                 # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)
-                cmd = ["yolo", "train", *(f"{k}={v}" for k, v in train_args.items())]
-                return_code = subprocess.run(" ".join(cmd), check=True, shell=True).returncode
+                launch = [__import__("sys").executable, "-m", "ultralytics.cfg.__init__"]  # workaround yolo not found
+                cmd = [*launch, "train", *(f"{k}={v}" for k, v in train_args.items())]
+                return_code = subprocess.run(cmd, check=True).returncode
                 ckpt_file = weights_dir / ("best.pt" if (weights_dir / "best.pt").exists() else "last.pt")
                 metrics = torch.load(ckpt_file)["train_metrics"]
                 assert return_code == 0, "training failed"
@@ -203,7 +204,7 @@ class Tuner:
             fitness = metrics.get("fitness", 0.0)
             log_row = [round(fitness, 5)] + [mutated_hyp[k] for k in self.space.keys()]
             headers = "" if self.tune_csv.exists() else (",".join(["fitness"] + list(self.space.keys())) + "\n")
-            with open(self.tune_csv, "a") as f:
+            with open(self.tune_csv, "a", encoding="utf-8") as f:
                 f.write(headers + ",".join(map(str, log_row)) + "\n")
 
             # Get best results

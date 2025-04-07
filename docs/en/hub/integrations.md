@@ -1,94 +1,94 @@
 ---
 comments: true
-description: Explore seamless integrations between Ultralytics HUB and platforms like Roboflow. Learn how to import datasets, train models, and more.
-keywords: Ultralytics HUB, Roboflow integration, dataset import, model training, AI, machine learning
+description: Explore seamless integrations between Ultralytics HUB and platforms like Roboflow. Learn how to import datasets, train models, and enhance your AI workflow.
+keywords: Ultralytics HUB, Roboflow integration, dataset import, model training, AI, machine learning, model export, ONNX, OpenVINO
 ---
 
 # Ultralytics HUB Integrations
 
-Learn about [Ultralytics HUB](https://www.ultralytics.com/hub) integrations with various platforms and formats.
+Learn about [Ultralytics HUB](https://www.ultralytics.com/hub) integrations with various platforms and formats to streamline your [AI](https://www.ultralytics.com/glossary/artificial-intelligence-ai) workflows.
 
 ## Datasets
 
-Seamlessly import your datasets in [Ultralytics HUB](https://www.ultralytics.com/hub) for [model training](./models.md#train-model).
+Seamlessly import your datasets into Ultralytics HUB for efficient [model training](../modes/train.md).
 
-After a dataset is imported in [Ultralytics HUB](https://www.ultralytics.com/hub), you can [train a model](./models.md#train-model) on your dataset just like you would using the [Ultralytics HUB](https://www.ultralytics.com/hub) datasets.
+Once a dataset is imported, you can [train a model](./models.md#train-model) on it just as you would with native Ultralytics HUB datasets.
 
 ### Roboflow
 
-You can easily filter the [Roboflow](https://roboflow.com/?ref=ultralytics) datasets on the [Ultralytics HUB](https://www.ultralytics.com/hub) [Datasets](https://hub.ultralytics.com/datasets) page.
+You can easily filter Roboflow datasets on the Ultralytics HUB **Datasets** page.
 
 ![Ultralytics HUB screenshot of the Datasets page with Roboflow provider filter](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-datasets-page-roboflow-filter.avif)
 
-[Ultralytics HUB](https://www.ultralytics.com/hub) supports two types of integrations with [Roboflow](https://roboflow.com/?ref=ultralytics), [Universe](#universe) and [Workspace](#workspace).
+Ultralytics HUB supports two types of integrations with Roboflow: **Universe** and **Workspace**.
 
 #### Universe
 
-The [Roboflow](https://roboflow.com/?ref=ultralytics) Universe integration allows you to import one dataset at a time into [Ultralytics HUB](https://www.ultralytics.com/hub) from [Roboflow](https://roboflow.com/?ref=ultralytics).
+The Roboflow Universe integration allows you to import one [dataset](https://www.ultralytics.com/glossary/benchmark-dataset) at a time into Ultralytics HUB from Roboflow.
 
 ##### Import
 
-When you export a [Roboflow](https://roboflow.com/?ref=ultralytics) dataset, select the [Ultralytics HUB](https://www.ultralytics.com/hub) format. This action will redirect you to [Ultralytics HUB](https://www.ultralytics.com/hub) and trigger the **Dataset Import** dialog.
+When exporting a Roboflow dataset, select the Ultralytics HUB format. This action redirects you to Ultralytics HUB and opens the **Dataset Import** dialog.
 
-You can import your [Roboflow](https://roboflow.com/?ref=ultralytics) dataset by clicking on the **Import** button.
+Import your Roboflow dataset by clicking the **Import** button.
 
 ![Ultralytics HUB screenshot of the Dataset Import dialog with an arrow pointing to the Import button](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-dataset-import-dialog.avif)
 
-Next, [train a model](./models.md#train-model) on your dataset.
+Next, you can train a model on your newly imported dataset.
 
 ![Ultralytics HUB screenshot of the Dataset page of a Roboflow Universe dataset with an arrow pointing to the Train Model button](https://github.com/ultralytics/docs/releases/download/0/hub-roboflow-universe-import-2.avif)
 
 ##### Remove
 
-Navigate to the Dataset page of the [Roboflow](https://roboflow.com/?ref=ultralytics) dataset you want to remove, open the dataset actions dropdown and click on the **Remove** option.
+Navigate to the Dataset page of the Roboflow dataset you wish to remove. Open the dataset actions dropdown menu and click the **Remove** option.
 
 ![Ultralytics HUB screenshot of the Dataset page of a Roboflow Universe dataset with an arrow pointing to the Remove option](https://github.com/ultralytics/docs/releases/download/0/hub-roboflow-universe-remove.avif)
 
 ??? tip
 
-    You can remove an imported [Roboflow](https://roboflow.com/?ref=ultralytics) dataset directly from the [Datasets](https://hub.ultralytics.com/datasets) page.
+    You can also remove an imported Roboflow dataset directly from the main **Datasets** page.
 
     ![Ultralytics HUB screenshot of the Datasets page with an arrow pointing to the Remove option of one of the Roboflow Universe datasets](https://github.com/ultralytics/docs/releases/download/0/hub-roboflow-remove-option.avif)
 
 #### Workspace
 
-The [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace integration allows you to import an entire [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace at once into [Ultralytics HUB](https://www.ultralytics.com/hub).
+The Roboflow Workspace integration allows you to import an entire Roboflow Workspace at once into Ultralytics HUB.
 
 ##### Import
 
-Navigate to the [Integrations](https://hub.ultralytics.com/settings?tab=integrations) page by clicking on the **Integrations** button in the sidebar.
+Navigate to the **Integrations** page by clicking the **Integrations** button in the sidebar.
 
-Type your [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace private API key and click on the **Add** button.
+Enter your Roboflow Workspace private [API key](https://en.wikipedia.org/wiki/API_key) and click the **Add** button.
 
 ??? tip
 
-    You can click on the **Get my API key** button which will redirect you to the settings of your [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace from where you can obtain your private API key.
+    Clicking the **Get my API key** button will redirect you to your Roboflow Workspace settings, where you can find your private API key.
 
 ![Ultralytics HUB screenshot of the Integrations page with an arrow pointing to the Integrations button in the sidebar and one to the Add button](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-integrations-page.avif)
 
-This will connect your [Ultralytics HUB](https://www.ultralytics.com/hub) account with your [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace and make your [Roboflow](https://roboflow.com/?ref=ultralytics) datasets available in [Ultralytics HUB](https://www.ultralytics.com/hub).
+This connects your Ultralytics HUB account with your Roboflow Workspace, making your Roboflow datasets available within Ultralytics HUB.
 
 ![Ultralytics HUB screenshot of the Integrations page with an arrow pointing to one of the connected workspaces](https://github.com/ultralytics/docs/releases/download/0/hub-roboflow-workspace-import-2.avif)
 
-Next, [train a model](./models.md#train-model) on your dataset.
+Next, you can train a model using any of the datasets from the connected workspace.
 
 ![Ultralytics HUB screenshot of the Dataset page of a Roboflow Workspace dataset with an arrow pointing to the Train Model button](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-dataset-train-model.avif)
 
 ##### Remove
 
-Navigate to the [Integrations](https://hub.ultralytics.com/settings?tab=integrations) page by clicking on the **Integrations** button in the sidebar and click on the **Unlink** button of the [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace you want to remove.
+Navigate to the **Integrations** page via the sidebar. Click the **Unlink** button for the Roboflow Workspace you want to disconnect.
 
 ![Ultralytics HUB screenshot of the Integrations page  with an arrow pointing to the Integrations button in the sidebar and one to the Unlink button of one of the connected workspaces](https://github.com/ultralytics/docs/releases/download/0/hub-roboflow-workspace-remove-1.avif)
 
 ??? tip
 
-    You can remove a connected [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace directly from the Dataset page of one of the datasets from your [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace.
+    You can also unlink a connected Roboflow Workspace directly from the Dataset page of any dataset belonging to that workspace.
 
     ![Ultralytics HUB screenshot of the Dataset page of a Roboflow Workspace dataset with an arrow pointing to the remove option](https://github.com/ultralytics/docs/releases/download/0/hub-roboflow-workspace-remove-2.avif)
 
 ??? tip
 
-    You can remove a connected [Roboflow](https://roboflow.com/?ref=ultralytics) Workspace directly from the [Datasets](https://hub.ultralytics.com/datasets) page.
+    Alternatively, remove a connected Roboflow Workspace directly from the main **Datasets** page using the remove option associated with any dataset from that workspace.
 
     ![Ultralytics HUB screenshot of the Datasets page with an arrow pointing to the Remove option of one of the Roboflow Workspace datasets](https://github.com/ultralytics/docs/releases/download/0/hub-roboflow-remove-option.avif)
 
@@ -96,32 +96,34 @@ Navigate to the [Integrations](https://hub.ultralytics.com/settings?tab=integrat
 
 ### Exports
 
-After you [train a model](./models.md#train-model), you can [export it](./models.md#deploy-model) to 13 different formats, including ONNX, OpenVINO, CoreML, [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), Paddle and many others.
+After you train a model, you can [export it](./models.md#deploy-model) to 13 different formats using the [Export mode](../modes/export.md), including popular ones like [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), and [PaddlePaddle](../integrations/paddlepaddle.md).
 
 ![Ultralytics HUB screenshot of the Deploy tab inside the Model page with an arrow pointing to the Export card and all formats exported](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-deploy-export-formats.avif)
 
-The available export formats are presented in the table below.
+The available export formats are detailed in the table below.
 
 {% include "macros/export-table.md" %}
 
 ## Exciting New Features on the Way 🎉
 
-- Additional Dataset Integrations
+We are continuously working to expand Ultralytics HUB's integration capabilities. Upcoming features include:
+
+- Additional [Dataset Integrations](../datasets/index.md)
 - Detailed Export Integration Guides
-- Step-by-Step Tutorials for Each Integration
+- Step-by-Step [Tutorials](../guides/index.md) for Each Integration
 
 ## Stay Updated 🚧
 
-This integrations page is your first stop for upcoming developments. Keep an eye out with our:
+This page is your go-to resource for the latest integration updates and feature rollouts. Stay connected through:
 
-- **Newsletter:** Subscribe [here](https://www.ultralytics.com/#newsletter) for the latest news.
-- **Social Media:** Follow us [here](https://www.linkedin.com/company/ultralytics) for updates and teasers.
-- **Blog:** Visit our [blog](https://www.ultralytics.com/blog) for detailed insights.
+- **Newsletter:** Subscribe to [our Ultralytics newsletter](https://www.ultralytics.com/#newsletter) for announcements, releases, and early access updates.
+- **Social Media:** Follow [Ultralytics on LinkedIn](https://www.linkedin.com/company/ultralytics) for behind-the-scenes content, product news, and community highlights.
+- **Blog:** Dive into the [Ultralytics AI blog](https://www.ultralytics.com/blog) for in-depth articles, tutorials, and use-case spotlights.
 
 ## We Value Your Input 🗣️
 
-Your feedback shapes our future releases. Share your thoughts and suggestions [here](https://www.ultralytics.com/survey).
+Help shape the future of Ultralytics HUB by sharing your ideas, feedback, and integration requests through our [official contact form](https://www.ultralytics.com/contact).
 
 ## Thank You, Community! 🌍
 
-Your [contributions](https://docs.ultralytics.com/help/contributing/) inspire our continuous [innovation](https://github.com/ultralytics/ultralytics). Stay tuned for the big reveal of what's next in AI and ML at Ultralytics!
+Your [contributions](../help/contributing.md) and ongoing support fuel our commitment to pushing the boundaries of [AI innovation](https://github.com/ultralytics/ultralytics). Stay tuned—exciting things are just around the corner!

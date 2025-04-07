@@ -1,38 +1,29 @@
-<!--Ultralytics YOLO 🚀, AGPL-3.0 license-->
+<!-- Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license -->
 
+<!--Site announcement bar-->
 {% extends "base.html" %} {% block announce %}
 <div class="banner-wrapper">
-  <div class="banner-content-wrapper">
-    <p>YOLO Vision 2024 is here!</p>
-    <div class="banner-info-wrapper">
-      <img
-        src="https://assets-global.website-files.com/646dd1f1a3703e451ba81ecc/66e9a87cfc78245ffa51d6f0_w_yv24.svg"
-        loading="lazy"
-        width="20"
-        height="20"
-        alt="YOLO Vision 24"
-      />
-      <p>September 27, 2024</p>
-    </div>
-    <div class="banner-info-wrapper">
-      <img
-        src="https://assets-global.website-files.com/646dd1f1a3703e451ba81ecc/66e9a87cdfbd25e409560ed8_l_yv24.svg"
-        loading="lazy"
-        width="20"
-        height="20"
-        alt="YOLO Vision 24"
-      />
-      <p>Free hybrid event</p>
-    </div>
-  </div>
-  <div class="banner-button-wrapper">
-    <div class="banner-button-wrapper large">
-      <button
-        onclick="window.open('https://www.ultralytics.com/events/yolovision', '_blank')"
-      >
-        Join now
-      </button>
-    </div>
+  <div
+    class="banner-content-wrapper"
+    onclick="window.open('https://docs.ultralytics.com/models/yolo11')"
+  >
+    <p>Introducing</p>
+    <img
+      src="https://assets-global.website-files.com/646dd1f1a3703e451ba81ecc/67d044caa316aa50fba40a08_Ultralytics_YOLO11_Logotype_Reverse.svg"
+      loading="lazy"
+      height="40"
+      alt="Ultralytics YOLO11"
+    />
   </div>
 </div>
+{% endblock %}
+
+<!--Page titles-->
+{% block htmltitle %} {% if page.toc|first is defined %} {% set
+page_specific_title = page.toc.items[0].title %} {% else %} {% set
+page_specific_title = page.title | striptags %} {% endif %}
+<title>
+  {%- if page_specific_title -%} {{ page_specific_title }} - {{ config.site_name
+  }} {%- else -%} {{ config.site_name }} {%- endif -%}
+</title>
 {% endblock %}

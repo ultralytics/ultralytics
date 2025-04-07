@@ -625,7 +625,7 @@ class ModelEMA:
         enabled (bool): Whether EMA is enabled.
     """
 
-    def __init__(self, model, decay=0.9999, tau=2000, updates=0):
+    def __init__(self, model, decay=0.9999, updates=0, iterations=74860):
         """
         Initialize EMA for 'model' with given arguments.
 
@@ -635,6 +635,7 @@ class ModelEMA:
             tau (int, optional): EMA decay time constant. Defaults to 2000.
             updates (int, optional): Initial number of updates. Defaults to 0.
         """
+        tau = 2000 / 74860 * iterations  # decay would be decreased to 0.9999 in 74860 iterations if tau=2000
         self.ema = deepcopy(de_parallel(model)).eval()  # FP32 EMA
         self.updates = updates  # number of EMA updates
         self.decay = lambda x: decay * (1 - math.exp(-x / tau))  # decay exponential ramp (to help early epochs)

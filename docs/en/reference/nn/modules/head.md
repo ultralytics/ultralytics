@@ -35,23 +35,11 @@ keywords: Ultralytics, YOLO, Detection, Pose, RTDETRDecoder, nn modules, guides
 
 <br><br><hr><br>
 
-## ::: ultralytics.nn.modules.head.SAVPE
-
-<br><br><hr><br>
-
 ## ::: ultralytics.nn.modules.head.LRPCHead
 
 <br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.head.YOLOEDetect
-
-<br><br><hr><br>
-
-## ::: ultralytics.nn.modules.head.SwiGLUFFN
-
-<br><br><hr><br>
-
-## ::: ultralytics.nn.modules.head.Residual
 
 <br><br><hr><br>
 

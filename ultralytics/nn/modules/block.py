@@ -1077,7 +1077,7 @@ class C3f(nn.Module):
 class C3k2(C2f):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
-    def __init__(self, c1, c2, n=1, c3k=False, e=0.5, g=1, shortcut=True):
+    def __init__(self, c1, c2, n=1, c3k=False, e=0.5, act=nn.SiLU, g=1, shortcut=True):
         """
         Initialize C3k2 module.
 
@@ -1094,6 +1094,7 @@ class C3k2(C2f):
         self.m = nn.ModuleList(
             C3k(self.c, self.c, 2, shortcut, g) if c3k else Bottleneck(self.c, self.c, shortcut, g) for _ in range(n)
         )
+        self.cv2 = Conv((2 + n) * self.c, c2, 1, act=act)
 
 
 class C3k(C3):

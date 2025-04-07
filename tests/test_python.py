@@ -455,7 +455,7 @@ def test_utils_files():
         print(new_path)
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 def test_utils_patches_torch_save():
     """Test torch_save backoff when _torch_save raises RuntimeError."""
     from unittest.mock import MagicMock, patch

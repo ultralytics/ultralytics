@@ -696,7 +696,10 @@ class AutoBackend(nn.Module):
             with self.net.create_extractor() as ex:
                 ex.input(self.net.input_names()[0], mat_in)
                 # WARNING: 'output_names' sorted as a temporary fix for https://github.com/pnnx/pnnx/issues/130
-                y = [np.array(ex.extract(x)[1])[None] for x in sorted(self.net.output_names())]
+                y = [
+                    np.array(ex.extract(x)[1])[None]
+                    for x in sorted(list(filter(lambda x: "out" in x, self.net.output_names())))
+                ]
 
         # NVIDIA Triton Inference Server
         elif self.triton:

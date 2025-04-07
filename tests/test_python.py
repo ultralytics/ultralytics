@@ -608,6 +608,7 @@ def test_yolo_world():
     )
 
 
+@pytest.mark.slow
 @pytest.mark.skipif(checks.IS_PYTHON_3_12 or not TORCH_1_9, reason="YOLOE with CLIP is not supported in Python 3.12")
 def test_yoloe():
     """Test YOLOE models with MobileClip support."""

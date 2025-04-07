@@ -612,7 +612,7 @@ def test_yolo_world():
 def test_yoloe():
     """Test YOLOE models with MobileClip support."""
     from ultralytics import YOLOE
-    
+
     # Predict
     # text-prompts
     model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")

@@ -545,13 +545,19 @@ class ProfileModels:
         # Model and input
         model = YOLO(engine_file)
         input_data = np.zeros((self.imgsz, self.imgsz, 3), dtype=np.uint8)  # use uint8 for Classify
+        from ultralytics.models.yolo.detect import DetectionPredictor
+
+        class Predictor(DetectionPredictor):  # predictor skip postprocess
+            def postprocess(self, preds, img, orig_imgs, **kwargs):
+                preds = [torch.zeros((0, 6), device=self.device)]
+                return self.construct_results(preds, img, orig_imgs, **kwargs)
 
         # Warmup runs
         elapsed = 0.0
         for _ in range(3):
             start_time = time.time()
             for _ in range(self.num_warmup_runs):
-                model(input_data, imgsz=self.imgsz, verbose=False)
+                model(input_data, imgsz=self.imgsz, verbose=False, predictor=Predictor)
             elapsed = time.time() - start_time
 
         # Compute number of runs as higher of min_time or num_timed_runs

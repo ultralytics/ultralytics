@@ -305,11 +305,11 @@ class AutoBackend(nn.Module):
                 try:
                     meta_len = int.from_bytes(f.read(4), byteorder="little")  # read metadata length
                     metadata = json.loads(f.read(meta_len).decode("utf-8"))  # read metadata
+                    dla = metadata.get("dla", None)
+                    if dla is not None:
+                        runtime.DLA_core = int(dla)
                 except UnicodeDecodeError:
                     f.seek(0)  # engine file may lack embedded Ultralytics metadata
-                dla = metadata.get("dla", None)
-                if dla is not None:
-                    runtime.DLA_core = int(dla)
                 model = runtime.deserialize_cuda_engine(f.read())  # read engine
 
             # Model context

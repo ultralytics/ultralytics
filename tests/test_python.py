@@ -160,7 +160,7 @@ def test_predict_grey_and_4ch():
         f.unlink()  # cleanup
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(is_github_action_running(), reason="No auth https://github.com/JuanBindez/pytubefix/issues/166")
 def test_youtube():
@@ -455,7 +455,7 @@ def test_utils_files():
         print(new_path)
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 def test_utils_patches_torch_save():
     """Test torch_save backoff when _torch_save raises RuntimeError."""
     from unittest.mock import MagicMock, patch
@@ -558,7 +558,7 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
     assert transformed_image.dtype == torch.float32
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_model_tune():
     """Tune YOLO model for performance improvement."""
@@ -611,16 +611,18 @@ def test_yolo_world():
 @pytest.mark.skipif(checks.IS_PYTHON_3_12 or not TORCH_1_9, reason="YOLOE with CLIP is not supported in Python 3.12")
 def test_yoloe():
     """Test YOLOE models with MobileClip support."""
+
+    from ultralytics import YOLOE
+    
     # Predict
     # text-prompts
-    model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
     names = ["person", "bus"]
     model.set_classes(names, model.get_text_pe(names))
     model(SOURCE, conf=0.01)
 
     import numpy as np
 
-    from ultralytics import YOLOE
     from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
     # visual-prompts

@@ -103,6 +103,7 @@ from ultralytics.utils.checks import (
     check_version,
     is_sudo_available,
 )
+from ultralytics.utils.export import export_engine, export_onnx
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile, nms_rotated, xywh2xyxy
@@ -578,13 +579,11 @@ class Exporter:
             check_requirements("onnxslim>=0.1.46")  # Older versions has bug with OBB
 
         with arange_patch(self.args):
-            torch.onnx.export(
+            export_onnx(
                 NMSModel(self.model, self.args) if self.args.nms else self.model,
                 self.im,
                 f,
-                verbose=False,
-                opset_version=opset_version,
-                do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
+                opset=opset_version,
                 input_names=["images"],
                 output_names=output_names,
                 dynamic_axes=dynamic or None,

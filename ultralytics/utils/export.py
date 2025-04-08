@@ -188,7 +188,7 @@ def export_engine(
         # Load dataset w/ builder (for batching) and calibrate
         config.int8_calibrator = EngineCalibrator(
             dataset=dataset,
-            cache=str(onnx_file.with_suffix(".cache")),
+            cache=str(Path(onnx_file).with_suffix(".cache")),
         )
 
     elif half:

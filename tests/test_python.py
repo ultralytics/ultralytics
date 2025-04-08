@@ -656,7 +656,7 @@ def test_yoloe():
     )
 
     # # prompt-free
-    predict
+    # predict
     model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg-pf.pt")
     model.predict(SOURCE)
     # val

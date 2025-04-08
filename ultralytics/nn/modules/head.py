@@ -368,7 +368,9 @@ class LRPCHead(nn.Module):
         """Process classification and localization features to generate detection proposals."""
         if self.enabled:
             pf_score = self.pf(cls_feat)[0, 0].flatten(0)
-            mask = pf_score.sigmoid() > conf
+            mask = (
+                torch.ones_like(pf_score, dtype=bool, device=cls_feat.device) if not conf else pf_score.sigmoid() > conf
+            )  # all true dummy mask when not dynamic export
 
             cls_feat = self.vocab(cls_feat.flatten(2).transpose(-1, -2)[:, mask])
             return (self.loc(loc_feat), cls_feat.transpose(-1, -2)), mask
@@ -478,7 +480,9 @@ class YOLOEDetect(Detect):
             cls_feat = self.cv3[i](x[i])
             loc_feat = self.cv2[i](x[i])
             assert isinstance(self.lrpc[i], LRPCHead)
-            x[i], mask = self.lrpc[i](cls_feat, loc_feat, getattr(self, "conf", 0.001))
+            x[i], mask = self.lrpc[i](
+                cls_feat, loc_feat, 0 if self.export and not self.dynamic else getattr(self, "conf", (0.001))
+            )
             masks.append(mask)
         shape = x[0][0].shape
         if self.dynamic or self.shape != shape:

@@ -73,8 +73,9 @@ def export_engine(
         - INT8 calibration requires a dataset and generates a calibration cache.
         - Metadata is serialized and written to the engine file if provided.
     """
-    onnx_file = Path(onnx_file)
     import tensorrt as trt  # noqa
+
+    onnx_file = Path(onnx_file)
 
     logger = trt.Logger(trt.Logger.INFO)
     if verbose:

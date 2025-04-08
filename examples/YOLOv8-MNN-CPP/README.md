@@ -7,7 +7,7 @@ Welcome to the [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/)
 - 🚀 **Model Format Support**: MNN
 - ⚡ **Precision Options**: Run models in **FP32**, **FP16** ([half-precision](https://www.ultralytics.com/glossary/half-precision)), and **INT8** ([quantization](https://www.ultralytics.com/glossary/model-quantization)) precisions for optimized performance.
 - 🔄 **Dynamic Shape Loading**: Easily handle models with dynamic input shapes, common in many [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
-- 📦 Use ONLY MNN's [Express API](https://mnn-docs.readthedocs.io/en/latest/express.html) for a more user-friendly interface, or the [Interpreter API](https://mnn-docs.readthedocs.io/en/latest/interpreter.html) for lower-level control.
+- 📦 Use ONLY MNN's [Express API](https://github.com/alibaba/MNN) for a more user-friendly interface, or the [Interpreter API](https://mnn-docs.readthedocs.io/en/latest/cpp/Interpreter.html) for lower-level control.
 
 ## 📋 Dependencies
 
@@ -87,7 +87,7 @@ or
 ./MNNConvert -f MNN --modelFile yolov8n.pt --MNNModel yolov8n.mnn --bizCode biz
 ```
 
-For more details on exporting and optimizing models for MNN, refer to the [MNN documentation](https://mnn-docs.readthedocs.io/en/latest/).
+For more details on converting and optimizing models for MNN, refer to the [MNN Convert](https://mnn-docs.readthedocs.io/en/latest/tools/convert.html).
 
 ## 🛠️ Usage
 

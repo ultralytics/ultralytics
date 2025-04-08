@@ -636,13 +636,13 @@ def test_yoloe():
         predictor=YOLOEVPSegPredictor,
     )
 
-    # # Val
-    # model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
-    # # text prompts
-    # model.val(data="coco128-seg.yaml", imgsz=32)
-    # # visual prompts
-    # model.val(data="coco128-seg.yaml", load_vp=True, imgsz=32)
-    #
+    # Val
+    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    # text prompts
+    model.val(data="coco128-seg.yaml", imgsz=32)
+    # visual prompts
+    model.val(data="coco128-seg.yaml", load_vp=True, imgsz=32)
+
     # # Train, fine-tune
     # from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
     #

@@ -55,7 +55,6 @@ TensorFlow.js:
     $ npm start
 """
 
-import gc
 import json
 import os
 import re
@@ -103,8 +102,8 @@ from ultralytics.utils.checks import (
     check_version,
     is_sudo_available,
 )
-from ultralytics.utils.export import export_engine, export_onnx
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
+from ultralytics.utils.export import export_engine, export_onnx
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile, nms_rotated, xywh2xyxy
 from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device

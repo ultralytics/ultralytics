@@ -1,7 +1,9 @@
-from ultralytics.utils import LOGGER, IS_JETSON
-from pathlib import Path
-import torch
 import json
+from pathlib import Path
+
+import torch
+
+from ultralytics.utils import IS_JETSON, LOGGER
 
 
 def export_onnx(

@@ -50,6 +50,7 @@ def test_export_engine_matrix(task, dynamic, int8, half, batch):
         half (bool): Whether to use FP16 precision.
         batch (int): Batch size for export.
     """
+    print("running slow test: test_export_engine_matrix")
     file = YOLO(TASK2MODEL[task]).export(
         format="engine",
         imgsz=32,
@@ -77,6 +78,7 @@ def test_train():
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 def test_predict_multiple_devices():
     """Validate model prediction consistency across CPU and CUDA devices."""
+    print("running slow test: test_predict_multiple_devices")
     model = YOLO("yolo11n.pt")
     model = model.cpu()
     assert str(model.device) == "cpu"
@@ -111,6 +113,7 @@ def test_autobatch():
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 def test_utils_benchmarks():
     """Profile YOLO models for performance benchmarks."""
+    print("running slow test: test_utils_benchmarks")
     from ultralytics.utils.benchmarks import ProfileModels
 
     # Pre-export a dynamic engine model to use dynamic inference

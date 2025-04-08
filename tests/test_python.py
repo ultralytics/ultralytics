@@ -165,6 +165,7 @@ def test_predict_grey_and_4ch():
 @pytest.mark.skipif(is_github_action_running(), reason="No auth https://github.com/JuanBindez/pytubefix/issues/166")
 def test_youtube():
     """Test YOLO model on a YouTube video stream, handling potential network-related errors."""
+    print("running slow test: test_youtube")
     model = YOLO(MODEL)
     try:
         model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)
@@ -458,6 +459,7 @@ def test_utils_files():
 @pytest.mark.slow
 def test_utils_patches_torch_save():
     """Test torch_save backoff when _torch_save raises RuntimeError."""
+    print("running slow test: test_utils_patches_torch_save")
     from unittest.mock import MagicMock, patch
 
     from ultralytics.utils.patches import torch_save
@@ -561,6 +563,7 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_model_tune():
+    print("running slow test: test_model_tune")
     """Tune YOLO model for performance improvement."""
     YOLO("yolo11n-pose.pt").tune(data="coco8-pose.yaml", plots=False, imgsz=32, epochs=1, iterations=2, device="cpu")
     YOLO("yolo11n-cls.pt").tune(data="imagenet10", plots=False, imgsz=32, epochs=1, iterations=2, device="cpu")

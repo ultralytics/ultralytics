@@ -36,7 +36,6 @@ def export_onnx(torch_model, im, onnx_file, opset, input_names, output_names, dy
 def export_engine(
     onnx_file,
     engine_file,
-    verbose=False,
     workspace=None,
     half=False,
     int8=False,
@@ -45,6 +44,7 @@ def export_engine(
     dla=None,
     dataset=None,
     metadata=None,
+    verbose=False,
     prefix="",
 ):
     """
@@ -53,7 +53,6 @@ def export_engine(
     Args:
         onnx_file (str): Path to the ONNX file to be converted.
         engine_file (str): Path to save the generated TensorRT engine file.
-        verbose (bool, optional): Enable verbose logging. Defaults to False.
         workspace (int, optional): Workspace size in GB for TensorRT. Defaults to None.
         half (bool, optional): Enable FP16 precision. Defaults to False.
         int8 (bool, optional): Enable INT8 precision. Defaults to False.
@@ -62,6 +61,7 @@ def export_engine(
         dla (int, optional): DLA core to use (Jetson devices only). Defaults to None.
         dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration. Defaults to None.
         metadata (dict, optional): Metadata to include in the engine file. Defaults to None.
+        verbose (bool, optional): Enable verbose logging. Defaults to False.
         prefix (str, optional): Prefix for log messages. Defaults to "".
 
     Raises:

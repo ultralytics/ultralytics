@@ -39,7 +39,7 @@ class Detect(nn.Module):
         self.nc = nc  # number of classes
         self.nl = len(ch)  # number of detection layers
         self.reg_max = 16  # DFL channels (ch[0] // 16 to scale 4/8/12/16/20 for n/s/m/l/x)
-        self.no = nc + self.reg_max * 4  # number of outputs per anchor
+        self.no = nc + self.reg_max * 4  + 1 # number of outputs per anchor
         self.stride = torch.zeros(self.nl)  # strides computed during build
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
         self.cv2 = nn.ModuleList(
@@ -57,6 +57,13 @@ class Detect(nn.Module):
                 for x in ch
             )
         )
+        # objectness head
+        self.obj_head = nn.ModuleList(
+            nn.Sequential(
+                Conv(x, c3, 3),
+                nn.Conv2d(c3, 1, 1)
+            ) for x in ch
+        )
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
         if self.end2end:
@@ -69,7 +76,7 @@ class Detect(nn.Module):
             return self.forward_end2end(x)
 
         for i in range(self.nl):
-            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i]), self.obj_head[i](x[i])), 1)
         if self.training:  # Training path
             return x
         y = self._inference(x)
@@ -121,7 +128,7 @@ class Detect(nn.Module):
             box = x_cat[:, : self.reg_max * 4]
             cls = x_cat[:, self.reg_max * 4 :]
         else:
-            box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
+            box, cls, obj = x_cat.split((self.reg_max * 4, self.nc, 1), 1)
 
         if self.export and self.format in {"tflite", "edgetpu"}:
             # Precompute normalization factor to increase numerical stability
@@ -139,7 +146,7 @@ class Detect(nn.Module):
         else:
             dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
 
-        return torch.cat((dbox, cls.sigmoid()), 1)
+        return torch.cat((dbox, cls.sigmoid(), obj.sigmoid()), 1)
 
     def bias_init(self):
         """Initialize Detect() biases, WARNING: requires stride availability."""
@@ -149,6 +156,8 @@ class Detect(nn.Module):
         for a, b, s in zip(m.cv2, m.cv3, m.stride):  # from
             a[-1].bias.data[:] = 1.0  # box
             b[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
+        for o in m.obj_head:
+            o[-1].bias.data.fill_(-math.log((1 - 0.01) / 0.01))  # initialize near 0.01 prob
         if self.end2end:
             for a, b, s in zip(m.one2one_cv2, m.one2one_cv3, m.stride):  # from
                 a[-1].bias.data[:] = 1.0  # box

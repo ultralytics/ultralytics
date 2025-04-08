@@ -620,7 +620,6 @@ def test_yoloe():
 
     import numpy as np
 
-    from ultralytics import YOLOE
     from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
     # visual-prompts

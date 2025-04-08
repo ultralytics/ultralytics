@@ -35,7 +35,7 @@ def export_onnx(torch_model, im, onnx_file, opset, input_names, output_names, dy
 
 def export_engine(
     onnx_file,
-    engine_file,
+    engine_file=None,
     workspace=None,
     half=False,
     int8=False,
@@ -52,7 +52,7 @@ def export_engine(
 
     Args:
         onnx_file (str): Path to the ONNX file to be converted.
-        engine_file (str): Path to save the generated TensorRT engine file.
+        engine_file (str, optional): Path to save the generated TensorRT engine file.
         workspace (int, optional): Workspace size in GB for TensorRT. Defaults to None.
         half (bool, optional): Enable FP16 precision. Defaults to False.
         int8 (bool, optional): Enable INT8 precision. Defaults to False.
@@ -74,6 +74,7 @@ def export_engine(
         - Metadata is serialized and written to the engine file if provided.
     """
     import tensorrt as trt  # noqa
+    engine_file = engine_file or Path(onnx_file).with_suffix(".engine")
 
     logger = trt.Logger(trt.Logger.INFO)
     if verbose:

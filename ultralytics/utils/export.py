@@ -4,7 +4,15 @@ import torch
 import json
 
 
-def export_onnx(torch_model, im, onnx_file, opset, input_names, output_names, dynamic=False):
+def export_onnx(
+    torch_model,
+    im,
+    onnx_file,
+    opset=14,
+    input_names=["images"],
+    output_names=["output0"],
+    dynamic=False,
+):
     """
     Exports a PyTorch model to ONNX format.
 
@@ -74,6 +82,7 @@ def export_engine(
         - Metadata is serialized and written to the engine file if provided.
     """
     import tensorrt as trt  # noqa
+
     engine_file = engine_file or Path(onnx_file).with_suffix(".engine")
 
     logger = trt.Logger(trt.Logger.INFO)

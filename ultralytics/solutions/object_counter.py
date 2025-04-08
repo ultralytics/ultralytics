@@ -149,7 +149,7 @@ class ObjectCounter(BaseSolution):
                 labels_dict,
                 (104, 31, 17),
                 (255, 255, 255),
-                self.line_width * 2  # Scales the background rectangle size with line_width to display counts properly
+                self.line_width * 2,  # Scales the background rectangle size with line_width to display counts properly
             )
 
     def process(self, im0):

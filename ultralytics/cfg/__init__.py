@@ -452,6 +452,9 @@ def _handle_deprecation(custom: Dict) -> Dict:
         if key == "label_smoothing":
             deprecation_warn(key)
             custom.pop("label_smoothing")
+        if key == "save_hybrid":
+            deprecation_warn(key)
+            custom.pop("save_hybrid")
 
     return custom
 

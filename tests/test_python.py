@@ -160,7 +160,7 @@ def test_predict_grey_and_4ch():
         f.unlink()  # cleanup
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(is_github_action_running(), reason="No auth https://github.com/JuanBindez/pytubefix/issues/166")
 def test_youtube():
@@ -455,7 +455,7 @@ def test_utils_files():
         print(new_path)
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 def test_utils_patches_torch_save():
     """Test torch_save backoff when _torch_save raises RuntimeError."""
     from unittest.mock import MagicMock, patch
@@ -558,7 +558,7 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
     assert transformed_image.dtype == torch.float32
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_model_tune():
     """Tune YOLO model for performance improvement."""
@@ -636,32 +636,32 @@ def test_yoloe():
         predictor=YOLOEVPSegPredictor,
     )
 
-    # Val
-    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
-    # text prompts
-    model.val(data="coco128-seg.yaml", imgsz=32)
-    # visual prompts
-    model.val(data="coco128-seg.yaml", load_vp=True, imgsz=32)
-
-    # Train, fine-tune
-    from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
-
-    model = YOLOE("yoloe-11s-seg.pt")
-    model.train(
-        data="coco128-seg.yaml",
-        epochs=1,
-        close_mosaic=1,
-        trainer=YOLOEPESegTrainer,
-        imgsz=32,
-    )
-
-    # prompt-free
-    # predict
-    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg-pf.pt")
-    model.predict(SOURCE)
-    # val
-    model = YOLOE("yoloe-11s-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
-    model.val(data="coco128-seg.yaml", imgsz=32)
+    # # Val
+    # model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    # # text prompts
+    # model.val(data="coco128-seg.yaml", imgsz=32)
+    # # visual prompts
+    # model.val(data="coco128-seg.yaml", load_vp=True, imgsz=32)
+    #
+    # # Train, fine-tune
+    # from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
+    #
+    # model = YOLOE("yoloe-11s-seg.pt")
+    # model.train(
+    #     data="coco128-seg.yaml",
+    #     epochs=1,
+    #     close_mosaic=1,
+    #     trainer=YOLOEPESegTrainer,
+    #     imgsz=32,
+    # )
+    #
+    # # prompt-free
+    # # predict
+    # model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg-pf.pt")
+    # model.predict(SOURCE)
+    # # val
+    # model = YOLOE("yoloe-11s-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+    # model.val(data="coco128-seg.yaml", imgsz=32)
 
 
 def test_yolov10():

@@ -114,12 +114,11 @@ def test_mobilesam() -> None:
 
 
 # Slow Tests -----------------------------------------------------------------------------------------------------------
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 @pytest.mark.skipif(CUDA_DEVICE_COUNT < 2, reason="DDP is not available")
 def test_train_gpu(task: str, model: str, data: str) -> None:
     """Test YOLO training on GPU(s) for various tasks and models."""
-    print("running slow test: test_train_gpu")
     run(f"yolo train {task} model={model} data={data} imgsz=32 epochs=1 device=0")  # single GPU
     run(f"yolo train {task} model={model} data={data} imgsz=32 epochs=1 device=0,1")  # multi GPU

@@ -160,12 +160,11 @@ def test_predict_grey_and_4ch():
         f.unlink()  # cleanup
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(is_github_action_running(), reason="No auth https://github.com/JuanBindez/pytubefix/issues/166")
 def test_youtube():
     """Test YOLO model on a YouTube video stream, handling potential network-related errors."""
-    print("running slow test: test_youtube")
     model = YOLO(MODEL)
     try:
         model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)
@@ -456,10 +455,9 @@ def test_utils_files():
         print(new_path)
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 def test_utils_patches_torch_save():
     """Test torch_save backoff when _torch_save raises RuntimeError."""
-    print("running slow test: test_utils_patches_torch_save")
     from unittest.mock import MagicMock, patch
 
     from ultralytics.utils.patches import torch_save
@@ -560,10 +558,9 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
     assert transformed_image.dtype == torch.float32
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_model_tune():
-    print("running slow test: test_model_tune")
     """Tune YOLO model for performance improvement."""
     YOLO("yolo11n-pose.pt").tune(data="coco8-pose.yaml", plots=False, imgsz=32, epochs=1, iterations=2, device="cpu")
     YOLO("yolo11n-cls.pt").tune(data="imagenet10", plots=False, imgsz=32, epochs=1, iterations=2, device="cpu")
@@ -614,17 +611,16 @@ def test_yolo_world():
 @pytest.mark.skipif(checks.IS_PYTHON_3_12 or not TORCH_1_9, reason="YOLOE with CLIP is not supported in Python 3.12")
 def test_yoloe():
     """Test YOLOE models with MobileClip support."""
-    from ultralytics import YOLOE
-
     # Predict
     # text-prompts
-    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
     names = ["person", "bus"]
     model.set_classes(names, model.get_text_pe(names))
     model(SOURCE, conf=0.01)
 
     import numpy as np
 
+    from ultralytics import YOLOE
     from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
     # visual-prompts
@@ -666,7 +662,6 @@ def test_yoloe():
     # val
     model = YOLOE("yoloe-11s-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
     model.val(data="coco128-seg.yaml", imgsz=32)
-
 
 def test_yolov10():
     """Test YOLOv10 model training, validation, and prediction functionality."""

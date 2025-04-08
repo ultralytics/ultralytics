@@ -75,8 +75,6 @@ def export_engine(
     """
     import tensorrt as trt  # noqa
 
-    onnx_file = Path(onnx_file)
-
     logger = trt.Logger(trt.Logger.INFO)
     if verbose:
         logger.min_severity = trt.Logger.Severity.VERBOSE

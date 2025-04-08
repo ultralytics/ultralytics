@@ -144,7 +144,7 @@ class ObjectCounter(BaseSolution):
             if value["IN"] != 0 or value["OUT"] != 0
         }
         if labels_dict:
-            self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), 10)
+            self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), self.line_width * 2)
 
     def process(self, im0):
         """

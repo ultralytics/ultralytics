@@ -214,7 +214,6 @@ CFG_BOOL_KEYS = frozenset(
         "overlap_mask",
         "val",
         "save_json",
-        "save_hybrid",
         "half",
         "dnn",
         "plots",

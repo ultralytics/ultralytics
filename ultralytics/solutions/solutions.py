@@ -81,7 +81,7 @@ class BaseSolution:
         self.region = self.CFG["region"]  # Store region data for other classes usage
         self.line_width = (2, self.CFG["line_width"])
         self.line_width = (
-            self.CFG["line_width"] if self.CFG["line_width"] is not (None or 0) else 2
+            self.CFG["line_width"] if self.CFG["line_width"] not in (None, 0) else 2
         )  # Store line_width for usage
 
         # Load Model and store classes names

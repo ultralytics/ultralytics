@@ -618,24 +618,24 @@ def test_yoloe():
     model.set_classes(names, model.get_text_pe(names))
     model(SOURCE, conf=0.01)
 
-    # import numpy as np
+    import numpy as np
 
-    # from ultralytics import YOLOE
-    # from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
-    #
-    # # visual-prompts
-    # visuals = dict(
-    #     bboxes=np.array(
-    #         [[221.52, 405.8, 344.98, 857.54], [120, 425, 160, 445]],
-    #     ),
-    #     cls=np.array([0, 1]),
-    # )
-    # model.predict(
-    #     SOURCE,
-    #     visual_prompts=visuals,
-    #     predictor=YOLOEVPSegPredictor,
-    # )
-    #
+    from ultralytics import YOLOE
+    from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
+
+    # visual-prompts
+    visuals = dict(
+        bboxes=np.array(
+            [[221.52, 405.8, 344.98, 857.54], [120, 425, 160, 445]],
+        ),
+        cls=np.array([0, 1]),
+    )
+    model.predict(
+        SOURCE,
+        visual_prompts=visuals,
+        predictor=YOLOEVPSegPredictor,
+    )
+
     # # Val
     # model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
     # # text prompts

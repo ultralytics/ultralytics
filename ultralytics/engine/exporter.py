@@ -586,7 +586,7 @@ class Exporter:
                 opset=opset_version,
                 input_names=["images"],
                 output_names=output_names,
-                dynamic_axes=dynamic or None,
+                dynamic=dynamic or None,
             )
 
         # Checks

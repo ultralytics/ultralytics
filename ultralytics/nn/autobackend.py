@@ -6,6 +6,7 @@ import platform
 import zipfile
 from collections import OrderedDict, namedtuple
 from pathlib import Path
+from typing import List, Optional, Union
 
 import cv2
 import numpy as np
@@ -96,14 +97,14 @@ class AutoBackend(nn.Module):
     @torch.no_grad()
     def __init__(
         self,
-        weights="yolo11n.pt",
-        device=torch.device("cpu"),
-        dnn=False,
-        data=None,
-        fp16=False,
-        batch=1,
-        fuse=True,
-        verbose=True,
+        weights: Union[str, List[str], torch.nn.Module] = "yolo11n.pt",
+        device: torch.device = torch.device("cpu"),
+        dnn: bool = False,
+        data: Optional[Union[str, Path]] = None,
+        fp16: bool = False,
+        batch: int = 1,
+        fuse: bool = True,
+        verbose: bool = True,
     ):
         """
         Initialize the AutoBackend for inference.
@@ -435,19 +436,28 @@ class AutoBackend(nn.Module):
         # PaddlePaddle
         elif paddle:
             LOGGER.info(f"Loading {w} for PaddlePaddle inference...")
-            check_requirements("paddlepaddle-gpu" if cuda else "paddlepaddle<3.0.0")
+            check_requirements("paddlepaddle-gpu" if cuda else "paddlepaddle>=3.0.0")
             import paddle.inference as pdi  # noqa
 
             w = Path(w)
-            if not w.is_file():  # if not *.pdmodel
-                w = next(w.rglob("*.pdmodel"))  # get *.pdmodel file from *_paddle_model dir
-            config = pdi.Config(str(w), str(w.with_suffix(".pdiparams")))
+            model_file, params_file = None, None
+            if w.is_dir():
+                model_file = next(w.rglob("*.json"), None)
+                params_file = next(w.rglob("*.pdiparams"), None)
+            elif w.suffix == ".pdiparams":
+                model_file = w.with_name("model.json")
+                params_file = w
+
+            if not (model_file and params_file and model_file.is_file() and params_file.is_file()):
+                raise FileNotFoundError(f"Paddle model not found in {w}. Both .json and .pdiparams files are required.")
+
+            config = pdi.Config(str(model_file), str(params_file))
             if cuda:
                 config.enable_use_gpu(memory_pool_init_size_mb=2048, device_id=0)
             predictor = pdi.create_predictor(config)
             input_handle = predictor.get_input_handle(predictor.get_input_names()[0])
             output_names = predictor.get_output_names()
-            metadata = w.parents[1] / "metadata.yaml"
+            metadata = w / "metadata.yaml"
 
         # MNN
         elif mnn:

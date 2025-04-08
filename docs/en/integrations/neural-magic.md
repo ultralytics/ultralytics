@@ -157,7 +157,7 @@ After running the eval command, you will receive detailed output metrics such as
 
 This guide explored integrating Ultralytics' YOLO11 with Neural Magic's DeepSparse Engine. It highlighted how this integration enhances YOLO11's performance on CPU platforms, offering GPU-level efficiency and advanced neural network sparsity techniques.
 
-For more detailed information and advanced usage, visit [Neural Magic's DeepSparse documentation](https://docs.neuralmagic.com/products/deepsparse/). Also, check out Neural Magic's documentation on the integration with YOLO11 [here](https://github.com/neuralmagic/deepsparse/tree/main/src/deepsparse/yolov8#yolov8-inference-pipelines) and watch a great session on it [here](https://www.youtube.com/watch?v=qtJ7bdt52x8).
+For more detailed information and advanced usage, visit the [DeepSparse documentation by Neural Magic](https://docs.neuralmagic.com/products/deepsparse/). You can also [explore the YOLO11 integration guide](https://github.com/neuralmagic/deepsparse/tree/main/src/deepsparse/yolov8#yolov8-inference-pipelines) and [watch a walkthrough session on YouTube](https://www.youtube.com/watch?v=qtJ7bdt52x8).
 
 Additionally, for a broader understanding of various YOLO11 integrations, visit the [Ultralytics integration guide page](../integrations/index.md), where you can discover a range of other exciting integration possibilities.
 

@@ -369,8 +369,7 @@ class LRPCHead(nn.Module):
         if self.enabled:
             pf_score = self.pf(cls_feat)[0, 0].flatten(0)
             mask = (pf_score.sigmoid() > conf).int()
-            cls_feat = cls_feat.flatten(2).transpose(-1, -2)
-            cls_feat *= mask.unsqueeze(-1)  # OpenVINO fails if using logical not
+            cls_feat = cls_feat.flatten(2).transpose(-1, -2) * mask.unsqueeze(-1)  # OpenVINO fails w/ logical not
             cls_feat = self.vocab(cls_feat)
             return (self.loc(loc_feat), cls_feat.transpose(-1, -2)), mask
         else:

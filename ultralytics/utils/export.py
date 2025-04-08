@@ -43,9 +43,9 @@ def export_engine(
     dynamic=False,
     shape=(1, 3, 640, 640),
     dla=None,
-    prefix="",
     dataset=None,
     metadata=None,
+    prefix="",
 ):
     """
     Exports a YOLO model to TensorRT engine format.
@@ -60,9 +60,9 @@ def export_engine(
         dynamic (bool, optional): Enable dynamic input shapes. Defaults to False.
         shape (tuple, optional): Input shape (batch, channels, height, width). Defaults to (1, 3, 640, 640).
         dla (int, optional): DLA core to use (Jetson devices only). Defaults to None.
-        prefix (str, optional): Prefix for log messages. Defaults to "".
         dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration. Defaults to None.
         metadata (dict, optional): Metadata to include in the engine file. Defaults to None.
+        prefix (str, optional): Prefix for log messages. Defaults to "".
 
     Raises:
         ValueError: If DLA is enabled on non-Jetson devices or required precision is not set.

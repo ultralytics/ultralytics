@@ -11,8 +11,8 @@ To get started, you'll need [Python](https://www.python.org/) installed. Then, i
 Clone the repository and install the packages listed in the `requirements.txt` file using [pip](https://pip.pypa.io/en/stable/):
 
 ```bash
-git clone https://github.com/ultralytics/examples.git
-cd examples/YOLOv8-ONNXRuntime
+git clone https://github.com/ultralytics/ultralytics.git
+cd ultralytics/examples/YOLOv8-ONNXRuntime
 pip install -r requirements.txt
 ```
 

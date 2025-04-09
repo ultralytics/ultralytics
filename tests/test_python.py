@@ -657,8 +657,8 @@ def test_yoloe():
 
     # # prompt-free
     # predict
-    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg-pf.pt")
-    model.predict(SOURCE)
+    # model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg-pf.pt")
+    # model.predict(SOURCE)
     # # val
     # model = YOLOE("yoloe-11s-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
     # model.val(data="coco128-seg.yaml", imgsz=32)

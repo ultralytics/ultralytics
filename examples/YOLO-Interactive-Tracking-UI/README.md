@@ -1,6 +1,6 @@
 # Ultralytics YOLO Interactive [Object Tracking](https://docs.ultralytics.com/modes/track/) UI 🚀
 
-A real-time [object detection](https://docs.ultralytics.com/tasks/detect/) and tracking UI built with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) and OpenCV, designed for interactive demos, and seamless integration of tracking overlays.
+A real-time [object detection](https://docs.ultralytics.com/tasks/detect/) and tracking UI built with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) and OpenCV, designed for interactive demos and seamless integration of tracking overlays. Whether you're just getting started with object tracking or looking to enhance it with additional features, this project is for you.
 
 ![ultralytics-yolo-interactive-object-tracking-ui](https://github.com/user-attachments/assets/179f62e1-97ba-4345-b7cd-a6aa80681996)
 

@@ -13,14 +13,14 @@ USE_GPU = False  # Set True if running with CUDA
 model_file = "yolo11s.pt"  # Path to model file
 show_fps = True  # If True, shows current FPS in top-left corner
 
-CONFIDENCE_THRESHOLD = 0.3        # Min confidence for object detection (lower = more detections, possibly more false positives)
-IOU_THRESHOLD = 0.3               # IoU threshold for NMS (higher = less overlap allowed)
-MAX_DETECTION = 20                # Maximum objects per im (increase for crowded scenes)
+CONF = 0.3  # Min confidence for object detection (lower = more detections, possibly more false positives)
+IOU = 0.3  # IoU threshold for NMS (higher = less overlap allowed)
+MAX_DET = 20  # Maximum objects per im (increase for crowded scenes)
 
-TRACKER_TYPE = "bytetrack.yaml"   # Tracker config: 'bytetrack.yaml', 'botsort.yaml', etc.
-TRACKER_ARGS = {
-    "persist": True,              # Keep frames history as a stream for contineous tracking
-    "verbose": False              # Print debug info from tracker
+TRACKER = "bytetrack.yaml"  # Tracker config: 'bytetrack.yaml', 'botsort.yaml', etc.
+TRACK_ARGS = {
+    "persist": True,  # Keep frames history as a stream for contineous tracking
+    "verbose": False  # Print debug info from tracker
 }
 
 LOGGER.info("🚀 Initializing model...")
@@ -110,9 +110,7 @@ while cap.isOpened():
     if not success:
         break
 
-    results = model.track(
-        im, conf=CONFIDENCE_THRESHOLD, iou=IOU_THRESHOLD, max_det=MAX_DETECTION, tracker=TRACKER_TYPE, **TRACKER_ARGS
-    )
+    results = model.track(im, conf=CONF, iou=IOU, max_det=MAX_DET, tracker=TRACKER, **TRACK_ARGS)
 
     frame_overlay = im.copy()
     detections = results[0].boxes.data if results[0].boxes is not None else []

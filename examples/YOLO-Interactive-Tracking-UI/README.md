@@ -2,6 +2,8 @@
 
 A real-time [object detection](https://docs.ultralytics.com/tasks/detect/) and tracking UI built with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) and OpenCV, designed for interactive demos, and seamless integration of tracking overlays.
 
+![ultralytics-yolo-interactive-object-tracking-ui](https://github.com/user-attachments/assets/179f62e1-97ba-4345-b7cd-a6aa80681996)
+
 ## Features
 
 - Real-time object detection and visual tracking  
@@ -21,10 +23,6 @@ YOLO-Interactive-Tracking-UI/
 ├── interactive_tracker.py   # Main Python tracking UI script
 └── README.md                # You're here!
 ```
-
-## Project demo
-
-![ultralytics-yolo-interactive-object-tracking-ui](https://github.com/user-attachments/assets/179f62e1-97ba-4345-b7cd-a6aa80681996)
 
 ## Features
 

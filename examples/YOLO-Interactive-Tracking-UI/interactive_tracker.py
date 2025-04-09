@@ -6,7 +6,7 @@ import cv2
 
 from ultralytics import YOLO
 from ultralytics.utils import LOGGER
-from ultralytics.utils.plotting import colors
+from ultralytics.utils.plotting import colors, Annotator
 
 USE_GPU = False  # Set True if running with CUDA
 model_file = "yolo11s.pt"  # Path to model file
@@ -57,25 +57,6 @@ def extend_line_from_edge(mid_x, mid_y, direction, img_shape):
     return mid_x, mid_y
 
 
-def draw_tracking_scope(im, bbox, color):
-    x1, y1, x2, y2 = bbox
-    mid_top = ((x1 + x2) // 2, y1)
-    mid_bottom = ((x1 + x2) // 2, y2)
-    mid_left = (x1, (y1 + y2) // 2)
-    mid_right = (x2, (y1 + y2) // 2)
-    cv2.line(im, mid_top, extend_line_from_edge(*mid_top, "up", im.shape), color, 2)
-    cv2.line(im, mid_bottom, extend_line_from_edge(*mid_bottom, "down", im.shape), color, 2)
-    cv2.line(im, mid_left, extend_line_from_edge(*mid_left, "left", im.shape), color, 2)
-    cv2.line(im, mid_right, extend_line_from_edge(*mid_right, "right", im.shape), color, 2)
-
-
-def draw_label_with_bg(img, text, position, color, font_scale=0.6, thickness=1):
-    (w, h), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
-    x, y = position
-    cv2.rectangle(img, (x - 2, y - h - 4), (x + w + 2, y + 2), (0, 0, 0), -1)  # Background box
-    cv2.putText(img, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, thickness, cv2.LINE_AA)
-
-
 def click_event(event, x, y, flags, param):
     global selected_object_id
     if event == cv2.EVENT_LBUTTONDOWN:
@@ -110,6 +91,8 @@ while cap.isOpened():
         break
 
     results = model.track(im, conf=CONF, iou=IOU, max_det=MAX_DET, tracker=TRACKER, **TRACK_ARGS)
+    annotator = Annotator(im, line_width=3, example=model.names)
+
 
     frame_overlay = im.copy()
     detections = results[0].boxes.data if results[0].boxes is not None else []
@@ -156,26 +139,15 @@ while cap.isOpened():
 
         if track_id == selected_object_id:
             # Highlight selected object
-            cv2.rectangle(im, (x1, y1), (x2, y2), color, 5)
-            draw_tracking_scope(im, (x1, y1, x2, y2), color)
+            annotator.box_label((x1, y1, x2, y2), label, color)
             center = get_center(x1, y1, x2, y2)
-            cv2.circle(im, center, 6, color, -1)
-
-            # Pulsing circle for attention
-            pulse_radius = 8 + int(4 * abs(time.time() % 1 - 0.5))
-            cv2.circle(im, center, pulse_radius, color, 2)
-
             label = f"*ACTIVE* {label}"
         else:
-            # Draw dashed box for other objects
-            for i in range(x1, x2, 10):
-                cv2.line(frame_overlay, (i, y1), (i + 5, y1), color, 3)
-                cv2.line(frame_overlay, (i, y2), (i + 5, y2), color, 3)
-            for i in range(y1, y2, 10):
-                cv2.line(frame_overlay, (x1, i), (x1, i + 5), color, 3)
-                cv2.line(frame_overlay, (x2, i), (x2, i + 5), color, 3)
+            # Slightly dim color for non-active boxes
+            if track_id != selected_object_id:
+                color = tuple(int(c * 0.5) for c in color)
+            annotator.box_label((x1, y1, x2, y2), label, color)
 
-        draw_label_with_bg(im, label, (x1 + 5, y1 + 20), color)
 
     if show_fps:
         fps_counter += 1
@@ -186,8 +158,9 @@ while cap.isOpened():
         cv2.putText(im, f"FPS: {fps_display}", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
     # Blend overlays and show result
-    blended_frame = cv2.addWeighted(frame_overlay, 0.5, im, 0.5, 0)
-    cv2.imshow("YOLO Tracking", blended_frame)
+    blended_frame = cv2.addWeighted(frame_overlay, 0.5, annotator.result(), 0.5, 0)
+
+    cv2.imshow("YOLO Tracking", annotator.result())
 
     # Terminal logging
     print(f"🟡 DETECTED {len(detections)} OBJECT(S): {' | '.join(detected_objects)}")

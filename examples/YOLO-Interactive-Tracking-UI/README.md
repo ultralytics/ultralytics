@@ -24,18 +24,6 @@ YOLO-Interactive-Tracking-UI/
 └── README.md                # You're here!
 ```
 
-## Features
-
-- Real-time object detection and visual tracking
-- Click on any object to initiate tracking
-- Scope lines and bold bounding box for active tracking
-- Dashed boxes for passive (non-tracked) objects
-- Live terminal updates with object ID, label, confidence, center point
-- Configurable thresholds and tracker engine (e.g. `bytetrack`, `botsort`)
-- Supports:
-  - PyTorch `.pt` models for GPU (Jetson, desktop with CUDA)
-  - NCNN `.param + .bin` models for CPU-only (Raspberry Pi, ARM)
-
 ## Hardware & [Model](https://docs.ultralytics.com/models/) compatibility
 
 | Platform         | Model Format       | Example Model        | GPU Acceleration | Notes                           |

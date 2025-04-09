@@ -910,7 +910,6 @@ class DFINETransformer(nn.Module):
         num_queries=300,
         feat_channels=[512, 1024, 2048],
         feat_strides=[8, 16, 32],
-        num_levels=3,
         num_points=4,
         nhead=8,
         num_layers=6,
@@ -923,7 +922,6 @@ class DFINETransformer(nn.Module):
         learn_query_content=False,
         eval_spatial_size=None,
         eval_idx=-1,
-        eps=1e-2,
         aux_loss=True,
         cross_attn_method="default",
         query_select_method="default",
@@ -933,20 +931,12 @@ class DFINETransformer(nn.Module):
         mlp_act="relu",
     ):
         super().__init__()
-        assert len(feat_channels) <= num_levels
-        assert len(feat_strides) == len(feat_channels)
-
-        for _ in range(num_levels - len(feat_strides)):
-            feat_strides.append(feat_strides[-1] * 2)
-
         self.hidden_dim = hidden_dim
         scaled_dim = round(layer_scale * hidden_dim)
         self.nhead = nhead
-        self.feat_strides = feat_strides
-        self.num_levels = num_levels
+        self.num_levels = len(feat_channels)
         self.num_classes = num_classes
         self.num_queries = num_queries
-        self.eps = eps
         self.num_layers = num_layers
         self.eval_spatial_size = eval_spatial_size
         self.aux_loss = aux_loss
@@ -969,9 +959,9 @@ class DFINETransformer(nn.Module):
             dim_feedforward,
             dropout,
             activation,
-            num_levels,
+            self.num_levels,
             num_points,
-            cross_attn_method=cross_attn_method,
+            cross_attn_method=cross_attn_method,  # TODO: add this support
         )
         decoder_layer_wide = DeformableTransformerDecoderLayer(
             hidden_dim,
@@ -979,12 +969,12 @@ class DFINETransformer(nn.Module):
             dim_feedforward,
             dropout,
             activation,
-            num_levels,
+            self.num_levels,
             num_points,
-            cross_attn_method=cross_attn_method,
-            layer_scale=layer_scale,
+            cross_attn_method=cross_attn_method,  # TODO: add this support
+            layer_scale=layer_scale,  # TODO: add this support
         )
-        self.decoder = DeformableTransformerDecoder(
+        self.decoder = DeformableTransformerDecoder(  # TODO: add this support
             hidden_dim,
             decoder_layer,
             decoder_layer_wide,
@@ -1015,6 +1005,7 @@ class DFINETransformer(nn.Module):
         #     layer = TransformerEncoderLayer(hidden_dim, nhead, dim_feedforward, activation='gelu')
         #     self.encoder = TransformerEncoder(layer, 1)
 
+        # TODO: check this out
         self.enc_output = nn.Sequential(
             OrderedDict(
                 [
@@ -1029,11 +1020,7 @@ class DFINETransformer(nn.Module):
             )
         )
 
-        if query_select_method == "agnostic":
-            self.enc_score_head = nn.Linear(hidden_dim, 1)
-        else:
-            self.enc_score_head = nn.Linear(hidden_dim, num_classes)
-
+        self.enc_score_head = nn.Linear(hidden_dim, 1) if query_select_method == "agnostic" else nn.Linear(hidden_dim, num_classes)
         self.enc_bbox_head = MLP(hidden_dim, hidden_dim, 4, 3, act=mlp_act)
 
         # decoder head
@@ -1158,27 +1145,36 @@ class DFINETransformer(nn.Module):
         feat_flatten = torch.concat(feat_flatten, 1)
         return feat_flatten, spatial_shapes
 
-    def _generate_anchors(self, spatial_shapes=None, grid_size=0.05, dtype=torch.float32, device="cpu"):
-        if spatial_shapes is None:
-            spatial_shapes = []
-            eval_h, eval_w = self.eval_spatial_size
-            for s in self.feat_strides:
-                spatial_shapes.append([int(eval_h / s), int(eval_w / s)])
+    def _generate_anchors(self, shapes, grid_size=0.05, dtype=torch.float32, device="cpu", eps=1e-2):
+        """
+        Generates anchor bounding boxes for given shapes with specific grid size and validates them.
 
+        Args:
+            shapes (list): List of feature map shapes.
+            grid_size (float, optional): Base size of grid cells. Default is 0.05.
+            dtype (torch.dtype, optional): Data type for tensors. Default is torch.float32.
+            device (str, optional): Device to create tensors on. Default is "cpu".
+            eps (float, optional): Small value for numerical stability. Default is 1e-2.
+
+        Returns:
+            (tuple): Tuple containing anchors and valid mask tensors.
+        """
         anchors = []
-        for lvl, (h, w) in enumerate(spatial_shapes):
-            grid_y, grid_x = torch.meshgrid(torch.arange(h), torch.arange(w), indexing="ij")
-            grid_xy = torch.stack([grid_x, grid_y], dim=-1)
-            grid_xy = (grid_xy.unsqueeze(0) + 0.5) / torch.tensor([w, h], dtype=dtype)
-            wh = torch.ones_like(grid_xy) * grid_size * (2.0**lvl)
-            lvl_anchors = torch.concat([grid_xy, wh], dim=-1).reshape(-1, h * w, 4)
-            anchors.append(lvl_anchors)
+        for i, (h, w) in enumerate(shapes):
+            sy = torch.arange(end=h, dtype=dtype, device=device)
+            sx = torch.arange(end=w, dtype=dtype, device=device)
+            grid_y, grid_x = torch.meshgrid(sy, sx, indexing="ij") if TORCH_1_10 else torch.meshgrid(sy, sx)
+            grid_xy = torch.stack([grid_x, grid_y], -1)  # (h, w, 2)
 
-        anchors = torch.concat(anchors, dim=1).to(device)
-        valid_mask = ((anchors > self.eps) * (anchors < 1 - self.eps)).all(-1, keepdim=True)
+            valid_WH = torch.tensor([w, h], dtype=dtype, device=device)
+            grid_xy = (grid_xy.unsqueeze(0) + 0.5) / valid_WH  # (1, h, w, 2)
+            wh = torch.ones_like(grid_xy, dtype=dtype, device=device) * grid_size * (2.0**i)
+            anchors.append(torch.cat([grid_xy, wh], -1).view(-1, h * w, 4))  # (1, h*w, 4)
+
+        anchors = torch.cat(anchors, 1)  # (1, h*w*nl, 4)
+        valid_mask = ((anchors > eps) & (anchors < 1 - eps)).all(-1, keepdim=True)  # 1, h*w*nl, 1
         anchors = torch.log(anchors / (1 - anchors))
-        anchors = torch.where(valid_mask, anchors, torch.inf)
-
+        anchors = anchors.masked_fill(~valid_mask, float("inf"))
         return anchors, valid_mask
 
     def _get_decoder_input(

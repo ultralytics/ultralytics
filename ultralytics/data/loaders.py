@@ -351,6 +351,11 @@ class LoadImagesAndVideos:
                 videos.append(f)
         ni, nv = len(images), len(videos)
 
+        if ni > 0:
+            # If images are present, apply the stride to the images list.
+            images = images[::vid_stride]
+            ni = len(images)  # update count to reflect reduced list
+
         self.files = images + videos
         self.nf = ni + nv  # number of files
         self.ni = ni  # number of images

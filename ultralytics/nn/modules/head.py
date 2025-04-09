@@ -1123,26 +1123,27 @@ class DFINETransformer(nn.Module):
     def _get_encoder_input(self, feats: List[torch.Tensor]):
         # get projection features
         proj_feats = [self.input_proj[i](feat) for i, feat in enumerate(feats)]
-        if self.num_levels > len(proj_feats):
-            len_srcs = len(proj_feats)
-            for i in range(len_srcs, self.num_levels):
-                if i == len_srcs:
-                    proj_feats.append(self.input_proj[i](feats[-1]))
-                else:
-                    proj_feats.append(self.input_proj[i](proj_feats[-1]))
+        # TODO: check whether num_levels could exceed len(feats)
+        # if self.num_levels > len(proj_feats):
+        #     len_srcs = len(proj_feats)
+        #     for i in range(len_srcs, self.num_levels):
+        #         if i == len_srcs:
+        #             proj_feats.append(self.input_proj[i](feats[-1]))
+        #         else:
+        #             proj_feats.append(self.input_proj[i](proj_feats[-1]))
 
         # get encoder inputs
         feat_flatten = []
         spatial_shapes = []
         for i, feat in enumerate(proj_feats):
-            _, _, h, w = feat.shape
+            h, w = feat.shape[2:]
             # [b, c, h, w] -> [b, h*w, c]
             feat_flatten.append(feat.flatten(2).permute(0, 2, 1))
             # [num_levels, 2]
             spatial_shapes.append([h, w])
 
-        # [b, l, c]
-        feat_flatten = torch.concat(feat_flatten, 1)
+        # [b, h*w, c]
+        feat_flatten = torch.cat(feat_flatten, 1)
         return feat_flatten, spatial_shapes
 
     def _generate_anchors(self, shapes, grid_size=0.05, dtype=torch.float32, device="cpu", eps=1e-2):

@@ -66,20 +66,20 @@ SOLUTIONS = [
         DEMO_VIDEO,
         {"analytics_type": "line", "model": MODEL_FILE, "show": SHOW},
     ),
-    # (
-    #     "PieAnalytics",
-    #     solutions.Analytics,
-    #     True,
-    #     DEMO_VIDEO,
-    #     {"analytics_type": "pie", "model": MODEL_FILE, "show": SHOW},
-    # ),
-    # (
-    #     "BarAnalytics",
-    #     solutions.Analytics,
-    #     True,
-    #     DEMO_VIDEO,
-    #     {"analytics_type": "bar", "model": MODEL_FILE, "show": SHOW},
-    # ),
+    (
+        "PieAnalytics",
+        solutions.Analytics,
+        True,
+        DEMO_VIDEO,
+        {"analytics_type": "pie", "model": MODEL_FILE, "show": SHOW},
+    ),
+    (
+        "BarAnalytics",
+        solutions.Analytics,
+        True,
+        DEMO_VIDEO,
+        {"analytics_type": "bar", "model": MODEL_FILE, "show": SHOW},
+    ),
     (
         "AreaAnalytics",
         solutions.Analytics,
@@ -125,13 +125,13 @@ SOLUTIONS = [
         PARKING_VIDEO,
         {"model": str(TMP / PARKING_MODEL), "show": SHOW, "json_file": str(TMP / PARKING_AREAS_JSON)},
     ),
-    # (
-    #     "StreamlitInference",
-    #     solutions.Inference,
-    #     False,
-    #     None,  # streamlit application don't require video file
-    #     {},  # streamlit application don't accept arguments
-    # ),
+    (
+        "StreamlitInference",
+        solutions.Inference,
+        False,
+        None,  # streamlit application don't require video file
+        {},  # streamlit application don't accept arguments
+    ),
 ]
 
 

@@ -1054,7 +1054,7 @@ class Boxes(BaseTensor):
         conf (torch.Tensor | numpy.ndarray): Confidence scores for each box.
         cls (torch.Tensor | numpy.ndarray): Class labels for each box.
         id (torch.Tensor | None): Tracking IDs for each box (if available).
-        obj (torch.Tensor | None): objectness score 
+        obj (torch.Tensor | None): objectness score
         xywh (torch.Tensor | numpy.ndarray): Boxes in [x, y, width, height] format.
         xyxyn (torch.Tensor | numpy.ndarray): Normalized [x1, y1, x2, y2] boxes relative to orig_shape.
         xywhn (torch.Tensor | numpy.ndarray): Normalized [x, y, width, height] boxes relative to orig_shape.

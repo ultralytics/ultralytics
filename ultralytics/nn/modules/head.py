@@ -179,9 +179,9 @@ class Detect(nn.Module):
         """
         batch_size, anchors, _ = preds.shape
 
-        boxes = preds[..., :4]             # (B, N, 4)
-        cls_probs = preds[..., 4:4+nc]     # (B, N, nc) 
-        obj_scores = preds[..., 4+nc:]     # (B, N, 1)  
+        boxes = preds[..., :4]  # (B, N, 4)
+        cls_probs = preds[..., 4 : 4 + nc]  # (B, N, nc)
+        obj_scores = preds[..., 4 + nc :]  # (B, N, 1)
 
         # Max class confidence and class ID per anchor
         cls_score, cls_id = cls_probs.max(dim=-1)  # (B, N), (B, N)
@@ -191,18 +191,13 @@ class Detect(nn.Module):
         topk_score, topk_idx = cls_score.topk(topk, dim=1)  # (B, topk)
 
         i = torch.arange(batch_size, device=preds.device)[:, None]
-        boxes = boxes[i, topk_idx]               # (B, topk, 4)
-        cls_score = cls_score[i, topk_idx]       # (B, topk)
-        cls_id = cls_id[i, topk_idx].float()     # (B, topk)
+        boxes = boxes[i, topk_idx]  # (B, topk, 4)
+        cls_score = cls_score[i, topk_idx]  # (B, topk)
+        cls_id = cls_id[i, topk_idx].float()  # (B, topk)
         obj_score = obj_scores[i, topk_idx].squeeze(-1)  # (B, topk)
 
         # Final output: [x, y, w, h, class_conf, class_id, objectness]
-        return torch.cat([
-            boxes,
-            cls_score.unsqueeze(-1),
-            cls_id.unsqueeze(-1),
-            obj_score.unsqueeze(-1)
-        ], dim=-1)
+        return torch.cat([boxes, cls_score.unsqueeze(-1), cls_id.unsqueeze(-1), obj_score.unsqueeze(-1)], dim=-1)
 
 
 class Segment(Detect):

@@ -1143,7 +1143,7 @@ class Boxes(BaseTensor):
             >>> print(conf_scores)
             tensor([0.9000])
         """
-        return self.data[:, 5]
+        return self.data[:, 4]
 
     @property
     def cls(self):
@@ -1160,7 +1160,7 @@ class Boxes(BaseTensor):
             >>> class_ids = boxes.cls
             >>> print(class_ids)  # tensor([0., 2., 1.])
         """
-        return self.data[:, 6]
+        return self.data[:, 5]
 
     @property
     def id(self):

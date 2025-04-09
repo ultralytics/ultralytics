@@ -36,11 +36,11 @@ YOLO-Interactive-Tracking-UI/
 ## Hardware & [Model](https://docs.ultralytics.com/models/) compatibility
 
 | Platform         | Model Format       | Example Model        | GPU Acceleration | Notes                           |
-|------------------|--------------------|----------------------|------------------|---------------------------------|
-| Raspberry Pi 4/5 | NCNN (.param/.bin) | `yolov8n_ncnn_model` | ❌ CPU only       | Recommended format for Pi/ARM   |
-| Jetson Nano      | PyTorch (.pt)      | `yolov8n.pt`         | ✅ CUDA           | Real-time performance possible  |
-| Desktop w/ GPU   | PyTorch (.pt)      | `yolov8s.pt`         | ✅ CUDA           | Best performance                |
-| CPU-only laptops | NCNN (.param/.bin) | `yolov8n_ncnn_model` | ❌                | Decent performance (~10–15 FPS) |
+| ---------------- | ------------------ | -------------------- | ---------------- | ------------------------------- |
+| Raspberry Pi 4/5 | NCNN (.param/.bin) | `yolov8n_ncnn_model` | ❌ CPU only      | Recommended format for Pi/ARM   |
+| Jetson Nano      | PyTorch (.pt)      | `yolov8n.pt`         | ✅ CUDA          | Real-time performance possible  |
+| Desktop w/ GPU   | PyTorch (.pt)      | `yolov8s.pt`         | ✅ CUDA          | Best performance                |
+| CPU-only laptops | NCNN (.param/.bin) | `yolov8n_ncnn_model` | ❌               | Decent performance (~10–15 FPS) |
 
 ## Installation
 
@@ -52,7 +52,7 @@ pip install ultralytics
 
 > Use a virtual environment like `venv` or `conda` (recommended).
 
-> Install PyTorch based on your system and CUDA version: 
+> Install PyTorch based on your system and CUDA version:
 > 👉 https://pytorch.org/get-started/locally/
 
 ## Quickstart

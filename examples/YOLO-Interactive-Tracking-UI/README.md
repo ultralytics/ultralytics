@@ -8,13 +8,13 @@ A real-time [object detection](https://docs.ultralytics.com/tasks/detect/) and t
 
 - Real-time object detection and visual tracking
 - Click-to-track any detected object
-- Scope lines and bold bounding boxes for active tracking
+- Scope lines and bold [bounding boxes](https://docs.ultralytics.com/usage/simple-utilities/#bounding-boxes) for active tracking
 - Dashed boxes for passive (non-tracked) objects
-- Live terminal output: object ID, label, confidence, and center coordinates
+- [Live terminal output](https://docs.ultralytics.com/guides/view-results-in-terminal/): object ID, label, confidence, and center coordinates
 - Adjustable object tracking algorithms (`bytetrack`, `botsort`)
 - Supports:
-  - PyTorch `.pt` models (for GPU devices like Jetson or CUDA-enabled desktops)
-  - NCNN `.param + .bin` models (for CPU-only devices like Raspberry Pi or ARM boards)
+  - PyTorch `.pt` models (for GPU devices like [Jetson](https://docs.ultralytics.com/guides/nvidia-jetson/) or CUDA-enabled desktops)
+  - [NCNN](https://docs.ultralytics.com/integrations/ncnn/) `.param + .bin` models (for CPU-only devices like Raspberry Pi or ARM boards)
 
 ## Project structure
 

@@ -132,7 +132,6 @@ SOLUTIONS = [
     #     None,  # streamlit application don't require video file
     #     {},  # streamlit application don't accept arguments
     # ),
-
 ]
 
 

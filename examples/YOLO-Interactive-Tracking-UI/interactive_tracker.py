@@ -42,9 +42,11 @@ selected_bbox = None
 selected_center = None
 object_colors = {}
 
+
 # Get centroid of boounding box
 def get_center(x1, y1, x2, y2):
     return (x1 + x2) // 2, (y1 + y2) // 2
+
 
 def extend_line_from_edge(mid_x, mid_y, direction, img_shape):
     h, w = img_shape[:2]
@@ -57,6 +59,7 @@ def extend_line_from_edge(mid_x, mid_y, direction, img_shape):
     if direction == "down":
         return mid_x, h - 1
     return mid_x, mid_y
+
 
 def draw_tracking_scope(frame, bbox, color):
     x1, y1, x2, y2 = bbox
@@ -98,6 +101,7 @@ def click_event(event, x, y, flags, param):
             if best_match:
                 selected_object_id, label = best_match
                 LOGGER.info(f"🔵 TRACKING STARTED: {label} (ID {selected_object_id})")
+
 
 # Display the results
 cv2.namedWindow(WINDOW_NAME)

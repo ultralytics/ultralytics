@@ -1020,7 +1020,9 @@ class DFINETransformer(nn.Module):
             )
         )
 
-        self.enc_score_head = nn.Linear(hidden_dim, 1) if query_select_method == "agnostic" else nn.Linear(hidden_dim, num_classes)
+        self.enc_score_head = (
+            nn.Linear(hidden_dim, 1) if query_select_method == "agnostic" else nn.Linear(hidden_dim, num_classes)
+        )
         self.enc_bbox_head = MLP(hidden_dim, hidden_dim, 4, 3, act=mlp_act)
 
         # decoder head
@@ -1179,7 +1181,11 @@ class DFINETransformer(nn.Module):
         return anchors, valid_mask
 
     def _get_decoder_input(
-        self, memory: torch.Tensor, spatial_shapes, denoising_logits=None, denoising_bbox_unact=None
+        self,
+        memory: torch.Tensor,
+        spatial_shapes,
+        denoising_logits=None,
+        denoising_bbox_unact=None,
     ):
         # prepare input for decoder
         if self.training or self.eval_spatial_size is None:

@@ -1,138 +1,40 @@
-"""
-YOLO Interactive Tracking UI (CPU & GPU Enabled).
-===============================================
-
-An educational demo showcasing real-time object detection and interactive tracking
-using Ultralytics YOLO + OpenCV — with a clean UI, click-to-track functionality,
-and live terminal feedback.
-
-Features:
-------------
-- Real-time object detection and visual tracking
-- Click on any detected object to begin tracking it
-- Visual overlays: bounding boxes, scope lines, center markers, object IDs
-- Live terminal output with object ID, class name, confidence, and center position
-- Supports both:
-  - ✅ PyTorch (.pt) models — for GPU inference (Jetson, CUDA-enabled PC)
-  - ✅ NCNN (.param + .bin) models — for CPU-only environments (Raspberry Pi, ARM)
-
-CPU vs GPU Support:
-----------------------
-- Set `USE_GPU = True` for GPU (requires PyTorch and CUDA)
-- Set `USE_GPU = False` for CPU-only (NCNN models)
-- Toggle easily in the config section at the top of the script
-
-Requirements:
-----------------
-- Python 3.8 or higher
-- Install core dependencies:
-  ```bash
-  pip install ultralytics opencv-python
-  ```
-
-
-For PyTorch Models:
-----------------------
-If using a `.pt` model:
-- Visit the official PyTorch install page:
-  👉 https://pytorch.org/get-started/locally/
-- Follow instructions based on your system (CUDA or CPU)
-
-Model File Examples:
-------------------------
-Place your model in the same folder or use an absolute path or if using official model, let the system automatically download the model.
-
-Examples:
-    - `yolov11s.pt`           → PyTorch model
-    - `yolov11s_ncnn_model`   → NCNN model (consists of `.param` + `.bin`)
-
-Controls:
-------------
-- 🖱️  Click on any object to track it
-- 🔄 Press `c` to reset tracking
-- ❌ Press `q` to quit the application
-
-How to Run:
---------------
-1. Open the script and configure these lines at the top:
-
-USE_GPU = True  # or False
-MODEL_PATH_GPU = "yolov11s.pt"
-MODEL_PATH_CPU = "yolov11s_ncnn_model"
-
-2. Then run:
-
-python interactive_tracker.py
-
-
-Tip:
----
-- Use lightweight models (`yolo11n`, `yolo11s`) for smoother real-time performance
-- NCNN models are best for Raspberry Pi and ARM-based devices
-
-## Author
-
-- Connect with author: [here](https://www.linkedin.com/in/alireza787b)
-- Published Date ![Published Date](https://img.shields.io/badge/published_Date-2025--04--01-purple)
-
-
-## License & Disclaimer
-
-This project is released under the **AGPL-3.0 license**. For full licensing terms, please visit the [Ultralytics YOLO License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
-
-It is intended solely for educational and demonstration purposes. Please use it responsibly and at your own discretion. The author assumes no liability for any misuse or unintended consequences. Feedback, forks, and contributions are highly encouraged and always appreciated!
-
-
-"""
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import time
 
 import cv2
 
 from ultralytics import YOLO
-from ultralytics.utils.plotting import Colors
+from ultralytics.utils import LOGGER
+from ultralytics.utils.plotting import colors
 
-# ================================
-# 🔧 USER CONFIGURATION SECTION
-# ================================
-
+# USER CONFIGURATION SECTION
 USE_GPU = False  # Set True if running with CUDA
 MODEL_PATH_GPU = "yolo11s.pt"
 MODEL_PATH_CPU = "yolo11s.pt"
 
 SHOW_FPS = True  # If True, shows current FPS in top-left corner
-
-CONFIDENCE_THRESHOLD = (
-    0.3  # Min confidence for object detection (lower = more detections, possibly more false positives)
-)
-IOU_THRESHOLD = 0.3  # IoU threshold for NMS (higher = less overlap allowed)
-MAX_DETECTION = 20  # Maximum objects per frame (increase for crowded scenes)
-
-TRACKER_TYPE = "bytetrack.yaml"  # Tracker config: 'bytetrack.yaml', 'botsort.yaml', etc.
-TRACKER_ARGS = {
+WINDOW_NAME = "Ultralytics YOLO Interactive Tracking App"  # Name of the display window
+nms = 0.3  # IoU threshold for NMS (higher = less overlap allowed)
+max_det = 20  # Maximum objects per frame (increase for crowded scenes)
+conf = 0.3  # Min confidence for detection (lower = more results, probably false positives)
+tracker = "bytetrack.yaml"  # Tracker config: 'bytetrack.yaml', 'botsort.yaml', etc.
+track_args = {
     "persist": True,  # Keep frames history as a stream for continuous tracking
     "verbose": False,  # Print debug info from tracker
 }
 
 
-colors = Colors()
-
-# ================================
-# 🚀 MODEL INITIALIZATION
-# ================================
-
-print("🚀 Initializing model...")
+LOGGER.info("🚀 Initializing model...")
 if USE_GPU:
-    print("Using GPU...")
+    LOGGER.info("Using GPU...")
     model = YOLO(MODEL_PATH_GPU)
     model.to("cuda")
 else:
-    print("Using CPU...")
+    LOGGER.info("Using CPU...")
     model = YOLO(MODEL_PATH_CPU, task="detect")
 
-# ================================
-# 🎥 VIDEO SOURCE
-# ================================
+# VIDEO SOURCE
 cap = cv2.VideoCapture(0)  # Replace with video path if needed
 
 selected_object_id = None
@@ -140,27 +42,21 @@ selected_bbox = None
 selected_center = None
 object_colors = {}
 
-# ================================
-# 🧩 HELPER FUNCTIONS
-# ================================
-
-
+# Get centroid of boounding box
 def get_center(x1, y1, x2, y2):
     return (x1 + x2) // 2, (y1 + y2) // 2
-
 
 def extend_line_from_edge(mid_x, mid_y, direction, img_shape):
     h, w = img_shape[:2]
     if direction == "left":
-        return (0, mid_y)
+        return 0, mid_y
     if direction == "right":
-        return (w - 1, mid_y)
+        return w - 1, mid_y
     if direction == "up":
-        return (mid_x, 0)
+        return mid_x, 0
     if direction == "down":
-        return (mid_x, h - 1)
+        return mid_x, h - 1
     return mid_x, mid_y
-
 
 def draw_tracking_scope(frame, bbox, color):
     x1, y1, x2, y2 = bbox
@@ -201,27 +97,23 @@ def click_event(event, x, y, flags, param):
                             best_match = (track_id, model.names[class_id])
             if best_match:
                 selected_object_id, label = best_match
-                print(f"🔵 TRACKING STARTED: {label} (ID {selected_object_id})")
+                LOGGER.info(f"🔵 TRACKING STARTED: {label} (ID {selected_object_id})")
 
+# Display the results
+cv2.namedWindow(WINDOW_NAME)
+cv2.setMouseCallback(WINDOW_NAME, click_event)
 
-cv2.namedWindow("YOLO Tracking")
-cv2.setMouseCallback("YOLO Tracking", click_event)
-
-# ================================
-# 🔄 MAIN LOOP
-# ================================
+# Declare and initialize fps related variables
 fps_counter, fps_timer, fps_display = 0, time.time(), 0
 
+# Loop over the video file
 while cap.isOpened():
-    success, frame = cap.read()
+    success, im = cap.read()
     if not success:
         break
+    results = model.track(im, conf=conf, iou=iou, max_det=max_det, tracker=tracker, **track_args)
+    im_overlay = frame.copy()
 
-    results = model.track(
-        frame, conf=CONFIDENCE_THRESHOLD, iou=IOU_THRESHOLD, max_det=MAX_DETECTION, tracker=TRACKER_TYPE, **TRACKER_ARGS
-    )
-
-    frame_overlay = frame.copy()
     detections = results[0].boxes.data if results[0].boxes is not None else []
     detected_objects = []
     tracked_info = ""

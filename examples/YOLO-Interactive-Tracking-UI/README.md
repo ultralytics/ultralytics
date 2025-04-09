@@ -106,6 +106,6 @@ python interactive_tracker.py
 
 ## License & Disclaimer
 
-This project is released under the [AGPL-3.0 license](https://github.com/ultralytics/ultralytics/blob/main/LICENSE). For full licensing terms, please visit the [Ultralytics YOLO License page](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
+This project is released under the [AGPL-3.0 license](https://github.com/ultralytics/ultralytics/blob/main/LICENSE). For full licensing terms, please visit the [Ultralytics YOLO licensing page](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
 
 This project is intended solely for educational and demonstration purposes. Please use it responsibly and at your own discretion. The author assumes no liability for any misuse or unintended consequences. Feedback, forks, and contributions are highly encouraged and always appreciated!

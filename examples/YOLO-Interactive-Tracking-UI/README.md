@@ -1,13 +1,18 @@
 # Ultralytics YOLO Interactive [Object Tracking](https://docs.ultralytics.com/modes/track/) UI 🎯
 
-A modular, educational real-time object detection and tracking UI built with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) and OpenCV.
+A real-time [object detection](https://docs.ultralytics.com/tasks/detect/) and tracking UI built with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) and OpenCV, designed for interactive demos, and seamless integration of tracking overlays.
 
-This project is ideal for:
+## Features
 
-- Learning how to integrate [Ultralytics](https://ultralytics.com/) [YOLO](https://docs.ultralytics.com) with [object tracking](https://docs.ultralytics.com/modes/track/)
-- Testing on edge devices (e.g., Raspberry Pi, Jetson Nano)
-- Real-time demos with interactive user input
-- Enhancing CV pipelines with tracking UI/UX overlays
+- Real-time object detection and visual tracking  
+- Click-to-track any detected object  
+- Scope lines and bold bounding boxes for active tracking  
+- Dashed boxes for passive (non-tracked) objects  
+- Live terminal output: object ID, label, confidence, and center coordinates  
+- Adjustable object tracking algorithms (`bytetrack`, `botsort`)  
+- Supports:  
+  - PyTorch `.pt` models (for GPU devices like Jetson or CUDA-enabled desktops)  
+  - NCNN `.param + .bin` models (for CPU-only devices like Raspberry Pi or ARM boards)  
 
 ## Project structure
 

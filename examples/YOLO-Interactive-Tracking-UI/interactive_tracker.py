@@ -5,9 +5,8 @@ import time
 import cv2
 
 from ultralytics import YOLO
-from ultralytics.utils.plotting import colors
 from ultralytics.utils import LOGGER
-
+from ultralytics.utils.plotting import colors
 
 USE_GPU = False  # Set True if running with CUDA
 model_file = "yolo11s.pt"  # Path to model file
@@ -19,8 +18,8 @@ MAX_DET = 20  # Maximum objects per im (increase for crowded scenes)
 
 TRACKER = "bytetrack.yaml"  # Tracker config: 'bytetrack.yaml', 'botsort.yaml', etc.
 TRACK_ARGS = {
-    "persist": True,  # Keep frames history as a stream for contineous tracking
-    "verbose": False  # Print debug info from tracker
+    "persist": True,  # Keep frames history as a stream for continuous tracking
+    "verbose": False,  # Print debug info from tracker
 }
 
 LOGGER.info("🚀 Initializing model...")
@@ -33,7 +32,7 @@ else:
     model = YOLO(model_file, task="detect")
 
 # VIDEO SOURCE
-cap = cv2.VideoCapture(0) # Replace with video path if needed
+cap = cv2.VideoCapture(0)  # Replace with video path if needed
 
 selected_object_id = None
 selected_bbox = None

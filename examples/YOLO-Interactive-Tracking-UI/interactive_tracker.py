@@ -6,7 +6,7 @@ import cv2
 
 from ultralytics import YOLO
 from ultralytics.utils import LOGGER
-from ultralytics.utils.plotting import colors, Annotator
+from ultralytics.utils.plotting import Annotator, colors
 
 USE_GPU = False  # Set True if running with CUDA
 model_file = "yolo11s.pt"  # Path to model file
@@ -93,7 +93,6 @@ while cap.isOpened():
     results = model.track(im, conf=CONF, iou=IOU, max_det=MAX_DET, tracker=TRACKER, **TRACK_ARGS)
     annotator = Annotator(im, line_width=3, example=model.names)
 
-
     frame_overlay = im.copy()
     detections = results[0].boxes.data if results[0].boxes is not None else []
     detected_objects = []
@@ -147,7 +146,6 @@ while cap.isOpened():
             if track_id != selected_object_id:
                 color = tuple(int(c * 0.5) for c in color)
             annotator.box_label((x1, y1, x2, y2), label, color)
-
 
     if show_fps:
         fps_counter += 1

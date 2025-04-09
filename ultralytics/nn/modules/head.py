@@ -1268,6 +1268,7 @@ class DFINETransformer(nn.Module):
         from ultralytics.models.utils.ops import get_cdn_group
 
         if self.training and self.num_denoising > 0:
+            # TODO: test this
             # denoising_logits, denoising_bbox_unact, attn_mask, dn_meta = get_contrastive_denoising_training_group(
             #     batch,
             #     self.num_classes,
@@ -1322,8 +1323,8 @@ class DFINETransformer(nn.Module):
             dn_out_corners, out_corners = torch.split(out_corners, dn_meta["dn_num_split"], dim=2)
             dn_out_refs, out_refs = torch.split(out_refs, dn_meta["dn_num_split"], dim=2)
 
-        if self.training:
-            out = {
+        out = (
+            {
                 "pred_logits": out_logits[-1],
                 "pred_boxes": out_bboxes[-1],
                 "pred_corners": out_corners[-1],
@@ -1331,8 +1332,9 @@ class DFINETransformer(nn.Module):
                 "up": self.up,
                 "reg_scale": self.reg_scale,
             }
-        else:
-            out = {"pred_logits": out_logits[-1], "pred_boxes": out_bboxes[-1]}
+            if self.training
+            else {"pred_logits": out_logits[-1], "pred_boxes": out_bboxes[-1]}
+        )
 
         if self.training and self.aux_loss:
             out["aux_outputs"] = self._set_aux_loss2(

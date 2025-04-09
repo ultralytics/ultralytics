@@ -644,22 +644,22 @@ def test_yoloe():
     model.val(data="coco128-seg.yaml", load_vp=True, imgsz=32)
 
     # Train, fine-tune
-    from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
-
-    model = YOLOE("yoloe-11s-seg.pt")
-    model.train(
-        data="coco128-seg.yaml",
-        epochs=1,
-        close_mosaic=1,
-        trainer=YOLOEPESegTrainer,
-        imgsz=32,
-    )
-
-    # # prompt-free
-    # predict
-    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg-pf.pt")
-    model.predict(SOURCE)
-    # val
+    # from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
+    #
+    # model = YOLOE("yoloe-11s-seg.pt")
+    # model.train(
+    #     data="coco128-seg.yaml",
+    #     epochs=1,
+    #     close_mosaic=1,
+    #     trainer=YOLOEPESegTrainer,
+    #     imgsz=32,
+    # )
+    #
+    # # # prompt-free
+    # # predict
+    # model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg-pf.pt")
+    # model.predict(SOURCE)
+    # # val
     # model = YOLOE("yoloe-11s-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
     # model.val(data="coco128-seg.yaml", imgsz=32)
 

@@ -122,6 +122,11 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 | `batch`     | `int`             | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
 | `data`      | `str`             | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets/) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                            |
 | `fraction`  | `float`           | `1.0`          | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |
+| `device`    | `str`             | `None`         | Specifies the device for exporting: GPU (`device=0`), DLA for NVIDIA Jetson (`device=dla:0` or `device=dla:1`).                                                                                                                                                  |
+
+!!! tip
+
+    Please make sure to use a GPU with CUDA support when exporting to TensorRT.
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -506,7 +511,7 @@ Using TensorRT to optimize YOLO11 models offers several benefits:
 - **Layer Fusion**: Combines multiple layers into single operations, reducing computational complexity.
 - **Kernel Auto-Tuning**: Automatically selects optimized GPU kernels for each model layer, ensuring maximum performance.
 
-For more information, explore the detailed features of TensorRT [here](https://developer.nvidia.com/tensorrt) and read our [TensorRT overview section](#tensorrt).
+To learn more, explore the [official TensorRT documentation from NVIDIA](https://developer.nvidia.com/tensorrt) and our [in-depth TensorRT overview](#tensorrt).
 
 ### Can I use INT8 quantization with TensorRT for YOLO11 models?
 

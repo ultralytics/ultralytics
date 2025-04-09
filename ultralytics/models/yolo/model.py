@@ -22,7 +22,24 @@ class YOLO(Model):
     """YOLO (You Only Look Once) object detection model."""
 
     def __init__(self, model="yolo11n.pt", task=None, verbose=False):
-        """Initialize YOLO model, switching to YOLOWorld/YOLOE if model filename contains '-world'/'yoloe'."""
+        """
+        Initialize a YOLO model.
+
+        This constructor initializes a YOLO model, automatically switching to specialized model types
+        (YOLOWorld or YOLOE) based on the model filename.
+
+        Args:
+            model (str | Path): Model name or path to model file, i.e. 'yolo11n.pt', 'yolov8n.yaml'.
+            task (str | None): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'.
+                Defaults to auto-detection based on model.
+            verbose (bool): Display model info on load.
+
+        Examples:
+            >>> from ultralytics import YOLO
+            >>> model = YOLO("yolov8n.pt")  # load a pretrained YOLOv8n detection model
+            >>> model = YOLO("yolov8n-seg.pt")  # load a pretrained YOLOv8n segmentation model
+            >>> model = YOLO("yolo11n.pt")  # load a pretrained YOLOv11n detection model
+        """
         path = Path(model)
         if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
             new_instance = YOLOWorld(path, verbose=verbose)
@@ -166,12 +183,46 @@ class YOLOE(Model):
         return self.model.get_text_pe(texts)
 
     def get_visual_pe(self, img, visual):
-        """Get visual positional embeddings for the given image and visual features."""
+        """
+        Get visual positional embeddings for the given image and visual features.
+
+        This method extracts positional embeddings from visual features based on the input image. It requires
+        that the model is an instance of YOLOEModel.
+
+        Args:
+            img (torch.Tensor): Input image tensor.
+            visual (torch.Tensor): Visual features extracted from the image.
+
+        Returns:
+            (torch.Tensor): Visual positional embeddings.
+
+        Examples:
+            >>> model = YOLOE("yoloe-v8s.pt")
+            >>> img = torch.rand(1, 3, 640, 640)
+            >>> visual_features = model.model.backbone(img)
+            >>> pe = model.get_visual_pe(img, visual_features)
+        """
         assert isinstance(self.model, YOLOEModel)
         return self.model.get_visual_pe(img, visual)
 
     def set_vocab(self, vocab, names):
-        """Set vocabulary and class names for the model."""
+        """
+        Set vocabulary and class names for the YOLOE model.
+
+        This method configures the vocabulary and class names used by the model for text processing and
+        classification tasks. The model must be an instance of YOLOEModel.
+
+        Args:
+            vocab (list): Vocabulary list containing tokens or words used by the model for text processing.
+            names (list): List of class names that the model can detect or classify.
+
+        Raises:
+            AssertionError: If the model is not an instance of YOLOEModel.
+
+        Examples:
+            >>> model = YOLOE("yoloe-v8s.pt")
+            >>> model.set_vocab(["person", "car", "dog"], ["person", "car", "dog"])
+        """
         assert isinstance(self.model, YOLOEModel)
         self.model.set_vocab(vocab, names=names)
 
@@ -290,7 +341,7 @@ class YOLOE(Model):
 
         self.predictor.setup_model(model=self.model)
 
-        if refer_image is None and source:
+        if refer_image is None and source is not None:
             dataset = load_inference_source(source)
             if dataset.mode in {"video", "stream"}:
                 # NOTE: set the first frame as refer image for videos/streams inference

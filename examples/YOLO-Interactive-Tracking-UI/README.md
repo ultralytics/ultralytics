@@ -52,8 +52,7 @@ pip install ultralytics
 
 > Use a virtual environment like `venv` or `conda` (recommended).
 
-> Install PyTorch based on your system and CUDA version: 
-> 👉 https://pytorch.org/get-started/locally/
+> Install PyTorch based on your system and CUDA version: https://pytorch.org/get-started/locally/
 
 ## Quickstart
 

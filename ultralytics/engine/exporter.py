@@ -86,6 +86,7 @@ from ultralytics.utils import (
     LINUX,
     LOGGER,
     MACOS,
+    MACOS_VERSION,
     RKNN_CHIPS,
     ROOT,
     WINDOWS,
@@ -94,7 +95,6 @@ from ultralytics.utils import (
     colorstr,
     get_default_args,
     yaml_save,
-    MACOS_VERSION,
 )
 from ultralytics.utils.checks import (
     check_imgsz,

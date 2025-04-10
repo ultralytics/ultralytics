@@ -10,6 +10,7 @@ from ultralytics.utils.metrics import bbox_iou
 from .ops import HungarianMatcher
 
 
+# TODO: move classes and functions to ultralytics.utils.loss
 class DETRLoss(nn.Module):
     """
     DETR (DEtection TRansformer) Loss class for calculating various loss components.

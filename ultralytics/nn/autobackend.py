@@ -513,7 +513,7 @@ class AutoBackend(nn.Module):
             rknn_model = RKNNLite()
             rknn_model.load_rknn(str(w))
             rknn_model.init_runtime()
-            metadata = Path(w).parent / "metadata.yaml"
+            metadata = w.parent / "metadata.yaml"
 
         # Any other format (unsupported)
         else:

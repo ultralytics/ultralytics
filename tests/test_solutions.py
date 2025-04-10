@@ -26,6 +26,7 @@ REGION = [(10, 200), (540, 200), (540, 180), (10, 180)]  # for object counting, 
 for resource in [DEMO_VIDEO, CROP_VIDEO, POSE_VIDEO, PARKING_VIDEO, PARKING_AREAS_JSON, PARKING_MODEL]:
     safe_download(url=f"{ASSETS_URL}/{resource}", dir=TMP)
 
+
 # Test configs for each solution : (name, class, needs_frame_count, video, kwargs)
 SOLUTIONS = [
     (

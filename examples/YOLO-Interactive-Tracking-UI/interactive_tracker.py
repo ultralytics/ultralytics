@@ -38,6 +38,10 @@ classes = model.names  # Store model classes names
 
 cap = cv2.VideoCapture(0)  # Replace with video path if needed
 
+# Initialize video writer
+w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+vw = cv2.VideoWriter("interactive_tracker_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+
 selected_object_id = None
 selected_bbox = None
 selected_center = None
@@ -201,7 +205,7 @@ while cap.isOpened():
         cv2.putText(im, fps_text, (10, 25), 0, 0.7, (104, 31, 17), 1, cv2.LINE_AA)
 
     cv2.imshow(window_name, im)
-
+    vw.write(im)
     # Terminal logging
     LOGGER.info(f"🟡 DETECTED {len(detections)} OBJECT(S): {' | '.join(detected_objects)}")
     if tracked_info:

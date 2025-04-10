@@ -194,6 +194,7 @@ def non_max_suppression(
     in_place=True,
     rotated=False,
     end2end=False,
+    obj_thres=0.0,
 ):
     """
     Perform non-maximum suppression (NMS) on a set of boxes, with support for masks and multiple labels per box.
@@ -221,6 +222,8 @@ def non_max_suppression(
         in_place (bool): If True, the input prediction tensor will be modified in place.
         rotated (bool): If Oriented Bounding Boxes (OBB) are being passed for NMS.
         end2end (bool): If the model doesn't require NMS.
+        obj_thres (float): The objectness threshold below which boxes will be filtered out.
+            Valid values are between 0.0 and 1.0.
 
     Returns:
         (List[torch.Tensor]): A list of length batch_size, where each element is a tensor of
@@ -232,6 +235,7 @@ def non_max_suppression(
     # Checks
     assert 0 <= conf_thres <= 1, f"Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0"
     assert 0 <= iou_thres <= 1, f"Invalid IoU {iou_thres}, valid values are between 0.0 and 1.0"
+    assert 0 <= obj_thres <= 1, f"Invalid obj threshold {obj_thres}, valid values are between 0.0 and 1.0"
     if isinstance(prediction, (list, tuple)):  # YOLOv8 model in validation model, output = (inference_out, loss_out)
         prediction = prediction[0]  # select only inference output
     if classes is not None:

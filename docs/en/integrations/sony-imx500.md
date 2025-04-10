@@ -182,10 +182,10 @@ Then you will be able to see live inference output as follows
 
 YOLOv8 and YOLO11n benchmarks below were run by the Ultralytics team on Raspberry Pi AI Camera with `imx` model format measuring speed and accuracy.
 
-| Model   	| Format 	| Status 	 | Size of `RPK` (MB) 	| mAP50-95(B) 	| Inference time (ms/im) 	|
-|---------	|--------	|--------	 |--------------------	|-------------	|------------------------	|
-| YOLOv8n 	| imx    	| ✅      	| 3.1               	| 0.602       	| 58.82                  	|
-| YOLO11n 	| imx    	| ✅      	| 3.2               	| 0.644       	| 62.50                  	|
+| Model   | Format | Status | Size of `RPK` (MB) | mAP50-95(B) | Inference time (ms/im) |
+| ------- | ------ | ------ | ------------------ | ----------- | ---------------------- |
+| YOLOv8n | imx    | ✅     | 3.1                | 0.602       | 58.82                  |
+| YOLO11n | imx    | ✅     | 3.2                | 0.644       | 62.50                  |
 
 !!! note
 

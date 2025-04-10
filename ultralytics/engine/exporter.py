@@ -86,7 +86,6 @@ from ultralytics.utils import (
     LINUX,
     LOGGER,
     MACOS,
-    PYTHON_VERSION,
     RKNN_CHIPS,
     ROOT,
     WINDOWS,
@@ -820,9 +819,9 @@ class Exporter:
             model = self.model
         ts = torch.jit.trace(model.eval(), self.im, strict=False)  # TorchScript model
 
-        # Based on apple's documentation it is better to leave out the minimum_deployment target and let that get set 
+        # Based on apple's documentation it is better to leave out the minimum_deployment target and let that get set
         # Internally based on the model conversion and output type.
-        # Setting minimum_depoloyment_target >= iOS16 will require setting compute_precision=ct.precision.FLOAT32. 
+        # Setting minimum_depoloyment_target >= iOS16 will require setting compute_precision=ct.precision.FLOAT32.
         # iOS16 adds in better support for FP16, but none of the CoreML NMS specifications handle FP16 as input.
         ct_model = ct.convert(
             ts,

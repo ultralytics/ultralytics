@@ -1323,33 +1323,27 @@ class DFINETransformer(nn.Module):
             dn_out_corners, out_corners = torch.split(out_corners, dn_meta["dn_num_split"], dim=2)
             dn_out_refs, out_refs = torch.split(out_refs, dn_meta["dn_num_split"], dim=2)
 
-        out = (
-            {
-                "pred_logits": out_logits[-1],
-                "pred_boxes": out_bboxes[-1],
-                "pred_corners": out_corners[-1],
-                "ref_points": out_refs[-1],
-                "up": self.up,
-                "reg_scale": self.reg_scale,
-            }
-            if self.training
-            else {"pred_logits": out_logits[-1], "pred_boxes": out_bboxes[-1]}
-        )
+        out = {"pred_logits": out_logits[-1], "pred_boxes": out_bboxes[-1]}  # last layer predictions
+        if self.training:
+            out["pred_corners"] = out_corners[-1]
+            out["ref_points"] = out_refs[-1]
+            out["up"] = self.up
+            out["reg_scale"] = self.reg_scale
 
-        if self.training and self.aux_loss:
-            out["aux_outputs"] = self._set_aux_loss2(
-                out_logits[:-1], out_bboxes[:-1], out_corners[:-1], out_refs[:-1], out_corners[-1], out_logits[-1]
-            )
-            out["enc_aux_outputs"] = self._set_aux_loss(enc_topk_logits_list, enc_topk_bboxes_list)
-            out["pre_outputs"] = {"pred_logits": pre_logits, "pred_boxes": pre_bboxes}
-            out["enc_meta"] = {"class_agnostic": self.query_select_method == "agnostic"}
-
-            if dn_meta is not None:
-                out["dn_outputs"] = self._set_aux_loss2(
-                    dn_out_logits, dn_out_bboxes, dn_out_corners, dn_out_refs, dn_out_corners[-1], dn_out_logits[-1]
+            if self.aux_loss:
+                out["aux_outputs"] = self._set_aux_loss2(
+                    out_logits[:-1], out_bboxes[:-1], out_corners[:-1], out_refs[:-1], out_corners[-1], out_logits[-1]
                 )
-                out["dn_pre_outputs"] = {"pred_logits": dn_pre_logits, "pred_boxes": dn_pre_bboxes}
-                out["dn_meta"] = dn_meta
+                out["enc_aux_outputs"] = self._set_aux_loss(enc_topk_logits_list, enc_topk_bboxes_list)
+                out["pre_outputs"] = {"pred_logits": pre_logits, "pred_boxes": pre_bboxes}
+                out["enc_meta"] = {"class_agnostic": self.query_select_method == "agnostic"}
+
+                if dn_meta is not None:
+                    out["dn_outputs"] = self._set_aux_loss2(
+                        dn_out_logits, dn_out_bboxes, dn_out_corners, dn_out_refs, dn_out_corners[-1], dn_out_logits[-1]
+                    )
+                    out["dn_pre_outputs"] = {"pred_logits": dn_pre_logits, "pred_boxes": dn_pre_bboxes}
+                    out["dn_meta"] = dn_meta
 
         return out
 

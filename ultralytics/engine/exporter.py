@@ -94,6 +94,7 @@ from ultralytics.utils import (
     colorstr,
     get_default_args,
     yaml_save,
+    MACOS_VERSION,
 )
 from ultralytics.utils.checks import (
     check_imgsz,
@@ -614,6 +615,9 @@ class Exporter:
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):
         """YOLO OpenVINO export."""
+        if MACOS:
+            msg = "OpenVINO error in macOS>=15.4 https://github.com/openvinotoolkit/openvino/issues/30023"
+            check_version(MACOS_VERSION, "<15.4", name="macOS ", hard=True, msg=msg)
         check_requirements("openvino>=2024.0.0,<2025.0.0" if MACOS else "openvino>=2024.0.0")
         import openvino as ov
 

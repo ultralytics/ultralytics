@@ -61,21 +61,22 @@ pip install ultralytics
 Edit the top global parameters of `interactive_tracker.py`:
 
 ```python
-USE_GPU = False  # Set to True for running on GPU
+enable_gpu = False  # Set True if running with CUDA
+model_file = "yolo11s.pt"  # Path to model file
+show_fps = True  # If True, shows current FPS in top-left corner
+show_conf = False  # Display or hide the confidence score
 
-# For official models, simply specify the model name:
-MODEL_PATH_GPU = "yolov11s.pt"  # Model that will be run if USE_GPU = True
-MODEL_PATH_CPU = "yolov11s.pt"  # or "yolov11s_ncnn_model", Model that will be run if USE_GPU = False
+conf = 0.3  # Min confidence for object detection (lower = more detections, possibly more false positives)
+iou = 0.3  # IoU threshold for NMS (higher = less overlap allowed)
+max_det = 20  # Maximum objects per im (increase for crowded scenes)
 
-SHOW_FPS = True  # If True, shows current FPS in top-left corner
+tracker = "bytetrack.yaml"  # Tracker config: 'bytetrack.yaml', 'botsort.yaml', etc.
+track_args = {
+    "persist": True,  # Keep frames history as a stream for continuous tracking
+    "verbose": False,  # Print debug info from tracker
+}
 
-CONFIDENCE_THRESHOLD = (
-    0.3  # Min confidence for object detection (lower = more detections, possibly more false positives)
-)
-IOU_THRESHOLD = 0.3  # IoU threshold for NMS (higher = less overlap allowed)
-MAX_DETECTION = 20  # Maximum objects per frame (increase for crowded scenes)
-
-TRACKER_TYPE = "bytetrack.yaml"  # Tracker config: 'bytetrack.yaml', 'botsort.yaml', etc.
+window_name = "Ultralytics YOLO Interactive Tracking"  # Output window name
 ```
 
 ### Step 3: Run the object tracking

@@ -1383,13 +1383,7 @@ class DEIMLoss(nn.Module):
         else:
             raise AttributeError()
 
-        if loss in ("boxes",):
-            meta = {"boxes_weight": iou}
-        elif loss in ("vfl", "mal"):
-            meta = {"values": iou}
-        else:
-            meta = {}
-
+        meta = {"boxes_weight": iou} if loss == "boxes" else {"values": iou} if loss in {"vfl", "mal"} else {}
         return meta
 
     @staticmethod

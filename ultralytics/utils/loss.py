@@ -1371,7 +1371,7 @@ class DEIMLoss(nn.Module):
         return losses
 
     def get_loss_meta_info(self, loss, outputs, targets, indices):
-        if self.boxes_weight_format is None:
+        if self.boxes_weight_format is None or loss not in {"vfl", "mal"}:
             return {}
 
         src_boxes = outputs["pred_boxes"][self._get_src_permutation_idx(indices)]
@@ -1379,8 +1379,7 @@ class DEIMLoss(nn.Module):
 
         # TODO: could use CIOU as well
         iou = bbox_iou(src_boxes.detach(), target_boxes, GIoU=self.boxes_weight_format == "giou")
-        meta = {"boxes_weight": iou} if loss == "boxes" else {"values": iou} if loss in {"vfl", "mal"} else {}
-        return meta
+        return {"values": iou}
 
     @staticmethod
     def get_cdn_matched_indices(dn_meta, targets):

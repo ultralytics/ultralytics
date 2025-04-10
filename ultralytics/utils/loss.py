@@ -1055,33 +1055,33 @@ class DEIMLoss(nn.Module):
 
     def loss_labels_mal(self, outputs, targets, indices, num_boxes, values=None):
         assert "pred_boxes" in outputs
-        idx = self._get_src_permutation_idx(indices)
+        pred_idx, gt_idx = DETRLoss._get_index(indices)
         if values is None:
-            src_boxes = outputs["pred_boxes"][idx]
-            target_boxes = torch.cat([t["boxes"][i] for t, (_, i) in zip(targets, indices)], dim=0)
-            ious, _ = box_iou(xywh2xyxy(src_boxes), xywh2xyxy(target_boxes))
-            ious = torch.diag(ious).detach()
+            # TODO
+            src_boxes = outputs["pred_boxes"][pred_idx]
+            target_boxes = targets["boxes"][gt_idx]
+            ious = bbox_iou(src_boxes.detach(), target_boxes).detach()
         else:
             ious = values
 
         src_logits = outputs["pred_logits"]
-        target_classes_o = torch.cat([t["labels"][J] for t, (_, J) in zip(targets, indices)])
+
         target_classes = torch.full(src_logits.shape[:2], self.num_classes, dtype=torch.int64, device=src_logits.device)
-        target_classes[idx] = target_classes_o
+        target_classes[pred_idx] = targets["labels"][gt_idx]
         target = F.one_hot(target_classes, num_classes=self.num_classes + 1)[..., :-1]
 
         target_score_o = torch.zeros_like(target_classes, dtype=src_logits.dtype)
-        target_score_o[idx] = ious.to(target_score_o.dtype)
+        target_score_o[pred_idx] = ious.to(target_score_o.dtype)
         target_score = target_score_o.unsqueeze(-1) * target
 
         pred_score = F.sigmoid(src_logits).detach()
         target_score = target_score.pow(self.gamma)
-        if self.mal_alpha != None:
-            weight = self.mal_alpha * pred_score.pow(self.gamma) * (1 - target) + target
-        else:
-            weight = pred_score.pow(self.gamma) * (1 - target) + target
+        weight = (
+            (self.mal_alpha * pred_score.pow(self.gamma) * (1 - target) + target)
+            if self.mal_alpha is not None
+            else (pred_score.pow(self.gamma) * (1 - target) + target)
+        )
 
-        # print(" ### DEIM-gamma{}-alpha{} ### ".format(self.gamma, self.mal_alpha))
         loss = F.binary_cross_entropy_with_logits(src_logits, target_score, weight=weight, reduction="none")
         loss = loss.mean(1).sum() * src_logits.shape[1] / num_boxes
         return {"loss_mal": loss}
@@ -1101,7 +1101,7 @@ class DEIMLoss(nn.Module):
         losses["loss_bbox"] = loss_bbox.sum() / num_boxes
 
         # TODO: could use CIOU as well
-        loss_giou = (1 - bbox_iou(src_boxes.detach(), target_boxes, GIoU=True))
+        loss_giou = 1 - bbox_iou(src_boxes.detach(), target_boxes, GIoU=True)
         if self.boxes_weight_format is not None:
             boxes_weight = bbox_iou(src_boxes.detach(), target_boxes, GIoU=self.boxes_weight_format == "giou")
             loss_giou *= boxes_weight

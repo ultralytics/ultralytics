@@ -1251,20 +1251,20 @@ class DEIMLoss(nn.Module):
             indices_aux_list.append(indices_enc)
         all_indices = self._merge_indices(indices, indices_aux_list)
 
-        num_boxes_all = sum(len(x[0]) for x in all_indices)
-        num_boxes_all = torch.as_tensor(
-            [num_boxes_all], dtype=torch.float, device=next(iter(outputs.values())).device
-        )
+        num_boxes_all = max(sum(len(x[0]) for x in all_indices), 1)
         if is_dist_available_and_initialized():  # TODO: need to investigate if it's necessary
+            num_boxes_all = torch.as_tensor(
+                [num_boxes_all], dtype=torch.float32, device=next(iter(outputs.values())).device
+            )
             torch.distributed.all_reduce(num_boxes_all)
-        num_boxes_all = torch.clamp(num_boxes_all / get_world_size(), min=1).item()
+            num_boxes_all = torch.clamp(num_boxes_all / get_world_size(), min=1).item()
 
         # Compute the average number of target boxes accross all nodes, for normalization purposes
-        num_boxes = sum(len(t["labels"]) for t in targets)
-        num_boxes = torch.as_tensor([num_boxes], dtype=torch.float, device=next(iter(outputs.values())).device)
+        num_boxes = max(sum(len(t["labels"]) for t in targets), 1)
         if is_dist_available_and_initialized():
+            num_boxes = torch.as_tensor([num_boxes], dtype=torch.float32, device=next(iter(outputs.values())).device)
             torch.distributed.all_reduce(num_boxes)  # sum up the num_boxes across all GPUs
-        num_boxes = torch.clamp(num_boxes / get_world_size(), min=1).item()
+            num_boxes = torch.clamp(num_boxes / get_world_size(), min=1).item()
 
         # Compute all the requested losses, main loss
         losses = {}

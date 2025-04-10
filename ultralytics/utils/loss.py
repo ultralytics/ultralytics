@@ -1012,47 +1012,6 @@ class DEIMLoss(nn.Module):
         self.mal_alpha = mal_alpha
         self.use_uni_set = use_uni_set
 
-    def loss_labels_focal(self, outputs, targets, indices, num_boxes):
-        assert "pred_logits" in outputs
-        src_logits = outputs["pred_logits"]
-        idx = self._get_src_permutation_idx(indices)
-        target_classes_o = torch.cat([t["labels"][J] for t, (_, J) in zip(targets, indices)])
-        target_classes = torch.full(src_logits.shape[:2], self.num_classes, dtype=torch.int64, device=src_logits.device)
-        target_classes[idx] = target_classes_o
-        target = F.one_hot(target_classes, num_classes=self.num_classes + 1)[..., :-1]
-        loss = torchvision.ops.sigmoid_focal_loss(src_logits, target, self.alpha, self.gamma, reduction="none")
-        loss = loss.mean(1).sum() * src_logits.shape[1] / num_boxes
-
-        return {"loss_focal": loss}
-
-    def loss_labels_vfl(self, outputs, targets, indices, num_boxes, values=None):
-        assert "pred_boxes" in outputs
-        idx = self._get_src_permutation_idx(indices)
-        if values is None:
-            src_boxes = outputs["pred_boxes"][idx]
-            target_boxes = torch.cat([t["boxes"][i] for t, (_, i) in zip(targets, indices)], dim=0)
-            ious, _ = box_iou(xywh2xyxy(src_boxes), xywh2xyxy(target_boxes))
-            ious = torch.diag(ious).detach()
-        else:
-            ious = values
-
-        src_logits = outputs["pred_logits"]
-        target_classes_o = torch.cat([t["labels"][J] for t, (_, J) in zip(targets, indices)])
-        target_classes = torch.full(src_logits.shape[:2], self.num_classes, dtype=torch.int64, device=src_logits.device)
-        target_classes[idx] = target_classes_o
-        target = F.one_hot(target_classes, num_classes=self.num_classes + 1)[..., :-1]
-
-        target_score_o = torch.zeros_like(target_classes, dtype=src_logits.dtype)
-        target_score_o[idx] = ious.to(target_score_o.dtype)
-        target_score = target_score_o.unsqueeze(-1) * target
-
-        pred_score = F.sigmoid(src_logits).detach()
-        weight = self.alpha * pred_score.pow(self.gamma) * (1 - target) + target_score
-
-        loss = F.binary_cross_entropy_with_logits(src_logits, target_score, weight=weight, reduction="none")
-        loss = loss.mean(1).sum() * src_logits.shape[1] / num_boxes
-        return {"loss_vfl": loss}
-
     def loss_labels_mal(self, outputs, targets, indices, num_boxes, values=None):
         assert "pred_boxes" in outputs
         pred_idx, gt_idx = DETRLoss._get_index(indices)
@@ -1214,8 +1173,6 @@ class DEIMLoss(nn.Module):
     def get_loss(self, loss, outputs, targets, indices, num_boxes, **kwargs):
         loss_map = {
             "boxes": self.loss_boxes,
-            "focal": self.loss_labels_focal,
-            "vfl": self.loss_labels_vfl,
             "mal": self.loss_labels_mal,
             "local": self.loss_local,
         }

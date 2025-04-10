@@ -1073,66 +1073,68 @@ class DEIMLoss(nn.Module):
         and Decoupled Distillation Focal (DDF) Loss."""
 
         losses = {}
-        if "pred_corners" in outputs:
-            idx = self._get_src_permutation_idx(indices)
-            target_boxes = torch.cat([t["boxes"][i] for t, (_, i) in zip(targets, indices)], dim=0)
+        if "pred_corners" not in outputs:
+            return losses
 
-            pred_corners = outputs["pred_corners"][idx].reshape(-1, (self.reg_max + 1))
-            ref_points = outputs["ref_points"][idx].detach()
-            with torch.no_grad():
-                if self.fgl_targets_dn is None and "is_dn" in outputs:
-                    self.fgl_targets_dn = bbox2distance(
-                        ref_points, xywh2xyxy(target_boxes), self.reg_max, outputs["reg_scale"], outputs["up"]
-                    )
-                if self.fgl_targets is None and "is_dn" not in outputs:
-                    self.fgl_targets = bbox2distance(
-                        ref_points, xywh2xyxy(target_boxes), self.reg_max, outputs["reg_scale"], outputs["up"]
-                    )
+        pred_idx, gt_idx = DETRLoss._get_index(indices)
+        target_boxes = targets["boxes"][gt_idx]
 
-            target_corners, weight_right, weight_left = self.fgl_targets_dn if "is_dn" in outputs else self.fgl_targets
+        pred_corners = outputs["pred_corners"][pred_idx].reshape(-1, (self.reg_max + 1))
+        ref_points = outputs["ref_points"][pred_idx].detach()
+        with torch.no_grad():
+            if self.fgl_targets_dn is None and "is_dn" in outputs:
+                self.fgl_targets_dn = bbox2distance(
+                    ref_points, xywh2xyxy(target_boxes), self.reg_max, outputs["reg_scale"], outputs["up"]
+                )
+            if self.fgl_targets is None and "is_dn" not in outputs:
+                self.fgl_targets = bbox2distance(
+                    ref_points, xywh2xyxy(target_boxes), self.reg_max, outputs["reg_scale"], outputs["up"]
+                )
 
-            ious = torch.diag(box_iou(xywh2xyxy(outputs["pred_boxes"][idx]), xywh2xyxy(target_boxes))[0])
-            weight_targets = ious.unsqueeze(-1).repeat(1, 1, 4).reshape(-1).detach()
+        target_corners, weight_right, weight_left = self.fgl_targets_dn if "is_dn" in outputs else self.fgl_targets
 
-            losses["loss_fgl"] = self.unimodal_distribution_focal_loss(
-                pred_corners, target_corners, weight_right, weight_left, weight_targets, avg_factor=num_boxes
-            )
+        ious = bbox_iou(outputs["pred_boxes"][pred_idx], target_boxes)  # TODO: CIOU
+        weight_targets = ious.unsqueeze(-1).repeat(1, 4).reshape(-1).detach()
 
-            if "teacher_corners" in outputs:
-                pred_corners = outputs["pred_corners"].reshape(-1, (self.reg_max + 1))
-                target_corners = outputs["teacher_corners"].reshape(-1, (self.reg_max + 1))
-                if not torch.equal(pred_corners, target_corners):
-                    weight_targets_local = outputs["teacher_logits"].sigmoid().max(dim=-1)[0]
+        losses["loss_fgl"] = self.unimodal_distribution_focal_loss(
+            pred_corners, target_corners, weight_right, weight_left, weight_targets, avg_factor=num_boxes
+        )
 
-                    mask = torch.zeros_like(weight_targets_local, dtype=torch.bool)
-                    mask[idx] = True
-                    mask = mask.unsqueeze(-1).repeat(1, 1, 4).reshape(-1)
+        if "teacher_corners" in outputs:
+            pred_corners = outputs["pred_corners"].reshape(-1, (self.reg_max + 1))
+            target_corners = outputs["teacher_corners"].reshape(-1, (self.reg_max + 1))
+            if not torch.equal(pred_corners, target_corners):
+                weight_targets_local = outputs["teacher_logits"].sigmoid().max(dim=-1)[0]
 
-                    weight_targets_local[idx] = ious.reshape_as(weight_targets_local[idx]).to(
-                        weight_targets_local.dtype
-                    )
-                    weight_targets_local = weight_targets_local.unsqueeze(-1).repeat(1, 1, 4).reshape(-1).detach()
+                mask = torch.zeros_like(weight_targets_local, dtype=torch.bool)
+                mask[pred_idx] = True
+                mask = mask.unsqueeze(-1).repeat(1, 1, 4).reshape(-1)
 
-                    loss_match_local = (
-                        weight_targets_local
-                        * (T**2)
-                        * (
-                            nn.KLDivLoss(reduction="none")(
-                                F.log_softmax(pred_corners / T, dim=1), F.softmax(target_corners.detach() / T, dim=1)
-                            )
-                        ).sum(-1)
-                    )
-                    if "is_dn" not in outputs:
-                        batch_scale = 8 / outputs["pred_boxes"].shape[0]  # Avoid the influence of batch size per GPU
-                        self.num_pos, self.num_neg = (
-                            (mask.sum() * batch_scale) ** 0.5,
-                            ((~mask).sum() * batch_scale) ** 0.5,
+                weight_targets_local[pred_idx] = ious.reshape_as(weight_targets_local[pred_idx]).to(
+                    weight_targets_local.dtype
+                )
+                weight_targets_local = weight_targets_local.unsqueeze(-1).repeat(1, 1, 4).reshape(-1).detach()
+
+                loss_match_local = (
+                    weight_targets_local
+                    * (T**2)
+                    * (
+                        nn.KLDivLoss(reduction="none")(
+                            F.log_softmax(pred_corners / T, dim=1), F.softmax(target_corners.detach() / T, dim=1)
                         )
-                    loss_match_local1 = loss_match_local[mask].mean() if mask.any() else 0
-                    loss_match_local2 = loss_match_local[~mask].mean() if (~mask).any() else 0
-                    losses["loss_ddf"] = (loss_match_local1 * self.num_pos + loss_match_local2 * self.num_neg) / (
-                        self.num_pos + self.num_neg
+                    ).sum(-1)
+                )
+                if "is_dn" not in outputs:
+                    batch_scale = 8 / outputs["pred_boxes"].shape[0]  # Avoid the influence of batch size per GPU
+                    self.num_pos, self.num_neg = (
+                        (mask.sum() * batch_scale) ** 0.5,
+                        ((~mask).sum() * batch_scale) ** 0.5,
                     )
+                loss_match_local1 = loss_match_local[mask].mean() if mask.any() else 0
+                loss_match_local2 = loss_match_local[~mask].mean() if (~mask).any() else 0
+                losses["loss_ddf"] = (loss_match_local1 * self.num_pos + loss_match_local2 * self.num_neg) / (
+                    self.num_pos + self.num_neg
+                )
 
         return losses
 
@@ -1360,8 +1362,16 @@ class DEIMLoss(nn.Module):
         loss = (fea - target_fea) ** 2 * ((fea > 0) | (target_fea > 0)).float()
         return torch.abs(loss)
 
+    # TODO: DFL Loss
     def unimodal_distribution_focal_loss(
-        self, pred, label, weight_right, weight_left, weight=None, reduction="sum", avg_factor=None
+        self,
+        pred,
+        label,
+        weight_right,
+        weight_left,
+        weight=None,
+        reduction="sum",
+        avg_factor=None,
     ):
         dis_left = label.long()
         dis_right = dis_left + 1

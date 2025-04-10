@@ -250,11 +250,11 @@ def non_max_suppression(
     bs = prediction.shape[0]  # batch size (BCN, i.e. 1,84,6300)
     nc = nc or (prediction.shape[1] - 5)  # number of classes
     nm = prediction.shape[1] - nc - 5  # number of masks
-    mi = 5 + nc  # mask start index
+    5 + nc  # mask start index
     obj_index = 4 + nc  # objectness index
     xo = prediction[:, obj_index] > obj_thres  # objectness threshold
-    xc = prediction[:, 4:obj_index].amax(1) > conf_thres  # confidence thresold 
-    xc = xc & xo  # true elemnet in both xo and xc 
+    xc = prediction[:, 4:obj_index].amax(1) > conf_thres  # confidence threshold
+    xc = xc & xo  # true element in both xo and xc
 
     # Settings
     # min_wh = 2  # (pixels) minimum box width and height

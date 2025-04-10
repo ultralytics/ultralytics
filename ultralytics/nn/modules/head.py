@@ -71,7 +71,10 @@ class Detect(nn.Module):
             return self.forward_end2end(x)
 
         for i in range(self.nl):
-            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i]), self.obj_head[i](x[i])), 1)
+            if hasattr(self, "obj_head"):
+                x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i]), self.obj_head[i](x[i])), 1)
+            else:
+                x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
         if self.training:  # Training path
             return x
         y = self._inference(x)
@@ -123,7 +126,11 @@ class Detect(nn.Module):
             box = x_cat[:, : self.reg_max * 4]
             cls = x_cat[:, self.reg_max * 4 :]
         else:
-            box, cls, obj = x_cat.split((self.reg_max * 4, self.nc, 1), 1)
+            if hasattr(self, "obj_head"):
+                box, cls, obj = x_cat.split((self.reg_max * 4, self.nc, 1), 1)
+            else:
+                box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
+                obj = torch.zeros(cls.shape[0], 1, cls.shape[2], device=cls.device, dtype=cls.dtype)
 
         if self.export and self.format in {"tflite", "edgetpu"}:
             # Precompute normalization factor to increase numerical stability

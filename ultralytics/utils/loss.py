@@ -1183,7 +1183,7 @@ class DEIMLoss(nn.Module):
         tgt_idx = torch.cat([tgt for (_, tgt) in indices])
         return batch_idx, tgt_idx
 
-    def _get_go_indices(self, indices, indices_aux_list):
+    def _merge_indices(self, indices, indices_aux_list):
         """Get a matching union set across all decoder layers."""
         results = []
         for indices_aux in indices_aux_list:
@@ -1249,15 +1249,15 @@ class DEIMLoss(nn.Module):
                 indices_enc = self.matcher(aux_outputs, targets)["indices"]
                 cached_indices_enc.append(indices_enc)
                 indices_aux_list.append(indices_enc)
-            indices_go = self._get_go_indices(indices, indices_aux_list)
+            all_indices = self._merge_indices(indices, indices_aux_list)
 
-            num_boxes_go = sum(len(x[0]) for x in indices_go)
-            num_boxes_go = torch.as_tensor(
-                [num_boxes_go], dtype=torch.float, device=next(iter(outputs.values())).device
+            num_boxes_all = sum(len(x[0]) for x in all_indices)
+            num_boxes_all = torch.as_tensor(
+                [num_boxes_all], dtype=torch.float, device=next(iter(outputs.values())).device
             )
             if is_dist_available_and_initialized():
-                torch.distributed.all_reduce(num_boxes_go)
-            num_boxes_go = torch.clamp(num_boxes_go / get_world_size(), min=1).item()
+                torch.distributed.all_reduce(num_boxes_all)
+            num_boxes_all = torch.clamp(num_boxes_all / get_world_size(), min=1).item()
         else:
             assert "aux_outputs" in outputs, ""
 
@@ -1265,7 +1265,7 @@ class DEIMLoss(nn.Module):
         num_boxes = sum(len(t["labels"]) for t in targets)
         num_boxes = torch.as_tensor([num_boxes], dtype=torch.float, device=next(iter(outputs.values())).device)
         if is_dist_available_and_initialized():
-            torch.distributed.all_reduce(num_boxes)
+            torch.distributed.all_reduce(num_boxes)  # sum up the num_boxes across all GPUs
         num_boxes = torch.clamp(num_boxes / get_world_size(), min=1).item()
 
         # Compute all the requested losses, main loss
@@ -1273,8 +1273,8 @@ class DEIMLoss(nn.Module):
         for loss in self.losses:
             # TODO, indices and num_box are different from RT-DETRv2
             use_uni_set = self.use_uni_set and (loss in ["boxes", "local"])
-            indices_in = indices_go if use_uni_set else indices
-            num_boxes_in = num_boxes_go if use_uni_set else num_boxes
+            indices_in = all_indices if use_uni_set else indices
+            num_boxes_in = num_boxes_all if use_uni_set else num_boxes
             meta = self.get_loss_meta_info(loss, outputs, targets, indices_in)
             l_dict = self.get_loss(loss, outputs, targets, indices_in, num_boxes_in, **meta)
             l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
@@ -1288,8 +1288,8 @@ class DEIMLoss(nn.Module):
                 for loss in self.losses:
                     # TODO, indices and num_box are different from RT-DETRv2
                     use_uni_set = self.use_uni_set and (loss in ["boxes", "local"])
-                    indices_in = indices_go if use_uni_set else cached_indices[i]
-                    num_boxes_in = num_boxes_go if use_uni_set else num_boxes
+                    indices_in = all_indices if use_uni_set else cached_indices[i]
+                    num_boxes_in = num_boxes_all if use_uni_set else num_boxes
                     meta = self.get_loss_meta_info(loss, aux_outputs, targets, indices_in)
                     l_dict = self.get_loss(loss, aux_outputs, targets, indices_in, num_boxes_in, **meta)
 
@@ -1303,8 +1303,8 @@ class DEIMLoss(nn.Module):
             for loss in self.losses:
                 # TODO, indices and num_box are different from RT-DETRv2
                 use_uni_set = self.use_uni_set and (loss in ["boxes", "local"])
-                indices_in = indices_go if use_uni_set else cached_indices[-1]
-                num_boxes_in = num_boxes_go if use_uni_set else num_boxes
+                indices_in = all_indices if use_uni_set else cached_indices[-1]
+                num_boxes_in = num_boxes_all if use_uni_set else num_boxes
                 meta = self.get_loss_meta_info(loss, aux_outputs, targets, indices_in)
                 l_dict = self.get_loss(loss, aux_outputs, targets, indices_in, num_boxes_in, **meta)
 
@@ -1329,8 +1329,8 @@ class DEIMLoss(nn.Module):
                 for loss in self.losses:
                     # TODO, indices and num_box are different from RT-DETRv2
                     use_uni_set = self.use_uni_set and (loss == "boxes")
-                    indices_in = indices_go if use_uni_set else cached_indices_enc[i]
-                    num_boxes_in = num_boxes_go if use_uni_set else num_boxes
+                    indices_in = all_indices if use_uni_set else cached_indices_enc[i]
+                    num_boxes_in = num_boxes_all if use_uni_set else num_boxes
                     meta = self.get_loss_meta_info(loss, aux_outputs, enc_targets, indices_in)
                     l_dict = self.get_loss(loss, aux_outputs, enc_targets, indices_in, num_boxes_in, **meta)
                     l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}

@@ -73,6 +73,10 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
          yolo predict model=yolo11n_imx_model source='https://ultralytics.com/images/bus.jpg'
          ```
 
+!!! warning
+
+    The Ultralytics package installs additional export dependencies at runtime. The first time you run the export command, you may need to restart your console to ensure it works correctly.
+
 ## Export Arguments
 
 | Argument   | Type             | Default        | Description                                                                                                                                                                                                                                                      |

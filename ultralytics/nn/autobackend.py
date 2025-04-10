@@ -511,9 +511,9 @@ class AutoBackend(nn.Module):
             if not w.is_file():  # if not *.rknn
                 w = next(w.rglob("*.rknn"))  # get *.rknn file from *_rknn_model dir
             rknn_model = RKNNLite()
-            rknn_model.load_rknn(w)
+            rknn_model.load_rknn(str(w))
             rknn_model.init_runtime()
-            metadata = Path(w).parent / "metadata.yaml"
+            metadata = w.parent / "metadata.yaml"
 
         # Any other format (unsupported)
         else:

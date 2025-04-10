@@ -250,7 +250,7 @@ def non_max_suppression(
     bs = prediction.shape[0]  # batch size (BCN, i.e. 1,84,6300)
     nc = nc or (prediction.shape[1] - 5)  # number of classes
     nm = prediction.shape[1] - nc - 5  # number of masks
-    mi = 5 + nc  # mask start index
+    mi = 5 + nc  # mask start index #LH: need to valid for segmentation use case 
     obj_index = 4 + nc  # objectness index
     xo = prediction[:, obj_index] > obj_thres  # objectness threshold
     xc = prediction[:, 4:obj_index].amax(1) > conf_thres  # confidence thresold 
@@ -278,7 +278,7 @@ def non_max_suppression(
         # Cat apriori labels if autolabelling
         if labels and len(labels[xi]) and not rotated:
             lb = labels[xi]
-            v = torch.zeros((len(lb), nc + nm + 4), device=x.device)
+            v = torch.zeros((len(lb), nc + nm + 5), device=x.device)
             v[:, :4] = xywh2xyxy(lb[:, 1:5])  # box
             v[range(len(lb)), lb[:, 0].long() + 4] = 1.0  # cls
             x = torch.cat((x, v), 0)
@@ -288,14 +288,14 @@ def non_max_suppression(
             continue
 
         # Detections matrix nx6 (xyxy, conf, cls)
-        box, cls, mask = x.split((4, nc, nm), 1)
+        box, cls, obj, mask = x.split((4, nc, 1, nm), 1)
 
         if multi_label:
             i, j = torch.where(cls > conf_thres)
-            x = torch.cat((box[i], x[i, 4 + j, None], j[:, None].float(), mask[i]), 1)
+            x = torch.cat((box[i], x[i, 4 + j, None], j[:, None].float(), mask[i], obj), 1)
         else:  # best class only
             conf, j = cls.max(1, keepdim=True)
-            x = torch.cat((box, conf, j.float(), mask), 1)[conf.view(-1) > conf_thres]
+            x = torch.cat((box, conf, j.float(), mask, obj), 1)[conf.view(-1) > conf_thres]
 
         # Filter by class
         if classes is not None:

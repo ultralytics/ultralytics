@@ -614,7 +614,7 @@ class Exporter:
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):
         """YOLO OpenVINO export."""
-        check_requirements("openvino>=2024.0.0,<2025.0.0" if MACOS else "openvino>=2024.0.0")
+        check_requirements("openvino>=2024.0.0,<2024.6.0" if MACOS else "openvino>=2024.0.0")
         if MACOS:
             check_requirements("openvino-telemetry==2024.5.0")
         import openvino as ov

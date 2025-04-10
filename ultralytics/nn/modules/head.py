@@ -1332,7 +1332,12 @@ class DFINETransformer(nn.Module):
 
             if self.aux_loss:
                 out["aux_outputs"] = self._set_aux_loss2(
-                    out_logits[:-1], out_bboxes[:-1], out_corners[:-1], out_refs[:-1], out_corners[-1], out_logits[-1]
+                    out_logits[:-1],
+                    out_bboxes[:-1],
+                    out_corners[:-1],
+                    out_refs[:-1],
+                    out_corners[-1],
+                    out_logits[-1],
                 )
                 out["enc_aux_outputs"] = self._set_aux_loss(enc_topk_logits_list, enc_topk_bboxes_list)
                 out["pre_outputs"] = {"pred_logits": pre_logits, "pred_boxes": pre_bboxes}

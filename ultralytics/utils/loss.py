@@ -1092,8 +1092,9 @@ class DEIMLoss(nn.Module):
         The target boxes are expected in format (center_x, center_y, w, h), normalized by the image size.
         """
         assert "pred_boxes" in outputs
-        src_boxes = outputs["pred_boxes"][self._get_src_permutation_idx(indices)]
-        target_boxes = torch.cat([t["boxes"][j] for t, (_, j) in zip(targets, indices)], dim=0)
+        pred_idx, gt_idx = DETRLoss._get_index(indices)
+        src_boxes = outputs["pred_boxes"][pred_idx]
+        target_boxes = targets["boxes"][gt_idx]
 
         losses = {}
         loss_bbox = F.l1_loss(src_boxes, target_boxes, reduction="none")

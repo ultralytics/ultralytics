@@ -1348,7 +1348,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         scale = d.get("scale")
         if not scale:
             scale = tuple(scales.keys())[0]
-            LOGGER.warning(f"WARNING ⚠️ no model scale passed. Assuming scale='{scale}'.")
+            LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
         depth, width, max_channels = scales[scale]
 
     if act:
@@ -1516,7 +1516,7 @@ def yaml_model_load(path):
     path = Path(path)
     if path.stem in (f"yolov{d}{x}6" for x in "nsmlx" for d in (5, 8)):
         new_stem = re.sub(r"(\d+)([nslmx])6(.+)?$", r"\1\2-p6\3", path.stem)
-        LOGGER.warning(f"WARNING ⚠️ Ultralytics YOLO P6 models now use -p6 suffix. Renaming {path.stem} to {new_stem}.")
+        LOGGER.warning(f"Ultralytics YOLO P6 models now use -p6 suffix. Renaming {path.stem} to {new_stem}.")
         path = path.with_name(new_stem + path.suffix)
 
     unified_path = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
@@ -1608,7 +1608,7 @@ def guess_model_task(model):
 
     # Unable to determine task from model
     LOGGER.warning(
-        "WARNING ⚠️ Unable to automatically guess model task, assuming 'task=detect'. "
+        "Unable to automatically guess model task, assuming 'task=detect'. "
         "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify','pose' or 'obb'."
     )
     return "detect"  # assume detect

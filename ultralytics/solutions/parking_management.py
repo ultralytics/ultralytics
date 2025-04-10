@@ -61,7 +61,7 @@ class ParkingPtsSelection:
                 "Darwin": "reinstall Python from https://www.python.org/downloads/mac-osx/ or `brew install python-tk`",
             }.get(platform.system(), "Unknown OS. Check your Python installation.")
 
-            LOGGER.warning(f"WARNING ⚠️  Tkinter is not configured or supported. Potential fix: {install_cmd}")
+            LOGGER.warning(f" Tkinter is not configured or supported. Potential fix: {install_cmd}")
             return
 
         if not check_imshow(warn=True):
@@ -203,8 +203,8 @@ class ParkingManagement(BaseSolution):
 
         self.json_file = self.CFG["json_file"]  # Load JSON data
         if self.json_file is None:
-            LOGGER.warning("❌ json_file argument missing. Parking region details required.")
-            raise ValueError("❌ Json file path can not be empty")
+            LOGGER.error("json_file argument missing. Parking region details required.")
+            raise ValueError("Json file path can not be empty")
 
         with open(self.json_file) as f:
             self.json = json.load(f)

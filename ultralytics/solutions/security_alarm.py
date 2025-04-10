@@ -112,7 +112,7 @@ class SecurityAlarm(BaseSolution):
             self.server.send_message(message)
             LOGGER.info("✅ Email sent successfully!")
         except Exception as e:
-            LOGGER.error(f"❌ Failed to send email: {e}")
+            LOGGER.error(f"Failed to send email: {e}")
 
     def process(self, im0):
         """

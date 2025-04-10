@@ -854,7 +854,7 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
                 # if j in {8, 9, 10}:  # share train and val loss y axes
                 #     ax[i].get_shared_y_axes().join(ax[i], ax[i - 5])
         except Exception as e:
-            LOGGER.warning(f"WARNING: Plotting error for {f}: {e}")
+            LOGGER.warning(f"Plotting error for {f}: {e}")
     ax[1].legend()
     fname = save_dir / "results.png"
     fig.savefig(fname, dpi=200)

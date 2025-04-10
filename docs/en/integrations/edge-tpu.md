@@ -101,6 +101,11 @@ All [Ultralytics YOLO11 models](../models/index.md) are designed to support expo
 | -------- | ---------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `format` | `str`            | `'edgetpu'` | Target format for the exported model, defining compatibility with various deployment environments.                                |
 | `imgsz`  | `int` or `tuple` | `640`       | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions. |
+| `device` | `str`            | `None`      | Specifies the device for exporting: CPU (`device=cpu`).                                                                           |
+
+!!! tip
+
+    Please make sure to use an x86 Linux machine when exporting to EdgeTPU.
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 

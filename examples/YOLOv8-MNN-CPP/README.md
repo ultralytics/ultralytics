@@ -87,7 +87,7 @@ or
 ./MNNConvert -f MNN --modelFile yolov8n.pt --MNNModel yolov8n.mnn --bizCode biz
 ```
 
-For more details on exporting and optimizing models for MNN, refer to the [MNN documentation](https://mnn-docs.readthedocs.io/en/latest/).
+For more details on converting and optimizing models for MNN, refer to the [MNN Convert](https://mnn-docs.readthedocs.io/en/latest/tools/convert.html).
 
 ## 🛠️ Usage
 

@@ -393,8 +393,8 @@ class LRPCHead(nn.Module):
         if self.enabled:
             pf_score = self.pf(cls_feat)[0, 0].flatten(0)
             mask = pf_score.sigmoid() > conf
-
-            cls_feat = self.vocab(cls_feat.flatten(2).transpose(-1, -2)[:, mask])
+            cls_feat = cls_feat.flatten(2).transpose(-1, -2)
+            cls_feat = self.vocab(cls_feat * mask.unsqueeze(-1).int() if not conf else cls_feat[:, mask])
             return (self.loc(loc_feat), cls_feat.transpose(-1, -2)), mask
         else:
             cls_feat = self.vocab(cls_feat)
@@ -502,7 +502,9 @@ class YOLOEDetect(Detect):
             cls_feat = self.cv3[i](x[i])
             loc_feat = self.cv2[i](x[i])
             assert isinstance(self.lrpc[i], LRPCHead)
-            x[i], mask = self.lrpc[i](cls_feat, loc_feat, getattr(self, "conf", 0.001))
+            x[i], mask = self.lrpc[i](
+                cls_feat, loc_feat, 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001)
+            )
             masks.append(mask)
         shape = x[0][0].shape
         if self.dynamic or self.shape != shape:
@@ -523,7 +525,7 @@ class YOLOEDetect(Detect):
             dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
 
         mask = torch.cat(masks)
-        y = torch.cat((dbox[:, :, mask], cls.sigmoid()), 1)
+        y = torch.cat((dbox if self.export and not self.dynamic else dbox[..., mask], cls.sigmoid()), 1)
 
         if return_mask:
             return (y, mask) if self.export else ((y, x), mask)
@@ -584,7 +586,7 @@ class YOLOESegment(YOLOEDetect):
             return x, mc, p
 
         if has_lrpc:
-            mc = mc[:, :, mask]
+            mc = (mc * mask.int()) if self.export and not self.dynamic else mc[..., mask]
 
         return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))
 

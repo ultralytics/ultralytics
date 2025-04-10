@@ -1138,12 +1138,6 @@ class DEIMLoss(nn.Module):
 
         return losses
 
-    def _get_src_permutation_idx(self, indices):
-        # permute predictions following indices
-        batch_idx = torch.cat([torch.full_like(src, i) for i, (src, _) in enumerate(indices)])
-        src_idx = torch.cat([src for (src, _) in indices])
-        return batch_idx, src_idx
-
     def _merge_indices(self, indices, indices_aux_list):
         """Get a matching union set across all decoder layers."""
         results = []

@@ -995,6 +995,7 @@ class DEIMLoss(nn.Module):
             boxes_weight_format: format for boxes weight (iou, ).
         """
         super().__init__()
+        assert boxes_weight_format in {"iou", "giou"}
         self.num_classes = num_classes
         self.matcher = matcher
         self.weight_dict = weight_dict
@@ -1373,16 +1374,8 @@ class DEIMLoss(nn.Module):
         src_boxes = outputs["pred_boxes"][self._get_src_permutation_idx(indices)]
         target_boxes = torch.cat([t["boxes"][j] for t, (_, j) in zip(targets, indices)], dim=0)
 
-        if self.boxes_weight_format == "iou":
-            iou, _ = box_iou(xywh2xyxy(src_boxes.detach()), xywh2xyxy(target_boxes))
-            iou = torch.diag(iou)
-        elif self.boxes_weight_format == "giou":
-            iou = torch.diag(
-                box_iou(xywh2xyxy(src_boxes.detach()), xywh2xyxy(target_boxes))  # giou
-            )
-        else:
-            raise AttributeError()
-
+        # TODO: could use CIOU as well
+        iou = bbox_iou(src_boxes.detach(), target_boxes, GIoU=self.boxes_weight_format == "giou")
         meta = {"boxes_weight": iou} if loss == "boxes" else {"values": iou} if loss in {"vfl", "mal"} else {}
         return meta
 

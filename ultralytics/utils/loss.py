@@ -1091,15 +1091,18 @@ class DEIMLoss(nn.Module):
         The target boxes are expected in format (center_x, center_y, w, h), normalized by the image size.
         """
         assert "pred_boxes" in outputs
-        idx = self._get_src_permutation_idx(indices)
-        src_boxes = outputs["pred_boxes"][idx]
-        target_boxes = torch.cat([t["boxes"][i] for t, (_, i) in zip(targets, indices)], dim=0)
+        src_boxes = outputs["pred_boxes"][self._get_src_permutation_idx(indices)]
+        target_boxes = torch.cat([t["boxes"][j] for t, (_, j) in zip(targets, indices)], dim=0)
+
         losses = {}
         loss_bbox = F.l1_loss(src_boxes, target_boxes, reduction="none")
         losses["loss_bbox"] = loss_bbox.sum() / num_boxes
 
-        loss_giou = 1 - torch.diag(box_iou(xywh2xyxy(src_boxes), xywh2xyxy(target_boxes)))  # use giou
-        loss_giou = loss_giou if boxes_weight is None else loss_giou * boxes_weight
+        # TODO: could use CIOU as well
+        loss_giou = (1 - bbox_iou(src_boxes.detach(), target_boxes, GIoU=True))
+        if self.boxes_weight_format is not None:
+            boxes_weight = bbox_iou(src_boxes.detach(), target_boxes, GIoU=self.boxes_weight_format == "giou")
+            loss_giou *= boxes_weight
         losses["loss_giou"] = loss_giou.sum() / num_boxes
 
         return losses

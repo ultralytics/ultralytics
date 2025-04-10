@@ -26,7 +26,7 @@ def test_amp():
     assert check_amp(model)
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(True, reason="CUDA export tests disabled pending additional Ultralytics GPU server availability")
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 @pytest.mark.parametrize(
@@ -50,6 +50,7 @@ def test_export_engine_matrix(task, dynamic, int8, half, batch):
         half (bool): Whether to use FP16 precision.
         batch (int): Batch size for export.
     """
+    print("running slow test: test_export_engine_matrix")
     file = YOLO(TASK2MODEL[task]).export(
         format="engine",
         imgsz=32,
@@ -73,7 +74,7 @@ def test_train():
     YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device)  # requires imgsz>=64
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 def test_predict_multiple_devices():
     """Validate model prediction consistency across CPU and CUDA devices."""
@@ -107,7 +108,7 @@ def test_autobatch():
     check_train_batch_size(YOLO(MODEL).model.cuda(), imgsz=128, amp=True)
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 def test_utils_benchmarks():
     """Profile YOLO models for performance benchmarks."""

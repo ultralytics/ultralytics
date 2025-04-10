@@ -105,8 +105,8 @@ export = [
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
 ]
 solutions = [
-    "shapely>=2.0.0,<2.1.0",    # shapely for point and polygon data matching
-    "streamlit>=1.29.0,<1.44.0",    # for live inference on web browser, i.e `yolo streamlit-predict`
+    "shapely>=2.0.0",    # shapely for point and polygon data matching
+    "streamlit>=1.29.0",    # for live inference on web browser, i.e `yolo streamlit-predict`
 ]
 logging = [
     "comet", # https://docs.ultralytics.com/integrations/comet/

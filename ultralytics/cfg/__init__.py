@@ -702,7 +702,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
         solution_name = "count"  # Default for invalid solution
 
     if solution_name == "inference":
-        checks.check_requirements("streamlit>=1.29.0,<1.44.0")
+        checks.check_requirements("streamlit>=1.29.0")
         LOGGER.info("💡 Loading Ultralytics live inference app...")
         subprocess.run(
             [  # Run subprocess with Streamlit custom argument

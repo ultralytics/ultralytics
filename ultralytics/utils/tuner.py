@@ -137,7 +137,12 @@ def run_ray_tune(
         tuner = tune.Tuner(
             trainable_with_resources,
             param_space=space,
-            tune_config=tune.TuneConfig(scheduler=asha_scheduler, num_samples=max_samples),
+            tune_config=tune.TuneConfig(
+                scheduler=asha_scheduler,
+                num_samples=max_samples,
+                trial_name_creator=lambda trial: f"{trial.trainable_name}_{trial.trial_id}",
+                trial_dirname_creator=lambda trial: f"{trial.trainable_name}_{trial.trial_id}",
+            ),
             run_config=RunConfig(callbacks=tuner_callbacks, storage_path=tune_dir.parent, name=tune_dir.name),
         )
 

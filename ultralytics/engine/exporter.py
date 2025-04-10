@@ -86,7 +86,6 @@ from ultralytics.utils import (
     LINUX,
     LOGGER,
     MACOS,
-    PYTHON_VERSION,
     RKNN_CHIPS,
     ROOT,
     WINDOWS,
@@ -795,7 +794,7 @@ class Exporter:
     def export_coreml(self, prefix=colorstr("CoreML:")):
         """YOLO CoreML export."""
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
-        check_requirements("coremltools>=6.0,<=6.2" if mlmodel else "coremltools>=8.0")
+        check_requirements("coremltools>=8.0")
         import coremltools as ct  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
@@ -819,11 +818,15 @@ class Exporter:
                 # TODO CoreML Segment and Pose model pipelining
             model = self.model
         ts = torch.jit.trace(model.eval(), self.im, strict=False)  # TorchScript model
+
+        # Based on apple's documentation it is better to leave out the minimum_deployment target and let that get set
+        # Internally based on the model conversion and output type.
+        # Setting minimum_depoloyment_target >= iOS16 will require setting compute_precision=ct.precision.FLOAT32.
+        # iOS16 adds in better support for FP16, but none of the CoreML NMS specifications handle FP16 as input.
         ct_model = ct.convert(
             ts,
             inputs=[ct.ImageType("image", shape=self.im.shape, scale=scale, bias=bias)],  # expects ct.TensorType
             classifier_config=classifier_config,
-            minimum_deployment_target=ct.target.iOS15,  # warning: >=16 causes pipeline errors
             convert_to="neuralnetwork" if mlmodel else "mlprogram",
         )
         bits, mode = (8, "kmeans") if self.args.int8 else (16, "linear") if self.args.half else (32, None)
@@ -840,8 +843,6 @@ class Exporter:
                 ct_model = cto.palettize_weights(ct_model, config=config)
         if self.args.nms and self.model.task == "detect":
             if mlmodel:
-                # coremltools<=6.2 NMS export requires Python<3.11
-                check_version(PYTHON_VERSION, "<3.11", name="Python ", hard=True)
                 weights_dir = None
             else:
                 ct_model.save(str(f))  # save otherwise weights_dir does not exist
@@ -1469,7 +1470,7 @@ class Exporter:
 
         # 3. Create NMS protobuf
         nms_spec = ct.proto.Model_pb2.Model()
-        nms_spec.specificationVersion = 9
+        nms_spec.specificationVersion = spec.specificationVersion
         for i in range(2):
             decoder_output = model._spec.description.output[i].SerializeToString()
             nms_spec.description.input.add()
@@ -1522,7 +1523,7 @@ class Exporter:
         pipeline.spec.description.output[1].ParseFromString(nms_model._spec.description.output[1].SerializeToString())
 
         # Update metadata
-        pipeline.spec.specificationVersion = 9
+        pipeline.spec.specificationVersion = spec.specificationVersion
         pipeline.spec.description.metadata.userDefined.update(
             {"IoU threshold": str(nms.iouThreshold), "Confidence threshold": str(nms.confidenceThreshold)}
         )

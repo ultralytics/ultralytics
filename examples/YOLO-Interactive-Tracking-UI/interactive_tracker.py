@@ -12,6 +12,9 @@ enable_gpu = False  # Set True if running with CUDA
 model_file = "yolo11s.pt"  # Path to model file
 show_fps = True  # If True, shows current FPS in top-left corner
 show_conf = False  # Display or hide the confidence score
+save_video = True  # Set True to save output video
+video_output_path = "interactive_tracker_output.avi"  # Output video file name
+
 
 conf = 0.3  # Min confidence for object detection (lower = more detections, possibly more false positives)
 iou = 0.3  # IoU threshold for NMS (higher = less overlap allowed)
@@ -40,7 +43,10 @@ cap = cv2.VideoCapture(0)  # Replace with video path if needed
 
 # Initialize video writer
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-vw = cv2.VideoWriter("interactive_tracker_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+vw = None
+if save_video:
+    w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+    vw = cv2.VideoWriter(video_output_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
 selected_object_id = None
 selected_bbox = None
@@ -205,7 +211,8 @@ while cap.isOpened():
         cv2.putText(im, fps_text, (10, 25), 0, 0.7, (104, 31, 17), 1, cv2.LINE_AA)
 
     cv2.imshow(window_name, im)
-    vw.write(im)
+    if save_video and vw is not None:
+        vw.write(im)
     # Terminal logging
     LOGGER.info(f"🟡 DETECTED {len(detections)} OBJECT(S): {' | '.join(detected_objects)}")
     if tracked_info:
@@ -219,4 +226,6 @@ while cap.isOpened():
         selected_object_id = None
 
 cap.release()
+if save_video and vw is not None:
+    vw.release()
 cv2.destroyAllWindows()

@@ -65,6 +65,9 @@ enable_gpu = False  # Set True if running with CUDA
 model_file = "yolo11s.pt"  # Path to model file
 show_fps = True  # If True, shows current FPS in top-left corner
 show_conf = False  # Display or hide the confidence score
+save_video = False  # Set True to save output video
+video_output_path = "interactive_tracker_output.avi"  # Output video file name
+
 
 conf = 0.3  # Min confidence for object detection (lower = more detections, possibly more false positives)
 iou = 0.3  # IoU threshold for NMS (higher = less overlap allowed)
@@ -90,6 +93,18 @@ python interactive_tracker.py
 - 🖱️ Left-click → Select an object to track
 - 🔄 Press `c` → Cancel/reset tracking
 - ❌ Press `q` → Quit the app
+
+
+### Saving Output Video (Optional)
+
+You can choose to save the visualized output as a video file. To enable this, set the following in `interactive_tracker.py`:
+
+```python
+save_video = True  # Enables video recording
+video_output_path = "output.avi"  # Customize your output file name
+```
+
+The video will be saved in the working directory upon exit.
 
 ## Author
 

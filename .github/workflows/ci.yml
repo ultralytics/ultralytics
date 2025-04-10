@@ -99,7 +99,7 @@ jobs:
       fail-fast: false
       matrix:
         # Temporarily disable windows-latest due to https://github.com/ultralytics/ultralytics/actions/runs/13020330819/job/36319338854?pr=18921
-        os: [ubuntu-latest, macos-15, ubuntu-24.04-arm]
+        os: [ubuntu-latest, macos-14, ubuntu-24.04-arm]
         python-version: ["3.11"]
         model: [yolo11n]
     steps:
@@ -160,7 +160,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-15, windows-latest, ubuntu-24.04-arm]
+        os: [ubuntu-latest, macos-14, windows-latest, ubuntu-24.04-arm]
         python-version: ["3.11"]
         torch: [latest]
         include:

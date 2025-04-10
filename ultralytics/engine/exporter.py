@@ -618,7 +618,7 @@ class Exporter:
         if MACOS:
             msg = "OpenVINO error in macOS>=15.4 https://github.com/openvinotoolkit/openvino/issues/30023"
             check_version(MACOS_VERSION, "<15.4", name="macOS ", hard=True, msg=msg)
-        check_requirements("openvino>=2024.0.0,<2025.0.0" if MACOS else "openvino>=2024.0.0")
+        check_requirements("openvino>=2024.0.0")
         import openvino as ov
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")

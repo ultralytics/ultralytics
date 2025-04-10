@@ -1236,30 +1236,28 @@ class DEIMLoss(nn.Module):
         self._clear_cache()
 
         # Get the matching union set across all decoder layers.
-        if "aux_outputs" in outputs:
-            indices_aux_list, cached_indices, cached_indices_enc = [], [], []
-            aux_outputs_list = outputs["aux_outputs"]
-            if "pre_outputs" in outputs:
-                aux_outputs_list = outputs["aux_outputs"] + [outputs["pre_outputs"]]
-            for i, aux_outputs in enumerate(aux_outputs_list):
-                indices_aux = self.matcher(aux_outputs, targets)["indices"]
-                cached_indices.append(indices_aux)
-                indices_aux_list.append(indices_aux)
-            for i, aux_outputs in enumerate(outputs["enc_aux_outputs"]):
-                indices_enc = self.matcher(aux_outputs, targets)["indices"]
-                cached_indices_enc.append(indices_enc)
-                indices_aux_list.append(indices_enc)
-            all_indices = self._merge_indices(indices, indices_aux_list)
+        assert "aux_outputs" in outputs, "Expecting auxiliary outputs in the outputs."
+        indices_aux_list, cached_indices, cached_indices_enc = [], [], []
+        aux_outputs_list = outputs["aux_outputs"]
+        if "pre_outputs" in outputs:
+            aux_outputs_list = outputs["aux_outputs"] + [outputs["pre_outputs"]]
+        for i, aux_outputs in enumerate(aux_outputs_list):
+            indices_aux = self.matcher(aux_outputs, targets)["indices"]
+            cached_indices.append(indices_aux)
+            indices_aux_list.append(indices_aux)
+        for i, aux_outputs in enumerate(outputs["enc_aux_outputs"]):
+            indices_enc = self.matcher(aux_outputs, targets)["indices"]
+            cached_indices_enc.append(indices_enc)
+            indices_aux_list.append(indices_enc)
+        all_indices = self._merge_indices(indices, indices_aux_list)
 
-            num_boxes_all = sum(len(x[0]) for x in all_indices)
-            num_boxes_all = torch.as_tensor(
-                [num_boxes_all], dtype=torch.float, device=next(iter(outputs.values())).device
-            )
-            if is_dist_available_and_initialized():
-                torch.distributed.all_reduce(num_boxes_all)
-            num_boxes_all = torch.clamp(num_boxes_all / get_world_size(), min=1).item()
-        else:
-            assert "aux_outputs" in outputs, ""
+        num_boxes_all = sum(len(x[0]) for x in all_indices)
+        num_boxes_all = torch.as_tensor(
+            [num_boxes_all], dtype=torch.float, device=next(iter(outputs.values())).device
+        )
+        if is_dist_available_and_initialized():  # TODO: need to investigate if it's necessary
+            torch.distributed.all_reduce(num_boxes_all)
+        num_boxes_all = torch.clamp(num_boxes_all / get_world_size(), min=1).item()
 
         # Compute the average number of target boxes accross all nodes, for normalization purposes
         num_boxes = sum(len(t["labels"]) for t in targets)

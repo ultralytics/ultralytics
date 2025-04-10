@@ -1352,10 +1352,6 @@ class DEIMLoss(nn.Module):
 
         return dn_match_indices
 
-    def feature_loss_function(self, fea, target_fea):
-        loss = (fea - target_fea) ** 2 * ((fea > 0) | (target_fea > 0)).float()
-        return torch.abs(loss)
-
     # TODO: DFL Loss
     def unimodal_distribution_focal_loss(
         self,
@@ -1386,9 +1382,3 @@ class DEIMLoss(nn.Module):
             loss = loss.sum()
 
         return loss
-
-    def get_gradual_steps(self, outputs):
-        num_layers = len(outputs["aux_outputs"]) + 1 if "aux_outputs" in outputs else 1
-        step = 0.5 / (num_layers - 1)
-        opt_list = [0.5 + step * i for i in range(num_layers)] if num_layers > 1 else [1]
-        return opt_list

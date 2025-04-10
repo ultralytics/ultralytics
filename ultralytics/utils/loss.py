@@ -13,6 +13,7 @@ import torchvision
 
 from .metrics import bbox_iou, probiou, box_iou
 from .tal import bbox2dist
+from ..models.utils.loss import DETRLoss
 
 
 class VarifocalLoss(nn.Module):
@@ -1368,8 +1369,9 @@ class DEIMLoss(nn.Module):
         if self.boxes_weight_format is None or loss not in {"vfl", "mal"}:
             return {}
 
-        src_boxes = outputs["pred_boxes"][self._get_src_permutation_idx(indices)]
-        target_boxes = torch.cat([t["boxes"][j] for t, (_, j) in zip(targets, indices)], dim=0)
+        pred_idx, gt_idx = DETRLoss._get_index(indices)
+        src_boxes = outputs["pred_boxes"][pred_idx]
+        target_boxes = targets["boxes"][gt_idx]
 
         # TODO: could use CIOU as well
         iou = bbox_iou(src_boxes.detach(), target_boxes, GIoU=self.boxes_weight_format == "giou")

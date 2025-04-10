@@ -48,7 +48,6 @@ class YOLOv8:
         Returns:
             None
         """
-
         # Extract the coordinates of the bounding box
         x1, y1, w, h = box
 
@@ -118,7 +117,6 @@ class YOLOv8:
         Returns:
             numpy.ndarray: The input image with detections drawn on it.
         """
-
         # Transpose and squeeze the output to match the expected shape
         outputs = np.transpose(np.squeeze(output[0]))
 

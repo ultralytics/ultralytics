@@ -99,7 +99,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
         ```bash
         # Export a YOLOv8n PyTorch model to CoreML format
-        yolo export model=yolov8n.pt format=coreml  # creates 'yolov8n.mlpackage''
+        yolo export model=yolov8n.pt format=coreml # creates 'yolov8n.mlpackage''
 
         # Run inference with the exported model
         yolo predict model=yolov8n.mlpackage source='https://ultralytics.com/images/bus.jpg'

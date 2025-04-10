@@ -99,7 +99,7 @@ Before diving into the usage instructions, it's important to note that while all
 
         ```bash
         # Export a YOLOv8n PyTorch model to TorchScript format
-        yolo export model=yolov8n.pt format=torchscript  # creates 'yolov8n.torchscript'
+        yolo export model=yolov8n.pt format=torchscript # creates 'yolov8n.torchscript'
 
         # Run inference with the exported model
         yolo predict model=yolov8n.torchscript source='https://ultralytics.com/images/bus.jpg'
@@ -159,7 +159,7 @@ To export a YOLOv8 model to TorchScript, you can use the following example code:
 
         ```bash
         # Export a YOLOv8n PyTorch model to TorchScript format
-        yolo export model=yolov8n.pt format=torchscript  # creates 'yolov8n.torchscript'
+        yolo export model=yolov8n.pt format=torchscript # creates 'yolov8n.torchscript'
 
         # Run inference with the exported model
         yolo predict model=yolov8n.torchscript source='https://ultralytics.com/images/bus.jpg'

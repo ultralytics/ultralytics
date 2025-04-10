@@ -201,8 +201,8 @@ If you want to use INT8 precision for inference, you need to follow the steps be
 5.  Run the following to select 1000 random images from COCO dataset to run calibration
 
     ```bash
-    for jpg in $(ls -1 val2017/*.jpg | sort -R | head -1000); do \
-        cp ${jpg} calibration/; \
+    for jpg in $(ls -1 val2017/*.jpg | sort -R | head -1000); do
+      cp ${jpg} calibration/
     done
     ```
 

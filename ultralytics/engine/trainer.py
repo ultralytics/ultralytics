@@ -197,7 +197,7 @@ class BaseTrainer:
             # Command
             cmd, file = generate_ddp_command(world_size, self)
             try:
-                LOGGER.info(f'{colorstr("DDP:")} debug command {" ".join(cmd)}')
+                LOGGER.info(f"{colorstr('DDP:')} debug command {' '.join(cmd)}")
                 subprocess.run(cmd, check=True)
             except Exception as e:
                 raise e
@@ -230,7 +230,6 @@ class BaseTrainer:
 
     def _setup_train(self, world_size):
         """Builds dataloaders and optimizer on correct rank process."""
-
         # Model
         self.run_callbacks("on_pretrain_routine_start")
         ckpt = self.setup_model()
@@ -334,10 +333,10 @@ class BaseTrainer:
         self.train_time_start = time.time()
         self.run_callbacks("on_train_start")
         LOGGER.info(
-            f'Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n'
-            f'Using {self.train_loader.num_workers * (world_size or 1)} dataloader workers\n'
+            f"Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n"
+            f"Using {self.train_loader.num_workers * (world_size or 1)} dataloader workers\n"
             f"Logging results to {colorstr('bold', self.save_dir)}\n"
-            f'Starting training for ' + (f"{self.args.time} hours..." if self.args.time else f"{self.epochs} epochs...")
+            f"Starting training for " + (f"{self.args.time} hours..." if self.args.time else f"{self.epochs} epochs...")
         )
         if self.args.close_mosaic:
             base_idx = (self.epochs - self.args.close_mosaic) * nb
@@ -408,7 +407,7 @@ class BaseTrainer:
                             break
 
                 # Log
-                mem = f"{torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0:.3g}G"  # (GB)
+                mem = f"{torch.cuda.memory_reserved() / 1e9 if torch.cuda.is_available() else 0:.3g}G"  # (GB)
                 loss_len = self.tloss.shape[0] if len(self.tloss.shape) else 1
                 losses = self.tloss if loss_len > 1 else torch.unsqueeze(self.tloss, 0)
                 if RANK in {-1, 0}:
@@ -636,7 +635,7 @@ class BaseTrainer:
         pass
 
     def on_plot(self, name, data=None):
-        """Registers plots (e.g. to be consumed in callbacks)"""
+        """Registers plots (e.g. to be consumed in callbacks)."""
         path = Path(name)
         self.plots[path] = {"data": data, "timestamp": time.time()}
 
@@ -732,7 +731,6 @@ class BaseTrainer:
         Returns:
             (torch.optim.Optimizer): The constructed optimizer.
         """
-
         g = [], [], []  # optimizer parameter groups
         bn = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
         if name == "auto":
@@ -773,6 +771,6 @@ class BaseTrainer:
         optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
-            f'{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)'
+            f"{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)"
         )
         return optimizer

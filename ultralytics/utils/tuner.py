@@ -34,7 +34,6 @@ def run_ray_tune(
         result_grid = model.tune(data='coco8.yaml', use_ray=True)
         ```
     """
-
     LOGGER.info("💡 Learn about RayTune at https://docs.ultralytics.com/integrations/ray-tune")
     if train_args is None:
         train_args = {}

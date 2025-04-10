@@ -72,7 +72,7 @@ Without further ado, let's dive in!
 
     ```python
     yaml_file = "path/to/data.yaml"  # your data YAML with data directories and names dictionary
-    with open(yaml_file, "r", encoding="utf8") as y:
+    with open(yaml_file, encoding="utf8") as y:
         classes = yaml.safe_load(y)["names"]
     cls_idx = sorted(classes.keys())
     ```
@@ -94,7 +94,7 @@ Without further ado, let's dive in!
     for label in labels:
         lbl_counter = Counter()
 
-        with open(label, "r") as lf:
+        with open(label) as lf:
             lines = lf.readlines()
 
         for l in lines:

@@ -226,6 +226,7 @@ class Explorer:
     def plot_sql_query(self, query: str, labels: bool = True) -> Image.Image:
         """
         Plot the results of a SQL-Like query on the table.
+
         Args:
             query (str): SQL query to run.
             labels (bool): Whether to plot the labels or not.
@@ -471,6 +472,6 @@ class Explorer:
         """
         Generate a report of the dataset.
 
-        TODO
+        Todo:
         """
         pass

@@ -115,7 +115,7 @@ def coco91_to_coco80_class():
 
 
 def coco80_to_coco91_class():
-    """
+    r"""
     Converts 80-index (val2014) to 91-index (paper).
     For details see https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/.
 
@@ -243,7 +243,6 @@ def convert_coco(
     Output:
         Generates output files in the specified output directory.
     """
-
     # Create dataset directory
     save_dir = increment_path(save_dir)  # increment if save directory already exists
     for p in save_dir / "labels", save_dir / "images":
@@ -266,7 +265,7 @@ def convert_coco(
             data = json.load(f)
 
         # Create image dict
-        images = {f'{x["id"]:d}': x for x in data["images"]}
+        images = {f"{x['id']:d}": x for x in data["images"]}
         # Create image-annotations dict
         imgToAnns = defaultdict(list)
         for ann in data["annotations"]:
@@ -491,7 +490,7 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
                 normalized_coords = [
                     coords[i] / image_width if i % 2 == 0 else coords[i] / image_height for i in range(8)
                 ]
-                formatted_coords = ["{:.6g}".format(coord) for coord in normalized_coords]
+                formatted_coords = [f"{coord:.6g}" for coord in normalized_coords]
                 g.write(f"{class_idx} {' '.join(formatted_coords)}\n")
 
     for phase in ["train", "val"]:

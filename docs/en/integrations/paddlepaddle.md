@@ -93,7 +93,7 @@ Before diving into the usage instructions, it's important to note that while all
 
         ```bash
         # Export a YOLOv8n PyTorch model to PaddlePaddle format
-        yolo export model=yolov8n.pt format=paddle  # creates '/yolov8n_paddle_model'
+        yolo export model=yolov8n.pt format=paddle # creates '/yolov8n_paddle_model'
 
         # Run inference with the exported model
         yolo predict model='./yolov8n_paddle_model' source='https://ultralytics.com/images/bus.jpg'
@@ -151,7 +151,7 @@ Exporting Ultralytics YOLOv8 models to PaddlePaddle format is straightforward. Y
 
         ```bash
         # Export a YOLOv8n PyTorch model to PaddlePaddle format
-        yolo export model=yolov8n.pt format=paddle  # creates '/yolov8n_paddle_model'
+        yolo export model=yolov8n.pt format=paddle # creates '/yolov8n_paddle_model'
 
         # Run inference with the exported model
         yolo predict model='./yolov8n_paddle_model' source='https://ultralytics.com/images/bus.jpg'

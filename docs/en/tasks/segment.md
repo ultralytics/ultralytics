@@ -114,7 +114,7 @@ retains its training `data` and arguments as model attributes.
 
         ```bash
         yolo segment val model=yolov8n-seg.pt  # val official model
-        yolo segment val model=path/to/best.pt  # val custom model
+        yolo segment val model=path/to/best.pt # val custom model
         ```
 
 ## Predict
@@ -140,7 +140,7 @@ Use a trained YOLOv8n-seg model to run predictions on images.
 
         ```bash
         yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
-        yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
+        yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg' # predict with custom model
         ```
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
@@ -168,7 +168,7 @@ Export a YOLOv8n-seg model to a different format like ONNX, CoreML, etc.
 
         ```bash
         yolo export model=yolov8n-seg.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx  # export custom trained model
+        yolo export model=path/to/best.pt format=onnx # export custom trained model
         ```
 
 Available YOLOv8-seg export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolov8n-seg.onnx`. Usage examples are shown for your model after export completes.

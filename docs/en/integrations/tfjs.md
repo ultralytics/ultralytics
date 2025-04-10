@@ -89,7 +89,7 @@ Before diving into the usage instructions, it's important to note that while all
 
         ```bash
         # Export a YOLOv8n PyTorch model to TF.js format
-        yolo export model=yolov8n.pt format=tfjs  # creates '/yolov8n_web_model'
+        yolo export model=yolov8n.pt format=tfjs # creates '/yolov8n_web_model'
 
         # Run inference with the exported model
         yolo predict model='./yolov8n_web_model' source='https://ultralytics.com/images/bus.jpg'
@@ -147,7 +147,7 @@ Exporting Ultralytics YOLOv8 models to TensorFlow.js (TF.js) format is straightf
 
         ```bash
         # Export a YOLOv8n PyTorch model to TF.js format
-        yolo export model=yolov8n.pt format=tfjs  # creates '/yolov8n_web_model'
+        yolo export model=yolov8n.pt format=tfjs # creates '/yolov8n_web_model'
 
         # Run inference with the exported model
         yolo predict model='./yolov8n_web_model' source='https://ultralytics.com/images/bus.jpg'

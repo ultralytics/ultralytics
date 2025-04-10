@@ -232,7 +232,6 @@ class TwoWayAttentionBlock(nn.Module):
 
     def forward(self, queries: Tensor, keys: Tensor, query_pe: Tensor, key_pe: Tensor) -> Tuple[Tensor, Tensor]:
         """Applies two-way attention to process query and key embeddings in a transformer block."""
-
         # Self attention block
         if self.skip_first_layer_pe:
             queries = self.self_attn(q=queries, k=queries, v=queries)
@@ -353,7 +352,6 @@ class Attention(nn.Module):
 
     def forward(self, q: Tensor, k: Tensor, v: Tensor) -> Tensor:
         """Applies multi-head attention to query, key, and value tensors with optional downsampling."""
-
         # Input projections
         q = self.q_proj(q)
         k = self.k_proj(k)

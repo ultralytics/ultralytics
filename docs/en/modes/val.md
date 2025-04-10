@@ -71,8 +71,8 @@ Validate trained YOLOv8n model accuracy on the COCO8 dataset. No argument need t
     === "CLI"
 
         ```bash
-        yolo detect val model=yolov8n.pt  # val official model
-        yolo detect val model=path/to/best.pt  # val custom model
+        yolo detect val model=yolov8n.pt      # val official model
+        yolo detect val model=path/to/best.pt # val custom model
         ```
 
 ## Arguments for YOLO Model Validation

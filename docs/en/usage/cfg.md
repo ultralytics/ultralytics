@@ -295,7 +295,7 @@ Default inference settings include:
 - **IoU Threshold (`iou=0.7`)**: For Non-Maximum Suppression (NMS).
 - **Image Size (`imgsz=640`)**: Resizes input images prior to inference.
 - **Device (`device=None`)**: Selects CPU or GPU for inference.
-    For a comprehensive overview, visit the [Predict Settings](#predict-settings) section and the [Predict Guide](../modes/predict.md).
+  For a comprehensive overview, visit the [Predict Settings](#predict-settings) section and the [Predict Guide](../modes/predict.md).
 
 ### Why should I use mixed precision training with YOLO models?
 

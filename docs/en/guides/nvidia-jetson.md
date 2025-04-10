@@ -268,7 +268,7 @@ The YOLOv8n model in PyTorch format is converted to TensorRT to run inference wi
 
         ```bash
         # Export a YOLOv8n PyTorch model to TensorRT format
-        yolo export model=yolov8n.pt format=engine  # creates 'yolov8n.engine'
+        yolo export model=yolov8n.pt format=engine # creates 'yolov8n.engine'
 
         # Run inference with the exported model
         yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'

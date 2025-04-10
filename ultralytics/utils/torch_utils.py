@@ -146,7 +146,6 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     Note:
         Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
     """
-
     if isinstance(device, torch.device):
         return device
 
@@ -491,7 +490,7 @@ def init_seeds(seed=0, deterministic=False):
 class ModelEMA:
     """
     Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models. Keeps a moving
-    average of everything in the model state_dict (parameters and buffers)
+    average of everything in the model state_dict (parameters and buffers).
 
     For EMA details see https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
 

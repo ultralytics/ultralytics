@@ -420,7 +420,7 @@ class BYTETracker:
             tid = t.track_id
             if stracks.get(tid, 0):
                 del stracks[tid]
-        return list(stracks.values())
+        return list(stracks.values()).
         """
         track_ids_b = {t.track_id for t in tlistb}
         return [t for t in tlista if t.track_id not in track_ids_b]

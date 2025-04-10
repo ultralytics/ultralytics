@@ -271,9 +271,9 @@ class Compose:
         """
         assert isinstance(index, (int, list)), f"The indices should be either list or int type but got {type(index)}"
         if isinstance(index, list):
-            assert isinstance(
-                value, list
-            ), f"The indices should be the same type as values, but got {type(index)} and {type(value)}"
+            assert isinstance(value, list), (
+                f"The indices should be the same type as values, but got {type(index)} and {type(value)}"
+            )
         if isinstance(index, int):
             index, value = [index], [value]
         for i, v in zip(index, value):
@@ -1004,7 +1004,6 @@ class RandomPerspective:
             >>> transform = RandomPerspective(degrees=10.0, translate=0.1, scale=0.5, shear=5.0)
             >>> result = transform(labels)  # Apply random perspective to labels
         """
-
         self.degrees = degrees
         self.translate = translate
         self.scale = scale
@@ -1037,7 +1036,6 @@ class RandomPerspective:
             >>> border = (10, 10)
             >>> transformed_img, matrix, scale = affine_transform(img, border)
         """
-
         # Center
         C = np.eye(3, dtype=np.float32)
 

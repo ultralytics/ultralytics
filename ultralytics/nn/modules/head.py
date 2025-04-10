@@ -567,7 +567,7 @@ class RTDETRDecoder(nn.Module):
 
 class v10Detect(Detect):
     """
-    v10 Detection head from https://arxiv.org/pdf/2405.14458
+    v10 Detection head from https://arxiv.org/pdf/2405.14458.
 
     Args:
         nc (int): Number of classes.

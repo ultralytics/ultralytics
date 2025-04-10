@@ -165,7 +165,7 @@ ClearML's remote execution feature facilitates the reproduction and manipulation
 Deploying a ClearML Agent is straightforward and can be done on various machines using the following command:
 
 ```bash
-clearml-agent daemon --queue <queues_to_listen_to> [--docker]
+clearml-agent daemon --queue < queues_to_listen_to > [--docker]
 ```
 
 This setup is applicable to cloud VMs, local GPUs, or laptops. ClearML Autoscalers help manage cloud workloads on platforms like AWS, GCP, and Azure, automating the deployment of agents and adjusting resources based on your resource budget.

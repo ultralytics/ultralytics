@@ -124,7 +124,7 @@ The YOLOv8n model in PyTorch format is converted to NCNN to run inference with t
 
         ```bash
         # Export a YOLOv8n PyTorch model to NCNN format
-        yolo export model=yolov8n.pt format=ncnn  # creates 'yolov8n_ncnn_model'
+        yolo export model=yolov8n.pt format=ncnn # creates 'yolov8n_ncnn_model'
 
         # Run inference with the exported model
         yolo predict model='yolov8n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
@@ -434,7 +434,7 @@ You can convert a PyTorch YOLOv8 model to NCNN format using either Python or CLI
 
         ```bash
         # Export a YOLOv8n PyTorch model to NCNN format
-        yolo export model=yolov8n.pt format=ncnn  # creates 'yolov8n_ncnn_model'
+        yolo export model=yolov8n.pt format=ncnn # creates 'yolov8n_ncnn_model'
 
         # Run inference with the exported model
         yolo predict model='yolov8n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'

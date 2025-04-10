@@ -91,7 +91,7 @@ To use the Edge TPU, you need to convert your model into a compatible format. It
     === "CLI"
 
         ```bash
-        yolo export model=path/to/model.pt format=edgetpu  # Export an official model or custom model
+        yolo export model=path/to/model.pt format=edgetpu # Export an official model or custom model
         ```
 
 The exported model will be saved in the `<model_name>_saved_model/` folder with the name `<model_name>_full_integer_quant_edgetpu.tflite`.
@@ -117,7 +117,7 @@ After exporting your model, you can run inference with it using the following co
     === "CLI"
 
         ```bash
-        yolo predict model=path/to/edgetpu_model.tflite source=path/to/source.png  # Load an official model or custom model
+        yolo predict model=path/to/edgetpu_model.tflite source=path/to/source.png # Load an official model or custom model
         ```
 
 Find comprehensive information on the [Predict](../modes/predict.md) page for full prediction mode details.
@@ -176,7 +176,7 @@ Yes, you can export your Ultralytics YOLOv8 model to be compatible with the Cora
     === "CLI"
 
         ```bash
-        yolo export model=path/to/model.pt format=edgetpu  # Export an official model or custom model
+        yolo export model=path/to/model.pt format=edgetpu # Export an official model or custom model
         ```
 
 For more information, refer to the [Export Mode](../modes/export.md) documentation.
@@ -218,7 +218,7 @@ After exporting your YOLOv8 model to an Edge TPU-compatible format, you can run 
     === "CLI"
 
         ```bash
-        yolo predict model=path/to/edgetpu_model.tflite source=path/to/source.png  # Load an official model or custom model
+        yolo predict model=path/to/edgetpu_model.tflite source=path/to/source.png # Load an official model or custom model
         ```
 
 Comprehensive details on full prediction mode features can be found on the [Predict Page](../modes/predict.md).

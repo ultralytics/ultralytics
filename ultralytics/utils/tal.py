@@ -140,7 +140,6 @@ class TaskAlignedAssigner(nn.Module):
         Returns:
             (Tensor): A tensor of shape (b, max_num_obj, h*w) containing the selected top-k candidates.
         """
-
         # (b, max_num_obj, topk)
         topk_metrics, topk_idxs = torch.topk(metrics, self.topk, dim=-1, largest=largest)
         if topk_mask is None:
@@ -184,7 +183,6 @@ class TaskAlignedAssigner(nn.Module):
                                           for positive anchor points, where num_classes is the number
                                           of object classes.
         """
-
         # Assigned target labels, (b, 1)
         batch_ind = torch.arange(end=self.bs, dtype=torch.int64, device=gt_labels.device)[..., None]
         target_gt_idx = target_gt_idx + batch_ind * self.n_max_boxes  # (b, h*w)
@@ -334,6 +332,7 @@ def dist2rbox(pred_dist, pred_angle, anchor_points, dim=-1):
         pred_dist (torch.Tensor): Predicted rotated distance, (bs, h*w, 4).
         pred_angle (torch.Tensor): Predicted angle, (bs, h*w, 1).
         anchor_points (torch.Tensor): Anchor points, (h*w, 2).
+
     Returns:
         (torch.Tensor): Predicted rotated bounding boxes, (bs, h*w, 4).
     """

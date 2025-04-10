@@ -194,7 +194,7 @@ To tune the hyperparameters of your Ultralytics YOLOv8 model using Ray Tune, fol
 
     ```bash
     pip install -U ultralytics "ray[tune]"
-    pip install wandb  # optional for logging
+    pip install wandb # optional for logging
     ```
 
 2. **Load your YOLOv8 model and start tuning:**

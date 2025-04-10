@@ -95,11 +95,11 @@ To access the [Ultralytics HUB](https://ultralytics.com/hub) Inference API using
 
 ```bash
 curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
-	-H "x-api-key: API_KEY" \
-	-F "file=@/path/to/image.jpg" \
-	-F "imgsz=640" \
-	-F "conf=0.25" \
-	-F "iou=0.45"
+  -H "x-api-key: API_KEY" \
+  -F "file=@/path/to/image.jpg" \
+  -F "imgsz=640" \
+  -F "conf=0.25" \
+  -F "iou=0.45"
 ```
 
 !!! note "Note"
@@ -146,11 +146,11 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
-            -H "x-api-key: API_KEY" \
-            -F "file=@/path/to/image.jpg" \
-            -F "imgsz=640" \
-            -F "conf=0.25" \
-            -F "iou=0.45"
+          -H "x-api-key: API_KEY" \
+          -F "file=@/path/to/image.jpg" \
+          -F "imgsz=640" \
+          -F "conf=0.25" \
+          -F "iou=0.45"
         ```
 
     === "Python"
@@ -226,11 +226,11 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
-            -H "x-api-key: API_KEY" \
-            -F "file=@/path/to/image.jpg" \
-            -F "imgsz=640" \
-            -F "conf=0.25" \
-            -F "iou=0.45"
+          -H "x-api-key: API_KEY" \
+          -F "file=@/path/to/image.jpg" \
+          -F "imgsz=640" \
+          -F "conf=0.25" \
+          -F "iou=0.45"
         ```
 
     === "Python"
@@ -312,11 +312,11 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
-            -H "x-api-key: API_KEY" \
-            -F "file=@/path/to/image.jpg" \
-            -F "imgsz=640" \
-            -F "conf=0.25" \
-            -F "iou=0.45"
+          -H "x-api-key: API_KEY" \
+          -F "file=@/path/to/image.jpg" \
+          -F "imgsz=640" \
+          -F "conf=0.25" \
+          -F "iou=0.45"
         ```
 
     === "Python"
@@ -402,11 +402,11 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
-            -H "x-api-key: API_KEY" \
-            -F "file=@/path/to/image.jpg" \
-            -F "imgsz=640" \
-            -F "conf=0.25" \
-            -F "iou=0.45"
+          -H "x-api-key: API_KEY" \
+          -F "file=@/path/to/image.jpg" \
+          -F "imgsz=640" \
+          -F "conf=0.25" \
+          -F "iou=0.45"
         ```
 
     === "Python"
@@ -502,11 +502,11 @@ The [Ultralytics HUB](https://ultralytics.com/hub) Inference API returns a JSON 
 
         ```bash
         curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
-            -H "x-api-key: API_KEY" \
-            -F "file=@/path/to/image.jpg" \
-            -F "imgsz=640" \
-            -F "conf=0.25" \
-            -F "iou=0.45"
+          -H "x-api-key: API_KEY" \
+          -F "file=@/path/to/image.jpg" \
+          -F "imgsz=640" \
+          -F "conf=0.25" \
+          -F "iou=0.45"
         ```
 
     === "Python"

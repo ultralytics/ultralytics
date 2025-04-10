@@ -30,7 +30,6 @@ def bbox_ioa(box1, box2, iou=False, eps=1e-7):
     Returns:
         (np.ndarray): A numpy array of shape (n, m) representing the intersection over box2 area.
     """
-
     # Get the coordinates of bounding boxes
     b1_x1, b1_y1, b1_x2, b1_y2 = box1.T
     b2_x1, b2_y1, b2_x2, b2_y2 = box2.T
@@ -53,7 +52,7 @@ def bbox_ioa(box1, box2, iou=False, eps=1e-7):
 def box_iou(box1, box2, eps=1e-7):
     """
     Calculate intersection-over-union (IoU) of boxes. Both sets of boxes are expected to be in (x1, y1, x2, y2) format.
-    Based on https://github.com/pytorch/vision/blob/master/torchvision/ops/boxes.py
+    Based on https://github.com/pytorch/vision/blob/master/torchvision/ops/boxes.py.
 
     Args:
         box1 (torch.Tensor): A tensor of shape (N, 4) representing N bounding boxes.
@@ -63,7 +62,6 @@ def box_iou(box1, box2, eps=1e-7):
     Returns:
         (torch.Tensor): An NxM tensor containing the pairwise IoU values for every element in box1 and box2.
     """
-
     # NOTE: Need .float() to get accurate iou values
     # inter(N,M) = (rb(N,M,2) - lt(N,M,2)).clamp(0).prod(2)
     (a1, a2), (b1, b2) = box1.float().unsqueeze(1).chunk(2, 2), box2.float().unsqueeze(0).chunk(2, 2)
@@ -90,7 +88,6 @@ def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7
     Returns:
         (torch.Tensor): IoU, GIoU, DIoU, or CIoU values depending on the specified flags.
     """
-
     # Get the coordinates of bounding boxes
     if xywh:  # transform from xywh to xyxy
         (x1, y1, w1, h1), (x2, y2, w2, h2) = box1.chunk(4, -1), box2.chunk(4, -1)
@@ -424,7 +421,7 @@ class ConfusionMatrix:
         ax.set_xlabel("True")
         ax.set_ylabel("Predicted")
         ax.set_title(title)
-        plot_fname = Path(save_dir) / f'{title.lower().replace(" ", "_")}.png'
+        plot_fname = Path(save_dir) / f"{title.lower().replace(' ', '_')}.png"
         fig.savefig(plot_fname, dpi=250)
         plt.close(fig)
         if on_plot:
@@ -456,7 +453,7 @@ def plot_pr_curve(px, py, ap, save_dir=Path("pr_curve.png"), names=(), on_plot=N
     else:
         ax.plot(px, py, linewidth=1, color="grey")  # plot(recall, precision)
 
-    ax.plot(px, py.mean(1), linewidth=3, color="blue", label="all classes %.3f mAP@0.5" % ap[:, 0].mean())
+    ax.plot(px, py.mean(1), linewidth=3, color="blue", label=f"all classes {ap[:, 0].mean():.3f} mAP@0.5")
     ax.set_xlabel("Recall")
     ax.set_ylabel("Precision")
     ax.set_xlim(0, 1)
@@ -507,7 +504,6 @@ def compute_ap(recall, precision):
         (np.ndarray): Precision envelope curve.
         (np.ndarray): Modified recall curve with sentinel values added at the beginning and end.
     """
-
     # Append sentinel values to beginning and end
     mrec = np.concatenate(([0.0], recall, [1.0]))
     mpre = np.concatenate(([1.0], precision, [0.0]))
@@ -560,7 +556,6 @@ def ap_per_class(
             x (np.ndarray): X-axis values for the curves. Shape: (1000,).
             prec_values: Precision values at mAP@0.5 for each class. Shape: (nc, 1000).
     """
-
     # Sort by objectness
     i = np.argsort(-conf)
     tp, conf, pred_cls = tp[i], conf[i], pred_cls[i]
@@ -942,7 +937,6 @@ class SegmentMetrics(SimpleClass):
             pred_cls (list): List of predicted classes.
             target_cls (list): List of target classes.
         """
-
         results_mask = ap_per_class(
             tp_m,
             conf,
@@ -1084,7 +1078,6 @@ class PoseMetrics(SegmentMetrics):
             pred_cls (list): List of predicted classes.
             target_cls (list): List of target classes.
         """
-
         results_pose = ap_per_class(
             tp_p,
             conf,

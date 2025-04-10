@@ -51,7 +51,6 @@ class Analytics:
             save_img (bool): Whether to save the image.
             max_points (int): Specifies when to remove the oldest points in a graph for multiple lines.
         """
-
         self.bg_color = bg_color
         self.fg_color = fg_color
         self.view_img = view_img
@@ -115,7 +114,6 @@ class Analytics:
             frame_number (int): The current frame number.
             counts_dict (dict): Dictionary with class names as keys and counts as values.
         """
-
         x_data = np.array([])
         y_data_dict = {key: np.array([]) for key in counts_dict.keys()}
 
@@ -177,7 +175,6 @@ class Analytics:
             frame_number (int): The current frame number.
             total_counts (int): The total counts to plot.
         """
-
         # Update line graph data
         x_data = self.line.get_xdata()
         y_data = self.line.get_ydata()
@@ -230,7 +227,7 @@ class Analytics:
         """
         Write and display the line graph
         Args:
-            im0 (ndarray): Image for processing
+            im0 (ndarray): Image for processing.
         """
         im0 = cv2.cvtColor(im0[:, :, :3], cv2.COLOR_RGBA2BGR)
         cv2.imshow(self.title, im0) if self.view_img else None
@@ -243,7 +240,6 @@ class Analytics:
         Args:
             count_dict (dict): Dictionary containing the count data to plot.
         """
-
         # Update bar graph data
         self.ax.clear()
         self.ax.set_facecolor(self.bg_color)
@@ -282,7 +278,6 @@ class Analytics:
         Args:
             classes_dict (dict): Dictionary containing the class data to plot.
         """
-
         # Update pie chart data
         labels = list(classes_dict.keys())
         sizes = list(classes_dict.values())

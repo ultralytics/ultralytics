@@ -328,7 +328,7 @@ class BasePredictor:
             frame = int(match[1]) if match else None  # 0 if frame undetermined
 
         self.txt_path = self.save_dir / "labels" / (p.stem + ("" if self.dataset.mode == "image" else f"_{frame}"))
-        string += "%gx%g " % im.shape[2:]
+        string += "{:g}x{:g} ".format(*im.shape[2:])
         result = self.results[i]
         result.save_dir = self.save_dir.__str__()  # used in other locations
         string += f"{result.verbose()}{result.speed['inference']:.1f}ms"
@@ -362,7 +362,7 @@ class BasePredictor:
         # Save videos and streams
         if self.dataset.mode in {"stream", "video"}:
             fps = self.dataset.fps if self.dataset.mode == "video" else 30
-            frames_path = f'{save_path.split(".", 1)[0]}_frames/'
+            frames_path = f"{save_path.split('.', 1)[0]}_frames/"
             if save_path not in self.vid_writer:  # new video
                 if self.args.save_frames:
                     Path(frames_path).mkdir(parents=True, exist_ok=True)

@@ -98,8 +98,8 @@ Run the image:
 
 ```bash
 # Run the Ultralytics image in a container with GPU support
-sudo docker run -it --ipc=host --gpus all $t  # all GPUs
-sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # specify GPUs
+sudo docker run -it --ipc=host --gpus all $t            # all GPUs
+sudo docker run -it --ipc=host --gpus '"device=2,3"' $t # specify GPUs
 ```
 
 ## Speeding Up Installation with Libmamba

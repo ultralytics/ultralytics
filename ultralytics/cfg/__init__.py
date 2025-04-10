@@ -57,7 +57,7 @@ MODELS = {TASK2MODEL[task] for task in TASKS}
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 CLI_HELP_MSG = f"""
-    Arguments received: {str(['yolo'] + ARGV[1:])}. Ultralytics 'yolo' commands use the following syntax:
+    Arguments received: {str(["yolo"] + ARGV[1:])}. Ultralytics 'yolo' commands use the following syntax:
 
         yolo TASK MODE ARGS
 
@@ -314,11 +314,11 @@ def check_cfg(cfg, hard=True):
                         )
                     cfg[k] = v = float(v)
                 if not (0.0 <= v <= 1.0):
-                    raise ValueError(f"'{k}={v}' is an invalid value. " f"Valid '{k}' values are between 0.0 and 1.0.")
+                    raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
             elif k in CFG_INT_KEYS and not isinstance(v, int):
                 if hard:
                     raise TypeError(
-                        f"'{k}={v}' is of invalid type {type(v).__name__}. " f"'{k}' must be an int (i.e. '{k}=8')"
+                        f"'{k}={v}' is of invalid type {type(v).__name__}. '{k}' must be an int (i.e. '{k}=8')"
                     )
                 cfg[k] = int(v)
             elif k in CFG_BOOL_KEYS and not isinstance(v, bool):
@@ -350,7 +350,6 @@ def get_save_dir(args, name=None):
         >>> print(save_dir)
         my_project/detect/train
     """
-
     if getattr(args, "save_dir", None):
         save_dir = args.save_dir
     else:
@@ -381,7 +380,6 @@ def _handle_deprecation(custom):
         equivalents. It also handles value conversions where necessary, such as inverting boolean values for
         'hide_labels' and 'hide_conf'.
     """
-
     for key in custom.copy().keys():
         if key == "boxes":
             deprecation_warn(key, "show_boxes")

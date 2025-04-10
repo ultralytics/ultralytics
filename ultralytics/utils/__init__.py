@@ -209,7 +209,6 @@ def plt_settings(rcparams=None, backend="Agg"):
         (Callable): Decorated function with temporarily set rc parameters and backend. This decorator can be
             applied to any function that needs to have specific matplotlib rc parameters and backend for its execution.
     """
-
     if rcparams is None:
         rcparams = {"font.size": 11}
 
@@ -699,7 +698,7 @@ SETTINGS_YAML = USER_CONFIG_DIR / "settings.yaml"
 
 
 def colorstr(*input):
-    """
+    r"""
     Colors a string based on the provided color and style arguments. Utilizes ANSI escape codes.
     See https://en.wikipedia.org/wiki/ANSI_escape_code for more details.
 
@@ -1035,7 +1034,7 @@ class SettingsManager(dict):
 def deprecation_warn(arg, new_arg):
     """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
     LOGGER.warning(
-        f"WARNING ⚠️ '{arg}' is deprecated and will be removed in in the future. " f"Please use '{new_arg}' instead."
+        f"WARNING ⚠️ '{arg}' is deprecated and will be removed in in the future. Please use '{new_arg}' instead."
     )
 
 

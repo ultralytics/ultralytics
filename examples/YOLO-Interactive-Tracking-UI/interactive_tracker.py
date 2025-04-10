@@ -3,17 +3,15 @@
 import time
 
 import cv2
-from mobileclip.logger import text_colors
 
 from ultralytics import YOLO
-from ultralytics.utils.plotting import colors, Annotator
 from ultralytics.utils import LOGGER
-
+from ultralytics.utils.plotting import Annotator, colors
 
 enable_gpu = False  # Set True if running with CUDA
 model_file = "yolo11s.pt"  # Path to model file
 show_fps = True  # If True, shows current FPS in top-left corner
-show_conf = False # Display or hide the confidence score
+show_conf = False  # Display or hide the confidence score
 
 conf = 0.3  # Min confidence for object detection (lower = more detections, possibly more false positives)
 iou = 0.3  # IoU threshold for NMS (higher = less overlap allowed)
@@ -21,8 +19,8 @@ max_det = 20  # Maximum objects per im (increase for crowded scenes)
 
 tracker = "bytetrack.yaml"  # Tracker config: 'bytetrack.yaml', 'botsort.yaml', etc.
 track_args = {
-    "persist": True,  # Keep frames history as a stream for contineous tracking
-    "verbose": False  # Print debug info from tracker
+    "persist": True,  # Keep frames history as a stream for continuous tracking
+    "verbose": False,  # Print debug info from tracker
 }
 
 window_name = "Ultralytics YOLO Interactive Tracking"  # Output window name
@@ -38,11 +36,12 @@ else:
 
 classes = model.names  # Store model classes names
 
-cap = cv2.VideoCapture(0) # Replace with video path if needed
+cap = cv2.VideoCapture(0)  # Replace with video path if needed
 
 selected_object_id = None
 selected_bbox = None
 selected_center = None
+
 
 def get_center(x1, y1, x2, y2):
     """
@@ -59,19 +58,20 @@ def get_center(x1, y1, x2, y2):
     """
     return (x1 + x2) // 2, (y1 + y2) // 2
 
+
 def extend_line_from_edge(mid_x, mid_y, direction, img_shape):
     """
-   Calculates the endpoint to extend a line from the center toward an image edge.
+    Calculates the endpoint to extend a line from the center toward an image edge.
 
-   Args:
-       mid_x (int): X-coordinate of the midpoint.
-       mid_y (int): Y-coordinate of the midpoint.
-       direction (str): Direction to extend ('left', 'right', 'up', 'down').
-       img_shape (tuple): Image shape in (height, width, channels).
+    Args:
+        mid_x (int): X-coordinate of the midpoint.
+        mid_y (int): Y-coordinate of the midpoint.
+        direction (str): Direction to extend ('left', 'right', 'up', 'down').
+        img_shape (tuple): Image shape in (height, width, channels).
 
-   Returns:
-       (int, int): Endpoint coordinate of the extended line.
-   """
+    Returns:
+        (int, int): Endpoint coordinate of the extended line.
+    """
     h, w = img_shape[:2]
     if direction == "left":
         return 0, mid_y
@@ -82,6 +82,7 @@ def extend_line_from_edge(mid_x, mid_y, direction, img_shape):
     if direction == "down":
         return mid_x, h - 1
     return mid_x, mid_y
+
 
 def draw_tracking_scope(im, bbox, color):
     """
@@ -101,6 +102,7 @@ def draw_tracking_scope(im, bbox, color):
     cv2.line(im, mid_bottom, extend_line_from_edge(*mid_bottom, "down", im.shape), color, 2)
     cv2.line(im, mid_left, extend_line_from_edge(*mid_left, "left", im.shape), color, 2)
     cv2.line(im, mid_right, extend_line_from_edge(*mid_right, "right", im.shape), color, 2)
+
 
 def click_event(event, x, y, flags, param):
     """
@@ -133,6 +135,7 @@ def click_event(event, x, y, flags, param):
             if best_match:
                 selected_object_id, label = best_match
                 print(f"🔵 TRACKING STARTED: {label} (ID {selected_object_id})")
+
 
 cv2.namedWindow(window_name)
 cv2.setMouseCallback(window_name, click_event)

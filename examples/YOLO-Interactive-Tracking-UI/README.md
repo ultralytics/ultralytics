@@ -94,7 +94,6 @@ python interactive_tracker.py
 - 🔄 Press `c` → Cancel/reset tracking
 - ❌ Press `q` → Quit the app
 
-
 ### Saving Output Video (Optional)
 
 You can choose to save the visualized output as a video file. To enable this, set the following in `interactive_tracker.py`:

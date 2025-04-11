@@ -75,7 +75,7 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, simplify, nms",
     [  # generate all combinations except for exclusion cases

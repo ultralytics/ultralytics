@@ -42,7 +42,6 @@ classes = model.names  # Store model classes names
 cap = cv2.VideoCapture(0)  # Replace with video path if needed
 
 # Initialize video writer
-w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 vw = None
 if save_video:
     w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))

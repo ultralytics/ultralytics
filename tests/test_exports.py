@@ -139,7 +139,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
     shutil.rmtree(file)  # cleanup
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
 @pytest.mark.skipif(
     not LINUX or IS_RASPBERRYPI,

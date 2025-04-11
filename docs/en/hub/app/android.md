@@ -87,7 +87,7 @@ To get started with the Ultralytics Android App, follow these steps:
 
 1. Download the Ultralytics App from the [Google Play Store](https://play.google.com/store/apps/details?id=com.ultralytics.ultralytics_app).
 
-2. Launch the app on your Android device and sign in with your Ultralytics account. If you don't have an account yet, create one [here](https://hub.ultralytics.com/).
+2. Launch the app on your Android device and sign in with your Ultralytics account. If you don't have an account yet, create one at <https://hub.ultralytics.com/>.
 
 3. Once signed in, you will see a list of your trained YOLO models. Select a model to use for object detection.
 

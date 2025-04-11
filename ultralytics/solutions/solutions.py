@@ -347,7 +347,7 @@ class SolutionAnnotator(Annotator):
         Returns:
             (float): The angle in degrees between the three points.
         """
-        a, b, c = np.array(a), np.array(b), np.array(c)
+        a, b, c = np.asarray(a), np.asarray(b), np.asarray(c)
         radians = np.arctan2(c[1] - b[1], c[0] - b[0]) - np.arctan2(a[1] - b[1], a[0] - b[0])
         angle = np.abs(radians * 180.0 / np.pi)
         if angle > 180.0:

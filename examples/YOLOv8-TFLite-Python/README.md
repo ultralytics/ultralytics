@@ -70,7 +70,7 @@ Follow these steps to run inference with your exported YOLOv8 TFLite model.
 
 The script will process the input image using the specified TFLite model and display the image with bounding boxes drawn around detected objects. Each box will be labeled with the predicted class name and confidence score.
 
-![Output Image showing YOLOv8 TFLite detections on a bus](https://github.com/ultralytics/ultralytics/assets/26833433/147f59a8-986f-4141-944a-0d44e5f5a7a4)
+![Output Image showing YOLOv8 TFLite detections on a bus](https://github.com/wamiqraza/Attribute-recognition-and-reidentification-Market1501-dataset/blob/main/img/bus.jpg?raw=true)
 
 This example provides a straightforward way to deploy Ultralytics YOLOv8 models on devices supporting TFLite, enabling efficient **object detection** in various applications. Explore different [quantization](https://www.ultralytics.com/glossary/model-quantization) options and model sizes to find the best balance between performance and accuracy for your specific use case.
 

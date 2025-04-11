@@ -1,9 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import io
 import shutil
 import uuid
-from contextlib import redirect_stderr, redirect_stdout
 from itertools import product
 from pathlib import Path
 
@@ -13,14 +11,9 @@ from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import (
-    ARM64,
-    IS_RASPBERRYPI,
-    LINUX,
-    MACOS,
     WINDOWS,
-    checks,
 )
-from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
+from ultralytics.utils.torch_utils import TORCH_1_13
 
 
 def test_export_torchscript():

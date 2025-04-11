@@ -12,7 +12,7 @@ from ultralytics.utils import ASSETS_URL, checks
 from ultralytics.utils.downloads import safe_download
 
 # Pre-defined arguments values
-SHOW = False
+SHOW = True
 DEMO_VIDEO = "solutions_ci_demo.mp4"  # for all the solutions, except workout, object cropping and parking management
 CROP_VIDEO = "decelera_landscape_min.mov"  # for object cropping solution
 POSE_VIDEO = "solution_ci_pose_demo.mp4"  # only for workouts monitoring solution
@@ -63,28 +63,28 @@ SOLUTIONS = [
         solutions.Analytics,
         True,
         DEMO_VIDEO,
-        {"analytics_type": "line", "model": MODEL, "show": SHOW},
+        {"analytics_type": "line", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.6)},
     ),
     (
         "PieAnalytics",
         solutions.Analytics,
         True,
         DEMO_VIDEO,
-        {"analytics_type": "pie", "model": MODEL, "show": SHOW},
+        {"analytics_type": "pie", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.6)},
     ),
     (
         "BarAnalytics",
         solutions.Analytics,
         True,
         DEMO_VIDEO,
-        {"analytics_type": "bar", "model": MODEL, "show": SHOW},
+        {"analytics_type": "bar", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.6)},
     ),
     (
         "AreaAnalytics",
         solutions.Analytics,
         True,
         DEMO_VIDEO,
-        {"analytics_type": "area", "model": MODEL, "show": SHOW},
+        {"analytics_type": "area", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.6)},
     ),
     ("TrackZone", solutions.TrackZone, False, DEMO_VIDEO, {"region": REGION, "model": MODEL, "show": SHOW}),
     (

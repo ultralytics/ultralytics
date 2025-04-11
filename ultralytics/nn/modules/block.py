@@ -199,7 +199,7 @@ class SPP(nn.Module):
 class SPPF(nn.Module):
     """Spatial Pyramid Pooling - Fast (SPPF) layer for YOLOv5 by Glenn Jocher."""
 
-    def __init__(self, c1, c2, k=5):
+    def __init__(self, c1, c2, k=5, act=True):
         """
         Initialize the SPPF layer with given input/output channels and kernel size.
 
@@ -214,7 +214,7 @@ class SPPF(nn.Module):
         super().__init__()
         c_ = c1 // 2  # hidden channels
         self.cv1 = Conv(c1, c_, 1, 1)
-        self.cv2 = Conv(c_ * 4, c2, 1, 1)
+        self.cv2 = Conv(c_ * 4, c2, 1, 1, act=act)
         self.m = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
 
     def forward(self, x):
@@ -1464,7 +1464,7 @@ class C2PSA(nn.Module):
         >>> output_tensor = c2psa(input_tensor)
     """
 
-    def __init__(self, c1, c2, n=1, e=0.5):
+    def __init__(self, c1, c2, n=1, e=0.5, act=True):
         """
         Initialize C2PSA module.
 
@@ -1478,7 +1478,7 @@ class C2PSA(nn.Module):
         assert c1 == c2
         self.c = int(c1 * e)
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
-        self.cv2 = Conv(2 * self.c, c1, 1)
+        self.cv2 = Conv(2 * self.c, c1, 1, act=act)
 
         self.m = nn.Sequential(*(PSABlock(self.c, attn_ratio=0.5, num_heads=self.c // 64) for _ in range(n)))
 

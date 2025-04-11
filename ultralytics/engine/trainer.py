@@ -177,7 +177,9 @@ class BaseTrainer:
             world_size = len(self.args.device.split(","))
         elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
             world_size = len(self.args.device)
-        elif self.args.device in {"cpu", "mps"}:  # i.e. device='cpu' or 'mps'
+        elif self.args.device in {"cpu", "mps"} or str(self.args.device).startswith(
+            "ocl"
+        ):  # i.e. device='cpu' or 'mps' or 'ocl'
             world_size = 0
         elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
             world_size = 1  # default to device 0
@@ -457,6 +459,7 @@ class BaseTrainer:
                 self.scheduler.last_epoch = self.epoch  # do not move
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
             self.run_callbacks("on_fit_epoch_end")
+
             if self._get_memory(fraction=True) > 0.9:
                 self._clear_memory()  # clear if memory utilization > 90%
 
@@ -507,8 +510,11 @@ class BaseTrainer:
     def _clear_memory(self):
         """Clear accelerator memory by calling garbage collector and emptying cache."""
         gc.collect()
+
         if self.device.type == "mps":
             torch.mps.empty_cache()
+        elif self.device.type == "ocl":
+            torch.ocl.empty_cache()
         elif self.device.type == "cpu":
             return
         else:

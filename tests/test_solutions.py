@@ -164,7 +164,7 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     solution = solution_class(**kwargs)
 
     if name == "StreamlitInference":
-        if checks.check_imshow():
+        if checks.check_imshow():  # requires interactive GUI environment
             solution.inference()
     else:
         process_video(solution, str(TMP / video), needs_frame_count)

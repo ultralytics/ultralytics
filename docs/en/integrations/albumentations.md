@@ -67,7 +67,7 @@ For detailed instructions and best practices related to the installation process
 
 ### Usage
 
-After installing the necessary packages, you're ready to start using Albumentations with YOLO11. When you train YOLO11, a set of augmentations is automatically applied through its integration with Albumentations, making it easy to enhance your model's performance.
+After installing the necessary packages, you're ready to start using Albumentations with YOLO11. When you train YOLO11, a set of augmentations is automatically applied through its integration with Albumentations, making it easy to enhance your model's performance. Additionally, you can pass [custom Albumentations pipelines](#how-can-i-pass-a-custom-albumentations-pipeline) to YOLO11 for a more tailored data augmentation.
 
 !!! example "Usage"
 
@@ -176,6 +176,29 @@ model.train(data="coco8.yaml", epochs=100)
 ```
 
 The integration includes optimized augmentations like blur, median blur, grayscale conversion, and CLAHE with carefully tuned probabilities to enhance model performance.
+
+### How can I pass a custom Albumentations pipeline?
+
+To pass a custom Albumentations pipeline to YOLO11, define your augmentation pipeline and pass it to the `custom_augs` parameter during model training. This allows you to customize the augmentations applied to your training data.
+
+```python
+# Install required packages
+# !pip install albumentations ultralytics
+import Albumentations as A
+
+from ultralytics import YOLO
+
+# Define custom Albumentations pipeline
+pipeline = A.Compose(
+    [
+        A.RandomBrightnessContrast(p=0.01),
+        A.RandomGamma(p=0.01),
+    ]
+)
+# Load and train model with customized augmentations
+model = YOLO("yolo11n.pt")
+model.train(data="coco8.yaml", epochs=100, custom_augs=pipeline)
+```
 
 ### What are the key benefits of using Albumentations over other augmentation libraries?
 

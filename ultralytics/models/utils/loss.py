@@ -65,7 +65,25 @@ class DETRLoss(nn.Module):
         self.device = None
 
     def _get_loss_class(self, pred_scores, targets, gt_scores, num_gts, postfix=""):
-        """Compute classification loss based on predictions, target values, and ground truth scores."""
+        """
+        Compute classification loss based on predictions, target values, and ground truth scores.
+
+        Args:
+            pred_scores (torch.Tensor): Predicted class scores with shape (batch_size, num_queries, num_classes).
+            targets (torch.Tensor): Target class indices with shape (batch_size, num_queries).
+            gt_scores (torch.Tensor): Ground truth confidence scores with shape (batch_size, num_queries).
+            num_gts (int): Number of ground truth objects.
+            postfix (str, optional): String to append to the loss name for identification in multi-loss scenarios.
+
+        Returns:
+            loss_cls (torch.Tensor): Classification loss value.
+
+        Notes:
+            The function supports different classification loss types:
+            - Varifocal Loss (if self.vfl is True and num_gts > 0)
+            - Focal Loss (if self.fl is True)
+            - BCE Loss (default fallback)
+        """
         # Logits: [b, query, num_classes], gt_class: list[[n, 1]]
         name_class = f"loss_class{postfix}"
         bs, nq = pred_scores.shape[:2]
@@ -87,7 +105,25 @@ class DETRLoss(nn.Module):
         return {name_class: loss_cls.squeeze() * self.loss_gain["class"]}
 
     def _get_loss_bbox(self, pred_bboxes, gt_bboxes, postfix=""):
-        """Compute bounding box and GIoU losses for predicted and ground truth bounding boxes."""
+        """
+        Compute bounding box and GIoU losses for predicted and ground truth bounding boxes.
+
+        Args:
+            pred_bboxes (torch.Tensor): Predicted bounding boxes with shape (batch_size, num_queries, 4).
+            gt_bboxes (torch.Tensor): Ground truth bounding boxes with shape (N, 4), where N is the total
+                number of ground truth boxes.
+            postfix (str): String to append to the loss names for identification in multi-loss scenarios.
+
+        Returns:
+            loss (dict): Dictionary containing:
+                - loss_bbox{postfix} (torch.Tensor): L1 loss between predicted and ground truth boxes,
+                  scaled by the bbox loss gain.
+                - loss_giou{postfix} (torch.Tensor): GIoU loss between predicted and ground truth boxes,
+                  scaled by the giou loss gain.
+
+        Notes:
+            If no ground truth boxes are provided (empty list), zero-valued tensors are returned for both losses.
+        """
         # Boxes: [b, query, 4], gt_bbox: list[[n, 4]]
         name_bbox = f"loss_bbox{postfix}"
         name_giou = f"loss_giou{postfix}"

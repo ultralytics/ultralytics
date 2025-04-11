@@ -77,7 +77,7 @@ WHERE labels LIKE '%person%' AND labels LIKE '%dog%'
 <img width="1707" alt="Explorer Dashboard Screenshot 5" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-5.avif">
 </p>
 
-This is a Demo built using the Explorer API. You can use the API to build your own exploratory notebooks or scripts to get insights into your datasets. Learn more about the Explorer API [here](api.md).
+This demo was built using the Explorer API, which you can use to create your own exploratory notebooks or scripts for gaining insights into your datasets. To get started, check out the [Explorer API documentation](api.md).
 
 ## FAQ
 
@@ -102,8 +102,6 @@ Learn more about semantic search and other features by visiting the [Feature Ove
 ### Can I use natural language to filter datasets in Ultralytics Explorer GUI?
 
 Yes, with the Ask AI feature powered by large language models (LLMs), you can filter your datasets using natural language queries. You don't need to be proficient in SQL. For instance, you can ask "Show me 100 images with exactly one person and 2 dogs. There can be other objects too," and the AI will generate the appropriate query under the hood to deliver the desired results.
-
-See an example of a natural language query [here](#ask-ai).
 
 ### How do I run SQL queries on datasets using Ultralytics Explorer GUI?
 

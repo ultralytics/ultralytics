@@ -558,7 +558,7 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
     assert transformed_image.dtype == torch.float32
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_model_tune():
     """Tune YOLO model for performance improvement."""

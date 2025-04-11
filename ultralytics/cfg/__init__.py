@@ -214,7 +214,6 @@ CFG_BOOL_KEYS = frozenset(
         "overlap_mask",
         "val",
         "save_json",
-        "save_hybrid",
         "half",
         "dnn",
         "plots",
@@ -437,22 +436,25 @@ def _handle_deprecation(custom: Dict) -> Dict:
         equivalents. It also handles value conversions where necessary, such as inverting boolean values for
         'hide_labels' and 'hide_conf'.
     """
-    for key in custom.copy().keys():
-        if key == "boxes":
-            deprecation_warn(key, "show_boxes")
-            custom["show_boxes"] = custom.pop("boxes")
-        if key == "hide_labels":
-            deprecation_warn(key, "show_labels")
-            custom["show_labels"] = custom.pop("hide_labels") == "False"
-        if key == "hide_conf":
-            deprecation_warn(key, "show_conf")
-            custom["show_conf"] = custom.pop("hide_conf") == "False"
-        if key == "line_thickness":
-            deprecation_warn(key, "line_width")
-            custom["line_width"] = custom.pop("line_thickness")
-        if key == "label_smoothing":
-            deprecation_warn(key)
-            custom.pop("label_smoothing")
+    deprecated_mappings = {
+        "boxes": ("show_boxes", lambda v: v),
+        "hide_labels": ("show_labels", lambda v: not bool(v)),
+        "hide_conf": ("show_conf", lambda v: not bool(v)),
+        "line_thickness": ("line_width", lambda v: v),
+    }
+    removed_keys = {"label_smoothing", "save_hybrid"}
+
+    for old_key, (new_key, transform) in deprecated_mappings.items():
+        if old_key not in custom:
+            continue
+        deprecation_warn(old_key, new_key)
+        custom[new_key] = transform(custom.pop(old_key))
+
+    for key in removed_keys:
+        if key not in custom:
+            continue
+        deprecation_warn(key)
+        custom.pop(key)
 
     return custom
 
@@ -700,7 +702,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
         solution_name = "count"  # Default for invalid solution
 
     if solution_name == "inference":
-        checks.check_requirements("streamlit>=1.29.0")
+        checks.check_requirements("streamlit>=1.29.0,<1.44.0")
         LOGGER.info("💡 Loading Ultralytics live inference app...")
         subprocess.run(
             [  # Run subprocess with Streamlit custom argument

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore comprehensive YOLOv5 documentation with step-by-step tutorials on training, deployment, and model optimization. Empower your vision projects today!
-keywords: YOLOv5, Ultralytics, object detection, computer vision, deep learning, AI, tutorials, PyTorch, model optimization, machine learning, neural networks
+description: Explore comprehensive Ultralytics YOLOv5 documentation with step-by-step tutorials on training, deployment, and model optimization. Empower your vision projects today!
+keywords: YOLOv5, Ultralytics, object detection, computer vision, deep learning, AI, tutorials, PyTorch, model optimization, machine learning, neural networks, YOLOv5 tutorial
 ---
 
 # Comprehensive Guide to Ultralytics YOLOv5
@@ -22,11 +22,11 @@ keywords: YOLOv5, Ultralytics, object detection, computer vision, deep learning,
 <br>
 <br>
 
-Welcome to the Ultralytics' <a href="https://github.com/ultralytics/yolov5">YOLOv5</a>🚀 Documentation! YOLOv5, the fifth iteration of the revolutionary "You Only Look Once" <a href="https://www.ultralytics.com/glossary/object-detection">object detection</a> model, is designed to deliver high-speed, high-accuracy results in real-time.
+Welcome to the Ultralytics <a href="https://github.com/ultralytics/yolov5">YOLOv5</a>🚀 Documentation! Ultralytics YOLOv5, the fifth iteration of the revolutionary "You Only Look Once" <a href="https://www.ultralytics.com/glossary/object-detection">object detection</a> model, is designed to deliver high-speed, high-accuracy results in real-time. While YOLOv5 remains a powerful tool, consider exploring its successor, [Ultralytics YOLOv8](../models/yolov8.md), for the latest advancements.
 
 <br><br>
 
-Built on PyTorch, this powerful <a href="https://www.ultralytics.com/glossary/deep-learning-dl">deep learning</a> framework has garnered immense popularity for its versatility, ease of use, and high performance. Our documentation guides you through the installation process, explains the architectural nuances of the model, showcases various use-cases, and provides a series of detailed tutorials. These resources will help you harness the full potential of YOLOv5 for your <a href="https://www.ultralytics.com/glossary/computer-vision-cv">computer vision</a> projects. Let's get started!
+Built on [PyTorch](https://pytorch.org/), this powerful [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) framework has garnered immense popularity for its versatility, ease of use, and high performance. Our documentation guides you through the installation process, explains the architectural nuances of the model, showcases various use-cases, and provides a series of detailed tutorials. These resources will help you harness the full potential of YOLOv5 for your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects. Let's get started!
 
 </div>
 
@@ -44,14 +44,14 @@ Here's a compilation of comprehensive tutorials that will guide you through diff
 - [Model Pruning/Sparsity](tutorials/model_pruning_and_sparsity.md): Understand pruning and sparsity concepts, and how to create a more efficient model.
 - [Hyperparameter Evolution](tutorials/hyperparameter_evolution.md): Discover the process of automated [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) for better model performance.
 - [Transfer Learning with Frozen Layers](tutorials/transfer_learning_with_frozen_layers.md): Learn how to implement [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) by freezing layers in YOLOv5.
-- [Architecture Summary](tutorials/architecture_description.md) 🌟 Delve into the structural details of the YOLOv5 model.
-- [ClearML Logging](tutorials/clearml_logging_integration.md) 🌟 Learn how to integrate ClearML for efficient logging during your model training.
-- [YOLOv5 with Neural Magic](tutorials/neural_magic_pruning_quantization.md) Discover how to use Neural Magic's Deepsparse to prune and quantize your YOLOv5 model.
-- [Comet Logging](tutorials/comet_logging_integration.md) 🌟 NEW: Explore how to utilize Comet for improved model training logging.
+- [Architecture Summary](tutorials/architecture_description.md) 🌟 Delve into the structural details of the YOLOv5 model. Read the [YOLOv5 v6.0 blog post](https://www.ultralytics.com/blog/yolov5-v6-0-is-here) for more insights.
+- [ClearML Logging Integration](tutorials/clearml_logging_integration.md) 🌟 Learn how to integrate [ClearML](https://clear.ml/) for efficient logging during your model training.
+- [YOLOv5 with Neural Magic](tutorials/neural_magic_pruning_quantization.md) Discover how to use [Neural Magic's DeepSparse](https://neuralmagic.com/deepsparse/) to prune and quantize your YOLOv5 model.
+- [Comet Logging Integration](tutorials/comet_logging_integration.md) 🌟 NEW: Explore how to utilize [Comet](https://www.comet.com/site/) for improved model training logging.
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda-zone), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda-zone), [CuDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects. You can also manage your models and datasets using [Ultralytics HUB](https://www.ultralytics.com/hub).
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](environments/google_cloud_quickstart_tutorial.md)
@@ -86,7 +86,7 @@ This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultraly
 
 Your journey with YOLOv5 doesn't have to be a solitary one. Join our vibrant community on [GitHub](https://github.com/ultralytics/yolov5), connect with professionals on [LinkedIn](https://www.linkedin.com/company/ultralytics/), share your results on [Twitter](https://twitter.com/ultralytics), and find educational resources on [YouTube](https://www.youtube.com/ultralytics?sub_confirmation=1). Follow us on [TikTok](https://www.tiktok.com/@ultralytics) and [BiliBili](https://ultralytics.com/bilibili) for more engaging content.
 
-Interested in contributing? We welcome contributions of all forms; from code improvements and bug reports to documentation updates. Check out our [contributing guidelines](../help/contributing.md) for more information.
+Interested in contributing? We welcome contributions of all forms, from code improvements and bug reports to documentation updates. Check out our [contributing guidelines](../help/contributing.md) for more information.
 
 We're excited to see the innovative ways you'll use YOLOv5. Dive in, experiment, and revolutionize your computer vision projects! 🚀
 
@@ -110,4 +110,4 @@ Optimizing YOLOv5 model performance involves tuning various hyperparameters and 
 
 ### What environments are supported for running YOLOv5 applications?
 
-Ultralytics YOLOv5 supports a variety of environments, including free GPU notebooks on [Gradient](https://bit.ly/yolov5-paperspace-notebook), [Google Colab](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb), [Kaggle](https://www.kaggle.com/models/ultralytics/yolov5), as well as major cloud platforms like [Google Cloud](environments/google_cloud_quickstart_tutorial.md), [Amazon AWS](environments/aws_quickstart_tutorial.md), and [Azure](environments/azureml_quickstart_tutorial.md). [Docker images](https://hub.docker.com/r/ultralytics/yolov5) are also available for convenient setup. For a detailed guide on setting up these environments, check our [Supported Environments](#supported-environments) section, which includes step-by-step instructions for each platform.
+Ultralytics YOLOv5 supports a variety of environments, including free GPU notebooks on [Gradient](https://bit.ly/yolov5-paperspace-notebook), [Google Colab](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb), and [Kaggle](https://www.kaggle.com/models/ultralytics/yolov5), as well as major cloud platforms like [Google Cloud](environments/google_cloud_quickstart_tutorial.md), [Amazon AWS](environments/aws_quickstart_tutorial.md), and [Azure](environments/azureml_quickstart_tutorial.md). [Docker images](https://hub.docker.com/r/ultralytics/yolov5) are also available for convenient setup. For a detailed guide on setting up these environments, check our [Supported Environments](#supported-environments) section, which includes step-by-step instructions for each platform.

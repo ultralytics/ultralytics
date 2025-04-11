@@ -4,6 +4,7 @@ from collections import defaultdict
 
 import cv2
 import numpy as np
+import math
 
 from ultralytics import YOLO
 from ultralytics.utils import ASSETS_URL, DEFAULT_CFG_DICT, DEFAULT_SOL_DICT, LOGGER
@@ -347,11 +348,9 @@ class SolutionAnnotator(Annotator):
         Returns:
             (float): The angle in degrees between the three points.
         """
-        radians = np.arctan2(c[1] - b[1], c[0] - b[0]) - np.arctan2(a[1] - b[1], a[0] - b[0])
-        angle = abs(radians * 180.0 / np.pi)
-        if angle > 180.0:
-            angle = 360 - angle
-        return angle
+        radians = math.atan2(c[1] - b[1], c[0] - b[0]) - math.atan2(a[1] - b[1], a[0] - b[0])
+        angle = abs(radians * 180.0 / math.pi)
+        return angle if angle <= 180.0 else (360 - angle)
 
     def draw_specific_kpts(self, keypoints, indices=None, radius=2, conf_thresh=0.25):
         """

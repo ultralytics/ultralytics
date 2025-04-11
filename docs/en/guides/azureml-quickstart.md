@@ -215,7 +215,7 @@ Yes, AzureML allows you to use both the Ultralytics CLI and the Python interface
     model.train(data="coco8.yaml", epochs=3)
     ```
 
-Refer to the quickstart guides for more detailed instructions [here](../quickstart.md#use-ultralytics-with-cli) and [here](../quickstart.md#use-ultralytics-with-python).
+For step-by-step instructions, refer to the [CLI quickstart guide](../quickstart.md#use-ultralytics-with-cli) and the [Python quickstart guide](../quickstart.md#use-ultralytics-with-python).
 
 ### What is the advantage of using Ultralytics YOLO11 over other [object detection](https://www.ultralytics.com/glossary/object-detection) models?
 

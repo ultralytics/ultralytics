@@ -34,7 +34,7 @@ Albumentations offers many useful features that simplify complex image augmentat
 
 ![Overview of the Different Levels of Augmentations](https://github.com/ultralytics/docs/releases/download/0/levels-of-augmentation.avif)
 
-- **[Benchmarking Results](https://albumentations.ai/docs/benchmarking_results/)**: When it comes to benchmarking, Albumentations consistently outperforms other libraries, especially with large datasets.
+- **[Benchmarking Results](https://www.albumentations.ai/docs/benchmarks/image-benchmarks/)**: When it comes to benchmarking, Albumentations consistently outperforms other libraries, especially with large datasets.
 
 ## Why Should You Use Albumentations for Your Vision AI Projects?
 

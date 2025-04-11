@@ -95,7 +95,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
     Path(file).unlink()  # cleanup
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, nms",
     [  # generate all combinations except for exclusion cases

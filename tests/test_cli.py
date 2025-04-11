@@ -114,7 +114,7 @@ def test_mobilesam() -> None:
 
 
 # Slow Tests -----------------------------------------------------------------------------------------------------------
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 @pytest.mark.skipif(CUDA_DEVICE_COUNT < 2, reason="DDP is not available")

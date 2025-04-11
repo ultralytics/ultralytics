@@ -161,18 +161,16 @@ while cap.isOpened():
     annotator = Annotator(im)
     detections = results[0].boxes.data if results[0].boxes is not None else []
     detected_objects = []
-    tracked_info = ""
     for track in detections:
         track = track.tolist()
         if len(track) < 6:
             continue
         x1, y1, x2, y2 = map(int, track[:4])
-        class_conf = float(track[5])
         class_id = int(track[6]) if len(track) >= 7 else int(track[5])
         track_id = int(track[4]) if len(track) == 7 else -1
         color = colors(track_id, True)
         txt_color = annotator.get_txt_color(color)
-        label = f"{classes[class_id]} ID {track_id}" + (f" ({class_conf:.2f})" if show_conf else "")
+        label = f"{classes[class_id]} ID {track_id}" + (f" ({float(track[5]):.2f})" if show_conf else "")
         if track_id == selected_object_id:
             draw_tracking_scope(im, (x1, y1, x2, y2), color)
             center = get_center(x1, y1, x2, y2)
@@ -215,8 +213,6 @@ while cap.isOpened():
         vw.write(im)
     # Terminal logging
     LOGGER.info(f"🟡 DETECTED {len(detections)} OBJECT(S): {' | '.join(detected_objects)}")
-    if tracked_info:
-        LOGGER.info(tracked_info)
 
     key = cv2.waitKey(1) & 0xFF
     if key == ord("q"):

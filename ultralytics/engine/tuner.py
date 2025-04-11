@@ -93,8 +93,9 @@ class Tuner:
             "copy_paste": (0.0, 1.0),  # segment copy-paste (probability)
         }
         self.args = get_cfg(overrides=args)
+        self.args.exist_ok = self.args.resume  # resume w/ same tune_dir
         self.tune_dir = get_save_dir(self.args, name=self.args.name or "tune")
-        self.args.name = None  # reset to not affect training directory
+        self.args.name, self.args.exist_ok, self.args.resume = (None, False, False)  # reset to not affect training
         self.tune_csv = self.tune_dir / "tune_results.csv"
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.prefix = colorstr("Tuner: ")
@@ -173,7 +174,12 @@ class Tuner:
         t0 = time.time()
         best_save_dir, best_metrics = None, None
         (self.tune_dir / "weights").mkdir(parents=True, exist_ok=True)
-        for i in range(iterations):
+        start = 0
+        if self.tune_csv.exists():
+            x = np.loadtxt(self.tune_csv, ndmin=2, delimiter=",", skiprows=1)
+            start = x.shape[0]
+            LOGGER.info(f"{self.prefix}Resuming tuning run {self.tune_dir} from iteration {start + 1}...")
+        for i in range(start, iterations):
             # Mutate hyperparameters
             mutated_hyp = self._mutate()
             LOGGER.info(f"{self.prefix}Starting iteration {i + 1}/{iterations} with hyperparameters: {mutated_hyp}")

@@ -14,14 +14,15 @@ scales: # model compound scaling constants, i.e. 'model=yolo11n.yaml' will call 
   l: [1.00, 1.00, 512] # summary: 357 layers, 25372160 parameters, 25372144 gradients, 87.6 GFLOPs
   x: [1.00, 1.50, 512] # summary: 357 layers, 56966176 parameters, 56966160 gradients, 196.0 GFLOPs
 
+# NOTE: replace `yolo11-silu-frelu-7.yaml` SilU to ReLU to speed up
 # YOLO11n backbone
 backbone:
   # [from, repeats, module, args]
   - [-1, 1, Conv, [64, 3, 2, 1, 1, 1, "nn.ReLU"]] # 0-P1/2
   - [-1, 1, Conv, [128, 3, 2, 1, 1, 1, "nn.ReLU"]] # 1-P2/4
-  - [-1, 2, C3k2, [256, False, 0.25, "FReLU"]]
-  - [-1, 1, Conv, [256, 3, 2, 1, 1, 1, "FReLU"]] # 3-P3/8
-  - [-1, 2, C3k2, [512, False, 0.25, "FReLU"]]
+  - [-1, 2, C3k2, [256, False, 0.25, "nn.ReLU"]]
+  - [-1, 1, Conv, [256, 3, 2, 1, 1, 1, "nn.ReLU"]] # 3-P3/8
+  - [-1, 2, C3k2, [512, False, 0.25, "nn.ReLU"]]
   - [-1, 1, Conv, [512, 3, 2, 1, 1, 1, "FReLU"]] # 5-P4/16
   - [-1, 2, C3k2, [512, True, 0.5, "FReLU"]]
   - [-1, 1, Conv, [1024, 3, 2, 1, 1, 1, "FReLU"]] # 7-P5/32
@@ -33,11 +34,11 @@ backbone:
 head:
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
   - [[-1, 6], 1, Concat, [1]] # cat backbone P4
-  - [-1, 2, C3k2, [512, False, 0.5, "FReLU"]] # 13
+  - [-1, 2, C3k2, [512, False, 0.5, "nn.ReLU"]] # 13
 
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
   - [[-1, 4], 1, Concat, [1]] # cat backbone P3
-  - [-1, 2, C3k2, [256, False, 0.5, "FReLU"]] # 16 (P3/8-small)
+  - [-1, 2, C3k2, [256, False, 0.5, "nn.ReLU"]] # 16 (P3/8-small)
 
   - [-1, 1, Conv, [256, 3, 2, 1, 1, 1, "FReLU"]]
   - [[-1, 13], 1, Concat, [1]] # cat head P4
@@ -47,4 +48,4 @@ head:
   - [[-1, 10], 1, Concat, [1]] # cat head P5
   - [-1, 2, C3k2, [1024, True, 0.5, "FReLU"]] # 22 (P5/32-large)
 
-  - [[16, 19, 22], 1, Detect, [nc, "nn.ReLU"]] # Detect(P3, P4, P5)
+  - [[16, 19, 22], 1, Detect, [nc, True]] # Detect(P3, P4, P5)

@@ -42,7 +42,7 @@ def test_export_openvino():
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, nms",

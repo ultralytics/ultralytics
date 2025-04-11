@@ -13,17 +13,66 @@ __all__ = "multi_scale_deformable_attn_pytorch", "inverse_sigmoid"
 
 
 def _get_clones(module, n):
-    """Create a list of cloned modules from the given module."""
+    """
+    Create a list of cloned modules from the given module.
+
+    Args:
+        module (nn.Module): The module to be cloned.
+        n (int): Number of clones to create.
+
+    Returns:
+        (nn.ModuleList): A ModuleList containing n clones of the input module.
+
+    Examples:
+        >>> import torch.nn as nn
+        >>> layer = nn.Linear(10, 10)
+        >>> clones = _get_clones(layer, 3)
+        >>> len(clones)
+        3
+    """
     return nn.ModuleList([copy.deepcopy(module) for _ in range(n)])
 
 
 def bias_init_with_prob(prior_prob=0.01):
-    """Initialize conv/fc bias value according to a given probability value."""
+    """
+    Initialize conv/fc bias value according to a given probability value.
+
+    This function calculates the bias initialization value based on a prior probability using the inverse error function.
+    It's commonly used in object detection models to initialize classification layers with a specific positive prediction
+    probability.
+
+    Args:
+        prior_prob (float, optional): Prior probability for bias initialization.
+
+    Returns:
+        (float): Bias initialization value calculated from the prior probability.
+
+    Examples:
+        >>> bias = bias_init_with_prob(0.01)
+        >>> print(f"Bias initialization value: {bias:.4f}")
+        Bias initialization value: -4.5951
+    """
     return float(-np.log((1 - prior_prob) / prior_prob))  # return bias_init
 
 
 def linear_init(module):
-    """Initialize the weights and biases of a linear module."""
+    """
+    Initialize the weights and biases of a linear module.
+
+    This function initializes the weights of a linear module using a uniform distribution within bounds calculated
+    from the input dimension. If the module has a bias, it is also initialized.
+
+    Args:
+        module (nn.Module): Linear module to initialize.
+
+    Returns:
+        (nn.Module): The initialized module.
+
+    Examples:
+        >>> import torch.nn as nn
+        >>> linear = nn.Linear(10, 5)
+        >>> initialized_linear = linear_init(linear)
+    """
     bound = 1 / math.sqrt(module.weight.shape[0])
     uniform_(module.weight, -bound, bound)
     if hasattr(module, "bias") and module.bias is not None:
@@ -31,7 +80,24 @@ def linear_init(module):
 
 
 def inverse_sigmoid(x, eps=1e-5):
-    """Calculate the inverse sigmoid function for a tensor."""
+    """
+    Calculate the inverse sigmoid function for a tensor.
+
+    This function applies the inverse of the sigmoid function to a tensor, which is useful in various neural network
+    operations, particularly in attention mechanisms and coordinate transformations.
+
+    Args:
+        x (torch.Tensor): Input tensor with values in range [0, 1].
+        eps (float, optional): Small epsilon value to prevent numerical instability.
+
+    Returns:
+        (torch.Tensor): Tensor after applying the inverse sigmoid function.
+
+    Examples:
+        >>> x = torch.tensor([0.2, 0.5, 0.8])
+        >>> inverse_sigmoid(x)
+        tensor([-1.3863,  0.0000,  1.3863])
+    """
     x = x.clamp(min=0, max=1)
     x1 = x.clamp(min=eps)
     x2 = (1 - x).clamp(min=eps)

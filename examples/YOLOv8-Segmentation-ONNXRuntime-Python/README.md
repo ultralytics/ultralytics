@@ -54,7 +54,7 @@ We welcome contributions to improve this demo! If you encounter bugs, have featu
 
 ## 📄 License
 
-This project is licensed under the AGPL-3.0 License. For detailed information, please see the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file or read the full [AGPL-3.0 license text](https://www.gnu.org/licenses/agpl-3.0.html).
+This project is licensed under the AGPL-3.0 License. For detailed information, please see the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file or read the full [AGPL-3.0 license text](https://opensource.org/license/agpl-v3).
 
 ## 🙏 Acknowledgments
 

@@ -913,6 +913,9 @@ class YOLOEModel(DetectionModel):
             names (List[str]): List of class names.
             embeddings (torch.Tensor): Embeddings tensor.
         """
+        assert not hasattr(self.model[-1], "lrpc"), (
+            "Prompt-free model does not support setting classes. Please try with Text/Visual prompt models."
+        )
         assert embeddings.ndim == 3
         self.pe = embeddings
         self.model[-1].nc = len(names)
@@ -973,8 +976,8 @@ class YOLOEModel(DetectionModel):
                     assert not self.training
                     return vpe
                 cls_pe = self.get_cls_pe(m.get_tpe(tpe), vpe).to(device=x[0].device, dtype=x[0].dtype)
-                if len(cls_pe) != b:
-                    cls_pe = cls_pe.repeat(b, 1, 1)
+                if cls_pe.shape[0] != b or m.export:
+                    cls_pe = cls_pe.expand(b, -1, -1)
                 x = m(x, cls_pe)
             else:
                 x = m(x)  # run

@@ -155,7 +155,7 @@ The xView dataset stands out due to its comprehensive set of features:
 
 ### What is the dataset structure of xView, and how is it annotated?
 
-The xView dataset comprises high-resolution satellite images collected from WorldView-3 satellites at a 0.3m ground sample distance. It encompasses over 1 million objects across 60 classes in approximately 1,400 km² of imagery. Each object within the dataset is annotated with bounding boxes, making it ideal for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models for object detection in overhead imagery. For a detailed overview, you can look at the dataset structure section [here](#dataset-structure).
+The xView dataset contains high-resolution satellite imagery captured by WorldView-3 satellites at a 0.3m ground sample distance, covering over 1 million objects across 60 distinct classes within approximately 1,400 km² of annotated imagery. Each object is labeled with bounding boxes, making the dataset highly suitable for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models for object detection in overhead views. For a detailed breakdown, refer to the [Dataset Structure section](#dataset-structure).
 
 ### How do I cite the xView dataset in my research?
 

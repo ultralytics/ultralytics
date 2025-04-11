@@ -1691,7 +1691,7 @@ class OBB(BaseTensor):
         n = boxes.shape[-1]
         assert n in {7, 8}, f"expected 7 or 8 values but got {n}"  # xywh, rotation, track_id, conf, cls
         super().__init__(boxes, orig_shape)
-        self.is_track = n == 7
+        self.is_track = n == 8
         self.orig_shape = orig_shape
 
     @property

@@ -36,7 +36,7 @@ And so much more. It's up to you how many of these tools you want to use, you ca
 
 To keep track of your experiments and/or data, ClearML needs to communicate with a server. You have 2 options to get one:
 
-Either sign up for free to the [ClearML Hosted Service](https://clear.ml/) or you can set up your own server, see [here](https://clear.ml/docs/latest/docs/deploying_clearml/clearml_server). Even the server is open-source, so even if you're dealing with sensitive data, you should be good to go!
+Either sign up for free to the [ClearML Hosted Service](https://clear.ml/) or you can set up your own [ClearML server](https://clear.ml/docs/latest/docs/deploying_clearml/clearml_server). Even the server is open-source, so even if you're dealing with sensitive data, you should be good to go!
 
 - Install the `clearml` python package:
 

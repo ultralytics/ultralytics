@@ -45,7 +45,7 @@ pip install ultralytics[explorer]
 
 This is a Python API for exploring your datasets. It also powers the GUI Explorer. You can use this to create your own exploratory notebooks or scripts to get insights into your datasets.
 
-Learn more about the Explorer API [here](api.md).
+Explore the full capabilities and usage examples in the [Explorer API documentation](api.md).
 
 ## GUI Explorer Usage
 

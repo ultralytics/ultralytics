@@ -194,7 +194,7 @@ jobs:
         shell: bash # for Windows compatibility
         run: |
           slow=""
-          if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
               slow="--slow"
           fi
           pytest $slow --cov=ultralytics/ --cov-report xml tests/

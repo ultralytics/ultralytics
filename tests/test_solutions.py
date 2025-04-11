@@ -8,7 +8,7 @@ import pytest
 
 from tests import TMP
 from ultralytics import solutions
-from ultralytics.utils import ASSETS_URL
+from ultralytics.utils import ASSETS_URL, checks
 from ultralytics.utils.downloads import safe_download
 
 # Pre-defined arguments values
@@ -162,6 +162,9 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
         safe_download(url=f"{ASSETS_URL}/{PARKING_AREAS_JSON}", dir=TMP)
         safe_download(url=f"{ASSETS_URL}/{PARKING_MODEL}", dir=TMP)
     solution = solution_class(**kwargs)
-    solution.inference() if name == "StreamlitInference" else process_video(
-        solution, str(TMP / video), needs_frame_count
-    )
+
+    if name == "StreamlitInference":
+        if checks.check_imshow():
+            solution.inference()
+    else:
+        process_video(solution, str(TMP / video), needs_frame_count)

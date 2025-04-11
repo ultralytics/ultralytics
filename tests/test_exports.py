@@ -208,7 +208,7 @@ def test_export_paddle():
     YOLO(MODEL).export(format="paddle", imgsz=32)
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 def test_export_mnn():
     """Test YOLO exports to MNN format (WARNING: MNN test must precede NCNN test or CI error on Windows)."""
     file = YOLO(MODEL).export(format="mnn", imgsz=32)

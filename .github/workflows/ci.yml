@@ -10,7 +10,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: "0 8 * * *" # runs at 11:00 UTC every day
+    - cron: "0 11 * * *" # runs at 11:00 UTC every day
   workflow_dispatch:
     inputs:
       hub:

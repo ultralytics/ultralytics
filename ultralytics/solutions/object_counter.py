@@ -45,6 +45,7 @@ class ObjectCounter(BaseSolution):
 
         self.show_in = self.CFG["show_in"]
         self.show_out = self.CFG["show_out"]
+        self.margin = self.line_width * 2  # Scales the background rectangle size to display counts properly
 
     def count_objects(self, current_centroid, track_id, prev_position, cls):
         """
@@ -144,7 +145,7 @@ class ObjectCounter(BaseSolution):
             if value["IN"] != 0 or value["OUT"] != 0
         }
         if labels_dict:
-            self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), 10)
+            self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), self.margin)
 
     def process(self, im0):
         """

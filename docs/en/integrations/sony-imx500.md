@@ -1,16 +1,16 @@
 ---
 comments: true
-description: Learn to export Ultralytics YOLOv8 models to Sony's IMX500 format for efficient edge AI deployment on Raspberry Pi AI Camera with on-chip processing.
+description: Learn to export Ultralytics YOLO11 models to Sony's IMX500 format for efficient edge AI deployment on Raspberry Pi AI Camera with on-chip processing.
 keywords: Sony, IMX500, IMX 500, Atrios, MCT, model export, quantization, pruning, deep learning optimization, Raspberry Pi AI Camera, edge AI, PyTorch, IMX
 ---
 
-# Sony IMX500 Export for Ultralytics YOLOv8
+# Sony IMX500 Export for Ultralytics YOLO11
 
-This guide covers exporting and deploying Ultralytics YOLOv8 models to Raspberry Pi AI Cameras that feature the Sony IMX500 sensor.
+This guide covers exporting and deploying Ultralytics YOLO11 models to Raspberry Pi AI Cameras that feature the Sony IMX500 sensor.
 
 Deploying computer vision models on devices with limited computational power, such as [Raspberry Pi AI Camera](https://www.raspberrypi.com/products/ai-camera/), can be tricky. Using a model format optimized for faster performance makes a huge difference.
 
-The IMX500 model format is designed to use minimal power while delivering fast performance for neural networks. It allows you to optimize your [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) models for high-speed and low-power inferencing. In this guide, we'll walk you through exporting and deploying your models to the IMX500 format while making it easier for your models to perform well on the [Raspberry Pi AI Camera](https://www.raspberrypi.com/products/ai-camera/).
+The IMX500 model format is designed to use minimal power while delivering fast performance for neural networks. It allows you to optimize your [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models for high-speed and low-power inferencing. In this guide, we'll walk you through exporting and deploying your models to the IMX500 format while making it easier for your models to perform well on the [Raspberry Pi AI Camera](https://www.raspberrypi.com/products/ai-camera/).
 
 <p align="center">
   <img width="100%" src="https://github.com/ultralytics/assets/releases/download/v8.3.0/ai-camera.avif" alt="Raspberry Pi AI Camera">
@@ -21,7 +21,7 @@ The IMX500 model format is designed to use minimal power while delivering fast p
 Sony's [IMX500 Intelligent Vision Sensor](https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera) is a game-changing piece of hardware in edge AI processing. It's the world's first intelligent vision sensor with on-chip AI capabilities. This sensor helps overcome many challenges in edge AI, including data processing bottlenecks, privacy concerns, and performance limitations.  
 While other sensors merely pass along images and frames, the IMX500 tells a whole story. It processes data directly on the sensor, allowing devices to generate insights in real-time.
 
-## Sony's IMX500 Export for YOLOv8 Models
+## Sony's IMX500 Export for YOLO11 Models
 
 The IMX500 is designed to transform how devices handle data directly on the sensor, without needing to send it off to the cloud for processing.
 
@@ -33,15 +33,15 @@ The IMX500 works with quantized models. Quantization makes models smaller and fa
 - **Addresses Privacy Concerns:** By processing data on the device, the IMX500 addresses privacy concerns, ideal for human-centric applications like person counting and occupancy tracking.
 - **Real-time Processing:** Fast, on-sensor processing supports real-time decisions, perfect for edge AI applications such as autonomous systems.
 
-**Before You Begin:** For best results, ensure your YOLOv8 model is well-prepared for export by following our [Model Training Guide](https://docs.ultralytics.com/modes/train/), [Data Preparation Guide](https://docs.ultralytics.com/datasets/), and [Hyperparameter Tuning Guide](https://docs.ultralytics.com/guides/hyperparameter-tuning/).
+**Before You Begin:** For best results, ensure your YOLO11 model is well-prepared for export by following our [Model Training Guide](https://docs.ultralytics.com/modes/train/), [Data Preparation Guide](https://docs.ultralytics.com/datasets/), and [Hyperparameter Tuning Guide](https://docs.ultralytics.com/guides/hyperparameter-tuning/).
 
 ## Usage Examples
 
-Export an Ultralytics YOLOv8 model to IMX500 format and run inference with the exported model.
+Export an Ultralytics YOLO11 model to IMX500 format and run inference with the exported model.
 
 !!! note
 
-    IMX export is currently only supported for the YOLOv8n model. Here we perform inference just to make sure the model works as expected. However, for deployment and inference on the Raspberry Pi AI Camera, please jump to [Using IMX500 Export in Deployment](#using-imx500-export-in-deployment) section.
+    Here we perform inference just to make sure the model works as expected. However, for deployment and inference on the Raspberry Pi AI Camera, please jump to [Using IMX500 Export in Deployment](#using-imx500-export-in-deployment) section.
 
 !!! example
 
@@ -50,14 +50,14 @@ Export an Ultralytics YOLOv8 model to IMX500 format and run inference with the e
          ```python
          from ultralytics import YOLO
 
-         # Load a YOLOv8n PyTorch model
-         model = YOLO("yolov8n.pt")
+         # Load a YOLO11n PyTorch model
+         model = YOLO("yolo11n.pt")
 
          # Export the model
          model.export(format="imx", data="coco8.yaml")  # exports with PTQ quantization by default
 
          # Load the exported model
-         imx_model = YOLO("yolov8n_imx_model")
+         imx_model = YOLO("yolo11n_imx_model")
 
          # Run inference
          results = imx_model("https://ultralytics.com/images/bus.jpg")
@@ -66,12 +66,16 @@ Export an Ultralytics YOLOv8 model to IMX500 format and run inference with the e
     === "CLI"
 
          ```bash
-         # Export a YOLOv8n PyTorch model to imx format with Post-Training Quantization (PTQ)
-         yolo export model=yolov8n.pt format=imx data=coco8.yaml
+         # Export a YOLO11n PyTorch model to imx format with Post-Training Quantization (PTQ)
+         yolo export model=yolo11n.pt format=imx data=coco8.yaml
 
          # Run inference with the exported model
-         yolo predict model=yolov8n_imx_model source='https://ultralytics.com/images/bus.jpg'
+         yolo predict model=yolo11n_imx_model source='https://ultralytics.com/images/bus.jpg'
          ```
+
+!!! warning
+
+    The Ultralytics package installs additional export dependencies at runtime. The first time you run the export command, you may need to restart your console to ensure it works correctly.
 
 ## Export Arguments
 
@@ -93,18 +97,18 @@ For more details about the export process, visit the [Ultralytics documentation 
 The export process will create an ONNX model for quantization validation, along with a directory named `<model-name>_imx_model`. This directory will include the `packerOut.zip` file, which is essential for packaging the model for deployment on the IMX500 hardware. Additionally, the `<model-name>_imx_model` folder will contain a text file (`labels.txt`) listing all the labels associated with the model.
 
 ```bash
-yolov8n_imx_model
+yolo11n_imx_model
 ├── dnnParams.xml
 ├── labels.txt
 ├── packerOut.zip
-├── yolov8n_imx.onnx
-├── yolov8n_imx500_model_MemoryReport.json
-└── yolov8n_imx500_model.pbtxt
+├── yolo11n_imx.onnx
+├── yolo11n_imx500_model_MemoryReport.json
+└── yolo11n_imx500_model.pbtxt
 ```
 
 ## Using IMX500 Export in Deployment
 
-After exporting Ultralytics YOLOv8n model to IMX500 format, it can be deployed to Raspberry Pi AI Camera for inference.
+After exporting Ultralytics YOLO11n model to IMX500 format, it can be deployed to Raspberry Pi AI Camera for inference.
 
 ### Hardware Prerequisites
 
@@ -166,7 +170,7 @@ pip install -e . --break-system-packages
 cd examples/imx500
 ```
 
-Step 3: Run YOLOv8 object detection, using the labels.txt file that has been generated during the IMX500 export.
+Step 3: Run YOLO11 object detection, using the labels.txt file that has been generated during the IMX500 export.
 
 ```bash
 python imx500_object_detection_demo.py --model path/to/network.rpk --fps 17 --bbox-normalization --ignore-dash-labels --bbox-order xy --labels path/to/labels.txt
@@ -180,15 +184,16 @@ Then you will be able to see live inference output as follows
 
 ## Benchmarks
 
-YOLOv8 benchmarks below were run by the Ultralytics team on Raspberry Pi AI Camera with `imx` model format measuring speed and accuracy.
+YOLOv8 and YOLO11n benchmarks below were run by the Ultralytics team on Raspberry Pi AI Camera with `imx` model format measuring speed and accuracy.
 
-| Model   | Format | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
-| ------- | ------ | ------ | --------- | ----------- | ---------------------- |
-| YOLOv8n | imx    | ✅     | 2.9       | 0.522       | 58.82                  |
+| Model   | Format | Status | Size of `RPK` (MB) | mAP50-95(B) | Inference time (ms/im) |
+| ------- | ------ | ------ | ------------------ | ----------- | ---------------------- |
+| YOLOv8n | imx    | ✅     | 3.1                | 0.602       | 58.82                  |
+| YOLO11n | imx    | ✅     | 3.2                | 0.644       | 62.50                  |
 
 !!! note
 
-    Validation for the above benchmark was done using coco8 dataset
+    Validation for the above benchmark was done using coco8 dataset on a Raspberry Pi 5
 
 ## What's Under the Hood?
 
@@ -241,7 +246,7 @@ MCT introduces structured, hardware-aware model pruning designed for specific ha
 
 ### IMX500 Converter Tool (Compiler)
 
-The IMX500 Converter Tool is integral to the IMX500 toolset, allowing the compilation of models for deployment on Sony's IMX500 sensor (for instance, Raspberry Pi AI Cameras). This tool facilitates the transition of Ultralytics YOLOv8 models processed through Ultralytics software, ensuring they are compatible and perform efficiently on the specified hardware. The export procedure following model quantization involves the generation of binary files that encapsulate essential data and device-specific configurations, streamlining the deployment process on the Raspberry Pi AI Camera.
+The IMX500 Converter Tool is integral to the IMX500 toolset, allowing the compilation of models for deployment on Sony's IMX500 sensor (for instance, Raspberry Pi AI Cameras). This tool facilitates the transition of Ultralytics YOLO11 models processed through Ultralytics software, ensuring they are compatible and perform efficiently on the specified hardware. The export procedure following model quantization involves the generation of binary files that encapsulate essential data and device-specific configurations, streamlining the deployment process on the Raspberry Pi AI Camera.
 
 ## Real-World Use Cases
 
@@ -249,25 +254,25 @@ Export to IMX500 format has wide applicability across industries. Here are some 
 
 - **Edge AI and IoT**: Enable object detection on drones or security cameras, where real-time processing on low-power devices is essential.
 - **Wearable Devices**: Deploy models optimized for small-scale AI processing on health-monitoring wearables.
-- **Smart Cities**: Use IMX500-exported YOLOv8 models for traffic monitoring and safety analysis with faster processing and minimal latency.
+- **Smart Cities**: Use IMX500-exported YOLO11 models for traffic monitoring and safety analysis with faster processing and minimal latency.
 - **Retail Analytics**: Enhance in-store monitoring by deploying optimized models in point-of-sale systems or smart shelves.
 
 ## Conclusion
 
-Exporting Ultralytics YOLOv8 models to Sony's IMX500 format allows you to deploy your models for efficient inference on IMX500-based cameras. By leveraging advanced quantization techniques, you can reduce model size and improve inference speed without significantly compromising accuracy.
+Exporting Ultralytics YOLO11 models to Sony's IMX500 format allows you to deploy your models for efficient inference on IMX500-based cameras. By leveraging advanced quantization techniques, you can reduce model size and improve inference speed without significantly compromising accuracy.
 
 For more information and detailed guidelines, refer to Sony's [IMX500 website](https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera).
 
 ## FAQ
 
-### How do I export a YOLOv8 model to IMX500 format for Raspberry Pi AI Camera?
+### How do I export a YOLO11 model to IMX500 format for Raspberry Pi AI Camera?
 
-To export a YOLOv8 model to IMX500 format, use either the Python API or CLI command:
+To export a YOLO11 model to IMX500 format, use either the Python API or CLI command:
 
 ```python
 from ultralytics import YOLO
 
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 model.export(format="imx")  # Exports with PTQ quantization by default
 ```
 
@@ -298,11 +303,11 @@ Software:
 - IMX500 firmware and tools (`sudo apt install imx500-all imx500-tools`)
 - Python packages for `picamera2` (`sudo apt install python3-opencv python3-munkres`)
 
-### What performance can I expect from YOLOv8 models on the IMX500?
+### What performance can I expect from YOLO11 models on the IMX500?
 
 Based on Ultralytics benchmarks on Raspberry Pi AI Camera:
 
-- YOLOv8n achieves 58.82ms inference time per image
+- YOLO11n achieves 58.82ms inference time per image
 - mAP50-95 of 0.522 on COCO8 dataset
 - Model size of only 2.9MB after quantization
 

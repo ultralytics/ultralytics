@@ -20,7 +20,6 @@ Note:
     - Requires Python and MkDocs to be installed and configured.
 """
 
-import json
 import os
 import re
 import shutil
@@ -35,13 +34,6 @@ DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 LINK_PATTERN = re.compile(r"(https?://[^\s()<>]*[^\s()<>.,:;!?\'\"])")
 PYTHON_REPL_PATTERN = re.compile(r"(<code[^>]*>)(.*?)(</code>)", re.DOTALL)  # >>> and ... on Python codeblock examples
-
-
-def create_vercel_config():
-    """Create vercel.json in the site directory with customized configuration settings."""
-    config = {"trailingSlash": True}
-    with open(SITE / "vercel.json", "w") as f:
-        json.dump(config, f, indent=2)
 
 
 def prepare_docs_markdown(clone_repos: bool = True):
@@ -209,22 +201,28 @@ def update_docs_html():
         shutil.rmtree(macros_dir)
 
 
-def convert_plaintext_links_to_html(content: str) -> str:
-    """Convert plaintext links to HTML hyperlinks in the main content area only."""
+def convert_plaintext_links_to_html(content: str, max_title_length: int = 70) -> str:
+    """Convert plaintext links to HTML hyperlinks and truncate long meta titles."""
     soup = BeautifulSoup(content, "html.parser")
+    modified = False
 
-    # Find the main content area (adjust this selector based on your HTML structure)
+    # Truncate long meta title if needed
+    title_tag = soup.find("title")
+    if title_tag and len(title_tag.text) > max_title_length and "-" in title_tag.text:
+        title_tag.string = title_tag.text.rsplit("-", 1)[0].strip()
+        modified = True
+
+    # Find the main content area
     main_content = soup.find("main") or soup.find("div", class_="md-content")
     if not main_content:
-        return content  # Return original content if main content area not found
+        return str(soup) if modified else content
 
-    modified = False
-    for paragraph in main_content.find_all(["p", "li"]):  # Focus on paragraphs and list items
+    # Convert plaintext links to HTML hyperlinks
+    for paragraph in main_content.find_all(["p", "li"]):
         for text_node in paragraph.find_all(string=True, recursive=False):
-            if text_node.parent.name not in {"a", "code"}:  # Ignore links and code blocks
+            if text_node.parent.name not in {"a", "code"}:
                 new_text = LINK_PATTERN.sub(r'<a href="\1">\1</a>', str(text_node))
                 if "<a href=" in new_text:
-                    # Parse the new text with BeautifulSoup to handle HTML properly
                     new_soup = BeautifulSoup(new_text, "html.parser")
                     text_node.replace_with(new_soup)
                     modified = True
@@ -352,7 +350,6 @@ def main():
     print(f"Building docs from {DOCS}")
     subprocess.run(f"mkdocs build -f {DOCS.parent}/mkdocs.yml --strict", check=True, shell=True)
     remove_macros()
-    create_vercel_config()
     print(f"Site built at {SITE}")
 
     # Update docs HTML pages

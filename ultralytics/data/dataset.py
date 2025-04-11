@@ -396,8 +396,8 @@ class YOLOMultiModalDataset(YOLODataset):
         texts = [v.split("/") for v in self.data["names"].values()]
         category_freq = defaultdict(int)
         for label in self.labels:
-            for c in label["cls"]:  # to check
-                text = texts[int(c[0])]
+            for c in label["cls"].squeeze(-1):  # to check
+                text = texts[int(c)]
                 for t in text:
                     t = t.strip()
                     category_freq[t] += 1

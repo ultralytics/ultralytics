@@ -79,9 +79,7 @@ class BaseSolution:
         self.LOGGER.info(f"Ultralytics Solutions: ✅ {DEFAULT_SOL_DICT}")
 
         self.region = self.CFG["region"]  # Store region data for other classes usage
-        self.line_width = (
-            self.CFG["line_width"] if self.CFG["line_width"] is not None else 2
-        )  # Store line_width for usage
+        self.line_width = self.CFG["line_width"] if self.CFG["line_width"] not in (None, 0) else 2  # Store line_width
 
         # Load Model and store classes names
         if self.CFG["model"] is None:

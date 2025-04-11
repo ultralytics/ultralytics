@@ -96,7 +96,21 @@ def export_fmts_hub():
 
 
 def export_model(model_id: str = "", format: str = "torchscript"):
-    """Export a model to the specified format."""
+    """
+    Export a model to a specified format for deployment via the Ultralytics HUB API.
+
+    Args:
+        model_id (str): The ID of the model to export. An empty string will use the default model.
+        format (str): The format to export the model to. Must be one of the supported formats returned by
+            export_fmts_hub().
+
+    Raises:
+        AssertionError: If the specified format is not supported or if the export request fails.
+
+    Examples:
+        >>> from ultralytics import hub
+        >>> hub.export_model(model_id="your_model_id", format="torchscript")
+    """
     assert format in export_fmts_hub(), f"Unsupported export format '{format}', valid formats are {export_fmts_hub()}"
     r = requests.post(
         f"{HUB_API_ROOT}/v1/models/{model_id}/export", json={"format": format}, headers={"x-api-key": Auth().api_key}
@@ -106,7 +120,20 @@ def export_model(model_id: str = "", format: str = "torchscript"):
 
 
 def get_export(model_id: str = "", format: str = "torchscript"):
-    """Get an exported model dictionary with download URL."""
+    """
+    Retrieve an exported model in the specified format from Ultralytics HUB using the model ID.
+
+    Args:
+        model_id (str): The ID of the model to retrieve from Ultralytics HUB.
+        format (str): The export format to retrieve. Must be one of the supported formats returned by export_fmts_hub().
+
+    Raises:
+        AssertionError: If the specified format is not supported or if the API request fails.
+
+    Examples:
+        >>> from ultralytics import hub
+        >>> hub.get_export(model_id="your_model_id", format="torchscript")
+    """
     assert format in export_fmts_hub(), f"Unsupported export format '{format}', valid formats are {export_fmts_hub()}"
     r = requests.post(
         f"{HUB_API_ROOT}/get-export",

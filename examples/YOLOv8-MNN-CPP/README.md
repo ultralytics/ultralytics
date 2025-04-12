@@ -1,12 +1,12 @@
 # YOLOv8 MNN Inference in C++
 
-Welcome to the Ultralytics YOLOv8 MNN Inference example in C++! This guide will help you get started with leveraging the powerful [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) models using the [Alibaba MNN](https://mnn-docs.readthedocs.io/en/latest/) inference engine in your C++ projects. Whether you're looking to enhance performance on CPU hardware or add flexibility to your applications, this example provides a solid foundation. Learn more about optimizing models and deployment strategies on the [Ultralytics blog](https://www.ultralytics.com/blog/).
+Welcome to the Ultralytics YOLOv8 MNN Inference example in C++! This guide will help you get started with leveraging the powerful [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) models using the [Alibaba MNN](https://mnn-docs.readthedocs.io/en/latest/) inference engine in your C++ projects. Whether you're looking to enhance performance on CPU hardware or add flexibility to your applications, this example provides a solid foundation. Learn more about optimizing models and deployment strategies on the [Ultralytics blog](https://www.ultralytics.com/blog).
 
 ## 🌟 Features
 
 - 🚀 **Model Format Support**: Native support for the MNN format.
-- ⚡ **Precision Options**: Run models in **FP32**, **FP16** ([half-precision](https://www.ultralytics.com/glossary/half-precision/)), and **INT8** ([model quantization](https://www.ultralytics.com/glossary/model-quantization/)) precisions for optimized performance and reduced resource consumption.
-- 🔄 **Dynamic Shape Loading**: Easily handle models with dynamic input shapes, a common requirement in many [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv/) tasks.
+- ⚡ **Precision Options**: Run models in **FP32**, **FP16** ([half-precision](https://www.ultralytics.com/glossary/half-precision)), and **INT8** ([model quantization](https://www.ultralytics.com/glossary/model-quantization)) precisions for optimized performance and reduced resource consumption.
+- 🔄 **Dynamic Shape Loading**: Easily handle models with dynamic input shapes, a common requirement in many [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
 - 📦 **Flexible API Usage**: Choose between MNN's high-level [Express API](https://github.com/alibaba/MNN) for a user-friendly interface or the lower-level [Interpreter API](https://mnn-docs.readthedocs.io/en/latest/cpp/Interpreter.html) for fine-grained control.
 
 ## 📋 Dependencies

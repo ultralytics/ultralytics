@@ -2475,7 +2475,9 @@ def classify_transforms(
     scale_size = size if isinstance(size, (tuple, list)) and len(size) == 2 else (size, size)
 
     if crop_fraction:
-        raise DeprecationWarning("'crop_fraction' arg of classify_transforms is deprecated, will be removed in a future version.")
+        raise DeprecationWarning(
+            "'crop_fraction' arg of classify_transforms is deprecated, will be removed in a future version."
+        )
 
     # Aspect ratio is preserved, crops center within image, no borders are added, image is lost
     if scale_size[0] == scale_size[1]:

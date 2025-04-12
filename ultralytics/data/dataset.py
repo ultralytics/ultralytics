@@ -751,7 +751,7 @@ class ClassificationDataset:
                 hsv_v=args.hsv_v,
             )
             if augment
-            else classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
+            else classify_transforms(size=args.imgsz)
         )
 
     def __getitem__(self, i):

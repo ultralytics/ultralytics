@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 import json
 from pathlib import Path
 

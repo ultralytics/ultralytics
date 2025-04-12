@@ -13,12 +13,12 @@ Welcome to the Ultralytics YOLOv8 MNN Inference example in C++! This guide will 
 
 To ensure smooth execution, please make sure you have the following dependencies installed:
 
-| Dependency                                        | Version  | Description                                                              |
-| :------------------------------------------------ | :------- | :----------------------------------------------------------------------- |
-| [MNN](https://mnn-docs.readthedocs.io/en/latest/) | >=2.0.0  | The core inference engine from Alibaba.                                  |
-| [C++](https://en.cppreference.com/w/)             | >=14     | A modern C++ compiler supporting C++14 features.                         |
+| Dependency                                        | Version  | Description                                                                      |
+| :------------------------------------------------ | :------- | :------------------------------------------------------------------------------- |
+| [MNN](https://mnn-docs.readthedocs.io/en/latest/) | >=2.0.0  | The core inference engine from Alibaba.                                          |
+| [C++](https://en.cppreference.com/w/)             | >=14     | A modern C++ compiler supporting C++14 features.                                 |
 | [CMake](https://cmake.org/documentation/)         | >=3.12.0 | Cross-platform build system generator required for building MNN and the example. |
-| [OpenCV](https://opencv.org/)                     | Optional | Used for image loading and preprocessing within the example (built with MNN). |
+| [OpenCV](https://opencv.org/)                     | Optional | Used for image loading and preprocessing within the example (built with MNN).    |
 
 ## ⚙️ Build Instructions
 
@@ -63,9 +63,9 @@ Follow these steps to build the project:
     mkdir -p libs include
 
     # Copy static libraries
-    cp MNN/build/libMNN.a libs/ # Main MNN library
+    cp MNN/build/libMNN.a libs/                 # Main MNN library
     cp MNN/build/express/libMNN_Express.a libs/ # MNN Express API library
-    cp MNN/build/tools/cv/libMNNOpenCV.a libs/ # MNN OpenCV wrapper library
+    cp MNN/build/tools/cv/libMNNOpenCV.a libs/  # MNN OpenCV wrapper library
 
     # Copy header files
     cp -r MNN/include .
@@ -73,6 +73,7 @@ Follow these steps to build the project:
     ```
 
     **Note:**
+
     - The library file extensions (`.a` for static) and paths might vary based on your operating system (e.g., use `.lib` on Windows) and build configuration. Adjust the commands accordingly.
     - This example uses static linking (`.a` files). If you built shared libraries (`.so`, `.dylib`, `.dll`), ensure they are correctly placed or accessible in your system's library path.
 
@@ -130,7 +131,8 @@ ultralytics/examples/YOLOv8-MNN-CPP/assets/bus.jpg: 640x640 4 persons, 1 bus, 84
 Speed: 9.7ms preprocess, 128.7ms inference, 12.4ms postprocess per image at shape (1, 3, 640, 640)
 Results saved to runs/detect/predict
 ```
-*(Note: Speed and specific detections might vary based on hardware and model version)*
+
+_(Note: Speed and specific detections might vary based on hardware and model version)_
 
 ### MNN Express API in C++
 
@@ -152,7 +154,8 @@ Detection: box = {-0.11, 549.41, 62.05, 874.88}, class = person, score = 0.33
 Result image write to `mnn_yolov8_cpp.jpg`.
 Speed: 35.6ms preprocess, 386.0ms inference, 68.3ms postprocess
 ```
-*(Note: Speed and specific detections might vary based on hardware and MNN configuration)*
+
+_(Note: Speed and specific detections might vary based on hardware and MNN configuration)_
 
 ### MNN Interpreter API in C++
 
@@ -173,7 +176,8 @@ Detection: box = {216.01, 405.24, 346.36, 858.19}, class = person, score = 0.82
 Result image written to `mnn_yolov8_cpp.jpg`.
 Speed: 26.0ms preprocess, 190.9ms inference, 58.9ms postprocess
 ```
-*(Note: Speed and specific detections might vary based on hardware and MNN configuration)*
+
+_(Note: Speed and specific detections might vary based on hardware and MNN configuration)_
 
 ## ❤️ Contributions
 

@@ -17,4 +17,3 @@
 | `copy_paste_mode` | `str`   | `'flip'`        | -             | Copy-Paste augmentation method selection among the options of (`"flip"`, `"mixup"`).                                                                                      |
 | `auto_augment`    | `str`   | `'randaugment'` | -             | Automatically applies a predefined augmentation policy (`randaugment`, `autoaugment`, `augmix`), optimizing for classification tasks by diversifying the visual features. |
 | `erasing`         | `float` | `0.4`           | `0.0 - 0.9`   | Randomly erases a portion of the image during classification training, encouraging the model to focus on less obvious features for recognition.                           |
-| `crop_fraction`   | `float` | `1.0`           | `0.1 - 1.0`   | Crops the classification image to a fraction of its size to emphasize central features and adapt to object scales, reducing background distractions.                      |

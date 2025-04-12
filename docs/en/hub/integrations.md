@@ -131,4 +131,3 @@ Your [contributions](../help/contributing.md) and ongoing support fuel our commi
 ---
 
 Excited for what's coming? Bookmark this page and check out our [Quickstart Guide](https://docs.ultralytics.com/quickstart/) to get started with our current tools while you wait. Get ready for a transformative AI and ML journey with Ultralytics! 🛠️🤖
-

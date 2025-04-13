@@ -61,52 +61,52 @@ Without further ado, let's dive in!
 
 2. Proceed to retrieve all label files for your dataset.
 
-        ```python
-        from pathlib import Path
-    
-        dataset_path = Path("./Fruit-detection")  # replace with 'path/to/dataset' for your custom data
-        labels = sorted(dataset_path.rglob("*labels/*.txt"))  # all data in 'labels'
-        ```
+       ```python
+       from pathlib import Path
+
+       dataset_path = Path("./Fruit-detection")  # replace with 'path/to/dataset' for your custom data
+       labels = sorted(dataset_path.rglob("*labels/*.txt"))  # all data in 'labels'
+       ```
 
 3. Now, read the contents of the dataset YAML file and extract the indices of the class labels.
 
-        ```python
-        import yaml
+       ```python
+       import yaml
     
-        yaml_file = "path/to/data.yaml"  # your data YAML with data directories and names dictionary
-        with open(yaml_file, encoding="utf8") as y:
-            classes = yaml.safe_load(y)["names"]
-        cls_idx = sorted(classes.keys())
-        ```
+       yaml_file = "path/to/data.yaml"  # your data YAML with data directories and names dictionary
+       with open(yaml_file, encoding="utf8") as y:
+           classes = yaml.safe_load(y)["names"]
+       cls_idx = sorted(classes.keys())
+       ```
 
 4. Initialize an empty `pandas` DataFrame.
 
-        ```python
-        import pandas as pd
+       ```python
+       import pandas as pd
     
-        index = [label.stem for label in labels]  # uses base filename as ID (no extension)
-        labels_df = pd.DataFrame([], columns=cls_idx, index=index)
-        ```
+       index = [label.stem for label in labels]  # uses base filename as ID (no extension)
+       labels_df = pd.DataFrame([], columns=cls_idx, index=index)
+       ```
 
 5. Count the instances of each class-label present in the annotation files.
 
-        ```python
-        from collections import Counter
+       ```python
+       from collections import Counter
     
-        for label in labels:
-            lbl_counter = Counter()
+       for label in labels:
+           lbl_counter = Counter()
+           
+           with open(label) as lf:
+               lines = lf.readlines()
     
-            with open(label) as lf:
-                lines = lf.readlines()
+           for line in lines:
+               # classes for YOLO label uses integer at first position of each line
+               lbl_counter[int(line.split(" ")[0])] += 1
     
-            for line in lines:
-                # classes for YOLO label uses integer at first position of each line
-                lbl_counter[int(line.split(" ")[0])] += 1
+           labels_df.loc[label.stem] = lbl_counter
     
-            labels_df.loc[label.stem] = lbl_counter
-    
-        labels_df = labels_df.fillna(0.0)  # replace `nan` values with `0.0`
-        ```
+       labels_df = labels_df.fillna(0.0)  # replace `nan` values with `0.0`
+       ```
 
 6. The following is a sample view of the populated DataFrame:
 

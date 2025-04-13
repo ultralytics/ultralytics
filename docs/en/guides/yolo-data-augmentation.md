@@ -41,7 +41,19 @@ model = YOLO("yolo11n.pt")
 model.train(data="coco.yaml", epochs=100, hsv_h=0.03, hsv_s=0.6, hsv_v=0.5)
 
 # Training without any augmentations (disabled values omitted for clarity)
-model.train(data="coco.yaml", epochs=100, hsv_h=0.0, hsv_s=0.0, hsv_v=0.0, translate=0.0, scale=0.0, fliplr=0.0, mosaic=0.0, erasing=0.0, auto_augment=None)
+model.train(
+    data="coco.yaml",
+    epochs=100,
+    hsv_h=0.0,
+    hsv_s=0.0,
+    hsv_v=0.0,
+    translate=0.0,
+    scale=0.0,
+    fliplr=0.0,
+    mosaic=0.0,
+    erasing=0.0,
+    auto_augment=None,
+)
 ```
 
 #### Using the CLI
@@ -58,7 +70,7 @@ You can define all training parameters, including augmentations, in a YAML confi
 ```yaml
 # train_custom.yaml
 # 'mode' is required only for CLI usage
-mode: train 
+mode: train
 data: coco8.yaml
 model: yolo11n.pt
 epochs: 100

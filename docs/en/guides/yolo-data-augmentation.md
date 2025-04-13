@@ -99,7 +99,7 @@ yolo cfg=train_custom.yaml
 ### Hue Adjustment (`hsv_h`)
 
 - **Range**: `0.0` - `1.0`
-- **Default**: `0.015`
+- **Default**: `{{ hsv_h }}`
 - **Usage**: Shifts image colors while preserving their relationships. The `hsv_h` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen between `-hsv_h` and `hsv_h`. For example, with `hsv_h=0.3`, the shift is randomly selected within`-0.3` to `0.3`. For values above `0.5`, the hue shift wraps around the color wheel, that's why the augmentations look the same between `0.5` and `-0.5`.
 - **Purpose**: Particularly useful for outdoor scenarios where lighting conditions can dramatically affect object appearance. For example, a banana might look more yellow under bright sunlight but more greenish indoors.
 - **Ultralytics' implementation**: [RandomHSV](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomHSV)
@@ -111,7 +111,7 @@ yolo cfg=train_custom.yaml
 ### Saturation Adjustment (`hsv_s`)
 
 - **Range**: `0.0` - `1.0`
-- **Default**: `0.7`
+- **Default**: `{{ hsv_s }}`
 - **Usage**: Modifies the intensity of colors in the image. The `hsv_h` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen between `-hsv_s` and `hsv_s`. For example, with `hsv_s=0.7`, the intensity is randomly selected within`-0.7` to `0.7`.
 - **Purpose**: Helps models handle varying weather conditions and camera settings. For example, a red traffic sign might appear highly vivid on a sunny day but look dull and faded in foggy conditions.
 - **Ultralytics' implementation**: [RandomHSV](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomHSV)
@@ -123,7 +123,7 @@ yolo cfg=train_custom.yaml
 ### Brightness Adjustment (`hsv_v`)
 
 - **Range**: `0.0` - `1.0`
-- **Default**: `0.4`
+- **Default**: `{{ hsv_v }}`
 - **Usage**: Changes the brightness of the image. The `hsv_v` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen between `-hsv_v` and `hsv_v`. For example, with `hsv_v=0.4`, the intensity is randomly selected within`-0.4` to `0.4`.
 - **Purpose**: Essential for training models that need to perform in different lighting conditions. For example, a red apple might look bright in sunlight but much darker in the shade.
 - **Ultralytics' implementation**: [RandomHSV](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomHSV)
@@ -137,7 +137,7 @@ yolo cfg=train_custom.yaml
 ### Rotation (`degrees`)
 
 - **Range**: `0.0` to `180`
-- **Default**: `0.0`
+- **Default**: `{{ degrees }}`
 - **Usage**: Rotates images randomly within the specified range. The `degrees` hyperparameter defines the rotation angle, with the final adjustment randomly chosen between `-degrees` and `degrees`. For example, with `degrees=10.0`, the rotation is randomly selected within`-10.0` to `10.0`.
 - **Purpose**: Crucial for applications where objects can appear at different orientations. For example, in aerial drone imagery, vehicles can be oriented in any direction, requiring models to recognize objects regardless of their rotation.
 - **Ultralytics' implementation**: [RandomPerspective](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomPerspective)
@@ -149,7 +149,7 @@ yolo cfg=train_custom.yaml
 ### Translation (`translate`)
 
 - **Range**: `0.0` - `1.0`
-- **Default**: `0.1`
+- **Default**: `{{ translate }}`
 - **Usage**: Shifts images horizontally and vertically by a random fraction of the image size. The `translate` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen twice (once for each axis) within the range `-translate` and `translate`. For example, with `translate=0.5`, the translation is randomly selected within`-0.5` to `0.5` on the x-asis, and another independent random value is selected within the same range on the y-axis.
 - **Purpose**: Helps models learn to detect partially visible objects and improves robustness to object position. For example, in vehicle damage assessment applications, car parts may appear fully or partially in frame depending on the photographer's position and distance, the translation augmentation will teach the model to recognize these features regardless of their completeness or position.
 - **Ultralytics' implementation**: [RandomPerspective](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomPerspective)
@@ -162,7 +162,7 @@ yolo cfg=train_custom.yaml
 ### Scale (`scale`)
 
 - **Range**: ≥`0.0`
-- **Default**: `0.5`
+- **Default**: `{{ scale }}`
 - **Usage**: Resizes images by a random factor within the specified range. The `scale` hyperparameter defines the scaling factor, with the final adjustment randomly chosen between `1-scale` and `1+scale`. For example, with `scale=0.5`, the scaling is randomly selected within`0.5` to `1.5`.
 - **Purpose**: Enables models to handle objects at different distances and sizes. For example, in autonomous driving applications, vehicles can appear at various distances from the camera, requiring the model to recognize them regardless of their size.
 - **Ultralytics' implementation**: [RandomPerspective](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomPerspective)
@@ -178,7 +178,7 @@ yolo cfg=train_custom.yaml
 ### Shear (`shear`)
 
 - **Range**: `-180` to `+180`
-- **Default**: `0.0`
+- **Default**: `{{ shear }}`
 - **Usage**: Introduces a geometric transformation that skews the image along both x-axis and y-axis, effectively shifting parts of the image in one direction while maintaining parallel lines. The `shear` hyperparameter defines the shear angle, with the final adjustment randomly chosen between `-shear` and `shear`. For example, with `shear=10.0`, the shear is randomly selected within`-10` to `10` on the x-asis, and another independent random value is selected within the same range on the y-axis.
 - **Purpose**: Helps models generalize to variations in viewing angles caused by slight tilts or oblique viewpoints. For instance, in traffic monitoring, objects like cars and road signs may appear slanted due to non-perpendicular camera placements. Applying shear augmentation ensures the model learns to recognize objects despite such skewed distortions.
 - **Ultralytics' implementation**: [RandomPerspective](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomPerspective)
@@ -193,7 +193,7 @@ yolo cfg=train_custom.yaml
 ### Perspective (`perspective`)
 
 - **Range**: `0.0` - `0.001`
-- **Default**: `0.0`
+- **Default**: `{{ perspective }}`
 - **Usage**: Applies a full perspective transformation along both x-axis and y-axis, simulating how objects appear when viewed from different depths or angles. The `perspective` hyperparameter defines the perspective magnitude, with the final adjustment randomly chosen between `-perspective` and `perspective`. For example, with `perspective=0.001`, the perspective is randomly selected within`-0.001` to `0.001` on the x-asis, and another independent random value is selected within the same range on the y-axis.
 - **Purpose**: Perspective augmentation is crucial for handling extreme viewpoint changes, especially in scenarios where objects appear foreshortened or distorted due to perspective shifts. For example, in drone-based object detection, buildings, roads, and vehicles can appear stretched or compressed depending on the drone's tilt and altitude. By applying perspective transformations, models learn to recognize objects despite these perspective-induced distortions, improving their robustness in real-world deployments.
 - **Ultralytics' implementation**: [RandomPerspective](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomPerspective)
@@ -205,7 +205,7 @@ yolo cfg=train_custom.yaml
 ### Flip Up-Down (`flipud`)
 
 - **Range**: `0.0` - `1.0`
-- **Default**: `0.0`
+- **Default**: `{{ flipud }}`
 - **Usage**: Performs a vertical flip by inverting the image along the y-axis. This transformation mirrors the entire image upside-down but preserves all spatial relationships between objects. The flipud hyperparameter defines the probability of applying the transformation, with a value of `flipud=1.0` ensuring that all images are flipped and a value of `flipud=0.0` disabling the transformation entirely. For example, with `flipud=0.5`, each image has a 50% chance of being flipped upside-down.
 - **Purpose**: Useful for scenarios where objects can appear upside down. For example, in robotic vision systems, objects on conveyor belts or robotic arms may be picked up and placed in various orientations. Vertical flipping helps the model recognize objects regardless of their top-down positioning.
 - **Ultralytics' implementation**: [RandomFlip](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomFlip)
@@ -217,7 +217,7 @@ yolo cfg=train_custom.yaml
 ### Flip Left-Right (`fliplr`)
 
 - **Range**: `0.0` - `1.0`
-- **Default**: `0.5`
+- **Default**: `{{ fliplr }}`
 - **Usage**: Performs a horizontal flip by mirroring the image along the x-axis. This transformation swaps the left and right sides while maintaining spatial consistency, which helps the model generalize to objects appearing in mirrored orientations. The `fliplr` hyperparameter defines the probability of applying the transformation, with a value of `fliplr=1.0` ensuring that all images are flipped and a value of `fliplr=0.0` disabling the transformation entirely. For example, with `fliplr=0.5`, each image has a 50% chance of being flipped left to right.
 - **Purpose**: Horizontal flipping is widely used in object detection, pose estimation, and facial recognition to improve robustness against left-right variations. For example, in autonomous driving, vehicles and pedestrians can appear on either side of the road, and horizontal flipping helps the model recognize them equally well in both orientations.
 - **Ultralytics' implementation**: [RandomFlip](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomFlip)
@@ -229,7 +229,7 @@ yolo cfg=train_custom.yaml
 ### BGR Channel Swap (`bgr`)
 
 - **Range**: `0.0` - `1.0`
-- **Default**: `0.0`
+- **Default**: `{{ bgr }}`
 - **Usage**: Swaps the color channels of an image from RGB to BGR, altering the order in which colors are represented. The `bgr` hyperparameter defines the probability of applying the transformation, with `bgr=1.0` ensuring all images undergo the channel swap and `bgr=0.0` disabling it. For example, with `bgr=0.5`, each image has a 50% chance of being converted from RGB to BGR.
 - **Purpose**: Increases robustness to different color channel orderings. For example, when training models that must work across various camera systems and imaging libraries where RGB and BGR formats may be inconsistently used, or when deploying models to environments where the input color format might differ from the training data.
 - **Ultralytics' implementation**: [Format](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.Format)
@@ -241,7 +241,7 @@ yolo cfg=train_custom.yaml
 ### Mosaic (`mosaic`)
 
 - **Range**: `0.0` - `1.0`
-- **Default**: `1.0`
+- **Default**: `{{ mosaic }}`
 - **Usage**: Combines four training images into one. The `mosaic` hyperparameter defines the probability of applying the transformation, with `mosaic=1.0` ensuring that all images are combined and `mosaic=0.0` disabling the transformation. For example, with `mosaic=0.5`, each image has a 50% chance of being combined with three other images.
 - **Purpose**: Highly effective for improving small object detection and context understanding. For example, in wildlife conservation projects where animals may appear at various distances and scales, mosaic augmentation helps the model learn to recognize the same species across different sizes, partial occlusions, and environmental contexts by artificially creating diverse training samples from limited data.
 - **Ultralytics' implementation**: [Mosaic](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.Mosaic)
@@ -258,7 +258,7 @@ yolo cfg=train_custom.yaml
 ### Mixup (`mixup`)
 
 - **Range**: `0.0` - `1.0`
-- **Default**: `0.0`
+- **Default**: `{{ mixup }}`
 - **Usage**: Blends two images and their labels with given probability. The `mixup` hyperparameter defines the probability of applying the transformation, with `mixup=1.0` ensuring that all images are mixed and `mixup=0.0` disabling the transformation. For example, with `mixup=0.5`, each image has a 50% chance of being mixed with another image.
 - **Purpose**: Improves model robustness and reduces overfitting. For example, in retail product recognition systems, mixup helps the model learn more robust features by blending images of different products, teaching it to identify items even when they're partially visible or obscured by other products on crowded store shelves.
 - **Ultralytics' implementation**: [Mixup](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.MixUp)
@@ -274,7 +274,7 @@ yolo cfg=train_custom.yaml
 ### Copy-Paste (`copy_paste`)
 
 - **Range**: `0.0` - `1.0`
-- **Default**: `0.0`
+- **Default**: `{{ copy_paste }}`
 - **Usage**: Only works for segmentation tasks, this augmentation copies objects within or between images based on a specified probability, controlled by the [`copy_paste_mode`](#copy-paste-mode-copy_paste_mode). The `copy_paste` hyperparameter defines the probability of applying the transformation, with `copy_paste=1.0` ensuring that all images are copied and `copy_paste=0.0` disabling the transformation. For example, with `copy_paste=0.5`, each image has a 50% chance of having objects copied from another image.
 - **Purpose**: Particularly useful for instance segmentation tasks and rare object classes. For example, in industrial defect detection where certain types of defects appear infrequently, copy-paste augmentation can artificially increase the occurrence of these rare defects by copying them from one image to another, helping the model better learn these underrepresented cases without requiring additional defective samples.
 - **Ultralytics' implementation**: [CopyPaste](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.CopyPaste)
@@ -290,7 +290,7 @@ yolo cfg=train_custom.yaml
 ### Copy-Paste Mode (`copy_paste_mode`)
 
 - **Options**: `'flip'`, `'mixup'`
-- **Default**: `'flip'`
+- **Default**: `'{{ copy_paste_mode }}'`
 - **Usage**: Determines the method used for [copy-paste](#copy-paste-copy_paste) augmentation. If set to `'flip'`, the objects come from the same image, while `'mixup'` allows objects to be copied from different images.
 - **Purpose**: Allows flexibility in how copied objects are integrated into target images.
 - **Ultralytics' implementation**: [CopyPaste](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.CopyPaste)
@@ -308,7 +308,7 @@ yolo cfg=train_custom.yaml
 ### Auto Augment (`auto_augment`)
 
 - **Options**: `'randaugment'`, `'autoaugment'`, `'augmix'`, `None`
-- **Default**: `'randaugment'`
+- **Default**: `'{{ auto_augment }}'`
 - **Usage**: Applies automated augmentation policies for classification. The `'randaugment'` option uses RandAugment, `'autoaugment'` uses AutoAugment, and `'augmix'` uses AugMix. Setting to `None` disables automated augmentation.
 - **Purpose**: Optimizes augmentation strategies automatically for classification tasks. The differences are the following:
     - **AutoAugment**: This mode applies predefined augmentation policies learned from datasets like ImageNet, CIFAR10, and SVHN. Users can select these existing policies but cannot train new ones within Torchvision. To discover optimal augmentation strategies for specific datasets, external libraries or custom implementations would be necessary. Reference to the [AutoAugment paper](https://arxiv.org/abs/1805.09501).
@@ -322,7 +322,7 @@ yolo cfg=train_custom.yaml
 ### Random Erasing (`erasing`)
 
 - **Range**: `0.0` - `0.9`
-- **Default**: `0.4`
+- **Default**: `{{ erasing }}`
 - **Usage**: Randomly erases portions of the image during classification training. The `erasing` hyperparameter defines the probability of applying the transformation, with `erasing=0.9` ensuring that almost all images are erased and `erasing=0.0` disabling the transformation. For example, with `erasing=0.5`, each image has a 50% chance of having a portion erased.
 - **Purpose**: Helps models learn robust features and prevents over-reliance on specific image regions. For example, in facial recognition systems, random erasing helps models become more robust to partial occlusions like sunglasses, face masks, or other objects that might partially cover facial features. This improves real-world performance by forcing the model to identify individuals using multiple facial characteristics rather than depending solely on distinctive features that might be obscured.
 - **Ultralytics' implementation**: [classify_augmentations()](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.classify_augmentations)
@@ -350,7 +350,7 @@ In short: keep it simple. Start with a small set of augmentations and gradually 
 
 If the `albumentations` package is installed, Ultralytics automatically applies a set of extra image augmentations using it. These augmentations are handled internally and require no additional configuration.
 
-You can find the full list of applied transformations in our [technical documentation](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.Albumentations). Note that only augmentations with a probability (`p`) greater than `0` are active. These are purposefully applied at low frequencies to mimic real-world visual artifacts, such as blur or grayscale effects.
+You can find the full list of applied transformations in our [technical documentation](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.Albumentations), as well as in our [Albumentations integration guide](https://docs.ultralytics.com/integrations/albumentations/). Note that only the augmentations with a probability `p` greater than `0` are active. These are purposefully applied at low frequencies to mimic real-world visual artifacts, such as blur or grayscale effects.
 
 ### When starting a training, I don't see any reference to albumentations. Why?
 

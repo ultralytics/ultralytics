@@ -135,42 +135,42 @@ The rows index the label files, each corresponding to an image in your dataset, 
         - Setting `shuffle=True` ensures a randomized distribution of classes in your splits.
         - By setting `random_state=M` where `M` is a chosen integer, you can obtain repeatable results.
 
-                ```python
-                import random
-            
-                from sklearn.model_selection import KFold
-            
-                random.seed(0)  # for reproducibility
-                ksplit = 5
-                kf = KFold(n_splits=ksplit, shuffle=True, random_state=20)  # setting random_state for repeatable results
-            
-                kfolds = list(kf.split(labels_df))
-                ```
+              ```python
+              import random
+
+              from sklearn.model_selection import KFold
+
+              random.seed(0)  # for reproducibility
+              ksplit = 5
+              kf = KFold(n_splits=ksplit, shuffle=True, random_state=20)  # setting random_state for repeatable results
+
+              kfolds = list(kf.split(labels_df))
+              ```
 
 2. The dataset has now been split into `k` folds, each having a list of `train` and `val` indices. We will construct a DataFrame to display these results more clearly.
 
-        ```python
-        folds = [f"split_{n}" for n in range(1, ksplit + 1)]
-        folds_df = pd.DataFrame(index=index, columns=folds)
+       ```python
+       folds = [f"split_{n}" for n in range(1, ksplit + 1)]
+       folds_df = pd.DataFrame(index=index, columns=folds)
     
-        for i, (train, val) in enumerate(kfolds, start=1):
-            folds_df[f"split_{i}"].loc[labels_df.iloc[train].index] = "train"
-            folds_df[f"split_{i}"].loc[labels_df.iloc[val].index] = "val"
-        ```
+       for i, (train, val) in enumerate(kfolds, start=1):
+           folds_df[f"split_{i}"].loc[labels_df.iloc[train].index] = "train"
+           folds_df[f"split_{i}"].loc[labels_df.iloc[val].index] = "val"
+       ```
 
 3. Now we will calculate the distribution of class labels for each fold as a ratio of the classes present in `val` to those present in `train`.
 
-        ```python
-        fold_lbl_distrb = pd.DataFrame(index=folds, columns=cls_idx)
+       ```python
+       fold_lbl_distrb = pd.DataFrame(index=folds, columns=cls_idx)
     
-        for n, (train_indices, val_indices) in enumerate(kfolds, start=1):
-            train_totals = labels_df.iloc[train_indices].sum()
-            val_totals = labels_df.iloc[val_indices].sum()
+       for n, (train_indices, val_indices) in enumerate(kfolds, start=1):
+           train_totals = labels_df.iloc[train_indices].sum()
+           val_totals = labels_df.iloc[val_indices].sum()
     
-            # To avoid division by zero, we add a small value (1E-7) to the denominator
-            ratio = val_totals / (train_totals + 1e-7)
-            fold_lbl_distrb.loc[f"split_{n}"] = ratio
-        ```
+           # To avoid division by zero, we add a small value (1E-7) to the denominator
+           ratio = val_totals / (train_totals + 1e-7)
+           fold_lbl_distrb.loc[f"split_{n}"] = ratio
+       ```
 
     The ideal scenario is for all class ratios to be reasonably similar for each split and across classes. This, however, will be subject to the specifics of your dataset.
 

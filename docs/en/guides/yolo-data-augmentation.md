@@ -14,7 +14,7 @@ keywords: YOLO data augmentation, computer vision, deep learning, image transfor
 
 [Data augmentation](https://www.ultralytics.com/glossary/data-augmentation) is a crucial technique in computer vision that artificially expands your training dataset by applying various transformations to existing images. When training [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models like YOLO, data augmentation helps improve model robustness, reduces overfitting, and enhances generalization to real-world scenarios.
 
-## Why Data Augmentation Matters
+### Why Data Augmentation Matters
 
 Data augmentation serves multiple critical purposes in training computer vision models:
 
@@ -24,6 +24,63 @@ Data augmentation serves multiple critical purposes in training computer vision 
 - **Enhanced Performance**: Models trained with proper augmentation typically achieve better [accuracy](https://www.ultralytics.com/glossary/accuracy) on validation and test sets.
 
 YOLO's implementation provides a comprehensive suite of augmentation techniques, each serving specific purposes and contributing to model performance in different ways. This guide will explore each augmentation parameter in detail, helping you understand when and how to use them effectively in your projects.
+
+### Example Configurations
+
+You can customize each parameter using the Python API, the command line interface (CLI), or a configuration file. Below are examples of how to set up data augmentation in each method.
+
+#### Using the Python API
+
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("yolo11n.pt")
+
+# Training with custom augmentation parameters
+model.train(data="coco.yaml", epochs=100, hsv_h=0.03, hsv_s=0.6, hsv_v=0.5)
+
+# Training without any augmentations (disabled values omitted for clarity)
+model.train(data="coco.yaml", epochs=100, hsv_h=0.0, hsv_s=0.0, hsv_v=0.0, translate=0.0, scale=0.0, fliplr=0.0, mosaic=0.0, erasing=0.0, auto_augment=None)
+```
+
+#### Using the CLI
+
+```sh
+# Training with custom augmentation parameters
+yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 hsv_h=0.03 hsv_s=0.6 hsv_v=0.5
+```
+
+#### Using a configuration file
+
+You can define all training parameters, including augmentations, in a YAML configuration file (e.g., `train_custom.yaml`). The `mode` parameter is only required when using the CLI. This new YAML file will then override [the default one](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml) located in the `ultralytics` package.
+
+```yaml
+# train_custom.yaml
+# 'mode' is required only for CLI usage
+mode: train 
+data: coco8.yaml
+model: yolo11n.pt
+epochs: 100
+hsv_h: 0.03
+hsv_s: 0.6
+hsv_v: 0.5
+```
+
+Then launch the training with the Python API:
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolo11n.pt")
+model.train(cfg="train_custom.yaml")
+```
+
+Or via the CLI:
+
+```sh
+yolo cfg=train_custom.yaml
+```
 
 ## Color Space Augmentations
 
@@ -180,6 +237,7 @@ YOLO's implementation provides a comprehensive suite of augmentation techniques,
     - Even if the `mosaic` augmentation makes the model more robust, it can also make the training process more challenging.
     - The `mosaic` augmentation can be disabled near the end of training by setting `close_mosaic` to the number of epochs before completion when it should be turned off. For example, if `epochs` is set to `200` and `close_mosaic` is set to `20`, the `mosaic` augmentation will be disabled after `180` epochs. If `close_mosaic` is set to `0`, the `mosaic` augmentation will be enabled for the entire training process.
     - The center of the generated mosaic is determined using random values, and can either be inside the image or outside of it.
+    - The current implementation of the `mosaic` augmentation combines 4 images picked randomly from the dataset. If the dataset is small, the same image may be used multiple times in the same mosaic.
 
 |                                                            **`mosaic` off**                                                             |                                                              **`mosaic` on**                                                              |
 | :-------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------: |
@@ -247,7 +305,7 @@ YOLO's implementation provides a comprehensive suite of augmentation techniques,
 - **Ultralytics' implementation**: [classify_augmentations()](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.classify_augmentations)
 - **Note**:
     - Essentially, the main difference between the three methods is the way the augmentation policies are defined and applied.
-    - Some people have written articles comparing the three methods, like [this one](https://sebastianraschka.com/blog/2023/data-augmentation-pytorch.html).
+    - You can refer to [this article](https://sebastianraschka.com/blog/2023/data-augmentation-pytorch.html) that compares the three methods in detail.
 
 ### Random Erasing (`erasing`)
 
@@ -264,7 +322,7 @@ YOLO's implementation provides a comprehensive suite of augmentation techniques,
 | :-------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------: |
 | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_identity.avif" alt="augmentation_identity" width="85%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_erasing_ex1.avif" alt="erasing_ex1_augmentation" width="85%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_erasing_ex2.avif" alt="erasing_ex2_augmentation" width="85%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_erasing_ex3.avif" alt="erasing_ex3_augmentation" width="85%"/> |
 
-## FAQ 🙋‍♂️
+## FAQ
 
 ### There are too many augmentations to choose from. How do I know which ones to use?
 
@@ -285,26 +343,3 @@ You can find the full list of applied transformations in our [technical document
 ### When starting a training, I don't see any reference to albumentations. Why?
 
 Check if the `albumentations` package is installed. If not, you can install it by running `pip install albumentations`. Once installed, the package should be automatically detected and used by Ultralytics.
-
-## Example Configuration
-
-```python
-from ultralytics import YOLO
-
-# Load a model
-model = YOLO("yolo11n.pt")
-
-# Train with custom augmentation parameters
-model.train(
-    data="coco.yaml",
-    epochs=100,
-    hsv_h=0.015,  # slight hue adjustment
-    hsv_s=0.7,  # significant saturation adjustment
-    hsv_v=0.4,  # moderate brightness adjustment
-    degrees=10.0,  # moderate rotation
-    translate=0.1,  # slight translation
-    scale=0.5,  # moderate scaling
-    mosaic=0.5,  # enable mosaic with a chance of 50%
-    mixup=0.1,  # slight mixup
-)
-```

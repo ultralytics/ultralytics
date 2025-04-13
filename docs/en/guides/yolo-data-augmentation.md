@@ -1,10 +1,10 @@
 ---
 comments: true
-description: Learn about essential data augmentation techniques in YOLO. Explore various transformations, their impacts, and how to implement them effectively for improved model performance.
+description: Learn about essential data augmentation techniques in Ultralytics YOLO. Explore various transformations, their impacts, and how to implement them effectively for improved model performance.
 keywords: YOLO data augmentation, computer vision, deep learning, image transformations, model training, Ultralytics YOLO, HSV adjustments, geometric transformations, mosaic augmentation
 ---
 
-# Data Augmentation using Ultralytics YOLO11
+# Data Augmentation using Ultralytics YOLO
 
 <p align="center">
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/albumentations-augmentation.avif" alt="Example of Image Augmentations">
@@ -12,7 +12,7 @@ keywords: YOLO data augmentation, computer vision, deep learning, image transfor
 
 ## Introduction
 
-[Data augmentation](https://www.ultralytics.com/glossary/data-augmentation) is a crucial technique in computer vision that artificially expands your training dataset by applying various transformations to existing images. When training [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models like YOLO, data augmentation helps improve model robustness, reduces overfitting, and enhances generalization to real-world scenarios.
+[Data augmentation](https://www.ultralytics.com/glossary/data-augmentation) is a crucial technique in computer vision that artificially expands your training dataset by applying various transformations to existing images. When training [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models like Ultralytics YOLO, data augmentation helps improve model robustness, reduces overfitting, and enhances generalization to real-world scenarios.
 
 ### Why Data Augmentation Matters
 
@@ -23,7 +23,7 @@ Data augmentation serves multiple critical purposes in training computer vision 
 - **Reduced Overfitting**: By introducing variability in the training data, models are less likely to memorize specific image characteristics.
 - **Enhanced Performance**: Models trained with proper augmentation typically achieve better [accuracy](https://www.ultralytics.com/glossary/accuracy) on validation and test sets.
 
-YOLO's implementation provides a comprehensive suite of augmentation techniques, each serving specific purposes and contributing to model performance in different ways. This guide will explore each augmentation parameter in detail, helping you understand when and how to use them effectively in your projects.
+Ultralytics YOLO's implementation provides a comprehensive suite of augmentation techniques, each serving specific purposes and contributing to model performance in different ways. This guide will explore each augmentation parameter in detail, helping you understand when and how to use them effectively in your projects.
 
 ### Example Configurations
 
@@ -346,7 +346,7 @@ Choosing the right augmentations depends on your specific use case and dataset. 
 
 In short: keep it simple. Start with a small set of augmentations and gradually add more as needed. The goal is to improve the model's generalization and robustness, not to overcomplicate the training process. Also, make sure the augmentations you apply reflect the same data distribution your model will encounter in production.
 
-### When starting a training, a see a `albumentations: Blur[...]` reference. Does that mean the YOLO package runs additional augmentation like blurring?
+### When starting a training, a see a `albumentations: Blur[...]` reference. Does that mean Ultralytics YOLO runs additional augmentation like blurring?
 
 If the `albumentations` package is installed, Ultralytics automatically applies a set of extra image augmentations using it. These augmentations are handled internally and require no additional configuration.
 

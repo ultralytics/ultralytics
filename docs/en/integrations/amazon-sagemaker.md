@@ -227,19 +227,19 @@ Yes, you can customize the inference logic for YOLO11 on Amazon SageMaker:
 
 1. **Modify `inference.py`**: Locate and customize the `output_fn` function in the `inference.py` file to tailor output formats.
 
-       ```python
-       import json
+    ```python
+    import json
 
 
-       def output_fn(prediction_output):
-           """Formats model outputs as JSON string, extracting attributes like boxes, masks, keypoints."""
-           infer = {}
-           for result in prediction_output:
-               if result.boxes is not None:
-                   infer["boxes"] = result.boxes.numpy().data.tolist()
-               # Add more processing logic if necessary
-           return json.dumps(infer)
-       ```
+    def output_fn(prediction_output):
+        """Formats model outputs as JSON string, extracting attributes like boxes, masks, keypoints."""
+        infer = {}
+        for result in prediction_output:
+            if result.boxes is not None:
+                infer["boxes"] = result.boxes.numpy().data.tolist()
+            # Add more processing logic if necessary
+        return json.dumps(infer)
+    ```
 
 2. **Deploy Updated Model**: Ensure you redeploy the model using Jupyter notebooks provided (`1_DeployEndpoint.ipynb`) to include these changes.
 

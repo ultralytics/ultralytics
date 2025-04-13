@@ -26,25 +26,25 @@ You can upgrade to the Pro Plan from the [Billing & License](https://hub.ultraly
 
 1. Click on the **Upgrade** button
 
-![Ultralytics HUB screenshot of the Settings page Billing & License tab with an arrow pointing to the Upgrade button](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-settings-upgrade-button.avif)
+    ![Ultralytics HUB screenshot of the Settings page Billing & License tab with an arrow pointing to the Upgrade button](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-settings-upgrade-button.avif)
 
 2. Select the Pro Plan
 
-![Ultralytics HUB screenshot of the Upgrade dialog with an arrow pointing to the Select Plan button](https://github.com/ultralytics/docs/releases/download/0/hub-pro-upgrade-select-plan.avif)
+    ![Ultralytics HUB screenshot of the Upgrade dialog with an arrow pointing to the Select Plan button](https://github.com/ultralytics/docs/releases/download/0/hub-pro-upgrade-select-plan.avif)
 
-!!! tip
+    !!! tip
 
-    You can save 20% if you choose the annual Pro Plan.
-
-    ![Ultralytics HUB screenshot of the Upgrade dialog with an arrow pointing to the Save 20% toggle and one to the Select Plan button](https://github.com/ultralytics/docs/releases/download/0/hub-pro-upgrade-save-20-toggle.avif)
+        You can save 20% if you choose the annual Pro Plan.
+    
+        ![Ultralytics HUB screenshot of the Upgrade dialog with an arrow pointing to the Save 20% toggle and one to the Select Plan button](https://github.com/ultralytics/docs/releases/download/0/hub-pro-upgrade-save-20-toggle.avif)
 
 3. Fill in your details during the checkout
 
-![Ultralytics HUB screenshot of the Checkout with an arrow pointing to the checkbox for saving the payment information for future purchases](https://github.com/ultralytics/docs/releases/download/0/hub-pro-upgrade-save-payment-info.avif)
+    ![Ultralytics HUB screenshot of the Checkout with an arrow pointing to the checkbox for saving the payment information for future purchases](https://github.com/ultralytics/docs/releases/download/0/hub-pro-upgrade-save-payment-info.avif)
 
-!!! tip
+    !!! tip
 
-    We recommend ticking the checkbox to save your payment information for future purchases, facilitating easier top-ups to your account balance.
+         We recommend ticking the checkbox to save your payment information for future purchases, facilitating easier top-ups to your account balance.
 
 4. Complete the payment process
 
@@ -58,12 +58,12 @@ The account balance is used to pay for [Ultralytics Cloud Training](./cloud-trai
 
 1. Click on the **Top-Up** button in the Billing & License tab
 
-![Ultralytics HUB screenshot of the Settings page Billing & License tab with an arrow pointing to the Top-Up button](https://github.com/ultralytics/docs/releases/download/0/hub-pro-account-balance-top-up-button.avif)
+    ![Ultralytics HUB screenshot of the Settings page Billing & License tab with an arrow pointing to the Top-Up button](https://github.com/ultralytics/docs/releases/download/0/hub-pro-account-balance-top-up-button.avif)
 
 2. Set the amount you want to add to your balance
 
-![Ultralytics HUB screenshot of the Checkout with an arrow pointing to the Change amount button](https://github.com/ultralytics/docs/releases/download/0/hub-pro-account-balance-change-amount.avif)
+    ![Ultralytics HUB screenshot of the Checkout with an arrow pointing to the Change amount button](https://github.com/ultralytics/docs/releases/download/0/hub-pro-account-balance-change-amount.avif)
 
 3. Complete the payment process
 
-![Ultralytics HUB screenshot of the Payment Successful dialog](https://github.com/ultralytics/docs/releases/download/0/payment-successful-dialog-1.avif)
+    ![Ultralytics HUB screenshot of the Payment Successful dialog](https://github.com/ultralytics/docs/releases/download/0/payment-successful-dialog-1.avif)

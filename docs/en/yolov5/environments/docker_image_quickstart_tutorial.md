@@ -95,7 +95,7 @@ sudo docker run -it --ipc=host --gpus all $t
 sudo docker run -it --ipc=host --gpus '"device=2,3"' $t
 ```
 
-Refer to the [Docker run reference](https://docs.docker.com/engine/reference/run/) for more details on command options.
+Refer to the [Docker run reference](https://docs.docker.com/engine/containers/run/) for more details on command options.
 
 ### Mounting Local Directories
 

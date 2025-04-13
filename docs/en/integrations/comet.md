@@ -187,19 +187,19 @@ Additionally, to explore other exciting integrations with Ultralytics, check out
 
 To integrate Comet ML with Ultralytics YOLO11, follow these steps:
 
-1. **Install the required packages**:
+1.  **Install the required packages**:
 
     ```bash
     pip install ultralytics comet_ml torch torchvision
     ```
 
-2. **Set up your Comet API Key**:
+2.  **Set up your Comet API Key**:
 
     ```bash
     export COMET_API_KEY=YOUR_API_KEY
     ```
 
-3. **Initialize your Comet project in your Python code**:
+3.  **Initialize your Comet project in your Python code**:
 
         ```python
         import comet_ml
@@ -207,11 +207,11 @@ To integrate Comet ML with Ultralytics YOLO11, follow these steps:
         comet_ml.login(project_name="comet-example-yolo11-coco128")
         ```
 
-4. **Train your YOLO11 model and log metrics**:
+4.  **Train your YOLO11 model and log metrics**:
 
         ```python
         from ultralytics import YOLO
-    
+
         model = YOLO("yolo11n.pt")
         results = model.train(
             data="coco8.yaml",
@@ -242,27 +242,27 @@ Comet ML allows for extensive customization of its logging behavior using enviro
 
 - **Change the number of image predictions logged**:
 
-        ```python
-        import os
-    
-        os.environ["COMET_MAX_IMAGE_PREDICTIONS"] = "200"
-        ```
+          ```python
+          import os
+
+          os.environ["COMET_MAX_IMAGE_PREDICTIONS"] = "200"
+          ```
 
 - **Adjust batch logging interval**:
 
-        ```python
-        import os
-    
-        os.environ["COMET_EVAL_BATCH_LOGGING_INTERVAL"] = "4"
-        ```
+          ```python
+          import os
+
+          os.environ["COMET_EVAL_BATCH_LOGGING_INTERVAL"] = "4"
+          ```
 
 - **Disable confusion matrix logging**:
 
-        ```python
-        import os
-    
-        os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
-        ```
+          ```python
+          import os
+
+          os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
+          ```
 
 Refer to the [Customizing Comet ML Logging](#customizing-comet-ml-logging) section for more customization options.
 

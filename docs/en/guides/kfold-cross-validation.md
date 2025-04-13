@@ -136,17 +136,17 @@ The rows index the label files, each corresponding to an image in your dataset, 
         - Setting `shuffle=True` ensures a randomized distribution of classes in your splits.
         - By setting `random_state=M` where `M` is a chosen integer, you can obtain repeatable results.
 
-                          ```python
-                          import random
+                            ```python
+                            import random
 
-                          from sklearn.model_selection import KFold
+                            from sklearn.model_selection import KFold
 
-                          random.seed(0)  # for reproducibility
-                          ksplit = 5
-                          kf = KFold(n_splits=ksplit, shuffle=True, random_state=20)  # setting random_state for repeatable results
+                            random.seed(0)  # for reproducibility
+                            ksplit = 5
+                            kf = KFold(n_splits=ksplit, shuffle=True, random_state=20)  # setting random_state for repeatable results
 
-                          kfolds = list(kf.split(labels_df))
-                          ```
+                            kfolds = list(kf.split(labels_df))
+                            ```
 
 2.  The dataset has now been split into `k` folds, each having a list of `train` and `val` indices. We will construct a DataFrame to display these results more clearly.
 
@@ -223,21 +223,21 @@ The rows index the label files, each corresponding to an image in your dataset, 
 
     - **NOTE:** The time required for this portion of the code will vary based on the size of your dataset and your system hardware.
 
-                      ```python
-                      import shutil
+                        ```python
+                        import shutil
 
-                      from tqdm import tqdm
+                        from tqdm import tqdm
 
-                      for image, label in tqdm(zip(images, labels), total=len(images), desc="Copying files"):
-                          for split, k_split in folds_df.loc[image.stem].items():
-                              # Destination directory
-                              img_to_path = save_path / split / k_split / "images"
-                              lbl_to_path = save_path / split / k_split / "labels"
+                        for image, label in tqdm(zip(images, labels), total=len(images), desc="Copying files"):
+                            for split, k_split in folds_df.loc[image.stem].items():
+                                # Destination directory
+                                img_to_path = save_path / split / k_split / "images"
+                                lbl_to_path = save_path / split / k_split / "labels"
 
-                              # Copy image and label files to new directory (SamefileError if file already exists)
-                              shutil.copy(image, img_to_path / image.name)
-                              shutil.copy(label, lbl_to_path / label.name)
-                      ```
+                                # Copy image and label files to new directory (SamefileError if file already exists)
+                                shutil.copy(image, img_to_path / image.name)
+                                shutil.copy(label, lbl_to_path / label.name)
+                        ```
 
 ## Save Records (Optional)
 

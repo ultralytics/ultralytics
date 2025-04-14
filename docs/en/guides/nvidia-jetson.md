@@ -550,7 +550,7 @@ The below table represents the benchmark results for five different models (YOLO
 
     Benchmarked with Ultralytics {{ benchmark_version }}
 
-[Explore more benchmarking efforts by Seeed Studio](https://www.seeedstudio.com/blog/2023/03/30/yolov8-performance-benchmarks-on-nvidia-jetson-devices) running on different versions of NVIDIA Jetson hardware.
+[Explore more benchmarking efforts by Seeed Studio](https://www.seeedstudio.com/blog/2023/03/30/yolov8-performance-benchmarks-on-nvidia-jetson-devices/) running on different versions of NVIDIA Jetson hardware.
 
 ## Reproduce Our Results
 

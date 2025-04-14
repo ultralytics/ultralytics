@@ -129,26 +129,25 @@ The rows index the label files, each corresponding to an image in your dataset, 
 
 ## K-Fold Dataset Split
 
-1.  Now we will use the `KFold` class from `sklearn.model_selection` to generate `k` splits of the dataset.
+1. Now we will use the `KFold` class from `sklearn.model_selection` to generate `k` splits of the dataset.
 
     - Important:
-
         - Setting `shuffle=True` ensures a randomized distribution of classes in your splits.
         - By setting `random_state=M` where `M` is a chosen integer, you can obtain repeatable results.
 
-                ```python
-                import random
+    ```python
+    import random
 
-                from sklearn.model_selection import KFold
+    from sklearn.model_selection import KFold
 
-                random.seed(0)  # for reproducibility
-                ksplit = 5
-                kf = KFold(n_splits=ksplit, shuffle=True, random_state=20)  # setting random_state for repeatable results
+    random.seed(0)  # for reproducibility
+    ksplit = 5
+    kf = KFold(n_splits=ksplit, shuffle=True, random_state=20)  # setting random_state for repeatable results
 
-                kfolds = list(kf.split(labels_df))
-                ```
+    kfolds = list(kf.split(labels_df))
+    ```
 
-2.  The dataset has now been split into `k` folds, each having a list of `train` and `val` indices. We will construct a DataFrame to display these results more clearly.
+2. The dataset has now been split into `k` folds, each having a list of `train` and `val` indices. We will construct a DataFrame to display these results more clearly.
 
     ```python
     folds = [f"split_{n}" for n in range(1, ksplit + 1)]
@@ -159,7 +158,7 @@ The rows index the label files, each corresponding to an image in your dataset, 
         folds_df[f"split_{i}"].loc[labels_df.iloc[val].index] = "val"
     ```
 
-3.  Now we will calculate the distribution of class labels for each fold as a ratio of the classes present in `val` to those present in `train`.
+3. Now we will calculate the distribution of class labels for each fold as a ratio of the classes present in `val` to those present in `train`.
 
     ```python
     fold_lbl_distrb = pd.DataFrame(index=folds, columns=cls_idx)
@@ -175,69 +174,69 @@ The rows index the label files, each corresponding to an image in your dataset, 
 
     The ideal scenario is for all class ratios to be reasonably similar for each split and across classes. This, however, will be subject to the specifics of your dataset.
 
-4.  Next, we create the directories and dataset YAML files for each split.
+4. Next, we create the directories and dataset YAML files for each split.
 
-        ```python
-        import datetime
+    ```python
+    import datetime
 
-        supported_extensions = [".jpg", ".jpeg", ".png"]
+    supported_extensions = [".jpg", ".jpeg", ".png"]
 
-        # Initialize an empty list to store image file paths
-        images = []
+    # Initialize an empty list to store image file paths
+    images = []
 
-        # Loop through supported extensions and gather image files
-        for ext in supported_extensions:
-            images.extend(sorted((dataset_path / "images").rglob(f"*{ext}")))
+    # Loop through supported extensions and gather image files
+    for ext in supported_extensions:
+        images.extend(sorted((dataset_path / "images").rglob(f"*{ext}")))
 
-        # Create the necessary directories and dataset YAML files
-        save_path = Path(dataset_path / f"{datetime.date.today().isoformat()}_{ksplit}-Fold_Cross-val")
-        save_path.mkdir(parents=True, exist_ok=True)
-        ds_yamls = []
+    # Create the necessary directories and dataset YAML files
+    save_path = Path(dataset_path / f"{datetime.date.today().isoformat()}_{ksplit}-Fold_Cross-val")
+    save_path.mkdir(parents=True, exist_ok=True)
+    ds_yamls = []
 
-        for split in folds_df.columns:
-            # Create directories
-            split_dir = save_path / split
-            split_dir.mkdir(parents=True, exist_ok=True)
-            (split_dir / "train" / "images").mkdir(parents=True, exist_ok=True)
-            (split_dir / "train" / "labels").mkdir(parents=True, exist_ok=True)
-            (split_dir / "val" / "images").mkdir(parents=True, exist_ok=True)
-            (split_dir / "val" / "labels").mkdir(parents=True, exist_ok=True)
+    for split in folds_df.columns:
+        # Create directories
+        split_dir = save_path / split
+        split_dir.mkdir(parents=True, exist_ok=True)
+        (split_dir / "train" / "images").mkdir(parents=True, exist_ok=True)
+        (split_dir / "train" / "labels").mkdir(parents=True, exist_ok=True)
+        (split_dir / "val" / "images").mkdir(parents=True, exist_ok=True)
+        (split_dir / "val" / "labels").mkdir(parents=True, exist_ok=True)
 
-            # Create dataset YAML files
-            dataset_yaml = split_dir / f"{split}_dataset.yaml"
-            ds_yamls.append(dataset_yaml)
+        # Create dataset YAML files
+        dataset_yaml = split_dir / f"{split}_dataset.yaml"
+        ds_yamls.append(dataset_yaml)
 
-            with open(dataset_yaml, "w") as ds_y:
-                yaml.safe_dump(
-                    {
-                        "path": split_dir.as_posix(),
-                        "train": "train",
-                        "val": "val",
-                        "names": classes,
-                    },
-                    ds_y,
-                )
-        ```
+        with open(dataset_yaml, "w") as ds_y:
+            yaml.safe_dump(
+                {
+                    "path": split_dir.as_posix(),
+                    "train": "train",
+                    "val": "val",
+                    "names": classes,
+                },
+                ds_y,
+            )
+    ```
 
-5.  Lastly, copy images and labels into the respective directory ('train' or 'val') for each split.
+5. Lastly, copy images and labels into the respective directory ('train' or 'val') for each split.
 
     - **NOTE:** The time required for this portion of the code will vary based on the size of your dataset and your system hardware.
 
-              ```python
-              import shutil
+    ```python
+    import shutil
 
-              from tqdm import tqdm
+    from tqdm import tqdm
 
-              for image, label in tqdm(zip(images, labels), total=len(images), desc="Copying files"):
-                  for split, k_split in folds_df.loc[image.stem].items():
-                      # Destination directory
-                      img_to_path = save_path / split / k_split / "images"
-                      lbl_to_path = save_path / split / k_split / "labels"
+    for image, label in tqdm(zip(images, labels), total=len(images), desc="Copying files"):
+        for split, k_split in folds_df.loc[image.stem].items():
+            # Destination directory
+            img_to_path = save_path / split / k_split / "images"
+            lbl_to_path = save_path / split / k_split / "labels"
 
-                      # Copy image and label files to new directory (SamefileError if file already exists)
-                      shutil.copy(image, img_to_path / image.name)
-                      shutil.copy(label, lbl_to_path / label.name)
-              ```
+            # Copy image and label files to new directory (SamefileError if file already exists)
+            shutil.copy(image, img_to_path / image.name)
+            shutil.copy(label, lbl_to_path / label.name)
+    ```
 
 ## Save Records (Optional)
 
@@ -250,40 +249,40 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
 
 ## Train YOLO using K-Fold Data Splits
 
-1.  First, load the YOLO model.
+1. First, load the YOLO model.
 
-        ```python
-        from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-        weights_path = "path/to/weights.pt"  # use yolo11n.pt for a small model
+    weights_path = "path/to/weights.pt"  # use yolo11n.pt for a small model
+    model = YOLO(weights_path, task="detect")
+    ```
+
+2. Next, iterate over the dataset YAML files to run training. The results will be saved to a directory specified by the `project` and `name` arguments. By default, this directory is 'runs/detect/train#' where # is an integer index.
+
+    ```python
+    results = {}
+
+    # Define your additional arguments here
+    batch = 16
+    project = "kfold_demo"
+    epochs = 100
+
+    for k, dataset_yaml in enumerate(ds_yamls):
         model = YOLO(weights_path, task="detect")
-        ```
+        results[k] = model.train(
+            data=dataset_yaml, epochs=epochs, batch=batch, project=project, name=f"fold_{k + 1}"
+        )  # include any additional train arguments
+    ```
 
-2.  Next, iterate over the dataset YAML files to run training. The results will be saved to a directory specified by the `project` and `name` arguments. By default, this directory is 'runs/detect/train#' where # is an integer index.
+3. You can also use [Ultralytics data.utils.autosplit](https://docs.ultralytics.com/reference/data/utils/) function for automatic dataset splitting:
 
-        ```python
-        results = {}
+    ```python
+    from ultralytics.data.utils import autosplit
 
-        # Define your additional arguments here
-        batch = 16
-        project = "kfold_demo"
-        epochs = 100
-
-        for k, dataset_yaml in enumerate(ds_yamls):
-            model = YOLO(weights_path, task="detect")
-            results[k] = model.train(
-                data=dataset_yaml, epochs=epochs, batch=batch, project=project, name=f"fold_{k + 1}"
-            )  # include any additional train arguments
-        ```
-
-3.  You can also use [Ultralytics data.utils.autosplit](https://docs.ultralytics.com/reference/data/utils/) function for automatic dataset splitting:
-
-        ```python
-        from ultralytics.data.utils import autosplit
-
-        # Automatically split dataset into train/val/test
-        autosplit(path="path/to/images", weights=(0.8, 0.2, 0.0), annotated_only=True)
-        ```
+    # Automatically split dataset into train/val/test
+    autosplit(path="path/to/images", weights=(0.8, 0.2, 0.0), annotated_only=True)
+    ```
 
 ## Conclusion
 

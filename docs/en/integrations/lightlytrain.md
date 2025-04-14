@@ -10,6 +10,8 @@ Ever wondered what to do with all those unlabeled images in your dataset? Great 
 
 In this hands-on tutorial, we'll show you how to supercharge your object detector by combining Lightly**Train**'s pretraining capabilities with Ultralytics' YOLO. We'll work with the classic [PASCAL VOC dataset](http://host.robots.ox.ac.uk/pascal/VOC/) to demonstrate both pretraining (without labels) and fine-tuning (with labels).
 
+You can also run this tutorial in [Google Colab](https://colab.research.google.com/github/lightly-ai/lightly-train/blob/main/examples/notebooks/ultralytics_yolo.ipynb) directly.
+
 ## Install Dependencies
 
 Let's install the required dependencies:

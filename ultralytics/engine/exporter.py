@@ -91,7 +91,6 @@ from ultralytics.utils import (
     WINDOWS,
     __version__,
     callbacks,
-    checks,
     colorstr,
     get_default_args,
     yaml_save,

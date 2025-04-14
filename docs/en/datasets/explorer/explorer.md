@@ -15,7 +15,7 @@ keywords: Ultralytics Explorer, data exploration, semantic search, vector simila
 <a href="https://docs.ultralytics.com/ru">Русский</a> |
 <a href="https://docs.ultralytics.com/de">Deutsch</a> |
 <a href="https://docs.ultralytics.com/fr">Français</a> |
-<a href="https://docs.ultralytics.com/es/">Español</a> |
+<a href="https://docs.ultralytics.com/es">Español</a> |
 <a href="https://docs.ultralytics.com/pt">Português</a> |
 <a href="https://docs.ultralytics.com/tr">Türkçe</a> |
 <a href="https://docs.ultralytics.com/vi">Tiếng Việt</a> |

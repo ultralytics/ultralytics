@@ -242,27 +242,27 @@ Comet ML allows for extensive customization of its logging behavior using enviro
 
 - **Change the number of image predictions logged**:
 
-                                                                 ```python
-                                                                 import os
+                                                                   ```python
+                                                                   import os
 
-                                                                 os.environ["COMET_MAX_IMAGE_PREDICTIONS"] = "200"
-                                                                 ```
+                                                                   os.environ["COMET_MAX_IMAGE_PREDICTIONS"] = "200"
+                                                                   ```
 
 - **Adjust batch logging interval**:
 
-                                                                 ```python
-                                                                 import os
+                                                                   ```python
+                                                                   import os
 
-                                                                 os.environ["COMET_EVAL_BATCH_LOGGING_INTERVAL"] = "4"
-                                                                 ```
+                                                                   os.environ["COMET_EVAL_BATCH_LOGGING_INTERVAL"] = "4"
+                                                                   ```
 
 - **Disable confusion matrix logging**:
 
-                                                                 ```python
-                                                                 import os
+                                                                   ```python
+                                                                   import os
 
-                                                                 os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
-                                                                 ```
+                                                                   os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
+                                                                   ```
 
 Refer to the [Customizing Comet ML Logging](#customizing-comet-ml-logging) section for more customization options.
 

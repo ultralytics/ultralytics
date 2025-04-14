@@ -59,13 +59,12 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     # (2) Iterate detection results (helpful for multiple images)
     for r in res:
         img = np.copy(r.orig_img)
-        img_name = Path(r.path).stem # source image base-name
+        img_name = Path(r.path).stem  # source image base-name
 
         # Iterate each object contour (multiple detections)
-        for ci,c in enumerate(r):
+        for ci, c in enumerate(r):
             # (1) Get detection class name
             label = c.names[c.boxes.cls.tolist().pop()]
-
     ```
 
     1. To learn more about working with detection results, see [Boxes Section for Predict Mode](../modes/predict.md#boxes).
@@ -94,12 +93,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
 
     # Draw contour onto mask
-    _ = cv.drawContours(b_mask,
-                        [contour],
-                        -1,
-                        (255, 255, 255),
-                        cv.FILLED)
-
+    _ = cv.drawContours(b_mask, [contour], -1, (255, 255, 255), cv.FILLED)
     ```
 
     1. For more info on `c.masks.xy` see [Masks Section from Predict Mode](../modes/predict.md#masks).
@@ -274,10 +268,11 @@ from pathlib import Path
 
 import cv2 as cv
 import numpy as np
+
 from ultralytics import YOLO
 
-m = YOLO('yolov8n-seg.pt')#(4)!
-res = m.predict()#(3)!
+m = YOLO("yolov8n-seg.pt")  # (4)!
+res = m.predict()  # (3)!
 
 # iterate detection results (5)
 for r in res:
@@ -285,7 +280,7 @@ for r in res:
     img_name = Path(r.path).stem
 
     # iterate each object contour (6)
-    for ci,c in enumerate(r):
+    for ci, c in enumerate(r):
         label = c.names[c.boxes.cls.tolist().pop()]
 
         b_mask = np.zeros(img.shape[:2], np.uint8)
@@ -308,7 +303,6 @@ for r in res:
         iso_crop = isolated[y1:y2, x1:x2]
 
         # TODO your actions go here (2)
-
 ```
 
 1. The line populating `contour` is combined into a single line here, where it was split to multiple above.

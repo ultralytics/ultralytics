@@ -75,7 +75,7 @@ Arguments como `model`, `data`, `imgsz`, `half`, `device`, y `verbose` proporcio
 
 Los benchmarks intentarán ejecutarse automáticamente en todos los posibles formatos de exportación a continuación.
 
-| Formato                                                            | Argumento `format` | Modelo                    | Metadatos | Arguments                                          |
+| Formato                                                            | Argumento `format` | Modelo                    | Metadatos | Arguments                                           |
 | ------------------------------------------------------------------ | ------------------ | ------------------------- | --------- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                  | `yolov8n.pt`              | ✅        | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`      | `yolov8n.torchscript`     | ✅        | `imgsz`, `optimize`                                 |

@@ -195,7 +195,7 @@ Pour annoter automatiquement votre jeu de données avec le framework Ultralytics
 | data       | str                  | Chemin d'accès à un dossier contenant les images à annoter.                                                            |              |
 | det_model  | str, optionnel       | Modèle de détection pré-entraîné YOLO. Par défaut, 'yolov8x.pt'.                                                       | 'yolov8x.pt' |
 | sam_model  | str, optionnel       | Modèle de segmentation pré-entraîné SAM. Par défaut, 'sam_b.pt'.                                                       | 'sam_b.pt'   |
-| device     | str, optionnel       | Apparel sur lequel exécuter les modèles. Par défaut, une chaîne vide (CPU ou GPU, si disponible).                     |              |
+| device     | str, optionnel       | Apparel sur lequel exécuter les modèles. Par défaut, une chaîne vide (CPU ou GPU, si disponible).                      |              |
 | output_dir | str, None, optionnel | Répertoire pour enregistrer les résultats annotés. Par défaut, un dossier 'labels' dans le même répertoire que 'data'. | None         |
 
 La function `auto_annotate` prend en compte le chemin de vos images, avec des arguments optionnels pour spécifier les modèles de détection et de segmentation SAM pré-entraînés, l'appareil sur lequel exécuter les modèles et le répertoire de sortie pour enregistrer les résultats annotés.

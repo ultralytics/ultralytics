@@ -166,7 +166,7 @@ Exporta un modelo YOLOv8n Pose a un formato diferente como ONNX, CoreML, etc.
 
 Los formatos de exportación de YOLOv8-pose disponibles se muestran en la tabla a continuación. Puedes predecir o validar directamente en modelos exportados, por ejemplo, `yolo predict model=yolov8n-pose.onnx`. Los ejemplos de uso se muestran para tu modelo después de que la exportación se completa.
 
-| Formato                                                            | Argumento `format` | Modelo                         | Metadatos | Arguments                                                    |
+| Formato                                                            | Argumento `format` | Modelo                         | Metadatos | Arguments                                                     |
 | ------------------------------------------------------------------ | ------------------ | ------------------------------ | --------- | ------------------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                  | `yolov8n-pose.pt`              | ✅        | -                                                             |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`      | `yolov8n-pose.torchscript`     | ✅        | `imgsz`, `optimize`                                           |

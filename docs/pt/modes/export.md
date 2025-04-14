@@ -91,7 +91,7 @@ Configurações de exportação para modelos YOLO referem-se às várias configu
 
 Os formatos de exportação disponíveis para YOLOv8 estão na tabela abaixo. Você pode exportar para qualquer formato usando o argumento `format`, ou seja, `format='onnx'` ou `format='engine'`.
 
-| Formato                                                            | Argumento `format` | Modelo                    | Metadados | Arguments                                          |
+| Formato                                                            | Argumento `format` | Modelo                    | Metadados | Arguments                                           |
 | ------------------------------------------------------------------ | ------------------ | ------------------------- | --------- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                  | `yolov8n.pt`              | ✅        | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`      | `yolov8n.torchscript`     | ✅        | `imgsz`, `optimize`                                 |

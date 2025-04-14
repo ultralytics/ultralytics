@@ -33,7 +33,7 @@ Hier werden vortrainierte YOLOv8 Pose-Modelle gezeigt. Erkennungs-, Segmentierun
 
 [Modelle](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) werden automatisch aus der neuesten Ultralytics-[Veröffentlichung](https://github.com/ultralytics/assets/releases) bei erstmaliger Verwendung heruntergeladen.
 
-| Model                                                                                               | Größe<br><sup>(Pixel) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | Geschwindigkeit<br><sup>CPU ONNX<br>(ms) | Geschwindigkeit<br><sup>A100 TensorRT<br>(ms) | Parameter<br><sup>(M) | FLOPs<br><sup>(B) |
+| Model                                                                                                | Größe<br><sup>(Pixel) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | Geschwindigkeit<br><sup>CPU ONNX<br>(ms) | Geschwindigkeit<br><sup>A100 TensorRT<br>(ms) | Parameter<br><sup>(M) | FLOPs<br><sup>(B) |
 | ---------------------------------------------------------------------------------------------------- | --------------------- | --------------------- | ------------------ | ---------------------------------------- | --------------------------------------------- | --------------------- | ----------------- |
 | [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt)       | 640                   | 50,4                  | 80,1               | 131,8                                    | 1,18                                          | 3,3                   | 9,2               |
 | [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-pose.pt)       | 640                   | 60,0                  | 86,2               | 233,2                                    | 1,42                                          | 11,6                  | 30,2              |
@@ -166,7 +166,7 @@ Ein YOLOv8n-Pose-Modell in ein anderes Format wie ONNX, CoreML usw. exportieren.
 
 Verfügbare YOLOv8-Pose-Exportformate sind in der folgenden Tabelle aufgeführt. Sie können direkt auf exportierten Modellen vorhersagen oder validieren, z. B. `yolo predict model=yolov8n-pose.onnx`. Verwendungsbeispiele werden für Ihr Model nach Abschluss des Exports angezeigt.
 
-| Format                                                             | `format` Argument | Model                         | Metadaten | Argumente                                                 |
+| Format                                                             | `format` Argument | Model                          | Metadaten | Argumente                                                 |
 | ------------------------------------------------------------------ | ----------------- | ------------------------------ | --------- | --------------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-pose.pt`              | ✅        | -                                                         |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-pose.torchscript`     | ✅        | `imgsz`, `optimieren`                                     |

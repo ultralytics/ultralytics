@@ -69,13 +69,13 @@ Arguments como `model`, `data`, `imgsz`, `half`, `device` e `verbose` proporcion
 | `half`    | `False` | quantização FP16                                                                       |
 | `int8`    | `False` | quantização INT8                                                                       |
 | `device`  | `None`  | dispositivo para execução, ou seja, dispositivo cuda=0 ou device=0,1,2,3 ou device=cpu |
-| `verbose` | `False` | não continuar em error (bool), ou limiar mínimo para val (float)                        |
+| `verbose` | `False` | não continuar em error (bool), ou limiar mínimo para val (float)                       |
 
 ## Formatos de Exportação
 
 Os benchmarks tentarão executar automaticamente em todos os possíveis formatos de exportação listados abaixo.
 
-| Formato                                                               | Argumento `format` | Modelo                    | Metadados | Arguments                                          |
+| Formato                                                               | Argumento `format` | Modelo                    | Metadados | Arguments                                           |
 | --------------------------------------------------------------------- | ------------------ | ------------------------- | --------- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                       | -                  | `yolov8n.pt`              | ✅        | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)               | `torchscript`      | `yolov8n.torchscript`     | ✅        | `imgsz`, `optimize`                                 |

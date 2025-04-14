@@ -78,7 +78,7 @@ Les paramètres de validation pour les modèles YOLO font référence aux divers
 | `iou`         | `0.6`   | seuil d'intersection sur union (IoU) pour la NMS                                               |
 | `max_det`     | `300`   | nombre maximum de détections par image                                                         |
 | `half`        | `True`  | utiliser la précision moitié (FP16)                                                            |
-| `device`      | `None`  | apparel sur lequel exécuter, par example cuda device=0/1/2/3 ou device=cpu                    |
+| `device`      | `None`  | apparel sur lequel exécuter, par example cuda device=0/1/2/3 ou device=cpu                     |
 | `dnn`         | `False` | utiliser OpenCV DNN pour l'inférence ONNX                                                      |
 | `plots`       | `False` | afficher les graphiques lors de la formation                                                   |
 | `rect`        | `False` | val rectangulaire avec chaque lot regroupé pour un minimum de rembourrage                      |

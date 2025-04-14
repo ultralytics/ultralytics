@@ -65,7 +65,7 @@ Argumente wie `model`, `data`, `imgsz`, `half`, `device` und `verbose` bieten Be
 | --------- | ------- | ------------------------------------------------------------------------------------ |
 | `model`   | `None`  | Pfad zur Modelldatei, z. B. yolov8n.pt, yolov8n.yaml                                 |
 | `data`    | `None`  | Pfad zur YAML, die das Benchmarking-Dataset referenziert (under `val`-Kennzeichnung) |
-| `imgsz`   | `640`   | Bildgröße also Scalar oder Liste (h, w), z. B. (640, 480)                             |
+| `imgsz`   | `640`   | Bildgröße also Scalar oder Liste (h, w), z. B. (640, 480)                            |
 | `half`    | `False` | FP16-Quantisierung                                                                   |
 | `int8`    | `False` | INT8-Quantisierung                                                                   |
 | `device`  | `None`  | Gerät zum Ausführen, z. B. CUDA device=0 oder device=0,1,2,3 oder device=cpu         |
@@ -75,7 +75,7 @@ Argumente wie `model`, `data`, `imgsz`, `half`, `device` und `verbose` bieten Be
 
 Benchmarks werden automatisch auf allen möglichen Exportformaten unten ausgeführt.
 
-| Format                                                             | `format`-Argument | Model                    | Metadaten | Argumente                                           |
+| Format                                                             | `format`-Argument | Model                     | Metadaten | Argumente                                           |
 | ------------------------------------------------------------------ | ----------------- | ------------------------- | --------- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n.pt`              | ✅        | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n.torchscript`     | ✅        | `imgsz`, `optimize`                                 |

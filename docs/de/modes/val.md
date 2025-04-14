@@ -70,7 +70,7 @@ Validierungseinstellungen für YOLO-Modelle beziehen sich auf verschiedene Hyper
 | Key           | Value   | Beschreibung                                                                    |
 | ------------- | ------- | ------------------------------------------------------------------------------- |
 | `data`        | `None`  | Pfad zur Datendatei, z.B. coco128.yaml                                          |
-| `imgsz`       | `640`   | Größe der Eingabebilder also ganzzahlige Zahl                                    |
+| `imgsz`       | `640`   | Größe der Eingabebilder also ganzzahlige Zahl                                   |
 | `batch`       | `16`    | Anzahl der Bilder pro Batch (-1 für AutoBatch)                                  |
 | `save_json`   | `False` | Ergebnisse in JSON-Datei speichern                                              |
 | `save_hybrid` | `False` | hybride Version der Labels speichern (Labels + zusätzliche Vorhersagen)         |

@@ -76,13 +76,13 @@ Exporteinstellungen für YOLO-Modelle beziehen sich auf verschiedene Konfigurati
 | Schlüssel   | Wert            | Beschreibung                                             |
 | ----------- | --------------- | -------------------------------------------------------- |
 | `format`    | `'torchscript'` | Format für den Export                                    |
-| `imgsz`     | `640`           | Bildgröße also Scalar oder (h, w)-Liste, z.B. (640, 480)  |
+| `imgsz`     | `640`           | Bildgröße also Scalar oder (h, w)-Liste, z.B. (640, 480) |
 | `keras`     | `False`         | Verwendung von Keras für TensorFlow SavedModel-Export    |
 | `optimize`  | `False`         | TorchScript: Optimierung für mobile Geräte               |
 | `half`      | `False`         | FP16-Quantisierung                                       |
 | `int8`      | `False`         | INT8-Quantisierung                                       |
 | `dynamic`   | `False`         | ONNX/TensorRT: dynamische Achsen                         |
-| `simplify`  | `False`         | ONNX/TensorRT: Vereinfachung des Models                 |
+| `simplify`  | `False`         | ONNX/TensorRT: Vereinfachung des Models                  |
 | `opset`     | `None`          | ONNX: Opset-Version (optional, Standardwert ist neueste) |
 | `workspace` | `4`             | TensorRT: Arbeitsbereichgröße (GB)                       |
 | `nms`       | `False`         | CoreML: Hinzufügen von NMS                               |
@@ -91,7 +91,7 @@ Exporteinstellungen für YOLO-Modelle beziehen sich auf verschiedene Konfigurati
 
 Verfügbare YOLOv8-Exportformate finden Sie in der Tabelle unten. Sie können in jedes Format exportieren, indem Sie das `format`-Argument verwenden, z. B. `format='onnx'` oder `format='engine'`.
 
-| Format                                                             | `format`-Argument | Model                    | Metadaten | Argumente                                           |
+| Format                                                             | `format`-Argument | Model                     | Metadaten | Argumente                                           |
 | ------------------------------------------------------------------ | ----------------- | ------------------------- | --------- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n.pt`              | ✅        | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n.torchscript`     | ✅        | `imgsz`, `optimize`                                 |

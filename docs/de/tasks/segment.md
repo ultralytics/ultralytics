@@ -33,7 +33,7 @@ Hier werden vortrainierte YOLOv8 Segment-Modelle gezeigt. Detect-, Segment- und 
 
 [Modelle](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) laden sich automatisch von der neuesten Ultralytics [Veröffentlichung](https://github.com/ultralytics/assets/releases) beim ersten Gebrauch herunter.
 
-| Model                                                                                       | Größe<br><sup>(Pixel) | mAP<sup>Kasten<br>50-95 | mAP<sup>Masken<br>50-95 | Geschwindigkeit<br><sup>CPU ONNX<br>(ms) | Geschwindigkeit<br><sup>A100 TensorRT<br>(ms) | Parameter<br><sup>(M) | FLOPs<br><sup>(B) |
+| Model                                                                                        | Größe<br><sup>(Pixel) | mAP<sup>Kasten<br>50-95 | mAP<sup>Masken<br>50-95 | Geschwindigkeit<br><sup>CPU ONNX<br>(ms) | Geschwindigkeit<br><sup>A100 TensorRT<br>(ms) | Parameter<br><sup>(M) | FLOPs<br><sup>(B) |
 | -------------------------------------------------------------------------------------------- | --------------------- | ----------------------- | ----------------------- | ---------------------------------------- | --------------------------------------------- | --------------------- | ----------------- |
 | [YOLOv8n-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-seg.pt) | 640                   | 36.7                    | 30.5                    | 96.1                                     | 1.21                                          | 3.4                   | 12.6              |
 | [YOLOv8s-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-seg.pt) | 640                   | 44.6                    | 36.8                    | 155.7                                    | 1.47                                          | 11.8                  | 42.6              |
@@ -169,7 +169,7 @@ Exportieren Sie ein YOLOv8n-seg-Modell in ein anderes Format wie ONNX, CoreML us
 
 Die verfügbaren YOLOv8-seg-Exportformate sind in der folgenden Tabelle aufgeführt. Sie können direkt auf exportierten Modellen Vorhersagen treffen oder sie validieren, z.B. `yolo predict model=yolov8n-seg.onnx`. Verwendungsbeispiele werden für Ihr Model nach dem Export angezeigt.
 
-| Format                                                             | `format`-Argument | Model                        | Metadaten | Argumente                                                       |
+| Format                                                             | `format`-Argument | Model                         | Metadaten | Argumente                                                       |
 | ------------------------------------------------------------------ | ----------------- | ----------------------------- | --------- | --------------------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-seg.pt`              | ✅        | -                                                               |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-seg.torchscript`     | ✅        | `imgsz`, `optimieren`                                           |

@@ -169,7 +169,7 @@ Exporta un modelo YOLOv8n-seg a un formato diferente como ONNX, CoreML, etc.
 
 Los formatos disponibles para exportar YOLOv8-seg se muestran en la tabla a continuación. Puedes predecir o validar directamente en modelos exportados, es decir, `yolo predict model=yolov8n-seg.onnx`. Se muestran ejemplos de uso para tu modelo después de que se completa la exportación.
 
-| Formato                                                            | Argumento `format` | Modelo                        | Metadatos | Arguments                                          |
+| Formato                                                            | Argumento `format` | Modelo                        | Metadatos | Arguments                                           |
 | ------------------------------------------------------------------ | ------------------ | ----------------------------- | --------- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                  | `yolov8n-seg.pt`              | ✅        | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`      | `yolov8n-seg.torchscript`     | ✅        | `imgsz`, `optimize`                                 |

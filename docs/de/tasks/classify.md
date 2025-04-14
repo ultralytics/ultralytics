@@ -22,7 +22,7 @@ Hier werden vortrainierte YOLOv8 Classify-Modelle gezeigt. Detect-, Segment- und
 
 [Modelle](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) werden automatisch vom neuesten Ultralytics-[Release](https://github.com/ultralytics/assets/releases) beim ersten Gebrauch heruntergeladen.
 
-| Model                                                                                       | Größe<br><sup>(Pixel) | Genauigkeit<br><sup>top1 | Genauigkeit<br><sup>top5 | Geschwindigkeit<br><sup>CPU ONNX<br>(ms) | Geschwindigkeit<br><sup>A100 TensorRT<br>(ms) | Parameter<br><sup>(M) | FLOPs<br><sup>(B) bei 640 |
+| Model                                                                                        | Größe<br><sup>(Pixel) | Genauigkeit<br><sup>top1 | Genauigkeit<br><sup>top5 | Geschwindigkeit<br><sup>CPU ONNX<br>(ms) | Geschwindigkeit<br><sup>A100 TensorRT<br>(ms) | Parameter<br><sup>(M) | FLOPs<br><sup>(B) bei 640 |
 | -------------------------------------------------------------------------------------------- | --------------------- | ------------------------ | ------------------------ | ---------------------------------------- | --------------------------------------------- | --------------------- | ------------------------- |
 | [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-cls.pt) | 224                   | 66.6                     | 87.0                     | 12.9                                     | 0.31                                          | 2.7                   | 4.3                       |
 | [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-cls.pt) | 224                   | 72.3                     | 91.1                     | 23.4                                     | 0.35                                          | 6.4                   | 13.5                      |
@@ -153,7 +153,7 @@ Exportieren Sie ein YOLOv8n-cls-Modell in ein anderes Format wie ONNX, CoreML us
 
 Verfügbare YOLOv8-cls Exportformate stehen in der folgenden Tabelle. Sie können direkt auf exportierten Modellen vorhersagen oder validieren, d.h. `yolo predict model=yolov8n-cls.onnx`. Nutzungsexempel werden für Ihr Model nach Abschluss des Exports angezeigt.
 
-| Format                                                             | `format`-Argument | Model                        | Metadaten | Argumente                                           |
+| Format                                                             | `format`-Argument | Model                         | Metadaten | Argumente                                           |
 | ------------------------------------------------------------------ | ----------------- | ----------------------------- | --------- | --------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-cls.pt`              | ✅        | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-cls.torchscript`     | ✅        | `imgsz`, `optimize`                                 |

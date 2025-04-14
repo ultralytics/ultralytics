@@ -231,7 +231,7 @@ def test_export_imx():
     YOLO(file)(SOURCE, imgsz=32)
 
 
-@pytest.mark.skipif(not LINUX or IS_RASPBERRYPI, reason="RKNN export only supported on non-aarch64 Linux")
+@pytest.mark.skipif(LINUX and ARM64, reason="RKNN export only supported on non-aarch64 Linux")
 def test_export_rknn():
     """Test YOLO exports to RKNN format."""
     YOLO(MODEL).export(format="rknn", imgsz=32)

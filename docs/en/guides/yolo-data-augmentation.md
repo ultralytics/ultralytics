@@ -32,16 +32,16 @@ You can customize each parameter using the Python API, the command line interfac
 !!! example "Configuration Examples"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-  
+
         # Load a model
         model = YOLO("yolo11n.pt")
-        
+
         # Training with custom augmentation parameters
         model.train(data="coco.yaml", epochs=100, hsv_h=0.03, hsv_s=0.6, hsv_v=0.5)
-        
+
         # Training without any augmentations (disabled values omitted for clarity)
         model.train(
             data="coco.yaml",
@@ -57,14 +57,14 @@ You can customize each parameter using the Python API, the command line interfac
             auto_augment=None,
         )
         ```
-    
+
     === "CLI"
-      
+
         ```bash
         # Training with custom augmentation parameters
         yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 hsv_h=0.03 hsv_s=0.6 hsv_v=0.5
         ```
-    
+
 #### Using a configuration file
 
 You can define all training parameters, including augmentations, in a YAML configuration file (e.g., `train_custom.yaml`). The `mode` parameter is only required when using the CLI. This new YAML file will then override [the default one](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml) located in the `ultralytics` package.
@@ -86,19 +86,19 @@ Then launch the training with the Python API:
 !!! example "Train Example"
 
     === "Python"
-      
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a COCO-pretrained YOLO11n model
         model = YOLO("yolo11n.pt")
 
         # Train the model with custom configuration
         model.train(cfg="train_custom.yaml")
         ```
-    
+
     === "CLI"
-      
+
         ```bash
         # Train the model with custom configuration
         yolo detect train model="yolo11n.pt" cfg=train_custom.yaml

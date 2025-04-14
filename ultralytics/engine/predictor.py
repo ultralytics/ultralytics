@@ -249,7 +249,7 @@ class BasePredictor:
             getattr(
                 self.model.model,
                 "transforms",
-                classify_transforms(self.imgsz[0], crop_fraction=self.args.crop_fraction),
+                classify_transforms(self.imgsz[0]),
             )
             if self.args.task == "classify"
             else None

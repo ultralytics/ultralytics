@@ -1,5 +1,7 @@
+---
 description: Documentation for text encoding models in Ultralytics YOLOE, supporting both OpenAI CLIP and Apple MobileCLIP implementations for vision-language tasks.
 keywords: YOLOE, text encoding, CLIP, MobileCLIP, TextModel, vision-language models, embeddings, Ultralytics, deep learning
+---
 
 # Reference for `ultralytics/nn/text_model.py`
 

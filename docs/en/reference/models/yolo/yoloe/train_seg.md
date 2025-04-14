@@ -1,5 +1,7 @@
+---
 description: Documentation for YOLOE segmentation trainer classes in Ultralytics, supporting different training approaches including standard training, linear probing, training from scratch, and visual prompt training.
 keywords: YOLOE, segmentation, trainers, YOLOESegTrainer, YOLOEPESegTrainer, YOLOESegTrainerFromScratch, YOLOESegVPTrainer, linear probing, visual prompts, Ultralytics, deep learning
+---
 
 # Reference for `ultralytics/models/yolo/yoloe/train_seg.py`
 

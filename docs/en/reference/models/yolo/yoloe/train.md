@@ -1,5 +1,7 @@
+---
 description: Learn about YOLOE enhanced visual prompting (EVP) predictors in Ultralytics, which enable object detection and segmentation models to use visual prompts during inference for improved performance.
 keywords: YOLOE, EVP, visual prompts, computer vision, object detection, segmentation, bounding boxes, masks, predictors, YOLOEVPDetectPredictor, YOLOEVPSegPredictor, Ultralytics, inference
+---
 
 # Reference for `ultralytics/models/yolo/yoloe/train.py`
 

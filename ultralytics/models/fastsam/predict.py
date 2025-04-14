@@ -33,7 +33,7 @@ class FastSAMPredictor(DetectionPredictor):
             _callbacks (dict, optional): Optional list of callback functions to be invoked during prediction.
         """
         super().__init__(cfg, overrides, _callbacks)
-        self.args.task = 'segment'
+        self.args.task = "segment"
 
     def postprocess(self, preds, img, orig_imgs):
         """
@@ -55,7 +55,8 @@ class FastSAMPredictor(DetectionPredictor):
             agnostic=self.args.agnostic_nms,
             max_det=self.args.max_det,
             nc=1,  # set to 1 class since SAM has no class predictions
-            classes=self.args.classes)
+            classes=self.args.classes,
+        )
         full_box = torch.zeros(p[0].shape[1], device=p[0].device)
         full_box[2], full_box[3], full_box[4], full_box[6:] = img.shape[3], img.shape[2], 1.0, 1.0
         full_box = full_box.view(1, -1)

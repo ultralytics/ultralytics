@@ -53,10 +53,10 @@ To train a YOLOv8n model on the Argoverse dataset for 100 epochs with an image s
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='Argoverse.yaml', epochs=100, imgsz=640)
+        results = model.train(data="Argoverse.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"

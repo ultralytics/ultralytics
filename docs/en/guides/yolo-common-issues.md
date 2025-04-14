@@ -68,7 +68,7 @@ This section will address common issues faced while training and their respectiv
 - Make sure you pass the path to your `.yaml` file as the `data` argument when calling `model.train()`, as shown below:
 
 ```python
-model.train(data='/path/to/your/data.yaml', batch=4)
+model.train(data="/path/to/your/data.yaml", batch=4)
 ```
 
 #### Accelerating Training with Multiple GPUs
@@ -87,7 +87,7 @@ model.train(data='/path/to/your/data.yaml', batch=4)
 
 ```python
 # Adjust the batch size and other settings as needed to optimize training speed
-model.train(data='/path/to/your/data.yaml', batch=32, multi_scale=True)
+model.train(data="/path/to/your/data.yaml", batch=32, multi_scale=True)
 ```
 
 #### Continuous Monitoring Parameters
@@ -210,10 +210,10 @@ yolo task=detect mode=segment model=yolov8n-seg.pt source='path/to/car.mp4' show
 from ultralytics import YOLO
 
 # Load a pre-trained YOLOv8 model
-model = YOLO('yolov8n.pt')
+model = YOLO("yolov8n.pt")
 
 # Specify the source image
-source = 'https://ultralytics.com/images/bus.jpg'
+source = "https://ultralytics.com/images/bus.jpg"
 
 # Make predictions
 results = model.predict(source, save=True, imgsz=320, conf=0.5)

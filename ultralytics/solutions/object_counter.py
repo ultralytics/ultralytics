@@ -7,7 +7,7 @@ import cv2
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator, colors
 
-check_requirements('shapely>=2.0.0')
+check_requirements("shapely>=2.0.0")
 
 from shapely.geometry import LineString, Point, Polygon
 
@@ -17,7 +17,6 @@ class ObjectCounter:
 
     def __init__(self):
         """Initializes the Counter with default values for various tracking and counting parameters."""
-
         # Mouse events
         self.is_drawing = False
         self.selected_point = None
@@ -54,20 +53,22 @@ class ObjectCounter:
         # Check if environment support imshow
         self.env_check = check_imshow(warn=True)
 
-    def set_args(self,
-                 classes_names,
-                 reg_pts,
-                 count_reg_color=(255, 0, 255),
-                 line_thickness=2,
-                 track_thickness=2,
-                 view_img=False,
-                 draw_tracks=False,
-                 count_txt_thickness=2,
-                 count_txt_color=(0, 0, 0),
-                 count_color=(255, 255, 255),
-                 track_color=(0, 255, 0),
-                 region_thickness=5,
-                 line_dist_thresh=15):
+    def set_args(
+        self,
+        classes_names,
+        reg_pts,
+        count_reg_color=(255, 0, 255),
+        line_thickness=2,
+        track_thickness=2,
+        view_img=False,
+        draw_tracks=False,
+        count_txt_thickness=2,
+        count_txt_color=(0, 0, 0),
+        count_color=(255, 255, 255),
+        track_color=(0, 255, 0),
+        region_thickness=5,
+        line_dist_thresh=15,
+    ):
         """
         Configures the Counter's image, bounding box line thickness, and counting region points.
 
@@ -93,16 +94,16 @@ class ObjectCounter:
 
         # Region and line selection
         if len(reg_pts) == 2:
-            print('Line Counter Initiated.')
+            print("Line Counter Initiated.")
             self.reg_pts = reg_pts
             self.counting_region = LineString(self.reg_pts)
         elif len(reg_pts) == 4:
-            print('Region Counter Initiated.')
+            print("Region Counter Initiated.")
             self.reg_pts = reg_pts
             self.counting_region = Polygon(self.reg_pts)
         else:
-            print('Invalid Region points provided, region_points can be 2 or 4')
-            print('Using Line Counter Now')
+            print("Invalid Region points provided, region_points can be 2 or 4")
+            print("Using Line Counter Now")
             self.counting_region = LineString(self.reg_pts)
 
         self.names = classes_names
@@ -155,8 +156,9 @@ class ObjectCounter:
 
         # Extract tracks
         for box, track_id, cls in zip(boxes, track_ids, clss):
-            self.annotator.box_label(box, label=str(track_id) + ':' + self.names[cls],
-                                     color=colors(int(cls), True))  # Draw bounding box
+            self.annotator.box_label(
+                box, label=str(track_id) + ":" + self.names[cls], color=colors(int(cls), True)
+            )  # Draw bounding box
 
             # Draw Tracks
             track_line = self.track_history[track_id]
@@ -166,9 +168,9 @@ class ObjectCounter:
 
             # Draw track trails
             if self.draw_tracks:
-                self.annotator.draw_centroid_and_tracks(track_line,
-                                                        color=self.track_color,
-                                                        track_thickness=self.track_thickness)
+                self.annotator.draw_centroid_and_tracks(
+                    track_line, color=self.track_color, track_thickness=self.track_thickness
+                )
 
             # Count objects
             if len(self.reg_pts) == 4:
@@ -190,22 +192,25 @@ class ObjectCounter:
                         else:
                             self.in_counts += 1
 
-        incount_label = 'In Count : ' + f'{self.in_counts}'
-        outcount_label = 'OutCount : ' + f'{self.out_counts}'
-        self.annotator.count_labels(in_count=incount_label,
-                                    out_count=outcount_label,
-                                    count_txt_size=self.count_txt_thickness,
-                                    txt_color=self.count_txt_color,
-                                    color=self.count_color)
+        incount_label = "In Count : " + f"{self.in_counts}"
+        outcount_label = "OutCount : " + f"{self.out_counts}"
+        self.annotator.count_labels(
+            in_count=incount_label,
+            out_count=outcount_label,
+            count_txt_size=self.count_txt_thickness,
+            txt_color=self.count_txt_color,
+            color=self.count_color,
+        )
 
         if self.env_check and self.view_img:
-            cv2.namedWindow('Ultralytics YOLOv8 Object Counter')
+            cv2.namedWindow("Ultralytics YOLOv8 Object Counter")
             if len(self.reg_pts) == 4:  # only add mouse event If user drawn region
-                cv2.setMouseCallback('Ultralytics YOLOv8 Object Counter', self.mouse_event_for_region,
-                                     {'region_points': self.reg_pts})
-            cv2.imshow('Ultralytics YOLOv8 Object Counter', self.im0)
+                cv2.setMouseCallback(
+                    "Ultralytics YOLOv8 Object Counter", self.mouse_event_for_region, {"region_points": self.reg_pts}
+                )
+            cv2.imshow("Ultralytics YOLOv8 Object Counter", self.im0)
             # Break Window
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 return
 
     def start_counting(self, im0, tracks):
@@ -224,5 +229,5 @@ class ObjectCounter:
         return self.im0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ObjectCounter()

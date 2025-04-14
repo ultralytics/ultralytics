@@ -58,8 +58,8 @@ Ultralytics предлагает различные методы установ�
         sudo docker pull $t
 
         # Запуск образа ultralytics в контейнере с поддержкой GPU
-        sudo docker run -it --ipc=host --gpus all $t  # все GPU
-        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # выбор GPU
+        sudo docker run -it --ipc=host --gpus all $t            # все GPU
+        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t # выбор GPU
         ```
 
     === "Клонирование Git"
@@ -177,22 +177,22 @@ Python интерфейс YOLOv8 позволяет легко интегрир�
     from ultralytics import YOLO
 
     # Создание новой YOLO модели с нуля
-    model = YOLO('yolov8n.yaml')
+    model = YOLO("yolov8n.yaml")
 
     # Загрузка предварительно обученной YOLO модели (рекомендуется для обучения)
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # Обучение модели с использованием набора данных 'coco128.yaml' на 3 эпохи
-    results = model.train(data='coco128.yaml', epochs=3)
+    results = model.train(data="coco128.yaml", epochs=3)
 
     # Оценка производительности модели на валидационном наборе
     results = model.val()
 
     # Выполнение обнаружения объектов на изображении с помощью модели
-    results = model('https://ultralytics.com/images/bus.jpg')
+    results = model("https://ultralytics.com/images/bus.jpg")
 
     # Экспорт модели в формат ONNX
-    success = model.export(format='onnx')
+    success = model.export(format="onnx")
     ```
 
 [Руководство по Python](/../usage/python.md){.md-button .md-button--primary}

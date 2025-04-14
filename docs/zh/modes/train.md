@@ -59,12 +59,12 @@ keywords: Ultralytics, YOLOv8, YOLO, 目标检测, 训练模式, 自定义数据
         from ultralytics import YOLO
 
         # 加载一个模型
-        model = YOLO('yolov8n.yaml')  # 从YAML建立一个新模型
-        model = YOLO('yolov8n.pt')  # 加载预训练模型（推荐用于训练）
-        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # 从YAML建立并转移权重
+        model = YOLO("yolov8n.yaml")  # 从YAML建立一个新模型
+        model = YOLO("yolov8n.pt")  # 加载预训练模型（推荐用于训练）
+        model = YOLO("yolov8n.yaml").load("yolov8n.pt")  # 从YAML建立并转移权重
 
         # 训练模型
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -94,10 +94,10 @@ keywords: Ultralytics, YOLOv8, YOLO, 目标检测, 训练模式, 自定义数据
         from ultralytics import YOLO
 
         # 加载模型
-        model = YOLO('yolov8n.pt')  # 加载预训练模型（推荐用于训练）
+        model = YOLO("yolov8n.pt")  # 加载预训练模型（推荐用于训练）
 
         # 使用2个GPU训练模型
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640, device=[0, 1])
         ```
 
     === "CLI"
@@ -121,10 +121,10 @@ keywords: Ultralytics, YOLOv8, YOLO, 目标检测, 训练模式, 自定义数据
         from ultralytics import YOLO
 
         # 加载模型
-        model = YOLO('yolov8n.pt')  # 加载预训练模型（推荐用于训练）
+        model = YOLO("yolov8n.pt")  # 加载预训练模型（推荐用于训练）
 
         # 使用2个GPU训练模型
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640, device="mps")
         ```
 
     === "CLI"
@@ -154,7 +154,7 @@ keywords: Ultralytics, YOLOv8, YOLO, 目标检测, 训练模式, 自定义数据
         from ultralytics import YOLO
 
         # 加载模型
-        model = YOLO('path/to/last.pt')  # 加载部分训练的模型
+        model = YOLO("path/to/last.pt")  # 加载部分训练的模型
 
         # 恢复训练
         results = model.train(resume=True)
@@ -175,54 +175,54 @@ keywords: Ultralytics, YOLOv8, YOLO, 目标检测, 训练模式, 自定义数据
 
 YOLO模型的训练设置是指用于对数据集进行模型训练的各种超参数和配置。这些设置会影响模型的性能、速度和准确性。一些常见的YOLO训练设置包括批大小、学习率、动量和权重衰减。其他可能影响训练过程的因素包括优化器的选择、损失函数的选择以及训练数据集的大小和组成。仔细调整和实验这些设置以实现给定任务的最佳性能是非常重要的。
 
-| 键                 | 值        | 描述                                                                  |
-|-------------------|----------|---------------------------------------------------------------------|
-| `model`           | `None`   | 模型文件路径，例如 yolov8n.pt, yolov8n.yaml                                  |
-| `data`            | `None`   | 数据文件路径，例如 coco128.yaml                                              |
-| `epochs`          | `100`    | 训练的轮次数量                                                             |
-| `patience`        | `50`     | 早停训练的等待轮次                                                           |
-| `batch`           | `16`     | 每批图像数量（-1为自动批大小）                                                    |
-| `imgsz`           | `640`    | 输入图像的大小，以整数表示                                                       |
-| `save`            | `True`   | 保存训练检查点和预测结果                                                        |
-| `save_period`     | `-1`     | 每x轮次保存检查点（如果<1则禁用）                                                  |
-| `cache`           | `False`  | True/ram, disk 或 False。使用缓存加载数据                                     |
-| `device`          | `None`   | 运行设备，例如 cuda device=0 或 device=0,1,2,3 或 device=cpu                 |
-| `workers`         | `8`      | 数据加载的工作线程数（如果DDP则为每个RANK）                                           |
-| `project`         | `None`   | 项目名称                                                                |
-| `name`            | `None`   | 实验名称                                                                |
-| `exist_ok`        | `False`  | 是否覆盖现有实验                                                            |
-| `pretrained`      | `True`   | (bool 或 str) 是否使用预训练模型（bool）或从中加载权重的模型（str）                         |
+| 键                | 值       | 描述                                                                           |
+| ----------------- | -------- | ------------------------------------------------------------------------------ |
+| `model`           | `None`   | 模型文件路径，例如 yolov8n.pt, yolov8n.yaml                                    |
+| `data`            | `None`   | 数据文件路径，例如 coco128.yaml                                                |
+| `epochs`          | `100`    | 训练的轮次数量                                                                 |
+| `patience`        | `50`     | 早停训练的等待轮次                                                             |
+| `batch`           | `16`     | 每批图像数量（-1为自动批大小）                                                 |
+| `imgsz`           | `640`    | 输入图像的大小，以整数表示                                                     |
+| `save`            | `True`   | 保存训练检查点和预测结果                                                       |
+| `save_period`     | `-1`     | 每x轮次保存检查点（如果<1则禁用）                                              |
+| `cache`           | `False`  | True/ram, disk 或 False。使用缓存加载数据                                      |
+| `device`          | `None`   | 运行设备，例如 cuda device=0 或 device=0,1,2,3 或 device=cpu                   |
+| `workers`         | `8`      | 数据加载的工作线程数（如果DDP则为每个RANK）                                    |
+| `project`         | `None`   | 项目名称                                                                       |
+| `name`            | `None`   | 实验名称                                                                       |
+| `exist_ok`        | `False`  | 是否覆盖现有实验                                                               |
+| `pretrained`      | `True`   | (bool 或 str) 是否使用预训练模型（bool）或从中加载权重的模型（str）            |
 | `optimizer`       | `'auto'` | 使用的优化器，选择范围=[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto] |
-| `verbose`         | `False`  | 是否打印详细输出                                                            |
+| `verbose`         | `False`  | 是否打印详细输出                                                               |
 | `seed`            | `0`      | 随机种子，用于可重复性                                                         |
-| `deterministic`   | `True`   | 是否启用确定性模式                                                           |
+| `deterministic`   | `True`   | 是否启用确定性模式                                                             |
 | `single_cls`      | `False`  | 将多类数据作为单类训练                                                         |
-| `rect`            | `False`  | 矩形训练，每批为最小填充整合                                                      |
-| `cos_lr`          | `False`  | 使用余弦学习率调度器                                                          |
-| `close_mosaic`    | `10`     | (int) 最后轮次禁用马赛克增强（0为禁用）                                             |
-| `resume`          | `False`  | 从最后检查点恢复训练                                                          |
-| `amp`             | `True`   | 自动混合精度（AMP）训练，选择范围=[True, False]                                    |
-| `fraction`        | `1.0`    | 训练的数据集比例（默认为1.0，即训练集中的所有图像）                                         |
-| `profile`         | `False`  | 在训练期间为记录器分析ONNX和TensorRT速度                                          |
-| `freeze`          | `None`   | (int 或 list, 可选) 在训练期间冻结前n层，或冻结层索引列表                                |
-| `lr0`             | `0.01`   | 初始学习率（例如 SGD=1E-2, Adam=1E-3）                                       |
-| `lrf`             | `0.01`   | 最终学习率 (lr0 * lrf)                                                   |
-| `momentum`        | `0.937`  | SGD动量/Adam beta1                                                    |
-| `weight_decay`    | `0.0005` | 优化器权重衰减5e-4                                                         |
-| `warmup_epochs`   | `3.0`    | 热身轮次（小数ok）                                                          |
-| `warmup_momentum` | `0.8`    | 热身初始动量                                                              |
-| `warmup_bias_lr`  | `0.1`    | 热身初始偏差lr                                                            |
-| `box`             | `7.5`    | 框损失增益                                                               |
-| `cls`             | `0.5`    | cls损失增益（根据像素缩放）                                                     |
-| `dfl`             | `1.5`    | dfl损失增益                                                             |
-| `pose`            | `12.0`   | 姿态损失增益（仅限姿态）                                                        |
-| `kobj`            | `2.0`    | 关键点obj损失增益（仅限姿态）                                                    |
-| `label_smoothing` | `0.0`    | 标签平滑（小数）                                                            |
-| `nbs`             | `64`     | 标称批大小                                                               |
-| `overlap_mask`    | `True`   | 训练期间掩码应重叠（仅限分割训练）                                                   |
-| `mask_ratio`      | `4`      | 掩码降采样比率（仅限分割训练）                                                     |
-| `dropout`         | `0.0`    | 使用dropout正则化（仅限分类训练）                                                |
-| `val`             | `True`   | 训练期间验证/测试                                                           |
+| `rect`            | `False`  | 矩形训练，每批为最小填充整合                                                   |
+| `cos_lr`          | `False`  | 使用余弦学习率调度器                                                           |
+| `close_mosaic`    | `10`     | (int) 最后轮次禁用马赛克增强（0为禁用）                                        |
+| `resume`          | `False`  | 从最后检查点恢复训练                                                           |
+| `amp`             | `True`   | 自动混合精度（AMP）训练，选择范围=[True, False]                                |
+| `fraction`        | `1.0`    | 训练的数据集比例（默认为1.0，即训练集中的所有图像）                            |
+| `profile`         | `False`  | 在训练期间为记录器分析ONNX和TensorRT速度                                       |
+| `freeze`          | `None`   | (int 或 list, 可选) 在训练期间冻结前n层，或冻结层索引列表                      |
+| `lr0`             | `0.01`   | 初始学习率（例如 SGD=1E-2, Adam=1E-3）                                         |
+| `lrf`             | `0.01`   | 最终学习率 (lr0 \* lrf)                                                        |
+| `momentum`        | `0.937`  | SGD动量/Adam beta1                                                             |
+| `weight_decay`    | `0.0005` | 优化器权重衰减5e-4                                                             |
+| `warmup_epochs`   | `3.0`    | 热身轮次（小数ok）                                                             |
+| `warmup_momentum` | `0.8`    | 热身初始动量                                                                   |
+| `warmup_bias_lr`  | `0.1`    | 热身初始偏差lr                                                                 |
+| `box`             | `7.5`    | 框损失增益                                                                     |
+| `cls`             | `0.5`    | cls损失增益（根据像素缩放）                                                    |
+| `dfl`             | `1.5`    | dfl损失增益                                                                    |
+| `pose`            | `12.0`   | 姿态损失增益（仅限姿态）                                                       |
+| `kobj`            | `2.0`    | 关键点obj损失增益（仅限姿态）                                                  |
+| `label_smoothing` | `0.0`    | 标签平滑（小数）                                                               |
+| `nbs`             | `64`     | 标称批大小                                                                     |
+| `overlap_mask`    | `True`   | 训练期间掩码应重叠（仅限分割训练）                                             |
+| `mask_ratio`      | `4`      | 掩码降采样比率（仅限分割训练）                                                 |
+| `dropout`         | `0.0`    | 使用dropout正则化（仅限分类训练）                                              |
+| `val`             | `True`   | 训练期间验证/测试                                                              |
 
 ## 记录
 
@@ -277,7 +277,7 @@ YOLO模型的训练设置是指用于对数据集进行模型训练的各种超�
     === "CLI"
         ```bash
         load_ext tensorboard
-        tensorboard --logdir ultralytics/runs  # 替换为'runs'目录
+        tensorboard --logdir ultralytics/runs # 替换为'runs'目录
         ```
 
 在本地使用TensorBoard，运行下面的命令并在 http://localhost:6006/ 查看结果。
@@ -286,7 +286,7 @@ YOLO模型的训练设置是指用于对数据集进行模型训练的各种超�
 
     === "CLI"
         ```bash
-        tensorboard --logdir ultralytics/runs  # 替换为'runs'目录
+        tensorboard --logdir ultralytics/runs # 替换为'runs'目录
         ```
 
 这将加载TensorBoard并将其定向到保存训练日志的目录。

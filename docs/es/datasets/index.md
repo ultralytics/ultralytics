@@ -6,7 +6,7 @@ keywords: visión por computadora, conjuntos de datos, Ultralytics, YOLO, detecc
 
 # Resumen de Conjuntos de Datos
 
-Ultralytics brinda soporte para varios conjuntos de datos para facilitar tareas de visión por computadora como detección, segmentación de instancias, estimación de poses, clasificación y seguimiento de múltiples objetos. A continuación se presenta una lista de los principales conjuntos de datos de Ultralytics, seguido por un resumen de cada tarea de visión por computadora y los respectivos conjuntos de datos.
+Ultralytics brinda soporte para various conjuntos de datos para facilitar tareas de visión por computadora como detección, segmentación de instancias, estimación de poses, clasificación y seguimiento de múltiples objetos. A continuación se presenta una lista de los principales conjuntos de datos de Ultralytics, seguido por un resumen de cada tarea de visión por computadora y los respectivos conjuntos de datos.
 
 !!! Note "Nota"
 
@@ -24,7 +24,7 @@ La detección de objetos con cuadros delimitadores es una técnica de visión po
 - [OpenImagesV7](../../datasets/detect/open-images-v7.md): Un conjunto de datos completo de Google con 1.7 millones de imágenes de entrenamiento y 42 mil imágenes de validación.
 - [SKU-110K](../../datasets/detect/sku-110k.md): Un conjunto de datos que presenta detección de objetos densa en entornos minoristas con más de 11 mil imágenes y 1.7 millones de cuadros delimitadores.
 - [VisDrone](../../datasets/detect/visdrone.md): Un conjunto de datos que contiene datos de detección de objetos y seguimiento de múltiples objetos de imágenes capturadas por drones con más de 10 mil imágenes y secuencias de video.
-- [VOC](../../datasets/detect/voc.md): El conjunto de datos de Clases de Objetos Visuales de Pascal (VOC) para la detección de objetos y segmentación con 20 clases de objetos y más de 11 mil imágenes.
+- [VOC](../../datasets/detect/voc.md): El conjunto de datos de Clases de Objetos Visuals de Pascal (VOC) para la detección de objetos y segmentación con 20 clases de objetos y más de 11 mil imágenes.
 - [xView](../../datasets/detect/xview.md): Un conjunto de datos para la detección de objetos en imágenes aéreas con 60 categorías de objetos y más de un millón de objetos anotados.
 
 ## [Conjuntos de Datos de Segmentación de Instancias](../../datasets/segment/index.md)
@@ -72,11 +72,11 @@ El seguimiento de múltiples objetos es una técnica de visión por computadora 
 
 ## Contribuir con Nuevos Conjuntos de Datos
 
-Contribuir con un nuevo conjunto de datos implica varios pasos para garantizar que se alinee bien con la infraestructura existente. A continuación, se presentan los pasos necesarios:
+Contribuir con un nuevo conjunto de datos implica various pasos para garantizar que se alinee bien con la infraestructura existente. A continuación, se presentan los pasos necesarios:
 
 ### Pasos para Contribuir con un Nuevo Conjunto de Datos
 
-1. **Recolectar Imágenes**: Reúne las imágenes que pertenecen al conjunto de datos. Estas podrían ser recopiladas de varias fuentes, tales como bases de datos públicas o tu propia colección.
+1. **Recolectar Imágenes**: Reúne las imágenes que pertenecen al conjunto de datos. Estas podrían set recopiladas de varias fuentes, tales como bases de datos públicas o tu propia colección.
 
 2. **Annotar Imágenes**: Anota estas imágenes con cuadros delimitadores, segmentos o puntos clave, dependiendo de la tarea.
 
@@ -110,14 +110,15 @@ Contribuir con un nuevo conjunto de datos implica varios pasos para garantizar q
 
     ```python
     from pathlib import Path
+
     from ultralytics.data.utils import compress_one_image
     from ultralytics.utils.downloads import zip_directory
 
     # Definir el directorio del conjunto de datos
-    path = Path('ruta/al/conjunto-de-datos')
+    path = Path("ruta/al/conjunto-de-datos")
 
     # Optimizar imágenes en el conjunto de datos (opcional)
-    for f in path.rglob('*.jpg'):
+    for f in path.rglob("*.jpg"):
         compress_one_image(f)
 
     # Comprimir el conjunto de datos en 'ruta/al/conjunto-de-datos.zip'

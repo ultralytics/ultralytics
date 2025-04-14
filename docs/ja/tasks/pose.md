@@ -33,14 +33,14 @@ YOLOv8事前トレーニング済みポーズモデルはこちらです。Detec
 
 [モデル](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models)は最新のUltralytics [リリース](https://github.com/ultralytics/assets/releases)から最初の使用時に自動的にダウンロードされます。
 
-| モデル                                                                                                  | サイズ<br><sup>(ピクセル) | mAP<sup>ポーズ<br>50-95 | mAP<sup>ポーズ<br>50 | 速度<br><sup>CPU ONNX<br>(ミリ秒) | 速度<br><sup>A100 TensorRT<br>(ミリ秒) | パラメータ<br><sup>(M) | FLOPs<br><sup>(B) |
-|------------------------------------------------------------------------------------------------------|--------------------|----------------------|-------------------|------------------------------|-----------------------------------|-------------------|-------------------|
-| [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt)       | 640                | 50.4                 | 80.1              | 131.8                        | 1.18                              | 3.3               | 9.2               |
-| [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-pose.pt)       | 640                | 60.0                 | 86.2              | 233.2                        | 1.42                              | 11.6              | 30.2              |
-| [YOLOv8m-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-pose.pt)       | 640                | 65.0                 | 88.8              | 456.3                        | 2.00                              | 26.4              | 81.0              |
-| [YOLOv8l-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-pose.pt)       | 640                | 67.6                 | 90.0              | 784.5                        | 2.59                              | 44.4              | 168.6             |
-| [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose.pt)       | 640                | 69.2                 | 90.2              | 1607.1                       | 3.73                              | 69.4              | 263.2             |
-| [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose-p6.pt) | 1280               | 71.6                 | 91.2              | 4088.7                       | 10.04                             | 99.1              | 1066.4            |
+| モデル                                                                                               | サイズ<br><sup>(ピクセル) | mAP<sup>ポーズ<br>50-95 | mAP<sup>ポーズ<br>50 | 速度<br><sup>CPU ONNX<br>(ミリ秒) | 速度<br><sup>A100 TensorRT<br>(ミリ秒) | パラメータ<br><sup>(M) | FLOPs<br><sup>(B) |
+| ---------------------------------------------------------------------------------------------------- | ------------------------- | ----------------------- | -------------------- | --------------------------------- | -------------------------------------- | ---------------------- | ----------------- |
+| [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt)       | 640                       | 50.4                    | 80.1                 | 131.8                             | 1.18                                   | 3.3                    | 9.2               |
+| [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-pose.pt)       | 640                       | 60.0                    | 86.2                 | 233.2                             | 1.42                                   | 11.6                   | 30.2              |
+| [YOLOv8m-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-pose.pt)       | 640                       | 65.0                    | 88.8                 | 456.3                             | 2.00                                   | 26.4                   | 81.0              |
+| [YOLOv8l-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-pose.pt)       | 640                       | 67.6                    | 90.0                 | 784.5                             | 2.59                                   | 44.4                   | 168.6             |
+| [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose.pt)       | 640                       | 69.2                    | 90.2                 | 1607.1                            | 3.73                                   | 69.4                   | 263.2             |
+| [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose-p6.pt) | 1280                      | 71.6                    | 91.2                 | 4088.7                            | 10.04                                  | 99.1                   | 1066.4            |
 
 - **mAP<sup>val</sup>** の値は、[COCO Keypoints val2017](http://cocodataset.org)データセットでの単一モデル単一スケールに対するものです。
   <br>再現方法 `yolo val pose data=coco-pose.yaml device=0`
@@ -59,12 +59,12 @@ COCO128-poseデータセットでYOLOv8-poseモデルをトレーニングしま
         from ultralytics import YOLO
 
         # モデルをロード
-        model = YOLO('yolov8n-pose.yaml')  # 新しいモデルをYAMLからビルド
-        model = YOLO('yolov8n-pose.pt')    # 事前トレーニング済みのモデルをロード（トレーニング用に推奨）
-        model = YOLO('yolov8n-pose.yaml').load('yolov8n-pose.pt')  # YAMLからビルドして重みを転送
+        model = YOLO("yolov8n-pose.yaml")  # 新しいモデルをYAMLからビルド
+        model = YOLO("yolov8n-pose.pt")  # 事前トレーニング済みのモデルをロード（トレーニング用に推奨）
+        model = YOLO("yolov8n-pose.yaml").load("yolov8n-pose.pt")  # YAMLからビルドして重みを転送
 
         # モデルのトレーニング
-        results = model.train(data='coco8-pose.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8-pose.yaml", epochs=100, imgsz=640)
         ```
     === "CLI"
 
@@ -95,21 +95,21 @@ COCO128-poseデータセットでトレーニングされたYOLOv8n-poseモデ�
         from ultralytics import YOLO
 
         # モデルをロード
-        model = YOLO('yolov8n-pose.pt')  # 公式モデルをロード
-        model = YOLO('path/to/best.pt')   # カスタムモデルをロード
+        model = YOLO("yolov8n-pose.pt")  # 公式モデルをロード
+        model = YOLO("path/to/best.pt")  # カスタムモデルをロード
 
         # モデルを検証
         metrics = model.val()  # データセットや設定は記録されているため引数は不要
-        metrics.box.map    # map50-95
+        metrics.box.map  # map50-95
         metrics.box.map50  # map50
         metrics.box.map75  # map75
-        metrics.box.maps   # 各カテゴリのmap50-95が含まれるリスト
+        metrics.box.maps  # 各カテゴリのmap50-95が含まれるリスト
         ```
     === "CLI"
 
         ```bash
-        yolo pose val model=yolov8n-pose.pt  # 公式モデルを検証
-        yolo pose val model=path/to/best.pt  # カスタムモデルを検証
+        yolo pose val model=yolov8n-pose.pt # 公式モデルを検証
+        yolo pose val model=path/to/best.pt # カスタムモデルを検証
         ```
 
 ## Predict
@@ -124,17 +124,17 @@ COCO128-poseデータセットでトレーニングされたYOLOv8n-poseモデ�
         from ultralytics import YOLO
 
         # モデルをロード
-        model = YOLO('yolov8n-pose.pt')  # 公式モデルをロード
-        model = YOLO('path/to/best.pt')   # カスタムモデルをロード
+        model = YOLO("yolov8n-pose.pt")  # 公式モデルをロード
+        model = YOLO("path/to/best.pt")  # カスタムモデルをロード
 
         # モデルで予測
-        results = model('https://ultralytics.com/images/bus.jpg')  # 画像に予測を実行
+        results = model("https://ultralytics.com/images/bus.jpg")  # 画像に予測を実行
         ```
     === "CLI"
 
         ```bash
-        yolo pose predict model=yolov8n-pose.pt source='https://ultralytics.com/images/bus.jpg'  # 公式モデルで予測
-        yolo pose predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # カスタムモデルで予測
+        yolo pose predict model=yolov8n-pose.pt source='https://ultralytics.com/images/bus.jpg' # 公式モデルで予測
+        yolo pose predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg' # カスタムモデルで予測
         ```
 
 `predict`モードの詳細を[Predict](https://docs.ultralytics.com/modes/predict/)ページでご覧いただけます。
@@ -151,35 +151,35 @@ YOLOv8n PoseモデルをONNX、CoreMLなどの異なるフォーマットにエ�
         from ultralytics import YOLO
 
         # モデルをロード
-        model = YOLO('yolov8n-pose.pt')  # 公式モデルをロード
-        model = YOLO('path/to/best.pt')   # カスタムトレーニング済みモデルをロード
+        model = YOLO("yolov8n-pose.pt")  # 公式モデルをロード
+        model = YOLO("path/to/best.pt")  # カスタムトレーニング済みモデルをロード
 
         # モデルをエクスポート
-        model.export(format='onnx')
+        model.export(format="onnx")
         ```
     === "CLI"
 
         ```bash
-        yolo export model=yolov8n-pose.pt format=onnx  # 公式モデルをエクスポート
-        yolo export model=path/to/best.pt format=onnx  # カスタムトレーニング済みモデルをエクスポート
+        yolo export model=yolov8n-pose.pt format=onnx # 公式モデルをエクスポート
+        yolo export model=path/to/best.pt format=onnx # カスタムトレーニング済みモデルをエクスポート
         ```
 
 利用可能なYOLOv8-poseエクスポートフォーマットは以下の表に示されており、エクスポート完了後にお使いのモデルに関する使用例が示されます。
 
-| フォーマット                                                             | `format`引数    | モデル                            | メタデータ | 引数                                                  |
-|--------------------------------------------------------------------|---------------|--------------------------------|-------|-----------------------------------------------------|
-| [PyTorch](https://pytorch.org/)                                    | -             | `yolov8n-pose.pt`              | ✅     | -                                                   |
-| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript` | `yolov8n-pose.torchscript`     | ✅     | `imgsz`, `optimize`                                 |
-| [ONNX](https://onnx.ai/)                                           | `onnx`        | `yolov8n-pose.onnx`            | ✅     | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
-| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`    | `yolov8n-pose_openvino_model/` | ✅     | `imgsz`, `half`                                     |
-| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`      | `yolov8n-pose.engine`          | ✅     | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`      | `yolov8n-pose.mlpackage`       | ✅     | `imgsz`, `half`, `int8`, `nms`                      |
-| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model` | `yolov8n-pose_saved_model/`    | ✅     | `imgsz`, `keras`                                    |
-| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`          | `yolov8n-pose.pb`              | ❌     | `imgsz`                                             |
-| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`      | `yolov8n-pose.tflite`          | ✅     | `imgsz`, `half`, `int8`                             |
-| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`     | `yolov8n-pose_edgetpu.tflite`  | ✅     | `imgsz`                                             |
-| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`        | `yolov8n-pose_web_model/`      | ✅     | `imgsz`                                             |
-| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`      | `yolov8n-pose_paddle_model/`   | ✅     | `imgsz`                                             |
-| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`        | `yolov8n-pose_ncnn_model/`     | ✅     | `imgsz`, `half`                                     |
+| フォーマット                                                       | `format`引数  | モデル                         | メタデータ | 引数                                                |
+| ------------------------------------------------------------------ | ------------- | ------------------------------ | ---------- | --------------------------------------------------- |
+| [PyTorch](https://pytorch.org/)                                    | -             | `yolov8n-pose.pt`              | ✅         | -                                                   |
+| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript` | `yolov8n-pose.torchscript`     | ✅         | `imgsz`, `optimize`                                 |
+| [ONNX](https://onnx.ai/)                                           | `onnx`        | `yolov8n-pose.onnx`            | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
+| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`    | `yolov8n-pose_openvino_model/` | ✅         | `imgsz`, `half`                                     |
+| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`      | `yolov8n-pose.engine`          | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
+| [CoreML](https://github.com/apple/coremltools)                     | `coreml`      | `yolov8n-pose.mlpackage`       | ✅         | `imgsz`, `half`, `int8`, `nms`                      |
+| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model` | `yolov8n-pose_saved_model/`    | ✅         | `imgsz`, `keras`                                    |
+| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`          | `yolov8n-pose.pb`              | ❌         | `imgsz`                                             |
+| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`      | `yolov8n-pose.tflite`          | ✅         | `imgsz`, `half`, `int8`                             |
+| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`     | `yolov8n-pose_edgetpu.tflite`  | ✅         | `imgsz`                                             |
+| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`        | `yolov8n-pose_web_model/`      | ✅         | `imgsz`                                             |
+| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`      | `yolov8n-pose_paddle_model/`   | ✅         | `imgsz`                                             |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`        | `yolov8n-pose_ncnn_model/`     | ✅         | `imgsz`, `half`                                     |
 
 `export`の詳細は[Export](https://docs.ultralytics.com/modes/export/)ページでご覧いただけます。

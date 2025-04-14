@@ -23,7 +23,7 @@ keywords: Ultralytics, YOLOv8, классификация изображений
 [Модели](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) автоматически загружаются из последнего релиза Ultralytics [release](https://github.com/ultralytics/assets/releases) при первом использовании.
 
 | Модель                                                                                       | Размер<br><sup>(пиксели) | Точность<br><sup>top1 | Точность<br><sup>top5 | Скорость<br><sup>CPU ONNX<br>(мс) | Скорость<br><sup>A100 TensorRT<br>(мс) | Параметры<br><sup>(М) | FLOPs<br><sup>(Б) на 640 |
-|----------------------------------------------------------------------------------------------|--------------------------|-----------------------|-----------------------|-----------------------------------|----------------------------------------|-----------------------|--------------------------|
+| -------------------------------------------------------------------------------------------- | ------------------------ | --------------------- | --------------------- | --------------------------------- | -------------------------------------- | --------------------- | ------------------------ |
 | [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-cls.pt) | 224                      | 66.6                  | 87.0                  | 12.9                              | 0.31                                   | 2.7                   | 4.3                      |
 | [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-cls.pt) | 224                      | 72.3                  | 91.1                  | 23.4                              | 0.35                                   | 6.4                   | 13.5                     |
 | [YOLOv8m-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-cls.pt) | 224                      | 76.4                  | 93.2                  | 85.4                              | 0.62                                   | 17.0                  | 42.7                     |
@@ -47,12 +47,12 @@ keywords: Ultralytics, YOLOv8, классификация изображений
         from ultralytics import YOLO
 
         # Загрузите модель
-        model = YOLO('yolov8n-cls.yaml')  # создайте новую модель из YAML
-        model = YOLO('yolov8n-cls.pt')    # загрузите предварительно обученную модель (рекомендуется для обучения)
-        model = YOLO('yolov8n-cls.yaml').load('yolov8n-cls.pt')  # создайте из YAML и перенесите веса
+        model = YOLO("yolov8n-cls.yaml")  # создайте новую модель из YAML
+        model = YOLO("yolov8n-cls.pt")  # загрузите предварительно обученную модель (рекомендуется для обучения)
+        model = YOLO("yolov8n-cls.yaml").load("yolov8n-cls.pt")  # создайте из YAML и перенесите веса
 
         # Обучите модель
-        результаты = model.train(data='mnist160', epochs=100, imgsz=64)
+        результаты = model.train(data="mnist160", epochs=100, imgsz=64)
         ```
 
     === "CLI"
@@ -84,19 +84,19 @@ keywords: Ultralytics, YOLOv8, классификация изображений
         from ultralytics import YOLO
 
         # Загрузите модель
-        model = YOLO('yolov8n-cls.pt')  # загрузите официальную модель
-        model = YOLO('path/to/best.pt')  # загрузите собственную модель
+        model = YOLO("yolov8n-cls.pt")  # загрузите официальную модель
+        model = YOLO("path/to/best.pt")  # загрузите собственную модель
 
         # Проведите валидацию модели
         метрики = model.val()  # аргументы не нужны, набор данных и настройки запомнены
-        метрики.top1           # точность top1
-        метрики.top5           # точность top5
+        метрики.top1  # точность top1
+        метрики.top5  # точность top5
         ```
     === "CLI"
 
         ```bash
         yolo classify val model=yolov8n-cls.pt  # валидация официальной модели
-        yolo classify val model=path/to/best.pt  # валидация собственной модели
+        yolo classify val model=path/to/best.pt # валидация собственной модели
         ```
 
 ## Предсказание
@@ -111,17 +111,17 @@ keywords: Ultralytics, YOLOv8, классификация изображений
         from ultralytics import YOLO
 
         # Загрузите модель
-        model = YOLO('yolov8n-cls.pt')  # загрузите официальную модель
-        model = YOLO('path/to/best.pt')  # загрузите собственную модель
+        model = YOLO("yolov8n-cls.pt")  # загрузите официальную модель
+        model = YOLO("path/to/best.pt")  # загрузите собственную модель
 
         # Сделайте предсказание с помощью модели
-        результаты = model('https://ultralytics.com/images/bus.jpg')  # сделайте предсказание на изображении
+        результаты = model("https://ultralytics.com/images/bus.jpg")  # сделайте предсказание на изображении
         ```
     === "CLI"
 
         ```bash
         yolo classify predict model=yolov8n-cls.pt source='https://ultralytics.com/images/bus.jpg'  # предсказание с официальной моделью
-        yolo classify predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # предсказание с собственной моделью
+        yolo classify predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg' # предсказание с собственной моделью
         ```
 
 Подробная информация о режиме `predict` приведена на странице [Предсказание](https://docs.ultralytics.com/modes/predict/).
@@ -138,35 +138,35 @@ keywords: Ultralytics, YOLOv8, классификация изображений
         from ultralytics import YOLO
 
         # Загрузите модель
-        model = YOLO('yolov8n-cls.pt')  # загрузите официальную модель
-        model = YOLO('path/to/best.pt')  # загрузите собственную обученную модель
+        model = YOLO("yolov8n-cls.pt")  # загрузите официальную модель
+        model = YOLO("path/to/best.pt")  # загрузите собственную обученную модель
 
         # Экспортируйте модель
-        model.export(format='onnx')
+        model.export(format="onnx")
         ```
     === "CLI"
 
         ```bash
         yolo export model=yolov8n-cls.pt format=onnx  # экспорт официальной модели
-        yolo export model=path/to/best.pt format=onnx  # экспорт собственной обученной модели
+        yolo export model=path/to/best.pt format=onnx # экспорт собственной обученной модели
         ```
 
 Доступные форматы экспорта YOLOv8-cls представлены в таблице ниже. Вы можете выполнять предсказания или валидацию прямо на экспортированных моделях, например, `yolo predict model=yolov8n-cls.onnx`. Примеры использования показаны для вашей модели после завершения экспорта.
 
 | Формат                                                             | Аргумент `format` | Модель                        | Метаданные | Аргументы                                           |
-|--------------------------------------------------------------------|-------------------|-------------------------------|------------|-----------------------------------------------------|
-| [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-cls.pt`              | ✅          | -                                                   |
-| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-cls.torchscript`     | ✅          | `imgsz`, `optimize`                                 |
-| [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n-cls.onnx`            | ✅          | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
-| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`        | `yolov8n-cls_openvino_model/` | ✅          | `imgsz`, `half`                                     |
-| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`          | `yolov8n-cls.engine`          | ✅          | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n-cls.mlpackage`       | ✅          | `imgsz`, `half`, `int8`, `nms`                      |
-| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n-cls_saved_model/`    | ✅          | `imgsz`, `keras`                                    |
-| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`              | `yolov8n-cls.pb`              | ❌          | `imgsz`                                             |
-| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`          | `yolov8n-cls.tflite`          | ✅          | `imgsz`, `half`, `int8`                             |
-| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n-cls_edgetpu.tflite`  | ✅          | `imgsz`                                             |
-| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n-cls_web_model/`      | ✅          | `imgsz`                                             |
-| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-cls_paddle_model/`   | ✅          | `imgsz`                                             |
-| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n-cls_ncnn_model/`     | ✅          | `imgsz`, `half`                                     |
+| ------------------------------------------------------------------ | ----------------- | ----------------------------- | ---------- | --------------------------------------------------- |
+| [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-cls.pt`              | ✅         | -                                                   |
+| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-cls.torchscript`     | ✅         | `imgsz`, `optimize`                                 |
+| [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n-cls.onnx`            | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
+| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`        | `yolov8n-cls_openvino_model/` | ✅         | `imgsz`, `half`                                     |
+| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`          | `yolov8n-cls.engine`          | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
+| [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n-cls.mlpackage`       | ✅         | `imgsz`, `half`, `int8`, `nms`                      |
+| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n-cls_saved_model/`    | ✅         | `imgsz`, `keras`                                    |
+| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`              | `yolov8n-cls.pb`              | ❌         | `imgsz`                                             |
+| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`          | `yolov8n-cls.tflite`          | ✅         | `imgsz`, `half`, `int8`                             |
+| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n-cls_edgetpu.tflite`  | ✅         | `imgsz`                                             |
+| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n-cls_web_model/`      | ✅         | `imgsz`                                             |
+| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-cls_paddle_model/`   | ✅         | `imgsz`                                             |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n-cls_ncnn_model/`     | ✅         | `imgsz`, `half`                                     |
 
 Подробная информация об экспорте приведена на странице [Экспорт](https://docs.ultralytics.com/modes/export/).

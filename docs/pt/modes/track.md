@@ -33,7 +33,7 @@ A saída dos rastreadores da Ultralytics é consistente com a detecção de obje
 ## Aplicações no Mundo Real
 
 |                                                           Transporte                                                           |                                                            Varejo                                                             |                                                         Aquicultura                                                          |
-|:------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------:|
+| :----------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------: |
 | ![Rastreamento de Veículos](https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab) | ![Rastreamento de Pessoas](https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527) | ![Rastreamento de Peixes](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142) |
 |                                                    Rastreamento de Veículos                                                    |                                                    Rastreamento de Pessoas                                                    |                                                    Rastreamento de Peixes                                                    |
 
@@ -43,14 +43,14 @@ Ultralytics YOLO estende suas funcionalidades de detecção de objetos para forn
 
 - **Rastreamento em Tempo Real:** Acompanha objetos de forma contínua em vídeos de alta taxa de quadros.
 - **Suporte a Múltiplos Rastreadores:** Escolha dentre uma variedade de algoritmos de rastreamento estabelecidos.
-- **Configurações de Rastreador Personalizáveis:** Adapte o algoritmo de rastreamento para atender requisitos específicos ajustando vários parâmetros.
+- **Configurações de Rastreador Personalizáveis:** Adapter o algoritmo de rastreamento para atender requisitos específicos ajustando vários parâmetros.
 
 ## Rastreadores Disponíveis
 
-Ultralytics YOLO suporta os seguintes algoritmos de rastreamento. Eles podem ser ativados passando o respectivo arquivo de configuração YAML, como `tracker=tracker_type.yaml`:
+Ultralytics YOLO suporta os seguintes algoritmos de rastreamento. Else podem set ativados passando o respectivo arquivo de configuração YAML, como `tracker=tracker_type.yaml`:
 
-* [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - Use `botsort.yaml` para ativar este rastreador.
-* [ByteTrack](https://github.com/ifzhang/ByteTrack) - Use `bytetrack.yaml` para ativar este rastreador.
+- [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - Use `botsort.yaml` para ativar este rastreador.
+- [ByteTrack](https://github.com/ifzhang/ByteTrack) - Use `bytetrack.yaml` para ativar este rastreador.
 
 O rastreador padrão é o BoT-SORT.
 
@@ -65,35 +65,37 @@ Para executar o rastreador em fluxos de vídeo, use um modelo Detect, Segment ou
         ```python
         from ultralytics import YOLO
 
-        # Carregar um modelo oficial ou personalizado
-        model = YOLO('yolov8n.pt')  # Carregar um modelo Detect oficial
-        model = YOLO('yolov8n-seg.pt')  # Carregar um modelo Segment oficial
-        model = YOLO('yolov8n-pose.pt')  # Carregar um modelo Pose oficial
-        model = YOLO('caminho/para/melhor.pt')  # Carregar um modelo treinado personalizado
+        # Carregar um modelo official ou personalizado
+        model = YOLO("yolov8n.pt")  # Carregar um modelo Detect official
+        model = YOLO("yolov8n-seg.pt")  # Carregar um modelo Segment official
+        model = YOLO("yolov8n-pose.pt")  # Carregar um modelo Pose official
+        model = YOLO("caminho/para/melhor.pt")  # Carregar um modelo treinado personalizado
 
         # Realizar rastreamento com o modelo
         results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)  # Rastreamento com rastreador padrão
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")  # Rastreamento com o rastreador ByteTrack
+        results = model.track(
+            source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml"
+        )  # Rastreamento com o rastreador ByteTrack
         ```
 
     === "CLI"
 
         ```bash
-        # Realizar rastreamento com vários modelos usando a interface de linha de comando
-        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4"  # Modelo Detect oficial
-        yolo track model=yolov8n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # Modelo Segment oficial
-        yolo track model=yolov8n-pose.pt source="https://youtu.be/LNwODJXcvt4"  # Modelo Pose oficial
-        yolo track model=caminho/para/melhor.pt source="https://youtu.be/LNwODJXcvt4"  # Modelo treinado personalizado
+        # Realizar rastreamento com vários modelos usando a interface de linha de commando
+        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4"             # Modelo Detect official
+        yolo track model=yolov8n-seg.pt source="https://youtu.be/LNwODJXcvt4"         # Modelo Segment official
+        yolo track model=yolov8n-pose.pt source="https://youtu.be/LNwODJXcvt4"        # Modelo Pose official
+        yolo track model=caminho/para/melhor.pt source="https://youtu.be/LNwODJXcvt4" # Modelo treinado personalizado
 
         # Rastrear usando o rastreador ByteTrack
         yolo track model=caminho/para/melhor.pt tracker="bytetrack.yaml"
         ```
 
-Como pode ser visto no uso acima, o rastreamento está disponível para todos os modelos Detect, Segment e Pose executados em vídeos ou fontes de streaming.
+Como pode set visto no uso acima, o rastreamento está disponível para todos os modelos Detect, Segment e Pose executados em vídeos ou fontes de streaming.
 
 ## Configuração
 
-### Argumentos de Rastreamento
+### Arguments de Rastreamento
 
 A configuração de rastreamento compartilha propriedades com o modo Predict, como `conf`, `iou`, e `show`. Para mais configurações, consulte a página de [Predict](https://docs.ultralytics.com/modes/predict/) model page.
 
@@ -105,14 +107,14 @@ A configuração de rastreamento compartilha propriedades com o modo Predict, co
         from ultralytics import YOLO
 
         # Configurar os parâmetros de rastreamento e executar o rastreador
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
         results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
         ```
 
     === "CLI"
 
         ```bash
-        # Configurar parâmetros de rastreamento e executar o rastreador usando a interface de linha de comando
+        # Configurar parâmetros de rastreamento e executar o rastreador usando a interface de linha de commando
         yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3, iou=0.5 show
         ```
 
@@ -128,33 +130,34 @@ A Ultralytics também permite que você use um arquivo de configuração de rast
         from ultralytics import YOLO
 
         # Carregar o modelo e executar o rastreador com um arquivo de configuração personalizado
-        model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker='custom_tracker.yaml')
+        model = YOLO("yolov8n.pt")
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker="custom_tracker.yaml")
         ```
 
     === "CLI"
 
         ```bash
-        # Carregar o modelo e executar o rastreador com um arquivo de configuração personalizado usando a interface de linha de comando
+        # Carregar o modelo e executar o rastreador com um arquivo de configuração personalizado usando a interface de linha de commando
         yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" tracker='custom_tracker.yaml'
         ```
 
-Para uma lista completa de argumentos de rastreamento, consulte a página [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers).
+Para uma lista completa de arguments de rastreamento, consulte a página [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers).
 
 ## Exemplos em Python
 
 ### Loop de Persistência de Rastreamentos
 
-Aqui está um script em Python usando OpenCV (`cv2`) e YOLOv8 para executar rastreamento de objetos em quadros de vídeo. Este script ainda pressupõe que você já instalou os pacotes necessários (`opencv-python` e `ultralytics`). O argumento `persist=True` indica ao rastreador que a imagem ou quadro atual é o próximo de uma sequência e que espera rastreamentos da imagem anterior na imagem atual.
+Aqui está um script em Python usando OpenCV (`cv2`) e YOLOv8 para executar rastreamento de objetos em quadros de vídeo. Este script ainda pressupõe que você já instalou os pacotes necessários (`opencv-python` e `ultralytics`). O argumento `persist=True` indica ao rastreador que a imagem ou quadro actual é o próximo de uma sequência e que espera rastreamentos da imagem anterior na imagem actual.
 
 !!! Example "Loop de fluxo com rastreamento"
 
     ```python
     import cv2
+
     from ultralytics import YOLO
 
     # Carregar o modelo YOLOv8
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # Abrir o arquivo de vídeo
     video_path = "caminho/para/video.mp4"
@@ -187,11 +190,11 @@ Aqui está um script em Python usando OpenCV (`cv2`) e YOLOv8 para executar rast
     cv2.destroyAllWindows()
     ```
 
-Note a mudança de `model(frame)` para `model.track(frame)`, que habilita o rastreamento de objetos ao invés de detecção simples. Este script modificado irá executar o rastreador em cada quadro do vídeo, visualizar os resultados e exibi-los em uma janela. O loop pode ser encerrado pressionando 'q'.
+Note a mudança de `model(frame)` para `model.track(frame)`, que habilita o rastreamento de objetos ao invés de detecção simples. Este script modificado irá executar o rastreador em cada quadro do vídeo, visualizar os resultados e exibi-los em uma janela. O loop pode set encerrado pressionando 'q'.
 
 ## Contribuir com Novos Rastreadores
 
-Você é proficiente em rastreamento de múltiplos objetos e implementou ou adaptou com sucesso um algoritmo de rastreamento com Ultralytics YOLO? Convidamos você a contribuir para nossa seção de Rastreadores em [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers)! Suas aplicações do mundo real e soluções podem ser inestimáveis para usuários trabalhando em tarefas de rastreamento.
+Você é proficiente em rastreamento de múltiplos objetos e implementou ou adaptou com sucesso um algoritmo de rastreamento com Ultralytics YOLO? Convidamos você a contribuir para nossa seção de Rastreadores em [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers)! Suas aplicações do mundo real e soluções podem set inestimáveis para usuários trabalhando em tarefas de rastreamento.
 
 Ao contribuir para esta seção, você ajuda a expandir o escopo de soluções de rastreamento disponíveis dentro do framework Ultralytics YOLO, adicionando outra camada de funcionalidade e utilidade para a comunidade.
 

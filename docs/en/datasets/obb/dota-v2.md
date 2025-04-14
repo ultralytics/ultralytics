@@ -82,10 +82,10 @@ To train a model on the DOTA v2 dataset, you can utilize the following code snip
         from ultralytics import YOLO
 
         # Create a new YOLOv8n-OBB model from scratch
-        model = YOLO('yolov8n-obb.yaml')
+        model = YOLO("yolov8n-obb.yaml")
 
         # Train the model on the DOTAv2 dataset
-        results = model.train(data='DOTAv2.yaml', epochs=100, imgsz=640)
+        results = model.train(data="DOTAv2.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"

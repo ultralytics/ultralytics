@@ -56,17 +56,17 @@ YOLOv8nモデルをONNXやTensorRTなどの異なるフォーマットにエキ�
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # 公式モデルを読み込む
-        model = YOLO('path/to/best.pt')  # カスタムトレーニングモデルを読み込む
+        model = YOLO("yolov8n.pt")  # 公式モデルを読み込む
+        model = YOLO("path/to/best.pt")  # カスタムトレーニングモデルを読み込む
 
         # モデルをエキスポート
-        model.export(format='onnx')
+        model.export(format="onnx")
         ```
     === "CLI"
 
         ```bash
-        yolo export model=yolov8n.pt format=onnx  # 公式モデルをエキスポート
-        yolo export model=path/to/best.pt format=onnx  # カスタムトレーニングモデルをエキスポート
+        yolo export model=yolov8n.pt format=onnx      # 公式モデルをエキスポート
+        yolo export model=path/to/best.pt format=onnx # カスタムトレーニングモデルをエキスポート
         ```
 
 ## 引数

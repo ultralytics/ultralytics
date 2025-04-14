@@ -47,16 +47,16 @@ YOLOv6には、異なる精度に最適化されたクォンタイズ済みの�
         from ultralytics import YOLO
 
         # YOLOv6nモデルをゼロから構築する
-        model = YOLO('yolov6n.yaml')
+        model = YOLO("yolov6n.yaml")
 
         # モデルの情報を表示する（オプション）
         model.info()
 
         # COCO8の例題データセットでモデルを100エポックトレーニングする
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # YOLOv6nモデルで'bus.jpg'画像に対して推論を実行する
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -75,13 +75,13 @@ YOLOv6には、異なる精度に最適化されたクォンタイズ済みの�
 
 YOLOv6シリーズは、高性能の[オブジェクト検出](../tasks/detect.md)に最適化されたモデルを提供しています。これらのモデルは、さまざまな計算ニーズと精度要件に対応しており、幅広いアプリケーションに適応することができます。
 
-| モデルタイプ    | 事前学習済みの重み      | サポートされるタスク                     | 推論 | 検証 | トレーニング | エクスポート |
-|-----------|----------------|--------------------------------|----|----|--------|--------|
-| YOLOv6-N  | `yolov6-n.pt`  | [オブジェクト検出](../tasks/detect.md) | ✅  | ✅  | ✅      | ✅      |
-| YOLOv6-S  | `yolov6-s.pt`  | [オブジェクト検出](../tasks/detect.md) | ✅  | ✅  | ✅      | ✅      |
-| YOLOv6-M  | `yolov6-m.pt`  | [オブジェクト検出](../tasks/detect.md) | ✅  | ✅  | ✅      | ✅      |
-| YOLOv6-L  | `yolov6-l.pt`  | [オブジェクト検出](../tasks/detect.md) | ✅  | ✅  | ✅      | ✅      |
-| YOLOv6-L6 | `yolov6-l6.pt` | [オブジェクト検出](../tasks/detect.md) | ✅  | ✅  | ✅      | ✅      |
+| モデルタイプ | 事前学習済みの重み | サポートされるタスク                   | 推論 | 検証 | トレーニング | エクスポート |
+| ------------ | ------------------ | -------------------------------------- | ---- | ---- | ------------ | ------------ |
+| YOLOv6-N     | `yolov6-n.pt`      | [オブジェクト検出](../tasks/detect.md) | ✅   | ✅   | ✅           | ✅           |
+| YOLOv6-S     | `yolov6-s.pt`      | [オブジェクト検出](../tasks/detect.md) | ✅   | ✅   | ✅           | ✅           |
+| YOLOv6-M     | `yolov6-m.pt`      | [オブジェクト検出](../tasks/detect.md) | ✅   | ✅   | ✅           | ✅           |
+| YOLOv6-L     | `yolov6-l.pt`      | [オブジェクト検出](../tasks/detect.md) | ✅   | ✅   | ✅           | ✅           |
+| YOLOv6-L6    | `yolov6-l6.pt`     | [オブジェクト検出](../tasks/detect.md) | ✅   | ✅   | ✅           | ✅           |
 
 この表は、YOLOv6モデルのバリアントについての詳細な概要を提供し、オブジェクト検出のタスクにおける機能と、[推論](../modes/predict.md)、[検証](../modes/val.md)、[トレーニング](../modes/train.md)、[エクスポート](../modes/export.md)などのさまざまな操作モードとの互換性を強調しています。この包括的なサポートにより、ユーザーはさまざまなオブジェクト検出シナリオでYOLOv6モデルの機能を十分に活用することができます。
 

@@ -38,16 +38,16 @@ Ultralytics의 파이썬 API는 다양한 스케일의 사전 훈련된 PaddlePa
         from ultralytics import RTDETR
 
         # COCO 사전 훈련된 RT-DETR-l 모델 로드
-        model = RTDETR('rtdetr-l.pt')
+        model = RTDETR("rtdetr-l.pt")
 
         # 모델 정보 표시 (선택 사항)
         model.info()
 
         # COCO8 예제 데이터셋에 대해 100 epoch 동안 모델 훈련
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # 'bus.jpg' 이미지에서 RT-DETR-l 모델로 추론 실행
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -64,10 +64,10 @@ Ultralytics의 파이썬 API는 다양한 스케일의 사전 훈련된 PaddlePa
 
 이 테이블은 각 모델의 유형, 특정 사전 훈련 가중치, 각 모델이 지원하는 작업 및 [모드](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), [Export](../modes/export.md)와 같은 다양한 모드를 나타내는 ✅ 이모지로 표시된 모드를 지원합니다.
 
-| 모델 유형               | 사전 훈련 가중치     | 지원되는 작업                     | 추론 | 검증 | 훈련 | 출력 |
-|---------------------|---------------|-----------------------------|----|----|----|----|
-| RT-DETR Large       | `rtdetr-l.pt` | [객체 검출](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅  |
-| RT-DETR Extra-Large | `rtdetr-x.pt` | [객체 검출](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅  |
+| 모델 유형           | 사전 훈련 가중치 | 지원되는 작업                   | 추론 | 검증 | 훈련 | 출력 |
+| ------------------- | ---------------- | ------------------------------- | ---- | ---- | ---- | ---- |
+| RT-DETR Large       | `rtdetr-l.pt`    | [객체 검출](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅   |
+| RT-DETR Extra-Large | `rtdetr-x.pt`    | [객체 검출](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅   |
 
 ## 인용 및 감사의 말
 
@@ -90,4 +90,4 @@ Ultralytics의 파이썬 API는 다양한 스케일의 사전 훈련된 PaddlePa
 
 컴퓨터 비전 커뮤니티에게 귀중한 자료인 비전 트랜스포머 기반 실시간 객체 검출기인 비둘기(Baidu)의 RT-DETR을 만들고 유지하기 위해 비둘기와 [PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection) 팀에게 감사의 인사를 전합니다.
 
-*Keywords: RT-DETR, Transformer, ViT, 비전 트랜스포머, 비둘기 RT-DETR, PaddlePaddle, Paddle Paddle RT-DETR, 실시간 객체 검출, 비전 트랜스포머 기반 객체 검출, 사전 훈련된 PaddlePaddle RT-DETR 모델, 비둘기 RT-DETR 사용법, Ultralytics 파이썬 API*
+_Keywords: RT-DETR, Transformer, ViT, 비전 트랜스포머, 비둘기 RT-DETR, PaddlePaddle, Paddle Paddle RT-DETR, 실시간 객체 검출, 비전 트랜스포머 기반 객체 검출, 사전 훈련된 PaddlePaddle RT-DETR 모델, 비둘기 RT-DETR 사용법, Ultralytics 파이썬 API_

@@ -2,7 +2,7 @@
 
 Ultralytics Docs are deployed to [https://docs.ultralytics.com](https://docs.ultralytics.com).
 
-[![pages-build-deployment](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment)  [![Check Broken links](https://github.com/ultralytics/docs/actions/workflows/links.yml/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/links.yml)
+[![pages-build-deployment](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment) [![Check Broken links](https://github.com/ultralytics/docs/actions/workflows/links.yml/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/links.yml)
 
 ## Install Ultralytics package
 
@@ -56,7 +56,7 @@ To stop the serve command and terminate the local server, you can use the `CTRL+
 
 For multi-language MkDocs sites use the following additional steps:
 
-1. Add all new language *.md files to git commit: `git add docs/**/*.md -f`
+1. Add all new language _.md files to git commit: `git add docs/\*\*/_.md -f`
 2. Build all languages to the `/site` directory. Verify that the top-level `/site` directory contains `CNAME`, `robots.txt` and `sitemap.xml` files, if applicable.
 
     ```bash
@@ -76,7 +76,7 @@ For multi-language MkDocs sites use the following additional steps:
     ```bash
     cd site
     python -m http.server
-    open http://localhost:8000  # on macOS
+    open http://localhost:8000 # on macOS
     ```
 
 Note the above steps are combined into the Ultralytics [build_docs.py](https://github.com/ultralytics/ultralytics/blob/main/docs/build_docs.py) script.

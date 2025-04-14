@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Découvrez notre guide détaillé sur YOLOv4, un détecteur d'objets en temps réel de pointe. Comprenez ses points forts architecturaux, ses fonctionnalités innovantes et des exemples d'application.
+description: Découvrez notre guide détaillé sur YOLOv4, un détecteur d'objets en temps réel de pointe. Comprenez ses points forts architecturaux, ses fonctionnalités innovantes et des examples d'application.
 keywords: ultralytics, YOLOv4, détection d'objets, réseau neuronal, détection en temps réel, détecteur d'objets, apprentissage automatique
 ---
 
@@ -13,23 +13,23 @@ Bienvenue sur la page de documentation d'Ultralytics pour YOLOv4, un détecteur 
 
 ## Introduction
 
-YOLOv4 signifie You Only Look Once version 4. Il s'agit d'un modèle de détection d'objets en temps réel développé pour remédier aux limitations des versions précédentes de YOLO comme [YOLOv3](yolov3.md) et d'autres modèles de détection d'objets. Contrairement à d'autres détecteurs d'objets basés sur des réseaux neuronaux convolutifs (CNN), YOLOv4 n'est pas seulement applicable aux systèmes de recommandation, mais aussi à la gestion de processus autonomes et à la réduction de l'entrée humaine. Son utilisation sur des unités de traitement graphique (GPU) conventionnelles permet une utilisation massive à un prix abordable, et il est conçu pour fonctionner en temps réel sur un GPU conventionnel tout en ne nécessitant qu'un seul de ces GPU pour l'entraînement.
+YOLOv4 signifie You Only Look Once version 4. Il s'agit d'un modèle de détection d'objets en temps réel développé pour remédier aux limitations des versions précédentes de YOLO comme [YOLOv3](yolov3.md) et d'autres modèles de détection d'objets. Contrairement à d'autres détecteurs d'objets basés sur des réseaux neuronaux convolutifs (CNN), YOLOv4 n'est pas seulement applicable aux systèmes de recommendation, mais aussi à la gestion de processus autonomes et à la réduction de l'entrée humaine. Son utilisation sur des unités de traitement graphique (GPU) conventionnelles permet une utilisation massive à un prix abordable, et il est conçu pour fonctionner en temps réel sur un GPU conventionnel tout en ne nécessitant qu'un seul de ces GPU pour l'entraînement.
 
 ## Architecture
 
 YOLOv4 utilise plusieurs fonctionnalités innovantes qui travaillent ensemble pour optimiser ses performances. Celles-ci incluent les connexions résiduelles pondérées (WRC), les connexions partielles à travers les étapes (CSP), la normalisation mini-batch traversée (CmBN), l'entraînement auto-antagoniste (SAT), l'activation Mish, l'augmentation des données en mosaïque, la régularisation DropBlock et la perte CIoU. Ces fonctionnalités sont combinées pour obtenir des résultats de pointe.
 
-Un détecteur d'objets typique est composé de plusieurs parties, notamment l'entrée, le backbone, le neck et le head. Le backbone de YOLOv4 est pré-entraîné sur ImageNet et est utilisé pour prédire les classes et les boîtes englobantes des objets. Le backbone peut provenir de plusieurs modèles, notamment VGG, ResNet, ResNeXt ou DenseNet. La partie "neck" du détecteur est utilisée pour collecter des cartes de caractéristiques à partir de différentes étapes et comprend généralement plusieurs chemins "bottom-up" et plusieurs chemins "top-down". La partie "head" est ce qui est utilisé pour faire les détections et classifications finales des objets.
+Un détecteur d'objects typique est composé de plusieurs parties, notamment l'entrée, le backbone, le neck et le head. Le backbone de YOLOv4 est pré-entraîné sur ImageNet et est utilisé pour prédire les classes et les boîtes englobantes des objects. Le backbone peut provenir de plusieurs modèles, notamment VGG, ResNet, ResNeXt ou DenseNet. La partie "neck" du détecteur est utilisée pour collecter des cartes de caractéristiques à partir de différentes étapes et comprend généralement plusieurs chemins "bottom-up" et plusieurs chemins "top-down". La partie "head" est ce qui est utilisé pour faire les détections et classifications finales des objects.
 
 ## Ensemble de Bonus
 
-YOLOv4 utilise également des méthodes appelées "ensemble de bonus", qui sont des techniques permettant d'améliorer la précision du modèle lors de l'entraînement sans augmenter le coût de l'inférence. L'augmentation de données est une technique commune de l'ensemble de bonus utilisée dans la détection d'objets, qui augmente la variabilité des images d'entrée pour améliorer la robustesse du modèle. Quelques exemples d'augmentation de données incluent les distorsions photométriques (ajustement de la luminosité, du contraste, de la teinte, de la saturation et du bruit d'une image) et les distorsions géométriques (ajout d'échelle aléatoire, de recadrage, de retournement et de rotation). Ces techniques aident le modèle à mieux généraliser à différents types d'images.
+YOLOv4 utilise également des méthodes appelées "ensemble de bonus", qui sont des techniques permettant d'améliorer la précision du modèle lors de l'entraînement sans augmenter le coût de l'inférence. L'augmentation de données est une technique commune de l'ensemble de bonus utilisée dans la détection d'objets, qui augmente la variabilité des images d'entrée pour améliorer la robustesse du modèle. Quelques examples d'augmentation de données incluent les distortions photométriques (adjustment de la luminosité, du contraste, de la teinte, de la saturation et du bruit d'une image) et les distortions géométriques (ajout d'échelle aléatoire, de recadrage, de retournement et de rotation). Ces techniques aident le modèle à mieux généraliser à différents types d'images.
 
 ## Fonctionnalités et Performances
 
 YOLOv4 est conçu pour une vitesse et une précision optimales dans la détection d'objets. L'architecture de YOLOv4 comprend CSPDarknet53 en tant que backbone, PANet en tant que neck et YOLOv3 en tant que detection head. Ce design permet à YOLOv4 de réaliser une détection d'objets à une vitesse impressionnante, ce qui le rend adapté aux applications en temps réel. YOLOv4 excelle également en précision, atteignant des résultats de pointe dans les benchmarks de détection d'objets.
 
-## Exemples d'Utilisation
+## Examples d'Utilisation
 
 Au moment de la rédaction de ce document, Ultralytics ne prend pas en charge les modèles YOLOv4. Par conséquent, les utilisateurs intéressés par l'utilisation de YOLOv4 devront consulter directement le référentiel GitHub de YOLOv4 pour les instructions d'installation et d'utilisation.
 
@@ -41,9 +41,9 @@ Voici un bref aperçu des étapes typiques que vous pourriez suivre pour utilise
 
 3. Une fois l'installation terminée, vous pouvez entraîner et utiliser le modèle selon les instructions d'utilisation fournies dans le référentiel. Cela implique généralement la préparation de votre ensemble de données, la configuration des paramètres du modèle, l'entraînement du modèle, puis l'utilisation du modèle entraîné pour effectuer la détection d'objets.
 
-Veuillez noter que les étapes spécifiques peuvent varier en fonction de votre cas d'utilisation spécifique et de l'état actuel du référentiel YOLOv4. Il est donc fortement recommandé de se référer directement aux instructions fournies dans le référentiel GitHub de YOLOv4.
+Veuillez noter que les étapes spécifiques peuvent varier en function de votre cas d'utilisation spécifique et de l'état actuel du référentiel YOLOv4. Il est donc fortement recommandé de se référer directement aux instructions fournies dans le référentiel GitHub de YOLOv4.
 
-Nous regrettons tout inconvénient que cela pourrait causer et nous nous efforcerons de mettre à jour ce document avec des exemples d'utilisation pour Ultralytics une fois que le support de YOLOv4 sera implémenté.
+Nous regrettons tout inconvénient que cela pourrait causer et nous nous efforcerons de mettre à jour ce document avec des examples d'utilisation pour Ultralytics une fois que le support de YOLOv4 sera implémenté.
 
 ## Conclusion
 

@@ -18,7 +18,7 @@ Aqui estão as vantagens de usar o modo Val no YOLOv8:
 
 - **Precisão:** Obtenha métricas precisas como mAP50, mAP75 e mAP50-95 para avaliar seu modelo de forma abrangente.
 - **Conveniência:** Utilize recursos integrados que lembram as configurações de treinamento, simplificando o processo de validação.
-- **Flexibilidade:** Valide seu modelo com os mesmos ou diferentes conjuntos de dados e tamanhos de imagem.
+- **Flexibilidade:** Valid seu modelo com os mesmos ou diferentes conjuntos de dados e tamanhos de imagem.
 - **Ajuste de Hiperparâmetros:** Utilize as métricas de validação para refinar seu modelo e obter um desempenho melhor.
 
 ### Principais Recursos do Modo Val
@@ -27,7 +27,7 @@ Estas são as funcionalidades notáveis oferecidas pelo modo Val do YOLOv8:
 
 - **Configurações Automatizadas:** Os modelos lembram suas configurações de treinamento para validação direta.
 - **Suporte Multi-Métrico:** Avalie seu modelo com base em uma variedade de métricas de precisão.
-- **API em Python e CLI:** Escolha entre a interface de linha de comando ou API em Python com base na sua preferência de validação.
+- **API em Python e CLI:** Escolha entre a interface de linha de commando ou API em Python com base na sua preferência de validação.
 - **Compatibilidade de Dados:** Funciona perfeitamente com conjuntos de dados usados durante a fase de treinamento, bem como conjuntos de dados personalizados.
 
 !!! Tip "Dica"
@@ -36,7 +36,7 @@ Estas são as funcionalidades notáveis oferecidas pelo modo Val do YOLOv8:
 
 ## Exemplos de Uso
 
-Validar a precisão do modelo YOLOv8n treinado no conjunto de dados COCO128. Nenhum argumento precisa ser passado, pois o `model` retém os dados de treinamento e argumentos como atributos do modelo. Veja a seção de Argumentos abaixo para uma lista completa dos argumentos de exportação.
+Validar a precisão do modelo YOLOv8n treinado no conjunto de dados COCO128. Nenhum argumento precisa set passado, pois o `model` retém os dados de treinamento e arguments como atributos do modelo. Veja a seção de Arguments abaixo para uma lista completa dos arguments de exportação.
 
 !!! Example "Exemplo"
 
@@ -46,41 +46,42 @@ Validar a precisão do modelo YOLOv8n treinado no conjunto de dados COCO128. Nen
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n.pt')  # carregar um modelo oficial
-        model = YOLO('path/to/best.pt')  # carregar um modelo personalizado
+        model = YOLO("yolov8n.pt")  # carregar um modelo official
+        model = YOLO("path/to/best.pt")  # carregar um modelo personalizado
 
         # Validar o modelo
         metrics = model.val()  # nenhum argumento necessário, conjunto de dados e configurações lembrados
-        metrics.box.map    # map50-95
+        metrics.box.map  # map50-95
         metrics.box.map50  # map50
         metrics.box.map75  # map75
-        metrics.box.maps   # uma lista contém map50-95 de cada categoria
+        metrics.box.maps  # uma lista contém map50-95 de cada categoria
         ```
     === "CLI"
 
         ```bash
-        yolo detect val model=yolov8n.pt  # validar modelo oficial
-        yolo detect val model=path/to/best.pt  # validar modelo personalizado
+        yolo detect val model=yolov8n.pt      # validar modelo official
+        yolo detect val model=path/to/best.pt # validar modelo personalizado
         ```
 
-## Argumentos
+## Arguments
 
 As configurações de validação para os modelos YOLO referem-se aos vários hiperparâmetros e configurações usados para avaliar o desempenho do modelo em um conjunto de dados de validação. Essas configurações podem afetar o desempenho, velocidade e precisão do modelo. Algumas configurações comuns de validação do YOLO incluem o tamanho do lote, a frequência com que a validação é realizada durante o treinamento e as métricas usadas para avaliar o desempenho do modelo. Outros fatores que podem afetar o processo de validação incluem o tamanho e a composição do conjunto de dados de validação e a tarefa específica para a qual o modelo está sendo usado. É importante ajustar e experimentar cuidadosamente essas configurações para garantir que o modelo apresente um bom desempenho no conjunto de dados de validação e para detectar e prevenir o sobreajuste.
 
 | Chave         | Valor   | Descrição                                                                         |
-|---------------|---------|-----------------------------------------------------------------------------------|
+| ------------- | ------- | --------------------------------------------------------------------------------- |
 | `data`        | `None`  | caminho para o arquivo de dados, ex. coco128.yaml                                 |
 | `imgsz`       | `640`   | tamanho das imagens de entrada como inteiro                                       |
 | `batch`       | `16`    | número de imagens por lote (-1 para AutoBatch)                                    |
 | `save_json`   | `False` | salvar resultados em arquivo JSON                                                 |
 | `save_hybrid` | `False` | salvar versão híbrida das etiquetas (etiquetas + previsões adicionais)            |
-| `conf`        | `0.001` | limite de confiança do objeto para detecção                                       |
+| `conf`        | `0.001` | limit de confiança do objeto para detecção                                       |
 | `iou`         | `0.6`   | limiar de interseção sobre união (IoU) para NMS                                   |
 | `max_det`     | `300`   | número máximo de detecções por imagem                                             |
 | `half`        | `True`  | usar precisão meia (FP16)                                                         |
 | `device`      | `None`  | dispositivo para execução, ex. dispositivo cuda=0/1/2/3 ou device=cpu             |
 | `dnn`         | `False` | usar OpenCV DNN para inferência ONNX                                              |
 | `plots`       | `False` | mostrar gráficos durante o treinamento                                            |
-| `rect`        | `False` | val retangular com cada lote colado para minimizar o preenchimento                |
+| `rect`        | `False` | val rectangular com cada lote colado para minimizar o preenchimento                |
 | `split`       | `val`   | divisão do conjunto de dados para usar na validação, ex. 'val', 'test' ou 'train' |
+
 |

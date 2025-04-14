@@ -10,33 +10,33 @@ keywords: Ultralytics, YOLO-Dokumente, YOLOv8, Validierung, Modellbewertung, Hyp
 
 ## Einführung
 
-Die Validierung ist ein kritischer Schritt im Machine-Learning-Prozess, der es Ihnen ermöglicht, die Qualität Ihrer trainierten Modelle zu bewerten. Der Val-Modus in Ultralytics YOLOv8 bietet eine robuste Suite von Tools und Metriken zur Bewertung der Leistung Ihrer Objekterkennungsmodelle. Dieser Leitfaden dient als umfassende Ressource, um zu verstehen, wie Sie den Val-Modus effektiv nutzen können, um sicherzustellen, dass Ihre Modelle sowohl genau als auch zuverlässig sind.
+Die Validierung ist ein kritischer Schritt im Machine-Learning-Prozess, der es Ihnen ermöglicht, die Qualität Ihrer trainierten Modelle zu bewerten. Der Val-Modus in Ultralytics YOLOv8 bietet eine robuste Suite von Tools und Metriken zur Bewertung der Leistung Ihrer Objekterkennungsmodelle. Dieser Leitfaden dient also umfassende Resource, um zu verstehen, wie Sie den Val-Modus effektiv nutzen können, um sicherzustellen, dass Ihre Modelle sowohl genau also auch zuverlässig sind.
 
 ## Warum mit Ultralytics YOLO validieren?
 
 Hier sind die Vorteile der Verwendung des Val-Modus von YOLOv8:
 
-- **Präzision:** Erhalten Sie genaue Metriken wie mAP50, mAP75 und mAP50-95, um Ihr Modell umfassend zu bewerten.
+- **Präzision:** Erhalten Sie genaue Metriken wie mAP50, mAP75 und mAP50-95, um Ihr Model umfassend zu bewerten.
 - **Bequemlichkeit:** Nutzen Sie integrierte Funktionen, die Trainingseinstellungen speichern und so den Validierungsprozess vereinfachen.
-- **Flexibilität:** Validieren Sie Ihr Modell mit den gleichen oder verschiedenen Datensätzen und Bildgrößen.
-- **Hyperparameter-Tuning:** Verwenden Sie Validierungsmetriken, um Ihr Modell für eine bessere Leistung zu optimieren.
+- **Flexibilität:** Validieren Sie Ihr Model mit den gleichen oder verschiedenen Datensätzen und Bildgrößen.
+- **Hyperparameter-Tuning:** Verwenden Sie Validierungsmetriken, um Ihr Model für eine bessere Leistung zu optimieren.
 
 ### Schlüsselfunktionen des Val-Modus
 
 Dies sind die bemerkenswerten Funktionen, die der Val-Modus von YOLOv8 bietet:
 
 - **Automatisierte Einstellungen:** Modelle erinnern sich an ihre Trainingskonfigurationen für eine unkomplizierte Validierung.
-- **Unterstützung mehrerer Metriken:** Bewerten Sie Ihr Modell anhand einer Reihe von Genauigkeitsmetriken.
+- **Unterstützung mehrerer Metriken:** Bewerten Sie Ihr Model anhand einer Reihe von Genauigkeitsmetriken.
 - **CLI- und Python-API:** Wählen Sie zwischen Befehlszeilenschnittstelle oder Python-API basierend auf Ihrer Präferenz für die Validierung.
 - **Datenkompatibilität:** Funktioniert nahtlos mit Datensätzen, die während der Trainingsphase sowie mit benutzerdefinierten Datensätzen verwendet wurden.
 
 !!! Tip "Tipp"
 
-    * YOLOv8-Modelle speichern automatisch ihre Trainingseinstellungen, sodass Sie ein Modell mit der gleichen Bildgröße und dem ursprünglichen Datensatz leicht validieren können, indem Sie einfach `yolo val model=yolov8n.pt` oder `model('yolov8n.pt').val()` ausführen
+    * YOLOv8-Modelle speichern automatisch ihre Trainingseinstellungen, sodass Sie ein Model mit der gleichen Bildgröße und dem ursprünglichen Datensatz leicht validieren können, indem Sie einfach `yolo val model=yolov8n.pt` oder `model('yolov8n.pt').val()` ausführen
 
 ## Beispielverwendung
 
-Validieren Sie die Genauigkeit des trainierten YOLOv8n-Modells auf dem COCO128-Datensatz. Es muss kein Argument übergeben werden, da das `model` seine Trainings-`data` und Argumente als Modellattribute speichert. Siehe Abschnitt „Argumente“ unten für eine vollständige Liste der Exportargumente.
+Validieren Sie die Genauigkeit des trainierten YOLOv8n-Modells auf dem COCO128-Datensatz. Es muss kein Argument übergeben werden, da das `model` seine Trainings-`data` und Argumente also Modellattribute speichert. Siehe Abschnitt „Argumente“ unten für eine vollständige Liste der Exportargumente.
 
 !!! Example "Beispiel"
 
@@ -45,32 +45,32 @@ Validieren Sie die Genauigkeit des trainierten YOLOv8n-Modells auf dem COCO128-D
         ```python
         from ultralytics import YOLO
 
-        # Modell laden
-        model = YOLO('yolov8n.pt')  # ein offizielles Modell laden
-        model = YOLO('path/to/best.pt')  # ein benutzerdefiniertes Modell laden
+        # Model laden
+        model = YOLO("yolov8n.pt")  # ein offizielles Model laden
+        model = YOLO("path/to/best.pt")  # ein benutzerdefiniertes Model laden
 
-        # Modell validieren
+        # Model validieren
         metrics = model.val()  # keine Argumente benötigt, Datensatz und Einstellungen gespeichert
-        metrics.box.map    # map50-95
+        metrics.box.map  # map50-95
         metrics.box.map50  # map50
         metrics.box.map75  # map75
-        metrics.box.maps   # eine Liste enthält map50-95 jeder Kategorie
+        metrics.box.maps  # eine Liste enthält map50-95 jeder Kategorie
         ```
     === "CLI"
 
         ```bash
-        yolo detect val model=yolov8n.pt  # offizielles Modell validieren
-        yolo detect val model=path/to/best.pt  # benutzerdefiniertes Modell validieren
+        yolo detect val model=yolov8n.pt      # offizielles Model validieren
+        yolo detect val model=path/to/best.pt # benutzerdefiniertes Model validieren
         ```
 
 ## Argumente
 
-Validierungseinstellungen für YOLO-Modelle beziehen sich auf verschiedene Hyperparameter und Konfigurationen, die verwendet werden, um die Leistung des Modells an einem Validierungsdatensatz zu bewerten. Diese Einstellungen können die Leistung, Geschwindigkeit und Genauigkeit des Modells beeinflussen. Einige gängige YOLO-Validierungseinstellungen umfassen die Batch-Größe, die Häufigkeit der Validierung während des Trainings und die Metriken zur Bewertung der Modellleistung. Andere Faktoren, die den Validierungsprozess beeinflussen können, sind die Größe und Zusammensetzung des Validierungsdatensatzes und die spezifische Aufgabe, für die das Modell verwendet wird. Es ist wichtig, diese Einstellungen sorgfältig abzustimmen und zu experimentieren, um sicherzustellen, dass das Modell auf dem Validierungsdatensatz gut funktioniert sowie Überanpassung zu erkennen und zu verhindern.
+Validierungseinstellungen für YOLO-Modelle beziehen sich auf verschiedene Hyperparameter und Konfigurationen, die verwendet werden, um die Leistung des Models an einem Validierungsdatensatz zu bewerten. Diese Einstellungen können die Leistung, Geschwindigkeit und Genauigkeit des Models beeinflussen. Einige gängige YOLO-Validierungseinstellungen umfassen die Batch-Größe, die Häufigkeit der Validierung während des Trainings und die Metriken zur Bewertung der Modellleistung. Andere Faktoren, die den Validierungsprozess beeinflussen können, sind die Größe und Zusammensetzung des Validierungsdatensatzes und die spezifische Aufgabe, für die das Model verwendet wird. Es ist wichtig, diese Einstellungen sorgfältig abzustimmen und zu experimentieren, um sicherzustellen, dass das Model auf dem Validierungsdatensatz gut funktioniert sowie Überanpassung zu erkennen und zu verhindern.
 
 | Key           | Value   | Beschreibung                                                                    |
-|---------------|---------|---------------------------------------------------------------------------------|
+| ------------- | ------- | ------------------------------------------------------------------------------- |
 | `data`        | `None`  | Pfad zur Datendatei, z.B. coco128.yaml                                          |
-| `imgsz`       | `640`   | Größe der Eingabebilder als ganzzahlige Zahl                                    |
+| `imgsz`       | `640`   | Größe der Eingabebilder also ganzzahlige Zahl                                    |
 | `batch`       | `16`    | Anzahl der Bilder pro Batch (-1 für AutoBatch)                                  |
 | `save_json`   | `False` | Ergebnisse in JSON-Datei speichern                                              |
 | `save_hybrid` | `False` | hybride Version der Labels speichern (Labels + zusätzliche Vorhersagen)         |
@@ -83,4 +83,5 @@ Validierungseinstellungen für YOLO-Modelle beziehen sich auf verschiedene Hyper
 | `plots`       | `False` | Diagramme während des Trainings anzeigen                                        |
 | `rect`        | `False` | rechteckige Validierung mit jeder Batch-Charge für minimale Polsterung          |
 | `split`       | `val`   | Zu verwendende Daten-Teilmenge für Validierung, z.B. 'val', 'test' oder 'train' |
+
 |

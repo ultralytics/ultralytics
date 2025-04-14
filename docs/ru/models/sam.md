@@ -31,9 +31,9 @@ Segment Anything Model (SAM) - это передовая модель сегме
 В таблице представлены доступные модели с их специфическими заранее обученными весами, поддерживаемыми задачами и их совместимость с различными режимами работы, такими как [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md) и [Export](../modes/export.md), обозначенная символами ✅ для поддерживаемых режимов и символами ❌ для неподдерживаемых режимов.
 
 | Тип модели                         | Заранее обученные веса | Поддерживаемые задачи                       | Inference | Validation | Training | Export |
-|------------------------------------|------------------------|---------------------------------------------|-----------|------------|----------|--------|
-| Базовая версия SAM (SAM base)      | `sam_b.pt`             | [Сегментация объектов](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
-| Расширенная версия SAM (SAM large) | `sam_l.pt`             | [Сегментация объектов](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
+| ---------------------------------- | ---------------------- | ------------------------------------------- | --------- | ---------- | -------- | ------ |
+| Базовая версия SAM (SAM base)      | `sam_b.pt`             | [Сегментация объектов](../tasks/segment.md) | ✅        | ❌         | ❌       | ✅     |
+| Расширенная версия SAM (SAM large) | `sam_l.pt`             | [Сегментация объектов](../tasks/segment.md) | ✅        | ❌         | ❌       | ✅     |
 
 ## Как использовать модель SAM: гибкость и мощность в сегментации изображений
 
@@ -51,16 +51,16 @@ Segment Anything Model (SAM) - это передовая модель сегме
         from ultralytics import SAM
 
         # Загрузка модели
-        model = SAM('sam_b.pt')
+        model = SAM("sam_b.pt")
 
         # Вывод информации о модели (по желанию)
         model.info()
 
         # Выполнение вывода с указанием границы объекта (bboxes prompt)
-        model('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
+        model("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
 
         # Выполнение вывода с указанием точки (points prompt)
-        model('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
+        model("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
         ```
 
 !!! Example "Сегментация всего изображения"
@@ -73,13 +73,13 @@ Segment Anything Model (SAM) - это передовая модель сегме
         from ultralytics import SAM
 
         # Загрузка модели
-        model = SAM('sam_b.pt')
+        model = SAM("sam_b.pt")
 
         # Вывод информации о модели (по желанию)
         model.info()
 
         # Выполнение вывода
-        model('путь/к/изображению.jpg')
+        model("путь/к/изображению.jpg")
         ```
 
     === "CLI"
@@ -101,7 +101,7 @@ Segment Anything Model (SAM) - это передовая модель сегме
         from ultralytics.models.sam import Predictor as SAMPredictor
 
         # Создание SAMPredictor
-        overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="mobile_sam.pt")
         predictor = SAMPredictor(overrides=overrides)
 
         # Установка изображения
@@ -122,7 +122,7 @@ Segment Anything Model (SAM) - это передовая модель сегме
         from ultralytics.models.sam import Predictor as SAMPredictor
 
         # Создание SAMPredictor
-        overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="mobile_sam.pt")
         predictor = SAMPredictor(overrides=overrides)
 
         # Сегментация с дополнительными аргументами
@@ -136,7 +136,7 @@ Segment Anything Model (SAM) - это передовая модель сегме
 Здесь мы сравниваем самую маленькую модель SAM, SAM-b, с самой маленькой моделью сегментации Ultralytics, [YOLOv8n-seg](../tasks/segment.md):
 
 | Модель                                         | Размер                         | Параметры                        | Скорость (CPU)                            |
-|------------------------------------------------|--------------------------------|----------------------------------|-------------------------------------------|
+| ---------------------------------------------- | ------------------------------ | -------------------------------- | ----------------------------------------- |
 | SAM-b                                          | 358 МБ                         | 94.7 млн.                        | 51096 мс/изображение                      |
 | [MobileSAM](mobile-sam.md)                     | 40.7 МБ                        | 10.1 млн.                        | 46122 мс/изображение                      |
 | [FastSAM-s](fast-sam.md) с основой YOLOv8      | 23.7 МБ                        | 11.8 млн.                        | 115 мс/изображение                        |
@@ -150,27 +150,27 @@ Segment Anything Model (SAM) - это передовая модель сегме
 
     === "Python"
         ```python
-        from ultralytics import FastSAM, SAM, YOLO
+        from ultralytics import SAM, YOLO, FastSAM
 
         # Анализ SAM-b
-        model = SAM('sam_b.pt')
+        model = SAM("sam_b.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
 
         # Анализ MobileSAM
-        model = SAM('mobile_sam.pt')
+        model = SAM("mobile_sam.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
 
         # Анализ FastSAM-s
-        model = FastSAM('FastSAM-s.pt')
+        model = FastSAM("FastSAM-s.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
 
         # Анализ YOLOv8n-seg
-        model = YOLO('yolov8n-seg.pt')
+        model = YOLO("yolov8n-seg.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
         ```
 
 ## Авто-аннотация: быстрый путь к наборам данных для сегментации
@@ -187,11 +187,11 @@ Segment Anything Model (SAM) - это передовая модель сегме
         ```python
         from ultralytics.data.annotator import auto_annotate
 
-        auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
+        auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model="sam_b.pt")
         ```
 
 | Аргумент   | Тип                    | Описание                                                                                                     | Значение по умолчанию |
-|------------|------------------------|--------------------------------------------------------------------------------------------------------------|-----------------------|
+| ---------- | ---------------------- | ------------------------------------------------------------------------------------------------------------ | --------------------- |
 | data       | str                    | Путь к папке с изображениями, которые должны быть аннотированы.                                              |                       |
 | det_model  | str, опционально       | Предварительно обученная модель обнаружения YOLO. По умолчанию 'yolov8x.pt'.                                 | 'yolov8x.pt'          |
 | sam_model  | str, опционально       | Предварительно обученная модель сегментации SAM. По умолчанию 'sam_b.pt'.                                    | 'sam_b.pt'            |
@@ -223,4 +223,4 @@ Segment Anything Model (SAM) - это передовая модель сегме
 
 Мы хотели бы выразить свою благодарность компании Meta AI за создание и поддержку этого ценного ресурса для сообщества визуального анализа.
 
-*keywords: Segment Anything, Segment Anything Model, SAM, Meta SAM, сегментация изображений, возможность давать подсказки для выполнения сегментации, производительность с нулевой настройкой, набор данных SA-1B, передовая архитектура, авто-аннотация, Ultralytics, предварительно обученные модели, базовая версия SAM, расширенная версия SAM, сегментация экземпляров, визуальный анализ, искусственный интеллект, машинное обучение, аннотация данных, маски сегментации, модель обнаружения, модель обнаружения YOLOv8, библиографическая ссылка, Meta AI.*
+_keywords: Segment Anything, Segment Anything Model, SAM, Meta SAM, сегментация изображений, возможность давать подсказки для выполнения сегментации, производительность с нулевой настройкой, набор данных SA-1B, передовая архитектура, авто-аннотация, Ultralytics, предварительно обученные модели, базовая версия SAM, расширенная версия SAM, сегментация экземпляров, визуальный анализ, искусственный интеллект, машинное обучение, аннотация данных, маски сегментации, модель обнаружения, модель обнаружения YOLOv8, библиографическая ссылка, Meta AI._

@@ -33,7 +33,7 @@ Ultralytics commands use the following syntax:
         from ultralytics import YOLO
 
         # Load a YOLOv8 model from a pre-trained weights file
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Run MODE mode using the custom arguments ARGS (guess TASK)
         model.MODE(ARGS)
@@ -57,7 +57,7 @@ YOLO models can be used for a variety of tasks, including detection, segmentatio
 **Pose**: For identifying objects and estimating their keypoints in an image or video.
 
 | Key    | Value      | Description                                     |
-|--------|------------|-------------------------------------------------|
+| ------ | ---------- | ----------------------------------------------- |
 | `task` | `'detect'` | YOLO task, i.e. detect, segment, classify, pose |
 
 [Tasks Guide](../tasks/index.md){ .md-button }
@@ -74,7 +74,7 @@ YOLO models can be used in different modes depending on the specific problem you
 **Benchmark**: For benchmarking YOLOv8 exports (ONNX, TensorRT, etc.) speed and accuracy.
 
 | Key    | Value     | Description                                                   |
-|--------|-----------|---------------------------------------------------------------|
+| ------ | --------- | ------------------------------------------------------------- |
 | `mode` | `'train'` | YOLO mode, i.e. train, val, predict, export, track, benchmark |
 
 [Modes Guide](../modes/index.md){ .md-button }
@@ -84,7 +84,7 @@ YOLO models can be used in different modes depending on the specific problem you
 The training settings for YOLO models encompass various hyperparameters and configurations used during the training process. These settings influence the model's performance, speed, and accuracy. Key training settings include batch size, learning rate, momentum, and weight decay. Additionally, the choice of optimizer, loss function, and training dataset composition can impact the training process. Careful tuning and experimentation with these settings are crucial for optimizing performance.
 
 | Key               | Value    | Description                                                                                    |
-|-------------------|----------|------------------------------------------------------------------------------------------------|
+| ----------------- | -------- | ---------------------------------------------------------------------------------------------- |
 | `model`           | `None`   | path to model file, i.e. yolov8n.pt, yolov8n.yaml                                              |
 | `data`            | `None`   | path to data file, i.e. coco128.yaml                                                           |
 | `epochs`          | `100`    | number of epochs to train for                                                                  |
@@ -115,7 +115,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `profile`         | `False`  | profile ONNX and TensorRT speeds during training for loggers                                   |
 | `freeze`          | `None`   | (int or list, optional) freeze first n layers, or freeze list of layer indices during training |
 | `lr0`             | `0.01`   | initial learning rate (i.e. SGD=1E-2, Adam=1E-3)                                               |
-| `lrf`             | `0.01`   | final learning rate (lr0 * lrf)                                                                |
+| `lrf`             | `0.01`   | final learning rate (lr0 \* lrf)                                                               |
 | `momentum`        | `0.937`  | SGD momentum/Adam beta1                                                                        |
 | `weight_decay`    | `0.0005` | optimizer weight decay 5e-4                                                                    |
 | `warmup_epochs`   | `3.0`    | warmup epochs (fractions ok)                                                                   |
@@ -143,7 +143,7 @@ The prediction settings for YOLO models encompass a range of hyperparameters and
 Inference arguments:
 
 | Name            | Type           | Default                | Description                                                                |
-|-----------------|----------------|------------------------|----------------------------------------------------------------------------|
+| --------------- | -------------- | ---------------------- | -------------------------------------------------------------------------- |
 | `source`        | `str`          | `'ultralytics/assets'` | source directory for images or videos                                      |
 | `conf`          | `float`        | `0.25`                 | object confidence threshold for detection                                  |
 | `iou`           | `float`        | `0.7`                  | intersection over union (IoU) threshold for NMS                            |
@@ -163,7 +163,7 @@ Inference arguments:
 Visualization arguments:
 
 | Name          | Type          | Default | Description                                                     |
-|---------------|---------------|---------|-----------------------------------------------------------------|
+| ------------- | ------------- | ------- | --------------------------------------------------------------- |
 | `show`        | `bool`        | `False` | show predicted images and videos if environment allows          |
 | `save`        | `bool`        | `False` | save predicted images and videos                                |
 | `save_frames` | `bool`        | `False` | save predicted individual video frames                          |
@@ -182,7 +182,7 @@ Visualization arguments:
 The val (validation) settings for YOLO models involve various hyperparameters and configurations used to evaluate the model's performance on a validation dataset. These settings influence the model's performance, speed, and accuracy. Common YOLO validation settings include batch size, validation frequency during training, and performance evaluation metrics. Other factors affecting the validation process include the validation dataset's size and composition, as well as the specific task the model is employed for. Careful tuning and experimentation with these settings are crucial to ensure optimal performance on the validation dataset and detect and prevent overfitting.
 
 | Key           | Value   | Description                                                        |
-|---------------|---------|--------------------------------------------------------------------|
+| ------------- | ------- | ------------------------------------------------------------------ |
 | `data`        | `None`  | path to data file, i.e. coco128.yaml                               |
 | `imgsz`       | `640`   | size of input images as integer                                    |
 | `batch`       | `16`    | number of images per batch (-1 for AutoBatch)                      |
@@ -205,7 +205,7 @@ The val (validation) settings for YOLO models involve various hyperparameters an
 Export settings for YOLO models encompass configurations and options related to saving or exporting the model for use in different environments or platforms. These settings can impact the model's performance, size, and compatibility with various systems. Key export settings include the exported model file format (e.g., ONNX, TensorFlow SavedModel), the target device (e.g., CPU, GPU), and additional features such as masks or multiple labels per box. The export process may also be affected by the model's specific task and the requirements or constraints of the destination environment or platform. It is crucial to thoughtfully configure these settings to ensure the exported model is optimized for the intended use case and functions effectively in the target environment.
 
 | Key         | Value           | Description                                          |
-|-------------|-----------------|------------------------------------------------------|
+| ----------- | --------------- | ---------------------------------------------------- |
 | `format`    | `'torchscript'` | format to export to                                  |
 | `imgsz`     | `640`           | image size as scalar or (h, w) list, i.e. (640, 480) |
 | `keras`     | `False`         | use Keras for TF SavedModel export                   |
@@ -225,7 +225,7 @@ Export settings for YOLO models encompass configurations and options related to 
 Augmentation settings for YOLO models refer to the various transformations and modifications applied to the training data to increase the diversity and size of the dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO augmentation settings include the type and intensity of the transformations applied (e.g. random flips, rotations, cropping, color changes), the probability with which each transformation is applied, and the presence of additional features such as masks or multiple labels per box. Other factors that may affect the augmentation process include the size and composition of the original dataset and the specific task the model is being used for. It is important to carefully tune and experiment with these settings to ensure that the augmented dataset is diverse and representative enough to train a high-performing model.
 
 | Key           | Value   | Description                                     |
-|---------------|---------|-------------------------------------------------|
+| ------------- | ------- | ----------------------------------------------- |
 | `hsv_h`       | `0.015` | image HSV-Hue augmentation (fraction)           |
 | `hsv_s`       | `0.7`   | image HSV-Saturation augmentation (fraction)    |
 | `hsv_v`       | `0.4`   | image HSV-Value augmentation (fraction)         |
@@ -252,7 +252,7 @@ Logging, checkpoints, plotting, and file management are important considerations
 Effective logging, checkpointing, plotting, and file management can help you keep track of the model's progress and make it easier to debug and optimize the training process.
 
 | Key        | Value    | Description                                                                                    |
-|------------|----------|------------------------------------------------------------------------------------------------|
+| ---------- | -------- | ---------------------------------------------------------------------------------------------- |
 | `project`  | `'runs'` | project name                                                                                   |
 | `name`     | `'exp'`  | experiment name. `exp` gets automatically incremented if not specified, i.e, `exp`, `exp2` ... |
 | `exist_ok` | `False`  | whether to overwrite existing experiment                                                       |

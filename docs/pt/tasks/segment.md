@@ -10,7 +10,7 @@ keywords: yolov8, segmentação de instâncias, Ultralytics, conjunto de dados C
 
 A segmentação de instâncias vai além da detecção de objetos e envolve a identificação de objetos individuais em uma imagem e a sua segmentação do resto da imagem.
 
-A saída de um modelo de segmentação de instâncias é um conjunto de máscaras ou contornos que delineiam cada objeto na imagem, juntamente com rótulos de classe e pontuações de confiança para cada objeto. A segmentação de instâncias é útil quando você precisa saber não apenas onde os objetos estão em uma imagem, mas também qual é a forma exata deles.
+A saída de um modelo de segmentação de instâncias é um conjunto de máscaras ou contornos que delineiam cada objeto na imagem, juntamente com rótulos de classe e pontuações de confiança para cada objeto. A segmentação de instâncias é útil quando você precisa saber não apenas onde os objetos estão em uma imagem, mas também qual é a forma exacta deles.
 
 <p align="center">
   <br>
@@ -34,7 +34,7 @@ Os modelos Segment pré-treinados do YOLOv8 estão mostrados aqui. Os modelos De
 [Modelos](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) são baixados automaticamente do último lançamento da Ultralytics [release](https://github.com/ultralytics/assets/releases) na primeira utilização.
 
 | Modelo                                                                                       | Tamanho<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>máscara<br>50-95 | Velocidade<br><sup>CPU ONNX<br>(ms) | Velocidade<br><sup>A100 TensorRT<br>(ms) | Parâmetros<br><sup>(M) | FLOPs<br><sup>(B) |
-|----------------------------------------------------------------------------------------------|--------------------------|----------------------|--------------------------|-------------------------------------|------------------------------------------|------------------------|-------------------|
+| -------------------------------------------------------------------------------------------- | ------------------------ | -------------------- | ------------------------ | ----------------------------------- | ---------------------------------------- | ---------------------- | ----------------- |
 | [YOLOv8n-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-seg.pt) | 640                      | 36.7                 | 30.5                     | 96.1                                | 1.21                                     | 3.4                    | 12.6              |
 | [YOLOv8s-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-seg.pt) | 640                      | 44.6                 | 36.8                     | 155.7                               | 1.47                                     | 11.8                   | 42.6              |
 | [YOLOv8m-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt) | 640                      | 49.9                 | 40.8                     | 317.0                               | 2.18                                     | 27.3                   | 110.2             |
@@ -48,7 +48,7 @@ Os modelos Segment pré-treinados do YOLOv8 estão mostrados aqui. Os modelos De
 
 ## Treinar
 
-Treine o modelo YOLOv8n-seg no conjunto de dados COCO128-seg por 100 épocas com tamanho de imagem 640. Para uma lista completa de argumentos disponíveis, consulte a página [Configuração](/../usage/cfg.md).
+Treine o modelo YOLOv8n-seg no conjunto de dados COCO128-seg por 100 épocas com tamanho de imagem 640. Para uma lista completa de arguments disponíveis, consulte a página [Configuração](/../usage/cfg.md).
 
 !!! Example "Exemplo"
 
@@ -58,12 +58,12 @@ Treine o modelo YOLOv8n-seg no conjunto de dados COCO128-seg por 100 épocas com
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n-seg.yaml')  # construir um novo modelo a partir do YAML
-        model = YOLO('yolov8n-seg.pt')  # carregar um modelo pré-treinado (recomendado para treinamento)
-        model = YOLO('yolov8n-seg.yaml').load('yolov8n.pt')  # construir a partir do YAML e transferir os pesos
+        model = YOLO("yolov8n-seg.yaml")  # construir um novo modelo a partir do YAML
+        model = YOLO("yolov8n-seg.pt")  # carregar um modelo pré-treinado (recomendado para treinamento)
+        model = YOLO("yolov8n-seg.yaml").load("yolov8n.pt")  # construir a partir do YAML e transferir os pesos
 
         # Treinar o modelo
-        results = model.train(data='coco128-seg.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco128-seg.yaml", epochs=100, imgsz=640)
         ```
     === "CLI"
 
@@ -80,11 +80,11 @@ Treine o modelo YOLOv8n-seg no conjunto de dados COCO128-seg por 100 épocas com
 
 ### Formato do conjunto de dados
 
-O formato do conjunto de dados de segmentação YOLO pode ser encontrado em detalhes no [Guia de Conjuntos de Dados](../../../datasets/segment/index.md). Para converter seu conjunto de dados existente de outros formatos (como COCO etc.) para o formato YOLO, utilize a ferramenta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) da Ultralytics.
+O formato do conjunto de dados de segmentação YOLO pode set encontrado em detalhes no [Guia de Conjuntos de Dados](../../../datasets/segment/index.md). Para converter seu conjunto de dados existente de outros formatos (como COCO etc.) para o formato YOLO, utilize a ferramenta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) da Ultralytics.
 
 ## Val
 
-Valide a acurácia do modelo YOLOv8n-seg treinado no conjunto de dados COCO128-seg. Não é necessário passar nenhum argumento, pois o `modelo` retém seus `dados` de treino e argumentos como atributos do modelo.
+Valid a acurácia do modelo YOLOv8n-seg treinado no conjunto de dados COCO128-seg. Não é necessário passar nenhum argumento, pois o `modelo` retém seus `dados` de treino e arguments como atributos do modelo.
 
 !!! Example "Exemplo"
 
@@ -94,25 +94,25 @@ Valide a acurácia do modelo YOLOv8n-seg treinado no conjunto de dados COCO128-s
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n-seg.pt')  # carregar um modelo oficial
-        model = YOLO('path/to/best.pt')  # carregar um modelo personalizado
+        model = YOLO("yolov8n-seg.pt")  # carregar um modelo official
+        model = YOLO("path/to/best.pt")  # carregar um modelo personalizado
 
         # Validar o modelo
-        metrics = model.val()  # sem necessidade de argumentos, conjunto de dados e configurações são lembrados
-        metrics.box.map    # map50-95(B)
+        metrics = model.val()  # sem necessidade de arguments, conjunto de dados e configurações são lembrados
+        metrics.box.map  # map50-95(B)
         metrics.box.map50  # map50(B)
         metrics.box.map75  # map75(B)
-        metrics.box.maps   # uma lista contendo map50-95(B) de cada categoria
-        metrics.seg.map    # map50-95(M)
+        metrics.box.maps  # uma lista contendo map50-95(B) de cada categoria
+        metrics.seg.map  # map50-95(M)
         metrics.seg.map50  # map50(M)
         metrics.seg.map75  # map75(M)
-        metrics.seg.maps   # uma lista contendo map50-95(M) de cada categoria
+        metrics.seg.maps  # uma lista contendo map50-95(M) de cada categoria
         ```
     === "CLI"
 
         ```bash
-        yolo segment val model=yolov8n-seg.pt  # val modelo oficial
-        yolo segment val model=path/to/best.pt  # val modelo personalizado
+        yolo segment val model=yolov8n-seg.pt  # val modelo official
+        yolo segment val model=path/to/best.pt # val modelo personalizado
         ```
 
 ## Prever
@@ -127,17 +127,17 @@ Use um modelo YOLOv8n-seg treinado para realizar previsões em imagens.
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n-seg.pt')  # carregar um modelo oficial
-        model = YOLO('path/to/best.pt')  # carregar um modelo personalizado
+        model = YOLO("yolov8n-seg.pt")  # carregar um modelo official
+        model = YOLO("path/to/best.pt")  # carregar um modelo personalizado
 
         # Realizar previsão com o modelo
-        results = model('https://ultralytics.com/images/bus.jpg')  # prever em uma imagem
+        results = model("https://ultralytics.com/images/bus.jpg")  # prever em uma imagem
         ```
     === "CLI"
 
         ```bash
-        yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # previsão com modelo oficial
-        yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # previsão com modelo personalizado
+        yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # previsão com modelo official
+        yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg' # previsão com modelo personalizado
         ```
 
 Veja detalhes completos do modo `predict` na página [Prever](https://docs.ultralytics.com/modes/predict/).
@@ -154,35 +154,35 @@ Exporte um modelo YOLOv8n-seg para um formato diferente como ONNX, CoreML, etc.
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n-seg.pt')  # carregar um modelo oficial
-        model = YOLO('path/to/best.pt')  # carregar um modelo treinado personalizado
+        model = YOLO("yolov8n-seg.pt")  # carregar um modelo official
+        model = YOLO("path/to/best.pt")  # carregar um modelo treinado personalizado
 
         # Exportar o modelo
-        model.export(format='onnx')
+        model.export(format="onnx")
         ```
     === "CLI"
 
         ```bash
-        yolo export model=yolov8n-seg.pt format=onnx  # exportar modelo oficial
-        yolo export model=path/to/best.pt format=onnx  # exportar modelo treinado personalizado
+        yolo export model=yolov8n-seg.pt format=onnx  # exportar modelo official
+        yolo export model=path/to/best.pt format=onnx # exportar modelo treinado personalizado
         ```
 
 Os formatos de exportação disponíveis para YOLOv8-seg estão na tabela abaixo. Você pode prever ou validar diretamente em modelos exportados, ou seja, `yolo predict model=yolov8n-seg.onnx`. Exemplos de uso são mostrados para o seu modelo após a conclusão da exportação.
 
-| Formato                                                            | Argumento `format` | Modelo                        | Metadados | Argumentos                                          |
-|--------------------------------------------------------------------|--------------------|-------------------------------|-----------|-----------------------------------------------------|
-| [PyTorch](https://pytorch.org/)                                    | -                  | `yolov8n-seg.pt`              | ✅         | -                                                   |
-| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`      | `yolov8n-seg.torchscript`     | ✅         | `imgsz`, `optimize`                                 |
-| [ONNX](https://onnx.ai/)                                           | `onnx`             | `yolov8n-seg.onnx`            | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
-| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`         | `yolov8n-seg_openvino_model/` | ✅         | `imgsz`, `half`                                     |
-| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`           | `yolov8n-seg.engine`          | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`           | `yolov8n-seg.mlpackage`       | ✅         | `imgsz`, `half`, `int8`, `nms`                      |
-| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`      | `yolov8n-seg_saved_model/`    | ✅         | `imgsz`, `keras`                                    |
-| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`               | `yolov8n-seg.pb`              | ❌         | `imgsz`                                             |
-| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`           | `yolov8n-seg.tflite`          | ✅         | `imgsz`, `half`, `int8`                             |
-| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`          | `yolov8n-seg_edgetpu.tflite`  | ✅         | `imgsz`                                             |
-| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`             | `yolov8n-seg_web_model/`      | ✅         | `imgsz`                                             |
-| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`           | `yolov8n-seg_paddle_model/`   | ✅         | `imgsz`                                             |
-| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`             | `yolov8n-seg_ncnn_model/`     | ✅         | `imgsz`, `half`                                     |
+| Formato                                                            | Argumento `format` | Modelo                        | Metadados | Arguments                                          |
+| ------------------------------------------------------------------ | ------------------ | ----------------------------- | --------- | --------------------------------------------------- |
+| [PyTorch](https://pytorch.org/)                                    | -                  | `yolov8n-seg.pt`              | ✅        | -                                                   |
+| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`      | `yolov8n-seg.torchscript`     | ✅        | `imgsz`, `optimize`                                 |
+| [ONNX](https://onnx.ai/)                                           | `onnx`             | `yolov8n-seg.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
+| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`         | `yolov8n-seg_openvino_model/` | ✅        | `imgsz`, `half`                                     |
+| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`           | `yolov8n-seg.engine`          | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
+| [CoreML](https://github.com/apple/coremltools)                     | `coreml`           | `yolov8n-seg.mlpackage`       | ✅        | `imgsz`, `half`, `int8`, `nms`                      |
+| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`      | `yolov8n-seg_saved_model/`    | ✅        | `imgsz`, `keras`                                    |
+| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`               | `yolov8n-seg.pb`              | ❌        | `imgsz`                                             |
+| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`           | `yolov8n-seg.tflite`          | ✅        | `imgsz`, `half`, `int8`                             |
+| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`          | `yolov8n-seg_edgetpu.tflite`  | ✅        | `imgsz`                                             |
+| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`             | `yolov8n-seg_web_model/`      | ✅        | `imgsz`                                             |
+| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`           | `yolov8n-seg_paddle_model/`   | ✅        | `imgsz`                                             |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`             | `yolov8n-seg_ncnn_model/`     | ✅        | `imgsz`, `half`                                     |
 
 Veja detalhes completos da `exportação` na página [Exportar](https://docs.ultralytics.com/modes/export/).

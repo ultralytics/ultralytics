@@ -11,7 +11,7 @@ keywords: YOLO-NAS, Deci AI, object detection, deep learning, neural architectur
 डेसी एआई द्वारा विकसित YOLO-NAS एक महत्वपूर्ण वस्तु पहचान मूलभूत मॉडल है। यह पिछले YOLO मॉडलों की सीमाओं का समाधान करने के लिए मानकर्मशास्त्रीय संरचना खोज प्रौद्योगिकी का उत्पाद है। क्वांटाइज़ेशन समर्थन और सटीकता-लेटेंसी विनिमय में काफी सुधार के साथ, YOLO-NAS वस्तु पहचान में एक महत्वपूर्ण आगे की लड़ाई प्रस्तुत करता है।
 
 ![मॉडल उदाहरण छवि](https://learnopencv.com/wp-content/uploads/2023/05/yolo-nas_COCO_map_metrics.png)
-**YOLO-NAS का अवलोकन।**  YOLO-NAS आपेक्षिकता के लिए ब्लॉक्स और वैकल्पिक क्वांटाइज़ेशन के साथ क्वांटाइज़ेशन योग्य ब्लॉक का उपयोग करता है। मॉडल को INT8 क्वांटाइज़ेशन में रूपांतरित किया जाने पर, अन्य मॉडलों की तुलना में केवल थोड़ी सी सटीकता नुकसान होती है। ये उन्नति सभी विकसित विशेषताओं द्वारा योग्यतापूर्वक वस्तु पहचान क्षमताओं और अद्वितीय प्रदर्शन में समाप्त होती है।
+**YOLO-NAS का अवलोकन।** YOLO-NAS आपेक्षिकता के लिए ब्लॉक्स और वैकल्पिक क्वांटाइज़ेशन के साथ क्वांटाइज़ेशन योग्य ब्लॉक का उपयोग करता है। मॉडल को INT8 क्वांटाइज़ेशन में रूपांतरित किया जाने पर, अन्य मॉडलों की तुलना में केवल थोड़ी सी सटीकता नुकसान होती है। ये उन्नति सभी विकसित विशेषताओं द्वारा योग्यतापूर्वक वस्तु पहचान क्षमताओं और अद्वितीय प्रदर्शन में समाप्त होती है।
 
 ### मुख्य विशेषताएँ
 
@@ -24,7 +24,7 @@ keywords: YOLO-NAS, Deci AI, object detection, deep learning, neural architectur
 Ultralytics द्वारा प्रदान की गई प्री-प्रशित YOLO-NAS मॉडल के साथ आगामी पीढ़ी की वस्तु पहचान की शक्ति का अनुभव करें। ये मॉडल स्पीड और सटीकता दोनों में उत्कृष्ट प्रदर्शन करने के लिए डिज़ाइन किए गए हैं। अपनी विशिष्ट आवश्यकताओं के लिए विभिन्न विकल्पों में से चुनें:
 
 | मॉडल             | mAP   | लेटेंसी (मिलीसेकंड) |
-|------------------|-------|---------------------|
+| ---------------- | ----- | ------------------- |
 | YOLO-NAS S       | 47.5  | 3.21                |
 | YOLO-NAS M       | 51.55 | 5.85                |
 | YOLO-NAS L       | 52.22 | 7.87                |
@@ -56,16 +56,16 @@ Ultralytics ने YOLO-NAS मॉडलों को आपके Python ऐप
         from ultralytics import NAS
 
         # COCO-pretrained YOLO-NAS-s मॉडल लोड करें
-        model = NAS('yolo_nas_s.pt')
+        model = NAS("yolo_nas_s.pt")
 
         # मॉडल की जानकारी दिखाएँ (वैकल्पिक)
         model.info()
 
         # COCO8 उदाहरण डेटासेट पर मॉडल की मान्यता करें
-        results = model.val(data='coco8.yaml')
+        results = model.val(data="coco8.yaml")
 
         # 'bus.jpg' छवि पर YOLO-NAS-s मॉडल के साथ पहचान चलाएं
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -91,10 +91,10 @@ Ultralytics ने YOLO-NAS मॉडलों को आपके Python ऐप
 नीचे प्रत्येक मॉडल के बारे में एक विस्तृत अवलोकन दिया गया है, जिसमें उनकी प्री-प्रशित वेट, ये कार्य समर्थित करते हैं, और इनकी आपरेटिंग मोड के साथ उनका संगतता शामिल है।
 
 | मॉडल प्रकार | प्री-प्रशित वेट                                                                               | समर्थित कार्य                     | पहचान | मान्यता | प्रशिक्षण | निर्यात |
-|-------------|-----------------------------------------------------------------------------------------------|-----------------------------------|-------|---------|-----------|---------|
-| YOLO-NAS-s  | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [वस्तु पहचान](../tasks/detect.md) | ✅     | ✅       | ❌         | ✅       |
-| YOLO-NAS-m  | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [वस्तु पहचान](../tasks/detect.md) | ✅     | ✅       | ❌         | ✅       |
-| YOLO-NAS-l  | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [वस्तु पहचान](../tasks/detect.md) | ✅     | ✅       | ❌         | ✅       |
+| ----------- | --------------------------------------------------------------------------------------------- | --------------------------------- | ----- | ------- | --------- | ------- |
+| YOLO-NAS-s  | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [वस्तु पहचान](../tasks/detect.md) | ✅    | ✅      | ❌        | ✅      |
+| YOLO-NAS-m  | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [वस्तु पहचान](../tasks/detect.md) | ✅    | ✅      | ❌        | ✅      |
+| YOLO-NAS-l  | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [वस्तु पहचान](../tasks/detect.md) | ✅    | ✅      | ❌        | ✅      |
 
 ## उद्धरण और प्रशंसापत्र
 

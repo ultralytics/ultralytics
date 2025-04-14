@@ -59,8 +59,8 @@ Ultralyticsはpip、conda、Dockerを含むさまざまなインストール方�
         sudo docker pull $t
 
         # すべてのGPUを持つコンテナでultralyticsイメージを実行
-        sudo docker run -it --ipc=host --gpus all $t  # すべてのGPU
-        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # GPUを指定
+        sudo docker run -it --ipc=host --gpus all $t            # すべてのGPU
+        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t # GPUを指定
         ```
 
     === "Gitクローン"
@@ -109,9 +109,9 @@ Ultralyticsコマンドラインインターフェース（CLI）を使用する
         ```bash
         yolo TASK MODE ARGS
 
-        ここで  TASK（オプション）は[detect, segment, classify]のうちの1つ
-                MODE（必須）は[train, val, predict, export, track]のうちの1つ
-                ARGS（オプション）はデフォルトを上書きする任意の数のカスタム'arg=value'ペアです。
+        ここで TASK（オプション）は[detect, segment, classify]のうちの1つ
+        MODE（必須）は[train, val, predict, export, track]のうちの1つ
+        ARGS（オプション）はデフォルトを上書きする任意の数のカスタム'arg=value'ペアです。
         ```
         full [Configuration Guide](/../usage/cfg.md)または`yolo cfg`で全てのARGSを確認してください
 
@@ -177,22 +177,22 @@ YOLOv8のPythonインターフェースを使用すると、Pythonプロジェ�
     from ultralytics import YOLO
 
     # スクラッチから新しいYOLOモデルを作成
-    model = YOLO('yolov8n.yaml')
+    model = YOLO("yolov8n.yaml")
 
     # 事前トレーニドされたYOLOモデルをロード（トレーニングに推奨）
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # 'coco128.yaml'データセットを使用して3エポックでモデルをトレーニング
-    results = model.train(data='coco128.yaml', epochs=3)
+    results = model.train(data="coco128.yaml", epochs=3)
 
     # モデルのパフォーマンスを検証セットで評価
     results = model.val()
 
     # モデルを使用して画像で物体検出を実行
-    results = model('https://ultralytics.com/images/bus.jpg')
+    results = model("https://ultralytics.com/images/bus.jpg")
 
     # モデルをONNX形式にエクスポート
-    success = model.export(format='onnx')
+    success = model.export(format="onnx")
     ```
 
 [Pythonガイド](/../usage/python.md){.md-button .md-button--primary}

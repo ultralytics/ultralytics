@@ -23,14 +23,14 @@ keywords: YOLO-NAS, Deci AI, 物体检测, 深度学习, 神经架构搜索, Ult
 
 通过Ultralytics提供的预训练YOLO-NAS模型，体验下一代物体检测的强大功能。这些模型旨在在速度和准确性方面提供出色的性能。根据您的需求，可以选择各种选项：
 
-| 模型               | mAP   | 延迟（ms） |
-|------------------|-------|--------|
-| YOLO-NAS S       | 47.5  | 3.21   |
-| YOLO-NAS M       | 51.55 | 5.85   |
-| YOLO-NAS L       | 52.22 | 7.87   |
-| YOLO-NAS S INT-8 | 47.03 | 2.36   |
-| YOLO-NAS M INT-8 | 51.0  | 3.78   |
-| YOLO-NAS L INT-8 | 52.1  | 4.78   |
+| 模型             | mAP   | 延迟（ms） |
+| ---------------- | ----- | ---------- |
+| YOLO-NAS S       | 47.5  | 3.21       |
+| YOLO-NAS M       | 51.55 | 5.85       |
+| YOLO-NAS L       | 52.22 | 7.87       |
+| YOLO-NAS S INT-8 | 47.03 | 2.36       |
+| YOLO-NAS M INT-8 | 51.0  | 3.78       |
+| YOLO-NAS L INT-8 | 52.1  | 4.78       |
 
 每个模型变体均旨在在均衡平均精度（mAP）和延迟之间提供平衡，帮助您为性能和速度都进行优化的物体检测任务。
 
@@ -56,16 +56,16 @@ keywords: YOLO-NAS, Deci AI, 物体检测, 深度学习, 神经架构搜索, Ult
         from ultralytics import NAS
 
         # 加载一个在COCO上预训练的YOLO-NAS-s模型
-        model = NAS('yolo_nas_s.pt')
+        model = NAS("yolo_nas_s.pt")
 
         # 显示模型信息（可选）
         model.info()
 
         # 在COCO8示例数据集上验证模型
-        results = model.val(data='coco8.yaml')
+        results = model.val(data="coco8.yaml")
 
         # 使用YOLO-NAS-s模型对'bus.jpg'图像进行推理
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -90,11 +90,11 @@ keywords: YOLO-NAS, Deci AI, 物体检测, 深度学习, 神经架构搜索, Ult
 
 下面是每个模型的详细信息，包括它们的预训练权重链接、支持的任务以及与不同操作模式的兼容性。
 
-| 模型类型       | 预训练权重链接                                                                                       | 支持的任务                      | 推理 | 验证 | 训练 | 导出 |
-|------------|-----------------------------------------------------------------------------------------------|----------------------------|----|----|----|----|
-| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [物体检测](../tasks/detect.md) | ✅  | ✅  | ❌  | ✅  |
-| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [物体检测](../tasks/detect.md) | ✅  | ✅  | ❌  | ✅  |
-| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [物体检测](../tasks/detect.md) | ✅  | ✅  | ❌  | ✅  |
+| 模型类型   | 预训练权重链接                                                                                | 支持的任务                     | 推理 | 验证 | 训练 | 导出 |
+| ---------- | --------------------------------------------------------------------------------------------- | ------------------------------ | ---- | ---- | ---- | ---- |
+| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [物体检测](../tasks/detect.md) | ✅   | ✅   | ❌   | ✅   |
+| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [物体检测](../tasks/detect.md) | ✅   | ✅   | ❌   | ✅   |
+| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [物体检测](../tasks/detect.md) | ✅   | ✅   | ❌   | ✅   |
 
 ## 引用和致谢
 
@@ -118,4 +118,4 @@ keywords: YOLO-NAS, Deci AI, 物体检测, 深度学习, 神经架构搜索, Ult
 
 我们向Deci AI的[SuperGradients](https://github.com/Deci-AI/super-gradients/)团队表示感谢，他们致力于创建和维护这个对计算机视觉社区非常有价值的资源。我们相信YOLO-NAS凭借其创新的架构和卓越的物体检测能力，将成为开发者和研究人员的重要工具。
 
-*keywords: YOLO-NAS, Deci AI, 物体检测, 深度学习, 神经架构搜索, Ultralytics Python API, YOLO模型, SuperGradients, 预训练模型, 量化友好基本块, 高级训练方案, 训练后量化, AutoNAC优化, COCO, Objects365, Roboflow 100*
+_keywords: YOLO-NAS, Deci AI, 物体检测, 深度学习, 神经架构搜索, Ultralytics Python API, YOLO模型, SuperGradients, 预训练模型, 量化友好基本块, 高级训练方案, 训练后量化, AutoNAC优化, COCO, Objects365, Roboflow 100_

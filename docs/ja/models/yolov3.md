@@ -32,11 +32,11 @@ YOLOv3シリーズ、YOLOv3、YOLOv3-Ultralytics、およびYOLOv3uは、オブ�
 
 3つのモデルは[推論](../modes/predict.md)、[検証](../modes/val.md)、[トレーニング](../modes/train.md)、および[エクスポート](../modes/export.md)など、幅広いモードをサポートしており、効果的なオブジェクト検出のための完全なツールキットを提供します。
 
-| モデルの種類             | サポートされるタスク                     | 推論 | 検証 | トレーニング | エクスポート |
-|--------------------|--------------------------------|----|----|--------|--------|
-| YOLOv3             | [オブジェクト検出](../tasks/detect.md) | ✅  | ✅  | ✅      | ✅      |
-| YOLOv3-Ultralytics | [オブジェクト検出](../tasks/detect.md) | ✅  | ✅  | ✅      | ✅      |
-| YOLOv3u            | [オブジェクト検出](../tasks/detect.md) | ✅  | ✅  | ✅      | ✅      |
+| モデルの種類       | サポートされるタスク                   | 推論 | 検証 | トレーニング | エクスポート |
+| ------------------ | -------------------------------------- | ---- | ---- | ------------ | ------------ |
+| YOLOv3             | [オブジェクト検出](../tasks/detect.md) | ✅   | ✅   | ✅           | ✅           |
+| YOLOv3-Ultralytics | [オブジェクト検出](../tasks/detect.md) | ✅   | ✅   | ✅           | ✅           |
+| YOLOv3u            | [オブジェクト検出](../tasks/detect.md) | ✅   | ✅   | ✅           | ✅           |
 
 この表は、各YOLOv3バリアントの機能を一目で把握するためのもので、オブジェクト検出ワークフローのさまざまなタスクと操作モードに対する多様性と適用性を強調しています。
 
@@ -54,16 +54,16 @@ YOLOv3シリーズ、YOLOv3、YOLOv3-Ultralytics、およびYOLOv3uは、オブ�
         from ultralytics import YOLO
 
         # COCOで学習済みのYOLOv3nモデルをロード
-        model = YOLO('yolov3n.pt')
+        model = YOLO("yolov3n.pt")
 
         # モデル情報の表示（任意）
         model.info()
 
         # COCO8のサンプルデータセットでモデルを100エポックトレーニング
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # YOLOv3nモデルで'bus.jpg'画像に対して推論実行
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

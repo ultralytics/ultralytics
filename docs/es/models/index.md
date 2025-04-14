@@ -10,7 +10,7 @@ keywords: Ultralytics, documentación, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, 
 
 !!! Note "Nota"
 
-    🚧 Estamos trabajando arduamente para mejorar nuestra documentación en varios idiomas actualmente en construcción. ¡Gracias por tu paciencia! 🙏
+    🚧 Estamos trabajando arduamente para mejorar nuestra documentación en various idiomas actualmente en construcción. ¡Gracias por tu paciencia! 🙏
 
 ## Modelos destacados
 
@@ -55,21 +55,21 @@ Nota que el siguiente ejemplo es para los modelos YOLOv8 [Detect](../tasks/detec
         from ultralytics import YOLO
 
         # Cargar un modelo YOLOv8n preentrenado en COCO
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Mostrar información del modelo (opcional)
         model.info()
 
         # Entrenar el modelo en el conjunto de datos de ejemplo COCO8 durante 100 épocas
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Ejecutar inferencia con el modelo YOLOv8n en la imagen 'bus.jpg'
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
 
-        Los comandos CLI están disponibles para ejecutar directamente los modelos:
+        Los commandos CLI están disponibles para ejecutar directamente los modelos:
 
         ```bash
         # Cargar un modelo YOLOv8n preentrenado en COCO y entrenarlo en el conjunto de datos de ejemplo COCO8 durante 100 épocas

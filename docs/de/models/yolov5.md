@@ -8,7 +8,7 @@ keywords: YOLOv5u, Objekterkennung, vorab trainierte Modelle, Ultralytics, Infer
 
 ## Übersicht
 
-YOLOv5u steht für eine Weiterentwicklung der Methoden zur Objekterkennung. Basierend auf der grundlegenden Architektur des von Ultralytics entwickelten YOLOv5-Modells integriert YOLOv5u den ankerfreien, objektlosen Split-Kopf, ein Feature, das zuvor in den YOLOv8-Modellen eingeführt wurde. Diese Anpassung verfeinert die Architektur des Modells und führt zu einem optimierten Verhältnis von Genauigkeit und Geschwindigkeit bei der Objekterkennung. Basierend auf den empirischen Ergebnissen und den abgeleiteten Features bietet YOLOv5u eine effiziente Alternative für diejenigen, die robuste Lösungen sowohl in der Forschung als auch in praktischen Anwendungen suchen.
+YOLOv5u steht für eine Weiterentwicklung der Methods zur Objekterkennung. Basierend auf der grundlegenden Architektur des von Ultralytics entwickelten YOLOv5-Models integriert YOLOv5u den ankerfreien, objektlosen Split-Kopf, ein Feature, das zuvor in den YOLOv8-Modellen eingeführt wurde. Diese Anpassung verfeinert die Architektur des Models und führt zu einem optimierten Verhältnis von Genauigkeit und Geschwindigkeit bei der Objekterkennung. Basierend auf den empirischen Ergebnissen und den abgeleiteten Features bietet YOLOv5u eine effiziente Alternative für diejenigen, die robuste Lösungen sowohl in der Forschung also auch in praktischen Anwendungen suchen.
 
 ![Ultralytics YOLOv5](https://raw.githubusercontent.com/ultralytics/assets/main/yolov5/v70/splash.png)
 
@@ -16,17 +16,17 @@ YOLOv5u steht für eine Weiterentwicklung der Methoden zur Objekterkennung. Basi
 
 - **Ankerfreier Split-Ultralytics-Kopf:** Herkömmliche Objekterkennungsmodelle verwenden vordefinierte Ankerboxen, um die Position von Objekten vorherzusagen. YOLOv5u modernisiert diesen Ansatz. Durch die Verwendung eines ankerfreien Split-Ultralytics-Kopfes wird ein flexiblerer und anpassungsfähigerer Detektionsmechanismus gewährleistet, der die Leistung in verschiedenen Szenarien verbessert.
 
-- **Optimiertes Verhältnis von Genauigkeit und Geschwindigkeit:** Geschwindigkeit und Genauigkeit ziehen oft in entgegengesetzte Richtungen. Aber YOLOv5u stellt diese Abwägung in Frage. Es bietet eine ausgewogene Balance, die Echtzeitdetektionen ohne Einbußen bei der Genauigkeit ermöglicht. Diese Funktion ist besonders wertvoll für Anwendungen, die schnelle Reaktionen erfordern, wie autonome Fahrzeuge, Robotik und Echtzeitanalyse von Videos.
+- **Optimiertes Verhältnis von Genauigkeit und Geschwindigkeit:** Geschwindigkeit und Genauigkeit ziehen oft in entgegengesetzte Richtungen. Aber YOLOv5u stellt diese Abwägung in Frage. Es bietet eine ausgewogene Balance, die Echtzeitdetektionen ohne Einbußen bei der Genauigkeit ermöglicht. Diese Function ist besonders wertvoll für Anwendungen, die schnelle Reaktionen erfordern, wie autonome Fahrzeuge, Robotik und Echtzeitanalyse von Videos.
 
-- **Vielfalt an vorab trainierten Modellen:** YOLOv5u bietet eine Vielzahl von vorab trainierten Modellen, da verschiedene Aufgaben unterschiedliche Werkzeuge erfordern. Ob Sie sich auf Inferenz, Validierung oder Training konzentrieren, es wartet ein maßgeschneidertes Modell auf Sie. Diese Vielfalt gewährleistet, dass Sie nicht nur eine Einheitslösung verwenden, sondern ein speziell für Ihre einzigartige Herausforderung feinabgestimmtes Modell.
+- **Vielfalt an vorab trainierten Modellen:** YOLOv5u bietet eine Vielzahl von vorab trainierten Modellen, da verschiedene Aufgaben unterschiedliche Werkzeuge erfordern. Ob Sie sich auf Inferenz, Validierung oder Training konzentrieren, es wartet ein maßgeschneidertes Model auf Sie. Diese Vielfalt gewährleistet, dass Sie nicht nur eine Einheitslösung verwenden, sondern ein speziell für Ihre einzigartige Herausforderung feinabgestimmtes Model.
 
 ## Unterstützte Aufgaben und Modi
 
 Die YOLOv5u-Modelle mit verschiedenen vorab trainierten Gewichten eignen sich hervorragend für Aufgaben zur [Objekterkennung](../tasks/detect.md). Sie unterstützen eine umfassende Palette von Modi, die sie für verschiedene Anwendungen von der Entwicklung bis zur Bereitstellung geeignet machen.
 
 | Modelltyp | Vorab trainierte Gewichte                                                                                                   | Aufgabe                               | Inferenz | Validierung | Training | Export |
-|-----------|-----------------------------------------------------------------------------------------------------------------------------|---------------------------------------|----------|-------------|----------|--------|
-| YOLOv5u   | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ✅        | ✅      |
+| --------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | -------- | ----------- | -------- | ------ |
+| YOLOv5u   | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ✅       | ✅     |
 
 Diese Tabelle bietet eine detaillierte Übersicht über die verschiedenen Varianten des YOLOv5u-Modells und hebt ihre Anwendbarkeit in der Objekterkennung sowie die Unterstützung unterschiedlicher Betriebsmodi wie [Inferenz](../modes/predict.md), [Validierung](../modes/val.md), [Training](../modes/train.md) und [Export](../modes/export.md) hervor. Diese umfassende Unterstützung ermöglicht es Benutzern, die Fähigkeiten der YOLOv5u-Modelle in einer Vielzahl von Objekterkennungsszenarien voll auszuschöpfen.
 
@@ -38,7 +38,7 @@ Diese Tabelle bietet eine detaillierte Übersicht über die verschiedenen Varian
 
     Siehe [Erkennungsdokumentation](https://docs.ultralytics.com/tasks/detect/) für Beispiele zur Verwendung dieser Modelle, die auf [COCO](https://docs.ultralytics.com/datasets/detect/coco/) trainiert wurden und 80 vorab trainierte Klassen enthalten.
 
-    | Modell                                                                                       | YAML                                                                                                           | Größe<br><sup>(Pixel) | mAP<sup>val<br>50-95 | Geschwindigkeit<br><sup>CPU ONNX<br>(ms) | Geschwindigkeit<br><sup>A100 TensorRT<br>(ms) | Parameter<br><sup>(M) | FLOPs<br><sup>(B) |
+    | Model                                                                                       | YAML                                                                                                           | Größe<br><sup>(Pixel) | mAP<sup>val<br>50-95 | Geschwindigkeit<br><sup>CPU ONNX<br>(ms) | Geschwindigkeit<br><sup>A100 TensorRT<br>(ms) | Parameter<br><sup>(M) | FLOPs<br><sup>(B) |
     |---------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|-----------------------|----------------------|------------------------------------------|-----------------------------------------------|--------------------|-------------------|
     | [yolov5nu.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5nu.pt)   | [yolov5n.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                   | 34,3                 | 73,6                                     | 1,06                                          | 2,6                  | 7,7               |
     | [yolov5su.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5su.pt)   | [yolov5s.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                   | 43,0                 | 120,7                                    | 1,27                                          | 9,1                  | 24,0              |
@@ -66,16 +66,16 @@ Dieses Beispiel enthält einfache Beispiele zur Schulung und Inferenz mit YOLOv5
         from ultralytics import YOLO
 
         # Laden Sie ein vortrainiertes YOLOv5n-Modell für COCO-Daten
-        modell = YOLO('yolov5n.pt')
+        model = YOLO("yolov5n.pt")
 
-        # Informationen zum Modell anzeigen (optional)
+        # Informationen zum Model anzeigen (optional)
         model.info()
 
-        # Trainieren Sie das Modell anhand des COCO8-Beispieldatensatzes für 100 Epochen
-        ergebnisse = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        # Trainieren Sie das Model anhand des COCO8-Beispieldatensatzes für 100 Epochen
+        ergebnisse = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Führen Sie die Inferenz mit dem YOLOv5n-Modell auf dem Bild 'bus.jpg' durch
-        ergebnisse = model('path/to/bus.jpg')
+        ergebnisse = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -110,4 +110,4 @@ Wenn Sie YOLOv5 oder YOLOv5u in Ihrer Forschung verwenden, zitieren Sie bitte da
         }
         ```
 
-Bitte beachten Sie, dass die YOLOv5-Modelle unter den Lizenzen [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) und [Enterprise](https://ultralytics.com/license) bereitgestellt werden.
+Bitte beachten Sie, dass die YOLOv5-Modelle under den Lizenzen [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) und [Enterprise](https://ultralytics.com/license) bereitgestellt werden.

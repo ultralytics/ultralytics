@@ -38,16 +38,16 @@ Ultralytics Python API提供了不同尺度的预训练PaddlePaddle RT-DETR模�
         from ultralytics import RTDETR
 
         # 加载预训练的COCO RT-DETR-l模型
-        model = RTDETR('rtdetr-l.pt')
+        model = RTDETR("rtdetr-l.pt")
 
         # 显示模型信息（可选）
         model.info()
 
         # 使用COCO8示例数据集对模型进行100个epoch的训练
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # 使用RT-DETR-l模型在'bus.jpg'图像上运行推断
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -64,10 +64,10 @@ Ultralytics Python API提供了不同尺度的预训练PaddlePaddle RT-DETR模�
 
 该表格提供了各个模型类型、具体的预训练权重、各个模型支持的任务以及支持的各种模式（[训练](../modes/train.md)、[验证](../modes/val.md)、[预测](../modes/predict.md)、[导出](../modes/export.md)），其中✅表示支持。
 
-| 模型类型                | 预训练权重         | 支持的任务                      | 推断 | 验证 | 训练 | 导出 |
-|---------------------|---------------|----------------------------|----|----|----|----|
-| RT-DETR-Large       | `rtdetr-l.pt` | [目标检测](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅  |
-| RT-DETR-Extra-Large | `rtdetr-x.pt` | [目标检测](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅  |
+| 模型类型            | 预训练权重    | 支持的任务                     | 推断 | 验证 | 训练 | 导出 |
+| ------------------- | ------------- | ------------------------------ | ---- | ---- | ---- | ---- |
+| RT-DETR-Large       | `rtdetr-l.pt` | [目标检测](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅   |
+| RT-DETR-Extra-Large | `rtdetr-x.pt` | [目标检测](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅   |
 
 ## 引用和致谢
 
@@ -90,4 +90,4 @@ Ultralytics Python API提供了不同尺度的预训练PaddlePaddle RT-DETR模�
 
 我们要感谢百度和[PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection)团队为计算机视觉社区创建和维护了这个宝贵的资源。非常感谢他们使用基于Vision Transformers的实时目标检测器RT-DETR在该领域做出的贡献。
 
-*keywords: RT-DETR、Transformer、ViT、Vision Transformers、Baidu RT-DETR、PaddlePaddle、Paddle Paddle RT-DETR，实时目标检测、基于Vision Transformers的目标检测、预训练的PaddlePaddle RT-DETR模型、百度RT-DETR的使用、Ultralytics Python API*
+_keywords: RT-DETR、Transformer、ViT、Vision Transformers、Baidu RT-DETR、PaddlePaddle、Paddle Paddle RT-DETR，实时目标检测、基于Vision Transformers的目标检测、预训练的PaddlePaddle RT-DETR模型、百度RT-DETR的使用、Ultralytics Python API_

@@ -109,12 +109,12 @@ Logging Models to Comet is disabled by default. To enable it, pass the `save-per
 
 ```shell
 python train.py \
---img 640 \
---batch 16 \
---epochs 5 \
---data coco128.yaml \
---weights yolov5s.pt \
---save-period 1
+  --img 640 \
+  --batch 16 \
+  --epochs 5 \
+  --data coco128.yaml \
+  --weights yolov5s.pt \
+  --save-period 1
 ```
 
 ## Logging Model Predictions
@@ -129,12 +129,12 @@ Here is an [example project using the Panel](https://www.comet.com/examples/come
 
 ```shell
 python train.py \
---img 640 \
---batch 16 \
---epochs 5 \
---data coco128.yaml \
---weights yolov5s.pt \
---bbox_interval 2
+  --img 640 \
+  --batch 16 \
+  --epochs 5 \
+  --data coco128.yaml \
+  --weights yolov5s.pt \
+  --bbox_interval 2
 ```
 
 ### Controlling the number of Prediction Images logged to Comet
@@ -143,12 +143,12 @@ When logging predictions from YOLOv5, Comet will log the images associated with 
 
 ```shell
 env COMET_MAX_IMAGE_UPLOADS=200 python train.py \
---img 640 \
---batch 16 \
---epochs 5 \
---data coco128.yaml \
---weights yolov5s.pt \
---bbox_interval 1
+  --img 640 \
+  --batch 16 \
+  --epochs 5 \
+  --data coco128.yaml \
+  --weights yolov5s.pt \
+  --bbox_interval 1
 ```
 
 ### Logging Class Level Metrics
@@ -157,11 +157,11 @@ Use the `COMET_LOG_PER_CLASS_METRICS` environment variable to log mAP, precision
 
 ```shell
 env COMET_LOG_PER_CLASS_METRICS=true python train.py \
---img 640 \
---batch 16 \
---epochs 5 \
---data coco128.yaml \
---weights yolov5s.pt
+  --img 640 \
+  --batch 16 \
+  --epochs 5 \
+  --data coco128.yaml \
+  --weights yolov5s.pt
 ```
 
 ## Uploading a Dataset to Comet Artifacts
@@ -172,12 +172,12 @@ The dataset be organized in the way described in the [YOLOv5 documentation](trai
 
 ```shell
 python train.py \
---img 640 \
---batch 16 \
---epochs 5 \
---data coco128.yaml \
---weights yolov5s.pt \
---upload_dataset
+  --img 640 \
+  --batch 16 \
+  --epochs 5 \
+  --data coco128.yaml \
+  --weights yolov5s.pt \
+  --upload_dataset
 ```
 
 You can find the uploaded dataset in the Artifacts tab in your Comet Workspace
@@ -202,11 +202,11 @@ Then pass this file to your training script in the following way
 
 ```shell
 python train.py \
---img 640 \
---batch 16 \
---epochs 5 \
---data artifact.yaml \
---weights yolov5s.pt
+  --img 640 \
+  --batch 16 \
+  --epochs 5 \
+  --data artifact.yaml \
+  --weights yolov5s.pt
 ```
 
 Artifacts also allow you to track the lineage of data as it flows through your Experimentation workflow. Here you can see a graph that shows you all the experiments that have used your uploaded dataset.
@@ -222,7 +222,7 @@ This will restore the run to its state before the interruption, which includes r
 
 ```shell
 python train.py \
---resume "comet://<your run path>"
+  --resume "comet://<your run path>"
 ```
 
 ## Hyperparameter Search with the Comet Optimizer

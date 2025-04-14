@@ -31,9 +31,9 @@ For an in-depth look at the Segment Anything Model and the SA-1B dataset, please
 This table presents the available models with their specific pre-trained weights, the tasks they support, and their compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), indicated by ✅ emojis for supported modes and ❌ emojis for unsupported modes.
 
 | Model Type | Pre-trained Weights | Tasks Supported                              | Inference | Validation | Training | Export |
-|------------|---------------------|----------------------------------------------|-----------|------------|----------|--------|
-| SAM base   | `sam_b.pt`          | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
-| SAM large  | `sam_l.pt`          | [Instance Segmentation](../tasks/segment.md) | ✅         | ❌          | ❌        | ❌      |
+| ---------- | ------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
+| SAM base   | `sam_b.pt`          | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| SAM large  | `sam_l.pt`          | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
 
 ## How to Use SAM: Versatility and Power in Image Segmentation
 
@@ -51,16 +51,16 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         from ultralytics import SAM
 
         # Load a model
-        model = SAM('sam_b.pt')
+        model = SAM("sam_b.pt")
 
         # Display model information (optional)
         model.info()
 
         # Run inference with bboxes prompt
-        model('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
+        model("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
 
         # Run inference with points prompt
-        model('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
+        model("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
         ```
 
 !!! Example "Segment everything"
@@ -73,13 +73,13 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         from ultralytics import SAM
 
         # Load a model
-        model = SAM('sam_b.pt')
+        model = SAM("sam_b.pt")
 
         # Display model information (optional)
         model.info()
 
         # Run inference
-        model('path/to/image.jpg')
+        model("path/to/image.jpg")
         ```
 
     === "CLI"
@@ -101,7 +101,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         from ultralytics.models.sam import Predictor as SAMPredictor
 
         # Create SAMPredictor
-        overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="mobile_sam.pt")
         predictor = SAMPredictor(overrides=overrides)
 
         # Set image
@@ -122,7 +122,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         from ultralytics.models.sam import Predictor as SAMPredictor
 
         # Create SAMPredictor
-        overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="mobile_sam.pt")
         predictor = SAMPredictor(overrides=overrides)
 
         # Segment with additional args
@@ -136,7 +136,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 Here we compare Meta's smallest SAM model, SAM-b, with Ultralytics smallest segmentation model, [YOLOv8n-seg](../tasks/segment.md):
 
 | Model                                          | Size                       | Parameters             | Speed (CPU)                |
-|------------------------------------------------|----------------------------|------------------------|----------------------------|
+| ---------------------------------------------- | -------------------------- | ---------------------- | -------------------------- |
 | Meta's SAM-b                                   | 358 MB                     | 94.7 M                 | 51096 ms/im                |
 | [MobileSAM](mobile-sam.md)                     | 40.7 MB                    | 10.1 M                 | 46122 ms/im                |
 | [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB                    | 11.8 M                 | 115 ms/im                  |
@@ -150,27 +150,27 @@ Tests run on a 2023 Apple M2 Macbook with 16GB of RAM. To reproduce this test:
 
     === "Python"
         ```python
-        from ultralytics import FastSAM, SAM, YOLO
+        from ultralytics import SAM, YOLO, FastSAM
 
         # Profile SAM-b
-        model = SAM('sam_b.pt')
+        model = SAM("sam_b.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
 
         # Profile MobileSAM
-        model = SAM('mobile_sam.pt')
+        model = SAM("mobile_sam.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
 
         # Profile FastSAM-s
-        model = FastSAM('FastSAM-s.pt')
+        model = FastSAM("FastSAM-s.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
 
         # Profile YOLOv8n-seg
-        model = YOLO('yolov8n-seg.pt')
+        model = YOLO("yolov8n-seg.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
         ```
 
 ## Auto-Annotation: A Quick Path to Segmentation Datasets
@@ -187,11 +187,11 @@ To auto-annotate your dataset with the Ultralytics framework, use the `auto_anno
         ```python
         from ultralytics.data.annotator import auto_annotate
 
-        auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
+        auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model="sam_b.pt")
         ```
 
 | Argument   | Type                | Description                                                                                             | Default      |
-|------------|---------------------|---------------------------------------------------------------------------------------------------------|--------------|
+| ---------- | ------------------- | ------------------------------------------------------------------------------------------------------- | ------------ |
 | data       | str                 | Path to a folder containing images to be annotated.                                                     |              |
 | det_model  | str, optional       | Pre-trained YOLO detection model. Defaults to 'yolov8x.pt'.                                             | 'yolov8x.pt' |
 | sam_model  | str, optional       | Pre-trained SAM segmentation model. Defaults to 'sam_b.pt'.                                             | 'sam_b.pt'   |
@@ -223,4 +223,4 @@ If you find SAM useful in your research or development work, please consider cit
 
 We would like to express our gratitude to Meta AI for creating and maintaining this valuable resource for the computer vision community.
 
-*keywords: Segment Anything, Segment Anything Model, SAM, Meta SAM, image segmentation, promptable segmentation, zero-shot performance, SA-1B dataset, advanced architecture, auto-annotation, Ultralytics, pre-trained models, SAM base, SAM large, instance segmentation, computer vision, AI, artificial intelligence, machine learning, data annotation, segmentation masks, detection model, YOLO detection model, bibtex, Meta AI.*
+_keywords: Segment Anything, Segment Anything Model, SAM, Meta SAM, image segmentation, promptable segmentation, zero-shot performance, SA-1B dataset, advanced architecture, auto-annotation, Ultralytics, pre-trained models, SAM base, SAM large, instance segmentation, computer vision, AI, artificial intelligence, machine learning, data annotation, segmentation masks, detection model, YOLO detection model, bibtex, Meta AI._

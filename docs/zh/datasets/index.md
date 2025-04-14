@@ -110,14 +110,15 @@ Ultralytics 支持多种数据集，方便开展计算机视觉任务，诸如�
 
     ```python
     from pathlib import Path
+
     from ultralytics.data.utils import compress_one_image
     from ultralytics.utils.downloads import zip_directory
 
     # 定义数据集目录
-    path = Path('path/to/dataset')
+    path = Path("path/to/dataset")
 
     # 优化数据集中的图像（可选）
-    for f in path.rglob('*.jpg'):
+    for f in path.rglob("*.jpg"):
         compress_one_image(f)
 
     # 将数据集压缩成 'path/to/dataset.zip'

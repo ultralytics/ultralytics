@@ -60,7 +60,7 @@ Install the required dependencies:
 cd ultralytics
 pip install -r requirements.txt
 pip install ultralytics
-pip install onnx>=1.12.0
+pip install onnx > =1.12.0
 ```
 
 ### Perform YOLOv8 tasks
@@ -109,7 +109,7 @@ source activate yolov8env
 cd ultralytics
 pip install -r requirements.txt
 pip install ultralytics
-pip install onnx>=1.12.0
+pip install onnx > =1.12.0
 ```
 
 Note that we need to use the `source activate yolov8env` for all the %%bash cells, to make sure that the %%bash cell uses environment we want.

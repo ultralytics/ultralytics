@@ -40,15 +40,15 @@ Either sign up for free to the [ClearML Hosted Service](https://cutt.ly/yolov5-t
 
 - Install the `clearml` python package:
 
-   ```bash
-   pip install clearml
-   ```
+    ```bash
+    pip install clearml
+    ```
 
 - Connect the ClearML SDK to the server by [creating credentials](https://app.clear.ml/settings/workspace-configuration) (go right top to Settings -> Workspace -> Create new credentials), then execute the command below and follow the instructions:
 
-   ```bash
-   clearml-init
-   ```
+    ```bash
+    clearml-init
+    ```
 
 That's it! You're done 😎
 
@@ -59,7 +59,7 @@ That's it! You're done 😎
 To enable ClearML experiment tracking, simply install the ClearML pip package.
 
 ```bash
-pip install clearml>=1.2.0
+pip install clearml > =1.2.0
 ```
 
 This will enable integration with the YOLOv5 training script. Every training run from now on, will be captured and stored by the ClearML experiment manager.
@@ -157,7 +157,7 @@ clearml-data close
 Now that you have a ClearML dataset, you can very simply use it to train custom YOLOv5 🚀 models!
 
 ```bash
-python train.py --img 640 --batch 16 --epochs 3 --data clearml://<your_dataset_id> --weights yolov5s.pt --cache
+python train.py --img 640 --batch 16 --epochs 3 --data clearml:// yolov5s.pt --cache < your_dataset_id > --weights
 ```
 
 <br>
@@ -192,7 +192,7 @@ In short: every experiment tracked by the experiment manager contains enough inf
 You can turn any machine (a cloud VM, a local GPU machine, your own laptop ... ) into a ClearML agent by simply running:
 
 ```bash
-clearml-agent daemon --queue <queues_to_listen_to> [--docker]
+clearml-agent daemon --queue < queues_to_listen_to > [--docker]
 ```
 
 ### Cloning, Editing And Enqueuing

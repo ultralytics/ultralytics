@@ -13,9 +13,9 @@ keywords: YOLOv5, Ultralytics, Test-Time Augmentation, TTA, mAP, Recall, model p
 Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
-git clone https://github.com/ultralytics/yolov5  # clone
+git clone https://github.com/ultralytics/yolov5 # clone
 cd yolov5
-pip install -r requirements.txt  # install
+pip install -r requirements.txt # install
 ```
 
 ## Test Normally
@@ -131,10 +131,10 @@ TTA is automatically integrated into all [YOLOv5 PyTorch Hub](https://pytorch.or
 import torch
 
 # Model
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s')  # or yolov5m, yolov5x, custom
+model = torch.hub.load("ultralytics/yolov5", "yolov5s")  # or yolov5m, yolov5x, custom
 
 # Images
-img = 'https://ultralytics.com/images/zidane.jpg'  # or file, PIL, OpenCV, numpy, multiple
+img = "https://ultralytics.com/images/zidane.jpg"  # or file, PIL, OpenCV, numpy, multiple
 
 # Inference
 results = model(img, augment=True)  # <--- TTA inference

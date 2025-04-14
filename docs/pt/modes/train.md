@@ -29,7 +29,7 @@ Aqui estão algumas razões convincentes para optar pelo modo de Treino da YOLOv
 
 - **Eficiência:** Aproveite ao máximo seu hardware, seja em um setup com uma única GPU ou expandindo para múltiplas GPUs.
 - **Versatilidade:** Treine em conjuntos de dados personalizados, além dos já disponíveis, como COCO, VOC e ImageNet.
-- **Facilidade de Uso:** Interfaces de linha de comando (CLI) e em Python simples, porém poderosas, para uma experiência de treinamento direta.
+- **Facilidade de Uso:** Interfaces de linha de commando (CLI) e em Python simples, porém poderosas, para uma experiência de treinamento direta.
 - **Flexibilidade de Hiperparâmetros:** Uma ampla gama de hiperparâmetros personalizáveis para ajustar o desempenho do modelo.
 
 ### Principais Recursos do Modo de Treino
@@ -38,7 +38,7 @@ Os seguintes são alguns recursos notáveis ​​do modo de Treino da YOLOv8:
 
 - **Download Automático de Datasets:** Datasets padrões como COCO, VOC e ImageNet são baixados automaticamente na primeira utilização.
 - **Suporte a Multi-GPU:** Escalone seus esforços de treinamento de maneira uniforme entre várias GPUs para acelerar o processo.
-- **Configuração de Hiperparâmetros:** Opção de modificar hiperparâmetros através de arquivos de configuração YAML ou argumentos de CLI.
+- **Configuração de Hiperparâmetros:** Opção de modificar hiperparâmetros através de arquivos de configuração YAML ou arguments de CLI.
 - **Visualização e Monitoramento:** Acompanhamento em tempo real das métricas de treinamento e visualização do processo de aprendizagem para obter melhores insights.
 
 !!! Tip "Dica"
@@ -47,7 +47,7 @@ Os seguintes são alguns recursos notáveis ​​do modo de Treino da YOLOv8:
 
 ## Exemplos de Uso
 
-Treine o YOLOv8n no conjunto de dados COCO128 por 100 épocas com tamanho de imagem de 640. O dispositivo de treinamento pode ser especificado usando o argumento `device`. Se nenhum argumento for passado, a GPU `device=0` será usado se disponível, caso contrário, `device=cpu` será usado. Veja a seção Argumentos abaixo para uma lista completa dos argumentos de treinamento.
+Treine o YOLOv8n no conjunto de dados COCO128 por 100 épocas com tamanho de imagem de 640. O dispositivo de treinamento pode set especificado usando o argumento `device`. Se nenhum argumento for passado, a GPU `device=0` será usado se disponível, caso contrário, `device=cpu` será usado. Veja a seção Arguments abaixo para uma lista completa dos arguments de treinamento.
 
 !!! Example "Exemplo de Treinamento em Uma Única GPU e CPU"
 
@@ -59,12 +59,12 @@ Treine o YOLOv8n no conjunto de dados COCO128 por 100 épocas com tamanho de ima
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n.yaml')  # construir um novo modelo a partir do YAML
-        model = YOLO('yolov8n.pt')  # carregar um modelo pré-treinado (recomendado para treinamento)
-        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # construir a partir do YAML e transferir pesos
+        model = YOLO("yolov8n.yaml")  # construir um novo modelo a partir do YAML
+        model = YOLO("yolov8n.pt")  # carregar um modelo pré-treinado (recomendado para treinamento)
+        model = YOLO("yolov8n.yaml").load("yolov8n.pt")  # construir a partir do YAML e transferir pesos
 
         # Treinar o modelo
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -82,11 +82,11 @@ Treine o YOLOv8n no conjunto de dados COCO128 por 100 épocas com tamanho de ima
 
 ### Treinamento com Multi-GPU
 
-O treinamento com múltiplas GPUs permite uma utilização mais eficiente dos recursos de hardware disponíveis, distribuindo a carga de treinamento entre várias GPUs. Esse recurso está disponível por meio da API do Python e da interface de linha de comando. Para habilitar o treinamento com várias GPUs, especifique os IDs dos dispositivos de GPU que deseja usar.
+O treinamento com múltiplas GPUs permite uma utilização mais eficiente dos recursos de hardware disponíveis, distribuindo a carga de treinamento entre várias GPUs. Esse recurso está disponível por meio da API do Python e da interface de linha de commando. Para habilitar o treinamento com várias GPUs, especifique os IDs dos dispositivos de GPU que deseja usar.
 
 !!! Example "Exemplo de Treinamento com Multi-GPU"
 
-    Para treinar com 2 GPUs, dispositivos CUDA 0 e 1 use os seguintes comandos. Expanda para GPUs adicionais conforme necessário.
+    Para treinar com 2 GPUs, dispositivos CUDA 0 e 1 use os seguintes commandos. Expanda para GPUs adicionais conforme necessário.
 
     === "Python"
 
@@ -94,10 +94,10 @@ O treinamento com múltiplas GPUs permite uma utilização mais eficiente dos re
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n.pt')  # carregar um modelo pré-treinado (recomendado para treinamento)
+        model = YOLO("yolov8n.pt")  # carregar um modelo pré-treinado (recomendado para treinamento)
 
         # Treinar o modelo com 2 GPUs
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640, device=[0, 1])
         ```
 
     === "CLI"
@@ -111,7 +111,7 @@ O treinamento com múltiplas GPUs permite uma utilização mais eficiente dos re
 
 Com a integração do suporte para os chips Apple M1 e M2 nos modelos YOLO da Ultralytics, agora é possível treinar seus modelos em dispositivos que utilizam o poderoso framework Metal Performance Shaders (MPS). O MPS oferece uma forma de alto desempenho de executar tarefas de computação e processamento de imagens no silício personalizado da Apple.
 
-Para habilitar o treinamento nos chips Apple M1 e M2, você deve especificar 'mps' como seu dispositivo ao iniciar o processo de treinamento. Abaixo está um exemplo de como você pode fazer isso em Python e via linha de comando:
+Para habilitar o treinamento nos chips Apple M1 e M2, você deve especificar 'mps' como seu dispositivo ao iniciar o processo de treinamento. Abaixo está um exemplo de como você pode fazer isso em Python e via linha de commando:
 
 !!! Example "Exemplo de Treinamento com MPS"
 
@@ -121,10 +121,10 @@ Para habilitar o treinamento nos chips Apple M1 e M2, você deve especificar 'mp
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n.pt')  # carregar um modelo pré-treinado (recomendado para treinamento)
+        model = YOLO("yolov8n.pt")  # carregar um modelo pré-treinado (recomendado para treinamento)
 
         # Treinar o modelo com MPS
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640, device="mps")
         ```
 
     === "CLI"
@@ -189,16 +189,16 @@ Para usar o TensorBoard em [Google Colab](https://colab.research.google.com/gith
     === "CLI"
         ```bash
         load_ext tensorboard
-        tensorboard --logdir ultralytics/runs  # substitua pelo diretório 'runs'
+        tensorboard --logdir ultralytics/runs # substitua pelo diretório 'runs'
         ```
 
-Para usar o TensorBoard localmente, execute o comando abaixo e veja os resultados em http://localhost:6006/:
+Para usar o TensorBoard localmente, execute o commando abaixo e veja os resultados em http://localhost:6006/:
 
 !!! Example "Exemplo"
 
     === "CLI"
         ```bash
-        tensorboard --logdir ultralytics/runs  # substitua pelo diretório 'runs'
+        tensorboard --logdir ultralytics/runs # substitua pelo diretório 'runs'
         ```
 
 Isso irá carregar o TensorBoard e direcioná-lo para o diretório onde seus logs de treinamento estão salvos.

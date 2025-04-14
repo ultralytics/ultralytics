@@ -32,16 +32,16 @@ O FastSAM é projetado para abordar as limitações do [Segment Anything Model (
 
 ## Modelos Disponíveis, Tarefas Suportadas e Modos de Operação
 
-Esta tabela apresenta os modelos disponíveis com seus pesos pré-treinados específicos, as tarefas que eles suportam e sua compatibilidade com diferentes modos de operação, como [Inferência](../modes/predict.md), [Validação](../modes/val.md), [Treinamento](../modes/train.md) e [Exportação](../modes/export.md), indicados por emojis ✅ para modos suportados e emojis ❌ para modos não suportados.
+Esta tabela apresenta os modelos disponíveis com seus pesos pré-treinados específicos, as tarefas que else suportam e sua compatibilidade com diferentes modos de operação, como [Inferência](../modes/predict.md), [Validação](../modes/val.md), [Treinamento](../modes/train.md) e [Exportação](../modes/export.md), indicados por emojis ✅ para modos suportados e emojis ❌ para modos não suportados.
 
 | Tipo de Modelo | Pesos Pré-treinados | Tarefas Suportadas                               | Inferência | Validação | Treinamento | Exportação |
-|----------------|---------------------|--------------------------------------------------|------------|-----------|-------------|------------|
-| FastSAM-s      | `FastSAM-s.pt`      | [Segmentação de Instâncias](../tasks/segment.md) | ✅          | ❌         | ❌           | ✅          |
-| FastSAM-x      | `FastSAM-x.pt`      | [Segmentação de Instâncias](../tasks/segment.md) | ✅          | ❌         | ❌           | ✅          |
+| -------------- | ------------------- | ------------------------------------------------ | ---------- | --------- | ----------- | ---------- |
+| FastSAM-s      | `FastSAM-s.pt`      | [Segmentação de Instâncias](../tasks/segment.md) | ✅         | ❌        | ❌          | ✅         |
+| FastSAM-x      | `FastSAM-x.pt`      | [Segmentação de Instâncias](../tasks/segment.md) | ✅         | ❌        | ❌          | ✅         |
 
 ## Exemplos de Uso
 
-Os modelos FastSAM são fáceis de integrar em suas aplicações Python. A Ultralytics fornece uma API Python amigável ao usuário e comandos de linha de comando (CLI) para facilitar o desenvolvimento.
+Os modelos FastSAM são fáceis de integrar em suas aplicações Python. A Ultralytics fornece uma API Python amigável ao usuário e commandos de linha de commando (CLI) para facilitar o desenvolvimento.
 
 ### Uso de Predição
 
@@ -55,16 +55,16 @@ Para realizar detecção de objetos em uma imagem, use o método `predict` confo
         from ultralytics.models.fastsam import FastSAMPrompt
 
         # Definir uma fonte de inferência
-        source = 'caminho/para/onibus.jpg'
+        source = "caminho/para/onibus.jpg"
 
         # Criar um modelo FastSAM
-        model = FastSAM('FastSAM-s.pt')  # ou FastSAM-x.pt
+        model = FastSAM("FastSAM-s.pt")  # ou FastSAM-x.pt
 
         # Executar inferência em uma imagem
-        everything_results = model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+        everything_results = model(source, device="cpu", retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
 
         # Preparar um objeto de Processo de Instruções
-        prompt_process = FastSAMPrompt(source, everything_results, device='cpu')
+        prompt_process = FastSAMPrompt(source, everything_results, device="cpu")
 
         # Instrução: tudo
         ann = prompt_process.everything_prompt()
@@ -73,13 +73,13 @@ Para realizar detecção de objetos em uma imagem, use o método `predict` confo
         ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
 
         # Instrução: texto
-        ann = prompt_process.text_prompt(text='uma foto de um cachorro')
+        ann = prompt_process.text_prompt(text="uma photo de um cachorro")
 
         # Instrução: ponto
         # pontos padrão [[0,0]] [[x1,y1],[x2,y2]]
         # ponto_label padrão [0] [1,0] 0:fundo, 1:frente
         ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
-        prompt_process.plot(annotations=ann, output='./')
+        prompt_process.plot(annotations=ann, output="./")
         ```
 
     === "CLI"
@@ -92,7 +92,7 @@ Este trecho de código demonstra a simplicidade de carregar um modelo pré-trein
 
 ### Uso de Validação
 
-A validação do modelo em um conjunto de dados pode ser feita da seguinte forma:
+A validação do modelo em um conjunto de dados pode set feita da seguinte forma:
 
 !!! Example "Exemplo"
 
@@ -101,10 +101,10 @@ A validação do modelo em um conjunto de dados pode ser feita da seguinte forma
         from ultralytics import FastSAM
 
         # Criar um modelo FastSAM
-        model = FastSAM('FastSAM-s.pt')  # ou FastSAM-x.pt
+        model = FastSAM("FastSAM-s.pt")  # ou FastSAM-x.pt
 
         # Validar o modelo
-        results = model.val(data='coco8-seg.yaml')
+        results = model.val(data="coco8-seg.yaml")
         ```
 
     === "CLI"
@@ -115,59 +115,65 @@ A validação do modelo em um conjunto de dados pode ser feita da seguinte forma
 
 Observe que o FastSAM suporta apenas detecção e segmentação de uma única classe de objeto. Isso significa que ele reconhecerá e segmentará todos os objetos como a mesma classe. Portanto, ao preparar o conjunto de dados, você precisará converter todos os IDs de categoria de objeto para 0.
 
-## Uso Oficial do FastSAM
+## Uso Official do FastSAM
 
 O FastSAM também está disponível diretamente no repositório [https://github.com/CASIA-IVA-Lab/FastSAM](https://github.com/CASIA-IVA-Lab/FastSAM). Aqui está uma visão geral breve das etapas típicas que você pode seguir para usar o FastSAM:
 
 ### Instalação
 
 1. Clone o repositório do FastSAM:
-   ```shell
-   git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
-   ```
+
+    ```shell
+    git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
+    ```
 
 2. Crie e ative um ambiente Conda com Python 3.9:
-   ```shell
-   conda create -n FastSAM python=3.9
-   conda activate FastSAM
-   ```
 
-3. Navegue até o repositório clonado e instale os pacotes necessários:
-   ```shell
-   cd FastSAM
-   pip install -r requirements.txt
-   ```
+    ```shell
+    conda create -n FastSAM python=3.9
+    conda activate FastSAM
+    ```
 
-4. Instale o modelo CLIP:
-   ```shell
-   pip install git+https://github.com/openai/CLIP.git
-   ```
+3. Navegue até o repositório clonado e install os pacotes necessários:
+
+    ```shell
+    cd FastSAM
+    pip install -r requirements.txt
+    ```
+
+4. Install o modelo CLIP:
+    ```shell
+    pip install git+https://github.com/openai/CLIP.git
+    ```
 
 ### Exemplo de Uso
 
 1. Baixe um [checkpoint do modelo](https://drive.google.com/file/d/1m1sjY4ihXBU1fZXdQ-Xdj-mDltW-2Rqv/view?usp=sharing).
 
-2. Use o FastSAM para inferência. Exemplos de comandos:
+2. Use o FastSAM para inferência. Exemplos de commandos:
 
     - Segmentar tudo em uma imagem:
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
-      ```
+
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
+        ```
 
     - Segmentar objetos específicos usando uma instrução de texto:
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "o cachorro amarelo"
-      ```
+
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "o cachorro amarelo"
+        ```
 
     - Segmentar objetos dentro de uma caixa delimitadora (fornecer coordenadas da caixa no formato xywh):
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
-      ```
+
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
+        ```
 
     - Segmentar objetos próximos a pontos específicos:
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
-      ```
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
+        ```
 
 Além disso, você pode experimentar o FastSAM através de um [demo no Colab](https://colab.research.google.com/drive/1oX14f6IneGGw612WgVlAiy91UHwFAvr9?usp=sharing) ou no [demo web do HuggingFace](https://huggingface.co/spaces/An-619/FastSAM) para ter uma experiência visual.
 
@@ -190,4 +196,4 @@ Gostaríamos de reconhecer os autores do FastSAM por suas contribuições signif
       }
       ```
 
-O artigo original do FastSAM pode ser encontrado no [arXiv](https://arxiv.org/abs/2306.12156). Os autores disponibilizaram seu trabalho publicamente, e o código pode ser acessado no [GitHub](https://github.com/CASIA-IVA-Lab/FastSAM). Agradecemos seus esforços em avançar o campo e tornar seu trabalho acessível à comunidade em geral.
+O artigo original do FastSAM pode set encontrado no [arXiv](https://arxiv.org/abs/2306.12156). Os autores disponibilizaram seu trabalho publicamente, e o código pode set acessado no [GitHub](https://github.com/CASIA-IVA-Lab/FastSAM). Agradecemos seus esforços em avançar o campo e tornar seu trabalho acessível à comunidade em geral.

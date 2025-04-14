@@ -55,16 +55,16 @@ Ultralyticsのモデルドキュメントへようこそ！我々は、[オブ�
         from ultralytics import YOLO
 
         # COCOで事前訓練されたYOLOv8nモデルをロードする
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # モデル情報を表示する（任意）
         model.info()
 
         # モデルをCOCO8の例示データセットで100エポックトレーニングする
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # 'bus.jpg'画像でYOLOv8nモデルを用いた推論を実行する
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

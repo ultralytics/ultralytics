@@ -149,7 +149,7 @@ If you are using a Jupyter Notebook and you want to display the generated DVC pl
 from IPython.display import HTML
 
 # Display the DVC plots as HTML
-HTML(filename='./dvc_plots/index.html')
+HTML(filename="./dvc_plots/index.html")
 ```
 
 This code will render the HTML file containing the DVC plots directly in your Jupyter Notebook, providing an easy and convenient way to analyze the visualized experiment data.

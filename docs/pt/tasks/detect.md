@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Documentação oficial do YOLOv8 por Ultralytics. Aprenda como treinar, validar, predizer e exportar modelos em vários formatos. Incluindo estatísticas detalhadas de desempenho.
+description: Documentação official do YOLOv8 por Ultralytics. Aprenda como treinar, validar, predizer e exportar modelos em vários formatos. Incluindo estatísticas detalhadas de desempenho.
 keywords: YOLOv8, Ultralytics, detecção de objetos, modelos pré-treinados, treinamento, validação, predição, exportação de modelos, COCO, ImageNet, PyTorch, ONNX, CoreML
 ---
 
@@ -34,7 +34,7 @@ Os modelos pré-treinados YOLOv8 Detect são mostrados aqui. Os modelos Detect, 
 Os [Modelos](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) são baixados automaticamente a partir do último lançamento da Ultralytics [release](https://github.com/ultralytics/assets/releases) no primeiro uso.
 
 | Modelo                                                                               | Tamanho<br><sup>(pixels) | mAP<sup>val<br>50-95 | Velocidade<br><sup>CPU ONNX<br>(ms) | Velocidade<br><sup>A100 TensorRT<br>(ms) | Parâmetros<br><sup>(M) | FLOPs<br><sup>(B) |
-|--------------------------------------------------------------------------------------|--------------------------|----------------------|-------------------------------------|------------------------------------------|------------------------|-------------------|
+| ------------------------------------------------------------------------------------ | ------------------------ | -------------------- | ----------------------------------- | ---------------------------------------- | ---------------------- | ----------------- |
 | [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt) | 640                      | 37.3                 | 80.4                                | 0.99                                     | 3.2                    | 8.7               |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt) | 640                      | 44.9                 | 128.4                               | 1.20                                     | 11.2                   | 28.6              |
 | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt) | 640                      | 50.2                 | 234.7                               | 1.83                                     | 25.9                   | 78.9              |
@@ -49,7 +49,7 @@ Os [Modelos](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cf
 
 ## Treinar
 
-Treine o YOLOv8n no dataset COCO128 por 100 épocas com tamanho de imagem 640. Para uma lista completa de argumentos disponíveis, veja a página [Configuração](/../usage/cfg.md).
+Treine o YOLOv8n no dataset COCO128 por 100 épocas com tamanho de imagem 640. Para uma lista completa de arguments disponíveis, veja a página [Configuração](/../usage/cfg.md).
 
 !!! Example "Exemplo"
 
@@ -59,12 +59,12 @@ Treine o YOLOv8n no dataset COCO128 por 100 épocas com tamanho de imagem 640. P
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n.yaml')  # construir um novo modelo pelo YAML
-        model = YOLO('yolov8n.pt')  # carregar um modelo pré-treinado (recomendado para treinamento)
-        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # construir pelo YAML e transferir pesos
+        model = YOLO("yolov8n.yaml")  # construir um novo modelo pelo YAML
+        model = YOLO("yolov8n.pt")  # carregar um modelo pré-treinado (recomendado para treinamento)
+        model = YOLO("yolov8n.yaml").load("yolov8n.pt")  # construir pelo YAML e transferir pesos
 
         # Treinar o modelo
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640)
         ```
     === "CLI"
 
@@ -81,11 +81,11 @@ Treine o YOLOv8n no dataset COCO128 por 100 épocas com tamanho de imagem 640. P
 
 ### Formato do Dataset
 
-O formato do dataset de detecção do YOLO pode ser encontrado em detalhes no [Guia de Datasets](../../../datasets/detect/index.md). Para converter seu dataset existente de outros formatos (como COCO, etc.) para o formato YOLO, por favor utilize a ferramenta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) da Ultralytics.
+O formato do dataset de detecção do YOLO pode set encontrado em detalhes no [Guia de Datasets](../../../datasets/detect/index.md). Para converter seu dataset existente de outros formatos (como COCO, etc.) para o formato YOLO, por favor utilize a ferramenta [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) da Ultralytics.
 
 ## Validar
 
-Valide a precisão do modelo YOLOv8n treinado no dataset COCO128. Não é necessário passar nenhum argumento, pois o `modelo` mantém seus `dados` de treino e argumentos como atributos do modelo.
+Valid a precisão do modelo YOLOv8n treinado no dataset COCO128. Não é necessário passar nenhum argumento, pois o `modelo` mantém seus `dados` de treino e arguments como atributos do modelo.
 
 !!! Example "Exemplo"
 
@@ -95,21 +95,21 @@ Valide a precisão do modelo YOLOv8n treinado no dataset COCO128. Não é necess
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n.pt')  # carregar um modelo oficial
-        model = YOLO('caminho/para/best.pt')  # carregar um modelo personalizado
+        model = YOLO("yolov8n.pt")  # carregar um modelo official
+        model = YOLO("caminho/para/best.pt")  # carregar um modelo personalizado
 
         # Validar o modelo
-        metrics = model.val()  # sem a necessidade de argumentos, dataset e configurações lembradas
-        metrics.box.map    # map50-95
+        metrics = model.val()  # sem a necessidade de arguments, dataset e configurações lembradas
+        metrics.box.map  # map50-95
         metrics.box.map50  # map50
         metrics.box.map75  # map75
-        metrics.box.maps   # uma lista contém map50-95 de cada categoria
+        metrics.box.maps  # uma lista contém map50-95 de cada categoria
         ```
     === "CLI"
 
         ```bash
-        yolo detect val model=yolov8n.pt  # validação do modelo oficial
-        yolo detect val model=caminho/para/best.pt  # validação do modelo personalizado
+        yolo detect val model=yolov8n.pt           # validação do modelo official
+        yolo detect val model=caminho/para/best.pt # validação do modelo personalizado
         ```
 
 ## Predizer
@@ -124,17 +124,17 @@ Use um modelo YOLOv8n treinado para fazer predições em imagens.
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n.pt')  # carregar um modelo oficial
-        model = YOLO('caminho/para/best.pt')  # carregar um modelo personalizado
+        model = YOLO("yolov8n.pt")  # carregar um modelo official
+        model = YOLO("caminho/para/best.pt")  # carregar um modelo personalizado
 
         # Predizer com o modelo
-        results = model('https://ultralytics.com/images/bus.jpg')  # predizer em uma imagem
+        results = model("https://ultralytics.com/images/bus.jpg")  # predizer em uma imagem
         ```
     === "CLI"
 
         ```bash
-        yolo detect predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'  # predizer com modelo oficial
-        yolo detect predict model=caminho/para/best.pt source='https://ultralytics.com/images/bus.jpg'  # predizer com modelo personalizado
+        yolo detect predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'           # predizer com modelo official
+        yolo detect predict model=caminho/para/best.pt source='https://ultralytics.com/images/bus.jpg' # predizer com modelo personalizado
         ```
 
 Veja os detalhes completos do modo `predict` na página [Predição](https://docs.ultralytics.com/modes/predict/).
@@ -151,35 +151,35 @@ Exporte um modelo YOLOv8n para um formato diferente, como ONNX, CoreML, etc.
         from ultralytics import YOLO
 
         # Carregar um modelo
-        model = YOLO('yolov8n.pt')  # carregar um modelo oficial
-        model = YOLO('caminho/para/best.pt')  # carregar um modelo treinado personalizado
+        model = YOLO("yolov8n.pt")  # carregar um modelo official
+        model = YOLO("caminho/para/best.pt")  # carregar um modelo treinado personalizado
 
         # Exportar o modelo
-        model.export(format='onnx')
+        model.export(format="onnx")
         ```
     === "CLI"
 
         ```bash
-        yolo export model=yolov8n.pt format=onnx  # exportar modelo oficial
-        yolo export model=caminho/para/best.pt format=onnx  # exportar modelo treinado personalizado
+        yolo export model=yolov8n.pt format=onnx           # exportar modelo official
+        yolo export model=caminho/para/best.pt format=onnx # exportar modelo treinado personalizado
         ```
 
-Os formatos de exportação YOLOv8 disponíveis estão na tabela abaixo. Você pode fazer predições ou validar diretamente em modelos exportados, ou seja, `yolo predict model=yolov8n.onnx`. Exemplos de uso são mostrados para o seu modelo após a exportação ser concluída.
+Os formatos de exportação YOLOv8 disponíveis estão na tabela abaixo. Você pode fazer predições ou validar diretamente em modelos exportados, ou seja, `yolo predict model=yolov8n.onnx`. Exemplos de uso são mostrados para o seu modelo após a exportação set concluída.
 
-| Formato                                                            | Argumento `format` | Modelo                    | Metadados | Argumentos                                          |
-|--------------------------------------------------------------------|--------------------|---------------------------|-----------|-----------------------------------------------------|
-| [PyTorch](https://pytorch.org/)                                    | -                  | `yolov8n.pt`              | ✅         | -                                                   |
-| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`      | `yolov8n.torchscript`     | ✅         | `imgsz`, `optimize`                                 |
-| [ONNX](https://onnx.ai/)                                           | `onnx`             | `yolov8n.onnx`            | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
-| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`         | `yolov8n_openvino_model/` | ✅         | `imgsz`, `half`                                     |
-| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`           | `yolov8n.engine`          | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`           | `yolov8n.mlpackage`       | ✅         | `imgsz`, `half`, `int8`, `nms`                      |
-| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`      | `yolov8n_saved_model/`    | ✅         | `imgsz`, `keras`                                    |
-| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`               | `yolov8n.pb`              | ❌         | `imgsz`                                             |
-| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`           | `yolov8n.tflite`          | ✅         | `imgsz`, `half`, `int8`                             |
-| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`          | `yolov8n_edgetpu.tflite`  | ✅         | `imgsz`                                             |
-| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`             | `yolov8n_web_model/`      | ✅         | `imgsz`                                             |
-| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`           | `yolov8n_paddle_model/`   | ✅         | `imgsz`                                             |
-| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`             | `yolov8n_ncnn_model/`     | ✅         | `imgsz`, `half`                                     |
+| Formato                                                            | Argumento `format` | Modelo                    | Metadados | Arguments                                          |
+| ------------------------------------------------------------------ | ------------------ | ------------------------- | --------- | --------------------------------------------------- |
+| [PyTorch](https://pytorch.org/)                                    | -                  | `yolov8n.pt`              | ✅        | -                                                   |
+| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`      | `yolov8n.torchscript`     | ✅        | `imgsz`, `optimize`                                 |
+| [ONNX](https://onnx.ai/)                                           | `onnx`             | `yolov8n.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
+| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`         | `yolov8n_openvino_model/` | ✅        | `imgsz`, `half`                                     |
+| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`           | `yolov8n.engine`          | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
+| [CoreML](https://github.com/apple/coremltools)                     | `coreml`           | `yolov8n.mlpackage`       | ✅        | `imgsz`, `half`, `int8`, `nms`                      |
+| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`      | `yolov8n_saved_model/`    | ✅        | `imgsz`, `keras`                                    |
+| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`               | `yolov8n.pb`              | ❌        | `imgsz`                                             |
+| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`           | `yolov8n.tflite`          | ✅        | `imgsz`, `half`, `int8`                             |
+| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`          | `yolov8n_edgetpu.tflite`  | ✅        | `imgsz`                                             |
+| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`             | `yolov8n_web_model/`      | ✅        | `imgsz`                                             |
+| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`           | `yolov8n_paddle_model/`   | ✅        | `imgsz`                                             |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`             | `yolov8n_ncnn_model/`     | ✅        | `imgsz`, `half`                                     |
 
 Veja os detalhes completos de `exportar` na página [Exportação](https://docs.ultralytics.com/modes/export/).

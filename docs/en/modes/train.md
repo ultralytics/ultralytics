@@ -59,12 +59,12 @@ Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. The train
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.yaml')  # build a new model from YAML
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
+        model = YOLO("yolov8n.yaml")  # build a new model from YAML
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.yaml").load("yolov8n.pt")  # build from YAML and transfer weights
 
         # Train the model
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -94,10 +94,10 @@ Multi-GPU training allows for more efficient utilization of available hardware r
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model with 2 GPUs
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640, device=[0, 1])
         ```
 
     === "CLI"
@@ -121,10 +121,10 @@ To enable training on Apple M1 and M2 chips, you should specify 'mps' as your de
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model with 2 GPUs
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640, device="mps")
         ```
 
     === "CLI"
@@ -154,7 +154,7 @@ Below is an example of how to resume an interrupted training using Python and vi
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('path/to/last.pt')  # load a partially trained model
+        model = YOLO("path/to/last.pt")  # load a partially trained model
 
         # Resume training
         results = model.train(resume=True)
@@ -176,7 +176,7 @@ Remember that checkpoints are saved at the end of every epoch by default, or at 
 Training settings for YOLO models refer to the various hyperparameters and configurations used to train the model on a dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO training settings include the batch size, learning rate, momentum, and weight decay. Other factors that may affect the training process include the choice of optimizer, the choice of loss function, and the size and composition of the training dataset. It is important to carefully tune and experiment with these settings to achieve the best possible performance for a given task.
 
 | Key               | Value    | Description                                                                                    |
-|-------------------|----------|------------------------------------------------------------------------------------------------|
+| ----------------- | -------- | ---------------------------------------------------------------------------------------------- |
 | `model`           | `None`   | path to model file, i.e. yolov8n.pt, yolov8n.yaml                                              |
 | `data`            | `None`   | path to data file, i.e. coco128.yaml                                                           |
 | `epochs`          | `100`    | number of epochs to train for                                                                  |
@@ -207,7 +207,7 @@ Training settings for YOLO models refer to the various hyperparameters and confi
 | `profile`         | `False`  | profile ONNX and TensorRT speeds during training for loggers                                   |
 | `freeze`          | `None`   | (int or list, optional) freeze first n layers, or freeze list of layer indices during training |
 | `lr0`             | `0.01`   | initial learning rate (i.e. SGD=1E-2, Adam=1E-3)                                               |
-| `lrf`             | `0.01`   | final learning rate (lr0 * lrf)                                                                |
+| `lrf`             | `0.01`   | final learning rate (lr0 \* lrf)                                                               |
 | `momentum`        | `0.937`  | SGD momentum/Adam beta1                                                                        |
 | `weight_decay`    | `0.0005` | optimizer weight decay 5e-4                                                                    |
 | `warmup_epochs`   | `3.0`    | warmup epochs (fractions ok)                                                                   |
@@ -279,7 +279,7 @@ To use TensorBoard in [Google Colab](https://colab.research.google.com/github/ul
     === "CLI"
         ```bash
         load_ext tensorboard
-        tensorboard --logdir ultralytics/runs  # replace with 'runs' directory
+        tensorboard --logdir ultralytics/runs # replace with 'runs' directory
         ```
 
 To use TensorBoard locally run the below command and view results at http://localhost:6006/.
@@ -288,7 +288,7 @@ To use TensorBoard locally run the below command and view results at http://loca
 
     === "CLI"
         ```bash
-        tensorboard --logdir ultralytics/runs  # replace with 'runs' directory
+        tensorboard --logdir ultralytics/runs # replace with 'runs' directory
         ```
 
 This will load TensorBoard and direct it to the directory where your training logs are saved.

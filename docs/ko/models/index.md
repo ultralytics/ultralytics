@@ -55,16 +55,16 @@ Ultralytics 모델 문서에 오신 것을 환영합니다! 우리는 [객체 �
         from ultralytics import YOLO
 
         # COCO로 사전 학습된 YOLOv8n 모델 불러오기
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # 모델 정보 표시 (선택사항)
         model.info()
 
         # COCO8 예제 데이터셋에 대해 100 에포크 동안 모델 학습
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # 'bus.jpg' 이미지에 대한 YOLOv8n 모델 추론 실행
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

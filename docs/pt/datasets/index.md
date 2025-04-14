@@ -76,7 +76,7 @@ Contribuir com um novo conjunto de dados envolve várias etapas para garantir qu
 
 ### Etapas para Contribuir com um Novo Conjunto de Dados
 
-1. **Coletar Imagens**: Reúna as imagens que pertencem ao conjunto de dados. Estas podem ser coletadas de várias fontes, como bancos de dados públicos ou sua própria coleção.
+1. **Coletar Imagens**: Reúna as imagens que pertencem ao conjunto de dados. Estas podem set coletadas de várias fontes, como bancos de dados públicos ou sua própria coleção.
 
 2. **Anotar Imagens**: Anote essas imagens com caixas delimitadoras, segmentos ou pontos-chave, dependendo da tarefa.
 
@@ -110,14 +110,15 @@ Contribuir com um novo conjunto de dados envolve várias etapas para garantir qu
 
     ```python
     from pathlib import Path
+
     from ultralytics.data.utils import compress_one_image
     from ultralytics.utils.downloads import zip_directory
 
     # Definir diretório do conjunto de dados
-    path = Path('caminho/para/conjunto_de_dados')
+    path = Path("caminho/para/conjunto_de_dados")
 
     # Otimizar imagens no conjunto de dados (opcional)
-    for f in path.rglob('*.jpg'):
+    for f in path.rglob("*.jpg"):
         compress_one_image(f)
 
     # Compactar conjunto de dados em 'caminho/para/conjunto_de_dados.zip'

@@ -110,14 +110,15 @@ Ultralytics предоставляет поддержку различных н�
 
     ```python
     from pathlib import Path
+
     from ultralytics.data.utils import compress_one_image
     from ultralytics.utils.downloads import zip_directory
 
     # Определите директорию набора данных
-    path = Path('path/to/dataset')
+    path = Path("path/to/dataset")
 
     # Оптимизация изображений в наборе данных (опционально)
-    for f in path.rglob('*.jpg'):
+    for f in path.rglob("*.jpg"):
         compress_one_image(f)
 
     # Архивация набора данных в 'path/to/dataset.zip'

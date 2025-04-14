@@ -34,7 +34,7 @@ Task التعرف على الكائنات هو عبارة عن تعرف على �
 تُقوم النماذج بالتنزيل تلقائيًا من أحدث [إصدار Ultralytics](https://github.com/ultralytics/assets/releases) عند الاستخدام لأول مرة.
 
 | النموذج                                                                              | الحجم<br><sup>(بكسل) | mAP<sup>val<br>50-95 | السرعة<br><sup>CPU ONNX<br>(مللي ثانية) | السرعة<br><sup>A100 TensorRT<br>(مللي ثانية) | الوزن<br><sup>(ميغا) | FLOPs<br><sup>(مليار) |
-|--------------------------------------------------------------------------------------|----------------------|----------------------|-----------------------------------------|----------------------------------------------|----------------------|-----------------------|
+| ------------------------------------------------------------------------------------ | -------------------- | -------------------- | --------------------------------------- | -------------------------------------------- | -------------------- | --------------------- |
 | [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt) | 640                  | 37.3                 | 80.4                                    | 0.99                                         | 3.2                  | 8.7                   |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt) | 640                  | 44.9                 | 128.4                                   | 1.20                                         | 11.2                 | 28.6                  |
 | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt) | 640                  | 50.2                 | 234.7                                   | 1.83                                         | 25.9                 | 78.9                  |
@@ -59,12 +59,12 @@ Task التعرف على الكائنات هو عبارة عن تعرف على �
         from ultralytics import YOLO
 
         # قم بتحميل نموذج
-        model = YOLO('yolov8n.yaml')  # بناء نموذج جديد من YAML
-        model = YOLO('yolov8n.pt')  # قم بتحميل نموذج مدرب مسبقًا (موصى به للتدريب)
-        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # بناء من YAML و نقل الأوزان
+        model = YOLO("yolov8n.yaml")  # بناء نموذج جديد من YAML
+        model = YOLO("yolov8n.pt")  # قم بتحميل نموذج مدرب مسبقًا (موصى به للتدريب)
+        model = YOLO("yolov8n.yaml").load("yolov8n.pt")  # بناء من YAML و نقل الأوزان
 
         # قم بتدريب النموذج
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640)
         ```
     === "CLI"
 
@@ -95,21 +95,21 @@ Task التعرف على الكائنات هو عبارة عن تعرف على �
         from ultralytics import YOLO
 
         # قم بتحميل نموذج
-        model = YOLO('yolov8n.pt')  # تحميل نموذج رسمي
-        model = YOLO('path/to/best.pt')  # تحميل نموذج مخصص
+        model = YOLO("yolov8n.pt")  # تحميل نموذج رسمي
+        model = YOLO("path/to/best.pt")  # تحميل نموذج مخصص
 
         # قم بالتحقق من النموذج
         metrics = model.val()  # لا حاجة لأي بيانات، يتذكر النموذج بيانات التدريب و الوسيطات
-        metrics.box.map    # map50-95
+        metrics.box.map  # map50-95
         metrics.box.map50  # map50
         metrics.box.map75  # map75
-        metrics.box.maps   # قائمة تحتوي map50-95 لكل فئة
+        metrics.box.maps  # قائمة تحتوي map50-95 لكل فئة
         ```
     === "CLI"
 
         ```bash
-        yolo detect val model=yolov8n.pt  # التحقق من النموذج الرسمي
-        yolo detect val model=path/to/best.pt  # التحقق من النموذج المخصص
+        yolo detect val model=yolov8n.pt      # التحقق من النموذج الرسمي
+        yolo detect val model=path/to/best.pt # التحقق من النموذج المخصص
         ```
 
 ## التنبؤ
@@ -124,17 +124,17 @@ Task التعرف على الكائنات هو عبارة عن تعرف على �
         from ultralytics import YOLO
 
         # قم بتحميل نموذج
-        model = YOLO('yolov8n.pt')  # قم بتحميل نموذج رسمي
-        model = YOLO('path/to/best.pt')  # قم بتحميل نموذج مخصص
+        model = YOLO("yolov8n.pt")  # قم بتحميل نموذج رسمي
+        model = YOLO("path/to/best.pt")  # قم بتحميل نموذج مخصص
 
         # أجرِ التنبؤ باستخدام النموذج
-        results = model('https://ultralytics.com/images/bus.jpg')  # التنبؤ على صورة
+        results = model("https://ultralytics.com/images/bus.jpg")  # التنبؤ على صورة
         ```
     === "CLI"
 
         ```bash
-        yolo detect predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'  # التنبؤ باستخدام النموذج الرسمي
-        yolo detect predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # التنبؤ بالنموذج المخصص
+        yolo detect predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'      # التنبؤ باستخدام النموذج الرسمي
+        yolo detect predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg' # التنبؤ بالنموذج المخصص
         ```
 
 انظر تفاصيل وضع الـ `predict` الكامل في صفحة [Predict](https://docs.ultralytics.com/modes/predict/).
@@ -151,35 +151,35 @@ Task التعرف على الكائنات هو عبارة عن تعرف على �
         from ultralytics import YOLO
 
         # قم بتحميل نموذج
-        model = YOLO('yolov8n.pt')  # تحميل نموذج رسمي
-        model = YOLO('path/to/best.pt')  # تحميل نموذج مدرب مخصص
+        model = YOLO("yolov8n.pt")  # تحميل نموذج رسمي
+        model = YOLO("path/to/best.pt")  # تحميل نموذج مدرب مخصص
 
         # قم بتصدير النموذج
-        model.export(format='onnx')
+        model.export(format="onnx")
         ```
     === "CLI"
 
         ```bash
-        yolo export model=yolov8n.pt format=onnx  # تصدير النموذج الرسمي
-        yolo export model=path/to/best.pt format=onnx  # تصدير النموذج المدرب مخصص
+        yolo export model=yolov8n.pt format=onnx      # تصدير النموذج الرسمي
+        yolo export model=path/to/best.pt format=onnx # تصدير النموذج المدرب مخصص
         ```
 
 التنسيقات المدعومة لتصدير YOLOv8 مدرجة في الجدول أدناه. يمكنك التنبؤ أو التحقق من صحة النماذج المصدرة مباشرة، على سبيل المثال `yolo predict model=yolov8n.onnx`. سيتم عرض أمثلة استخدام لنموذجك بعد اكتمال التصدير.
 
 | الشكل                                                              | مسافة `format` | النموذج                   | بيانات الوصف | وسيطات                                              |
-|--------------------------------------------------------------------|----------------|---------------------------|--------------|-----------------------------------------------------|
-| [PyTorch](https://pytorch.org/)                                    | - أو           | `yolov8n.pt`              | ✅            | -                                                   |
-| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`  | `yolov8n.torchscript`     | ✅            | `imgsz`, `optimize`                                 |
-| [ONNX](https://onnx.ai/)                                           | `onnx`         | `yolov8n.onnx`            | ✅            | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
-| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`     | `yolov8n_openvino_model/` | ✅            | `imgsz`, `half`, `int8`                             |
-| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`       | `yolov8n.engine`          | ✅            | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`       | `yolov8n.mlpackage`       | ✅            | `imgsz`, `half`, `int8`, `nms`                      |
-| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`  | `yolov8n_saved_model/`    | ✅            | `imgsz`, `keras`, `int8`                            |
-| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`           | `yolov8n.pb`              | ❌            | `imgsz`                                             |
-| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`       | `yolov8n.tflite`          | ✅            | `imgsz`, `half`, `int8`                             |
-| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`      | `yolov8n_edgetpu.tflite`  | ✅            | `imgsz`                                             |
-| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`         | `yolov8n_web_model/`      | ✅            | `imgsz`                                             |
-| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`       | `yolov8n_paddle_model/`   | ✅            | `imgsz`                                             |
-| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`         | `yolov8n_ncnn_model/`     | ✅            | `imgsz`, `half`                                     |
+| ------------------------------------------------------------------ | -------------- | ------------------------- | ------------ | --------------------------------------------------- |
+| [PyTorch](https://pytorch.org/)                                    | - أو           | `yolov8n.pt`              | ✅           | -                                                   |
+| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`  | `yolov8n.torchscript`     | ✅           | `imgsz`, `optimize`                                 |
+| [ONNX](https://onnx.ai/)                                           | `onnx`         | `yolov8n.onnx`            | ✅           | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
+| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`     | `yolov8n_openvino_model/` | ✅           | `imgsz`, `half`, `int8`                             |
+| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`       | `yolov8n.engine`          | ✅           | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
+| [CoreML](https://github.com/apple/coremltools)                     | `coreml`       | `yolov8n.mlpackage`       | ✅           | `imgsz`, `half`, `int8`, `nms`                      |
+| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`  | `yolov8n_saved_model/`    | ✅           | `imgsz`, `keras`, `int8`                            |
+| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`           | `yolov8n.pb`              | ❌           | `imgsz`                                             |
+| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`       | `yolov8n.tflite`          | ✅           | `imgsz`, `half`, `int8`                             |
+| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`      | `yolov8n_edgetpu.tflite`  | ✅           | `imgsz`                                             |
+| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`         | `yolov8n_web_model/`      | ✅           | `imgsz`                                             |
+| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`       | `yolov8n_paddle_model/`   | ✅           | `imgsz`                                             |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`         | `yolov8n_ncnn_model/`     | ✅           | `imgsz`, `half`                                     |
 
 انظر تفاصيل كاملة للـ `export` في صفحة [Export](https://docs.ultralytics.com/modes/export/).

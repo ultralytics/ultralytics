@@ -32,8 +32,8 @@ Ultralytics 追踪器的输出与标准的物体检测结果一致，但增加�
 
 ## 实际应用场景
 
-|                                                    交通运输                                                    |                                                     零售                                                     |                                                    水产养殖                                                    |
-|:----------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------:|
+|                                                    交通运输                                                    |                                                      零售                                                      |                                                    水产养殖                                                    |
+| :------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------: |
 | ![车辆追踪](https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab) | ![人员追踪](https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527) | ![鱼类追踪](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142) |
 |                                                    车辆追踪                                                    |                                                    人员追踪                                                    |                                                    鱼类追踪                                                    |
 
@@ -49,8 +49,8 @@ Ultralytics YOLO扩展了其物体检测功能，以提供强大且多功能的�
 
 Ultralytics YOLO支持以下追踪算法。可以通过传递相关的YAML配置文件如`tracker=tracker_type.yaml`来启用：
 
-* [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - 使用 `botsort.yaml` 启用此追踪器。
-* [ByteTrack](https://github.com/ifzhang/ByteTrack) - 使用 `bytetrack.yaml` 启用此追踪器。
+- [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - 使用 `botsort.yaml` 启用此追踪器。
+- [ByteTrack](https://github.com/ifzhang/ByteTrack) - 使用 `bytetrack.yaml` 启用此追踪器。
 
 默认追踪器是BoT-SORT。
 
@@ -66,24 +66,26 @@ Ultralytics YOLO支持以下追踪算法。可以通过传递相关的YAML配置
         from ultralytics import YOLO
 
         # 加载官方或自定义模型
-        model = YOLO('yolov8n.pt')  # 加载一个官方的检测模型
-        model = YOLO('yolov8n-seg.pt')  # 加载一个官方的分割模型
-        model = YOLO('yolov8n-pose.pt')  # 加载一个官方的姿态模型
-        model = YOLO('path/to/best.pt')  # 加载一个自定义训练的模型
+        model = YOLO("yolov8n.pt")  # 加载一个官方的检测模型
+        model = YOLO("yolov8n-seg.pt")  # 加载一个官方的分割模型
+        model = YOLO("yolov8n-pose.pt")  # 加载一个官方的姿态模型
+        model = YOLO("path/to/best.pt")  # 加载一个自定义训练的模型
 
         # 使用模型进行追踪
         results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)  # 使用默认追踪器进行追踪
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")  # 使用ByteTrack追踪器进行追踪
+        results = model.track(
+            source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml"
+        )  # 使用ByteTrack追踪器进行追踪
         ```
 
     === "CLI"
 
         ```bash
         # 使用命令行界面进行各种模型的追踪
-        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4"  # 官方检测模型
+        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4"      # 官方检测模型
         yolo track model=yolov8n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # 官方分割模型
-        yolo track model=yolov8n-pose.pt source="https://youtu.be/LNwODJXcvt4"  # 官方姿态模型
-        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4"  # 自定义训练模型
+        yolo track model=yolov8n-pose.pt source="https://youtu.be/LNwODJXcvt4" # 官方姿态模型
+        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4" # 自定义训练模型
 
         # 使用ByteTrack追踪器进行追踪
         yolo track model=path/to/best.pt tracker="bytetrack.yaml"
@@ -105,7 +107,7 @@ Ultralytics YOLO支持以下追踪算法。可以通过传递相关的YAML配置
         from ultralytics import YOLO
 
         # 配置追踪参数并运行追踪器
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
         results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
         ```
 
@@ -128,8 +130,8 @@ Ultralytics还允许您使用修改后的追踪器配置文件。要执行此操
         from ultralytics import YOLO
 
         # 加载模型并使用自定义配置文件运行追踪器
-        model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker='custom_tracker.yaml')
+        model = YOLO("yolov8n.pt")
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker="custom_tracker.yaml")
         ```
 
     === "CLI"
@@ -151,10 +153,11 @@ Ultralytics还允许您使用修改后的追踪器配置文件。要执行此操
 
     ```python
     import cv2
+
     from ultralytics import YOLO
 
     # 加载YOLOv8模型
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # 打开视频文件
     video_path = "path/to/video.mp4"
@@ -206,7 +209,7 @@ Ultralytics还允许您使用修改后的追踪器配置文件。要执行此操
     from ultralytics import YOLO
 
     # 加载YOLOv8模型
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # 打开视频文件
     video_path = "path/to/video.mp4"

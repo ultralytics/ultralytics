@@ -47,16 +47,16 @@ YOLOv6은 다양한 스케일의 사전 훈련 모델을 제공합니다:
         from ultralytics import YOLO
 
         # YOLOv6n 모델을 처음부터 만듭니다
-        model = YOLO('yolov6n.yaml')
+        model = YOLO("yolov6n.yaml")
 
         # 모델 정보를 표시합니다 (선택 사항)
         model.info()
 
         # COCO8 예시 데이터셋으로 모델을 100 에폭 동안 훈련합니다
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # YOLOv6n 모델로 'bus.jpg' 이미지에서 추론을 실행합니다
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -75,13 +75,13 @@ YOLOv6은 다양한 스케일의 사전 훈련 모델을 제공합니다:
 
 YOLOv6 시리즈는 높은 성능의 [오브젝트 디텍션](../tasks/detect.md)을 위해 최적화된 다양한 모델을 제공합니다. 이 모델들은 다양한 계산 요구 사항과 정확도 요구 사항에 맞추어 다용도로 사용할 수 있습니다.
 
-| 모델 유형     | 사전 훈련 가중치      | 지원되는 작업                        | 추론 | 검증 | 훈련 | 익스포트 |
-|-----------|----------------|--------------------------------|----|----|----|------|
-| YOLOv6-N  | `yolov6-n.pt`  | [오브젝트 디텍션](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅    |
-| YOLOv6-S  | `yolov6-s.pt`  | [오브젝트 디텍션](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅    |
-| YOLOv6-M  | `yolov6-m.pt`  | [오브젝트 디텍션](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅    |
-| YOLOv6-L  | `yolov6-l.pt`  | [오브젝트 디텍션](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅    |
-| YOLOv6-L6 | `yolov6-l6.pt` | [오브젝트 디텍션](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅    |
+| 모델 유형 | 사전 훈련 가중치 | 지원되는 작업                         | 추론 | 검증 | 훈련 | 익스포트 |
+| --------- | ---------------- | ------------------------------------- | ---- | ---- | ---- | -------- |
+| YOLOv6-N  | `yolov6-n.pt`    | [오브젝트 디텍션](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅       |
+| YOLOv6-S  | `yolov6-s.pt`    | [오브젝트 디텍션](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅       |
+| YOLOv6-M  | `yolov6-m.pt`    | [오브젝트 디텍션](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅       |
+| YOLOv6-L  | `yolov6-l.pt`    | [오브젝트 디텍션](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅       |
+| YOLOv6-L6 | `yolov6-l6.pt`   | [오브젝트 디텍션](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅       |
 
 이 표는 YOLOv6 모델의 다양한 변형에 대한 자세한 개요를 제공하며, 오브젝트 디텍션 작업과 [추론](../modes/predict.md), [검증](../modes/val.md), [훈련](../modes/train.md), [익스포트](../modes/export.md)와 같은 다양한 운영 모드와의 호환성을 강조합니다. 이러한 포괄적인 지원을 통해 사용자들은 다양한 오브젝트 디텍션 시나리오에서 YOLOv6 모델의 기능을 최대한 활용할 수 있습니다.
 

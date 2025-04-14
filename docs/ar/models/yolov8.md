@@ -26,11 +26,11 @@ YOLOv8 هو التطور الأخير في سلسلة YOLO لمكتشفات ال
 تمت تحسين كل نوع من سلسلة YOLOv8 للمهام التي تخصها ، مما يضمن أداء ودقة عاليين. بالإضافة إلى ذلك ، تتوافق هذه النماذج مع أوضاع تشغيل مختلفة بما في ذلك [الاستدلال](../modes/predict.md) ، [التحقق](../modes/val.md) ، [التدريب](../modes/train.md) و [التصدير](../modes/export.md) ، مما يسهل استخدامها في مراحل مختلفة من عملية التطوير والتنفيذ.
 
 | النموذج     | أسماء الملف                                                                                                    | المهمة                                       | استدلال | التحقق | التدريب | التصدير |
-|-------------|----------------------------------------------------------------------------------------------------------------|----------------------------------------------|---------|--------|---------|---------|
-| YOLOv8      | `yolov8n.pt` `yolov8s.pt` `yolov8m.pt` `yolov8l.pt` `yolov8x.pt`                                               | [الكشف](../tasks/detect.md)                  | ✅       | ✅      | ✅       | ✅       |
-| YOLOv8-seg  | `yolov8n-seg.pt` `yolov8s-seg.pt` `yolov8m-seg.pt` `yolov8l-seg.pt` `yolov8x-seg.pt`                           | [تقسيم الصور إلى أجزاء](../tasks/segment.md) | ✅       | ✅      | ✅       | ✅       |
-| YOLOv8-pose | `yolov8n-pose.pt` `yolov8s-pose.pt` `yolov8m-pose.pt` `yolov8l-pose.pt` `yolov8x-pose.pt` `yolov8x-pose-p6.pt` | [المواقق/نقاط المفاتيح](../tasks/pose.md)    | ✅       | ✅      | ✅       | ✅       |
-| YOLOv8-cls  | `yolov8n-cls.pt` `yolov8s-cls.pt` `yolov8m-cls.pt` `yolov8l-cls.pt` `yolov8x-cls.pt`                           | [التصنيف](../tasks/classify.md)              | ✅       | ✅      | ✅       | ✅       |
+| ----------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ------- | ------ | ------- | ------- |
+| YOLOv8      | `yolov8n.pt` `yolov8s.pt` `yolov8m.pt` `yolov8l.pt` `yolov8x.pt`                                               | [الكشف](../tasks/detect.md)                  | ✅      | ✅     | ✅      | ✅      |
+| YOLOv8-seg  | `yolov8n-seg.pt` `yolov8s-seg.pt` `yolov8m-seg.pt` `yolov8l-seg.pt` `yolov8x-seg.pt`                           | [تقسيم الصور إلى أجزاء](../tasks/segment.md) | ✅      | ✅     | ✅      | ✅      |
+| YOLOv8-pose | `yolov8n-pose.pt` `yolov8s-pose.pt` `yolov8m-pose.pt` `yolov8l-pose.pt` `yolov8x-pose.pt` `yolov8x-pose-p6.pt` | [المواقق/نقاط المفاتيح](../tasks/pose.md)    | ✅      | ✅     | ✅      | ✅      |
+| YOLOv8-cls  | `yolov8n-cls.pt` `yolov8s-cls.pt` `yolov8m-cls.pt` `yolov8l-cls.pt` `yolov8x-cls.pt`                           | [التصنيف](../tasks/classify.md)              | ✅      | ✅     | ✅      | ✅      |
 
 توفر هذه الجدولة نظرة عامة على متغيرات نموذج YOLOv8 ، مما يسلط الضوء على قابليتها للتطبيق في مهام محددة وتوافقها مع أوضاع تشغيل مختلفة مثل الاستدلال والتحقق والتدريب والتصدير. يعرض مرونة وقوة سلسلة YOLOv8 ، مما يجعلها مناسبة لمجموعة متنوعة من التطبيقات في رؤية الحاسوب.
 
@@ -103,7 +103,7 @@ YOLOv8 هو التطور الأخير في سلسلة YOLO لمكتشفات ال
 
 يوفر هذا المثال أمثلة بسيطة للتدريب والتنبؤ باستخدام YOLOv8. للحصول على وثائق كاملة حول هذه وغيرها من [الأوضاع](../modes/index.md) ، انظر إلى صفحات وثائق [تنبؤ](../modes/predict.md) ، [تدريب](../modes/train.md) ، [التحقق](../modes/val.md) و [التصدير](../modes/export.md) .
 
-يرجى ملاحظة أن المثال أدناه يتعلق بطراز YOLOv8 [Detect](../tasks/detect.md) للكشف عن الكائنات. لمهام مدعومة إضافية ، انظر إلى وثائق [تقسيم](../tasks/segment.md) ،  [تحديد إنتماء](../tasks/classify.md) و [تصوير (Pose)](../tasks/pose.md) .
+يرجى ملاحظة أن المثال أدناه يتعلق بطراز YOLOv8 [Detect](../tasks/detect.md) للكشف عن الكائنات. لمهام مدعومة إضافية ، انظر إلى وثائق [تقسيم](../tasks/segment.md) ، [تحديد إنتماء](../tasks/classify.md) و [تصوير (Pose)](../tasks/pose.md) .
 
 !!!
 
@@ -117,16 +117,16 @@ YOLOv8 هو التطور الأخير في سلسلة YOLO لمكتشفات ال
         from ultralytics import YOLO
 
         # تحميل نموذج YOLOv8n المدرّب مسبقًا على COCO
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # عرض معلومات النموذج (اختياري)
         model.info()
 
         # تدريب النموذج على مجموعة بيانات المُدخلات coco8 على سبيل المثال لمدة 100 دورة
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # تشغيل التنبؤ باستخدام نموذج YOLOv8n على صورة 'bus.jpg'
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

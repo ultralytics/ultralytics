@@ -6,7 +6,7 @@ keywords: ultralytics, YOLOv4, Objekterkennung, neuronales Netzwerk, Echtzeit-Er
 
 # YOLOv4: Schnelle und präzise Objekterkennung
 
-Willkommen auf der Ultralytics-Dokumentationsseite für YOLOv4, einem hochmodernen, Echtzeit-Objektdetektor, der 2020 von Alexey Bochkovskiy unter [https://github.com/AlexeyAB/darknet](https://github.com/AlexeyAB/darknet) veröffentlicht wurde. YOLOv4 wurde entwickelt, um das optimale Gleichgewicht zwischen Geschwindigkeit und Genauigkeit zu bieten und ist somit eine ausgezeichnete Wahl für viele Anwendungen.
+Willkommen auf der Ultralytics-Dokumentationsseite für YOLOv4, einem hochmodernen, Echtzeit-Objektdetektor, der 2020 von Alexey Bochkovskiy under [https://github.com/AlexeyAB/darknet](https://github.com/AlexeyAB/darknet) veröffentlicht wurde. YOLOv4 wurde entwickelt, um das optimale Gleichgewicht zwischen Geschwindigkeit und Genauigkeit zu bieten und ist somit eine ausgezeichnete Wahl für viele Anwendungen.
 
 ![YOLOv4 Architekturdiagramm](https://user-images.githubusercontent.com/26833433/246185689-530b7fe8-737b-4bb0-b5dd-de10ef5aface.png)
 **YOLOv4 Architekturdiagramm**. Zeigt das komplexe Netzwerkdesign von YOLOv4, einschließlich der Backbone-, Neck- und Head-Komponenten sowie ihrer verbundenen Schichten für eine optimale Echtzeit-Objekterkennung.
@@ -23,11 +23,11 @@ Ein typischer Objektdetektor besteht aus mehreren Teilen, darunter der Eingabe, 
 
 ## Bag of Freebies
 
-YOLOv4 verwendet auch Methoden, die als "Bag of Freebies" bekannt sind. Dabei handelt es sich um Techniken, die die Genauigkeit des Modells während des Trainings verbessern, ohne die Kosten der Inferenz zu erhöhen. Datenaugmentation ist eine häufige Bag of Freebies-Technik, die in der Objekterkennung verwendet wird, um die Variabilität der Eingabebilder zu erhöhen und die Robustheit des Modells zu verbessern. Beispiele für Datenaugmentation sind photometrische Verzerrungen (Anpassung von Helligkeit, Kontrast, Farbton, Sättigung und Rauschen eines Bildes) und geometrische Verzerrungen (Hinzufügen von zufälliger Skalierung, Ausschnitt, Spiegelung und Rotation). Diese Techniken helfen dem Modell, sich besser an verschiedene Arten von Bildern anzupassen.
+YOLOv4 verwendet auch Methods, die also "Bag of Freebies" bekannt sind. Dabei handelt es sich um Techniken, die die Genauigkeit des Models während des Trainings verbessern, ohne die Kosten der Inferenz zu erhöhen. Datenaugmentation ist eine häufige Bag of Freebies-Technik, die in der Objekterkennung verwendet wird, um die Variabilität der Eingabebilder zu erhöhen und die Robustheit des Models zu verbessern. Beispiele für Datenaugmentation sind photometrische Verzerrungen (Anpassung von Helligkeit, Kontrast, Farbton, Sättigung und Rauschen eines Bildes) und geometrische Verzerrungen (Hinzufügen von zufälliger Skalierung, Ausschnitt, Spiegelung und Rotation). Diese Techniken helfen dem Model, sich besser an verschiedene Arten von Bildern anzupassen.
 
 ## Funktionen und Leistung
 
-YOLOv4 ist für optimale Geschwindigkeit und Genauigkeit in der Objekterkennung konzipiert. Die Architektur von YOLOv4 umfasst CSPDarknet53 als Backbone, PANet als Neck und YOLOv3 als Detektionskopf. Diese Konstruktion ermöglicht es YOLOv4, beeindruckend schnelle Objekterkennungen durchzuführen und ist somit für Echtzeitanwendungen geeignet. YOLOv4 zeichnet sich auch durch Genauigkeit aus und erzielt erstklassige Ergebnisse in Objekterkennungs-Benchmarks.
+YOLOv4 ist für optimale Geschwindigkeit und Genauigkeit in der Objekterkennung konzipiert. Die Architektur von YOLOv4 umfasst CSPDarknet53 also Backbone, PANet also Neck und YOLOv3 also Detektionskopf. Diese Konstruktion ermöglicht es YOLOv4, beeindruckend schnelle Objekterkennungen durchzuführen und ist somit für Echtzeitanwendungen geeignet. YOLOv4 zeichnet sich auch durch Genauigkeit aus und erzielt erstklassige Ergebnisse in Objekterkennungs-Benchmarks.
 
 ## Beispiele für die Verwendung
 
@@ -39,15 +39,15 @@ Hier ist ein kurzer Überblick über die typischen Schritte, die Sie unternehmen
 
 2. Befolgen Sie die in der README-Datei bereitgestellten Anweisungen zur Installation. Dies beinhaltet in der Regel das Klonen des Repositories, die Installation der erforderlichen Abhängigkeiten und das Einrichten der erforderlichen Umgebungsvariablen.
 
-3. Sobald die Installation abgeschlossen ist, können Sie das Modell gemäß den in dem Repository bereitgestellten Verwendungshinweisen trainieren und verwenden. Dies beinhaltet in der Regel die Vorbereitung des Datensatzes, die Konfiguration der Modellparameter, das Training des Modells und die anschließende Verwendung des trainierten Modells zur Durchführung der Objekterkennung.
+3. Sobald die Installation abgeschlossen ist, können Sie das Model gemäß den in dem Repository bereitgestellten Verwendungshinweisen trainieren und verwenden. Dies beinhaltet in der Regel die Vorbereitung des Datensatzes, die Konfiguration der Modellparameter, das Training des Models und die anschließende Verwendung des trainierten Models zur Durchführung der Objekterkennung.
 
 Bitte beachten Sie, dass die spezifischen Schritte je nach Ihrer spezifischen Anwendung und dem aktuellen Stand des YOLOv4-Repositories variieren können. Es wird daher dringend empfohlen, sich direkt an die Anweisungen im YOLOv4-GitHub-Repository zu halten.
 
-Wir bedauern etwaige Unannehmlichkeiten und werden uns bemühen, dieses Dokument mit Verwendungsbeispielen für Ultralytics zu aktualisieren, sobald die Unterstützung für YOLOv4 implementiert ist.
+Wir bedauern etwaige Unannehmlichkeiten und werden uns bemühen, dieses Document mit Verwendungsbeispielen für Ultralytics zu aktualisieren, sobald die Unterstützung für YOLOv4 implementiert ist.
 
 ## Fazit
 
-YOLOv4 ist ein leistungsstarkes und effizientes Modell zur Objekterkennung, das eine Balance zwischen Geschwindigkeit und Genauigkeit bietet. Durch den Einsatz einzigartiger Funktionen und Bag of Freebies-Techniken während des Trainings erzielt es hervorragende Ergebnisse in Echtzeit-Objekterkennungsaufgaben. YOLOv4 kann von jedem mit einer herkömmlichen GPU trainiert und verwendet werden, was es für eine Vielzahl von Anwendungen zugänglich und praktisch macht.
+YOLOv4 ist ein leistungsstarkes und effizientes Model zur Objekterkennung, das eine Balance zwischen Geschwindigkeit und Genauigkeit bietet. Durch den Einsatz einzigartiger Funktionen und Bag of Freebies-Techniken während des Trainings erzielt es hervorragende Ergebnisse in Echtzeit-Objekterkennungsaufgaben. YOLOv4 kann von jedem mit einer herkömmlichen GPU trainiert und verwendet werden, was es für eine Vielzahl von Anwendungen zugänglich und praktisch macht.
 
 ## Zitate und Anerkennungen
 

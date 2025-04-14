@@ -27,42 +27,42 @@ Ultralytics YOLOv8 ist nicht nur ein weiteres Objekterkennungsmodell; es ist ein
 
 Das Verständnis der verschiedenen **Modi**, die Ultralytics YOLOv8 unterstützt, ist entscheidend, um das Beste aus Ihren Modellen herauszuholen:
 
-- **Train**-Modus: Verfeinern Sie Ihr Modell mit angepassten oder vorgeladenen Datensätzen.
+- **Train**-Modus: Verfeinern Sie Ihr Model mit angepassten oder vorgeladenen Datensätzen.
 - **Val**-Modus: Eine Nachtrainingsprüfung zur Validierung der Modellleistung.
-- **Predict**-Modus: Entfesseln Sie die Vorhersagekraft Ihres Modells mit realen Daten.
-- **Export**-Modus: Machen Sie Ihr Modell in verschiedenen Formaten einsatzbereit.
+- **Predict**-Modus: Entfesseln Sie die Vorhersagekraft Ihres Models mit realen Daten.
+- **Export**-Modus: Machen Sie Ihr Model in verschiedenen Formaten einsatzbereit.
 - **Track**-Modus: Erweitern Sie Ihr Objekterkennungsmodell um Echtzeit-Tracking-Anwendungen.
-- **Benchmark**-Modus: Analysieren Sie die Geschwindigkeit und Genauigkeit Ihres Modells in verschiedenen Einsatzumgebungen.
+- **Benchmark**-Modus: Analysieren Sie die Geschwindigkeit und Genauigkeit Ihres Models in verschiedenen Einsatzumgebungen.
 
 Dieser umfassende Leitfaden soll Ihnen einen Überblick und praktische Einblicke in jeden Modus geben, um Ihnen zu helfen, das volle Potenzial von YOLOv8 zu nutzen.
 
 ## [Trainieren](train.md)
 
-Der Trainingsmodus wird verwendet, um ein YOLOv8-Modell mit einem angepassten Datensatz zu trainieren. In diesem Modus wird das Modell mit dem angegebenen Datensatz und den Hyperparametern trainiert. Der Trainingsprozess beinhaltet die Optimierung der Modellparameter, damit es die Klassen und Standorte von Objekten in einem Bild genau vorhersagen kann.
+Der Trainingsmodus wird verwendet, um ein YOLOv8-Model mit einem angepassten Datensatz zu trainieren. In diesem Modus wird das Model mit dem angegebenen Datensatz und den Hyperparametern trainiert. Der Trainingsprozess beinhaltet die Optimierung der Modellparameter, damit es die Klassen und Standorte von Objekten in einem Bild genau vorhersagen kann.
 
 [Trainingsbeispiele](train.md){ .md-button }
 
 ## [Validieren](val.md)
 
-Der Validierungsmodus wird genutzt, um ein YOLOv8-Modell nach dem Training zu bewerten. In diesem Modus wird das Modell auf einem Validierungsset getestet, um seine Genauigkeit und Generalisierungsleistung zu messen. Dieser Modus kann verwendet werden, um die Hyperparameter des Modells für eine bessere Leistung zu optimieren.
+Der Validierungsmodus wird genutzt, um ein YOLOv8-Model nach dem Training zu bewerten. In diesem Modus wird das Model auf einem Validierungsset getestet, um seine Genauigkeit und Generalisierungsleistung zu messen. Dieser Modus kann verwendet werden, um die Hyperparameter des Models für eine bessere Leistung zu optimieren.
 
 [Validierungsbeispiele](val.md){ .md-button }
 
 ## [Vorhersagen](predict.md)
 
-Der Vorhersagemodus wird verwendet, um mit einem trainierten YOLOv8-Modell Vorhersagen für neue Bilder oder Videos zu treffen. In diesem Modus wird das Modell aus einer Checkpoint-Datei geladen, und der Benutzer kann Bilder oder Videos zur Inferenz bereitstellen. Das Modell sagt die Klassen und Standorte von Objekten in den Eingabebildern oder -videos voraus.
+Der Vorhersagemodus wird verwendet, um mit einem trainierten YOLOv8-Model Vorhersagen für neue Bilder oder Videos zu treffen. In diesem Modus wird das Model aus einer Checkpoint-Datei geladen, und der Benutzer kann Bilder oder Videos zur Inferenz bereitstellen. Das Model sagt die Klassen und Standorte von Objekten in den Eingabebildern oder -videos voraus.
 
 [Vorhersagebeispiele](predict.md){ .md-button }
 
 ## [Exportieren](export.md)
 
-Der Exportmodus wird verwendet, um ein YOLOv8-Modell in ein Format zu exportieren, das für die Bereitstellung verwendet werden kann. In diesem Modus wird das Modell in ein Format konvertiert, das von anderen Softwareanwendungen oder Hardwaregeräten verwendet werden kann. Dieser Modus ist nützlich, wenn das Modell in Produktionsumgebungen eingesetzt wird.
+Der Exportmodus wird verwendet, um ein YOLOv8-Model in ein Format zu exportieren, das für die Bereitstellung verwendet werden kann. In diesem Modus wird das Model in ein Format konvertiert, das von anderen Softwareanwendungen oder Hardwaregeräten verwendet werden kann. Dieser Modus ist nützlich, wenn das Model in Produktionsumgebungen eingesetzt wird.
 
 [Exportbeispiele](export.md){ .md-button }
 
 ## [Verfolgen](track.md)
 
-Der Trackingmodus wird zur Echtzeitverfolgung von Objekten mit einem YOLOv8-Modell verwendet. In diesem Modus wird das Modell aus einer Checkpoint-Datei geladen, und der Benutzer kann einen Live-Videostream für das Echtzeitobjekttracking bereitstellen. Dieser Modus ist nützlich für Anwendungen wie Überwachungssysteme oder selbstfahrende Autos.
+Der Trackingmodus wird zur Echtzeitverfolgung von Objekten mit einem YOLOv8-Model verwendet. In diesem Modus wird das Model aus einer Checkpoint-Datei geladen, und der Benutzer kann einen Live-Videostream für das Echtzeitobjekttracking bereitstellen. Dieser Modus ist nützlich für Anwendungen wie Überwachungssysteme oder selbstfahrende Autos.
 
 [Trackingbeispiele](track.md){ .md-button }
 

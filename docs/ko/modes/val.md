@@ -46,41 +46,42 @@ COCO128 데이터셋에서 훈련된 YOLOv8n 모델의 정확도를 검증합니
         from ultralytics import YOLO
 
         # 모델 로드
-        model = YOLO('yolov8n.pt')  # 공식 모델을 로드합니다
-        model = YOLO('path/to/best.pt')  # 사용자 정의 모델을 로드합니다
+        model = YOLO("yolov8n.pt")  # 공식 모델을 로드합니다
+        model = YOLO("path/to/best.pt")  # 사용자 정의 모델을 로드합니다
 
         # 모델 검증
         metrics = model.val()  # 인자가 필요 없음, 데이터셋과 설정이 기억됩니다
-        metrics.box.map    # map50-95
+        metrics.box.map  # map50-95
         metrics.box.map50  # map50
         metrics.box.map75  # map75
-        metrics.box.maps   # 각 카테고리의 map50-95가 포함된 목록
+        metrics.box.maps  # 각 카테고리의 map50-95가 포함된 목록
         ```
     === "CLI"
 
         ```bash
-        yolo detect val model=yolov8n.pt  # 공식 모델 검증
-        yolo detect val model=path/to/best.pt  # 사용자 정의 모델 검증
+        yolo detect val model=yolov8n.pt      # 공식 모델 검증
+        yolo detect val model=path/to/best.pt # 사용자 정의 모델 검증
         ```
 
 ## 인자
 
 YOLO 모델의 검증 설정은 모델의 성능을 검증 데이터셋에서 평가하기 위한 다양한 하이퍼파라미터 및 구성을 의미합니다. 이러한 설정은 모델의 성능, 속도, 정확성에 영향을 미칠 수 있습니다. 일반적인 YOLO 검증 설정에는 배치 크기, 훈련 중 검증이 수행되는 빈도 및 모델 성능을 평가하기 위해 사용되는 측정 항목이 포함됩니다. 검증 과정에 영향을 줄 수 있는 다른 요소로는 검증 데이터셋의 크기와 구성 및 모델이 사용되는 구체적인 작업이 있습니다. 모델이 검증 데이터셋에서 잘 수행되고 있고 과적합을 감지하고 방지하기 위해서는 이러한 설정을 신중하게 조정하고 실험하는 것이 중요합니다.
 
-| Key           | Value   | Description                                       |
-|---------------|---------|---------------------------------------------------|
-| `data`        | `None`  | 데이터 파일 경로 예: coco128.yaml                         |
-| `imgsz`       | `640`   | 입력 이미지의 크기를 정수로 지정                                |
-| `batch`       | `16`    | 배치 당 이미지 수 (-1은 AutoBatch에 해당)                    |
-| `save_json`   | `False` | 결과를 JSON 파일로 저장                                   |
-| `save_hybrid` | `False` | 라벨의 하이브리드 버전(라벨 + 추가 예측)을 저장                      |
-| `conf`        | `0.001` | 탐지를 위한 객체 신뢰도 임계값                                 |
-| `iou`         | `0.6`   | NMS 용 교차 영역과 합친 영역(IoU)의 임계값                      |
-| `max_det`     | `300`   | 이미지 당 최대 탐지 개수                                    |
-| `half`        | `True`  | 반정밀도(FP16) 사용                                     |
-| `device`      | `None`  | 사용할 장치 예: cuda의 device=0/1/2/3이나 device=cpu       |
-| `dnn`         | `False` | ONNX 추론에 OpenCV DNN 사용                            |
-| `plots`       | `False` | 훈련 중 플롯 표시                                        |
-| `rect`        | `False` | 최소한의 패딩을 위해 각 배치가 직사각형 val로 조정됨                   |
+| Key           | Value   | Description                                                         |
+| ------------- | ------- | ------------------------------------------------------------------- |
+| `data`        | `None`  | 데이터 파일 경로 예: coco128.yaml                                   |
+| `imgsz`       | `640`   | 입력 이미지의 크기를 정수로 지정                                    |
+| `batch`       | `16`    | 배치 당 이미지 수 (-1은 AutoBatch에 해당)                           |
+| `save_json`   | `False` | 결과를 JSON 파일로 저장                                             |
+| `save_hybrid` | `False` | 라벨의 하이브리드 버전(라벨 + 추가 예측)을 저장                     |
+| `conf`        | `0.001` | 탐지를 위한 객체 신뢰도 임계값                                      |
+| `iou`         | `0.6`   | NMS 용 교차 영역과 합친 영역(IoU)의 임계값                          |
+| `max_det`     | `300`   | 이미지 당 최대 탐지 개수                                            |
+| `half`        | `True`  | 반정밀도(FP16) 사용                                                 |
+| `device`      | `None`  | 사용할 장치 예: cuda의 device=0/1/2/3이나 device=cpu                |
+| `dnn`         | `False` | ONNX 추론에 OpenCV DNN 사용                                         |
+| `plots`       | `False` | 훈련 중 플롯 표시                                                   |
+| `rect`        | `False` | 최소한의 패딩을 위해 각 배치가 직사각형 val로 조정됨                |
 | `split`       | `val`   | 검증을 위해 사용되는 데이터셋 분할, 예: 'val', 'test', 혹은 'train' |
+
 |

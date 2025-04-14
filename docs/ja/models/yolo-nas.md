@@ -23,14 +23,14 @@ Deci AIによって開発されたYOLO-NASは、画期的な物体検出ベー�
 
 Ultralyticsが提供する事前学習済みのYOLO-NASモデルを使用して、次世代の物体検出のパワーを体験してください。これらのモデルは、速度と精度の両方の面で優れたパフォーマンスを提供するように設計されています。特定のニーズに合わせてさまざまなオプションから選択できます。
 
-| モデル              | mAP   | レイテンシ (ms) |
-|------------------|-------|------------|
-| YOLO-NAS S       | 47.5  | 3.21       |
-| YOLO-NAS M       | 51.55 | 5.85       |
-| YOLO-NAS L       | 52.22 | 7.87       |
-| YOLO-NAS S INT-8 | 47.03 | 2.36       |
-| YOLO-NAS M INT-8 | 51.0  | 3.78       |
-| YOLO-NAS L INT-8 | 52.1  | 4.78       |
+| モデル           | mAP   | レイテンシ (ms) |
+| ---------------- | ----- | --------------- |
+| YOLO-NAS S       | 47.5  | 3.21            |
+| YOLO-NAS M       | 51.55 | 5.85            |
+| YOLO-NAS L       | 52.22 | 7.87            |
+| YOLO-NAS S INT-8 | 47.03 | 2.36            |
+| YOLO-NAS M INT-8 | 51.0  | 3.78            |
+| YOLO-NAS L INT-8 | 52.1  | 4.78            |
 
 各モデルのバリエーションは、Mean Average Precision（mAP）とレイテンシのバランスを取り、パフォーマンスとスピードの両方に最適化されています。
 
@@ -56,16 +56,16 @@ Ultralyticsの`ultralytics` Pythonパッケージを使用して、YOLO-NASモ�
         from ultralytics import NAS
 
         # COCO事前学習済みのYOLO-NAS-sモデルをロード
-        model = NAS('yolo_nas_s.pt')
+        model = NAS("yolo_nas_s.pt")
 
         # モデル情報の表示（オプション）
         model.info()
 
         # COCO8の例データセットでモデルを検証
-        results = model.val(data='coco8.yaml')
+        results = model.val(data="coco8.yaml")
 
         # 'bus.jpg'画像上でYOLO-NAS-sモデルを使用した推論
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -90,11 +90,11 @@ YOLO-NASモデルは、Small（s）、Medium（m）、Large（l）の3つのバ�
 
 以下は、各モデルの詳細な概要であり、それらの事前学習済み重みへのリンク、サポートされるタスク、さまざまな動作モードとの互換性が示されています。
 
-| モデルの種類     | 事前学習済みの重み                                                                                     | サポートされるタスク                 | 推論 | 検証 | トレーニング | エクスポート |
-|------------|-----------------------------------------------------------------------------------------------|----------------------------|----|----|--------|--------|
-| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [物体検出](../tasks/detect.md) | ✅  | ✅  | ❌      | ✅      |
-| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [物体検出](../tasks/detect.md) | ✅  | ✅  | ❌      | ✅      |
-| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [物体検出](../tasks/detect.md) | ✅  | ✅  | ❌      | ✅      |
+| モデルの種類 | 事前学習済みの重み                                                                            | サポートされるタスク           | 推論 | 検証 | トレーニング | エクスポート |
+| ------------ | --------------------------------------------------------------------------------------------- | ------------------------------ | ---- | ---- | ------------ | ------------ |
+| YOLO-NAS-s   | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [物体検出](../tasks/detect.md) | ✅   | ✅   | ❌           | ✅           |
+| YOLO-NAS-m   | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [物体検出](../tasks/detect.md) | ✅   | ✅   | ❌           | ✅           |
+| YOLO-NAS-l   | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [物体検出](../tasks/detect.md) | ✅   | ✅   | ❌           | ✅           |
 
 ## 引用と謝辞
 
@@ -118,4 +118,4 @@ YOLO-NASモデルは、Small（s）、Medium（m）、Large（l）の3つのバ�
 
 このコンピュータビジョンコミュニティ向けの貴重なリソースを作成および維持するために、Deci AIの[SuperGradients](https://github.com/Deci-AI/super-gradients/)チームに感謝の意を表します。革新的なアーキテクチャと優れた物体検出能力を持つYOLO-NASが、開発者や研究者の重要なツールになると信じています。
 
-*keywords: YOLO-NAS, Deci AI, 物体検出, 深層学習, ニューラルアーキテクチャ検索, Ultralytics Python API, YOLOモデル, SuperGradients, 事前学習モデル, 量子化フレンドリーな基本ブロック, 高度なトレーニングスキーム, ポストトレーニング量子化, AutoNAC最適化, COCO, Objects365, Roboflow 100*
+_keywords: YOLO-NAS, Deci AI, 物体検出, 深層学習, ニューラルアーキテクチャ検索, Ultralytics Python API, YOLOモデル, SuperGradients, 事前学習モデル, 量子化フレンドリーな基本ブロック, 高度なトレーニングスキーム, ポストトレーニング量子化, AutoNAC最適化, COCO, Objects365, Roboflow 100_

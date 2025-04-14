@@ -25,12 +25,12 @@ YOLOv8 시리즈는 컴퓨터 비전의 특정 작업을 위해 특화된 다양
 
 각 YOLOv8 시리즈의 변형은 해당 작업에 최적화되어 고성능과 정확도를 제공합니다. 또한 이러한 모델은 [추론](../modes/predict.md), [검증](../modes/val.md), [훈련](../modes/train.md) 및 [내보내기](../modes/export.md)와 같은 다양한 운영 모드와 호환되어 배포 및 개발의 다양한 단계에서 사용할 수 있도록 지원합니다.
 
-| 모델          | 파일 이름                                                                                                          | 작업                                 | 추론 | 검증 | 훈련 | 내보내기 |
-|-------------|----------------------------------------------------------------------------------------------------------------|------------------------------------|----|----|----|------|
-| YOLOv8      | `yolov8n.pt` `yolov8s.pt` `yolov8m.pt` `yolov8l.pt` `yolov8x.pt`                                               | [객체 탐지](../tasks/detect.md)        | ✅  | ✅  | ✅  | ✅    |
-| YOLOv8-seg  | `yolov8n-seg.pt` `yolov8s-seg.pt` `yolov8m-seg.pt` `yolov8l-seg.pt` `yolov8x-seg.pt`                           | [인스턴스 세그멘테이션](../tasks/segment.md) | ✅  | ✅  | ✅  | ✅    |
-| YOLOv8-pose | `yolov8n-pose.pt` `yolov8s-pose.pt` `yolov8m-pose.pt` `yolov8l-pose.pt` `yolov8x-pose.pt` `yolov8x-pose-p6.pt` | [포즈/키포인트](../tasks/pose.md)        | ✅  | ✅  | ✅  | ✅    |
-| YOLOv8-cls  | `yolov8n-cls.pt` `yolov8s-cls.pt` `yolov8m-cls.pt` `yolov8l-cls.pt` `yolov8x-cls.pt`                           | [분류](../tasks/classify.md)         | ✅  | ✅  | ✅  | ✅    |
+| 모델        | 파일 이름                                                                                                      | 작업                                         | 추론 | 검증 | 훈련 | 내보내기 |
+| ----------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ---- | ---- | ---- | -------- |
+| YOLOv8      | `yolov8n.pt` `yolov8s.pt` `yolov8m.pt` `yolov8l.pt` `yolov8x.pt`                                               | [객체 탐지](../tasks/detect.md)              | ✅   | ✅   | ✅   | ✅       |
+| YOLOv8-seg  | `yolov8n-seg.pt` `yolov8s-seg.pt` `yolov8m-seg.pt` `yolov8l-seg.pt` `yolov8x-seg.pt`                           | [인스턴스 세그멘테이션](../tasks/segment.md) | ✅   | ✅   | ✅   | ✅       |
+| YOLOv8-pose | `yolov8n-pose.pt` `yolov8s-pose.pt` `yolov8m-pose.pt` `yolov8l-pose.pt` `yolov8x-pose.pt` `yolov8x-pose-p6.pt` | [포즈/키포인트](../tasks/pose.md)            | ✅   | ✅   | ✅   | ✅       |
+| YOLOv8-cls  | `yolov8n-cls.pt` `yolov8s-cls.pt` `yolov8m-cls.pt` `yolov8l-cls.pt` `yolov8x-cls.pt`                           | [분류](../tasks/classify.md)                 | ✅   | ✅   | ✅   | ✅       |
 
 이 표는 YOLOv8 모델의 변형을 개요로 제공하며, 특정 작업에서의 적용 가능성 및 추론, 검증, 훈련 및 내보내기와 같은 다양한 운영 모드와의 호환성을 강조합니다. 이는 컴퓨터 비전의 다양한 응용 분야에 적합한 YOLOv8 시리즈의 다재다능함과 견고성을 보여줍니다.
 
@@ -115,16 +115,16 @@ YOLOv8 시리즈는 컴퓨터 비전의 특정 작업을 위해 특화된 다양
         from ultralytics import YOLO
 
         # COCO 사전 훈련된 YOLOv8n 모델 로드
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # 모델 정보 표시 (옵션)
         model.info()
 
         # COCO8 예제 데이터셋에서 모델을 100회 에포크로 훈련
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # 'bus.jpg' 이미지에서 YOLOv8n 모델로 추론 실행
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

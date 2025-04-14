@@ -14,7 +14,7 @@ Ultralytics bietet Unterstützung für verschiedene Datensätze an, um Computerv
 
 ## [Erkennungsdatensätze](../../datasets/detect/index.md)
 
-Die Objekterkennung mittels Bounding Box ist eine Computervisionstechnik, die das Erkennen und Lokalisieren von Objekten in einem Bild anhand des Zeichnens einer Bounding Box um jedes Objekt beinhaltet.
+Die Objekterkennung mittels Bounding Box ist eine Computervisionstechnik, die das Erkennen und Lokalisieren von Objekten in einem Bild anhand des Zeichnens einer Bounding Box um jedes Object beinhaltet.
 
 - [Argoverse](../../datasets/detect/argoverse.md): Ein Datensatz mit 3D-Tracking- und Bewegungsvorhersagedaten aus städtischen Umgebungen mit umfassenden Annotationen.
 - [COCO](../../datasets/detect/coco.md): Ein umfangreicher Datensatz für Objekterkennung, Segmentierung und Beschreibung mit über 200.000 beschrifteten Bildern.
@@ -36,7 +36,7 @@ Die Instanzsegmentierung ist eine Computervisionstechnik, die das Identifizieren
 
 ## [Posenschätzung](../../datasets/pose/index.md)
 
-Die Posenschätzung ist eine Technik, die verwendet wird, um die Position des Objekts relativ zur Kamera oder zum Weltkoordinatensystem zu bestimmen.
+Die Posenschätzung ist eine Technique, die verwendet wird, um die Position des Objekts relative zur Kamera oder zum Weltkoordinatensystem zu bestimmen.
 
 - [COCO](../../datasets/pose/coco.md): Ein großer Datensatz mit menschlichen Pose-Annotationen für Posenschätzungsaufgaben.
 - [COCO8-pose](../../datasets/pose/coco8-pose.md): Ein kleinerer Datensatz für Posenschätzungsaufgaben, der eine Teilmenge von 8 COCO-Bildern mit menschlichen Pose-Annotationen enthält.
@@ -59,7 +59,7 @@ Die Bildklassifizierung ist eine Computervisionsaufgabe, bei der ein Bild basier
 
 ## [Orientierte Bounding Boxes (OBB)](../../datasets/obb/index.md)
 
-Orientierte Bounding Boxes (OBB) ist eine Methode in der Computervision für die Erkennung von geneigten Objekten in Bildern mithilfe von rotierten Bounding Boxen, die oft auf Luft- und Satellitenbilder angewendet wird.
+Orientierte Bounding Boxes (OBB) ist eine Method in der Computervision für die Erkennung von geneigten Objekten in Bildern mithilfe von rotierten Bounding Boxen, die oft auf Luft- und Satellitenbilder angewendet wird.
 
 - [DOTAv2](../../datasets/obb/dota-v2.md): Ein beliebter OBB-Datensatz für Luftbildaufnahmen mit 1,7 Millionen Instanzen und 11.268 Bildern.
 
@@ -110,14 +110,15 @@ Das Bereitstellen eines neuen Datensatzes umfasst mehrere Schritte, um sicherzus
 
     ```python
     from pathlib import Path
+
     from ultralytics.data.utils import compress_one_image
     from ultralytics.utils.downloads import zip_directory
 
     # Definieren des Verzeichnisses des Datensatzes
-    path = Path('Pfad/zum/Datensatz')
+    path = Path("Pfad/zum/Datensatz")
 
     # Bilder im Datensatz optimieren (optional)
-    for f in path.rglob('*.jpg'):
+    for f in path.rglob("*.jpg"):
         compress_one_image(f)
 
     # Datensatz in 'Pfad/zum/Datensatz.zip' zippen

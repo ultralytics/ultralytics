@@ -8,17 +8,17 @@ keywords: Meituan YOLOv6, Objekterkennung, Ultralytics, YOLOv6 Dokumentation, Bi
 
 ## Überblick
 
-[Meituan](https://about.meituan.com/) YOLOv6 ist ein moderner Objekterkenner, der eine bemerkenswerte Balance zwischen Geschwindigkeit und Genauigkeit bietet und somit eine beliebte Wahl für Echtzeitanwendungen darstellt. Dieses Modell bietet mehrere bemerkenswerte Verbesserungen in seiner Architektur und seinem Trainingsschema, einschließlich der Implementierung eines Bi-direktionalen Konkatenationsmoduls (BiC), einer anchor-aided training (AAT)-Strategie und einem verbesserten Backpropagation- und Neck-Design für Spitzenleistungen auf dem COCO-Datensatz.
+[Meituan](https://about.meituan.com/) YOLOv6 ist ein moderner Objekterkenner, der eine bemerkenswerte Balance zwischen Geschwindigkeit und Genauigkeit bietet und somit eine beliebte Wahl für Echtzeitanwendungen darstellt. Dieses Model bietet mehrere bemerkenswerte Verbesserungen in seiner Architektur und seinem Trainingsschema, einschließlich der Implementierung eines Bi-direktionalen Konkatenationsmoduls (BiC), einer anchor-aided training (AAT)-Strategie und einem verbesserten Backpropagation- und Neck-Design für Spitzenleistungen auf dem COCO-Datensatz.
 
 ![Meituan YOLOv6](https://user-images.githubusercontent.com/26833433/240750495-4da954ce-8b3b-41c4-8afd-ddb74361d3c2.png)
 ![Modellbeispielbild](https://user-images.githubusercontent.com/26833433/240750557-3e9ec4f0-0598-49a8-83ea-f33c91eb6d68.png)
-**Übersicht über YOLOv6.** Diagramm der Modellarchitektur, das die neu gestalteten Netzwerkkomponenten und Trainingstrategien zeigt, die zu signifikanten Leistungsverbesserungen geführt haben. (a) Der Nacken von YOLOv6 (N und S sind dargestellt). Beachten Sie, dass bei M/L RepBlocks durch CSPStackRep ersetzt wird. (b) Die Struktur eines BiC-Moduls. (c) Ein SimCSPSPPF-Block. ([Quelle](https://arxiv.org/pdf/2301.05586.pdf)).
+**Übersicht über YOLOv6.** Diagram der Modellarchitektur, das die neu gestalteten Netzwerkkomponenten und Trainingstrategien zeigt, die zu signifikanten Leistungsverbesserungen geführt haben. (a) Der Nacken von YOLOv6 (N und S sind dargestellt). Beachten Sie, dass bei M/L RepBlocks durch CSPStackRep ersetzt wird. (b) Die Struktur eines BiC-Moduls. (c) Ein SimCSPSPPF-Block. ([Quelle](https://arxiv.org/pdf/2301.05586.pdf)).
 
 ### Hauptmerkmale
 
-- **Bi-direktionales Konkatenations (BiC) Modul:** YOLOv6 führt ein BiC-Modul im Nacken des Erkenners ein, das die Lokalisierungssignale verbessert und eine Leistungssteigerung bei vernachlässigbarem Geschwindigkeitsabfall liefert.
-- **Anchor-aided Training (AAT) Strategie:** Dieses Modell schlägt AAT vor, um die Vorteile sowohl von ankerbasierten als auch von ankerfreien Paradigmen zu nutzen, ohne die Inferenzeffizienz zu beeinträchtigen.
-- **Verbessertes Backpropagation- und Neck-Design:** Durch Vertiefung von YOLOv6 um eine weitere Stufe im Backpropagation und Nacken erreicht dieses Modell Spitzenleistungen auf dem COCO-Datensatz bei hochauflösenden Eingaben.
+- **Bi-direktionales Konkatenations (BiC) Module:** YOLOv6 führt ein BiC-Module im Nacken des Erkenners ein, das die Lokalisierungssignale verbessert und eine Leistungssteigerung bei vernachlässigbarem Geschwindigkeitsabfall liefert.
+- **Anchor-aided Training (AAT) Strategie:** Dieses Model schlägt AAT for, um die Vorteile sowohl von ankerbasierten also auch von ankerfreien Paradigmen zu nutzen, ohne die Inferenzeffizienz zu beeinträchtigen.
+- **Verbessertes Backpropagation- und Neck-Design:** Durch Vertiefung von YOLOv6 um eine weitere Stufe im Backpropagation und Nacken erreicht dieses Model Spitzenleistungen auf dem COCO-Datensatz bei hochauflösenden Eingaben.
 - **Self-Distillation Strategie:** Eine neue Self-Distillation-Strategie wird implementiert, um die Leistung von kleineren Modellen von YOLOv6 zu steigern, indem der Hilfsregressionszweig während des Trainings verstärkt und bei der Inferenz entfernt wird, um einen deutlichen Geschwindigkeitsabfall zu vermeiden.
 
 ## Leistungsmetriken
@@ -47,16 +47,16 @@ In diesem Beispiel werden einfache Schulungs- und Inferenzbeispiele für YOLOv6 
         from ultralytics import YOLO
 
         # Erstellen Sie ein YOLOv6n-Modell von Grund auf
-        model = YOLO('yolov6n.yaml')
+        model = YOLO("yolov6n.yaml")
 
-        # Zeigen Sie Informationen zum Modell an (optional)
+        # Zeigen Sie Informationen zum Model an (optional)
         model.info()
 
-        # Trainieren Sie das Modell am Beispiel des COCO8-Datensatzes für 100 Epochen
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        # Trainieren Sie das Model am Beispiel des COCO8-Datensatzes für 100 Epochen
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Führen Sie Inferenz mit dem YOLOv6n-Modell auf dem Bild 'bus.jpg' durch
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -76,12 +76,12 @@ In diesem Beispiel werden einfache Schulungs- und Inferenzbeispiele für YOLOv6 
 Die YOLOv6-Serie bietet eine Reihe von Modellen, die jeweils für die Hochleistungs-[Objekterkennung](../tasks/detect.md) optimiert sind. Diese Modelle erfüllen unterschiedliche Rechenanforderungen und Genauigkeitsanforderungen und sind daher vielseitig für eine Vielzahl von Anwendungen einsetzbar.
 
 | Modelltyp | Vorab trainierte Gewichte | Unterstützte Aufgaben                 | Inferenz | Validierung | Training | Exportieren |
-|-----------|---------------------------|---------------------------------------|----------|-------------|----------|-------------|
-| YOLOv6-N  | `yolov6-n.pt`             | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ✅        | ✅           |
-| YOLOv6-S  | `yolov6-s.pt`             | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ✅        | ✅           |
-| YOLOv6-M  | `yolov6-m.pt`             | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ✅        | ✅           |
-| YOLOv6-L  | `yolov6-l.pt`             | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ✅        | ✅           |
-| YOLOv6-L6 | `yolov6-l6.pt`            | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ✅        | ✅           |
+| --------- | ------------------------- | ------------------------------------- | -------- | ----------- | -------- | ----------- |
+| YOLOv6-N  | `yolov6-n.pt`             | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ✅       | ✅          |
+| YOLOv6-S  | `yolov6-s.pt`             | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ✅       | ✅          |
+| YOLOv6-M  | `yolov6-m.pt`             | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ✅       | ✅          |
+| YOLOv6-L  | `yolov6-l.pt`             | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ✅       | ✅          |
+| YOLOv6-L6 | `yolov6-l6.pt`            | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ✅       | ✅          |
 
 Diese Tabelle bietet einen detaillierten Überblick über die YOLOv6-Modellvarianten und hebt ihre Fähigkeiten bei der Objekterkennung sowie ihre Kompatibilität mit verschiedenen Betriebsmodi wie [Inferenz](../modes/predict.md), [Validierung](../modes/val.md), [Training](../modes/train.md) und [Exportieren](../modes/export.md) hervor. Diese umfassende Unterstützung ermöglicht es den Benutzern, die Fähigkeiten von YOLOv6-Modellen in einer Vielzahl von Objekterkennungsszenarien vollständig zu nutzen.
 

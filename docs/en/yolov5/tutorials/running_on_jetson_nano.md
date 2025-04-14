@@ -178,8 +178,8 @@ cp yolov5s.wts ~/DeepStream-Yolo
 
 ```sh
 cd ~/DeepStream-Yolo
-CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo  # for DeepStream 6.1
-CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo  # for DeepStream 6.0.1 / 6.0
+CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo # for DeepStream 6.1
+CUDA_VER=10.2 make -C nvdsinfer_custom_impl_Yolo # for DeepStream 6.0.1 / 6.0
 ```
 
 - **Step 7.** Edit the **config_infer_primary_yoloV5.txt** file according to your model
@@ -234,8 +234,8 @@ sudo apt-get install libopencv-dev
 
 ```sh
 cd ~/DeepStream-Yolo
-CUDA_VER=11.4 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo  # for DeepStream 6.1
-CUDA_VER=10.2 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo  # for DeepStream 6.0.1 / 6.0
+CUDA_VER=11.4 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo # for DeepStream 6.1
+CUDA_VER=10.2 OPENCV=1 make -C nvdsinfer_custom_impl_Yolo # for DeepStream 6.0.1 / 6.0
 ```
 
 - **Step 3.** For COCO dataset, download the [val2017](https://drive.google.com/file/d/1gbvfn7mcsGDRZ_luJwtITL-ru2kK99aK/view?usp=sharing), extract, and move to **DeepStream-Yolo** folder
@@ -249,8 +249,8 @@ mkdir calibration
 - **Step 5.** Run the following to select 1000 random images from COCO dataset to run calibration
 
 ```sh
-for jpg in $(ls -1 val2017/*.jpg | sort -R | head -1000); do \
-    cp ${jpg} calibration/; \
+for jpg in $(ls -1 val2017/*.jpg | sort -R | head -1000); do
+  cp ${jpg} calibration/
 done
 ```
 
@@ -308,7 +308,7 @@ The above result is running on **Jetson Xavier NX** with **INT8** and **YOLOv5s 
 The following table summarizes how different models perform on **Jetson Xavier NX**.
 
 | Model Name | Precision | Inference Size | Inference Time (ms) | FPS |
-|------------|-----------|----------------|---------------------|-----|
+| ---------- | --------- | -------------- | ------------------- | --- |
 | YOLOv5s    | FP32      | 320x320        | 16.66               | 60  |
 |            | FP32      | 640x640        | 33.33               | 30  |
 |            | INT8      | 640x640        | 16.66               | 60  |

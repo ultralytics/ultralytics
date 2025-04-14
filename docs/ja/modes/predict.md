@@ -25,10 +25,10 @@ keywords: Ultralytics, YOLOv8, 予測モード, 推論ソース, 予測タスク
 
 ## 実際の応用例
 
-|                                                                 製造業                                                                 |                                                              スポーツ                                                               |                                                             安全                                                              |
-|:-----------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------:|
+|                                                               製造業                                                                |                                                            スポーツ                                                             |                                                            安全                                                             |
+| :---------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------: |
 | ![Vehicle Spare Parts Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1) | ![Football Player Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442) | ![People Fall Detection](https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43) |
-|                                                             車両のスペアパーツ検出                                                             |                                                           フットボール選手検出                                                            |                                                           人の転倒検出                                                            |
+|                                                       車両のスペアパーツ検出                                                        |                                                      フットボール選手検出                                                       |                                                        人の転倒検出                                                         |
 
 ## 予測にUltralytics YOLOを使う理由
 
@@ -57,10 +57,10 @@ UltralyticsのYOLOモデルは、`stream=True`が推論中にモデルに渡さ�
         from ultralytics import YOLO
 
         # モデルをロード
-        model = YOLO('yolov8n.pt')  # 事前にトレーニングされたYOLOv8nモデル
+        model = YOLO("yolov8n.pt")  # 事前にトレーニングされたYOLOv8nモデル
 
         # 画像のリストに対してバッチ推論を実行
-        results = model(['im1.jpg', 'im2.jpg'])  # Resultsオブジェクトのリストを返す
+        results = model(["im1.jpg", "im2.jpg"])  # Resultsオブジェクトのリストを返す
 
         # 結果リストを処理
         for result in results:
@@ -75,10 +75,10 @@ UltralyticsのYOLOモデルは、`stream=True`が推論中にモデルに渡さ�
         from ultralytics import YOLO
 
         # モデルをロード
-        model = YOLO('yolov8n.pt')  # 事前にトレーニングされたYOLOv8nモデル
+        model = YOLO("yolov8n.pt")  # 事前にトレーニングされたYOLOv8nモデル
 
         # 画像のリストに対してバッチ推論を実行
-        results = model(['im1.jpg', 'im2.jpg'], stream=True)  # Resultsオブジェクトのジェネレータを返す
+        results = model(["im1.jpg", "im2.jpg"], stream=True)  # Resultsオブジェクトのジェネレータを返す
 
         # 結果ジェネレータを処理
         for result in results:
@@ -96,21 +96,21 @@ YOLOv8は、以下の表に示されるように、異なるタイプの入力�
 
     長い動画や大きなデータセットを効率的にメモリ管理するために`stream=True`を使用します。`stream=False`では、すべてのフレームまたはデータポイントの結果がメモリに格納されますが、大きな入力で迅速にメモリが積み上がり、メモリ不足のエラーを引き起こす可能性があります。対照的に、`stream=True`はジェネレータを利用し、現在のフレームまたはデータポイントの結果のみをメモリに保持し、メモリ消費を大幅に削減し、メモリ不足の問題を防ぎます。
 
-| ソース        | 引数                                         | タイプ              | 備考                                                               |
-|------------|--------------------------------------------|------------------|------------------------------------------------------------------|
-| 画像         | `'image.jpg'`                              | `str` または `Path` | 単一の画像ファイル。                                                       |
-| URL        | `'https://ultralytics.com/images/bus.jpg'` | `str`            | 画像へのURL。                                                         |
-| スクリーンショット  | `'screen'`                                 | `str`            | スクリーンショットをキャプチャ。                                                 |
-| PIL        | `Image.open('im.jpg')`                     | `PIL.Image`      | HWCフォーマットでRGBチャンネル。                                              |
-| OpenCV     | `cv2.imread('im.jpg')`                     | `np.ndarray`     | HWCフォーマットでBGRチャンネル `uint8 (0-255)`。                              |
-| numpy      | `np.zeros((640,1280,3))`                   | `np.ndarray`     | HWCフォーマットでBGRチャンネル `uint8 (0-255)`。                              |
-| torch      | `torch.zeros(16,3,320,640)`                | `torch.Tensor`   | BCHWフォーマットでRGBチャンネル `float32 (0.0-1.0)`。                         |
-| CSV        | `'sources.csv'`                            | `str` または `Path` | 画像、動画、ディレクトリへのパスを含むCSVファイル。                                      |
-| 動画 ✅       | `'video.mp4'`                              | `str` または `Path` | MP4、AVIなどの形式の動画ファイル。                                             |
-| ディレクトリ ✅   | `'path/'`                                  | `str` または `Path` | 画像または動画を含むディレクトリへのパス。                                            |
-| グロブ ✅      | `'path/*.jpg'`                             | `str`            | 複数のファイルに一致するグロブパターン。ワイルドカードとして`*`文字を使用します。                       |
-| YouTube ✅  | `'https://youtu.be/LNwODJXcvt4'`           | `str`            | YouTube動画のURL。                                                   |
-| ストリーム ✅    | `'rtsp://example.com/media.mp4'`           | `str`            | RTSP、RTMP、TCP、IPアドレスなどのストリーミングプロトコルのためのURL。                      |
+| ソース              | 引数                                       | タイプ              | 備考                                                                                                            |
+| ------------------- | ------------------------------------------ | ------------------- | --------------------------------------------------------------------------------------------------------------- |
+| 画像                | `'image.jpg'`                              | `str` または `Path` | 単一の画像ファイル。                                                                                            |
+| URL                 | `'https://ultralytics.com/images/bus.jpg'` | `str`               | 画像へのURL。                                                                                                   |
+| スクリーンショット  | `'screen'`                                 | `str`               | スクリーンショットをキャプチャ。                                                                                |
+| PIL                 | `Image.open('im.jpg')`                     | `PIL.Image`         | HWCフォーマットでRGBチャンネル。                                                                                |
+| OpenCV              | `cv2.imread('im.jpg')`                     | `np.ndarray`        | HWCフォーマットでBGRチャンネル `uint8 (0-255)`。                                                                |
+| numpy               | `np.zeros((640,1280,3))`                   | `np.ndarray`        | HWCフォーマットでBGRチャンネル `uint8 (0-255)`。                                                                |
+| torch               | `torch.zeros(16,3,320,640)`                | `torch.Tensor`      | BCHWフォーマットでRGBチャンネル `float32 (0.0-1.0)`。                                                           |
+| CSV                 | `'sources.csv'`                            | `str` または `Path` | 画像、動画、ディレクトリへのパスを含むCSVファイル。                                                             |
+| 動画 ✅             | `'video.mp4'`                              | `str` または `Path` | MP4、AVIなどの形式の動画ファイル。                                                                              |
+| ディレクトリ ✅     | `'path/'`                                  | `str` または `Path` | 画像または動画を含むディレクトリへのパス。                                                                      |
+| グロブ ✅           | `'path/*.jpg'`                             | `str`               | 複数のファイルに一致するグロブパターン。ワイルドカードとして`*`文字を使用します。                               |
+| YouTube ✅          | `'https://youtu.be/LNwODJXcvt4'`           | `str`               | YouTube動画のURL。                                                                                              |
+| ストリーム ✅       | `'rtsp://example.com/media.mp4'`           | `str`               | RTSP、RTMP、TCP、IPアドレスなどのストリーミングプロトコルのためのURL。                                          |
 | マルチストリーム ✅ | `'list.streams'`                           | `str` または `Path` | ストリームURLを行ごとに1つ含む`*.streams`テキストファイル。つまり、8つのストリームをバッチサイズ8で実行します。 |
 
 以下は、それぞれのソースタイプを使用するためのコード例です：
@@ -123,10 +123,10 @@ YOLOv8は、以下の表に示されるように、異なるタイプの入力�
         from ultralytics import YOLO
 
         # 事前にトレーニングされたYOLOv8nモデルをロード
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # 画像ファイルへのパスを定義
-        source = 'path/to/image.jpg'
+        source = "path/to/image.jpg"
 
         # ソースに推論を実行
         results = model(source)  # Resultsオブジェクトのリスト
@@ -138,10 +138,10 @@ YOLOv8は、以下の表に示されるように、異なるタイプの入力�
         from ultralytics import YOLO
 
         # 事前にトレーニングされたYOLOv8nモデルをロード
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # 現在のスクリーンショットをソースとして定義
-        source = 'screen'
+        source = "screen"
 
         # ソースに推論を実行
         results = model(source)  # Resultsオブジェクトのリスト
@@ -153,10 +153,10 @@ YOLOv8は、以下の表に示されるように、異なるタイプの入力�
         from ultralytics import YOLO
 
         # 事前にトレーニングされたYOLOv8nモデルをロード
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # リモート画像や動画のURLを定義
-        source = 'https://ultralytics.com/images/bus.jpg'
+        source = "https://ultralytics.com/images/bus.jpg"
 
         # ソースに推論を実行
         results = model(source)  # Resultsオブジェクトのリスト
@@ -166,13 +166,14 @@ YOLOv8は、以下の表に示されるように、異なるタイプの入力�
         Python Imaging Library (PIL)を使用して開いた画像に推論を実行します。
         ```python
         from PIL import Image
+
         from ultralytics import YOLO
 
         # 事前にトレーニングされたYOLOv8nモデルをロード
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # PILを使用して画像を開く
-        source = Image.open('path/to/image.jpg')
+        source = Image.open("path/to/image.jpg")
 
         # ソースに推論を実行
         results = model(source)  # Resultsオブジェクトのリスト
@@ -182,13 +183,14 @@ YOLOv8は、以下の表に示されるように、異なるタイプの入力�
         OpenCVを使用して読み込んだ画像に推論を実行します。
         ```python
         import cv2
+
         from ultralytics import YOLO
 
         # 事前にトレーニングされたYOLOv8nモデルをロード
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # OpenCVを使用して画像を読み込む
-        source = cv2.imread('path/to/image.jpg')
+        source = cv2.imread("path/to/image.jpg")
 
         # ソースに推論を実行
         results = model(source)  # Resultsオブジェクトのリスト
@@ -198,13 +200,14 @@ YOLOv8は、以下の表に示されるように、異なるタイプの入力�
         numpy配列として表される画像に推論を実行します。
         ```python
         import numpy as np
+
         from ultralytics import YOLO
 
         # 事前にトレーニングされたYOLOv8nモデルをロード
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # HWC形状（640, 640, 3）、範囲[0, 255]、型`uint8`のランダムなnumpy配列を作成
-        source = np.random.randint(low=0, high=255, size=(640,640,3), dtype='uint8')
+        source = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype="uint8")
 
         # ソースに推論を実行
         results = model(source)  # Resultsオブジェクトのリスト

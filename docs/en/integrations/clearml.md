@@ -64,20 +64,18 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
         ```python
         from clearml import Task
+
         from ultralytics import YOLO
 
         # Step 1: Creating a ClearML Task
-        task = Task.init(
-            project_name="my_project",
-            task_name="my_yolov8_task"
-        )
+        task = Task.init(project_name="my_project", task_name="my_yolov8_task")
 
         # Step 2: Selecting the YOLOv8 Model
         model_variant = "yolov8n"
         task.set_parameter("model_variant", model_variant)
 
         # Step 3: Loading the YOLOv8 Model
-        model = YOLO(f'{model_variant}.pt')
+        model = YOLO(f"{model_variant}.pt")
 
         # Step 4: Setting Up Training Arguments
         args = dict(data="coco128.yaml", epochs=16)
@@ -119,18 +117,22 @@ By clicking on the URL link to the ClearML results page in the output of the usa
 #### Key Features of the ClearML Results Page
 
 - **Real-Time Metrics Tracking**
+
     - Track critical metrics like loss, accuracy, and validation scores as they occur.
     - Provides immediate feedback for timely model performance adjustments.
 
 - **Experiment Comparison**
+
     - Compare different training runs side-by-side.
     - Essential for hyperparameter tuning and identifying the most effective models.
 
 - **Detailed Logs and Outputs**
+
     - Access comprehensive logs, graphical representations of metrics, and console outputs.
     - Gain a deeper understanding of model behavior and issue resolution.
 
 - **Resource Utilization Monitoring**
+
     - Monitor the utilization of computational resources, including CPU, GPU, and memory.
     - Key to optimizing training efficiency and costs.
 
@@ -162,7 +164,7 @@ ClearML's remote execution feature facilitates the reproduction and manipulation
 Deploying a ClearML Agent is straightforward and can be done on various machines using the following command:
 
 ```bash
-clearml-agent daemon --queue <queues_to_listen_to> [--docker]
+clearml-agent daemon --queue < queues_to_listen_to > [--docker]
 ```
 
 This setup is applicable to cloud VMs, local GPUs, or laptops. ClearML Autoscalers help manage cloud workloads on platforms like AWS, GCP, and Azure, automating the deployment of agents and adjusting resources based on your resource budget.

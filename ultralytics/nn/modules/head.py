@@ -11,14 +11,19 @@ from ultralytics.utils.tal import TORCH_1_10, dist2bbox, make_anchors
 
 from .block import DFL, Proto
 from .conv import Conv
-from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
+from .transformer import (
+    MLP,
+    DeformableTransformerDecoder,
+    DeformableTransformerDecoderLayer,
+)
 from .utils import bias_init_with_prob, linear_init_
 
-__all__ = 'Detect', 'Segment', 'Pose', 'Classify', 'RTDETRDecoder'
+__all__ = "Detect", "Segment", "Pose", "Classify", "RTDETRDecoder"
 
 
 class Detect(nn.Module):
     """YOLOv8 Detect head for detection models."""
+
     dynamic = False  # force grid reconstruction
     export = False  # export mode
     shape = None
@@ -35,7 +40,8 @@ class Detect(nn.Module):
         self.stride = torch.zeros(self.nl)  # strides computed during build
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
         self.cv2 = nn.ModuleList(
-            nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch)
+            nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch
+        )
         self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch)
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
@@ -51,14 +57,14 @@ class Detect(nn.Module):
             self.shape = shape
 
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
-        if self.export and self.format in ('saved_model', 'pb', 'tflite', 'edgetpu', 'tfjs'):  # avoid TF FlexSplitV ops
-            box = x_cat[:, :self.reg_max * 4]
-            cls = x_cat[:, self.reg_max * 4:]
+        if self.export and self.format in ("saved_model", "pb", "tflite", "edgetpu", "tfjs"):  # avoid TF FlexSplitV ops
+            box = x_cat[:, : self.reg_max * 4]
+            cls = x_cat[:, self.reg_max * 4 :]
         else:
             box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
         dbox = dist2bbox(self.dfl(box), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides
 
-        if self.export and self.format in ('tflite', 'edgetpu'):
+        if self.export and self.format in ("tflite", "edgetpu"):
             # Normalize xywh with image size to mitigate quantization error of TFLite integer models as done in YOLOv5:
             # https://github.com/ultralytics/yolov5/blob/0c8de3fca4a702f8ff5c435e67f378d1fce70243/models/tf.py#L307-L309
             # See this PR for details: https://github.com/ultralytics/ultralytics/pull/1695
@@ -77,7 +83,7 @@ class Detect(nn.Module):
         # ncf = math.log(0.6 / (m.nc - 0.999999)) if cf is None else torch.log(cf / cf.sum())  # nominal class frequency
         for a, b, s in zip(m.cv2, m.cv3, m.stride):  # from
             a[-1].bias.data[:] = 1.0  # box
-            b[-1].bias.data[:m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
+            b[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
 
 
 class Segment(Detect):
@@ -177,26 +183,28 @@ class RTDETRDecoder(nn.Module):
     and class labels for objects in an image. It integrates features from multiple layers and runs through a series of
     Transformer decoder layers to output the final predictions.
     """
+
     export = False  # export mode
 
     def __init__(
-            self,
-            nc=80,
-            ch=(512, 1024, 2048),
-            hd=256,  # hidden dim
-            nq=300,  # num queries
-            ndp=4,  # num decoder points
-            nh=8,  # num head
-            ndl=6,  # num decoder layers
-            d_ffn=1024,  # dim of feedforward
-            dropout=0.,
-            act=nn.ReLU(),
-            eval_idx=-1,
-            # Training args
-            nd=100,  # num denoising
-            label_noise_ratio=0.5,
-            box_noise_scale=1.0,
-            learnt_init_query=False):
+        self,
+        nc=80,
+        ch=(512, 1024, 2048),
+        hd=256,  # hidden dim
+        nq=300,  # num queries
+        ndp=4,  # num decoder points
+        nh=8,  # num head
+        ndl=6,  # num decoder layers
+        d_ffn=1024,  # dim of feedforward
+        dropout=0.0,
+        act=nn.ReLU(),
+        eval_idx=-1,
+        # Training args
+        nd=100,  # num denoising
+        label_noise_ratio=0.5,
+        box_noise_scale=1.0,
+        learnt_init_query=False,
+    ):
         """
         Initializes the RTDETRDecoder module with the given parameters.
 
@@ -265,28 +273,30 @@ class RTDETRDecoder(nn.Module):
         feats, shapes = self._get_encoder_input(x)
 
         # Prepare denoising training
-        dn_embed, dn_bbox, attn_mask, dn_meta = \
-            get_cdn_group(batch,
-                          self.nc,
-                          self.num_queries,
-                          self.denoising_class_embed.weight,
-                          self.num_denoising,
-                          self.label_noise_ratio,
-                          self.box_noise_scale,
-                          self.training)
+        dn_embed, dn_bbox, attn_mask, dn_meta = get_cdn_group(
+            batch,
+            self.nc,
+            self.num_queries,
+            self.denoising_class_embed.weight,
+            self.num_denoising,
+            self.label_noise_ratio,
+            self.box_noise_scale,
+            self.training,
+        )
 
-        embed, refer_bbox, enc_bboxes, enc_scores = \
-            self._get_decoder_input(feats, shapes, dn_embed, dn_bbox)
+        embed, refer_bbox, enc_bboxes, enc_scores = self._get_decoder_input(feats, shapes, dn_embed, dn_bbox)
 
         # Decoder
-        dec_bboxes, dec_scores = self.decoder(embed,
-                                              refer_bbox,
-                                              feats,
-                                              shapes,
-                                              self.dec_bbox_head,
-                                              self.dec_score_head,
-                                              self.query_pos_head,
-                                              attn_mask=attn_mask)
+        dec_bboxes, dec_scores = self.decoder(
+            embed,
+            refer_bbox,
+            feats,
+            shapes,
+            self.dec_bbox_head,
+            self.dec_score_head,
+            self.query_pos_head,
+            attn_mask=attn_mask,
+        )
         x = dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta
         if self.training:
             return x
@@ -294,24 +304,24 @@ class RTDETRDecoder(nn.Module):
         y = torch.cat((dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid()), -1)
         return y if self.export else (y, x)
 
-    def _generate_anchors(self, shapes, grid_size=0.05, dtype=torch.float32, device='cpu', eps=1e-2):
+    def _generate_anchors(self, shapes, grid_size=0.05, dtype=torch.float32, device="cpu", eps=1e-2):
         """Generates anchor bounding boxes for given shapes with specific grid size and validates them."""
         anchors = []
         for i, (h, w) in enumerate(shapes):
             sy = torch.arange(end=h, dtype=dtype, device=device)
             sx = torch.arange(end=w, dtype=dtype, device=device)
-            grid_y, grid_x = torch.meshgrid(sy, sx, indexing='ij') if TORCH_1_10 else torch.meshgrid(sy, sx)
+            grid_y, grid_x = torch.meshgrid(sy, sx, indexing="ij") if TORCH_1_10 else torch.meshgrid(sy, sx)
             grid_xy = torch.stack([grid_x, grid_y], -1)  # (h, w, 2)
 
             valid_WH = torch.tensor([h, w], dtype=dtype, device=device)
             grid_xy = (grid_xy.unsqueeze(0) + 0.5) / valid_WH  # (1, h, w, 2)
-            wh = torch.ones_like(grid_xy, dtype=dtype, device=device) * grid_size * (2.0 ** i)
+            wh = torch.ones_like(grid_xy, dtype=dtype, device=device) * grid_size * (2.0**i)
             anchors.append(torch.cat([grid_xy, wh], -1).view(-1, h * w, 4))  # (1, h*w, 4)
 
         anchors = torch.cat(anchors, 1)  # (1, h*w*nl, 4)
         valid_mask = ((anchors > eps) * (anchors < 1 - eps)).all(-1, keepdim=True)  # 1, h*w*nl, 1
         anchors = torch.log(anchors / (1 - anchors))
-        anchors = anchors.masked_fill(~valid_mask, float('inf'))
+        anchors = anchors.masked_fill(~valid_mask, float("inf"))
         return anchors, valid_mask
 
     def _get_encoder_input(self, x):
@@ -378,13 +388,13 @@ class RTDETRDecoder(nn.Module):
         # NOTE: the weight initialization in `linear_init_` would cause NaN when training with custom datasets.
         # linear_init_(self.enc_score_head)
         constant_(self.enc_score_head.bias, bias_cls)
-        constant_(self.enc_bbox_head.layers[-1].weight, 0.)
-        constant_(self.enc_bbox_head.layers[-1].bias, 0.)
+        constant_(self.enc_bbox_head.layers[-1].weight, 0.0)
+        constant_(self.enc_bbox_head.layers[-1].bias, 0.0)
         for cls_, reg_ in zip(self.dec_score_head, self.dec_bbox_head):
             # linear_init_(cls_)
             constant_(cls_.bias, bias_cls)
-            constant_(reg_.layers[-1].weight, 0.)
-            constant_(reg_.layers[-1].bias, 0.)
+            constant_(reg_.layers[-1].weight, 0.0)
+            constant_(reg_.layers[-1].bias, 0.0)
 
         linear_init_(self.enc_output[0])
         xavier_uniform_(self.enc_output[0].weight)

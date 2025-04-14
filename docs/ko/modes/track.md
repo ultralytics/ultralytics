@@ -32,8 +32,8 @@ Ultralytics 추적기의 출력은 표준 객체 검출과 일관되지만 객�
 
 ## 실제 세계 응용 프로그램
 
-|                                                    교통수단                                                     |                                                     소매업                                                     |                                                     수산업                                                      |
-|:-----------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------:|
+|                                                    교통수단                                                     |                                                     소매업                                                      |                                                      수산업                                                       |
+| :-------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------: |
 | ![차량 추적](https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab) | ![사람 추적](https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527) | ![물고기 추적](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142) |
 |                                                    차량 추적                                                    |                                                    사람 추적                                                    |                                                    물고기 추적                                                    |
 
@@ -49,8 +49,8 @@ Ultralytics YOLO는 객체 감지 기능을 확장하여 견고하고 다재다�
 
 Ultralytics YOLO는 다음과 같은 추적 알고리즘을 지원합니다. 관련 YAML 구성 파일(예: `tracker=tracker_type.yaml`)을 전달하여 사용할 수 있습니다:
 
-* [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - 이 추적기를 활성화하려면 `botsort.yaml`을 사용합니다.
-* [ByteTrack](https://github.com/ifzhang/ByteTrack) - 이 추적기를 활성화하려면 `bytetrack.yaml`을 사용합니다.
+- [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - 이 추적기를 활성화하려면 `botsort.yaml`을 사용합니다.
+- [ByteTrack](https://github.com/ifzhang/ByteTrack) - 이 추적기를 활성화하려면 `bytetrack.yaml`을 사용합니다.
 
 기본 추적기는 BoT-SORT입니다.
 
@@ -66,24 +66,26 @@ Ultralytics YOLO는 다음과 같은 추적 알고리즘을 지원합니다. 관
         from ultralytics import YOLO
 
         # 공식 모델 또는 맞춤 모델을 불러오기
-        model = YOLO('yolov8n.pt')  # 공식 Detect 모델 불러오기
-        model = YOLO('yolov8n-seg.pt')  # 공식 Segment 모델 불러오기
-        model = YOLO('yolov8n-pose.pt')  # 공식 Pose 모델 불러오기
-        model = YOLO('path/to/best.pt')  # 맞춤 학습된 모델 불러오기
+        model = YOLO("yolov8n.pt")  # 공식 Detect 모델 불러오기
+        model = YOLO("yolov8n-seg.pt")  # 공식 Segment 모델 불러오기
+        model = YOLO("yolov8n-pose.pt")  # 공식 Pose 모델 불러오기
+        model = YOLO("path/to/best.pt")  # 맞춤 학습된 모델 불러오기
 
         # 모델을 사용하여 추적 수행
         results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)  # 기본 추적기로 추적하기
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")  # ByteTrack 추적기로 추적하기
+        results = model.track(
+            source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml"
+        )  # ByteTrack 추적기로 추적하기
         ```
 
     === "CLI"
 
         ```bash
         # 명령 행 인터페이스를 사용하여 다양한 모델로 추적 수행
-        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4"  # 공식 Detect 모델
+        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4"      # 공식 Detect 모델
         yolo track model=yolov8n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # 공식 Segment 모델
-        yolo track model=yolov8n-pose.pt source="https://youtu.be/LNwODJXcvt4"  # 공식 Pose 모델
-        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4"  # 맞춤 학습된 모델
+        yolo track model=yolov8n-pose.pt source="https://youtu.be/LNwODJXcvt4" # 공식 Pose 모델
+        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4" # 맞춤 학습된 모델
 
         # ByteTrack 추적기를 사용하여 추적하기
         yolo track model=path/to/best.pt tracker="bytetrack.yaml"
@@ -105,7 +107,7 @@ Ultralytics YOLO는 다음과 같은 추적 알고리즘을 지원합니다. 관
         from ultralytics import YOLO
 
         # 추적 매개변수를 구성하고 추적기를 실행합니다
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
         results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
         ```
 
@@ -128,8 +130,8 @@ Ultralytics에서는 수정된 추적기 구성 파일도 사용할 수 있습�
         from ultralytics import YOLO
 
         # 모델을 불러오고 맞춤 구성 파일로 추적기를 실행합니다
-        model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker='custom_tracker.yaml')
+        model = YOLO("yolov8n.pt")
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker="custom_tracker.yaml")
         ```
 
     === "CLI"
@@ -151,10 +153,11 @@ Ultralytics에서는 수정된 추적기 구성 파일도 사용할 수 있습�
 
     ```python
     import cv2
+
     from ultralytics import YOLO
 
     # YOLOv8 모델을 불러옵니다
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # 비디오 파일을 엽니다
     video_path = "path/to/video.mp4"
@@ -206,7 +209,7 @@ Ultralytics에서는 수정된 추적기 구성 파일도 사용할 수 있습�
     from ultralytics import YOLO
 
     # YOLOv8 모델을 불러옵니다
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # 비디오 파일을 엽니다
     video_path = "path/to/video.mp4"
@@ -252,5 +255,4 @@ Ultralytics에서는 수정된 추적기 구성 파일도 사용할 수 있습�
         else:
             # 비디오의 끝에 도달하면 루프를 중단합니다
             break
-
     ```

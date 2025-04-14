@@ -41,7 +41,7 @@ Hier sind einige der wichtigsten unterstützten Modelle:
 
 ## Einstieg: Nutzungbeispiele
 
-Dieses Beispiel bietet einfache YOLO-Trainings- und Inferenzbeispiele. Für vollständige Dokumentationen über diese und andere [Modi](../modes/index.md) siehe die Dokumentationsseiten [Predict](../modes/predict.md),  [Train](../modes/train.md), [Val](../modes/val.md) und [Export](../modes/export.md).
+Dieses Beispiel bietet einfache YOLO-Trainings- und Inferenzbeispiele. Für vollständige Dokumentationen über diese und andere [Modi](../modes/index.md) siehe die Dokumentationsseiten [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) und [Export](../modes/export.md).
 
 Beachten Sie, dass das folgende Beispiel für YOLOv8 [Detect](../tasks/detect.md) Modelle zur Objekterkennung ist. Für zusätzliche unterstützte Aufgaben siehe die Dokumentation zu [Segment](../tasks/segment.md), [Classify](../tasks/classify.md) und [Pose](../tasks/pose.md).
 
@@ -54,17 +54,17 @@ Beachten Sie, dass das folgende Beispiel für YOLOv8 [Detect](../tasks/detect.md
         ```python
         from ultralytics import YOLO
 
-        # Laden eines COCO-vortrainierten YOLOv8n Modells
-        model = YOLO('yolov8n.pt')
+        # Laden eines COCO-vortrainierten YOLOv8n Models
+        model = YOLO("yolov8n.pt")
 
         # Modellinformationen anzeigen (optional)
         model.info()
 
         # Model auf dem COCO8-Beispieldatensatz für 100 Epochen trainieren
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
-        # Inferenz mit dem YOLOv8n Modell auf das Bild 'bus.jpg' ausführen
-        results = model('path/to/bus.jpg')
+        # Inferenz mit dem YOLOv8n Model auf das Bild 'bus.jpg' ausführen
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -72,27 +72,27 @@ Beachten Sie, dass das folgende Beispiel für YOLOv8 [Detect](../tasks/detect.md
         CLI-Befehle sind verfügbar, um die Modelle direkt auszuführen:
 
         ```bash
-        # Ein COCO-vortrainiertes YOLOv8n Modell laden und auf dem COCO8-Beispieldatensatz für 100 Epochen trainieren
+        # Ein COCO-vortrainiertes YOLOv8n Model laden und auf dem COCO8-Beispieldatensatz für 100 Epochen trainieren
         yolo train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640
 
-        # Ein COCO-vortrainiertes YOLOv8n Modell laden und Inferenz auf das Bild 'bus.jpg' ausführen
+        # Ein COCO-vortrainiertes YOLOv8n Model laden und Inferenz auf das Bild 'bus.jpg' ausführen
         yolo predict model=yolov8n.pt source=path/to/bus.jpg
         ```
 
 ## Neue Modelle beitragen
 
-Sind Sie daran interessiert, Ihr Modell bei Ultralytics beizutragen? Großartig! Wir sind immer offen dafür, unser Modellportfolio zu erweitern.
+Sind Sie daran interessiert, Ihr Model bei Ultralytics beizutragen? Großartig! Wir sind immer often dafür, unser Modellportfolio zu erweitern.
 
 1. **Repository forken**: Beginnen Sie mit dem Forken des [Ultralytics GitHub-Repositorys](https://github.com/ultralytics/ultralytics).
 
-2. **Ihren Fork klonen**: Klonen Sie Ihren Fork auf Ihre lokale Maschine und erstellen Sie einen neuen Branch, um daran zu arbeiten.
+2. **Ihren Fork klonen**: Klonen Sie Ihren Fork auf Ihre locale Machine und erstellen Sie einen neuen Branch, um daran zu arbeiten.
 
-3. **Ihr Modell implementieren**: Fügen Sie Ihr Modell entsprechend den in unserem [Beitragenden-Leitfaden](../../help/contributing.md) bereitgestellten Kodierungsstandards und Richtlinien hinzu.
+3. **Ihr Model implementieren**: Fügen Sie Ihr Model entsprechend den in unserem [Beitragenden-Leitfaden](../../help/contributing.md) bereitgestellten Kodierungsstandards und Richtlinien hinzu.
 
-4. **Gründlich testen**: Stellen Sie sicher, dass Sie Ihr Modell sowohl isoliert als auch als Teil des Pipelines gründlich testen.
+4. **Gründlich testen**: Stellen Sie sicher, dass Sie Ihr Model sowohl isoliert also auch also Teil des Pipelines gründlich testen.
 
-5. **Eine Pull-Anfrage erstellen**: Sobald Sie mit Ihrem Modell zufrieden sind, erstellen Sie eine Pull-Anfrage zum Hauptrepository zur Überprüfung.
+5. **Eine Pull-Anfrage erstellen**: Sobald Sie mit Ihrem Model zufrieden sind, erstellen Sie eine Pull-Anfrage zum Hauptrepository zur Überprüfung.
 
-6. **Code-Review & Zusammenführen**: Nach der Überprüfung, wenn Ihr Modell unseren Kriterien entspricht, wird es in das Hauptrepository zusammengeführt.
+6. **Code-Review & Zusammenführen**: Nach der Überprüfung, wenn Ihr Model unseren Kriterien entspricht, wird es in das Hauptrepository zusammengeführt.
 
 Für detaillierte Schritte konsultieren Sie unseren [Beitragenden-Leitfaden](../../help/contributing.md).

@@ -51,7 +51,7 @@ class Profile(contextlib.ContextDecorator):
 
     def __str__(self):
         """Returns a human-readable string representing the accumulated elapsed time in the profiler."""
-        return f'Elapsed time is {self.t} s'
+        return f"Elapsed time is {self.t} s"
 
     def time(self):
         """Get current time."""
@@ -75,9 +75,15 @@ def segment2box(segment, width=640, height=640):
     # Convert 1 segment label to 1 box label, applying inside-image constraint, i.e. (xy1, xy2, ...) to (xyxy)
     x, y = segment.T  # segment xy
     inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
-    x, y, = x[inside], y[inside]
-    return np.array([x.min(), y.min(), x.max(), y.max()], dtype=segment.dtype) if any(x) else np.zeros(
-        4, dtype=segment.dtype)  # xyxy
+    (
+        x,
+        y,
+    ) = x[inside], y[inside]
+    return (
+        np.array([x.min(), y.min(), x.max(), y.max()], dtype=segment.dtype)
+        if any(x)
+        else np.zeros(4, dtype=segment.dtype)
+    )  # xyxy
 
 
 def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding=True):
@@ -99,8 +105,10 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding=True):
     """
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
-        pad = round((img1_shape[1] - img0_shape[1] * gain) / 2 - 0.1), round(
-            (img1_shape[0] - img0_shape[0] * gain) / 2 - 0.1)  # wh padding
+        pad = (
+            round((img1_shape[1] - img0_shape[1] * gain) / 2 - 0.1),
+            round((img1_shape[0] - img0_shape[0] * gain) / 2 - 0.1),
+        )  # wh padding
     else:
         gain = ratio_pad[0][0]
         pad = ratio_pad[1]
@@ -129,18 +137,18 @@ def make_divisible(x, divisor):
 
 
 def non_max_suppression(
-        prediction,
-        conf_thres=0.25,
-        iou_thres=0.45,
-        classes=None,
-        agnostic=False,
-        multi_label=False,
-        labels=(),
-        max_det=300,
-        nc=0,  # number of classes (optional)
-        max_time_img=0.05,
-        max_nms=30000,
-        max_wh=7680,
+    prediction,
+    conf_thres=0.25,
+    iou_thres=0.45,
+    classes=None,
+    agnostic=False,
+    multi_label=False,
+    labels=(),
+    max_det=300,
+    nc=0,  # number of classes (optional)
+    max_time_img=0.05,
+    max_nms=30000,
+    max_wh=7680,
 ):
     """
     Perform non-maximum suppression (NMS) on a set of boxes, with support for masks and multiple labels per box.
@@ -171,10 +179,9 @@ def non_max_suppression(
             shape (num_boxes, 6 + num_masks) containing the kept boxes, with columns
             (x1, y1, x2, y2, confidence, class, mask1, mask2, ...).
     """
-
     # Checks
-    assert 0 <= conf_thres <= 1, f'Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0'
-    assert 0 <= iou_thres <= 1, f'Invalid IoU {iou_thres}, valid values are between 0.0 and 1.0'
+    assert 0 <= conf_thres <= 1, f"Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0"
+    assert 0 <= iou_thres <= 1, f"Invalid IoU {iou_thres}, valid values are between 0.0 and 1.0"
     if isinstance(prediction, (list, tuple)):  # YOLOv8 model in validation model, output = (inference_out, loss_out)
         prediction = prediction[0]  # select only inference output
 
@@ -252,7 +259,7 @@ def non_max_suppression(
 
         output[xi] = x[i]
         if (time.time() - t) > time_limit:
-            LOGGER.warning(f'WARNING ⚠️ NMS time limit {time_limit:.3f}s exceeded')
+            LOGGER.warning(f"WARNING ⚠️ NMS time limit {time_limit:.3f}s exceeded")
             break  # time limit exceeded
 
     return output
@@ -346,7 +353,7 @@ def xyxy2xywh(x):
     Returns:
         y (np.ndarray | torch.Tensor): The bounding box coordinates in (x, y, width, height) format.
     """
-    assert x.shape[-1] == 4, f'input shape last dimension expected 4 but input shape is {x.shape}'
+    assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
     y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
     y[..., 0] = (x[..., 0] + x[..., 2]) / 2  # x center
     y[..., 1] = (x[..., 1] + x[..., 3]) / 2  # y center
@@ -366,7 +373,7 @@ def xywh2xyxy(x):
     Returns:
         y (np.ndarray | torch.Tensor): The bounding box coordinates in (x1, y1, x2, y2) format.
     """
-    assert x.shape[-1] == 4, f'input shape last dimension expected 4 but input shape is {x.shape}'
+    assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
     y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
     dw = x[..., 2] / 2  # half-width
     dh = x[..., 3] / 2  # half-height
@@ -391,7 +398,7 @@ def xywhn2xyxy(x, w=640, h=640, padw=0, padh=0):
         y (np.ndarray | torch.Tensor): The coordinates of the bounding box in the format [x1, y1, x2, y2] where
             x1,y1 is the top-left corner, x2,y2 is the bottom-right corner of the bounding box.
     """
-    assert x.shape[-1] == 4, f'input shape last dimension expected 4 but input shape is {x.shape}'
+    assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
     y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
     y[..., 0] = w * (x[..., 0] - x[..., 2] / 2) + padw  # top left x
     y[..., 1] = h * (x[..., 1] - x[..., 3] / 2) + padh  # top left y
@@ -417,7 +424,7 @@ def xyxy2xywhn(x, w=640, h=640, clip=False, eps=0.0):
     """
     if clip:
         x = clip_boxes(x, (h - eps, w - eps))
-    assert x.shape[-1] == 4, f'input shape last dimension expected 4 but input shape is {x.shape}'
+    assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
     y = torch.empty_like(x) if isinstance(x, torch.Tensor) else np.empty_like(x)  # faster than clone/copy
     y[..., 0] = ((x[..., 0] + x[..., 2]) / 2) / w  # x center
     y[..., 1] = ((x[..., 1] + x[..., 3]) / 2) / h  # y center
@@ -493,7 +500,7 @@ def xyxyxyxy2xywhr(corners):
     dx21 = x2 - x1
     dy21 = y2 - y1
 
-    w = sqrt(dx21 ** 2 + dy21 ** 2)
+    w = sqrt(dx21**2 + dy21**2)
     h = sqrt((x2 - x3) ** 2 + (y2 - y3) ** 2)
 
     rotation = atan2(-dy21, dx21)
@@ -537,8 +544,11 @@ def xywhr2xyxyxyxy(center):
     x4 = cx - dx_cos_rot + dy_sin_rot
     y4 = cy + dx_sin_rot + dy_cos_rot
 
-    return np.vstack((x1, y1, x2, y2, x3, y3, x4, y4)).T if is_numpy else torch.stack(
-        (x1, y1, x2, y2, x3, y3, x4, y4), dim=1)
+    return (
+        np.vstack((x1, y1, x2, y2, x3, y3, x4, y4)).T
+        if is_numpy
+        else torch.stack((x1, y1, x2, y2, x3, y3, x4, y4), dim=1)
+    )
 
 
 def ltwh2xyxy(x):
@@ -559,7 +569,7 @@ def ltwh2xyxy(x):
 
 def segments2boxes(segments):
     """
-    It converts segment labels to box labels, i.e. (cls, xy1, xy2, ...) to (cls, xywh)
+    It converts segment labels to box labels, i.e. (cls, xy1, xy2, ...) to (cls, xywh).
 
     Args:
         segments (list): list of segments, each segment is a list of points, each point is a list of x, y coordinates
@@ -589,8 +599,9 @@ def resample_segments(segments, n=1000):
         s = np.concatenate((s, s[0:1, :]), axis=0)
         x = np.linspace(0, len(s) - 1, n)
         xp = np.arange(len(s))
-        segments[i] = np.concatenate([np.interp(x, xp, s[:, i]) for i in range(2)],
-                                     dtype=np.float32).reshape(2, -1).T  # segment xy
+        segments[i] = (
+            np.concatenate([np.interp(x, xp, s[:, i]) for i in range(2)], dtype=np.float32).reshape(2, -1).T
+        )  # segment xy
     return segments
 
 
@@ -629,7 +640,7 @@ def process_mask_upsample(protos, masks_in, bboxes, shape):
     """
     c, mh, mw = protos.shape  # CHW
     masks = (masks_in @ protos.float().view(c, -1)).sigmoid().view(-1, mh, mw)
-    masks = F.interpolate(masks[None], shape, mode='bilinear', align_corners=False)[0]  # CHW
+    masks = F.interpolate(masks[None], shape, mode="bilinear", align_corners=False)[0]  # CHW
     masks = crop_mask(masks, bboxes)  # CHW
     return masks.gt_(0.5)
 
@@ -649,7 +660,6 @@ def process_mask(protos, masks_in, bboxes, shape, upsample=False):
         (torch.Tensor): A binary mask tensor of shape [n, h, w], where n is the number of masks after NMS, and h and w
             are the height and width of the input image. The mask is applied to the bounding boxes.
     """
-
     c, mh, mw = protos.shape  # CHW
     ih, iw = shape
     masks = (masks_in @ protos.float().view(c, -1)).sigmoid().view(-1, mh, mw)  # CHW
@@ -662,7 +672,7 @@ def process_mask(protos, masks_in, bboxes, shape, upsample=False):
 
     masks = crop_mask(masks, downsampled_bboxes)  # CHW
     if upsample:
-        masks = F.interpolate(masks[None], shape, mode='bilinear', align_corners=False)[0]  # CHW
+        masks = F.interpolate(masks[None], shape, mode="bilinear", align_corners=False)[0]  # CHW
     return masks.gt_(0.5)
 
 
@@ -706,7 +716,7 @@ def scale_masks(masks, shape, padding=True):
     bottom, right = (int(round(mh - pad[1] + 0.1)), int(round(mw - pad[0] + 0.1)))
     masks = masks[..., top:bottom, left:right]
 
-    masks = F.interpolate(masks, shape, mode='bilinear', align_corners=False)  # NCHW
+    masks = F.interpolate(masks, shape, mode="bilinear", align_corners=False)  # NCHW
     return masks
 
 
@@ -745,9 +755,9 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False
     return coords
 
 
-def masks2segments(masks, strategy='largest'):
+def masks2segments(masks, strategy="largest"):
     """
-    It takes a list of masks(n,h,w) and returns a list of segments(n,xy)
+    It takes a list of masks(n,h,w) and returns a list of segments(n,xy).
 
     Args:
         masks (torch.Tensor): the output of the model, which is a tensor of shape (batch_size, 160, 160)
@@ -757,16 +767,16 @@ def masks2segments(masks, strategy='largest'):
         segments (List): list of segment masks
     """
     segments = []
-    for x in masks.int().cpu().numpy().astype('uint8'):
+    for x in masks.int().cpu().numpy().astype("uint8"):
         c = cv2.findContours(x, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
         if c:
-            if strategy == 'concat':  # concatenate all segments
+            if strategy == "concat":  # concatenate all segments
                 c = np.concatenate([x.reshape(-1, 2) for x in c])
-            elif strategy == 'largest':  # select largest segment
+            elif strategy == "largest":  # select largest segment
                 c = np.array(c[np.array([len(x) for x in c]).argmax()]).reshape(-1, 2)
         else:
             c = np.zeros((0, 2))  # no segments found
-        segments.append(c.astype('float32'))
+        segments.append(c.astype("float32"))
     return segments
 
 
@@ -785,7 +795,7 @@ def convert_torch2numpy_batch(batch: torch.Tensor) -> np.ndarray:
 
 def clean_str(s):
     """
-    Cleans a string by replacing special characters with underscore _
+    Cleans a string by replacing special characters with underscore _.
 
     Args:
         s (str): a string needing special characters replaced
@@ -793,4 +803,4 @@ def clean_str(s):
     Returns:
         (str): a string with special characters replaced by an underscore _
     """
-    return re.sub(pattern='[|@#!¡·$€%&()=?¿^*;:,¨´><+]', repl='_', string=s)
+    return re.sub(pattern="[|@#!¡·$€%&()=?¿^*;:,¨´><+]", repl="_", string=s)

@@ -56,53 +56,53 @@ YOLOv8n 모델을 ONNX나 TensorRT와 같은 다른 형식으로 내보냅니다
         from ultralytics import YOLO
 
         # 모델을 불러오기
-        model = YOLO('yolov8n.pt')  # 공식 모델을 불러오기
-        model = YOLO('path/to/best.pt')  # 사용자 지정 훈련 모델을 불러오기
+        model = YOLO("yolov8n.pt")  # 공식 모델을 불러오기
+        model = YOLO("path/to/best.pt")  # 사용자 지정 훈련 모델을 불러오기
 
         # 모델을 내보내기
-        model.export(format='onnx')
+        model.export(format="onnx")
         ```
     === "CLI"
 
         ```bash
-        yolo export model=yolov8n.pt format=onnx  # 공식 모델을 내보내기
-        yolo export model=path/to/best.pt format=onnx  # 사용자 지정 훈련 모델을 내보내기
+        yolo export model=yolov8n.pt format=onnx      # 공식 모델을 내보내기
+        yolo export model=path/to/best.pt format=onnx # 사용자 지정 훈련 모델을 내보내기
         ```
 
 ## 인수
 
 YOLO 모델의 내보내기 설정은 다른 환경이나 플랫폼에서 모델을 사용하기 위해 저장 또는 내보내기할 때 사용하는 다양한 구성 및 옵션을 의미합니다. 이러한 설정은 모델의 성능, 크기 및 다양한 시스템과의 호환성에 영향을 미칠 수 있습니다. 일반적인 YOLO 내보내기 설정에는 내보낸 모델 파일의 형식(예: ONNX, TensorFlow SavedModel), 모델이 실행될 장치(예: CPU, GPU) 및 마스크 또는 상자당 여러 라벨과 같은 추가 기능의 포함 여부 등이 있습니다. 모델이 사용되는 특정 작업과 대상 환경 또는 플랫폼의 요구 사항이나 제약 사항에 따라 내보내기 과정에 영향을 미치는 다른 요소들도 있을 수 있습니다. 내보낸 모델이 의도한 용도로 최적화되어 있고 대상 환경에서 효과적으로 사용할 수 있도록 이러한 설정을 세심하게 고려하고 구성하는 것이 중요합니다.
 
-| 키           | 값               | 설명                                          |
-|-------------|-----------------|---------------------------------------------|
-| `format`    | `'torchscript'` | 내보낼 형식                                      |
+| 키          | 값              | 설명                                                         |
+| ----------- | --------------- | ------------------------------------------------------------ |
+| `format`    | `'torchscript'` | 내보낼 형식                                                  |
 | `imgsz`     | `640`           | 스칼라 또는 (h, w) 리스트 형식의 이미지 크기, 예: (640, 480) |
-| `keras`     | `False`         | TF SavedModel 내보내기에 Keras 사용                |
-| `optimize`  | `False`         | TorchScript: 모바일 최적화                        |
-| `half`      | `False`         | FP16 양자화                                    |
-| `int8`      | `False`         | INT8 양자화                                    |
-| `dynamic`   | `False`         | ONNX/TensorRT: 동적 축                         |
-| `simplify`  | `False`         | ONNX/TensorRT: 모델 단순화                       |
-| `opset`     | `None`          | ONNX: opset 버전 (선택적, 기본값은 최신)               |
-| `workspace` | `4`             | TensorRT: 작업공간 크기 (GB)                      |
-| `nms`       | `False`         | CoreML: NMS 추가                              |
+| `keras`     | `False`         | TF SavedModel 내보내기에 Keras 사용                          |
+| `optimize`  | `False`         | TorchScript: 모바일 최적화                                   |
+| `half`      | `False`         | FP16 양자화                                                  |
+| `int8`      | `False`         | INT8 양자화                                                  |
+| `dynamic`   | `False`         | ONNX/TensorRT: 동적 축                                       |
+| `simplify`  | `False`         | ONNX/TensorRT: 모델 단순화                                   |
+| `opset`     | `None`          | ONNX: opset 버전 (선택적, 기본값은 최신)                     |
+| `workspace` | `4`             | TensorRT: 작업공간 크기 (GB)                                 |
+| `nms`       | `False`         | CoreML: NMS 추가                                             |
 
 ## 내보내기 형식
 
 아래 표에는 사용 가능한 YOLOv8 내보내기 형식이 나와 있습니다. `format` 인수를 사용하여 어떤 형식으로든 내보낼 수 있습니다. 예: `format='onnx'` 또는 `format='engine'`.
 
-| 형식                                                                 | `format` 인수   | 모델                        | 메타데이터 | 인수                                                  |
-|--------------------------------------------------------------------|---------------|---------------------------|-------|-----------------------------------------------------|
-| [PyTorch](https://pytorch.org/)                                    | -             | `yolov8n.pt`              | ✅     | -                                                   |
-| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript` | `yolov8n.torchscript`     | ✅     | `imgsz`, `optimize`                                 |
-| [ONNX](https://onnx.ai/)                                           | `onnx`        | `yolov8n.onnx`            | ✅     | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
-| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`    | `yolov8n_openvino_model/` | ✅     | `imgsz`, `half`                                     |
-| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`      | `yolov8n.engine`          | ✅     | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`      | `yolov8n.mlpackage`       | ✅     | `imgsz`, `half`, `int8`, `nms`                      |
-| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model` | `yolov8n_saved_model/`    | ✅     | `imgsz`, `keras`                                    |
-| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`          | `yolov8n.pb`              | ❌     | `imgsz`                                             |
-| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`      | `yolov8n.tflite`          | ✅     | `imgsz`, `half`, `int8`                             |
-| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`     | `yolov8n_edgetpu.tflite`  | ✅     | `imgsz`                                             |
-| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`        | `yolov8n_web_model/`      | ✅     | `imgsz`                                             |
-| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`      | `yolov8n_paddle_model/`   | ✅     | `imgsz`                                             |
-| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`        | `yolov8n_ncnn_model/`     | ✅     | `imgsz`, `half`                                     |
+| 형식                                                               | `format` 인수 | 모델                      | 메타데이터 | 인수                                                |
+| ------------------------------------------------------------------ | ------------- | ------------------------- | ---------- | --------------------------------------------------- |
+| [PyTorch](https://pytorch.org/)                                    | -             | `yolov8n.pt`              | ✅         | -                                                   |
+| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript` | `yolov8n.torchscript`     | ✅         | `imgsz`, `optimize`                                 |
+| [ONNX](https://onnx.ai/)                                           | `onnx`        | `yolov8n.onnx`            | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
+| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`    | `yolov8n_openvino_model/` | ✅         | `imgsz`, `half`                                     |
+| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`      | `yolov8n.engine`          | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
+| [CoreML](https://github.com/apple/coremltools)                     | `coreml`      | `yolov8n.mlpackage`       | ✅         | `imgsz`, `half`, `int8`, `nms`                      |
+| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model` | `yolov8n_saved_model/`    | ✅         | `imgsz`, `keras`                                    |
+| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`          | `yolov8n.pb`              | ❌         | `imgsz`                                             |
+| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`      | `yolov8n.tflite`          | ✅         | `imgsz`, `half`, `int8`                             |
+| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`     | `yolov8n_edgetpu.tflite`  | ✅         | `imgsz`                                             |
+| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`        | `yolov8n_web_model/`      | ✅         | `imgsz`                                             |
+| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`      | `yolov8n_paddle_model/`   | ✅         | `imgsz`                                             |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`        | `yolov8n_ncnn_model/`     | ✅         | `imgsz`, `half`                                     |

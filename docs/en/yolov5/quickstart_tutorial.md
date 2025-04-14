@@ -13,9 +13,9 @@ Embark on your journey into the dynamic realm of real-time object detection with
 Prepare for launch by cloning the repository and establishing the environment. This ensures that all the necessary [requirements](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) are installed. Check that you have [**Python>=3.8.0**](https://www.python.org/) and [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/) ready for takeoff.
 
 ```bash
-git clone https://github.com/ultralytics/yolov5  # clone repository
+git clone https://github.com/ultralytics/yolov5 # clone repository
 cd yolov5
-pip install -r requirements.txt  # install dependencies
+pip install -r requirements.txt # install dependencies
 ```
 
 ## Inference with PyTorch Hub
@@ -43,16 +43,16 @@ results.print()  # Other options: .show(), .save(), .crop(), .pandas(), etc.
 Harness `detect.py` for versatile inference on various sources. It automatically fetches [models](https://github.com/ultralytics/yolov5/tree/master/models) from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases) and saves results with ease.
 
 ```bash
-python detect.py --weights yolov5s.pt --source 0                               # webcam
-                                               img.jpg                         # image
-                                               vid.mp4                         # video
-                                               screen                          # screenshot
-                                               path/                           # directory
-                                               list.txt                        # list of images
-                                               list.streams                    # list of streams
-                                               'path/*.jpg'                    # glob
-                                               'https://youtu.be/LNwODJXcvt4'  # YouTube
-                                               'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
+python detect.py --weights yolov5s.pt --source 0 # webcam
+img.jpg                                          # image
+vid.mp4                                          # video
+screen                                           # screenshot
+path/                                            # directory
+list.txt                                         # list of images
+list.streams                                     # list of streams
+'path/*.jpg'                                     # glob
+'https://youtu.be/LNwODJXcvt4'                   # YouTube
+'rtsp://example.com/media.mp4'                   # RTSP, RTMP, HTTP stream
 ```
 
 ## Training
@@ -60,11 +60,11 @@ python detect.py --weights yolov5s.pt --source 0                               #
 Replicate the YOLOv5 [COCO](https://github.com/ultralytics/yolov5/blob/master/data/scripts/get_coco.sh) benchmarks with the instructions below. The necessary [models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) are pulled directly from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases). Training YOLOv5n/s/m/l/x on a V100 GPU should typically take 1/2/4/6/8 days respectively (note that [Multi-GPU](https://docs.ultralytics.com/yolov5/tutorials/multi_gpu_training) setups work faster). Maximize performance by using the highest possible `--batch-size` or use `--batch-size -1` for the YOLOv5 [AutoBatch](https://github.com/ultralytics/yolov5/pull/5092) feature. The following batch sizes are ideal for V100-16GB GPUs.
 
 ```bash
-python train.py --data coco.yaml --epochs 300 --weights '' --cfg yolov5n.yaml  --batch-size 128
-                                                                 yolov5s                    64
-                                                                 yolov5m                    40
-                                                                 yolov5l                    24
-                                                                 yolov5x                    16
+python train.py --data coco.yaml --epochs 300 --weights '' --cfg yolov5n.yaml --batch-size 128
+yolov5s 64
+yolov5m 40
+yolov5l 24
+yolov5x 16
 ```
 
 <img width="800" src="https://user-images.githubusercontent.com/26833433/90222759-949d8800-ddc1-11ea-9fa1-1c97eed2b963.png" alt="YOLO training curves">

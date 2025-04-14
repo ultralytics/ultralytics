@@ -63,8 +63,8 @@ keywords: تثبيت Ultralytics, pip install Ultralytics, Docker install Ultral
         sudo docker pull $t
 
         # قم بتشغيل صورة ultralytics في حاوية مع دعم GPU
-        sudo docker run -it --ipc=host --gpus all $t  # all GPUs
-        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  #  قد يتم تحديد GPUs
+        sudo docker run -it --ipc=host --gpus all $t            # all GPUs
+        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t #  قد يتم تحديد GPUs
         ```
 
     === "استنساخ Git"
@@ -103,8 +103,8 @@ keywords: تثبيت Ultralytics, pip install Ultralytics, Docker install Ultral
         sudo docker pull $t
 
         # قم بتشغيل صورة ultralytics في حاوية مع دعم GPU
-        sudo docker run -it --ipc=host --gpus all $t  # all GPUs
-        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  #  قد يتم تحديد GPUs
+        sudo docker run -it --ipc=host --gpus all $t            # all GPUs
+        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t #  قد يتم تحديد GPUs
         ```
 
         يقوم الأمر أعلاه بتهيئة حاوية Docker بأحدث صورة `ultralytics`. يُسند العلامة `-it` جهازًا افتراضيًا TTY ويحافظ على فتح stdin لتمكينك من التفاعل مع الحاوية. تعيين العلامة `--ipc=host` مساحة اسم IPC (Inter-Process Communication) إلى المضيف، وهو أمر ضروري لمشاركة الذاكرة بين العمليات. تُمكّن العلامة `--gpus all` الوصول إلى كل وحدات المعالجة المركزية الرسومية المتاحة داخل الحاوية، مما هو أمر حاسم للمهام التي تتطلب حسابات GPU.
@@ -216,22 +216,22 @@ keywords: تثبيت Ultralytics, pip install Ultralytics, Docker install Ultral
     from ultralytics import YOLO
 
     # أنشئ نموذج YOLO جديد من البداية
-    model = YOLO('yolov8n.yaml')
+    model = YOLO("yolov8n.yaml")
 
     # قم بتحميل نموذج YOLO معتمد مسبقًا (موصَى به للتدريب)
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # قم بتدريب النموذج باستخدام مجموعة البيانات 'coco128.yaml' لمدة 3 حلقات
-    results = model.train(data='coco128.yaml', epochs=3)
+    results = model.train(data="coco128.yaml", epochs=3)
 
     # قم بتقييم أداء النموذج على مجموعة التحقق
     results = model.val()
 
     # قم بإجراء الكشف على صورة باستخدام النموذج
-    results = model('https://ultralytics.com/images/bus.jpg')
+    results = model("https://ultralytics.com/images/bus.jpg")
 
     # قم بتصدير النموذج إلى تنسيق ONNX
-    success = model.export(format='onnx')
+    success = model.export(format="onnx")
     ```
 
 [دليل Python](/../usage/python.md){.md-button .md-button--primary}
@@ -255,7 +255,7 @@ keywords: تثبيت Ultralytics, pip install Ultralytics, Docker install Ultral
         print(settings)
 
         # إرجاع إعداد محدد
-        value = settings['runs_dir']
+        value = settings["runs_dir"]
         ```
 
     === "CLI"
@@ -277,10 +277,10 @@ keywords: تثبيت Ultralytics, pip install Ultralytics, Docker install Ultral
         from ultralytics import settings
 
         # تحديث إعداد واحد
-        settings.update({'runs_dir': '/path/to/runs'})
+        settings.update({"runs_dir": "/path/to/runs"})
 
         # تحديث إعدادات متعددة
-        settings.update({'runs_dir': '/path/to/runs', 'tensorboard': False})
+        settings.update({"runs_dir": "/path/to/runs", "tensorboard": False})
 
         # إعادة الإعدادات إلى القيم الافتراضية
         settings.reset()
@@ -305,7 +305,7 @@ keywords: تثبيت Ultralytics, pip install Ultralytics, Docker install Ultral
 يوفر الجدول أدناه نظرة عامة على الإعدادات المتاحة للضبط في Ultralytics. يتم توضيح كل إعداد بالإضافة إلى قيمة مثالية ونوع البيانات ووصف موجز.
 
 | الاسم              | القيمة المثالية       | نوع البيانات | الوصف                                                                                                       |
-|--------------------|-----------------------|--------------|-------------------------------------------------------------------------------------------------------------|
+| ------------------ | --------------------- | ------------ | ----------------------------------------------------------------------------------------------------------- |
 | `settings_version` | `'0.0.4'`             | `str`        | إصدار إعدادات Ultralytics (مختلف عن إصدار Ultralytics [pip](https://pypi.org/project/ultralytics/))         |
 | `datasets_dir`     | `'/path/to/datasets'` | `str`        | المسار الذي يتم تخزينه فيه مجموعات البيانات                                                                 |
 | `weights_dir`      | `'/path/to/weights'`  | `str`        | المسار الذي يتم تخزينه فيه أوزان النموذج                                                                    |

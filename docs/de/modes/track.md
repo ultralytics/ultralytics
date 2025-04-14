@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLO, Objektverfolgung, Videostreams, BoT-SORT, ByteTrack
 
 <img width="1024" src="https://user-images.githubusercontent.com/26833433/243418637-1d6250fd-1515-4c10-a844-a32818ae6d46.png" alt="Beispiele für Multi-Objektverfolgung">
 
-Objektverfolgung im Bereich der Videoanalytik ist eine essentielle Aufgabe, die nicht nur den Standort und die Klasse von Objekten innerhalb des Frames identifiziert, sondern auch eine eindeutige ID für jedes erkannte Objekt, während das Video fortschreitet, erhält. Die Anwendungsmöglichkeiten sind grenzenlos – von Überwachung und Sicherheit bis hin zur Echtzeitsportanalytik.
+Objektverfolgung im Bereich der Videoanalytik ist eine essentielle Aufgabe, die nicht nur den Standort und die Klasse von Objekten innerhalb des Frames identifiziert, sondern auch eine eindeutige ID für jedes erkannte Object, während das Video fortschreitet, erhält. Die Anwendungsmöglichkeiten sind grenzenlos – von Überwachung und Sicherheit bis hin zur Echtzeitsportanalytik.
 
 ## Warum Ultralytics YOLO für Objektverfolgung wählen?
 
@@ -33,7 +33,7 @@ Die Ausgabe von Ultralytics Trackern ist konsistent mit der standardmäßigen Ob
 ## Anwendungen in der realen Welt
 
 |                                                      Transportwesen                                                      |                                                       Einzelhandel                                                       |                                                      Aquakultur                                                       |
-|:------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------:|
+| :----------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------: |
 | ![Fahrzeugverfolgung](https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab) | ![Personenverfolgung](https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527) | ![Fischverfolgung](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142) |
 |                                                    Fahrzeugverfolgung                                                    |                                                    Personenverfolgung                                                    |                                                    Fischverfolgung                                                    |
 
@@ -49,8 +49,8 @@ Ultralytics YOLO erweitert seine Objekterkennungsfunktionen, um eine robuste und
 
 Ultralytics YOLO unterstützt die folgenden Tracking-Algorithmen. Sie können aktiviert werden, indem Sie die entsprechende YAML-Konfigurationsdatei wie `tracker=tracker_type.yaml` übergeben:
 
-* [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - Verwenden Sie `botsort.yaml`, um diesen Tracker zu aktivieren.
-* [ByteTrack](https://github.com/ifzhang/ByteTrack) - Verwenden Sie `bytetrack.yaml`, um diesen Tracker zu aktivieren.
+- [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - Verwenden Sie `botsort.yaml`, um diesen Tracker zu aktivieren.
+- [ByteTrack](https://github.com/ifzhang/ByteTrack) - Verwenden Sie `bytetrack.yaml`, um diesen Tracker zu aktivieren.
 
 Der Standardtracker ist BoT-SORT.
 
@@ -65,25 +65,27 @@ Um den Tracker auf Videostreams auszuführen, verwenden Sie ein trainiertes Erke
         ```python
         from ultralytics import YOLO
 
-        # Laden Sie ein offizielles oder individuelles Modell
-        model = YOLO('yolov8n.pt')  # Laden Sie ein offizielles Erkennungsmodell
-        model = YOLO('yolov8n-seg.pt')  # Laden Sie ein offizielles Segmentierungsmodell
-        model = YOLO('yolov8n-pose.pt')  # Laden Sie ein offizielles Posierungsmodell
-        model = YOLO('path/to/best.pt')  # Laden Sie ein individuell trainiertes Modell
+        # Laden Sie ein offizielles oder individuelles Model
+        model = YOLO("yolov8n.pt")  # Laden Sie ein offizielles Erkennungsmodell
+        model = YOLO("yolov8n-seg.pt")  # Laden Sie ein offizielles Segmentierungsmodell
+        model = YOLO("yolov8n-pose.pt")  # Laden Sie ein offizielles Posierungsmodell
+        model = YOLO("path/to/best.pt")  # Laden Sie ein individuell trainiertes Model
 
-        # Führen Sie die Verfolgung mit dem Modell durch
+        # Führen Sie die Verfolgung mit dem Model durch
         results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)  # Verfolgung mit Standardtracker
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")  # Verfolgung mit ByteTrack-Tracker
+        results = model.track(
+            source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml"
+        )  # Verfolgung mit ByteTrack-Tracker
         ```
 
     === "CLI"
 
         ```bash
         # Führen Sie die Verfolgung mit verschiedenen Modellen über die Befehlszeilenschnittstelle durch
-        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4"  # Offizielles Erkennungsmodell
+        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4"      # Offizielles Erkennungsmodell
         yolo track model=yolov8n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # Offizielles Segmentierungsmodell
-        yolo track model=yolov8n-pose.pt source="https://youtu.be/LNwODJXcvt4"  # Offizielles Posierungsmodell
-        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4"  # Individuell trainiertes Modell
+        yolo track model=yolov8n-pose.pt source="https://youtu.be/LNwODJXcvt4" # Offizielles Posierungsmodell
+        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4" # Individuell trainiertes Model
 
         # Verfolgung mit ByteTrack-Tracker
         yolo track model=path/to/best.pt tracker="bytetrack.yaml"
@@ -105,7 +107,7 @@ Die Tracking-Konfiguration teilt Eigenschaften mit dem Predict-Modus, wie `conf`
         from ultralytics import YOLO
 
         # Konfigurieren Sie die Tracking-Parameter und führen Sie den Tracker aus
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
         results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
         ```
 
@@ -127,15 +129,15 @@ Ultralytics ermöglicht es Ihnen auch, eine modifizierte Tracker-Konfigurationsd
         ```python
         from ultralytics import YOLO
 
-        # Laden Sie das Modell und führen Sie den Tracker mit einer individuellen Konfigurationsdatei aus
-        model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker='custom_tracker.yaml')
+        # Laden Sie das Model und führen Sie den Tracker mit einer individuellen Konfigurationsdatei aus
+        model = YOLO("yolov8n.pt")
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker="custom_tracker.yaml")
         ```
 
     === "CLI"
 
         ```bash
-        # Laden Sie das Modell und führen Sie den Tracker mit einer individuellen Konfigurationsdatei über die Befehlszeilenschnittstelle aus
+        # Laden Sie das Model und führen Sie den Tracker mit einer individuellen Konfigurationsdatei über die Befehlszeilenschnittstelle aus
         yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4" tracker='custom_tracker.yaml'
         ```
 
@@ -151,10 +153,11 @@ Hier ist ein Python-Skript, das OpenCV (`cv2`) und YOLOv8 verwendet, um Objektve
 
     ```python
     import cv2
+
     from ultralytics import YOLO
 
     # Laden Sie das YOLOv8-Modell
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # Öffnen Sie die Videodatei
     video_path = "path/to/video.mp4"
@@ -179,7 +182,7 @@ Hier ist ein Python-Skript, das OpenCV (`cv2`) und YOLOv8 verwendet, um Objektve
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
         else:
-            # Beenden Sie die Schleife, wenn das Ende des Videos erreicht ist
+            # Beenden Sie die Schleife, wenn das End des Videos erreicht ist
             break
 
     # Geben Sie das Videoaufnahmeobjekt frei und schließen Sie das Anzeigefenster

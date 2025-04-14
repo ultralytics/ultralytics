@@ -30,25 +30,25 @@ Ultralytics YOLO's implementation provides a comprehensive suite of augmentation
 You can customize each parameter using the Python API, the command line interface (CLI), or a configuration file. Below are examples of how to set up data augmentation in each method.
 
 !!! example "Configuration Examples"
-  
+
     === "CLI"
-      
+
         ```bash
         # Training with custom augmentation parameters
         yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 hsv_h=0.03 hsv_s=0.6 hsv_v=0.5
         ```
-    
+
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-  
+
         # Load a model
         model = YOLO("yolo11n.pt")
-        
+
         # Training with custom augmentation parameters
         model.train(data="coco.yaml", epochs=100, hsv_h=0.03, hsv_s=0.6, hsv_v=0.5)
-        
+
         # Training without any augmentations (disabled values omitted for clarity)
         model.train(
             data="coco.yaml",
@@ -86,17 +86,17 @@ Then launch the training with the Python API:
 !!! example "Train Example"
 
     === "CLI"
-      
+
         ```bash
         # Train the model with custom configuration
         yolo detect train model="yolo11n.pt" cfg=train_custom.yaml
         ```
 
     === "Python"
-      
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load a COCO-pretrained YOLO11n model
         model = YOLO("yolo11n.pt")
 

@@ -222,7 +222,7 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
     # apply the mapping that was used to map the predicted classes when the JSON was created
     if class_label_map:
         class_map = class_map or range(len(class_label_map))
-        class_label_map = {class_map[k]:v for k,v in class_label_map}
+        class_label_map = {class_map[k]: v for k, v in class_label_map}
     try:
         # import pycotools utilities to decompress annotations for various tasks, e.g. segmentation
         from pycocotools.mask import decode  # noqa

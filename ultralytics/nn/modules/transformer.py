@@ -626,6 +626,101 @@ class DeformableTransformerDecoderLayer(nn.Module):
         return self.forward_ffn(embed)
 
 
+class DINETransformerDecoderLayer(DeformableTransformerDecoderLayer):
+    def __init__(
+        self,
+        d_model=256,
+        n_heads=8,
+        d_ffn=1024,
+        dropout=0.0,
+        act=nn.ReLU(),
+        n_levels=4,
+        n_points=4,
+        cross_attn="default",
+        layer_scale=None,
+    ):
+        if layer_scale is not None:
+            dim_feedforward = round(layer_scale * dim_feedforward)
+            d_model = round(layer_scale * d_model)
+        super().__init__(d_model, n_heads, d_ffn, dropout, act, n_levels, n_points)
+        # TODO: MSDeformAttn to support cross-attn-method
+        self.cross_attn = MSDeformAttn(d_model, n_heads, n_levels, n_points, method=cross_attn)
+        self.gateway = Gate(d_model)  # gate
+        # delete the second normalization layer from DeformableTransformerDecoderLayer
+        del self.norm2
+        self._reset_parameters()
+
+    def _reset_parameters(self):
+        torch.nn.init.xavier_uniform_(self.linear1.weight)
+        torch.nn.init.xavier_uniform_(self.linear2.weight)
+
+    def forward_ffn(self, tgt):
+        """
+        Perform forward pass through the Feed-Forward Network part of the layer.
+
+        Args:
+            tgt (torch.Tensor): Input tensor.
+
+        Returns:
+            (torch.Tensor): Output tensor after FFN.
+        """
+        tgt2 = self.linear2(self.dropout3(self.act(self.linear1(tgt))))
+        tgt = tgt + self.dropout4(tgt2)
+        return self.norm3(tgt.clamp(min=-65504, max=65504))
+
+    def forward(self, embed, refer_bbox, feats, shapes, padding_mask=None, attn_mask=None, query_pos=None):
+        """
+        Perform the forward pass through the entire decoder layer.
+
+        Args:
+            embed (torch.Tensor): Input embeddings.
+            refer_bbox (torch.Tensor): Reference bounding boxes.
+            feats (torch.Tensor): Feature maps.
+            shapes (list): Feature shapes.
+            padding_mask (torch.Tensor, optional): Padding mask.
+            attn_mask (torch.Tensor, optional): Attention mask.
+            query_pos (torch.Tensor, optional): Query position embeddings.
+
+        Returns:
+            (torch.Tensor): Output tensor after decoder layer.
+        """
+        # Self attention
+        q = k = self.with_pos_embed(embed, query_pos)
+        tgt = self.self_attn(q.transpose(0, 1), k.transpose(0, 1), embed.transpose(0, 1), attn_mask=attn_mask)[
+            0
+        ].transpose(0, 1)
+        embed = embed + self.dropout1(tgt)
+        embed = self.norm1(embed)
+
+        # Cross attention
+        tgt = self.cross_attn(
+            self.with_pos_embed(embed, query_pos), refer_bbox.unsqueeze(2), feats, shapes, padding_mask
+        )
+        # Gate
+        embed = self.gateway(tgt, self.dropout2(tgt))
+
+        # FFN
+        return self.forward_ffn(embed)
+
+
+# TODO: put it here for now
+class Gate(nn.Module):
+    def __init__(self, d_model):
+        super(Gate, self).__init__()
+        self.gate = nn.Linear(2 * d_model, 2 * d_model)
+        # initialize conv/fc bias value according to a given probability value.
+        bias = float(-math.log((1 - 0.5) / 0.5))
+        torch.nn.init.constant_(self.gate.bias, bias)
+        torch.nn.init.constant_(self.gate.weight, 0)
+        self.norm = nn.LayerNorm(d_model)
+
+    def forward(self, x1, x2):
+        gate_input = torch.cat([x1, x2], dim=-1)
+        gates = torch.sigmoid(self.gate(gate_input))
+        gate1, gate2 = gates.chunk(2, dim=-1)
+        return self.norm(gate1 * x1 + gate2 * x2)
+
+
 class DeformableTransformerDecoder(nn.Module):
     """
     Implementation of Deformable Transformer Decoder based on PaddleDetection.

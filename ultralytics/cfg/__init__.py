@@ -442,7 +442,7 @@ def _handle_deprecation(custom: Dict) -> Dict:
         "hide_conf": ("show_conf", lambda v: not bool(v)),
         "line_thickness": ("line_width", lambda v: v),
     }
-    removed_keys = {"label_smoothing", "save_hybrid"}
+    removed_keys = {"label_smoothing", "save_hybrid", "crop_fraction"}
 
     for old_key, (new_key, transform) in deprecated_mappings.items():
         if old_key not in custom:

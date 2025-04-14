@@ -109,6 +109,9 @@ def multi_scale_deformable_attn_pytorch(
     value_spatial_shapes: torch.Tensor,
     sampling_locations: torch.Tensor,
     attention_weights: torch.Tensor,
+    num_points_list=None,
+    method="default",
+    value_shape="default",
 ) -> torch.Tensor:
     """
     Implement multi-scale deformable attention in PyTorch.

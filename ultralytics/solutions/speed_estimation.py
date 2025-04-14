@@ -2,8 +2,6 @@
 
 from time import time
 
-import numpy as np
-
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
 
@@ -100,7 +98,7 @@ class SpeedEstimator(BaseSolution):
                 time_difference = time() - self.trk_pt[track_id]
                 if time_difference > 0:
                     # Calculate speed based on vertical displacement and time
-                    self.spd[track_id] = np.abs(self.track_line[-1][1] - self.trk_pp[track_id][1]) / time_difference
+                    self.spd[track_id] = abs(self.track_line[-1][1] - self.trk_pp[track_id][1]) / time_difference
 
             # Update tracking data for next frame
             self.trk_pt[track_id] = time()

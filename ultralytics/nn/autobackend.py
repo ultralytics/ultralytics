@@ -6,6 +6,7 @@ import platform
 import zipfile
 from collections import OrderedDict, namedtuple
 from pathlib import Path
+from typing import List, Optional, Union
 
 import cv2
 import numpy as np
@@ -96,14 +97,14 @@ class AutoBackend(nn.Module):
     @torch.no_grad()
     def __init__(
         self,
-        weights="yolo11n.pt",
-        device=torch.device("cpu"),
-        dnn=False,
-        data=None,
-        fp16=False,
-        batch=1,
-        fuse=True,
-        verbose=True,
+        weights: Union[str, List[str], torch.nn.Module] = "yolo11n.pt",
+        device: torch.device = torch.device("cpu"),
+        dnn: bool = False,
+        data: Optional[Union[str, Path]] = None,
+        fp16: bool = False,
+        batch: int = 1,
+        fuse: bool = True,
+        verbose: bool = True,
     ):
         """
         Initialize the AutoBackend for inference.
@@ -257,7 +258,7 @@ class AutoBackend(nn.Module):
         # OpenVINO
         elif xml:
             LOGGER.info(f"Loading {w} for OpenVINO inference...")
-            check_requirements("openvino>=2024.0.0,!=2025.0.0")
+            check_requirements("openvino>=2024.0.0")
             import openvino as ov
 
             core = ov.Core()
@@ -435,19 +436,28 @@ class AutoBackend(nn.Module):
         # PaddlePaddle
         elif paddle:
             LOGGER.info(f"Loading {w} for PaddlePaddle inference...")
-            check_requirements("paddlepaddle-gpu" if cuda else "paddlepaddle<3.0.0")
+            check_requirements("paddlepaddle-gpu" if cuda else "paddlepaddle>=3.0.0")
             import paddle.inference as pdi  # noqa
 
             w = Path(w)
-            if not w.is_file():  # if not *.pdmodel
-                w = next(w.rglob("*.pdmodel"))  # get *.pdmodel file from *_paddle_model dir
-            config = pdi.Config(str(w), str(w.with_suffix(".pdiparams")))
+            model_file, params_file = None, None
+            if w.is_dir():
+                model_file = next(w.rglob("*.json"), None)
+                params_file = next(w.rglob("*.pdiparams"), None)
+            elif w.suffix == ".pdiparams":
+                model_file = w.with_name("model.json")
+                params_file = w
+
+            if not (model_file and params_file and model_file.is_file() and params_file.is_file()):
+                raise FileNotFoundError(f"Paddle model not found in {w}. Both .json and .pdiparams files are required.")
+
+            config = pdi.Config(str(model_file), str(params_file))
             if cuda:
                 config.enable_use_gpu(memory_pool_init_size_mb=2048, device_id=0)
             predictor = pdi.create_predictor(config)
             input_handle = predictor.get_input_handle(predictor.get_input_names()[0])
             output_names = predictor.get_output_names()
-            metadata = w.parents[1] / "metadata.yaml"
+            metadata = w / "metadata.yaml"
 
         # MNN
         elif mnn:
@@ -502,9 +512,9 @@ class AutoBackend(nn.Module):
             if not w.is_file():  # if not *.rknn
                 w = next(w.rglob("*.rknn"))  # get *.rknn file from *_rknn_model dir
             rknn_model = RKNNLite()
-            rknn_model.load_rknn(w)
+            rknn_model.load_rknn(str(w))
             rknn_model.init_runtime()
-            metadata = Path(w).parent / "metadata.yaml"
+            metadata = w.parent / "metadata.yaml"
 
         # Any other format (unsupported)
         else:
@@ -547,7 +557,7 @@ class AutoBackend(nn.Module):
 
         self.__dict__.update(locals())  # assign all variables to self
 
-    def forward(self, im, augment=False, visualize=False, embed=None):
+    def forward(self, im, augment=False, visualize=False, embed=None, **kwargs):
         """
         Runs inference on the YOLOv8 MultiBackend model.
 
@@ -556,6 +566,7 @@ class AutoBackend(nn.Module):
             augment (bool): Whether to perform data augmentation during inference. Defaults to False.
             visualize (bool): Whether to visualize the output predictions. Defaults to False.
             embed (list, optional): A list of feature vectors/embeddings to return.
+            **kwargs (Any): Additional keyword arguments for model configuration.
 
         Returns:
             (torch.Tensor | List[torch.Tensor]): The raw output tensor(s) from the model.
@@ -568,7 +579,7 @@ class AutoBackend(nn.Module):
 
         # PyTorch
         if self.pt or self.nn_module:
-            y = self.model(im, augment=augment, visualize=visualize, embed=embed)
+            y = self.model(im, augment=augment, visualize=visualize, embed=embed, **kwargs)
 
         # TorchScript
         elif self.jit:

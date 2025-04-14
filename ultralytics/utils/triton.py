@@ -32,6 +32,9 @@ class TritonRemoteModel:
         output_names (List[str]): The names of the model outputs.
         metadata: The metadata associated with the model.
 
+    Methods:
+        __call__: Call the model with the given inputs and return the outputs.
+
     Examples:
         Initialize a Triton client with HTTP
         >>> model = TritonRemoteModel(url="localhost:8000", endpoint="yolov8", scheme="http")
@@ -49,7 +52,7 @@ class TritonRemoteModel:
         shm_region_prefix: str = "ultralytics_shm_",
     ):
         """
-        Initialize the TritonRemoteModel.
+        Initialize the TritonRemoteModel for interacting with a remote Triton Inference Server.
 
         Arguments may be provided individually or parsed from a collective 'url' argument of the form
         <scheme>://<netloc>/<endpoint>/<task_name>
@@ -61,6 +64,12 @@ class TritonRemoteModel:
             max_batch_size (int): The maximum batch size for the model.
             cuda_shm (bool): Whether to use CUDA shared memory for inference.
             shm_region_prefix (str): The prefix for the shared memory regions names.
+
+        Examples:
+            >>> model = TritonRemoteModel(url="localhost:8000", endpoint="yolov8", scheme="http")
+            >>> model = TritonRemoteModel(url="http://localhost:8000/yolov8")
+            >>> model = TritonRemoteModel(url="localhost:8000", endpoint="yolov8", scheme="http", max_batch_size=8, cuda_shm=True, shm_region_prefix='cuda_shm_prefix_')
+            >>> model = TritonRemoteModel(url="http://localhost:8000/yolov8?cuda_shm=True&max_batch_size=8&shm_region_prefix=cuda_shm_prefix_")
         """
         parameters = dict()
         if not endpoint and not scheme:  # Parse all args from URL string
@@ -412,10 +421,16 @@ class TritonRemoteModel:
         Call the model with the given inputs.
 
         Args:
-            *inputs (np.ndarray): Input data to the model.
+            *inputs (np.ndarray): Input data to the model. Each array should match the expected shape and type
+                for the corresponding model input.
 
         Returns:
-            (List[np.ndarray]): Model outputs with the same dtype as the input.
+            (List[np.ndarray]): Model outputs with the same dtype as the input. Each element in the list
+                corresponds to one of the model's output tensors.
+
+        Examples:
+            >>> model = TritonRemoteModel(url="localhost:8000", endpoint="yolov8", scheme="http")
+            >>> outputs = model(np.random.rand(1, 3, 640, 640).astype(np.float32))
         """
         assert len(inputs) == len(self.inputs_names), "inputs number is not equal to model inputs"
         inputs_batches, batches_paddings = self._create_batches(*inputs)

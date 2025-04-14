@@ -4,8 +4,7 @@
 
 Welcome! We're thrilled that you're considering contributing to our [Ultralytics](https://www.ultralytics.com/) [open-source](https://github.com/ultralytics) projects. Your involvement not only helps enhance the quality of our repositories but also benefits the entire [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. This guide provides clear guidelines and best practices to help you get started.
 
-<a href="https://github.com/ultralytics/ultralytics/graphs/contributors">
-<img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-open-source-contributors.avif" alt="Ultralytics open-source contributors"></a>
+[![Ultralytics open-source contributors](https://raw.githubusercontent.com/ultralytics/assets/main/im/image-contributors.png)](https://github.com/ultralytics/ultralytics/graphs/contributors)
 
 ## 🤝 Code of Conduct
 
@@ -133,11 +132,11 @@ We highly value bug reports as they help us improve the quality and reliability 
 
 Ultralytics uses the [GNU Affero General Public License v3.0 (AGPL-3.0)](https://www.ultralytics.com/legal/agpl-3-0-software-license) for its repositories. This license promotes [openness](https://en.wikipedia.org/wiki/Openness), [transparency](https://www.ultralytics.com/glossary/transparency-in-ai), and [collaborative improvement](https://en.wikipedia.org/wiki/Collaborative_software) in software development. It ensures that all users have the freedom to use, modify, and share the software, fostering a strong community of collaboration and innovation.
 
-We encourage all contributors to familiarize themselves with the terms of the [AGPL-3.0 license](https://www.gnu.org/licenses/agpl-3.0.html) to contribute effectively and ethically to the Ultralytics open-source community.
+We encourage all contributors to familiarize themselves with the terms of the [AGPL-3.0 license](https://opensource.org/license/agpl-v3) to contribute effectively and ethically to the Ultralytics open-source community.
 
 ## 🌍 Open-Sourcing Your YOLO Project Under AGPL-3.0
 
-Using Ultralytics YOLO models or code in your project? The [AGPL-3.0 license](https://www.gnu.org/licenses/agpl-3.0.html) requires that your entire derivative work also be open-sourced under AGPL-3.0. This ensures modifications and larger projects built upon open-source foundations remain open.
+Using Ultralytics YOLO models or code in your project? The [AGPL-3.0 license](https://opensource.org/license/agpl-v3) requires that your entire derivative work also be open-sourced under AGPL-3.0. This ensures modifications and larger projects built upon open-source foundations remain open.
 
 ### Why AGPL-3.0 Compliance Matters
 
@@ -158,7 +157,7 @@ Complying means making the **complete corresponding source code** of your projec
 
 2. **License Your Project:**
 
-   - Add an `LICENSE` file containing the full text of the [AGPL-3.0 license](https://www.gnu.org/licenses/agpl-3.0.txt).
+   - Add an `LICENSE` file containing the full text of the [AGPL-3.0 license](https://opensource.org/license/agpl-v3).
    - Add a notice at the top of each source file indicating the license.
 
 3. **Publish Your Source Code:**
@@ -168,7 +167,7 @@ Complying means making the **complete corresponding source code** of your projec
      - Any modifications made to the original Ultralytics YOLO code.
      - Scripts for training, validation, inference.
      - [Model weights](https://www.ultralytics.com/glossary/model-weights) if modified or fine-tuned.
-     - [Configuration files](https://docs.ultralytics.com/usage/cfg/), environment setups (`requirements.txt`, [`Dockerfiles`](https://docs.docker.com/engine/reference/builder/)).
+     - [Configuration files](https://docs.ultralytics.com/usage/cfg/), environment setups (`requirements.txt`, [`Dockerfiles`](https://docs.docker.com/reference/dockerfile/)).
      - Backend and frontend code if it's part of a [web application](https://en.wikipedia.org/wiki/Web_application).
      - Any [third-party libraries](<https://en.wikipedia.org/wiki/Library_(computing)#Third-party>) you've modified.
      - [Training data](https://www.ultralytics.com/glossary/training-data) if required to run/retrain _and_ redistributable.

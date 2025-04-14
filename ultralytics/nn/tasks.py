@@ -8,7 +8,9 @@ from copy import deepcopy
 from pathlib import Path
 
 import torch
+import torch.nn as nn
 
+from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
     AIFI,
     C1,
@@ -51,6 +53,7 @@ from ultralytics.nn.modules import (
     HGStem,
     ImagePoolingAttn,
     Index,
+    LRPCHead,
     Pose,
     RepC3,
     RepConv,
@@ -62,6 +65,8 @@ from ultralytics.nn.modules import (
     Segment,
     TorchVision,
     WorldDetect,
+    YOLOEDetect,
+    YOLOESegment,
     v10Detect,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
@@ -83,6 +88,7 @@ from ultralytics.utils.torch_utils import (
     intersect_dicts,
     model_info,
     scale_img,
+    smart_inference_mode,
     time_sync,
 )
 
@@ -255,7 +261,9 @@ class BaseModel(torch.nn.Module):
         """
         self = super()._apply(fn)
         m = self.model[-1]  # Detect()
-        if isinstance(m, Detect):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
+        if isinstance(
+            m, Detect
+        ):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect, YOLOESegment
             m.stride = fn(m.stride)
             m.anchors = fn(m.anchors)
             m.strides = fn(m.strides)
@@ -329,7 +337,7 @@ class DetectionModel(BaseModel):
 
         # Build strides
         m = self.model[-1]  # Detect()
-        if isinstance(m, Detect):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
+        if isinstance(m, Detect):  # includes all Detect subclasses like Segment, Pose, OBB, YOLOEDetect, YOLOESegment
             s = 256  # 2x min stride
             m.inplace = self.inplace
 
@@ -337,7 +345,7 @@ class DetectionModel(BaseModel):
                 """Perform a forward pass through the model, handling different Detect subclass types accordingly."""
                 if self.end2end:
                     return self.forward(x)["one2many"]
-                return self.forward(x)[0] if isinstance(m, (Segment, Pose, OBB)) else self.forward(x)
+                return self.forward(x)[0] if isinstance(m, (Segment, YOLOESegment, Pose, OBB)) else self.forward(x)
 
             m.stride = torch.tensor([s / x.shape[-2] for x in _forward(torch.zeros(1, ch, s, s))])  # forward
             self.stride = m.stride
@@ -778,6 +786,263 @@ class WorldModel(DetectionModel):
         return self.criterion(preds, batch)
 
 
+class YOLOEModel(DetectionModel):
+    """YOLOE detection model."""
+
+    def __init__(self, cfg="yoloe-v8s.yaml", ch=3, nc=None, verbose=True):
+        """
+        Initialize YOLOE model with given config and parameters.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes.
+            verbose (bool): Whether to display model information.
+        """
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    @smart_inference_mode()
+    def get_text_pe(self, text, batch=80, cache_clip_model=False, without_reprta=False):
+        """
+        Set classes in advance so that model could do offline-inference without clip model.
+
+        Args:
+            text (List[str]): List of class names.
+            batch (int): Batch size for processing text tokens.
+            cache_clip_model (bool): Whether to cache the CLIP model.
+            without_reprta (bool): Whether to return text embeddings cooperated with reprta module.
+
+        Returns:
+            (torch.Tensor): Text positional embeddings.
+        """
+        from ultralytics.nn.text_model import build_text_model
+
+        device = next(self.model.parameters()).device
+        if not getattr(self, "clip_model", None) and cache_clip_model:
+            # For backwards compatibility of models lacking clip_model attribute
+            self.clip_model = build_text_model("mobileclip:blt", device=device)
+
+        model = self.clip_model if cache_clip_model else build_text_model("mobileclip:blt", device=device)
+        text_token = model.tokenize(text)
+        txt_feats = [model.encode_text(token).detach() for token in text_token.split(batch)]
+        txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)
+        txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
+        if without_reprta:
+            return txt_feats
+
+        assert not self.training
+        head = self.model[-1]
+        assert isinstance(head, YOLOEDetect)
+        return head.get_tpe(txt_feats)  # run axuiliary text head
+
+    @smart_inference_mode()
+    def get_visual_pe(self, img, visual):
+        """
+        Get visual embeddings.
+
+        Args:
+            img (torch.Tensor): Input image tensor.
+            visual (torch.Tensor): Visual features.
+
+        Returns:
+            (torch.Tensor): Visual positional embeddings.
+        """
+        return self(img, vpe=visual, return_vpe=True)
+
+    def set_vocab(self, vocab, names):
+        """
+        Set vocabulary for the prompt-free model.
+
+        Args:
+            vocab (nn.ModuleList): List of vocabulary items.
+            names (List[str]): List of class names.
+        """
+        assert not self.training
+        head = self.model[-1]
+        assert isinstance(head, YOLOEDetect)
+
+        # Cache anchors for head
+        device = next(self.parameters()).device
+        self(torch.empty(1, 3, self.args["imgsz"], self.args["imgsz"]).to(device))  # warmup
+
+        # re-parameterization for prompt-free model
+        self.model[-1].lrpc = nn.ModuleList(
+            LRPCHead(cls, pf[-1], loc[-1], enabled=i != 2)
+            for i, (cls, pf, loc) in enumerate(zip(vocab, head.cv3, head.cv2))
+        )
+        for loc_head, cls_head in zip(head.cv2, head.cv3):
+            assert isinstance(loc_head, nn.Sequential)
+            assert isinstance(cls_head, nn.Sequential)
+            del loc_head[-1]
+            del cls_head[-1]
+        self.model[-1].nc = len(names)
+        self.names = check_class_names(names)
+
+    def get_vocab(self, names):
+        """
+        Get fused vocabulary layer from the model.
+
+        Args:
+            names (list): List of class names.
+
+        Returns:
+            (nn.ModuleList): List of vocabulary modules.
+        """
+        assert not self.training
+        head = self.model[-1]
+        assert isinstance(head, YOLOEDetect)
+        assert not head.is_fused
+
+        tpe = self.get_text_pe(names)
+        self.set_classes(names, tpe)
+        device = next(self.model.parameters()).device
+        head.fuse(self.pe.to(device))  # fuse prompt embeddings to classify head
+
+        vocab = nn.ModuleList()
+        for cls_head in head.cv3:
+            assert isinstance(cls_head, nn.Sequential)
+            vocab.append(cls_head[-1])
+        return vocab
+
+    def set_classes(self, names, embeddings):
+        """
+        Set classes in advance so that model could do offline-inference without clip model.
+
+        Args:
+            names (List[str]): List of class names.
+            embeddings (torch.Tensor): Embeddings tensor.
+        """
+        assert not hasattr(self.model[-1], "lrpc"), (
+            "Prompt-free model does not support setting classes. Please try with Text/Visual prompt models."
+        )
+        assert embeddings.ndim == 3
+        self.pe = embeddings
+        self.model[-1].nc = len(names)
+        self.names = check_class_names(names)
+
+    def get_cls_pe(self, tpe, vpe):
+        """
+        Get class positional embeddings.
+
+        Args:
+            tpe (torch.Tensor, optional): Text positional embeddings.
+            vpe (torch.Tensor, optional): Visual positional embeddings.
+
+        Returns:
+            (torch.Tensor): Class positional embeddings.
+        """
+        all_pe = []
+        if tpe is not None:
+            assert tpe.ndim == 3
+            all_pe.append(tpe)
+        if vpe is not None:
+            assert vpe.ndim == 3
+            all_pe.append(vpe)
+        if not all_pe:
+            all_pe.append(getattr(self, "pe", torch.zeros(1, 80, 512)))
+        return torch.cat(all_pe, dim=1)
+
+    def predict(
+        self, x, profile=False, visualize=False, tpe=None, augment=False, embed=None, vpe=None, return_vpe=False
+    ):
+        """
+        Perform a forward pass through the model.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+            profile (bool): If True, profile the computation time for each layer.
+            visualize (bool): If True, save feature maps for visualization.
+            tpe (torch.Tensor, optional): Text positional embeddings.
+            augment (bool): If True, perform data augmentation during inference.
+            embed (list, optional): A list of feature vectors/embeddings to return.
+            vpe (torch.Tensor, optional): Visual positional embeddings.
+            return_vpe (bool): If True, return visual positional embeddings.
+
+        Returns:
+            (torch.Tensor): Model's output tensor.
+        """
+        y, dt, embeddings = [], [], []  # outputs
+        b = x.shape[0]
+        for m in self.model:  # except the head part
+            if m.f != -1:  # if not from previous layer
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
+            if profile:
+                self._profile_one_layer(m, x, dt)
+            if isinstance(m, YOLOEDetect):
+                vpe = m.get_vpe(x, vpe) if vpe is not None else None
+                if return_vpe:
+                    assert vpe is not None
+                    assert not self.training
+                    return vpe
+                cls_pe = self.get_cls_pe(m.get_tpe(tpe), vpe).to(device=x[0].device, dtype=x[0].dtype)
+                if cls_pe.shape[0] != b or m.export:
+                    cls_pe = cls_pe.expand(b, -1, -1)
+                x = m(x, cls_pe)
+            else:
+                x = m(x)  # run
+
+            y.append(x if m.i in self.save else None)  # save output
+            if visualize:
+                feature_visualization(x, m.type, m.i, save_dir=visualize)
+            if embed and m.i in embed:
+                embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
+                if m.i == max(embed):
+                    return torch.unbind(torch.cat(embeddings, 1), dim=0)
+        return x
+
+    def loss(self, batch, preds=None):
+        """
+        Compute loss.
+
+        Args:
+            batch (dict): Batch to compute loss on.
+            preds (torch.Tensor | List[torch.Tensor], optional): Predictions.
+        """
+        if not hasattr(self, "criterion"):
+            from ultralytics.utils.loss import TVPDetectLoss
+
+            visual_prompt = batch.get("visuals", None) is not None  # TODO
+            self.criterion = TVPDetectLoss(self) if visual_prompt else self.init_criterion()
+
+        if preds is None:
+            preds = self.forward(batch["img"], tpe=batch.get("txt_feats", None), vpe=batch.get("visuals", None))
+        return self.criterion(preds, batch)
+
+
+class YOLOESegModel(YOLOEModel, SegmentationModel):
+    """YOLOE segmentation model."""
+
+    def __init__(self, cfg="yoloe-v8s-seg.yaml", ch=3, nc=None, verbose=True):
+        """
+        Initialize YOLOE segmentation model with given config and parameters.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes.
+            verbose (bool): Whether to display model information.
+        """
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    def loss(self, batch, preds=None):
+        """
+        Compute loss.
+
+        Args:
+            batch (dict): Batch to compute loss on.
+            preds (torch.Tensor | List[torch.Tensor], optional): Predictions.
+        """
+        if not hasattr(self, "criterion"):
+            from ultralytics.utils.loss import TVPSegmentLoss
+
+            visual_prompt = batch.get("visuals", None) is not None  # TODO
+            self.criterion = TVPSegmentLoss(self) if visual_prompt else self.init_criterion()
+
+        if preds is None:
+            preds = self.forward(batch["img"], tpe=batch.get("txt_feats", None), vpe=batch.get("visuals", None))
+        return self.criterion(preds, batch)
+
+
 class Ensemble(torch.nn.ModuleList):
     """Ensemble of models."""
 
@@ -1185,6 +1450,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 legacy = False
                 if scale in "lx":  # for L/X sizes
                     args.extend((True, 1.2))
+            if m is C2fCIB:
+                legacy = False
         elif m is AIFI:
             args = [ch[f], *args]
         elif m in frozenset({HGStem, HGBlock}):
@@ -1199,11 +1466,13 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in frozenset({Detect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn, v10Detect}):
+        elif m in frozenset(
+            {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect}
+        ):
             args.append([ch[x] for x in f])
-            if m is Segment:
+            if m is Segment or m is YOLOESegment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, Segment, Pose, OBB}:
+            if m in {Detect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB}:
                 m.legacy = legacy
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
@@ -1269,7 +1538,7 @@ def guess_model_scale(model_path):
         (str): The size character of the model's scale (n, s, m, l, or x).
     """
     try:
-        return re.search(r"yolo[v]?\d+([nslmx])", Path(model_path).stem).group(1)  # returns n, s, m, l, or x
+        return re.search(r"yolo(e-)?[v]?\d+([nslmx])", Path(model_path).stem).group(2)  # noqa
     except AttributeError:
         return ""
 
@@ -1292,7 +1561,7 @@ def guess_model_task(model):
             return "classify"
         if "detect" in m:
             return "detect"
-        if m == "segment":
+        if "segment" in m:
             return "segment"
         if m == "pose":
             return "pose"
@@ -1312,7 +1581,7 @@ def guess_model_task(model):
             with contextlib.suppress(Exception):
                 return cfg2task(eval(x))
         for m in model.modules():
-            if isinstance(m, Segment):
+            if isinstance(m, (Segment, YOLOESegment)):
                 return "segment"
             elif isinstance(m, Classify):
                 return "classify"
@@ -1320,7 +1589,7 @@ def guess_model_task(model):
                 return "pose"
             elif isinstance(m, OBB):
                 return "obb"
-            elif isinstance(m, (Detect, WorldDetect, v10Detect)):
+            elif isinstance(m, (Detect, WorldDetect, YOLOEDetect, v10Detect)):
                 return "detect"
 
     # Guess from model filename

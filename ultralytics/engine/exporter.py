@@ -86,6 +86,7 @@ from ultralytics.utils import (
     LOGGER,
     MACOS,
     MACOS_VERSION,
+    PYTHON_VERSION,
     RKNN_CHIPS,
     ROOT,
     WINDOWS,
@@ -919,7 +920,7 @@ class Exporter:
                 "tf_keras",  # required by 'onnx2tf' package
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
                 "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
-                "ai-edge-litert>=1.2.0",  # required by 'onnx2tf' package
+                "" if check_version(PYTHON_VERSION, "<=3.8.0") else "ai-edge-litert>=1.2.0",  # required by 'onnx2tf' package
                 "onnx>=1.12.0",
                 "onnx2tf>=1.26.3",
                 "onnxslim>=0.1.31",

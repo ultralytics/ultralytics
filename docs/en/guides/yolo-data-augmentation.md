@@ -29,39 +29,41 @@ Ultralytics YOLO's implementation provides a comprehensive suite of augmentation
 
 You can customize each parameter using the Python API, the command line interface (CLI), or a configuration file. Below are examples of how to set up data augmentation in each method.
 
-#### Using the Python API
-
-```python
-from ultralytics import YOLO
-
-# Load a model
-model = YOLO("yolo11n.pt")
-
-# Training with custom augmentation parameters
-model.train(data="coco.yaml", epochs=100, hsv_h=0.03, hsv_s=0.6, hsv_v=0.5)
-
-# Training without any augmentations (disabled values omitted for clarity)
-model.train(
-    data="coco.yaml",
-    epochs=100,
-    hsv_h=0.0,
-    hsv_s=0.0,
-    hsv_v=0.0,
-    translate=0.0,
-    scale=0.0,
-    fliplr=0.0,
-    mosaic=0.0,
-    erasing=0.0,
-    auto_augment=None,
-)
-```
-
-#### Using the CLI
-
-```sh
-# Training with custom augmentation parameters
-yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 hsv_h=0.03 hsv_s=0.6 hsv_v=0.5
-```
+!!! example "Configuration Examples"
+  
+    === "CLI"
+      
+        ```bash
+        # Training with custom augmentation parameters
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 hsv_h=0.03 hsv_s=0.6 hsv_v=0.5
+        ```
+    
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+  
+        # Load a model
+        model = YOLO("yolo11n.pt")
+        
+        # Training with custom augmentation parameters
+        model.train(data="coco.yaml", epochs=100, hsv_h=0.03, hsv_s=0.6, hsv_v=0.5)
+        
+        # Training without any augmentations (disabled values omitted for clarity)
+        model.train(
+            data="coco.yaml",
+            epochs=100,
+            hsv_h=0.0,
+            hsv_s=0.0,
+            hsv_v=0.0,
+            translate=0.0,
+            scale=0.0,
+            fliplr=0.0,
+            mosaic=0.0,
+            erasing=0.0,
+            auto_augment=None,
+        )
+        ```
 
 #### Using a configuration file
 
@@ -81,18 +83,26 @@ hsv_v: 0.5
 
 Then launch the training with the Python API:
 
-```python
-from ultralytics import YOLO
+!!! example "Train Example"
 
-model = YOLO("yolo11n.pt")
-model.train(cfg="train_custom.yaml")
-```
+    === "CLI"
+      
+        ```bash
+        # Train the model with custom configuration
+        yolo detect train model="yolo11n.pt" cfg=train_custom.yaml
+        ```
 
-Or via the CLI:
+    === "Python"
+      
+        ```python
+        from ultralytics import YOLO
+        
+        # Load a COCO-pretrained YOLO11n model
+        model = YOLO("yolo11n.pt")
 
-```sh
-yolo cfg=train_custom.yaml
-```
+        # Train the model with custom configuration
+        model.train(cfg="train_custom.yaml")
+        ```
 
 ## Color Space Augmentations
 
@@ -341,7 +351,7 @@ yolo cfg=train_custom.yaml
 Choosing the right augmentations depends on your specific use case and dataset. Here are a few general guidelines to help you decide:
 
 - In most cases, slight variations in color and brightness are beneficial. The default values for `hsv_h`, `hsv_s`, and `hsv_v` are a solid starting point.
-- If the camera's point of view is consistent and won't change once the model is deployed, you can likely skip geometric transformations such as `rotation`, `translation`, `scale`, `shear`, or `perspective`. However, if the camera angle may vary and you need the model to be more robust, it's better to keep these augmentations.
+- If the camera's point of view is consistent and won't change once the model is deployed, you can likely skip geometric transformations such as `rotation`, `translation`, `scale`, `shear`, or `perspective`. However, if the camera angle may vary, and you need the model to be more robust, it's better to keep these augmentations.
 - Use the `mosaic` augmentation only if having partially occluded objects or multiple objects per image is acceptable and does not change the label value. Alternatively, you can keep `mosaic` active but increase the `close_mosaic` value to disable it earlier in the training process.
 
 In short: keep it simple. Start with a small set of augmentations and gradually add more as needed. The goal is to improve the model's generalization and robustness, not to overcomplicate the training process. Also, make sure the augmentations you apply reflect the same data distribution your model will encounter in production.

@@ -30,14 +30,7 @@ Ultralytics YOLO's implementation provides a comprehensive suite of augmentation
 You can customize each parameter using the Python API, the command line interface (CLI), or a configuration file. Below are examples of how to set up data augmentation in each method.
 
 !!! example "Configuration Examples"
-  
-    === "CLI"
-      
-        ```bash
-        # Training with custom augmentation parameters
-        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 hsv_h=0.03 hsv_s=0.6 hsv_v=0.5
-        ```
-    
+
     === "Python"
     
         ```python
@@ -64,7 +57,14 @@ You can customize each parameter using the Python API, the command line interfac
             auto_augment=None,
         )
         ```
-
+    
+    === "CLI"
+      
+        ```bash
+        # Training with custom augmentation parameters
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 hsv_h=0.03 hsv_s=0.6 hsv_v=0.5
+        ```
+    
 #### Using a configuration file
 
 You can define all training parameters, including augmentations, in a YAML configuration file (e.g., `train_custom.yaml`). The `mode` parameter is only required when using the CLI. This new YAML file will then override [the default one](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml) located in the `ultralytics` package.
@@ -85,13 +85,6 @@ Then launch the training with the Python API:
 
 !!! example "Train Example"
 
-    === "CLI"
-      
-        ```bash
-        # Train the model with custom configuration
-        yolo detect train model="yolo11n.pt" cfg=train_custom.yaml
-        ```
-
     === "Python"
       
         ```python
@@ -102,6 +95,13 @@ Then launch the training with the Python API:
 
         # Train the model with custom configuration
         model.train(cfg="train_custom.yaml")
+        ```
+    
+    === "CLI"
+      
+        ```bash
+        # Train the model with custom configuration
+        yolo detect train model="yolo11n.pt" cfg=train_custom.yaml
         ```
 
 ## Color Space Augmentations

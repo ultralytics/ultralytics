@@ -219,9 +219,9 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
         LOGGER.debug(f"COMET WARNING: Image: {image_path} has no bounding boxes predictions")
         return None
 
-        # offset to align indices of class labels (starting from zero)
-        # with prediction's category ID indices (can start from one)
-    label_index_offset = sorted(class_map)[0] if class_map is not None else 0
+    # apply the mapping that was used to map the predicted classes when the JSON was created
+    if class_label_map and class_map:
+        class_label_map = {class_map[k]: v for k, v in class_label_map.items()}
     try:
         # import pycotools utilities to decompress annotations for various tasks, e.g. segmentation
         from pycocotools.mask import decode  # noqa
@@ -234,7 +234,7 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
         score = _scale_confidence_score(prediction["score"])
         cls_label = prediction["category_id"]
         if class_label_map:
-            cls_label = str(class_label_map[cls_label - label_index_offset])
+            cls_label = str(class_label_map[cls_label])
 
         annotation_data = {"boxes": [boxes], "label": cls_label, "score": score}
 

@@ -68,8 +68,17 @@ class TritonRemoteModel:
         Examples:
             >>> model = TritonRemoteModel(url="localhost:8000", endpoint="yolov8", scheme="http")
             >>> model = TritonRemoteModel(url="http://localhost:8000/yolov8")
-            >>> model = TritonRemoteModel(url="localhost:8000", endpoint="yolov8", scheme="http", max_batch_size=8, cuda_shm=True, shm_region_prefix='cuda_shm_prefix_')
-            >>> model = TritonRemoteModel(url="http://localhost:8000/yolov8?cuda_shm=True&max_batch_size=8&shm_region_prefix=cuda_shm_prefix_")
+            >>> model = TritonRemoteModel(
+            ...     url="localhost:8000",
+            ...     endpoint="yolov8",
+            ...     scheme="http",
+            ...     max_batch_size=8,
+            ...     cuda_shm=True,
+            ...     shm_region_prefix="cuda_shm_prefix_",
+            ... )
+            >>> model = TritonRemoteModel(
+            ...     url="http://localhost:8000/yolov8?cuda_shm=True&max_batch_size=8&shm_region_prefix=cuda_shm_prefix_"
+            ... )
         """
         parameters = dict()
         if not endpoint and not scheme:  # Parse all args from URL string

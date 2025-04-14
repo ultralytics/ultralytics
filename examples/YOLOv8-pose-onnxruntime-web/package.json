@@ -1,0 +1,52 @@
+{
+  "name": "YOLOv8-pose-onnxruntime-web",
+  "homepage": "https://github.com/FatemeZamanian/YOLOv8-pose-onnxruntime-web#readme",
+  "version": "0.1.0",
+  "dependencies": {
+    "@techstark/opencv-js": "4.5.5-release.2",
+    "onnxruntime-web": "^1.13.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
+  },
+  "scripts": {
+    "start": "craco start",
+    "build": "craco build",
+    "deploy": "gh-pages -d build"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "author": {
+    "name": "Wahyu Setianto",
+    "url": "https://github.com/FatemeZamanian"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FatemeZamanian/YOLOv8-pose-onnxruntime-web.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FatemeZamanian/YOLOv8-pose-onnxruntime-web/issues"
+  },
+  "devDependencies": {
+    "@craco/craco": "^7.0.0",
+    "copy-webpack-plugin": "^11.0.0",
+    "gh-pages": "^4.0.0"
+  }
+}

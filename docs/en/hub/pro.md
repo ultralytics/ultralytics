@@ -48,7 +48,7 @@ You can upgrade to the Pro Plan from the [Billing & License](https://hub.ultraly
 
 4.  Complete the payment process
 
-![Ultralytics HUB screenshot of the Payment Successful dialog](https://github.com/ultralytics/docs/releases/download/0/payment-successful-dialog.avif)
+    ![Ultralytics HUB screenshot of the Payment Successful dialog](https://github.com/ultralytics/docs/releases/download/0/payment-successful-dialog.avif)
 
 ## Managing Your Account Balance
 

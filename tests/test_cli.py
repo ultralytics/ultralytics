@@ -66,7 +66,7 @@ def test_rtdetr(task: str = "detect", model: str = "yolov8n-rtdetr.yaml", data: 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="MobileSAM with CLIP is not supported in Python 3.12")
 @pytest.mark.skipif(
-    check_version(PYTHON_VERSION, "<3.9"): and LINUX and ARM64,
+    check_version(PYTHON_VERSION, "<3.9") and LINUX and ARM64,
     reason="MobileSAM with CLIP is not supported in Python <3.9 and aarch64 Linux",
 )
 def test_fastsam(

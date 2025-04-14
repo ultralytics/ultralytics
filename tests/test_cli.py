@@ -7,8 +7,9 @@ from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
+from ultralytics.utils import ARM64, ASSETS, LINUX, WEIGHTS_DIR, checks, PYTHON_VERSION
 from ultralytics.utils.torch_utils import TORCH_1_9
+from ultralytics.utils.checks import check_version
 
 # Constants
 TASK_MODEL_DATA = [(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for task in TASKS]
@@ -64,6 +65,10 @@ def test_rtdetr(task: str = "detect", model: str = "yolov8n-rtdetr.yaml", data: 
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="MobileSAM with CLIP is not supported in Python 3.12")
+@pytest.mark.skipif(
+    check_version(PYTHON_VERSION, "<3.9") and LINUX and ARM64,
+    reason="MobileSAM with CLIP is not supported in Python <3.9 and aarch64 Linux",
+)
 def test_fastsam(
     task: str = "segment", model: str = WEIGHTS_DIR / "FastSAM-s.pt", data: str = "coco8-seg.yaml"
 ) -> None:

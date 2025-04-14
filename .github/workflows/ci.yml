@@ -102,6 +102,11 @@ jobs:
         os: [ubuntu-latest, macos-14, ubuntu-24.04-arm]
         python-version: ["3.11"]
         model: [yolo11n]
+        include:
+          - os: ubuntu-latest
+            python-version: "3.8" # torch 1.8.0 requires python >=3.6, <=3.9
+            model: [yolo11n]
+            torch: "1.8.0" # min torch version CI https://pypi.org/project/torchvision/
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

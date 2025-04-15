@@ -82,8 +82,8 @@ dataset = check_det_dataset("VOC.yaml")
 
 detections = sv.DetectionDataset.from_yolo(
     data_yaml_path=dataset["yaml_file"],
-    images_directory_path=f"{settings["datasets_dir"]}/VOC/images/train2012",
-    annotations_directory_path=f"{settings["datasets_dir"]}/VOC/labels/train2012",
+    images_directory_path=f"{settings['datasets_dir']}/VOC/images/train2012",
+    annotations_directory_path=f"{settings['datasets_dir']}/VOC/labels/train2012",
 )
 
 with open(dataset["yaml_file"], "r") as f:

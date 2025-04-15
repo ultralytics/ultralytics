@@ -646,8 +646,8 @@ class ProfileModels:
         """
         _, params, _, flops = model_info
         return (
-            f"| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.3f}±{t_onnx[1]:.3f} ms | {t_engine[0]:.3f}±"
-            f"{t_engine[1]:.3f} ms | {params / 1e6:.3f} | {flops:.3f} |"
+            f"| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.2f}±{t_onnx[1]:.2f} ms | {t_engine[0]:.2f}±"
+            f"{t_engine[1]:.2f} ms | {params / 1e6:.2f} | {flops:.2f} |"
         )
 
     @staticmethod

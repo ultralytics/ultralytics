@@ -35,7 +35,7 @@ jobs:
           retry_delay_seconds: 900
           retries: 2
           run: |
-            set -o pipefail  # This makes the pipeline return the exit code of the first failing command
+            set -o pipefail  # preserve exit code from lychee command in pipeline
             lychee \
             --scheme https \
             --timeout 60 \
@@ -66,7 +66,7 @@ jobs:
           retry_delay_seconds: 900
           retries: 2
           run: |
-            set -o pipefail  # This makes the pipeline return the exit code of the first failing command
+            set -o pipefail  # preserve exit code from lychee command in pipeline
             lychee \
             --scheme https \
             --timeout 60 \

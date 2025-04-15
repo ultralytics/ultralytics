@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import hashlib
 import json
@@ -60,8 +60,7 @@ def exif_size(img: Image.Image):
     s = img.size  # (width, height)
     if img.format == "JPEG":  # only support JPEG images
         try:
-            exif = img.getexif()
-            if exif:
+            if exif := img.getexif():
                 rotation = exif.get(274, None)  # the EXIF key for the orientation tag is 274
                 if rotation in {6, 8}:  # rotation 270 or 90
                     s = s[1], s[0]
@@ -97,7 +96,7 @@ def verify_image(args):
 
 def verify_image_label(args):
     """Verify one image-label pair."""
-    im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim = args
+    im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls = args
     # Number (missing, found, empty, corrupt), message, segments, keypoints
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
     try:
@@ -118,15 +117,14 @@ def verify_image_label(args):
         # Verify labels
         if os.path.isfile(lb_file):
             nf = 1  # label found
-            with open(lb_file) as f:
+            with open(lb_file, encoding="utf-8") as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
                 if any(len(x) > 6 for x in lb) and (not keypoint):  # is segment
                     classes = np.array([x[0] for x in lb], dtype=np.float32)
                     segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
                     lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
                 lb = np.array(lb, dtype=np.float32)
-            nl = len(lb)
-            if nl:
+            if nl := len(lb):
                 if keypoint:
                     assert lb.shape[1] == (5 + nkpt * ndim), f"labels require {(5 + nkpt * ndim)} columns each"
                     points = lb[:, 5:].reshape(-1, ndim)[:, :2]
@@ -137,8 +135,10 @@ def verify_image_label(args):
                 assert lb.min() >= 0, f"negative label values {lb[lb < 0]}"
 
                 # All labels
+                if single_cls:
+                    lb[:, 0] = 0
                 max_cls = lb[:, 0].max()  # max label count
-                assert max_cls <= num_cls, (
+                assert max_cls < num_cls, (
                     f"Label class {int(max_cls)} exceeds dataset class count {num_cls}. "
                     f"Possible class labels are 0-{num_cls - 1}"
                 )
@@ -167,6 +167,50 @@ def verify_image_label(args):
         return [None, None, None, None, None, nm, nf, ne, nc, msg]
 
 
+def visualize_image_annotations(image_path, txt_path, label_map):
+    """
+    Visualizes YOLO annotations (bounding boxes and class labels) on an image.
+
+    This function reads an image and its corresponding annotation file in YOLO format, then
+    draws bounding boxes around detected objects and labels them with their respective class names.
+    The bounding box colors are assigned based on the class ID, and the text color is dynamically
+    adjusted for readability, depending on the background color's luminance.
+
+    Args:
+        image_path (str): The path to the image file to annotate, and it can be in formats supported by PIL.
+        txt_path (str): The path to the annotation file in YOLO format, that should contain one line per object.
+        label_map (dict): A dictionary that maps class IDs (integers) to class labels (strings).
+
+    Examples:
+        >>> label_map = {0: "cat", 1: "dog", 2: "bird"}  # It should include all annotated classes details
+        >>> visualize_image_annotations("path/to/image.jpg", "path/to/annotations.txt", label_map)
+    """
+    import matplotlib.pyplot as plt
+
+    from ultralytics.utils.plotting import colors
+
+    img = np.array(Image.open(image_path))
+    img_height, img_width = img.shape[:2]
+    annotations = []
+    with open(txt_path, encoding="utf-8") as file:
+        for line in file:
+            class_id, x_center, y_center, width, height = map(float, line.split())
+            x = (x_center - width / 2) * img_width
+            y = (y_center - height / 2) * img_height
+            w = width * img_width
+            h = height * img_height
+            annotations.append((x, y, w, h, int(class_id)))
+    fig, ax = plt.subplots(1)  # Plot the image and annotations
+    for x, y, w, h, label in annotations:
+        color = tuple(c / 255 for c in colors(label, True))  # Get and normalize the RGB color
+        rect = plt.Rectangle((x, y), w, h, linewidth=2, edgecolor=color, facecolor="none")  # Create a rectangle
+        ax.add_patch(rect)
+        luminance = 0.2126 * color[0] + 0.7152 * color[1] + 0.0722 * color[2]  # Formula for luminance
+        ax.text(x, y - 5, label_map[label], color="white" if luminance < 0.5 else "black", backgroundcolor=color)
+    ax.imshow(img)
+    plt.show()
+
+
 def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
     """
     Convert a list of polygons to a binary mask of the specified image size.
@@ -175,8 +219,8 @@ def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
         imgsz (tuple): The size of the image as (height, width).
         polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where
                                      N is the number of polygons, and M is the number of points such that M % 2 = 0.
-        color (int, optional): The color value to fill in the polygons on the mask. Defaults to 1.
-        downsample_ratio (int, optional): Factor by which to downsample the mask. Defaults to 1.
+        color (int, optional): The color value to fill in the polygons on the mask.
+        downsample_ratio (int, optional): Factor by which to downsample the mask.
 
     Returns:
         (np.ndarray): A binary mask of the specified image size with the polygons filled in.
@@ -199,7 +243,7 @@ def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
         polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where
                                      N is the number of polygons, and M is the number of points such that M % 2 = 0.
         color (int): The color value to fill in the polygons on the masks.
-        downsample_ratio (int, optional): Factor by which to downsample each mask. Defaults to 1.
+        downsample_ratio (int, optional): Factor by which to downsample each mask.
 
     Returns:
         (np.ndarray): A set of binary masks of the specified image size with the polygons filled in.
@@ -234,8 +278,7 @@ def find_dataset_yaml(path: Path) -> Path:
     Find and return the YAML file associated with a Detect, Segment or Pose dataset.
 
     This function searches for a YAML file at the root level of the provided directory first, and if not found, it
-    performs a recursive search. It prefers YAML files that have the same stem as the provided path. An AssertionError
-    is raised if no YAML file is found or if multiple YAML files are found.
+    performs a recursive search. It prefers YAML files that have the same stem as the provided path.
 
     Args:
         path (Path): The directory path to search for the YAML file.
@@ -261,7 +304,7 @@ def check_det_dataset(dataset, autodownload=True):
 
     Args:
         dataset (str): Path to the dataset or dataset descriptor (like a YAML file).
-        autodownload (bool, optional): Whether to automatically download the dataset if not found. Defaults to True.
+        autodownload (bool, optional): Whether to automatically download the dataset if not found.
 
     Returns:
         (dict): Parsed dataset information and paths.
@@ -353,7 +396,7 @@ def check_cls_dataset(dataset, split=""):
 
     Args:
         dataset (str | Path): The name of the dataset.
-        split (str, optional): The split of the dataset. Either 'val', 'test', or ''. Defaults to ''.
+        split (str, optional): The split of the dataset. Either 'val', 'test', or ''.
 
     Returns:
         (dict): A dictionary containing the following keys:
@@ -393,8 +436,10 @@ def check_cls_dataset(dataset, split=""):
     test_set = data_dir / "test" if (data_dir / "test").exists() else None  # data/val or data/test
     if split == "val" and not val_set:
         LOGGER.warning("WARNING ⚠️ Dataset 'split=val' not found, using 'split=test' instead.")
+        val_set = test_set
     elif split == "test" and not test_set:
         LOGGER.warning("WARNING ⚠️ Dataset 'split=test' not found, using 'split=val' instead.")
+        test_set = val_set
 
     nc = len([x for x in (data_dir / "train").glob("*") if x.is_dir()])  # number of classes
     names = [x.name for x in (data_dir / "train").iterdir() if x.is_dir()]  # class names list
@@ -402,7 +447,7 @@ def check_cls_dataset(dataset, split=""):
 
     # Print to console
     for k, v in {"train": train_set, "val": val_set, "test": test_set}.items():
-        prefix = f'{colorstr(f"{k}:")} {v}...'
+        prefix = f"{colorstr(f'{k}:')} {v}..."
         if v is None:
             LOGGER.info(prefix)
         else:
@@ -431,21 +476,19 @@ class HUBDatasetStats:
         task (str): Dataset task. Options are 'detect', 'segment', 'pose', 'classify'. Default is 'detect'.
         autodownload (bool): Attempt to download dataset if not found locally. Default is False.
 
-    Example:
+    Note:
         Download *.zip files from https://github.com/ultralytics/hub/tree/main/example_datasets
-            i.e. https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip for coco8.zip.
-        ```python
-        from ultralytics.data.utils import HUBDatasetStats
+        i.e. https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip for coco8.zip.
 
-        stats = HUBDatasetStats("path/to/coco8.zip", task="detect")  # detect dataset
-        stats = HUBDatasetStats("path/to/coco8-seg.zip", task="segment")  # segment dataset
-        stats = HUBDatasetStats("path/to/coco8-pose.zip", task="pose")  # pose dataset
-        stats = HUBDatasetStats("path/to/dota8.zip", task="obb")  # OBB dataset
-        stats = HUBDatasetStats("path/to/imagenet10.zip", task="classify")  # classification dataset
-
-        stats.get_json(save=True)
-        stats.process_images()
-        ```
+    Examples:
+        >>> from ultralytics.data.utils import HUBDatasetStats
+        >>> stats = HUBDatasetStats("path/to/coco8.zip", task="detect")  # detect dataset
+        >>> stats = HUBDatasetStats("path/to/coco8-seg.zip", task="segment")  # segment dataset
+        >>> stats = HUBDatasetStats("path/to/coco8-pose.zip", task="pose")  # pose dataset
+        >>> stats = HUBDatasetStats("path/to/dota8.zip", task="obb")  # OBB dataset
+        >>> stats = HUBDatasetStats("path/to/imagenet10.zip", task="classify")  # classification dataset
+        >>> stats.get_json(save=True)
+        >>> stats.process_images()
     """
 
     def __init__(self, path="coco8.yaml", task="detect", autodownload=False):
@@ -470,7 +513,7 @@ class HUBDatasetStats:
             except Exception as e:
                 raise Exception("error/HUB/dataset_stats/init") from e
 
-        self.hub_dir = Path(f'{data["path"]}-hub')
+        self.hub_dir = Path(f"{data['path']}-hub")
         self.im_dir = self.hub_dir / "images"
         self.stats = {"nc": len(data["names"]), "names": list(data["names"].values())}  # statistics dictionary
         self.data = data
@@ -482,7 +525,7 @@ class HUBDatasetStats:
             return False, None, path
         unzip_dir = unzip_file(path, path=path.parent)
         assert unzip_dir.is_dir(), (
-            f"Error unzipping {path}, {unzip_dir} not found. " f"path/to/abc.zip MUST unzip to path/to/abc/"
+            f"Error unzipping {path}, {unzip_dir} not found. path/to/abc.zip MUST unzip to path/to/abc/"
         )
         return True, str(unzip_dir), find_dataset_yaml(unzip_dir)  # zipped, data_dir, yaml_path
 
@@ -520,7 +563,7 @@ class HUBDatasetStats:
 
             # Get dataset statistics
             if self.task == "classify":
-                from torchvision.datasets import ImageFolder
+                from torchvision.datasets import ImageFolder  # scope for faster 'import ultralytics'
 
                 dataset = ImageFolder(self.data[split])
 
@@ -558,7 +601,7 @@ class HUBDatasetStats:
             self.hub_dir.mkdir(parents=True, exist_ok=True)  # makes dataset-hub/
             stats_path = self.hub_dir / "stats.json"
             LOGGER.info(f"Saving {stats_path.resolve()}...")
-            with open(stats_path, "w") as f:
+            with open(stats_path, "w", encoding="utf-8") as f:
                 json.dump(self.stats, f)  # save stats.json
         if verbose:
             LOGGER.info(json.dumps(self.stats, indent=2, sort_keys=False))
@@ -589,17 +632,14 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
     Args:
         f (str): The path to the input image file.
         f_new (str, optional): The path to the output image file. If not specified, the input file will be overwritten.
-        max_dim (int, optional): The maximum dimension (width or height) of the output image. Default is 1920 pixels.
-        quality (int, optional): The image compression quality as a percentage. Default is 50%.
+        max_dim (int, optional): The maximum dimension (width or height) of the output image.
+        quality (int, optional): The image compression quality as a percentage.
 
-    Example:
-        ```python
-        from pathlib import Path
-        from ultralytics.data.utils import compress_one_image
-
-        for f in Path("path/to/dataset").rglob("*.jpg"):
-            compress_one_image(f)
-        ```
+    Examples:
+        >>> from pathlib import Path
+        >>> from ultralytics.data.utils import compress_one_image
+        >>> for f in Path("path/to/dataset").rglob("*.jpg"):
+        >>>    compress_one_image(f)
     """
     try:  # use PIL
         im = Image.open(f)
@@ -622,16 +662,13 @@ def autosplit(path=DATASETS_DIR / "coco8/images", weights=(0.9, 0.1, 0.0), annot
     Automatically split a dataset into train/val/test splits and save the resulting splits into autosplit_*.txt files.
 
     Args:
-        path (Path, optional): Path to images directory. Defaults to DATASETS_DIR / 'coco8/images'.
-        weights (list | tuple, optional): Train, validation, and test split fractions. Defaults to (0.9, 0.1, 0.0).
-        annotated_only (bool, optional): If True, only images with an associated txt file are used. Defaults to False.
+        path (Path, optional): Path to images directory.
+        weights (list | tuple, optional): Train, validation, and test split fractions.
+        annotated_only (bool, optional): If True, only images with an associated txt file are used.
 
-    Example:
-        ```python
-        from ultralytics.data.utils import autosplit
-
-        autosplit()
-        ```
+    Examples:
+        >>> from ultralytics.data.utils import autosplit
+        >>> autosplit()
     """
     path = Path(path)  # images dir
     files = sorted(x for x in path.rglob("*.*") if x.suffix[1:].lower() in IMG_FORMATS)  # image files only
@@ -647,7 +684,7 @@ def autosplit(path=DATASETS_DIR / "coco8/images", weights=(0.9, 0.1, 0.0), annot
     LOGGER.info(f"Autosplitting images from {path}" + ", using *.txt labeled images only" * annotated_only)
     for i, img in TQDM(zip(indices, files), total=n):
         if not annotated_only or Path(img2label_paths([str(img)])[0]).exists():  # check label
-            with open(path.parent / txt[i], "a") as f:
+            with open(path.parent / txt[i], "a", encoding="utf-8") as f:
                 f.write(f"./{img.relative_to(path.parent).as_posix()}" + "\n")  # add image to txt file
 
 
@@ -667,8 +704,8 @@ def save_dataset_cache_file(prefix, path, x, version):
     if is_dir_writeable(path.parent):
         if path.exists():
             path.unlink()  # remove *.cache file if exists
-        np.save(str(path), x)  # save cache for next time
-        path.with_suffix(".cache.npy").rename(path)  # remove .npy suffix
+        with open(str(path), "wb") as file:  # context manager here fixes windows async np.save bug
+            np.save(file, x)
         LOGGER.info(f"{prefix}New cache created: {path}")
     else:
         LOGGER.warning(f"{prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable, cache not saved.")

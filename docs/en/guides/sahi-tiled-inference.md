@@ -6,6 +6,8 @@ keywords: YOLO11, SAHI, Sliced Inference, Object Detection, Ultralytics, High-re
 
 # Ultralytics Docs: Using YOLO11 with SAHI for Sliced Inference
 
+<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-use-ultralytics-yolo-with-sahi.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open SAHI for Sliced Inference In Colab"></a>
+
 Welcome to the Ultralytics documentation on how to use YOLO11 with [SAHI](https://github.com/obss/sahi) (Slicing Aided Hyper Inference). This comprehensive guide aims to furnish you with all the essential knowledge you'll need to implement SAHI alongside YOLO11. We'll deep-dive into what SAHI is, why sliced inference is critical for large-scale applications, and how to integrate these functionalities with YOLO11 for enhanced [object detection](https://www.ultralytics.com/glossary/object-detection) performance.
 
 <p align="center">
@@ -18,7 +20,7 @@ SAHI (Slicing Aided Hyper Inference) is an innovative library designed to optimi
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/tq3FU_QczxE"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ILqMBah5ZvI"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -72,11 +74,11 @@ Here's how to import the necessary modules and download a YOLO11 model and some 
 
 ```python
 from sahi.utils.file import download_from_url
-from sahi.utils.yolov8 import download_yolov8s_model
+from sahi.utils.ultralytics import download_yolo11n_model
 
 # Download YOLO11 model
-model_path = "models/yolo11s.pt"
-download_yolov8s_model(model_path)
+model_path = "models/yolo11n.pt"
+download_yolo11n_model(model_path)
 
 # Download test images
 download_from_url(
@@ -99,8 +101,8 @@ You can instantiate a YOLO11 model for object detection like this:
 from sahi import AutoDetectionModel
 
 detection_model = AutoDetectionModel.from_pretrained(
-    model_type="yolov8",
-    model_path=yolov8_model_path,
+    model_type="ultralytics",
+    model_path=model_path,
     confidence_threshold=0.3,
     device="cpu",  # or 'cuda:0'
 )
@@ -117,7 +119,7 @@ from sahi.predict import get_prediction
 result = get_prediction("demo_data/small-vehicles1.jpeg", detection_model)
 
 # With a numpy image
-result = get_prediction(read_image("demo_data/small-vehicles1.jpeg"), detection_model)
+result_with_np_image = get_prediction(read_image("demo_data/small-vehicles1.jpeg"), detection_model)
 ```
 
 ### Visualize Results
@@ -169,7 +171,7 @@ For batch prediction on a directory of images:
 from sahi.predict import predict
 
 predict(
-    model_type="yolov8",
+    model_type="ultralytics",
     model_path="path/to/yolo11n.pt",
     model_device="cpu",  # or 'cuda:0'
     model_confidence_threshold=0.4,
@@ -218,11 +220,11 @@ Then, download a YOLO11 model and test images:
 
 ```python
 from sahi.utils.file import download_from_url
-from sahi.utils.yolov8 import download_yolov8s_model
+from sahi.utils.ultralytics import download_yolo11n_model
 
 # Download YOLO11 model
-model_path = "models/yolo11s.pt"
-download_yolov8s_model(model_path)
+model_path = "models/yolo11n.pt"
+download_yolo11n_model(model_path)
 
 # Download test images
 download_from_url(
@@ -254,7 +256,7 @@ result.export_visuals(export_dir="demo_data/")
 Image("demo_data/prediction_visual.png")
 ```
 
-This command will save the visualized predictions to the specified directory and you can then load the image to view it in your notebook or application. For a detailed guide, check out the [Standard Inference section](#visualize-results).
+This command will save the visualized predictions to the specified directory, and you can then load the image to view it in your notebook or application. For a detailed guide, check out the [Standard Inference section](#visualize-results).
 
 ### What features does SAHI offer for improving YOLO11 object detection?
 
@@ -280,7 +282,7 @@ Example for batch prediction:
 from sahi.predict import predict
 
 predict(
-    model_type="yolov8",
+    model_type="ultralytics",
     model_path="path/to/yolo11n.pt",
     model_device="cpu",  # or 'cuda:0'
     model_confidence_threshold=0.4,

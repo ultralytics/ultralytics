@@ -49,6 +49,10 @@ The following are some notable features of YOLO11's Train mode:
 
 Train YOLO11n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. The training device can be specified using the `device` argument. If no argument is passed GPU `device=0` will be used if available, otherwise `device='cpu'` will be used. See Arguments section below for a full list of training arguments.
 
+!!! warning "Windows Multi-Processing Error"
+
+    On Windows, you may receive a `RuntimeError` when launching the training as a script. Add a `if __name__ == "__main__":` block before your training code to resolve it.
+
 !!! example "Single-GPU and CPU Training Example"
 
     Device is determined automatically. If a GPU is available then it will be used, otherwise training will start on CPU.
@@ -199,7 +203,7 @@ These settings can be adjusted to meet the specific requirements of the dataset 
 
 ## Logging
 
-In training a YOLO11 model, you might find it valuable to keep track of the model's performance over time. This is where logging comes into play. Ultralytics' YOLO provides support for three types of loggers - Comet, ClearML, and TensorBoard.
+In training a YOLO11 model, you might find it valuable to keep track of the model's performance over time. This is where logging comes into play. Ultralytics YOLO provides support for three types of loggers - [Comet](../integrations/comet.md), [ClearML](../integrations/clearml.md), and [TensorBoard](../integrations/tensorboard.md).
 
 To use a logger, select it from the dropdown menu in the code snippet above and run it. The chosen logger will be installed and initialized.
 
@@ -253,17 +257,17 @@ To use TensorBoard in [Google Colab](https://colab.research.google.com/github/ul
 
         ```bash
         load_ext tensorboard
-        tensorboard --logdir ultralytics/runs  # replace with 'runs' directory
+        tensorboard --logdir ultralytics/runs # replace with 'runs' directory
         ```
 
-To use TensorBoard locally run the below command and view results at http://localhost:6006/.
+To use TensorBoard locally run the below command and view results at `http://localhost:6006/`.
 
 !!! example
 
     === "CLI"
 
         ```bash
-        tensorboard --logdir ultralytics/runs  # replace with 'runs' directory
+        tensorboard --logdir ultralytics/runs # replace with 'runs' directory
         ```
 
 This will load TensorBoard and direct it to the directory where your training logs are saved.

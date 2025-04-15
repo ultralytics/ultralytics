@@ -10,7 +10,7 @@ keywords: Ultralytics YOLO, OpenVINO optimization, deep learning, model inferenc
 
 ## Introduction
 
-When deploying [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models, particularly those for [object detection](https://www.ultralytics.com/glossary/object-detection) such as Ultralytics YOLO models, achieving optimal performance is crucial. This guide delves into leveraging Intel's OpenVINO toolkit to optimize inference, focusing on latency and throughput. Whether you're working on consumer-grade applications or large-scale deployments, understanding and applying these optimization strategies will ensure your models run efficiently on various devices.
+When deploying [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models, particularly those for [object detection](https://www.ultralytics.com/glossary/object-detection) such as Ultralytics YOLO models, achieving optimal performance is crucial. This guide delves into leveraging [Intel's OpenVINO toolkit](https://docs.ultralytics.com/integrations/openvino/) to optimize inference, focusing on latency and throughput. Whether you're working on consumer-grade applications or large-scale deployments, understanding and applying these optimization strategies will ensure your models run efficiently on various devices.
 
 ## Optimizing for Latency
 
@@ -30,7 +30,7 @@ Latency optimization is vital for applications requiring immediate response from
 
 ## Optimizing for Throughput
 
-Throughput optimization is crucial for scenarios serving numerous inference requests simultaneously, maximizing resource utilization without significantly sacrificing individual request performance.
+Throughput optimization is crucial for scenarios serving numerous inference requests simultaneously, maximizing [resource utilization](https://www.ultralytics.com/blog/measuring-ai-performance-to-weigh-the-impact-of-your-innovations) without significantly sacrificing individual request performance.
 
 ### Approaches to Throughput Optimization:
 
@@ -57,15 +57,45 @@ To maximize throughput, applications should:
 
 OpenVINO's multi-device mode simplifies scaling throughput by automatically balancing inference requests across devices without requiring application-level device management.
 
+## Real-World Performance Gains
+
+Implementing OpenVINO optimizations with Ultralytics YOLO models can yield significant performance improvements. As demonstrated in [benchmarks](https://docs.ultralytics.com/integrations/openvino/#openvino-yolov8-benchmarks), users can experience up to 3x faster inference speeds on Intel CPUs, with even greater accelerations possible across Intel's hardware spectrum including integrated GPUs, dedicated GPUs, and VPUs.
+
+For example, when running YOLOv8 models on Intel Xeon CPUs, the OpenVINO-optimized versions consistently outperform their PyTorch counterparts in terms of inference time per image, without compromising on [accuracy](https://www.ultralytics.com/glossary/accuracy).
+
+## Practical Implementation
+
+To export and optimize your Ultralytics YOLO model for OpenVINO, you can use the [export](https://docs.ultralytics.com/modes/export/) functionality:
+
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("yolov8n.pt")
+
+# Export the model to OpenVINO format
+model.export(format="openvino", half=True)  # Export with FP16 precision
+```
+
+After exporting, you can run inference with the optimized model:
+
+```python
+# Load the OpenVINO model
+ov_model = YOLO("yolov8n_openvino_model/")
+
+# Run inference with performance hints for latency
+results = ov_model("path/to/image.jpg", verbose=True)
+```
+
 ## Conclusion
 
 Optimizing Ultralytics YOLO models for latency and throughput with OpenVINO can significantly enhance your application's performance. By carefully applying the strategies outlined in this guide, developers can ensure their models run efficiently, meeting the demands of various deployment scenarios. Remember, the choice between optimizing for latency or throughput depends on your specific application needs and the characteristics of the deployment environment.
 
-For more detailed technical information and the latest updates, refer to the [OpenVINO documentation](https://docs.openvino.ai/latest/index.html) and [Ultralytics YOLO repository](https://github.com/ultralytics/ultralytics). These resources provide in-depth guides, tutorials, and community support to help you get the most out of your deep learning models.
+For more detailed technical information and the latest updates, refer to the [OpenVINO documentation](https://docs.openvino.ai/2024/index.html) and [Ultralytics YOLO repository](https://github.com/ultralytics/ultralytics). These resources provide in-depth guides, tutorials, and community support to help you get the most out of your deep learning models.
 
 ---
 
-Ensuring your models achieve optimal performance is not just about tweaking configurations; it's about understanding your application's needs and making informed decisions. Whether you're optimizing for real-time responses or maximizing throughput for large-scale processing, the combination of Ultralytics YOLO models and OpenVINO offers a powerful toolkit for developers to deploy high-performance AI solutions.
+Ensuring your models achieve optimal performance is not just about tweaking configurations; it's about understanding your application's needs and making informed decisions. Whether you're optimizing for [real-time responses](https://www.ultralytics.com/blog/real-time-inferences-in-vision-ai-solutions-are-making-an-impact) or maximizing throughput for large-scale processing, the combination of Ultralytics YOLO models and OpenVINO offers a powerful toolkit for developers to deploy high-performance AI solutions.
 
 ## FAQ
 

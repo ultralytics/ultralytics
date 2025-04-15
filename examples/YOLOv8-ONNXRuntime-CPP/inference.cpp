@@ -1,3 +1,5 @@
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 #include "inference.h"
 #include <regex>
 
@@ -107,11 +109,11 @@ char* YOLO_V8::CreateSession(DL_INIT_PARAM& iParams) {
         iouThreshold = iParams.iouThreshold;
         imgSize = iParams.imgSize;
         modelType = iParams.modelType;
+        cudaEnable = iParams.cudaEnable;
         env = Ort::Env(ORT_LOGGING_LEVEL_WARNING, "Yolo");
         Ort::SessionOptions sessionOption;
         if (iParams.cudaEnable)
         {
-            cudaEnable = iParams.cudaEnable;
             OrtCUDAProviderOptions cudaOption;
             cudaOption.device_id = 0;
             sessionOption.AppendExecutionProvider_CUDA(cudaOption);

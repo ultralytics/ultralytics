@@ -16,7 +16,7 @@ The Ultralytics YOLO format is a dataset configuration format that allows you to
 
 ```yaml
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/coco8 # dataset root dir
+path: ../datasets/coco8 # dataset root dir (absolute or relative; if relative, it's relative to default datasets_dir)
 train: images/train # train images (relative to 'path') 4 images
 val: images/val # val images (relative to 'path') 4 images
 test: # test images (optional)
@@ -74,14 +74,14 @@ Here's how you can use these formats to train your model:
 Here is a list of the supported datasets and a brief description for each:
 
 - [Argoverse](argoverse.md): A dataset containing 3D tracking and motion forecasting data from urban environments with rich annotations.
-- [COCO](coco.md): Common Objects in Context (COCO) is a large-scale object detection, segmentation, and captioning dataset with 80 object categories.
+- [COCO](coco.md): Common Objects in Context (COCO) is a large-scale [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and captioning dataset with 80 object categories.
 - [LVIS](lvis.md): A large-scale object detection, segmentation, and captioning dataset with 1203 object categories.
 - [COCO8](coco8.md): A smaller subset of the first 4 images from COCO train and COCO val, suitable for quick tests.
-- [COCO128](coco.md): A smaller subset of the first 128 images from COCO train and COCO val, suitable for tests.
+- [COCO128](coco128.md): A smaller subset of the first 128 images from COCO train and COCO val, suitable for tests.
 - [Global Wheat 2020](globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
 - [Objects365](objects365.md): A high-quality, large-scale dataset for object detection with 365 object categories and over 600K annotated images.
 - [OpenImagesV7](open-images-v7.md): A comprehensive dataset by Google with 1.7M train images and 42k validation images.
-- [SKU-110K](sku-110k.md): A dataset featuring dense object detection in retail environments with over 11K images and 1.7 million bounding boxes.
+- [SKU-110K](sku-110k.md): A dataset featuring dense object detection in retail environments with over 11K images and 1.7 million [bounding boxes](https://www.ultralytics.com/glossary/bounding-box).
 - [VisDrone](visdrone.md): A dataset containing object detection and multi-object tracking data from drone-captured imagery with over 10K images and video sequences.
 - [VOC](voc.md): The Pascal Visual Object Classes (VOC) dataset for object detection and segmentation with 20 object classes and over 11K images.
 - [xView](xview.md): A dataset for object detection in overhead imagery with 60 object categories and over 1 million annotated objects.
@@ -89,6 +89,7 @@ Here is a list of the supported datasets and a brief description for each:
 - [Brain-tumor](brain-tumor.md): A dataset for detecting brain tumors includes MRI or CT scan images with details on tumor presence, location, and characteristics.
 - [African-wildlife](african-wildlife.md): A dataset featuring images of African wildlife, including buffalo, elephant, rhino, and zebras.
 - [Signature](signature.md): A dataset featuring images of various documents with annotated signatures, supporting document verification and fraud detection research.
+- [Medical-pills](medical-pills.md): A dataset featuring images of medical-pills, annotated for applications such as pharmaceutical quality assurance, pill sorting, and regulatory compliance.
 
 ### Adding your own dataset
 
@@ -98,7 +99,7 @@ If you have your own dataset and would like to use it for training detection mod
 
 ### COCO Dataset Format to YOLO Format
 
-You can easily convert labels from the popular COCO dataset format to the YOLO format using the following code snippet:
+You can easily convert labels from the popular [COCO dataset](coco.md) format to the YOLO format using the following code snippet:
 
 !!! example
 
@@ -110,7 +111,7 @@ You can easily convert labels from the popular COCO dataset format to the YOLO f
         convert_coco(labels_dir="path/to/coco/annotations/")
         ```
 
-This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format.
+This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format. The process transforms the JSON-based COCO annotations into the simpler text-based YOLO format, making it compatible with [Ultralytics YOLO models](../../models/yolo11.md).
 
 Remember to double-check if the dataset you want to use is compatible with your model and follows the necessary format conventions. Properly formatted datasets are crucial for training successful object detection models.
 
@@ -136,7 +137,7 @@ Labels are saved in `*.txt` files with one file per image, formatted as `class x
 
 ### How do I convert a COCO dataset to the YOLO format?
 
-You can convert a COCO dataset to the YOLO format using the Ultralytics conversion tools. Here's a quick method:
+You can convert a COCO dataset to the YOLO format using the [Ultralytics conversion tools](../../reference/data/converter.md). Here's a quick method:
 
 ```python
 from ultralytics.data.converter import convert_coco

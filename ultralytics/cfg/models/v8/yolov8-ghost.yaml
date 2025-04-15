@@ -1,16 +1,19 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
-# YOLOv8 object detection model with P3-P5 outputs. For Usage examples see https://docs.ultralytics.com/tasks/detect
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics YOLOv8 object detection model with P3/8 - P5/32 outputs
+# Model docs: https://docs.ultralytics.com/models/yolov8
+# Task docs: https://docs.ultralytics.com/tasks/detect
 # Employs Ghost convolutions and modules proposed in Huawei's GhostNet in https://arxiv.org/abs/1911.11907v2
 
 # Parameters
 nc: 80 # number of classes
 scales: # model compound scaling constants, i.e. 'model=yolov8n.yaml' will call yolov8.yaml with scale 'n'
   # [depth, width, max_channels]
-  n: [0.33, 0.25, 1024] # YOLOv8n-ghost summary: 403 layers,  1865316 parameters,  1865300 gradients,   5.8 GFLOPs
-  s: [0.33, 0.50, 1024] # YOLOv8s-ghost summary: 403 layers,  5960072 parameters,  5960056 gradients,  16.4 GFLOPs
-  m: [0.67, 0.75, 768] # YOLOv8m-ghost summary: 603 layers, 10336312 parameters, 10336296 gradients,  32.7 GFLOPs
-  l: [1.00, 1.00, 512] # YOLOv8l-ghost summary: 803 layers, 14277872 parameters, 14277856 gradients,  53.7 GFLOPs
-  x: [1.00, 1.25, 512] # YOLOv8x-ghost summary: 803 layers, 22229308 parameters, 22229292 gradients,  83.3 GFLOPs
+  n: [0.33, 0.25, 1024] # YOLOv8n-ghost summary: 237 layers, 1865316 parameters, 1865300 gradients, 5.8 GFLOPs
+  s: [0.33, 0.50, 1024] # YOLOv8s-ghost summary: 237 layers, 5960072 parameters, 5960056 gradients, 16.4 GFLOPs
+  m: [0.67, 0.75, 768] # YOLOv8m-ghost summary: 357 layers, 10336312 parameters, 10336296 gradients, 32.7 GFLOPs
+  l: [1.00, 1.00, 512] # YOLOv8l-ghost summary: 477 layers, 14277872 parameters, 14277856 gradients, 53.7 GFLOPs
+  x: [1.00, 1.25, 512] # YOLOv8x-ghost summary: 477 layers, 22229308 parameters, 22229292 gradients, 83.3 GFLOPs
 
 # YOLOv8.0n-ghost backbone
 backbone:

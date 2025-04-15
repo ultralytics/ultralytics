@@ -1,7 +1,7 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.cfg import TASK2DATA, TASK2METRIC, get_save_dir
-from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, NUM_THREADS, checks
+from ultralytics.cfg import TASK2DATA, TASK2METRIC, get_cfg, get_save_dir
+from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, NUM_THREADS, checks, colorstr
 
 
 def run_ray_tune(
@@ -13,29 +13,25 @@ def run_ray_tune(
     **train_args,
 ):
     """
-    Runs hyperparameter tuning using Ray Tune.
+    Run hyperparameter tuning using Ray Tune.
 
     Args:
         model (YOLO): Model to run the tuner on.
-        space (dict, optional): The hyperparameter search space. Defaults to None.
-        grace_period (int, optional): The grace period in epochs of the ASHA scheduler. Defaults to 10.
-        gpu_per_trial (int, optional): The number of GPUs to allocate per trial. Defaults to None.
-        max_samples (int, optional): The maximum number of trials to run. Defaults to 10.
-        train_args (dict, optional): Additional arguments to pass to the `train()` method. Defaults to {}.
+        space (dict, optional): The hyperparameter search space.
+        grace_period (int, optional): The grace period in epochs of the ASHA scheduler.
+        gpu_per_trial (int, optional): The number of GPUs to allocate per trial.
+        max_samples (int, optional): The maximum number of trials to run.
+        **train_args (Any): Additional arguments to pass to the `train()` method.
 
     Returns:
         (dict): A dictionary containing the results of the hyperparameter search.
 
-    Example:
-        ```python
-        from ultralytics import YOLO
+    Examples:
+        >>> from ultralytics import YOLO
+        >>> model = YOLO("yolo11n.pt")  # Load a YOLO11n model
 
-        # Load a YOLOv8n model
-        model = YOLO("yolo11n.pt")
-
-        # Start tuning hyperparameters for YOLOv8n training on the COCO8 dataset
-        result_grid = model.tune(data="coco8.yaml", use_ray=True)
-        ```
+        Start tuning hyperparameters for YOLO11n training on the COCO8 dataset
+        >>> result_grid = model.tune(data="coco8.yaml", use_ray=True)
     """
     LOGGER.info("💡 Learn about RayTune at https://docs.ultralytics.com/integrations/ray-tune")
     if train_args is None:
@@ -65,7 +61,7 @@ def run_ray_tune(
         "lr0": tune.uniform(1e-5, 1e-1),
         "lrf": tune.uniform(0.01, 1.0),  # final OneCycleLR learning rate (lr0 * lrf)
         "momentum": tune.uniform(0.6, 0.98),  # SGD momentum/Adam beta1
-        "weight_decay": tune.uniform(0.0, 0.001),  # optimizer weight decay 5e-4
+        "weight_decay": tune.uniform(0.0, 0.001),  # optimizer weight decay
         "warmup_epochs": tune.uniform(0.0, 5.0),  # warmup epochs (fractions ok)
         "warmup_momentum": tune.uniform(0.0, 0.95),  # warmup initial momentum
         "box": tune.uniform(0.02, 0.2),  # box loss gain
@@ -91,15 +87,7 @@ def run_ray_tune(
     model_in_store = ray.put(model)
 
     def _tune(config):
-        """
-        Trains the YOLO model with the specified hyperparameters and additional arguments.
-
-        Args:
-            config (dict): A dictionary of hyperparameters to use for training.
-
-        Returns:
-            None
-        """
+        """Train the YOLO model with the specified hyperparameters."""
         model_to_train = ray.get(model_in_store)  # get the model from ray store for tuning
         model_to_train.reset_callbacks()
         config.update(train_args)
@@ -107,7 +95,7 @@ def run_ray_tune(
         return results.results_dict
 
     # Get search space
-    if not space:
+    if not space and not train_args.get("resume"):
         space = default_space
         LOGGER.warning("WARNING ⚠️ search space not provided, using default search space.")
 
@@ -134,14 +122,29 @@ def run_ray_tune(
     tuner_callbacks = [WandbLoggerCallback(project="YOLOv8-tune")] if wandb else []
 
     # Create the Ray Tune hyperparameter search tuner
-    tune_dir = get_save_dir(DEFAULT_CFG, name="tune").resolve()  # must be absolute dir
+    tune_dir = get_save_dir(
+        get_cfg(
+            DEFAULT_CFG,
+            {**train_args, **{"exist_ok": train_args.pop("resume", False)}},  # resume w/ same tune_dir
+        ),
+        name=train_args.pop("name", "tune"),  # runs/{task}/{tune_dir}
+    ).resolve()  # must be absolute dir
     tune_dir.mkdir(parents=True, exist_ok=True)
-    tuner = tune.Tuner(
-        trainable_with_resources,
-        param_space=space,
-        tune_config=tune.TuneConfig(scheduler=asha_scheduler, num_samples=max_samples),
-        run_config=RunConfig(callbacks=tuner_callbacks, storage_path=tune_dir),
-    )
+    if tune.Tuner.can_restore(tune_dir):
+        LOGGER.info(f"{colorstr('Tuner: ')} Resuming tuning run {tune_dir}...")
+        tuner = tune.Tuner.restore(str(tune_dir), trainable=trainable_with_resources, resume_errored=True)
+    else:
+        tuner = tune.Tuner(
+            trainable_with_resources,
+            param_space=space,
+            tune_config=tune.TuneConfig(
+                scheduler=asha_scheduler,
+                num_samples=max_samples,
+                trial_name_creator=lambda trial: f"{trial.trainable_name}_{trial.trial_id}",
+                trial_dirname_creator=lambda trial: f"{trial.trainable_name}_{trial.trial_id}",
+            ),
+            run_config=RunConfig(callbacks=tuner_callbacks, storage_path=tune_dir.parent, name=tune_dir.name),
+        )
 
     # Run the hyperparameter search
     tuner.fit()

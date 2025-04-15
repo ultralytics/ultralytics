@@ -9,9 +9,9 @@ model_name: yolo11n-obb
 
 <!-- obb task poster -->
 
-Oriented object detection goes a step further than object detection and introduce an extra angle to locate objects more accurate in an image.
+Oriented object detection goes a step further than standard object detection by introducing an extra angle to locate objects more accurately in an image.
 
-The output of an oriented object detector is a set of rotated bounding boxes that exactly enclose the objects in the image, along with class labels and confidence scores for each box. Object detection is a good choice when you need to identify objects of interest in a scene, but don't need to know exactly where the object is or its exact shape.
+The output of an oriented object detector is a set of rotated bounding boxes that precisely enclose the objects in the image, along with class labels and confidence scores for each box. Oriented bounding boxes are particularly useful when objects appear at various angles, such as in aerial imagery, where traditional axis-aligned bounding boxes may include unnecessary background.
 
 <!-- youtube video link for obb task -->
 
@@ -93,7 +93,13 @@ Train YOLO11n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.
 
 ### Dataset format
 
-OBB dataset format can be found in detail in the [Dataset Guide](../datasets/obb/index.md).
+OBB dataset format can be found in detail in the [Dataset Guide](../datasets/obb/index.md). The YOLO OBB format designates bounding boxes by their four corner points with coordinates normalized between 0 and 1, following this structure:
+
+```
+class_index x1 y1 x2 y2 x3 y3 x4 y4
+```
+
+Internally, YOLO processes losses and outputs in the `xywhr` format, which represents the [bounding box](https://www.ultralytics.com/glossary/bounding-box)'s center point (xy), width, height, and rotation.
 
 ## Val
 
@@ -121,8 +127,8 @@ Validate trained YOLO11n-obb model [accuracy](https://www.ultralytics.com/glossa
     === "CLI"
 
         ```bash
-        yolo obb val model=yolo11n-obb.pt data=dota8.yaml  # val official model
-        yolo obb val model=path/to/best.pt data=path/to/data.yaml  # val custom model
+        yolo obb val model=yolo11n-obb.pt data=dota8.yaml         # val official model
+        yolo obb val model=path/to/best.pt data=path/to/data.yaml # val custom model
         ```
 
 ## Predict
@@ -142,13 +148,20 @@ Use a trained YOLO11n-obb model to run predictions on images.
 
         # Predict with the model
         results = model("https://ultralytics.com/images/boats.jpg")  # predict on an image
+
+        # Access the results
+        for result in results:
+            xywhr = result.keypoints.xy  # center-x, center-y, width, height, angle (radians)
+            xyxyxyxy = result.obb.xyxyxyxy  # polygon format with 4-points
+            names = [result.names[cls.item()] for cls in result.obb.cls.int()]  # class name of each box
+            confs = result.obb.conf  # confidence score of each box
         ```
 
     === "CLI"
 
         ```bash
         yolo obb predict model=yolo11n-obb.pt source='https://ultralytics.com/images/boats.jpg'  # predict with official model
-        yolo obb predict model=path/to/best.pt source='https://ultralytics.com/images/boats.jpg'  # predict with custom model
+        yolo obb predict model=path/to/best.pt source='https://ultralytics.com/images/boats.jpg' # predict with custom model
         ```
 
 <p align="center">
@@ -187,7 +200,7 @@ Export a YOLO11n-obb model to a different format like ONNX, CoreML, etc.
 
         ```bash
         yolo export model=yolo11n-obb.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx  # export custom trained model
+        yolo export model=path/to/best.pt format=onnx # export custom trained model
         ```
 
 Available YOLO11-obb export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolo11n-obb.onnx`. Usage examples are shown for your model after export completes.
@@ -195,6 +208,18 @@ Available YOLO11-obb export formats are in the table below. You can export to an
 {% include "macros/export-table.md" %}
 
 See full `export` details in the [Export](../modes/export.md) page.
+
+## Real-World Applications
+
+OBB detection with YOLO11 has numerous practical applications across various industries:
+
+- **Maritime and Port Management**: Detecting ships and vessels at various angles for [fleet management](https://www.ultralytics.com/blog/how-to-use-ultralytics-yolo11-for-obb-object-detection) and monitoring.
+- **Urban Planning**: Analyzing buildings and infrastructure from aerial imagery.
+- **Agriculture**: Monitoring crops and agricultural equipment from drone footage.
+- **Energy Sector**: Inspecting solar panels and wind turbines at different orientations.
+- **Transportation**: Tracking vehicles on roads and in parking lots from various perspectives.
+
+These applications benefit from OBB's ability to precisely fit objects at any angle, providing more accurate detection than traditional bounding boxes.
 
 ## FAQ
 

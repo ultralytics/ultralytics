@@ -35,6 +35,10 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 
 <br><br><hr><br>
 
+## ::: ultralytics.data.utils.visualize_image_annotations
+
+<br><br><hr><br>
+
 ## ::: ultralytics.data.utils.polygon2mask
 
 <br><br><hr><br>

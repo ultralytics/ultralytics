@@ -8,7 +8,7 @@ import pytest
 
 from tests import MODEL, TMP
 from ultralytics import solutions
-from ultralytics.utils import ASSETS_URL, checks, LINUX, IS_RASPBERRYPI
+from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, LINUX, checks
 from ultralytics.utils.downloads import safe_download
 
 # Pre-defined arguments values

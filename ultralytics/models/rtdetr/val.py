@@ -143,11 +143,10 @@ class RTDETRValidator(DetectionValidator):
         for i, bbox in enumerate(bboxes):  # (300, 4)
             bbox = ops.xywh2xyxy(bbox)
             score, cls = scores[i].max(-1)  # (300, )
-            idx = score > self.args.conf
-            pred = torch.cat([bbox[idx], score[idx, None], cls[idx, None]], dim=-1)  # filter
+            pred = torch.cat([bbox, score[..., None], cls[..., None]], dim=-1)  # filter
             # Sort by confidence to correctly get internal metrics
-            pred = pred[score[idx].argsort(descending=True)]
-            outputs[i] = pred  # [idx]
+            pred = pred[score.argsort(descending=True)]
+            outputs[i] = pred[score > self.args.conf]
 
         return outputs
 

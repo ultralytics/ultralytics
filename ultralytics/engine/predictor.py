@@ -183,7 +183,9 @@ class BasePredictor:
         same_shapes = len({x.shape for x in im}) == 1
         letterbox = LetterBox(
             self.imgsz,
-            auto=same_shapes and (self.model.pt or (getattr(self.model, "dynamic", False) and not self.model.imx)),
+            auto=same_shapes
+            and self.args.rect
+            and (self.model.pt or (getattr(self.model, "dynamic", False) and not self.model.imx)),
             stride=self.model.stride,
         )
         return [letterbox(image=x) for x in im]
@@ -247,7 +249,7 @@ class BasePredictor:
             getattr(
                 self.model.model,
                 "transforms",
-                classify_transforms(self.imgsz[0], crop_fraction=self.args.crop_fraction),
+                classify_transforms(self.imgsz[0]),
             )
             if self.args.task == "classify"
             else None

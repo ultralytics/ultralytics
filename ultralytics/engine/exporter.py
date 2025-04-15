@@ -55,9 +55,9 @@ TensorFlow.js:
     $ npm start
 """
 
-import gc
 import json
 import os
+import re
 import shutil
 import subprocess
 import time
@@ -85,7 +85,7 @@ from ultralytics.utils import (
     LINUX,
     LOGGER,
     MACOS,
-    PYTHON_VERSION,
+    MACOS_VERSION,
     RKNN_CHIPS,
     ROOT,
     WINDOWS,
@@ -103,6 +103,7 @@ from ultralytics.utils.checks import (
     is_sudo_available,
 )
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
+from ultralytics.utils.export import export_engine, export_onnx
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile, nms_rotated, xywh2xyxy
 from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
@@ -114,18 +115,32 @@ def export_formats():
         ["PyTorch", "-", ".pt", True, True, []],
         ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize", "nms"]],
         ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"]],
-        ["OpenVINO", "openvino", "_openvino_model", True, False, ["batch", "dynamic", "half", "int8", "nms"]],
-        ["TensorRT", "engine", ".engine", False, True, ["batch", "dynamic", "half", "int8", "simplify", "nms"]],
+        [
+            "OpenVINO",
+            "openvino",
+            "_openvino_model",
+            True,
+            False,
+            ["batch", "dynamic", "half", "int8", "nms", "fraction"],
+        ],
+        [
+            "TensorRT",
+            "engine",
+            ".engine",
+            False,
+            True,
+            ["batch", "dynamic", "half", "int8", "simplify", "nms", "fraction"],
+        ],
         ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "half", "int8", "nms"]],
         ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True, ["batch", "int8", "keras", "nms"]],
         ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"]],
-        ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "half", "int8", "nms"]],
+        ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "half", "int8", "nms", "fraction"]],
         ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, []],
         ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "half", "int8", "nms"]],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
-        ["IMX", "imx", "_imx_model", True, True, ["int8"]],
+        ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
@@ -143,7 +158,7 @@ def validate_args(format, passed_args, valid_args):
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    export_args = ["half", "int8", "dynamic", "keras", "nms", "batch"]
+    export_args = ["half", "int8", "dynamic", "keras", "nms", "batch", "fraction"]
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
@@ -267,14 +282,22 @@ class Exporter:
             dla = self.args.device.split(":")[-1]
             self.args.device = "0"  # update device to "0"
             assert dla in {"0", "1"}, f"Expected self.args.device='dla:0' or 'dla:1, but got {self.args.device}."
+        if imx and self.args.device is None and torch.cuda.is_available():
+            LOGGER.warning(
+                "WARNING ⚠️ Exporting on CPU while CUDA is available, setting device=0 for faster export on GPU."
+            )
+            self.args.device = "0"  # update device to "0"
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
 
         # Argument compatibility checks
         fmt_keys = fmts_dict["Arguments"][flags.index(True) + 1]
         validate_args(fmt, self.args, fmt_keys)
-        if imx and not self.args.int8:
-            LOGGER.warning("WARNING ⚠️ IMX only supports int8 export, setting int8=True.")
-            self.args.int8 = True
+        if imx:
+            if not self.args.int8:
+                LOGGER.warning("WARNING ⚠️ IMX export requires int8=True, setting int8=True.")
+                self.args.int8 = True
+            if model.task != "detect":
+                raise ValueError("IMX export only supported for detection models.")
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)
@@ -326,6 +349,7 @@ class Exporter:
                 "See https://docs.ultralytics.com/models/yolo-world for details."
             )
             model.clip_model = None  # openvino int8 export error: https://github.com/ultralytics/ultralytics/pull/18445
+
         if self.args.int8 and not self.args.data:
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
@@ -491,6 +515,7 @@ class Exporter:
         dataset = YOLODataset(
             data[self.args.split or "val"],
             data=data,
+            fraction=self.args.fraction,
             task=self.model.task,
             imgsz=self.imgsz[0],
             augment=False,
@@ -556,16 +581,14 @@ class Exporter:
             check_requirements("onnxslim>=0.1.46")  # Older versions has bug with OBB
 
         with arange_patch(self.args):
-            torch.onnx.export(
+            export_onnx(
                 NMSModel(self.model, self.args) if self.args.nms else self.model,
                 self.im,
                 f,
-                verbose=False,
-                opset_version=opset_version,
-                do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
+                opset=opset_version,
                 input_names=["images"],
                 output_names=output_names,
-                dynamic_axes=dynamic or None,
+                dynamic=dynamic or None,
             )
 
         # Checks
@@ -593,7 +616,10 @@ class Exporter:
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):
         """YOLO OpenVINO export."""
-        check_requirements("openvino>=2024.0.0,!=2025.0.0")
+        if MACOS:
+            msg = "OpenVINO error in macOS>=15.4 https://github.com/openvinotoolkit/openvino/issues/30023"
+            check_version(MACOS_VERSION, "<15.4", name="macOS ", hard=True, msg=msg)
+        check_requirements("openvino>=2024.0.0")
         import openvino as ov
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
@@ -634,7 +660,7 @@ class Exporter:
             # Generate calibration data for integer quantization
             ignored_scope = None
             if isinstance(self.model.model[-1], Detect):
-                # Includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
+                # Includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect
                 head_module_name = ".".join(list(self.model.named_modules())[-1][0].split(".")[:2])
                 ignored_scope = nncf.IgnoredScope(  # ignore operations
                     patterns=[
@@ -665,7 +691,7 @@ class Exporter:
     @try_export
     def export_paddle(self, prefix=colorstr("PaddlePaddle:")):
         """YOLO Paddle export."""
-        check_requirements(("paddlepaddle-gpu" if torch.cuda.is_available() else "paddlepaddle<3.0.0", "x2paddle"))
+        check_requirements(("paddlepaddle-gpu" if torch.cuda.is_available() else "paddlepaddle>=3.0.0", "x2paddle"))
         import x2paddle  # noqa
         from x2paddle.convert import pytorch2paddle  # noqa
 
@@ -773,7 +799,7 @@ class Exporter:
     def export_coreml(self, prefix=colorstr("CoreML:")):
         """YOLO CoreML export."""
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
-        check_requirements("coremltools>=6.0,<=6.2" if mlmodel else "coremltools>=8.0")
+        check_requirements("coremltools>=8.0")
         import coremltools as ct  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
@@ -787,7 +813,7 @@ class Exporter:
         scale = 1 / 255
         classifier_config = None
         if self.model.task == "classify":
-            classifier_config = ct.ClassifierConfig(list(self.model.names.values())) if self.args.nms else None
+            classifier_config = ct.ClassifierConfig(list(self.model.names.values()))
             model = self.model
         elif self.model.task == "detect":
             model = IOSDetectModel(self.model, self.im) if self.args.nms else self.model
@@ -796,11 +822,15 @@ class Exporter:
                 LOGGER.warning(f"{prefix} WARNING ⚠️ 'nms=True' is only available for Detect models like 'yolo11n.pt'.")
                 # TODO CoreML Segment and Pose model pipelining
             model = self.model
-
         ts = torch.jit.trace(model.eval(), self.im, strict=False)  # TorchScript model
+
+        # Based on apple's documentation it is better to leave out the minimum_deployment target and let that get set
+        # Internally based on the model conversion and output type.
+        # Setting minimum_depoloyment_target >= iOS16 will require setting compute_precision=ct.precision.FLOAT32.
+        # iOS16 adds in better support for FP16, but none of the CoreML NMS specifications handle FP16 as input.
         ct_model = ct.convert(
             ts,
-            inputs=[ct.ImageType("image", shape=self.im.shape, scale=scale, bias=bias)],
+            inputs=[ct.ImageType("image", shape=self.im.shape, scale=scale, bias=bias)],  # expects ct.TensorType
             classifier_config=classifier_config,
             convert_to="neuralnetwork" if mlmodel else "mlprogram",
         )
@@ -818,8 +848,6 @@ class Exporter:
                 ct_model = cto.palettize_weights(ct_model, config=config)
         if self.args.nms and self.model.task == "detect":
             if mlmodel:
-                # coremltools<=6.2 NMS export requires Python<3.11
-                check_version(PYTHON_VERSION, "<3.11", name="Python ", hard=True)
                 weights_dir = None
             else:
                 ct_model.save(str(f))  # save otherwise weights_dir does not exist
@@ -860,134 +888,22 @@ class Exporter:
 
         # Setup and checks
         LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")
-        is_trt10 = int(trt.__version__.split(".")[0]) >= 10  # is TensorRT >= 10
         assert Path(f_onnx).exists(), f"failed to export ONNX file: {f_onnx}"
         f = self.file.with_suffix(".engine")  # TensorRT engine file
-        logger = trt.Logger(trt.Logger.INFO)
-        if self.args.verbose:
-            logger.min_severity = trt.Logger.Severity.VERBOSE
-
-        # Engine builder
-        builder = trt.Builder(logger)
-        config = builder.create_builder_config()
-        workspace = int((self.args.workspace or 0) * (1 << 30))
-        if is_trt10 and workspace > 0:
-            config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace)
-        elif workspace > 0:  # TensorRT versions 7, 8
-            config.max_workspace_size = workspace
-        flag = 1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
-        network = builder.create_network(flag)
-        half = builder.platform_has_fast_fp16 and self.args.half
-        int8 = builder.platform_has_fast_int8 and self.args.int8
-
-        # Optionally switch to DLA if enabled
-        if dla is not None:
-            if not IS_JETSON:
-                raise ValueError("DLA is only available on NVIDIA Jetson devices")
-            LOGGER.info(f"{prefix} enabling DLA on core {dla}...")
-            if not self.args.half and not self.args.int8:
-                raise ValueError(
-                    "DLA requires either 'half=True' (FP16) or 'int8=True' (INT8) to be enabled. Please enable one of them and try again."
-                )
-            config.default_device_type = trt.DeviceType.DLA
-            config.DLA_core = int(dla)
-            config.set_flag(trt.BuilderFlag.GPU_FALLBACK)
-
-        # Read ONNX file
-        parser = trt.OnnxParser(network, logger)
-        if not parser.parse_from_file(f_onnx):
-            raise RuntimeError(f"failed to load ONNX file: {f_onnx}")
-
-        # Network inputs
-        inputs = [network.get_input(i) for i in range(network.num_inputs)]
-        outputs = [network.get_output(i) for i in range(network.num_outputs)]
-        for inp in inputs:
-            LOGGER.info(f'{prefix} input "{inp.name}" with shape{inp.shape} {inp.dtype}')
-        for out in outputs:
-            LOGGER.info(f'{prefix} output "{out.name}" with shape{out.shape} {out.dtype}')
-
-        if self.args.dynamic:
-            shape = self.im.shape
-            if shape[0] <= 1:
-                LOGGER.warning(f"{prefix} WARNING ⚠️ 'dynamic=True' model requires max batch size, i.e. 'batch=16'")
-            profile = builder.create_optimization_profile()
-            min_shape = (1, shape[1], 32, 32)  # minimum input shape
-            max_shape = (*shape[:2], *(int(max(1, self.args.workspace or 1) * d) for d in shape[2:]))  # max input shape
-            for inp in inputs:
-                profile.set_shape(inp.name, min=min_shape, opt=shape, max=max_shape)
-            config.add_optimization_profile(profile)
-
-        LOGGER.info(f"{prefix} building {'INT8' if int8 else 'FP' + ('16' if half else '32')} engine as {f}")
-        if int8:
-            config.set_flag(trt.BuilderFlag.INT8)
-            config.set_calibration_profile(profile)
-            config.profiling_verbosity = trt.ProfilingVerbosity.DETAILED
-
-            class EngineCalibrator(trt.IInt8Calibrator):
-                def __init__(
-                    self,
-                    dataset,  # ultralytics.data.build.InfiniteDataLoader
-                    batch: int,
-                    cache: str = "",
-                ) -> None:
-                    trt.IInt8Calibrator.__init__(self)
-                    self.dataset = dataset
-                    self.data_iter = iter(dataset)
-                    self.algo = trt.CalibrationAlgoType.ENTROPY_CALIBRATION_2
-                    self.batch = batch
-                    self.cache = Path(cache)
-
-                def get_algorithm(self) -> trt.CalibrationAlgoType:
-                    """Get the calibration algorithm to use."""
-                    return self.algo
-
-                def get_batch_size(self) -> int:
-                    """Get the batch size to use for calibration."""
-                    return self.batch or 1
-
-                def get_batch(self, names) -> list:
-                    """Get the next batch to use for calibration, as a list of device memory pointers."""
-                    try:
-                        im0s = next(self.data_iter)["img"] / 255.0
-                        im0s = im0s.to("cuda") if im0s.device.type == "cpu" else im0s
-                        return [int(im0s.data_ptr())]
-                    except StopIteration:
-                        # Return [] or None, signal to TensorRT there is no calibration data remaining
-                        return None
-
-                def read_calibration_cache(self) -> bytes:
-                    """Use existing cache instead of calibrating again, otherwise, implicitly return None."""
-                    if self.cache.exists() and self.cache.suffix == ".cache":
-                        return self.cache.read_bytes()
-
-                def write_calibration_cache(self, cache) -> None:
-                    """Write calibration cache to disk."""
-                    _ = self.cache.write_bytes(cache)
-
-            # Load dataset w/ builder (for batching) and calibrate
-            config.int8_calibrator = EngineCalibrator(
-                dataset=self.get_int8_calibration_dataloader(prefix),
-                batch=2 * self.args.batch,  # TensorRT INT8 calibration should use 2x batch size
-                cache=str(self.file.with_suffix(".cache")),
-            )
-
-        elif half:
-            config.set_flag(trt.BuilderFlag.FP16)
-
-        # Free CUDA memory
-        del self.model
-        gc.collect()
-        torch.cuda.empty_cache()
-
-        # Write file
-        build = builder.build_serialized_network if is_trt10 else builder.build_engine
-        with build(network, config) as engine, open(f, "wb") as t:
-            # Metadata
-            meta = json.dumps(self.metadata)
-            t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
-            t.write(meta.encode())
-            # Model
-            t.write(engine if is_trt10 else engine.serialize())
+        export_engine(
+            f_onnx,
+            f,
+            self.args.workspace,
+            self.args.half,
+            self.args.int8,
+            self.args.dynamic,
+            self.im.shape,
+            dla=dla,
+            dataset=self.get_int8_calibration_dataloader(prefix) if self.args.int8 else None,
+            metadata=self.metadata,
+            verbose=self.args.verbose,
+            prefix=prefix,
+        )
 
         return f, None
 
@@ -1220,28 +1136,25 @@ class Exporter:
         )
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")
-        if "C2f" not in self.model.__str__():
-            raise ValueError("IMX export is only supported for YOLOv8n detection models")
-        check_requirements(("model-compression-toolkit==2.1.1", "sony-custom-layers==0.2.0", "tensorflow==2.12.0"))
-        check_requirements("imx500-converter[pt]==3.14.3")  # Separate requirements for imx500-converter
+        check_requirements(("model-compression-toolkit>=2.3.0", "sony-custom-layers>=0.3.0", "edge-mdt-tpc>=1.1.0"))
+        check_requirements("imx500-converter[pt]>=3.16.1")  # Separate requirements for imx500-converter
 
         import model_compression_toolkit as mct
         import onnx
-        from sony_custom_layers.pytorch.object_detection.nms import multiclass_nms
+        from edgemdt_tpc import get_target_platform_capabilities
+        from sony_custom_layers.pytorch import multiclass_nms
 
         LOGGER.info(f"\n{prefix} starting export with model_compression_toolkit {mct.__version__}...")
 
+        # Install Java>=17
         try:
-            out = subprocess.run(
-                ["java", "--version"], check=True, capture_output=True
-            )  # Java 17 is required for imx500-converter
-            if "openjdk 17" not in str(out.stdout):
-                raise FileNotFoundError
-        except FileNotFoundError:
-            c = ["apt", "install", "-y", "openjdk-17-jdk", "openjdk-17-jre"]
-            if is_sudo_available():
-                c.insert(0, "sudo")
-            subprocess.run(c, check=True)
+            java_output = subprocess.run(["java", "--version"], check=True, capture_output=True).stdout.decode()
+            version_match = re.search(r"(?:openjdk|java) (\d+)", java_output)
+            java_version = int(version_match.group(1)) if version_match else 0
+            assert java_version >= 17, "Java version too old"
+        except (FileNotFoundError, subprocess.CalledProcessError, AssertionError):
+            cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y", "openjdk-21-jre"]
+            subprocess.run(cmd, check=True)
 
         def representative_dataset_gen(dataloader=self.get_int8_calibration_dataloader(prefix)):
             for batch in dataloader:
@@ -1249,23 +1162,41 @@ class Exporter:
                 img = img / 255.0
                 yield [img]
 
-        tpc = mct.get_target_platform_capabilities(
-            fw_name="pytorch", target_platform_name="imx500", target_platform_version="v1"
-        )
+        tpc = get_target_platform_capabilities(tpc_version="4.0", device_type="imx500")
+
+        bit_cfg = mct.core.BitWidthConfig()
+        if "C2PSA" in self.model.__str__():  # YOLO11
+            layer_names = ["sub", "mul_2", "add_14", "cat_21"]
+            weights_memory = 2585350.2439
+            n_layers = 238  # 238 layers for fused YOLO11n
+        else:  # YOLOv8
+            layer_names = ["sub", "mul", "add_6", "cat_17"]
+            weights_memory = 2550540.8
+            n_layers = 168  # 168 layers for fused YOLOv8n
+
+        # Check if the model has the expected number of layers
+        if len(list(self.model.modules())) != n_layers:
+            raise ValueError("IMX export only supported for YOLOv8n and YOLO11n models.")
+
+        for layer_name in layer_names:
+            bit_cfg.set_manual_activation_bit_width([mct.core.common.network_editors.NodeNameFilter(layer_name)], 16)
 
         config = mct.core.CoreConfig(
             mixed_precision_config=mct.core.MixedPrecisionQuantizationConfig(num_of_images=10),
             quantization_config=mct.core.QuantizationConfig(concat_threshold_update=True),
+            bit_width_config=bit_cfg,
         )
 
-        resource_utilization = mct.core.ResourceUtilization(weights_memory=3146176 * 0.76)
+        resource_utilization = mct.core.ResourceUtilization(weights_memory=weights_memory)
 
         quant_model = (
             mct.gptq.pytorch_gradient_post_training_quantization(  # Perform Gradient-Based Post Training Quantization
                 model=self.model,
                 representative_data_gen=representative_dataset_gen,
                 target_resource_utilization=resource_utilization,
-                gptq_config=mct.gptq.get_pytorch_gptq_config(n_epochs=1000, use_hessian_based_weights=False),
+                gptq_config=mct.gptq.get_pytorch_gptq_config(
+                    n_epochs=1000, use_hessian_based_weights=False, use_hessian_sample_attention=False
+                ),
                 core_config=config,
                 target_platform_capabilities=tpc,
             )[0]
@@ -1449,7 +1380,7 @@ class Exporter:
 
         # 3. Create NMS protobuf
         nms_spec = ct.proto.Model_pb2.Model()
-        nms_spec.specificationVersion = 5
+        nms_spec.specificationVersion = spec.specificationVersion
         for i in range(2):
             decoder_output = model._spec.description.output[i].SerializeToString()
             nms_spec.description.input.add()
@@ -1502,7 +1433,7 @@ class Exporter:
         pipeline.spec.description.output[1].ParseFromString(nms_model._spec.description.output[1].SerializeToString())
 
         # Update metadata
-        pipeline.spec.specificationVersion = 5
+        pipeline.spec.specificationVersion = spec.specificationVersion
         pipeline.spec.description.metadata.userDefined.update(
             {"IoU threshold": str(nms.iouThreshold), "Confidence threshold": str(nms.confidenceThreshold)}
         )

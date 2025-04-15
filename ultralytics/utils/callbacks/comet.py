@@ -155,7 +155,32 @@ def _scale_bounding_box_to_original_image_shape(
 
 
 def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, class_name_map=None) -> Optional[dict]:
-    """Format ground truth annotations for detection."""
+    """
+    Format ground truth annotations for object detection.
+
+    This function processes ground truth annotations from a batch of images for object detection tasks. It extracts
+    bounding boxes, class labels, and other metadata for a specific image in the batch, and formats them for
+    visualization or evaluation.
+
+    Args:
+        img_idx (int): Index of the image in the batch to process.
+        image_path (str | Path): Path to the image file.
+        batch (dict): Batch dictionary containing detection data with keys:
+            - 'batch_idx': Tensor of batch indices
+            - 'bboxes': Tensor of bounding boxes in normalized xywh format
+            - 'cls': Tensor of class labels
+            - 'ori_shape': Original image shapes
+            - 'resized_shape': Resized image shapes
+            - 'ratio_pad': Ratio and padding information
+        class_name_map (dict | None, optional): Mapping from class indices to class names.
+
+    Returns:
+        (dict | None): Formatted ground truth annotations with the following structure:
+            - 'boxes': List of box coordinates [x, y, width, height]
+            - 'label': Label string with format "gt_{class_name}"
+            - 'score': Confidence score (always 1.0, scaled by _scale_confidence_score)
+            Returns None if no bounding boxes are found for the image.
+    """
     indices = batch["batch_idx"] == img_idx
     bboxes = batch["bboxes"][indices]
     if len(bboxes) == 0:
@@ -194,12 +219,9 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
         LOGGER.debug(f"COMET WARNING: Image: {image_path} has no bounding boxes predictions")
         return None
 
-    label_index_offset = 0
-    if class_map is not None:
-        # offset to align indices of class labels (starting from zero)
-        # with prediction's category ID indices (can start from one)
-        label_index_offset = sorted(class_map)[0]
-
+    # apply the mapping that was used to map the predicted classes when the JSON was created
+    if class_label_map and class_map:
+        class_label_map = {class_map[k]: v for k, v in class_label_map.items()}
     try:
         # import pycotools utilities to decompress annotations for various tasks, e.g. segmentation
         from pycocotools.mask import decode  # noqa
@@ -212,7 +234,7 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
         score = _scale_confidence_score(prediction["score"])
         cls_label = prediction["category_id"]
         if class_label_map:
-            cls_label = str(class_label_map[cls_label - label_index_offset])
+            cls_label = str(class_label_map[cls_label])
 
         annotation_data = {"boxes": [boxes], "label": cls_label, "score": score}
 
@@ -221,8 +243,8 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
             segments = prediction.get("segmentation", None)
             if segments is not None:
                 segments = _extract_segmentation_annotation(segments, decode)
-                if segments is not None:
-                    annotation_data["points"] = segments
+            if segments is not None:
+                annotation_data["points"] = segments
 
         data.append(annotation_data)
 
@@ -287,7 +309,22 @@ def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch) -> None:
 
 
 def _log_images(experiment, image_paths, curr_step, annotations=None) -> None:
-    """Logs images to the experiment with optional annotations."""
+    """
+    Log images to the experiment with optional annotations.
+
+    This function logs images to a Comet ML experiment, optionally including annotation data for visualization
+    such as bounding boxes or segmentation masks.
+
+    Args:
+        experiment (comet_ml.Experiment): The Comet ML experiment to log images to.
+        image_paths (List[Path]): List of paths to images that will be logged.
+        curr_step (int): Current training step/iteration for tracking in the experiment timeline.
+        annotations (List[List[dict]], optional): Nested list of annotation dictionaries for each image. Each annotation
+            contains visualization data like bounding boxes, labels, and confidence scores.
+
+    Returns:
+        None
+    """
     if annotations:
         for image_path, annotation in zip(image_paths, annotations):
             experiment.log_image(image_path, name=image_path.stem, step=curr_step, annotations=annotation)
@@ -298,7 +335,23 @@ def _log_images(experiment, image_paths, curr_step, annotations=None) -> None:
 
 
 def _log_image_predictions(experiment, validator, curr_step) -> None:
-    """Logs predicted boxes for a single image during training."""
+    """
+    Log predicted boxes for a single image during training.
+
+    This function logs image predictions to a Comet ML experiment during model validation. It processes
+    validation data and formats both ground truth and prediction annotations for visualization in the Comet
+    dashboard. The function respects configured limits on the number of images to log.
+
+    Args:
+        experiment (comet_ml.Experiment): The Comet ML experiment to log to.
+        validator (BaseValidator): The validator instance containing validation data and predictions.
+        curr_step (int): The current training step for logging timeline.
+
+    Notes:
+        This function uses global state to track the number of logged predictions across calls.
+        It only logs predictions for supported tasks defined in COMET_SUPPORTED_TASKS.
+        The number of logged images is limited by the COMET_MAX_IMAGE_PREDICTIONS environment variable.
+    """
     global _comet_image_prediction_count
 
     task = validator.args.task
@@ -345,7 +398,22 @@ def _log_image_predictions(experiment, validator, curr_step) -> None:
 
 
 def _log_plots(experiment, trainer) -> None:
-    """Logs evaluation plots and label plots for the experiment."""
+    """
+    Log evaluation plots and label plots for the experiment.
+
+    This function logs various evaluation plots and confusion matrices to the experiment tracking system. It handles
+    different types of metrics (SegmentMetrics, PoseMetrics, DetMetrics, OBBMetrics) and logs the appropriate plots
+    for each type.
+
+    Args:
+        experiment (comet_ml.Experiment): The Comet ML experiment to log plots to.
+        trainer (ultralytics.engine.trainer.BaseTrainer): The trainer object containing validation metrics and save
+            directory information.
+
+    Examples:
+        >>> from ultralytics.utils.callbacks.comet import _log_plots
+        >>> _log_plots(experiment, trainer)
+    """
     plot_filenames = None
     if isinstance(trainer.validator.metrics, SegmentMetrics) and trainer.validator.metrics.task == "segment":
         plot_filenames = [
@@ -404,7 +472,24 @@ def on_train_epoch_end(trainer) -> None:
 
 
 def on_fit_epoch_end(trainer) -> None:
-    """Logs model assets at the end of each epoch."""
+    """
+    Log model assets at the end of each epoch during training.
+
+    This function is called at the end of each training epoch to log metrics, learning rates, and model information
+    to a Comet ML experiment. It also logs model assets, confusion matrices, and image predictions based on
+    configuration settings.
+
+    The function retrieves the current Comet ML experiment and logs various training metrics. If it's the first epoch,
+    it also logs model information. On specified save intervals, it logs the model, confusion matrix (if enabled),
+    and image predictions (if enabled).
+
+    Args:
+        trainer (BaseTrainer): The YOLO trainer object containing training state, metrics, and configuration.
+
+    Examples:
+        >>> # Inside a training loop
+        >>> on_fit_epoch_end(trainer)  # Log metrics and assets to Comet ML
+    """
     experiment = comet_ml.get_running_experiment()
     if not experiment:
         return

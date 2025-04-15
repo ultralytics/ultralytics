@@ -130,7 +130,7 @@ Here's how to work this magic:
     import lightly_train
     from ultralytics import settings
 
-    data_path = f"{settings["datasets_dir"]}/VOC/images/train2012"
+    data_path = f"{settings['datasets_dir']}/VOC/images/train2012"
 
     if __name__ == "__main__":
         # Pre-train with lightly-train.

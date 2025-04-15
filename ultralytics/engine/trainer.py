@@ -457,8 +457,8 @@ class BaseTrainer:
                 self.scheduler.last_epoch = self.epoch  # do not move
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
             self.run_callbacks("on_fit_epoch_end")
-            if self._get_memory(fraction=True) > 0.9:
-                self._clear_memory()  # clear if memory utilization > 90%
+            if self._get_memory(fraction=True) > 0.5:
+                self._clear_memory()  # clear if memory utilization > 50%
 
             # Early Stopping
             if RANK != -1:  # if DDP training

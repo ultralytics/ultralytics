@@ -14,6 +14,7 @@ scales: # model compound scaling constants, i.e. 'model=yolo11n.yaml' will call 
   l: [1.00, 1.00, 512] # summary: 357 layers, 25372160 parameters, 25372144 gradients, 87.6 GFLOPs
   x: [1.00, 1.50, 512] # summary: 357 layers, 56966176 parameters, 56966160 gradients, 196.0 GFLOPs
 
+# NOTE: not to experiment, since FReLU slows down a lot in Detect according to profile 
 # YOLO11n backbone
 backbone:
   # [from, repeats, module, args]

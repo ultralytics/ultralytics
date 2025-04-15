@@ -8,7 +8,7 @@ import pytest
 
 from tests import MODEL, TMP
 from ultralytics import solutions
-from ultralytics.utils import ASSETS_URL, checks
+from ultralytics.utils import ASSETS_URL, checks, LINUX, IS_RASPBERRYPI
 from ultralytics.utils.downloads import safe_download
 
 # Pre-defined arguments values
@@ -152,7 +152,8 @@ def process_video(solution, video_path, needs_frame_count=False):
     cap.release()
 
 
-@pytest.mark.skipif(True, reason="Disabled for testing due to --slow test errors after YOLOE PR.")
+@pytest.mark.skipif((LINUX and checks.IS_PYTHON_3_11) or IS_RASPBERRYPI,
+                    reason="Disabled for testing due to --slow test errors after YOLOE PR.")
 @pytest.mark.parametrize("name, solution_class, needs_frame_count, video, kwargs", SOLUTIONS)
 def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     """Test individual Ultralytics solution."""

@@ -644,10 +644,10 @@ class ProfileModels:
         Returns:
             (str): Formatted table row string with model metrics.
         """
-        layers, params, gradients, flops = model_info
+        _, params, _, flops = model_info
         return (
-            f"| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.1f}±{t_onnx[1]:.1f} ms | {t_engine[0]:.1f}±"
-            f"{t_engine[1]:.1f} ms | {params / 1e6:.1f} | {flops:.1f} |"
+            f"| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.3f}±{t_onnx[1]:.3f} ms | {t_engine[0]:.3f}±"
+            f"{t_engine[1]:.3f} ms | {params / 1e6:.3f} | {flops:.3f} |"
         )
 
     @staticmethod

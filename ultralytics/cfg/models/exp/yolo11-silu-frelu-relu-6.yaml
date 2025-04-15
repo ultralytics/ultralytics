@@ -14,7 +14,7 @@ scales: # model compound scaling constants, i.e. 'model=yolo11n.yaml' will call 
   l: [1.00, 1.00, 512] # summary: 357 layers, 25372160 parameters, 25372144 gradients, 87.6 GFLOPs
   x: [1.00, 1.50, 512] # summary: 357 layers, 56966176 parameters, 56966160 gradients, 196.0 GFLOPs
 
-# NOTE: replace `yolo11-silu-frelu-relu-1+2.yaml` SilU to ReLU to speed up, and using ReLU for 9,10 layers
+# NOTE: based on `yolo11-silu-frelu-relu-3.yaml`, and using ReLU for 9,10 layers
 # YOLO11n backbone
 backbone:
   # [from, repeats, module, args]

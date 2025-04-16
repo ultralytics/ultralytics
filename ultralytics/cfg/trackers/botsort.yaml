@@ -18,4 +18,5 @@ gmc_method: sparseOptFlow # method of global motion compensation
 # ReID model related thresh (not supported yet)
 proximity_thresh: 0.5
 appearance_thresh: 0.25
-with_reid: False
+with_reid: True
+model: yolo11n-cls.pt

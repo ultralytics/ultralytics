@@ -86,7 +86,7 @@ def check_dataset_speed(files, threshold_ms=10, prefix=""):
     # Calculate stats with uncertainties
     avg_ping = np.mean(ping_times)
     std_ping = np.std(ping_times, ddof=1) if len(ping_times) > 1 else 0
-    size_msg = f", size: {np.mean(file_sizes) / (1 << 20):.1f} MB"
+    size_msg = f", size: {np.mean(file_sizes) / (1 << 10):.1f} KB"
     ping_msg = f"ping: {avg_ping:.1f}±{std_ping:.1f} ms"
 
     if read_speeds:
@@ -96,14 +96,14 @@ def check_dataset_speed(files, threshold_ms=10, prefix=""):
     else:
         speed_msg = ""
 
-    if avg_ping > threshold_ms:
+    if avg_ping < threshold_ms:
+        LOGGER.info(f"{prefix}Fast image access ✅ ({ping_msg}{speed_msg}{size_msg})")
+    else:
         LOGGER.warning(
             f"{prefix}WARNING ⚠️ Slow image access detected ({ping_msg}{speed_msg}{size_msg}). "
             f"Use local storage instead of remote/mounted storage for better performance. "
             f"See https://docs.ultralytics.com/guides/model-training-tips/"
         )
-    else:
-        LOGGER.info(f"{prefix}Fast image access ✅ ({ping_msg}{speed_msg}{size_msg})")
 
 
 def get_hash(paths):

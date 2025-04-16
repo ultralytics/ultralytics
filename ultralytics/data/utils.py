@@ -56,7 +56,7 @@ def get_hash(paths):
             # file size and modification time
             file_info = f"{stat_info.st_size}|{stat_info.st_mtime}"
             hasher.update(file_info.encode())
-        except (OSError, IOError):
+        except OSError:
             continue
     return hasher.hexdigest()
 

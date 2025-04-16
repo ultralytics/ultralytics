@@ -49,12 +49,6 @@ def img2label_paths(img_paths):
 
 def check_dataset_speed(files, threshold_ms=10, prefix=""):
     """Check file access speed (ping and MB/s) and warn if remote storage detected."""
-    import os
-    import time
-    import random
-    import numpy as np
-    from ultralytics.utils import LOGGER
-
     if not files or len(files) == 0:
         LOGGER.warning(f"{prefix}No files to check")
         return
@@ -78,7 +72,10 @@ def check_dataset_speed(files, threshold_ms=10, prefix=""):
             # Measure read speed
             start = time.time()
             with open(f, "rb") as file_obj:
-                _ = file_obj.read()
+                # Use buffered read for better performance measurement
+                chunk_size = 1024 * 1024  # 1MB chunks
+                while file_obj.read(chunk_size):
+                    pass
             read_time = time.time() - start
             if read_time > 0:  # Avoid division by zero
                 read_speeds.append(file_size / (1024 * 1024) / read_time)  # MB/s

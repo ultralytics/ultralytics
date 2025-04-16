@@ -192,22 +192,26 @@ class BOTSORT(BYTETracker):
         self.encoder = None
 
         if args.with_reid and ".pt" in args.model:
-                import torch
+            import torch
 
-                from ultralytics import YOLO
-                from ultralytics.utils.ops import xywh2xyxy
-                from ultralytics.utils.plotting import save_one_box
+            from ultralytics import YOLO
+            from ultralytics.utils.ops import xywh2xyxy
+            from ultralytics.utils.plotting import save_one_box
 
-                class REID:
-                    """YOLO model as encoder for re-identification."""
-                    def __init__(self, model):
-                        self.model = YOLO(model)
-                        self.model(embed=[len(self.model.model.model) - 2], verbose=False)  # initialize
-                    def __call__(self, img, dets):
-                        feats = self.model([save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))])
-                        return [f.cpu().numpy() for f in feats]
-    
-                self.encoder = REID(args.model)
+            class REID:
+                """YOLO model as encoder for re-identification."""
+
+                def __init__(self, model):
+                    self.model = YOLO(model)
+                    self.model(embed=[len(self.model.model.model) - 2], verbose=False)  # initialize
+
+                def __call__(self, img, dets):
+                    feats = self.model(
+                        [save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))]
+                    )
+                    return [f.cpu().numpy() for f in feats]
+
+            self.encoder = REID(args.model)
 
         self.gmc = GMC(method=args.gmc_method)
 

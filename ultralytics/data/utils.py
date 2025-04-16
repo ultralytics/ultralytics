@@ -49,7 +49,12 @@ def img2label_paths(img_paths):
 
 def get_hash(paths):
     """Returns a single hash value of a list of paths (files or dirs)."""
-    size = sum(os.path.getsize(p) for p in paths if os.path.exists(p))  # sizes
+    size = 0
+    for p in paths:
+        try:
+            size += os.stat(p).st_size
+        except (OSError, IOError):
+            continue
     h = hashlib.sha256(str(size).encode())  # hash sizes
     h.update("".join(paths).encode())  # hash paths
     return h.hexdigest()  # return hash

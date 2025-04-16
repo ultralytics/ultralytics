@@ -1309,7 +1309,6 @@ class DFINETransformer(nn.Module):
             self.up,
             self.reg_scale,
             attn_mask=attn_mask,
-            dn_meta=dn_meta,
         )
 
         if self.training and dn_meta is not None:

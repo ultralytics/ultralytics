@@ -756,8 +756,7 @@ class DINETransformerDecoderLayer(DeformableTransformerDecoderLayer):
             dim_feedforward = round(layer_scale * dim_feedforward)
             d_model = round(layer_scale * d_model)
         super().__init__(d_model, n_heads, d_ffn, dropout, act, n_levels, n_points)
-        # TODO: MSDeformAttn to support cross-attn-method
-        self.cross_attn = MSDeformAttn(d_model, n_heads, n_levels, n_points, method=cross_attn)
+        self.cross_attn = MSDeformAttnV2(d_model, n_heads, n_levels, n_points, method=cross_attn)
         self.gateway = Gate(d_model)  # gate
         # delete the second normalization layer from DeformableTransformerDecoderLayer
         del self.norm2

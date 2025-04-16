@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import constant_, xavier_uniform_
+from typing import List
 
 from .conv import Conv
 from .utils import _get_clones, inverse_sigmoid, multi_scale_deformable_attn_pytorch
@@ -515,6 +516,112 @@ class MSDeformAttn(nn.Module):
             raise ValueError(f"Last dim of reference_points must be 2 or 4, but got {num_points}.")
         output = multi_scale_deformable_attn_pytorch(value, value_shapes, sampling_locations, attention_weights)
         return self.output_proj(output)
+
+
+class MSDeformAttnV2(nn.Module):
+    """This module is originally from RT-DEDTV2.
+    Comparing to original MSDeformAttn, this module has the following changes:
+        - Eliminate value project layer.
+        - Using flexible number of points for each level by passing a list, instead of a fixed number across all levels.
+    """
+
+    def __init__(
+        self,
+        d_model=256,
+        n_heads=8,
+        n_levels=4,
+        n_points=4,
+        method="default",
+        offset_scale=0.5,
+    ):
+        """Multi-Scale Deformable Attention"""
+        super(MSDeformAttnV2, self).__init__()
+        self.d_model = d_model
+        self.num_heads = n_heads
+        self.num_levels = n_levels
+        self.offset_scale = offset_scale
+
+        n_points_list = n_points if isinstance(n_points, list) else [n_points for _ in range(n_levels)]
+        assert len(n_points) == n_levels, "Expect num_points to be a list of length num_levels."
+        self.n_points_list = n_points_list
+
+        num_points_scale = [1 / n for n in n_points_list for _ in range(n)]
+        self.register_buffer("num_points_scale", torch.tensor(num_points_scale, dtype=torch.float32))
+
+        self.total_points = n_heads * sum(n_points_list)
+        self.method = method
+
+        self.head_dim = d_model // n_heads
+        assert self.head_dim * n_heads == self.d_model, "d_model must be divisible by n_heads."
+        self.sampling_offsets = nn.Linear(d_model, self.total_points * 2)
+        self.attention_weights = nn.Linear(d_model, self.total_points)
+
+        # TODO
+        # self.ms_deformable_attn_core = functools.partial(deformable_attention_core_func_v2, method=self.method)
+        self._reset_parameters()
+
+        if method == "discrete":
+            for p in self.sampling_offsets.parameters():
+                p.requires_grad = False
+
+    def _reset_parameters(self):
+        # sampling_offsets
+        torch.nn.init.constant_(self.sampling_offsets.weight, 0)
+        thetas = torch.arange(self.num_heads, dtype=torch.float32) * (2.0 * math.pi / self.num_heads)
+        grid_init = torch.stack([thetas.cos(), thetas.sin()], -1)
+        grid_init = grid_init / grid_init.abs().max(-1, keepdim=True).values
+        grid_init = grid_init.reshape(self.num_heads, 1, 2).tile([1, sum(self.n_points_list), 1])
+        scaling = torch.concat([torch.arange(1, n + 1) for n in self.n_points_list]).reshape(1, -1, 1)
+        grid_init *= scaling
+        self.sampling_offsets.bias.data[...] = grid_init.flatten()
+
+        # attention_weights
+        torch.nn.init.constant_(self.attention_weights.weight, 0)
+        torch.nn.init.constant_(self.attention_weights.bias, 0)
+
+    def forward(
+        self,
+        query: torch.Tensor,
+        refer_bbox: torch.Tensor,
+        value: torch.Tensor,
+        value_shapes: List[int],
+    ):
+        """
+        Args:
+            query (Tensor): [bs, query_length, C]
+            refer_bbox (Tensor): [bs, query_length, n_levels, 2], range in [0, 1], top-left (0,0),
+                bottom-right (1, 1), including padding area
+            value (Tensor): [bs, value_length, C]
+            value_shapes (List): [n_levels, 2], [(H_0, W_0), (H_1, W_1), ..., (H_{L-1}, W_{L-1})]
+
+        Returns:
+            output (Tensor): [bs, Length_{query}, C]
+        """
+        bs, len_q = query.shape[:2]
+
+        sampling_offsets: torch.Tensor = self.sampling_offsets(query)
+        sampling_offsets = sampling_offsets.reshape(bs, len_q, self.num_heads, sum(self.n_points_list), 2)
+
+        attention_weights = self.attention_weights(query).reshape(bs, len_q, self.num_heads, sum(self.n_points_list))
+        attention_weights = F.softmax(attention_weights, dim=-1)
+
+        num_points = refer_bbox.shape[-1]
+        if num_points == 2:
+            offset_normalizer = torch.as_tensor(value_shapes, dtype=query.dtype, device=query.device).flip(-1)
+            offset = sampling_offsets / offset_normalizer[None, None, None, :, None, :]
+            sampling_locations = refer_bbox[:, :, None, :, None, :] + offset
+        elif num_points == 4:
+            num_points_scale = self.num_points_scale.to(dtype=query.dtype).unsqueeze(-1)
+            offset = sampling_offsets * num_points_scale * refer_bbox[:, :, None, :, 2:] * self.offset_scale
+            sampling_locations = refer_bbox[:, :, None, :, :2] + offset
+        else:
+            raise ValueError("Last dim of refer_bbox must be 2 or 4, but get {} instead.".format(refer_bbox.shape[-1]))
+
+        output = self.ms_deformable_attn_core(
+            value, value_shapes, sampling_locations, attention_weights, self.n_points_list
+        )
+
+        return output
 
 
 class DeformableTransformerDecoderLayer(nn.Module):

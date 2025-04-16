@@ -521,6 +521,7 @@ class MSDeformAttn(nn.Module):
             sampling_locations,
             attention_weights,
             num_points_list=[self.n_points for _ in range(self.n_levels)],
+            value_shape="reshape"
         )
         return self.output_proj(output)
 

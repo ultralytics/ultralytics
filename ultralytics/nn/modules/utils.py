@@ -110,7 +110,7 @@ def multi_scale_deformable_attn_pytorch(
     sampling_locations: torch.Tensor,
     attention_weights: torch.Tensor,
     num_points_list=None,
-    method="default",
+    sampling_method="default",
     value_shape="default",
 ) -> torch.Tensor:
     """
@@ -133,12 +133,19 @@ def multi_scale_deformable_attn_pytorch(
     References:
         https://github.com/IDEA-Research/detrex/blob/main/detrex/layers/multi_scale_deform_attn.py
     """
-    bs, _, n_head, c = value.shape
+    if value_shape == 'default':
+        bs, n_head, c, _ = value[0].shape
+    elif value_shape == 'reshape':   # reshape following RT-DETR
+        bs, _, n_head, c = value.shape
+        # (bs, len_v, n_head, c) -> (bs, n_head, c, len_v) -> (bs*n_head, c, len_v)
+        value = value.permute(0, 2, 3, 1).flatten(0, 1).split([h * w for h, w in value_spatial_shapes], dim=-1)
     len_q = sampling_locations.shape[1]
-    # (bs, len_v, n_head, c) -> (bs, n_head, c, len_v) -> (bs*n_head, c, len_v)
-    value_list = value.permute(0, 2, 3, 1).flatten(0, 1).split([h * w for h, w in value_spatial_shapes], dim=-1)
 
-    sampling_grids = 2 * sampling_locations - 1
+    if sampling_method == 'default':
+        sampling_grids = 2 * sampling_locations - 1
+    elif sampling_method == 'discrete':  # From RT-DETRv2 to be more friendly to deployment
+        sampling_grids = sampling_locations
+
     # (bs, len_q, n_head, n_levels*n_points, 2) ->
     # (bs, n_head, len_q, n_levels*n_points, 2) ->
     # (bs*n_head, len_q, n_levels*n_points, 2)
@@ -147,17 +154,24 @@ def multi_scale_deformable_attn_pytorch(
 
     sampling_value_list = []
     for level, (h, w) in enumerate(value_spatial_shapes):
-        value_l = value_list[level].reshape(bs * n_head, c, h, w)
+        value_l = value[level].reshape(bs * n_head, c, h, w)
         sampling_grid_l = sampling_locations_list[level]
-        # bs*n_head, embed_dims, num_queries, num_points
-        sampling_value_list.append(
-            F.grid_sample(value_l, sampling_grid_l, mode="bilinear", padding_mode="zeros", align_corners=False)
-        )
+        if sampling_method == "default":
+            # bs*n_head, embed_dims, num_queries, num_points
+            sampling_value_l = F.grid_sample(value_l, sampling_grid_l, mode="bilinear", padding_mode="zeros", align_corners=False)
+        elif sampling_method == "discrete":
+            # n * m, seq, n, 2
+            sampling_coord = (sampling_grid_l * torch.tensor([[w, h]], device=value_l.device) + 0.5).to(torch.int64)
+            sampling_coord = sampling_coord.clamp(0, h - 1)
+            sampling_coord = sampling_coord.reshape(bs * n_head, len_q * num_points_list[level], 2)
+            s_idx = torch.arange(sampling_coord.shape[0], device=value_l.device).unsqueeze(-1).repeat(1, sampling_coord.shape[1])
+            sampling_value_l: torch.Tensor = value_l[s_idx, :, sampling_coord[..., 1], sampling_coord[..., 0]] # n l c
+            sampling_value_l = sampling_value_l.permute(0, 2, 1).reshape(bs * n_head, c, len_q, num_points_list[level])
+        sampling_value_list.append(sampling_value_l)
     # (bs, num_queries, num_heads, num_levels, num_points) ->
     # (bs, num_heads, num_queries, num_levels, num_points) ->
     # (bs, num_heads, 1, num_queries, num_levels*num_points)
     attention_weights = attention_weights.transpose(1, 2).reshape(bs * n_head, 1, len_q, sum(num_points_list))
-    output = (
-        (torch.stack(sampling_value_list, dim=-2).flatten(-2) * attention_weights).sum(-1).view(bs, n_head * c, len_q)
-    )
+    weighted_sample_locs = torch.cat(sampling_value_list, dim=-1) * attention_weights
+    output = weighted_sample_locs.sum(-1).reshape(bs, n_head * c, len_q)
     return output.transpose(1, 2).contiguous()

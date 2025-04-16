@@ -37,6 +37,7 @@ from .utils import (
     save_dataset_cache_file,
     verify_image,
     verify_image_label,
+    check_dataset_speed,
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for YOLOv8
@@ -794,6 +795,7 @@ class ClassificationDataset:
         path = Path(self.root).with_suffix(".cache")  # *.cache file path
 
         try:
+            check_dataset_speed([file for (file, _) in self.samples[:10]], prefix=self.prefix)
             cache = load_dataset_cache_file(path)  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
             assert cache["hash"] == get_hash([x[0] for x in self.samples])  # identical hash

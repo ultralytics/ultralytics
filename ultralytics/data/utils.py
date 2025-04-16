@@ -47,6 +47,69 @@ def img2label_paths(img_paths):
     return [sb.join(x.rsplit(sa, 1)).rsplit(".", 1)[0] + ".txt" for x in img_paths]
 
 
+def check_dataset_speed(files, threshold_ms=10, prefix=""):
+    """Check file access speed (ping and MB/s) and warn if remote storage detected."""
+    import os
+    import time
+    import random
+    import numpy as np
+    from ultralytics.utils import LOGGER
+
+    if not files or len(files) == 0:
+        LOGGER.warning(f"{prefix}No files to check")
+        return
+
+    # Sample files (max 5)
+    files = random.sample(files, min(5, len(files)))
+
+    # Test ping (stat time)
+    ping_times = []
+    file_sizes = []
+    read_speeds = []
+
+    for f in files:
+        try:
+            # Measure ping (stat call)
+            start = time.time()
+            file_size = os.stat(f).st_size
+            ping_times.append((time.time() - start) * 1000)  # ms
+            file_sizes.append(file_size)
+
+            # Measure read speed
+            start = time.time()
+            with open(f, "rb") as file_obj:
+                _ = file_obj.read()
+            read_time = time.time() - start
+            if read_time > 0:  # Avoid division by zero
+                read_speeds.append(file_size / (1024 * 1024) / read_time)  # MB/s
+        except Exception:
+            pass
+
+    if not ping_times:
+        LOGGER.warning(f"{prefix}Failed to access files")
+        return
+
+    # Calculate stats with uncertainties
+    avg_ping = np.mean(ping_times)
+    std_ping = np.std(ping_times, ddof=1) if len(ping_times) > 1 else 0
+
+    if read_speeds:
+        avg_speed = np.mean(read_speeds)
+        std_speed = np.std(read_speeds, ddof=1) if len(read_speeds) > 1 else 0
+        speed_msg = f", read: {avg_speed:.1f}±{std_speed:.1f} MB/s"
+    else:
+        speed_msg = ""
+
+    if avg_ping > threshold_ms:
+        LOGGER.warning(
+            f"{prefix}WARNING ⚠️ Slow image access detected (ping: {avg_ping:.1f}±{std_ping:.1f} ms{speed_msg}). "
+            f"Use local storage instead of remote/mounted storage for better performance. "
+            f"See https://docs.ultralytics.com/guides/model-training-tips/"
+        )
+    else:
+        LOGGER.info(f"{prefix}Fast image access ✅ (ping: {avg_ping:.1f}±{std_ping:.1f} ms{speed_msg})")
+
+
 def get_hash(paths):
     """Returns a single hash value of a list of paths (files or dirs)."""
     size = 0

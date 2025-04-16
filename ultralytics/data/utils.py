@@ -72,13 +72,10 @@ def check_dataset_speed(files, threshold_ms=10, prefix=""):
             # Measure read speed
             start = time.time()
             with open(f, "rb") as file_obj:
-                # Use buffered read for better performance measurement
-                chunk_size = 1024 * 1024  # 1MB chunks
-                while file_obj.read(chunk_size):
-                    pass
+                _ = file_obj.read()
             read_time = time.time() - start
             if read_time > 0:  # Avoid division by zero
-                read_speeds.append(file_size / (1024 * 1024) / read_time)  # MB/s
+                read_speeds.append(file_size / (1 << 20) / read_time)  # MB/s
         except Exception:
             pass
 

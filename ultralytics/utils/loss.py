@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from ultralytics.utils.metrics import OKS_SIGMA
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
-from ultralytics.utils.torch_utils import autocast
+from ultralytics.utils.torch_utils import autocast, weighting_function
 
 from .metrics import bbox_iou, probiou
 from .tal import bbox2dist
@@ -825,40 +825,6 @@ def bbox2distance(points, bbox, reg_max, reg_scale, up, eps=0.1):
     if reg_max is not None:
         four_lens = four_lens.clamp(min=0, max=reg_max - eps)
     return four_lens.reshape(-1).detach(), weight_right.detach(), weight_left.detach()
-
-
-def weighting_function(reg_max, up, reg_scale, deploy=False):
-    """
-    Generates the non-uniform Weighting Function W(n) for bounding box regression.
-
-    Args:
-        reg_max (int): Max number of the discrete bins.
-        up (Tensor): Controls upper bounds of the sequence,
-                     where maximum offset is ±up * H / W.
-        reg_scale (float): Controls the curvature of the Weighting Function.
-                           Larger values result in flatter weights near the central axis W(reg_max/2)=0
-                           and steeper weights at both ends.
-        deploy (bool): If True, uses deployment mode settings.
-
-    Returns:
-        Tensor: Sequence of Weighting Function.
-    """
-    if deploy:
-        upper_bound1 = (abs(up[0]) * abs(reg_scale)).item()
-        upper_bound2 = (abs(up[0]) * abs(reg_scale) * 2).item()
-        step = (upper_bound1 + 1) ** (2 / (reg_max - 2))
-        left_values = [-((step) ** i) + 1 for i in range(reg_max // 2 - 1, 0, -1)]
-        right_values = [(step) ** i - 1 for i in range(1, reg_max // 2)]
-        values = [-upper_bound2] + left_values + [torch.zeros_like(up[0][None])] + right_values + [upper_bound2]
-        return torch.tensor(values, dtype=up.dtype, device=up.device)
-    else:
-        upper_bound1 = abs(up[0]) * abs(reg_scale)
-        upper_bound2 = abs(up[0]) * abs(reg_scale) * 2
-        step = (upper_bound1 + 1) ** (2 / (reg_max - 2))
-        left_values = [-((step) ** i) + 1 for i in range(reg_max // 2 - 1, 0, -1)]
-        right_values = [(step) ** i - 1 for i in range(1, reg_max // 2)]
-        values = [-upper_bound2] + left_values + [torch.zeros_like(up[0][None])] + right_values + [upper_bound2]
-        return torch.cat(values, 0)
 
 
 def translate_gt(gt, reg_max, reg_scale, up):

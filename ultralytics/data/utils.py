@@ -50,7 +50,7 @@ def img2label_paths(img_paths):
 def check_dataset_speed(files, threshold_ms=10, prefix=""):
     """Check file access speed (ping and MB/s) and warn if remote storage detected."""
     if not files or len(files) == 0:
-        LOGGER.warning(f"{prefix}No files to check")
+        LOGGER.warning(f"{prefix}WARNING ⚠️ Image speed checks: No files to check")
         return
 
     # Sample files (max 5)
@@ -80,12 +80,14 @@ def check_dataset_speed(files, threshold_ms=10, prefix=""):
             pass
 
     if not ping_times:
-        LOGGER.warning(f"{prefix}Failed to access files")
+        LOGGER.warning(f"{prefix}WARNING ⚠️ Image speed checks: failed to access files")
         return
 
     # Calculate stats with uncertainties
     avg_ping = np.mean(ping_times)
     std_ping = np.std(ping_times, ddof=1) if len(ping_times) > 1 else 0
+    size_msg = f", size: {np.mean(file_sizes) / (1 << 20):.1f} MB"
+    ping_msg = f"ping: {avg_ping:.1f}±{std_ping:.1f} ms"
 
     if read_speeds:
         avg_speed = np.mean(read_speeds)
@@ -96,12 +98,12 @@ def check_dataset_speed(files, threshold_ms=10, prefix=""):
 
     if avg_ping > threshold_ms:
         LOGGER.warning(
-            f"{prefix}WARNING ⚠️ Slow image access detected (ping: {avg_ping:.1f}±{std_ping:.1f} ms{speed_msg}). "
+            f"{prefix}WARNING ⚠️ Slow image access detected ({ping_msg}{speed_msg}{size_msg}). "
             f"Use local storage instead of remote/mounted storage for better performance. "
             f"See https://docs.ultralytics.com/guides/model-training-tips/"
         )
     else:
-        LOGGER.info(f"{prefix}Fast image access ✅ (ping: {avg_ping:.1f}±{std_ping:.1f} ms{speed_msg})")
+        LOGGER.info(f"{prefix}Fast image access ✅ ({ping_msg}{speed_msg}{size_msg})")
 
 
 def get_hash(paths):

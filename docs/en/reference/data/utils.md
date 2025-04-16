@@ -19,7 +19,7 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 
 <br><br><hr><br>
 
-## ::: ultralytics.data.utils.check_dataset_speed
+## ::: ultralytics.data.utils.check_file_speeds
 
 <br><br><hr><br>
 

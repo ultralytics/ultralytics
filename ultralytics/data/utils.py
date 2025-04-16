@@ -58,7 +58,7 @@ def get_hash(paths):
             stat_sum = stat_info.st_size + int(stat_info.st_mtime * 1000)
         except OSError:
             continue
-    hasher.update(''.join(paths).encode())  # hash paths
+    hasher.update("".join(paths).encode())  # hash paths
     hasher.update(str(stat_sum))  # hash file size and modification time
     return hasher.hexdigest()
 

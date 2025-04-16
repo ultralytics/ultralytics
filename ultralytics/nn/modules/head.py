@@ -16,7 +16,13 @@ from ultralytics.utils.torch_utils import fuse_conv_and_bn, smart_inference_mode
 
 from .block import DFL, SAVPE, BNContrastiveHead, ContrastiveHead, Proto, Residual, SwiGLUFFN
 from .conv import Conv, DWConv
-from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
+from .transformer import (
+    MLP,
+    DeformableTransformerDecoder,
+    DeformableTransformerDecoderLayer,
+    DFINETransformerDecoder,
+    DFINETransformerDecoderLayer,
+)
 from .utils import bias_init_with_prob, linear_init
 
 __all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect", "YOLOEDetect", "YOLOESegment"
@@ -953,7 +959,7 @@ class DFINETransformer(nn.Module):
         # Transformer module
         self.up = nn.Parameter(torch.tensor([0.5]), requires_grad=False)
         self.reg_scale = nn.Parameter(torch.tensor([reg_scale]), requires_grad=False)
-        decoder_layer = DeformableTransformerDecoderLayer(
+        decoder_layer = DFINETransformerDecoderLayer(
             hidden_dim,
             nhead,
             dim_feedforward,
@@ -961,9 +967,9 @@ class DFINETransformer(nn.Module):
             activation,
             self.num_levels,
             num_points,
-            cross_attn_method=cross_attn_method,  # TODO: add this support
+            cross_attn=cross_attn_method,
         )
-        decoder_layer_wide = DeformableTransformerDecoderLayer(
+        decoder_layer_wide = DFINETransformerDecoderLayer(
             hidden_dim,
             nhead,
             dim_feedforward,
@@ -971,10 +977,10 @@ class DFINETransformer(nn.Module):
             activation,
             self.num_levels,
             num_points,
-            cross_attn_method=cross_attn_method,  # TODO: add this support
-            layer_scale=layer_scale,  # TODO: add this support
+            cross_attn=cross_attn_method,
+            layer_scale=layer_scale,
         )
-        self.decoder = DeformableTransformerDecoder(  # TODO: add this support
+        self.decoder = DFINETransformerDecoder(
             hidden_dim,
             decoder_layer,
             decoder_layer_wide,

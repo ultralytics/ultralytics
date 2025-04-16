@@ -192,12 +192,13 @@ class BOTSORT(BYTETracker):
         self.encoder = None
 
         if args.with_reid and ".pt" in args.model:
+                import torch
+
                 from ultralytics import YOLO
                 from ultralytics.utils.ops import xywh2xyxy
                 from ultralytics.utils.plotting import save_one_box
-                import torch
 
-                class REID():
+                class REID:
                     """YOLO model as encoder for re-identification."""
                     def __init__(self, model):
                         self.model = YOLO(model)

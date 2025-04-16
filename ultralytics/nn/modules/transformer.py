@@ -12,6 +12,8 @@ from typing import List
 
 from .conv import Conv
 from .utils import _get_clones, inverse_sigmoid, multi_scale_deformable_attn_pytorch
+from ultralytics.utils.torch_utils import weighting_function
+from ultralytics.utils.loss import distance2bbox
 
 __all__ = (
     "TransformerEncoderLayer",
@@ -522,7 +524,7 @@ class MSDeformAttn(nn.Module):
             sampling_locations,
             attention_weights,
             num_points_list=[self.n_points for _ in range(self.n_levels)],
-            value_shape="reshape"
+            value_shape="reshape",
         )
         return self.output_proj(output)
 
@@ -832,9 +834,10 @@ class Gate(nn.Module):
         gate1, gate2 = gates.chunk(2, dim=-1)
         return self.norm(gate1 * x1 + gate2 * x2)
 
+
 # TODO: put it here for now
 class LQE(nn.Module):
-    def __init__(self, k, hidden_dim, num_layers, reg_max, act='relu'):
+    def __init__(self, k, hidden_dim, num_layers, reg_max, act="relu"):
         super(LQE, self).__init__()
         self.k = k
         self.reg_max = reg_max
@@ -844,7 +847,7 @@ class LQE(nn.Module):
 
     def forward(self, scores, pred_corners):
         B, L, _ = pred_corners.size()
-        prob = F.softmax(pred_corners.reshape(B, L, 4, self.reg_max+1), dim=-1)
+        prob = F.softmax(pred_corners.reshape(B, L, 4, self.reg_max + 1), dim=-1)
         prob_topk, _ = prob.topk(self.k, dim=-1)
         stat = torch.cat([prob_topk, prob_topk.mean(dim=-1, keepdim=True)], dim=-1)
         quality_score = self.reg_conf(stat.reshape(B, L, -1))
@@ -936,3 +939,135 @@ class DeformableTransformerDecoder(nn.Module):
             refer_bbox = refined_bbox.detach() if self.training else refined_bbox
 
         return torch.stack(dec_bboxes), torch.stack(dec_cls)
+
+
+class DINETransformerDecoder(nn.Module):
+    """
+    Transformer Decoder implementing Fine-grained Distribution Refinement (FDR).
+
+    This decoder refines object detection predictions through iterative updates across multiple layers,
+    utilizing attention mechanisms, location quality estimators, and distribution refinement techniques
+    to improve bounding box accuracy and robustness.
+    """
+
+    def __init__(
+        self,
+        hidden_dim,
+        decoder_layer,
+        decoder_layer_wide,
+        num_layers,
+        num_head,
+        reg_max,
+        reg_scale,
+        up,
+        eval_idx=-1,
+        layer_scale=2,
+        act="relu",
+    ):
+        super(DINETransformerDecoder, self).__init__()
+        self.hidden_dim = hidden_dim
+        self.num_layers = num_layers
+        self.layer_scale = layer_scale
+        self.num_head = num_head
+        self.eval_idx = eval_idx if eval_idx >= 0 else num_layers + eval_idx
+        self.up, self.reg_scale, self.reg_max = up, reg_scale, reg_max
+        self.layers = nn.ModuleList(
+            [
+                *_get_clones(decoder_layer, self.eval_idx + 1),
+                *_get_clones(decoder_layer_wide, num_layers - self.eval_idx - 1),
+            ]
+        )
+        self.lqe_layers = _get_clones(LQE(4, 64, 2, reg_max, act=act), num_layers)
+
+    def value_op(self, memory, value_proj, value_scale, memory_mask, memory_spatial_shapes):
+        """
+        Preprocess values for MSDeformableAttention.
+        """
+        value = value_proj(memory) if value_proj is not None else memory
+        value = F.interpolate(memory, size=value_scale) if value_scale is not None else value
+        if memory_mask is not None:
+            value = value * memory_mask.to(value.dtype).unsqueeze(-1)
+        value = value.reshape(value.shape[0], value.shape[1], self.num_head, -1)
+        split_shape = [h * w for h, w in memory_spatial_shapes]
+        return value.permute(0, 2, 3, 1).split(split_shape, dim=-1)
+
+    def convert_to_deploy(self):
+        self.project = weighting_function(self.reg_max, self.up, self.reg_scale, deploy=True)
+        self.layers = self.layers[: self.eval_idx + 1]
+        self.lqe_layers = nn.ModuleList([nn.Identity()] * (self.eval_idx) + [self.lqe_layers[self.eval_idx]])
+
+    def forward(
+        self,
+        target,
+        ref_points_unact,
+        memory,
+        spatial_shapes,
+        bbox_head,
+        score_head,
+        query_pos_head,
+        pre_bbox_head,
+        integral,
+        up,
+        reg_scale,
+        attn_mask=None,
+        memory_mask=None,
+    ):
+        output = target
+        output_detach = pred_corners_undetach = 0
+        value = self.value_op(memory, None, None, memory_mask, spatial_shapes)
+
+        dec_out_bboxes = []
+        dec_out_logits = []
+        dec_out_pred_corners = []
+        dec_out_refs = []
+        project = weighting_function(self.reg_max, up, reg_scale) if not hasattr(self, "project") else self.project
+
+        ref_points_detach = F.sigmoid(ref_points_unact)
+
+        for i, layer in enumerate(self.layers):
+            ref_points_input = ref_points_detach.unsqueeze(2)
+            query_pos_embed = query_pos_head(ref_points_detach).clamp(min=-10, max=10)
+
+            # TODO Adjust scale if needed for detachable wider layers
+            if i >= self.eval_idx + 1 and self.layer_scale > 1:
+                query_pos_embed = F.interpolate(query_pos_embed, scale_factor=self.layer_scale)
+                value = self.value_op(memory, None, query_pos_embed.shape[-1], memory_mask, spatial_shapes)
+                output = F.interpolate(output, size=query_pos_embed.shape[-1])
+                output_detach = output.detach()
+
+            output = layer(output, ref_points_input, value, spatial_shapes, attn_mask, query_pos_embed)
+
+            if i == 0:
+                # Initial bounding box predictions with inverse sigmoid refinement
+                pre_bboxes = F.sigmoid(pre_bbox_head(output) + inverse_sigmoid(ref_points_detach))
+                pre_scores = score_head[0](output)
+                ref_points_initial = pre_bboxes.detach()
+
+            # Refine bounding box corners using FDR, integrating previous layer's corrections
+            pred_corners = bbox_head[i](output + output_detach) + pred_corners_undetach
+            inter_ref_bbox = distance2bbox(ref_points_initial, integral(pred_corners, project), reg_scale)
+
+            if self.training or i == self.eval_idx:
+                scores = score_head[i](output)
+                # Lqe does not affect the performance here.
+                scores = self.lqe_layers[i](scores, pred_corners)
+                dec_out_logits.append(scores)
+                dec_out_bboxes.append(inter_ref_bbox)
+                dec_out_pred_corners.append(pred_corners)
+                dec_out_refs.append(ref_points_initial)
+
+                if not self.training:
+                    break
+
+            pred_corners_undetach = pred_corners
+            ref_points_detach = inter_ref_bbox.detach()
+            output_detach = output.detach()
+
+        return (
+            torch.stack(dec_out_bboxes),
+            torch.stack(dec_out_logits),
+            torch.stack(dec_out_pred_corners),
+            torch.stack(dec_out_refs),
+            pre_bboxes,
+            pre_scores,
+        )

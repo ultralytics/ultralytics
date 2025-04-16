@@ -189,10 +189,25 @@ class BOTSORT(BYTETracker):
         # ReID module
         self.proximity_thresh = args.proximity_thresh
         self.appearance_thresh = args.appearance_thresh
+        self.encoder = None
 
-        if args.with_reid:
-            # Haven't supported BoT-SORT(reid) yet
-            self.encoder = None
+        if args.with_reid and ".pt" in args.model:
+                from ultralytics import YOLO
+                from ultralytics.utils.ops import xywh2xyxy
+                from ultralytics.utils.plotting import save_one_box
+                import torch
+
+                class REID():
+                    """YOLO model as encoder for re-identification."""
+                    def __init__(self, model):
+                        self.model = YOLO(model)
+                        self.model(embed=[len(self.model.model.model) - 2], verbose=False)  # initialize
+                    def __call__(self, img, dets):
+                        feats = self.model([save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))])
+                        return [f.cpu().numpy() for f in feats]
+    
+                self.encoder = REID(args.model)
+
         self.gmc = GMC(method=args.gmc_method)
 
     def get_kalmanfilter(self):
@@ -204,7 +219,7 @@ class BOTSORT(BYTETracker):
         if len(dets) == 0:
             return []
         if self.args.with_reid and self.encoder is not None:
-            features_keep = self.encoder.inference(img, dets)
+            features_keep = self.encoder(img, dets)
             return [BOTrack(xyxy, s, c, f) for (xyxy, s, c, f) in zip(dets, scores, cls, features_keep)]  # detections
         else:
             return [BOTrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)]  # detections

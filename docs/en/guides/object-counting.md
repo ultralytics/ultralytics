@@ -20,7 +20,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Perform Real-Time Object Counting with Ultralytics YOLO11 | Apples on a Moving Conveyor Belt🍏
+  <strong>Watch:</strong> How to Perform Real-Time Object Counting with Ultralytics YOLO11 🍏
 </p>
 
 ## Advantages of Object Counting

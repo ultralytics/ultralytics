@@ -1046,16 +1046,6 @@ class DFINETransformer(nn.Module):
             ]
         )
         self.integral = Integral(self.reg_max)
-
-        # init encoder output anchors and valid_mask
-        if self.eval_spatial_size:
-            anchors, valid_mask = self._generate_anchors()
-            self.register_buffer("anchors", anchors)
-            self.register_buffer("valid_mask", valid_mask)
-        # init encoder output anchors and valid_mask
-        if self.eval_spatial_size:
-            self.anchors, self.valid_mask = self._generate_anchors()
-
         self._reset_parameters(feat_channels)
 
     def convert_to_deploy(self):
@@ -1129,21 +1119,12 @@ class DFINETransformer(nn.Module):
                 in_channels = self.hidden_dim
 
     def _get_encoder_input(self, feats: List[torch.Tensor]):
-        # get projection features
-        proj_feats = [self.input_proj[i](feat) for i, feat in enumerate(feats)]
-        # TODO: check whether num_levels could exceed len(feats)
-        # if self.num_levels > len(proj_feats):
-        #     len_srcs = len(proj_feats)
-        #     for i in range(len_srcs, self.num_levels):
-        #         if i == len_srcs:
-        #             proj_feats.append(self.input_proj[i](feats[-1]))
-        #         else:
-        #             proj_feats.append(self.input_proj[i](proj_feats[-1]))
-
-        # get encoder inputs
+        # Get projection features
+        x = [self.input_proj[i](feat) for i, feat in enumerate(feats)]
+        # Get encoder inputs
         feat_flatten = []
         spatial_shapes = []
-        for i, feat in enumerate(proj_feats):
+        for feat in x:
             h, w = feat.shape[2:]
             # [b, c, h, w] -> [b, h*w, c]
             feat_flatten.append(feat.flatten(2).permute(0, 2, 1))
@@ -1194,11 +1175,7 @@ class DFINETransformer(nn.Module):
         denoising_bbox_unact=None,
     ):
         # prepare input for decoder
-        if self.training or self.eval_spatial_size is None:
-            anchors, valid_mask = self._generate_anchors(spatial_shapes, device=memory.device)
-        else:
-            anchors = self.anchors
-            valid_mask = self.valid_mask
+        anchors, valid_mask = self._generate_anchors(spatial_shapes, dtype=memory.dtype, device=memory.device)
         if memory.shape[0] > 1:
             anchors = anchors.repeat(memory.shape[0], 1, 1)
 

@@ -12,7 +12,6 @@ from ultralytics.utils.torch_utils import autocast
 
 from .metrics import bbox_iou, probiou
 from .tal import bbox2dist
-from ..models.utils.loss import DETRLoss
 
 
 class VarifocalLoss(nn.Module):
@@ -968,6 +967,7 @@ def get_world_size():
 class DEIMLoss(nn.Module):
     """This class computes the loss for DEIM."""
 
+    from ..models.utils.loss import DETRLoss
     __share__ = ["num_classes"]
     __inject__ = ["matcher"]
 

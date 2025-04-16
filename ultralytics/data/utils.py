@@ -50,9 +50,11 @@ def img2label_paths(img_paths):
 def check_dataset_speed(files, threshold_ms=10, prefix=""):
     """Check file access speed (ping and MB/s) and warn if remote storage detected."""
     import os
-    import time
     import random
+    import time
+
     import numpy as np
+
     from ultralytics.utils import LOGGER
 
     if not files or len(files) == 0:
@@ -116,7 +118,7 @@ def get_hash(paths):
     for p in paths:
         try:
             size += os.stat(p).st_size
-        except (OSError, IOError):
+        except OSError:
             continue
     h = hashlib.sha256(str(size).encode())  # hash sizes
     h.update("".join(paths).encode())  # hash paths

@@ -31,13 +31,13 @@ from .converter import merge_multi_segment
 from .utils import (
     HELP_URL,
     LOGGER,
+    check_dataset_speed,
     get_hash,
     img2label_paths,
     load_dataset_cache_file,
     save_dataset_cache_file,
     verify_image,
     verify_image_label,
-    check_dataset_speed,
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for YOLOv8

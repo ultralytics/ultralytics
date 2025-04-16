@@ -54,7 +54,7 @@ def get_hash(paths):
         stat_info = os.stat(path)
         stat_sum += stat_info.st_size + int(stat_info.st_mtime * 1000)  # file size and modification time
     h = hashlib.sha256("".join(paths).encode())  # hash paths
-    h.update(str(stat_sum))  # hash file size and modification time
+    h.update(str(stat_sum).encode())  # hash file size and modification time
     return hasher.hexdigest()
 
 

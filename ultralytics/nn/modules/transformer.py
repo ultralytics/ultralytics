@@ -4,6 +4,7 @@
 import math
 
 import torch
+import functools
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import constant_, xavier_uniform_
@@ -539,7 +540,7 @@ class MSDeformAttnV2(nn.Module):
         n_heads=8,
         n_levels=4,
         n_points=4,
-        method="default",
+        sampling_method="default",
         offset_scale=0.5,
     ):
         """Multi-Scale Deformable Attention"""
@@ -557,18 +558,15 @@ class MSDeformAttnV2(nn.Module):
         self.register_buffer("num_points_scale", torch.tensor(num_points_scale, dtype=torch.float32))
 
         self.total_points = n_heads * sum(n_points_list)
-        self.method = method
-
         self.head_dim = d_model // n_heads
         assert self.head_dim * n_heads == self.d_model, "d_model must be divisible by n_heads."
         self.sampling_offsets = nn.Linear(d_model, self.total_points * 2)
         self.attention_weights = nn.Linear(d_model, self.total_points)
 
-        # TODO
-        # self.ms_deformable_attn_core = functools.partial(deformable_attention_core_func_v2, method=self.method)
+        self.ms_deformable_attn_core = functools.partial(multi_scale_deformable_attn_pytorch, method=sampling_method)
         self._reset_parameters()
 
-        if method == "discrete":
+        if sampling_method == "discrete":
             for p in self.sampling_offsets.parameters():
                 p.requires_grad = False
 

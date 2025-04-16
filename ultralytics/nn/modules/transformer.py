@@ -500,21 +500,28 @@ class MSDeformAttn(nn.Module):
         if value_mask is not None:
             value = value.masked_fill(value_mask[..., None], float(0))
         value = value.view(bs, len_v, self.n_heads, self.d_model // self.n_heads)
-        sampling_offsets = self.sampling_offsets(query).view(bs, len_q, self.n_heads, self.n_levels, self.n_points, 2)
+        sampling_offsets = self.sampling_offsets(query).view(bs, len_q, self.n_heads, self.n_levels * self.n_points, 2)
         attention_weights = self.attention_weights(query).view(bs, len_q, self.n_heads, self.n_levels * self.n_points)
         attention_weights = F.softmax(attention_weights, -1).view(bs, len_q, self.n_heads, self.n_levels, self.n_points)
         # N, Len_q, n_heads, n_levels, n_points, 2
         num_points = refer_bbox.shape[-1]
-        if num_points == 2:
+        if num_points == 2:  # NOTE: this path seems never used
             offset_normalizer = torch.as_tensor(value_shapes, dtype=query.dtype, device=query.device).flip(-1)
+            # TODO: this might be incorrect
             add = sampling_offsets / offset_normalizer[None, None, None, :, None, :]
             sampling_locations = refer_bbox[:, :, None, :, None, :] + add
         elif num_points == 4:
-            add = sampling_offsets / self.n_points * refer_bbox[:, :, None, :, None, 2:] * 0.5
-            sampling_locations = refer_bbox[:, :, None, :, None, :2] + add
+            add = sampling_offsets / self.n_points * refer_bbox[:, :, None, :, 2:] * 0.5
+            sampling_locations = refer_bbox[:, :, None, :, :2] + add
         else:
             raise ValueError(f"Last dim of reference_points must be 2 or 4, but got {num_points}.")
-        output = multi_scale_deformable_attn_pytorch(value, value_shapes, sampling_locations, attention_weights)
+        output = multi_scale_deformable_attn_pytorch(
+            value,
+            value_shapes,
+            sampling_locations,
+            attention_weights,
+            num_points_list=[self.n_points for _ in range(self.n_levels)],
+        )
         return self.output_proj(output)
 
 

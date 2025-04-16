@@ -133,35 +133,31 @@ def multi_scale_deformable_attn_pytorch(
     References:
         https://github.com/IDEA-Research/detrex/blob/main/detrex/layers/multi_scale_deform_attn.py
     """
-    bs, _, num_heads, embed_dims = value.shape
-    _, num_queries, num_heads, num_levels, num_points, _ = sampling_locations.shape
-    value_list = value.split([H_ * W_ for H_, W_ in value_spatial_shapes], dim=1)
+    bs, _, n_head, c = value.shape
+    len_q = sampling_locations.shape[1]
+    # (bs, len_v, n_head, c) -> (bs, n_head, c, len_v) -> (bs*n_head, c, len_v)
+    value_list = value.permute(0, 2, 3, 1).flatten(0, 1).split([h * w for h, w in value_spatial_shapes], dim=-1)
+
     sampling_grids = 2 * sampling_locations - 1
+    # (bs, len_q, n_head, n_levels*n_points, 2) ->
+    # (bs, n_head, len_q, n_levels*n_points, 2) ->
+    # (bs*n_head, len_q, n_levels*n_points, 2)
+    sampling_grids = sampling_grids.permute(0, 2, 1, 3, 4).flatten(0, 1)
+    sampling_locations_list = sampling_grids.split(num_points_list, dim=-2)
+
     sampling_value_list = []
-    for level, (H_, W_) in enumerate(value_spatial_shapes):
-        # bs, H_*W_, num_heads, embed_dims ->
-        # bs, H_*W_, num_heads*embed_dims ->
-        # bs, num_heads*embed_dims, H_*W_ ->
-        # bs*num_heads, embed_dims, H_, W_
-        value_l_ = value_list[level].flatten(2).transpose(1, 2).reshape(bs * num_heads, embed_dims, H_, W_)
-        # bs, num_queries, num_heads, num_points, 2 ->
-        # bs, num_heads, num_queries, num_points, 2 ->
-        # bs*num_heads, num_queries, num_points, 2
-        sampling_grid_l_ = sampling_grids[:, :, :, level].transpose(1, 2).flatten(0, 1)
-        # bs*num_heads, embed_dims, num_queries, num_points
-        sampling_value_l_ = F.grid_sample(
-            value_l_, sampling_grid_l_, mode="bilinear", padding_mode="zeros", align_corners=False
+    for level, (h, w) in enumerate(value_spatial_shapes):
+        value_l = value_list[level].reshape(bs * n_head, c, h, w)
+        sampling_grid_l = sampling_locations_list[level]
+        # bs*n_head, embed_dims, num_queries, num_points
+        sampling_value_list.append(
+            F.grid_sample(value_l, sampling_grid_l, mode="bilinear", padding_mode="zeros", align_corners=False)
         )
-        sampling_value_list.append(sampling_value_l_)
     # (bs, num_queries, num_heads, num_levels, num_points) ->
     # (bs, num_heads, num_queries, num_levels, num_points) ->
     # (bs, num_heads, 1, num_queries, num_levels*num_points)
-    attention_weights = attention_weights.transpose(1, 2).reshape(
-        bs * num_heads, 1, num_queries, num_levels * num_points
-    )
+    attention_weights = attention_weights.transpose(1, 2).reshape(bs * n_head, 1, len_q, sum(num_points_list))
     output = (
-        (torch.stack(sampling_value_list, dim=-2).flatten(-2) * attention_weights)
-        .sum(-1)
-        .view(bs, num_heads * embed_dims, num_queries)
+        (torch.stack(sampling_value_list, dim=-2).flatten(-2) * attention_weights).sum(-1).view(bs, n_head * c, len_q)
     )
     return output.transpose(1, 2).contiguous()

@@ -832,6 +832,24 @@ class Gate(nn.Module):
         gate1, gate2 = gates.chunk(2, dim=-1)
         return self.norm(gate1 * x1 + gate2 * x2)
 
+# TODO: put it here for now
+class LQE(nn.Module):
+    def __init__(self, k, hidden_dim, num_layers, reg_max, act='relu'):
+        super(LQE, self).__init__()
+        self.k = k
+        self.reg_max = reg_max
+        self.reg_conf = MLP(4 * (k + 1), hidden_dim, 1, num_layers, act=act)
+        torch.nn.init.constant_(self.reg_conf.layers[-1].bias, 0)
+        torch.nn.init.constant_(self.reg_conf.layers[-1].weight, 0)
+
+    def forward(self, scores, pred_corners):
+        B, L, _ = pred_corners.size()
+        prob = F.softmax(pred_corners.reshape(B, L, 4, self.reg_max+1), dim=-1)
+        prob_topk, _ = prob.topk(self.k, dim=-1)
+        stat = torch.cat([prob_topk, prob_topk.mean(dim=-1, keepdim=True)], dim=-1)
+        quality_score = self.reg_conf(stat.reshape(B, L, -1))
+        return scores + quality_score
+
 
 class DeformableTransformerDecoder(nn.Module):
     """

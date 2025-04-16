@@ -296,8 +296,8 @@ class Exporter:
             if not self.args.int8:
                 LOGGER.warning("WARNING ⚠️ IMX export requires int8=True, setting int8=True.")
                 self.args.int8 = True
-            if model.task != "detect":
-                raise ValueError("IMX export only supported for detection models.")
+            if model.task not in ("detect", "pose"):
+                raise ValueError("IMX export only supported for detection and pose estimation models.")
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)
@@ -1142,7 +1142,7 @@ class Exporter:
         import model_compression_toolkit as mct
         import onnx
         from edgemdt_tpc import get_target_platform_capabilities
-        from sony_custom_layers.pytorch import multiclass_nms
+        from sony_custom_layers.pytorch import multiclass_nms, multiclass_nms_with_indices
 
         LOGGER.info(f"\n{prefix} starting export with model_compression_toolkit {mct.__version__}...")
 
@@ -1166,13 +1166,23 @@ class Exporter:
 
         bit_cfg = mct.core.BitWidthConfig()
         if "C2PSA" in self.model.__str__():  # YOLO11
-            layer_names = ["sub", "mul_2", "add_14", "cat_21"]
-            weights_memory = 2585350.2439
-            n_layers = 238  # 238 layers for fused YOLO11n
+            if self.model.task == "detect":
+                layer_names = ["sub", "mul_2", "add_14", "cat_21"]
+                weights_memory = 2585350.2439
+                n_layers = 238  # 238 layers for fused YOLO11n
+            elif self.model.task == "pose":
+                layer_names = ['sub', 'mul_2', 'add_14', 'cat_22', 'cat_23', 'mul_4', 'add_15']
+                weights_memory = 2437771.67
+                n_layers = 345 # 345 layers for fused YOLO11n-pose
         else:  # YOLOv8
-            layer_names = ["sub", "mul", "add_6", "cat_17"]
-            weights_memory = 2550540.8
-            n_layers = 168  # 168 layers for fused YOLOv8n
+            if self.model.task == "detect":
+                layer_names = ["sub", "mul", "add_6", "cat_17"]
+                weights_memory = 2550540.8
+                n_layers = 168  # 168 layers for fused YOLOv8n
+            elif self.model.task == "pose":
+                layer_names = ['add_7', 'mul_2', 'cat_19', 'mul', 'sub', 'add_6', 'cat_18']
+                weights_memory = 2482451.85
+                n_layers = 187 # 187 layers for fused YOLO11n-pose
 
         # Check if the model has the expected number of layers
         if len(list(self.model.modules())) != n_layers:
@@ -1217,6 +1227,7 @@ class Exporter:
                 score_threshold: float = 0.001,
                 iou_threshold: float = 0.7,
                 max_detections: int = 300,
+                task: str = "detect",
             ):
                 """
                 Wrapping PyTorch Module with multiclass_nms layer from sony_custom_layers.
@@ -1232,6 +1243,7 @@ class Exporter:
                 self.score_threshold = score_threshold
                 self.iou_threshold = iou_threshold
                 self.max_detections = max_detections
+                self.task = task
 
             def forward(self, images):
                 # model inference
@@ -1239,20 +1251,36 @@ class Exporter:
 
                 boxes = outputs[0]
                 scores = outputs[1]
-                nms = multiclass_nms(
-                    boxes=boxes,
-                    scores=scores,
-                    score_threshold=self.score_threshold,
-                    iou_threshold=self.iou_threshold,
-                    max_detections=self.max_detections,
-                )
-                return nms
+                if self.task == "detect":
+                    nms = multiclass_nms(
+                        boxes=boxes,
+                        scores=scores,
+                        score_threshold=self.score_threshold,
+                        iou_threshold=self.iou_threshold,
+                        max_detections=self.max_detections,
+                    )
+                    return nms
+                elif self.task == "pose":
+                    nms = multiclass_nms_with_indices(
+                        boxes=boxes,
+                        scores=scores,
+                        score_threshold=self.score_threshold,
+                        iou_threshold=self.iou_threshold,
+                        max_detections=self.max_detections
+                    )
+                    kpts = torch.permute(outputs[2], (0, 2, 1))  # (bs, max_detections, kpts 17*3)
+                    idx = nms.indices
+                    indices_expanded = idx.unsqueeze(-1).expand(-1, -1, kpts.size(
+                        -1))  # add new dimension at the end of tensor idx and expand to match the number of kpts (17*3)
+                    out_kpts = torch.gather(kpts, 1, indices_expanded)
+                    return nms.boxes, nms.scores, out_kpts
 
         quant_model = NMSWrapper(
             model=quant_model,
             score_threshold=self.args.conf or 0.001,
             iou_threshold=self.args.iou,
             max_detections=self.args.max_det,
+            task=self.model.task,
         ).to(self.device)
 
         f = Path(str(self.file).replace(self.file.suffix, "_imx_model"))

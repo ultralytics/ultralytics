@@ -741,7 +741,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
         return self.forward_ffn(embed)
 
 
-class DINETransformerDecoderLayer(DeformableTransformerDecoderLayer):
+class DFINETransformerDecoderLayer(DeformableTransformerDecoderLayer):
     def __init__(
         self,
         d_model=256,
@@ -941,7 +941,7 @@ class DeformableTransformerDecoder(nn.Module):
         return torch.stack(dec_bboxes), torch.stack(dec_cls)
 
 
-class DINETransformerDecoder(nn.Module):
+class DFINETransformerDecoder(nn.Module):
     """
     Transformer Decoder implementing Fine-grained Distribution Refinement (FDR).
 
@@ -964,7 +964,7 @@ class DINETransformerDecoder(nn.Module):
         layer_scale=2,
         act="relu",
     ):
-        super(DINETransformerDecoder, self).__init__()
+        super().__init__()
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
         self.layer_scale = layer_scale

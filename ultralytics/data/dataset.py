@@ -31,7 +31,7 @@ from .converter import merge_multi_segment
 from .utils import (
     HELP_URL,
     LOGGER,
-    check_dataset_speed,
+    check_file_speeds,
     get_hash,
     img2label_paths,
     load_dataset_cache_file,
@@ -795,7 +795,7 @@ class ClassificationDataset:
         path = Path(self.root).with_suffix(".cache")  # *.cache file path
 
         try:
-            check_dataset_speed([file for (file, _) in self.samples[:5]], prefix=self.prefix)
+            check_file_speeds([file for (file, _) in self.samples[:5]], prefix=self.prefix)  # check image read speeds
             cache = load_dataset_cache_file(path)  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
             assert cache["hash"] == get_hash([x[0] for x in self.samples])  # identical hash

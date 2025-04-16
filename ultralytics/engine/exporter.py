@@ -1171,18 +1171,18 @@ class Exporter:
                 weights_memory = 2585350.2439
                 n_layers = 238  # 238 layers for fused YOLO11n
             elif self.model.task == "pose":
-                layer_names = ['sub', 'mul_2', 'add_14', 'cat_22', 'cat_23', 'mul_4', 'add_15']
+                layer_names = ["sub", "mul_2", "add_14", "cat_22", "cat_23", "mul_4", "add_15"]
                 weights_memory = 2437771.67
-                n_layers = 345 # 345 layers for fused YOLO11n-pose
+                n_layers = 345  # 345 layers for fused YOLO11n-pose
         else:  # YOLOv8
             if self.model.task == "detect":
                 layer_names = ["sub", "mul", "add_6", "cat_17"]
                 weights_memory = 2550540.8
                 n_layers = 168  # 168 layers for fused YOLOv8n
             elif self.model.task == "pose":
-                layer_names = ['add_7', 'mul_2', 'cat_19', 'mul', 'sub', 'add_6', 'cat_18']
+                layer_names = ["add_7", "mul_2", "cat_19", "mul", "sub", "add_6", "cat_18"]
                 weights_memory = 2482451.85
-                n_layers = 187 # 187 layers for fused YOLO11n-pose
+                n_layers = 187  # 187 layers for fused YOLO11n-pose
 
         # Check if the model has the expected number of layers
         if len(list(self.model.modules())) != n_layers:
@@ -1266,12 +1266,13 @@ class Exporter:
                         scores=scores,
                         score_threshold=self.score_threshold,
                         iou_threshold=self.iou_threshold,
-                        max_detections=self.max_detections
+                        max_detections=self.max_detections,
                     )
                     kpts = torch.permute(outputs[2], (0, 2, 1))  # (bs, max_detections, kpts 17*3)
                     idx = nms.indices
-                    indices_expanded = idx.unsqueeze(-1).expand(-1, -1, kpts.size(
-                        -1))  # add new dimension at the end of tensor idx and expand to match the number of kpts (17*3)
+                    indices_expanded = idx.unsqueeze(-1).expand(
+                        -1, -1, kpts.size(-1)
+                    )  # add new dimension at the end of tensor idx and expand to match the number of kpts (17*3)
                     out_kpts = torch.gather(kpts, 1, indices_expanded)
                     return nms.boxes, nms.scores, out_kpts
 

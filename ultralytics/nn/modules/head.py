@@ -872,3 +872,7 @@ class v10Detect(Detect):
             for x in ch
         )
         self.one2one_cv3 = copy.deepcopy(self.cv3)
+
+    def fuse(self):
+        """Removes the one2many head."""
+        self.cv2 = self.cv3 = nn.ModuleList([nn.Identity()] * self.nl)

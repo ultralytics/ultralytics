@@ -50,19 +50,19 @@ def img2label_paths(img_paths):
 def check_file_speeds(files, threshold_ms=10, max_files=5, prefix=""):
     """
     Check dataset file access speed and provide performance feedback.
-    
+
     This function tests the access speed of dataset files by measuring ping (stat call) time and read speed.
     It samples up to 5 files from the provided list and warns if access times exceed the threshold.
-    
+
     Args:
         files (list): List of file paths to check for access speed.
         threshold_ms (float, optional): Threshold in milliseconds for ping time warnings.
         max_files (int, optional): The maximum number of files to check.
         prefix (str, optional): Prefix string to add to log messages.
-    
+
     Examples:
         >>> from pathlib import Path
-        >>> image_files = list(Path('dataset/images').glob('*.jpg'))
+        >>> image_files = list(Path("dataset/images").glob("*.jpg"))
         >>> check_file_speeds(image_files, threshold_ms=15)
     """
     if not files or len(files) == 0:

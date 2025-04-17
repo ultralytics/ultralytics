@@ -295,7 +295,7 @@ class YOLODataset(BaseDataset):
         values = list(zip(*[list(b.values()) for b in batch]))
         for i, k in enumerate(keys):
             value = values[i]
-            if k == "img" or k == "text_feats":
+            if k in {"img", "text_feats"}:
                 value = torch.stack(value, 0)
             elif k == "visuals":
                 value = torch.nn.utils.rnn.pad_sequence(value, batch_first=True)
@@ -396,7 +396,7 @@ class YOLOMultiModalDataset(YOLODataset):
         texts = [v.split("/") for v in self.data["names"].values()]
         category_freq = defaultdict(int)
         for label in self.labels:
-            for c in label["cls"]:  # to check
+            for c in label["cls"].squeeze(-1):  # to check
                 text = texts[int(c)]
                 for t in text:
                     t = t.strip()
@@ -751,7 +751,7 @@ class ClassificationDataset:
                 hsv_v=args.hsv_v,
             )
             if augment
-            else classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
+            else classify_transforms(size=args.imgsz)
         )
 
     def __getitem__(self, i):

@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from ultralytics import SAM, YOLO
 from ultralytics.data.loaders import LoadImagesAndVideos
-from ultralytics.utils import LOGGER, ASSETS
+from ultralytics.utils import ASSETS, LOGGER
 from ultralytics.utils.ops import xyxy2xywhn
 from ultralytics.utils.plotting import Annotator, colors
 from ultralytics.utils.torch_utils import select_device

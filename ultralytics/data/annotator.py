@@ -14,6 +14,12 @@ from ultralytics.utils.ops import xyxy2xywhn
 from ultralytics.utils.plotting import Annotator, colors
 from ultralytics.utils.torch_utils import select_device
 
+florence_2_models = {
+    "Florence-2-base",
+    "Florence-2-large",
+    "Florence-2-base-ft",
+    "Florence-2-large-ft"
+}
 
 def auto_annotate(
     data: Union[str, Path],
@@ -106,36 +112,38 @@ class AutoAnnotator:
         self.default_tp = "<OD>"  # Fallback prompt for generic object detection
         self.min_box_w = min_box_w
         self.min_box_h = min_box_h
-        self.m_id = "microsoft/Florence-2-base-ft"
+        if model in florence_2_models:
+            self.m_id = f"microsoft/{model}"
+        else:
+            LOGGER.warning(f"⚠️ '{model}' is not a recognized Florence-2 model. "
+                           f"Falling back to default: 'florence-2-base-ft'. Supported models: {florence_2_models}")
+            self.m_id = "microsoft/Florence-2-base-ft"
+
         self.model, self.processor = None, None
         self.device = select_device()  # Auto-select CUDA or CPU
         self.torch_dtype = torch.float16 if self.device == "cuda" else torch.float32  # Use fp16 on CUDA
-        self._load_model("florence-2" if model is None else model)  # Load model
+        self._load_model()  # Load model
 
-    def _load_model(self, model_name):
+    def _load_model(self):
         """Load the Florence-2 grounding model and corresponding processor."""
-        if model_name.lower() == "florence-2":
-            from ultralytics.utils.checks import check_requirements
+        from ultralytics.utils.checks import check_requirements
 
-            check_requirements(["transformers==4.49.0", "einops"])  # Ensure required libraries
+        check_requirements(["transformers==4.49.0", "einops"])  # Ensure required libraries
 
-            from transformers import AutoModelForCausalLM, AutoProcessor, logging
+        from transformers import AutoModelForCausalLM, AutoProcessor, logging
 
-            LOGGER.info(f"💡Loading model: {self.m_id}")
-            logging.set_verbosity_error()  # Suppress excessive logs from transformers library: https://huggingface.co/docs/transformers/en/main_classes/logging
+        LOGGER.info(f"💡Loading model: {self.m_id}")
+        logging.set_verbosity_error()  # Suppress excessive logs from transformers library: https://huggingface.co/docs/transformers/en/main_classes/logging
 
-            # Load the model and processor from Hugging Face
-            self.model = AutoModelForCausalLM.from_pretrained(
-                self.m_id,
-                torch_dtype=self.torch_dtype,
-                trust_remote_code=True,
-            ).to(self.device)
+        # Load the model and processor from Hugging Face
+        self.model = AutoModelForCausalLM.from_pretrained(
+            self.m_id,
+            torch_dtype=self.torch_dtype,
+            trust_remote_code=True,
+        ).to(self.device)
 
-            self.processor = AutoProcessor.from_pretrained(self.m_id, trust_remote_code=True)
-            LOGGER.info(f"✅ Model loaded on {self.device}")
-        else:
-            LOGGER.warning(f"⚠️ Unknown model '{model_name}', defaulting to 'florence-2'")
-            self._load_model("florence-2")
+        self.processor = AutoProcessor.from_pretrained(self.m_id, trust_remote_code=True)
+        LOGGER.info(f"✅ Model loaded on {self.device}")
 
     @staticmethod
     def convert_to_yolo(x1, y1, x2, y2, w, h):

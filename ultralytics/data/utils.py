@@ -80,16 +80,16 @@ def check_file_speeds(files, threshold_ms=10, max_files=5, prefix=""):
     for f in files:
         try:
             # Measure ping (stat call)
-            start = time.time()
+            start = time.perf_counter()
             file_size = os.stat(f).st_size
-            ping_times.append((time.time() - start) * 1000)  # ms
+            ping_times.append((time.perf_counter() - start) * 1000)  # ms
             file_sizes.append(file_size)
 
             # Measure read speed
-            start = time.time()
+            start = time.perf_counter()
             with open(f, "rb") as file_obj:
                 _ = file_obj.read()
-            read_time = time.time() - start
+            read_time = time.perf_counter() - start
             if read_time > 0:  # Avoid division by zero
                 read_speeds.append(file_size / (1 << 20) / read_time)  # MB/s
         except Exception:

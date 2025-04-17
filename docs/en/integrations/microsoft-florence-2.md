@@ -26,47 +26,47 @@ keywords: Florence-2, Microsoft Florence, Ultralytics, object detection, segment
 
 Florence-2 supports a variety of vision and vision-language tasks through the use of special prompt tokens. By providing the appropriate prompt, users can instruct the model to perform the desired task. The key tasks supported include:
 
-- **Object detection:** Identify objects in an image along with their bounding boxes. Using the `<OD>` prompt, Florence-2 will output a set of object coordinates and labels in a structured format. For example, the model can return a dictionary containing lists of bounding box coordinates and their corresponding class names as shown below:
+1- **Object detection:** Identify objects in an image along with their bounding boxes. Using the `<OD>` prompt, Florence-2 will output a set of object coordinates and labels in a structured format. For example, the model can return a dictionary containing lists of bounding box coordinates and their corresponding class names as shown below:
 
-```str
-{
-    "<OD>": {
-        "bboxes": [[x1, y1, x2, y2], ...],
-        "labels": ["label1", "label2", ...]
+    ```str
+    {
+        "<OD>": {
+            "bboxes": [[x1, y1, x2, y2], ...],
+            "labels": ["label1", "label2", ...]
+        }
     }
-}
-```
+    ```
 
-- **Image Captioning:** Generate a natural-language description of the entire image. With the `<CAPTION>` prompt, Florence-2 will analyze the image and produce a descriptive caption in English. The model can provide different levels of detail based on the prompt (for example, using `<DETAILED_CAPTION>` yields a more detailed description). This capability is useful for automatic image captioning or summarizing the content of images. It's output format:
+2- **Image Captioning:** Generate a natural-language description of the entire image. With the `<CAPTION>` prompt, Florence-2 will analyze the image and produce a descriptive caption in English. The model can provide different levels of detail based on the prompt (for example, using `<DETAILED_CAPTION>` yields a more detailed description). This capability is useful for automatic image captioning or summarizing the content of images. It's output format:
 
-```str
-{
-    "<CAPTION>": 'description of image.'
-}
-
-```
-
-- **Optical Character Recognition (OCR):** Read text that appears within an image. Using the `<OCR>` prompt, Florence-2 will output the text found in the image (for instance, reading signs, documents, or scene text). It can also provide the location of the text: the `<OCR_WITH_REGION>` prompt yields both the recognized text strings and their bounding quadrilaterals (coordinates of corners of the text region) This makes Florence-2 capable of end-to-end scene text recognition, useful for digitizing documents or assisting in understanding text in natural scenes. Output format:
-
-```str
-{
-    "<OCR_WITH_REGION>": {
-        "quad_boxes": [[x1, y1, x2, y2], ...],
-        "labels": ["label1", "label2", ...]
+    ```str
+    {
+        "<CAPTION>": 'description of image.'
     }
-}
-```
+    
+    ```
 
-- **Instance Segmentation:** Recognize object instances and delineate their shapes with pixel-wise masks. Florence-2 can produce segmentation results by outputting polygon coordinates for object masks . In practice, a segmentation task can be activated via a prompt <REFERRING_EXPRESSION_SEGMENTATION>, and the model's text output encodes the mask as a series of vertices in the image.
+3- **Optical Character Recognition (OCR):** Read text that appears within an image. Using the `<OCR>` prompt, Florence-2 will output the text found in the image (for instance, reading signs, documents, or scene text). It can also provide the location of the text: the `<OCR_WITH_REGION>` prompt yields both the recognized text strings and their bounding quadrilaterals (coordinates of corners of the text region) This makes Florence-2 capable of end-to-end scene text recognition, useful for digitizing documents or assisting in understanding text in natural scenes. Output format:
 
-```str
-{
-    "<REFERRING_EXPRESSION_SEGMENTATION>": {
-        {'Polygons': [[[polygon]], ...],
-        "labels": ["label1", "label2", ...]
+    ```str
+    {
+        "<OCR_WITH_REGION>": {
+            "quad_boxes": [[x1, y1, x2, y2], ...],
+            "labels": ["label1", "label2", ...]
+        }
     }
-}
-```
+    ```
+
+4- **Instance Segmentation:** Recognize object instances and delineate their shapes with pixel-wise masks. Florence-2 can produce segmentation results by outputting polygon coordinates for object masks . In practice, a segmentation task can be activated via a prompt <REFERRING_EXPRESSION_SEGMENTATION>, and the model's text output encodes the mask as a series of vertices in the image.
+
+    ```str
+    {
+        "<REFERRING_EXPRESSION_SEGMENTATION>": {
+            {'Polygons': [[[polygon]], ...],
+            "labels": ["label1", "label2", ...]
+        }
+    }
+    ```
 
 ![Florence-2-tasks](https://github.com/ultralytics/docs/releases/download/0/florence-2-tasks.jpg)
 

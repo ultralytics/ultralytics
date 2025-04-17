@@ -979,7 +979,7 @@ class DFINETransformerDecoder(nn.Module):
         )
         self.lqe_layers = _get_clones(LQE(4, 64, 2, reg_max, act=act), num_layers)
 
-    def value_op(self, feats, value_proj, value_scale, feats_mask, feats_spatial_shapes):
+    def value_op(self, feats, feats_spatial_shapes, value_proj=None, value_scale=None, feats_mask=None):
         """
         Preprocess values for MSDeformableAttention.
         """
@@ -1010,11 +1010,11 @@ class DFINETransformerDecoder(nn.Module):
         up,
         reg_scale,
         attn_mask=None,
-        memory_mask=None,
+        feats_mask=None,
     ):
         output = target
         output_detach = pred_corners_undetach = 0
-        value = self.value_op(feats, None, None, memory_mask, spatial_shapes)
+        value = self.value_op(feats, spatial_shapes, feats_mask=feats_mask)
 
         dec_out_bboxes = []
         dec_out_logits = []
@@ -1031,7 +1031,9 @@ class DFINETransformerDecoder(nn.Module):
             # TODO Adjust scale if needed for detachable wider layers
             if i >= self.eval_idx + 1 and self.layer_scale > 1:
                 query_pos_embed = F.interpolate(query_pos_embed, scale_factor=self.layer_scale)
-                value = self.value_op(feats, None, query_pos_embed.shape[-1], memory_mask, spatial_shapes)
+                value = self.value_op(
+                    feats, spatial_shapes, value_scale=query_pos_embed.shape[-1], feats_mask=feats_mask
+                )
                 output = F.interpolate(output, size=query_pos_embed.shape[-1])
                 output_detach = output.detach()
 

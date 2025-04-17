@@ -241,15 +241,15 @@ class BOTSORT(BYTETracker):
 
 class ReID:
     """YOLO model as encoder for re-identification."""
+
     def __init__(self, model):
         """Initialize encoder for re-identification."""
         from ultralytics import YOLO
+
         self.model = YOLO(model)
         self.model(embed=[len(self.model.model.model) - 2 if ".pt" in model else -1], verbose=False)  # initialize
 
     def __call__(self, img, dets):
         """Extract embeddings for detected objects."""
-        feats = self.model(
-            [save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))]
-        )
+        feats = self.model([save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))])
         return [f.cpu().numpy() for f in feats]

@@ -1173,7 +1173,7 @@ class Exporter:
             elif self.model.task == "pose":
                 layer_names = ["sub", "mul_2", "add_14", "cat_22", "cat_23", "mul_4", "add_15"]
                 weights_memory = 2437771.67
-                n_layers = 345  # 345 layers for fused YOLO11n-pose
+                n_layers = 257  # 257 layers for fused YOLO11n-pose
         else:  # YOLOv8
             if self.model.task == "detect":
                 layer_names = ["sub", "mul", "add_6", "cat_17"]

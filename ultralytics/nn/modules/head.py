@@ -278,8 +278,7 @@ class Pose(Detect):
                 a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * norm
             elif self.format == "imx":
                 y = kpts.view(bs, *self.kpt_shape, -1)
-                pose_anchors, pose_strides = copy.copy(self.anchors), copy.copy(self.strides)
-                a = (y[:, :, :2] * 2.0 + (pose_anchors - 0.5)) * pose_strides
+                a = (y[:, :, :2] * 2.0 + (copy.copy(self.anchors) - 0.5)) * copy.copy(self.strides)
             else:
                 # NCNN fix
                 y = kpts.view(bs, *self.kpt_shape, -1)

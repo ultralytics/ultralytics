@@ -233,7 +233,7 @@ class AutoBackend(nn.Module):
                 session_options = mctq.get_ort_session_options()
                 session_options.enable_mem_reuse = False  # fix the shape mismatch from onnxruntime
                 session = onnxruntime.InferenceSession(w, session_options, providers=["CPUExecutionProvider"])
-                task = "detect"
+                
 
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map

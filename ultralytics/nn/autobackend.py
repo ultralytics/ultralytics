@@ -145,9 +145,12 @@ class AutoBackend(nn.Module):
         nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
         end2end, dynamic = False, False
-        model, metadata, task = None, None, None
+        model, metadata, task, inference_device = None, None, None, None
 
         # Set device
+        if isinstance(device, str) and device.startswith("intel"):
+            inference_device = device.split(":")[1].upper()  # Intel OpenVINO device
+            device = torch.device("cpu") 
         cuda = torch.cuda.is_available() and device.type != "cpu"  # use CUDA
         if cuda and not any([nn_module, pt, jit, engine, onnx, paddle]):  # GPU dataloader formats
             device = torch.device("cpu")
@@ -262,6 +265,9 @@ class AutoBackend(nn.Module):
             import openvino as ov
 
             core = ov.Core()
+            if inference_device not in core.available_devices:
+                LOGGER.warning(f"WARNING ⚠️ OpenVINO device '{inference_device}' not available. Using 'AUTO' instead.")
+                inference_device = "AUTO"
             w = Path(w)
             if not w.is_file():  # if not *.xml
                 w = next(w.glob("*.xml"))  # get *.xml file from *_openvino_model dir
@@ -274,7 +280,7 @@ class AutoBackend(nn.Module):
             LOGGER.info(f"Using OpenVINO {inference_mode} mode for batch={batch} inference...")
             ov_compiled_model = core.compile_model(
                 ov_model,
-                device_name="AUTO",  # AUTO selects best available device, do not modify
+                device_name=inference_device,
                 config={"PERFORMANCE_HINT": inference_mode},
             )
             input_name = ov_compiled_model.input().get_any_name()

@@ -1,11 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import glob
 from pathlib import Path
 from typing import List, Optional, Union
 
 from ultralytics import SAM, YOLO
-from ultralytics.utils.checks import check_requirements
 
 
 def auto_annotate(
@@ -69,12 +67,15 @@ def auto_annotate(
 
 
 import time
+
+import torch
+from tqdm import tqdm
+
 from ultralytics.data.loaders import LoadImagesAndVideos
 from ultralytics.utils import LOGGER
 from ultralytics.utils.plotting import Annotator, colors
-import torch
-from tqdm import tqdm
 from ultralytics.utils.torch_utils import select_device
+
 
 class AutoAnnotator:
     def __init__(self, model=None):

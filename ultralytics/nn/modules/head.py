@@ -915,7 +915,6 @@ class DFINETransformer(nn.Module):
         hidden_dim=256,
         num_queries=300,
         feat_channels=[512, 1024, 2048],
-        feat_strides=[8, 16, 32],
         num_points=4,
         nhead=8,
         num_layers=6,

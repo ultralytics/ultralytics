@@ -1,7 +1,7 @@
 ---
 comments: true
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Learn how to integrate Microsoft Florence-2 with the Ultralytics Python package for zero-shot object detection, segmentation, captioning, and OCR tasks using unified prompts.
+keywords: Florence-2, Microsoft Florence, Ultralytics, object detection, segmentation, image captioning, OCR, vision-language models, unified prompts, computer vision, FLD-5B, auto annotation
 ---
 
 # Microsoft Florence-2 Integration with Ultralytics Python Package

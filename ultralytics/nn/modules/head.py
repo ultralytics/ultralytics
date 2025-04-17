@@ -1244,7 +1244,7 @@ class DFINETransformer(nn.Module):
 
     def forward(self, feats, batch=None):
         # input projection and embedding
-        memory, spatial_shapes = self._get_encoder_input(feats)
+        feats, spatial_shapes = self._get_encoder_input(feats)
 
         # prepare denoising training
         from ultralytics.models.utils.ops import get_cdn_group
@@ -1274,14 +1274,14 @@ class DFINETransformer(nn.Module):
             denoising_logits, denoising_bbox_unact, attn_mask, dn_meta = None, None, None, None
 
         init_ref_contents, init_ref_points_unact, enc_topk_bboxes_list, enc_topk_logits_list = self._get_decoder_input(
-            memory, spatial_shapes, denoising_logits, denoising_bbox_unact
+            feats, spatial_shapes, denoising_logits, denoising_bbox_unact
         )
 
         # decoder
         out_bboxes, out_logits, out_corners, out_refs, pre_bboxes, pre_logits = self.decoder(
             init_ref_contents,
             init_ref_points_unact,
-            memory,
+            feats,
             spatial_shapes,
             self.dec_bbox_head,
             self.dec_score_head,

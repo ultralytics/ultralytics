@@ -165,6 +165,7 @@ class AutoAnnotator:
             visuals_output_dir.mkdir(parents=True, exist_ok=True)  # Ensure visual output dir exists
 
         processed = 0  # Counter for successfully annotated images
+        found_labels = set()  # Store classes were found in this image
 
         for path, im0, _ in tqdm(dataset, desc="Annotating Images"):
             try:
@@ -209,7 +210,8 @@ class AutoAnnotator:
 
                 # Process each box-label pair
                 for box, label in zip(bboxes, labels):
-                    if label in classes:
+                    if classes is None or label in classes:
+                        found_labels.add(label)
                         x1, y1, x2, y2 = box
                         # Add new label to label_map if not already present
                         if label not in label_map:
@@ -220,9 +222,16 @@ class AutoAnnotator:
 
                         lines.append(f"{label_map[label]} {self.convert_to_yolo(x1, y1, x2, y2, w, h)}")
 
+                # Handle case where no lines were written (no classes detected)
                 if not lines:
-                    if label not in classes:
-                        LOGGER.warning(f"⚠️ Skipping image file {img_name}, no {classes} found")
+                    if classes:
+                        missing = set(classes) - found_labels
+                        if missing:
+                            LOGGER.warning(f"⚠️ Skipping image {img_name}. Missing classes: {sorted(missing)}")
+                        else:
+                            LOGGER.warning(f"⚠️ All boxes skipped (too small or invalid) for: {img_name}")
+                    else:
+                        LOGGER.warning(f"⚠️ All boxes skipped (too small or invalid) for: {img_name}")
                     continue
 
                 # Save annotation file

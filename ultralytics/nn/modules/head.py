@@ -1121,32 +1121,32 @@ class DFINETransformer(nn.Module):
         if bs > 1:
             anchors = anchors.repeat(feats.shape[0], 1, 1)
 
-        features = self.enc_output(valid_mask * feats)  # bs, h*w, 256
-        enc_outputs_scores = self.enc_score_head(features)  # bs, h*w, nc
+        feats = self.enc_output(valid_mask * feats)  # bs, h*w, 256
+        enc_outputs_scores = self.enc_score_head(feats)  # bs, h*w, nc
 
         # (bs * num_queries)
         topk_ind = self._select_topk(enc_outputs_scores, self.num_queries)
         batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
 
         # (bs, num_queries, 256)
-        topk_features = features[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        topk_feats = feats[batch_ind, topk_ind].view(bs, self.num_queries, -1)
         # (1, num_queries, 4)
         topk_anchors = anchors[:, topk_ind].view(bs, self.num_queries, -1)
-        topk_refer_bbox = self.enc_bbox_head(topk_features) + topk_anchors
+        topk_refer_bbox = self.enc_bbox_head(topk_feats) + topk_anchors
 
         enc_topk_bboxes, enc_topk_scores = None, None  # It's not need during inference mode
         if self.training:
             enc_topk_bboxes = F.sigmoid(topk_refer_bbox)
             # (bs, num_queries, nc)
             enc_topk_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
-        embeddings = topk_features.detach()
+        top_feats = topk_feats.detach()
         topk_refer_bbox = topk_refer_bbox.detach()
 
         if denoising_bbox_unact is not None:
             topk_refer_bbox = torch.cat([denoising_bbox_unact, topk_refer_bbox], dim=1)
-            embeddings = torch.cat([denoising_logits, embeddings], dim=1)
+            top_feats = torch.cat([denoising_logits, top_feats], dim=1)
 
-        return embeddings, topk_refer_bbox, enc_topk_bboxes, enc_topk_scores
+        return top_feats, topk_refer_bbox, enc_topk_bboxes, enc_topk_scores
 
     def _select_topk(self, enc_outputs_scores: torch.Tensor, topk: int):
         if self.query_select_method == "default":
@@ -1187,12 +1187,12 @@ class DFINETransformer(nn.Module):
             self.box_noise_scale,
             self.training,
         )
-        topk_embed, topk_refer_box, enc_topk_bboxes, enc_topk_scores = self._get_decoder_input(
+        topk_feats, topk_refer_box, enc_topk_bboxes, enc_topk_scores = self._get_decoder_input(
             feats, spatial_shapes, dn_embed, dn_bbox
         )
         # decoder
         out_bboxes, out_logits, out_corners, out_refs, pre_bboxes, pre_logits = self.decoder(
-            topk_embed,
+            topk_feats,
             topk_refer_box,
             feats,
             spatial_shapes,

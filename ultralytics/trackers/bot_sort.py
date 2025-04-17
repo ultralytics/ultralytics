@@ -195,10 +195,7 @@ class BOTSORT(BYTETracker):
         # ReID module
         self.proximity_thresh = args.proximity_thresh
         self.appearance_thresh = args.appearance_thresh
-        self.encoder = None
-        if not args.with_reid:
-            return
-        self.encoder = ReID(args.model)
+        self.encoder = ReID(args.model) if args.with_reid else None
 
     def get_kalmanfilter(self):
         """Return an instance of KalmanFilterXYWH for predicting and updating object states in the tracking process."""

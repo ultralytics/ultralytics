@@ -924,7 +924,6 @@ class DFINETransformer(nn.Module):
         num_denoising=100,
         label_noise_ratio=0.5,
         box_noise_scale=1.0,
-        learn_query_content=False,
         eval_spatial_size=None,
         eval_idx=-1,
         aux_loss=True,
@@ -1004,9 +1003,6 @@ class DFINETransformer(nn.Module):
             torch.nn.init.normal_(self.denoising_class_embed.weight[:-1])
 
         # decoder embedding
-        self.learn_query_content = learn_query_content
-        if learn_query_content:
-            self.tgt_embed = nn.Embedding(num_queries, hidden_dim)
         self.query_pos_head = MLP(4, 2 * hidden_dim, hidden_dim, 2, act=mlp_act)
 
         # if num_select_queries != self.num_queries:
@@ -1058,8 +1054,6 @@ class DFINETransformer(nn.Module):
                 torch.nn.init.constant_(reg_.layers[-1].bias, 0)
 
         torch.nn.init.xavier_uniform_(self.enc_output[0].weight)
-        if self.learn_query_content:
-            torch.nn.init.xavier_uniform_(self.tgt_embed.weight)
         torch.nn.init.xavier_uniform_(self.query_pos_head.layers[0].weight)
         torch.nn.init.xavier_uniform_(self.query_pos_head.layers[1].weight)
         for m, in_channels in zip(self.input_proj, feat_channels):
@@ -1149,16 +1143,14 @@ class DFINETransformer(nn.Module):
             enc_topk_bboxes_list.append(enc_topk_bboxes)
             enc_topk_logits_list.append(topk_scores)
 
-        content = (
-            self.tgt_embed.weight.unsqueeze(0).tile([bs, 1, 1]) if self.learn_query_content else topk_features.detach()
-        )
+        embeddings = topk_features.detach()
         enc_topk_bbox_unact = enc_topk_bbox_unact.detach()
 
         if denoising_bbox_unact is not None:
             enc_topk_bbox_unact = torch.cat([denoising_bbox_unact, enc_topk_bbox_unact], dim=1)
-            content = torch.cat([denoising_logits, content], dim=1)
+            embeddings = torch.cat([denoising_logits, embeddings], dim=1)
 
-        return content, enc_topk_bbox_unact, enc_topk_bboxes_list, enc_topk_logits_list
+        return embeddings, enc_topk_bbox_unact, enc_topk_bboxes_list, enc_topk_logits_list
 
     def _select_topk(self, enc_outputs_scores: torch.Tensor, topk: int):
         if self.query_select_method == "default":

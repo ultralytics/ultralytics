@@ -1124,7 +1124,7 @@ class DFINETransformer(nn.Module):
         features = self.enc_output(valid_mask * feats)  # bs, h*w, 256
         enc_outputs_scores = self.enc_score_head(features)  # bs, h*w, nc
 
-        enc_topk_bboxes_list, enc_topk_logits_list = [], []
+        enc_topk_bboxes_list, enc_topk_scores_list = [], []
 
         # (bs * num_queries)
         topk_ind = self._select_topk(enc_outputs_scores, self.num_queries)
@@ -1136,21 +1136,21 @@ class DFINETransformer(nn.Module):
         topk_anchors = anchors[:, topk_ind].view(bs, self.num_queries, -1)
         # (bs, num_queries, nc)
         topk_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
-        enc_topk_bbox_unact = self.enc_bbox_head(topk_features) + topk_anchors
+        topk_refer_bbox = self.enc_bbox_head(topk_features) + topk_anchors
 
         if self.training:
-            enc_topk_bboxes = F.sigmoid(enc_topk_bbox_unact)
+            enc_topk_bboxes = F.sigmoid(topk_refer_bbox)
             enc_topk_bboxes_list.append(enc_topk_bboxes)
-            enc_topk_logits_list.append(topk_scores)
+            enc_topk_scores_list.append(topk_scores)
 
         embeddings = topk_features.detach()
-        enc_topk_bbox_unact = enc_topk_bbox_unact.detach()
+        topk_refer_bbox = topk_refer_bbox.detach()
 
         if denoising_bbox_unact is not None:
-            enc_topk_bbox_unact = torch.cat([denoising_bbox_unact, enc_topk_bbox_unact], dim=1)
+            topk_refer_bbox = torch.cat([denoising_bbox_unact, topk_refer_bbox], dim=1)
             embeddings = torch.cat([denoising_logits, embeddings], dim=1)
 
-        return embeddings, enc_topk_bbox_unact, enc_topk_bboxes_list, enc_topk_logits_list
+        return embeddings, topk_refer_bbox, enc_topk_bboxes_list, enc_topk_scores_list
 
     def _select_topk(self, enc_outputs_scores: torch.Tensor, topk: int):
         if self.query_select_method == "default":
@@ -1191,14 +1191,13 @@ class DFINETransformer(nn.Module):
             self.box_noise_scale,
             self.training,
         )
-        init_ref_contents, init_ref_points_unact, enc_topk_bboxes_list, enc_topk_logits_list = self._get_decoder_input(
+        topk_embed, topk_refer_box, enc_topk_bboxes_list, enc_topk_scores_list = self._get_decoder_input(
             feats, spatial_shapes, dn_embed, dn_bbox
         )
-
         # decoder
         out_bboxes, out_logits, out_corners, out_refs, pre_bboxes, pre_logits = self.decoder(
-            init_ref_contents,
-            init_ref_points_unact,
+            topk_embed,
+            topk_refer_box,
             feats,
             spatial_shapes,
             self.dec_bbox_head,
@@ -1238,7 +1237,7 @@ class DFINETransformer(nn.Module):
                     out_corners[-1],
                     out_logits[-1],
                 )
-                out["enc_aux_outputs"] = self._set_aux_loss(enc_topk_logits_list, enc_topk_bboxes_list)
+                out["enc_aux_outputs"] = self._set_aux_loss(enc_topk_scores_list, enc_topk_bboxes_list)
                 out["pre_outputs"] = {"pred_logits": pre_logits, "pred_boxes": pre_bboxes}
                 out["enc_meta"] = {"class_agnostic": self.query_select_method == "agnostic"}
 

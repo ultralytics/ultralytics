@@ -116,9 +116,11 @@ class AutoAnnotator:
         """Load the Florence-2 grounding model and corresponding processor."""
         if model_name.lower() == "florence-2":
             from ultralytics.utils.checks import check_requirements
+
             check_requirements(["transformers==4.49.0", "einops"])  # Ensure required libraries
 
             from transformers import AutoModelForCausalLM, AutoProcessor, logging
+
             LOGGER.info(f"💡Loading model: {self.m_id}")
             logging.set_verbosity_error()  # Suppress excessive logs from transformers library: https://huggingface.co/docs/transformers/en/main_classes/logging
 
@@ -153,6 +155,7 @@ class AutoAnnotator:
             output_dir.mkdir(parents=True, exist_ok=True)  # Ensure output dir exists
         if save_visuals:
             import cv2
+
             visuals_output_dir.mkdir(parents=True, exist_ok=True)  # Ensure visual output dir exists
 
         processed = 0  # Counter for successfully annotated images
@@ -170,10 +173,9 @@ class AutoAnnotator:
                 h, w = im0.shape[:2]  # Get image dimensions
 
                 # Encode image and text prompt
-                inputs = self.processor(text=self.default_tp,
-                    images=im0,
-                    return_tensors="pt"
-                ).to(self.device, self.torch_dtype)
+                inputs = self.processor(text=self.default_tp, images=im0, return_tensors="pt").to(
+                    self.device, self.torch_dtype
+                )
 
                 # Perform inference
                 output_ids = self.model.generate(
@@ -181,7 +183,7 @@ class AutoAnnotator:
                     pixel_values=inputs["pixel_values"],
                     max_new_tokens=1024,
                     early_stopping=False,
-                    num_beams=3
+                    num_beams=3,
                 )
 
                 # Decode and post-process output

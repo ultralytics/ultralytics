@@ -1243,7 +1243,7 @@ class SettingsManager(JSONDict):
             "mlflow": True,  # MLflow integration
             "neptune": True,  # Neptune integration
             "raytune": True,  # Ray Tune integration
-            "tensorboard": True,  # TensorBoard logging
+            "tensorboard": False,  # TensorBoard logging
             "wandb": False,  # Weights & Biases logging
             "vscode_msg": True,  # VSCode messaging
         }

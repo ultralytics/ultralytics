@@ -88,7 +88,7 @@ Florence-2 supports a variety of vision and vision-language tasks through the us
     {
         "<CAPTION>": 'description of image.'
     }
-    
+
     ```
 
 3- **Optical Character Recognition (OCR):** Read text that appears within an image. Using the `<OCR>` prompt, Florence-2 will output the text found in the image (for instance, reading signs, documents, or scene text). It can also provide the location of the text: the `<OCR_WITH_REGION>` prompt yields both the recognized text strings and their bounding quadrilaterals (coordinates of corners of the text region) This makes Florence-2 capable of end-to-end scene text recognition, useful for digitizing documents or assisting in understanding text in natural scenes. Output format:

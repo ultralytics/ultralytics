@@ -979,16 +979,16 @@ class DFINETransformerDecoder(nn.Module):
         )
         self.lqe_layers = _get_clones(LQE(4, 64, 2, reg_max, act=act), num_layers)
 
-    def value_op(self, memory, value_proj, value_scale, memory_mask, memory_spatial_shapes):
+    def value_op(self, feats, value_proj, value_scale, feats_mask, feats_spatial_shapes):
         """
         Preprocess values for MSDeformableAttention.
         """
-        value = value_proj(memory) if value_proj is not None else memory
-        value = F.interpolate(memory, size=value_scale) if value_scale is not None else value
-        if memory_mask is not None:
-            value = value * memory_mask.to(value.dtype).unsqueeze(-1)
+        value = value_proj(feats) if value_proj is not None else feats
+        value = F.interpolate(feats, size=value_scale) if value_scale is not None else value
+        if feats_mask is not None:
+            value = value * feats_mask.to(value.dtype).unsqueeze(-1)
         value = value.reshape(value.shape[0], value.shape[1], self.num_head, -1)
-        split_shape = [h * w for h, w in memory_spatial_shapes]
+        split_shape = [h * w for h, w in feats_spatial_shapes]
         return value.permute(0, 2, 3, 1).split(split_shape, dim=-1)
 
     def convert_to_deploy(self):
@@ -1000,7 +1000,7 @@ class DFINETransformerDecoder(nn.Module):
         self,
         target,
         ref_points_unact,
-        memory,
+        feats,
         spatial_shapes,
         bbox_head,
         score_head,
@@ -1014,7 +1014,7 @@ class DFINETransformerDecoder(nn.Module):
     ):
         output = target
         output_detach = pred_corners_undetach = 0
-        value = self.value_op(memory, None, None, memory_mask, spatial_shapes)
+        value = self.value_op(feats, None, None, memory_mask, spatial_shapes)
 
         dec_out_bboxes = []
         dec_out_logits = []
@@ -1031,7 +1031,7 @@ class DFINETransformerDecoder(nn.Module):
             # TODO Adjust scale if needed for detachable wider layers
             if i >= self.eval_idx + 1 and self.layer_scale > 1:
                 query_pos_embed = F.interpolate(query_pos_embed, scale_factor=self.layer_scale)
-                value = self.value_op(memory, None, query_pos_embed.shape[-1], memory_mask, spatial_shapes)
+                value = self.value_op(feats, None, query_pos_embed.shape[-1], memory_mask, spatial_shapes)
                 output = F.interpolate(output, size=query_pos_embed.shape[-1])
                 output_detach = output.detach()
 

@@ -1124,8 +1124,6 @@ class DFINETransformer(nn.Module):
         features = self.enc_output(valid_mask * feats)  # bs, h*w, 256
         enc_outputs_scores = self.enc_score_head(features)  # bs, h*w, nc
 
-        enc_topk_bboxes_list, enc_topk_scores_list = [], []
-
         # (bs * num_queries)
         topk_ind = self._select_topk(enc_outputs_scores, self.num_queries)
         batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
@@ -1134,15 +1132,13 @@ class DFINETransformer(nn.Module):
         topk_features = features[batch_ind, topk_ind].view(bs, self.num_queries, -1)
         # (1, num_queries, 4)
         topk_anchors = anchors[:, topk_ind].view(bs, self.num_queries, -1)
-        # (bs, num_queries, nc)
-        topk_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
         topk_refer_bbox = self.enc_bbox_head(topk_features) + topk_anchors
 
+        enc_topk_bboxes, enc_topk_scores = None, None  # It's not need during inference mode
         if self.training:
             enc_topk_bboxes = F.sigmoid(topk_refer_bbox)
-            enc_topk_bboxes_list.append(enc_topk_bboxes)
-            enc_topk_scores_list.append(topk_scores)
-
+            # (bs, num_queries, nc)
+            enc_topk_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
         embeddings = topk_features.detach()
         topk_refer_bbox = topk_refer_bbox.detach()
 
@@ -1150,7 +1146,7 @@ class DFINETransformer(nn.Module):
             topk_refer_bbox = torch.cat([denoising_bbox_unact, topk_refer_bbox], dim=1)
             embeddings = torch.cat([denoising_logits, embeddings], dim=1)
 
-        return embeddings, topk_refer_bbox, enc_topk_bboxes_list, enc_topk_scores_list
+        return embeddings, topk_refer_bbox, enc_topk_bboxes, enc_topk_scores
 
     def _select_topk(self, enc_outputs_scores: torch.Tensor, topk: int):
         if self.query_select_method == "default":

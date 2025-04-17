@@ -1,19 +1,18 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import time
 from pathlib import Path
 from typing import List, Optional, Union
 
-from ultralytics import SAM, YOLO
-
-import time
 import torch
-
 from tqdm import tqdm
+
+from ultralytics import SAM, YOLO
 from ultralytics.data.loaders import LoadImagesAndVideos
 from ultralytics.utils import LOGGER
-from ultralytics.utils.torch_utils import select_device
-from ultralytics.utils.plotting import Annotator, colors
 from ultralytics.utils.ops import xyxy2xywhn
+from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.utils.torch_utils import select_device
 
 
 def auto_annotate(

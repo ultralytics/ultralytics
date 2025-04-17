@@ -422,7 +422,7 @@ class C3Ghost(C3):
 
 
 class GhostBottleneck(nn.Module):
-    """Ghost Bottleneck https://github.com/huawei-noah/ghostnet."""
+    """Ghost Bottleneck https://github.com/huawei-noah/Efficient-AI-Backbones."""
 
     def __init__(self, c1, c2, k=3, s=1):
         """

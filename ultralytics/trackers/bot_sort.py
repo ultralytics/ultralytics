@@ -3,12 +3,16 @@
 from collections import deque
 
 import numpy as np
+import torch
 
 from .basetrack import TrackState
 from .byte_tracker import BYTETracker, STrack
 from .utils import matching
 from .utils.gmc import GMC
 from .utils.kalman_filter import KalmanFilterXYWH
+
+from ultralytics.utils.ops import xywh2xyxy
+from ultralytics.utils.plotting import save_one_box
 
 
 class BOTrack(STrack):
@@ -186,34 +190,15 @@ class BOTSORT(BYTETracker):
             >>> bot_sort = BOTSORT(args, frame_rate=30)
         """
         super().__init__(args, frame_rate)
+        self.gmc = GMC(method=args.gmc_method)
+
         # ReID module
         self.proximity_thresh = args.proximity_thresh
         self.appearance_thresh = args.appearance_thresh
         self.encoder = None
-
-        if args.with_reid and ".pt" in args.model:
-            import torch
-
-            from ultralytics import YOLO
-            from ultralytics.utils.ops import xywh2xyxy
-            from ultralytics.utils.plotting import save_one_box
-
-            class REID:
-                """YOLO model as encoder for re-identification."""
-
-                def __init__(self, model):
-                    self.model = YOLO(model)
-                    self.model(embed=[len(self.model.model.model) - 2], verbose=False)  # initialize
-
-                def __call__(self, img, dets):
-                    feats = self.model(
-                        [save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))]
-                    )
-                    return [f.cpu().numpy() for f in feats]
-
-            self.encoder = REID(args.model)
-
-        self.gmc = GMC(method=args.gmc_method)
+        if not args.with_reid:
+            return
+        self.encoder = ReID(args.model)
 
     def get_kalmanfilter(self):
         """Return an instance of KalmanFilterXYWH for predicting and updating object states in the tracking process."""
@@ -232,14 +217,14 @@ class BOTSORT(BYTETracker):
     def get_dists(self, tracks, detections):
         """Calculate distances between tracks and detections using IoU and optionally ReID embeddings."""
         dists = matching.iou_distance(tracks, detections)
-        dists_mask = dists > self.proximity_thresh
+        dists_mask = dists > (1 - self.proximity_thresh)
 
         if self.args.fuse_score:
             dists = matching.fuse_score(dists, detections)
 
         if self.args.with_reid and self.encoder is not None:
             emb_dists = matching.embedding_distance(tracks, detections) / 2.0
-            emb_dists[emb_dists > self.appearance_thresh] = 1.0
+            emb_dists[emb_dists > (1 - self.appearance_thresh)] = 1.0
             emb_dists[dists_mask] = 1.0
             dists = np.minimum(dists, emb_dists)
         return dists
@@ -252,3 +237,19 @@ class BOTSORT(BYTETracker):
         """Reset the BOTSORT tracker to its initial state, clearing all tracked objects and internal states."""
         super().reset()
         self.gmc.reset_params()
+
+
+class ReID:
+    """YOLO model as encoder for re-identification."""
+    def __init__(self, model):
+        """Initialize encoder for re-identification."""
+        from ultralytics import YOLO
+        self.model = YOLO(model)
+        self.model(embed=[len(self.model.model.model) - 2 if ".pt" in model else -1], verbose=False)  # initialize
+
+    def __call__(self, img, dets):
+        """Extract embeddings for detected objects."""
+        feats = self.model(
+            [save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))]
+        )
+        return [f.cpu().numpy() for f in feats]

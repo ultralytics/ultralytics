@@ -885,7 +885,7 @@ class DeformableTransformerDecoder(nn.Module):
 
     def forward(
         self,
-        embed,  # decoder embeddings
+        embed,  # encode embeddings
         refer_bbox,  # anchor
         feats,  # image features
         shapes,  # feature shapes

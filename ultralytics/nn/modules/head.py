@@ -1158,33 +1158,24 @@ class DFINETransformer(nn.Module):
 
         return content, enc_topk_bbox_unact, enc_topk_bboxes_list, enc_topk_logits_list
 
-    def _select_topk(
-        self, memory: torch.Tensor, outputs_logits: torch.Tensor, outputs_anchors_unact: torch.Tensor, topk: int
-    ):
+    def _select_topk(self, feats: torch.Tensor, enc_outputs_scores: torch.Tensor, anchors: torch.Tensor, topk: int):
         if self.query_select_method == "default":
-            _, topk_ind = torch.topk(outputs_logits.max(-1).values, topk, dim=-1)
+            # (bs, topk)
+            _, topk_ind = torch.topk(enc_outputs_scores.max(-1).values, topk, dim=-1)
 
         elif self.query_select_method == "one2many":
-            _, topk_ind = torch.topk(outputs_logits.flatten(1), topk, dim=-1)
+            _, topk_ind = torch.topk(enc_outputs_scores.flatten(1), topk, dim=-1)
             topk_ind = topk_ind // self.num_classes
 
         elif self.query_select_method == "agnostic":
-            _, topk_ind = torch.topk(outputs_logits.squeeze(-1), topk, dim=-1)
-
-        topk_ind: torch.Tensor
-
-        topk_anchors = outputs_anchors_unact.gather(
-            dim=1, index=topk_ind.unsqueeze(-1).repeat(1, 1, outputs_anchors_unact.shape[-1])
-        )
-
+            _, topk_ind = torch.topk(enc_outputs_scores.squeeze(-1), topk, dim=-1)
+        topk_anchors = anchors.gather(dim=1, index=topk_ind.unsqueeze(-1).repeat(1, 1, anchors.shape[-1]))
         topk_logits = (
-            outputs_logits.gather(dim=1, index=topk_ind.unsqueeze(-1).repeat(1, 1, outputs_logits.shape[-1]))
+            enc_outputs_scores.gather(dim=1, index=topk_ind.unsqueeze(-1).repeat(1, 1, enc_outputs_scores.shape[-1]))
             if self.training
             else None
         )
-
-        topk_memory = memory.gather(dim=1, index=topk_ind.unsqueeze(-1).repeat(1, 1, memory.shape[-1]))
-
+        topk_memory = feats.gather(dim=1, index=topk_ind.unsqueeze(-1).repeat(1, 1, feats.shape[-1]))
         return topk_memory, topk_logits, topk_anchors
 
     def forward(self, feats, batch=None):

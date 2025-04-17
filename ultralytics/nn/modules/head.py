@@ -1072,11 +1072,10 @@ class DFINETransformer(nn.Module):
         feat_flatten = []
         spatial_shapes = []
         for feat in x:
-            h, w = feat.shape[2:]
             # [b, c, h, w] -> [b, h*w, c]
             feat_flatten.append(feat.flatten(2).permute(0, 2, 1))
             # [num_levels, 2]
-            spatial_shapes.append([h, w])
+            spatial_shapes.append(feat.shape[2:])
 
         # [b, h*w, c]
         feat_flatten = torch.cat(feat_flatten, 1)
@@ -1191,38 +1190,35 @@ class DFINETransformer(nn.Module):
         return topk_memory, topk_logits, topk_anchors
 
     def forward(self, feats, batch=None):
-        # input projection and embedding
-        feats, spatial_shapes = self._get_encoder_input(feats)
-
         # prepare denoising training
         from ultralytics.models.utils.ops import get_cdn_group
 
-        if self.training and self.num_denoising > 0:
-            # TODO: test this
-            # denoising_logits, denoising_bbox_unact, attn_mask, dn_meta = get_contrastive_denoising_training_group(
-            #     batch,
-            #     self.num_classes,
-            #     self.num_queries,
-            #     self.denoising_class_embed,
-            #     num_denoising=self.num_denoising,
-            #     label_noise_ratio=self.label_noise_ratio,
-            #     box_noise_scale=1.0,
-            # )
-            denoising_logits, denoising_bbox_unact, attn_mask, dn_meta = get_cdn_group(
-                batch,
-                self.nc,
-                self.num_queries,
-                self.denoising_class_embed.weight,
-                self.num_denoising,
-                self.label_noise_ratio,
-                self.box_noise_scale,
-                self.training,
-            )
-        else:
-            denoising_logits, denoising_bbox_unact, attn_mask, dn_meta = None, None, None, None
+        # input projection and embedding
+        feats, spatial_shapes = self._get_encoder_input(feats)
 
+        # Prepare denoising training
+        # TODO: test this and make sure this work properly
+        # denoising_logits, denoising_bbox_unact, attn_mask, dn_meta = get_contrastive_denoising_training_group(
+        #     batch,
+        #     self.num_classes,
+        #     self.num_queries,
+        #     self.denoising_class_embed,
+        #     num_denoising=self.num_denoising,
+        #     label_noise_ratio=self.label_noise_ratio,
+        #     box_noise_scale=1.0,
+        # )
+        dn_embed, dn_bbox, attn_mask, dn_meta = get_cdn_group(
+            batch,
+            self.nc,
+            self.num_queries,
+            self.denoising_class_embed.weight,
+            self.num_denoising,
+            self.label_noise_ratio,
+            self.box_noise_scale,
+            self.training,
+        )
         init_ref_contents, init_ref_points_unact, enc_topk_bboxes_list, enc_topk_logits_list = self._get_decoder_input(
-            feats, spatial_shapes, denoising_logits, denoising_bbox_unact
+            feats, spatial_shapes, dn_embed, dn_bbox
         )
 
         # decoder

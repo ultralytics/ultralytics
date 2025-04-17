@@ -614,6 +614,7 @@ class AutoBackend(nn.Module):
                 elif self.task == "pose":
                     # boxes, conf, kpts
                     from ultralytics.utils import ops
+
                     y = np.concatenate([ops.xyxy2xywh(y[0]), y[1][:, :, None], y[2]], axis=-1)
                     y = y.transpose((0, 2, 1))
 

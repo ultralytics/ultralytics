@@ -603,7 +603,7 @@ class MaxSigmoidAttnBlock(nn.Module):
         bs, _, h, w = x.shape
 
         guide = self.gl(guide)
-        guide = guide.view(bs, -1, self.nh, self.hc)
+        guide = guide.view(bs, guide.shape[1], self.nh, self.hc)
         embed = self.ec(x) if self.ec is not None else x
         embed = embed.view(bs, self.nh, self.hc, h, w)
 

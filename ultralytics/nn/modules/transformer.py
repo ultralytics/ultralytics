@@ -998,9 +998,9 @@ class DFINETransformerDecoder(nn.Module):
 
     def forward(
         self,
-        target,
-        ref_points_unact,
-        feats,
+        enc_feats,  # encoder features
+        refer_box,
+        feats,  # original features from neck
         spatial_shapes,
         bbox_head,
         score_head,
@@ -1012,7 +1012,7 @@ class DFINETransformerDecoder(nn.Module):
         attn_mask=None,
         feats_mask=None,
     ):
-        output = target
+        output = enc_feats
         output_detach = pred_corners_undetach = 0
         value = self.value_op(feats, spatial_shapes, feats_mask=feats_mask)
 
@@ -1022,7 +1022,7 @@ class DFINETransformerDecoder(nn.Module):
         dec_out_refs = []
         project = weighting_function(self.reg_max, up, reg_scale) if not hasattr(self, "project") else self.project
 
-        ref_points_detach = F.sigmoid(ref_points_unact)
+        ref_points_detach = F.sigmoid(refer_box)
 
         for i, layer in enumerate(self.layers):
             ref_points_input = ref_points_detach.unsqueeze(2)

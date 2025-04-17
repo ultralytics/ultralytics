@@ -67,13 +67,14 @@ def auto_annotate(
 
 
 import time
-import torch
 
+import torch
 from tqdm import tqdm
+
 from ultralytics.data.loaders import LoadImagesAndVideos
 from ultralytics.utils import LOGGER
-from ultralytics.utils.plotting import Annotator, colors
 from ultralytics.utils.ops import xyxy2xywhn
+from ultralytics.utils.plotting import Annotator, colors
 
 
 class AutoAnnotator:

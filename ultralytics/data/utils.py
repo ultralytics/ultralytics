@@ -53,7 +53,7 @@ def get_hash(paths):
     for p in paths:
         try:
             size += os.stat(p).st_size
-        except OSError:
+        except (OSError, IOError):
             continue
     h = hashlib.sha256(str(size).encode())  # hash sizes
     h.update("".join(paths).encode())  # hash paths

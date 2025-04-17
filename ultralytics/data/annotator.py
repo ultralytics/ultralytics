@@ -138,10 +138,7 @@ class AutoAnnotator:
         ).to(self.device)
 
         self.processor = AutoProcessor.from_pretrained(self.m_id, trust_remote_code=True)
-        LOGGER.info(
-            f"🚀 {self.model_name.upper()}: device {self.device}, torch_dtype: {self.torch_dtype}, "
-            f"min box width: {self.min_box_w}, min box height: {self.min_box_h}"
-        )
+        LOGGER.info(f"🚀 {self.model_name.upper()}: device {self.device}, torch_dtype: {self.torch_dtype}")
 
     @staticmethod
     def convert_to_yolo(x1, y1, x2, y2, w, h):

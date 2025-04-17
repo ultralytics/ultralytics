@@ -55,7 +55,7 @@ With this integration, Florence-2 can be used to generate object detection-style
             save=True,  # Save .txt annotations
             output_dir="output",  # Output folder
             save_visuals=True,  # Save annotated images
-            classes=["person"],  # Optional: only annotate specific classes
+            classes=["man", "bus"],  # Optional: only annotate specific classes
         )
         ```
 

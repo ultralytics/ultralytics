@@ -14,12 +14,8 @@ from ultralytics.utils.ops import xyxy2xywhn
 from ultralytics.utils.plotting import Annotator, colors
 from ultralytics.utils.torch_utils import select_device
 
-florence_2_models = {
-    "Florence-2-base",
-    "Florence-2-large",
-    "Florence-2-base-ft",
-    "Florence-2-large-ft"
-}
+florence_2_models = {"Florence-2-base", "Florence-2-large", "Florence-2-base-ft", "Florence-2-large-ft"}
+
 
 def auto_annotate(
     data: Union[str, Path],
@@ -115,8 +111,10 @@ class AutoAnnotator:
         if model in florence_2_models:
             self.m_id = f"microsoft/{model}"
         else:
-            LOGGER.warning(f"⚠️ '{model}' is not a recognized Florence-2 model. "
-                           f"Falling back to default: 'florence-2-base-ft'. Supported models: {florence_2_models}")
+            LOGGER.warning(
+                f"⚠️ '{model}' is not a recognized Florence-2 model. "
+                f"Falling back to default: 'florence-2-base-ft'. Supported models: {florence_2_models}"
+            )
             self.m_id = "microsoft/Florence-2-base-ft"
 
         self.model, self.processor = None, None

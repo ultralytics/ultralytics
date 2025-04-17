@@ -952,8 +952,10 @@ class DFINETransformer(nn.Module):
         self.cross_attn_method = cross_attn_method
         self.query_select_method = query_select_method
 
-        # backbone feature projection
-        self._build_input_proj_layer(feat_channels)
+        # Backbone feature projection
+        self.input_proj = nn.ModuleList(
+            Conv(x, hidden_dim, act=False) if x != hidden_dim else nn.Identity() for x in feat_channels
+        )
 
         # Transformer module
         self.up = nn.Parameter(torch.tensor([0.5]), requires_grad=False)
@@ -1010,21 +1012,7 @@ class DFINETransformer(nn.Module):
         #     layer = TransformerEncoderLayer(hidden_dim, nhead, dim_feedforward, activation='gelu')
         #     self.encoder = TransformerEncoder(layer, 1)
 
-        # TODO: check this out
-        self.enc_output = nn.Sequential(
-            OrderedDict(
-                [
-                    ("proj", nn.Linear(hidden_dim, hidden_dim)),
-                    (
-                        "norm",
-                        nn.LayerNorm(
-                            hidden_dim,
-                        ),
-                    ),
-                ]
-            )
-        )
-
+        self.enc_output = nn.Sequential(nn.Linear(hidden_dim, hidden_dim), nn.LayerNorm(hidden_dim))
         self.enc_score_head = (
             nn.Linear(hidden_dim, 1) if query_select_method == "agnostic" else nn.Linear(hidden_dim, num_classes)
         )
@@ -1076,46 +1064,6 @@ class DFINETransformer(nn.Module):
         for m, in_channels in zip(self.input_proj, feat_channels):
             if in_channels != self.hidden_dim:
                 torch.init.xavier_uniform_(m[0].weight)
-
-    def _build_input_proj_layer(self, feat_channels):
-        self.input_proj = nn.ModuleList()
-        for in_channels in feat_channels:
-            if in_channels == self.hidden_dim:
-                self.input_proj.append(nn.Identity())
-            else:
-                self.input_proj.append(
-                    nn.Sequential(
-                        OrderedDict(
-                            [
-                                ("conv", nn.Conv2d(in_channels, self.hidden_dim, 1, bias=False)),
-                                (
-                                    "norm",
-                                    nn.BatchNorm2d(
-                                        self.hidden_dim,
-                                    ),
-                                ),
-                            ]
-                        )
-                    )
-                )
-
-        in_channels = feat_channels[-1]
-
-        for _ in range(self.num_levels - len(feat_channels)):
-            if in_channels == self.hidden_dim:
-                self.input_proj.append(nn.Identity())
-            else:
-                self.input_proj.append(
-                    nn.Sequential(
-                        OrderedDict(
-                            [
-                                ("conv", nn.Conv2d(in_channels, self.hidden_dim, 3, 2, padding=1, bias=False)),
-                                ("norm", nn.BatchNorm2d(self.hidden_dim)),
-                            ]
-                        )
-                    )
-                )
-                in_channels = self.hidden_dim
 
     def _get_encoder_input(self, feats: List[torch.Tensor]):
         # Get projection features

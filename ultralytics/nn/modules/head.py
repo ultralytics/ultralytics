@@ -1149,14 +1149,9 @@ class DFINETransformer(nn.Module):
             enc_topk_bboxes_list.append(enc_topk_bboxes)
             enc_topk_logits_list.append(topk_scores)
 
-        # if self.num_select_queries != self.num_queries:
-        #     raise NotImplementedError('')
-
-        if self.learn_query_content:
-            content = self.tgt_embed.weight.unsqueeze(0).tile([bs, 1, 1])
-        else:
-            content = topk_features.detach()
-
+        content = (
+            self.tgt_embed.weight.unsqueeze(0).tile([bs, 1, 1]) if self.learn_query_content else topk_features.detach()
+        )
         enc_topk_bbox_unact = enc_topk_bbox_unact.detach()
 
         if denoising_bbox_unact is not None:

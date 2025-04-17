@@ -1132,13 +1132,15 @@ class DFINETransformer(nn.Module):
 
         enc_topk_bboxes_list, enc_topk_logits_list = [], []
 
+        # (bs * num_queries)
         topk_ind = self._select_topk(enc_outputs_scores, self.num_queries)
         batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
 
         # (bs, num_queries, 256)
         topk_features = features[batch_ind, topk_ind].view(bs, self.num_queries, -1)
-        # (bs, num_queries, 4)
-        topk_anchors = anchors[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        # (1, num_queries, 4)
+        topk_anchors = anchors[:, topk_ind].view(bs, self.num_queries, -1)
+        # (bs, num_queries, nc)
         topk_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
         enc_topk_bbox_unact = self.enc_bbox_head(topk_features) + topk_anchors
 

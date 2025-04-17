@@ -106,6 +106,7 @@ class AutoAnnotator:
     def __init__(self, model=None, min_box_w=0.02, min_box_h=0.02):
         """Initialize the AutoAnnotator with a visual grounding model and box filtering parameters."""
         from ultralytics.utils.torch_utils import select_device
+
         self.device = select_device()  # Auto-select CUDA or CPU
 
         self.task_prompt = "<CAPTION_TO_PHRASE_GROUNDING>"
@@ -121,9 +122,11 @@ class AutoAnnotator:
         """Load the Florence-2 grounding model and corresponding processor."""
         if model_name.lower() == "florence-2":
             from ultralytics.utils.checks import check_requirements
+
             check_requirements(["transformers==4.49.0", "einops"])  # Ensure required libraries
 
             from transformers import AutoModelForCausalLM, AutoProcessor, logging
+
             LOGGER.info(f"✨ Loading model: {self.m_id}")
             logging.set_verbosity_error()  # Suppress excessive logs
 
@@ -179,11 +182,9 @@ class AutoAnnotator:
                 h, w = im0.shape[:2]  # Get image dimensions
 
                 # Encode image and text prompt
-                inputs = self.processor(
-                    text=full_prompt,
-                    images=im0,
-                    return_tensors="pt"
-                ).to(self.device, self.torch_dtype)
+                inputs = self.processor(text=full_prompt, images=im0, return_tensors="pt").to(
+                    self.device, self.torch_dtype
+                )
 
                 # Perform inference
                 output_ids = self.model.generate(
@@ -191,7 +192,7 @@ class AutoAnnotator:
                     pixel_values=inputs["pixel_values"],
                     max_new_tokens=1024,
                     early_stopping=False,
-                    num_beams=3
+                    num_beams=3,
                 )
 
                 # Decode and post-process output
@@ -208,6 +209,7 @@ class AutoAnnotator:
                 lines = []
                 if save_visuals:
                     import cv2
+
                     annotator = Annotator(im0)  # For drawing bounding boxes
 
                 # Process each box-label pair

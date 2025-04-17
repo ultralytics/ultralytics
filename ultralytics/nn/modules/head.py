@@ -1131,16 +1131,21 @@ class DFINETransformer(nn.Module):
         enc_outputs_scores = self.enc_score_head(features)  # bs, h*w, nc
 
         enc_topk_bboxes_list, enc_topk_logits_list = [], []
-        enc_topk_memory, enc_topk_logits, enc_topk_anchors = self._select_topk(
-            features, enc_outputs_scores, anchors, self.num_queries
-        )
 
-        enc_topk_bbox_unact: torch.Tensor = self.enc_bbox_head(enc_topk_memory) + enc_topk_anchors
+        topk_ind = self._select_topk(enc_outputs_scores, self.num_queries)
+        batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
+
+        # (bs, num_queries, 256)
+        topk_features = features[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        # (bs, num_queries, 4)
+        topk_anchors = anchors[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        topk_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        enc_topk_bbox_unact = self.enc_bbox_head(topk_features) + topk_anchors
 
         if self.training:
             enc_topk_bboxes = F.sigmoid(enc_topk_bbox_unact)
             enc_topk_bboxes_list.append(enc_topk_bboxes)
-            enc_topk_logits_list.append(enc_topk_logits)
+            enc_topk_logits_list.append(topk_scores)
 
         # if self.num_select_queries != self.num_queries:
         #     raise NotImplementedError('')
@@ -1148,7 +1153,7 @@ class DFINETransformer(nn.Module):
         if self.learn_query_content:
             content = self.tgt_embed.weight.unsqueeze(0).tile([bs, 1, 1])
         else:
-            content = enc_topk_memory.detach()
+            content = topk_features.detach()
 
         enc_topk_bbox_unact = enc_topk_bbox_unact.detach()
 
@@ -1158,25 +1163,16 @@ class DFINETransformer(nn.Module):
 
         return content, enc_topk_bbox_unact, enc_topk_bboxes_list, enc_topk_logits_list
 
-    def _select_topk(self, feats: torch.Tensor, enc_outputs_scores: torch.Tensor, anchors: torch.Tensor, topk: int):
+    def _select_topk(self, enc_outputs_scores: torch.Tensor, topk: int):
         if self.query_select_method == "default":
             # (bs, topk)
-            _, topk_ind = torch.topk(enc_outputs_scores.max(-1).values, topk, dim=-1)
-
+            topk_ind = torch.topk(enc_outputs_scores.max(-1).values, topk, dim=-1).indices.view(-1)
         elif self.query_select_method == "one2many":
-            _, topk_ind = torch.topk(enc_outputs_scores.flatten(1), topk, dim=-1)
+            topk_ind = torch.topk(enc_outputs_scores.flatten(1), topk, dim=-1).indices.view(-1)
             topk_ind = topk_ind // self.num_classes
-
         elif self.query_select_method == "agnostic":
-            _, topk_ind = torch.topk(enc_outputs_scores.squeeze(-1), topk, dim=-1)
-        topk_anchors = anchors.gather(dim=1, index=topk_ind.unsqueeze(-1).repeat(1, 1, anchors.shape[-1]))
-        topk_logits = (
-            enc_outputs_scores.gather(dim=1, index=topk_ind.unsqueeze(-1).repeat(1, 1, enc_outputs_scores.shape[-1]))
-            if self.training
-            else None
-        )
-        topk_memory = feats.gather(dim=1, index=topk_ind.unsqueeze(-1).repeat(1, 1, feats.shape[-1]))
-        return topk_memory, topk_logits, topk_anchors
+            topk_ind = torch.topk(enc_outputs_scores.squeeze(-1), topk, dim=-1).indices.view(-1)
+        return topk_ind
 
     def forward(self, feats, batch=None):
         # prepare denoising training

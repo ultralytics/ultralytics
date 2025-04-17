@@ -947,6 +947,7 @@ class DFINETransformer(nn.Module):
         self.aux_loss = aux_loss
         self.reg_max = reg_max
 
+        # NOTE: it's using 'default' all the time
         assert query_select_method in ("default", "one2many", "agnostic"), ""
         assert cross_attn_method in ("default", "discrete"), ""
         self.cross_attn_method = cross_attn_method
@@ -1115,26 +1116,23 @@ class DFINETransformer(nn.Module):
 
     def _get_decoder_input(
         self,
-        memory: torch.Tensor,
+        feats: torch.Tensor,
         spatial_shapes,
         denoising_logits=None,
         denoising_bbox_unact=None,
     ):
+        bs = feats.shape[0]
         # prepare input for decoder
-        anchors, valid_mask = self._generate_anchors(spatial_shapes, dtype=memory.dtype, device=memory.device)
-        if memory.shape[0] > 1:
-            anchors = anchors.repeat(memory.shape[0], 1, 1)
+        anchors, valid_mask = self._generate_anchors(spatial_shapes, dtype=feats.dtype, device=feats.device)
+        if bs > 1:
+            anchors = anchors.repeat(feats.shape[0], 1, 1)
 
-        # memory = torch.where(valid_mask, memory, 0)
-        # TODO fix type error for onnx export
-        memory = valid_mask.to(memory.dtype) * memory
-
-        output_memory: torch.Tensor = self.enc_output(memory)
-        enc_outputs_logits: torch.Tensor = self.enc_score_head(output_memory)
+        features = self.enc_output(valid_mask * feats)  # bs, h*w, 256
+        enc_outputs_scores = self.enc_score_head(features)  # bs, h*w, nc
 
         enc_topk_bboxes_list, enc_topk_logits_list = [], []
         enc_topk_memory, enc_topk_logits, enc_topk_anchors = self._select_topk(
-            output_memory, enc_outputs_logits, anchors, self.num_queries
+            features, enc_outputs_scores, anchors, self.num_queries
         )
 
         enc_topk_bbox_unact: torch.Tensor = self.enc_bbox_head(enc_topk_memory) + enc_topk_anchors
@@ -1148,7 +1146,7 @@ class DFINETransformer(nn.Module):
         #     raise NotImplementedError('')
 
         if self.learn_query_content:
-            content = self.tgt_embed.weight.unsqueeze(0).tile([memory.shape[0], 1, 1])
+            content = self.tgt_embed.weight.unsqueeze(0).tile([bs, 1, 1])
         else:
             content = enc_topk_memory.detach()
 

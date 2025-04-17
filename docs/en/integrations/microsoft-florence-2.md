@@ -32,7 +32,7 @@ With this integration, Florence-2 can be used to generate object detection-style
 
         ```python
         from ultralytics.data.annotator import AutoAnnotator
-        
+
         annotator = AutoAnnotator(model="florence-2-base", device="cpu")  # "florence-2-large", "florence-2-base-ft"
 
         annotator.annotate(

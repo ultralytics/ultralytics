@@ -1002,13 +1002,10 @@ class DFINETransformer(nn.Module):
             self.denoising_class_embed = nn.Embedding(num_classes + 1, hidden_dim, padding_idx=num_classes)
             torch.nn.init.normal_(self.denoising_class_embed.weight[:-1])
 
-        # decoder embedding
+        # Decoder embedding
         self.query_pos_head = MLP(4, 2 * hidden_dim, hidden_dim, 2, act=mlp_act)
 
-        # if num_select_queries != self.num_queries:
-        #     layer = TransformerEncoderLayer(hidden_dim, nhead, dim_feedforward, activation='gelu')
-        #     self.encoder = TransformerEncoder(layer, 1)
-
+        # Encoder
         self.enc_output = nn.Sequential(nn.Linear(hidden_dim, hidden_dim), nn.LayerNorm(hidden_dim))
         self.enc_score_head = (
             nn.Linear(hidden_dim, 1) if query_select_method == "agnostic" else nn.Linear(hidden_dim, num_classes)

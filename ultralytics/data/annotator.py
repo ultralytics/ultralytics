@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from ultralytics import SAM, YOLO
 from ultralytics.data.loaders import LoadImagesAndVideos
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, ASSETS
 from ultralytics.utils.ops import xyxy2xywhn
 from ultralytics.utils.plotting import Annotator, colors
 from ultralytics.utils.torch_utils import select_device
@@ -89,8 +89,6 @@ class AutoAnnotator:
         device (str): Torch device used for inference ('cuda' or 'cpu').
         task_prompt (str): Prompt used for caption-to-phrase grounding.
         default_task_prompt (str): Fallback prompt for object detection.
-        min_box_w (float): Minimum width threshold for bounding boxes (normalized).
-        min_box_h (float): Minimum height threshold for bounding boxes (normalized).
         m_id (str): Model ID used to load the Florence-2 model from Hugging Face.
         model (torch.nn.Module): Loaded grounding model.
         processor (transformers.Processor): Corresponding processor to handle inputs/outputs.
@@ -103,11 +101,9 @@ class AutoAnnotator:
         annotate: Performs annotation over a dataset with optional class filtering and saving.
     """
 
-    def __init__(self, model=None, device="", min_box_w=0.02, min_box_h=0.02):
+    def __init__(self, model=None, device=""):
         """Initialize the AutoAnnotator with a visual grounding model and box filtering parameters."""
         self.default_tp = "<OD>"  # Fallback prompt for generic object detection
-        self.min_box_w = min_box_w
-        self.min_box_h = min_box_h
         self.model_name = model
         if self.model_name in florence_2_models:
             self.m_id = f"microsoft/{model}"
@@ -131,7 +127,7 @@ class AutoAnnotator:
 
         from transformers import AutoModelForCausalLM, AutoProcessor, logging
 
-        LOGGER.info(f"💡 Downloading and loading model: {self.m_id}")
+        LOGGER.info(f"💡 Downloading and initializing model: {self.m_id}")
         logging.set_verbosity_error()  # Suppress excessive logs from transformers library: https://huggingface.co/docs/transformers/en/main_classes/logging
 
         # Load the model and processor from Hugging Face
@@ -153,10 +149,13 @@ class AutoAnnotator:
         cx, cy, bw, bh = xyxy2xywhn(torch.tensor([[x1, y1, x2, y2]]), w=w, h=h, clip=True)[0].tolist()
         return f"{cx:.6f} {cy:.6f} {bw:.6f} {bh:.6f}"
 
-    def annotate(self, data, classes=None, save=True, output_dir="labels", save_visuals=True, visuals_output_dir=None):
+    def annotate(self, source=None, classes=None, save=True, output_dir="labels", save_visuals=True, visuals_output_dir=None):
         """Annotate images or video frames using a caption-grounding model."""
         start = time.time()
-        dataset = LoadImagesAndVideos(path=str(data))  # Load data (images/videos)
+        if source is None:
+            LOGGER.warning(f"WARNING ⚠️ 'source' argument is missing. Using default 'source={ASSETS}'.")
+            source =  ASSETS
+        dataset = LoadImagesAndVideos(path=str(source))  # Load data (images/videos)
 
         label_map = {}
         output_dir = Path(output_dir)
@@ -215,11 +214,6 @@ class AutoAnnotator:
                 for box, label in zip(bboxes, labels):
                     if label in classes:
                         x1, y1, x2, y2 = box
-                        bw, bh = (x2 - x1) / w, (y2 - y1) / h  # Normalize box size
-
-                        if bw < self.min_box_w or bh < self.min_box_h:
-                            continue  # Skip small boxes
-
                         # Add new label to label_map if not already present
                         if label not in label_map:
                             label_map[label] = int(len(label_map))

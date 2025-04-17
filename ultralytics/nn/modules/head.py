@@ -1187,7 +1187,7 @@ class DFINETransformer(nn.Module):
             self.box_noise_scale,
             self.training,
         )
-        topk_embed, topk_refer_box, enc_topk_bboxes_list, enc_topk_scores_list = self._get_decoder_input(
+        topk_embed, topk_refer_box, enc_topk_bboxes, enc_topk_scores = self._get_decoder_input(
             feats, spatial_shapes, dn_embed, dn_bbox
         )
         # decoder
@@ -1233,7 +1233,7 @@ class DFINETransformer(nn.Module):
                     out_corners[-1],
                     out_logits[-1],
                 )
-                out["enc_aux_outputs"] = self._set_aux_loss(enc_topk_scores_list, enc_topk_bboxes_list)
+                out["enc_aux_outputs"] = self._set_aux_loss([enc_topk_scores], [enc_topk_bboxes])
                 out["pre_outputs"] = {"pred_logits": pre_logits, "pred_boxes": pre_bboxes}
                 out["enc_meta"] = {"class_agnostic": self.query_select_method == "agnostic"}
 

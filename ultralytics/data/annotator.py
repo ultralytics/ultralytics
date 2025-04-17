@@ -146,12 +146,14 @@ class AutoAnnotator:
         cx, cy, bw, bh = xyxy2xywhn(torch.tensor([[x1, y1, x2, y2]]), w=w, h=h, clip=True)[0].tolist()
         return f"{cx:.6f} {cy:.6f} {bw:.6f} {bh:.6f}"
 
-    def annotate(self, source=None, classes=None, save=True, output_dir="labels", save_visuals=True, visuals_output_dir=None):
+    def annotate(
+        self, source=None, classes=None, save=True, output_dir="labels", save_visuals=True, visuals_output_dir=None
+    ):
         """Annotate images or video frames using a caption-grounding model."""
         start = time.time()
         if source is None:
             LOGGER.warning(f"WARNING ⚠️ 'source' argument is missing. Using default 'source={ASSETS}'.")
-            source =  ASSETS
+            source = ASSETS
         dataset = LoadImagesAndVideos(path=str(source))  # Load data (images/videos)
 
         label_map = {}

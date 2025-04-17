@@ -58,6 +58,7 @@ class DetectionPredictor(BasePredictor):
             self.args.classes,
             self.args.agnostic_nms,
             max_det=self.args.max_det,
+            soft_label=self.args.soft_label,
             nc=len(self.model.names),
             end2end=getattr(self.model, "end2end", False),
             rotated=self.args.task == "obb",
@@ -99,4 +100,4 @@ class DetectionPredictor(BasePredictor):
             (Results): Results object containing the original image, image path, class names, and scaled bounding boxes.
         """
         pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
-        return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6])
+        return Results(orig_img, path=img_path, names=self.model.names, boxes=pred, is_soft=self.args.soft_label)

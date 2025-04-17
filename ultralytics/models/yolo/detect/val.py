@@ -128,6 +128,7 @@ class DetectionValidator(BaseValidator):
             multi_label=True,
             agnostic=self.args.single_cls or self.args.agnostic_nms,
             max_det=self.args.max_det,
+            soft_label=self.args.soft_label,
             end2end=self.end2end,
             rotated=self.args.task == "obb",
         )
@@ -370,7 +371,8 @@ class DetectionValidator(BaseValidator):
             np.zeros((shape[0], shape[1]), dtype=np.uint8),
             path=None,
             names=self.names,
-            boxes=predn[:, :6],
+            boxes=predn,
+            is_soft=self.args.soft_label,
         ).save_txt(file, save_conf=save_conf)
 
     def pred_to_json(self, predn, filename):

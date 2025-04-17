@@ -437,6 +437,7 @@ nav:
       - SONY IMX500: integrations/sony-imx500.md
       - Rockchip RKNN: integrations/rockchip-rknn.md
       - Seeed Studio reCamera: integrations/seeedstudio-recamera.md
+      - Microsoft Florence-2: integrations/microsoft-florence-2.md
   - HUB:
       - hub/index.md
       - Web:

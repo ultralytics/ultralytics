@@ -223,8 +223,6 @@ class AutoAnnotator:
                 if not lines:
                     if label not in classes:
                         LOGGER.warning(f"⚠️ Skipping image file {img_name}, no {classes} found")
-                    else:
-                        LOGGER.warning(f"⚠️ All boxes skipped (too small or invalid) for: {img_name}")
                     continue
 
                 # Save annotation file

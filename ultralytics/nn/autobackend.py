@@ -150,7 +150,7 @@ class AutoBackend(nn.Module):
         # Set device
         if isinstance(device, str) and device.startswith("intel"):
             inference_device = device.split(":")[1].upper()  # Intel OpenVINO device
-            device = torch.device("cpu") 
+            device = torch.device("cpu")
         cuda = torch.cuda.is_available() and device.type != "cpu"  # use CUDA
         if cuda and not any([nn_module, pt, jit, engine, onnx, paddle]):  # GPU dataloader formats
             device = torch.device("cpu")

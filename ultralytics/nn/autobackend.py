@@ -609,8 +609,13 @@ class AutoBackend(nn.Module):
                 self.session.run_with_iobinding(self.io)
                 y = self.bindings
             if self.imx:
-                # boxes, conf, cls
-                y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
+                if self.task == "detect":
+                    # boxes, conf, cls
+                    y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
+                elif self.task == "pose":
+                    # boxes, conf, kpts
+                    y = np.concatenate([y[0], y[1][:, :, None], y[2]], axis=-1)
+                    y = y.transpose((0, 2, 1))
 
         # OpenVINO
         elif self.xml:

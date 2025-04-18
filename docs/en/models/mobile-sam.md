@@ -38,7 +38,7 @@ The table below outlines the available MobileSAM model, its pre-trained weights,
 The following comparison highlights the differences between Meta's SAM variants, MobileSAM, and Ultralytics' smallest segmentation models, including [YOLO11n-seg](../models/yolo11.md):
 
 | Model                                                                           | Size<br><sup>(MB)</sup> | Parameters<br><sup>(M)</sup> | Speed (CPU)<br><sup>(ms/im)</sup> |
-| --------------------------------------------------------------------------------| ----------------------- | ---------------------------- | ---------------------------------- |
+| ------------------------------------------------------------------------------- | ----------------------- | ---------------------------- | --------------------------------- |
 | Meta SAM-b                                                                      | 375                     | 93.7                         | 49401                             |
 | Meta SAM2-b                                                                     | 162                     | 80.8                         | 31901                             |
 | Meta SAM2-t                                                                     | 78.1                    | 38.9                         | 25997                             |

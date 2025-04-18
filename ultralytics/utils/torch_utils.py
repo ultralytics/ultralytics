@@ -967,7 +967,7 @@ class FXModel(nn.Module):
         return x
 
 
-def weighting_function(reg_max, up, reg_scale, deploy=False):
+def weighting_function(reg_max, up, reg_scale):
     """
     Generates the non-uniform Weighting Function W(n) for bounding box regression.
 
@@ -978,24 +978,14 @@ def weighting_function(reg_max, up, reg_scale, deploy=False):
         reg_scale (float): Controls the curvature of the Weighting Function.
                            Larger values result in flatter weights near the central axis W(reg_max/2)=0
                            and steeper weights at both ends.
-        deploy (bool): If True, uses deployment mode settings.
 
     Returns:
         Tensor: Sequence of Weighting Function.
     """
-    if deploy:
-        upper_bound1 = (abs(up[0]) * abs(reg_scale)).item()
-        upper_bound2 = (abs(up[0]) * abs(reg_scale) * 2).item()
-        step = (upper_bound1 + 1) ** (2 / (reg_max - 2))
-        left_values = [-((step) ** i) + 1 for i in range(reg_max // 2 - 1, 0, -1)]
-        right_values = [(step) ** i - 1 for i in range(1, reg_max // 2)]
-        values = [-upper_bound2] + left_values + [torch.zeros_like(up[0][None])] + right_values + [upper_bound2]
-        return torch.tensor(values, dtype=up.dtype, device=up.device)
-    else:
-        upper_bound1 = abs(up[0]) * abs(reg_scale)
-        upper_bound2 = abs(up[0]) * abs(reg_scale) * 2
-        step = (upper_bound1 + 1) ** (2 / (reg_max - 2))
-        left_values = [-((step) ** i) + 1 for i in range(reg_max // 2 - 1, 0, -1)]
-        right_values = [(step) ** i - 1 for i in range(1, reg_max // 2)]
-        values = [-upper_bound2] + left_values + [torch.zeros_like(up[0][None])] + right_values + [upper_bound2]
-        return torch.cat(values, 0)
+    upper_bound1 = abs(up[0]) * abs(reg_scale)
+    upper_bound2 = abs(up[0]) * abs(reg_scale) * 2
+    step = (upper_bound1 + 1) ** (2 / (reg_max - 2))
+    left_values = [-((step) ** i) + 1 for i in range(reg_max // 2 - 1, 0, -1)]
+    right_values = [(step) ** i - 1 for i in range(1, reg_max // 2)]
+    values = [-upper_bound2] + left_values + [torch.zeros_like(up[0][None])] + right_values + [upper_bound2]
+    return torch.cat(values, 0)

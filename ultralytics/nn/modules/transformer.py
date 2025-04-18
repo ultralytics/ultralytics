@@ -992,7 +992,7 @@ class DFINETransformerDecoder(nn.Module):
         return value.permute(0, 2, 3, 1).split(split_shape, dim=-1)
 
     def convert_to_deploy(self):
-        self.project = weighting_function(self.reg_max, self.up, self.reg_scale, deploy=True)
+        self.project = weighting_function(self.reg_max, self.up, self.reg_scale)
         self.layers = self.layers[: self.eval_idx + 1]
         self.lqe_layers = nn.ModuleList([nn.Identity()] * (self.eval_idx) + [self.lqe_layers[self.eval_idx]])
 

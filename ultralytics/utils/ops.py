@@ -222,7 +222,7 @@ def non_max_suppression(
         in_place (bool): If True, the input prediction tensor will be modified in place.
         rotated (bool): If Oriented Bounding Boxes (OBB) are being passed for NMS.
         end2end (bool): If the model doesn't require NMS.
-        return_idxs (bool): Return the idxs of the detections that were kept.
+        return_idxs (bool): Return the indices of the detections that were kept.
 
     Returns:
         (List[torch.Tensor]): A list of length batch_size, where each element is a tensor of

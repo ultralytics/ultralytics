@@ -230,8 +230,6 @@ class BaseDataset(Dataset):
                     im = np.stack(im, axis=2) if retval else None
                 else:
                     im = cv2.imread(f)
-                # import tifffile
-                # im = tifffile.imread(f).transpose(1, 2, 0) if Path(f).suffix in {".tif", "tiff"} else cv2.imread(f)  # BGR
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
 

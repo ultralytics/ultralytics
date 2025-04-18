@@ -586,9 +586,9 @@ class DEIMLoss(nn.Module):
 
     def __init__(
         self,
-        matcher,
-        weight_dict,
-        losses,
+        losses=["mal", "boxes", "local"],
+        weight_dict={"loss_mal": 1, "loss_bbox": 5, "loss_giou": 2, "loss_fgl": 0.15, "loss_ddf": 1.5},
+        matcher=HungarianMatcher(cost_gain={"class": 2, "bbox": 5, "giou": 2}),
         alpha=0.2,
         gamma=2.0,
         num_classes=80,
@@ -825,7 +825,7 @@ class DEIMLoss(nn.Module):
             num_boxes_all = torch.clamp(num_boxes_all / get_world_size(), min=1).item()
 
         # Compute the average number of target boxes accross all nodes, for normalization purposes
-        num_boxes = max(sum(len(t["labels"]) for t in targets), 1)
+        num_boxes = max(len(targets["cls"]), 1)
         if is_dist_available_and_initialized():
             num_boxes = torch.as_tensor([num_boxes], dtype=torch.float32, device=next(iter(outputs.values())).device)
             torch.distributed.all_reduce(num_boxes)  # sum up the num_boxes across all GPUs
@@ -937,7 +937,7 @@ class DEIMLoss(nn.Module):
 
         pred_idx, gt_idx = DETRLoss._get_index(indices)
         src_boxes = outputs["pred_boxes"][pred_idx]
-        target_boxes = targets["boxes"][gt_idx]
+        target_boxes = targets["bboxes"][gt_idx]
 
         # TODO: could use CIOU as well
         iou = bbox_iou(src_boxes.detach(), target_boxes, GIoU=self.boxes_weight_format == "giou")

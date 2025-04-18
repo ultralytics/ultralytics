@@ -50,4 +50,4 @@ head:
   - [[-1, 12], 1, Concat, [1]] # cat Y5
   - [-1, 3, RepC3, [256]] # F5 (27), pan_blocks.1
 
-  - [[21, 24, 27], 1, RTDETRDecoder, [nc]] # Detect(P3, P4, P5)
+  - [[21, 24, 27], 1, DFINEDecoder, [nc]] # Detect(P3, P4, P5)

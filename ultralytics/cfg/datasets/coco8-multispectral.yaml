@@ -14,6 +14,7 @@ train: images/train # train images (relative to 'path') 4 images
 val: images/val # val images (relative to 'path') 4 images
 test: # test images (optional)
 
+channels: 10  # image channels
 # Classes
 names:
   0: person

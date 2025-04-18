@@ -12,7 +12,7 @@ import numpy as np
 from PIL import Image
 
 from ultralytics.utils import DATASETS_DIR, LOGGER, NUM_THREADS, TQDM
-from ultralytics.utils.downloads import download
+from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
 
 
@@ -703,7 +703,7 @@ def create_synthetic_coco_dataset():
     print("Synthetic COCO dataset created successfully.")
 
 
-def convert_to_multispectral(path, n_channels=10):
+def convert_to_multispectral(path, n_channels=10, replace=False, zip=False):
     """
     Convert RGB images to multispectral images by interpolating across wavelength bands.
 
@@ -713,10 +713,13 @@ def convert_to_multispectral(path, n_channels=10):
     Args:
         path (str | Path): Path to an image file or directory containing images to convert.
         n_channels (int): Number of spectral channels to generate in the output image.
+        replace (bool): Whether to replace the original image file with the converted one.
+        zip (bool): Whether to zip the converted images into a zip file.
 
     Examples:
         >>> # Convert a single image
         >>> convert_to_multispectral("path/to/image.jpg", n_channels=12)
+
     """
     from scipy.interpolate import interp1d
 
@@ -729,8 +732,13 @@ def convert_to_multispectral(path, n_channels=10):
         for im_path in im_files:
             try:
                 convert_to_multispectral(im_path, n_channels)
+                if replace:
+                    im_path.unlink()
             except Exception as e:
                 print(f"Error converting {im_path}: {e}")
+
+        if zip:
+            zip_directory(path)
     else:
         # Process a single image
         output_path = path.with_suffix(".tiff")
@@ -743,3 +751,5 @@ def convert_to_multispectral(path, n_channels=10):
         multispectral = f(target_wavelengths)
         cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1))
         print(f"Converted {output_path}")
+
+

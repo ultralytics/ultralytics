@@ -565,7 +565,7 @@ class MSDeformAttnV2(nn.Module):
         self.sampling_offsets = nn.Linear(d_model, self.total_points * 2)
         self.attention_weights = nn.Linear(d_model, self.total_points)
 
-        self.ms_deformable_attn_core = functools.partial(multi_scale_deformable_attn_pytorch, method=sampling_method)
+        self.ms_deformable_attn_core = functools.partial(multi_scale_deformable_attn_pytorch, sampling_method=sampling_method)
         self._reset_parameters()
 
         if sampling_method == "discrete":
@@ -782,7 +782,7 @@ class DFINETransformerDecoderLayer(DeformableTransformerDecoderLayer):
         tgt = tgt + self.dropout4(tgt2)
         return self.norm3(tgt.clamp(min=-65504, max=65504))
 
-    def forward(self, embed, refer_bbox, feats, shapes, padding_mask=None, attn_mask=None, query_pos=None):
+    def forward(self, embed, refer_bbox, feats, shapes, attn_mask=None, query_pos=None):
         """
         Perform the forward pass through the entire decoder layer.
 
@@ -807,9 +807,7 @@ class DFINETransformerDecoderLayer(DeformableTransformerDecoderLayer):
         embed = self.norm1(embed)
 
         # Cross attention
-        tgt = self.cross_attn(
-            self.with_pos_embed(embed, query_pos), refer_bbox.unsqueeze(2), feats, shapes, padding_mask
-        )
+        tgt = self.cross_attn(self.with_pos_embed(embed, query_pos), refer_bbox.unsqueeze(2), feats, shapes)
         # Gate
         embed = self.gateway(tgt, self.dropout2(tgt))
 
@@ -1031,7 +1029,7 @@ class DFINETransformerDecoder(nn.Module):
                 output = F.interpolate(output, size=query_pos_embed.shape[-1])
                 output_detach = output.detach()
 
-            output = layer(output, refer_box, value, spatial_shapes, attn_mask, query_pos_embed)
+            output = layer(output, refer_box, value, spatial_shapes, attn_mask=attn_mask, query_pos=query_pos_embed)
             if i == 0:
                 # Initial bounding box predictions with inverse sigmoid refinement
                 pre_bboxes = torch.sigmoid(pre_bbox_head(output) + inverse_sigmoid(refer_box))

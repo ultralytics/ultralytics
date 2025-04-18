@@ -565,7 +565,9 @@ class MSDeformAttnV2(nn.Module):
         self.sampling_offsets = nn.Linear(d_model, self.total_points * 2)
         self.attention_weights = nn.Linear(d_model, self.total_points)
 
-        self.ms_deformable_attn_core = functools.partial(multi_scale_deformable_attn_pytorch, sampling_method=sampling_method)
+        self.ms_deformable_attn_core = functools.partial(
+            multi_scale_deformable_attn_pytorch, sampling_method=sampling_method
+        )
         self._reset_parameters()
 
         if sampling_method == "discrete":
@@ -1038,7 +1040,9 @@ class DFINETransformerDecoder(nn.Module):
 
             # Refine bounding box corners using FDR, integrating previous layer's corrections
             pred_corners = bbox_head[i](output + output_detach) + pred_corners_undetach
-            inter_ref_bbox = distance2bbox(ref_points_initial, integral(pred_corners, self.project), self.reg_scale)
+            inter_ref_bbox = distance2bbox(ref_points_initial, integral(pred_corners, self.project), self.reg_scale).to(
+                dtype=refer_box.dtype
+            )
 
             if self.training or i == self.eval_idx:
                 scores = score_head[i](output)

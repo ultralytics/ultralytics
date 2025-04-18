@@ -10,6 +10,8 @@ keywords: COCO8-Multispectral, Ultralytics, dataset, multispectral, object detec
 
 The [Ultralytics](https://www.ultralytics.com/) COCO8-Multispectral dataset is an advanced variant of the original COCO8 dataset, designed to facilitate experimentation with multispectral object detection models. It consists of the same 8 images from the COCO train 2017 set—4 for training and 4 for validation—but with each image transformed into a 10-channel multispectral format. By expanding beyond standard RGB channels, COCO8-Multispectral enables the development and evaluation of models that can leverage richer spectral information.
 
+![spectral-diagram](https://github.com/user-attachments/assets/9e823e37-262a-42ce-b6e0-6e19b664d634)
+
 COCO8-Multispectral is fully compatible with [Ultralytics HUB](https://hub.ultralytics.com/) and [YOLO11](../../models/yolo11.md), ensuring seamless integration into your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) workflows.
 
 ## Dataset Generation

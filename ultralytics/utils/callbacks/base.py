@@ -225,6 +225,7 @@ def add_integration_callbacks(instance):
         from .neptune import callbacks as neptune_cb
         from .raytune import callbacks as tune_cb
         from .wb import callbacks as wb_cb
+
         if SETTINGS["tensorboard"]:  # suppress tensorboard warning
             from .tensorboard import callbacks as tb_cb
         else:

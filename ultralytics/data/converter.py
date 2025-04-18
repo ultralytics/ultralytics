@@ -719,7 +719,6 @@ def convert_to_multispectral(path, n_channels=10, replace=False, zip=False):
     Examples:
         >>> # Convert a single image
         >>> convert_to_multispectral("path/to/image.jpg", n_channels=12)
-
     """
     from scipy.interpolate import interp1d
 
@@ -751,5 +750,3 @@ def convert_to_multispectral(path, n_channels=10, replace=False, zip=False):
         multispectral = f(target_wavelengths)
         cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1))
         print(f"Converted {output_path}")
-
-

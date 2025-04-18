@@ -82,8 +82,9 @@ class DetectionPredictor(BasePredictor):
 
     def get_obj_feats(self, feat_maps, idxs):
         """Extract object features from the feature maps."""
-        import torch
         from math import gcd
+
+        import torch
 
         s = gcd(*[x.shape[1] for x in feat_maps])  # find smallest vector length
         obj_feats = torch.cat(

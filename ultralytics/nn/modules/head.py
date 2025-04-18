@@ -1115,9 +1115,6 @@ class DFINEDecoder(nn.Module):
         bs = feats.shape[0]
         # prepare input for decoder
         anchors, valid_mask = self._generate_anchors(spatial_shapes, dtype=feats.dtype, device=feats.device)
-        if bs > 1:
-            anchors = anchors.repeat(feats.shape[0], 1, 1)
-
         feats = self.enc_output(valid_mask * feats)  # bs, h*w, 256
         enc_outputs_scores = self.enc_score_head(feats)  # bs, h*w, nc
 

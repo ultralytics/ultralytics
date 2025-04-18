@@ -3,15 +3,13 @@
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr
 
 try:
-    # WARNING: do not move SummaryWriter import due to protobuf bug https://github.com/ultralytics/ultralytics/pull/4674
-    from torch.utils.tensorboard import SummaryWriter
-
     assert not TESTS_RUNNING  # do not log pytest
     assert SETTINGS["tensorboard"] is True  # verify integration is enabled
     WRITER = None  # TensorBoard SummaryWriter instance
     PREFIX = colorstr("TensorBoard: ")
 
     # Imports below only required if TensorBoard enabled
+    from torch.utils.tensorboard import SummaryWriter
     import warnings
     from copy import deepcopy
 

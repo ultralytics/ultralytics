@@ -13,7 +13,7 @@ from typing import List
 from .conv import Conv
 from .utils import _get_clones, inverse_sigmoid, multi_scale_deformable_attn_pytorch
 from ultralytics.utils.torch_utils import weighting_function
-from ultralytics.utils.loss import distance2bbox
+from ultralytics.models.utils.loss import distance2bbox
 
 __all__ = (
     "TransformerEncoderLayer",

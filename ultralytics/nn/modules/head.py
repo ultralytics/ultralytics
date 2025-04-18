@@ -1198,8 +1198,6 @@ class DFINETransformer(nn.Module):
             self.query_pos_head,
             self.pre_bbox_head,
             self.integral,
-            self.up,
-            self.reg_scale,
             attn_mask=attn_mask,
         )
 

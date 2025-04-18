@@ -978,6 +978,7 @@ class DFINETransformerDecoder(nn.Module):
             ]
         )
         self.lqe_layers = _get_clones(LQE(4, 64, 2, reg_max, act=act), num_layers)
+        self.project = weighting_function(self.reg_max, self.up, self.reg_scale)
 
     def value_op(self, feats, feats_spatial_shapes, value_proj=None, value_scale=None, feats_mask=None):
         """
@@ -992,7 +993,6 @@ class DFINETransformerDecoder(nn.Module):
         return value.permute(0, 2, 3, 1).split(split_shape, dim=-1)
 
     def convert_to_deploy(self):
-        self.project = weighting_function(self.reg_max, self.up, self.reg_scale)
         self.layers = self.layers[: self.eval_idx + 1]
         self.lqe_layers = nn.ModuleList([nn.Identity()] * (self.eval_idx) + [self.lqe_layers[self.eval_idx]])
 
@@ -1007,8 +1007,6 @@ class DFINETransformerDecoder(nn.Module):
         query_pos_head,
         pre_bbox_head,
         integral,
-        up,
-        reg_scale,
         attn_mask=None,
         feats_mask=None,
     ):
@@ -1020,7 +1018,6 @@ class DFINETransformerDecoder(nn.Module):
         dec_scores = []
         dec_corners = []
         dec_out_refs = []
-        project = weighting_function(self.reg_max, up, reg_scale) if not hasattr(self, "project") else self.project
 
         refer_box = refer_box.sigmoid()
         for i, layer in enumerate(self.layers):
@@ -1043,7 +1040,7 @@ class DFINETransformerDecoder(nn.Module):
 
             # Refine bounding box corners using FDR, integrating previous layer's corrections
             pred_corners = bbox_head[i](output + output_detach) + pred_corners_undetach
-            inter_ref_bbox = distance2bbox(ref_points_initial, integral(pred_corners, project), reg_scale)
+            inter_ref_bbox = distance2bbox(ref_points_initial, integral(pred_corners, self.project), self.reg_scale)
 
             if self.training or i == self.eval_idx:
                 scores = score_head[i](output)

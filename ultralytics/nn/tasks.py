@@ -720,7 +720,7 @@ class DFINEDetectModel(RTDETRDetectionModel):
         loss = self.criterion(preds, targets)
         # NOTE: There are like 12 losses in RTDETR, backward with all losses but only show the main three losses.
         return sum(loss.values()), torch.as_tensor(
-            [loss[k].detach() for k in ["local", "mal", "boxes"]], device=img.device
+            [loss[k].detach() for k in ["loss_giou", "loss_mal", "loss_fgl"]], device=img.device
         )
 
 

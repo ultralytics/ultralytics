@@ -706,7 +706,7 @@ def create_synthetic_coco_dataset():
 def convert_to_multispectral(path, n_channels=10):
     """
     Convert RGB images to multispectral images by interpolating across wavelength bands.
-        
+
     This function takes RGB images and interpolates them to create multispectral images with a specified number
     of channels. It can process either a single image or a directory of images.
 
@@ -716,7 +716,7 @@ def convert_to_multispectral(path, n_channels=10):
 
     Examples:
         >>> # Convert a single image
-        >>> convert_to_multispectral('path/to/image.jpg', n_channels=12)
+        >>> convert_to_multispectral("path/to/image.jpg", n_channels=12)
     """
     from scipy.interpolate import interp1d
 

@@ -48,6 +48,7 @@ VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbo
 TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None  # tqdm bar format
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
+MACOS_VERSION = platform.mac_ver()[0] if MACOS else None
 ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = torch.__version__
@@ -1242,7 +1243,7 @@ class SettingsManager(JSONDict):
             "mlflow": True,  # MLflow integration
             "neptune": True,  # Neptune integration
             "raytune": True,  # Ray Tune integration
-            "tensorboard": True,  # TensorBoard logging
+            "tensorboard": False,  # TensorBoard logging
             "wandb": False,  # Weights & Biases logging
             "vscode_msg": True,  # VSCode messaging
         }

@@ -925,8 +925,8 @@ class DEIMLoss(nn.Module):
         # In case of cdn auxiliary losses.
         if "dn_outputs" in outputs:
             assert "dn_meta" in outputs, ""
-            # TODO
-            indices_dn = self.get_cdn_matched_indices(outputs["dn_meta"], batch)
+            dn_pos_idx, dn_num_group = outputs["dn_meta"]["dn_pos_idx"], outputs["dn_meta"]["dn_num_group"]
+            indices_dn = RTDETRDetectionLoss.get_dn_match_indices(dn_pos_idx, dn_num_group, batch["gt_groups"])
             dn_num_boxes = num_boxes * outputs["dn_meta"]["dn_num_group"]
 
             for i, aux_outputs in enumerate(outputs["dn_outputs"]):
@@ -966,26 +966,26 @@ class DEIMLoss(nn.Module):
         iou = bbox_iou(src_boxes.detach(), target_boxes, GIoU=self.boxes_weight_format == "giou")
         return {"values": iou}
 
-    @staticmethod
-    def get_cdn_matched_indices(dn_meta, targets):
-        """get_cdn_matched_indices"""
-        dn_positive_idx, dn_num_group = dn_meta["dn_positive_idx"], dn_meta["dn_num_group"]
-        num_gts = [len(t["labels"]) for t in targets]
-        device = targets[0]["labels"].device
-
-        dn_match_indices = []
-        for i, num_gt in enumerate(num_gts):
-            if num_gt > 0:
-                gt_idx = torch.arange(num_gt, dtype=torch.int64, device=device)
-                gt_idx = gt_idx.tile(dn_num_group)
-                assert len(dn_positive_idx[i]) == len(gt_idx)
-                dn_match_indices.append((dn_positive_idx[i], gt_idx))
-            else:
-                dn_match_indices.append(
-                    (torch.zeros(0, dtype=torch.int64, device=device), torch.zeros(0, dtype=torch.int64, device=device))
-                )
-
-        return dn_match_indices
+    # @staticmethod
+    # def get_cdn_matched_indices(dn_meta, targets):
+    #     """get_cdn_matched_indices"""
+    #     dn_positive_idx, dn_num_group = dn_meta["dn_positive_idx"], dn_meta["dn_num_group"]
+    #     num_gts = [len(t["labels"]) for t in targets]
+    #     device = targets[0]["labels"].device
+    #
+    #     dn_match_indices = []
+    #     for i, num_gt in enumerate(num_gts):
+    #         if num_gt > 0:
+    #             gt_idx = torch.arange(num_gt, dtype=torch.int64, device=device)
+    #             gt_idx = gt_idx.tile(dn_num_group)
+    #             assert len(dn_positive_idx[i]) == len(gt_idx)
+    #             dn_match_indices.append((dn_positive_idx[i], gt_idx))
+    #         else:
+    #             dn_match_indices.append(
+    #                 (torch.zeros(0, dtype=torch.int64, device=device), torch.zeros(0, dtype=torch.int64, device=device))
+    #             )
+    #
+    #     return dn_match_indices
 
     # TODO: DFL Loss
     def unimodal_distribution_focal_loss(

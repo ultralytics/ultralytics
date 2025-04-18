@@ -12,9 +12,10 @@ try:
     import warnings
     from copy import deepcopy
 
+    import torch
     from torch.utils.tensorboard import SummaryWriter
 
-    from ultralytics.utils.torch_utils import de_parallel, torch
+    from ultralytics.utils.torch_utils import de_parallel
 
 except (ImportError, AssertionError, TypeError, AttributeError):
     # TypeError for handling 'Descriptors cannot not be created directly.' protobuf errors in Windows

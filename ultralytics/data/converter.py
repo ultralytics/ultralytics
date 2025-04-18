@@ -725,12 +725,12 @@ def convert_to_multispectral(path, n_channels=10):
     path = Path(path)
     if path.is_dir():
         # Process directory
-        jpg_files = sum([list(path.rglob(f"*.{ext}")) for ext in (IMG_FORMATS - {"tif", "tiff"})], [])
-        for jpg_path in jpg_files:
+        im_files = sum([list(path.rglob(f"*.{ext}")) for ext in (IMG_FORMATS - {"tif", "tiff"})], [])
+        for im_path in im_files:
             try:
-                convert_to_multispectral(jpg_path, n_channels)
+                convert_to_multispectral(im_path, n_channels)
             except Exception as e:
-                print(f"Error converting {jpg_path}: {e}")
+                print(f"Error converting {im_path}: {e}")
     else:
         # Process a single image
         output_path = path.with_suffix(".tiff")

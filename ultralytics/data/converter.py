@@ -701,3 +701,48 @@ def create_synthetic_coco_dataset():
                 print(f"Warning: Labels file {label_list_file} does not exist. Skipping image creation for {subset}.")
 
     print("Synthetic COCO dataset created successfully.")
+
+
+def convert_to_multispectral(path, n_channels=10):
+    """
+    Convert RGB images to multispectral images by interpolating across wavelength bands.
+        
+    This function takes RGB images and interpolates them to create multispectral images with a specified number
+    of channels. It can process either a single image or a directory of images.
+
+    Args:
+        path (str | Path): Path to an image file or directory containing images to convert.
+        n_channels (int): Number of spectral channels to generate in the output image.
+
+    Examples:
+        >>> # Convert a single image
+        >>> convert_to_multispectral('path/to/image.jpg', n_channels=12)
+    """
+    from scipy.interpolate import interp1d
+    from ultralytics.data.utils import IMG_FORMATS
+
+    path = Path(path)
+
+    if path.is_dir():
+        # Process directory
+        jpg_files = sum([list(path.rglob(f"*.{ext}")) for ext in (IMG_FORMATS - {"tif", "tiff"})], [])
+        for jpg_path in jpg_files:
+            try:
+                convert_to_multispectral(jpg_path, n_channels)
+            except Exception as e:
+                print(f"Error converting {jpg_path}: {str(e)}")
+    else:
+        # Process a single image
+        output_path = path.with_suffix(".tiff")
+        img = cv2.cvtColor(cv2.imread(str(path)), cv2.COLOR_BGR2RGB)
+
+        # Reshape to 2D array of pixels
+        h, w, _ = img.shape
+
+        # Interpolate all pixels at once
+        rgb_wavelengths = np.array([650, 510, 475])  # R, G, B
+        target_wavelengths = np.linspace(450, 700, n_channels)
+        f = interp1d(rgb_wavelengths.T, img, kind="linear", bounds_error=False, fill_value="extrapolate")
+        multispectral = f(target_wavelengths)
+        cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1))
+        print(f"Converted {output_path}")

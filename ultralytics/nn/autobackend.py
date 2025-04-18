@@ -110,14 +110,14 @@ class AutoBackend(nn.Module):
         Initialize the AutoBackend for inference.
 
         Args:
-            weights (str | torch.nn.Module): Path to the model weights file or a module instance. Defaults to 'yolo11n.pt'.
-            device (torch.device): Device to run the model on. Defaults to CPU.
-            dnn (bool): Use OpenCV DNN module for ONNX inference. Defaults to False.
+            weights (str | List[str] | torch.nn.Module): Path to the model weights file or a module instance.
+            device (torch.device): Device to run the model on.
+            dnn (bool): Use OpenCV DNN module for ONNX inference.
             data (str | Path | optional): Path to the additional data.yaml file containing class names.
-            fp16 (bool): Enable half-precision inference. Supported only on specific backends. Defaults to False.
+            fp16 (bool): Enable half-precision inference. Supported only on specific backends.
             batch (int): Batch-size to assume for inference.
-            fuse (bool): Fuse Conv2D + BatchNorm layers for optimization. Defaults to True.
-            verbose (bool): Enable verbose logging. Defaults to True.
+            fuse (bool): Fuse Conv2D + BatchNorm layers for optimization.
+            verbose (bool): Enable verbose logging.
         """
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
@@ -294,8 +294,8 @@ class AutoBackend(nn.Module):
                 # fix error: `np.bool` was a deprecated alias for the builtin `bool` for JetPack 4 with Python <= 3.8.0
                 check_requirements("numpy==1.23.5")
 
-            try:
-                import tensorrt as trt  # noqa https://developer.nvidia.com/nvidia-tensorrt-download
+            try:  # https://developer.nvidia.com/nvidia-tensorrt-download
+                import tensorrt as trt  # noqa
             except ImportError:
                 if LINUX:
                     check_requirements("tensorrt>7.0.0,!=10.1.0")
@@ -403,7 +403,7 @@ class AutoBackend(nn.Module):
                 pass
 
         # TFLite or TFLite Edge TPU
-        elif tflite or edgetpu:  # https://www.tensorflow.org/lite/guide/python#install_tensorflow_lite_for_python
+        elif tflite or edgetpu:  # https://ai.google.dev/edge/litert/microcontrollers/python
             try:  # https://coral.ai/docs/edgetpu/tflite-python/#update-existing-tf-lite-code-for-the-edge-tpu
                 from tflite_runtime.interpreter import Interpreter, load_delegate
             except ImportError:
@@ -568,9 +568,9 @@ class AutoBackend(nn.Module):
 
         Args:
             im (torch.Tensor): The image tensor to perform inference on.
-            augment (bool): Whether to perform data augmentation during inference. Defaults to False.
-            visualize (bool): Whether to visualize the output predictions. Defaults to False.
-            embed (list, optional): A list of feature vectors/embeddings to return.
+            augment (bool): Whether to perform data augmentation during inference.
+            visualize (bool): Whether to visualize the output predictions.
+            embed (list | None): A list of feature vectors/embeddings to return.
             **kwargs (Any): Additional keyword arguments for model configuration.
 
         Returns:
@@ -805,11 +805,10 @@ class AutoBackend(nn.Module):
     @staticmethod
     def _model_type(p="path/to/model.pt"):
         """
-        Takes a path to a model file and returns the model type. Possibles types are pt, jit, onnx, xml, engine, coreml,
-        saved_model, pb, tflite, edgetpu, tfjs, ncnn, mnn, imx or paddle.
+        Takes a path to a model file and returns the model type.
 
         Args:
-            p (str): Path to the model file. Defaults to path/to/model.pt
+            p (str): Path to the model file.
 
         Returns:
             (List[bool]): List of booleans indicating the model type.

@@ -1796,6 +1796,9 @@ class Albumentations:
         prefix = colorstr("albumentations: ")
 
         try:
+            import os
+
+            os.environ["NO_ALBUMENTATIONS_UPDATE"] = "1"  # suppress Albumentations upgrade message
             import albumentations as A
 
             check_version(A.__version__, "1.0.3", hard=True)  # version requirement

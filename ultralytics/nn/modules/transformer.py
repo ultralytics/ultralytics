@@ -1016,19 +1016,16 @@ class DFINETransformerDecoder(nn.Module):
         output_detach = pred_corners_undetach = 0
         value = self.value_op(feats, spatial_shapes, feats_mask=feats_mask)
 
-        dec_out_bboxes = []
-        dec_out_logits = []
-        dec_out_pred_corners = []
+        dec_boxes = []
+        dec_scores = []
+        dec_corners = []
         dec_out_refs = []
         project = weighting_function(self.reg_max, up, reg_scale) if not hasattr(self, "project") else self.project
 
-        ref_points_detach = F.sigmoid(refer_box)
-
+        refer_box = F.sigmoid(refer_box)
         for i, layer in enumerate(self.layers):
-            ref_points_input = ref_points_detach.unsqueeze(2)
-            query_pos_embed = query_pos_head(ref_points_detach).clamp(min=-10, max=10)
-
-            # TODO Adjust scale if needed for detachable wider layers
+            query_pos_embed = query_pos_head(refer_box).clamp(min=-10, max=10)
+            # TODO: Adjust scale if needed for detachable wider layers
             if i >= self.eval_idx + 1 and self.layer_scale > 1:
                 query_pos_embed = F.interpolate(query_pos_embed, scale_factor=self.layer_scale)
                 value = self.value_op(
@@ -1037,11 +1034,10 @@ class DFINETransformerDecoder(nn.Module):
                 output = F.interpolate(output, size=query_pos_embed.shape[-1])
                 output_detach = output.detach()
 
-            output = layer(output, ref_points_input, value, spatial_shapes, attn_mask, query_pos_embed)
-
+            output = layer(output, refer_box, value, spatial_shapes, attn_mask, query_pos_embed)
             if i == 0:
                 # Initial bounding box predictions with inverse sigmoid refinement
-                pre_bboxes = F.sigmoid(pre_bbox_head(output) + inverse_sigmoid(ref_points_detach))
+                pre_bboxes = F.sigmoid(pre_bbox_head(output) + inverse_sigmoid(refer_box))
                 pre_scores = score_head[0](output)
                 ref_points_initial = pre_bboxes.detach()
 
@@ -1053,22 +1049,22 @@ class DFINETransformerDecoder(nn.Module):
                 scores = score_head[i](output)
                 # Lqe does not affect the performance here.
                 scores = self.lqe_layers[i](scores, pred_corners)
-                dec_out_logits.append(scores)
-                dec_out_bboxes.append(inter_ref_bbox)
-                dec_out_pred_corners.append(pred_corners)
+                dec_scores.append(scores)
+                dec_boxes.append(inter_ref_bbox)
+                dec_corners.append(pred_corners)
                 dec_out_refs.append(ref_points_initial)
 
                 if not self.training:
                     break
 
             pred_corners_undetach = pred_corners
-            ref_points_detach = inter_ref_bbox.detach()
+            refer_box = inter_ref_bbox.detach()
             output_detach = output.detach()
 
         return (
-            torch.stack(dec_out_bboxes),
-            torch.stack(dec_out_logits),
-            torch.stack(dec_out_pred_corners),
+            torch.stack(dec_boxes),
+            torch.stack(dec_scores),
+            torch.stack(dec_corners),
             torch.stack(dec_out_refs),
             pre_bboxes,
             pre_scores,

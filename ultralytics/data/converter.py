@@ -741,7 +741,7 @@ def convert_to_multispectral(path, n_channels=10):
         h, w, _ = img.shape
 
         # Interpolate all pixels at once
-        rgb_wavelengths = np.array([650, 510, 475])  # R, G, B
+        rgb_wavelengths = np.array([650, 510, 475])  # R, G, B wavelengths (nm)
         target_wavelengths = np.linspace(450, 700, n_channels)
         f = interp1d(rgb_wavelengths.T, img, kind="linear", bounds_error=False, fill_value="extrapolate")
         multispectral = f(target_wavelengths)

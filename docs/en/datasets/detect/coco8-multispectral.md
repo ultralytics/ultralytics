@@ -94,7 +94,7 @@ Special thanks to the [COCO Consortium](https://cocodataset.org/#home) for their
 
 ### What Is the Ultralytics COCO8-Multispectral Dataset Used For?
 
-The Ultralytics COCO8-Multispectral dataset is designed for rapid testing and debugging of [multispectral object detection](https://www.ultralytics.com/glossary/object-detection) models. With only 8 images (4 for training, 4 for validation), it is ideal for verifying your [YOLO](../yolo11.md) training pipelines and ensuring everything works as expected before scaling to larger datasets. For more datasets to experiment with, visit the [Ultralytics Datasets Catalog](https://docs.ultralytics.com/datasets/).
+The Ultralytics COCO8-Multispectral dataset is designed for rapid testing and debugging of [multispectral object detection](https://www.ultralytics.com/glossary/object-detection) models. With only 8 images (4 for training, 4 for validation), it is ideal for verifying your [YOLO](../../models/yolo11.md) training pipelines and ensuring everything works as expected before scaling to larger datasets. For more datasets to experiment with, visit the [Ultralytics Datasets Catalog](https://docs.ultralytics.com/datasets/).
 
 ### How Does Multispectral Data Improve Object Detection?
 
@@ -102,7 +102,7 @@ Multispectral data provides additional spectral information beyond standard RGB,
 
 ### Is COCO8-Multispectral Compatible With Ultralytics HUB and YOLO Models?
 
-Yes, COCO8-Multispectral is fully compatible with [Ultralytics HUB](https://hub.ultralytics.com/) and all [YOLO models](../yolo11.md), including the latest YOLO11. This allows you to easily integrate the dataset into your training and validation workflows.
+Yes, COCO8-Multispectral is fully compatible with [Ultralytics HUB](https://hub.ultralytics.com/) and all [YOLO models](../../models/yolo11.md), including the latest YOLO11. This allows you to easily integrate the dataset into your training and validation workflows.
 
 ### Where Can I Find More Information on Data Augmentation Techniques?
 

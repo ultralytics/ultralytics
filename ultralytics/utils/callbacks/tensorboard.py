@@ -9,9 +9,10 @@ try:
     PREFIX = colorstr("TensorBoard: ")
 
     # Imports below only required if TensorBoard enabled
-    from torch.utils.tensorboard import SummaryWriter
     import warnings
     from copy import deepcopy
+
+    from torch.utils.tensorboard import SummaryWriter
 
     from ultralytics.utils.torch_utils import de_parallel, torch
 

@@ -730,7 +730,7 @@ def convert_to_multispectral(path, n_channels=10):
             try:
                 convert_to_multispectral(jpg_path, n_channels)
             except Exception as e:
-                print(f"Error converting {jpg_path}: {str(e)}")
+                print(f"Error converting {jpg_path}: {e}")
     else:
         # Process a single image
         output_path = path.with_suffix(".tiff")

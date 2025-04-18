@@ -593,7 +593,6 @@ class DEIMLoss(nn.Module):
         gamma=2.0,
         num_classes=80,
         reg_max=32,
-        boxes_weight_format=None,
         share_matched_indices=False,
         mal_alpha=None,
         use_uni_set=True,
@@ -608,12 +607,11 @@ class DEIMLoss(nn.Module):
             boxes_weight_format: format for boxes weight (iou, ).
         """
         super().__init__()
-        assert boxes_weight_format in {"iou", "giou"}
         self.num_classes = num_classes
         self.matcher = matcher
         self.weight_dict = weight_dict
         self.losses = losses
-        self.boxes_weight_format = boxes_weight_format
+        self.boxes_weight_format = "giou"
         self.share_matched_indices = share_matched_indices
         self.alpha = alpha
         self.gamma = gamma

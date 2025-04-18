@@ -238,7 +238,7 @@ def time_sync():
 
 
 def fuse_conv_and_bn(conv, bn):
-    """Fuse Conv2d() and BatchNorm2d() layers https://tehnokv.com/posts/fusing-batchnorm-and-conv/."""
+    """Fuse Conv2d() and BatchNorm2d() layers."""
     fusedconv = (
         nn.Conv2d(
             conv.in_channels,

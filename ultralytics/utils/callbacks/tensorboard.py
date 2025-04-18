@@ -1,10 +1,11 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr
+from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr, torch_utils
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
     assert SETTINGS["tensorboard"] is True  # verify integration is enabled
+    assert torch_utils.TORCH_2_0, "TensorBoard integration requires torch>=2.0.0"
     WRITER = None  # TensorBoard SummaryWriter instance
     PREFIX = colorstr("TensorBoard: ")
 
@@ -14,8 +15,6 @@ try:
 
     import torch
     from torch.utils.tensorboard import SummaryWriter
-
-    from ultralytics.utils.torch_utils import de_parallel
 
 except (ImportError, AssertionError, TypeError, AttributeError):
     # TypeError for handling 'Descriptors cannot not be created directly.' protobuf errors in Windows
@@ -73,14 +72,14 @@ def _log_tensorboard_graph(trainer) -> None:
         # Try simple method first (YOLO)
         try:
             trainer.model.eval()  # place in .eval() mode to avoid BatchNorm statistics changes
-            WRITER.add_graph(torch.jit.trace(de_parallel(trainer.model), im, strict=False), [])
+            WRITER.add_graph(torch.jit.trace(torch_utils.de_parallel(trainer.model), im, strict=False), [])
             LOGGER.info(f"{PREFIX}model graph visualization added ✅")
             return
 
         except Exception:
             # Fallback to TorchScript export steps (RTDETR)
             try:
-                model = deepcopy(de_parallel(trainer.model))
+                model = deepcopy(torch_utils.de_parallel(trainer.model))
                 model.eval()
                 model = model.fuse(verbose=False)
                 for m in model.modules():

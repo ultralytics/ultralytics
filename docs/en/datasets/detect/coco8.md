@@ -21,7 +21,7 @@ The [Ultralytics](https://www.ultralytics.com/) COCO8 dataset is a compact yet p
   <strong>Watch:</strong> Ultralytics COCO Dataset Overview
 </p>
 
-COCO8 is fully compatible with [Ultralytics HUB](https://hub.ultralytics.com/) and [YOLO11](../yolo11.md), enabling seamless integration into your computer vision workflows.
+COCO8 is fully compatible with [Ultralytics HUB](https://hub.ultralytics.com/) and [YOLO11](../../models/yolo11.md), enabling seamless integration into your computer vision workflows.
 
 ## Dataset YAML
 

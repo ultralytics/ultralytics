@@ -1022,7 +1022,7 @@ class DFINETransformerDecoder(nn.Module):
         dec_out_refs = []
         project = weighting_function(self.reg_max, up, reg_scale) if not hasattr(self, "project") else self.project
 
-        refer_box = F.sigmoid(refer_box)
+        refer_box = refer_box.sigmoid()
         for i, layer in enumerate(self.layers):
             query_pos_embed = query_pos_head(refer_box).clamp(min=-10, max=10)
             # TODO: Adjust scale if needed for detachable wider layers
@@ -1037,7 +1037,7 @@ class DFINETransformerDecoder(nn.Module):
             output = layer(output, refer_box, value, spatial_shapes, attn_mask, query_pos_embed)
             if i == 0:
                 # Initial bounding box predictions with inverse sigmoid refinement
-                pre_bboxes = F.sigmoid(pre_bbox_head(output) + inverse_sigmoid(refer_box))
+                pre_bboxes = torch.sigmoid(pre_bbox_head(output) + inverse_sigmoid(refer_box))
                 pre_scores = score_head[0](output)
                 ref_points_initial = pre_bboxes.detach()
 

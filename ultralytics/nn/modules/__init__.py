@@ -83,6 +83,7 @@ from .head import (
     LRPCHead,
     Pose,
     RTDETRDecoder,
+    DFINEDecoder,
     Segment,
     WorldDetect,
     YOLOEDetect,
@@ -179,4 +180,5 @@ __all__ = (
     "TorchVision",
     "Index",
     "A2C2f",
+    "DFINEDecoder",
 )

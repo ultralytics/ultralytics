@@ -906,7 +906,7 @@ class Integral(nn.Module):
         return x.reshape(list(shape[:-1]) + [-1])
 
 
-class DFINETransformer(nn.Module):
+class DFINEDecoder(nn.Module):
     __share__ = ["num_classes", "eval_spatial_size"]
 
     def __init__(

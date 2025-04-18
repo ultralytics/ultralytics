@@ -682,6 +682,47 @@ class RTDETRDetectionModel(DetectionModel):
         return x
 
 
+class DFINEDetectModel(RTDETRDetectionModel):
+    def init_criterion(self):
+        """Initialize the loss criterion for the RTDETRDetectionModel."""
+        from ultralytics.models.utils.loss import DEIMLoss
+
+        return DEIMLoss()
+
+    def loss(self, batch, preds=None):
+        """
+        Compute the loss for the given batch of data.
+
+        Args:
+            batch (dict): Dictionary containing image and label data.
+            preds (torch.Tensor, optional): Precomputed model predictions.
+
+        Returns:
+            (tuple): A tuple containing the total loss and main three losses in a tensor.
+        """
+        if not hasattr(self, "criterion"):
+            self.criterion = self.init_criterion()
+
+        img = batch["img"]
+        # NOTE: preprocess gt_bbox and gt_labels to list.
+        bs = len(img)
+        batch_idx = batch["batch_idx"]
+        gt_groups = [(batch_idx == i).sum().item() for i in range(bs)]
+        targets = {
+            "cls": batch["cls"].to(img.device, dtype=torch.long).view(-1),
+            "bboxes": batch["bboxes"].to(device=img.device),
+            "batch_idx": batch_idx.to(img.device, dtype=torch.long).view(-1),
+            "gt_groups": gt_groups,
+        }
+
+        preds = self.predict(img, batch=targets) if preds is None else preds
+        loss = self.criterion(preds, targets)
+        # NOTE: There are like 12 losses in RTDETR, backward with all losses but only show the main three losses.
+        return sum(loss.values()), torch.as_tensor(
+            [loss[k].detach() for k in ["loss_giou", "loss_class", "loss_bbox"]], device=img.device
+        )
+
+
 class WorldModel(DetectionModel):
     """YOLOv8 World Model."""
 

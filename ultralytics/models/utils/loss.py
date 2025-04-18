@@ -629,7 +629,7 @@ class DEIMLoss(nn.Module):
             # TODO
             src_boxes = outputs["pred_boxes"][pred_idx]
             target_boxes = targets["bboxes"][gt_idx]
-            ious = bbox_iou(src_boxes.detach(), target_boxes).detach()
+            ious = bbox_iou(src_boxes.detach(), target_boxes).squeeze(-1).detach()
         else:
             ious = values
 
@@ -704,7 +704,7 @@ class DEIMLoss(nn.Module):
         target_corners, weight_right, weight_left = self.fgl_targets_dn if "is_dn" in outputs else self.fgl_targets
 
         ious = bbox_iou(outputs["pred_boxes"][pred_idx], target_boxes)  # TODO: CIOU
-        weight_targets = ious.unsqueeze(-1).repeat(1, 4).reshape(-1).detach()
+        weight_targets = ious.repeat(1, 4).reshape(-1).detach()
 
         losses["loss_fgl"] = self.unimodal_distribution_focal_loss(
             pred_corners, target_corners, weight_right, weight_left, weight_targets, avg_factor=num_boxes
@@ -800,8 +800,8 @@ class DEIMLoss(nn.Module):
 
         # Retrieve the matching between the outputs of the last layer and the targets
         indices = self.matcher(
-            outputs_without_aux["pred_boxes"],
-            outputs_without_aux["pred_logits"],
+            outputs_without_aux["pred_boxes"].contiguous(),
+            outputs_without_aux["pred_logits"].contiguous(),
             batch["bboxes"],
             batch["cls"],
             batch["gt_groups"],
@@ -816,8 +816,8 @@ class DEIMLoss(nn.Module):
             aux_outputs_list = outputs["aux_outputs"] + [outputs["pre_outputs"]]
         for i, aux_outputs in enumerate(aux_outputs_list):
             indices_aux = self.matcher(
-                aux_outputs["pred_boxes"],
-                aux_outputs["pred_logits"],
+                aux_outputs["pred_boxes"].contiguous(),
+                aux_outputs["pred_logits"].contiguous(),
                 batch["bboxes"],
                 batch["cls"],
                 batch["gt_groups"],
@@ -826,8 +826,8 @@ class DEIMLoss(nn.Module):
             indices_aux_list.append(indices_aux)
         for i, aux_outputs in enumerate(outputs["enc_aux_outputs"]):
             indices_enc = self.matcher(
-                aux_outputs["pred_boxes"],
-                aux_outputs["pred_logits"],
+                aux_outputs["pred_boxes"].contiguous(),
+                aux_outputs["pred_logits"].contiguous(),
                 batch["bboxes"],
                 batch["cls"],
                 batch["gt_groups"],
@@ -853,8 +853,8 @@ class DEIMLoss(nn.Module):
 
         # Compute all the requested losses, main loss
         losses = {}
-        use_uni_set = self.use_uni_set and (loss in ["boxes", "local"])
         for loss in self.losses:
+            use_uni_set = self.use_uni_set and (loss in ["boxes", "local"])
             # TODO, indices and num_box are different from RT-DETRv2
             indices_in = all_indices if use_uni_set else indices
             num_boxes_in = num_boxes_all if use_uni_set else num_boxes
@@ -870,6 +870,7 @@ class DEIMLoss(nn.Module):
                     aux_outputs["up"], aux_outputs["reg_scale"] = outputs["up"], outputs["reg_scale"]
                 for loss in self.losses:
                     # TODO, indices and num_box are different from RT-DETRv2
+                    use_uni_set = self.use_uni_set and (loss in ['boxes', 'local'])
                     indices_in = all_indices if use_uni_set else cached_indices[i]
                     num_boxes_in = num_boxes_all if use_uni_set else num_boxes
                     meta = self.get_loss_meta_info(loss, aux_outputs, batch, indices_in)
@@ -884,6 +885,7 @@ class DEIMLoss(nn.Module):
             aux_outputs = outputs["pre_outputs"]
             for loss in self.losses:
                 # TODO, indices and num_box are different from RT-DETRv2
+                use_uni_set = self.use_uni_set and (loss in ['boxes', 'local'])
                 indices_in = all_indices if use_uni_set else cached_indices[-1]
                 num_boxes_in = num_boxes_all if use_uni_set else num_boxes
                 meta = self.get_loss_meta_info(loss, aux_outputs, batch, indices_in)
@@ -909,6 +911,7 @@ class DEIMLoss(nn.Module):
             for i, aux_outputs in enumerate(outputs["enc_aux_outputs"]):
                 for loss in self.losses:
                     # TODO, indices and num_box are different from RT-DETRv2
+                    use_uni_set = self.use_uni_set and (loss == 'boxes')
                     indices_in = all_indices if use_uni_set else cached_indices_enc[i]
                     num_boxes_in = num_boxes_all if use_uni_set else num_boxes
                     meta = self.get_loss_meta_info(loss, aux_outputs, enc_targets, indices_in)

@@ -2,8 +2,6 @@
 
 from copy import copy
 
-import torch
-
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import RTDETRDetectionModel
 from ultralytics.utils import RANK, colorstr

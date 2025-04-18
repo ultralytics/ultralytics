@@ -553,7 +553,7 @@ class MSDeformAttnV2(nn.Module):
         self.offset_scale = offset_scale
 
         n_points_list = n_points if isinstance(n_points, list) else [n_points for _ in range(n_levels)]
-        assert len(n_points) == n_levels, "Expect num_points to be a list of length num_levels."
+        assert len(n_points_list) == n_levels, "Expect num_points to be a list of length num_levels."
         self.n_points_list = n_points_list
 
         num_points_scale = [1 / n for n in n_points_list for _ in range(n)]
@@ -654,7 +654,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
         norm3 (nn.LayerNorm): Layer normalization after the feedforward network.
     """
 
-    def __init__(self, d_model=256, n_heads=8, d_ffn=1024, dropout=0.0, act=nn.ReLU(), n_levels=4, n_points=4):
+    def __init__(self, d_model=256, n_heads=8, d_ffn=1024, dropout=0.0, act=nn.ReLU, n_levels=4, n_points=4):
         """
         Initialize the DeformableTransformerDecoderLayer with the given parameters.
 
@@ -681,7 +681,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
 
         # FFN
         self.linear1 = nn.Linear(d_model, d_ffn)
-        self.act = act
+        self.act = act()
         self.dropout3 = nn.Dropout(dropout)
         self.linear2 = nn.Linear(d_ffn, d_model)
         self.dropout4 = nn.Dropout(dropout)
@@ -748,17 +748,17 @@ class DFINETransformerDecoderLayer(DeformableTransformerDecoderLayer):
         n_heads=8,
         d_ffn=1024,
         dropout=0.0,
-        act=nn.ReLU(),
+        act=nn.ReLU,
         n_levels=4,
         n_points=4,
         cross_attn="default",
         layer_scale=None,
     ):
         if layer_scale is not None:
-            dim_feedforward = round(layer_scale * dim_feedforward)
+            d_ffn = round(layer_scale * d_ffn)
             d_model = round(layer_scale * d_model)
         super().__init__(d_model, n_heads, d_ffn, dropout, act, n_levels, n_points)
-        self.cross_attn = MSDeformAttnV2(d_model, n_heads, n_levels, n_points, method=cross_attn)
+        self.cross_attn = MSDeformAttnV2(d_model, n_heads, n_levels, n_points, sampling_method=cross_attn)
         self.gateway = Gate(d_model)  # gate
         # delete the second normalization layer from DeformableTransformerDecoderLayer
         del self.norm2
@@ -837,7 +837,7 @@ class Gate(nn.Module):
 
 # TODO: put it here for now
 class LQE(nn.Module):
-    def __init__(self, k, hidden_dim, num_layers, reg_max, act="relu"):
+    def __init__(self, k, hidden_dim, num_layers, reg_max, act=nn.ReLU):
         super(LQE, self).__init__()
         self.k = k
         self.reg_max = reg_max
@@ -962,7 +962,7 @@ class DFINETransformerDecoder(nn.Module):
         up,
         eval_idx=-1,
         layer_scale=2,
-        act="relu",
+        act=nn.ReLU,
     ):
         super().__init__()
         self.hidden_dim = hidden_dim

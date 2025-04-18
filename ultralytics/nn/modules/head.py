@@ -920,7 +920,7 @@ class DFINEDecoder(nn.Module):
         num_layers=6,
         dim_feedforward=1024,
         dropout=0.0,
-        activation="relu",
+        activation=nn.ReLU,
         num_denoising=100,
         label_noise_ratio=0.5,
         box_noise_scale=1.0,
@@ -932,7 +932,7 @@ class DFINEDecoder(nn.Module):
         reg_max=32,
         reg_scale=4.0,
         layer_scale=1,
-        mlp_act="relu",
+        mlp_act=nn.ReLU,
     ):
         super().__init__()
         self.hidden_dim = hidden_dim
@@ -1176,7 +1176,7 @@ class DFINEDecoder(nn.Module):
         # )
         dn_embed, dn_bbox, attn_mask, dn_meta = get_cdn_group(
             batch,
-            self.nc,
+            self.num_classes,
             self.num_queries,
             self.denoising_class_embed.weight,
             self.num_denoising,

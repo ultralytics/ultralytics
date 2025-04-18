@@ -719,6 +719,7 @@ def convert_to_multispectral(path, n_channels=10):
         >>> convert_to_multispectral('path/to/image.jpg', n_channels=12)
     """
     from scipy.interpolate import interp1d
+
     from ultralytics.data.utils import IMG_FORMATS
 
     path = Path(path)

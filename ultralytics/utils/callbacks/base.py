@@ -216,6 +216,8 @@ def add_integration_callbacks(instance):
 
     # Load training callbacks
     if "Trainer" in instance.__class__.__name__:
+        from ultralytics.utils import SETTINGS
+
         from .clearml import callbacks as clear_cb
         from .comet import callbacks as comet_cb
         from .dvc import callbacks as dvc_cb
@@ -223,7 +225,6 @@ def add_integration_callbacks(instance):
         from .neptune import callbacks as neptune_cb
         from .raytune import callbacks as tune_cb
         from .wb import callbacks as wb_cb
-        from ultralytics.utils import SETTINGS
         if SETTINGS["tensorboard"]:  # suppress tensorboard warning
             from .tensorboard import callbacks as tb_cb
         else:

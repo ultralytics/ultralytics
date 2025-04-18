@@ -912,9 +912,9 @@ class DFINEDecoder(nn.Module):
     def __init__(
         self,
         num_classes=80,
+        feat_channels=[512, 1024, 2048],
         hidden_dim=256,
         num_queries=300,
-        feat_channels=[512, 1024, 2048],
         num_points=4,
         nhead=8,
         num_layers=6,

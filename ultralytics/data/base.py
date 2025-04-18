@@ -225,7 +225,7 @@ class BaseDataset(Dataset):
                     Path(fn).unlink(missing_ok=True)
                     im = cv2.imread(f)  # BGR
             else:  # read image
-                if Path(f).suffix in {".tif", "tiff"}:
+                if Path(f).suffix in {".tif", ".tiff"}:
                     retval, im = cv2.imreadmulti(f)
                     im = np.stack(im, axis=2) if retval else None
                 else:

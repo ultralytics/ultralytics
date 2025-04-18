@@ -8,9 +8,7 @@ keywords: MobileSAM, image segmentation, lightweight model, fast segmentation, m
 
 # Mobile Segment Anything (MobileSAM)
 
-The MobileSAM paper is now available on [arXiv](https://arxiv.org/pdf/2306.14289).
-
-A demonstration of MobileSAM running on a CPU can be accessed at this [demo link](https://huggingface.co/spaces/dhkim2810/MobileSAM). The performance on a Mac i5 CPU takes approximately 3 seconds. On the [Hugging Face](https://www.ultralytics.com/glossary/hugging-face) demo, the interface and lower-performance CPUs contribute to a slower response, but it continues to function effectively.
+MobileSAM is a compact and efficient image segmentation model built for mobile and edge devices. Designed to bring the power of Meta's Segment Anything Model ([SAM](sam.md)) to environments with limited compute, MobileSAM offers near-instant performance while maintaining compatibility with the original SAM pipeline. Whether you're working on real-time applications or lightweight deployments, MobileSAM delivers impressive segmentation results with a fraction of the size and speed requirements of its predecessors.
 
 <p align="center">
   <br>
@@ -205,6 +203,8 @@ If you find MobileSAM useful in your research or development work, please consid
           year={2023}
         }
         ```
+
+The MobileSAM paper is now available on [arXiv](https://arxiv.org/pdf/2306.14289).
 
 ## FAQ
 

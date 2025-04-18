@@ -9,7 +9,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-from typing import Union
+from typing import Iterable, Union
 
 import numpy as np
 import torch
@@ -28,7 +28,7 @@ from ultralytics.utils import (
     __version__,
     colorstr,
 )
-from ultralytics.utils.checks import check_version
+from ultralytics.utils.checks import check_version, substr_in_set
 
 try:
     import thop
@@ -924,7 +924,45 @@ class EarlyStopping:
         return stop
 
 
-class FXModel(nn.Module):
+def prune_model(
+    model: torch.nn.Module,
+    fraction2prune: float = 0.2,
+    min_params: int = None,
+    not2prune: Iterable[str] = {"model.15", "model.18", "model.21", "model.22"},
+) -> None:
+    """
+    Prunes the specified model by applying L1 unstructured pruning to convolutional layers.
+
+    Args:
+        model (torch.nn.Module): The model to be pruned.
+        fraction2prune (float, optional): The fraction of weights to prune. Defaults to 0.2.
+        min_params (int, optional): The minimum number of parameters a module must have to be pruned. Default or None uses 128.
+        not2prune (Iterable[str], optional): Set of sub-strings for module names to skip pruning. Default is
+            {'model.15', 'model.18', 'model.21', 'model.22'} and are always skipped.
+
+    Returns:
+        None
+    """
+    import torch.nn.utils.prune as prune
+
+    not2prune = set(not2prune) | {"model.15", "model.18", "model.21", "model.22"}  # always skip these
+    param = get_num_params(model)
+    z0 = zero_count(model) / param  # initial sparsity
+    min_params = 128 if not min_params else min_params
+
+    def _conditional(n: str, m: torch.nn.Module, t: int) -> bool:
+        """Check if the given module meets the conditions for pruning."""
+        return isinstance(m, torch.nn.Conv2d) and not substr_in_set(n, not2prune) and get_num_params(m) > t
+
+    for name, module in model.named_modules():
+        if _conditional(name, module, min_params):
+            prune.l1_unstructured(module, name="weight", amount=fraction2prune)
+            prune.remove(module, name="weight")
+
+    LOGGER.info(f"Model sparsity achieved {zero_count(model) / param:.2%} from {z0:.2%}")
+
+    
+    class FXModel(nn.Module):
     """
     A custom model class for torch.fx compatibility.
 

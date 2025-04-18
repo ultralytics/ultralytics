@@ -736,9 +736,6 @@ def convert_to_multispectral(path, n_channels=10):
         output_path = path.with_suffix(".tiff")
         img = cv2.cvtColor(cv2.imread(str(path)), cv2.COLOR_BGR2RGB)
 
-        # Reshape to 2D array of pixels
-        h, w, _ = img.shape
-
         # Interpolate all pixels at once
         rgb_wavelengths = np.array([650, 510, 475])  # R, G, B wavelengths (nm)
         target_wavelengths = np.linspace(450, 700, n_channels)

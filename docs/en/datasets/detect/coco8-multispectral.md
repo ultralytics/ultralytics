@@ -1,6 +1,6 @@
 ---
-comments: true  
-description: Explore the Ultralytics COCO8-Multispectral dataset, an enhanced version of COCO8 with interpolated spectral channels, ideal for testing multispectral object detection models and training pipelines.  
+comments: true
+description: Explore the Ultralytics COCO8-Multispectral dataset, an enhanced version of COCO8 with interpolated spectral channels, ideal for testing multispectral object detection models and training pipelines.
 keywords: COCO8-Multispectral, Ultralytics, dataset, multispectral, object detection, YOLO11, training, validation, machine learning, computer vision
 ---
 
@@ -94,4 +94,4 @@ Special thanks to the [COCO Consortium](https://cocodataset.org/#home) for their
 
 ### What Is the Ultralytics COCO8-Multispectral Dataset Used For?
 
-The Ultralytics COCO8-Multispectral dataset is designed for rapid testing and debugging of [multispectral object detection](https://www.ultralytics.com/glossary/object-detection) models. With only 8 images (4 for training, 4 for validation), it is ideal for verifying your [YOLO](https://docs.ultralytics.com/models/yolo11/) training pipelines and ensuring everything works as expected before scaling to larger datasets. Explore the [CO 
+The Ultralytics COCO8-Multispectral dataset is designed for rapid testing and debugging of [multispectral object detection](https://www.ultralytics.com/glossary/object-detection) models. With only 8 images (4 for training, 4 for validation), it is ideal for verifying your [YOLO](https://docs.ultralytics.com/models/yolo11/) training pipelines and ensuring everything works as expected before scaling to larger datasets. Explore the [CO

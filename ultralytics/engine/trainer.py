@@ -255,12 +255,13 @@ class BaseTrainer:
             if any(x in k for x in freeze_layer_names):
                 LOGGER.info(f"Freezing layer '{k}'")
                 v.requires_grad = False
-            elif not v.requires_grad and v.dtype.is_floating_point:  # only floating point Tensor can require gradients
-                LOGGER.info(
-                    f"WARNING ⚠️ setting 'requires_grad=True' for frozen layer '{k}'. "
-                    "See ultralytics.engine.trainer for customization of frozen layers."
-                )
-                v.requires_grad = True
+            # TODO: comment this for now for `reg_scale` and `up` in DFINE model
+            # elif not v.requires_grad and v.dtype.is_floating_point:  # only floating point Tensor can require gradients
+            #     LOGGER.info(
+            #         f"WARNING ⚠️ setting 'requires_grad=True' for frozen layer '{k}'. "
+            #         "See ultralytics.engine.trainer for customization of frozen layers."
+            #     )
+            #     v.requires_grad = True
 
         # Check AMP
         self.amp = torch.tensor(self.args.amp).to(self.device)  # True or False

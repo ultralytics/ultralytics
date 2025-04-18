@@ -723,7 +723,6 @@ def convert_to_multispectral(path, n_channels=10):
     from ultralytics.data.utils import IMG_FORMATS
 
     path = Path(path)
-
     if path.is_dir():
         # Process directory
         jpg_files = sum([list(path.rglob(f"*.{ext}")) for ext in (IMG_FORMATS - {"tif", "tiff"})], [])

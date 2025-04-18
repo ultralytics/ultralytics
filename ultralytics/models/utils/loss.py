@@ -630,7 +630,7 @@ class DEIMLoss(nn.Module):
         if values is None:
             # TODO
             src_boxes = outputs["pred_boxes"][pred_idx]
-            target_boxes = targets["boxes"][gt_idx]
+            target_boxes = targets["bboxes"][gt_idx]
             ious = bbox_iou(src_boxes.detach(), target_boxes).detach()
         else:
             ious = values
@@ -638,7 +638,7 @@ class DEIMLoss(nn.Module):
         src_logits = outputs["pred_logits"]
 
         target_classes = torch.full(src_logits.shape[:2], self.num_classes, dtype=torch.int64, device=src_logits.device)
-        target_classes[pred_idx] = targets["labels"][gt_idx]
+        target_classes[pred_idx] = targets["cls"][gt_idx]
         target = F.one_hot(target_classes, num_classes=self.num_classes + 1)[..., :-1]
 
         target_score_o = torch.zeros_like(target_classes, dtype=src_logits.dtype)
@@ -665,7 +665,7 @@ class DEIMLoss(nn.Module):
         assert "pred_boxes" in outputs
         pred_idx, gt_idx = DETRLoss._get_index(indices)
         src_boxes = outputs["pred_boxes"][pred_idx]
-        target_boxes = targets["boxes"][gt_idx]
+        target_boxes = targets["bboxes"][gt_idx]
 
         losses = {}
         loss_bbox = F.l1_loss(src_boxes, target_boxes, reduction="none")
@@ -689,7 +689,7 @@ class DEIMLoss(nn.Module):
             return losses
 
         pred_idx, gt_idx = DETRLoss._get_index(indices)
-        target_boxes = targets["boxes"][gt_idx]
+        target_boxes = targets["bboxes"][gt_idx]
 
         pred_corners = outputs["pred_corners"][pred_idx].reshape(-1, (self.reg_max + 1))
         ref_points = outputs["ref_points"][pred_idx].detach()
@@ -787,17 +787,27 @@ class DEIMLoss(nn.Module):
         assert loss in loss_map, f"do you really want to compute {loss} loss?"
         return loss_map[loss](outputs, targets, indices, num_boxes, **kwargs)
 
-    def forward(self, outputs, targets):
+    def forward(self, outputs, batch):
         """This performs the loss computation.
         Parameters:
              outputs: dict of tensors, see the output specification of the model for the format
              targets: list of dicts, such that len(targets) == batch_size.
                       The expected keys in each dict depends on the losses applied, see each loss' doc
         """
+
+        # match_indices = self.matcher(
+        #     pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups, masks=masks, gt_mask=gt_mask
+        # )
         outputs_without_aux = {k: v for k, v in outputs.items() if "aux" not in k}
 
         # Retrieve the matching between the outputs of the last layer and the targets
-        indices = self.matcher(outputs_without_aux, targets)["indices"]
+        indices = self.matcher(
+            outputs_without_aux["pred_boxes"],
+            outputs_without_aux["pred_logits"],
+            batch["bboxes"],
+            batch["cls"],
+            batch["gt_groups"],
+        )
         self._clear_cache()
 
         # Get the matching union set across all decoder layers.
@@ -807,11 +817,23 @@ class DEIMLoss(nn.Module):
         if "pre_outputs" in outputs:
             aux_outputs_list = outputs["aux_outputs"] + [outputs["pre_outputs"]]
         for i, aux_outputs in enumerate(aux_outputs_list):
-            indices_aux = self.matcher(aux_outputs, targets)["indices"]
+            indices_aux = self.matcher(
+                aux_outputs["pred_boxes"],
+                aux_outputs["pred_logits"],
+                batch["bboxes"],
+                batch["cls"],
+                batch["gt_groups"],
+            )
             cached_indices.append(indices_aux)
             indices_aux_list.append(indices_aux)
         for i, aux_outputs in enumerate(outputs["enc_aux_outputs"]):
-            indices_enc = self.matcher(aux_outputs, targets)["indices"]
+            indices_enc = self.matcher(
+                aux_outputs["pred_boxes"],
+                aux_outputs["pred_logits"],
+                batch["bboxes"],
+                batch["cls"],
+                batch["gt_groups"],
+            )
             cached_indices_enc.append(indices_enc)
             indices_aux_list.append(indices_enc)
         all_indices = self._merge_indices(indices, indices_aux_list)
@@ -825,7 +847,7 @@ class DEIMLoss(nn.Module):
             num_boxes_all = torch.clamp(num_boxes_all / get_world_size(), min=1).item()
 
         # Compute the average number of target boxes accross all nodes, for normalization purposes
-        num_boxes = max(len(targets["cls"]), 1)
+        num_boxes = max(len(batch["cls"]), 1)
         if is_dist_available_and_initialized():
             num_boxes = torch.as_tensor([num_boxes], dtype=torch.float32, device=next(iter(outputs.values())).device)
             torch.distributed.all_reduce(num_boxes)  # sum up the num_boxes across all GPUs
@@ -838,8 +860,8 @@ class DEIMLoss(nn.Module):
             # TODO, indices and num_box are different from RT-DETRv2
             indices_in = all_indices if use_uni_set else indices
             num_boxes_in = num_boxes_all if use_uni_set else num_boxes
-            meta = self.get_loss_meta_info(loss, outputs, targets, indices_in)
-            l_dict = self.get_loss(loss, outputs, targets, indices_in, num_boxes_in, **meta)
+            meta = self.get_loss_meta_info(loss, outputs, batch, indices_in)
+            l_dict = self.get_loss(loss, outputs, batch, indices_in, num_boxes_in, **meta)
             l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
             losses.update(l_dict)
 
@@ -852,8 +874,8 @@ class DEIMLoss(nn.Module):
                     # TODO, indices and num_box are different from RT-DETRv2
                     indices_in = all_indices if use_uni_set else cached_indices[i]
                     num_boxes_in = num_boxes_all if use_uni_set else num_boxes
-                    meta = self.get_loss_meta_info(loss, aux_outputs, targets, indices_in)
-                    l_dict = self.get_loss(loss, aux_outputs, targets, indices_in, num_boxes_in, **meta)
+                    meta = self.get_loss_meta_info(loss, aux_outputs, batch, indices_in)
+                    l_dict = self.get_loss(loss, aux_outputs, batch, indices_in, num_boxes_in, **meta)
 
                     l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
                     l_dict = {k + f"_aux_{i}": v for k, v in l_dict.items()}
@@ -866,8 +888,8 @@ class DEIMLoss(nn.Module):
                 # TODO, indices and num_box are different from RT-DETRv2
                 indices_in = all_indices if use_uni_set else cached_indices[-1]
                 num_boxes_in = num_boxes_all if use_uni_set else num_boxes
-                meta = self.get_loss_meta_info(loss, aux_outputs, targets, indices_in)
-                l_dict = self.get_loss(loss, aux_outputs, targets, indices_in, num_boxes_in, **meta)
+                meta = self.get_loss_meta_info(loss, aux_outputs, batch, indices_in)
+                l_dict = self.get_loss(loss, aux_outputs, batch, indices_in, num_boxes_in, **meta)
 
                 l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
                 l_dict = {k + "_pre": v for k, v in l_dict.items()}
@@ -880,11 +902,11 @@ class DEIMLoss(nn.Module):
             if class_agnostic:
                 orig_num_classes = self.num_classes
                 self.num_classes = 1
-                enc_targets = copy.deepcopy(targets)
+                enc_targets = copy.deepcopy(batch)
                 for t in enc_targets:
-                    t["labels"] = torch.zeros_like(t["labels"])
+                    t["cls"] = torch.zeros_like(t["cls"])
             else:
-                enc_targets = targets
+                enc_targets = batch
 
             for i, aux_outputs in enumerate(outputs["enc_aux_outputs"]):
                 for loss in self.losses:
@@ -903,7 +925,8 @@ class DEIMLoss(nn.Module):
         # In case of cdn auxiliary losses.
         if "dn_outputs" in outputs:
             assert "dn_meta" in outputs, ""
-            indices_dn = self.get_cdn_matched_indices(outputs["dn_meta"], targets)
+            # TODO
+            indices_dn = self.get_cdn_matched_indices(outputs["dn_meta"], batch)
             dn_num_boxes = num_boxes * outputs["dn_meta"]["dn_num_group"]
 
             for i, aux_outputs in enumerate(outputs["dn_outputs"]):
@@ -911,8 +934,8 @@ class DEIMLoss(nn.Module):
                     aux_outputs["is_dn"] = True
                     aux_outputs["up"], aux_outputs["reg_scale"] = outputs["up"], outputs["reg_scale"]
                 for loss in self.losses:
-                    meta = self.get_loss_meta_info(loss, aux_outputs, targets, indices_dn)
-                    l_dict = self.get_loss(loss, aux_outputs, targets, indices_dn, dn_num_boxes, **meta)
+                    meta = self.get_loss_meta_info(loss, aux_outputs, batch, indices_dn)
+                    l_dict = self.get_loss(loss, aux_outputs, batch, indices_dn, dn_num_boxes, **meta)
                     l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
                     l_dict = {k + f"_dn_{i}": v for k, v in l_dict.items()}
                     losses.update(l_dict)
@@ -921,8 +944,8 @@ class DEIMLoss(nn.Module):
             if "dn_pre_outputs" in outputs:
                 aux_outputs = outputs["dn_pre_outputs"]
                 for loss in self.losses:
-                    meta = self.get_loss_meta_info(loss, aux_outputs, targets, indices_dn)
-                    l_dict = self.get_loss(loss, aux_outputs, targets, indices_dn, dn_num_boxes, **meta)
+                    meta = self.get_loss_meta_info(loss, aux_outputs, batch, indices_dn)
+                    l_dict = self.get_loss(loss, aux_outputs, batch, indices_dn, dn_num_boxes, **meta)
                     l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
                     l_dict = {k + "_dn_pre": v for k, v in l_dict.items()}
                     losses.update(l_dict)

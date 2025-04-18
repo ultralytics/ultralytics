@@ -67,7 +67,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
             >>> trainer = OBBTrainer()
             >>> model = trainer.get_model(cfg="yolov8n-obb.yaml", weights="yolov8n-obb.pt")
         """
-        model = OBBModel(cfg, ch=3, nc=self.data["nc"], ch=self.data.get("ch", 3), verbose=verbose and RANK == -1)
+        model = OBBModel(cfg, nc=self.data["nc"], ch=self.data.get("ch", 3), verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
 

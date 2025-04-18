@@ -597,7 +597,7 @@ class RTDETRDecoder(nn.Module):
         ndl=6,  # num decoder layers
         d_ffn=1024,  # dim of feedforward
         dropout=0.0,
-        act=nn.ReLU(),
+        act=nn.ReLU,
         eval_idx=-1,
         # Training args
         nd=100,  # num denoising

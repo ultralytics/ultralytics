@@ -18,6 +18,7 @@ from PIL import Image
 from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops
 from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.patches import imread
 
 
 @dataclass
@@ -425,7 +426,7 @@ class LoadImagesAndVideos:
                         retval, im0 = cv2.imreadmulti(path)
                         im0 = np.stack(im0, axis=2) if retval else None
                     else:
-                        im0 = cv2.imread(path)
+                        im0 = imread(path)
                 if im0 is None:
                     LOGGER.warning(f"WARNING ⚠️ Image Read Error {path}")
                 else:

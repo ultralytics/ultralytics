@@ -140,7 +140,7 @@ class AutoAnnotator:
             h (int): Image height.
 
         Returns:
-            str: Bounding box in YOLO format (cx, cy, width, height).
+            bbox (str): Bounding box in YOLO format (cx, cy, width, height).
         """
         cx, cy, bw, bh = xyxy2xywhn(torch.tensor([[x1, y1, x2, y2]]), w=w, h=h, clip=True)[0].tolist()
         return f"{cx:.6f} {cy:.6f} {bw:.6f} {bh:.6f}"
@@ -185,9 +185,6 @@ class AutoAnnotator:
             output_dir (str): Path to save YOLO annotation .txt files.
             save_visuals (bool): Whether to save annotated visual images.
             visuals_output_dir (str): Directory to save annotated visual output.
-
-        Returns:
-            None
         """
         import time
         from pathlib import Path
@@ -384,7 +381,7 @@ class Florence2:
             h (int): Image height.
 
         Returns:
-            dict: Dictionary with keys "bboxes" and "labels", formatted for YOLO annotation.
+            result (dict): Dictionary with keys "bboxes" and "labels", formatted for YOLO annotation.
                   Structure:
                   {
                       "bboxes": List of [x1, y1, x2, y2] floats,

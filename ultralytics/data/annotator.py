@@ -74,7 +74,33 @@ def auto_annotate(
 
 
 class AutoAnnotator:
+    """
+    A class for automatic annotation of images using YOLO or Florence2 models.
+
+    This class handles model selection, object detection, and label generation in YOLO format.
+    It supports both YOLO-based and Florence2-based annotation pipelines, including visual output.
+
+    Attributes:
+        Y0LO_MODEL (bool): Flag indicating if the annotation uses a YOLO model.
+        model (YOLO | Florence2): Loaded model instance for annotation.
+        processor (Florence2Processor): Used only for Florence2-based annotation.
+        names (dict): Class names for YOLO-based models.
+
+    Methods:
+        annotate: Performs annotation on a dataset of images or videos.
+        convert_to_yolo: Converts bounding box coordinates to YOLO normalized format.
+        create_classes_txt: Saves class names into a `classes.txt` file.
+    """
+
     def __init__(self, model=None, device="", variant="base"):
+        """
+        Initializes the AutoAnnotator with either a YOLO or Florence2 model.
+
+        Args:
+            model (str, optional): Model name or path. Defaults to "yolo11n.pt".
+            device (str): Device to use for inference (e.g., 'cpu', 'cuda:0').
+            variant (str): Florence2 model variant if using Florence2 (e.g., "base", "large-ft").
+        """
         self.YOLO_MODEL = True  # Assume YOLO by default
 
         if model is None:
@@ -83,7 +109,7 @@ class AutoAnnotator:
         else:
             model_str = str(model).casefold()
 
-            if model_str.endswith(".pt") and model_str != "florence2.pt":
+            if model_str.endswith(".pt") and model_str not in ("florence2.pt", "florence2"):
                 self.model = YOLO(model)
             elif model_str in ("florence2.pt", "florence2"):
                 self.model = Florence2(device=device, variant=variant)
@@ -102,13 +128,32 @@ class AutoAnnotator:
 
     @staticmethod
     def convert_to_yolo(x1, y1, x2, y2, w, h):
-        """Convert bounding box coordinates from (x1, y1, x2, y2) to normalized YOLO format."""
+        """
+        Converts bounding box coordinates to YOLO format.
+
+        Args:
+            x1 (float): X-coordinate of the top-left corner of the bounding box.
+            y1 (float): Y-coordinate of the top-left corner of the bounding box.
+            x2 (float): X-coordinate of the bottom-right corner of the bounding box.
+            y2 (float): Y-coordinate of the bottom-right corner of the bounding box.
+            w (int): Image width.
+            h (int): Image height.
+
+        Returns:
+            str: Bounding box in YOLO format (cx, cy, width, height).
+        """
         cx, cy, bw, bh = xyxy2xywhn(torch.tensor([[x1, y1, x2, y2]]), w=w, h=h, clip=True)[0].tolist()
         return f"{cx:.6f} {cy:.6f} {bw:.6f} {bh:.6f}"
 
     @staticmethod
     def create_classes_txt(output_dir, label_map):
-        """Create classes.txt file for verification of labels and advance operations."""
+        """
+        Creates a `classes.txt` file listing all class names.
+
+        Args:
+            output_dir (Path): Directory where to save the file.
+            label_map (dict): Dictionary of {label_name: class_id}.
+        """
         try:
             with open(output_dir / "classes.txt", "w", encoding="utf-8") as f:
                 for label, idx in sorted(label_map.items(), key=lambda x: x[1]):
@@ -117,20 +162,26 @@ class AutoAnnotator:
         except Exception as e:
             LOGGER.error(f"❌ Failed to save classes.txt: {e}")
 
-    def annotate(
-        self,
-        source=None,
-        conf=0.25,  # not supported for florence2
-        iou=0.45,  # not supported for florence2
-        classes=None,
-        save=True,
-        output_dir="labels",
-        save_visuals=True,
-        visuals_output_dir=None,
-    ):
+    def annotate(self, source=None, conf=0.25, iou=0.45, classes=None,
+                 save=True, output_dir="labels", save_visuals=True, visuals_output_dir=None):
+        """
+        Annotates images or videos using the specified model and saves YOLO-format labels.
+
+        Args:
+            source (str | Path): Input image or video directory.
+            conf (float): Confidence threshold (YOLO only).
+            iou (float): IoU threshold for NMS (YOLO only).
+            classes (List[str] | None): Specific classes to annotate.
+            save (bool): Whether to save label files.
+            output_dir (str): Path to save YOLO annotation .txt files.
+            save_visuals (bool): Whether to save annotated visual images.
+            visuals_output_dir (str): Directory to save annotated visual output.
+
+        Returns:
+            None
+        """
         import time
         from pathlib import Path
-
         from tqdm import tqdm
 
         if save_visuals:
@@ -159,7 +210,6 @@ class AutoAnnotator:
         processed = 0
         is_yolo = self.YOLO_MODEL
 
-        # Convert user defined names to YOLO classes for processing
         if is_yolo:
             classes = [i for i, name in self.names.items() if name in classes]
 
@@ -237,7 +287,32 @@ class AutoAnnotator:
 
 
 class Florence2:
+    """
+    A Florence-2 model wrapper for grounding-style object detection and auto-annotation.
+
+    This class handles loading Florence2 variants and running image-text inference to produce object bounding boxes
+    and labels. It integrates with Ultralytics' AutoAnnotator for automatic dataset labeling.
+
+    Attributes:
+        device (torch.device): Inference device (e.g., 'cuda', 'cpu').
+        variant (str): Florence2 variant used (e.g., "base", "large-ft").
+        mid (str): Model identifier string used with Hugging Face.
+        model (torch.nn.Module): Loaded Florence2 model.
+        processor (Florence2Processor): Image and text processor used for inference.
+
+    Methods:
+        _load_model: Internal method to load Florence2 model and processor.
+        process: Performs inference and returns bounding boxes and labels in YOLO-compatible format.
+    """
+
     def __init__(self, device="", variant="base"):
+        """
+        Initializes the Florence2 model with the specified variant and device.
+
+        Args:
+            device (str): Target device for inference, e.g., 'cuda', 'cpu'.
+            variant (str): Model variant to use: "base", "large", "base-ft", "large-ft".
+        """
         self.device = select_device(device)
 
         supported_variants = {"base", "large", "large-ft", "base-ft"}
@@ -255,34 +330,75 @@ class Florence2:
         self._load_model()
 
     def _load_model(self):
-        """Load the Florence-2 grounding model and corresponding processor."""
-        from ultralytics.utils.checks import check_requirements
+        """
+        Loads the Florence2 model and its corresponding processor from Hugging Face Hub.
 
-        check_requirements(["transformers==4.49.0", "einops"])  # Ensure required libraries
+        This method requires `transformers` and `einops`. It sets up the model and processor
+        using `trust_remote_code=True`, which allows Florence2 custom architecture loading.
+
+        Returns:
+            None
+        """
+        from ultralytics.utils.checks import check_requirements
+        check_requirements(["transformers==4.49.0", "einops"])
 
         from transformers import AutoModelForCausalLM, AutoProcessor, logging
+        logging.set_verbosity_error()  # Minimize Hugging Face logs
 
-        LOGGER.info(f"💡 Initializing Florence2-base on {str(self.device).upper()}")
-        logging.set_verbosity_error()  # Suppress excessive logs from transformers library: https://huggingface.co/docs/transformers/en/main_classes/logging
+        LOGGER.info(f"💡 Initializing Florence2-{self.variant} on {str(self.device).upper()}")
 
         self.model = AutoModelForCausalLM.from_pretrained(
             self.mid,
             trust_remote_code=True,
         ).to(self.device)
-        self.processor = AutoProcessor.from_pretrained(self.mid, trust_remote_code=True)
+
+        self.processor = AutoProcessor.from_pretrained(
+            self.mid,
+            trust_remote_code=True,
+        )
 
         LOGGER.info(f"🚀 Loaded Florence2-{self.variant} model successfully.")
 
     def process(self, im0, w, h):
-        # Encode image and text prompt
+        """
+        Performs object detection using Florence2 on an input image.
+
+        This method sends a grounding-style prompt "<OD>" to the model to detect objects
+        and returns predictions formatted for YOLO-compatible annotation.
+
+        Args:
+            im0 (np.ndarray): Input image (HWC format).
+            w (int): Image width.
+            h (int): Image height.
+
+        Returns:
+            dict: Dictionary with keys "bboxes" and "labels", formatted for YOLO annotation.
+                  Structure:
+                  {
+                      "bboxes": List of [x1, y1, x2, y2] floats,
+                      "labels": List of str or int label names
+                  }
+
+        Example:
+            >>> model = Florence2(device="cuda", variant="base")
+            >>> output = model.process(im, w=640, h=480)
+            >>> print(output["bboxes"], output["labels"])
+        """
+        # Encode image and grounding prompt
         inputs = self.processor(text="<OD>", images=im0, return_tensors="pt").to(self.device)
         ids, pval = inputs["input_ids"], inputs["pixel_values"]
 
-        # Perform inference
-        outids = self.model.generate(ids, pixel_values=pval, max_new_tokens=1024, early_stopping=False, num_beams=3)
+        # Perform text-vision inference
+        outids = self.model.generate(
+            ids,
+            pixel_values=pval,
+            max_new_tokens=1024,
+            early_stopping=False,
+            num_beams=3
+        )
 
-        # Decode and post-process output
+        # Decode and convert Florence2 output to detection format
         outputs = self.processor.batch_decode(outids, skip_special_tokens=False)[0]
         processed = self.processor.post_process_generation(outputs, task="<OD>", image_size=(w, h))
 
-        return processed.get("<OD>", {})  # Return decoded results for post-processing in Ultralytics YOLO format
+        return processed.get("<OD>", {})  # Return dictionary with 'bboxes' and 'labels'

@@ -3,15 +3,14 @@
 from pathlib import Path
 from typing import List, Optional, Union
 
-from ultralytics import SAM, YOLO
 import torch
 
+from ultralytics import SAM, YOLO
 from ultralytics.data.loaders import LoadImagesAndVideos
 from ultralytics.utils import ASSETS, LOGGER
 from ultralytics.utils.ops import xyxy2xywhn
 from ultralytics.utils.plotting import Annotator, colors
 from ultralytics.utils.torch_utils import select_device
-
 
 
 def auto_annotate(

@@ -225,11 +225,7 @@ class BaseDataset(Dataset):
                     Path(fn).unlink(missing_ok=True)
                     im = cv2.imread(f)  # BGR
             else:  # read image
-                retval, im = cv2.imreadmulti(f)
-                if retval:
-                    im = im[0] if len(im) == 1 and im[0].ndim == 3 else np.stack(im, axis=2)
-                else:
-                    im = None
+                im = cv2.imread(f)  # BGR
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
 

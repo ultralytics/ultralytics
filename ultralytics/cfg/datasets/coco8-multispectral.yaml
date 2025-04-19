@@ -14,7 +14,9 @@ train: images/train # train images (relative to 'path') 4 images
 val: images/val # val images (relative to 'path') 4 images
 test: # test images (optional)
 
-channels: 10 # image channels
+# Number of multispectral image channels
+channels: 10
+
 # Classes
 names:
   0: person

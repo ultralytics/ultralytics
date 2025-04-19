@@ -3,9 +3,12 @@
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr, torch_utils
 
 try:
+    if not torch_utils.TORCH_2_0:
+        # Fix for protobuf error when not importing SummaryWrite in torch==1.8.0
+        from torch.utils.tensorboard import SummaryWriter
+
     assert not TESTS_RUNNING  # do not log pytest
     assert SETTINGS["tensorboard"] is True  # verify integration is enabled
-    assert torch_utils.TORCH_2_0, "TensorBoard integration requires torch>=2.0.0"
     WRITER = None  # TensorBoard SummaryWriter instance
     PREFIX = colorstr("TensorBoard: ")
 

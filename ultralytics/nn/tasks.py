@@ -308,7 +308,7 @@ class BaseModel(torch.nn.Module):
 class DetectionModel(BaseModel):
     """YOLO detection model."""
 
-    def __init__(self, cfg="yolo11n.yaml", ch=3, nc=None, verbose=True):  # model, input channels, number of classes
+    def __init__(self, cfg="yolo11n.yaml", ch=3, nc=None, verbose=True):
         """
         Initialize the YOLO detection model with the given config and parameters.
 
@@ -328,7 +328,7 @@ class DetectionModel(BaseModel):
             self.yaml["backbone"][0][2] = "nn.Identity"
 
         # Define model
-        self.yaml["ch"] = ch  # save channels
+        self.yaml["channels"] = ch  # save channels
         if nc and nc != self.yaml["nc"]:
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml["nc"] = nc  # override YAML value
@@ -528,7 +528,7 @@ class ClassificationModel(BaseModel):
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
 
         # Define model
-        ch = self.yaml["ch"] = self.yaml.get("ch", ch)  # input channels
+        ch = self.yaml["channels"] = self.yaml.get("channels", ch)  # input channels
         if nc and nc != self.yaml["nc"]:
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml["nc"] = nc  # override YAML value

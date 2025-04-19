@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: The auto_annotator module provides automatic image annotation functionality using Ultralytics YOLO and Florence2 models, designed to streamline dataset labeling for training AI models.
+keywords: auto annotation, dataset labeling, yolo11, yolov8, florence2, computer vision, image annotation, ultralytics
 ---
 
 # Reference for `ultralytics/data/auto_annotator.py`

@@ -182,6 +182,7 @@ class AutoAnnotator:
         """
         import time
         from pathlib import Path
+
         from tqdm import tqdm
 
         if save_visuals:

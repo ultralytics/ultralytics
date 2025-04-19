@@ -420,6 +420,7 @@ def check_det_dataset(dataset, autodownload=True):
         data["nc"] = len(data["names"])
 
     data["names"] = check_class_names(data["names"])
+    data["ch"] = data.get("channels", 3)  # get image channels, default to 3
 
     # Resolve paths
     path = Path(extract_dir or data.get("path") or Path(data.get("yaml_file", "")).parent)  # dataset root

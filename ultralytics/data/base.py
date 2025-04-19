@@ -225,7 +225,11 @@ class BaseDataset(Dataset):
                     Path(fn).unlink(missing_ok=True)
                     im = cv2.imread(f)  # BGR
             else:  # read image
-                im = cv2.imread(f)  # BGR
+                retval, im = cv2.imreadmulti(f)
+                if retval:
+                    im = im[0] if len(im) == 1 and im[0].ndim == 3 else np.stack(im, axis=2) 
+                else:
+                    im = None
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
 
@@ -235,6 +239,8 @@ class BaseDataset(Dataset):
                 if r != 1:  # if sizes are not equal
                     w, h = (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz))
                     im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
+                    # opencv would eliminate the last dimension if it's grayscale
+                    im = im[:, :, None] if im.ndim == 2 else im
             elif not (h0 == w0 == self.imgsz):  # resize by stretching image to square imgsz
                 im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
 

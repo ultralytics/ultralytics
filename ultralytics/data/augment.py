@@ -1364,8 +1364,10 @@ class RandomHSV:
             >>> hsv_augmenter(labels)
             >>> augmented_img = labels["img"]
         """
+        img = labels["img"]
+        if img.shape[-1] != 3:  # only apply to RGB images
+            return labels
         if self.hgain or self.sgain or self.vgain:
-            img = labels["img"]
             dtype = img.dtype  # uint8
 
             r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain]  # random gains
@@ -1586,21 +1588,23 @@ class LetterBox:
 
         if shape[::-1] != new_unpad:  # resize
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
+            # opencv would eliminate the last dimension if it's grayscale
+            img = img[:, :, None] if img.ndim == 2 else img
         top, bottom = int(round(dh - 0.1)) if self.center else 0, int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)) if self.center else 0, int(round(dw + 0.1))
-        img = cv2.copyMakeBorder(
-            img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114)
-        )  # add border
+        h, w, c = img.shape
+        pad_img = np.full((h + top + bottom, w + left + right, c), fill_value=114, dtype=img.dtype)
+        pad_img[top : top + h, left : left + w] = img
         if labels.get("ratio_pad"):
             labels["ratio_pad"] = (labels["ratio_pad"], (left, top))  # for evaluation
 
         if len(labels):
             labels = self._update_labels(labels, ratio, left, top)
-            labels["img"] = img
+            labels["img"] = pad_img
             labels["resized_shape"] = new_shape
             return labels
         else:
-            return img
+            return pad_img
 
     @staticmethod
     def _update_labels(labels, ratio, padw, padh):
@@ -2107,7 +2111,7 @@ class Format:
         if len(img.shape) < 3:
             img = np.expand_dims(img, -1)
         img = img.transpose(2, 0, 1)
-        img = np.ascontiguousarray(img[::-1] if random.uniform(0, 1) > self.bgr else img)
+        img = np.ascontiguousarray(img[::-1] if random.uniform(0, 1) > self.bgr and len(img) != 1 else img)
         img = torch.from_numpy(img)
         return img
 

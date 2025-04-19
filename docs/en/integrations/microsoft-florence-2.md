@@ -30,8 +30,8 @@ With this integration, Florence-2 can be used to generate object detection-style
     
     ??? Variant
         
-    Florence-2 supports four model variants: `"base"`, `"large"`, `"large-ft"`, and `"base-ft"`.  
-    You can select a specific variant by passing the `variant` argument during the initialization of the `AutoAnnotator` class.
+        Florence-2 supports four model variants: `"base"`, `"large"`, `"large-ft"`, and `"base-ft"`.  
+        You can select a specific variant by passing the `variant` argument during the initialization of the `AutoAnnotator` class.
 
     === "All objects"
 

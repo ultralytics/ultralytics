@@ -422,11 +422,11 @@ class LoadImagesAndVideos:
                     with Image.open(path) as img:
                         im0 = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)  # convert image to BGR nparray
                 else:
-                    if Path(path).suffix in {".tif", ".tiff"}:
-                        retval, im0 = cv2.imreadmulti(path)
-                        im0 = np.stack(im0, axis=2) if retval else None
+                    retval, im0 = cv2.imreadmulti(path)
+                    if retval:
+                        im0 = im0[0] if len(im0) == 1 and im0[0].ndim == 3 else np.stack(im0, axis=2) 
                     else:
-                        im0 = imread(path)
+                        im0 = None
                 if im0 is None:
                     LOGGER.warning(f"WARNING ⚠️ Image Read Error {path}")
                 else:

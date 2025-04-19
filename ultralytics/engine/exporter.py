@@ -360,7 +360,7 @@ class Exporter:
             raise SystemError("TF.js exports are not currently supported on ARM64 Linux")
 
         # Input
-        im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
+        im = torch.zeros(self.args.batch, model.yaml.get("ch", 3), *self.imgsz).to(self.device)
         file = Path(
             getattr(model, "pt_path", None) or getattr(model, "yaml_file", None) or model.yaml.get("yaml_file", "")
         )

@@ -4,7 +4,7 @@ from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr, torch_u
 
 try:
     if not torch_utils.TORCH_2_0:
-        # Fix for protobuf error when not importing SummaryWriter in torch==1.8.0
+        # Fix protobuf error in torch==1.8.0 CI https://github.com/ultralytics/ultralytics/pull/20220
         from torch.utils.tensorboard import SummaryWriter
 
     assert not TESTS_RUNNING  # do not log pytest

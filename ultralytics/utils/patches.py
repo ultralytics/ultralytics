@@ -34,8 +34,7 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR):
             return None
         return np.stack(frames, axis=0)
     else:
-        y = cv2.imdecode(file_bytes, flags)
-    return y
+        return cv2.imdecode(file_bytes, flags)
 
 
 def imwrite(filename: str, img: np.ndarray, params=None):

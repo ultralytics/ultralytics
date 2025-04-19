@@ -27,10 +27,10 @@ One of the standout capabilities of the Florence-2 model is its support for [obj
 With this integration, Florence-2 can be used to generate object detection-style annotations using the `<OD>` prompt for general object detection, you can also specify the exact classes you wish to annotate by using `classes` argument.
 
 !!! example "Florence-2 Auto Annotation using Ultralytics Python Package"
-    
+
     ??? Variant
-        
-        Florence-2 supports four model variants: `"base"`, `"large"`, `"large-ft"`, and `"base-ft"`.  
+
+        Florence-2 supports four model variants: `"base"`, `"large"`, `"large-ft"`, and `"base-ft"`.
         You can select a specific variant by passing the `variant` argument during the initialization of the `AutoAnnotator` class.
 
     === "All objects"
@@ -38,7 +38,7 @@ With this integration, Florence-2 can be used to generate object detection-style
         ```python
         from ultralytics.data.annotator import AutoAnnotator
 
-        annotator = AutoAnnotator(model="florence2.pt", device="cpu", variant="base") 
+        annotator = AutoAnnotator(model="florence2.pt", device="cpu", variant="base")
         annotator.annotate(
             source="path/to/image/directory or image",  # Input image(s)
             save=True,  # Save .txt annotations
@@ -48,11 +48,11 @@ With this integration, Florence-2 can be used to generate object detection-style
         ```
 
     === "Specific objects"
-        
+
         ```python
         from ultralytics.data.annotator import AutoAnnotator
 
-        annotator = AutoAnnotator(model="florence2.pt", device="cpu", variant="base")  
+        annotator = AutoAnnotator(model="florence2.pt", device="cpu", variant="base")
 
         annotator.annotate(
             source="path/to/image/directory or image",  # Input image(s)

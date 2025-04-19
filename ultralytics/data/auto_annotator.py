@@ -1,17 +1,19 @@
-from ultralytics.utils import ASSETS, LOGGER
 import torch
+
+from ultralytics import YOLO
 from ultralytics.data.loaders import LoadImagesAndVideos
+from ultralytics.utils import ASSETS, LOGGER
 from ultralytics.utils.ops import xyxy2xywhn
 from ultralytics.utils.plotting import Annotator, colors
 from ultralytics.utils.torch_utils import select_device
-from ultralytics import YOLO
+
 
 class AutoAnnotator:
     def __init__(self, model=None, device="", variant="base"):
         self.YOLO_MODEL = True  # Assume YOLO by default
 
         if model is None:
-            LOGGER.warning(f"⚠️ No model provided. Using default: yolo11n.pt")
+            LOGGER.warning("⚠️ No model provided. Using default: yolo11n.pt")
             self.model = "yolo11n.pt"
         else:
             model_str = str(model).casefold()
@@ -41,7 +43,7 @@ class AutoAnnotator:
 
     @staticmethod
     def create_classes_txt(output_dir, label_map):
-        """Create classes.txt file for verification of labels and advance operations"""
+        """Create classes.txt file for verification of labels and advance operations."""
         try:
             with open(output_dir / "classes.txt", "w", encoding="utf-8") as f:
                 for label, idx in sorted(label_map.items(), key=lambda x: x[1]):
@@ -63,6 +65,7 @@ class AutoAnnotator:
     ):
         import time
         from pathlib import Path
+
         from tqdm import tqdm
 
         if save_visuals:

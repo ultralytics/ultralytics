@@ -1912,10 +1912,13 @@ class Albumentations:
         if self.transform is None or random.random() > self.p:
             return labels
 
+        im = labels["img"]
+        if im.shape[2] != 3:  # Only apply Albumentation on 3-channel images
+            return labels
+
         if self.contains_spatial:
             cls = labels["cls"]
             if len(cls):
-                im = labels["img"]
                 labels["instances"].convert_bbox("xywh")
                 labels["instances"].normalize(*im.shape[:2][::-1])
                 bboxes = labels["instances"].bboxes

@@ -44,7 +44,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     if cfg.tracker_type not in {"bytetrack", "botsort"}:
         raise AssertionError(f"Only 'bytetrack' and 'botsort' are supported for now, but got '{cfg.tracker_type}'")
 
-    if cfg.tracker_type == "botsort" and fg.with_reid and cfg.model == "auto":
+    if cfg.tracker_type == "botsort" and cfg.with_reid and cfg.model == "auto":
         from ultralytics.nn.modules.head import Detect
 
         if not (

@@ -184,7 +184,7 @@ class BaseValidator:
 
             if self.device.type in {"cpu", "mps"}:
                 self.args.workers = 0  # faster CPU val as time dominated by inference, not dataloading
-            if not pt:
+            if not (pt or getattr(model, "dynamic", False)):
                 self.args.rect = False
             self.stride = model.stride  # used in get_dataloader() for padding
             self.dataloader = self.dataloader or self.get_dataloader(self.data.get(self.args.split), self.args.batch)

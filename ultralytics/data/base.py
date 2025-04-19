@@ -227,7 +227,7 @@ class BaseDataset(Dataset):
             else:  # read image
                 retval, im = cv2.imreadmulti(f)
                 if retval:
-                    im = im[0] if len(im) == 1 and im[0].ndim == 3 else np.stack(im, axis=2) 
+                    im = im[0] if len(im) == 1 and im[0].ndim == 3 else np.stack(im, axis=2)
                 else:
                     im = None
             if im is None:

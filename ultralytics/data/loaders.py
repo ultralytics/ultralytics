@@ -423,7 +423,7 @@ class LoadImagesAndVideos:
                 else:
                     retval, im0 = cv2.imreadmulti(path)
                     if retval:
-                        im0 = im0[0] if len(im0) == 1 and im0[0].ndim == 3 else np.stack(im0, axis=2) 
+                        im0 = im0[0] if len(im0) == 1 and im0[0].ndim == 3 else np.stack(im0, axis=2)
                     else:
                         im0 = None
                 if im0 is None:

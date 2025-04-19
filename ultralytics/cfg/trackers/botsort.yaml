@@ -15,7 +15,8 @@ fuse_score: True # Whether to fuse confidence scores with the iou distances befo
 
 # BoT-SORT settings
 gmc_method: sparseOptFlow # method of global motion compensation
-# ReID model related thresh (not supported yet)
-proximity_thresh: 0.5
-appearance_thresh: 0.25
+# ReID model related thresh
+proximity_thresh: 0.5 # minimum IoU for valid match with ReID
+appearance_thresh: 0.25 # minimum appearance similarity for ReID
 with_reid: False
+model: auto # uses native features if detector is YOLO else yolo11n-cls.pt

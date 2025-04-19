@@ -44,6 +44,25 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     if cfg.tracker_type not in {"bytetrack", "botsort"}:
         raise AssertionError(f"Only 'bytetrack' and 'botsort' are supported for now, but got '{cfg.tracker_type}'")
 
+    if cfg.tracker_type == "botsort" and cfg.with_reid and cfg.model == "auto":
+        from ultralytics.nn.modules.head import Detect
+
+        if not (
+            isinstance(predictor.model.model, torch.nn.Module)
+            and isinstance(predictor.model.model.model[-1], Detect)
+            and not predictor.model.model.model[-1].end2end
+        ):
+            cfg.model = "yolo11n-cls.pt"
+        else:
+            predictor.save_feats = True
+            predictor._feats = None
+
+            # Register hook to extract input of Detect layer
+            def capture_io(module, input, output):
+                predictor._feats = input[0]
+
+            predictor.model.model.model[-1].register_forward_hook(capture_io)
+
     trackers = []
     for _ in range(predictor.dataset.bs):
         tracker = TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30)
@@ -79,7 +98,7 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
         det = (result.obb if is_obb else result.boxes).cpu().numpy()
         if len(det) == 0:
             continue
-        tracks = tracker.update(det, result.orig_img)
+        tracks = tracker.update(det, result.orig_img, getattr(result, "feats", None))
         if len(tracks) == 0:
             continue
         idx = tracks[:, -1].astype(int)

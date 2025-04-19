@@ -164,14 +164,12 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     if name == "ParkingManager":
         safe_download(url=f"{ASSETS_URL}/{PARKING_AREAS_JSON}", dir=TMP)
         safe_download(url=f"{ASSETS_URL}/{PARKING_MODEL}", dir=TMP)
-    elif name == "StreamlitInference":
-        if checks.check_imshow():  # requires interactive GUI environment
-            solution_class(**kwargs).inference()
-            return
+    elif name == "StreamlitInference" and checks.check_imshow():  # requires interactive GUI environment
+        solution_class(**kwargs).inference()
+        return
 
-    solution = solution_class(**kwargs)
     process_video(
-        solution=solution,
+        solution=solution_class(**kwargs),
         video_path=str(TMP / video),
         needs_frame_count=needs_frame_count,
     )

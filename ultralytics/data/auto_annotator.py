@@ -56,12 +56,12 @@ class AutoAnnotator:
         self,
         source=None,
         conf=0.25,  # not supported for florence2
-        iou=0.45,   # not supported for florence2
+        iou=0.45,  # not supported for florence2
         classes=None,
         save=True,
         output_dir="labels",
         save_visuals=True,
-        visuals_output_dir=None
+        visuals_output_dir=None,
     ):
         import time
         from pathlib import Path
@@ -179,8 +179,10 @@ class Florence2:
         self.variant = variant if variant in supported_variants else "base"
 
         if variant not in supported_variants:
-            LOGGER.warning(f"⚠️ Invalid variant '{variant}' provided. Falling back to 'base'. "
-                           f"Supported variants: {supported_variants}")
+            LOGGER.warning(
+                f"⚠️ Invalid variant '{variant}' provided. Falling back to 'base'. "
+                f"Supported variants: {supported_variants}"
+            )
 
         self.mid = f"microsoft/florence-2-{self.variant}"
         self.model = None
@@ -194,16 +196,19 @@ class Florence2:
         check_requirements(["transformers==4.49.0", "einops"])  # Ensure required libraries
 
         from transformers import AutoModelForCausalLM, AutoProcessor, logging
+
         LOGGER.info(f"💡 Initializing Florence2-base on {str(self.device).upper()}")
         logging.set_verbosity_error()  # Suppress excessive logs from transformers library: https://huggingface.co/docs/transformers/en/main_classes/logging
 
-        self.model = AutoModelForCausalLM.from_pretrained(self.mid, trust_remote_code=True,).to(self.device)
+        self.model = AutoModelForCausalLM.from_pretrained(
+            self.mid,
+            trust_remote_code=True,
+        ).to(self.device)
         self.processor = AutoProcessor.from_pretrained(self.mid, trust_remote_code=True)
 
         LOGGER.info(f"🚀 Loaded Florence2-{self.variant} model successfully.")
 
     def process(self, im0, w, h):
-
         # Encode image and text prompt
         inputs = self.processor(text="<OD>", images=im0, return_tensors="pt").to(self.device)
         ids, pval = inputs["input_ids"], inputs["pixel_values"]

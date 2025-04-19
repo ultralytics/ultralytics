@@ -162,8 +162,17 @@ class AutoAnnotator:
         except Exception as e:
             LOGGER.error(f"❌ Failed to save classes.txt: {e}")
 
-    def annotate(self, source=None, conf=0.25, iou=0.45, classes=None,
-                 save=True, output_dir="labels", save_visuals=True, visuals_output_dir=None):
+    def annotate(
+        self,
+        source=None,
+        conf=0.25,
+        iou=0.45,
+        classes=None,
+        save=True,
+        output_dir="labels",
+        save_visuals=True,
+        visuals_output_dir=None,
+    ):
         """
         Annotates images or videos using the specified model and saves YOLO-format labels.
 
@@ -341,9 +350,11 @@ class Florence2:
             None
         """
         from ultralytics.utils.checks import check_requirements
+
         check_requirements(["transformers==4.49.0", "einops"])
 
         from transformers import AutoModelForCausalLM, AutoProcessor, logging
+
         logging.set_verbosity_error()  # Minimize Hugging Face logs
 
         LOGGER.info(f"💡 Initializing Florence2-{self.variant} on {str(self.device).upper()}")
@@ -390,13 +401,7 @@ class Florence2:
         ids, pval = inputs["input_ids"], inputs["pixel_values"]
 
         # Perform text-vision inference
-        outids = self.model.generate(
-            ids,
-            pixel_values=pval,
-            max_new_tokens=1024,
-            early_stopping=False,
-            num_beams=3
-        )
+        outids = self.model.generate(ids, pixel_values=pval, max_new_tokens=1024, early_stopping=False, num_beams=3)
 
         # Decode and convert Florence2 output to detection format
         outputs = self.processor.batch_decode(outids, skip_special_tokens=False)[0]

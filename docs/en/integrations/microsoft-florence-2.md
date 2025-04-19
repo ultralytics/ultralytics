@@ -41,7 +41,7 @@ With this integration, Florence-2 can be used to generate object detection-style
 
         annotator = AutoAnnotator(model="florence2.pt", device="cpu", variant="base")
         annotator.annotate(
-            source=ASSETS, # "path/to/image/directory" or image"
+            source=ASSETS,  # "path/to/image/directory" or image"
             save=True,  # Save .txt annotations
             output_dir="output",  # Output folder
             save_visuals=True,  # Save annotated images
@@ -57,7 +57,7 @@ With this integration, Florence-2 can be used to generate object detection-style
         annotator = AutoAnnotator(model="florence2.pt", device="cpu", variant="base")
 
         annotator.annotate(
-            source=ASSETS, # "path/to/image/directory" or "image"
+            source=ASSETS,  # "path/to/image/directory" or "image"
             save=True,  # Save .txt annotations
             output_dir="output",  # Output folder
             save_visuals=True,  # Save annotated images

@@ -38,7 +38,7 @@ With this integration, Florence-2 can be used to generate object detection-style
         ```python
         from ultralytics.data.annotator import AutoAnnotator
         from ultralytics.utils import ASSETS
-        
+
         annotator = AutoAnnotator(model="florence2.pt", device="cpu", variant="base")
         annotator.annotate(
             source=ASSETS, "path/to/image/directory" or image"

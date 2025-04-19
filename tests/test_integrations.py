@@ -16,7 +16,7 @@ from ultralytics.utils.checks import check_requirements
 
 @pytest.mark.slow
 def test_tensorboard():
-    """Test training with MLflow tracking enabled (see https://mlflow.org/ for details)."""
+    """Test training with TensorBoard logging enabled."""
     SETTINGS["tensorboard"] = True
     YOLO("yolo11n-cls.yaml").train(data="imagenet10", imgsz=32, epochs=3, plots=False, device="cpu")
     SETTINGS["tensorboard"] = False

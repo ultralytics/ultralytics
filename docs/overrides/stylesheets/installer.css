@@ -1,0 +1,33 @@
+.option-row {
+  display: flex;
+  margin-bottom: 15px;
+}
+.option-row label {
+  min-width: 200px;
+}
+
+.buttons-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 5px; /* Spacing between buttons */
+  flex-grow: 1; /* Allows buttons to fill remaining space */
+}
+
+/* CSS for buttons i.e latest, 8.3.55, Pip, Conda */
+.option-btn {
+  background-color: #f4f4f4;
+  padding: 5px 5px;
+  cursor: pointer;
+}
+.option-btn:hover,
+.option-btn.active {
+  background-color: #2196f3;
+  color: #ffffff;
+}
+
+#command {
+  padding: 5px;
+  background: #f4f4f4;
+  word-wrap: break-word;
+  width: 90%;
+}

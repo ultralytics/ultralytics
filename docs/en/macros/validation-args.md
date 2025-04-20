@@ -12,7 +12,6 @@
 | `dnn`       | `bool`      | `False` | If `True`, uses the [OpenCV](https://www.ultralytics.com/glossary/opencv) DNN module for ONNX model inference, offering an alternative to [PyTorch](https://www.ultralytics.com/glossary/pytorch) inference methods.                                      |
 | `plots`     | `bool`      | `False` | When set to `True`, generates and saves plots of predictions versus ground truth, confusion matrices, and PR curves for visual evaluation of model performance.                                                                                           |
 | `classes`   | `list[int]` | `None`  | Specifies a list of class IDs to train on. Useful for filtering out and focusing only on certain classes during training.                                                                                                                                 |
-
 | `rect` | `bool` | `True` | If `True`, uses rectangular inference for batching, reducing padding and potentially increasing speed and efficiency by processing images in their original aspect ratio. |
 | `split` | `str` | `'val'` | Determines the dataset split to use for validation (`val`, `test`, or `train`). Allows flexibility in choosing the data segment for performance evaluation. |
 | `project` | `str` | `None` | Name of the project directory where validation outputs are saved. Helps organize results from different experiments or models. |

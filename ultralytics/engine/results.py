@@ -199,8 +199,8 @@ class Results(SimpleClass):
         probs (Probs | None): Classification probabilities.
         keypoints (Keypoints | None): Detected keypoints.
         obb (OBB | None): Oriented bounding boxes.
-        speed (Dict): Dictionary containing inference speed information.
-        names (Dict): Dictionary mapping class indices to class names.
+        speed (dict): Dictionary containing inference speed information.
+        names (dict): Dictionary mapping class indices to class names.
         path (str): Path to the input image file.
         save_dir (str | None): Directory to save results.
 
@@ -243,7 +243,7 @@ class Results(SimpleClass):
         Args:
             orig_img (numpy.ndarray): The original image as a numpy array.
             path (str): The path to the image file.
-            names (Dict): A dictionary of class names.
+            names (dict): A dictionary of class names.
             boxes (torch.Tensor | None): A 2D tensor of bounding box coordinates for each detection.
             masks (torch.Tensor | None): A 3D tensor of detection masks, where each mask is a binary image.
             probs (torch.Tensor | None): A 1D tensor of probabilities of each class for classification task.
@@ -472,6 +472,7 @@ class Results(SimpleClass):
         save=False,
         filename=None,
         color_mode="class",
+        txt_color=(255, 255, 255),
     ):
         """
         Plots detection results on an input RGB image.
@@ -494,6 +495,7 @@ class Results(SimpleClass):
             save (bool): Whether to save the annotated image.
             filename (str | None): Filename to save image if save is True.
             color_mode (bool): Specify the color mode, e.g., 'instance' or 'class'. Default to 'class'.
+            txt_color (tuple[int, int, int]): Specify the RGB text color for classification task
 
         Returns:
             (np.ndarray): Annotated image as a numpy array.
@@ -569,7 +571,7 @@ class Results(SimpleClass):
         if pred_probs is not None and show_probs:
             text = ",\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5)
             x = round(self.orig_shape[0] * 0.03)
-            annotator.text([x, x], text, box_style=True)
+            annotator.text([x, x], text, txt_color=txt_color)
 
         # Plot Pose results
         if self.keypoints is not None:

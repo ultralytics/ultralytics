@@ -449,7 +449,7 @@ class Annotator:
             box_color (tuple, optional): Box color (R, G, B, A) with optional alpha.
         """
         if anchor == "bottom":  # start y from font bottom
-            w, h = self.font.getsize(text)  # text width, height
+            w, h = self.font.getsize(text)
             xy[1] += 1 - h
         if self.pil:
             for line in text.split("\n"):
@@ -461,7 +461,7 @@ class Annotator:
                 xy[1] += h
         else:
             if box_color:
-                w, h = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
+                w, h = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]
                 h += 3  # add pixels to pad text
                 outside = xy[1] >= h  # label fits outside box
                 p2 = xy[0] + w, xy[1] - h if outside else xy[1] + h

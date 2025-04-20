@@ -21,7 +21,7 @@ if hub_sdk:
     GITHUB_REPO = "ultralytics/hub-sdk"
 else:
     FILE = Path(__file__).resolve()
-    PACKAGE_DIR = FILE.parents[1] / "ultralytics"  # i.e. /Users/glennjocher/PycharmProjects/ultralytics/ultralytics
+    PACKAGE_DIR = FILE.parents[1] / "ultralytics"
     REFERENCE_DIR = PACKAGE_DIR.parent / "docs/en/reference"
     GITHUB_REPO = "ultralytics/ultralytics"
 
@@ -118,8 +118,21 @@ def create_nav_menu_yaml(nav_items: list) -> str:
     return reference_yaml
 
 
+def extract_document_paths(yaml_section):
+    """Extract just the document paths from a yaml section, ignoring formatting and structure."""
+    paths = []
+    # Match all paths that appear after a colon in the YAML
+    path_matches = re.findall(r":\s*([^\s][^:\n]*?)(?:\n|$)", yaml_section)
+    for path in path_matches:
+        # Clean up the path
+        path = path.strip()
+        if path and not path.startswith("-") and not path.endswith(":"):
+            paths.append(path)
+    return sorted(paths)
+
+
 def update_mkdocs_file(reference_yaml: str) -> None:
-    """Updates the mkdocs.yaml file with the new reference section only if structural changes are detected."""
+    """Updates the mkdocs.yaml file with the new reference section only if changes in document paths are detected."""
     mkdocs_content = MKDOCS_YAML.read_text()
 
     # Find the top-level Reference section
@@ -134,33 +147,21 @@ def update_mkdocs_file(reference_yaml: str) -> None:
         new_section_lines.append(f"    {line}")
     new_ref_section = "\n".join(new_section_lines) + "\n"
 
-    # Function to extract structure (ignoring whitespace variations)
-    def get_structure(yaml_section):
-        """Extract structured content from YAML, ignoring whitespace variations."""
-        result = []
-        for line in yaml_section.splitlines():
-            # Skip empty lines
-            if not line.strip():
-                continue
-            # Normalize whitespace but preserve indentation level
-            spaces = len(line) - len(line.lstrip())
-            content = line.strip()
-            if content:  # Skip completely empty lines
-                result.append((spaces, content))
-        return result
-
     if ref_match:
         # We found an existing Reference section
         ref_section = ref_match.group(1)
         print(f"Found existing top-level Reference section ({len(ref_section)} chars)")
 
-        # Compare structural content, not exact string match
-        existing_structure = get_structure(ref_section)
-        new_structure = get_structure(new_ref_section)
+        # Compare only document paths
+        existing_paths = extract_document_paths(ref_section)
+        new_paths = extract_document_paths(new_ref_section)
 
-        if existing_structure == new_structure:
-            print("No structural changes detected in Reference section. Skipping update.")
+        # Check if the document paths are the same (ignoring structure or formatting differences)
+        if len(existing_paths) == len(new_paths) and set(existing_paths) == set(new_paths):
+            print(f"No changes detected in document paths ({len(existing_paths)} items). Skipping update.")
             return
+
+        print(f"Changes detected: {len(new_paths)} document paths vs {len(existing_paths)} existing")
 
         # Update content
         new_content = mkdocs_content.replace(ref_section, new_ref_section)

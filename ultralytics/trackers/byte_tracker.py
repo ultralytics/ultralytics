@@ -217,7 +217,7 @@ class STrack(BaseTrack):
     def xywha(self):
         """Returns position in (center x, center y, width, height, angle) format, warning if angle is missing."""
         if self.angle is None:
-            LOGGER.warning("WARNING ⚠️ `angle` attr not found, returning `xywh` instead.")
+            LOGGER.warning("`angle` attr not found, returning `xywh` instead.")
             return self.xywh
         return np.concatenate([self.xywh, self.angle[None]])
 

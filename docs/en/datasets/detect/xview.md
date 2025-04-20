@@ -15,6 +15,15 @@ The [xView](http://xviewdataset.org/) dataset is one of the largest publicly ava
 
 xView builds on the success of challenges like [Common Objects in Context (COCO)](../detect/coco.md) and aims to leverage computer vision to analyze the growing amount of available imagery from space in order to understand the visual world in new ways and address a range of important applications.
 
+!!! warning "Manual Download Required"
+
+    The xView dataset is **not** automatically downloaded by Ultralytics scripts. You **must** manually download the dataset first from the official source:
+
+    - **Source:** DIUx xView 2018 Challenge by U.S. National Geospatial-Intelligence Agency (NGA)
+    - **URL:** [https://challenge.xviewdataset.org](https://challenge.xviewdataset.org)
+
+    **Important:** After downloading the necessary files (e.g., `train_images.tif`, `val_images.tif`, `xView_train.geojson`), you need to extract them and place them into the correct directory structure, typically expected under a `datasets/xView/` folder, **before** running the training commands provided below. Ensure the dataset is properly set up as per the challenge instructions.
+
 ## Key Features
 
 - xView contains over 1 million object instances across 60 classes.

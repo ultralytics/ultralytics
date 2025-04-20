@@ -506,6 +506,17 @@ def check_cls_dataset(dataset, split=""):
         s = f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n"
         LOGGER.info(s)
     train_set = data_dir / "train"
+    if not train_set.is_dir():
+        LOGGER.warning(f"WARNING ⚠️ Dataset 'split=train' not found at {train_set}")
+        image_files = list(data_dir.rglob("*.jpg")) + list(data_dir.rglob("*.png"))
+        if image_files:
+            from ultralytics.data.split import split_classify_dataset
+
+            LOGGER.info(f"Found {len(image_files)} images in subdirectories. Attempting to split...")
+            data_dir = split_classify_dataset(data_dir, train_ratio=0.8)
+            train_set = data_dir / "train"
+        else:
+            LOGGER.error(f"No images found in {data_dir} or its subdirectories.")
     val_set = (
         data_dir / "val"
         if (data_dir / "val").exists()
@@ -735,37 +746,6 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
         if r < 1.0:  # image too large
             im = cv2.resize(im, (int(im_width * r), int(im_height * r)), interpolation=cv2.INTER_AREA)
         cv2.imwrite(str(f_new or f), im)
-
-
-def autosplit(path=DATASETS_DIR / "coco8/images", weights=(0.9, 0.1, 0.0), annotated_only=False):
-    """
-    Automatically split a dataset into train/val/test splits and save the resulting splits into autosplit_*.txt files.
-
-    Args:
-        path (Path, optional): Path to images directory.
-        weights (list | tuple, optional): Train, validation, and test split fractions.
-        annotated_only (bool, optional): If True, only images with an associated txt file are used.
-
-    Examples:
-        >>> from ultralytics.data.utils import autosplit
-        >>> autosplit()
-    """
-    path = Path(path)  # images dir
-    files = sorted(x for x in path.rglob("*.*") if x.suffix[1:].lower() in IMG_FORMATS)  # image files only
-    n = len(files)  # number of files
-    random.seed(0)  # for reproducibility
-    indices = random.choices([0, 1, 2], weights=weights, k=n)  # assign each image to a split
-
-    txt = ["autosplit_train.txt", "autosplit_val.txt", "autosplit_test.txt"]  # 3 txt files
-    for x in txt:
-        if (path.parent / x).exists():
-            (path.parent / x).unlink()  # remove existing
-
-    LOGGER.info(f"Autosplitting images from {path}" + ", using *.txt labeled images only" * annotated_only)
-    for i, img in TQDM(zip(indices, files), total=n):
-        if not annotated_only or Path(img2label_paths([str(img)])[0]).exists():  # check label
-            with open(path.parent / txt[i], "a", encoding="utf-8") as f:
-                f.write(f"./{img.relative_to(path.parent).as_posix()}" + "\n")  # add image to txt file
 
 
 def load_dataset_cache_file(path):

@@ -456,9 +456,13 @@ class Annotator:
             for idx, text in enumerate(text):
                 w, h = self.font.getsize(text)
                 if box_style:
-                    self.draw.rectangle(
-                        (xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=(128, 128, 128)
-                    )  # gray color
+                    overlay = Image.new("RGBA", self.im.size)  # Temporary RGBA image
+
+                    # Draw semi-transparent box on overlay
+                    ImageDraw.Draw(overlay).rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1),
+                                                      fill=(255, 0, 255, 50))  # R, G, B, alpha
+                    self.im.paste(Image.alpha_composite(self.im.convert("RGBA"), overlay).convert("RGB"))
+
                     # Using `color` for background and draw fg with white color
                     txt_color = (255, 255, 255)
                 self.draw.text(xy, text, fill=txt_color, font=self.font)

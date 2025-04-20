@@ -184,7 +184,7 @@ class Annotator:
         self.lw = line_width or max(round(sum(im.size if input_is_pil else im.shape) / 2 * 0.003), 2)
         if self.pil:  # use PIL
             self.im = im if input_is_pil else Image.fromarray(im)
-            self.draw = ImageDraw.Draw(self.im)
+            self.draw = ImageDraw.Draw(self.im, "RGBA")
             try:
                 font = check_font("Arial.Unicode.ttf" if non_ascii else font)
                 size = font_size or max(round(sum(self.im.size) / 2 * 0.035), 12)
@@ -452,19 +452,13 @@ class Annotator:
             w, h = self.font.getsize(text)  # text width, height
             xy[1] += 1 - h
         if self.pil:
-            if box_style:
-                w, h = self.font.getsize(text)
-                self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=txt_color)
-                # Using `txt_color` for background and draw fg with white color
-                txt_color = (255, 255, 255)
-            if "\n" in text:
-                lines = text.split("\n")
-                _, h = self.font.getsize(text)
-                for line in lines:
-                    self.draw.text(xy, line, fill=txt_color, font=self.font)
-                    xy[1] += h
-            else:
-                self.draw.text(xy, text, fill=txt_color, font=self.font)
+            for line in text.split("\n"):
+                if box_style:
+                    # Draw rectangle for each line
+                    w, h = self.font.getsize(line)
+                    self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=(0, 0, 0, 128))
+                self.draw.text(xy, line, fill=txt_color, font=self.font)
+                xy[1] += h
         else:
             if box_style:
                 w, h = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
@@ -472,8 +466,6 @@ class Annotator:
                 outside = xy[1] >= h  # label fits outside box
                 p2 = xy[0] + w, xy[1] - h if outside else xy[1] + h
                 cv2.rectangle(self.im, xy, p2, txt_color, -1, cv2.LINE_AA)  # filled
-                # Using `txt_color` for background and draw fg with white color
-                txt_color = (255, 255, 255)
             cv2.putText(self.im, text, xy, 0, self.sf, txt_color, thickness=self.tf, lineType=cv2.LINE_AA)
 
     def fromarray(self, im):

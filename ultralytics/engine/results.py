@@ -752,10 +752,10 @@ class Results(SimpleClass):
             >>>     result.save_crop(save_dir="path/to/crops", file_name="detection")
         """
         if self.probs is not None:
-            LOGGER.warning("WARNING ⚠️ Classify task do not support `save_crop`.")
+            LOGGER.warning("Classify task do not support `save_crop`.")
             return
         if self.obb is not None:
-            LOGGER.warning("WARNING ⚠️ OBB task do not support `save_crop`.")
+            LOGGER.warning("OBB task do not support `save_crop`.")
             return
         for d in self.boxes:
             save_one_box(
@@ -942,7 +942,7 @@ class Results(SimpleClass):
 
     def tojson(self, normalize=False, decimals=5):
         """Deprecated version of to_json()."""
-        LOGGER.warning("WARNING ⚠️ 'result.tojson()' is deprecated, replace with 'result.to_json()'.")
+        LOGGER.warning("'result.tojson()' is deprecated, replace with 'result.to_json()'.")
         return self.to_json(normalize, decimals)
 
     def to_json(self, normalize=False, decimals=5):
@@ -1005,7 +1005,7 @@ class Results(SimpleClass):
         # Convert results to a list of dictionaries
         data = self.summary(normalize=normalize, decimals=decimals)
         if len(data) == 0:
-            LOGGER.warning("⚠️ No results to save to SQL. Results dict is empty")
+            LOGGER.warning("No results to save to SQL. Results dict is empty.")
             return
 
         # Connect to the SQLite database

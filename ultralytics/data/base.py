@@ -415,7 +415,7 @@ class BaseDataset(Dataset):
         """
         Users can customize their own format here.
 
-        Note:
+        Examples:
             Ensure output is a dictionary with the following keys:
             >>> dict(
             ...     im_file=im_file,

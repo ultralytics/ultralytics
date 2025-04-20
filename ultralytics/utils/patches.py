@@ -28,7 +28,7 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR):
         >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
     """
     file_bytes = np.fromfile(filename, np.uint8)
-    if filename.endswith(".tiff") or filename.endswith(".tif"):
+    if filename.endswith((".tiff", ".tif")):
         success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
         if success:
             return np.stack(frames, axis=2)  # or np.asarray(frames).transpose(1,2,0)

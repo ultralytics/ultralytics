@@ -62,6 +62,7 @@ jobs:
       - name: Update Docs Reference Section and Push Changes
         continue-on-error: true
         run: |
+          npm install --global prettier prettier-plugin-sh
           git config --global user.name "UltralyticsAssistant"
           git config --global user.email "web@ultralytics.com"
           python docs/build_reference.py

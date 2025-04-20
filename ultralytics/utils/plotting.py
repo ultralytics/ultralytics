@@ -456,7 +456,7 @@ class Annotator:
                 if box_style:
                     # Draw rectangle for each line
                     w, h = self.font.getsize(line)
-                    self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=(0, 0, 0, 128))
+                    self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=(64, 64, 64, 128))
                 self.draw.text(xy, line, fill=txt_color, font=self.font)
                 xy[1] += h
         else:

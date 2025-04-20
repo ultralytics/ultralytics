@@ -604,7 +604,7 @@ def init_seeds(seed=0, deterministic=False):
             os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
             os.environ["PYTHONHASHSEED"] = str(seed)
         else:
-            LOGGER.warning("WARNING ⚠️ Upgrade to torch>=2.0.0 for deterministic training.")
+            LOGGER.warning("Upgrade to torch>=2.0.0 for deterministic training.")
     else:
         unset_deterministic()
 
@@ -708,7 +708,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
         assert isinstance(x, dict), "checkpoint is not a Python dictionary"
         assert "model" in x, "'model' missing from checkpoint"
     except Exception as e:
-        LOGGER.warning(f"WARNING ⚠️ Skipping {f}, not a valid Ultralytics model: {e}")
+        LOGGER.warning(f"Skipping {f}, not a valid Ultralytics model: {e}")
         return {}
 
     metadata = {

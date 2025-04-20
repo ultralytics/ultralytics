@@ -97,7 +97,7 @@ def run_ray_tune(
     # Get search space
     if not space and not train_args.get("resume"):
         space = default_space
-        LOGGER.warning("WARNING ⚠️ search space not provided, using default search space.")
+        LOGGER.warning("search space not provided, using default search space.")
 
     # Get dataset
     data = train_args.get("data", TASK2DATA[task])

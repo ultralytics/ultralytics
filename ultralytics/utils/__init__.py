@@ -381,15 +381,25 @@ def set_logging(name="LOGGING_NAME", verbose=True):
     """
     level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
 
-    # Configure the console (stdout) encoding to UTF-8, with checks for compatibility
-    formatter = logging.Formatter("%(message)s")  # Default formatter
+    class PrefixFormatter(logging.Formatter):
+        def format(self, record):
+            """Format log records with prefixes based on level."""
+            # Apply prefixes based on log level
+            if record.levelno == logging.WARNING:
+                prefix = "WARNING ⚠️" if not WINDOWS else "WARNING"
+                record.msg = f"{prefix} {record.msg}"
+            elif record.levelno == logging.ERROR:
+                prefix = "ERROR ❌" if not WINDOWS else "ERROR"
+                record.msg = f"{prefix} {record.msg}"
+
+            # Handle emojis in message based on platform
+            formatted_message = super().format(record)
+            return emojis(formatted_message)
+
+    formatter = PrefixFormatter("%(message)s")
+
+    # Handle Windows UTF-8 encoding issues
     if WINDOWS and hasattr(sys.stdout, "encoding") and sys.stdout.encoding != "utf-8":
-
-        class CustomFormatter(logging.Formatter):
-            def format(self, record):
-                """Format log records with UTF-8 encoding for Windows compatibility."""
-                return emojis(super().format(record))
-
         try:
             # Attempt to reconfigure stdout to use UTF-8 encoding if possible
             if hasattr(sys.stdout, "reconfigure"):
@@ -399,11 +409,8 @@ def set_logging(name="LOGGING_NAME", verbose=True):
                 import io
 
                 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
-            else:
-                formatter = CustomFormatter("%(message)s")
-        except Exception as e:
-            print(f"Creating custom formatter for non UTF-8 environments due to {e}")
-            formatter = CustomFormatter("%(message)s")
+        except Exception:
+            pass
 
     # Create and configure the StreamHandler with the appropriate formatter and level
     stream_handler = logging.StreamHandler(sys.stdout)

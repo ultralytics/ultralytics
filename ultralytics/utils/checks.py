@@ -93,7 +93,7 @@ def parse_version(version="0.0.0") -> tuple:
     try:
         return tuple(map(int, re.findall(r"\d+", version)[:3]))  # '2.0.1+cpu' -> (2, 0, 1)
     except Exception as e:
-        LOGGER.warning(f"WARNING ⚠️ failure for parse_version({version}), returning (0, 0, 0): {e}")
+        LOGGER.warning(f"failure for parse_version({version}), returning (0, 0, 0): {e}")
         return 0, 0, 0
 
 
@@ -149,14 +149,14 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
         )
         if max_dim != 1:
             raise ValueError(f"imgsz={imgsz} is not a valid image size. {msg}")
-        LOGGER.warning(f"WARNING ⚠️ updating to 'imgsz={max(imgsz)}'. {msg}")
+        LOGGER.warning(f"updating to 'imgsz={max(imgsz)}'. {msg}")
         imgsz = [max(imgsz)]
     # Make image size a multiple of the stride
     sz = [max(math.ceil(x / stride) * stride, floor) for x in imgsz]
 
     # Print warning message if image size was updated
     if sz != imgsz:
-        LOGGER.warning(f"WARNING ⚠️ imgsz={imgsz} must be multiple of max stride {stride}, updating to {sz}")
+        LOGGER.warning(f"imgsz={imgsz} must be multiple of max stride {stride}, updating to {sz}")
 
     # Add missing dimensions if necessary
     sz = [sz[0], sz[0]] if min_dim == 2 and len(sz) == 1 else sz[0] if min_dim == 1 and len(sz) == 1 else sz
@@ -200,7 +200,7 @@ def check_version(
         >>> check_version(current="21.10", required=">20.04,<22.04")
     """
     if not current:  # if current is '' or None
-        LOGGER.warning(f"WARNING ⚠️ invalid check_version({current}, {required}) requested, please check values.")
+        LOGGER.warning(f"invalid check_version({current}, {required}) requested, please check values.")
         return True
     elif not current[0].isdigit():  # current is package name rather than version string, i.e. current='ultralytics'
         try:
@@ -598,7 +598,7 @@ def check_imshow(warn=False):
         return True
     except Exception as e:
         if warn:
-            LOGGER.warning(f"WARNING ⚠️ Environment does not support cv2.imshow() or PIL Image.show()\n{e}")
+            LOGGER.warning(f"Environment does not support cv2.imshow() or PIL Image.show()\n{e}")
         return False
 
 

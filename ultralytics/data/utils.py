@@ -408,7 +408,7 @@ def check_det_dataset(dataset, autodownload=True):
                 raise SyntaxError(
                     emojis(f"{dataset} '{k}:' key missing ❌.\n'train' and 'val' are required in all data YAMLs.")
                 )
-            LOGGER.info("WARNING ⚠️ renaming data YAML 'validation' key to 'val' to match YOLO format.")
+            LOGGER.warning("renaming data YAML 'validation' key to 'val' to match YOLO format.")
             data["val"] = data.pop("validation")  # replace 'validation' key with 'val' key
     if "names" not in data and "nc" not in data:
         raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
@@ -507,7 +507,7 @@ def check_cls_dataset(dataset, split=""):
         LOGGER.info(s)
     train_set = data_dir / "train"
     if not train_set.is_dir():
-        LOGGER.warning(f"WARNING ⚠️ Dataset 'split=train' not found at {train_set}")
+        LOGGER.warning(f"Dataset 'split=train' not found at {train_set}")
         image_files = list(data_dir.rglob("*.jpg")) + list(data_dir.rglob("*.png"))
         if image_files:
             from ultralytics.data.split import split_classify_dataset
@@ -526,10 +526,10 @@ def check_cls_dataset(dataset, split=""):
     )  # data/test or data/val
     test_set = data_dir / "test" if (data_dir / "test").exists() else None  # data/val or data/test
     if split == "val" and not val_set:
-        LOGGER.warning("WARNING ⚠️ Dataset 'split=val' not found, using 'split=test' instead.")
+        LOGGER.warning("Dataset 'split=val' not found, using 'split=test' instead.")
         val_set = test_set
     elif split == "test" and not test_set:
-        LOGGER.warning("WARNING ⚠️ Dataset 'split=test' not found, using 'split=val' instead.")
+        LOGGER.warning("Dataset 'split=test' not found, using 'split=val' instead.")
         test_set = val_set
 
     nc = len([x for x in (data_dir / "train").glob("*") if x.is_dir()])  # number of classes
@@ -739,7 +739,7 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
             im = im.resize((int(im.width * r), int(im.height * r)))
         im.save(f_new or f, "JPEG", quality=quality, optimize=True)  # save
     except Exception as e:  # use OpenCV
-        LOGGER.info(f"WARNING ⚠️ HUB ops PIL failure {f}: {e}")
+        LOGGER.warning(f"HUB ops PIL failure {f}: {e}")
         im = cv2.imread(f)
         im_height, im_width = im.shape[:2]
         r = max_dim / max(im_height, im_width)  # ratio

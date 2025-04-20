@@ -262,7 +262,7 @@ class Exporter:
             matches = difflib.get_close_matches(fmt, fmts, n=1, cutoff=0.6)  # 60% similarity required to match
             if not matches:
                 raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-            LOGGER.warning(f"WARNING ⚠️ Invalid export format='{fmt}', updating to format='{matches[0]}'")
+            LOGGER.warning(f"Invalid export format='{fmt}', updating to format='{matches[0]}'")
             fmt = matches[0]
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
@@ -276,7 +276,7 @@ class Exporter:
         # Device
         dla = None
         if fmt == "engine" and self.args.device is None:
-            LOGGER.warning("WARNING ⚠️ TensorRT requires GPU export, automatically assigning device=0")
+            LOGGER.warning("TensorRT requires GPU export, automatically assigning device=0")
             self.args.device = "0"
         if fmt == "engine" and "dla" in str(self.args.device):  # convert int/list to str first
             dla = self.args.device.split(":")[-1]
@@ -294,7 +294,7 @@ class Exporter:
         validate_args(fmt, self.args, fmt_keys)
         if imx:
             if not self.args.int8:
-                LOGGER.warning("WARNING ⚠️ IMX export requires int8=True, setting int8=True.")
+                LOGGER.warning("IMX export requires int8=True, setting int8=True.")
                 self.args.int8 = True
             if model.task != "detect":
                 raise ValueError("IMX export only supported for detection models.")
@@ -302,10 +302,10 @@ class Exporter:
             model.names = default_class_names()
         model.names = check_class_names(model.names)
         if self.args.half and self.args.int8:
-            LOGGER.warning("WARNING ⚠️ half=True and int8=True are mutually exclusive, setting half=False.")
+            LOGGER.warning("half=True and int8=True are mutually exclusive, setting half=False.")
             self.args.half = False
         if self.args.half and onnx and self.device.type == "cpu":
-            LOGGER.warning("WARNING ⚠️ half=True only compatible with GPU export, i.e. use device=0")
+            LOGGER.warning("half=True only compatible with GPU export, i.e. use device=0")
             self.args.half = False
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.int8 and engine:
@@ -330,7 +330,7 @@ class Exporter:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
             assert not (tflite and ARM64 and LINUX), "TFLite export with NMS unsupported on ARM64 Linux"
             if getattr(model, "end2end", False):
-                LOGGER.warning("WARNING ⚠️ 'nms=True' is not available for end2end models. Forcing 'nms=False'.")
+                LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=False'.")
                 self.args.nms = False
             self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
         if edgetpu:
@@ -339,7 +339,7 @@ class Exporter:
                     "Edge TPU export only supported on non-aarch64 Linux. See https://coral.ai/docs/edgetpu/compiler"
                 )
             elif self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
-                LOGGER.warning("WARNING ⚠️ Edge TPU export requires batch size 1, setting batch=1.")
+                LOGGER.warning("Edge TPU export requires batch size 1, setting batch=1.")
                 self.args.batch = 1
         if isinstance(model, WorldModel):
             LOGGER.warning(

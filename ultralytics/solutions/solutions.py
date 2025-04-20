@@ -129,7 +129,7 @@ class BaseSolution:
             self.clss = self.track_data.cls.cpu().tolist()
             self.track_ids = self.track_data.id.int().cpu().tolist()
         else:
-            self.LOGGER.warning("WARNING ⚠️ no tracks found!")
+            self.LOGGER.warning("no tracks found!")
             self.boxes, self.clss, self.track_ids = [], [], []
 
     def store_tracking_history(self, track_id, box):

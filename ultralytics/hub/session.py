@@ -84,7 +84,7 @@ class HUBTrainingSession:
         except Exception:
             if identifier.startswith(f"{HUB_WEB_ROOT}/models/") and not self.client.authenticated:
                 LOGGER.warning(
-                    f"{PREFIX}WARNING ⚠️ Please log in using 'yolo login API_KEY'. "
+                    f"{PREFIX}Please log in using 'yolo login API_KEY'. "
                     "You can find your API Key at: https://hub.ultralytics.com/settings?tab=api+keys."
                 )
 

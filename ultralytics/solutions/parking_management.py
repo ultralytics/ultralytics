@@ -61,7 +61,7 @@ class ParkingPtsSelection:
                 "Darwin": "reinstall Python from https://www.python.org/downloads/macos/ or `brew install python-tk`",
             }.get(platform.system(), "Unknown OS. Check your Python installation.")
 
-            LOGGER.warning(f"WARNING ⚠️  Tkinter is not configured or supported. Potential fix: {install_cmd}")
+            LOGGER.warning(f" Tkinter is not configured or supported. Potential fix: {install_cmd}")
             return
 
         if not check_imshow(warn=True):

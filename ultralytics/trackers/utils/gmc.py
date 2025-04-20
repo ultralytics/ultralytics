@@ -294,7 +294,7 @@ class GMC:
                 H[0, 2] *= self.downscale
                 H[1, 2] *= self.downscale
         else:
-            LOGGER.warning("WARNING: not enough matching points")
+            LOGGER.warning("not enough matching points")
 
         # Store to next iteration
         self.prevFrame = frame.copy()
@@ -361,7 +361,7 @@ class GMC:
                 H[0, 2] *= self.downscale
                 H[1, 2] *= self.downscale
         else:
-            LOGGER.warning("WARNING: not enough matching points")
+            LOGGER.warning("not enough matching points")
 
         self.prevFrame = frame.copy()
         self.prevKeyPoints = copy.copy(keypoints)

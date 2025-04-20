@@ -176,7 +176,7 @@ def unzip_file(file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok=Fals
         # Check if destination directory already exists and contains files
         if path.exists() and any(path.iterdir()) and not exist_ok:
             # If it exists and is not empty, return the path without unzipping
-            LOGGER.warning(f"WARNING ⚠️ Skipping {file} unzip as destination directory {path} is not empty.")
+            LOGGER.warning(f"Skipping {file} unzip as destination directory {path} is not empty.")
             return path
 
         for f in TQDM(files, desc=f"Unzipping {file} to {Path(path).resolve()}...", unit="file", disable=not progress):
@@ -218,7 +218,7 @@ def check_disk_space(url="https://ultralytics.com/assets/coco8.zip", path=Path.c
 
     # Insufficient space
     text = (
-        f"WARNING ⚠️ Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, "
+        f"Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, "
         f"Please free {data * sf - free:.1f} GB additional disk space and try again."
     )
     if hard:

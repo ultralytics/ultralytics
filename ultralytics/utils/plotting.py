@@ -309,7 +309,7 @@ class Annotator:
                     (p1[0], p1[1] - h if outside else p1[1], p1[0] + w + 1, p1[1] + 1 if outside else p1[1] + h + 1),
                     fill=color,
                 )
-                # self.draw.text((box[0], box[1]), label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
+                # self.draw.text([box[0], box[1]], label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
                 self.draw.text((p1[0], p1[1] - h if outside else p1[1]), label, fill=txt_color, font=self.font)
         else:  # cv2
             if rotated:
@@ -448,10 +448,10 @@ class Annotator:
             anchor (str, optional): Text anchor position ('top' or 'bottom').
             box_color (tuple, optional): Box color (R, G, B, A) with optional alpha.
         """
-        if anchor == "bottom":  # start y from font bottom
-            w, h = self.font.getsize(text)
-            xy[1] += 1 - h
         if self.pil:
+            w, h = self.font.getsize(text)
+            if anchor == "bottom":  # start y from font bottom
+                xy[1] += 1 - h
             for line in text.split("\n"):
                 if box_color:
                     # Draw rectangle for each line
@@ -711,7 +711,7 @@ def plot_images(
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
         annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders
         if paths:
-            annotator.text((x + 5, y + 5), text=Path(paths[i]).name[:40], txt_color=(220, 220, 220))  # filenames
+            annotator.text([x + 5, y + 5], text=Path(paths[i]).name[:40], txt_color=(220, 220, 220))  # filenames
         if len(cls) > 0:
             idx = batch_idx == i
             classes = cls[idx].astype("int")
@@ -742,7 +742,7 @@ def plot_images(
                 for c in classes:
                     color = colors(c)
                     c = names.get(c, c) if names else c
-                    annotator.text((x, y), f"{c}", txt_color=color, box_color=(64, 64, 64, 128))
+                    annotator.text([x, y], f"{c}", txt_color=color, box_color=(64, 64, 64, 128))
 
             # Plot keypoints
             if len(kpts):

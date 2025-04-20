@@ -316,7 +316,7 @@ class AutoBackend(nn.Module):
             try:
                 context = model.create_execution_context()
             except Exception as e:  # model is None
-                LOGGER.error(f"ERROR: TensorRT model exported with a different version than {trt.__version__}\n")
+                LOGGER.error(f"TensorRT model exported with a different version than {trt.__version__}\n")
                 raise e
 
             bindings = OrderedDict()

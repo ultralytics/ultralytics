@@ -111,7 +111,7 @@ class RegionCounter(BaseSolution):
                 label=str(region["counts"]),
                 color=region["region_color"],
                 txt_color=region["text_color"],
-                margin=self.line_width * 4
+                margin=self.line_width * 4,
             )
             region["counts"] = 0  # Reset for next frame
         plot_im = annotator.result()

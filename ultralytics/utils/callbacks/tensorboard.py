@@ -89,7 +89,7 @@ def _log_tensorboard_graph(trainer) -> None:
                 WRITER.add_graph(torch.jit.trace(model, im, strict=False), [])
                 LOGGER.info(f"{PREFIX}model graph visualization added ✅")
             except Exception as e:
-                LOGGER.warning(f"{PREFIX}WARNING ⚠️ TensorBoard graph visualization failure {e}")
+                LOGGER.warning(f"{PREFIX}TensorBoard graph visualization failure {e}")
 
 
 def on_pretrain_routine_start(trainer) -> None:
@@ -100,7 +100,7 @@ def on_pretrain_routine_start(trainer) -> None:
             WRITER = SummaryWriter(str(trainer.save_dir))
             LOGGER.info(f"{PREFIX}Start with 'tensorboard --logdir {trainer.save_dir}', view at http://localhost:6006/")
         except Exception as e:
-            LOGGER.warning(f"{PREFIX}WARNING ⚠️ TensorBoard not initialized correctly, not logging this run. {e}")
+            LOGGER.warning(f"{PREFIX}TensorBoard not initialized correctly, not logging this run. {e}")
 
 
 def on_train_start(trainer) -> None:

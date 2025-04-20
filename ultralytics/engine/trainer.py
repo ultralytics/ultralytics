@@ -192,8 +192,7 @@ class BaseTrainer:
                 self.args.rect = False
             if self.args.batch < 1.0:
                 LOGGER.warning(
-                    "'batch<1' for AutoBatch is incompatible with Multi-GPU training, setting "
-                    "default 'batch=16'"
+                    "'batch<1' for AutoBatch is incompatible with Multi-GPU training, setting default 'batch=16'"
                 )
                 self.args.batch = 16
 

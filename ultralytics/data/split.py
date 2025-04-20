@@ -57,15 +57,20 @@ def split_classify_dataset(source_dir, train_ratio=0.8):
     split_path = Path(f"{source_path}_split")
     train_path, val_path = split_path / "train", split_path / "val"
 
-    # Create new directory structure
+    # Create directory structure
     split_path.mkdir(exist_ok=True)
     train_path.mkdir(exist_ok=True)
     val_path.mkdir(exist_ok=True)
 
-    # Process each class directory
+    # Process class directories
     class_dirs = [d for d in source_path.iterdir() if d.is_dir()]
+    total_images = sum(len(list(d.glob("*.*"))) for d in class_dirs)
+
+    LOGGER.info(f"Splitting {source_path} into {train_ratio:.0%} train, {1 - train_ratio:.0%} val")
+    LOGGER.info(f"Found {len(class_dirs)} classes with {total_images} images total")
+
     for class_dir in class_dirs:
-        # Create class subdirectories
+        # Create class directories
         (train_path / class_dir.name).mkdir(exist_ok=True)
         (val_path / class_dir.name).mkdir(exist_ok=True)
 
@@ -80,6 +85,7 @@ def split_classify_dataset(source_dir, train_ratio=0.8):
         for img in image_files[split_idx:]:
             shutil.copy2(img, val_path / class_dir.name / img.name)
 
+    LOGGER.info(f"Split complete in {split_path} ✅")
     return split_path
 
 
@@ -115,4 +121,4 @@ def autosplit(path=DATASETS_DIR / "coco8/images", weights=(0.9, 0.1, 0.0), annot
 
 
 if __name__ == "__main__":
-    split_classify_dataset("path/to/caltech")
+    split_classify_dataset("../datasets/caltech101")

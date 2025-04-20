@@ -66,7 +66,7 @@ def check_file_speeds(files, threshold_ms=10, max_files=5, prefix=""):
         >>> check_file_speeds(image_files, threshold_ms=15)
     """
     if not files or len(files) == 0:
-        LOGGER.warning(f"{prefix}WARNING ⚠️ Image speed checks: No files to check")
+        LOGGER.warning(f"{prefix}Image speed checks: No files to check")
         return
 
     # Sample files (max 5)
@@ -96,7 +96,7 @@ def check_file_speeds(files, threshold_ms=10, max_files=5, prefix=""):
             pass
 
     if not ping_times:
-        LOGGER.warning(f"{prefix}WARNING ⚠️ Image speed checks: failed to access files")
+        LOGGER.warning(f"{prefix}Image speed checks: failed to access files")
         return
 
     # Calculate stats with uncertainties
@@ -116,7 +116,7 @@ def check_file_speeds(files, threshold_ms=10, max_files=5, prefix=""):
         LOGGER.info(f"{prefix}Fast image access ✅ ({ping_msg}{speed_msg}{size_msg})")
     else:
         LOGGER.warning(
-            f"{prefix}WARNING ⚠️ Slow image access detected ({ping_msg}{speed_msg}{size_msg}). "
+            f"{prefix}Slow image access detected ({ping_msg}{speed_msg}{size_msg}). "
             f"Use local storage instead of remote/mounted storage for better performance. "
             f"See https://docs.ultralytics.com/guides/model-training-tips/"
         )
@@ -166,11 +166,11 @@ def verify_image(args):
                 f.seek(-2, 2)
                 if f.read() != b"\xff\xd9":  # corrupt JPEG
                     ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
-                    msg = f"{prefix}WARNING ⚠️ {im_file}: corrupt JPEG restored and saved"
+                    msg = f"{prefix}{im_file}: corrupt JPEG restored and saved"
         nf = 1
     except Exception as e:
         nc = 1
-        msg = f"{prefix}WARNING ⚠️ {im_file}: ignoring corrupt image/label: {e}"
+        msg = f"{prefix}{im_file}: ignoring corrupt image/label: {e}"
     return (im_file, cls), nf, nc, msg
 
 
@@ -192,7 +192,7 @@ def verify_image_label(args):
                 f.seek(-2, 2)
                 if f.read() != b"\xff\xd9":  # corrupt JPEG
                     ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
-                    msg = f"{prefix}WARNING ⚠️ {im_file}: corrupt JPEG restored and saved"
+                    msg = f"{prefix}{im_file}: corrupt JPEG restored and saved"
 
         # Verify labels
         if os.path.isfile(lb_file):
@@ -227,7 +227,7 @@ def verify_image_label(args):
                     lb = lb[i]  # remove duplicates
                     if segments:
                         segments = [segments[x] for x in i]
-                    msg = f"{prefix}WARNING ⚠️ {im_file}: {nl - len(i)} duplicate labels removed"
+                    msg = f"{prefix}{im_file}: {nl - len(i)} duplicate labels removed"
             else:
                 ne = 1  # label empty
                 lb = np.zeros((0, (5 + nkpt * ndim) if keypoint else 5), dtype=np.float32)
@@ -243,7 +243,7 @@ def verify_image_label(args):
         return im_file, lb, shape, segments, keypoints, nm, nf, ne, nc, msg
     except Exception as e:
         nc = 1
-        msg = f"{prefix}WARNING ⚠️ {im_file}: ignoring corrupt image/label: {e}"
+        msg = f"{prefix}{im_file}: ignoring corrupt image/label: {e}"
         return [None, None, None, None, None, nm, nf, ne, nc, msg]
 
 
@@ -547,11 +547,11 @@ def check_cls_dataset(dataset, split=""):
             nd = len({file.parent for file in files})  # number of directories
             if nf == 0:
                 if k == "train":
-                    raise FileNotFoundError(emojis(f"{dataset} '{k}:' no training images found ❌ "))
+                    raise FileNotFoundError(f"{dataset} '{k}:' no training images found")
                 else:
-                    LOGGER.warning(f"{prefix} found {nf} images in {nd} classes: WARNING ⚠️ no images found")
+                    LOGGER.warning(f"{prefix} found {nf} images in {nd} classes (no images found)")
             elif nd != nc:
-                LOGGER.warning(f"{prefix} found {nf} images in {nd} classes: ERROR ❌️ requires {nc} classes, not {nd}")
+                LOGGER.error(f"{prefix} found {nf} images in {nd} classes (requires {nc} classes, not {nd})")
             else:
                 LOGGER.info(f"{prefix} found {nf} images in {nd} classes ✅ ")
 
@@ -768,4 +768,4 @@ def save_dataset_cache_file(prefix, path, x, version):
             np.save(file, x)
         LOGGER.info(f"{prefix}New cache created: {path}")
     else:
-        LOGGER.warning(f"{prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable, cache not saved.")
+        LOGGER.warning(f"{prefix}Cache directory {path.parent} is not writeable, cache not saved.")

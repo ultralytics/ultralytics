@@ -103,7 +103,7 @@ def run_ray_tune(
     data = train_args.get("data", TASK2DATA[task])
     space["data"] = data
     if "data" not in train_args:
-        LOGGER.warning(f'WARNING ⚠️ data not provided, using default "data={data}".')
+        LOGGER.warning(f'data not provided, using default "data={data}".')
 
     # Define the trainable function with allocated resources
     trainable_with_resources = tune.with_resources(_tune, {"cpu": NUM_THREADS, "gpu": gpu_per_trial or 0})

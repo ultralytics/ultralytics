@@ -685,7 +685,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
     # Get solution name
     if not args:
-        LOGGER.warning("⚠️ No solution name provided. i.e `yolo solutions count`. Defaulting to 'count'.")
+        LOGGER.warning("No solution name provided. i.e `yolo solutions count`. Defaulting to 'count'.")
         args = ["count"]
     if args[0] == "help":
         LOGGER.info(SOLUTIONS_HELP_MSG)

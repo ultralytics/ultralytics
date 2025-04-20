@@ -698,7 +698,7 @@ def create_synthetic_coco_dataset():
                 for _ in TQDM(as_completed(futures), total=len(futures), desc=f"Generating images for {subset}"):
                     pass  # The actual work is done in the background
             else:
-                print(f"Warning: Labels file {label_list_file} does not exist. Skipping image creation for {subset}.")
+                LOGGER.warning(f"Labels file {label_list_file} does not exist. Skipping image creation for {subset}.")
 
     print("Synthetic COCO dataset created successfully.")
 

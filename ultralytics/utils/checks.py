@@ -208,7 +208,7 @@ def check_version(
             current = metadata.version(current)  # get version string from package name
         except metadata.PackageNotFoundError as e:
             if hard:
-                raise ModuleNotFoundError(emojis(f"WARNING ⚠️ {current} package is required but not installed")) from e
+                raise ModuleNotFoundError(f"{current} package is required but not installed") from e
             else:
                 return False
 

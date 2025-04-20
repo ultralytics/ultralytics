@@ -437,7 +437,7 @@ class Annotator:
         """Add rectangle to image (PIL-only)."""
         self.draw.rectangle(xy, fill, outline, width)
 
-    def text(self, xy, text, txt_color=(255, 255, 255), anchor="top", box_style=False):
+    def text(self, xy, text, txt_color=(255, 255, 255), anchor="top", box_color=()):
         """
         Add text to an image using PIL or cv2.
 
@@ -446,21 +446,21 @@ class Annotator:
             text (str): Text to be drawn.
             txt_color (tuple, optional): Text color (R, G, B).
             anchor (str, optional): Text anchor position ('top' or 'bottom').
-            box_style (bool, optional): Whether to draw text with a background box.
+            box_color (tuple, optional): Box color (R, G, B, A) with optional alpha.
         """
         if anchor == "bottom":  # start y from font bottom
             w, h = self.font.getsize(text)  # text width, height
             xy[1] += 1 - h
         if self.pil:
             for line in text.split("\n"):
-                if box_style:
+                if box_color:
                     # Draw rectangle for each line
                     w, h = self.font.getsize(line)
-                    self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=(64, 64, 64, 128))
+                    self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=box_color)
                 self.draw.text(xy, line, fill=txt_color, font=self.font)
                 xy[1] += h
         else:
-            if box_style:
+            if box_color:
                 w, h = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
                 h += 3  # add pixels to pad text
                 outside = xy[1] >= h  # label fits outside box
@@ -742,7 +742,7 @@ def plot_images(
                 for c in classes:
                     color = colors(c)
                     c = names.get(c, c) if names else c
-                    annotator.text((x, y), f"{c}", txt_color=color, box_style=True)
+                    annotator.text((x, y), f"{c}", txt_color=color, box_color=(64, 64, 64, 128))
 
             # Plot keypoints
             if len(kpts):

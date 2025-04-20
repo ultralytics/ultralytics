@@ -590,7 +590,7 @@ class Results(SimpleClass):
 
         # Save results
         if save:
-            annotator.save(filename)
+            annotator.save(filename or f"results_{Path(self.path).name}")
 
         return annotator.im if pil else annotator.result()
 

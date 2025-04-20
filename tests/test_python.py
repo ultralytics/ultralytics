@@ -278,7 +278,7 @@ def test_results(model):
         r.to_df(decimals=3)
         r.to_csv()
         r.to_xml()
-        r.plot(pil=True, save=True)
+        r.plot(pil=True, save=True, filename=TMP / "results_plot_save.jpg")
         r.plot(conf=True, boxes=True)
         print(r, len(r), r.path)  # print after methods
 

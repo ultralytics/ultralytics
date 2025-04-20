@@ -8,7 +8,7 @@ keywords: Streamlit, YOLO11, Real-time Object Detection, Streamlit Application, 
 
 ## Introduction
 
-Streamlit makes it simple to build and deploy interactive web applications. Combining this with Ultralytics YOLO11 allows for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) and analysis directly in your browser. YOLO11 high accuracy and speed ensure seamless performance for live video streams, making it ideal for applications in security, retail, and beyond.
+Streamlit makes it simple to build and deploy interactive web applications. Combining this with Ultralytics YOLO11 allows for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) and analysis directly in your browser. YOLO11's high accuracy and speed ensure seamless performance for live video streams, making it ideal for applications in security, retail, and beyond.
 
 <p align="center">
   <br>
@@ -28,9 +28,9 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
 
 ## Advantages of Live Inference
 
-- **Seamless Real-Time Object Detection**: Streamlit combined with YOLO11 enables real-time object detection directly from your webcam feed. This allows for immediate analysis and insights, making it ideal for applications requiring instant feedback.
-- **User-Friendly Deployment**: Streamlit interactive interface makes it easy to deploy and use the application without extensive technical knowledge. Users can start live inference with a simple click, enhancing accessibility and usability.
-- **Efficient Resource Utilization**: YOLO11 optimized algorithm ensure high-speed processing with minimal computational resources. This efficiency allows for smooth and reliable webcam inference even on standard hardware, making advanced computer vision accessible to a wider audience.
+- **Seamless Real-Time Object Detection**: Streamlit combined with YOLO11 enables real-time object detection directly from your webcam feed. This allows for immediate analysis and insights, making it ideal for [applications requiring instant feedback](https://docs.ultralytics.com/modes/predict/).
+- **User-Friendly Deployment**: Streamlit's interactive interface makes it easy to deploy and use the application without extensive technical knowledge. Users can start live inference with a simple click, enhancing accessibility and usability.
+- **Efficient Resource Utilization**: YOLO11's optimized algorithms ensure high-speed processing with minimal computational resources. This efficiency allows for smooth and reliable webcam inference even on standard hardware, making advanced [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) accessible to a wider audience.
 
 ## Streamlit Application Code
 
@@ -59,10 +59,10 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
 
         inf.inference()
 
-        ### Make sure to run the file using command `streamlit run <file-name.py>`
+        # Make sure to run the file using command `streamlit run path/to/file.py`
         ```
 
-This will launch the Streamlit application in your default web browser. You will see the main title, subtitle, and the sidebar with configuration options. Select your desired YOLO11 model, set the confidence and NMS thresholds, and click the "Start" button to begin the real-time object detection.
+This will launch the Streamlit application in your default web browser. You will see the main title, subtitle, and the sidebar with configuration options. Select your desired YOLO11 model, set the confidence and [NMS thresholds](https://www.ultralytics.com/glossary/non-maximum-suppression-nms), and click the "Start" button to begin the real-time object detection.
 
 You can optionally supply a specific model in Python:
 
@@ -79,14 +79,26 @@ You can optionally supply a specific model in Python:
 
         inf.inference()
 
-        ### Make sure to run the file using command `streamlit run <file-name.py>`
+        # Make sure to run the file using command `streamlit run path/to/file.py`
         ```
+
+## How It Works
+
+Under the hood, the Streamlit application uses the [Ultralytics solutions module](https://docs.ultralytics.com/reference/solutions/streamlit_inference/) to create an interactive interface. When you start the inference, the application:
+
+1. Captures video from your webcam or uploaded video file
+2. Processes each frame through the YOLO11 model
+3. Applies object detection with your specified confidence and IoU thresholds
+4. Displays both the original and annotated frames in real-time
+5. Optionally enables object tracking if selected
+
+The application provides a clean, user-friendly interface with controls to adjust model parameters and start/stop inference at any time.
 
 ## Conclusion
 
 By following this guide, you have successfully created a real-time object detection application using Streamlit and Ultralytics YOLO11. This application allows you to experience the power of YOLO11 in detecting objects through your webcam, with a user-friendly interface and the ability to stop the video stream at any time.
 
-For further enhancements, you can explore adding more features such as recording the video stream, saving the annotated frames, or integrating with other computer vision libraries.
+For further enhancements, you can explore adding more features such as recording the video stream, saving the annotated frames, or integrating with other [computer vision libraries](https://www.ultralytics.com/blog/exploring-vision-ai-frameworks-tensorflow-pytorch-and-opencv).
 
 ## Share Your Thoughts with the Community
 
@@ -126,7 +138,7 @@ Then, you can create a basic Streamlit application to run live inference:
 
         inf.inference()
 
-        ### Make sure to run the file using command `streamlit run <file-name.py>`
+        # Make sure to run the file using command `streamlit run path/to/file.py`
         ```
 
     === "CLI"
@@ -142,28 +154,28 @@ For more details on the practical setup, refer to the [Streamlit Application Cod
 Using Ultralytics YOLO11 with Streamlit for real-time object detection offers several advantages:
 
 - **Seamless Real-Time Detection**: Achieve high-[accuracy](https://www.ultralytics.com/glossary/accuracy), real-time object detection directly from webcam feeds.
-- **User-Friendly Interface**: Streamlit intuitive interface allows easy use and deployment without extensive technical knowledge.
+- **User-Friendly Interface**: Streamlit's intuitive interface allows easy use and deployment without extensive technical knowledge.
 - **Resource Efficiency**: YOLO11's optimized algorithms ensure high-speed processing with minimal computational resources.
 
-Discover more about these advantages [here](#advantages-of-live-inference).
+Learn more about these benefits in the [Advantages of Live Inference section](#advantages-of-live-inference).
 
 ### How do I deploy a Streamlit object detection application in my web browser?
 
 After coding your Streamlit application integrating Ultralytics YOLO11, you can deploy it by running:
 
 ```bash
-streamlit run <file-name.py>
+streamlit run path/to/file.py
 ```
 
-This command will launch the application in your default web browser, enabling you to select YOLO11 models, set confidence, and NMS thresholds, and start real-time object detection with a simple click. For a detailed guide, refer to the [Streamlit Application Code](#streamlit-application-code) section.
+This command will launch the application in your default web browser, enabling you to select YOLO11 models, set confidence and NMS thresholds, and start real-time object detection with a simple click. For a detailed guide, refer to the [Streamlit Application Code](#streamlit-application-code) section.
 
 ### What are some use cases for real-time object detection using Streamlit and Ultralytics YOLO11?
 
 Real-time object detection using Streamlit and Ultralytics YOLO11 can be applied in various sectors:
 
-- **Security**: Real-time monitoring for unauthorized access.
-- **Retail**: Customer counting, shelf management, and more.
-- **Wildlife and Agriculture**: Monitoring animals and crop conditions.
+- **Security**: Real-time monitoring for unauthorized access and [security alarm systems](https://docs.ultralytics.com/guides/security-alarm-system/).
+- **Retail**: Customer counting, shelf management, and [inventory tracking](https://www.ultralytics.com/blog/from-shelves-to-sales-exploring-yolov8s-impact-on-inventory-management).
+- **Wildlife and Agriculture**: Monitoring animals and crop conditions for [conservation efforts](https://www.ultralytics.com/blog/ai-in-wildlife-conservation).
 
 For more in-depth use cases and examples, explore [Ultralytics Solutions](https://docs.ultralytics.com/solutions/).
 
@@ -175,4 +187,4 @@ Ultralytics YOLO11 provides several enhancements over prior models like YOLOv5 a
 - **Ease of Use**: Simplified interfaces and deployment.
 - **Resource Efficiency**: Optimized for better speed with minimal computational requirements.
 
-For a comprehensive comparison, check [Ultralytics YOLO11 Documentation](https://docs.ultralytics.com/models/yolov8/) and related blog posts discussing model performance.
+For a comprehensive comparison, check [Ultralytics YOLO11 Documentation](https://docs.ultralytics.com/models/yolo11/) and related blog posts discussing model performance.

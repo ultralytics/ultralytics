@@ -12,7 +12,7 @@ import numpy as np
 from PIL import Image
 
 from ultralytics.utils import DATASETS_DIR, LOGGER, NUM_THREADS, TQDM
-from ultralytics.utils.downloads import download
+from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
 
 
@@ -21,7 +21,7 @@ def coco91_to_coco80_class():
     Converts 91-index COCO class IDs to 80-index COCO class IDs.
 
     Returns:
-        (List): A list of 91 class IDs where the index represents the 80-index class ID and the value is the
+        (list): A list of 91 class IDs where the index represents the 80-index class ID and the value is the
             corresponding 91-index class ID.
     """
     return [
@@ -701,3 +701,52 @@ def create_synthetic_coco_dataset():
                 print(f"Warning: Labels file {label_list_file} does not exist. Skipping image creation for {subset}.")
 
     print("Synthetic COCO dataset created successfully.")
+
+
+def convert_to_multispectral(path, n_channels=10, replace=False, zip=False):
+    """
+    Convert RGB images to multispectral images by interpolating across wavelength bands.
+
+    This function takes RGB images and interpolates them to create multispectral images with a specified number
+    of channels. It can process either a single image or a directory of images.
+
+    Args:
+        path (str | Path): Path to an image file or directory containing images to convert.
+        n_channels (int): Number of spectral channels to generate in the output image.
+        replace (bool): Whether to replace the original image file with the converted one.
+        zip (bool): Whether to zip the converted images into a zip file.
+
+    Examples:
+        >>> # Convert a single image
+        >>> convert_to_multispectral("path/to/image.jpg", n_channels=12)
+    """
+    from scipy.interpolate import interp1d
+
+    from ultralytics.data.utils import IMG_FORMATS
+
+    path = Path(path)
+    if path.is_dir():
+        # Process directory
+        im_files = sum([list(path.rglob(f"*.{ext}")) for ext in (IMG_FORMATS - {"tif", "tiff"})], [])
+        for im_path in im_files:
+            try:
+                convert_to_multispectral(im_path, n_channels)
+                if replace:
+                    im_path.unlink()
+            except Exception as e:
+                print(f"Error converting {im_path}: {e}")
+
+        if zip:
+            zip_directory(path)
+    else:
+        # Process a single image
+        output_path = path.with_suffix(".tiff")
+        img = cv2.cvtColor(cv2.imread(str(path)), cv2.COLOR_BGR2RGB)
+
+        # Interpolate all pixels at once
+        rgb_wavelengths = np.array([650, 510, 475])  # R, G, B wavelengths (nm)
+        target_wavelengths = np.linspace(450, 700, n_channels)
+        f = interp1d(rgb_wavelengths.T, img, kind="linear", bounds_error=False, fill_value="extrapolate")
+        multispectral = f(target_wavelengths)
+        cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1))
+        print(f"Converted {output_path}")

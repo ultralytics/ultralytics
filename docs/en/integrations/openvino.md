@@ -51,7 +51,7 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
 
         ```bash
         # Export a YOLOv8n PyTorch model to OpenVINO format
-        yolo export model=yolov8n.pt format=openvino  # creates 'yolov8n_openvino_model/'
+        yolo export model=yolov8n.pt format=openvino # creates 'yolov8n_openvino_model/'
 
         # Run inference with the exported model
         yolo predict model=yolov8n_openvino_model source='https://ultralytics.com/images/bus.jpg'
@@ -59,16 +59,18 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
 
 ## Export Arguments
 
-| Argument  | Type             | Default        | Description                                                                                                                                                                                   |
-| --------- | ---------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`  | `str`            | `'openvino'`   | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
-| `imgsz`   | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
-| `half`    | `bool`           | `False`        | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                                                                  |
-| `int8`    | `bool`           | `False`        | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
-| `dynamic` | `bool`           | `False`        | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                       |
-| `nms`     | `bool`           | `False`        | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                           |
-| `batch`   | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                       |
-| `data`    | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets/) configuration file (default: `coco8.yaml`), essential for quantization.                                                         |
+| Argument   | Type             | Default        | Description                                                                                                                                                                                                                                                      |
+| ---------- | ---------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'openvino'`   | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                               |
+| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
+| `half`     | `bool`           | `False`        | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                                                                                                                                     |
+| `int8`     | `bool`           | `False`        | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices.                                                                    |
+| `dynamic`  | `bool`           | `False`        | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                                                                                          |
+| `nms`      | `bool`           | `False`        | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                                                              |
+| `batch`    | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
+| `data`     | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets/) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                            |
+| `fraction` | `float`          | `1.0`          | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |
+| `device`   | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                                  |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -271,23 +273,23 @@ Benchmarks below run on Intel® Ultra™ 7 155H at FP32 and INT8 precision.
 
     === "Integrated Intel® Arc™ GPU"
 
-        | Model   | Format      | Precision | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
-        | ------- | ----------- | --------- | ------ | --------- | ------------------- | ---------------------- |
-        | YOLOv8n | PyTorch     | FP32      |  ✅    | 6.2       | 0.6381              | 35.95                  |
-        | YOLOv8n | OpenVINO    | FP32      |  ✅    | 12.3      | 0.6117              | 8.32                   |
-        | YOLOv8n | OpenVINO    | INT8      |  ✅    | 3.6       | 0.5791              | 9.88                   |
-        | YOLOv8s | PyTorch     | FP32      |  ✅    | 21.5      | 0.6967              | 79.72                  |
-        | YOLOv8s | OpenVINO    | FP32      |  ✅    | 42.9      | 0.7136              | 13.37                  |
-        | YOLOv8s | OpenVINO    | INT8      |  ✅    | 11.2      | 0.7086              | 9.96                   |
-        | YOLOv8m | PyTorch     | FP32      |  ✅    | 49.7      | 0.737               | 202.05                 |
-        | YOLOv8m | OpenVINO    | FP32      |  ✅    | 99.1      | 0.7331              | 28.07                  |
-        | YOLOv8m | OpenVINO    | INT8      |  ✅    | 25.5      | 0.7259              | 21.11                  |
-        | YOLOv8l | PyTorch     | FP32      |  ✅    | 83.7      | 0.7769              | 393.37                 |
-        | YOLOv8l | OpenVINO    | FP32      |  ✅    | 167.0     | 0.0                 | 52.73                  |
-        | YOLOv8l | OpenVINO    | INT8      |  ✅    | 42.6      | 0.7861              | 28.11                  |
-        | YOLOv8x | PyTorch     | FP32      |  ✅    | 130.5     | 0.7759              | 610.71                 |
-        | YOLOv8x | OpenVINO    | FP32      |  ✅    | 260.6     | 0.748               | 73.51                  |
-        | YOLOv8x | OpenVINO    | INT8      |  ✅    | 66.0      | 0.8085              | 51.71                  |
+        | Model   | Format   | Precision | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
+        | ------- | -------- | --------- | ------ | --------- | ------------------- | ---------------------- |
+        | YOLOv8n | PyTorch  | FP32      | ✅     | 6.2       | 0.6381              | 35.95                  |
+        | YOLOv8n | OpenVINO | FP32      | ✅     | 12.3      | 0.6117              | 8.32                   |
+        | YOLOv8n | OpenVINO | INT8      | ✅     | 3.6       | 0.5791              | 9.88                   |
+        | YOLOv8s | PyTorch  | FP32      | ✅     | 21.5      | 0.6967              | 79.72                  |
+        | YOLOv8s | OpenVINO | FP32      | ✅     | 42.9      | 0.7136              | 13.37                  |
+        | YOLOv8s | OpenVINO | INT8      | ✅     | 11.2      | 0.7086              | 9.96                   |
+        | YOLOv8m | PyTorch  | FP32      | ✅     | 49.7      | 0.737               | 202.05                 |
+        | YOLOv8m | OpenVINO | FP32      | ✅     | 99.1      | 0.7331              | 28.07                  |
+        | YOLOv8m | OpenVINO | INT8      | ✅     | 25.5      | 0.7259              | 21.11                  |
+        | YOLOv8l | PyTorch  | FP32      | ✅     | 83.7      | 0.7769              | 393.37                 |
+        | YOLOv8l | OpenVINO | FP32      | ✅     | 167.0     | 0.0                 | 52.73                  |
+        | YOLOv8l | OpenVINO | INT8      | ✅     | 42.6      | 0.7861              | 28.11                  |
+        | YOLOv8x | PyTorch  | FP32      | ✅     | 130.5     | 0.7759              | 610.71                 |
+        | YOLOv8x | OpenVINO | FP32      | ✅     | 260.6     | 0.748               | 73.51                  |
+        | YOLOv8x | OpenVINO | INT8      | ✅     | 66.0      | 0.8085              | 51.71                  |
 
         <div align="center">
         <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/intel-ultra-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
@@ -295,23 +297,23 @@ Benchmarks below run on Intel® Ultra™ 7 155H at FP32 and INT8 precision.
 
     === "Intel® Meteor Lake CPU"
 
-        | Model   | Format      | Precision | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
-        | ------- | ----------- | --------- | ------ | --------- | ------------------- | ---------------------- |
-        | YOLOv8n | PyTorch     | FP32      |  ✅    | 6.2       | 0.6381              | 34.69                  |
-        | YOLOv8n | OpenVINO    | FP32      |  ✅    | 12.3      | 0.6092              | 39.06                  |
-        | YOLOv8n | OpenVINO    | INT8      |  ✅    | 3.6       | 0.5968              | 18.37                  |
-        | YOLOv8s | PyTorch     | FP32      |  ✅    | 21.5      | 0.6967              | 79.9                   |
-        | YOLOv8s | OpenVINO    | FP32      |  ✅    | 42.9      | 0.7136              | 82.6                   |
-        | YOLOv8s | OpenVINO    | INT8      |  ✅    | 11.2      | 0.7083              | 29.51                  |
-        | YOLOv8m | PyTorch     | FP32      |  ✅    | 49.7      | 0.737               | 202.43                 |
-        | YOLOv8m | OpenVINO    | FP32      |  ✅    | 99.1      | 0.728               | 181.27                 |
-        | YOLOv8m | OpenVINO    | INT8      |  ✅    | 25.5      | 0.7285              | 51.25                  |
-        | YOLOv8l | PyTorch     | FP32      |  ✅    | 83.7      | 0.7769              | 385.87                 |
-        | YOLOv8l | OpenVINO    | FP32      |  ✅    | 167.0     | 0.7551              | 347.75                 |
-        | YOLOv8l | OpenVINO    | INT8      |  ✅    | 42.6      | 0.7675              | 91.66                  |
-        | YOLOv8x | PyTorch     | FP32      |  ✅    | 130.5     | 0.7759              | 603.63                 |
-        | YOLOv8x | OpenVINO    | FP32      |  ✅    | 260.6     | 0.7479              | 516.39                 |
-        | YOLOv8x | OpenVINO    | INT8      |  ✅    | 66.0      | 0.8119              | 142.42                 |
+        | Model   | Format   | Precision | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
+        | ------- | -------- | --------- | ------ | --------- | ------------------- | ---------------------- |
+        | YOLOv8n | PyTorch  | FP32      | ✅     | 6.2       | 0.6381              | 34.69                  |
+        | YOLOv8n | OpenVINO | FP32      | ✅     | 12.3      | 0.6092              | 39.06                  |
+        | YOLOv8n | OpenVINO | INT8      | ✅     | 3.6       | 0.5968              | 18.37                  |
+        | YOLOv8s | PyTorch  | FP32      | ✅     | 21.5      | 0.6967              | 79.9                   |
+        | YOLOv8s | OpenVINO | FP32      | ✅     | 42.9      | 0.7136              | 82.6                   |
+        | YOLOv8s | OpenVINO | INT8      | ✅     | 11.2      | 0.7083              | 29.51                  |
+        | YOLOv8m | PyTorch  | FP32      | ✅     | 49.7      | 0.737               | 202.43                 |
+        | YOLOv8m | OpenVINO | FP32      | ✅     | 99.1      | 0.728               | 181.27                 |
+        | YOLOv8m | OpenVINO | INT8      | ✅     | 25.5      | 0.7285              | 51.25                  |
+        | YOLOv8l | PyTorch  | FP32      | ✅     | 83.7      | 0.7769              | 385.87                 |
+        | YOLOv8l | OpenVINO | FP32      | ✅     | 167.0     | 0.7551              | 347.75                 |
+        | YOLOv8l | OpenVINO | INT8      | ✅     | 42.6      | 0.7675              | 91.66                  |
+        | YOLOv8x | PyTorch  | FP32      | ✅     | 130.5     | 0.7759              | 603.63                 |
+        | YOLOv8x | OpenVINO | FP32      | ✅     | 260.6     | 0.7479              | 516.39                 |
+        | YOLOv8x | OpenVINO | INT8      | ✅     | 66.0      | 0.8119              | 142.42                 |
 
         <div align="center">
         <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/intel-ultra-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
@@ -319,23 +321,23 @@ Benchmarks below run on Intel® Ultra™ 7 155H at FP32 and INT8 precision.
 
     === "Integrated Intel® AI Boost NPU"
 
-        | Model   | Format      | Precision | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
-        | ------- | ----------- | --------- | ------ | --------- | ------------------- | ---------------------- |
-        | YOLOv8n | PyTorch     | FP32      |  ✅    | 6.2       | 0.6381              | 36.98                  |
-        | YOLOv8n | OpenVINO    | FP32      |  ✅    | 12.3      | 0.6103              | 16.68                  |
-        | YOLOv8n | OpenVINO    | INT8      |  ✅    | 3.6       | 0.5941              | 14.6                   |
-        | YOLOv8s | PyTorch     | FP32      |  ✅    | 21.5      | 0.6967              | 79.76                  |
-        | YOLOv8s | OpenVINO    | FP32      |  ✅    | 42.9      | 0.7144              | 32.89                  |
-        | YOLOv8s | OpenVINO    | INT8      |  ✅    | 11.2      | 0.7062              | 26.13                  |
-        | YOLOv8m | PyTorch     | FP32      |  ✅    | 49.7      | 0.737               | 201.44                 |
-        | YOLOv8m | OpenVINO    | FP32      |  ✅    | 99.1      | 0.7284              | 54.4                   |
-        | YOLOv8m | OpenVINO    | INT8      |  ✅    | 25.5      | 0.7268              | 30.76                  |
-        | YOLOv8l | PyTorch     | FP32      |  ✅    | 83.7      | 0.7769              | 385.46                 |
-        | YOLOv8l | OpenVINO    | FP32      |  ✅    | 167.0     | 0.7539              | 80.1                   |
-        | YOLOv8l | OpenVINO    | INT8      |  ✅    | 42.6      | 0.7508              | 52.25                  |
-        | YOLOv8x | PyTorch     | FP32      |  ✅    | 130.5     | 0.7759              | 609.4                  |
-        | YOLOv8x | OpenVINO    | FP32      |  ✅    | 260.6     | 0.7637              | 104.79                 |
-        | YOLOv8x | OpenVINO    | INT8      |  ✅    | 66.0      | 0.8077              | 64.96                  |
+        | Model   | Format   | Precision | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
+        | ------- | -------- | --------- | ------ | --------- | ------------------- | ---------------------- |
+        | YOLOv8n | PyTorch  | FP32      | ✅     | 6.2       | 0.6381              | 36.98                  |
+        | YOLOv8n | OpenVINO | FP32      | ✅     | 12.3      | 0.6103              | 16.68                  |
+        | YOLOv8n | OpenVINO | INT8      | ✅     | 3.6       | 0.5941              | 14.6                   |
+        | YOLOv8s | PyTorch  | FP32      | ✅     | 21.5      | 0.6967              | 79.76                  |
+        | YOLOv8s | OpenVINO | FP32      | ✅     | 42.9      | 0.7144              | 32.89                  |
+        | YOLOv8s | OpenVINO | INT8      | ✅     | 11.2      | 0.7062              | 26.13                  |
+        | YOLOv8m | PyTorch  | FP32      | ✅     | 49.7      | 0.737               | 201.44                 |
+        | YOLOv8m | OpenVINO | FP32      | ✅     | 99.1      | 0.7284              | 54.4                   |
+        | YOLOv8m | OpenVINO | INT8      | ✅     | 25.5      | 0.7268              | 30.76                  |
+        | YOLOv8l | PyTorch  | FP32      | ✅     | 83.7      | 0.7769              | 385.46                 |
+        | YOLOv8l | OpenVINO | FP32      | ✅     | 167.0     | 0.7539              | 80.1                   |
+        | YOLOv8l | OpenVINO | INT8      | ✅     | 42.6      | 0.7508              | 52.25                  |
+        | YOLOv8x | PyTorch  | FP32      | ✅     | 130.5     | 0.7759              | 609.4                  |
+        | YOLOv8x | OpenVINO | FP32      | ✅     | 260.6     | 0.7637              | 104.79                 |
+        | YOLOv8x | OpenVINO | INT8      | ✅     | 66.0      | 0.8077              | 64.96                  |
 
         <div align="center">
         <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/intel-ultra-npu.avif" alt="Intel Core Ultra NPU benchmarks">
@@ -402,7 +404,7 @@ Exporting YOLOv8 models to the OpenVINO format can significantly enhance CPU spe
 
         ```bash
         # Export a YOLOv8n PyTorch model to OpenVINO format
-        yolo export model=yolov8n.pt format=openvino  # creates 'yolov8n_openvino_model/'
+        yolo export model=yolov8n.pt format=openvino # creates 'yolov8n_openvino_model/'
         ```
 
 For more information, refer to the [export formats documentation](../modes/export.md).

@@ -1,3 +1,5 @@
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 // Apply theme colors based on dark/light mode
 const applyTheme = (isDark) => {
   document.body.setAttribute(
@@ -42,7 +44,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const enableSearchBar = true;
 
   const inkeepScript = document.createElement("script");
-  inkeepScript.src = "https://unpkg.com/@inkeep/uikit-js@0.3.18/dist/embed.js";
+  inkeepScript.src =
+    "https://cdn.jsdelivr.net/npm/@inkeep/uikit-js@0.3.20/dist/embed.min.js";
   inkeepScript.type = "module";
   inkeepScript.defer = true;
   document.head.appendChild(inkeepScript);

@@ -19,11 +19,35 @@ class RTDETRDataset(YOLODataset):
     """
 
     def __init__(self, *args, data=None, **kwargs):
-        """Initialize the RTDETRDataset class by inheriting from the YOLODataset class."""
+        """
+        Initialize the RTDETRDataset class by inheriting from the YOLODataset class.
+
+        This constructor sets up a dataset specifically optimized for the RT-DETR (Real-Time DEtection and TRacking)
+        model, building upon the base YOLODataset functionality.
+
+        Args:
+            *args (Any): Variable length argument list passed to the parent YOLODataset class.
+            data (Dict | None): Dictionary containing dataset information. If None, default values will be used.
+            **kwargs (Any): Additional keyword arguments passed to the parent YOLODataset class.
+        """
         super().__init__(*args, data=data, **kwargs)
 
     def load_image(self, i, rect_mode=False):
-        """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
+        """
+        Load one image from dataset index 'i'.
+
+        Args:
+            i (int): Index of the image to load.
+            rect_mode (bool, optional): Whether to use rectangular mode for batch inference.
+
+        Returns:
+            im (numpy.ndarray): The loaded image.
+            resized_hw (tuple): Height and width of the resized image with shape (2,).
+
+        Examples:
+            >>> dataset = RTDETRDataset(...)
+            >>> image, hw = dataset.load_image(0)
+        """
         return super().load_image(i=i, rect_mode=rect_mode)
 
     def build_transforms(self, hyp=None):
@@ -31,7 +55,7 @@ class RTDETRDataset(YOLODataset):
         Build transformation pipeline for the dataset.
 
         Args:
-            hyp (Dict, optional): Hyperparameters for transformations.
+            hyp (dict, optional): Hyperparameters for transformations.
 
         Returns:
             (Compose): Composition of transformation functions.
@@ -119,12 +143,10 @@ class RTDETRValidator(DetectionValidator):
         for i, bbox in enumerate(bboxes):  # (300, 4)
             bbox = ops.xywh2xyxy(bbox)
             score, cls = scores[i].max(-1)  # (300, )
-            # Do not need threshold for evaluation as only got 300 boxes here
-            # idx = score > self.args.conf
             pred = torch.cat([bbox, score[..., None], cls[..., None]], dim=-1)  # filter
             # Sort by confidence to correctly get internal metrics
             pred = pred[score.argsort(descending=True)]
-            outputs[i] = pred  # [idx]
+            outputs[i] = pred[score > self.args.conf]
 
         return outputs
 
@@ -134,10 +156,10 @@ class RTDETRValidator(DetectionValidator):
 
         Args:
             si (int): Batch index.
-            batch (Dict): Batch data containing images and annotations.
+            batch (dict): Batch data containing images and annotations.
 
         Returns:
-            (Dict): Prepared batch with transformed annotations.
+            (dict): Prepared batch with transformed annotations.
         """
         idx = batch["batch_idx"] == si
         cls = batch["cls"][idx].squeeze(-1)
@@ -157,7 +179,7 @@ class RTDETRValidator(DetectionValidator):
 
         Args:
             pred (torch.Tensor): Raw predictions.
-            pbatch (Dict): Prepared batch information.
+            pbatch (dict): Prepared batch information.
 
         Returns:
             (torch.Tensor): Predictions scaled to original image dimensions.

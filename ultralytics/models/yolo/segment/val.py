@@ -22,11 +22,11 @@ class SegmentationValidator(DetectionValidator):
     to compute metrics such as mAP for both detection and segmentation tasks.
 
     Attributes:
-        plot_masks (List): List to store masks for plotting.
+        plot_masks (list): List to store masks for plotting.
         process (callable): Function to process masks based on save_json and save_txt flags.
         args (namespace): Arguments for the validator.
         metrics (SegmentMetrics): Metrics calculator for segmentation tasks.
-        stats (Dict): Dictionary to store statistics during validation.
+        stats (dict): Dictionary to store statistics during validation.
 
     Examples:
         >>> from ultralytics.models.yolo.segment import SegmentationValidator
@@ -44,7 +44,7 @@ class SegmentationValidator(DetectionValidator):
             save_dir (Path, optional): Directory to save results.
             pbar (Any, optional): Progress bar for displaying progress.
             args (namespace, optional): Arguments for the validator.
-            _callbacks (List, optional): List of callback functions.
+            _callbacks (list, optional): List of callback functions.
         """
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.plot_masks = None
@@ -94,7 +94,7 @@ class SegmentationValidator(DetectionValidator):
         Post-process YOLO predictions and return output detections with proto.
 
         Args:
-            preds (List): Raw predictions from the model.
+            preds (list): Raw predictions from the model.
 
         Returns:
             p (torch.Tensor): Processed detection predictions.
@@ -110,10 +110,10 @@ class SegmentationValidator(DetectionValidator):
 
         Args:
             si (int): Batch index.
-            batch (Dict): Batch data containing images and targets.
+            batch (dict): Batch data containing images and targets.
 
         Returns:
-            (Dict): Prepared batch with processed images and targets.
+            (dict): Prepared batch with processed images and targets.
         """
         prepared_batch = super()._prepare_batch(si, batch)
         midx = [si] if self.args.overlap_mask else batch["batch_idx"] == si
@@ -126,7 +126,7 @@ class SegmentationValidator(DetectionValidator):
 
         Args:
             pred (torch.Tensor): Raw predictions from the model.
-            pbatch (Dict): Prepared batch data.
+            pbatch (dict): Prepared batch data.
             proto (torch.Tensor): Prototype masks for segmentation.
 
         Returns:
@@ -142,8 +142,8 @@ class SegmentationValidator(DetectionValidator):
         Update metrics with the current batch predictions and targets.
 
         Args:
-            preds (List): Predictions from the model.
-            batch (Dict): Batch data containing images and targets.
+            preds (list): Predictions from the model.
+            batch (dict): Batch data containing images and targets.
         """
         for si, (pred, proto) in enumerate(zip(preds[0], preds[1])):
             self.seen += 1
@@ -190,7 +190,9 @@ class SegmentationValidator(DetectionValidator):
 
             pred_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
             if self.args.plots and self.batch_i < 3:
-                self.plot_masks.append(pred_masks[:15].cpu())  # filter top 15 to plot
+                self.plot_masks.append(pred_masks[:50].cpu())  # Limit plotted items for speed
+                if pred_masks.shape[0] > 50:
+                    LOGGER.warning("WARNING ⚠️ Limiting validation plots to first 50 items per image for speed...")
 
             # Save
             if self.args.save_json:
@@ -213,7 +215,16 @@ class SegmentationValidator(DetectionValidator):
                 )
 
     def finalize_metrics(self, *args, **kwargs):
-        """Set speed and confusion matrix for evaluation metrics."""
+        """
+        Finalize evaluation metrics by setting the speed attribute in the metrics object.
+
+        This method is called at the end of validation to set the processing speed for the metrics calculations.
+        It transfers the validator's speed measurement to the metrics object for reporting.
+
+        Args:
+            *args (Any): Variable length argument list.
+            **kwargs (Any): Arbitrary keyword arguments.
+        """
         self.metrics.speed = self.speed
         self.metrics.confusion_matrix = self.confusion_matrix
 
@@ -266,7 +277,7 @@ class SegmentationValidator(DetectionValidator):
         Plot validation samples with bounding box labels and masks.
 
         Args:
-            batch (Dict): Batch data containing images and targets.
+            batch (dict): Batch data containing images and targets.
             ni (int): Batch index.
         """
         plot_images(
@@ -286,13 +297,13 @@ class SegmentationValidator(DetectionValidator):
         Plot batch predictions with masks and bounding boxes.
 
         Args:
-            batch (Dict): Batch data containing images.
-            preds (List): Predictions from the model.
+            batch (dict): Batch data containing images.
+            preds (list): Predictions from the model.
             ni (int): Batch index.
         """
         plot_images(
             batch["img"],
-            *output_to_target(preds[0], max_det=15),  # not set to self.args.max_det due to slow plotting speed
+            *output_to_target(preds[0], max_det=50),  # not set to self.args.max_det due to slow plotting speed
             torch.cat(self.plot_masks, dim=0) if len(self.plot_masks) else self.plot_masks,
             paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_pred.jpg",
@@ -309,7 +320,7 @@ class SegmentationValidator(DetectionValidator):
             predn (torch.Tensor): Predictions in the format [x1, y1, x2, y2, conf, cls].
             pred_masks (torch.Tensor): Predicted masks.
             save_conf (bool): Whether to save confidence scores.
-            shape (Tuple): Original image shape.
+            shape (tuple): Original image shape.
             file (Path): File path to save the detections.
         """
         from ultralytics.engine.results import Results
@@ -362,29 +373,56 @@ class SegmentationValidator(DetectionValidator):
 
     def eval_json(self, stats):
         """Return COCO-style object detection evaluation metrics."""
-        if self.args.save_json and self.is_coco and len(self.jdict):
-            anno_json = self.data["path"] / "annotations/instances_val2017.json"  # annotations
+        if self.args.save_json and (self.is_lvis or self.is_coco) and len(self.jdict):
             pred_json = self.save_dir / "predictions.json"  # predictions
-            LOGGER.info(f"\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...")
-            try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
-                check_requirements("pycocotools>=2.0.6")
-                from pycocotools.coco import COCO  # noqa
-                from pycocotools.cocoeval import COCOeval  # noqa
 
+            anno_json = (
+                self.data["path"]
+                / "annotations"
+                / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
+            )  # annotations
+
+            pkg = "pycocotools" if self.is_coco else "lvis"
+            LOGGER.info(f"\nEvaluating {pkg} mAP using {pred_json} and {anno_json}...")
+            try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"
-                anno = COCO(str(anno_json))  # init annotations api
-                pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
-                for i, eval in enumerate([COCOeval(anno, pred, "bbox"), COCOeval(anno, pred, "segm")]):
-                    if self.is_coco:
-                        eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
+                check_requirements("pycocotools>=2.0.6" if self.is_coco else "lvis>=0.5.3")
+                if self.is_coco:
+                    from pycocotools.coco import COCO  # noqa
+                    from pycocotools.cocoeval import COCOeval  # noqa
+
+                    anno = COCO(str(anno_json))  # init annotations api
+                    pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
+                    vals = [COCOeval(anno, pred, "bbox"), COCOeval(anno, pred, "segm")]
+                else:
+                    from lvis import LVIS, LVISEval
+
+                    anno = LVIS(str(anno_json))
+                    pred = anno._load_json(str(pred_json))
+                    vals = [LVISEval(anno, pred, "bbox"), LVISEval(anno, pred, "segm")]
+
+                for i, eval in enumerate(vals):
+                    eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
                     eval.evaluate()
                     eval.accumulate()
                     eval.summarize()
+                    if self.is_lvis:
+                        eval.print_results()
                     idx = i * 4 + 2
-                    stats[self.metrics.keys[idx + 1]], stats[self.metrics.keys[idx]] = eval.stats[
-                        :2
-                    ]  # update mAP50-95 and mAP50
+                    # update mAP50-95 and mAP50
+                    stats[self.metrics.keys[idx + 1]], stats[self.metrics.keys[idx]] = (
+                        eval.stats[:2] if self.is_coco else [eval.results["AP"], eval.results["AP50"]]
+                    )
+                    if self.is_lvis:
+                        tag = "B" if i == 0 else "M"
+                        stats[f"metrics/APr({tag})"] = eval.results["APr"]
+                        stats[f"metrics/APc({tag})"] = eval.results["APc"]
+                        stats[f"metrics/APf({tag})"] = eval.results["APf"]
+
+                if self.is_lvis:
+                    stats["fitness"] = stats["metrics/mAP50-95(B)"]
+
             except Exception as e:
-                LOGGER.warning(f"pycocotools unable to run: {e}")
+                LOGGER.warning(f"{pkg} unable to run: {e}")
         return stats

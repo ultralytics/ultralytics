@@ -35,11 +35,11 @@ class Tuner:
     search space and retraining the model to evaluate their performance.
 
     Attributes:
-        space (Dict): Hyperparameter search space containing bounds and scaling factors for mutation.
+        space (dict): Hyperparameter search space containing bounds and scaling factors for mutation.
         tune_dir (Path): Directory where evolution logs and results will be saved.
         tune_csv (Path): Path to the CSV file where evolution logs are saved.
-        args (Dict): Configuration arguments for the tuning process.
-        callbacks (List): Callback functions to be executed during tuning.
+        args (dict): Configuration arguments for the tuning process.
+        callbacks (list): Callback functions to be executed during tuning.
         prefix (str): Prefix string for logging messages.
 
     Methods:
@@ -63,8 +63,8 @@ class Tuner:
         Initialize the Tuner with configurations.
 
         Args:
-            args (Dict): Configuration for hyperparameter evolution.
-            _callbacks (List, optional): Callback functions to be executed during tuning.
+            args (dict): Configuration for hyperparameter evolution.
+            _callbacks (list, optional): Callback functions to be executed during tuning.
         """
         self.space = args.pop("space", None) or {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
@@ -93,8 +93,9 @@ class Tuner:
             "copy_paste": (0.0, 1.0),  # segment copy-paste (probability)
         }
         self.args = get_cfg(overrides=args)
+        self.args.exist_ok = self.args.resume  # resume w/ same tune_dir
         self.tune_dir = get_save_dir(self.args, name=self.args.name or "tune")
-        self.args.name = None  # reset to not affect training directory
+        self.args.name, self.args.exist_ok, self.args.resume = (None, False, False)  # reset to not affect training
         self.tune_csv = self.tune_dir / "tune_results.csv"
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.prefix = colorstr("Tuner: ")
@@ -115,7 +116,7 @@ class Tuner:
             sigma (float): Standard deviation for Gaussian random number generator.
 
         Returns:
-            (Dict): A dictionary containing mutated hyperparameters.
+            (dict): A dictionary containing mutated hyperparameters.
         """
         if self.tune_csv.exists():  # if CSV file exists: select best hyps and mutate
             # Select parent(s)
@@ -173,7 +174,12 @@ class Tuner:
         t0 = time.time()
         best_save_dir, best_metrics = None, None
         (self.tune_dir / "weights").mkdir(parents=True, exist_ok=True)
-        for i in range(iterations):
+        start = 0
+        if self.tune_csv.exists():
+            x = np.loadtxt(self.tune_csv, ndmin=2, delimiter=",", skiprows=1)
+            start = x.shape[0]
+            LOGGER.info(f"{self.prefix}Resuming tuning run {self.tune_dir} from iteration {start + 1}...")
+        for i in range(start, iterations):
             # Mutate hyperparameters
             mutated_hyp = self._mutate()
             LOGGER.info(f"{self.prefix}Starting iteration {i + 1}/{iterations} with hyperparameters: {mutated_hyp}")

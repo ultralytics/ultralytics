@@ -12,7 +12,7 @@ By using Albumentations, you can boost your YOLO11 training data with techniques
 
 ## Albumentations for Image Augmentation
 
-[Albumentations](https://albumentations.ai/) is an open-source image augmentation library created in [June 2018](https://arxiv.org/pdf/1809.06839). It is designed to simplify and accelerate the image augmentation process in [computer vision](https://www.ultralytics.com/blog/exploring-image-processing-computer-vision-and-machine-vision). Created with [performance](https://www.ultralytics.com/blog/measuring-ai-performance-to-weigh-the-impact-of-your-innovations) and flexibility in mind, it supports many diverse augmentation techniques, ranging from simple transformations like rotations and flips to more complex adjustments like brightness and contrast changes. Albumentations helps developers generate rich, varied datasets for tasks like [image classification](https://www.youtube.com/watch?v=5BO0Il_YYAg), [object detection](https://www.youtube.com/watch?v=5ku7npMrW40&t=1s), and [segmentation](https://www.youtube.com/watch?v=o4Zd-IeMlSY).
+[Albumentations](https://www.albumentations.ai/) is an open-source image augmentation library created in [June 2018](https://arxiv.org/pdf/1809.06839). It is designed to simplify and accelerate the image augmentation process in [computer vision](https://www.ultralytics.com/blog/exploring-image-processing-computer-vision-and-machine-vision). Created with [performance](https://www.ultralytics.com/blog/measuring-ai-performance-to-weigh-the-impact-of-your-innovations) and flexibility in mind, it supports many diverse augmentation techniques, ranging from simple transformations like rotations and flips to more complex adjustments like brightness and contrast changes. Albumentations helps developers generate rich, varied datasets for tasks like [image classification](https://www.youtube.com/watch?v=5BO0Il_YYAg), [object detection](https://www.youtube.com/watch?v=5ku7npMrW40&t=1s), and [segmentation](https://www.youtube.com/watch?v=o4Zd-IeMlSY).
 
 You can use Albumentations to easily apply augmentations to images, [segmentation masks](https://www.ultralytics.com/glossary/image-segmentation), [bounding boxes](https://www.ultralytics.com/glossary/bounding-box), and [key points](../datasets/pose/index.md), and make sure that all elements of your dataset are transformed together. It works seamlessly with popular deep learning frameworks like [PyTorch](../integrations/torchscript.md) and [TensorFlow](../integrations/tensorboard.md), making it accessible for a wide range of projects.
 
@@ -34,7 +34,7 @@ Albumentations offers many useful features that simplify complex image augmentat
 
 ![Overview of the Different Levels of Augmentations](https://github.com/ultralytics/docs/releases/download/0/levels-of-augmentation.avif)
 
-- **[Benchmarking Results](https://albumentations.ai/docs/benchmarking_results/)**: When it comes to benchmarking, Albumentations consistently outperforms other libraries, especially with large datasets.
+- **[Benchmarking Results](https://www.albumentations.ai/docs/benchmarks/image-benchmarks/)**: When it comes to benchmarking, Albumentations consistently outperforms other libraries, especially with large datasets.
 
 ## Why Should You Use Albumentations for Your Vision AI Projects?
 
@@ -147,7 +147,7 @@ The image below shows an example of the CLAHE transformation applied.
 
 If you are interested in learning more about Albumentations, check out the following resources for more in-depth instructions and examples:
 
-- **[Albumentations Documentation](https://albumentations.ai/docs/)**: The official documentation provides a full range of supported transformations and advanced usage techniques.
+- **[Albumentations Documentation](https://www.albumentations.ai/docs/)**: The official documentation provides a full range of supported transformations and advanced usage techniques.
 
 - **[Ultralytics Albumentations Guide](https://docs.ultralytics.com/reference/data/augment/?h=albumentation#ultralytics.data.augment.Albumentations)**: Get a closer look at the details of the function that facilitate this integration.
 

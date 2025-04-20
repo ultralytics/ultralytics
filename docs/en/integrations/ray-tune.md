@@ -4,7 +4,7 @@ description: Optimize YOLO11 model performance with Ray Tune. Learn efficient hy
 keywords: YOLO11, Ray Tune, hyperparameter tuning, model optimization, machine learning, deep learning, AI, Ultralytics, Weights & Biases
 ---
 
-# Efficient [Hyperparameter Tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) with Ray Tune and YOLO11
+# Efficient Hyperparameter Tuning with Ray Tune and YOLO11
 
 Hyperparameter tuning is vital in achieving peak model performance by discovering the optimal set of hyperparameters. This involves running trials with different hyperparameters and evaluating each trial's performance.
 
@@ -124,6 +124,25 @@ In this example, we demonstrate how to use a custom search space for hyperparame
 
 In the code snippet above, we create a YOLO model with the "yolo11n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco8.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-1)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.
 
+## Resuming An Interrupted Hyperparameter Tuning Session With Ray Tune
+
+You can resume an interrupted Ray Tune session by passing `resume=True`. You can optionally pass the directory `name` used by Ray Tune under `runs/{task}` to resume. Otherwise, it would resume the last interrupted session. You don't need to provide the `iterations` and `space` again, but you need to provide the rest of the training arguments again including `data` and `epochs`.
+
+!!! example "Using `resume=True` with `model.tune()`"
+
+    ```python
+    from ultralytics import YOLO
+
+    # Define a YOLO model
+    model = YOLO("yolo11n.pt")
+
+    # Resume previous run
+    results = model.tune(use_ray=True, data="coco8.yaml", epochs=50, resume=True)
+
+    # Resume Ray Tune run with name 'tune_exp_2'
+    results = model.tune(use_ray=True, data="coco8.yaml", epochs=50, name="tune_exp_2", resume=True)
+    ```
+
 ## Processing Ray Tune Results
 
 After running a hyperparameter tuning experiment with Ray Tune, you might want to perform various analyses on the obtained results. This guide will take you through common workflows for processing and analyzing these results.
@@ -196,7 +215,7 @@ To tune the hyperparameters of your Ultralytics YOLO11 model using Ray Tune, fol
 
     ```bash
     pip install -U ultralytics "ray[tune]"
-    pip install wandb  # optional for logging
+    pip install wandb # optional for logging
     ```
 
 2. **Load your YOLO11 model and start tuning:**
@@ -263,11 +282,11 @@ This setup will allow you to monitor the tuning process, track hyperparameter co
 
 Ray Tune offers numerous advantages for hyperparameter optimization:
 
-- **Advanced Search Strategies:** Utilizes algorithms like Bayesian Optimization and HyperOpt for efficient parameter search.
+- **Advanced Search Strategies:** Utilizes algorithms like [Bayesian Optimization](https://www.ultralytics.com/glossary/bayesian-network) and HyperOpt for efficient parameter search.
 - **Parallelism:** Supports parallel execution of multiple trials, significantly speeding up the tuning process.
 - **Early Stopping:** Employs strategies like ASHA to terminate under-performing trials early, saving computational resources.
 
-Ray Tune seamlessly integrates with Ultralytics YOLO11, providing an easy-to-use interface for tuning hyperparameters effectively. To get started, check out the [Efficient Hyperparameter Tuning with Ray Tune and YOLO11](../guides/hyperparameter-tuning.md) guide.
+Ray Tune seamlessly integrates with Ultralytics YOLO11, providing an easy-to-use interface for tuning hyperparameters effectively. To get started, check out the [Hyperparameter Tuning](../guides/hyperparameter-tuning.md) guide.
 
 ### How can I define a custom search space for YOLO11 hyperparameter tuning?
 

@@ -14,7 +14,7 @@ import numpy as np
 import psutil
 from torch.utils.data import Dataset
 
-from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS
+from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS, check_file_speeds
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
 
 
@@ -39,11 +39,11 @@ class BaseDataset(Dataset):
         batch_size (int): Size of batches.
         stride (int): Stride used in the model.
         pad (float): Padding value.
-        buffer (List): Buffer for mosaic images.
+        buffer (list): Buffer for mosaic images.
         max_buffer_length (int): Maximum buffer size.
-        ims (List): List of loaded images.
-        im_hw0 (List): List of original image dimensions (h, w).
-        im_hw (List): List of resized image dimensions (h, w).
+        ims (list): List of loaded images.
+        im_hw0 (list): List of original image dimensions (h, w).
+        im_hw (list): List of resized image dimensions (h, w).
         npy_files (List[Path]): List of numpy file paths.
         cache (str): Cache images to RAM or disk during training.
         transforms (callable): Image transformation function.
@@ -94,7 +94,7 @@ class BaseDataset(Dataset):
             stride (int, optional): Stride used in the model.
             pad (float, optional): Padding value.
             single_cls (bool, optional): If True, single class training is used.
-            classes (List, optional): List of included classes.
+            classes (list, optional): List of included classes.
             fraction (float, optional): Fraction of dataset to utilize.
         """
         super().__init__()
@@ -172,6 +172,7 @@ class BaseDataset(Dataset):
             raise FileNotFoundError(f"{self.prefix}Error loading data from {img_path}\n{HELP_URL}") from e
         if self.fraction < 1:
             im_files = im_files[: round(len(im_files) * self.fraction)]  # retain a fraction of the dataset
+        check_file_speeds(im_files, prefix=self.prefix)  # check image read speeds
         return im_files
 
     def update_labels(self, include_class: Optional[list]):
@@ -179,7 +180,7 @@ class BaseDataset(Dataset):
         Update labels to include only specified classes.
 
         Args:
-            include_class (List, optional): List of classes to include. If None, all classes are included.
+            include_class (list, optional): List of classes to include. If None, all classes are included.
         """
         include_class_array = np.array(include_class).reshape(1, -1)
         for i in range(len(self.labels)):

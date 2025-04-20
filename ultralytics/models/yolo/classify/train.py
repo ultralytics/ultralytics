@@ -22,7 +22,7 @@ class ClassificationTrainer(BaseTrainer):
 
     Attributes:
         model (ClassificationModel): The classification model to be trained.
-        data (Dict): Dictionary containing dataset information including class names and number of classes.
+        data (dict): Dictionary containing dataset information including class names and number of classes.
         loss_names (List[str]): Names of the loss functions used during training.
         validator (ClassificationValidator): Validator instance for model evaluation.
 
@@ -48,7 +48,23 @@ class ClassificationTrainer(BaseTrainer):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initialize a ClassificationTrainer object with optional configuration overrides and callbacks."""
+        """
+        Initialize a ClassificationTrainer object.
+
+        This constructor sets up a trainer for image classification tasks, configuring the task type and default
+        image size if not specified.
+
+        Args:
+            cfg (dict, optional): Default configuration dictionary containing training parameters.
+            overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
+            _callbacks (list, optional): List of callback functions to be executed during training.
+
+        Examples:
+            >>> from ultralytics.models.yolo.classify import ClassificationTrainer
+            >>> args = dict(model="yolo11n-cls.pt", data="imagenet10", epochs=3)
+            >>> trainer = ClassificationTrainer(overrides=args)
+            >>> trainer.train()
+        """
         if overrides is None:
             overrides = {}
         overrides["task"] = "classify"

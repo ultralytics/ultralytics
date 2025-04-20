@@ -21,7 +21,6 @@ from ultralytics.utils import (
     SETTINGS,
     callbacks,
     checks,
-    emojis,
     yaml_load,
 )
 

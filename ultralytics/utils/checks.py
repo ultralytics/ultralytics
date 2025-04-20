@@ -43,7 +43,6 @@ from ultralytics.utils import (
     clean_url,
     colorstr,
     downloads,
-    emojis,
     is_github_action_running,
     url2file,
 )

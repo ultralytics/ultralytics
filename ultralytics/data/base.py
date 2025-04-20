@@ -236,7 +236,7 @@ class BaseDataset(Dataset):
                     w, h = (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz))
                     im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
                     # opencv would eliminate the last dimension if it's grayscale
-                    img = img[:, :, None] if img.ndim == 2 else img
+                    im = im[:, :, None] if im.ndim == 2 else im
             elif not (h0 == w0 == self.imgsz):  # resize by stretching image to square imgsz
                 im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
 

@@ -27,6 +27,7 @@ else:
 
 MKDOCS_YAML = PACKAGE_DIR.parent / "mkdocs.yml"
 
+
 def extract_classes_and_functions(filepath: Path) -> tuple:
     """Extracts class and function names from a given Python file."""
     content = filepath.read_text()

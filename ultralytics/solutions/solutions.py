@@ -95,7 +95,7 @@ class BaseSolution:
 
         if is_cli and self.CFG["source"] is None:
             d_s = "solutions_ci_demo.mp4" if "-pose" not in self.CFG["model"] else "solution_ci_pose_demo.mp4"
-            self.LOGGER.warning(f"⚠️ WARNING: source not provided. using default source {ASSETS_URL}/{d_s}")
+            self.LOGGER.warning(f"source not provided. using default source {ASSETS_URL}/{d_s}")
             from ultralytics.utils.downloads import safe_download
 
             safe_download(f"{ASSETS_URL}/{d_s}")  # download source from ultralytics assets
@@ -129,7 +129,7 @@ class BaseSolution:
             self.clss = self.track_data.cls.cpu().tolist()
             self.track_ids = self.track_data.id.int().cpu().tolist()
         else:
-            self.LOGGER.warning("WARNING ⚠️ no tracks found!")
+            self.LOGGER.warning("no tracks found!")
             self.boxes, self.clss, self.track_ids = [], [], []
 
     def store_tracking_history(self, track_id, box):
@@ -574,11 +574,8 @@ class SolutionAnnotator(Annotator):
             txt_color (Tuple[int, int, int]): The color of the text (R, G, B).
             margin (int): The margin between the text and the circle border.
         """
-        # If label have more than 3 characters, skip other characters, due to circle size
         if len(label) > 3:
-            print(
-                f"Length of label is {len(label)}, initial 3 label characters will be considered for circle annotation!"
-            )
+            LOGGER.warning(f"Length of label is {len(label)}, only first 3 letters will be used for circle annotation.")
             label = label[:3]
 
         # Calculate the center of the box

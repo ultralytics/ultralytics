@@ -525,7 +525,7 @@ class Exporter:
                 f"('batch={self.args.batch}')."
             )
         elif n < 300:
-            LOGGER.warning(f"{prefix} WARNING ⚠️ >300 images recommended for INT8 calibration, found {n} images.")
+            LOGGER.warning(f"{prefix} >300 images recommended for INT8 calibration, found {n} images.")
         return build_dataloader(dataset, batch=batch, workers=0)  # required for batch loading
 
     @try_export

@@ -700,7 +700,7 @@ def create_synthetic_coco_dataset():
             else:
                 LOGGER.warning(f"Labels file {label_list_file} does not exist. Skipping image creation for {subset}.")
 
-    print("Synthetic COCO dataset created successfully.")
+    LOGGER.info("Synthetic COCO dataset created successfully.")
 
 
 def convert_to_multispectral(path, n_channels=10, replace=False, zip=False):
@@ -734,7 +734,7 @@ def convert_to_multispectral(path, n_channels=10, replace=False, zip=False):
                 if replace:
                     im_path.unlink()
             except Exception as e:
-                print(f"Error converting {im_path}: {e}")
+                LOGGER.info(f"Error converting {im_path}: {e}")
 
         if zip:
             zip_directory(path)
@@ -749,4 +749,4 @@ def convert_to_multispectral(path, n_channels=10, replace=False, zip=False):
         f = interp1d(rgb_wavelengths.T, img, kind="linear", bounds_error=False, fill_value="extrapolate")
         multispectral = f(target_wavelengths)
         cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1))
-        print(f"Converted {output_path}")
+        LOGGER.info(f"Converted {output_path}")

@@ -322,7 +322,7 @@ class SAM2Model(torch.nn.Module):
         # Model compilation
         if compile_image_encoder:
             # Compile the forward function (not the full module) to allow loading checkpoints.
-            print("Image encoder compilation is enabled. First forward pass will be slow.")
+            LOGGER.info("Image encoder compilation is enabled. First forward pass will be slow.")
             self.image_encoder.forward = torch.compile(
                 self.image_encoder.forward,
                 mode="max-autotune",

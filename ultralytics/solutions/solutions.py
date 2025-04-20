@@ -574,11 +574,8 @@ class SolutionAnnotator(Annotator):
             txt_color (Tuple[int, int, int]): The color of the text (R, G, B).
             margin (int): The margin between the text and the circle border.
         """
-        # If label have more than 3 characters, skip other characters, due to circle size
         if len(label) > 3:
-            print(
-                f"Length of label is {len(label)}, initial 3 label characters will be considered for circle annotation!"
-            )
+            LOGGER.warning(f"Length of label is {len(label)}, only first 3 letters will be used for circle annotation.")
             label = label[:3]
 
         # Calculate the center of the box

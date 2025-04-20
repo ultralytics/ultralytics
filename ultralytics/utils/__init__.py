@@ -991,7 +991,7 @@ class Retry(contextlib.ContextDecorator):
                     return func(*args, **kwargs)
                 except Exception as e:
                     self._attempts += 1
-                    print(f"Retry {self._attempts}/{self.times} failed: {e}")
+                    LOGGER.warning(f"Retry {self._attempts}/{self.times} failed: {e}")
                     if self._attempts >= self.times:
                         raise e
                     time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
@@ -1147,9 +1147,9 @@ class JSONDict(dict):
                 with open(self.file_path) as f:
                     self.update(json.load(f))
         except json.JSONDecodeError:
-            print(f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary.")
+            LOGGER.warning(f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary.")
         except Exception as e:
-            print(f"Error reading from {self.file_path}: {e}")
+            LOGGER.error(f"Error reading from {self.file_path}: {e}")
 
     def _save(self):
         """Save the current state of the dictionary to the JSON file."""
@@ -1158,7 +1158,7 @@ class JSONDict(dict):
             with open(self.file_path, "w", encoding="utf-8") as f:
                 json.dump(dict(self), f, indent=2, default=self._json_default)
         except Exception as e:
-            print(f"Error writing to {self.file_path}: {e}")
+            LOGGER.error(f"Error writing to {self.file_path}: {e}")
 
     @staticmethod
     def _json_default(obj):

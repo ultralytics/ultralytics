@@ -494,6 +494,7 @@ nav:
           - converter: reference/data/converter.md
           - dataset: reference/data/dataset.md
           - loaders: reference/data/loaders.md
+          - split: reference/data/split.md
           - split_dota: reference/data/split_dota.md
           - utils: reference/data/utils.md
       - engine:
@@ -630,6 +631,7 @@ nav:
           - dist: reference/utils/dist.md
           - downloads: reference/utils/downloads.md
           - errors: reference/utils/errors.md
+          - export: reference/utils/export.md
           - files: reference/utils/files.md
           - instance: reference/utils/instance.md
           - loss: reference/utils/loss.md

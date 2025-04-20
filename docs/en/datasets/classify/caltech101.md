@@ -19,7 +19,7 @@ The [Caltech-101](https://data.caltech.edu/records/mzrjq-6wc02) dataset is a wid
   <strong>Watch:</strong> How to Train <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> Model using Caltech-256 Dataset with Ultralytics HUB
 </p>
 
-!!! Note "Automatic Data Splitting"
+!!! note "Automatic Data Splitting"
 
     The Caltech-101 dataset, as provided, does not come with pre-defined train/validation splits. However, when you use the training commands provided in the usage examples below, the Ultralytics framework will automatically split the dataset for you. The default split used is 80% for the training set and 20% for the validation set.
 

@@ -15,7 +15,7 @@ The [xView](http://xviewdataset.org/) dataset is one of the largest publicly ava
 
 xView builds on the success of challenges like [Common Objects in Context (COCO)](../detect/coco.md) and aims to leverage computer vision to analyze the growing amount of available imagery from space in order to understand the visual world in new ways and address a range of important applications.
 
-!!! Note "Manual Download Required"
+!!! warning "Manual Download Required"
 
     The xView dataset is **not** automatically downloaded by Ultralytics scripts. You **must** manually download the dataset first from the official source:
 

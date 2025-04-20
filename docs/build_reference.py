@@ -119,43 +119,58 @@ def create_nav_menu_yaml(nav_items: list) -> str:
 
 
 def update_mkdocs_file(reference_yaml: str) -> None:
-    """Updates the mkdocs.yaml file with the new reference section."""
+    """Updates the mkdocs.yaml file with the new reference section only if structural changes are detected."""
     mkdocs_content = MKDOCS_YAML.read_text()
 
     # Find the top-level Reference section
     ref_pattern = r"(\n  - Reference:[\s\S]*?)(?=\n  - \w|$)"
     ref_match = re.search(ref_pattern, mkdocs_content)
 
+    # Build new section with proper indentation
+    new_section_lines = ["\n  - Reference:"]
+    for line in reference_yaml.splitlines():
+        if line.strip() == "- reference:":  # Skip redundant header
+            continue
+        new_section_lines.append(f"    {line}")
+    new_ref_section = "\n".join(new_section_lines) + "\n"
+
+    # Function to extract structure (ignoring whitespace variations)
+    def get_structure(yaml_section):
+        """Extract structured content from YAML, ignoring whitespace variations."""
+        result = []
+        for line in yaml_section.splitlines():
+            # Skip empty lines
+            if not line.strip():
+                continue
+            # Normalize whitespace but preserve indentation level
+            spaces = len(line) - len(line.lstrip())
+            content = line.strip()
+            if content:  # Skip completely empty lines
+                result.append((spaces, content))
+        return result
+
     if ref_match:
-        # Replace existing Reference section
+        # We found an existing Reference section
         ref_section = ref_match.group(1)
         print(f"Found existing top-level Reference section ({len(ref_section)} chars)")
 
-        # Build new section with proper indentation
-        new_section_lines = ["\n  - Reference:"]
-        for line in reference_yaml.splitlines():
-            if line.strip() == "- reference:":  # Skip redundant header
-                continue
-            new_section_lines.append(f"    {line}")
-        new_ref_section = "\n".join(new_section_lines) + "\n"
+        # Compare structural content, not exact string match
+        existing_structure = get_structure(ref_section)
+        new_structure = get_structure(new_ref_section)
+
+        if existing_structure == new_structure:
+            print("No structural changes detected in Reference section. Skipping update.")
+            return
 
         # Update content
         new_content = mkdocs_content.replace(ref_section, new_ref_section)
         MKDOCS_YAML.write_text(new_content)
         print(f"Updated Reference section in {MKDOCS_YAML}")
     else:
-        # Add new Reference section before Help
+        # No existing Reference section, we need to add it
         help_match = re.search(r"(\n  - Help:)", mkdocs_content)
         if help_match:
             help_section = help_match.group(1)
-            # Build new section
-            new_section_lines = ["\n  - Reference:"]
-            for line in reference_yaml.splitlines():
-                if line.strip() == "- reference:":
-                    continue
-                new_section_lines.append(f"    {line}")
-            new_ref_section = "\n".join(new_section_lines)
-
             # Insert before Help section
             new_content = mkdocs_content.replace(help_section, f"{new_ref_section}{help_section}")
             MKDOCS_YAML.write_text(new_content)

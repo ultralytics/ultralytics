@@ -96,7 +96,7 @@ class RegionCounter(BaseSolution):
 
         # Process bounding boxes & check containment
         if points:
-            for (point, cls), track_id, box in zip(zip(points, self.clss), self.track_ids, self.boxes):
+            for point, cls, track_id, box in zip(points, self.clss, self.track_ids, self.boxes):
                 annotator.box_label(box, label=self.names[cls], color=colors(track_id, True))
 
                 for region in self.counting_regions:

@@ -193,7 +193,7 @@ class YOLODataset(BaseDataset):
         len_cls, len_boxes, len_segments = (sum(x) for x in zip(*lengths))
         if len_segments and len_boxes != len_segments:
             LOGGER.warning(
-                f"WARNING ⚠️ Box and segment counts should be equal, but got len(segments) = {len_segments}, "
+                f"Box and segment counts should be equal, but got len(segments) = {len_segments}, "
                 f"len(boxes) = {len_boxes}. To resolve this only boxes will be used and all segments will be removed. "
                 "To avoid this please supply either a detect or segment dataset, not a detect-segment mixed dataset."
             )
@@ -731,7 +731,7 @@ class ClassificationDataset:
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
         if self.cache_ram:
             LOGGER.warning(
-                "WARNING ⚠️ Classification `cache_ram` training has known memory leak in "
+                "Classification `cache_ram` training has known memory leak in "
                 "https://github.com/ultralytics/ultralytics/issues/9824, setting `cache_ram=False`."
             )
             self.cache_ram = False

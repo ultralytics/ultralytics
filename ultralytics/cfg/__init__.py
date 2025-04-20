@@ -925,7 +925,7 @@ def entrypoint(debug: str = "") -> None:
         if task not in TASKS:
             if task == "track":
                 LOGGER.warning(
-                    "WARNING ⚠️ invalid 'task=track', setting 'task=detect' and 'mode=track'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}."
+                    "invalid 'task=track', setting 'task=detect' and 'mode=track'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}."
                 )
                 task, mode = "detect", "track"
             else:
@@ -963,7 +963,7 @@ def entrypoint(debug: str = "") -> None:
     if task != model.task:
         if task:
             LOGGER.warning(
-                f"WARNING ⚠️ conflicting 'task={task}' passed with 'task={model.task}' model. "
+                f"conflicting 'task={task}' passed with 'task={model.task}' model. "
                 f"Ignoring 'task={task}' and updating to 'task={model.task}' to match model."
             )
         task = model.task

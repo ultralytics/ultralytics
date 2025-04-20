@@ -549,7 +549,7 @@ class LoadTensor:
     def _single_check(im, stride=32):
         """Validates and formats a single image tensor, ensuring correct shape and normalization."""
         s = (
-            f"WARNING ⚠️ torch.Tensor inputs should be BCHW i.e. shape(1, 3, 640, 640) "
+            f"torch.Tensor inputs should be BCHW i.e. shape(1, 3, 640, 640) "
             f"divisible by stride {stride}. Input shape{tuple(im.shape)} is incompatible."
         )
         if len(im.shape) != 4:
@@ -561,7 +561,7 @@ class LoadTensor:
             raise ValueError(s)
         if im.max() > 1.0 + torch.finfo(im.dtype).eps:  # torch.float32 eps is 1.2e-07
             LOGGER.warning(
-                f"WARNING ⚠️ torch.Tensor inputs should be normalized 0.0-1.0 but max value is {im.max()}. "
+                f"torch.Tensor inputs should be normalized 0.0-1.0 but max value is {im.max()}. "
                 f"Dividing input by 255."
             )
             im = im.float() / 255.0

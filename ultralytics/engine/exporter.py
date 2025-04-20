@@ -284,7 +284,7 @@ class Exporter:
             assert dla in {"0", "1"}, f"Expected self.args.device='dla:0' or 'dla:1, but got {self.args.device}."
         if imx and self.args.device is None and torch.cuda.is_available():
             LOGGER.warning(
-                "WARNING ⚠️ Exporting on CPU while CUDA is available, setting device=0 for faster export on GPU."
+                "Exporting on CPU while CUDA is available, setting device=0 for faster export on GPU."
             )
             self.args.device = "0"  # update device to "0"
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
@@ -316,7 +316,7 @@ class Exporter:
         if rknn:
             if not self.args.name:
                 LOGGER.warning(
-                    "WARNING ⚠️ Rockchip RKNN export requires a missing 'name' arg for processor type. "
+                    "Rockchip RKNN export requires a missing 'name' arg for processor type. "
                     "Using default name='rk3588'."
                 )
                 self.args.name = "rk3588"
@@ -343,7 +343,7 @@ class Exporter:
                 self.args.batch = 1
         if isinstance(model, WorldModel):
             LOGGER.warning(
-                "WARNING ⚠️ YOLOWorld (original version) export is not supported to any format.\n"
+                "YOLOWorld (original version) export is not supported to any format.\n"
                 "WARNING ⚠️ YOLOWorldv2 models (i.e. 'yolov8s-worldv2.pt') only support export to "
                 "(torchscript, onnx, openvino, engine, coreml) formats. "
                 "See https://docs.ultralytics.com/models/yolo-world for details."

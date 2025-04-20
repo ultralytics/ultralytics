@@ -46,7 +46,7 @@ TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
 TORCHVISION_0_18 = check_version(TORCHVISION_VERSION, "0.18.0")
 if WINDOWS and check_version(torch.__version__, "==2.4.0"):  # reject version 2.4.0 on Windows
     LOGGER.warning(
-        "WARNING ⚠️ Known issue with torch==2.4.0 on Windows with CPU, recommend upgrading to torch>=2.4.1 to resolve "
+        "Known issue with torch==2.4.0 on Windows with CPU, recommend upgrading to torch>=2.4.1 to resolve "
         "https://github.com/ultralytics/ultralytics/issues/15049"
     )
 

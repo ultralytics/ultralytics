@@ -2,9 +2,8 @@ import random
 import shutil
 from pathlib import Path
 
-
 from ultralytics.data.utils import IMG_FORMATS, img2label_paths
-from ultralytics.utils import DATASETS_DIR,LOGGER,TQDM
+from ultralytics.utils import DATASETS_DIR, LOGGER, TQDM
 
 
 def split_classify_dataset(source_dir, train_ratio=0.8):

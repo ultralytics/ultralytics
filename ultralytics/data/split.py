@@ -65,9 +65,8 @@ def split_classify_dataset(source_dir, train_ratio=0.8):
     # Process class directories
     class_dirs = [d for d in source_path.iterdir() if d.is_dir()]
     total_images = sum(len(list(d.glob("*.*"))) for d in class_dirs)
-
-    LOGGER.info(f"Splitting {source_path} into {train_ratio:.0%} train, {1 - train_ratio:.0%} val")
-    LOGGER.info(f"Found {len(class_dirs)} classes with {total_images} images total")
+    stats = f"{len(class_dirs)} classes, {total_images} images"
+    LOGGER.info(f"Splitting {source_path} ({stats}) into {train_ratio:.0%} train, {1 - train_ratio:.0%} val...")
 
     for class_dir in class_dirs:
         # Create class directories

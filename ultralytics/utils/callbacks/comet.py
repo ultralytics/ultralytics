@@ -41,7 +41,7 @@ def _get_comet_mode() -> str:
     comet_mode = os.getenv("COMET_MODE")
     if comet_mode is not None:
         LOGGER.warning(
-            "WARNING ⚠️ The COMET_MODE environment variable is deprecated. "
+            "The COMET_MODE environment variable is deprecated. "
             "Please use COMET_START_ONLINE to set the Comet experiment mode. "
             "To start an offline Comet experiment, use 'export COMET_START_ONLINE=0'. "
             "If COMET_START_ONLINE is not set or is set to '1', an online Comet experiment will be created."

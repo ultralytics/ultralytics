@@ -460,8 +460,8 @@ class Annotator:
 
                     # Draw semi-transparent box on overlay
                     ImageDraw.Draw(overlay).rectangle(
-                        (xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=(255, 0, 255, 50)
-                    )  # R, G, B, alpha
+                        (xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1),
+                        fill=(255, 0, 255, 50))  # R, G, B, alpha
                     self.im.paste(Image.alpha_composite(self.im.convert("RGBA"), overlay).convert("RGB"))
 
                     # Using `color` for background and draw fg with white color

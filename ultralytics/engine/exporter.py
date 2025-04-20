@@ -738,7 +738,7 @@ class Exporter:
         pnnx = name if name.is_file() else (ROOT / name)
         if not pnnx.is_file():
             LOGGER.warning(
-                f"{prefix} WARNING ⚠️ PNNX not found. Attempting to download binary file from "
+                f"{prefix} PNNX not found. Attempting to download binary file from "
                 "https://github.com/pnnx/pnnx/.\nNote PNNX Binary file must be placed in current working directory "
                 f"or in {ROOT}. See PNNX repo for full installation instructions."
             )
@@ -751,7 +751,7 @@ class Exporter:
             except Exception as e:
                 release = "20240410"
                 asset = f"pnnx-{release}-{system}.zip"
-                LOGGER.warning(f"{prefix} WARNING ⚠️ PNNX GitHub assets not found: {e}, using default {asset}")
+                LOGGER.warning(f"{prefix} PNNX GitHub assets not found: {e}, using default {asset}")
             unzip_dir = safe_download(f"https://github.com/pnnx/pnnx/releases/download/{release}/{asset}", delete=True)
             if check_is_path_safe(Path.cwd(), unzip_dir):  # avoid path traversal security vulnerability
                 shutil.move(src=unzip_dir / name, dst=pnnx)  # move binary to ROOT
@@ -816,7 +816,7 @@ class Exporter:
             model = IOSDetectModel(self.model, self.im) if self.args.nms else self.model
         else:
             if self.args.nms:
-                LOGGER.warning(f"{prefix} WARNING ⚠️ 'nms=True' is only available for Detect models like 'yolo11n.pt'.")
+                LOGGER.warning(f"{prefix} 'nms=True' is only available for Detect models like 'yolo11n.pt'.")
                 # TODO CoreML Segment and Pose model pipelining
             model = self.model
         ts = torch.jit.trace(model.eval(), self.im, strict=False)  # TorchScript model
@@ -861,7 +861,7 @@ class Exporter:
             ct_model.save(str(f))  # save *.mlpackage
         except Exception as e:
             LOGGER.warning(
-                f"{prefix} WARNING ⚠️ CoreML export to *.mlpackage failed ({e}), reverting to *.mlmodel export. "
+                f"{prefix} CoreML export to *.mlpackage failed ({e}), reverting to *.mlmodel export. "
                 f"Known coremltools Python 3.11 and Windows bugs https://github.com/apple/coremltools/issues/1928."
             )
             f = f.with_suffix(".mlmodel")
@@ -1030,7 +1030,7 @@ class Exporter:
     @try_export
     def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):
         """YOLO Edge TPU export https://coral.ai/docs/edgetpu/models-intro/."""
-        LOGGER.warning(f"{prefix} WARNING ⚠️ Edge TPU known bug https://github.com/ultralytics/ultralytics/issues/1185")
+        LOGGER.warning(f"{prefix} Edge TPU known bug https://github.com/ultralytics/ultralytics/issues/1185")
 
         cmd = "edgetpu_compiler --version"
         help_url = "https://coral.ai/docs/edgetpu/compiler/"
@@ -1091,7 +1091,7 @@ class Exporter:
             subprocess.run(cmd, shell=True)
 
         if " " in f:
-            LOGGER.warning(f"{prefix} WARNING ⚠️ your model may not work correctly with spaces in path '{f}'.")
+            LOGGER.warning(f"{prefix} your model may not work correctly with spaces in path '{f}'.")
 
         # Add metadata
         yaml_save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml

@@ -95,7 +95,7 @@ class BaseSolution:
 
         if is_cli and self.CFG["source"] is None:
             d_s = "solutions_ci_demo.mp4" if "-pose" not in self.CFG["model"] else "solution_ci_pose_demo.mp4"
-            self.LOGGER.warning(f"⚠️ WARNING: source not provided. using default source {ASSETS_URL}/{d_s}")
+            self.LOGGER.warning(f"source not provided. using default source {ASSETS_URL}/{d_s}")
             from ultralytics.utils.downloads import safe_download
 
             safe_download(f"{ASSETS_URL}/{d_s}")  # download source from ultralytics assets

@@ -295,16 +295,16 @@ class BaseDataset(Dataset):
             b += im.nbytes
             if not os.access(Path(im_file).parent, os.W_OK):
                 self.cache = None
-                LOGGER.info(f"{self.prefix}Skipping caching images to disk, directory not writeable ⚠️")
+                LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writeable")
                 return False
         disk_required = b * self.ni / n * (1 + safety_margin)  # bytes required to cache dataset to disk
         total, used, free = shutil.disk_usage(Path(self.im_files[0]).parent)
         if disk_required > free:
             self.cache = None
-            LOGGER.info(
+            LOGGER.warning(
                 f"{self.prefix}{disk_required / gb:.1f}GB disk space required, "
                 f"with {int(safety_margin * 100)}% safety margin but only "
-                f"{free / gb:.1f}/{total / gb:.1f}GB free, not caching images to disk ⚠️"
+                f"{free / gb:.1f}/{total / gb:.1f}GB free, not caching images to disk"
             )
             return False
         return True
@@ -331,10 +331,10 @@ class BaseDataset(Dataset):
         mem = psutil.virtual_memory()
         if mem_required > mem.available:
             self.cache = None
-            LOGGER.info(
+            LOGGER.warning(
                 f"{self.prefix}{mem_required / gb:.1f}GB RAM required to cache images "
                 f"with {int(safety_margin * 100)}% safety margin but only "
-                f"{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, not caching images ⚠️"
+                f"{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, not caching images"
             )
             return False
         return True

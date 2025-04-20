@@ -1005,7 +1005,7 @@ class Results(SimpleClass):
         # Convert results to a list of dictionaries
         data = self.summary(normalize=normalize, decimals=decimals)
         if len(data) == 0:
-            LOGGER.warning("⚠️ No results to save to SQL. Results dict is empty")
+            LOGGER.warning("No results to save to SQL. Results dict is empty.")
             return
 
         # Connect to the SQLite database

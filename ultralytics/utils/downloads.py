@@ -352,7 +352,7 @@ def safe_download(
                     raise ConnectionError(emojis(f"❌  Download failure for {uri}. Environment is not online.")) from e
                 elif i >= retry:
                     raise ConnectionError(emojis(f"❌  Download failure for {uri}. Retry limit reached.")) from e
-                LOGGER.warning(f"⚠️ Download failure, retrying {i + 1}/{retry} {uri}...")
+                LOGGER.warning(f"Download failure, retrying {i + 1}/{retry} {uri}...")
 
     if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz"}:
         from zipfile import is_zipfile
@@ -393,7 +393,7 @@ def get_github_assets(repo="ultralytics/assets", version="latest", retry=False):
     if r.status_code != 200 and r.reason != "rate limit exceeded" and retry:  # failed and not 403 rate limit exceeded
         r = requests.get(url)  # try again
     if r.status_code != 200:
-        LOGGER.warning(f"⚠️ GitHub assets check failure for {url}: {r.status_code} {r.reason}")
+        LOGGER.warning(f"GitHub assets check failure for {url}: {r.status_code} {r.reason}")
         return "", []
     data = r.json()
     return data["tag_name"], [x["name"] for x in data["assets"]]  # tag, assets i.e. ['yolo11n.pt', 'yolov8s.pt', ...]

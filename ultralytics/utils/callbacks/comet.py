@@ -184,7 +184,7 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
     indices = batch["batch_idx"] == img_idx
     bboxes = batch["bboxes"][indices]
     if len(bboxes) == 0:
-        LOGGER.debug(f"COMET WARNING: Image: {image_path} has no bounding boxes labels")
+        LOGGER.debug(f"Comet Image: {image_path} has no bounding boxes labels")
         return None
 
     cls_labels = batch["cls"][indices].squeeze(1).tolist()
@@ -216,7 +216,7 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
 
     predictions = metadata.get(image_id)
     if not predictions:
-        LOGGER.debug(f"COMET WARNING: Image: {image_path} has no bounding boxes predictions")
+        LOGGER.debug(f"Comet Image: {image_path} has no bounding boxes predictions")
         return None
 
     # apply the mapping that was used to map the predicted classes when the JSON was created
@@ -268,7 +268,7 @@ def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) ->
         annotations = [np.array(polygon).squeeze() for polygon in contours if len(polygon) >= 3]
         return [annotation.ravel().tolist() for annotation in annotations]
     except Exception as e:
-        LOGGER.warning(f"COMET WARNING: Failed to extract segmentation annotation: {e}")
+        LOGGER.warning(f"Comet Failed to extract segmentation annotation: {e}")
     return None
 
 

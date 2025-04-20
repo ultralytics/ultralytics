@@ -444,7 +444,7 @@ def check_det_dataset(dataset, autodownload=True):
         val = [Path(x).resolve() for x in (val if isinstance(val, list) else [val])]  # val path
         if not all(x.exists() for x in val):
             name = clean_url(dataset)  # dataset name with URL auth stripped
-            m = f"\nDataset '{name}' images not found ⚠️, missing path '{[x for x in val if not x.exists()][0]}'"
+            m = f"\nDataset '{name}' images not found, missing path '{[x for x in val if not x.exists()][0]}'"
             if s and autodownload:
                 LOGGER.warning(m)
             else:
@@ -496,15 +496,15 @@ def check_cls_dataset(dataset, split=""):
     dataset = Path(dataset)
     data_dir = (dataset if dataset.is_dir() else (DATASETS_DIR / dataset)).resolve()
     if not data_dir.is_dir():
-        LOGGER.warning(f"\nDataset not found ⚠️, missing path {data_dir}, attempting download...")
+        LOGGER.info("")
+        LOGGER.warning(f"Dataset not found, missing path {data_dir}, attempting download...")
         t = time.time()
         if str(dataset) == "imagenet":
             subprocess.run(f"bash {ROOT / 'data/scripts/get_imagenet.sh'}", shell=True, check=True)
         else:
             url = f"https://github.com/ultralytics/assets/releases/download/v0.0.0/{dataset}.zip"
             download(url, dir=data_dir.parent)
-        s = f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n"
-        LOGGER.info(s)
+        LOGGER.info(f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n")
     train_set = data_dir / "train"
     if not train_set.is_dir():
         LOGGER.warning(f"Dataset 'split=train' not found at {train_set}")

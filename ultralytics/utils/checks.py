@@ -396,10 +396,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 assert ONLINE, "AutoUpdate skipped (offline)"
                 LOGGER.info(attempt_install(s, cmds))
                 dt = time.time() - t
-                LOGGER.info(
-                    f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}\n"
-                    f"{prefix} ⚠️ {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
-                )
+                LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}")
+                LOGGER.warning(f"{prefix} {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n")
             except Exception as e:
                 LOGGER.warning(f"{prefix} ❌ {e}")
                 return False
@@ -754,17 +752,15 @@ def check_amp(model):
         assert amp_allclose(YOLO("yolo11n.pt"), im)
         LOGGER.info(f"{prefix}checks passed ✅")
     except ConnectionError:
-        LOGGER.warning(
-            f"{prefix}checks skipped ⚠️. Offline and unable to download YOLO11n for AMP checks. {warning_msg}"
-        )
+        LOGGER.warning(f"{prefix}checks skipped. Offline and unable to download YOLO11n for AMP checks. {warning_msg}")
     except (AttributeError, ModuleNotFoundError):
         LOGGER.warning(
-            f"{prefix}checks skipped ⚠️. "
+            f"{prefix}checks skipped. "
             f"Unable to load YOLO11n for AMP checks due to possible Ultralytics package modifications. {warning_msg}"
         )
     except AssertionError:
-        LOGGER.warning(
-            f"{prefix}checks failed ❌. Anomalies were detected with AMP on your system that may lead to "
+        LOGGER.error(
+            f"{prefix}checks failed. Anomalies were detected with AMP on your system that may lead to "
             f"NaN losses or zero-mAP results, so AMP will be disabled during training."
         )
         return False

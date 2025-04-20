@@ -166,6 +166,7 @@ def update_mkdocs_file(reference_yaml: str) -> None:
         # Update content
         new_content = mkdocs_content.replace(ref_section, new_ref_section)
         MKDOCS_YAML.write_text(new_content)
+        subprocess.run(["npx", "prettier", "--write", str(MKDOCS_YAML)], check=False, cwd=PACKAGE_DIR.parent)
         print(f"Updated Reference section in {MKDOCS_YAML}")
     else:
         # No existing Reference section, we need to add it

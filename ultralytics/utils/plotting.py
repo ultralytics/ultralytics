@@ -452,8 +452,7 @@ class Annotator:
             w, h = self.font.getsize(text)  # text width, height
             xy[1] += 1 - h
         if self.pil:
-            text = text.split("\n")
-            for idx, text in enumerate(text):
+            for idx, text in enumerate(text.split("\n")):
                 w, h = self.font.getsize(text)
                 if box_style:
                     overlay = Image.new("RGBA", self.im.size)  # Temporary RGBA image
@@ -464,8 +463,7 @@ class Annotator:
                     )  # R, G, B, alpha
                     self.im.paste(Image.alpha_composite(self.im.convert("RGBA"), overlay).convert("RGB"))
 
-                    # Using `color` for background and draw fg with white color
-                    txt_color = (255, 255, 255)
+                    # Using color for background and draw fg with white color
                     self.draw.text(xy, text, fill=txt_color, font=self.font)
                     xy[1] += h
         else:
@@ -475,8 +473,6 @@ class Annotator:
                 outside = xy[1] >= h  # label fits outside box
                 p2 = xy[0] + w, xy[1] - h if outside else xy[1] + h
                 cv2.rectangle(self.im, xy, p2, txt_color, -1, cv2.LINE_AA)  # filled
-                # Using `txt_color` for background and draw fg with white color
-                txt_color = (255, 255, 255)
             cv2.putText(self.im, text, xy, 0, self.sf, txt_color, thickness=self.tf, lineType=cv2.LINE_AA)
 
     def fromarray(self, im):

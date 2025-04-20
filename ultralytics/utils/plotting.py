@@ -452,7 +452,7 @@ class Annotator:
             w, h = self.font.getsize(text)  # text width, height
             xy[1] += 1 - h
         if self.pil:
-            text = text.split("\n") if "\n" in text else [text]
+            text = text.split("\n")
             for idx, text in enumerate(text):
                 w, h = self.font.getsize(text)
                 if box_style:

@@ -506,6 +506,17 @@ def check_cls_dataset(dataset, split=""):
         s = f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n"
         LOGGER.info(s)
     train_set = data_dir / "train"
+    if not train_set.is_dir():
+        LOGGER.warning(f"WARNING ⚠️ Dataset 'split=train' not found at {train_set}.")
+        image_files = list(data_dir.rglob("*.jpg")) + list(data_dir.rglob("*.png"))
+        if image_files:
+            from ultralytics.data.split import split_classify_dataset
+
+            LOGGER.info(f"Found {len(image_files)} images in subdirectories. Attempting to split...")
+            data_dir = split_classify_dataset(data_dir, train_ratio=0.8)
+            train_set = data_dir / "train"
+        else:
+            LOGGER.error(f"No images found in {data_dir} or its subdirectories.")
     val_set = (
         data_dir / "val"
         if (data_dir / "val").exists()

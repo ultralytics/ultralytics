@@ -102,16 +102,12 @@ def is_ascii(s) -> bool:
     Check if a string is composed of only ASCII characters.
 
     Args:
-        s (str): String to be checked.
+        s (str | list | tuple | dict): Input to be checked (all are converted to string for checking).
 
     Returns:
         (bool): True if the string is composed only of ASCII characters, False otherwise.
     """
-    # Convert list, tuple, None, etc. to string
-    s = str(s)
-
-    # Check if the string is composed of only ASCII characters
-    return all(ord(c) < 128 for c in s)
+    return all(ord(c) < 128 for c in str(s))
 
 
 def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):

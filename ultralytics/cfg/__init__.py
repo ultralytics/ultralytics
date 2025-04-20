@@ -570,9 +570,7 @@ def handle_yolo_hub(args: List[str]) -> None:
             or 'logout'. For 'login', an optional second argument can be the API key.
 
     Examples:
-        ```bash
-        yolo login YOUR_API_KEY
-        ```
+        $ yolo login YOUR_API_KEY
 
     Notes:
         - The function imports the 'hub' module from ultralytics to perform login and logout operations.

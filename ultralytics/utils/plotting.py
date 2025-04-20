@@ -466,8 +466,8 @@ class Annotator:
 
                     # Using `color` for background and draw fg with white color
                     txt_color = (255, 255, 255)
-                self.draw.text(xy, text, fill=txt_color, font=self.font)
-                xy[1] += h
+                    self.draw.text(xy, text, fill=txt_color, font=self.font)
+                    xy[1] += h
         else:
             if box_style:
                 w, h = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height

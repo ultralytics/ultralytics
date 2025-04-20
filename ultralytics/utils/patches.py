@@ -12,29 +12,26 @@ import torch
 _imshow = cv2.imshow  # copy to avoid recursion errors
 
 
-def imread(filename: str, flags: int = cv2.IMREAD_COLOR):
+def imread(filename: str):
     """
     Read an image from a file.
 
     Args:
         filename (str): Path to the file to read.
-        flags (int): Flag that can take values of cv2.IMREAD_*. Controls how the image is read.
 
     Returns:
         (np.ndarray): The read image.
 
     Examples:
         >>> img = imread("path/to/image.jpg")
-        >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
     """
     file_bytes = np.fromfile(filename, np.uint8)
-    if filename.endswith((".tiff", ".tif")):
-        success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
-        if success:
-            return np.stack(frames, axis=2)  # or np.asarray(frames).transpose(1,2,0)
-        return None
-    else:
-        return cv2.imdecode(file_bytes, flags)
+    success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
+    if success:
+        frame = np.stack(frames, axis=2) if len(frames) > 1 else frames[0]  # or np.asarray(frames).transpose(1,2,0)
+        frame = frame[..., None] if frame.ndim == 2 else frame
+        return frame
+    return None
 
 
 def imwrite(filename: str, img: np.ndarray, params=None):

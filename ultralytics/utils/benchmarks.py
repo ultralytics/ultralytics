@@ -73,6 +73,7 @@ def benchmark(
         verbose (bool | float): If True or a float, assert benchmarks pass with given metric.
         eps (float): Epsilon value for divide by zero prevention.
         format (str): Export format for benchmarking. If not supplied all formats are benchmarked.
+        **kwargs (Any): Additional keyword arguments for exporter.
 
     Returns:
         (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size, metric,

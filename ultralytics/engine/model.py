@@ -664,6 +664,7 @@ class Model(torch.nn.Module):
         """
         self._check_is_pytorch_model()
         from ultralytics.utils.benchmarks import benchmark
+
         from .exporter import export_formats
 
         custom = {"verbose": False}  # method defaults

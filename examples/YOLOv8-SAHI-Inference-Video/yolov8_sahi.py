@@ -5,7 +5,7 @@ import argparse
 import cv2
 from sahi import AutoDetectionModel
 from sahi.predict import get_sliced_prediction
-from sahi.utils.ultralytics import download_yolo11n_model, download_yolo11n_obb_model
+from sahi.utils.ultralytics import download_model_weights
 
 from ultralytics.utils.files import increment_path
 
@@ -41,10 +41,7 @@ class SAHIInference:
         from ultralytics.utils.torch_utils import select_device
 
         yolo11_model_path = f"models/{weights}"
-        if weights.endswith("-obb.pt"):
-            download_yolo11n_obb_model(yolo11_model_path)  # Download model if not present
-        else:
-            download_yolo11n_model(yolo11_model_path)  # Download model if not present
+        download_model_weights(yolo11_model_path)  # Download model if not present
         self.detection_model = AutoDetectionModel.from_pretrained(
             model_type="ultralytics", model_path=yolo11_model_path, device=select_device(device)
         )

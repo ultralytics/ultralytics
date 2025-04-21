@@ -669,13 +669,14 @@ class Model(torch.nn.Module):
         args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, "mode": "benchmark"}
         return benchmark(
             model=self,
-            data=kwargs.get("data"),  # if no 'data' argument passed set data=None for default datasets
-            imgsz=args["imgsz"],
-            half=args["half"],
-            int8=args["int8"],
-            device=args["device"],
-            verbose=kwargs.get("verbose", False),
-            format=kwargs.get("format", ""),
+            data=kwargs.pop("data", None),  # if no 'data' argument passed set data=None for default datasets
+            imgsz=kwargs.pop("imgsz", args["imgsz"]),
+            half=kwargs.pop("half", args["half"]),
+            int8=kwargs.pop("int8", args["int8"]),
+            device=kwargs.pop("device", args["device"]),
+            verbose=kwargs.pop("verbose", False),
+            format=kwargs.pop("format", ""),
+            **kwargs,
         )
 
     def export(

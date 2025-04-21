@@ -58,6 +58,7 @@ def benchmark(
     verbose=False,
     eps=1e-3,
     format="",
+    **kwargs,
 ):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
@@ -147,14 +148,14 @@ def benchmark(
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:
                 assert gpu, "inference not supported on GPU"
-
+            breakpoint()
             # Export
             if format == "-":
                 filename = model.pt_path or model.ckpt_path or model.model_name
                 exported_model = model  # PyTorch format
             else:
                 filename = model.export(
-                    imgsz=imgsz, format=format, half=half, int8=int8, data=data, device=device, verbose=False
+                    imgsz=imgsz, format=format, half=half, int8=int8, data=data, device=device, verbose=False, **kwargs
                 )
                 exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"

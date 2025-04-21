@@ -65,7 +65,7 @@ For detailed instructions and best practices related to the installation process
 
 ### Usage
 
-Before diving into the usage instructions, it's important to note that while all [Ultralytics YOLO11 models](../models/index.md) are available for exporting, you can ensure that the model you select supports export functionality [here](../modes/export.md).
+All [Ultralytics YOLO11 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
 !!! example "Usage"
 
@@ -91,17 +91,27 @@ Before diving into the usage instructions, it's important to note that while all
 
           ```bash
           # Export a YOLO11n PyTorch model to NCNN format
-          yolo export model=yolo11n.pt format=ncnn  # creates '/yolo11n_ncnn_model'
+          yolo export model=yolo11n.pt format=ncnn # creates '/yolo11n_ncnn_model'
 
           # Run inference with the exported model
           yolo predict model='./yolo11n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
           ```
 
-For more details about supported export options, visit the [Ultralytics documentation page on deployment options](../guides/model-deployment-options.md).
+### Export Arguments
+
+| Argument | Type             | Default  | Description                                                                                                                             |
+| -------- | ---------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `format` | `str`            | `'ncnn'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
+| `imgsz`  | `int` or `tuple` | `640`    | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
+| `half`   | `bool`           | `False`  | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.            |
+| `batch`  | `int`            | `1`      | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `device` | `str`            | `None`   | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
+
+For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
 ## Deploying Exported YOLO11 NCNN Models
 
-After successfully exporting your Ultralytics YOLO11 models to NCNN format, you can now deploy them. The primary and recommended first step for running a NCNN model is to utilize the YOLO("./model_ncnn_model") method, as outlined in the previous usage code snippet. However, for in-depth instructions on deploying your NCNN models in various other settings, take a look at the following resources:
+After successfully exporting your Ultralytics YOLO11 models to NCNN format, you can now deploy them. The primary and recommended first step for running a NCNN model is to utilize the YOLO("yolo11n_ncnn_model/") method, as outlined in the previous usage code snippet. However, for in-depth instructions on deploying your NCNN models in various other settings, take a look at the following resources:
 
 - **[Android](https://github.com/Tencent/ncnn/wiki/how-to-build#build-for-android)**: This blog explains how to use NCNN models for performing tasks like [object detection](https://www.ultralytics.com/glossary/object-detection) through Android applications.
 
@@ -139,7 +149,7 @@ To export your Ultralytics YOLO11 model to NCNN format, follow these steps:
 
 - **CLI**: Use the `yolo` command with the `export` argument.
     ```bash
-    yolo export model=yolo11n.pt format=ncnn  # creates '/yolo11n_ncnn_model'
+    yolo export model=yolo11n.pt format=ncnn # creates '/yolo11n_ncnn_model'
     ```
 
 For detailed export options, check the [Export](../modes/export.md) page in the documentation.

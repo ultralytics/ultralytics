@@ -8,36 +8,26 @@ keywords: object counting, YOLO11, Ultralytics, real-time object detection, AI, 
 
 ## What is Object Counting?
 
+<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-count-the-objects-using-ultralytics-yolo.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Object Counting In Colab"></a>
+
 Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/) involves accurate identification and counting of specific objects in videos and camera streams. YOLO11 excels in real-time applications, providing efficient and precise object counting for various scenarios like crowd analysis and surveillance, thanks to its state-of-the-art algorithms and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) capabilities.
 
-<table>
-  <tr>
-    <td align="center">
-      <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Ag2e-5_NpS0"
-        title="YouTube video player" frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowfullscreen>
-      </iframe>
-      <br>
-      <strong>Watch:</strong> Object Counting using Ultralytics YOLOv8
-    </td>
-    <td align="center">
-      <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Fj9TStNBVoY"
-        title="YouTube video player" frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowfullscreen>
-      </iframe>
-      <br>
-      <strong>Watch:</strong> Class-wise Object Counting using Ultralytics YOLO11
-    </td>
-  </tr>
-</table>
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/vKcD44GkSF8"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Perform Real-Time Object Counting with Ultralytics YOLO11 🍏
+</p>
 
-## Advantages of Object Counting?
+## Advantages of Object Counting
 
-- **Resource Optimization:** Object counting facilitates efficient resource management by providing accurate counts, and optimizing resource allocation in applications like inventory management.
-- **Enhanced Security:** Object counting enhances security and surveillance by accurately tracking and counting entities, aiding in proactive threat detection.
-- **Informed Decision-Making:** Object counting offers valuable insights for decision-making, optimizing processes in retail, traffic management, and various other domains.
+- **Resource Optimization:** Object counting facilitates efficient resource management by providing accurate counts, optimizing resource allocation in applications like [inventory management](https://docs.ultralytics.com/guides/analytics/).
+- **Enhanced Security:** Object counting enhances security and surveillance by accurately tracking and counting entities, aiding in proactive [threat detection](https://docs.ultralytics.com/guides/security-alarm-system/).
+- **Informed Decision-Making:** Object counting offers valuable insights for decision-making, optimizing processes in retail, [traffic management](https://www.ultralytics.com/blog/ai-in-traffic-management-from-congestion-to-coordination), and various other domains.
 
 ## Real World Applications
 
@@ -46,7 +36,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 | ![Conveyor Belt Packets Counting Using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/conveyor-belt-packets-counting.avif) | ![Fish Counting in Sea using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/fish-counting-in-sea-using-ultralytics-yolov8.avif) |
 |                                                 Conveyor Belt Packets Counting Using Ultralytics YOLO11                                                 |                                                        Fish Counting in Sea using Ultralytics YOLO11                                                         |
 
-!!! example "Object Counting using YOLO11 Example"
+!!! example "Object Counting using Ultralytics YOLO"
 
     === "CLI"
 
@@ -55,10 +45,10 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         yolo solutions count show=True
 
         # Pass a source video
-        yolo solutions count source="path/to/video/file.mp4"
+        yolo solutions count source="path/to/video.mp4"
 
         # Pass region coordinates
-        yolo solutions count region=[(20, 400), (1080, 400), (1080, 360), (20, 360)]
+        yolo solutions count region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
         ```
 
     === "Python"
@@ -68,59 +58,61 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
         from ultralytics import solutions
 
-        cap = cv2.VideoCapture("path/to/video/file.mp4")
+        cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
-        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-        # Define region points
-        # region_points = [(20, 400), (1080, 400)]  # For line counting
-        region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # For rectangle region counting
-        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]  # For polygon region counting
+        # region_points = [(20, 400), (1080, 400)]                                      # line counting
+        region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # rectangle region
+        # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]   # polygon region
 
         # Video writer
+        w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("object_counting_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Init Object Counter
+        # Initialize object counter object
         counter = solutions.ObjectCounter(
-            show=True,  # Display the output
-            region=region_points,  # Pass region points
-            model="yolo11n.pt",  # model="yolo11n-obb.pt" for object counting using YOLO11 OBB model.
-            # classes=[0, 2],  # If you want to count specific classes i.e person and car with COCO pretrained model.
-            # show_in=True,  # Display in counts
-            # show_out=True,  # Display out counts
-            # line_width=2,  # Adjust the line width for bounding boxes and text display
+            show=True,  # display the output
+            region=region_points,  # pass region points
+            model="yolo11n.pt",  # model="yolo11n-obb.pt" for object counting with OBB model.
+            # classes=[0, 2],  # count specific classes i.e. person and car with COCO pretrained model.
+            # tracker="botsort.yaml",  # choose trackers i.e "bytetrack.yaml"
         )
 
         # Process video
         while cap.isOpened():
             success, im0 = cap.read()
+
             if not success:
-                print("Video frame is empty or video processing has been successfully completed.")
+                print("Video frame is empty or processing is complete.")
                 break
-            im0 = counter.count(im0)
-            video_writer.write(im0)
+
+            results = counter(im0)
+
+            # print(results)  # access the output
+
+            video_writer.write(results.plot_im)  # write the processed frame.
 
         cap.release()
         video_writer.release()
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-### Argument `ObjectCounter`
+### `ObjectCounter` Arguments
 
 Here's a table with the `ObjectCounter` arguments:
 
-| Name         | Type   | Default                    | Description                                                            |
-| ------------ | ------ | -------------------------- | ---------------------------------------------------------------------- |
-| `model`      | `str`  | `None`                     | Path to Ultralytics YOLO Model File                                    |
-| `region`     | `list` | `[(20, 400), (1260, 400)]` | List of points defining the counting region.                           |
-| `line_width` | `int`  | `2`                        | Line thickness for bounding boxes.                                     |
-| `show`       | `bool` | `False`                    | Flag to control whether to display the video stream.                   |
-| `show_in`    | `bool` | `True`                     | Flag to control whether to display the in counts on the video stream.  |
-| `show_out`   | `bool` | `True`                     | Flag to control whether to display the out counts on the video stream. |
+{% from "macros/solutions-args.md" import param_table %}
+{{ param_table(["model", "show_in", "show_out", "region"]) }}
 
-### Arguments `model.track`
+The `ObjectCounter` solution allows the use of several `track` arguments:
 
-{% include "macros/track-args.md" %}
+{% from "macros/track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+
+Additionally, the visualization arguments listed below are supported:
+
+{% from "macros/visualization-args.md" import param_table %}
+{{ param_table(["show", "line_width"]) }}
 
 ## FAQ
 
@@ -154,10 +146,10 @@ def count_objects_in_region(video_path, output_video_path, model_path):
     while cap.isOpened():
         success, im0 = cap.read()
         if not success:
-            print("Video frame is empty or video processing has been successfully completed.")
+            print("Video frame is empty or processing is complete.")
             break
-        im0 = counter.count(im0)
-        video_writer.write(im0)
+        results = counter(im0)
+        video_writer.write(results.plot_im)
 
     cap.release()
     video_writer.release()
@@ -167,17 +159,18 @@ def count_objects_in_region(video_path, output_video_path, model_path):
 count_objects_in_region("path/to/video.mp4", "output_video.avi", "yolo11n.pt")
 ```
 
-Explore more configurations and options in the [Object Counting](#object-counting-using-ultralytics-yolo11) section.
+For more advanced configurations and options, check out the [RegionCounter solution](https://docs.ultralytics.com/guides/region-counting/) for counting objects in multiple regions simultaneously.
 
 ### What are the advantages of using Ultralytics YOLO11 for object counting?
 
 Using Ultralytics YOLO11 for object counting offers several advantages:
 
-1. **Resource Optimization:** It facilitates efficient resource management by providing accurate counts, helping optimize resource allocation in industries like inventory management.
-2. **Enhanced Security:** It enhances security and surveillance by accurately tracking and counting entities, aiding in proactive threat detection.
+1. **Resource Optimization:** It facilitates efficient resource management by providing accurate counts, helping optimize resource allocation in industries like [inventory management](https://www.ultralytics.com/blog/ai-for-smarter-retail-inventory-management).
+2. **Enhanced Security:** It enhances security and surveillance by accurately tracking and counting entities, aiding in proactive threat detection and [security systems](https://docs.ultralytics.com/guides/security-alarm-system/).
 3. **Informed Decision-Making:** It offers valuable insights for decision-making, optimizing processes in domains like retail, traffic management, and more.
+4. **Real-time Processing:** YOLO11's architecture enables [real-time inference](https://www.ultralytics.com/glossary/real-time-inference), making it suitable for live video streams and time-sensitive applications.
 
-For real-world applications and code examples, visit the [Advantages of Object Counting](#advantages-of-object-counting) section.
+For implementation examples and practical applications, explore the [TrackZone solution](https://docs.ultralytics.com/guides/trackzone/) for tracking objects in specific zones.
 
 ### How can I count specific classes of objects using Ultralytics YOLO11?
 
@@ -202,10 +195,10 @@ def count_specific_classes(video_path, output_video_path, model_path, classes_to
     while cap.isOpened():
         success, im0 = cap.read()
         if not success:
-            print("Video frame is empty or video processing has been successfully completed.")
+            print("Video frame is empty or processing is complete.")
             break
-        im0 = counter.count(im0)
-        video_writer.write(im0)
+        results = counter(im0)
+        video_writer.write(results.plot_im)
 
     cap.release()
     video_writer.release()
@@ -215,16 +208,16 @@ def count_specific_classes(video_path, output_video_path, model_path, classes_to
 count_specific_classes("path/to/video.mp4", "output_specific_classes.avi", "yolo11n.pt", [0, 2])
 ```
 
-In this example, `classes_to_count=[0, 2]`, which means it counts objects of class `0` and `2` (e.g., person and car).
+In this example, `classes_to_count=[0, 2]` means it counts objects of class `0` and `2` (e.g., person and car in the COCO dataset). You can find more information about class indices in the [COCO dataset documentation](https://docs.ultralytics.com/datasets/detect/coco/).
 
 ### Why should I use YOLO11 over other [object detection](https://www.ultralytics.com/glossary/object-detection) models for real-time applications?
 
-Ultralytics YOLO11 provides several advantages over other object detection models like Faster R-CNN, SSD, and previous YOLO versions:
+Ultralytics YOLO11 provides several advantages over other object detection models like [Faster R-CNN](https://docs.ultralytics.com/compare/yolo11-vs-efficientdet/), SSD, and previous YOLO versions:
 
-1. **Speed and Efficiency:** YOLO11 offers real-time processing capabilities, making it ideal for applications requiring high-speed inference, such as surveillance and autonomous driving.
+1. **Speed and Efficiency:** YOLO11 offers real-time processing capabilities, making it ideal for applications requiring high-speed inference, such as surveillance and [autonomous driving](https://www.ultralytics.com/blog/ai-in-self-driving-cars).
 2. **[Accuracy](https://www.ultralytics.com/glossary/accuracy):** It provides state-of-the-art accuracy for object detection and tracking tasks, reducing the number of false positives and improving overall system reliability.
-3. **Ease of Integration:** YOLO11 offers seamless integration with various platforms and devices, including mobile and edge devices, which is crucial for modern AI applications.
-4. **Flexibility:** Supports various tasks like object detection, segmentation, and tracking with configurable models to meet specific use-case requirements.
+3. **Ease of Integration:** YOLO11 offers seamless integration with various platforms and devices, including mobile and [edge devices](https://docs.ultralytics.com/guides/nvidia-jetson/), which is crucial for modern AI applications.
+4. **Flexibility:** Supports various tasks like object detection, [segmentation](https://docs.ultralytics.com/tasks/segment/), and tracking with configurable models to meet specific use-case requirements.
 
 Check out Ultralytics [YOLO11 Documentation](https://docs.ultralytics.com/models/yolo11/) for a deeper dive into its features and performance comparisons.
 
@@ -232,7 +225,9 @@ Check out Ultralytics [YOLO11 Documentation](https://docs.ultralytics.com/models
 
 Yes, Ultralytics YOLO11 is perfectly suited for advanced applications like crowd analysis and traffic management due to its real-time detection capabilities, scalability, and integration flexibility. Its advanced features allow for high-accuracy object tracking, counting, and classification in dynamic environments. Example use cases include:
 
-- **Crowd Analysis:** Monitor and manage large gatherings, ensuring safety and optimizing crowd flow.
-- **Traffic Management:** Track and count vehicles, analyze traffic patterns, and manage congestion in real-time.
+- **Crowd Analysis:** Monitor and manage large gatherings, ensuring safety and optimizing crowd flow with [region-based counting](https://docs.ultralytics.com/guides/region-counting/).
+- **Traffic Management:** Track and count vehicles, analyze traffic patterns, and manage congestion in real-time with [speed estimation](https://docs.ultralytics.com/guides/speed-estimation/) capabilities.
+- **Retail Analytics:** Analyze customer movement patterns and product interactions to optimize store layouts and improve customer experience.
+- **Industrial Automation:** Count products on conveyor belts and monitor production lines for quality control and efficiency improvements.
 
-For more information and implementation details, refer to the guide on [Real World Applications](#real-world-applications) of object counting with YOLO11.
+For more specialized applications, explore [Ultralytics Solutions](https://docs.ultralytics.com/solutions/) for a comprehensive set of tools designed for real-world computer vision challenges.

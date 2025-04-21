@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from itertools import product
 from pathlib import Path
@@ -40,7 +40,16 @@ def test_amp():
     ],
 )
 def test_export_engine_matrix(task, dynamic, int8, half, batch):
-    """Test YOLO model export to TensorRT format for various configurations and run inference."""
+    """
+    Test YOLO model export to TensorRT format for various configurations and run inference.
+
+    Args:
+        task (str): Task type like 'detect', 'segment', etc.
+        dynamic (bool): Whether to use dynamic input size.
+        int8 (bool): Whether to use INT8 precision.
+        half (bool): Whether to use FP16 precision.
+        batch (int): Batch size for export.
+    """
     file = YOLO(TASK2MODEL[task]).export(
         format="engine",
         imgsz=32,

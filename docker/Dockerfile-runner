@@ -1,4 +1,5 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Builds GitHub actions CI runner image for deployment to DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Image is CUDA-optimized for YOLO11 single/multi-GPU training and inference tests
 
@@ -23,7 +24,7 @@ RUN FILENAME=actions-runner-linux-x64-2.320.0.tar.gz && \
     rm $FILENAME
 
 # Install runner dependencies
-RUN pip install pytest-cov
+RUN uv pip install --system pytest-cov
 RUN ./bin/installdependencies.sh && \
     apt-get -y install libicu-dev
 

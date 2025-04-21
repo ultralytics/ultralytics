@@ -37,6 +37,7 @@ The Fashion-MNIST dataset is split into two subsets:
 
 Each training and test example is assigned to one of the following labels:
 
+```
 0. T-shirt/top
 1. Trouser
 2. Pullover
@@ -47,6 +48,7 @@ Each training and test example is assigned to one of the following labels:
 7. Sneaker
 8. Bag
 9. Ankle boot
+```
 
 ## Applications
 

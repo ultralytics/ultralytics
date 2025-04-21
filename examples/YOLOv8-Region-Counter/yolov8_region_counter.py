@@ -1,8 +1,9 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import argparse
 from collections import defaultdict
 from pathlib import Path
+from typing import Any, List
 
 import cv2
 import numpy as np
@@ -36,30 +37,25 @@ counting_regions = [
 ]
 
 
-def mouse_callback(event, x, y, flags, param):
+def mouse_callback(event: int, x: int, y: int, flags: int, param: Any) -> None:
     """
-    Handles mouse events for region manipulation.
+    Handle mouse events for region manipulation.
 
     Args:
         event (int): The mouse event type (e.g., cv2.EVENT_LBUTTONDOWN).
         x (int): The x-coordinate of the mouse pointer.
         y (int): The y-coordinate of the mouse pointer.
         flags (int): Additional flags passed by OpenCV.
-        param: Additional parameters passed to the callback (not used in this function).
+        param (Any): Additional parameters passed to the callback.
 
     Global Variables:
         current_region (dict): A dictionary representing the current selected region.
 
-    Mouse Events:
-        - LBUTTONDOWN: Initiates dragging for the region containing the clicked point.
-        - MOUSEMOVE: Moves the selected region if dragging is active.
-        - LBUTTONUP: Ends dragging for the selected region.
-
     Notes:
-        - This function is intended to be used as a callback for OpenCV mouse events.
-        - Requires the existence of the 'counting_regions' list and the 'Polygon' class.
+        This function is intended to be used as a callback for OpenCV mouse events.
+        It allows for selecting and dragging counting regions within the video frame.
 
-    Example:
+    Examples:
         >>> cv2.setMouseCallback(window_name, mouse_callback)
     """
     global current_region
@@ -91,35 +87,36 @@ def mouse_callback(event, x, y, flags, param):
 
 
 def run(
-    weights="yolov8n.pt",
-    source=None,
-    device="cpu",
-    view_img=False,
-    save_img=False,
-    exist_ok=False,
-    classes=None,
-    line_thickness=2,
-    track_thickness=2,
-    region_thickness=2,
-):
+    weights: str = "yolo11n.pt",
+    source: str = None,
+    device: str = "cpu",
+    view_img: bool = False,
+    save_img: bool = False,
+    exist_ok: bool = False,
+    classes: List[int] = None,
+    line_thickness: int = 2,
+    track_thickness: int = 2,
+    region_thickness: int = 2,
+) -> None:
     """
-    Run Region counting on a video using YOLOv8 and ByteTrack.
-
-    Supports movable region for real time counting inside specific area.
-    Supports multiple regions counting.
-    Regions can be Polygons or rectangle in shape
+    Run region counting on a video using YOLOv8 and ByteTrack.
 
     Args:
         weights (str): Model weights path.
         source (str): Video file path.
-        device (str): processing device cpu, 0, 1
-        view_img (bool): Show results.
-        save_img (bool): Save results.
+        device (str): Processing device: 'cpu', '0', '1', etc.
+        view_img (bool): Show results in a window.
+        save_img (bool): Save results to a video file.
         exist_ok (bool): Overwrite existing files.
-        classes (list): classes to detect and track
+        classes (List[int]): Classes to detect and track.
         line_thickness (int): Bounding box thickness.
-        track_thickness (int): Tracking line thickness
+        track_thickness (int): Tracking line thickness.
         region_thickness (int): Region thickness.
+
+    Notes:
+        - Supports movable regions for real-time counting inside specific areas.
+        - Supports multiple regions counting.
+        - Regions can be Polygons or rectangles in shape.
     """
     vid_frame_count = 0
 
@@ -132,17 +129,19 @@ def run(
     model.to("cuda") if device == "0" else model.to("cpu")
 
     # Extract classes names
-    names = model.model.names
+    names = model.names
 
     # Video setup
     videocapture = cv2.VideoCapture(source)
-    frame_width, frame_height = int(videocapture.get(3)), int(videocapture.get(4))
-    fps, fourcc = int(videocapture.get(5)), cv2.VideoWriter_fourcc(*"mp4v")
+    frame_width = int(videocapture.get(3))
+    frame_height = int(videocapture.get(4))
+    fps = int(videocapture.get(5))
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
 
     # Output setup
     save_dir = increment_path(Path("ultralytics_rc_output") / "exp", exist_ok)
     save_dir.mkdir(parents=True, exist_ok=True)
-    video_writer = cv2.VideoWriter(str(save_dir / f"{Path(source).stem}.mp4"), fourcc, fps, (frame_width, frame_height))
+    video_writer = cv2.VideoWriter(str(save_dir / f"{Path(source).stem}.avi"), fourcc, fps, (frame_width, frame_height))
 
     # Iterate over video frames
     while videocapture.isOpened():
@@ -183,7 +182,7 @@ def run(
             region_color = region["region_color"]
             region_text_color = region["text_color"]
 
-            polygon_coords = np.array(region["polygon"].exterior.coords, dtype=np.int32)
+            polygon_coordinates = np.array(region["polygon"].exterior.coords, dtype=np.int32)
             centroid_x, centroid_y = int(region["polygon"].centroid.x), int(region["polygon"].centroid.y)
 
             text_size, _ = cv2.getTextSize(
@@ -201,7 +200,7 @@ def run(
             cv2.putText(
                 frame, region_label, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, region_text_color, line_thickness
             )
-            cv2.polylines(frame, [polygon_coords], isClosed=True, color=region_color, thickness=region_thickness)
+            cv2.polylines(frame, [polygon_coordinates], isClosed=True, color=region_color, thickness=region_thickness)
 
         if view_img:
             if vid_frame_count == 1:
@@ -224,10 +223,10 @@ def run(
     cv2.destroyAllWindows()
 
 
-def parse_opt():
-    """Parse command line arguments."""
+def parse_opt() -> argparse.Namespace:
+    """Parse command line arguments for the region counting application."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--weights", type=str, default="yolov8n.pt", help="initial weights path")
+    parser.add_argument("--weights", type=str, default="yolo11n.pt", help="initial weights path")
     parser.add_argument("--device", default="", help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
     parser.add_argument("--source", type=str, required=True, help="video file path")
     parser.add_argument("--view-img", action="store_true", help="show results")
@@ -241,9 +240,9 @@ def parse_opt():
     return parser.parse_args()
 
 
-def main(opt):
-    """Main function."""
-    run(**vars(opt))
+def main(options: argparse.Namespace) -> None:
+    """Execute the main region counting functionality with the provided options."""
+    run(**vars(options))
 
 
 if __name__ == "__main__":

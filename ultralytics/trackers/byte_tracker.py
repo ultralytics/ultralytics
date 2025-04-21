@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import numpy as np
 
@@ -17,7 +17,7 @@ class STrack(BaseTrack):
     and predictions based on Kalman filter.
 
     Attributes:
-        shared_kalman (KalmanFilterXYAH): Shared Kalman filter that is used across all STrack instances for prediction.
+        shared_kalman (KalmanFilterXYAH): Shared Kalman filter used across all STrack instances for prediction.
         _tlwh (np.ndarray): Private attribute to store top-left corner coordinates and width and height of bounding box.
         kalman_filter (KalmanFilterXYAH): Instance of Kalman filter used for this particular object track.
         mean (np.ndarray): Mean state estimate vector.
@@ -217,7 +217,7 @@ class STrack(BaseTrack):
     def xywha(self):
         """Returns position in (center x, center y, width, height, angle) format, warning if angle is missing."""
         if self.angle is None:
-            LOGGER.warning("WARNING ⚠️ `angle` attr not found, returning `xywh` instead.")
+            LOGGER.warning("`angle` attr not found, returning `xywh` instead.")
             return self.xywh
         return np.concatenate([self.xywh, self.angle[None]])
 
@@ -236,9 +236,9 @@ class BYTETracker:
     """
     BYTETracker: A tracking algorithm built on top of YOLOv8 for object detection and tracking.
 
-    Responsible for initializing, updating, and managing the tracks for detected objects in a video sequence.
-    It maintains the state of tracked, lost, and removed tracks over frames, utilizes Kalman filtering for predicting
-    the new object locations, and performs data association.
+    This class encapsulates the functionality for initializing, updating, and managing the tracks for detected objects in a
+    video sequence. It maintains the state of tracked, lost, and removed tracks over frames, utilizes Kalman filtering for
+    predicting the new object locations, and performs data association.
 
     Attributes:
         tracked_stracks (List[STrack]): List of successfully activated tracks.

@@ -129,4 +129,8 @@ keywords: Ultralytics, utility operations, non-max suppression, bounding box tra
 
 ## ::: ultralytics.utils.ops.clean_str
 
+<br><br><hr><br>
+
+## ::: ultralytics.utils.ops.empty_like
+
 <br><br>

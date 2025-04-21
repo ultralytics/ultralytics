@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import contextlib
 import csv
@@ -18,9 +18,11 @@ from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import MODELS, TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import (
+    ARM64,
     ASSETS,
     DEFAULT_CFG,
     DEFAULT_CFG_PATH,
+    LINUX,
     LOGGER,
     ONLINE,
     ROOT,
@@ -73,7 +75,7 @@ def test_model_profile():
 
 @pytest.mark.skipif(not IS_TMP_WRITEABLE, reason="directory is not writeable")
 def test_predict_txt():
-    """Tests YOLO predictions with file, directory, and pattern sources listed in a text file."""
+    """Test YOLO predictions with file, directory, and pattern sources listed in a text file."""
     file = TMP / "sources_multi_row.txt"
     with open(file, "w") as f:
         for src in SOURCES_LIST:
@@ -85,7 +87,7 @@ def test_predict_txt():
 @pytest.mark.skipif(True, reason="disabled for testing")
 @pytest.mark.skipif(not IS_TMP_WRITEABLE, reason="directory is not writeable")
 def test_predict_csv_multi_row():
-    """Tests YOLO predictions with sources listed in multiple rows of a CSV file."""
+    """Test YOLO predictions with sources listed in multiple rows of a CSV file."""
     file = TMP / "sources_multi_row.csv"
     with open(file, "w", newline="") as f:
         writer = csv.writer(f)
@@ -98,7 +100,7 @@ def test_predict_csv_multi_row():
 @pytest.mark.skipif(True, reason="disabled for testing")
 @pytest.mark.skipif(not IS_TMP_WRITEABLE, reason="directory is not writeable")
 def test_predict_csv_single_row():
-    """Tests YOLO predictions with sources listed in a single row of a CSV file."""
+    """Test YOLO predictions with sources listed in a single row of a CSV file."""
     file = TMP / "sources_single_row.csv"
     with open(file, "w", newline="") as f:
         writer = csv.writer(f)
@@ -170,14 +172,14 @@ def test_youtube():
         model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)
     # Handle internet connection errors and 'urllib.error.HTTPError: HTTP Error 429: Too Many Requests'
     except (urllib.error.HTTPError, ConnectionError) as e:
-        LOGGER.warning(f"WARNING: YouTube Test Error: {e}")
+        LOGGER.error(f"YouTube Test Error: {e}")
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(not IS_TMP_WRITEABLE, reason="directory is not writeable")
 def test_track_stream():
     """
-    Tests streaming tracking on a short 10 frame video using ByteTrack tracker and different GMC methods.
+    Test streaming tracking on a short 10 frame video using ByteTrack tracker and different GMC methods.
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
@@ -199,7 +201,7 @@ def test_track_stream():
 
 def test_val():
     """Test the validation mode of the YOLO model."""
-    YOLO(MODEL).val(data="coco8.yaml", imgsz=32, save_hybrid=True)
+    YOLO(MODEL).val(data="coco8.yaml", imgsz=32)
 
 
 def test_train_scratch():
@@ -209,10 +211,13 @@ def test_train_scratch():
     model(SOURCE)
 
 
-def test_train_pretrained():
+@pytest.mark.parametrize("scls", [False, True])
+def test_train_pretrained(scls):
     """Test training of the YOLO model starting from a pre-trained checkpoint."""
     model = YOLO(WEIGHTS_DIR / "yolo11n-seg.pt")
-    model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, cache="ram", copy_paste=0.5, mixup=0.5, name=0)
+    model.train(
+        data="coco8-seg.yaml", epochs=1, imgsz=32, cache="ram", copy_paste=0.5, mixup=0.5, name=0, single_cls=scls
+    )
     model(SOURCE)
 
 
@@ -261,7 +266,7 @@ def test_predict_callback_and_setup():
 
 @pytest.mark.parametrize("model", MODELS)
 def test_results(model):
-    """Ensure YOLO model predictions can be processed and printed in various formats."""
+    """Test YOLO model results processing and output in various formats."""
     results = YOLO(WEIGHTS_DIR / model)([SOURCE, SOURCE], imgsz=160)
     for r in results:
         r = r.cpu().numpy()
@@ -273,13 +278,13 @@ def test_results(model):
         r.to_df(decimals=3)
         r.to_csv()
         r.to_xml()
-        r.plot(pil=True)
+        r.plot(pil=True, save=True, filename=TMP / "results_plot_save.jpg")
         r.plot(conf=True, boxes=True)
         print(r, len(r), r.path)  # print after methods
 
 
 def test_labels_and_crops():
-    """Test output from prediction args for saving YOLO detection labels and crops; ensures accurate saving."""
+    """Test output from prediction args for saving YOLO detection labels and crops."""
     imgs = [SOURCE, ASSETS / "zidane.jpg"]
     results = YOLO(WEIGHTS_DIR / "yolo11n.pt")(imgs, imgsz=160, save_txt=True, save_crop=True)
     save_path = Path(results[0].save_dir)
@@ -305,7 +310,8 @@ def test_labels_and_crops():
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_data_utils():
     """Test utility functions in ultralytics/data/utils.py, including dataset stats and auto-splitting."""
-    from ultralytics.data.utils import HUBDatasetStats, autosplit
+    from ultralytics.data.split import autosplit
+    from ultralytics.data.utils import HUBDatasetStats
     from ultralytics.utils.downloads import zip_directory
 
     # from ultralytics.utils.files import WorkingDirectory
@@ -334,7 +340,7 @@ def test_data_converter():
 
 
 def test_data_annotator():
-    """Automatically annotate data using specified detection and segmentation models."""
+    """Test automatic annotation of data using detection and segmentation models."""
     from ultralytics.data.annotator import auto_annotate
 
     auto_annotate(
@@ -409,17 +415,8 @@ def test_utils_torchutils():
     time_sync()
 
 
-@pytest.mark.slow
-@pytest.mark.skipif(not ONLINE, reason="environment is offline")
-def test_utils_downloads():
-    """Test file download utilities from ultralytics.utils.downloads."""
-    from ultralytics.utils.downloads import get_google_drive_file_info
-
-    get_google_drive_file_info("https://drive.google.com/file/d/1cqT-cJgANNrhIHCrEufUYhQ4RqiWG_lJ/view?usp=drive_link")
-
-
 def test_utils_ops():
-    """Test utility operations functions for coordinate transformation and normalization."""
+    """Test utility operations for coordinate transformations and normalizations."""
     from ultralytics.utils.ops import (
         ltwh2xywh,
         ltwh2xyxy,
@@ -463,7 +460,7 @@ def test_utils_files():
 
 @pytest.mark.slow
 def test_utils_patches_torch_save():
-    """Test torch_save backoff when _torch_save raises RuntimeError to ensure robustness."""
+    """Test torch_save backoff when _torch_save raises RuntimeError."""
     from unittest.mock import MagicMock, patch
 
     from ultralytics.utils.patches import torch_save
@@ -497,7 +494,7 @@ def test_nn_modules_conv():
 
 
 def test_nn_modules_block():
-    """Test various blocks in neural network modules including C1, C3TR, BottleneckCSP, C3Ghost, and C3x."""
+    """Test various neural network block modules."""
     from ultralytics.nn.modules.block import C1, C3TR, BottleneckCSP, C3Ghost, C3x
 
     c1, c2 = 8, 16  # input and output channels
@@ -513,7 +510,7 @@ def test_nn_modules_block():
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_hub():
-    """Test Ultralytics HUB functionalities (e.g. export formats, logout)."""
+    """Test Ultralytics HUB functionalities."""
     from ultralytics.hub import export_fmts_hub, logout
     from ultralytics.hub.utils import smart_request
 
@@ -524,7 +521,7 @@ def test_hub():
 
 @pytest.fixture
 def image():
-    """Load and return an image from a predefined source using OpenCV."""
+    """Load and return an image from a predefined source."""
     return cv2.imread(str(SOURCE))
 
 
@@ -538,7 +535,7 @@ def image():
     ],
 )
 def test_classify_transforms_train(image, auto_augment, erasing, force_color_jitter):
-    """Tests classification transforms during training with various augmentations to ensure proper functionality."""
+    """Test classification transforms during training with various augmentations."""
     from ultralytics.data.augment import classify_augmentations
 
     transform = classify_augmentations(
@@ -573,7 +570,7 @@ def test_model_tune():
 
 
 def test_model_embeddings():
-    """Test YOLO model embeddings."""
+    """Test YOLO model embeddings extraction functionality."""
     model_detect = YOLO(MODEL)
     model_segment = YOLO(WEIGHTS_DIR / "yolo11n-seg.pt")
 
@@ -583,13 +580,17 @@ def test_model_embeddings():
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOWorld with CLIP is not supported in Python 3.12")
+@pytest.mark.skipif(
+    checks.IS_PYTHON_3_8 and LINUX and ARM64,
+    reason="YOLOWorld with CLIP is not supported in Python 3.8 and aarch64 Linux",
+)
 def test_yolo_world():
-    """Tests YOLO world models with CLIP support, including detection and training scenarios."""
-    model = YOLO("yolov8s-world.pt")  # no YOLO11n-world model yet
+    """Test YOLO world models with CLIP support."""
+    model = YOLO(WEIGHTS_DIR / "yolov8s-world.pt")  # no YOLO11n-world model yet
     model.set_classes(["tree", "window"])
     model(SOURCE, conf=0.01)
 
-    model = YOLO("yolov8s-worldv2.pt")  # no YOLO11n-world model yet
+    model = YOLO(WEIGHTS_DIR / "yolov8s-worldv2.pt")  # no YOLO11n-world model yet
     # Training from a pretrained model. Eval is included at the final stage of training.
     # Use dota8.yaml which has fewer categories to reduce the inference time of CLIP model
     model.train(
@@ -614,11 +615,81 @@ def test_yolo_world():
     )
 
 
+@pytest.mark.skipif(checks.IS_PYTHON_3_12 or not TORCH_1_9, reason="YOLOE with CLIP is not supported in Python 3.12")
+@pytest.mark.skipif(
+    checks.IS_PYTHON_3_8 and LINUX and ARM64,
+    reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux",
+)
+def test_yoloe():
+    """Test YOLOE models with MobileClip support."""
+    # Predict
+    # text-prompts
+    model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    names = ["person", "bus"]
+    model.set_classes(names, model.get_text_pe(names))
+    model(SOURCE, conf=0.01)
+
+    import numpy as np
+
+    from ultralytics import YOLOE
+    from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
+
+    # visual-prompts
+    visuals = dict(
+        bboxes=np.array(
+            [[221.52, 405.8, 344.98, 857.54], [120, 425, 160, 445]],
+        ),
+        cls=np.array([0, 1]),
+    )
+    model.predict(
+        SOURCE,
+        visual_prompts=visuals,
+        predictor=YOLOEVPSegPredictor,
+    )
+
+    # Val
+    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    # text prompts
+    model.val(data="coco128-seg.yaml", imgsz=32)
+    # visual prompts
+    model.val(data="coco128-seg.yaml", load_vp=True, imgsz=32)
+
+    # Train, fine-tune
+    from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
+
+    model = YOLOE("yoloe-11s-seg.pt")
+    model.train(
+        data="coco128-seg.yaml",
+        epochs=1,
+        close_mosaic=1,
+        trainer=YOLOEPESegTrainer,
+        imgsz=32,
+    )
+
+    # prompt-free
+    # predict
+    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg-pf.pt")
+    model.predict(SOURCE)
+    # val
+    model = YOLOE("yoloe-11s-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+    model.val(data="coco128-seg.yaml", imgsz=32)
+
+
 def test_yolov10():
-    """Test YOLOv10 model training, validation, and prediction steps with minimal configurations."""
+    """Test YOLOv10 model training, validation, and prediction functionality."""
     model = YOLO("yolov10n.yaml")
     # train/val/predict
     model.train(data="coco8.yaml", epochs=1, imgsz=32, close_mosaic=1, cache="disk")
     model.val(data="coco8.yaml", imgsz=32)
     model.predict(imgsz=32, save_txt=True, save_crop=True, augment=True)
     model(SOURCE)
+
+
+def test_multichannel():
+    """Test YOLO model multi-channel training, validation, and prediction functionality."""
+    model = YOLO("yolo11n.pt")
+    model.train(data="coco8-multispectral.yaml", epochs=1, imgsz=32, close_mosaic=1, cache="disk")
+    model.val(data="coco8-multispectral.yaml")
+    im = np.zeros((32, 32, 10), dtype=np.uint8)
+    model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)
+    model.export(format="onnx")

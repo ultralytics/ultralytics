@@ -23,13 +23,13 @@ keywords: Open Images V7, Google dataset, computer vision, YOLO11 models, object
 
 | Model                                                                                     | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ----------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
-| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
-| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-oiv7.pt) | 640                   | 27.7                 | 183.1                          | 1.40                                | 11.4               | 29.7              |
-| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-oiv7.pt) | 640                   | 33.6                 | 408.5                          | 2.26                                | 26.2               | 80.6              |
-| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-oiv7.pt) | 640                   | 34.9                 | 596.9                          | 2.43                                | 44.1               | 167.4             |
-| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-oiv7.pt) | 640                   | 36.3                 | 860.6                          | 3.56                                | 68.7               | 260.6             |
+| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
+| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8s-oiv7.pt) | 640                   | 27.7                 | 183.1                          | 1.40                                | 11.4               | 29.7              |
+| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8m-oiv7.pt) | 640                   | 33.6                 | 408.5                          | 2.26                                | 26.2               | 80.6              |
+| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8l-oiv7.pt) | 640                   | 34.9                 | 596.9                          | 2.43                                | 44.1               | 167.4             |
+| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8x-oiv7.pt) | 640                   | 36.3                 | 860.6                          | 3.56                                | 68.7               | 260.6             |
 
-You can use these pretrained for inference or fine-tuning as follows.
+You can use these pretrained models for inference or fine-tuning as follows.
 
 !!! example "Pretrained Model Usage Example"
 
@@ -69,7 +69,7 @@ You can use these pretrained for inference or fine-tuning as follows.
 - V6 introduced 675k localized narratives that amalgamate voice, text, and mouse traces highlighting described objects.
 - V7 introduced 66.4M point-level labels on 1.4M images, spanning 5,827 classes.
 - Encompasses 61.4M image-level labels across a diverse set of 20,638 classes.
-- Provides a unified platform for image classification, object detection, relationship detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), and multimodal image descriptions.
+- Provides a unified platform for [image classification](https://www.ultralytics.com/glossary/image-classification), object detection, relationship detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), and multimodal image descriptions.
 
 ## Dataset Structure
 
@@ -84,7 +84,15 @@ Open Images V7 is structured in multiple components catering to varied computer 
 
 ## Applications
 
-Open Images V7 is a cornerstone for training and evaluating state-of-the-art models in various computer vision tasks. The dataset's broad scope and high-quality annotations make it indispensable for researchers and developers specializing in computer vision.
+Open Images V7 is a cornerstone for training and evaluating state-of-the-art models in various computer vision tasks. The dataset's broad scope and high-quality annotations make it indispensable for researchers and developers specializing in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv).
+
+Some key applications include:
+
+- **Advanced Object Detection**: Train models to identify and locate multiple objects in complex scenes with high accuracy.
+- **Semantic Understanding**: Develop systems that comprehend visual relationships between objects.
+- **Image Segmentation**: Create precise pixel-level masks for objects, enabling detailed scene analysis.
+- **Multi-modal Learning**: Combine visual data with text descriptions for richer AI understanding.
+- **Zero-shot Learning**: Leverage the extensive class coverage to identify objects not seen during training.
 
 ## Dataset YAML
 
@@ -138,7 +146,7 @@ Illustrations of the dataset help provide insights into its richness:
 
 - **Open Images V7**: This image exemplifies the depth and detail of annotations available, including bounding boxes, relationships, and segmentation masks.
 
-Researchers can gain invaluable insights into the array of computer vision challenges that the dataset addresses, from basic object detection to intricate relationship identification.
+Researchers can gain invaluable insights into the array of computer vision challenges that the dataset addresses, from basic object detection to intricate relationship identification. The [diversity of annotations](https://docs.ultralytics.com/datasets/explorer/) makes Open Images V7 particularly valuable for developing models that can understand complex visual scenes.
 
 ## Citations and Acknowledgments
 
@@ -210,11 +218,11 @@ Ultralytics provides several YOLOv8 pretrained models for the Open Images V7 dat
 
 | Model                                                                                     | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ----------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
-| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
-| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s-oiv7.pt) | 640                   | 27.7                 | 183.1                          | 1.40                                | 11.4               | 29.7              |
-| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m-oiv7.pt) | 640                   | 33.6                 | 408.5                          | 2.26                                | 26.2               | 80.6              |
-| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8l-oiv7.pt) | 640                   | 34.9                 | 596.9                          | 2.43                                | 44.1               | 167.4             |
-| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-oiv7.pt) | 640                   | 36.3                 | 860.6                          | 3.56                                | 68.7               | 260.6             |
+| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8n-oiv7.pt) | 640                   | 18.4                 | 142.4                          | 1.21                                | 3.5                | 10.5              |
+| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8s-oiv7.pt) | 640                   | 27.7                 | 183.1                          | 1.40                                | 11.4               | 29.7              |
+| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8m-oiv7.pt) | 640                   | 33.6                 | 408.5                          | 2.26                                | 26.2               | 80.6              |
+| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8l-oiv7.pt) | 640                   | 34.9                 | 596.9                          | 2.43                                | 44.1               | 167.4             |
+| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8x-oiv7.pt) | 640                   | 36.3                 | 860.6                          | 3.56                                | 68.7               | 260.6             |
 
 ### What applications can the Open Images V7 dataset be used for?
 

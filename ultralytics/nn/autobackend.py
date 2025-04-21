@@ -145,13 +145,10 @@ class AutoBackend(nn.Module):
         nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCWH)
         stride, ch = 32, 3  # default stride and channels
         end2end, dynamic = False, False
-        model, metadata, task, inference_device = None, None, None, None
+        model, metadata, task = None, None, None
 
         # Set device
-        if isinstance(device, str) and device.startswith("intel"):
-            inference_device = device.split(":")[1].upper()  # Intel OpenVINO device
-            device = torch.device("cpu")
-        cuda = torch.cuda.is_available() and device.type != "cpu"  # use CUDA
+        cuda = isinstance(device, torch.device) and torch.cuda.is_available() and device.type != "cpu"  # use CUDA
         if cuda and not any([nn_module, pt, jit, engine, onnx, paddle]):  # GPU dataloader formats
             device = torch.device("cpu")
             cuda = False
@@ -266,10 +263,14 @@ class AutoBackend(nn.Module):
             check_requirements("openvino>=2024.0.0")
             import openvino as ov
 
+            device_name = "CPU"
+            if isinstance(device, str) and device.startswith("intel"):
+                device_name = device.split(":")[1].upper()  # Intel OpenVINO device
+                device = torch.device("cpu")  # update the cpu
             core = ov.Core()
-            if inference_device not in core.available_devices:
-                LOGGER.warning(f"OpenVINO device '{inference_device}' not available. Using 'AUTO' instead.")
-                inference_device = "AUTO"
+            if device_name not in core.available_devices:
+                LOGGER.warning(f"OpenVINO device '{device_name}' not available. Using 'AUTO' instead.")
+                device_name = "AUTO"
             w = Path(w)
             if not w.is_file():  # if not *.xml
                 w = next(w.glob("*.xml"))  # get *.xml file from *_openvino_model dir
@@ -282,7 +283,7 @@ class AutoBackend(nn.Module):
             LOGGER.info(f"Using OpenVINO {inference_mode} mode for batch={batch} inference...")
             ov_compiled_model = core.compile_model(
                 ov_model,
-                device_name=inference_device,
+                device_name=device_name,
                 config={"PERFORMANCE_HINT": inference_mode},
             )
             input_name = ov_compiled_model.input().get_any_name()

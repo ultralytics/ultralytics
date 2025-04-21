@@ -664,20 +664,14 @@ class Model(torch.nn.Module):
         """
         self._check_is_pytorch_model()
         from ultralytics.utils.benchmarks import benchmark
+        from .exporter import export_formats
 
         custom = {"verbose": False}  # method defaults
         args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, "mode": "benchmark"}
-        kwargs.pop("model", None)
+        export_args = set([args for fmts in export_formats()["Arguments"] for args in fmts])  # get all export args
+        export_kwargs = {k: v for k, v in args.items() if k in export_args - set(["batch"])}
         return benchmark(
-            model=self,
-            data=kwargs.pop("data", None),  # if no 'data' argument passed set data=None for default datasets
-            imgsz=kwargs.pop("imgsz", args["imgsz"]),
-            half=kwargs.pop("half", args["half"]),
-            int8=kwargs.pop("int8", args["int8"]),
-            device=kwargs.pop("device", args["device"]),
-            verbose=kwargs.pop("verbose", False),
-            format=kwargs.pop("format", ""),
-            **kwargs,
+            model=self, verbose=kwargs.pop("verbose", False), format=kwargs.pop("format", ""), **export_kwargs
         )
 
     def export(

@@ -32,7 +32,7 @@ The ImageNet10 dataset is useful for quickly testing and debugging computer visi
 To test a deep learning model on the ImageNet10 dataset with an image size of 224x224, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 {% include "macros/dataset-train-example.md" %}
- 
+
 ## Sample Images and Annotations
 
 The ImageNet10 dataset contains a subset of images from the original ImageNet dataset. These images are chosen to represent the first 10 classes in the dataset, providing a diverse yet compact dataset for quick testing and evaluation.

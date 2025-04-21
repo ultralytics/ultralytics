@@ -45,7 +45,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 To train a YOLO11n model on the Global Wheat Head Dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 {% include "macros/dataset-train-example.md" %}
- 
+
 ## Sample Data and Annotations
 
 The Global Wheat Head Dataset contains a diverse set of outdoor field images, capturing the natural variability in wheat head appearances, environments, and conditions. Here are some examples of data from the dataset, along with their corresponding annotations:

@@ -151,7 +151,9 @@ class BasePredictor:
         not_tensor = not isinstance(im, torch.Tensor)
         if not_tensor:
             im = np.stack(self.pre_transform(im))
-            im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
+            if im.shape[-1] == 3:
+                im = im[..., ::-1]  # BGR to RGB
+            im = im.transpose((0, 3, 1, 2))  # BHWC to BCHW, (n, 3, h, w)
             im = np.ascontiguousarray(im)  # contiguous
             im = torch.from_numpy(im)
 

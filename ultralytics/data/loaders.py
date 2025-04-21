@@ -492,7 +492,7 @@ class LoadPilAndNumpy:
         if isinstance(im, Image.Image):
             if im.mode != "RGB":
                 im = im.convert("RGB")
-            im = np.asarray(im)[:, :, ::-1]
+            im = np.asarray(im)[:, :, ::-1]  # RGB to BGR
             im = np.ascontiguousarray(im)  # contiguous
         return im
 

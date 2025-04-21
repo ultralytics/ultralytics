@@ -60,6 +60,8 @@ class SAHIInference:
         exist_ok: bool = False,
         device: str = "",
         hide_conf: bool = False,
+        slice_width: int = 512,
+        slice_height: int = 512,
     ) -> None:
         """
         Run object detection on a video using YOLO11 and SAHI.
@@ -75,6 +77,8 @@ class SAHIInference:
             exist_ok (bool): Whether to overwrite existing output files.
             device (str, optional): CUDA device, i.e., '0' or '0,1,2,3' or 'cpu'. Defaults to "".
             hide_conf (bool, optional): Flag to show or hide confidences in the output. Defaults to False.
+            slice_width (int, optional): Slice width for inference.
+            slice_height (int, optional): Slice height for inference.
         """
         # Video setup
         cap = cv2.VideoCapture(source)
@@ -96,8 +100,8 @@ class SAHIInference:
             results = get_sliced_prediction(
                 frame[..., ::-1],  # Convert BGR to RGB
                 self.detection_model,
-                slice_height=512,
-                slice_width=512,
+                slice_height=slice_height,
+                slice_width=slice_width,
             )
 
             # Display results if requested
@@ -133,6 +137,8 @@ class SAHIInference:
         parser.add_argument("--exist-ok", action="store_true", help="existing project/name ok, do not increment")
         parser.add_argument("--device", default="", help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
         parser.add_argument("--hide-conf", default=False, action="store_true", help="display or hide confidences")
+        parser.add_argument("--slice-width", default=512, type=int, help="Slice width for inference")
+        parser.add_argument("--slice-height", default=512, type=int, help="Slice height for inference")
         return parser.parse_args()
 
 

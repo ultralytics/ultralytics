@@ -76,15 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
       primaryBrandColor: "#E1FF25",
       organizationDisplayName: "Ultralytics",
       colorMode: {
-        sync: {
-          target: document.documentElement,
-          attributes: ["data-color-mode-scheme"],
-          isDarkMode: (attributes) => {
-            const currentTheme =
-              document.documentElement.getAttribute("data-color-mode");
-            return currentTheme === "dark";
-          },
-        },
+        enableSystem: true,
       },
       theme: {
         styles: [
@@ -97,13 +89,15 @@ document.addEventListener("DOMContentLoaded", () => {
             key: "chat-button",
             type: "style",
             value: `
+              /* Light mode styling */
               .ikp-chat-button__button {
                 background-color: #E1FF25;
                 color: #111F68;
               }
+              /* Dark mode styling */
               [data-theme="dark"] .ikp-chat-button__button {
-                background-color: #E1FF25;
-                color: #111F68;
+                background-color: #40434f;
+                color: #ffffff;
               }
               .ikp-chat-button__container {
                 position: fixed;

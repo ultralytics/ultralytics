@@ -16,5 +16,5 @@
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo {{ task }} train data={{ dataset }} model={{ model_name }} epochs=100 imgsz=640
+        yolo {{ task }} train data={{ dataset }} model={{ model_name }} epochs=100 imgsz={{imgsz}}
         ```

@@ -263,14 +263,14 @@ class AutoBackend(nn.Module):
             check_requirements("openvino>=2024.0.0")
             import openvino as ov
 
-            device_name = "CPU"
+            core = ov.Core()
+            device_name = "AUTO"
             if isinstance(device, str) and device.startswith("intel"):
                 device_name = device.split(":")[1].upper()  # Intel OpenVINO device
                 device = torch.device("cpu")  # update the cpu
-            core = ov.Core()
-            if device_name not in core.available_devices:
-                LOGGER.warning(f"OpenVINO device '{device_name}' not available. Using 'AUTO' instead.")
-                device_name = "AUTO"
+                if device_name not in core.available_devices:
+                    LOGGER.warning(f"OpenVINO device '{device_name}' not available. Using 'AUTO' instead.")
+                    device_name = "AUTO"
             w = Path(w)
             if not w.is_file():  # if not *.xml
                 w = next(w.glob("*.xml"))  # get *.xml file from *_openvino_model dir

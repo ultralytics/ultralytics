@@ -683,3 +683,13 @@ def test_yolov10():
     model.val(data="coco8.yaml", imgsz=32)
     model.predict(imgsz=32, save_txt=True, save_crop=True, augment=True)
     model(SOURCE)
+
+
+def test_multichannel():
+    """Test YOLO model multi-channel training, validation, and prediction functionality."""
+    model = YOLO("yolo11n.pt")
+    model.train(data="coco8-multispectral.yaml", epochs=1, imgsz=32, close_mosaic=1, cache="disk")
+    model.val(data="coco8-multispectral.yaml")
+    im = np.zeros((32, 32, 10), dtype=np.uint8)
+    model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)
+    model.export(format="onnx")

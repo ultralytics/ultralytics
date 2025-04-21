@@ -266,7 +266,7 @@ class AutoBackend(nn.Module):
 
             core = ov.Core()
             if inference_device not in core.available_devices:
-                LOGGER.warning(f"WARNING ⚠️ OpenVINO device '{inference_device}' not available. Using 'AUTO' instead.")
+                LOGGER.warning(f"OpenVINO device '{inference_device}' not available. Using 'AUTO' instead.")
                 inference_device = "AUTO"
             w = Path(w)
             if not w.is_file():  # if not *.xml

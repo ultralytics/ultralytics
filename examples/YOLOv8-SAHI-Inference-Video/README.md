@@ -44,7 +44,7 @@ python yolov8_sahi.py --source "path/to/your/video.mp4" --save-img --weights "yo
 python yolov8_sahi.py --source "path/to/your/video.mp4" --save-img --slice-height 512 --slice-width 512
 ```
 
-This script processes the video frame by frame, applying SAHI's slicing and inference logic before stitching the detections back onto the original frame dimensions. The output folder, annotated images with detections, will be saved in the `runs/detect/predict` directory. Learn more about prediction with Ultralytics models in the [Predict mode documentation](https://docs.ultralytics.com/modes/predict/).
+This script processes the video frame by frame, applying SAHI's slicing and inference logic before stitching the detections back onto the original frame dimensions. The output, annotated images with detections, will be saved in the `runs/detect/predict` directory. Learn more about prediction with Ultralytics models in the [Predict mode documentation](https://docs.ultralytics.com/modes/predict/).
 
 ## 🛠️ Usage Options
 

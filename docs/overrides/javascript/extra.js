@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const inkeepScript = document.createElement("script");
   inkeepScript.src =
-    "https://cdn.jsdelivr.net/npm/@inkeep/uikit-js@0.3.20/dist/embed.min.js";
+    "https://cdn.jsdelivr.net/npm/@inkeep/cxkit-js@0.5/dist/embed.js";
   inkeepScript.type = "module";
   inkeepScript.defer = true;
   document.head.appendChild(inkeepScript);
@@ -67,82 +67,97 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // configure and initialize the widget
-  const addInkeepWidget = (componentType, targetElementId) => {
-    const inkeepWidget = Inkeep().embed({
-      componentType,
-      ...(componentType !== "ChatButton"
-        ? { targetElement: targetElementId }
-        : {}),
-      colorModeSync: {
-        observedElement: document.documentElement,
-        isDarkModeCallback: (el) => {
-          const currentTheme = el.getAttribute("data-color-mode");
-          return currentTheme === "dark";
-        },
-        colorModeAttribute: "data-color-mode-scheme",
-      },
-      properties: {
-        chatButtonType: "PILL",
-        fixedPositionXOffset: "1rem",
-        fixedPositionYOffset: "3rem",
-        chatButtonBgColor: "#E1FF25",
-        baseSettings: {
-          apiKey: "13dfec2e75982bc9bae3199a08e13b86b5fbacd64e9b2f89",
-          integrationId: "cm1shscmm00y26sj83lgxzvkw",
-          organizationId: "org_e3869az6hQZ0mXdF",
-          primaryBrandColor: "#E1FF25",
-          organizationDisplayName: "Ultralytics",
-          theme: {
-            stylesheetUrls: ["/stylesheets/style.css"],
+  // Configuration object for Inkeep
+  const config = {
+    baseSettings: {
+      apiKey: "13dfec2e75982bc9bae3199a08e13b86b5fbacd64e9b2f89",
+      integrationId: "cm1shscmm00y26sj83lgxzvkw",
+      organizationId: "org_e3869az6hQZ0mXdF",
+      primaryBrandColor: "#E1FF25",
+      organizationDisplayName: "Ultralytics",
+      colorMode: {
+        sync: {
+          target: document.documentElement,
+          attributes: ["data-color-mode-scheme"],
+          isDarkMode: (attributes) => {
+            const currentTheme =
+              document.documentElement.getAttribute("data-color-mode");
+            return currentTheme === "dark";
           },
         },
-        modalSettings: {
-          // optional settings
-        },
-        searchSettings: {
-          placeholder: "Search",
-        },
-        aiChatSettings: {
-          chatSubjectName: "Ultralytics",
-          botAvatarSrcUrl:
-            "https://storage.googleapis.com/organization-image-assets/ultralytics-botAvatarSrcUrl-1729379860806.svg",
-          quickQuestions: [
-            "What's new in Ultralytics YOLO11?",
-            "How can I get started with Ultralytics HUB?",
-            "How does Ultralytics Enterprise Licensing work?",
-          ],
-          getHelpCallToActions: [
-            {
-              name: "Ask on Ultralytics GitHub",
-              url: "https://github.com/ultralytics/ultralytics",
-              icon: {
-                builtIn: "FaGithub",
-              },
-            },
-            {
-              name: "Ask on Ultralytics Discourse",
-              url: "https://community.ultralytics.com/",
-              icon: {
-                builtIn: "FaDiscourse",
-              },
-            },
-            {
-              name: "Ask on Ultralytics Discord",
-              url: "https://discord.com/invite/ultralytics",
-              icon: {
-                builtIn: "FaDiscord",
-              },
-            },
-          ],
-        },
       },
-    });
+      theme: {
+        styles: [
+          {
+            key: "main",
+            type: "link",
+            value: "/stylesheets/style.css",
+          },
+          {
+            key: "chat-button",
+            type: "style",
+            value: `
+              .ikp-chat-button__button {
+                background-color: #E1FF25;
+                color: #111F68;
+              }
+              [data-theme="dark"] .ikp-chat-button__button {
+                background-color: #E1FF25;
+                color: #111F68;
+              }
+              .ikp-chat-button__container {
+                position: fixed;
+                right: 1rem;
+                bottom: 3rem;
+              }
+            `,
+          },
+        ],
+      },
+    },
+    searchSettings: {
+      placeholder: "Search",
+    },
+    aiChatSettings: {
+      chatSubjectName: "Ultralytics",
+      aiAssistantAvatar:
+        "https://storage.googleapis.com/organization-image-assets/ultralytics-botAvatarSrcUrl-1729379860806.svg",
+      exampleQuestions: [
+        "What's new in Ultralytics YOLO11?",
+        "How can I get started with Ultralytics HUB?",
+        "How does Ultralytics Enterprise Licensing work?",
+      ],
+      helpResources: [
+        {
+          name: "Ask on Ultralytics GitHub",
+          url: "https://github.com/ultralytics/ultralytics",
+          icon: {
+            builtIn: "FaGithub",
+          },
+        },
+        {
+          name: "Ask on Ultralytics Discourse",
+          url: "https://community.ultralytics.com/",
+          icon: {
+            builtIn: "FaDiscourse",
+          },
+        },
+        {
+          name: "Ask on Ultralytics Discord",
+          url: "https://discord.com/invite/ultralytics",
+          icon: {
+            builtIn: "FaDiscord",
+          },
+        },
+      ],
+    },
   };
+
+  // Initialize Inkeep widgets when script loads
   inkeepScript.addEventListener("load", () => {
     const widgetContainer = document.getElementById("inkeepSearchBar");
 
-    addInkeepWidget("ChatButton");
-    widgetContainer && addInkeepWidget("SearchBar", "#inkeepSearchBar");
+    Inkeep.ChatButton(config);
+    widgetContainer && Inkeep.SearchBar("#inkeepSearchBar", config);
   });
 });

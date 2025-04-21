@@ -2,6 +2,9 @@
 comments: true
 description: Explore the DOTA8 dataset - a small, versatile oriented object detection dataset ideal for testing and debugging object detection models using Ultralytics YOLO11.
 keywords: DOTA8 dataset, Ultralytics, YOLO11, object detection, debugging, training models, oriented object detection, dataset YAML
+model_name: yolo11n-obb.pt
+dataset: dota8.yaml
+task: obb
 ---
 
 # DOTA8 Dataset
@@ -26,26 +29,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLO11n-obb model on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-obb.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="dota8.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo obb train data=dota8.yaml model=yolo11n-obb.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Images and Annotations
 
@@ -90,26 +74,7 @@ The DOTA8 dataset is a small, versatile oriented object detection dataset made u
 
 To train a YOLO11n-obb model on the DOTA8 dataset for 100 epochs with an image size of 640, you can use the following code snippets. For comprehensive argument options, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-obb.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="dota8.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo obb train data=dota8.yaml model=yolo11n-obb.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ### What are the key features of the DOTA dataset and where can I access the YAML file?
 

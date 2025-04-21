@@ -2,6 +2,9 @@
 comments: true
 description: Discover the LVIS dataset by Facebook AI Research, a benchmark for object detection and instance segmentation with a large, diverse vocabulary. Learn how to utilize it.
 keywords: LVIS dataset, object detection, instance segmentation, Facebook AI Research, YOLO, computer vision, model training, LVIS examples
+model_name: yolo11n.pt
+dataset: lvis.yaml
+task: detect
 ---
 
 # LVIS Dataset
@@ -58,26 +61,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLO11n model on the LVIS dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="lvis.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=lvis.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Images and Annotations
 

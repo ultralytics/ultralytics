@@ -2,6 +2,9 @@
 comments: true
 description: Explore the Package Segmentation Dataset. Optimize logistics and enhance vision models with curated images for package identification and sorting.
 keywords: Package Segmentation Dataset, computer vision, package identification, logistics, warehouse automation, segmentation models, training data, Ultralytics YOLO
+model_name: yolo11n-seg.pt
+dataset: package-seg.yaml
+task: segment
 ---
 
 # Package Segmentation Dataset

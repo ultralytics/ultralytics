@@ -2,6 +2,9 @@
 comments: true
 description: Explore the extensive Crack Segmentation Dataset, ideal for transportation safety, infrastructure maintenance, and self-driving car model development using Ultralytics YOLO.
 keywords: Crack Segmentation Dataset, Ultralytics, transportation safety, public safety, self-driving cars, computer vision, road safety, infrastructure maintenance, dataset, YOLO, segmentation, deep learning
+model_name: yolo11n-seg.pt
+dataset: crack-seg.yaml
+task: segment
 ---
 
 # Crack Segmentation Dataset
@@ -51,32 +54,7 @@ A [YAML](https://www.ultralytics.com/glossary/yaml) (Yet Another Markup Language
 
 To train the Ultralytics YOLO11n model on the Crack Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following [Python](https://www.python.org/) code snippets. Refer to the model [Training](../../modes/train.md) documentation page for a comprehensive list of available arguments and configurations like [hyperparameter tuning](../../guides/hyperparameter-tuning.md).
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        # Using a pretrained model like yolo11n-seg.pt is recommended for faster convergence
-        model = YOLO("yolo11n-seg.pt")
-
-        # Train the model on the Crack Segmentation dataset
-        # Ensure 'crack-seg.yaml' is accessible or provide the full path
-        results = model.train(data="crack-seg.yaml", epochs=100, imgsz=640)
-
-        # After training, the model can be used for prediction or exported
-        # results = model.predict(source='path/to/your/images')
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model using the Command Line Interface
-        # Ensure the dataset YAML file 'crack-seg.yaml' is correctly configured and accessible
-        yolo segment train data=crack-seg.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Data and Annotations
 
@@ -122,26 +100,7 @@ The Crack Segmentation Dataset is a collection of 4029 static images designed fo
 
 To train an [Ultralytics YOLO11](../../models/yolo11.md) model on this dataset, use the provided Python or CLI examples. Detailed instructions and parameters are available on the model [Training](../../modes/train.md) page. You can manage your training process using tools like [Ultralytics HUB](https://www.ultralytics.com/hub).
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a pretrained model (recommended)
-        model = YOLO("yolo11n-seg.pt")
-
-        # Train the model
-        results = model.train(data="crack-seg.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained model via CLI
-        yolo segment train data=crack-seg.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ### Why use the Crack Segmentation Dataset for self-driving car projects?
 

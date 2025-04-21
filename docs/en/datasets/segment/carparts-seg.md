@@ -2,6 +2,9 @@
 comments: true
 description: Explore the Carparts Segmentation Dataset for automotive AI applications. Enhance your segmentation models with rich, annotated data using Ultralytics YOLO.
 keywords: Carparts Segmentation Dataset, computer vision, automotive AI, vehicle maintenance, Ultralytics, YOLO, segmentation models, deep learning, object segmentation
+model_name: yolo11n-seg.pt
+dataset: carparts-seg.yaml
+task: segment
 ---
 
 # Carparts Segmentation Dataset
@@ -60,39 +63,7 @@ A [YAML](https://www.ultralytics.com/glossary/yaml) (Yet Another Markup Language
 
 To train an [Ultralytics YOLO11](../../models/yolo11.md) model on the Carparts Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following code snippets. Refer to the model [Training guide](../../modes/train.md) for a comprehensive list of available arguments and explore [model training tips](https://docs.ultralytics.com/guides/model-training-tips/) for best practices.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a pretrained segmentation model like YOLO11n-seg
-        model = YOLO("yolo11n-seg.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model on the Carparts Segmentation dataset
-        results = model.train(data="carparts-seg.yaml", epochs=100, imgsz=640)
-
-        # After training, you can validate the model's performance on the validation set
-        results = model.val()
-
-        # Or perform prediction on new images or videos
-        results = model.predict("path/to/your/image.jpg")
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model using the Command Line Interface
-        # Specify the dataset config file, model, number of epochs, and image size
-        yolo segment train data=carparts-seg.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
-
-        # Validate the trained model using the validation set
-        # yolo segment val model=path/to/best.pt
-
-        # Predict using the trained model on a specific image source
-        # yolo segment predict model=path/to/best.pt source=path/to/your/image.jpg
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Data and Annotations
 
@@ -138,25 +109,7 @@ The Carparts Segmentation Dataset is a specialized collection of images and vide
 
 You can train an [Ultralytics YOLO11](../../models/yolo11.md) segmentation model using this dataset. Load a pretrained model (e.g., `yolo11n-seg.pt`) and initiate training using the provided Python or CLI examples, referencing the `carparts-seg.yaml` configuration file. Check the [Training Guide](../../modes/train.md) for detailed instructions.
 
-!!! example "Train Example Snippet"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-seg.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="carparts-seg.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        yolo segment train data=carparts-seg.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ### What are some applications of Carparts Segmentation?
 

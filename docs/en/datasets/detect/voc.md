@@ -2,6 +2,9 @@
 comments: true
 description: Discover the PASCAL VOC dataset, essential for object detection, segmentation, and classification. Learn key features, applications, and usage tips.
 keywords: PASCAL VOC, VOC dataset, object detection, segmentation, classification, YOLO, Faster R-CNN, Mask R-CNN, image annotations, computer vision
+model_name: yolo11n.pt
+dataset: VOC.yaml
+task: detect
 ---
 
 # VOC Dataset
@@ -41,26 +44,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLO11n model on the VOC dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="VOC.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=VOC.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Images and Annotations
 
@@ -103,26 +87,7 @@ The [PASCAL VOC](http://host.robots.ox.ac.uk/pascal/VOC/) (Visual Object Classes
 
 To train a YOLO11 model with the VOC dataset, you need the dataset configuration in a YAML file. Here's an example to start training a YOLO11n model for 100 epochs with an image size of 640:
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="VOC.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=VOC.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ### What are the primary challenges included in the VOC dataset?
 

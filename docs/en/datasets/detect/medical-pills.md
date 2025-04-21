@@ -2,6 +2,9 @@
 comments: true
 description: Explore the medical-pills detection dataset with labeled images. Essential for training AI models for pharmaceutical identification and automation.
 keywords: medical-pills dataset, pill detection, pharmaceutical imaging, AI in healthcare, computer vision, object detection, medical automation, dataset for training
+model_name: yolo11n.pt
+dataset: medical-pills.yaml
+task: detect
 ---
 
 # Medical Pills Dataset
@@ -54,26 +57,7 @@ A YAML configuration file is provided to define the dataset's structure, includi
 
 To train a YOLO11n model on the medical-pills dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following examples. For detailed arguments, refer to the model's [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="medical-pills.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=medical-pills.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 !!! example "Inference Example"
 

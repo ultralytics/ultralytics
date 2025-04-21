@@ -2,6 +2,9 @@
 comments: true
 description: Explore the xView dataset, a rich resource of 1M+ object instances in high-resolution satellite imagery. Enhance detection, learning efficiency, and more.
 keywords: xView dataset, overhead imagery, satellite images, object detection, high resolution, bounding boxes, computer vision, TensorFlow, PyTorch, dataset structure
+model_name: yolo11n.pt
+dataset: xView.yaml
+task: detect
 ---
 
 # xView Dataset
@@ -59,26 +62,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a model on the xView dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="xView.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=xView.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Data and Annotations
 
@@ -129,27 +113,7 @@ The [xView](http://xviewdataset.org/) dataset is one of the largest publicly ava
 
 To train a model on the xView dataset using [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo11/), follow these steps:
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="xView.yaml", epochs=100, imgsz=640)
-        ```
-
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=xView.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For detailed arguments and settings, refer to the model [Training](../../modes/train.md) page.
 

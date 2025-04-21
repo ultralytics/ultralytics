@@ -2,6 +2,9 @@
 comments: true
 description: Explore the comprehensive Open Images V7 dataset by Google. Learn about its annotations, applications, and use YOLO11 pretrained models for computer vision tasks.
 keywords: Open Images V7, Google dataset, computer vision, YOLO11 models, object detection, image segmentation, visual relationships, AI research, Ultralytics
+model_name: yolo11n.pt
+dataset: open-images-v7.yaml
+task: detect
 ---
 
 # Open Images V7 Dataset
@@ -117,26 +120,7 @@ To train a YOLO11n model on the Open Images V7 dataset for 100 [epochs](https://
     - Verify that your device has enough storage capacity.
     - Ensure a robust and speedy internet connection.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a COCO-pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
-
-        # Train the model on the Open Images V7 dataset
-        results = model.train(data="open-images-v7.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Train a COCO-pretrained YOLO11n model on the Open Images V7 dataset
-        yolo detect train data=open-images-v7.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Data and Annotations
 
@@ -177,27 +161,7 @@ Open Images V7 is an extensive and versatile dataset created by Google, designed
 
 To train a YOLO11 model on the Open Images V7 dataset, you can use both Python and CLI commands. Here's an example of training the YOLO11n model for 100 epochs with an image size of 640:
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a COCO-pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
-
-        # Train the model on the Open Images V7 dataset
-        results = model.train(data="open-images-v7.yaml", epochs=100, imgsz=640)
-        ```
-
-
-    === "CLI"
-
-        ```bash
-        # Train a COCO-pretrained YOLO11n model on the Open Images V7 dataset
-        yolo detect train data=open-images-v7.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For more details on arguments and settings, refer to the [Training](../../modes/train.md) page.
 

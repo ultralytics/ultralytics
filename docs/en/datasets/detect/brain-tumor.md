@@ -2,6 +2,9 @@
 comments: true
 description: Explore the brain tumor detection dataset with MRI/CT images. Essential for training AI models for early diagnosis and treatment planning.
 keywords: brain tumor dataset, MRI scans, CT scans, brain tumor detection, medical imaging, AI in healthcare, computer vision, early diagnosis, treatment planning
+model_name: yolo11n.pt
+dataset: brain-tumor.yaml
+task: detect
 ---
 
 # Brain Tumor Dataset
@@ -58,26 +61,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a [YOLO11](https://docs.ultralytics.com/models/yolo11/) model on the brain tumor dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, utilize the provided code snippets. For a detailed list of available arguments, consult the model's [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="brain-tumor.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=brain-tumor.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 !!! example "Inference Example"
 
@@ -140,27 +124,7 @@ The brain tumor dataset is divided into two subsets: the **training set** consis
 
 You can train a YOLO11 model on the brain tumor dataset for 100 epochs with an image size of 640px using both Python and CLI methods. Below are the examples for both:
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="brain-tumor.yaml", epochs=100, imgsz=640)
-        ```
-
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=brain-tumor.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For a detailed list of available arguments, refer to the [Training](../../modes/train.md) page.
 

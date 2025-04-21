@@ -2,6 +2,9 @@
 comments: true
 description: Discover the Signature Detection Dataset for training models to identify and verify human signatures in various documents. Perfect for document verification and fraud prevention.
 keywords: Signature Detection Dataset, document verification, fraud detection, computer vision, YOLO11, Ultralytics, annotated signatures, training dataset
+model_name: yolo11n.pt
+dataset: signature.yaml
+task: detect
 ---
 
 # Signature Detection Dataset
@@ -41,26 +44,7 @@ A YAML (Yet Another Markup Language) file defines the dataset configuration, inc
 
 To train a YOLO11n model on the signature detection dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the provided code samples. For a comprehensive list of available parameters, refer to the model's [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="signature.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=signature.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 !!! example "Inference Example"
 
@@ -110,25 +94,7 @@ To train a YOLO11n model on the Signature Detection Dataset, follow these steps:
 1. Download the `signature.yaml` dataset configuration file from [signature.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/signature.yaml).
 2. Use the following Python script or CLI command to start training:
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a pretrained model
-        model = YOLO("yolo11n.pt")
-
-        # Train the model
-        results = model.train(data="signature.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        yolo detect train data=signature.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For more details, refer to the [Training](../../modes/train.md) page.
 

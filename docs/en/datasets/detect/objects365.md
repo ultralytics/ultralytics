@@ -2,6 +2,9 @@
 comments: true
 description: Explore the Objects365 Dataset with 2M images and 30M bounding boxes across 365 categories. Enhance your object detection models with diverse, high-quality data.
 keywords: Objects365 dataset, object detection, machine learning, deep learning, computer vision, annotated images, bounding boxes, YOLO11, high-resolution images, dataset configuration
+model_name: yolo11n.pt
+dataset: Objects365.yaml
+task: detect
 ---
 
 # Objects365 Dataset
@@ -40,26 +43,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLO11n model on the Objects365 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="Objects365.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=Objects365.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Data and Annotations
 
@@ -101,26 +85,7 @@ The [Objects365 dataset](https://www.objects365.org/) is designed for object det
 
 To train a YOLO11n model using the Objects365 dataset for 100 epochs with an image size of 640, follow these instructions:
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="Objects365.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=Objects365.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 Refer to the [Training](../../modes/train.md) page for a comprehensive list of available arguments.
 

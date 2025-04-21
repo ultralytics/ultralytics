@@ -2,6 +2,9 @@
 comments: true
 description: Explore our African Wildlife Dataset featuring images of buffalo, elephant, rhino, and zebra for training computer vision models. Ideal for research and conservation.
 keywords: African Wildlife Dataset, South African animals, object detection, computer vision, YOLO11, wildlife research, conservation, dataset
+model_name: yolo11n.pt
+dataset: african-wildlife.yaml
+task: detect
 ---
 
 # African Wildlife Dataset
@@ -45,26 +48,7 @@ A YAML (Yet Another Markup Language) file defines the dataset configuration, inc
 
 To train a YOLO11n model on the African wildlife dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the provided code samples. For a comprehensive list of available parameters, refer to the model's [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="african-wildlife.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=african-wildlife.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 !!! example "Inference Example"
 
@@ -111,26 +95,7 @@ The African Wildlife Dataset includes images of four common animal species found
 
 You can train a YOLO11 model on the African Wildlife Dataset by using the `african-wildlife.yaml` configuration file. Below is an example of how to train the YOLO11n model for 100 epochs with an image size of 640:
 
-!!! example
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="african-wildlife.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=african-wildlife.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For additional training parameters and options, refer to the [Training](../../modes/train.md) documentation.
 

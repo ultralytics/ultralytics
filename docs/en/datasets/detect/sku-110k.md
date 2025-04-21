@@ -2,6 +2,9 @@
 comments: true
 description: Explore the SKU-110k dataset of densely packed retail shelf images, perfect for training and evaluating deep learning models in object detection tasks.
 keywords: SKU-110k, dataset, object detection, retail shelf images, deep learning, computer vision, model training
+model_name: yolo11n.pt
+dataset: SKU-110K.yaml
+task: detect
 ---
 
 # SKU-110k Dataset
@@ -61,26 +64,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLO11n model on the SKU-110K dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="SKU-110K.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=SKU-110K.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Data and Annotations
 
@@ -121,27 +105,7 @@ The SKU-110k dataset consists of densely packed retail shelf images designed to 
 
 Training a YOLO11 model on the SKU-110k dataset is straightforward. Here's an example to train a YOLO11n model for 100 epochs with an image size of 640:
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="SKU-110K.yaml", epochs=100, imgsz=640)
-        ```
-
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=SKU-110K.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 

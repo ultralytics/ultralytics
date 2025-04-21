@@ -33,6 +33,7 @@ os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is 
 DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 LINK_PATTERN = re.compile(r"(https?://[^\s()<>]*[^\s()<>.,:;!?\'\"])")
+PYTHON_REPL_PATTERN = re.compile(r"(<code[^>]*>)(.*?)(</code>)", re.DOTALL)  # >>> and ... on Python codeblock examples
 
 
 def prepare_docs_markdown(clone_repos: bool = True):
@@ -152,6 +153,16 @@ def update_markdown_files(md_filepath: Path):
     return
 
 
+def remove_python_repl_prompts(match):
+    """Remove Python REPL prompt markers while keeping the content of the lines."""
+    start, code, end = match.groups()
+
+    # Remove just the REPL prompt spans, keeping the rest of each line's content
+    modified_code = re.sub(r'<span class="gp">(?:&gt;&gt;&gt;|\.\.\.)\s</span>', "", code)
+
+    return start + modified_code + end
+
+
 def update_docs_html():
     """Update titles, edit links, head sections, and convert plaintext links in HTML documentation."""
     # Update 404 titles
@@ -164,17 +175,19 @@ def update_docs_html():
     ):
         update_subdir_edit_links(subdir=subdir, docs_url=docs_url)
 
-    # Convert plaintext links to HTML hyperlinks
+    # Convert plaintext links to HTML hyperlinks and clean code examples
     files_modified = 0
-    for html_file in tqdm(SITE.rglob("*.html"), desc="Converting plaintext links", mininterval=1.0):
+    for html_file in tqdm(SITE.rglob("*.html"), desc="Processing HTML files", mininterval=1.0):
         with open(html_file, encoding="utf-8") as file:
             content = file.read()
         updated_content = convert_plaintext_links_to_html(content)
+        if "reference" in html_file.parts:
+            updated_content = PYTHON_REPL_PATTERN.sub(remove_python_repl_prompts, updated_content)
         if updated_content != content:
             with open(html_file, "w", encoding="utf-8") as file:
                 file.write(updated_content)
             files_modified += 1
-    print(f"Modified plaintext links in {files_modified} files.")
+    print(f"Modified {files_modified} files.")
 
     # Update HTML file head section
     script = ""

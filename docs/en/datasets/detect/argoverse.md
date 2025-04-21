@@ -2,6 +2,9 @@
 comments: true
 description: Explore the comprehensive Argoverse dataset by Argo AI for 3D tracking, motion forecasting, and stereo depth estimation in autonomous driving research.
 keywords: Argoverse dataset, autonomous driving, 3D tracking, motion forecasting, stereo depth estimation, Argo AI, LiDAR point clouds, high-resolution images, HD maps
+model_name: yolo11n.pt
+dataset: Argoverse.yaml
+task: detect
 ---
 
 # Argoverse Dataset
@@ -45,26 +48,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLO11n model on the Argoverse dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="Argoverse.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=Argoverse.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Data and Annotations
 

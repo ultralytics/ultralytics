@@ -102,27 +102,7 @@ The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale dataset with f
 
 To train a YOLO11n model on the LVIS dataset for 100 epochs with an image size of 640, follow the example below. This process utilizes Ultralytics' framework, which offers comprehensive training features.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="lvis.yaml", epochs=100, imgsz=640)
-        ```
-
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=lvis.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For detailed training configurations, refer to the [Training](../../modes/train.md) documentation.
 

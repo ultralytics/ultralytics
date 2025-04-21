@@ -48,7 +48,6 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
 
         # Run inference with specified device, available devices: ["intel:gpu", "intel:npu", "intel:cpu"]
         results = ov_model("https://ultralytics.com/images/bus.jpg", device="intel:gpu")
-
         ```
 
     === "CLI"

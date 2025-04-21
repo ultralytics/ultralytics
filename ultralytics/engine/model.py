@@ -667,6 +667,7 @@ class Model(torch.nn.Module):
 
         custom = {"verbose": False}  # method defaults
         args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, "mode": "benchmark"}
+        kwargs.pop("model", None)
         return benchmark(
             model=self,
             data=kwargs.pop("data", None),  # if no 'data' argument passed set data=None for default datasets

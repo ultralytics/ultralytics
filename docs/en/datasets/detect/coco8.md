@@ -2,6 +2,9 @@
 comments: true
 description: Explore the Ultralytics COCO8 dataset, a versatile and manageable set of 8 images perfect for testing object detection models and training pipelines.
 keywords: COCO8, Ultralytics, dataset, object detection, YOLO11, training, validation, machine learning, computer vision
+model_name: yolo11n.pt
+dataset: coco8.yaml
+task: detect
 ---
 
 # COCO8 Dataset
@@ -37,26 +40,7 @@ The COCO8 dataset configuration is defined in a YAML (Yet Another Markup Languag
 
 To train a YOLO11n model on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following examples. For a full list of training options, see the [YOLO Training documentation](../../modes/train.md).
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
-
-        # Train the model on COCO8
-        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Train YOLO11n on COCO8 using the command line
-        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Images and Annotations
 

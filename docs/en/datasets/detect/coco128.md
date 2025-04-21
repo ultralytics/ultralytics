@@ -2,6 +2,9 @@
 comments: true
 description: Explore the Ultralytics COCO128 dataset, a versatile and manageable set of 128 images perfect for testing object detection models and training pipelines.
 keywords: COCO128, Ultralytics, dataset, object detection, YOLO11, training, validation, machine learning, computer vision
+model_name: yolo11n.pt
+dataset: coco128.yaml
+task: detect
 ---
 
 # COCO128 Dataset
@@ -37,26 +40,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLO11n model on the COCO128 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="coco128.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=coco128.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Images and Annotations
 

@@ -2,6 +2,10 @@
 comments: true
 description: Explore the CIFAR-10 dataset, featuring 60,000 color images in 10 classes. Learn about its structure, applications, and how to train models using YOLO.
 keywords: CIFAR-10, dataset, machine learning, computer vision, image classification, YOLO, deep learning, neural networks
+model_name: yolo11n-cls.pt
+dataset: cifar10
+task: classify
+imgsz: 32
 ---
 
 # CIFAR-10 Dataset
@@ -42,26 +46,7 @@ The CIFAR-10 dataset is widely used for training and evaluating [deep learning](
 
 To train a YOLO model on the CIFAR-10 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 32x32, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="cifar10", epochs=100, imgsz=32)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo classify train data=cifar10 model=yolo11n-cls.pt epochs=100 imgsz=32
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Images and Annotations
 
@@ -96,26 +81,7 @@ We would like to acknowledge Alex Krizhevsky for creating and maintaining the CI
 
 To train a YOLO model on the CIFAR-10 dataset using Ultralytics, you can follow the examples provided for both Python and CLI. Here is a basic example to train your model for 100 epochs with an image size of 32x32 pixels:
 
-!!! example
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="cifar10", epochs=100, imgsz=32)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo classify train data=cifar10 model=yolo11n-cls.pt epochs=100 imgsz=32
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For more details, refer to the model [Training](../../modes/train.md) page.
 

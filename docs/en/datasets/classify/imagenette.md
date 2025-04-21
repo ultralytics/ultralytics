@@ -2,6 +2,10 @@
 comments: true
 description: Explore the ImageNette dataset, a subset of ImageNet with 10 classes for efficient training and evaluation of image classification models. Ideal for ML and CV projects.
 keywords: ImageNette dataset, ImageNet subset, image classification, machine learning, deep learning, YOLO, Convolutional Neural Networks, ML dataset, education, training
+model_name: yolo11n-cls.pt
+dataset: imagenette
+task: classify
+imgsz: 224
 ---
 
 # ImageNette Dataset
@@ -29,26 +33,7 @@ The ImageNette dataset is widely used for training and evaluating [deep learning
 
 To train a model on the ImageNette dataset for 100 epochs with a standard image size of 224x224, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="imagenette", epochs=100, imgsz=224)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo classify train data=imagenette model=yolo11n-cls.pt epochs=100 imgsz=224
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Images and Annotations
 
@@ -122,26 +107,7 @@ The [ImageNette dataset](https://github.com/fastai/imagenette) is a simplified s
 
 To train a YOLO model on the ImageNette dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch), you can use the following commands. Make sure to have the Ultralytics YOLO environment set up.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="imagenette", epochs=100, imgsz=224)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo classify train data=imagenette model=yolo11n-cls.pt epochs=100 imgsz=224
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For more details, see the [Training](../../modes/train.md) documentation page.
 

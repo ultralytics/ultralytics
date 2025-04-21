@@ -2,6 +2,10 @@
 comments: true
 description: Explore the extensive ImageNet dataset and discover its role in advancing deep learning in computer vision. Access pretrained models and training examples.
 keywords: ImageNet, deep learning, visual recognition, computer vision, pretrained models, YOLO, dataset, object detection, image classification
+model_name: yolo11n-cls.pt
+dataset: imagenet
+task: classify
+imgsz: 224
 ---
 
 # ImageNet Dataset
@@ -35,26 +39,7 @@ The ImageNet dataset is widely used for training and evaluating deep learning mo
 
 To train a deep learning model on the ImageNet dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 224x224, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="imagenet", epochs=100, imgsz=224)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo classify train data=imagenet model=yolo11n-cls.pt epochs=100 imgsz=224
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Images and Annotations
 
@@ -96,26 +81,7 @@ The [ImageNet dataset](https://www.image-net.org/) is a large-scale database con
 
 To use a pretrained Ultralytics YOLO model for image classification on the ImageNet dataset, follow these steps:
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="imagenet", epochs=100, imgsz=224)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo classify train data=imagenet model=yolo11n-cls.pt epochs=100 imgsz=224
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For more in-depth training instruction, refer to our [Training page](../../modes/train.md).
 

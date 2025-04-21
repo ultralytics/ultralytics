@@ -2,6 +2,10 @@
 comments: true
 description: Explore the widely-used Caltech-101 dataset with 9,000 images across 101 categories. Ideal for object recognition tasks in machine learning and computer vision.
 keywords: Caltech-101, dataset, object recognition, machine learning, computer vision, YOLO, deep learning, research, AI
+model_name: yolo11n-cls.pt
+dataset: caltech101
+task: classify
+imgsz: 416
 ---
 
 # Caltech-101 Dataset
@@ -43,26 +47,7 @@ The Caltech-101 dataset is extensively used for training and evaluating [deep le
 
 To train a YOLO model on the Caltech-101 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch), you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="caltech101", epochs=100, imgsz=416)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo classify train data=caltech101 model=yolo11n-cls.pt epochs=100 imgsz=416
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Images and Annotations
 
@@ -105,26 +90,7 @@ The [Caltech-101](https://data.caltech.edu/records/mzrjq-6wc02) dataset is widel
 
 To train an Ultralytics YOLO model on the Caltech-101 dataset, you can use the provided code snippets. For example, to train for 100 epochs:
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="caltech101", epochs=100, imgsz=416)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo classify train data=caltech101 model=yolo11n-cls.pt epochs=100 imgsz=416
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For more detailed arguments and options, refer to the model [Training](../../modes/train.md) page.
 

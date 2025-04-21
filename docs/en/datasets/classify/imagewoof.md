@@ -2,6 +2,10 @@
 comments: true
 description: Explore the ImageWoof dataset, a challenging subset of ImageNet focusing on 10 dog breeds, designed to enhance image classification models. Learn more on Ultralytics Docs.
 keywords: ImageWoof dataset, ImageNet subset, dog breeds, image classification, deep learning, machine learning, Ultralytics, training dataset, noisy labels
+model_name: yolo11n-cls.pt
+dataset: imagewoof
+task: classify
+imgsz: 224
 ---
 
 # ImageWoof Dataset
@@ -31,26 +35,7 @@ The ImageWoof dataset is widely used for training and evaluating [deep learning]
 
 To train a CNN model on the ImageWoof dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 224x224, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="imagewoof", epochs=100, imgsz=224)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo classify train data=imagewoof model=yolo11n-cls.pt epochs=100 imgsz=224
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Dataset Variants
 
@@ -114,23 +99,7 @@ The [ImageWoof](https://github.com/fastai/imagenette) dataset is a challenging s
 
 To train a [Convolutional Neural Network](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNN) model on the ImageWoof dataset using Ultralytics YOLO for 100 epochs at an image size of 224x224, you can use the following code:
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        model = YOLO("yolo11n-cls.pt")  # Load a pretrained model
-        results = model.train(data="imagewoof", epochs=100, imgsz=224)
-        ```
-
-
-    === "CLI"
-
-        ```bash
-        yolo classify train data=imagewoof model=yolo11n-cls.pt epochs=100 imgsz=224
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For more details on available training arguments, refer to the [Training](../../modes/train.md) page.
 

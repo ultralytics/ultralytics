@@ -2,6 +2,10 @@
 comments: true
 description: Explore the Fashion-MNIST dataset, a modern replacement for MNIST with 70,000 Zalando article images. Ideal for benchmarking machine learning models.
 keywords: Fashion-MNIST, image classification, Zalando dataset, machine learning, deep learning, CNN, dataset overview
+model_name: yolo11n-cls.pt
+dataset: fashion-mnist
+task: classify
+imgsz: 28
 ---
 
 # Fashion-MNIST Dataset
@@ -58,26 +62,7 @@ The Fashion-MNIST dataset is widely used for training and evaluating deep learni
 
 To train a CNN model on the Fashion-MNIST dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 28x28, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="fashion-mnist", epochs=100, imgsz=28)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo classify train data=fashion-mnist model=yolo11n-cls.pt epochs=100 imgsz=28
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Images and Annotations
 
@@ -101,26 +86,7 @@ The [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset is
 
 To train an Ultralytics YOLO model on the Fashion-MNIST dataset, you can use both Python and CLI commands. Here's a quick example to get you started:
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a pretrained model
-        model = YOLO("yolo11n-cls.pt")
-
-        # Train the model on Fashion-MNIST
-        results = model.train(data="fashion-mnist", epochs=100, imgsz=28)
-        ```
-
-
-    === "CLI"
-
-        ```bash
-        yolo classify train data=fashion-mnist model=yolo11n-cls.pt epochs=100 imgsz=28
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For more detailed training parameters, refer to the [Training page](../../modes/train.md).
 

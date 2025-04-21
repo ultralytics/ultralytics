@@ -9,7 +9,7 @@
         model = YOLO("{{ model_name }}")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data="{{ dataset }}", epochs=100, imgsz=640)
+        results = model.train(data="{{ dataset }}", epochs=100, imgsz={{imgsz}})
         ```
 
     === "CLI"

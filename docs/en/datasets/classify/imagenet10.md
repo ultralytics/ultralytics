@@ -2,6 +2,10 @@
 comments: true
 description: Discover ImageNet10 a compact version of ImageNet for rapid model testing and CI checks. Perfect for quick evaluations in computer vision tasks.
 keywords: ImageNet10, ImageNet, Ultralytics, CI tests, sanity checks, training pipelines, computer vision, deep learning, dataset
+model_name: yolo11n-cls.pt
+dataset: imagenet10
+task: classify
+imgsz: 224
 ---
 
 # ImageNet10 Dataset
@@ -27,27 +31,8 @@ The ImageNet10 dataset is useful for quickly testing and debugging computer visi
 
 To test a deep learning model on the ImageNet10 dataset with an image size of 224x224, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Test Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="imagenet10", epochs=5, imgsz=224)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo classify train data=imagenet10 model=yolo11n-cls.pt epochs=5 imgsz=224
-        ```
-
+{% include "macros/dataset-train-example.md" %}
+ 
 ## Sample Images and Annotations
 
 The ImageNet10 dataset contains a subset of images from the original ImageNet dataset. These images are chosen to represent the first 10 classes in the dataset, providing a diverse yet compact dataset for quick testing and evaluation.
@@ -88,26 +73,7 @@ The [ImageNet10](https://github.com/ultralytics/assets/releases/download/v0.0.0/
 
 To test your deep learning model on the ImageNet10 dataset with an image size of 224x224, use the following code snippets.
 
-!!! example "Test Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="imagenet10", epochs=5, imgsz=224)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo classify train data=imagenet10 model=yolo11n-cls.pt epochs=5 imgsz=224
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 Refer to the [Training](../../modes/train.md) page for a comprehensive list of available arguments.
 

@@ -44,7 +44,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const enableSearchBar = true;
 
   const inkeepScript = document.createElement("script");
-  inkeepScript.src = "https://cdn.jsdelivr.net/npm/@inkeep/cxkit-js@0.5/dist/embed.js";
+  inkeepScript.src =
+    "https://cdn.jsdelivr.net/npm/@inkeep/cxkit-js@0.5/dist/embed.js";
   inkeepScript.type = "module";
   inkeepScript.defer = true;
   document.head.appendChild(inkeepScript);

@@ -4,8 +4,8 @@ import argparse
 
 import cv2
 
-from ultralytics.utils.files import increment_path
 from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.files import increment_path
 
 check_requirements(["opencv-python", "sahi"])
 from sahi import AutoDetectionModel

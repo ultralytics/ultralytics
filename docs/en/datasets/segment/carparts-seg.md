@@ -5,6 +5,7 @@ keywords: Carparts Segmentation Dataset, computer vision, automotive AI, vehicle
 model_name: yolo11n-seg.pt
 dataset: carparts-seg.yaml
 task: segment
+imgsz: 640
 ---
 
 # Carparts Segmentation Dataset

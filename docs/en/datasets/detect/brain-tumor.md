@@ -5,6 +5,7 @@ keywords: brain tumor dataset, MRI scans, CT scans, brain tumor detection, medic
 model_name: yolo11n.pt
 dataset: brain-tumor.yaml
 task: detect
+imgsz: 640
 ---
 
 # Brain Tumor Dataset

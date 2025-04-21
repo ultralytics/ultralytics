@@ -5,6 +5,7 @@ keywords: Dog-Pose, Ultralytics, pose detection dataset, YOLO11, machine learnin
 model_name: yolo11n-pose.pt
 dataset: dog-pose.yaml
 task: pose
+imgsz: 640
 ---
 
 # Dog-Pose Dataset

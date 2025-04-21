@@ -5,6 +5,7 @@ keywords: COCO8-Pose, Ultralytics, pose detection dataset, object detection, YOL
 model_name: yolo11n-pose.pt
 dataset: coco8-pose.yaml
 task: pose
+imgsz: 640
 ---
 
 # COCO8-Pose Dataset

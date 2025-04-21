@@ -5,6 +5,7 @@ keywords: COCO8-Multispectral, Ultralytics, dataset, multispectral, object detec
 model_name: yolo11n.pt
 dataset: coco8-multispectral.yaml
 task: detect
+imgsz: 640
 ---
 
 # COCO8-Multispectral Dataset

@@ -5,6 +5,7 @@ keywords: African Wildlife Dataset, South African animals, object detection, com
 model_name: yolo11n.pt
 dataset: african-wildlife.yaml
 task: detect
+imgsz: 640
 ---
 
 # African Wildlife Dataset

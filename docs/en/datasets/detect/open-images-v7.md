@@ -5,6 +5,7 @@ keywords: Open Images V7, Google dataset, computer vision, YOLO11 models, object
 model_name: yolo11n.pt
 dataset: open-images-v7.yaml
 task: detect
+imgsz: 640
 ---
 
 # Open Images V7 Dataset

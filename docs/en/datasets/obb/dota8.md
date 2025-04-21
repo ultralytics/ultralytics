@@ -5,6 +5,7 @@ keywords: DOTA8 dataset, Ultralytics, YOLO11, object detection, debugging, train
 model_name: yolo11n-obb.pt
 dataset: dota8.yaml
 task: obb
+imgsz: 640
 ---
 
 # DOTA8 Dataset

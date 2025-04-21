@@ -5,6 +5,7 @@ keywords: Argoverse dataset, autonomous driving, 3D tracking, motion forecasting
 model_name: yolo11n.pt
 dataset: Argoverse.yaml
 task: detect
+imgsz: 640
 ---
 
 # Argoverse Dataset

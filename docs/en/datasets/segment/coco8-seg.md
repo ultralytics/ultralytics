@@ -5,6 +5,7 @@ keywords: COCO8-Seg, Ultralytics, segmentation dataset, YOLO11, COCO 2017, model
 model_name: yolo11n-seg.pt
 dataset: coco8-seg.yaml
 task: segment
+imgsz: 640
 ---
 
 # COCO8-Seg Dataset

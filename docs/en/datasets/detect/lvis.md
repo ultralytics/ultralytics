@@ -5,6 +5,7 @@ keywords: LVIS dataset, object detection, instance segmentation, Facebook AI Res
 model_name: yolo11n.pt
 dataset: lvis.yaml
 task: detect
+imgsz: 640
 ---
 
 # LVIS Dataset

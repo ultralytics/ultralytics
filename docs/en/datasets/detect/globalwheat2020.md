@@ -5,6 +5,7 @@ keywords: Global Wheat Head Dataset, wheat head detection, wheat phenotyping, cr
 model_name: yolo11n.pt
 dataset: GlobalWheat2020.yaml
 task: detect
+imgsz: 640
 ---
 
 # Global Wheat Head Dataset

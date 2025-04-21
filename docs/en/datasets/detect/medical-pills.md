@@ -5,6 +5,7 @@ keywords: medical-pills dataset, pill detection, pharmaceutical imaging, AI in h
 model_name: yolo11n.pt
 dataset: medical-pills.yaml
 task: detect
+imgsz: 640
 ---
 
 # Medical Pills Dataset

@@ -5,6 +5,7 @@ keywords: COCO dataset, object detection, segmentation, benchmarking, computer v
 model_name: yolo11n.pt
 dataset: coco.yaml
 task: detect
+imgsz: 640
 ---
 
 # COCO Dataset

@@ -5,6 +5,7 @@ keywords: Package Segmentation Dataset, computer vision, package identification,
 model_name: yolo11n-seg.pt
 dataset: package-seg.yaml
 task: segment
+imgsz: 640
 ---
 
 # Package Segmentation Dataset

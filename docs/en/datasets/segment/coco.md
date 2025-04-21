@@ -5,6 +5,7 @@ keywords: COCO-Seg, dataset, YOLO models, instance segmentation, object detectio
 model_name: yolo11n-seg.pt
 dataset: coco.yaml
 task: segment
+imgsz: 640
 ---
 
 # COCO-Seg Dataset

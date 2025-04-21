@@ -5,6 +5,7 @@ keywords: Objects365 dataset, object detection, machine learning, deep learning,
 model_name: yolo11n.pt
 dataset: Objects365.yaml
 task: detect
+imgsz: 640
 ---
 
 # Objects365 Dataset

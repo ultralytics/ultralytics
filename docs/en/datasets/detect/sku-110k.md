@@ -5,6 +5,7 @@ keywords: SKU-110k, dataset, object detection, retail shelf images, deep learnin
 model_name: yolo11n.pt
 dataset: SKU-110K.yaml
 task: detect
+imgsz: 640
 ---
 
 # SKU-110k Dataset

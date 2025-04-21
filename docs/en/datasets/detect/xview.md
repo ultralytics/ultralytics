@@ -5,6 +5,7 @@ keywords: xView dataset, overhead imagery, satellite images, object detection, h
 model_name: yolo11n.pt
 dataset: xView.yaml
 task: detect
+imgsz: 640
 ---
 
 # xView Dataset

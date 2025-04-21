@@ -5,6 +5,7 @@ keywords: PASCAL VOC, VOC dataset, object detection, segmentation, classificatio
 model_name: yolo11n.pt
 dataset: VOC.yaml
 task: detect
+imgsz: 640
 ---
 
 # VOC Dataset

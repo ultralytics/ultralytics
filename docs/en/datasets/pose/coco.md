@@ -5,6 +5,7 @@ keywords: COCO-Pose, pose estimation, dataset, keypoints, COCO Keypoints 2017, Y
 model_name: yolo11n-pose.pt
 dataset: coco-pose.yaml
 task: pose
+imgsz: 640
 ---
 
 # COCO-Pose Dataset

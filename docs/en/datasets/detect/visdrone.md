@@ -5,6 +5,7 @@ keywords: VisDrone, drone dataset, computer vision, object detection, object tra
 model_name: yolo11n.pt
 dataset: VisDrone.yaml
 task: detect
+imgsz: 640
 ---
 
 # VisDrone Dataset

@@ -5,6 +5,7 @@ keywords: Signature Detection Dataset, document verification, fraud detection, c
 model_name: yolo11n.pt
 dataset: signature.yaml
 task: detect
+imgsz: 640
 ---
 
 # Signature Detection Dataset

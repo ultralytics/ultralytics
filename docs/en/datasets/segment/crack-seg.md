@@ -5,6 +5,7 @@ keywords: Crack Segmentation Dataset, Ultralytics, transportation safety, public
 model_name: yolo11n-seg.pt
 dataset: crack-seg.yaml
 task: segment
+imgsz: 640
 ---
 
 # Crack Segmentation Dataset

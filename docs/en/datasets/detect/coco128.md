@@ -5,6 +5,7 @@ keywords: COCO128, Ultralytics, dataset, object detection, YOLO11, training, val
 model_name: yolo11n.pt
 dataset: coco128.yaml
 task: detect
+imgsz: 640
 ---
 
 # COCO128 Dataset

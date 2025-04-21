@@ -5,6 +5,7 @@ keywords: Ultralytics, Tiger-Pose, dataset, pose estimation, YOLO11, training da
 model_name: yolo11n-pose.pt
 dataset: tiger-pose.yaml
 task: pose
+imgsz: 640
 ---
 
 # Tiger-Pose Dataset

@@ -5,6 +5,7 @@ keywords: Hand KeyPoints, pose estimation, dataset, keypoints, MediaPipe, YOLO, 
 model_name: yolo11n-pose.pt
 dataset: hand-keypoints.yaml
 task: pose
+imgsz: 640
 ---
 
 # Hand Keypoints Dataset

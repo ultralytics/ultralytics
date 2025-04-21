@@ -267,7 +267,7 @@ class AutoBackend(nn.Module):
             device_name = "AUTO"
             if isinstance(device, str) and device.startswith("intel"):
                 device_name = device.split(":")[1].upper()  # Intel OpenVINO device
-                device = torch.device("cpu")  # update the cpu
+                device = torch.device("cpu")
                 if device_name not in core.available_devices:
                     LOGGER.warning(f"OpenVINO device '{device_name}' not available. Using 'AUTO' instead.")
                     device_name = "AUTO"

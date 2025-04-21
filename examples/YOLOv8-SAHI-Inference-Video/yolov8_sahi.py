@@ -108,7 +108,7 @@ class SAHIInference:
 
             # Display results if requested
             if view_img:
-                cv2.imshow(Path(source).stem, frame)
+                cv2.imshow("Ultralytics YOLO Inference", frame)
 
             # Save results if requested
             if save_img:

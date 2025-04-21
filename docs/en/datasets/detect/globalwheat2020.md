@@ -2,6 +2,9 @@
 comments: true
 description: Explore the Global Wheat Head Dataset to develop accurate wheat head detection models. Includes training images, annotations, and usage for crop management.
 keywords: Global Wheat Head Dataset, wheat head detection, wheat phenotyping, crop management, deep learning, object detection, training datasets
+model_name: yolo11n.pt
+dataset: GlobalWheat2020.yaml
+task: detect
 ---
 
 # Global Wheat Head Dataset
@@ -40,27 +43,8 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLO11n model on the Global Wheat Head Dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="GlobalWheat2020.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=GlobalWheat2020.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
-
+{% include "macros/dataset-train-example.md" %}
+ 
 ## Sample Data and Annotations
 
 The Global Wheat Head Dataset contains a diverse set of outdoor field images, capturing the natural variability in wheat head appearances, environments, and conditions. Here are some examples of data from the dataset, along with their corresponding annotations:
@@ -100,26 +84,7 @@ The Global Wheat Head Dataset is primarily used for developing and training deep
 
 To train a YOLO11n model on the Global Wheat Head Dataset, you can use the following code snippets. Make sure you have the `GlobalWheat2020.yaml` configuration file specifying dataset paths and classes:
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a pre-trained model (recommended for training)
-        model = YOLO("yolo11n.pt")
-
-        # Train the model
-        results = model.train(data="GlobalWheat2020.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=GlobalWheat2020.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 

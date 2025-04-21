@@ -155,7 +155,7 @@ class BaseValidator:
             model.eval()
         else:
             if str(self.args.model).endswith(".yaml") and model is None:
-                LOGGER.warning("WARNING ⚠️ validating an untrained model YAML will result in 0 mAP.")
+                LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
             model = AutoBackend(
                 weights=model or self.args.model,
@@ -190,7 +190,7 @@ class BaseValidator:
             self.dataloader = self.dataloader or self.get_dataloader(self.data.get(self.args.split), self.args.batch)
 
             model.eval()
-            model.warmup(imgsz=(1 if pt else self.args.batch, 3, imgsz, imgsz))  # warmup
+            model.warmup(imgsz=(1 if pt else self.args.batch, self.data["channels"], imgsz, imgsz))  # warmup
 
         self.run_callbacks("on_val_start")
         dt = (

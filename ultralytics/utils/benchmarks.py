@@ -274,7 +274,7 @@ class RF100Benchmark:
                     if not Path(proj_version).exists():
                         self.rf.workspace(workspace).project(project).version(version).download("yolov8")
                     else:
-                        print("Dataset already downloaded.")
+                        LOGGER.info("Dataset already downloaded.")
                     self.ds_cfg_list.append(Path.cwd() / proj_version / "data.yaml")
                 except Exception:
                     continue
@@ -336,12 +336,12 @@ class RF100Benchmark:
                 )
         map_val = 0.0
         if len(eval_lines) > 1:
-            print("There's more dicts")
+            LOGGER.info("Multiple dicts found")
             for lst in eval_lines:
                 if lst["class"] == "all":
                     map_val = lst["map50"]
         else:
-            print("There's only one dict res")
+            LOGGER.info("Single dict found")
             map_val = [res["map50"] for res in eval_lines][0]
 
         with open(eval_log_file, "a", encoding="utf-8") as f:
@@ -440,7 +440,7 @@ class ProfileModels:
         files = self.get_files()
 
         if not files:
-            print("No matching *.pt or *.onnx files found.")
+            LOGGER.warning("No matching *.pt or *.onnx files found.")
             return
 
         table_rows = []
@@ -497,7 +497,7 @@ class ProfileModels:
             else:
                 files.extend(glob.glob(str(path)))
 
-        print(f"Profiling: {sorted(files)}")
+        LOGGER.info(f"Profiling: {sorted(files)}")
         return [Path(file) for file in sorted(files)]
 
     @staticmethod
@@ -694,7 +694,7 @@ class ProfileModels:
         header = "|" + "|".join(f" {h} " for h in headers) + "|"
         separator = "|" + "|".join("-" * (len(h) + 2) for h in headers) + "|"
 
-        print(f"\n\n{header}")
-        print(separator)
+        LOGGER.info(f"\n\n{header}")
+        LOGGER.info(separator)
         for row in table_rows:
-            print(row)
+            LOGGER.info(row)

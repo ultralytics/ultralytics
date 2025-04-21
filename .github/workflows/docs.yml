@@ -64,6 +64,7 @@ jobs:
         run: |
           git config --global user.name "UltralyticsAssistant"
           git config --global user.email "web@ultralytics.com"
+          npm install --global prettier prettier-plugin-sh
           python docs/build_reference.py
           git pull origin "$GITHUB_REF"          
           git add .

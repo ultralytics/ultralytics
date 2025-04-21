@@ -394,7 +394,7 @@ class LRPCHead(nn.Module):
             pf_score = self.pf(cls_feat)[0, 0].flatten(0)
             mask = pf_score.sigmoid() > conf
             cls_feat = cls_feat.flatten(2).transpose(-1, -2)
-            cls_feat = self.vocab(cls_feat * mask.unsqueeze(-1).int() if not conf else cls_feat[:, mask])
+            cls_feat = self.vocab(cls_feat[:, mask] if conf else cls_feat * mask.unsqueeze(-1).int())
             return (self.loc(loc_feat), cls_feat.transpose(-1, -2)), mask
         else:
             cls_feat = self.vocab(cls_feat)
@@ -896,3 +896,7 @@ class v10Detect(Detect):
             for x in ch
         )
         self.one2one_cv3 = copy.deepcopy(self.cv3)
+
+    def fuse(self):
+        """Removes the one2many head."""
+        self.cv2 = self.cv3 = nn.ModuleList([nn.Identity()] * self.nl)

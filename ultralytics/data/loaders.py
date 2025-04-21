@@ -16,9 +16,8 @@ import torch
 from PIL import Image
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops
+from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, imread, ops
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.patches import imread
 
 
 @dataclass
@@ -152,7 +151,7 @@ class LoadStreams:
                     success, im = cap.retrieve()
                     if not success:
                         im = np.zeros(self.shape[i], dtype=np.uint8)
-                        LOGGER.warning("WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.")
+                        LOGGER.warning("Video stream unresponsive, please check your IP camera connection.")
                         cap.open(stream)  # re-open stream if signal was lost
                     if self.buffer:
                         self.imgs[i].append(im)
@@ -171,7 +170,7 @@ class LoadStreams:
             try:
                 cap.release()  # release video capture
             except Exception as e:
-                LOGGER.warning(f"WARNING ⚠️ Could not release VideoCapture object: {e}")
+                LOGGER.warning(f"Could not release VideoCapture object: {e}")
         cv2.destroyAllWindows()
 
     def __iter__(self):
@@ -193,7 +192,7 @@ class LoadStreams:
                 time.sleep(1 / min(self.fps))
                 x = self.imgs[i]
                 if not x:
-                    LOGGER.warning(f"WARNING ⚠️ Waiting for stream {i}")
+                    LOGGER.warning(f"Waiting for stream {i}")
 
             # Get and remove the first frame from imgs buffer
             if self.buffer:
@@ -424,7 +423,7 @@ class LoadImagesAndVideos:
                 else:
                     im0 = imread(path)  # BGR
                 if im0 is None:
-                    LOGGER.warning(f"WARNING ⚠️ Image Read Error {path}")
+                    LOGGER.warning(f"Image Read Error {path}")
                 else:
                     paths.append(path)
                     imgs.append(im0)
@@ -549,7 +548,7 @@ class LoadTensor:
     def _single_check(im, stride=32):
         """Validates and formats a single image tensor, ensuring correct shape and normalization."""
         s = (
-            f"WARNING ⚠️ torch.Tensor inputs should be BCHW i.e. shape(1, 3, 640, 640) "
+            f"torch.Tensor inputs should be BCHW i.e. shape(1, 3, 640, 640) "
             f"divisible by stride {stride}. Input shape{tuple(im.shape)} is incompatible."
         )
         if len(im.shape) != 4:
@@ -561,8 +560,7 @@ class LoadTensor:
             raise ValueError(s)
         if im.max() > 1.0 + torch.finfo(im.dtype).eps:  # torch.float32 eps is 1.2e-07
             LOGGER.warning(
-                f"WARNING ⚠️ torch.Tensor inputs should be normalized 0.0-1.0 but max value is {im.max()}. "
-                f"Dividing input by 255."
+                f"torch.Tensor inputs should be normalized 0.0-1.0 but max value is {im.max()}. Dividing input by 255."
             )
             im = im.float() / 255.0
 

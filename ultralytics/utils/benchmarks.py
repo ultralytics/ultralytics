@@ -148,7 +148,6 @@ def benchmark(
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:
                 assert gpu, "inference not supported on GPU"
-            breakpoint()
             # Export
             if format == "-":
                 filename = model.pt_path or model.ckpt_path or model.model_name

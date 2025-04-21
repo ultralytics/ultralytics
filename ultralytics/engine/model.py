@@ -669,10 +669,14 @@ class Model(torch.nn.Module):
 
         custom = {"verbose": False}  # method defaults
         args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, "mode": "benchmark"}
-        export_args = set([args for fmts in export_formats()["Arguments"] for args in fmts])  # get all export args
+        export_args = set([args for fmts in export_formats()["Arguments"] for args in fmts])
         export_kwargs = {k: v for k, v in args.items() if k in export_args - set(["batch"])}
         return benchmark(
-            model=self, verbose=kwargs.pop("verbose", False), format=kwargs.pop("format", ""), **export_kwargs
+            model=self,
+            data=kwargs.get("data"),  # if no 'data' argument passed set data=None for default datasets
+            verbose=kwargs.pop("verbose", False),
+            format=kwargs.pop("format", ""),
+            **export_kwargs,
         )
 
     def export(

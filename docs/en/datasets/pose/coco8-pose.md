@@ -2,6 +2,9 @@
 comments: true
 description: Explore the compact, versatile COCO8-Pose dataset for testing and debugging object detection models. Ideal for quick experiments with YOLO11.
 keywords: COCO8-Pose, Ultralytics, pose detection dataset, object detection, YOLO11, machine learning, computer vision, training data
+model_name: yolo11n-pose.pt
+dataset: coco8-pose.yaml
+task: pose
 ---
 
 # COCO8-Pose Dataset
@@ -26,26 +29,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLO11n-pose model on the COCO8-Pose dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="coco8-pose.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo pose train data=coco8-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Images and Annotations
 
@@ -88,25 +72,7 @@ The COCO8-Pose dataset is a small, versatile pose detection dataset that include
 
 To train a YOLO11n-pose model on the COCO8-Pose dataset for 100 epochs with an image size of 640, follow these examples:
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-pose.pt")
-
-        # Train the model
-        results = model.train(data="coco8-pose.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        yolo pose train data=coco8-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For a comprehensive list of training arguments, refer to the model [Training](../../modes/train.md) page.
 

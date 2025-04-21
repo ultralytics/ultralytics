@@ -2,6 +2,9 @@
 comments: true
 description: Explore Ultralytics Tiger-Pose dataset with 263 diverse images. Ideal for testing, training, and refining pose estimation algorithms.
 keywords: Ultralytics, Tiger-Pose, dataset, pose estimation, YOLO11, training data, machine learning, neural networks
+model_name: yolo11n-pose.pt
+dataset: tiger-pose.yaml
+task: pose
 ---
 
 # Tiger-Pose Dataset
@@ -39,26 +42,7 @@ A YAML (Yet Another Markup Language) file serves as the means to specify the con
 
 To train a YOLO11n-pose model on the Tiger-Pose dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="tiger-pose.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo task=pose mode=train data=tiger-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Images and Annotations
 
@@ -107,27 +91,7 @@ The Ultralytics Tiger-Pose dataset is designed for pose estimation tasks, consis
 
 To train a YOLO11n-pose model on the Tiger-Pose dataset for 100 epochs with an image size of 640, use the following code snippets. For more details, visit the [Training](../../modes/train.md) page:
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="tiger-pose.yaml", epochs=100, imgsz=640)
-        ```
-
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo task=pose mode=train data=tiger-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ### What configurations does the `tiger-pose.yaml` file include?
 

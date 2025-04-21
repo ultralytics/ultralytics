@@ -2,6 +2,9 @@
 comments: true
 description: Explore the hand keypoints estimation dataset for advanced pose estimation. Learn about datasets, pretrained models, metrics, and applications for training with YOLO.
 keywords: Hand KeyPoints, pose estimation, dataset, keypoints, MediaPipe, YOLO, deep learning, computer vision
+model_name: yolo11n-pose.pt
+dataset: hand-keypoints.yaml
+task: pose
 ---
 
 # Hand Keypoints Dataset
@@ -69,26 +72,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLO11n-pose model on the Hand Keypoints dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="hand-keypoints.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo pose train data=hand-keypoints.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Images and Annotations
 
@@ -124,26 +108,7 @@ We would also like to acknowledge the creator of this dataset, [Rion Dsilva](htt
 
 To train a YOLO11 model on the Hand Keypoints dataset, you can use either Python or the command line interface (CLI). Here's an example for training a YOLO11n-pose model for 100 epochs with an image size of 640:
 
-!!! Example
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="hand-keypoints.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo pose train data=hand-keypoints.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 

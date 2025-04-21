@@ -2,6 +2,9 @@
 comments: true
 description: Discover the Dog-Pose dataset for pose detection. Featuring 6,773 training and 1,703 test images, it's a robust dataset for training YOLO11 models.
 keywords: Dog-Pose, Ultralytics, pose detection dataset, YOLO11, machine learning, computer vision, training data
+model_name: yolo11n-pose.pt
+dataset: dog-pose.yaml
+task: pose
 ---
 
 # Dog-Pose Dataset
@@ -28,26 +31,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLO11n-pose model on the Dog-pose dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="dog-pose.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo pose train data=dog-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Images and Annotations
 
@@ -94,25 +78,7 @@ The Dog-Pose dataset features 6,773 training and 1,703 test images annotated wit
 
 To train a YOLO11n-pose model on the Dog-pose dataset for 100 epochs with an image size of 640, follow these examples:
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-pose.pt")
-
-        # Train the model
-        results = model.train(data="dog-pose.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        yolo pose train data=dog-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For a comprehensive list of training arguments, refer to the model [Training](../../modes/train.md) page.
 

@@ -2,6 +2,9 @@
 comments: true
 description: Explore the COCO-Pose dataset for advanced pose estimation. Learn about datasets, pretrained models, metrics, and applications for training with YOLO.
 keywords: COCO-Pose, pose estimation, dataset, keypoints, COCO Keypoints 2017, YOLO, deep learning, computer vision
+model_name: yolo11n-pose.pt
+dataset: coco-pose.yaml
+task: pose
 ---
 
 # COCO-Pose Dataset
@@ -46,26 +49,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 To train a YOLO11n-pose model on the COCO-Pose dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="coco-pose.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo pose train data=coco-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Images and Annotations
 
@@ -108,26 +92,7 @@ The [COCO-Pose](https://cocodataset.org/#keypoints-2017) dataset is a specialize
 
 Training a YOLO11 model on the COCO-Pose dataset can be accomplished using either Python or CLI commands. For example, to train a YOLO11n-pose model for 100 epochs with an image size of 640, you can follow the steps below:
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="coco-pose.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo pose train data=coco-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For more details on the training process and available arguments, check the [training page](../../modes/train.md).
 

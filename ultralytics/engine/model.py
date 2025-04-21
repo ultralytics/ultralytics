@@ -674,8 +674,8 @@ class Model(torch.nn.Module):
         return benchmark(
             model=self,
             data=kwargs.get("data"),  # if no 'data' argument passed set data=None for default datasets
-            verbose=kwargs.pop("verbose", False),
-            format=kwargs.pop("format", ""),
+            verbose=kwargs.get("verbose", False),
+            format=kwargs.get("format", ""),
             **export_kwargs,
         )
 

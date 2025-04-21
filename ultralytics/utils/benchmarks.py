@@ -129,6 +129,7 @@ def benchmark(
                 assert model.task != "obb", "Paddle OBB bug https://github.com/PaddlePaddle/Paddle/issues/72024"
                 assert not is_end2end, "End-to-end models not supported by PaddlePaddle yet"
                 assert LINUX or MACOS, "Windows Paddle exports not supported yet"
+                assert "cuda" in device.type, "GPU Paddle exports have bugs"
             if i == 12:  # MNN
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 MNN exports not supported yet"
             if i == 13:  # NCNN

@@ -113,7 +113,7 @@ class SAHIInference:
             # Save results if requested
             if save_img:
                 idx += 1
-                results.export_visuals(export_dir=save_dir, file_name= f"img_{idx}", hide_conf=hide_conf)
+                results.export_visuals(export_dir=save_dir, file_name=f"img_{idx}", hide_conf=hide_conf)
 
             # Break loop if 'q' is pressed
             if cv2.waitKey(1) & 0xFF == ord("q"):

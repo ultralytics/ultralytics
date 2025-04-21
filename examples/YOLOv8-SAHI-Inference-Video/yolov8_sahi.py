@@ -85,7 +85,7 @@ class SAHIInference:
         assert cap.isOpened(), "Error reading video file"
 
         # Output setup
-        save_dir = increment_path("runs/exp", exist_ok)
+        save_dir = increment_path("runs/detect/predict", exist_ok)
         save_dir.mkdir(parents=True, exist_ok=True)
 
         # Load model

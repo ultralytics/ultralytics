@@ -205,7 +205,7 @@ def update_docs_soup(content: str, max_title_length: int = 70) -> str:
         return str(soup) if modified else content
 
     # Convert plaintext links to HTML hyperlinks
-    for paragraph in main_content.find_all(["p", "li"]):
+    for paragraph in main_content.select("p, li"):
         for text_node in paragraph.find_all(string=True, recursive=False):
             if text_node.parent.name not in {"a", "code"}:
                 new_text = LINK_PATTERN.sub(r'<a href="\1">\1</a>', str(text_node))

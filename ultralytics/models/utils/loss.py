@@ -32,7 +32,16 @@ class DETRLoss(nn.Module):
     """
 
     def __init__(
-        self, nc=80, loss_gain=None, aux_loss=True, use_fl=True, use_vfl=False, use_uni_match=False, uni_match_ind=0, gamma=1.5, alpha=0.25
+        self,
+        nc=80,
+        loss_gain=None,
+        aux_loss=True,
+        use_fl=True,
+        use_vfl=False,
+        use_uni_match=False,
+        uni_match_ind=0,
+        gamma=1.5,
+        alpha=0.25,
     ):
         """
         Initialize DETR loss function with customizable components and gains.

@@ -71,10 +71,6 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 
 <br><br><hr><br>
 
-## ::: ultralytics.data.utils.autosplit
-
-<br><br><hr><br>
-
 ## ::: ultralytics.data.utils.load_dataset_cache_file
 
 <br><br><hr><br>

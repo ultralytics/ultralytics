@@ -135,7 +135,7 @@ def export_engine(
 
     if dynamic:
         if shape[0] <= 1:
-            LOGGER.warning(f"{prefix} WARNING ⚠️ 'dynamic=True' model requires max batch size, i.e. 'batch=16'")
+            LOGGER.warning(f"{prefix} 'dynamic=True' model requires max batch size, i.e. 'batch=16'")
         profile = builder.create_optimization_profile()
         min_shape = (1, shape[1], 32, 32)  # minimum input shape
         max_shape = (*shape[:2], *(int(max(1, workspace or 1) * d) for d in shape[2:]))  # max input shape

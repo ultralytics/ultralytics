@@ -55,9 +55,9 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
     === "CLI"
 
         ```bash
-        yolo solutions count show=True  # for object counting
+        yolo solutions count show=True # for object counting
 
-        yolo solutions source="path/to/video/file.mp4"  # specify video file path
+        yolo solutions source="path/to/video/file.mp4" # specify video file path
         ```
 
 ## Arguments

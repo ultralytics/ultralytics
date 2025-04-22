@@ -96,7 +96,7 @@ To use Ultralytics YOLO11 for object detection, follow these steps:
 
         ```bash
         # Run YOLO detection from the command line
-        yolo detect model=yolo11n.pt source="image.jpg"  # Adjust model and source as needed
+        yolo detect model=yolo11n.pt source="image.jpg" # Adjust model and source as needed
         ```
 
 For more detailed instructions, check out our [detection examples](detect.md).

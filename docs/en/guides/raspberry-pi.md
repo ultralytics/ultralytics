@@ -125,7 +125,7 @@ The YOLO11n model in PyTorch format is converted to NCNN to run inference with t
 
         ```bash
         # Export a YOLO11n PyTorch model to NCNN format
-        yolo export model=yolo11n.pt format=ncnn  # creates 'yolo11n_ncnn_model'
+        yolo export model=yolo11n.pt format=ncnn # creates 'yolo11n_ncnn_model'
 
         # Run inference with the exported model
         yolo predict model='yolo11n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
@@ -400,7 +400,7 @@ You can convert a PyTorch YOLO11 model to NCNN format using either Python or CLI
 
         ```bash
         # Export a YOLO11n PyTorch model to NCNN format
-        yolo export model=yolo11n.pt format=ncnn  # creates 'yolo11n_ncnn_model'
+        yolo export model=yolo11n.pt format=ncnn # creates 'yolo11n_ncnn_model'
 
         # Run inference with the exported model
         yolo predict model='yolo11n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'

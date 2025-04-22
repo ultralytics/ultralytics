@@ -45,7 +45,8 @@ class BaseDataset(Dataset):
         npy_files (list): List of numpy file paths.
         transforms (callable): Image transformation function.
     """
-    #augment = True
+
+    # augment = True
     def __init__(
         self,
         img_path,

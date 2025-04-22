@@ -84,7 +84,7 @@ class HUBTrainingSession:
         except Exception:
             if identifier.startswith(f"{HUB_WEB_ROOT}/models/") and not self.client.authenticated:
                 LOGGER.warning(
-                    f"{PREFIX}WARNING ⚠️ Please log in using 'yolo login API_KEY'. "
+                    f"{PREFIX}Please log in using 'yolo login API_KEY'. "
                     "You can find your API Key at: https://hub.ultralytics.com/settings?tab=api+keys."
                 )
 
@@ -396,14 +396,14 @@ class HUBTrainingSession:
             last = weights.with_name(f"last{weights.suffix}")
             if final and last.is_file():
                 LOGGER.warning(
-                    f"{PREFIX} WARNING ⚠️ Model 'best.pt' not found, copying 'last.pt' to 'best.pt' and uploading. "
+                    f"{PREFIX} Model 'best.pt' not found, copying 'last.pt' to 'best.pt' and uploading. "
                     "This often happens when resuming training in transient environments like Google Colab. "
                     "For more reliable training, consider using Ultralytics HUB Cloud. "
                     "Learn more at https://docs.ultralytics.com/hub/cloud-training."
                 )
                 shutil.copy(last, weights)  # copy last.pt to best.pt
             else:
-                LOGGER.warning(f"{PREFIX} WARNING ⚠️ Model upload issue. Missing model {weights}.")
+                LOGGER.warning(f"{PREFIX} Model upload issue. Missing model {weights}.")
                 return
 
         self.request_queue(

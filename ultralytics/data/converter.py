@@ -718,7 +718,9 @@ def convert_to_multispectral(path, n_channels=10, replace=False, zip=False):
 
     Examples:
         >>> # Convert a single image
-        >>> convert_to_multispectral("path/to/image.jpg", n_channels=12)
+        >>> convert_to_multispectral("path/to/image.jpg", n_channels=10)
+        >>> # Convert a dataset
+        >>> convert_to_multispectral("../datasets/coco8", n_channels=10)
     """
     from scipy.interpolate import interp1d
 

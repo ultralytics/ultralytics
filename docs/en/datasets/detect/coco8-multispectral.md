@@ -43,13 +43,13 @@ The COCO8-Multispectral dataset is configured using a YAML file, which defines d
 
 
     ```python
-    import numpy as np
     import cv2
-    
+    import numpy as np
+
     # Create and write 10-channel TIFF
     frames = [np.ones((640, 640), dtype=np.uint8) for i in range(10)]
     cv2.imwritemulti("example.tiff", frames)
-    
+
     # Read TIFF
     success, frames = cv2.imreadmulti("example.tiff")
     im = np.stack(frames, axis=2)

@@ -169,7 +169,7 @@ def update_docs_html():
     for html_file in tqdm(SITE.rglob("*.html"), desc="Converting plaintext links", mininterval=1.0):
         with open(html_file, encoding="utf-8") as file:
             content = file.read()
-        updated_content = convert_plaintext_links_to_html(content)
+        updated_content = update_docs_soup(content)
         if updated_content != content:
             with open(html_file, "w", encoding="utf-8") as file:
                 file.write(updated_content)
@@ -188,8 +188,8 @@ def update_docs_html():
         shutil.rmtree(macros_dir)
 
 
-def convert_plaintext_links_to_html(content: str, max_title_length: int = 70) -> str:
-    """Convert plaintext links to HTML hyperlinks and truncate long meta titles."""
+def update_docs_soup(content: str, max_title_length: int = 70) -> str:
+    """Convert plaintext links to HTML hyperlinks, truncate long meta titles, and remove code line hrefs."""
     soup = BeautifulSoup(content, "html.parser")
     modified = False
 
@@ -213,6 +213,17 @@ def convert_plaintext_links_to_html(content: str, max_title_length: int = 70) ->
                     new_soup = BeautifulSoup(new_text, "html.parser")
                     text_node.replace_with(new_soup)
                     modified = True
+
+    # Remove href attributes from code line numbers in code blocks
+    for a in soup.select('a[href^="#__codelineno-"], a[id^="__codelineno-"]'):
+        # Remove href if it exists
+        if a.has_attr("href"):
+            del a["href"]
+            modified = True
+        # Remove name if it exists
+        if a.has_attr("name"):
+            del a["name"]
+            modified = True
 
     return str(soup) if modified else content
 
@@ -349,8 +360,12 @@ def main():
     shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)
     shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
-    # Show command to serve built website
-    print('Docs built correctly ✅\nServe site at http://localhost:8000 with "python -m http.server --directory site"')
+    # Print results
+    size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) >> 20
+    print(
+        f"Docs built correctly ✅ ({size:.1f} MB)\n"
+        f'Serve site at http://localhost:8000 with "python -m http.server --directory site"'
+    )
 
 
 if __name__ == "__main__":

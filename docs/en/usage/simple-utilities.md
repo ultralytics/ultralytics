@@ -206,7 +206,7 @@ autosplit(
 )
 ```
 
-See the [Reference page](../reference/data/utils.md#ultralytics.data.utils.autosplit) for additional details on this function.
+See the [Reference page](../reference/data/split.md#ultralytics.data.split.autosplit) for additional details on this function.
 
 ### Segment-polygon to Binary Mask
 

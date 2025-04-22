@@ -41,14 +41,14 @@ The COCO8-Multispectral dataset is configured using a YAML file, which defines d
     Prepare your TIFF images in `(channel, height, width)` order and saved with `.tiff` or `.tif` extension for use with Ultralytics:
 
     ```python
-    import numpy as np
     import cv2
-    
+    import numpy as np
+
     # Create and write 10-channel TIFF
     image = np.ones((10, 640, 640), dtype=np.uint8)
     print(image.shape)  # (10, 640, 640)  CHW-order
     cv2.imwritemulti("example2.tiff", image)
-    
+
     # Read TIFF
     success, frames_list = cv2.imreadmulti("example2.tiff")
     image = np.stack(frames_list, axis=2)

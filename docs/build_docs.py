@@ -210,8 +210,7 @@ def update_docs_soup(content: str, max_title_length: int = 70) -> str:
             if text_node.parent.name not in {"a", "code"}:
                 new_text = LINK_PATTERN.sub(r'<a href="\1">\1</a>', str(text_node))
                 if "<a href=" in new_text:
-                    new_soup = BeautifulSoup(new_text, "html.parser")
-                    text_node.replace_with(new_soup)
+                    text_node.replace_with(BeautifulSoup(new_text, "html.parser"))
                     modified = True
 
     # Remove href attributes from code line numbers in code blocks

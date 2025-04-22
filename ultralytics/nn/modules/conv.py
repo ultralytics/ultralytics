@@ -448,7 +448,7 @@ class RepConv(nn.Module):
 
         Returns:
             (torch.Tensor): Equivalent kernel
-             (torch.Tensor): Equivalent bias
+            (torch.Tensor): Equivalent bias
         """
         kernel3x3, bias3x3 = self._fuse_bn_tensor(self.conv1)
         kernel1x1, bias1x1 = self._fuse_bn_tensor(self.conv2)

@@ -215,26 +215,44 @@ def update_docs_soup(content: str, max_title_length: int = 70) -> str:
                     modified = True
 
     # Remove href attributes from code line numbers in code blocks
-    code_blocks = soup.find_all("code", attrs={"data-wg-notranslate": ""})
-    for code_block in code_blocks:
-        # Find all href links that are for line numbers
-        line_hrefs = code_block.find_all("a", href=lambda h: h and h.startswith("#__codelineno-"))
-
-        if line_hrefs:
-            for a_tag in line_hrefs:
-                # Create a new span with the same ID but no href
-                span = soup.new_tag("span")
-                span["id"] = a_tag.get("id")
-                span["name"] = a_tag.get("name")
-                # Preserve the content
-                span.string = a_tag.string
-
-                # Replace the a tag with the span
-                a_tag.replace_with(span)
-
-            modified = True
+    if clean_line_numbers(soup):
+        modified = True
 
     return str(soup) if modified else content
+
+
+# Replace the line number links with simple text
+def clean_line_numbers(soup):
+    """Remove href attributes from code line numbers in code blocks."""
+    modified = False
+
+    # 1. Find the line number divisions with class "linenodiv"
+    line_divs = soup.find_all("div", class_="linenodiv")
+    for line_div in line_divs:
+        # Find all spans with class "normal" in those divs
+        spans = line_div.find_all("span", class_="normal")
+        for span in spans:
+            # Find the anchor tag inside span
+            a_tag = span.find("a")
+            if a_tag and a_tag.get("href", "").startswith("#__codelineno-"):
+                # Get the line number text
+                line_number = a_tag.get_text()
+                # Replace the link with just the text
+                a_tag.replace_with(line_number)
+                modified = True
+
+    # 2. Replace the anchor tags in the code blocks with their content
+    code_blocks = soup.find_all("code", attrs={"data-wg-notranslate": ""})
+    for code_block in code_blocks:
+        # Find all anchor tags with IDs starting with "__codelineno-"
+        anchors = code_block.find_all("a", id=lambda i: i and i.startswith("__codelineno-"))
+        for anchor in anchors:
+            # Instead of removing completely, preserve content by replacing with nothing
+            # This keeps any whitespace/newlines that might follow
+            anchor.replace_with("")
+            modified = True
+
+    return modified
 
 
 def remove_macros():

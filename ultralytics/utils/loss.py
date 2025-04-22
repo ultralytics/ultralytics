@@ -18,16 +18,21 @@ class VarifocalLoss(nn.Module):
     Varifocal loss by Zhang et al.
 
     https://arxiv.org/abs/2008.13367.
+
+    Args:
+        gamma (float): The focusing parameter that controls how much the loss focuses on hard-to-classify examples.
+        alpha (float): The balancing factor used to address class imbalance.
     """
 
-    def __init__(self):
+    def __init__(self, gamma=2.0, alpha=0.75):
         """Initialize the VarifocalLoss class."""
         super().__init__()
+        self.gamma = gamma
+        self.alpha = alpha
 
-    @staticmethod
-    def forward(pred_score, gt_score, label, alpha=0.75, gamma=2.0):
+    def forward(self, pred_score, gt_score, label):
         """Compute varifocal loss between predictions and ground truth."""
-        weight = alpha * pred_score.sigmoid().pow(gamma) * (1 - label) + gt_score * label
+        weight = self.alpha * pred_score.sigmoid().pow(self.gamma) * (1 - label) + gt_score * label
         with autocast(enabled=False):
             loss = (
                 (F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(), reduction="none") * weight)

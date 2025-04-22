@@ -60,7 +60,7 @@ class DETRLoss(nn.Module):
         self.loss_gain = loss_gain
         self.aux_loss = aux_loss
         self.fl = FocalLoss(gamma, alpha) if use_fl else None
-        self.vfl = VarifocalLoss() if use_vfl else None
+        self.vfl = VarifocalLoss(gamma, alpha) if use_vfl else None
 
         self.use_uni_match = use_uni_match
         self.uni_match_ind = uni_match_ind

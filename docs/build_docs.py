@@ -205,26 +205,23 @@ def update_docs_soup(content: str, max_title_length: int = 70) -> str:
         return str(soup) if modified else content
 
     # Convert plaintext links to HTML hyperlinks
-    for paragraph in main_content.find_all(["p", "li"]):
+    for paragraph in main_content.select("p, li"):
         for text_node in paragraph.find_all(string=True, recursive=False):
             if text_node.parent.name not in {"a", "code"}:
                 new_text = LINK_PATTERN.sub(r'<a href="\1">\1</a>', str(text_node))
                 if "<a href=" in new_text:
-                    new_soup = BeautifulSoup(new_text, "html.parser")
-                    text_node.replace_with(new_soup)
+                    text_node.replace_with(BeautifulSoup(new_text, "html.parser"))
                     modified = True
 
     # Remove href attributes from code line numbers in code blocks
     for a in soup.select('a[href^="#__codelineno-"], a[id^="__codelineno-"]'):
-        # Remove href if it exists
-        if a.has_attr("href"):
-            del a["href"]
-            modified = True
-        # Remove name if it exists
-        if a.has_attr("name"):
-            del a["name"]
-            modified = True
-
+        span = soup.new_tag("span")
+        if a.string:
+            span.string = a.string
+        else:
+            span.extend(a.contents)
+        a.replace_with(span)
+        modified = True
     return str(soup) if modified else content
 
 

@@ -154,7 +154,7 @@ class BaseTensor(SimpleClass):
         Returns the length of the underlying data tensor.
 
         Returns:
-            (int): The number of elements in the first dimension of the data tensor.
+            length (int): The number of elements in the first dimension of the data tensor.
 
         Examples:
             >>> data = torch.tensor([[1, 2, 3], [4, 5, 6]])

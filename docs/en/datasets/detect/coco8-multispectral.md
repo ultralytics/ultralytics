@@ -38,9 +38,7 @@ The COCO8-Multispectral dataset is configured using a YAML file, which defines d
 
 !!! note
 
-    To train ultralytics models on your own multiple channel datasets, you need to prepare your own TIFF images in `(channel, height, width)` order and saved with `.tiff` or `.tif` extension. This channel-first format is essential for compatibility with the dataset and model training pipelines.
-    Here's an example to check the correctness of your dataset images:
-
+    Prepare your TIFF images in `(channel, height, width)` order and saved with `.tiff` or `.tif` extension for use with Ultralytics:
 
     ```python
     import cv2

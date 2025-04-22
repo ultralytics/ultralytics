@@ -104,7 +104,7 @@ def is_ascii(s) -> bool:
         s (str | list | tuple | dict): Input to be checked (all are converted to string for checking).
 
     Returns:
-        (bool): True if the string is composed only of ASCII characters, False otherwise.
+        is_ascii (bool): True if the string is composed only of ASCII characters, False otherwise.
     """
     return all(ord(c) < 128 for c in str(s))
 
@@ -259,7 +259,7 @@ def check_latest_pypi_version(package_name="ultralytics"):
         package_name (str): The name of the package to find the latest version for.
 
     Returns:
-        (str): The latest version of the package.
+        package_version (str): The latest version of the package.
     """
     try:
         requests.packages.urllib3.disable_warnings()  # Disable the InsecureRequestWarning
@@ -275,7 +275,7 @@ def check_pip_update_available():
     Checks if a new version of the ultralytics package is available on PyPI.
 
     Returns:
-        (bool): True if an update is available, False otherwise.
+        update_available (bool): True if an update is available, False otherwise.
     """
     if ONLINE and IS_PIP_PACKAGE:
         try:

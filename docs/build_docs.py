@@ -169,7 +169,7 @@ def update_docs_html():
     for html_file in tqdm(SITE.rglob("*.html"), desc="Converting plaintext links", mininterval=1.0):
         with open(html_file, encoding="utf-8") as file:
             content = file.read()
-        updated_content = convert_plaintext_links_to_html(content)
+        updated_content = update_docs_soup(content)
         if updated_content != content:
             with open(html_file, "w", encoding="utf-8") as file:
                 file.write(updated_content)
@@ -188,8 +188,8 @@ def update_docs_html():
         shutil.rmtree(macros_dir)
 
 
-def convert_plaintext_links_to_html(content: str, max_title_length: int = 70) -> str:
-    """Convert plaintext links to HTML hyperlinks and truncate long meta titles."""
+def update_docs_soup(content: str, max_title_length: int = 70) -> str:
+    """Convert plaintext links to HTML hyperlinks, truncate long meta titles, and remove code line hrefs."""
     soup = BeautifulSoup(content, "html.parser")
     modified = False
 
@@ -213,6 +213,26 @@ def convert_plaintext_links_to_html(content: str, max_title_length: int = 70) ->
                     new_soup = BeautifulSoup(new_text, "html.parser")
                     text_node.replace_with(new_soup)
                     modified = True
+
+    # Remove href attributes from code line numbers in code blocks
+    code_blocks = soup.find_all("code", attrs={"data-wg-notranslate": ""})
+    for code_block in code_blocks:
+        # Find all href links that are for line numbers
+        line_hrefs = code_block.find_all("a", href=lambda h: h and h.startswith("#__codelineno-"))
+
+        if line_hrefs:
+            for a_tag in line_hrefs:
+                # Create a new span with the same ID but no href
+                span = soup.new_tag("span")
+                span["id"] = a_tag.get("id")
+                span["name"] = a_tag.get("name")
+                # Preserve the content
+                span.string = a_tag.string
+
+                # Replace the a tag with the span
+                a_tag.replace_with(span)
+
+            modified = True
 
     return str(soup) if modified else content
 

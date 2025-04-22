@@ -60,9 +60,6 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         terminalreporter (pytest.terminal.TerminalReporter): The terminal reporter object used for terminal output.
         exitstatus (int): The exit status of the test run.
         config (pytest.config.Config): The pytest config object.
-
-    Returns:
-        (None)
     """
     from ultralytics.utils import WEIGHTS_DIR
 

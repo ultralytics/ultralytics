@@ -8,6 +8,21 @@ keywords: Caltech-101, dataset, object recognition, machine learning, computer v
 
 The [Caltech-101](https://data.caltech.edu/records/mzrjq-6wc02) dataset is a widely used dataset for object recognition tasks, containing around 9,000 images from 101 object categories. The categories were chosen to reflect a variety of real-world objects, and the images themselves were carefully selected and annotated to provide a challenging benchmark for object recognition algorithms.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/isc06_9qnM0"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> Model using Caltech-256 Dataset with Ultralytics HUB
+</p>
+
+!!! note "Automatic Data Splitting"
+
+    The Caltech-101 dataset, as provided, does not come with pre-defined train/validation splits. However, when you use the training commands provided in the usage examples below, the Ultralytics framework will automatically split the dataset for you. The default split used is 80% for the training set and 20% for the validation set.
+
 ## Key Features
 
 - The Caltech-101 dataset comprises around 9,000 color images divided into 101 categories.

@@ -140,6 +140,7 @@ class WorldTrainerFromScratch(WorldTrainer):
         # NOTE: to make training work properly, set `nc` and `names`
         final_data["nc"] = data["val"][0]["nc"]
         final_data["names"] = data["val"][0]["names"]
+        final_data["channels"] = data["val"][0]["channels"]
         self.data = final_data
         return final_data["train"], final_data["val"][0]
 

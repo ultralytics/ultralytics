@@ -27,7 +27,14 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR):
         >>> img = imread("path/to/image.jpg")
         >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
     """
-    return cv2.imdecode(np.fromfile(filename, np.uint8), flags)
+    file_bytes = np.fromfile(filename, np.uint8)
+    if filename.endswith((".tiff", ".tif")):
+        success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
+        if success:
+            return np.stack(frames, axis=2)  # or np.asarray(frames).transpose(1,2,0)
+        return None
+    else:
+        return cv2.imdecode(file_bytes, flags)
 
 
 def imwrite(filename: str, img: np.ndarray, params=None):

@@ -12,9 +12,6 @@ def pytest_addoption(parser):
 
     Args:
         parser (pytest.config.Parser): The pytest parser object for adding custom command-line options.
-
-    Returns:
-        (None)
     """
     parser.addoption("--slow", action="store_true", default=False, help="Run slow tests")
 

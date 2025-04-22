@@ -361,7 +361,11 @@ def main():
     shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
     # Show command to serve built website
-    print('Docs built correctly ✅\nServe site at http://localhost:8000 with "python -m http.server --directory site"')
+    size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) >> 20
+    print(
+        f'Docs built correctly ✅ ({size:.1f} MB)\n'
+        f'Serve site at http://localhost:8000 with "python -m http.server --directory site"'
+    )
 
 
 if __name__ == "__main__":

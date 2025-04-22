@@ -24,7 +24,7 @@ From the EC2 dashboard, click the **Launch Instance** button. This initiates the
 
 ### Selecting the Right Amazon Machine Image (AMI)
 
-Choosing the correct AMI is crucial. This determines the operating system and pre-installed software for your instance. In the search bar, type '[Deep Learning](https://aws.amazon.com/machine-learning/amis/)' and select the latest Ubuntu-based Deep Learning AMI (unless you have specific requirements for a different OS). Amazon's Deep Learning AMIs come pre-configured with popular [deep learning frameworks](https://aws.amazon.com/machine-learning/amis/#Frameworks_and_Interface) (like [PyTorch](https://pytorch.org/), used by YOLOv5) and necessary [GPU drivers](https://developer.nvidia.com/cuda-downloads), significantly streamlining the setup process.
+Choosing the correct AMI is crucial. This determines the operating system and pre-installed software for your instance. In the search bar, type '[Deep Learning](https://aws.amazon.com/ai/machine-learning/amis/)' and select the latest Ubuntu-based Deep Learning AMI (unless you have specific requirements for a different OS). Amazon's Deep Learning AMIs come pre-configured with popular [deep learning frameworks](https://aws.amazon.com/ai/machine-learning/amis/#Frameworks_and_Interface) (like [PyTorch](https://pytorch.org/), used by YOLOv5) and necessary [GPU drivers](https://developer.nvidia.com/cuda-downloads), significantly streamlining the setup process.
 
 ![Choose AMI](https://github.com/ultralytics/docs/releases/download/0/choose-ami.avif)
 

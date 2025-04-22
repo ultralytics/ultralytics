@@ -43,7 +43,6 @@ from ultralytics.utils import (
     clean_url,
     colorstr,
     downloads,
-    emojis,
     is_github_action_running,
     url2file,
 )
@@ -93,7 +92,7 @@ def parse_version(version="0.0.0") -> tuple:
     try:
         return tuple(map(int, re.findall(r"\d+", version)[:3]))  # '2.0.1+cpu' -> (2, 0, 1)
     except Exception as e:
-        LOGGER.warning(f"WARNING ⚠️ failure for parse_version({version}), returning (0, 0, 0): {e}")
+        LOGGER.warning(f"failure for parse_version({version}), returning (0, 0, 0): {e}")
         return 0, 0, 0
 
 
@@ -102,16 +101,12 @@ def is_ascii(s) -> bool:
     Check if a string is composed of only ASCII characters.
 
     Args:
-        s (str): String to be checked.
+        s (str | list | tuple | dict): Input to be checked (all are converted to string for checking).
 
     Returns:
         (bool): True if the string is composed only of ASCII characters, False otherwise.
     """
-    # Convert list, tuple, None, etc. to string
-    s = str(s)
-
-    # Check if the string is composed of only ASCII characters
-    return all(ord(c) < 128 for c in s)
+    return all(ord(c) < 128 for c in str(s))
 
 
 def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
@@ -153,14 +148,14 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
         )
         if max_dim != 1:
             raise ValueError(f"imgsz={imgsz} is not a valid image size. {msg}")
-        LOGGER.warning(f"WARNING ⚠️ updating to 'imgsz={max(imgsz)}'. {msg}")
+        LOGGER.warning(f"updating to 'imgsz={max(imgsz)}'. {msg}")
         imgsz = [max(imgsz)]
     # Make image size a multiple of the stride
     sz = [max(math.ceil(x / stride) * stride, floor) for x in imgsz]
 
     # Print warning message if image size was updated
     if sz != imgsz:
-        LOGGER.warning(f"WARNING ⚠️ imgsz={imgsz} must be multiple of max stride {stride}, updating to {sz}")
+        LOGGER.warning(f"imgsz={imgsz} must be multiple of max stride {stride}, updating to {sz}")
 
     # Add missing dimensions if necessary
     sz = [sz[0], sz[0]] if min_dim == 2 and len(sz) == 1 else sz[0] if min_dim == 1 and len(sz) == 1 else sz
@@ -204,7 +199,7 @@ def check_version(
         >>> check_version(current="21.10", required=">20.04,<22.04")
     """
     if not current:  # if current is '' or None
-        LOGGER.warning(f"WARNING ⚠️ invalid check_version({current}, {required}) requested, please check values.")
+        LOGGER.warning(f"invalid check_version({current}, {required}) requested, please check values.")
         return True
     elif not current[0].isdigit():  # current is package name rather than version string, i.e. current='ultralytics'
         try:
@@ -212,7 +207,7 @@ def check_version(
             current = metadata.version(current)  # get version string from package name
         except metadata.PackageNotFoundError as e:
             if hard:
-                raise ModuleNotFoundError(emojis(f"WARNING ⚠️ {current} package is required but not installed")) from e
+                raise ModuleNotFoundError(f"{current} package is required but not installed") from e
             else:
                 return False
 
@@ -248,9 +243,9 @@ def check_version(
         elif op == "<" and not (c < v):
             result = False
     if not result:
-        warning = f"WARNING ⚠️ {name}{required} is required, but {name}=={current} is currently installed {msg}"
+        warning = f"{name}{required} is required, but {name}=={current} is currently installed {msg}"
         if hard:
-            raise ModuleNotFoundError(emojis(warning))  # assert version requirements met
+            raise ModuleNotFoundError(warning)  # assert version requirements met
         if verbose:
             LOGGER.warning(warning)
     return result
@@ -401,9 +396,9 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 assert ONLINE, "AutoUpdate skipped (offline)"
                 LOGGER.info(attempt_install(s, cmds))
                 dt = time.time() - t
-                LOGGER.info(
-                    f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}\n"
-                    f"{prefix} ⚠️ {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
+                LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}")
+                LOGGER.warning(
+                    f"{prefix} {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
                 )
             except Exception as e:
                 LOGGER.warning(f"{prefix} ❌ {e}")
@@ -439,8 +434,8 @@ def check_torchvision():
         compatible_versions = compatibility_table[v_torch]
         v_torchvision = ".".join(TORCHVISION_VERSION.split("+")[0].split(".")[:2])
         if all(v_torchvision != v for v in compatible_versions):
-            print(
-                f"WARNING ⚠️ torchvision=={v_torchvision} is incompatible with torch=={v_torch}.\n"
+            LOGGER.warning(
+                f"torchvision=={v_torchvision} is incompatible with torch=={v_torch}.\n"
                 f"Run 'pip install torchvision=={compatible_versions[0]}' to fix torchvision or "
                 "'pip install -U torch torchvision' to update both.\n"
                 "For a full compatibility table see https://github.com/pytorch/vision#installation"
@@ -602,7 +597,7 @@ def check_imshow(warn=False):
         return True
     except Exception as e:
         if warn:
-            LOGGER.warning(f"WARNING ⚠️ Environment does not support cv2.imshow() or PIL Image.show()\n{e}")
+            LOGGER.warning(f"Environment does not support cv2.imshow() or PIL Image.show()\n{e}")
         return False
 
 
@@ -759,17 +754,15 @@ def check_amp(model):
         assert amp_allclose(YOLO("yolo11n.pt"), im)
         LOGGER.info(f"{prefix}checks passed ✅")
     except ConnectionError:
-        LOGGER.warning(
-            f"{prefix}checks skipped ⚠️. Offline and unable to download YOLO11n for AMP checks. {warning_msg}"
-        )
+        LOGGER.warning(f"{prefix}checks skipped. Offline and unable to download YOLO11n for AMP checks. {warning_msg}")
     except (AttributeError, ModuleNotFoundError):
         LOGGER.warning(
-            f"{prefix}checks skipped ⚠️. "
+            f"{prefix}checks skipped. "
             f"Unable to load YOLO11n for AMP checks due to possible Ultralytics package modifications. {warning_msg}"
         )
     except AssertionError:
-        LOGGER.warning(
-            f"{prefix}checks failed ❌. Anomalies were detected with AMP on your system that may lead to "
+        LOGGER.error(
+            f"{prefix}checks failed. Anomalies were detected with AMP on your system that may lead to "
             f"NaN losses or zero-mAP results, so AMP will be disabled during training."
         )
         return False
@@ -889,6 +882,8 @@ check_python("3.8", hard=False, verbose=True)  # check python version
 check_torchvision()  # check torch-torchvision compatibility
 
 # Define constants
+IS_PYTHON_3_8 = PYTHON_VERSION.startswith("3.8")
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
+IS_PYTHON_3_11 = PYTHON_VERSION.startswith("3.11")
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")
 IS_PYTHON_3_13 = PYTHON_VERSION.startswith("3.13")

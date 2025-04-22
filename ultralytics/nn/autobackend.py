@@ -538,7 +538,7 @@ class AutoBackend(nn.Module):
             metadata = yaml_load(metadata)
         if metadata and isinstance(metadata, dict):
             for k, v in metadata.items():
-                if k in {"stride", "batch"}:
+                if k in {"stride", "batch", "channels"}:
                     metadata[k] = int(v)
                 elif k in {"imgsz", "names", "kpt_shape", "args"} and isinstance(v, str):
                     metadata[k] = eval(v)

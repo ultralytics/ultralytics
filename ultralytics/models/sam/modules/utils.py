@@ -16,9 +16,8 @@ def select_closest_cond_frames(frame_idx, cond_frame_outputs, max_cond_frame_num
         max_cond_frame_num (int): Maximum number of conditioning frames to select.
 
     Returns:
-        (Tuple[Dict[int, Any], Dict[int, Any]]): A tuple containing two dictionaries:
-            - selected_outputs: Selected items from cond_frame_outputs.
-            - unselected_outputs: Items not selected from cond_frame_outputs.
+        selected_outputs (Dict[int, Any]): Selected items from cond_frame_outputs.
+        unselected_outputs (Dict[int, Any]): Items not selected from cond_frame_outputs.
 
     Examples:
         >>> frame_idx = 5

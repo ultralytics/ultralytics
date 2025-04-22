@@ -215,18 +215,6 @@ def update_docs_soup(content: str, max_title_length: int = 70) -> str:
                     modified = True
 
     # Remove href attributes from code line numbers in code blocks
-    if clean_line_numbers(soup):
-        modified = True
-
-    return str(soup) if modified else content
-
-
-# Replace the line number links with simple text
-def clean_line_numbers(soup):
-    """Remove href and name attributes from code line number anchors."""
-    modified = False
-
-    # Use CSS selectors to find potential matching anchors more efficiently
     for a in soup.select('a[href^="#__codelineno-"], a[id^="__codelineno-"]'):
         # Remove href if it exists
         if a.has_attr("href"):
@@ -236,8 +224,9 @@ def clean_line_numbers(soup):
         if a.has_attr("name"):
             del a["name"]
             modified = True
+        modified = True
 
-    return modified
+    return str(soup) if modified else content
 
 
 def remove_macros():

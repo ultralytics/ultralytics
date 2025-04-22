@@ -43,6 +43,7 @@ class ObjectCounter(BaseSolution):
         self.classwise_counts = {}  # Dictionary for counts, categorized by object class
         self.region_initialized = False  # Flag indicating whether the region has been initialized
 
+
         self.show_in = self.CFG["show_in"]
         self.show_out = self.CFG["show_out"]
         self.margin = self.line_width * 2  # Scales the background rectangle size to display counts properly
@@ -179,9 +180,10 @@ class ObjectCounter(BaseSolution):
         )  # Draw region
 
         # Iterate over bounding boxes, track ids and classes index
-        for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
+        for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
+            label = f"{self.names[cls]}:{round(conf, 2)}"
             # Draw bounding box and counting region
-            self.annotator.box_label(box, label=self.names[cls], color=colors(cls, True))
+            self.annotator.box_label(box, label=label, color=colors(cls, True))
             self.store_tracking_history(track_id, box)  # Store track history
             self.store_classwise_counts(cls)  # Store classwise counts in dict
 

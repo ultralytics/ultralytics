@@ -360,7 +360,7 @@ def main():
     shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)
     shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
-    # Show command to serve built website
+    # Print results
     size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) >> 20
     print(
         f'Docs built correctly ✅ ({size:.1f} MB)\n'

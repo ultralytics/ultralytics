@@ -16,9 +16,8 @@ import torch
 from PIL import Image
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops
+from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, imread, ops
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.patches import imread
 
 
 @dataclass
@@ -493,7 +492,7 @@ class LoadPilAndNumpy:
         if isinstance(im, Image.Image):
             if im.mode != "RGB":
                 im = im.convert("RGB")
-            im = np.asarray(im)[:, :, ::-1]
+            im = np.asarray(im)[:, :, ::-1]  # RGB to BGR
             im = np.ascontiguousarray(im)  # contiguous
         return im
 

@@ -184,6 +184,8 @@ class Annotator:
         self.lw = line_width or max(round(sum(im.size if input_is_pil else im.shape) / 2 * 0.003), 2)
         if self.pil:  # use PIL
             self.im = im if input_is_pil else Image.fromarray(im)
+            if self.im.mode not in {"RGB", "RGBA"}:  # multispectral
+                self.im = self.im.convert("RGB")
             self.draw = ImageDraw.Draw(self.im, "RGBA")
             try:
                 font = check_font("Arial.Unicode.ttf" if non_ascii else font)
@@ -195,6 +197,8 @@ class Annotator:
             if check_version(pil_version, "9.2.0"):
                 self.font.getsize = lambda x: self.font.getbbox(x)[2:4]  # text width, height
         else:  # use cv2
+            if im.shape[2] > 3:  # multispectral
+                im = np.ascontiguousarray(im[..., :3])
             assert im.data.contiguous, "Image not contiguous. Apply np.ascontiguousarray(im) to Annotator input images."
             self.im = im if im.flags.writeable else im.copy()
             self.tf = max(self.lw - 1, 1)  # font thickness
@@ -683,6 +687,8 @@ def plot_images(
         kpts = kpts.cpu().numpy()
     if isinstance(batch_idx, torch.Tensor):
         batch_idx = batch_idx.cpu().numpy()
+    if images.shape[1] > 3:
+        images = images[:, :3]  # crop multispectral images to first 3 channels
 
     bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images

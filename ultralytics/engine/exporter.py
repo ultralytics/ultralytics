@@ -351,13 +351,13 @@ class Exporter:
         if self.args.int8 and not self.args.data:
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
-                "INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
+                f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
             )
         if tfjs and (ARM64 and LINUX):
             raise SystemError("TF.js exports are not currently supported on ARM64 Linux")
 
         # Input
-        im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
+        im = torch.zeros(self.args.batch, model.yaml.get("channels", 3), *self.imgsz).to(self.device)
         file = Path(
             getattr(model, "pt_path", None) or getattr(model, "yaml_file", None) or model.yaml.get("yaml_file", "")
         )
@@ -433,6 +433,7 @@ class Exporter:
             "imgsz": self.imgsz,
             "names": model.names,
             "args": {k: v for k, v in self.args if k in fmt_keys},
+            "channels": model.yaml.get("channels", 3),
         }  # model metadata
         if dla is not None:
             self.metadata["dla"] = dla  # make sure `AutoBackend` uses correct dla device if it has one

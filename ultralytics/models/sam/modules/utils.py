@@ -234,9 +234,8 @@ def window_partition(x, window_size):
         window_size (int): Size of each window.
 
     Returns:
-        (Tuple[torch.Tensor, Tuple[int, int]]): A tuple containing:
-            - windows (torch.Tensor): Partitioned windows with shape (B * num_windows, window_size, window_size, C).
-            - (Hp, Wp) (Tuple[int, int]): Padded height and width before partition.
+        windows (torch.Tensor): Partitioned windows with shape (B * num_windows, window_size, window_size, C).
+        (Hp, Wp) (Tuple[int, int]): Padded height and width before partition.
 
     Examples:
         >>> x = torch.randn(1, 16, 16, 3)

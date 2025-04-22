@@ -226,31 +226,15 @@ def clean_line_numbers(soup):
     """Remove href attributes from code line numbers in code blocks."""
     modified = False
 
-    # 1. Find the line number divisions with class "linenodiv"
-    line_divs = soup.find_all("div", class_="linenodiv")
-    for line_div in line_divs:
-        # Find all spans with class "normal" in those divs
-        spans = line_div.find_all("span", class_="normal")
-        for span in spans:
-            # Find the anchor tag inside span
-            a_tag = span.find("a")
-            if a_tag and a_tag.get("href", "").startswith("#__codelineno-"):
-                # Get the line number text
-                line_number = a_tag.get_text()
-                # Replace the link with just the text
-                a_tag.replace_with(line_number)
-                modified = True
+    # Replace line number links with plain text
+    for a_tag in soup.select("div.linenodiv span.normal > a[href^='#__codelineno-']"):
+        a_tag.replace_with(a_tag.get_text())
+        modified = True
 
-    # 2. Replace the anchor tags in the code blocks with their content
-    code_blocks = soup.find_all("code", attrs={"data-wg-notranslate": ""})
-    for code_block in code_blocks:
-        # Find all anchor tags with IDs starting with "__codelineno-"
-        anchors = code_block.find_all("a", id=lambda i: i and i.startswith("__codelineno-"))
-        for anchor in anchors:
-            # Instead of removing completely, preserve content by replacing with nothing
-            # This keeps any whitespace/newlines that might follow
-            anchor.replace_with("")
-            modified = True
+    # Replace code line anchor tags with empty string
+    for anchor in soup.select("code[data-wg-notranslate] > a[id^='__codelineno-']"):
+        anchor.replace_with("")
+        modified = True
 
     return modified
 

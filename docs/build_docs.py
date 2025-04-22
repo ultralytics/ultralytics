@@ -223,18 +223,19 @@ def update_docs_soup(content: str, max_title_length: int = 70) -> str:
 
 # Replace the line number links with simple text
 def clean_line_numbers(soup):
-    """Remove href attributes from code line numbers in code blocks."""
+    """Remove href and name attributes from code line number anchors."""
     modified = False
 
-    # Replace line number links with plain text
-    for a_tag in soup.select("div.linenodiv span.normal > a[href^='#__codelineno-']"):
-        a_tag.replace_with(a_tag.get_text())
-        modified = True
-
-    # Replace code line anchor tags with empty string
-    for anchor in soup.select("code[data-wg-notranslate] > a[id^='__codelineno-']"):
-        anchor.replace_with("")
-        modified = True
+    # Use CSS selectors to find potential matching anchors more efficiently
+    for a in soup.select('a[href^="#__codelineno-"], a[id^="__codelineno-"]'):
+        # Remove href if it exists
+        if a.has_attr("href"):
+            del a["href"]
+            modified = True
+        # Remove name if it exists
+        if a.has_attr("name"):
+            del a["name"]
+            modified = True
 
     return modified
 

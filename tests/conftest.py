@@ -38,9 +38,6 @@ def pytest_sessionstart(session):
 
     Args:
         session (pytest.Session): The pytest session object.
-
-    Returns:
-        (None)
     """
     from ultralytics.utils.torch_utils import init_seeds
 

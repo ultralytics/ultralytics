@@ -21,7 +21,6 @@ from ultralytics.utils import (
     SETTINGS,
     callbacks,
     checks,
-    emojis,
     yaml_load,
 )
 
@@ -528,7 +527,7 @@ class Model(torch.nn.Module):
         """
         if source is None:
             source = ASSETS
-            LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using 'source={source}'.")
+            LOGGER.warning(f"'source' is missing. Using 'source={source}'.")
 
         is_cli = (ARGV[0].endswith("yolo") or ARGV[0].endswith("ultralytics")) and any(
             x in ARGV for x in ("predict", "track", "mode=predict", "mode=track")
@@ -766,7 +765,7 @@ class Model(torch.nn.Module):
         self._check_is_pytorch_model()
         if hasattr(self.session, "model") and self.session.model.id:  # Ultralytics HUB session with loaded model
             if any(kwargs):
-                LOGGER.warning("WARNING ⚠️ using HUB training arguments, ignoring local training arguments.")
+                LOGGER.warning("using HUB training arguments, ignoring local training arguments.")
             kwargs = self.session.train_args  # overwrite kwargs
 
         checks.check_pip_update_available()
@@ -1082,9 +1081,7 @@ class Model(torch.nn.Module):
         except Exception as e:
             name = self.__class__.__name__
             mode = inspect.stack()[1][3]  # get the function name.
-            raise NotImplementedError(
-                emojis(f"WARNING ⚠️ '{name}' model does not support '{mode}' mode for '{self.task}' task yet.")
-            ) from e
+            raise NotImplementedError(f"'{name}' model does not support '{mode}' mode for '{self.task}' task.") from e
 
     @property
     def task_map(self) -> dict:

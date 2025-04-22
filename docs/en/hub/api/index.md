@@ -27,6 +27,8 @@ Help shape the future of Ultralytics HUB by sharing your ideas, feedback, and in
 
 ## Thank You, Community! 🌍
 
-## Your [contributions](../../help/contributing.md) and ongoing support fuel our commitment to pushing the boundaries of [AI innovation](https://github.com/ultralytics/ultralytics). Stay tuned—exciting things are just around the corner!
+Your [contributions](../../help/contributing.md) and ongoing support fuel our commitment to pushing the boundaries of [AI innovation](https://github.com/ultralytics/ultralytics). Stay tuned—exciting things are just around the corner!
 
-Excited for what's coming? Bookmark this page and get ready for a transformative AI and ML journey with Ultralytics! 🛠️🤖
+---
+
+Excited for what's coming? Bookmark this page and check out our [Quickstart Guide](https://docs.ultralytics.com/quickstart/) to get started with our current tools while you wait. Get ready for a transformative AI and ML journey with Ultralytics! 🛠️🤖

@@ -14,8 +14,8 @@ import numpy as np
 import psutil
 from torch.utils.data import Dataset
 
-from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS
-from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
+from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS, check_file_speeds
+from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, imread
 
 
 class BaseDataset(Dataset):
@@ -127,7 +127,7 @@ class BaseDataset(Dataset):
         if self.cache == "ram" and self.check_cache_ram():
             if hyp.deterministic:
                 LOGGER.warning(
-                    "WARNING ⚠️ cache='ram' may produce non-deterministic training results. "
+                    "cache='ram' may produce non-deterministic training results. "
                     "Consider cache='disk' as a deterministic alternative if your disk space allows."
                 )
             self.cache_images()
@@ -172,6 +172,7 @@ class BaseDataset(Dataset):
             raise FileNotFoundError(f"{self.prefix}Error loading data from {img_path}\n{HELP_URL}") from e
         if self.fraction < 1:
             im_files = im_files[: round(len(im_files) * self.fraction)]  # retain a fraction of the dataset
+        check_file_speeds(im_files, prefix=self.prefix)  # check image read speeds
         return im_files
 
     def update_labels(self, include_class: Optional[list]):
@@ -220,11 +221,11 @@ class BaseDataset(Dataset):
                 try:
                     im = np.load(fn)
                 except Exception as e:
-                    LOGGER.warning(f"{self.prefix}WARNING ⚠️ Removing corrupt *.npy image file {fn} due to: {e}")
+                    LOGGER.warning(f"{self.prefix}Removing corrupt *.npy image file {fn} due to: {e}")
                     Path(fn).unlink(missing_ok=True)
-                    im = cv2.imread(f)  # BGR
+                    im = imread(f)  # BGR
             else:  # read image
-                im = cv2.imread(f)  # BGR
+                im = imread(f)  # BGR
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
 
@@ -270,7 +271,7 @@ class BaseDataset(Dataset):
         """Save an image as an *.npy file for faster loading."""
         f = self.npy_files[i]
         if not f.exists():
-            np.save(f.as_posix(), cv2.imread(self.im_files[i]), allow_pickle=False)
+            np.save(f.as_posix(), imread(self.im_files[i]), allow_pickle=False)
 
     def check_cache_disk(self, safety_margin=0.5):
         """
@@ -288,22 +289,22 @@ class BaseDataset(Dataset):
         n = min(self.ni, 30)  # extrapolate from 30 random images
         for _ in range(n):
             im_file = random.choice(self.im_files)
-            im = cv2.imread(im_file)
+            im = imread(im_file)
             if im is None:
                 continue
             b += im.nbytes
             if not os.access(Path(im_file).parent, os.W_OK):
                 self.cache = None
-                LOGGER.info(f"{self.prefix}Skipping caching images to disk, directory not writeable ⚠️")
+                LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writeable")
                 return False
         disk_required = b * self.ni / n * (1 + safety_margin)  # bytes required to cache dataset to disk
         total, used, free = shutil.disk_usage(Path(self.im_files[0]).parent)
         if disk_required > free:
             self.cache = None
-            LOGGER.info(
+            LOGGER.warning(
                 f"{self.prefix}{disk_required / gb:.1f}GB disk space required, "
                 f"with {int(safety_margin * 100)}% safety margin but only "
-                f"{free / gb:.1f}/{total / gb:.1f}GB free, not caching images to disk ⚠️"
+                f"{free / gb:.1f}/{total / gb:.1f}GB free, not caching images to disk"
             )
             return False
         return True
@@ -321,7 +322,7 @@ class BaseDataset(Dataset):
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
         n = min(self.ni, 30)  # extrapolate from 30 random images
         for _ in range(n):
-            im = cv2.imread(random.choice(self.im_files))  # sample image
+            im = imread(random.choice(self.im_files))  # sample image
             if im is None:
                 continue
             ratio = self.imgsz / max(im.shape[0], im.shape[1])  # max(h, w)  # ratio
@@ -330,10 +331,10 @@ class BaseDataset(Dataset):
         mem = psutil.virtual_memory()
         if mem_required > mem.available:
             self.cache = None
-            LOGGER.info(
+            LOGGER.warning(
                 f"{self.prefix}{mem_required / gb:.1f}GB RAM required to cache images "
                 f"with {int(safety_margin * 100)}% safety margin but only "
-                f"{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, not caching images ⚠️"
+                f"{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, not caching images"
             )
             return False
         return True
@@ -414,19 +415,17 @@ class BaseDataset(Dataset):
         """
         Users can customize their own format here.
 
-        Note:
+        Examples:
             Ensure output is a dictionary with the following keys:
-            ```python
-            dict(
-                im_file=im_file,
-                shape=shape,  # format: (height, width)
-                cls=cls,
-                bboxes=bboxes,  # xywh
-                segments=segments,  # xy
-                keypoints=keypoints,  # xy
-                normalized=True,  # or False
-                bbox_format="xyxy",  # or xywh, ltwh
-            )
-            ```
+            >>> dict(
+            ...     im_file=im_file,
+            ...     shape=shape,  # format: (height, width)
+            ...     cls=cls,
+            ...     bboxes=bboxes,  # xywh
+            ...     segments=segments,  # xy
+            ...     keypoints=keypoints,  # xy
+            ...     normalized=True,  # or False
+            ...     bbox_format="xyxy",  # or xywh, ltwh
+            ... )
         """
         raise NotImplementedError

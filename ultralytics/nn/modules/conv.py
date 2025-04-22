@@ -447,8 +447,8 @@ class RepConv(nn.Module):
         Calculate equivalent kernel and bias by fusing convolutions.
 
         Returns:
-            Equivalent kernel (torch.Tensor)
-            Equivalent bias (torch.Tensor)
+            (torch.Tensor): Equivalent kernel
+             (torch.Tensor): Equivalent bias
         """
         kernel3x3, bias3x3 = self._fuse_bn_tensor(self.conv1)
         kernel1x1, bias1x1 = self._fuse_bn_tensor(self.conv2)

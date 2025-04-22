@@ -136,7 +136,7 @@ class GCPRegions:
 
         Returns:
             region_and_latency (List[Tuple[str, float, float, float, float]]): List of tuples containing region information and
-            latency statistics. Each tuple contains (region, mean_latency, std_dev, min_latency, max_latency).
+                latency statistics. Each tuple contains (region, mean_latency, std_dev, min_latency, max_latency).
 
         Examples:
             >>> regions = GCPRegions()

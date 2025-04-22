@@ -224,7 +224,6 @@ def update_docs_soup(content: str, max_title_length: int = 70) -> str:
         if a.has_attr("name"):
             del a["name"]
             modified = True
-        modified = True
 
     return str(soup) if modified else content
 

@@ -66,7 +66,7 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
 
         ### Conda Docker Image
 
-        Ultralytics Conda Docker images are also available from [DockerHub](https://hub.docker.com/r/ultralytics/ultralytics). These images are based on [Miniconda3](https://docs.conda.io/projects/miniconda/en/latest/) and provide a straightforward way to start using `ultralytics` in a Conda environment.
+        Ultralytics Conda Docker images are also available from [DockerHub](https://hub.docker.com/r/ultralytics/ultralytics). These images are based on [Miniconda3](https://www.anaconda.com/docs/main) and provide a straightforward way to start using `ultralytics` in a Conda environment.
 
         ```bash
         # Set image name as a variable

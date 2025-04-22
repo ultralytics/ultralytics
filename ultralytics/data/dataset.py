@@ -31,6 +31,7 @@ from .converter import merge_multi_segment
 from .utils import (
     HELP_URL,
     LOGGER,
+    check_file_speeds,
     get_hash,
     img2label_paths,
     load_dataset_cache_file,
@@ -147,7 +148,7 @@ class YOLODataset(BaseDataset):
         if msgs:
             LOGGER.info("\n".join(msgs))
         if nf == 0:
-            LOGGER.warning(f"{self.prefix}WARNING ⚠️ No labels found in {path}. {HELP_URL}")
+            LOGGER.warning(f"{self.prefix}No labels found in {path}. {HELP_URL}")
         x["hash"] = get_hash(self.label_files + self.im_files)
         x["results"] = nf, nm, ne, nc, len(self.im_files)
         x["msgs"] = msgs  # warnings
@@ -184,7 +185,7 @@ class YOLODataset(BaseDataset):
         [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
         labels = cache["labels"]
         if not labels:
-            LOGGER.warning(f"WARNING ⚠️ No images found in {cache_path}, training may not work correctly. {HELP_URL}")
+            LOGGER.warning(f"No images found in {cache_path}, training may not work correctly. {HELP_URL}")
         self.im_files = [lb["im_file"] for lb in labels]  # update im_files
 
         # Check if the dataset is all boxes or all segments
@@ -192,14 +193,14 @@ class YOLODataset(BaseDataset):
         len_cls, len_boxes, len_segments = (sum(x) for x in zip(*lengths))
         if len_segments and len_boxes != len_segments:
             LOGGER.warning(
-                f"WARNING ⚠️ Box and segment counts should be equal, but got len(segments) = {len_segments}, "
+                f"Box and segment counts should be equal, but got len(segments) = {len_segments}, "
                 f"len(boxes) = {len_boxes}. To resolve this only boxes will be used and all segments will be removed. "
                 "To avoid this please supply either a detect or segment dataset, not a detect-segment mixed dataset."
             )
             for lb in labels:
                 lb["segments"] = []
         if len_cls == 0:
-            LOGGER.warning(f"WARNING ⚠️ No labels found in {cache_path}, training may not work correctly. {HELP_URL}")
+            LOGGER.warning(f"No labels found in {cache_path}, training may not work correctly. {HELP_URL}")
         return labels
 
     def build_transforms(self, hyp=None):
@@ -295,7 +296,7 @@ class YOLODataset(BaseDataset):
         values = list(zip(*[list(b.values()) for b in batch]))
         for i, k in enumerate(keys):
             value = values[i]
-            if k == "img" or k == "text_feats":
+            if k in {"img", "text_feats"}:
                 value = torch.stack(value, 0)
             elif k == "visuals":
                 value = torch.nn.utils.rnn.pad_sequence(value, batch_first=True)
@@ -396,7 +397,7 @@ class YOLOMultiModalDataset(YOLODataset):
         texts = [v.split("/") for v in self.data["names"].values()]
         category_freq = defaultdict(int)
         for label in self.labels:
-            for c in label["cls"]:  # to check
+            for c in label["cls"].squeeze(-1):  # to check
                 text = texts[int(c)]
                 for t in text:
                     t = t.strip()
@@ -730,7 +731,7 @@ class ClassificationDataset:
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
         if self.cache_ram:
             LOGGER.warning(
-                "WARNING ⚠️ Classification `cache_ram` training has known memory leak in "
+                "Classification `cache_ram` training has known memory leak in "
                 "https://github.com/ultralytics/ultralytics/issues/9824, setting `cache_ram=False`."
             )
             self.cache_ram = False
@@ -751,7 +752,7 @@ class ClassificationDataset:
                 hsv_v=args.hsv_v,
             )
             if augment
-            else classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
+            else classify_transforms(size=args.imgsz)
         )
 
     def __getitem__(self, i):
@@ -794,6 +795,7 @@ class ClassificationDataset:
         path = Path(self.root).with_suffix(".cache")  # *.cache file path
 
         try:
+            check_file_speeds([file for (file, _) in self.samples[:5]], prefix=self.prefix)  # check image read speeds
             cache = load_dataset_cache_file(path)  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
             assert cache["hash"] == get_hash([x[0] for x in self.samples])  # identical hash

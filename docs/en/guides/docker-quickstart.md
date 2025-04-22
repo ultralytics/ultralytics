@@ -80,7 +80,7 @@ Ultralytics offers several Docker images optimized for various platforms and use
 - **Dockerfile-jetson-jetpack6:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson/) devices running [NVIDIA JetPack 6](https://developer.nvidia.com/embedded/jetpack-sdk-61).
 - **Dockerfile-jupyter:** For interactive development using JupyterLab in the browser.
 - **Dockerfile-python:** Minimal Python environment for lightweight applications.
-- **Dockerfile-conda:** Includes [Miniconda3](https://docs.conda.io/projects/miniconda/en/latest/) and Ultralytics package installed via Conda.
+- **Dockerfile-conda:** Includes [Miniconda3](https://www.anaconda.com/docs/main) and Ultralytics package installed via Conda.
 
 To pull the latest image:
 

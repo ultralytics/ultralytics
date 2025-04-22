@@ -235,7 +235,7 @@ class BaseModel(torch.nn.Module):
             thresh (int, optional): The threshold number of BatchNorm layers.
 
         Returns:
-            (bool): True if the number of BatchNorm layers in the model is less than the threshold, False otherwise.
+            is_fuse (bool): True if the number of BatchNorm layers in the model is less than the threshold, False otherwise.
         """
         bn = tuple(v for k, v in torch.nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
         return sum(isinstance(v, bn) for v in self.modules()) < thresh  # True if < 'thresh' BatchNorm layers in model
@@ -614,7 +614,7 @@ class RTDETRDetectionModel(DetectionModel):
             preds (torch.Tensor, optional): Precomputed model predictions.
 
         Returns:
-            (tuple): A tuple containing the total loss and main three losses in a tensor.
+            loss (tuple): A tuple containing the total loss and main three losses in a tensor.
         """
         if not hasattr(self, "criterion"):
             self.criterion = self.init_criterion()

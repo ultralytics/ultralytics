@@ -397,7 +397,7 @@ def get_save_dir(args: SimpleNamespace, name: str = None) -> Path:
             or the 'args.mode'.
 
     Returns:
-        (Path): Directory path where outputs should be saved.
+        save_dir (Path): Directory path where outputs should be saved.
 
     Examples:
         >>> from types import SimpleNamespace
@@ -513,7 +513,7 @@ def merge_equals_args(args: List[str]) -> List[str]:
         args (List[str]): A list of strings where each element represents an argument or fragment.
 
     Returns:
-        (List[str]): A list of strings where the arguments around isolated '=' are merged and fragments with brackets are joined.
+        merged_args (List[str]): A list of strings where the arguments around isolated '=' are merged and fragments with brackets are joined.
 
     Examples:
         >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3", "imgsz=[3,", "640,", "640]"]

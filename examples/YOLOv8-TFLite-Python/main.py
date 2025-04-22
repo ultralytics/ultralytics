@@ -161,8 +161,8 @@ class YOLOv8TFLite:
             img (np.ndarray): The input image to be preprocessed with shape (H, W, C).
 
         Returns:
-            (np.ndarray): Preprocessed image ready for model input.
-            (Tuple[float, float]): Padding ratios for coordinate adjustment.
+            preprocessed_im (np.ndarray): Preprocessed image ready for model input.
+            pad_ratio (Tuple[float, float]): Padding ratios for coordinate adjustment.
         """
         img, pad = self.letterbox(img, (self.in_width, self.in_height))
         img = img[..., ::-1][None]  # BGR to RGB and add batch dimension (N, H, W, C) for TFLite

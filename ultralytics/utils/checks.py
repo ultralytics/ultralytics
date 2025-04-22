@@ -87,7 +87,7 @@ def parse_version(version="0.0.0") -> tuple:
         version (str): Version string, i.e. '2.0.1+cpu'
 
     Returns:
-        numeric_version (tuple): Tuple of integers representing the numeric part of the version, i.e. (2, 0, 1)
+        numeric_version (Tuple[int, int, int]): It provides the numeric part of the version, i.e. (2, 0, 1)
     """
     try:
         return tuple(map(int, re.findall(r"\d+", version)[:3]))  # '2.0.1+cpu' -> (2, 0, 1)
@@ -302,7 +302,7 @@ def check_font(font="Arial.ttf"):
         font (str): Path or name of font.
 
     Returns:
-        (Path): Resolved font file path.
+        file_path (Path): Resolved font file path.
     """
     from matplotlib import font_manager
 
@@ -334,7 +334,7 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
         verbose (bool): If True, print warning message if requirement is not met.
 
     Returns:
-        (bool): Whether the installed Python version meets the minimum constraints.
+        is_compatible (bool): Whether the installed Python version meets the minimum constraints.
     """
     return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard, verbose=verbose)
 

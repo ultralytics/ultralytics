@@ -642,7 +642,7 @@ class ProfileModels:
             model_info (tuple): Model information (layers, params, gradients, flops).
 
         Returns:
-            (str): Formatted table row string with model metrics.
+            metrics (str): Formatted table row string with model metrics.
         """
         layers, params, gradients, flops = model_info
         return (
@@ -662,7 +662,7 @@ class ProfileModels:
             model_info (tuple): Model information (layers, params, gradients, flops).
 
         Returns:
-            (dict): Dictionary containing profiling results.
+            profiled_results (dict): Dictionary containing profiling results.
         """
         layers, params, gradients, flops = model_info
         return {

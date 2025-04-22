@@ -67,7 +67,7 @@ class BaseTensor(SimpleClass):
         Returns the shape of the underlying data tensor.
 
         Returns:
-            (Tuple[int, ...]): The shape of the data tensor.
+            shape (Tuple[int, ...]): The shape of the data tensor.
 
         Examples:
             >>> data = torch.rand(100, 4)

@@ -194,7 +194,9 @@ class HUBTrainingSession:
             identifier (str): The identifier string to be parsed.
 
         Returns:
-            (tuple): A tuple containing the API key, model ID, and filename as applicable.
+            api_key (str or None): The API key extracted from the identifier, if available.
+            model_id (str or None): The model ID parsed from the HUB URL, if applicable.
+            filename (str or None): The filename if the identifier is a local .pt or .yaml file.
 
         Raises:
             HUBModelError: If the identifier format is not recognized.

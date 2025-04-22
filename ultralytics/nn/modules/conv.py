@@ -479,9 +479,8 @@ class RepConv(nn.Module):
             branch (Conv | nn.BatchNorm2d | None): Branch to fuse.
 
         Returns:
-            (tuple): Tuple containing:
-                - Fused kernel (torch.Tensor)
-                - Fused bias (torch.Tensor)
+            Fused kernel (torch.Tensor)
+            Fused bias (torch.Tensor)
         """
         if branch is None:
             return 0, 0

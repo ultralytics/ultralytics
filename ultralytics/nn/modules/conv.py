@@ -337,7 +337,7 @@ class GhostConv(nn.Module):
         cv2 (Conv): Cheap operation convolution.
 
     References:
-        https://github.com/huawei-noah/ghostnet
+        https://github.com/huawei-noah/Efficient-AI-Backbones
     """
 
     def __init__(self, c1, c2, k=1, s=1, g=1, act=True):

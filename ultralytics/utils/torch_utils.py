@@ -313,7 +313,10 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
         imgsz (int | List, optional): Input image size. Defaults to 640.
 
     Returns:
-        (Tuple[int, int, int, float]): Number of layers, parameters, gradients, and GFLOPs.
+        n_l (int): Total number of layers in the model.
+        n_p (int): Total number of parameters in the model.
+        n_g (int): Total number of trainable gradients.
+        flops (float): Total GFLOPs of the model.
     """
     if not verbose:
         return

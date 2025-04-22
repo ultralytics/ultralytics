@@ -97,13 +97,13 @@ def run_ray_tune(
     # Get search space
     if not space and not train_args.get("resume"):
         space = default_space
-        LOGGER.warning("WARNING ⚠️ search space not provided, using default search space.")
+        LOGGER.warning("search space not provided, using default search space.")
 
     # Get dataset
     data = train_args.get("data", TASK2DATA[task])
     space["data"] = data
     if "data" not in train_args:
-        LOGGER.warning(f'WARNING ⚠️ data not provided, using default "data={data}".')
+        LOGGER.warning(f'data not provided, using default "data={data}".')
 
     # Define the trainable function with allocated resources
     trainable_with_resources = tune.with_resources(_tune, {"cpu": NUM_THREADS, "gpu": gpu_per_trial or 0})

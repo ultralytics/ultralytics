@@ -192,7 +192,7 @@ class SegmentationValidator(DetectionValidator):
             if self.args.plots and self.batch_i < 3:
                 self.plot_masks.append(pred_masks[:50].cpu())  # Limit plotted items for speed
                 if pred_masks.shape[0] > 50:
-                    LOGGER.warning("WARNING ⚠️ Limiting validation plots to first 50 items per image for speed...")
+                    LOGGER.warning("Limiting validation plots to first 50 items per image for speed...")
 
             # Save
             if self.args.save_json:

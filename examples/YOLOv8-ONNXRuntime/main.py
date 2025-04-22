@@ -63,8 +63,8 @@ class YOLOv8:
             new_shape (Tuple[int, int]): Target shape (height, width) for the image.
 
         Returns:
-            (np.ndarray): Resized and padded image.
-            (Tuple[int, int]): Padding values (top, left) applied to the image.
+            resize_and_pad_im (np.ndarray): Resized and padded image.
+            pad_values (Tuple[int, int]): Padding values (top, left) applied to the image.
         """
         shape = img.shape[:2]  # current shape [height, width]
 
@@ -128,8 +128,8 @@ class YOLOv8:
         normalizes pixel values, and prepares the image data for model input.
 
         Returns:
-            (np.ndarray): Preprocessed image data ready for inference with shape (1, 3, height, width).
-            (Tuple[int, int]): Padding values (top, left) applied during letterboxing.
+            preprocessed_im (np.ndarray): Preprocessed image data ready for inference with shape (1, 3, height, width).
+            pad_values (Tuple[int, int]): Padding values (top, left) applied during letterboxing.
         """
         # Read the input image using OpenCV
         self.img = cv2.imread(self.input_image)

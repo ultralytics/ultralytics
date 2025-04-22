@@ -250,7 +250,7 @@ def cfg2dict(cfg: Union[str, Path, Dict, SimpleNamespace]) -> Dict:
             a string, a dictionary, or a SimpleNamespace object.
 
     Returns:
-        (dict): Configuration object in dictionary format.
+        config_dict (dict): Configuration object in dictionary format.
 
     Examples:
         Convert a YAML file path to a dictionary:

@@ -281,7 +281,7 @@ class BaseDataset(Dataset):
             safety_margin (float, optional): Safety margin factor for disk space calculation.
 
         Returns:
-            (bool): True if there's enough disk space, False otherwise.
+            space_available (bool): True if there's enough disk space, False otherwise.
         """
         import shutil
 
@@ -317,7 +317,7 @@ class BaseDataset(Dataset):
             safety_margin (float, optional): Safety margin factor for RAM calculation.
 
         Returns:
-            (bool): True if there's enough RAM, False otherwise.
+            ram_available (bool): True if there's enough RAM, False otherwise.
         """
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
         n = min(self.ni, 30)  # extrapolate from 30 random images

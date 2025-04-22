@@ -111,7 +111,7 @@ class RTDETR:
         Loads the image, converts color space, resizes to model input dimensions, and normalizes pixel values.
 
         Returns:
-            (np.ndarray): Preprocessed image data with shape (1, 3, H, W) ready for inference.
+            preprocessed_im (np.ndarray): Preprocessed image data with shape (1, 3, H, W) ready for inference.
         """
         # Read the input image using OpenCV
         self.img = cv2.imread(self.img_path)
@@ -144,7 +144,7 @@ class RTDETR:
             boxes (np.ndarray): Array of shape (N, 4) where each row represents a bounding box in (cx, cy, w, h) format.
 
         Returns:
-            (np.ndarray): Array of shape (N, 4) with bounding boxes in (x_min, y_min, x_max, y_max) format.
+            boxes_xyxy (np.ndarray): Array of shape (N, 4) with bounding boxes in (x_min, y_min, x_max, y_max) format.
         """
         # Calculate half width and half height of the bounding boxes
         half_width = boxes[:, 2] / 2

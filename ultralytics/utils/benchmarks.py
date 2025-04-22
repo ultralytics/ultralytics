@@ -302,7 +302,7 @@ class RF100Benchmark:
             list_ind (int): Index of the current dataset in the list.
 
         Returns:
-            (float): The mean average precision (mAP) value for the evaluated model.
+            mAP (float): The mean average precision (mAP) value for the evaluated model.
 
         Examples:
             Evaluate a model on a specific dataset
@@ -429,7 +429,7 @@ class ProfileModels:
         Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.
 
         Returns:
-            (List[Dict]): List of dictionaries containing profiling results for each model.
+            profiling_results (List[Dict]): List of dictionaries containing profiling results for each model.
 
         Examples:
             Profile models and print results

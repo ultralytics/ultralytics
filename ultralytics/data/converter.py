@@ -21,7 +21,7 @@ def coco91_to_coco80_class():
     Converts 91-index COCO class IDs to 80-index COCO class IDs.
 
     Returns:
-        (list): A list of 91 class IDs where the index represents the 80-index class ID and the value is the
+        coco_80 (list): A list of 91 class IDs where the index represents the 80-index class ID and the value is the
             corresponding 91-index class ID.
     """
     return [

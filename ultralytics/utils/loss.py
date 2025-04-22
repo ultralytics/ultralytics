@@ -38,14 +38,21 @@ class VarifocalLoss(nn.Module):
 
 
 class FocalLoss(nn.Module):
-    """Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5)."""
+    """
+    Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5).
 
-    def __init__(self):
+    Args:
+        gamma (float): The focusing parameter that controls how much the loss focuses on hard-to-classify examples.
+        alpha (float): The balancing factor used to address class imbalance.
+    """
+
+    def __init__(self, gamma=1.5, alpha=0.25):
         """Initialize FocalLoss class with no parameters."""
         super().__init__()
+        self.gamma = gamma
+        self.alpha = alpha
 
-    @staticmethod
-    def forward(pred, label, gamma=1.5, alpha=0.25):
+    def forward(self, pred, label):
         """Calculate focal loss with modulating factors for class imbalance."""
         loss = F.binary_cross_entropy_with_logits(pred, label, reduction="none")
         # p_t = torch.exp(-loss)
@@ -54,10 +61,10 @@ class FocalLoss(nn.Module):
         # TF implementation https://github.com/tensorflow/addons/blob/v0.7.1/tensorflow_addons/losses/focal_loss.py
         pred_prob = pred.sigmoid()  # prob from logits
         p_t = label * pred_prob + (1 - label) * (1 - pred_prob)
-        modulating_factor = (1.0 - p_t) ** gamma
+        modulating_factor = (1.0 - p_t) ** self.gamma
         loss *= modulating_factor
-        if alpha > 0:
-            alpha_factor = label * alpha + (1 - label) * (1 - alpha)
+        if self.alpha > 0:
+            alpha_factor = label * self.alpha + (1 - label) * (1 - self.alpha)
             loss *= alpha_factor
         return loss.mean(1).sum()
 

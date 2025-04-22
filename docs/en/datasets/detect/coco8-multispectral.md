@@ -36,6 +36,19 @@ The COCO8-Multispectral dataset is configured using a YAML file, which defines d
     --8<-- "ultralytics/cfg/datasets/coco8-multispectral.yaml"
     ```
 
+!!! note
+    To train ultralytics models on your own multiple channel datasets, you need to prepare your own TIFF images in `(channel, height, width)` order and saved with `.tiff` or `.tif` extension. This channel-first format is essential for compatibility with the dataset and model training pipelines.
+    Here's an example to check the correctness of your dataset images:
+    ```bash
+    pip install tifffile
+    ```
+
+    ```python
+    import tifffile
+    im = tifffile.imread('path/to/your/image.tif')
+    print(im.shape)
+    ```
+
 ## Usage
 
 To train a YOLO11n model on the COCO8-Multispectral dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following examples. For a comprehensive list of training options, refer to the [YOLO Training documentation](../../modes/train.md).

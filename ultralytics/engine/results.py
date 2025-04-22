@@ -100,7 +100,7 @@ class BaseTensor(SimpleClass):
         Returns a copy of the tensor as a numpy array.
 
         Returns:
-            (np.ndarray): A numpy array containing the same data as the original tensor.
+            np_tensor (np.ndarray): A numpy array containing the same data as the original tensor.
 
         Examples:
             >>> data = torch.tensor([[1, 2, 3], [4, 5, 6]])
@@ -117,7 +117,7 @@ class BaseTensor(SimpleClass):
         Moves the tensor to GPU memory.
 
         Returns:
-            (BaseTensor): A new BaseTensor instance with the data moved to GPU memory if it's not already a
+            gpu_tensor (BaseTensor): A new BaseTensor instance with the data moved to GPU memory if it's not already a
                 numpy array, otherwise returns self.
 
         Examples:

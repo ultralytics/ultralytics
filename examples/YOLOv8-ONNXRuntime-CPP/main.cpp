@@ -1,3 +1,5 @@
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 #include <iostream>
 #include <iomanip>
 #include "inference.h"

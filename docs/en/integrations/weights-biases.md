@@ -4,7 +4,7 @@ description: Learn how to enhance YOLO11 experiment tracking and visualization w
 keywords: YOLO11, Weights & Biases, model training, experiment tracking, Ultralytics, machine learning, computer vision, model visualization
 ---
 
-# Enhancing YOLO11 Experiment Tracking and Visualization with Weights & Biases
+# YOLO Experiment Tracking and Visualization with Weights & Biases
 
 [Object detection](https://www.ultralytics.com/glossary/object-detection) models like [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) have become integral to many [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications. However, training, evaluating, and deploying these complex models introduce several challenges. Tracking key training metrics, comparing model variants, analyzing model behavior, and detecting issues require significant instrumentation and experiment management.
 

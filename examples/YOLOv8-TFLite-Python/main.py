@@ -95,8 +95,8 @@ class YOLOv8TFLite:
             new_shape (Tuple[int, int]): Target shape (height, width).
 
         Returns:
-            (np.ndarray): Resized and padded image.
-            (Tuple[float, float]): Padding ratios (top/height, left/width) for coordinate adjustment.
+            resize_and_pad_im (np.ndarray): Resized and padded image.
+            pad_ratio (Tuple[float, float]): Padding ratios (top/height, left/width) for coordinate adjustment.
         """
         shape = img.shape[:2]  # Current shape [height, width]
 

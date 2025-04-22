@@ -499,7 +499,7 @@ class Results(SimpleClass):
             txt_color (tuple[int, int, int]): Specify the RGB text color for classification task
 
         Returns:
-            (np.ndarray): Annotated image as a numpy array.
+            annotated_im (np.ndarray): Annotated image as a numpy array.
 
         Examples:
             >>> results = model("image.jpg")
@@ -648,7 +648,7 @@ class Results(SimpleClass):
         the number of detections for each class and the top probabilities for classification tasks.
 
         Returns:
-            (str): A formatted string containing a summary of the results. For detection tasks, it includes the
+            result_str (str): A formatted string containing a summary of the results. For detection tasks, it includes the
                 number of detections per class. For classification tasks, it includes the top 5 class probabilities.
 
         Examples:
@@ -780,8 +780,9 @@ class Results(SimpleClass):
             decimals (int): Number of decimal places to round the output values to.
 
         Returns:
-            (List[Dict]): A list of dictionaries, each containing summarized information for a single
-                detection or classification result. The structure of each dictionary varies based on the
+            result_summary (List[Dict]): A list of dictionaries, each containing summarized information:
+
+                - for a single detection or classification result. The structure of each dictionary varies based on the
                 task type (classification or detection) and available information (boxes, masks, keypoints).
 
         Examples:
@@ -846,7 +847,7 @@ class Results(SimpleClass):
             decimals (int): Number of decimal places to round the output values to.
 
         Returns:
-            (DataFrame): A Pandas Dataframe containing all the information in results in an organized way.
+            pd_result (DataFrame): A Pandas Dataframe containing all the information in results in an organized way.
 
         Examples:
             >>> results = model("path/to/image.jpg")
@@ -875,7 +876,7 @@ class Results(SimpleClass):
 
 
         Returns:
-            (str): CSV containing all the information in results in an organized way.
+            csv_result (str): CSV containing all the information in results in an organized way.
 
         Examples:
             >>> results = model("path/to/image.jpg")
@@ -901,7 +902,7 @@ class Results(SimpleClass):
             **kwargs (Any): Arbitrary keyword arguments to be passed to pandas.DataFrame.to_xml().
 
         Returns:
-            (str): An XML string containing all the information in results in an organized way.
+            xml_result (str): An XML string containing all the information in results in an organized way.
 
         Examples:
             >>> results = model("path/to/image.jpg")
@@ -930,7 +931,7 @@ class Results(SimpleClass):
             **kwargs (Any): Arbitrary keyword arguments to be passed to pandas.DataFrame.to_html().
 
         Returns:
-            (str): An HTML string containing all the information in results in an organized way.
+            html_result (str): An HTML string containing all the information in results in an organized way.
 
         Examples:
             >>> results = model("path/to/image.jpg")
@@ -960,7 +961,7 @@ class Results(SimpleClass):
             decimals (int): Number of decimal places to round the output values to.
 
         Returns:
-            (str): A JSON string containing the serialized detection results.
+            json_result (str): A JSON string containing the serialized detection results.
 
         Examples:
             >>> results = model("path/to/image.jpg")
@@ -1117,7 +1118,7 @@ class Boxes(BaseTensor):
         Returns bounding boxes in [x1, y1, x2, y2] format.
 
         Returns:
-            (torch.Tensor | numpy.ndarray): A tensor or numpy array of shape (n, 4) containing bounding box
+            xyxy (torch.Tensor | numpy.ndarray): A tensor or numpy array of shape (n, 4) containing bounding box
                 coordinates in [x1, y1, x2, y2] format, where n is the number of boxes.
 
         Examples:
@@ -1134,7 +1135,7 @@ class Boxes(BaseTensor):
         Returns the confidence scores for each detection box.
 
         Returns:
-            (torch.Tensor | numpy.ndarray): A 1D tensor or array containing confidence scores for each detection,
+            conf (torch.Tensor | numpy.ndarray): A 1D tensor or array containing confidence scores for each detection,
                 with shape (N,) where N is the number of detections.
 
         Examples:
@@ -1151,7 +1152,7 @@ class Boxes(BaseTensor):
         Returns the class ID tensor representing category predictions for each bounding box.
 
         Returns:
-            (torch.Tensor | numpy.ndarray): A tensor or numpy array containing the class IDs for each detection box.
+            cls_id (torch.Tensor | numpy.ndarray): A tensor or numpy array containing the class IDs for each detection box.
                 The shape is (N,), where N is the number of boxes.
 
         Examples:

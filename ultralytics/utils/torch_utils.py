@@ -88,7 +88,7 @@ def autocast(enabled: bool, device: str = "cuda"):
         device (str, optional): The device to use for autocast. Defaults to 'cuda'.
 
     Returns:
-        (torch.amp.autocast): The appropriate autocast context manager.
+        autocast_ctx (torch.amp.autocast): The appropriate autocast context manager.
 
     Notes:
         - For PyTorch versions 1.13 and newer, it uses `torch.amp.autocast`.
@@ -145,7 +145,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         verbose (bool, optional): If True, logs the device information. Defaults to True.
 
     Returns:
-        (torch.device): Selected device.
+        device (torch.device): Selected device.
 
     Raises:
         ValueError: If the specified device is not available or if the batch size is not a multiple of the number of
@@ -365,7 +365,7 @@ def model_info_for_loggers(trainer):
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer object containing model and validation data.
 
     Returns:
-        (dict): Dictionary containing model parameters, GFLOPs, and inference speeds.
+        model_info (dict): Dictionary containing model parameters, GFLOPs, and inference speeds.
 
     Examples:
         YOLOv8n info for loggers
@@ -404,7 +404,7 @@ def get_flops(model, imgsz=640):
         imgsz (int | List[int], optional): Input image size. Defaults to 640.
 
     Returns:
-        (float): The model FLOPs in billions.
+        flops_b (float): The model FLOPs in billions.
     """
     if not thop:
         return 0.0  # if not installed return 0.0 GFLOPs
@@ -437,7 +437,7 @@ def get_flops_with_torch_profiler(model, imgsz=640):
         imgsz (int | List[int], optional): Input image size. Defaults to 640.
 
     Returns:
-        (float): The model's FLOPs in billions.
+        flops (float): The model's FLOPs in billions.
     """
     if not TORCH_2_0:  # torch profiler implemented in torch>=2.0
         return 0.0

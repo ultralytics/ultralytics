@@ -286,7 +286,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
         overrides (Dict | None): Dictionary containing key-value pairs to override the base configuration.
 
     Returns:
-        (SimpleNamespace): Namespace containing the merged configuration arguments.
+        config (SimpleNamespace): Namespace containing the merged configuration arguments.
 
     Examples:
         >>> from ultralytics.cfg import get_cfg

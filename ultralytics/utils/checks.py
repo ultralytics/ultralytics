@@ -87,7 +87,7 @@ def parse_version(version="0.0.0") -> tuple:
         version (str): Version string, i.e. '2.0.1+cpu'
 
     Returns:
-        (tuple): Tuple of integers representing the numeric part of the version, i.e. (2, 0, 1)
+        numeric_version (tuple): Tuple of integers representing the numeric part of the version, i.e. (2, 0, 1)
     """
     try:
         return tuple(map(int, re.findall(r"\d+", version)[:3]))  # '2.0.1+cpu' -> (2, 0, 1)
@@ -122,7 +122,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
         floor (int): Minimum allowed value for image size.
 
     Returns:
-        (List[int] | int): Updated image size.
+        updated_imgsz (List[int] | int): Updated image size.
     """
     # Convert stride to integer if it is a tensor
     stride = int(stride.max() if isinstance(stride, torch.Tensor) else stride)

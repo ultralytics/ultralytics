@@ -59,7 +59,7 @@ class YOLOETrainer(DetectionTrainer):
         # NOTE: Following the official config, nc hard-coded to 80 for now.
         model = YOLOEModel(
             cfg["yaml_file"] if isinstance(cfg, dict) else cfg,
-            ch=3,
+            ch=self.data["channels"],
             nc=min(self.data["nc"], 80),
             verbose=verbose and RANK == -1,
         )
@@ -117,7 +117,7 @@ class YOLOEPETrainer(DetectionTrainer):
         # NOTE: Following the official config, nc hard-coded to 80 for now.
         model = YOLOEModel(
             cfg["yaml_file"] if isinstance(cfg, dict) else cfg,
-            ch=3,
+            ch=self.data["channels"],
             nc=self.data["nc"],
             verbose=verbose and RANK == -1,
         )

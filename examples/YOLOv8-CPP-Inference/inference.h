@@ -1,3 +1,5 @@
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 #ifndef INFERENCE_H
 #define INFERENCE_H
 

@@ -792,10 +792,6 @@ class DEIMLoss(nn.Module):
              targets: list of dicts, such that len(targets) == batch_size.
                       The expected keys in each dict depends on the losses applied, see each loss' doc
         """
-
-        # match_indices = self.matcher(
-        #     pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups, masks=masks, gt_mask=gt_mask
-        # )
         outputs_without_aux = {k: v for k, v in outputs.items() if "aux" not in k}
 
         # Retrieve the matching between the outputs of the last layer and the targets
@@ -870,7 +866,7 @@ class DEIMLoss(nn.Module):
                     aux_outputs["up"], aux_outputs["reg_scale"] = outputs["up"], outputs["reg_scale"]
                 for loss in self.losses:
                     # TODO, indices and num_box are different from RT-DETRv2
-                    use_uni_set = self.use_uni_set and (loss in ['boxes', 'local'])
+                    use_uni_set = self.use_uni_set and (loss in ["boxes", "local"])
                     indices_in = all_indices if use_uni_set else cached_indices[i]
                     num_boxes_in = num_boxes_all if use_uni_set else num_boxes
                     meta = self.get_loss_meta_info(loss, aux_outputs, batch, indices_in)
@@ -885,7 +881,7 @@ class DEIMLoss(nn.Module):
             aux_outputs = outputs["pre_outputs"]
             for loss in self.losses:
                 # TODO, indices and num_box are different from RT-DETRv2
-                use_uni_set = self.use_uni_set and (loss in ['boxes', 'local'])
+                use_uni_set = self.use_uni_set and (loss in ["boxes", "local"])
                 indices_in = all_indices if use_uni_set else cached_indices[-1]
                 num_boxes_in = num_boxes_all if use_uni_set else num_boxes
                 meta = self.get_loss_meta_info(loss, aux_outputs, batch, indices_in)
@@ -911,7 +907,7 @@ class DEIMLoss(nn.Module):
             for i, aux_outputs in enumerate(outputs["enc_aux_outputs"]):
                 for loss in self.losses:
                     # TODO, indices and num_box are different from RT-DETRv2
-                    use_uni_set = self.use_uni_set and (loss == 'boxes')
+                    use_uni_set = self.use_uni_set and (loss == "boxes")
                     indices_in = all_indices if use_uni_set else cached_indices_enc[i]
                     num_boxes_in = num_boxes_all if use_uni_set else num_boxes
                     meta = self.get_loss_meta_info(loss, aux_outputs, enc_targets, indices_in)
@@ -987,6 +983,32 @@ class DEIMLoss(nn.Module):
     #             )
     #
     #     return dn_match_indices
+
+    @staticmethod
+    def _set_aux_loss(outputs_class, outputs_coord):
+        # this is a workaround to make torchscript happy, as torchscript
+        # doesn't support dictionary with non-homogeneous values, such
+        # as a dict having both a Tensor and a list.
+        return [{"pred_logits": a, "pred_boxes": b} for a, b in zip(outputs_class, outputs_coord)]
+
+    @staticmethod
+    def _set_aux_loss2(
+        outputs_class, outputs_coord, outputs_corners, outputs_ref, teacher_corners=None, teacher_logits=None
+    ):
+        # this is a workaround to make torchscript happy, as torchscript
+        # doesn't support dictionary with non-homogeneous values, such
+        # as a dict having both a Tensor and a list.
+        return [
+            {
+                "pred_logits": a,
+                "pred_boxes": b,
+                "pred_corners": c,
+                "ref_points": d,
+                "teacher_corners": teacher_corners,
+                "teacher_logits": teacher_logits,
+            }
+            for a, b, c, d in zip(outputs_class, outputs_coord, outputs_corners, outputs_ref)
+        ]
 
     # TODO: DFL Loss
     def unimodal_distribution_focal_loss(

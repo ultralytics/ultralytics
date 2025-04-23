@@ -82,8 +82,8 @@ class DFLoss(nn.Module):
         trr = torch.zeros_like(pred_dist)
         trr.scatter_(1, tl.view(-1, 1), 1)
         return (
-            F.binary_cross_entropy_with_logits(pred_dist, tll, reduction="none").mean(-1).view(tl.shape) * wl
-            + F.binary_cross_entropy_with_logits(pred_dist, trr, reduction="none").mean(-1).view(tl.shape) * wr
+            F.binary_cross_entropy_with_logits(pred_dist, tll, reduction="none").sum(-1).view(tl.shape) * wl
+            + F.binary_cross_entropy_with_logits(pred_dist, trr, reduction="none").sum(-1).view(tl.shape) * wr
         ).mean(-1, keepdim=True)
 
 

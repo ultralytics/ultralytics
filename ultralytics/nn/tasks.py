@@ -717,7 +717,63 @@ class DFINEDetectModel(RTDETRDetectionModel):
         }
 
         preds = self.predict(img, batch=targets) if preds is None else preds
-        loss = self.criterion(preds, targets)
+        (
+            dec_bboxes,
+            dec_scores,
+            dec_corners,
+            dec_refs,
+            pre_bboxes,
+            pre_logits,
+            enc_topk_bboxes,
+            enc_topk_scores,
+            dn_meta,
+        ) = preds if self.training else preds[1]
+        dn_pre_scores, dn_pre_bboxes, dn_out_scores, dn_out_bboxes, dn_out_corners, dn_out_refs = (
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        )
+        if dn_meta is not None:
+            dn_pre_scores, pre_logits = torch.split(pre_logits, dn_meta["dn_num_split"], dim=1)
+            dn_pre_bboxes, pre_bboxes = torch.split(pre_bboxes, dn_meta["dn_num_split"], dim=1)
+            dn_out_scores, dec_scores = torch.split(dec_scores, dn_meta["dn_num_split"], dim=2)
+            dn_out_bboxes, dec_bboxes = torch.split(dec_bboxes, dn_meta["dn_num_split"], dim=2)
+            dn_out_corners, dec_corners = torch.split(dec_corners, dn_meta["dn_num_split"], dim=2)
+            dn_out_refs, dec_refs = torch.split(dec_refs, dn_meta["dn_num_split"], dim=2)
+
+        out = {"pred_logits": dec_scores[-1], "pred_boxes": dec_bboxes[-1]}  # last layer predictions
+        if self.training:
+            out["pred_corners"] = dec_corners[-1]
+            out["ref_points"] = dec_refs[-1]
+            out["up"] = self.up
+            out["reg_scale"] = self.reg_scale
+
+            if self.aux_loss:
+                out["aux_outputs"] = self._set_aux_loss2(
+                    dec_scores[:-1],
+                    dec_bboxes[:-1],
+                    dec_corners[:-1],
+                    dec_refs[:-1],
+                    dec_corners[-1],
+                    dec_scores[-1],
+                )
+                out["enc_aux_outputs"] = self._set_aux_loss([enc_topk_scores], [enc_topk_bboxes])
+                out["pre_outputs"] = {"pred_logits": pre_logits, "pred_boxes": pre_bboxes}
+                out["enc_meta"] = {"class_agnostic": self.query_select_method == "agnostic"}
+
+                if dn_meta is not None:
+                    out["dn_outputs"] = self._set_aux_loss2(
+                        dn_out_scores, dn_out_bboxes, dn_out_corners, dn_out_refs, dn_out_corners[-1], dn_out_scores[-1]
+                    )
+                    out["dn_pre_outputs"] = {"pred_logits": dn_pre_scores, "pred_boxes": dn_pre_bboxes}
+                    out["dn_meta"] = dn_meta
+
+        dn_outputs = out.pop("dn_outputs", None)
+        dn_meta = out.pop("dn_meta", None)
+        loss = self.criterion(out, targets, dn_outputs, dn_meta)
         # NOTE: There are like 12 losses in RTDETR, backward with all losses but only show the main three losses.
         return sum(loss.values()), torch.as_tensor(
             [loss[k].detach() for k in ["loss_giou", "loss_mal", "loss_fgl"]], device=img.device

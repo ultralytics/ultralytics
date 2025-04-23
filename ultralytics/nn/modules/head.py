@@ -1185,7 +1185,7 @@ class DFINEDecoder(nn.Module):
             feats, spatial_shapes, dn_embed, dn_bbox
         )
         # decoder
-        out_bboxes, out_logits, out_corners, out_refs, pre_bboxes, pre_logits = self.decoder(
+        dec_bboxes, dec_scores, dec_corners, dec_refs, pre_bboxes, pre_logits = self.decoder(
             topk_feats,
             topk_refer_box,
             feats,
@@ -1197,46 +1197,52 @@ class DFINEDecoder(nn.Module):
             self.integral,
             attn_mask=attn_mask,
         )
-
-        if self.training and dn_meta is not None:
-            # the output from the first decoder layer, only one
-            dn_pre_logits, pre_logits = torch.split(pre_logits, dn_meta["dn_num_split"], dim=1)
-            dn_pre_bboxes, pre_bboxes = torch.split(pre_bboxes, dn_meta["dn_num_split"], dim=1)
-
-            dn_out_logits, out_logits = torch.split(out_logits, dn_meta["dn_num_split"], dim=2)
-            dn_out_bboxes, out_bboxes = torch.split(out_bboxes, dn_meta["dn_num_split"], dim=2)
-
-            dn_out_corners, out_corners = torch.split(out_corners, dn_meta["dn_num_split"], dim=2)
-            dn_out_refs, out_refs = torch.split(out_refs, dn_meta["dn_num_split"], dim=2)
-
-        out = {"pred_logits": out_logits[-1], "pred_boxes": out_bboxes[-1]}  # last layer predictions
+        x = dec_bboxes, dec_scores, dec_corners, dec_refs, pre_bboxes, pre_logits, enc_topk_bboxes, enc_topk_scores, dn_meta
         if self.training:
-            out["pred_corners"] = out_corners[-1]
-            out["ref_points"] = out_refs[-1]
-            out["up"] = self.up
-            out["reg_scale"] = self.reg_scale
+            return x
+        # (bs, 300, 4+nc)
+        y = torch.cat((dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid()), -1)
+        return y if self.export else (y, x)
 
-            if self.aux_loss:
-                out["aux_outputs"] = self._set_aux_loss2(
-                    out_logits[:-1],
-                    out_bboxes[:-1],
-                    out_corners[:-1],
-                    out_refs[:-1],
-                    out_corners[-1],
-                    out_logits[-1],
-                )
-                out["enc_aux_outputs"] = self._set_aux_loss([enc_topk_scores], [enc_topk_bboxes])
-                out["pre_outputs"] = {"pred_logits": pre_logits, "pred_boxes": pre_bboxes}
-                out["enc_meta"] = {"class_agnostic": self.query_select_method == "agnostic"}
-
-                if dn_meta is not None:
-                    out["dn_outputs"] = self._set_aux_loss2(
-                        dn_out_logits, dn_out_bboxes, dn_out_corners, dn_out_refs, dn_out_corners[-1], dn_out_logits[-1]
-                    )
-                    out["dn_pre_outputs"] = {"pred_logits": dn_pre_logits, "pred_boxes": dn_pre_bboxes}
-                    out["dn_meta"] = dn_meta
-
-        return out
+        # if self.training and dn_meta is not None:
+        #     # the output from the first decoder layer, only one
+        #     dn_pre_scores, pre_logits = torch.split(pre_logits, dn_meta["dn_num_split"], dim=1)
+        #     dn_pre_bboxes, pre_bboxes = torch.split(pre_bboxes, dn_meta["dn_num_split"], dim=1)
+        #
+        #     dn_out_scores, dec_scores = torch.split(dec_scores, dn_meta["dn_num_split"], dim=2)
+        #     dn_out_bboxes, dec_bboxes = torch.split(dec_bboxes, dn_meta["dn_num_split"], dim=2)
+        #
+        #     dn_out_corners, dec_corners = torch.split(dec_corners, dn_meta["dn_num_split"], dim=2)
+        #     dn_out_refs, dec_refs = torch.split(dec_refs, dn_meta["dn_num_split"], dim=2)
+        #
+        # out = {"pred_logits": dec_scores[-1], "pred_boxes": dec_bboxes[-1]}  # last layer predictions
+        # if self.training:
+        #     out["pred_corners"] = dec_corners[-1]
+        #     out["ref_points"] = dec_refs[-1]
+        #     out["up"] = self.up
+        #     out["reg_scale"] = self.reg_scale
+        #
+        #     if self.aux_loss:
+        #         out["aux_outputs"] = self._set_aux_loss2(
+        #             dec_scores[:-1],
+        #             dec_bboxes[:-1],
+        #             dec_corners[:-1],
+        #             dec_refs[:-1],
+        #             dec_corners[-1],
+        #             dec_scores[-1],
+        #         )
+        #         out["enc_aux_outputs"] = self._set_aux_loss([enc_topk_scores], [enc_topk_bboxes])
+        #         out["pre_outputs"] = {"pred_logits": pre_logits, "pred_boxes": pre_bboxes}
+        #         out["enc_meta"] = {"class_agnostic": self.query_select_method == "agnostic"}
+        #
+        #         if dn_meta is not None:
+        #             out["dn_outputs"] = self._set_aux_loss2(
+        #                 dn_out_scores, dn_out_bboxes, dn_out_corners, dn_out_refs, dn_out_corners[-1], dn_out_scores[-1]
+        #             )
+        #             out["dn_pre_outputs"] = {"pred_logits": dn_pre_scores, "pred_boxes": dn_pre_bboxes}
+        #             out["dn_meta"] = dn_meta
+        #
+        # return out
 
     @torch.jit.unused
     def _set_aux_loss(self, outputs_class, outputs_coord):

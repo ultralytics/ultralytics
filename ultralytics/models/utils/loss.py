@@ -785,7 +785,7 @@ class DEIMLoss(nn.Module):
         assert loss in loss_map, f"do you really want to compute {loss} loss?"
         return loss_map[loss](outputs, targets, indices, num_boxes, **kwargs)
 
-    def forward(self, outputs, batch):
+    def forward(self, outputs, batch, dn_outputs=None, dn_meta=None):
         """This performs the loss computation.
         Parameters:
              outputs: dict of tensors, see the output specification of the model for the format
@@ -924,13 +924,13 @@ class DEIMLoss(nn.Module):
                 self.num_classes = orig_num_classes
 
         # In case of cdn auxiliary losses.
-        if "dn_outputs" in outputs:
-            assert "dn_meta" in outputs, ""
-            dn_pos_idx, dn_num_group = outputs["dn_meta"]["dn_pos_idx"], outputs["dn_meta"]["dn_num_group"]
+        if dn_outputs is not None:
+            assert dn_meta is not None
+            dn_pos_idx, dn_num_group = dn_meta["dn_pos_idx"], dn_meta["dn_num_group"]
             indices_dn = RTDETRDetectionLoss.get_dn_match_indices(dn_pos_idx, dn_num_group, batch["gt_groups"])
-            dn_num_boxes = num_boxes * outputs["dn_meta"]["dn_num_group"]
+            dn_num_boxes = num_boxes * dn_meta["dn_num_group"]
 
-            for i, aux_outputs in enumerate(outputs["dn_outputs"]):
+            for i, aux_outputs in enumerate(dn_outputs):
                 if "local" in self.losses:  # only work for local loss
                     aux_outputs["is_dn"] = True
                     aux_outputs["up"], aux_outputs["reg_scale"] = outputs["up"], outputs["reg_scale"]

@@ -1027,9 +1027,9 @@ class RandomPerspective:
             border (Tuple[int, int]): Border dimensions for the transformed image.
 
         Returns:
-            transformed_img (np.ndarray): Transformed image.
-            matrix (np.ndarray): 3x3 transformation matrix.
-            scale (float): Scale factor applied during the transformation.
+            img (np.ndarray): Transformed image.
+            M (np.ndarray): 3x3 transformation matrix.
+            s (float): Scale factor applied during the transformation.
 
         Examples:
             >>> import numpy as np

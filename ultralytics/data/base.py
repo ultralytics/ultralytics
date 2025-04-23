@@ -32,6 +32,7 @@ class BaseDataset(Dataset):
         single_cls (bool): Whether to treat all objects as a single class.
         prefix (str): Prefix to print in log messages.
         fraction (float): Fraction of dataset to utilize.
+        cv2_flags (int): OpenCV flags for reading images.
         im_files (List[str]): List of image file paths.
         labels (List[Dict]): List of label data dictionaries.
         ni (int): Number of images in the dataset.
@@ -99,6 +100,7 @@ class BaseDataset(Dataset):
             single_cls (bool, optional): If True, single class training is used.
             classes (list, optional): List of included classes.
             fraction (float, optional): Fraction of dataset to utilize.
+            channels (int, optional): Number of channels in the images (1 for grayscale, 3 for RGB).
         """
         super().__init__()
         self.img_path = img_path

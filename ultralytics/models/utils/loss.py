@@ -843,16 +843,12 @@ class DEIMLoss(nn.Module):
             indices_aux_list.append(indices_enc)
         all_indices = self._merge_indices(indices, indices_aux_list)
 
-        num_boxes_all = max(sum(len(x[0]) for x in all_indices), 1)
-        num_boxes = max(len(batch["cls"]), 1)
-
         # Compute all the requested losses, main loss
         losses = {}
         for loss in self.losses:
             use_uni_set = self.use_uni_set and (loss in ["boxes", "local"])
             # TODO, indices and num_box are different from RT-DETRv2
             indices_in = all_indices if use_uni_set else indices
-            num_boxes_in = num_boxes_all if use_uni_set else num_boxes
             meta = self.get_loss_meta_info(loss, outputs, batch, indices_in)
             l_dict = self.get_loss(loss, outputs, batch, indices_in, **meta)
             l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
@@ -867,7 +863,6 @@ class DEIMLoss(nn.Module):
                     # TODO, indices and num_box are different from RT-DETRv2
                     use_uni_set = self.use_uni_set and (loss in ["boxes", "local"])
                     indices_in = all_indices if use_uni_set else cached_indices[i]
-                    num_boxes_in = num_boxes_all if use_uni_set else num_boxes
                     meta = self.get_loss_meta_info(loss, aux_outputs, batch, indices_in)
                     l_dict = self.get_loss(loss, aux_outputs, batch, indices_in, **meta)
 
@@ -882,7 +877,6 @@ class DEIMLoss(nn.Module):
                 # TODO, indices and num_box are different from RT-DETRv2
                 use_uni_set = self.use_uni_set and (loss in ["boxes", "local"])
                 indices_in = all_indices if use_uni_set else cached_indices[-1]
-                num_boxes_in = num_boxes_all if use_uni_set else num_boxes
                 meta = self.get_loss_meta_info(loss, aux_outputs, batch, indices_in)
                 l_dict = self.get_loss(loss, aux_outputs, batch, indices_in, **meta)
 
@@ -908,7 +902,6 @@ class DEIMLoss(nn.Module):
                     # TODO, indices and num_box are different from RT-DETRv2
                     use_uni_set = self.use_uni_set and (loss == "boxes")
                     indices_in = all_indices if use_uni_set else cached_indices_enc[i]
-                    num_boxes_in = num_boxes_all if use_uni_set else num_boxes
                     meta = self.get_loss_meta_info(loss, aux_outputs, enc_targets, indices_in)
                     l_dict = self.get_loss(loss, aux_outputs, enc_targets, indices_in, **meta)
                     l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
@@ -923,7 +916,6 @@ class DEIMLoss(nn.Module):
             assert dn_meta is not None
             dn_pos_idx, dn_num_group = dn_meta["dn_pos_idx"], dn_meta["dn_num_group"]
             indices_dn = RTDETRDetectionLoss.get_dn_match_indices(dn_pos_idx, dn_num_group, batch["gt_groups"])
-            dn_num_boxes = num_boxes * dn_meta["dn_num_group"]
 
             for i, aux_outputs in enumerate(dn_outputs):
                 if "local" in self.losses:  # only work for local loss

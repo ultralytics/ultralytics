@@ -14,6 +14,14 @@ from ultralytics.utils import DATASETS_DIR, SETTINGS
 from ultralytics.utils.checks import check_requirements
 
 
+@pytest.mark.slow
+def test_tensorboard():
+    """Test training with TensorBoard logging enabled."""
+    SETTINGS["tensorboard"] = True
+    YOLO("yolo11n-cls.yaml").train(data="imagenet10", imgsz=32, epochs=3, plots=False, device="cpu")
+    SETTINGS["tensorboard"] = False
+
+
 @pytest.mark.skipif(not check_requirements("ray", install=False), reason="ray[tune] not installed")
 def test_model_ray_tune():
     """Tune YOLO model using Ray for hyperparameter optimization."""

@@ -110,14 +110,14 @@ class AutoBackend(nn.Module):
         Initialize the AutoBackend for inference.
 
         Args:
-            weights (str | torch.nn.Module): Path to the model weights file or a module instance. Defaults to 'yolo11n.pt'.
-            device (torch.device): Device to run the model on. Defaults to CPU.
-            dnn (bool): Use OpenCV DNN module for ONNX inference. Defaults to False.
+            weights (str | List[str] | torch.nn.Module): Path to the model weights file or a module instance.
+            device (torch.device): Device to run the model on.
+            dnn (bool): Use OpenCV DNN module for ONNX inference.
             data (str | Path | optional): Path to the additional data.yaml file containing class names.
-            fp16 (bool): Enable half-precision inference. Supported only on specific backends. Defaults to False.
+            fp16 (bool): Enable half-precision inference. Supported only on specific backends.
             batch (int): Batch-size to assume for inference.
-            fuse (bool): Fuse Conv2D + BatchNorm layers for optimization. Defaults to True.
-            verbose (bool): Enable verbose logging. Defaults to True.
+            fuse (bool): Fuse Conv2D + BatchNorm layers for optimization.
+            verbose (bool): Enable verbose logging.
         """
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
@@ -143,7 +143,7 @@ class AutoBackend(nn.Module):
         ) = self._model_type(w)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCWH)
-        stride = 32  # default stride
+        stride, ch = 32, 3  # default stride and channels
         end2end, dynamic = False, False
         model, metadata, task = None, None, None
 
@@ -167,6 +167,7 @@ class AutoBackend(nn.Module):
             stride = max(int(model.stride.max()), 32)  # model stride
             names = model.module.names if hasattr(model, "module") else model.names  # get class names
             model.half() if fp16 else model.float()
+            ch = model.yaml.get("channels", 3)
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
             pt = True
 
@@ -182,6 +183,7 @@ class AutoBackend(nn.Module):
             stride = max(int(model.stride.max()), 32)  # model stride
             names = model.module.names if hasattr(model, "module") else model.names  # get class names
             model.half() if fp16 else model.float()
+            ch = model.yaml.get("channels", 3)
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
 
         # TorchScript
@@ -215,7 +217,7 @@ class AutoBackend(nn.Module):
                 if "CUDAExecutionProvider" in onnxruntime.get_available_providers():
                     providers.insert(0, "CUDAExecutionProvider")
                 else:  # Only log warning if CUDA was requested but unavailable
-                    LOGGER.warning("WARNING ⚠️ Failed to start ONNX Runtime with CUDA. Using CPU...")
+                    LOGGER.warning("Failed to start ONNX Runtime with CUDA. Using CPU...")
                     device = torch.device("cpu")
                     cuda = False
             LOGGER.info(f"Using ONNX Runtime {providers[0]}")
@@ -230,9 +232,9 @@ class AutoBackend(nn.Module):
                 import mct_quantizers as mctq
                 from sony_custom_layers.pytorch.nms import nms_ort  # noqa
 
-                session = onnxruntime.InferenceSession(
-                    w, mctq.get_ort_session_options(), providers=["CPUExecutionProvider"]
-                )
+                session_options = mctq.get_ort_session_options()
+                session_options.enable_mem_reuse = False  # fix the shape mismatch from onnxruntime
+                session = onnxruntime.InferenceSession(w, session_options, providers=["CPUExecutionProvider"])
                 task = "detect"
 
             output_names = [x.name for x in session.get_outputs()]
@@ -288,8 +290,8 @@ class AutoBackend(nn.Module):
                 # fix error: `np.bool` was a deprecated alias for the builtin `bool` for JetPack 4 with Python <= 3.8.0
                 check_requirements("numpy==1.23.5")
 
-            try:
-                import tensorrt as trt  # noqa https://developer.nvidia.com/nvidia-tensorrt-download
+            try:  # https://developer.nvidia.com/nvidia-tensorrt-download
+                import tensorrt as trt  # noqa
             except ImportError:
                 if LINUX:
                     check_requirements("tensorrt>7.0.0,!=10.1.0")
@@ -316,7 +318,7 @@ class AutoBackend(nn.Module):
             try:
                 context = model.create_execution_context()
             except Exception as e:  # model is None
-                LOGGER.error(f"ERROR: TensorRT model exported with a different version than {trt.__version__}\n")
+                LOGGER.error(f"TensorRT model exported with a different version than {trt.__version__}\n")
                 raise e
 
             bindings = OrderedDict()
@@ -397,7 +399,7 @@ class AutoBackend(nn.Module):
                 pass
 
         # TFLite or TFLite Edge TPU
-        elif tflite or edgetpu:  # https://www.tensorflow.org/lite/guide/python#install_tensorflow_lite_for_python
+        elif tflite or edgetpu:  # https://ai.google.dev/edge/litert/microcontrollers/python
             try:  # https://coral.ai/docs/edgetpu/tflite-python/#update-existing-tf-lite-code-for-the-edge-tpu
                 from tflite_runtime.interpreter import Interpreter, load_delegate
             except ImportError:
@@ -541,8 +543,9 @@ class AutoBackend(nn.Module):
             kpt_shape = metadata.get("kpt_shape")
             end2end = metadata.get("args", {}).get("nms", False)
             dynamic = metadata.get("args", {}).get("dynamic", dynamic)
+            ch = metadata.get("channels", 3)
         elif not (pt or triton or nn_module):
-            LOGGER.warning(f"WARNING ⚠️ Metadata not found for 'model={weights}'")
+            LOGGER.warning(f"Metadata not found for 'model={weights}'")
 
         # Check names
         if "names" not in locals():  # names missing
@@ -562,9 +565,9 @@ class AutoBackend(nn.Module):
 
         Args:
             im (torch.Tensor): The image tensor to perform inference on.
-            augment (bool): Whether to perform data augmentation during inference. Defaults to False.
-            visualize (bool): Whether to visualize the output predictions. Defaults to False.
-            embed (list, optional): A list of feature vectors/embeddings to return.
+            augment (bool): Whether to perform data augmentation during inference.
+            visualize (bool): Whether to visualize the output predictions.
+            embed (list | None): A list of feature vectors/embeddings to return.
             **kwargs (Any): Additional keyword arguments for model configuration.
 
         Returns:
@@ -799,11 +802,10 @@ class AutoBackend(nn.Module):
     @staticmethod
     def _model_type(p="path/to/model.pt"):
         """
-        Takes a path to a model file and returns the model type. Possibles types are pt, jit, onnx, xml, engine, coreml,
-        saved_model, pb, tflite, edgetpu, tfjs, ncnn, mnn, imx or paddle.
+        Takes a path to a model file and returns the model type.
 
         Args:
-            p (str): Path to the model file. Defaults to path/to/model.pt
+            p (str): Path to the model file.
 
         Returns:
             (List[bool]): List of booleans indicating the model type.

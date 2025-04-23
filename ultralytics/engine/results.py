@@ -28,10 +28,10 @@ class BaseTensor(SimpleClass):
         orig_shape (Tuple[int, int]): Original shape of the image, typically in the format (height, width).
 
     Methods:
-        cpu: Copy of the tensor stored in CPU memory.
-        numpy: Copy of the tensor as a numpy array.
+        cpu: Return a copy of the tensor stored in CPU memory.
+        numpy: Returns a copy of the tensor as a numpy array.
         cuda: Moves the tensor to GPU memory, returning a new instance if necessary.
-        to: Copy of the tensor with the specified device and dtype.
+        to: Return a copy of the tensor with the specified device and dtype.
 
     Examples:
         >>> import torch

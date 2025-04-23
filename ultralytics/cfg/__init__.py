@@ -513,7 +513,7 @@ def merge_equals_args(args: List[str]) -> List[str]:
         args (List[str]): A list of strings where each element represents an argument or fragment.
 
     Returns:
-        merged_args (List[str]): A list of strings where the arguments around isolated '=' are merged and fragments with brackets are joined.
+        (List[str]): A list of strings where the arguments around isolated '=' are merged and fragments with brackets are joined.
 
     Examples:
         >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3", "imgsz=[3,", "640,", "640]"]

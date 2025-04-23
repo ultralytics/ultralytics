@@ -71,7 +71,7 @@ class DFL(nn.Module):
     def forward(self, x):
         """Apply the DFL module to input tensor and return transformed output."""
         b, _, a = x.shape  # batch, channels, anchors
-        return self.conv(x.view(b, 4, self.c1, a).transpose(2, 1).sigmoid()).view(b, 4, a)
+        return self.conv(x.view(b, 4, self.c1, a).transpose(2, 1).softmax(1)).view(b, 4, a)
         # return self.conv(x.view(b, self.c1, 4, a).softmax(1)).view(b, 4, a)
 
 

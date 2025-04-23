@@ -77,13 +77,9 @@ class DFLoss(nn.Module):
         tr = tl + 1  # target right
         wl = tr - target  # weight left
         wr = 1 - wl  # weight right
-        tll = torch.zeros_like(pred_dist)
-        tll.scatter_(1, tl.view(-1, 1), 1)
-        trr = torch.zeros_like(pred_dist)
-        trr.scatter_(1, tl.view(-1, 1), 1)
         return (
-            F.binary_cross_entropy_with_logits(pred_dist, tll, reduction="none").mean(-1).view(tl.shape) * wl
-            + F.binary_cross_entropy_with_logits(pred_dist, trr, reduction="none").mean(-1).view(tl.shape) * wr
+            F.cross_entropy(pred_dist, tl.view(-1), reduction="none").view(tl.shape) * wl
+            + F.cross_entropy(pred_dist, tr.view(-1), reduction="none").view(tl.shape) * wr
         ).mean(-1, keepdim=True)
 
 
@@ -103,7 +99,7 @@ class BboxLoss(nn.Module):
 
         # DFL loss
         if self.dfl_loss:
-            target_ltrb = bbox2dist(anchor_points, target_bboxes, (self.dfl_loss.reg_max - 1) ** 2)
+            target_ltrb = bbox2dist(anchor_points, target_bboxes, self.dfl_loss.reg_max - 1)
             loss_dfl = self.dfl_loss(pred_dist[fg_mask].view(-1, self.dfl_loss.reg_max), target_ltrb[fg_mask]) * weight
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:
@@ -197,7 +193,7 @@ class v8DetectionLoss:
         """Decode predicted object bounding box coordinates from anchor points and distribution."""
         if self.use_dfl:
             b, a, c = pred_dist.shape  # batch, anchors, channels
-            pred_dist = pred_dist.view(b, a, 4, c // 4).sigmoid().matmul(self.proj.type(pred_dist.dtype))
+            pred_dist = pred_dist.view(b, a, 4, c // 4).softmax(3).matmul(self.proj.type(pred_dist.dtype))
             # pred_dist = pred_dist.view(b, a, c // 4, 4).transpose(2,3).softmax(3).matmul(self.proj.type(pred_dist.dtype))
             # pred_dist = (pred_dist.view(b, a, c // 4, 4).softmax(2) * self.proj.type(pred_dist.dtype).view(1, 1, -1, 1)).sum(2)
         return dist2bbox(pred_dist, anchor_points, xywh=False)

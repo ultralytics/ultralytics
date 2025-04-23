@@ -57,7 +57,7 @@ def check_file_speeds(files, threshold_ms=10, threshold_mb=80, max_files=5, pref
     Args:
         files (list): List of file paths to check for access speed.
         threshold_ms (float, optional): Threshold in milliseconds for ping time warnings.
-        threshold_mb (float, optional): Threshold in megabytes for read speed warnings.
+        threshold_mb (float, optional): Threshold in megabytes per second for read speed warnings.
         max_files (int, optional): The maximum number of files to check.
         prefix (str, optional): Prefix string to add to log messages.
 

@@ -179,25 +179,6 @@ When adding new functions or classes, please include [Google-style docstrings](h
             return arg1 == arg2
         ```
 
-Good ✅
-
-```
-         Returns:
-             (np.ndarray): The output masks in shape CxHxW, where C is the number of generated masks.
-             (np.ndarray): An array of length C containing quality scores predicted by the model for each mask.
-```
-
-If we use (tuple) and then create a list underneath it then MkDocs only creates 1 table row and stuffs everything inside it:
-
-Bad ❌
-
-```
-        Returns:
-            (tuple) with elements:
-                - (np.ndarray): The output masks in shape CxHxW, where C is the number of generated masks.
-                - (np.ndarray): An array of length C containing quality scores predicted by the model for each mask.
-```
-
 ### ✅ GitHub Actions CI Tests
 
 All pull requests must pass the [GitHub Actions](https://github.com/features/actions) [Continuous Integration](https://docs.ultralytics.com/help/CI/) (CI) tests before they can be merged. These tests include linting, unit tests, and other checks to ensure that your changes meet the project's quality standards. Review the CI output and address any issues that arise.

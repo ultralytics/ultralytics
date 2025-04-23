@@ -785,13 +785,42 @@ class DEIMLoss(nn.Module):
         assert loss in loss_map, f"do you really want to compute {loss} loss?"
         return loss_map[loss](outputs, targets, indices, num_boxes, **kwargs)
 
-    def forward(self, outputs, batch, dn_outputs=None, dn_meta=None):
+    def forward(self, outputs, batch, reg_scale, up, dn_outputs=None, dn_meta=None):
         """This performs the loss computation.
         Parameters:
              outputs: dict of tensors, see the output specification of the model for the format
              targets: list of dicts, such that len(targets) == batch_size.
                       The expected keys in each dict depends on the losses applied, see each loss' doc
         """
+        dec_bboxes, dec_scores, dec_corners, dec_refs, pre_bboxes, pre_logits, enc_topk_bboxes, enc_topk_scores = (
+            outputs
+        )
+        dn_pre_scores, dn_pre_bboxes, dn_out_scores, dn_out_bboxes, dn_out_corners, dn_out_refs = dn_outputs
+        outputs = {"pred_logits": dec_scores[-1], "pred_boxes": dec_bboxes[-1]}  # last layer predictions
+        outputs["pred_corners"] = dec_corners[-1]
+        outputs["ref_points"] = dec_refs[-1]
+        outputs["up"] = up
+        outputs["reg_scale"] = reg_scale
+
+        outputs["aux_outputs"] = self._set_aux_loss2(
+            dec_scores[:-1],
+            dec_bboxes[:-1],
+            dec_corners[:-1],
+            dec_refs[:-1],
+            dec_corners[-1],
+            dec_scores[-1],
+        )
+        outputs["enc_aux_outputs"] = self._set_aux_loss([enc_topk_scores], [enc_topk_bboxes])
+        outputs["pre_outputs"] = {"pred_logits": pre_logits, "pred_boxes": pre_bboxes}
+        outputs["enc_meta"] = {"class_agnostic": False}
+
+        if dn_meta is not None:
+            outputs["dn_outputs"] = self._set_aux_loss2(
+                dn_out_scores, dn_out_bboxes, dn_out_corners, dn_out_refs, dn_out_corners[-1], dn_out_scores[-1]
+            )
+            outputs["dn_pre_outputs"] = {"pred_logits": dn_pre_scores, "pred_boxes": dn_pre_bboxes}
+        dn_outputs = outputs.pop("dn_outputs", None)
+
         outputs_without_aux = {k: v for k, v in outputs.items() if "aux" not in k}
 
         # Retrieve the matching between the outputs of the last layer and the targets

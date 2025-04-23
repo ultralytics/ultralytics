@@ -844,7 +844,6 @@ class DEIMLoss(nn.Module):
         all_indices = self._merge_indices(indices, indices_aux_list)
 
         num_boxes_all = max(sum(len(x[0]) for x in all_indices), 1)
-        # Compute the average number of target boxes accross all nodes, for normalization purposes
         num_boxes = max(len(batch["cls"]), 1)
 
         # Compute all the requested losses, main loss

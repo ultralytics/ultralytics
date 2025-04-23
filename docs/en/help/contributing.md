@@ -124,7 +124,7 @@ When adding new functions or classes, include [Google-style docstrings](https://
         ```
 
         Note: Even though Python returns multiple values as a tuple (e.g., `return masks, scores`), always document each value separately for clarity and better tool integration. When documenting functions that return multiple values:
-        
+
         ✅ Good - Document each return value separately:
         ```python
         """
@@ -133,7 +133,7 @@ When adding new functions or classes, include [Google-style docstrings](https://
            (list): Confidence scores for each instance.
         """
         ```
-        
+
         ❌ Bad - Don't document as a tuple with nested elements:
         ```python
         """
@@ -143,10 +143,9 @@ When adding new functions or classes, include [Google-style docstrings](https://
                - (list): Confidence scores for each instance.
         """
 
-    === "Google-style with type hints"
+        "Google-style with type hints"
 
         This example combines Google-style docstrings with Python type hints. When using type hints, you can omit the type information in the docstring arguments section, as it's already specified in the function signature.
-
         ```python
         def example_function(arg1: int, arg2: int = 4) -> bool:
             """

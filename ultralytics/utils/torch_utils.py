@@ -137,7 +137,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     exception if the requested device(s) are not available.
 
     Args:
-        (str | torch.device, optional): Device string or torch.device object.
+        device (str | torch.device, optional): Device string or torch.device object.
             Options are 'None', 'cpu', or 'cuda', or '0' or '0,1,2,3'. Defaults to an empty string, which auto-selects
             the first available GPU, or CPU if no GPU is available.
         batch (int, optional): Batch size being used in your model. Defaults to 0.
@@ -145,7 +145,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         verbose (bool, optional): If True, logs the device information. Defaults to True.
 
     Returns:
-        device (torch.device): Selected device.
+        (torch.device): Selected device.
 
     Raises:
         ValueError: If the specified device is not available or if the batch size is not a multiple of the number of

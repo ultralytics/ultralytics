@@ -215,12 +215,11 @@ def update_docs_soup(content: str, max_title_length: int = 70) -> str:
 
     # Remove href attributes from code line numbers in code blocks
     for a in soup.select('a[href^="#__codelineno-"], a[id^="__codelineno-"]'):
-        span = soup.new_tag("span")
-        if a.string:
-            span.string = a.string
-        else:
-            span.extend(a.contents)
-        a.replace_with(span)
+        if a.string:  # If the a tag has text (the line number)
+            a.replace_with(a.string)  # Replace with just the text
+        else:  # If it has no text
+            empty_span = soup.new_tag("span")  # Create an empty span
+            a.replace_with(empty_span)  # Replace with the empty span
         modified = True
     return str(soup) if modified else content
 

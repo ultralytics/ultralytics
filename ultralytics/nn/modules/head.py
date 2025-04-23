@@ -927,7 +927,6 @@ class DFINEDecoder(nn.Module):
         box_noise_scale=1.0,
         eval_spatial_size=None,
         eval_idx=-1,
-        aux_loss=True,
         cross_attn_method="default",
         query_select_method="default",
         reg_max=32,
@@ -944,7 +943,6 @@ class DFINEDecoder(nn.Module):
         self.num_queries = num_queries
         self.num_layers = num_layers
         self.eval_spatial_size = eval_spatial_size
-        self.aux_loss = aux_loss
         self.reg_max = reg_max
 
         # NOTE: it's using 'default' all the time

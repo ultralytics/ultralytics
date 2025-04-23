@@ -146,8 +146,9 @@ When adding new functions or classes, include [Google-style docstrings](https://
                - (np.ndarray): Predicted masks with shape HxWxN.
                - (list): Confidence scores for each instance.
         """
+        ```
 
-        "Google-style with type hints"
+    === "Google-style with type hints"
 
         This example combines Google-style docstrings with Python type hints. When using type hints, you can omit the type information in the docstring arguments section, as it's already specified in the function signature.
         ```python

@@ -47,7 +47,7 @@ def img2label_paths(img_paths):
     return [sb.join(x.rsplit(sa, 1)).rsplit(".", 1)[0] + ".txt" for x in img_paths]
 
 
-def check_file_speeds(files, threshold_ms=10, threshold_mb=80, max_files=5, prefix=""):
+def check_file_speeds(files, threshold_ms=10, threshold_mb=50, max_files=5, prefix=""):
     """
     Check dataset file access speed and provide performance feedback.
 

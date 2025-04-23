@@ -351,7 +351,7 @@ class Exporter:
         if self.args.int8 and not self.args.data:
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
-                "INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
+                f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
             )
         if tfjs and (ARM64 and LINUX):
             raise SystemError("TF.js exports are not currently supported on ARM64 Linux")

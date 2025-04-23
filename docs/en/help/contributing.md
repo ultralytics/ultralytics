@@ -154,7 +154,7 @@ When adding new functions or classes, include [Google-style docstrings](https://
 
             Args:
                 arg1: The first argument.
-                arg2: The second argument. Default: 4.
+                arg2: The second argument.
 
             Returns:
                 True if arguments are equal, False otherwise.

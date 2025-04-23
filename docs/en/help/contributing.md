@@ -70,7 +70,6 @@ When adding new functions or classes, include [Google-style docstrings](https://
 
             Examples:
                 >>> example_function(4, 4)  # True
-                >>> example_function(1, 2)  # False
             """
             return arg1 == arg2
         ```

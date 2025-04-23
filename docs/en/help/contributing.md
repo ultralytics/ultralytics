@@ -58,15 +58,16 @@ When adding new functions or classes, include [Google-style docstrings](https://
 
         ```python
         def example_function(arg1, arg2=4):
-            """Example function demonstrating Google-style docstrings.
-            
+            """
+            Example function demonstrating Google-style docstrings.
+
             Args:
                 arg1 (int): The first argument.
                 arg2 (int): The second argument.
-            
+
             Returns:
                 (bool): True if arguments are equal, False otherwise.
-                
+
             Examples:
                 >>> example_function(4, 4)  # True
                 >>> example_function(1, 2)  # False
@@ -80,15 +81,16 @@ When adding new functions or classes, include [Google-style docstrings](https://
 
         ```python
         def example_function(arg1, arg2=4):
-            """Example function demonstrating Google-style docstrings.
-            
+            """
+            Example function demonstrating Google-style docstrings.
+
             Args:
                 arg1 (int): The first argument.
                 arg2 (int): The second argument.
-            
+
             Returns:
                 equals (bool): True if arguments are equal, False otherwise.
-                
+
             Examples:
                 >>> example_function(4, 4)  # True
             """
@@ -102,16 +104,17 @@ When adding new functions or classes, include [Google-style docstrings](https://
 
         ```python
         def example_function(arg1, arg2=4):
-            """Example function demonstrating Google-style docstrings.
-            
+            """
+            Example function demonstrating Google-style docstrings.
+
             Args:
                 arg1 (int): The first argument.
                 arg2 (int): The second argument.
-            
+
             Returns:
                 equals (bool): True if arguments are equal, False otherwise.
                 added (int): Sum of both input arguments.
-                
+
             Examples:
                 >>> equals, added = example_function(2, 2)  # True, 4
             """
@@ -147,15 +150,16 @@ When adding new functions or classes, include [Google-style docstrings](https://
 
         ```python
         def example_function(arg1: int, arg2: int = 4) -> bool:
-            """Example function demonstrating Google-style docstrings.
-            
+            """
+            Example function demonstrating Google-style docstrings.
+
             Args:
                 arg1: The first argument.
                 arg2: The second argument. Default: 4.
-            
+
             Returns:
                 True if arguments are equal, False otherwise.
-                
+
             Examples:
                 >>> example_function(1, 1)  # True
             """

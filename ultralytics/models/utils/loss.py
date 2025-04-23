@@ -608,7 +608,7 @@ class DEIMLoss(nn.Module):
         self.mal_alpha = mal_alpha
         self.use_uni_set = use_uni_set
 
-    def loss_labels_mal(self, outputs, targets, indices, num_boxes, values=None):
+    def loss_labels_mal(self, outputs, targets, indices, values=None):
         assert "pred_boxes" in outputs
         pred_idx, gt_idx = DETRLoss._get_index(indices)
         if values is None:
@@ -638,10 +638,10 @@ class DEIMLoss(nn.Module):
         )
 
         loss = F.binary_cross_entropy_with_logits(src_logits, target_score, weight=weight, reduction="none")
-        loss = loss.mean(1).sum() * src_logits.shape[1] / num_boxes
+        loss = loss.mean(1).sum() * src_logits.shape[1] / len(gt_idx)
         return {"loss_mal": loss}
 
-    def loss_boxes(self, outputs, targets, indices, num_boxes):
+    def loss_boxes(self, outputs, targets, indices):
         """Compute the losses related to the bounding boxes, the L1 regression loss and the GIoU loss
         targets dicts must contain the key "boxes" containing a tensor of dim [nb_target_boxes, 4]
         The target boxes are expected in format (center_x, center_y, w, h), normalized by the image size.
@@ -653,18 +653,18 @@ class DEIMLoss(nn.Module):
 
         losses = {}
         loss_bbox = F.l1_loss(src_boxes, target_boxes, reduction="none")
-        losses["loss_bbox"] = loss_bbox.sum() / num_boxes
+        losses["loss_bbox"] = loss_bbox.sum() / len(target_boxes)
 
         # TODO: could use CIOU as well
         loss_giou = 1 - bbox_iou(src_boxes, target_boxes, GIoU=True)
         if self.boxes_weight_format is not None:
             boxes_weight = bbox_iou(src_boxes.detach(), target_boxes, GIoU=self.boxes_weight_format == "giou")
             loss_giou *= boxes_weight
-        losses["loss_giou"] = loss_giou.sum() / num_boxes
+        losses["loss_giou"] = loss_giou.mean()
 
         return losses
 
-    def loss_local(self, outputs, targets, indices, num_boxes, T=5):
+    def loss_local(self, outputs, targets, indices, T=5):
         """Compute Fine-Grained Localization (FGL) Loss
         and Decoupled Distillation Focal (DDF) Loss."""
 
@@ -693,7 +693,7 @@ class DEIMLoss(nn.Module):
         weight_targets = ious.repeat(1, 4).reshape(-1).detach()
 
         losses["loss_fgl"] = self.unimodal_distribution_focal_loss(
-            pred_corners, target_corners, weight_right, weight_left, weight_targets, avg_factor=num_boxes
+            pred_corners, target_corners, weight_right, weight_left, weight_targets, avg_factor=len(target_boxes)
         )
 
         if "teacher_corners" in outputs:
@@ -762,14 +762,14 @@ class DEIMLoss(nn.Module):
         self.own_targets, self.own_targets_dn = None, None
         self.num_pos, self.num_neg = None, None
 
-    def get_loss(self, loss, outputs, targets, indices, num_boxes, **kwargs):
+    def get_loss(self, loss, outputs, targets, indices, **kwargs):
         loss_map = {
             "boxes": self.loss_boxes,
             "mal": self.loss_labels_mal,
             "local": self.loss_local,
         }
         assert loss in loss_map, f"do you really want to compute {loss} loss?"
-        return loss_map[loss](outputs, targets, indices, num_boxes, **kwargs)
+        return loss_map[loss](outputs, targets, indices, **kwargs)
 
     def forward(self, outputs, batch, reg_scale, up, dn_outputs=None, dn_meta=None):
         """This performs the loss computation.
@@ -854,7 +854,7 @@ class DEIMLoss(nn.Module):
             indices_in = all_indices if use_uni_set else indices
             num_boxes_in = num_boxes_all if use_uni_set else num_boxes
             meta = self.get_loss_meta_info(loss, outputs, batch, indices_in)
-            l_dict = self.get_loss(loss, outputs, batch, indices_in, num_boxes_in, **meta)
+            l_dict = self.get_loss(loss, outputs, batch, indices_in, **meta)
             l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
             losses.update(l_dict)
 
@@ -869,7 +869,7 @@ class DEIMLoss(nn.Module):
                     indices_in = all_indices if use_uni_set else cached_indices[i]
                     num_boxes_in = num_boxes_all if use_uni_set else num_boxes
                     meta = self.get_loss_meta_info(loss, aux_outputs, batch, indices_in)
-                    l_dict = self.get_loss(loss, aux_outputs, batch, indices_in, num_boxes_in, **meta)
+                    l_dict = self.get_loss(loss, aux_outputs, batch, indices_in, **meta)
 
                     l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
                     l_dict = {k + f"_aux_{i}": v for k, v in l_dict.items()}
@@ -884,7 +884,7 @@ class DEIMLoss(nn.Module):
                 indices_in = all_indices if use_uni_set else cached_indices[-1]
                 num_boxes_in = num_boxes_all if use_uni_set else num_boxes
                 meta = self.get_loss_meta_info(loss, aux_outputs, batch, indices_in)
-                l_dict = self.get_loss(loss, aux_outputs, batch, indices_in, num_boxes_in, **meta)
+                l_dict = self.get_loss(loss, aux_outputs, batch, indices_in, **meta)
 
                 l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
                 l_dict = {k + "_pre": v for k, v in l_dict.items()}
@@ -910,7 +910,7 @@ class DEIMLoss(nn.Module):
                     indices_in = all_indices if use_uni_set else cached_indices_enc[i]
                     num_boxes_in = num_boxes_all if use_uni_set else num_boxes
                     meta = self.get_loss_meta_info(loss, aux_outputs, enc_targets, indices_in)
-                    l_dict = self.get_loss(loss, aux_outputs, enc_targets, indices_in, num_boxes_in, **meta)
+                    l_dict = self.get_loss(loss, aux_outputs, enc_targets, indices_in, **meta)
                     l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
                     l_dict = {k + f"_enc_{i}": v for k, v in l_dict.items()}
                     losses.update(l_dict)
@@ -931,7 +931,7 @@ class DEIMLoss(nn.Module):
                     aux_outputs["up"], aux_outputs["reg_scale"] = outputs["up"], outputs["reg_scale"]
                 for loss in self.losses:
                     meta = self.get_loss_meta_info(loss, aux_outputs, batch, indices_dn)
-                    l_dict = self.get_loss(loss, aux_outputs, batch, indices_dn, dn_num_boxes, **meta)
+                    l_dict = self.get_loss(loss, aux_outputs, batch, indices_dn, **meta)
                     l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
                     l_dict = {k + f"_dn_{i}": v for k, v in l_dict.items()}
                     losses.update(l_dict)
@@ -941,7 +941,7 @@ class DEIMLoss(nn.Module):
                 aux_outputs = outputs["dn_pre_outputs"]
                 for loss in self.losses:
                     meta = self.get_loss_meta_info(loss, aux_outputs, batch, indices_dn)
-                    l_dict = self.get_loss(loss, aux_outputs, batch, indices_dn, dn_num_boxes, **meta)
+                    l_dict = self.get_loss(loss, aux_outputs, batch, indices_dn, **meta)
                     l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
                     l_dict = {k + "_dn_pre": v for k, v in l_dict.items()}
                     losses.update(l_dict)

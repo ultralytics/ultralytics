@@ -107,6 +107,10 @@ class BaseSolution:
         self.env_check = check_imshow(warn=True)
         self.track_history = defaultdict(list)
 
+    def adjust_box_label(self, cls, conf, track_id=None):
+        name = ("" if track_id is None else f"{track_id} ") + self.names[cls]
+        return (f"{name} {conf:.2f}" if self.show_conf else name) if self.show_labels else None
+
     def extract_tracks(self, im0):
         """
         Applies object tracking and extracts tracks from an input image or frame.
@@ -131,7 +135,6 @@ class BaseSolution:
             self.clss = self.track_data.cls.cpu().tolist()
             self.track_ids = self.track_data.id.int().cpu().tolist()
             self.confs = self.track_data.conf.cpu().tolist()
-            print(self.confs)
         else:
             self.LOGGER.warning("no tracks found!")
             self.boxes, self.clss, self.track_ids, self.confs = [], [], [], []

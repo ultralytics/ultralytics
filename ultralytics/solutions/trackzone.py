@@ -77,7 +77,9 @@ class TrackZone(BaseSolution):
 
         # Iterate over boxes, track ids, classes indexes list and draw bounding boxes
         for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
-            annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id=track_id), color=colors(track_id, True))
+            annotator.box_label(
+                box, label=self.adjust_box_label(cls, conf, track_id=track_id), color=colors(track_id, True)
+            )
 
         plot_im = annotator.result()
         self.display_output(plot_im)  # display output with base class function

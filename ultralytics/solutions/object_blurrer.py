@@ -80,7 +80,9 @@ class ObjectBlurrer(BaseSolution):
             )
             # Update the blurred area in the original image
             im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] = blur_obj
-            annotator.box_label(box, label=self.adjust_box_label(cls, conf), color=colors(cls, True))  # Annotate bounding box
+            annotator.box_label(
+                box, label=self.adjust_box_label(cls, conf), color=colors(cls, True)
+            )  # Annotate bounding box
 
         plot_im = annotator.result()
         self.display_output(plot_im)  # Display the output using the base class function

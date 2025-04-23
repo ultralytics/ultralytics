@@ -76,7 +76,76 @@ When adding new functions or classes, please include [Google-style docstrings](h
             return False
         ```
 
-    === "Google-style with type hints"
+    === "Google-style named-returns"
+
+        This example illustrates a Google-style docstring. Ensure that both input and output `types` are always enclosed in parentheses, e.g., `(bool)`.
+
+        ```python
+        def example_function(arg1, arg2=4):
+            """
+            Example function demonstrating Google-style docstrings.
+
+            Args:
+                arg1 (int): The first argument.
+                arg2 (int): The second argument, with a default value of 4.
+
+            Returns:
+                equals (bool): True if successful, False otherwise.
+
+            Examples:
+                >>> result = example_function(1, 2)  # returns False
+            """
+            equals = arg1 == arg2
+            return equals
+        ```
+
+    === "Google-style multiple returns"
+
+        This example illustrates a Google-style docstring. Ensure that both input and output `types` are always enclosed in parentheses, e.g., `(bool)`.
+
+        ```python
+        def example_function(arg1, arg2=4):
+            """
+            Example function demonstrating Google-style docstrings.
+
+            Args:
+                   arg1 (int): The first argument.
+                arg2 (int): The second argument, with a default value of 4.
+
+            Returns:
+                equals (bool): True if successful, False otherwise.
+                added (int): Sum of both input arguments.
+
+            Examples:
+                >>> result = example_function(1, 2)  # returns False
+            """
+            equals = arg1 == arg2
+            added = arg1 + arg2
+            return equals, added
+        ```
+
+        Note that multiple return value should be split into multiple "Returns:" items, not grouped into a single return tuple:
+        
+        Good ✅
+        ```python
+        """
+        Returns: 
+            (np.ndarray): The output masks in shape CxHxW, where C is the number of generated masks. 
+            (np.ndarray): An array of length C containing quality scores predicted by the model for each mask.
+        """
+        ```
+          
+        Bad ❌
+        ```python
+        """
+        Returns:
+            (tuple) with elements:
+                - (np.ndarray): The output masks in shape CxHxW, where C is the number of generated masks. 
+                - (np.ndarray): An array of length C containing quality scores predicted by the model for each mask.
+        """
+        ```
+
+    === "Google-style type hints"
 
         This example includes both a Google-style docstring and [type hints](https://docs.python.org/3/library/typing.html) for arguments and returns, though using either independently is also acceptable.
 
@@ -109,6 +178,24 @@ When adding new functions or classes, please include [Google-style docstrings](h
             """Example function with a single-line docstring."""
             return arg1 == arg2
         ```
+
+
+Good ✅
+```
+         Returns: 
+             (np.ndarray): The output masks in shape CxHxW, where C is the number of generated masks. 
+             (np.ndarray): An array of length C containing quality scores predicted by the model for each mask. 
+```
+
+ If we use (tuple) and then create a list underneath it then MkDocs only creates 1 table row and stuffs everything inside it:
+ 
+ Bad ❌
+ ```
+         Returns:
+             (tuple) with elements:
+                 - (np.ndarray): The output masks in shape CxHxW, where C is the number of generated masks. 
+                 - (np.ndarray): An array of length C containing quality scores predicted by the model for each mask. 
+```
 
 ### ✅ GitHub Actions CI Tests
 

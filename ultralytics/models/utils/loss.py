@@ -942,7 +942,7 @@ class DEIMLoss(nn.Module):
         losses = {k: torch.nan_to_num(v, nan=0.0) for k, v in losses.items()}
         return losses
 
-    def _get_loss(self, outputs, batch, all_match_indices, match_indices, prefix=""):
+    def _get_loss(self, outputs, batch, all_match_indices, match_indices, suffix=""):
         losses = {}
         for loss in self.losses:
             use_uni_set = self.use_uni_set and (loss in ["boxes", "local"])
@@ -951,8 +951,8 @@ class DEIMLoss(nn.Module):
             l_dict = self.get_loss(loss, outputs, batch, indices_in, **meta)
 
             l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
-            if prefix:
-                l_dict = {k + prefix: v for k, v in l_dict.items()}
+            if suffix:
+                l_dict = {k + suffix: v for k, v in l_dict.items()}
             losses.update(l_dict)
         return losses
 

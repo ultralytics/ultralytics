@@ -70,6 +70,7 @@ When adding new functions or classes, include [Google-style docstrings](https://
 
             Examples:
                 >>> example_function(4, 4)  # True
+                >>> example_function(1, 2)  # False
             """
             return arg1 == arg2
         ```
@@ -127,6 +128,8 @@ When adding new functions or classes, include [Google-style docstrings](https://
         ✅ Good - Document each return value separately:
         ```python
         """
+        ...
+
         Returns:
            (np.ndarray): Predicted masks with shape HxWxN.
            (list): Confidence scores for each instance.
@@ -136,13 +139,15 @@ When adding new functions or classes, include [Google-style docstrings](https://
         ❌ Bad - Don't document as a tuple with nested elements:
         ```python
         """
+        ...
+
         Returns:
            (tuple): Tuple containing:
                - (np.ndarray): Predicted masks with shape HxWxN.
                - (list): Confidence scores for each instance.
         """
 
-        "Google-style with type hints"
+    === "Google-style with type hints"
 
         This example combines Google-style docstrings with Python type hints. When using type hints, you can omit the type information in the docstring arguments section, as it's already specified in the function signature.
         ```python

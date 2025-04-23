@@ -72,19 +72,20 @@ class DFLoss(nn.Module):
 
     def __call__(self, pred_dist, target):
         """Return sum of left and right DFL losses from https://ieeexplore.ieee.org/document/9792391."""
-        target = target.clamp_(0, self.reg_max - 1 - 0.01)
-        tl = target.long()  # target left
-        tr = tl + 1  # target right
-        wl = tr - target  # weight left
-        wr = 1 - wl  # weight right
-        tll = torch.zeros_like(pred_dist)
-        tll.scatter_(1, tl.view(-1, 1), 1)
-        trr = torch.zeros_like(pred_dist)
-        trr.scatter_(1, tl.view(-1, 1), 1)
-        return (
-            F.binary_cross_entropy_with_logits(pred_dist, tll, reduction="none").sum(-1).view(tl.shape) * wl
-            + F.binary_cross_entropy_with_logits(pred_dist, trr, reduction="none").sum(-1).view(tl.shape) * wr
-        ).mean(-1, keepdim=True)
+        return F.l1_loss(pred_dist.sigmoid().sum(-1), target.view(-1)).mean(-1)
+        # target = target.clamp_(0, self.reg_max - 1 - 0.01)
+        # tl = target.long()  # target left
+        # tr = tl + 1  # target right
+        # wl = tr - target  # weight left
+        # wr = 1 - wl  # weight right
+        # tll = torch.zeros_like(pred_dist)
+        # tll.scatter_(1, tl.view(-1, 1), 1)
+        # trr = torch.zeros_like(pred_dist)
+        # trr.scatter_(1, tl.view(-1, 1), 1)
+        # return (
+        #     F.binary_cross_entropy_with_logits(pred_dist, tll, reduction="none").sum(-1).view(tl.shape) * wl
+        #     + F.binary_cross_entropy_with_logits(pred_dist, trr, reduction="none").sum(-1).view(tl.shape) * wr
+        # ).mean(-1, keepdim=True)
 
 
 class BboxLoss(nn.Module):
@@ -103,7 +104,7 @@ class BboxLoss(nn.Module):
 
         # DFL loss
         if self.dfl_loss:
-            target_ltrb = bbox2dist(anchor_points, target_bboxes, (self.dfl_loss.reg_max - 1) ** 2)
+            target_ltrb = bbox2dist(anchor_points, target_bboxes, self.dfl_loss.reg_max ** 2 - 1)
             loss_dfl = self.dfl_loss(pred_dist[fg_mask].view(-1, self.dfl_loss.reg_max), target_ltrb[fg_mask]) * weight
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:

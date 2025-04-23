@@ -942,6 +942,20 @@ class DEIMLoss(nn.Module):
         losses = {k: torch.nan_to_num(v, nan=0.0) for k, v in losses.items()}
         return losses
 
+    def _get_loss(self, outputs, batch, all_match_indices, match_indices, prefix=""):
+        losses = {}
+        for loss in self.losses:
+            use_uni_set = self.use_uni_set and (loss in ["boxes", "local"])
+            indices_in = all_match_indices if use_uni_set else match_indices
+            meta = self.get_loss_meta_info(loss, outputs, batch, indices_in)
+            l_dict = self.get_loss(loss, outputs, batch, indices_in, **meta)
+
+            l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
+            if prefix:
+                l_dict = {k + prefix: v for k, v in l_dict.items()}
+            losses.update(l_dict)
+        return losses
+
     def get_loss_meta_info(self, loss, outputs, targets, indices):
         if self.boxes_weight_format is None or loss not in {"vfl", "mal"}:
             return {}

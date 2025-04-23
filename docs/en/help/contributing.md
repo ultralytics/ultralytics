@@ -125,22 +125,22 @@ When adding new functions or classes, please include [Google-style docstrings](h
         ```
 
         Note that multiple return value should be split into multiple "Returns:" items, not grouped into a single return tuple:
-        
+
         Good ✅
         ```python
         """
-        Returns: 
-            (np.ndarray): The output masks in shape CxHxW, where C is the number of generated masks. 
+        Returns:
+            (np.ndarray): The output masks in shape CxHxW, where C is the number of generated masks.
             (np.ndarray): An array of length C containing quality scores predicted by the model for each mask.
         """
         ```
-          
+
         Bad ❌
         ```python
         """
         Returns:
             (tuple) with elements:
-                - (np.ndarray): The output masks in shape CxHxW, where C is the number of generated masks. 
+                - (np.ndarray): The output masks in shape CxHxW, where C is the number of generated masks.
                 - (np.ndarray): An array of length C containing quality scores predicted by the model for each mask.
         """
         ```
@@ -179,22 +179,23 @@ When adding new functions or classes, please include [Google-style docstrings](h
             return arg1 == arg2
         ```
 
-
 Good ✅
+
 ```
-         Returns: 
-             (np.ndarray): The output masks in shape CxHxW, where C is the number of generated masks. 
-             (np.ndarray): An array of length C containing quality scores predicted by the model for each mask. 
+         Returns:
+             (np.ndarray): The output masks in shape CxHxW, where C is the number of generated masks.
+             (np.ndarray): An array of length C containing quality scores predicted by the model for each mask.
 ```
 
- If we use (tuple) and then create a list underneath it then MkDocs only creates 1 table row and stuffs everything inside it:
- 
- Bad ❌
- ```
-         Returns:
-             (tuple) with elements:
-                 - (np.ndarray): The output masks in shape CxHxW, where C is the number of generated masks. 
-                 - (np.ndarray): An array of length C containing quality scores predicted by the model for each mask. 
+If we use (tuple) and then create a list underneath it then MkDocs only creates 1 table row and stuffs everything inside it:
+
+Bad ❌
+
+```
+        Returns:
+            (tuple) with elements:
+                - (np.ndarray): The output masks in shape CxHxW, where C is the number of generated masks.
+                - (np.ndarray): An array of length C containing quality scores predicted by the model for each mask.
 ```
 
 ### ✅ GitHub Actions CI Tests

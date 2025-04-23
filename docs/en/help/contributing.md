@@ -142,7 +142,7 @@ When adding new functions or classes, include [Google-style docstrings](https://
         ...
 
         Returns:
-           (tuple): Tuple containing:
+           (tuple): Tuple containing two elements:
                - (np.ndarray): Predicted masks with shape HxWxN.
                - (list): Confidence scores for each instance.
         """

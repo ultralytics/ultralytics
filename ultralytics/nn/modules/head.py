@@ -908,6 +908,7 @@ class Integral(nn.Module):
 
 class DFINEDecoder(nn.Module):
     __share__ = ["num_classes", "eval_spatial_size"]
+    export = False  # export mode
 
     def __init__(
         self,
@@ -1128,11 +1129,9 @@ class DFINEDecoder(nn.Module):
         topk_anchors = anchors[:, topk_ind].view(bs, self.num_queries, -1)
         topk_refer_bbox = self.enc_bbox_head(topk_feats) + topk_anchors
 
-        enc_topk_bboxes, enc_topk_scores = None, None  # It's not need during inference mode
-        if self.training:
-            enc_topk_bboxes = F.sigmoid(topk_refer_bbox)
-            # (bs, num_queries, nc)
-            enc_topk_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        enc_topk_bboxes = F.sigmoid(topk_refer_bbox)
+        # (bs, num_queries, nc)
+        enc_topk_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
         top_feats = topk_feats.detach()
         topk_refer_bbox = topk_refer_bbox.detach()
 

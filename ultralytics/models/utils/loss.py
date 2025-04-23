@@ -821,20 +821,16 @@ class DEIMLoss(nn.Module):
             outputs["dn_pre_outputs"] = {"pred_logits": dn_pre_scores, "pred_boxes": dn_pre_bboxes}
         dn_outputs = outputs.pop("dn_outputs", None)
 
-        outputs_without_aux = {k: v for k, v in outputs.items() if "aux" not in k}
-
         # Retrieve the matching between the outputs of the last layer and the targets
         indices = self.matcher(
-            outputs_without_aux["pred_boxes"].contiguous(),
-            outputs_without_aux["pred_logits"].contiguous(),
+            outputs["pred_boxes"].contiguous(),
+            outputs["pred_logits"].contiguous(),
             batch["bboxes"],
             batch["cls"],
             batch["gt_groups"],
         )
         self._clear_cache()
 
-        # Get the matching union set across all decoder layers.
-        assert "aux_outputs" in outputs, "Expecting auxiliary outputs in the outputs."
         indices_aux_list, cached_indices, cached_indices_enc = [], [], []
         aux_outputs_list = outputs["aux_outputs"]
         if "pre_outputs" in outputs:

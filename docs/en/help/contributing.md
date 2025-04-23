@@ -123,26 +123,25 @@ When adding new functions or classes, include [Google-style docstrings](https://
             return equals, added
         ```
 
-        Note on multiple returns:
-
-        ✅ Good
+        Note: Even though Python returns multiple values as a tuple (e.g., `return masks, scores`), always document each value separately for clarity and better tool integration. When documenting functions that return multiple values:
+        
+        ✅ Good - Document each return value separately:
         ```python
         """
         Returns:
-            (np.ndarray): Output masks in shape CxHxW, where C is the number of generated masks.
-            (np.ndarray): An array of length C containing quality scores predicted by the model for each mask.
+           (np.ndarray): Predicted masks with shape HxWxN.
+           (list): Confidence scores for each instance.
         """
         ```
-
-        ❌ Bad
+        
+        ❌ Bad - Don't document as a tuple with nested elements:
         ```python
         """
         Returns:
-            (tuple): Contains:
-                - masks (np.ndarray): Output masks in shape CxHxW.
-                - scores (np.ndarray): Quality scores for each mask.
+           (tuple): Tuple containing:
+               - (np.ndarray): Predicted masks with shape HxWxN.
+               - (list): Confidence scores for each instance.
         """
-        ```
 
     === "Google-style with type hints"
 

@@ -656,7 +656,7 @@ class DEIMLoss(nn.Module):
         losses["loss_bbox"] = loss_bbox.sum() / num_boxes
 
         # TODO: could use CIOU as well
-        loss_giou = 1 - bbox_iou(src_boxes.detach(), target_boxes, GIoU=True)
+        loss_giou = 1 - bbox_iou(src_boxes, target_boxes, GIoU=True)
         if self.boxes_weight_format is not None:
             boxes_weight = bbox_iou(src_boxes.detach(), target_boxes, GIoU=self.boxes_weight_format == "giou")
             loss_giou *= boxes_weight

@@ -845,44 +845,19 @@ class DEIMLoss(nn.Module):
 
         # Compute all the requested losses, main loss
         losses = {}
-        for loss in self.losses:
-            use_uni_set = self.use_uni_set and (loss in ["boxes", "local"])
-            # TODO, indices and num_box are different from RT-DETRv2
-            indices_in = all_indices if use_uni_set else indices
-            meta = self.get_loss_meta_info(loss, outputs, batch, indices_in)
-            l_dict = self.get_loss(loss, outputs, batch, indices_in, **meta)
-            l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
-            losses.update(l_dict)
+        losses.update(self._get_loss(outputs, batch, all_indices, indices))
 
         # In case of auxiliary losses, we repeat this process with the output of each intermediate layer.
         if "aux_outputs" in outputs:
             for i, aux_outputs in enumerate(outputs["aux_outputs"]):
                 if "local" in self.losses:  # only work for local loss
                     aux_outputs["up"], aux_outputs["reg_scale"] = outputs["up"], outputs["reg_scale"]
-                for loss in self.losses:
-                    # TODO, indices and num_box are different from RT-DETRv2
-                    use_uni_set = self.use_uni_set and (loss in ["boxes", "local"])
-                    indices_in = all_indices if use_uni_set else cached_indices[i]
-                    meta = self.get_loss_meta_info(loss, aux_outputs, batch, indices_in)
-                    l_dict = self.get_loss(loss, aux_outputs, batch, indices_in, **meta)
-
-                    l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
-                    l_dict = {k + f"_aux_{i}": v for k, v in l_dict.items()}
-                    losses.update(l_dict)
+                losses.update(self._get_loss(aux_outputs, batch, all_indices, cached_indices[i], suffix=f"_aux_{i}"))
 
         # In case of auxiliary traditional head output at first decoder layer. just for dfine
         if "pre_outputs" in outputs:
             aux_outputs = outputs["pre_outputs"]
-            for loss in self.losses:
-                # TODO, indices and num_box are different from RT-DETRv2
-                use_uni_set = self.use_uni_set and (loss in ["boxes", "local"])
-                indices_in = all_indices if use_uni_set else cached_indices[-1]
-                meta = self.get_loss_meta_info(loss, aux_outputs, batch, indices_in)
-                l_dict = self.get_loss(loss, aux_outputs, batch, indices_in, **meta)
-
-                l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
-                l_dict = {k + "_pre": v for k, v in l_dict.items()}
-                losses.update(l_dict)
+            losses.update(self._get_loss(aux_outputs, batch, all_indices, cached_indices[-1], suffix="_pre"))
 
         # In case of encoder auxiliary losses.
         if "enc_aux_outputs" in outputs:
@@ -898,15 +873,7 @@ class DEIMLoss(nn.Module):
                 enc_targets = batch
 
             for i, aux_outputs in enumerate(outputs["enc_aux_outputs"]):
-                for loss in self.losses:
-                    # TODO, indices and num_box are different from RT-DETRv2
-                    use_uni_set = self.use_uni_set and (loss == "boxes")
-                    indices_in = all_indices if use_uni_set else cached_indices_enc[i]
-                    meta = self.get_loss_meta_info(loss, aux_outputs, enc_targets, indices_in)
-                    l_dict = self.get_loss(loss, aux_outputs, enc_targets, indices_in, **meta)
-                    l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
-                    l_dict = {k + f"_enc_{i}": v for k, v in l_dict.items()}
-                    losses.update(l_dict)
+                losses.update(self._get_loss(aux_outputs, enc_targets, all_indices, cached_indices_enc[i], suffix=f"_enc_{i}"))
 
             if class_agnostic:
                 self.num_classes = orig_num_classes
@@ -921,32 +888,25 @@ class DEIMLoss(nn.Module):
                 if "local" in self.losses:  # only work for local loss
                     aux_outputs["is_dn"] = True
                     aux_outputs["up"], aux_outputs["reg_scale"] = outputs["up"], outputs["reg_scale"]
-                for loss in self.losses:
-                    meta = self.get_loss_meta_info(loss, aux_outputs, batch, indices_dn)
-                    l_dict = self.get_loss(loss, aux_outputs, batch, indices_dn, **meta)
-                    l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
-                    l_dict = {k + f"_dn_{i}": v for k, v in l_dict.items()}
-                    losses.update(l_dict)
+                losses.update(self._get_loss(aux_outputs, batch, indices_dn, suffix=f"_dn_{i}"))
 
             # In case of auxiliary traditional head output at first decoder layer, just for dfine
             if "dn_pre_outputs" in outputs:
                 aux_outputs = outputs["dn_pre_outputs"]
-                for loss in self.losses:
-                    meta = self.get_loss_meta_info(loss, aux_outputs, batch, indices_dn)
-                    l_dict = self.get_loss(loss, aux_outputs, batch, indices_dn, **meta)
-                    l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
-                    l_dict = {k + "_dn_pre": v for k, v in l_dict.items()}
-                    losses.update(l_dict)
+                losses.update(self._get_loss(aux_outputs, batch, indices_dn, suffix="_dn_pre"))
 
         # For debugging Objects365 pre-train.
         losses = {k: torch.nan_to_num(v, nan=0.0) for k, v in losses.items()}
         return losses
 
-    def _get_loss(self, outputs, batch, all_match_indices, match_indices, suffix=""):
+    def _get_loss(self, outputs, batch, all_match_indices, match_indices=None, suffix=""):
         losses = {}
         for loss in self.losses:
-            use_uni_set = self.use_uni_set and (loss in ["boxes", "local"])
-            indices_in = all_match_indices if use_uni_set else match_indices
+            if match_indices is not None:
+                use_uni_set = self.use_uni_set and (loss in ["boxes", "local"])
+                indices_in = all_match_indices if use_uni_set else match_indices
+            else:
+                indices_in = all_match_indices
             meta = self.get_loss_meta_info(loss, outputs, batch, indices_in)
             l_dict = self.get_loss(loss, outputs, batch, indices_in, **meta)
 

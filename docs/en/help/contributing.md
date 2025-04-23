@@ -109,7 +109,7 @@ When adding new functions or classes, please include [Google-style docstrings](h
             Example function demonstrating Google-style docstrings.
 
             Args:
-                   arg1 (int): The first argument.
+                arg1 (int): The first argument.
                 arg2 (int): The second argument, with a default value of 4.
 
             Returns:

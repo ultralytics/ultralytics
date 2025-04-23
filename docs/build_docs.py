@@ -166,7 +166,7 @@ def update_docs_html():
 
     # Convert plaintext links to HTML hyperlinks
     files_modified = 0
-    for html_file in tqdm(SITE.rglob("*.html"), desc="Converting plaintext links", mininterval=1.0):
+    for html_file in tqdm(SITE.rglob("*.html"), desc="Updating bs4 soup", mininterval=1.0):
         with open(html_file, encoding="utf-8") as file:
             content = file.read()
         updated_content = update_docs_soup(content)
@@ -174,7 +174,7 @@ def update_docs_html():
             with open(html_file, "w", encoding="utf-8") as file:
                 file.write(updated_content)
             files_modified += 1
-    print(f"Modified plaintext links in {files_modified} files.")
+    print(f"Modified bs4 soup in {files_modified} files.")
 
     # Update HTML file head section
     script = ""

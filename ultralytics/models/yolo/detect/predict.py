@@ -44,7 +44,7 @@ class DetectionPredictor(BasePredictor):
             **kwargs (Any): Additional keyword arguments.
 
         Returns:
-            post_processed_results (list): List of Results objects containing the post-processed predictions.
+            (list): List of Results objects containing the post-processed predictions.
 
         Examples:
             >>> predictor = DetectionPredictor(overrides=dict(model="yolov8n.pt"))

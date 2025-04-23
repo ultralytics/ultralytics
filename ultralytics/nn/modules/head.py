@@ -83,7 +83,7 @@ class Detect(nn.Module):
             x (List[torch.Tensor]): Input feature maps from different levels.
 
         Returns:
-            outputs (dict | tuple):
+            (dict | tuple):
 
                 - If in training mode, returns a dictionary containing outputs of both one2many and one2one detections.
                 - If not in training mode, returns processed detections or a tuple with processed detections and raw outputs.

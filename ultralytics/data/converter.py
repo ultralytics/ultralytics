@@ -525,8 +525,7 @@ def min_index(arr1, arr2):
         arr2 (np.ndarray): A NumPy array of shape (M, 2) representing M 2D points.
 
     Returns:
-        short_dist_arr1 (int): shortest distance in `arr1`
-        short_dist_arr2 (int): shortest distance in `arr2`
+        (Tuple[int, int]): A tuple containing the indexes of the points with the shortest distance in arr1 and arr2 respectively.
     """
     dis = ((arr1[:, None, :] - arr2[None, :, :]) ** 2).sum(-1)
     return np.unravel_index(np.argmin(dis, axis=None), dis.shape)

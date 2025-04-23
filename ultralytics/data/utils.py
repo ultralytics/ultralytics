@@ -303,7 +303,7 @@ def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
         downsample_ratio (int, optional): Factor by which to downsample the mask.
 
     Returns:
-        mask (np.ndarray): A binary mask of the specified image size with the polygons filled in.
+        (np.ndarray): A binary mask of the specified image size with the polygons filled in.
     """
     mask = np.zeros(imgsz, dtype=np.uint8)
     polygons = np.asarray(polygons, dtype=np.int32)
@@ -326,7 +326,7 @@ def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
         downsample_ratio (int, optional): Factor by which to downsample each mask.
 
     Returns:
-        masks (np.ndarray): A set of binary masks of the specified image size with the polygons filled in.
+        (np.ndarray): A set of binary masks of the specified image size with the polygons filled in.
     """
     return np.array([polygon2mask(imgsz, [x.reshape(-1)], color, downsample_ratio) for x in polygons])
 
@@ -364,7 +364,7 @@ def find_dataset_yaml(path: Path) -> Path:
         path (Path): The directory path to search for the YAML file.
 
     Returns:
-        yaml_path (Path): The path of the found YAML file.
+        (Path): The path of the found YAML file.
     """
     files = list(path.glob("*.yaml")) or list(path.rglob("*.yaml"))  # try root level first and then recursive
     assert files, f"No YAML file found in '{path.resolve()}'"
@@ -387,7 +387,7 @@ def check_det_dataset(dataset, autodownload=True):
         autodownload (bool, optional): Whether to automatically download the dataset if not found.
 
     Returns:
-        data (dict): Parsed dataset information and paths.
+        (dict): Parsed dataset information and paths.
     """
     file = check_file(dataset)
 
@@ -481,7 +481,7 @@ def check_cls_dataset(dataset, split=""):
         split (str, optional): The split of the dataset. Either 'val', 'test', or ''.
 
     Returns:
-        cls_data (dict): A dictionary containing the following keys:
+        (dict): A dictionary containing the following keys:
 
             - 'train' (Path): The directory path containing the training set of the dataset.
             - 'val' (Path): The directory path containing the validation set of the dataset.

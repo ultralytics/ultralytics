@@ -88,7 +88,7 @@ def autocast(enabled: bool, device: str = "cuda"):
         device (str, optional): The device to use for autocast. Defaults to 'cuda'.
 
     Returns:
-        autocast_ctx (torch.amp.autocast): The appropriate autocast context manager.
+        (torch.amp.autocast): The appropriate autocast context manager.
 
     Notes:
         - For PyTorch versions 1.13 and newer, it uses `torch.amp.autocast`.
@@ -137,7 +137,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     exception if the requested device(s) are not available.
 
     Args:
-        device (str | torch.device, optional): Device string or torch.device object.
+        (str | torch.device, optional): Device string or torch.device object.
             Options are 'None', 'cpu', or 'cuda', or '0' or '0,1,2,3'. Defaults to an empty string, which auto-selects
             the first available GPU, or CPU if no GPU is available.
         batch (int, optional): Batch size being used in your model. Defaults to 0.
@@ -313,10 +313,7 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
         imgsz (int | List, optional): Input image size. Defaults to 640.
 
     Returns:
-        n_l (int): Total number of layers in the model.
-        n_p (int): Total number of parameters in the model.
-        n_g (int): Total number of trainable gradients.
-        flops (float): Total GFLOPs of the model.
+        (Tuple[int, int, int, float]): Number of layers, parameters, gradients, and GFLOPs.
     """
     if not verbose:
         return
@@ -365,7 +362,7 @@ def model_info_for_loggers(trainer):
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer object containing model and validation data.
 
     Returns:
-        model_info (dict): Dictionary containing model parameters, GFLOPs, and inference speeds.
+        (dict): Dictionary containing model parameters, GFLOPs, and inference speeds.
 
     Examples:
         YOLOv8n info for loggers
@@ -404,7 +401,7 @@ def get_flops(model, imgsz=640):
         imgsz (int | List[int], optional): Input image size. Defaults to 640.
 
     Returns:
-        flops_b (float): The model FLOPs in billions.
+        (float): The model FLOPs in billions.
     """
     if not thop:
         return 0.0  # if not installed return 0.0 GFLOPs
@@ -437,7 +434,7 @@ def get_flops_with_torch_profiler(model, imgsz=640):
         imgsz (int | List[int], optional): Input image size. Defaults to 640.
 
     Returns:
-        flops (float): The model's FLOPs in billions.
+        (float): The model's FLOPs in billions.
     """
     if not TORCH_2_0:  # torch profiler implemented in torch>=2.0
         return 0.0

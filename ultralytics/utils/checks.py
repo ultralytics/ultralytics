@@ -87,7 +87,7 @@ def parse_version(version="0.0.0") -> tuple:
         version (str): Version string, i.e. '2.0.1+cpu'
 
     Returns:
-        numeric_version (Tuple[int, int, int]): It provides the numeric part of the version, i.e. (2, 0, 1)
+        (Tuple[int, int, int]): It provides the numeric part of the version, i.e. (2, 0, 1)
     """
     try:
         return tuple(map(int, re.findall(r"\d+", version)[:3]))  # '2.0.1+cpu' -> (2, 0, 1)
@@ -104,7 +104,7 @@ def is_ascii(s) -> bool:
         s (str | list | tuple | dict): Input to be checked (all are converted to string for checking).
 
     Returns:
-        is_ascii (bool): True if the string is composed only of ASCII characters, False otherwise.
+        (bool): True if the string is composed only of ASCII characters, False otherwise.
     """
     return all(ord(c) < 128 for c in str(s))
 
@@ -122,7 +122,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
         floor (int): Minimum allowed value for image size.
 
     Returns:
-        updated_imgsz (List[int] | int): Updated image size.
+        (List[int] | int): Updated image size.
     """
     # Convert stride to integer if it is a tensor
     stride = int(stride.max() if isinstance(stride, torch.Tensor) else stride)
@@ -259,7 +259,7 @@ def check_latest_pypi_version(package_name="ultralytics"):
         package_name (str): The name of the package to find the latest version for.
 
     Returns:
-        package_version (str): The latest version of the package.
+        (str): The latest version of the package.
     """
     try:
         requests.packages.urllib3.disable_warnings()  # Disable the InsecureRequestWarning
@@ -275,7 +275,7 @@ def check_pip_update_available():
     Checks if a new version of the ultralytics package is available on PyPI.
 
     Returns:
-        update_available (bool): True if an update is available, False otherwise.
+        (bool): True if an update is available, False otherwise.
     """
     if ONLINE and IS_PIP_PACKAGE:
         try:
@@ -302,7 +302,7 @@ def check_font(font="Arial.ttf"):
         font (str): Path or name of font.
 
     Returns:
-        file_path (Path): Resolved font file path.
+        (Path): Resolved font file path.
     """
     from matplotlib import font_manager
 
@@ -334,7 +334,7 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
         verbose (bool): If True, print warning message if requirement is not met.
 
     Returns:
-        is_compatible (bool): Whether the installed Python version meets the minimum constraints.
+        (bool): Whether the installed Python version meets the minimum constraints.
     """
     return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard, verbose=verbose)
 

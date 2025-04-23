@@ -145,7 +145,7 @@ class BaseDataset(Dataset):
             img_path (str | List[str]): Path or list of paths to image directories or files.
 
         Returns:
-            files_path (List[str]): List of image file paths.
+            (List[str]): List of image file paths.
 
         Raises:
             FileNotFoundError: If no images are found or the path doesn't exist.
@@ -208,9 +208,9 @@ class BaseDataset(Dataset):
             rect_mode (bool, optional): Whether to use rectangular resizing.
 
         Returns:
-            image (np.ndarray): Loaded image as a NumPy array.
-            original_im_dim (Tuple[int, int]): Original image dimensions in (height, width) format.
-            resized_im_dim (Tuple[int, int]): Resized image dimensions in (height, width) format.
+            (np.ndarray): Loaded image as a NumPy array.
+            (Tuple[int, int]): Original image dimensions in (height, width) format.
+            (Tuple[int, int]): Resized image dimensions in (height, width) format.
 
         Raises:
             FileNotFoundError: If the image file is not found.
@@ -376,7 +376,7 @@ class BaseDataset(Dataset):
             index (int): Index of the image to retrieve.
 
         Returns:
-            im_and_label (dict): Label dictionary with image and metadata.
+            (dict): Label dictionary with image and metadata.
         """
         label = deepcopy(self.labels[index])  # requires deepcopy() https://github.com/ultralytics/ultralytics/pull/1948
         label.pop("shape", None)  # shape is for rect, remove it

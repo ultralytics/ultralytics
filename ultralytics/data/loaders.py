@@ -610,7 +610,7 @@ def get_best_youtube_url(url, method="pytube"):
             Defaults to "pytube".
 
     Returns:
-        best_url (str | None): The URL of the best quality MP4 video stream, or None if no suitable stream is found.
+        (str | None): The URL of the best quality MP4 video stream, or None if no suitable stream is found.
 
     Examples:
         >>> url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"

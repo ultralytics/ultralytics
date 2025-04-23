@@ -511,7 +511,7 @@ def yaml_load(file="data.yaml", append_filename=False):
         append_filename (bool): Add the YAML filename to the YAML dictionary. Default is False.
 
     Returns:
-        yaml_data (dict): YAML data and file name.
+        (dict): YAML data and file name.
     """
     assert Path(file).suffix in {".yaml", ".yml"}, f"Attempting to load non-YAML file {file} with yaml_load()"
     with open(file, errors="ignore", encoding="utf-8") as f:
@@ -558,7 +558,7 @@ def read_device_model() -> str:
     Reads the device model information from the system and caches it for quick access.
 
     Returns:
-        device_model (str): Kernel release information.
+        (str): Kernel release information.
     """
     return platform.release().lower()
 
@@ -730,7 +730,7 @@ def get_git_dir():
     Determines whether the current file is part of a git repository and if so, returns the repository root directory.
 
     Returns:
-        git_dir (Path | None): Git root directory if found or None if not found.
+        (Path | None): Git root directory if found or None if not found.
     """
     for d in Path(__file__).parents:
         if (d / ".git").is_dir():

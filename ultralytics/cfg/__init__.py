@@ -250,7 +250,7 @@ def cfg2dict(cfg: Union[str, Path, Dict, SimpleNamespace]) -> Dict:
             a string, a dictionary, or a SimpleNamespace object.
 
     Returns:
-        config_dict (dict): Configuration object in dictionary format.
+        (dict): Configuration object in dictionary format.
 
     Examples:
         Convert a YAML file path to a dictionary:
@@ -286,7 +286,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
         overrides (Dict | None): Dictionary containing key-value pairs to override the base configuration.
 
     Returns:
-        config (SimpleNamespace): Namespace containing the merged configuration arguments.
+        (SimpleNamespace): Namespace containing the merged configuration arguments.
 
     Examples:
         >>> from ultralytics.cfg import get_cfg
@@ -397,7 +397,7 @@ def get_save_dir(args: SimpleNamespace, name: str = None) -> Path:
             or the 'args.mode'.
 
     Returns:
-        save_dir (Path): Directory path where outputs should be saved.
+        (Path): Directory path where outputs should be saved.
 
     Examples:
         >>> from types import SimpleNamespace

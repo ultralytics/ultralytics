@@ -768,12 +768,12 @@ Quickly set up YOLOE with Ultralytics by following these steps:
 
     - **Quick inference** (prompt-free):
         ```bash
-        yolo predict model=yoloe-s.pt source="image.jpg"
+        yolo predict model=yoloe-11l-seg-pf.pt source="image.jpg"
         ```
     - **Prompted detection** (text prompt example):
 
         ```bash
-        yolo predict model=yoloe-s.pt source="kitchen.jpg" classes="bowl,apple"
+        yolo predict model=yoloe-11l-seg.pt source="kitchen.jpg" classes="bowl,apple"
         ```
 
         In Python:
@@ -781,7 +781,7 @@ Quickly set up YOLOE with Ultralytics by following these steps:
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yoloe-s.pt")
+        model = YOLO("yoloe-11l-seg.pt")
         model.set_classes(["bowl", "apple"])
         results = model.predict("kitchen.jpg")
         results[0].save()

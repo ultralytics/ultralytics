@@ -323,7 +323,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
 
         # Conduct model validation on the COCO128-seg example dataset
         metrics = model.val(data="coco128-seg.yaml")

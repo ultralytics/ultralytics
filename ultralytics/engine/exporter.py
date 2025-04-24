@@ -101,6 +101,7 @@ from ultralytics.utils.checks import (
     check_requirements,
     check_version,
     is_sudo_available,
+    IS_PYTHON_MINIMUM_3_12,
 )
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.export import export_engine, export_onnx
@@ -924,7 +925,7 @@ class Exporter:
                 "onnx>=1.12.0",
                 "onnx2tf>=1.26.3",
                 "onnxslim>=0.1.31",
-                "tflite_support<=0.4.3" if IS_JETSON else "tflite_support>=0.4.4",  # fix ImportError 'GLIBCXX_3.4.29'
+                "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
                 "protobuf>=5",  # tflite_support pins <=4 but >=5 works
@@ -1280,6 +1281,10 @@ class Exporter:
 
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://ai.google.dev/edge/litert/models/metadata."""
+        if IS_PYTHON_MINIMUM_3_12:
+            LOGGER.warning("TFLite metadata is not compatible with Python>=3.12, skipping...")
+            return
+
         import flatbuffers
 
         try:

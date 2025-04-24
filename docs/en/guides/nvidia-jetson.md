@@ -165,7 +165,7 @@ sudo apt-get -y install libcusparselt0 libcusparselt-dev
 
 The [onnxruntime-gpu](https://pypi.org/project/onnxruntime-gpu/) package hosted in PyPI does not have `aarch64` binaries for the Jetson. So we need to manually install this package. This package is needed for some of the exports.
 
-All different `onnxruntime-gpu` packages corresponding to different JetPack and Python versions are listed [here](https://elinux.org/Jetson_Zoo#ONNX_Runtime). However, here we will download and install `onnxruntime-gpu 1.20.0` with `Python3.10` support.
+You can find all available `onnxruntime-gpu` packages—organized by JetPack version, Python version, and other compatibility details—in the [Jetson Zoo ONNX Runtime compatibility matrix](https://elinux.org/Jetson_Zoo#ONNX_Runtime). Here we will download and install `onnxruntime-gpu 1.20.0` with `Python3.10` support.
 
 ```bash
 pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.20.0-cp310-cp310-linux_aarch64.whl
@@ -228,7 +228,7 @@ The above ultralytics installation will install Torch and Torchvision. However, 
 
 The [onnxruntime-gpu](https://pypi.org/project/onnxruntime-gpu/) package hosted in PyPI does not have `aarch64` binaries for the Jetson. So we need to manually install this package. This package is needed for some of the exports.
 
-All different `onnxruntime-gpu` packages corresponding to different JetPack and Python versions are listed [here](https://elinux.org/Jetson_Zoo#ONNX_Runtime). However, here we will download and install `onnxruntime-gpu 1.17.0` with `Python3.8` support.
+You can find all available `onnxruntime-gpu` packages—organized by JetPack version, Python version, and other compatibility details—in the [Jetson Zoo ONNX Runtime compatibility matrix](https://elinux.org/Jetson_Zoo#ONNX_Runtime). Here we will download and install `onnxruntime-gpu 1.17.0` with `Python3.8` support.
 
 ```bash
 wget https://nvidia.box.com/shared/static/zostg6agm00fb6t5uisw51qi6kpcuwzd.whl -O onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
@@ -243,7 +243,7 @@ pip install onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
 
 ## Use TensorRT on NVIDIA Jetson
 
-Out of all the model export formats supported by Ultralytics, TensorRT delivers the best inference performance when working with NVIDIA Jetson devices and our recommendation is to use TensorRT with Jetson. We also have a detailed document on TensorRT [here](../integrations/tensorrt.md).
+Among all the model export formats supported by Ultralytics, TensorRT offers the highest inference performance on NVIDIA Jetson devices, making it our top recommendation for Jetson deployments. For setup instructions and advanced usage, see our [dedicated TensorRT integration guide](../integrations/tensorrt.md).
 
 ### Convert Model to TensorRT and Run Inference
 
@@ -550,7 +550,7 @@ The below table represents the benchmark results for five different models (YOLO
 
     Benchmarked with Ultralytics {{ benchmark_version }}
 
-[Explore more benchmarking efforts by Seeed Studio](https://www.seeedstudio.com/blog/2023/03/30/yolov8-performance-benchmarks-on-nvidia-jetson-devices) running on different versions of NVIDIA Jetson hardware.
+[Explore more benchmarking efforts by Seeed Studio](https://www.seeedstudio.com/blog/2023/03/30/yolov8-performance-benchmarks-on-nvidia-jetson-devices/) running on different versions of NVIDIA Jetson hardware.
 
 ## Reproduce Our Results
 

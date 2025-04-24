@@ -18,9 +18,11 @@ from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import MODELS, TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import (
+    ARM64,
     ASSETS,
     DEFAULT_CFG,
     DEFAULT_CFG_PATH,
+    LINUX,
     LOGGER,
     ONLINE,
     ROOT,
@@ -170,7 +172,7 @@ def test_youtube():
         model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)
     # Handle internet connection errors and 'urllib.error.HTTPError: HTTP Error 429: Too Many Requests'
     except (urllib.error.HTTPError, ConnectionError) as e:
-        LOGGER.warning(f"WARNING: YouTube Test Error: {e}")
+        LOGGER.error(f"YouTube Test Error: {e}")
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
@@ -199,7 +201,7 @@ def test_track_stream():
 
 def test_val():
     """Test the validation mode of the YOLO model."""
-    YOLO(MODEL).val(data="coco8.yaml", imgsz=32, save_hybrid=True)
+    YOLO(MODEL).val(data="coco8.yaml", imgsz=32)
 
 
 def test_train_scratch():
@@ -276,7 +278,7 @@ def test_results(model):
         r.to_df(decimals=3)
         r.to_csv()
         r.to_xml()
-        r.plot(pil=True)
+        r.plot(pil=True, save=True, filename=TMP / "results_plot_save.jpg")
         r.plot(conf=True, boxes=True)
         print(r, len(r), r.path)  # print after methods
 
@@ -308,7 +310,8 @@ def test_labels_and_crops():
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_data_utils():
     """Test utility functions in ultralytics/data/utils.py, including dataset stats and auto-splitting."""
-    from ultralytics.data.utils import HUBDatasetStats, autosplit
+    from ultralytics.data.split import autosplit
+    from ultralytics.data.utils import HUBDatasetStats
     from ultralytics.utils.downloads import zip_directory
 
     # from ultralytics.utils.files import WorkingDirectory
@@ -577,6 +580,10 @@ def test_model_embeddings():
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOWorld with CLIP is not supported in Python 3.12")
+@pytest.mark.skipif(
+    checks.IS_PYTHON_3_8 and LINUX and ARM64,
+    reason="YOLOWorld with CLIP is not supported in Python 3.8 and aarch64 Linux",
+)
 def test_yolo_world():
     """Test YOLO world models with CLIP support."""
     model = YOLO(WEIGHTS_DIR / "yolov8s-world.pt")  # no YOLO11n-world model yet
@@ -609,6 +616,10 @@ def test_yolo_world():
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12 or not TORCH_1_9, reason="YOLOE with CLIP is not supported in Python 3.12")
+@pytest.mark.skipif(
+    checks.IS_PYTHON_3_8 and LINUX and ARM64,
+    reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux",
+)
 def test_yoloe():
     """Test YOLOE models with MobileClip support."""
     # Predict
@@ -672,3 +683,13 @@ def test_yolov10():
     model.val(data="coco8.yaml", imgsz=32)
     model.predict(imgsz=32, save_txt=True, save_crop=True, augment=True)
     model(SOURCE)
+
+
+def test_multichannel():
+    """Test YOLO model multi-channel training, validation, and prediction functionality."""
+    model = YOLO("yolo11n.pt")
+    model.train(data="coco8-multispectral.yaml", epochs=1, imgsz=32, close_mosaic=1, cache="disk")
+    model.val(data="coco8-multispectral.yaml")
+    im = np.zeros((32, 32, 10), dtype=np.uint8)
+    model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)
+    model.export(format="onnx")

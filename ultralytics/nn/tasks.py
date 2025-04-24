@@ -170,7 +170,7 @@ class BaseModel(torch.nn.Module):
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference."""
         LOGGER.warning(
-            f"WARNING ⚠️ {self.__class__.__name__} does not support 'augment=True' prediction. "
+            f"{self.__class__.__name__} does not support 'augment=True' prediction. "
             f"Reverting to single-scale prediction."
         )
         return self._predict_once(x)
@@ -222,6 +222,8 @@ class BaseModel(torch.nn.Module):
                 if isinstance(m, RepVGGDW):
                     m.fuse()
                     m.forward = m.forward_fuse
+                if isinstance(m, v10Detect):
+                    m.fuse()  # remove one2many head
             self.info(verbose=verbose)
 
         return self
@@ -307,7 +309,7 @@ class BaseModel(torch.nn.Module):
 class DetectionModel(BaseModel):
     """YOLO detection model."""
 
-    def __init__(self, cfg="yolo11n.yaml", ch=3, nc=None, verbose=True):  # model, input channels, number of classes
+    def __init__(self, cfg="yolo11n.yaml", ch=3, nc=None, verbose=True):
         """
         Initialize the YOLO detection model with the given config and parameters.
 
@@ -321,13 +323,13 @@ class DetectionModel(BaseModel):
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
         if self.yaml["backbone"][0][2] == "Silence":
             LOGGER.warning(
-                "WARNING ⚠️ YOLOv9 `Silence` module is deprecated in favor of torch.nn.Identity. "
+                "YOLOv9 `Silence` module is deprecated in favor of torch.nn.Identity. "
                 "Please delete local *.pt file and re-download the latest model checkpoint."
             )
             self.yaml["backbone"][0][2] = "nn.Identity"
 
         # Define model
-        ch = self.yaml["ch"] = self.yaml.get("ch", ch)  # input channels
+        self.yaml["channels"] = ch  # save channels
         if nc and nc != self.yaml["nc"]:
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml["nc"] = nc  # override YAML value
@@ -371,7 +373,7 @@ class DetectionModel(BaseModel):
             (torch.Tensor): Augmented inference output.
         """
         if getattr(self, "end2end", False) or self.__class__.__name__ != "DetectionModel":
-            LOGGER.warning("WARNING ⚠️ Model does not support 'augment=True', reverting to single-scale prediction.")
+            LOGGER.warning("Model does not support 'augment=True', reverting to single-scale prediction.")
             return self._predict_once(x)
         img_size = x.shape[-2:]  # height, width
         s = [1, 0.83, 0.67]  # scales
@@ -527,7 +529,7 @@ class ClassificationModel(BaseModel):
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
 
         # Define model
-        ch = self.yaml["ch"] = self.yaml.get("ch", ch)  # input channels
+        ch = self.yaml["channels"] = self.yaml.get("channels", ch)  # input channels
         if nc and nc != self.yaml["nc"]:
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml["nc"] = nc  # override YAML value
@@ -913,6 +915,9 @@ class YOLOEModel(DetectionModel):
             names (List[str]): List of class names.
             embeddings (torch.Tensor): Embeddings tensor.
         """
+        assert not hasattr(self.model[-1], "lrpc"), (
+            "Prompt-free model does not support setting classes. Please try with Text/Visual prompt models."
+        )
         assert embeddings.ndim == 3
         self.pe = embeddings
         self.model[-1].nc = len(names)
@@ -1218,7 +1223,7 @@ def torch_safe_load(weight, safe_only=False):
                 )
             ) from e
         LOGGER.warning(
-            f"WARNING ⚠️ {weight} appears to require '{e.name}', which is not in Ultralytics requirements."
+            f"{weight} appears to require '{e.name}', which is not in Ultralytics requirements."
             f"\nAutoInstall will run now for '{e.name}' but this feature will be removed in the future."
             f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
             f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo11n.pt'"
@@ -1229,7 +1234,7 @@ def torch_safe_load(weight, safe_only=False):
     if not isinstance(ckpt, dict):
         # File is likely a YOLO instance saved with i.e. torch.save(model, "saved_model.pt")
         LOGGER.warning(
-            f"WARNING ⚠️ The file '{weight}' appears to be improperly saved or formatted. "
+            f"The file '{weight}' appears to be improperly saved or formatted. "
             f"For optimal results, use model.save('filename.pt') to correctly save YOLO models."
         )
         ckpt = {"model": ckpt.model}
@@ -1346,7 +1351,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         scale = d.get("scale")
         if not scale:
             scale = tuple(scales.keys())[0]
-            LOGGER.warning(f"WARNING ⚠️ no model scale passed. Assuming scale='{scale}'.")
+            LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
         depth, width, max_channels = scales[scale]
 
     if act:
@@ -1514,7 +1519,7 @@ def yaml_model_load(path):
     path = Path(path)
     if path.stem in (f"yolov{d}{x}6" for x in "nsmlx" for d in (5, 8)):
         new_stem = re.sub(r"(\d+)([nslmx])6(.+)?$", r"\1\2-p6\3", path.stem)
-        LOGGER.warning(f"WARNING ⚠️ Ultralytics YOLO P6 models now use -p6 suffix. Renaming {path.stem} to {new_stem}.")
+        LOGGER.warning(f"Ultralytics YOLO P6 models now use -p6 suffix. Renaming {path.stem} to {new_stem}.")
         path = path.with_name(new_stem + path.suffix)
 
     unified_path = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
@@ -1606,7 +1611,7 @@ def guess_model_task(model):
 
     # Unable to determine task from model
     LOGGER.warning(
-        "WARNING ⚠️ Unable to automatically guess model task, assuming 'task=detect'. "
+        "Unable to automatically guess model task, assuming 'task=detect'. "
         "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify','pose' or 'obb'."
     )
     return "detect"  # assume detect

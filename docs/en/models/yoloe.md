@@ -12,6 +12,17 @@ keywords: YOLOE, open-vocabulary detection, real-time object detection, instance
 
 [YOLOE (Real-Time Seeing Anything)](https://arxiv.org/html/2503.07465v1) is a new advancement in zero-shot, promptable YOLO models, designed for **open-vocabulary** detection and segmentation. Unlike previous YOLO models limited to fixed categories, YOLOE uses text, image, or internal vocabulary prompts, enabling real-time detection of any object class. Built upon YOLOv10 and inspired by [YOLO-World](yolo-world.md), YOLOE achieves **state-of-the-art zero-shot performance** with minimal impact on speed and accuracy.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/HMOoM2NwFIQ"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to use YOLOE with Ultralytics Python package: Open Vocabulary & Real-Time Seeing Anything 🚀
+</p>
+
 Compared to earlier YOLO models, YOLOE significantly boosts efficiency and accuracy. It improves by **+3.5 AP** over YOLO-Worldv2 on LVIS while using just a third of the training resources and achieving 1.4× faster inference speeds. Fine-tuned on COCO, YOLOE-v8-large surpasses YOLOv8-L by **0.1 mAP**, using nearly **4× less training time**. This demonstrates YOLOE's exceptional balance of accuracy, efficiency, and versatility. The sections below explore YOLOE's architecture, benchmark comparisons, and integration with the [Ultralytics](https://www.ultralytics.com/) framework.
 
 ## Architecture Overview
@@ -135,11 +146,13 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
 
 ### Predict Usage
 
-Object detection is straightforward with the `predict` method, as illustrated below:
+YOLOE supports both text-based and visual prompting. Using prompts is straightforward—just pass them through the `predict` method as shown below:
 
 !!! example
 
     === "Text Prompt"
+
+        Text prompts allow you to specify the classes that you wish to detect through textual descriptions. The following code shows how you can use YOLOE to detect people and buses in an image:
 
         ```python
         from ultralytics import YOLOE
@@ -147,11 +160,11 @@ Object detection is straightforward with the `predict` method, as illustrated be
         # Initialize a YOLOE model
         model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
 
-        # Set text prompt
+        # Set text prompt to detect person and bus. You only need to do this once after you load the model.
         names = ["person", "bus"]
         model.set_classes(names, model.get_text_pe(names))
 
-        # Execute prediction for specified categories on an image
+        # Run detection on the given image
         results = model.predict("path/to/image.jpg")
 
         # Show results
@@ -160,12 +173,13 @@ Object detection is straightforward with the `predict` method, as illustrated be
 
     === "Visual Prompt"
 
-        !!! note
+        Visual prompts allow you to guide the model by showing it visual examples of the target classes, rather than describing them in text.
 
-            If `source` is a video/stream, the first frame of the video/stream will be automatically used as `refer_image`, or you could directly pass any frame from the video/stream to `refer_image` argument.
+        The `visual_prompts` argument takes a dictionary with two keys: `bboxes` and `cls`. Each bounding box in `bboxes` should tightly enclose an example of the object you want the model to detect, and the corresponding entry in `cls` specifies the class label for that box. This pairing tells the model, "This is what class X looks like—now find more like it."
 
+        Class IDs (`cls`) in `visual_prompts` are used to associate each bounding box with a specific category within your prompt. They aren't fixed labels, but temporary identifiers you assign to each example. The only requirement is that class IDs must be sequential, starting from 0. This helps the model correctly associate each box with its respective class.
 
-        Prompts in source image:
+        You can provide visual prompts directly within the same image you want to run inference on. For example:
 
         ```python
         import numpy as np
@@ -176,26 +190,27 @@ Object detection is straightforward with the `predict` method, as illustrated be
         # Initialize a YOLOE model
         model = YOLOE("yoloe-11l-seg.pt")
 
-        # Set visual prompt
-        visuals = dict(
+        # Define visual prompts using bounding boxes and their corresponding class IDs.
+        # Each box highlights an example of the object you want the model to detect.
+        visual_prompts = dict(
             bboxes=np.array(
                 [
-                    [221.52, 405.8, 344.98, 857.54],  # For person
-                    [120, 425, 160, 445],  # For glasses
+                    [221.52, 405.8, 344.98, 857.54],  # Box enclosing person
+                    [120, 425, 160, 445],  # Box enclosing glasses
                 ],
             ),
             cls=np.array(
                 [
-                    0,  # For person
-                    1,  # For glasses
+                    0,  # ID to be assigned for person
+                    1,  # ID to be assigned for glassses
                 ]
             ),
         )
 
-        # Execute prediction for specified categories on an image
+        # Run inference on an image, using the provided visual prompts as guidance
         results = model.predict(
             "ultralytics/assets/bus.jpg",
-            visual_prompts=visuals,
+            visual_prompts=visual_prompts,
             predictor=YOLOEVPSegPredictor,
         )
 
@@ -203,7 +218,11 @@ Object detection is straightforward with the `predict` method, as illustrated be
         results[0].show()
         ```
 
-        Prompts in different images:
+        Or you can provide examples from a separate reference image using the `refer_image` argument. In that case, the `bboxes` and `cls` in `visual_prompts` should describe objects in the reference image, not the target image you're making predictions on:
+
+        !!! note
+
+            If `source` is a video or stream, the model automatically uses the first frame as the `refer_image`. This means your `visual_prompts` are applied to that initial frame to help the model understand what to look for in the rest of the video. Alternatively, you can explicitly pass any specific frame as the `refer_image` to control which visual examples the model uses as reference.
 
         ```python
         import numpy as np
@@ -214,17 +233,17 @@ Object detection is straightforward with the `predict` method, as illustrated be
         # Initialize a YOLOE model
         model = YOLOE("yoloe-11l-seg.pt")
 
-        # Set visual prompt
-        visuals = dict(
-            bboxes=np.array([[221.52, 405.8, 344.98, 857.54]]),
-            cls=np.array([0]),
+        # Define visual prompts based on a separate reference image
+        visual_prompts = dict(
+            bboxes=np.array([[221.52, 405.8, 344.98, 857.54]]),  # Box enclosing person
+            cls=np.array([0]),  # ID to be assigned for person
         )
 
-        # Execute prediction for specified categories on an image
+        # Run prediction on a different image, using reference image to guide what to look for
         results = model.predict(
-            "ultralytics/assets/zidane.jpg",
-            refer_image="ultralytics/assets/bus.jpg",
-            visual_prompts=visuals,
+            "ultralytics/assets/zidane.jpg",  # Target image for detection
+            refer_image="ultralytics/assets/bus.jpg",  # Reference image used to get visual prompts
+            visual_prompts=visual_prompts,
             predictor=YOLOEVPSegPredictor,
         )
 
@@ -232,7 +251,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
         results[0].show()
         ```
 
-        Running with multiple images:
+        You can also pass multiple target images to run prediction on:
 
         ```python
         import numpy as np
@@ -243,13 +262,14 @@ Object detection is straightforward with the `predict` method, as illustrated be
         # Initialize a YOLOE model
         model = YOLOE("yoloe-11l-seg.pt")
 
-        # Set visual prompt
-        visuals = dict(
+        # Define visual prompts using bounding boxes and their corresponding class IDs.
+        # Each box highlights an example of the object you want the model to detect.
+        visual_prompts = dict(
             bboxes=[
                 np.array(
                     [
-                        [221.52, 405.8, 344.98, 857.54],  # For person
-                        [120, 425, 160, 445],  # For glasses
+                        [221.52, 405.8, 344.98, 857.54],  # Box enclosing person
+                        [120, 425, 160, 445],  # Box enclosing glasses
                     ],
                 ),
                 np.array([[150, 200, 1150, 700]]),
@@ -257,18 +277,18 @@ Object detection is straightforward with the `predict` method, as illustrated be
             cls=[
                 np.array(
                     [
-                        0,  # For person
-                        1,  # For glasses
+                        0,  # ID to be assigned for person
+                        1,  # ID to be assigned for glasses
                     ]
                 ),
                 np.array([0]),
             ],
         )
 
-        # Execute prediction for specified categories on an image
+        # Run inference on multiple image, using the provided visual prompts as guidance
         results = model.predict(
             ["ultralytics/assets/bus.jpg", "ultralytics/assets/zidane.jpg"],
-            visual_prompts=visuals,
+            visual_prompts=visual_prompts,
             predictor=YOLOEVPSegPredictor,
         )
 
@@ -278,13 +298,15 @@ Object detection is straightforward with the `predict` method, as illustrated be
 
     === "Prompt free"
 
+        YOLOE also includes prompt-free variants that come with a built-in vocabulary. These models don't require any prompts and work like traditional YOLO models. Instead of relying on user-provided labels or visual examples, they detect objects from a [predefined list of 4,585 classes](https://github.com/xinyu1205/recognize-anything/blob/main/ram/data/ram_tag_list.txt) based on the tag set used by the [Recognize Anything Model Plus (RAM++)](https://arxiv.org/abs/2310.15200).
+
         ```python
         from ultralytics import YOLOE
 
         # Initialize a YOLOE model
         model = YOLOE("yoloe-11l-seg-pf.pt")
 
-        # Execute prediction for specified categories on an image
+        # Run prediction. No prompts required.
         results = model.predict("path/to/image.jpg")
 
         # Show results
@@ -301,7 +323,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
 
         # Conduct model validation on the COCO128-seg example dataset
         metrics = model.val(data="coco128-seg.yaml")
@@ -315,7 +337,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
 
         # Conduct model validation on the COCO128-seg example dataset
         metrics = model.val(data="coco128-seg.yaml", load_vp=True)
@@ -328,7 +350,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
 
         # Conduct model validation on the COCO128-seg example dataset
         metrics = model.val(data="coco128-seg.yaml", load_vp=True, refer_data="coco.yaml")
@@ -341,7 +363,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
 
         # Conduct model validation on the COCO128-seg example dataset
         metrics = model.val(data="coco128-seg.yaml")
@@ -687,7 +709,7 @@ YOLOE integrates seamlessly with the [Ultralytics Python API](../usage/python.md
         from ultralytics import YOLO
 
         # Load pre-trained YOLOE model and train on custom data
-        model = YOLO("yoloe-11s.pt")
+        model = YOLO("yoloe-11s-seg.pt")
         model.train(data="path/to/data.yaml", epochs=50, imgsz=640)
 
         # Run inference using text prompts ("person", "bus")
@@ -702,10 +724,10 @@ YOLOE integrates seamlessly with the [Ultralytics Python API](../usage/python.md
 
         ```bash
         # Training YOLOE on custom dataset
-        yolo train model=yoloe-11s.pt data=path/to/data.yaml epochs=50 imgsz=640
+        yolo train model=yoloe-11s-seg.pt data=path/to/data.yaml epochs=50 imgsz=640
 
         # Inference with text prompts
-        yolo predict model=yoloe-11s.pt source="test_images/street.jpg" classes="person,bus"
+        yolo predict model=yoloe-11s-seg.pt source="test_images/street.jpg" classes="person,bus"
         ```
 
         CLI prompts (`classes`) guide YOLOE similarly to Python's `set_classes`. Visual prompting (image-based queries) currently requires the Python API.
@@ -740,27 +762,22 @@ Quickly set up YOLOE with Ultralytics by following these steps:
     - **Training**: Fine-tuning YOLOE on custom data typically requires just one GPU. Extensive open-vocabulary pre-training (LVIS/Objects365) used by authors required substantial compute (8× RTX 4090 GPUs).
 
 4. **Configuration**:
-   YOLOE configurations use standard Ultralytics YAML files. Default configs (e.g., `yoloe-s.yaml`) typically suffice, but you can modify backbone, classes, or image size as needed.
+   YOLOE configurations use standard Ultralytics YAML files. Default configs (e.g., `yoloe-11s-seg.yaml`) typically suffice, but you can modify backbone, classes, or image size as needed.
 
 5. **Running YOLOE**:
 
     - **Quick inference** (prompt-free):
         ```bash
-        yolo predict model=yoloe-s.pt source="image.jpg"
+        yolo predict model=yoloe-11s-seg-pf.pt source="image.jpg"
         ```
     - **Prompted detection** (text prompt example):
-
-        ```bash
-        yolo predict model=yoloe-s.pt source="kitchen.jpg" classes="bowl,apple"
-        ```
-
-        In Python:
 
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yoloe-s.pt")
-        model.set_classes(["bowl", "apple"])
+        model = YOLO("yoloe-11s-seg.pt")
+        names = ["bowl", "apple"]
+        model.set_classes(names, model.get_text_pe(names))
         results = model.predict("kitchen.jpg")
         results[0].save()
         ```
@@ -831,10 +848,11 @@ Similar to [YOLO-World](yolo-world.md), YOLOE supports a "prompt-then-detect" st
 from ultralytics import YOLO
 
 # Initialize a YOLOE model
-model = YOLO("yoloe-s.pt")
+model = YOLO("yoloe-11s-seg.pt")
 
 # Define custom classes
-model.set_classes(["person", "bus"])
+names = ["person", "bus"]
+model.set_classes(names, model.get_text_pe(names))
 
 # Execute prediction on an image
 results = model.predict("path/to/image.jpg")

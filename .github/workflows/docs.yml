@@ -64,6 +64,7 @@ jobs:
         run: |
           git config --global user.name "UltralyticsAssistant"
           git config --global user.email "web@ultralytics.com"
+          npm install --global prettier prettier-plugin-sh
           python docs/build_reference.py
           git pull origin "$GITHUB_REF"          
           git add .
@@ -103,8 +104,14 @@ jobs:
         run: |
           git clone --depth 1 --branch gh-pages https://github.com/ultralytics/docs.git docs-repo
           cd docs-repo
-          find . -mindepth 1 -not -name "vercel.json" -exec rm -rf {} \; 2>/dev/null || true
+          if [ -f "vercel.json" ]; then
+            cp vercel.json /tmp/vercel.json
+          fi          
+          rm -rf *          
           cp -R ../site/* .
+          if [ -f "/tmp/vercel.json" ]; then
+            cp /tmp/vercel.json .
+          fi
           echo "${{ secrets.INDEXNOW_KEY_DOCS }}" > "${{ secrets.INDEXNOW_KEY_DOCS }}.txt"
           git add .
           if git diff --staged --quiet; then

@@ -15,7 +15,8 @@ import torch.nn as nn
 from PIL import Image
 
 from ultralytics.utils import ARM64, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, PYTHON_VERSION, ROOT, yaml_load
-from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml, is_rockchip
+from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml, is_rockchip, \
+    IS_PYTHON_MINIMUM_3_12
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 
 
@@ -432,10 +433,14 @@ class AutoBackend(nn.Module):
             output_details = interpreter.get_output_details()  # outputs
             # Load metadata
             try:
-                with zipfile.ZipFile(w, "r") as model:
-                    meta_file = model.namelist()[0]
-                    metadata = ast.literal_eval(model.read(meta_file).decode("utf-8"))
-            except zipfile.BadZipFile:
+                with zipfile.ZipFile(w, "r") as zf:
+                    name = zf.namelist()[0]
+                    contents = zf.read(name).decode("utf-8")
+                    if name == "TFLITE_ULTRALYTICS_METADATA.json":  # Custom Ultralytics metadata dict for Python>=3.12
+                        metadata = json.loads(contents)
+                    else:
+                        metadata = ast.literal_eval(contents)  # Default tflite-support metadata for Python<=3.11
+            except (zipfile.BadZipFile, SyntaxError, ValueError, json.JSONDecodeError):
                 pass
 
         # TF.js

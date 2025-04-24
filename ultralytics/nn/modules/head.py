@@ -1054,7 +1054,7 @@ class DFINEDecoder(nn.Module):
         torch.nn.init.xavier_uniform_(self.query_pos_head.layers[1].weight)
         for m, in_channels in zip(self.input_proj, feat_channels):
             if in_channels != self.hidden_dim:
-                torch.init.xavier_uniform_(m[0].weight)
+                torch.nn.init.xavier_uniform_(m.conv.weight)
 
     def _get_encoder_input(self, feats: List[torch.Tensor]):
         # Get projection features

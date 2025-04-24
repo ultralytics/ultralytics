@@ -144,7 +144,7 @@ class YOLOWorld(Model):
 class YOLOE(Model):
     """YOLOE object detection and segmentation model."""
 
-    def __init__(self, model="yoloe-v8s-seg.pt", task=None, verbose=False) -> None:
+    def __init__(self, model="yoloe-11s-seg.pt", task=None, verbose=False) -> None:
         """
         Initialize YOLOE model with a pre-trained model file.
 
@@ -197,7 +197,7 @@ class YOLOE(Model):
             (torch.Tensor): Visual positional embeddings.
 
         Examples:
-            >>> model = YOLOE("yoloe-v8s.pt")
+            >>> model = YOLOE("yoloe-11s-seg.pt")
             >>> img = torch.rand(1, 3, 640, 640)
             >>> visual_features = model.model.backbone(img)
             >>> pe = model.get_visual_pe(img, visual_features)
@@ -220,7 +220,7 @@ class YOLOE(Model):
             AssertionError: If the model is not an instance of YOLOEModel.
 
         Examples:
-            >>> model = YOLOE("yoloe-v8s.pt")
+            >>> model = YOLOE("yoloe-11s-seg.pt")
             >>> model.set_vocab(["person", "car", "dog"], ["person", "car", "dog"])
         """
         assert isinstance(self.model, YOLOEModel)
@@ -304,7 +304,7 @@ class YOLOE(Model):
             (List | generator): List of Results objects or generator of Results objects if stream=True.
 
         Examples:
-            >>> model = YOLOE("yoloe-v8s-seg.pt")
+            >>> model = YOLOE("yoloe-11s-seg.pt")
             >>> results = model.predict("path/to/image.jpg")
             >>> # With visual prompts
             >>> prompts = {"bboxes": [[10, 20, 100, 200]], "cls": ["person"]}

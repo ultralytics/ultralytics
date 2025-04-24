@@ -82,7 +82,7 @@ class BaseSolution:
         self.region = self.CFG["region"]  # Store region data for other classes usage
         self.line_width = self.CFG["line_width"] if self.CFG["line_width"] not in (None, 0) else 2  # Store line_width
 
-        # Load Model and store additional information (classes, show_conf, show_labels)
+        # Load Model and store additional information (classes, show_conf, show_label)
         if self.CFG["model"] is None:
             self.CFG["model"] = "yolo11n.pt"
         self.model = YOLO(self.CFG["model"])
@@ -90,7 +90,6 @@ class BaseSolution:
         self.classes = self.CFG["classes"]
         self.show_conf = self.CFG["show_conf"]
         self.show_labels = self.CFG["show_labels"]
-        self.spd = {}  # Dictionary for speed data
 
         self.track_add_args = {  # Tracker additional arguments for advance configuration
             k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker", "device", "verbose"]
@@ -109,25 +108,7 @@ class BaseSolution:
         self.track_history = defaultdict(list)
 
     def adjust_box_label(self, cls, conf, track_id=None):
-        """
-        Generates a formatted label for a bounding box.
-
-        This method constructs a label string for a bounding box using the class index and confidence score.
-        Optionally includes the track ID if provided. The label format adapts based on the display settings
-        defined in `self.show_conf` and `self.show_labels`.
-
-        Args:
-            cls (int): The class index of the detected object.
-            conf (float): The confidence score of the detection.
-            track_id (int, optional): The unique identifier for the tracked object. Defaults to None.
-
-        Returns:
-            (str or None): The formatted label string if `self.show_labels` is True; otherwise, None.
-        """
-        if track_id in self.spd:
-            name = f"{int(self.spd[track_id])} km/h"
-        else:
-            name = ("" if track_id is None else f"{track_id} ") + self.names[cls]
+        name = ("" if track_id is None else f"{track_id} ") + self.names[cls]
         return (f"{name} {conf:.2f}" if self.show_conf else name) if self.show_labels else None
 
     def extract_tracks(self, im0):

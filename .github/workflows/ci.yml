@@ -15,19 +15,19 @@ on:
     inputs:
       hub:
         description: "Run HUB"
-        default: false
+        default: true
         type: boolean
       benchmarks:
         description: "Run Benchmarks"
-        default: false
+        default: true
         type: boolean
       tests:
         description: "Run Tests"
-        default: false
+        default: true
         type: boolean
       gpu:
         description: "Run GPU"
-        default: false
+        default: true
         type: boolean
       raspberrypi:
         description: "Run Raspberry Pi"

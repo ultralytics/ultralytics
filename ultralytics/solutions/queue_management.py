@@ -64,9 +64,9 @@ class QueueManager(BaseSolution):
         annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
         annotator.draw_region(reg_pts=self.region, color=self.rect_color, thickness=self.line_width * 2)  # Draw region
 
-        for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
+        for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
             # Draw bounding box and counting region
-            annotator.box_label(box, label=self.names[cls], color=colors(track_id, True))
+            annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(track_id, True))
             self.store_tracking_history(track_id, box)  # Store track history
 
             # Cache frequently accessed attributes

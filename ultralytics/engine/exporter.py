@@ -1282,7 +1282,13 @@ class Exporter:
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://ai.google.dev/edge/litert/models/metadata."""
         if IS_PYTHON_MINIMUM_3_12:
-            LOGGER.warning("TFLite metadata may not be compatible with Python>=3.12")
+            import zipfile
+
+            LOGGER.warning(f"Creating custom Ultralytics TFLite metadata for Python>=3.12 compatibility with {file}")
+            with zipfile.ZipFile(file, "a", zipfile.ZIP_DEFLATED) as zf:
+                # Add metadata as JSON
+                zf.writestr("TFLITE_ULTRALYTICS_METADATA.json", json.dumps(self.metadata, indent=2))
+            return
 
         import flatbuffers
 

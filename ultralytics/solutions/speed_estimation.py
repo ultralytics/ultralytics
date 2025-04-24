@@ -46,8 +46,6 @@ class SpeedEstimator(BaseSolution):
         super().__init__(**kwargs)
 
         self.initialize_region()  # Initialize speed region
-
-        self.spd = {}  # Dictionary for speed data
         self.trkd_ids = []  # List for already speed-estimated and tracked IDs
         self.trk_pt = {}  # Dictionary for tracks' previous timestamps
         self.trk_pp = {}  # Dictionary for tracks' previous positions
@@ -82,8 +80,7 @@ class SpeedEstimator(BaseSolution):
             if track_id not in self.trk_pp:
                 self.trk_pp[track_id] = self.track_line[-1]
 
-            text = f"{int(self.spd[track_id])} km/h" if track_id in self.spd else cls
-            annotator.box_label(box, label=self.adjust_box_label(text, conf, track_id), color=colors(track_id, True))
+            annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(track_id, True))  # Draw bounding box
 
             # Determine if object is crossing the speed estimation region
             if self.LineString([self.trk_pp[track_id], self.track_line[-1]]).intersects(self.r_s):

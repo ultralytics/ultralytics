@@ -90,6 +90,7 @@ class BaseSolution:
         self.classes = self.CFG["classes"]
         self.show_conf = self.CFG["show_conf"]
         self.show_labels = self.CFG["show_labels"]
+        self.spd = {}  # Dictionary for speed data
 
         self.track_add_args = {  # Tracker additional arguments for advance configuration
             k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker", "device", "verbose"]
@@ -123,7 +124,10 @@ class BaseSolution:
         Returns:
             (str or None): The formatted label string if `self.show_labels` is True; otherwise, None.
         """
-        name = ("" if track_id is None else f"{track_id} ") + self.names[cls]
+        if track_id in self.spd:
+            name = f"{int(self.spd[track_id])} km/h"
+        else:
+            name = ("" if track_id is None else f"{track_id} ") + self.names[cls]
         return (f"{name} {conf:.2f}" if self.show_conf else name) if self.show_labels else None
 
     def extract_tracks(self, im0):

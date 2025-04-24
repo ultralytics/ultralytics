@@ -198,7 +198,7 @@ class Tuner:
                 assert return_code == 0, "training failed"
 
             except Exception as e:
-                LOGGER.warning(f"WARNING ❌️ training failure for hyperparameter tuning iteration {i + 1}\n{e}")
+                LOGGER.error(f"training failure for hyperparameter tuning iteration {i + 1}\n{e}")
 
             # Save results and mutated_hyp to CSV
             fitness = metrics.get("fitness", 0.0)

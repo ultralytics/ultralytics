@@ -83,9 +83,10 @@ class Detect(nn.Module):
             x (List[torch.Tensor]): Input feature maps from different levels.
 
         Returns:
-            (dict | tuple): If in training mode, returns a dictionary containing the outputs of both one2many and
-                one2one detections. If not in training mode, returns processed detections or a tuple with
-                processed detections and raw outputs.
+            (dict | tuple):
+
+                - If in training mode, returns a dictionary containing outputs of both one2many and one2one detections.
+                - If not in training mode, returns processed detections or a tuple with processed detections and raw outputs.
         """
         x_detach = [xi.detach() for xi in x]
         one2one = [
@@ -369,8 +370,8 @@ class LRPCHead(nn.Module):
         if self.enabled:
             pf_score = self.pf(cls_feat)[0, 0].flatten(0)
             mask = pf_score.sigmoid() > conf
-
-            cls_feat = self.vocab(cls_feat.flatten(2).transpose(-1, -2)[:, mask])
+            cls_feat = cls_feat.flatten(2).transpose(-1, -2)
+            cls_feat = self.vocab(cls_feat[:, mask] if conf else cls_feat * mask.unsqueeze(-1).int())
             return (self.loc(loc_feat), cls_feat.transpose(-1, -2)), mask
         else:
             cls_feat = self.vocab(cls_feat)
@@ -478,7 +479,9 @@ class YOLOEDetect(Detect):
             cls_feat = self.cv3[i](x[i])
             loc_feat = self.cv2[i](x[i])
             assert isinstance(self.lrpc[i], LRPCHead)
-            x[i], mask = self.lrpc[i](cls_feat, loc_feat, getattr(self, "conf", 0.001))
+            x[i], mask = self.lrpc[i](
+                cls_feat, loc_feat, 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001)
+            )
             masks.append(mask)
         shape = x[0][0].shape
         if self.dynamic or self.shape != shape:
@@ -499,7 +502,7 @@ class YOLOEDetect(Detect):
             dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
 
         mask = torch.cat(masks)
-        y = torch.cat((dbox[:, :, mask], cls.sigmoid()), 1)
+        y = torch.cat((dbox if self.export and not self.dynamic else dbox[..., mask], cls.sigmoid()), 1)
 
         if return_mask:
             return (y, mask) if self.export else ((y, x), mask)
@@ -560,7 +563,7 @@ class YOLOESegment(YOLOEDetect):
             return x, mc, p
 
         if has_lrpc:
-            mc = mc[:, :, mask]
+            mc = (mc * mask.int()) if self.export and not self.dynamic else mc[..., mask]
 
         return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))
 
@@ -870,3 +873,7 @@ class v10Detect(Detect):
             for x in ch
         )
         self.one2one_cv3 = copy.deepcopy(self.cv3)
+
+    def fuse(self):
+        """Removes the one2many head."""
+        self.cv2 = self.cv3 = nn.ModuleList([nn.Identity()] * self.nl)

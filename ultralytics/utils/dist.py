@@ -87,7 +87,7 @@ def generate_ddp_command(world_size, trainer):
         cmd (List[str]): The command to execute for distributed training.
         file (str): Path to the temporary file created for DDP training.
     """
-    import __main__  # noqa local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
+    import __main__  # noqa local import to avoid https://github.com/Lightning-AI/pytorch-lightning/issues/15218
 
     if not trainer.resume:
         shutil.rmtree(trainer.save_dir)  # remove the save_dir

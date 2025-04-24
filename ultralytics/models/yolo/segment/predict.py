@@ -59,7 +59,7 @@ class SegmentationPredictor(DetectionPredictor):
                    Each Results object includes both bounding boxes and segmentation masks.
 
         Examples:
-            >>> predictor = SegmentationPredictor(overrides=dict(model="yolov8n-seg.pt"))
+            >>> predictor = SegmentationPredictor(overrides=dict(model="yolo11n-seg.pt"))
             >>> results = predictor.postprocess(preds, img, orig_img)
         """
         # Extract protos - tuple if PyTorch model or array if exported

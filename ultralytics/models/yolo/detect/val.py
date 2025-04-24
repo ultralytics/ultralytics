@@ -62,12 +62,6 @@ class DetectionValidator(BaseValidator):
         self.metrics = DetMetrics(save_dir=self.save_dir)
         self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
-        self.lb = []  # for autolabelling
-        if self.args.save_hybrid and self.args.task == "detect":
-            LOGGER.warning(
-                "WARNING ⚠️ 'save_hybrid=True' will append ground truth to predictions for autolabelling.\n"
-                "WARNING ⚠️ 'save_hybrid=True' will cause incorrect mAP.\n"
-            )
 
     def preprocess(self, batch):
         """
@@ -83,15 +77,6 @@ class DetectionValidator(BaseValidator):
         batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255
         for k in ["batch_idx", "cls", "bboxes"]:
             batch[k] = batch[k].to(self.device)
-
-        if self.args.save_hybrid and self.args.task == "detect":
-            height, width = batch["img"].shape[2:]
-            nb = len(batch["img"])
-            bboxes = batch["bboxes"] * torch.tensor((width, height, width, height), device=self.device)
-            self.lb = [
-                torch.cat([batch["cls"][batch["batch_idx"] == i], bboxes[batch["batch_idx"] == i]], dim=-1)
-                for i in range(nb)
-            ]
 
         return batch
 
@@ -139,7 +124,6 @@ class DetectionValidator(BaseValidator):
             preds,
             self.args.conf,
             self.args.iou,
-            labels=self.lb,
             nc=self.nc,
             multi_label=True,
             agnostic=self.args.single_cls or self.args.agnostic_nms,
@@ -273,7 +257,7 @@ class DetectionValidator(BaseValidator):
         pf = "%22s" + "%11i" * 2 + "%11.3g" * len(self.metrics.keys)  # print format
         LOGGER.info(pf % ("all", self.seen, self.nt_per_class.sum(), *self.metrics.mean_results()))
         if self.nt_per_class.sum() == 0:
-            LOGGER.warning(f"WARNING ⚠️ no labels found in {self.args.task} set, can not compute metrics without labels")
+            LOGGER.warning(f"no labels found in {self.args.task} set, can not compute metrics without labels")
 
         # Print results per class
         if self.args.verbose and not self.training and self.nc > 1 and len(self.stats):

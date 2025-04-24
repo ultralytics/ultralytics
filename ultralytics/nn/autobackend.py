@@ -441,7 +441,7 @@ class AutoBackend(nn.Module):
                 with zipfile.ZipFile(w, "r") as zf:
                     name = zf.namelist()[0]
                     contents = zf.read(name).decode("utf-8")
-                    if name == "TFLITE_ULTRALYTICS_METADATA.json":  # Custom Ultralytics metadata dict for Python>=3.12
+                    if name == "metadata.json":  # Custom Ultralytics metadata dict for Python>=3.12
                         metadata = json.loads(contents)
                     else:
                         metadata = ast.literal_eval(contents)  # Default tflite-support metadata for Python<=3.11

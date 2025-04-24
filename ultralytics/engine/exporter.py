@@ -1283,7 +1283,7 @@ class Exporter:
 
             LOGGER.warning(f"Creating custom Ultralytics TFLite metadata for Python>=3.12 compatibility with {file}")
             with zipfile.ZipFile(file, "a", zipfile.ZIP_DEFLATED) as zf:
-                zf.writestr("TFLITE_ULTRALYTICS_METADATA.json", json.dumps(self.metadata, indent=2))
+                zf.writestr("metadata.json", json.dumps(self.metadata, indent=2))
             return
 
         # Update old 'flatbuffers' included inside tensorflow package

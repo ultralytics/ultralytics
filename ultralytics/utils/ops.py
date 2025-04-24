@@ -301,6 +301,9 @@ def non_max_suppression(
         # Filter by class
         if classes is not None:
             x = x[(x[:, 5:6] == classes).any(1)]
+            if x.shape[0] == 0:  # Nothing left after filtering by class
+                output.append(x.new_zeros((0, 6)))  # Safe empty result
+                continue
             x, xk = x[filt], xk[filt]
 
         # Check shape

@@ -1282,8 +1282,7 @@ class Exporter:
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://ai.google.dev/edge/litert/models/metadata."""
         if IS_PYTHON_MINIMUM_3_12:
-            LOGGER.warning("TFLite metadata is not compatible with Python>=3.12, skipping...")
-            return
+            LOGGER.warning("TFLite metadata may not be compatible with Python>=3.12")
 
         import flatbuffers
 

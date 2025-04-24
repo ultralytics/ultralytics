@@ -384,6 +384,7 @@ class Exporter:
                 m.export = True
                 m.format = self.args.format
                 m.max_det = self.args.max_det
+                m.xyxy = self.args.nms
             elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
@@ -1532,11 +1533,6 @@ class NMSModel(torch.nn.Module):
                 # Explicit length otherwise reshape error, hardcoded to `self.args.max_det * 5`
                 mask = score.topk(min(self.args.max_det * 5, score.shape[0])).indices
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
-            if not self.obb:
-                box = xywh2xyxy(box)
-                if self.is_tf:
-                    # TFlite bug returns less boxes
-                    box = torch.nn.functional.pad(box, (0, 0, 0, mask.shape[0] - box.shape[0]))
             nmsbox = box.clone()
             # `8` is the minimum value experimented to get correct NMS results for obb
             multiplier = 8 if self.obb else 1

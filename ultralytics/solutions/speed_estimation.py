@@ -80,7 +80,9 @@ class SpeedEstimator(BaseSolution):
             if track_id not in self.trk_pp:
                 self.trk_pp[track_id] = self.track_line[-1]
 
-            annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(track_id, True))  # Draw bounding box
+            annotator.box_label(
+                box, label=self.adjust_box_label(cls, conf, track_id), color=colors(track_id, True)
+            )  # Draw bounding box
 
             # Determine if object is crossing the speed estimation region
             if self.LineString([self.trk_pp[track_id], self.track_line[-1]]).intersects(self.r_s):

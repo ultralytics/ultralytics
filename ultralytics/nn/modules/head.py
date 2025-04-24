@@ -139,7 +139,7 @@ class Detect(nn.Module):
             )
             return dbox.transpose(1, 2), cls.sigmoid().permute(0, 2, 1)
         else:
-            dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0), xywh=not self.xyxy) * self.strides
+            dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
 
         return torch.cat((dbox, cls.sigmoid()), 1)
 
@@ -158,7 +158,7 @@ class Detect(nn.Module):
 
     def decode_bboxes(self, bboxes, anchors, xywh=True):
         """Decode bounding boxes."""
-        return dist2bbox(bboxes, anchors, xywh=xywh and (not self.end2end), dim=1)
+        return dist2bbox(bboxes, anchors, xywh=xywh and not (self.end2end or self.xyxy), dim=1)
 
     @staticmethod
     def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80):

@@ -32,6 +32,7 @@ class Detect(nn.Module):
     anchors = torch.empty(0)  # init
     strides = torch.empty(0)  # init
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
+    xyxy = False
 
     def __init__(self, nc=80, ch=()):
         """Initialize the YOLO detection layer with specified number of classes and channels."""
@@ -138,7 +139,7 @@ class Detect(nn.Module):
             )
             return dbox.transpose(1, 2), cls.sigmoid().permute(0, 2, 1)
         else:
-            dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
+            dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0), xywh=not self.xyxy) * self.strides
 
         return torch.cat((dbox, cls.sigmoid()), 1)
 

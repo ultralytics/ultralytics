@@ -6,6 +6,9 @@
 
 name: Mirror Repository
 
+permissions:
+  contents: read
+
 on:
   # push:
   #   branches:

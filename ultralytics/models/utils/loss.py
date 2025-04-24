@@ -925,7 +925,7 @@ class DEIMLoss(nn.Module):
         target_boxes = targets["bboxes"][gt_idx]
 
         # TODO: could use CIOU as well
-        iou = bbox_iou(src_boxes.detach(), target_boxes, GIoU=self.boxes_weight_format == "giou")
+        iou = bbox_iou(src_boxes.detach(), target_boxes, GIoU=self.boxes_weight_format == "giou").squeeze(-1)
         return {"values": iou}
 
     # @staticmethod

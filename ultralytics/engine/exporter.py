@@ -924,7 +924,7 @@ class Exporter:
                 "onnx>=1.12.0",
                 "onnx2tf>=1.26.3",
                 "onnxslim>=0.1.31",
-                "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
+                "tflite_support<=0.4.3" if IS_JETSON else "tflite_support>=0.4.4",  # fix ImportError 'GLIBCXX_3.4.29'
                 "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
                 "protobuf>=5",  # tflite_support pins <=4 but >=5 works

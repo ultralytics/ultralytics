@@ -4,7 +4,7 @@ description: Explore our African Wildlife Dataset featuring images of buffalo, e
 keywords: African Wildlife Dataset, South African animals, object detection, computer vision, YOLO11, wildlife research, conservation, dataset
 ---
 
-# African Wildlife Dataset
+# African Wildlife Dataset (test)
 
 This dataset showcases four common animal classes typically found in South African nature reserves. It includes images of African wildlife such as buffalo, elephant, rhino, and zebra, providing valuable insights into their characteristics. Essential for training [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) algorithms, this dataset aids in identifying animals in various habitats, from zoos to forests, and supports wildlife research.
 

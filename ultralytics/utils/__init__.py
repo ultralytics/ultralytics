@@ -1261,7 +1261,7 @@ class SettingsManager(JSONDict):
             "For help see https://docs.ultralytics.com/quickstart/#ultralytics-settings."
         )
 
-        with torch_distributed_zero_first(RANK):
+        with torch_distributed_zero_first(LOCAL_RANK):
             super().__init__(self.file)
 
             if not self.file.exists() or not self:  # Check if file doesn't exist or is empty

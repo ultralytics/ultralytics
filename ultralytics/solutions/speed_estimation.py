@@ -82,8 +82,11 @@ class SpeedEstimator(BaseSolution):
             if track_id not in self.trk_pp:
                 self.trk_pp[track_id] = self.track_line[-1]
 
-            speed_label = f"{int(self.spd[track_id])} km/h" if track_id in self.spd and self.show_labels \
+            speed_label = (
+                f"{int(self.spd[track_id])} km/h"
+                if track_id in self.spd and self.show_labels
                 else self.adjust_box_label(cls, conf, track_id)
+            )
             annotator.box_label(box, label=speed_label, color=colors(track_id, True))  # Draw bounding box
 
             # Determine if object is crossing the speed estimation region

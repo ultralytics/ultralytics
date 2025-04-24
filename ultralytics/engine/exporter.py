@@ -1286,6 +1286,8 @@ class Exporter:
                 zf.writestr("TFLITE_ULTRALYTICS_METADATA.json", json.dumps(self.metadata, indent=2))
             return
 
+        # Update old 'flatbuffers' included inside tensorflow package
+        check_requirements("flatbuffers>=23.5.26,<100; platform_machine == 'aarch64'") ,
         import flatbuffers
 
         try:

@@ -1286,7 +1286,6 @@ class Exporter:
 
             LOGGER.warning(f"Creating custom Ultralytics TFLite metadata for Python>=3.12 compatibility with {file}")
             with zipfile.ZipFile(file, "a", zipfile.ZIP_DEFLATED) as zf:
-                # Add metadata as JSON
                 zf.writestr("TFLITE_ULTRALYTICS_METADATA.json", json.dumps(self.metadata, indent=2))
             return
 

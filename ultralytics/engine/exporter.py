@@ -1276,18 +1276,20 @@ class Exporter:
 
         return f, None
 
-    def _add_tflite_metadata(self, file):
+    def _add_tflite_metadata(self, file, use_flatbuffers=False):
         """Add metadata to *.tflite models per https://ai.google.dev/edge/litert/models/metadata."""
-        if IS_PYTHON_MINIMUM_3_12 or not check_requirements("tflite_support", install=False):
+        if not use_flatbuffers:
             import zipfile
 
-            LOGGER.warning(f"Creating custom Ultralytics TFLite metadata for Python>=3.12 compatibility with {file}")
             with zipfile.ZipFile(file, "a", zipfile.ZIP_DEFLATED) as zf:
                 zf.writestr("metadata.json", json.dumps(self.metadata, indent=2))
             return
 
+        if IS_PYTHON_MINIMUM_3_12:
+            LOGGER.warning(f"TFLite Support package may not be compatible with Python>=3.12 environments for {file}")
+
         # Update old 'flatbuffers' included inside tensorflow package
-        (check_requirements("flatbuffers>=23.5.26,<100; platform_machine == 'aarch64'"),)
+        check_requirements(("tflite_support", "flatbuffers>=23.5.26,<100; platform_machine == 'aarch64'"))
         import flatbuffers
 
         try:

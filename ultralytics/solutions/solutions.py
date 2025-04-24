@@ -108,6 +108,21 @@ class BaseSolution:
         self.track_history = defaultdict(list)
 
     def adjust_box_label(self, cls, conf, track_id=None):
+        """
+        Generates a formatted label for a bounding box.
+
+        This method constructs a label string for a bounding box using the class index and confidence score.
+        Optionally includes the track ID if provided. The label format adapts based on the display settings
+        defined in `self.show_conf` and `self.show_labels`.
+
+        Args:
+            cls (int): The class index of the detected object.
+            conf (float): The confidence score of the detection.
+            track_id (int, optional): The unique identifier for the tracked object. Defaults to None.
+
+        Returns:
+            (str or None): The formatted label string if `self.show_labels` is True; otherwise, None.
+        """
         name = ("" if track_id is None else f"{track_id} ") + self.names[cls]
         return (f"{name} {conf:.2f}" if self.show_conf else name) if self.show_labels else None
 

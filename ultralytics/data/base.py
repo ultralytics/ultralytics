@@ -208,9 +208,9 @@ class BaseDataset(Dataset):
             rect_mode (bool, optional): Whether to use rectangular resizing.
 
         Returns:
-            (np.ndarray): Loaded image.
-            (tuple): Original image dimensions (h, w).
-            (tuple): Resized image dimensions (h, w).
+            (np.ndarray): Loaded image as a NumPy array.
+            (Tuple[int, int]): Original image dimensions in (height, width) format.
+            (Tuple[int, int]): Resized image dimensions in (height, width) format.
 
         Raises:
             FileNotFoundError: If the image file is not found.

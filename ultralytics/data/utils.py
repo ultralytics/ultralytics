@@ -483,6 +483,7 @@ def check_cls_dataset(dataset, split=""):
 
     Returns:
         (dict): A dictionary containing the following keys:
+
             - 'train' (Path): The directory path containing the training set of the dataset.
             - 'val' (Path): The directory path containing the validation set of the dataset.
             - 'test' (Path): The directory path containing the test set of the dataset.

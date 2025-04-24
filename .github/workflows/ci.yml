@@ -111,7 +111,6 @@ jobs:
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
-          uv pip install --system -e onnx2tf
           uv pip install --system -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
       - name: Check environment
         run: |

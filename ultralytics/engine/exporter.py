@@ -96,6 +96,7 @@ from ultralytics.utils import (
     yaml_save,
 )
 from ultralytics.utils.checks import (
+    IS_PYTHON_MINIMUM_3_12,
     check_imgsz,
     check_is_path_safe,
     check_requirements,
@@ -1280,6 +1281,9 @@ class Exporter:
 
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://ai.google.dev/edge/litert/models/metadata."""
+        if IS_PYTHON_MINIMUM_3_12:
+            LOGGER.warning("TFLite metadata may not be compatible with Python>=3.12")
+
         import flatbuffers
 
         try:

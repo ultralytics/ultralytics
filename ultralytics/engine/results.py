@@ -780,10 +780,9 @@ class Results(SimpleClass):
             decimals (int): Number of decimal places to round the output values to.
 
         Returns:
-            (List[Dict]): A list of dictionaries, each containing summarized information:
-
-                - for a single detection or classification result. The structure of each dictionary varies based on the
-                task type (classification or detection) and available information (boxes, masks, keypoints).
+            (List[Dict]): A list of dictionaries, each containing summarized information for a single detection 
+                or classification result. The structure of each dictionary varies based on the task type 
+                (classification or detection) and available information (boxes, masks, keypoints).
 
         Examples:
             >>> results = model("image.jpg")

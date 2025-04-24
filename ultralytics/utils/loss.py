@@ -229,7 +229,9 @@ class v8DetectionLoss:
             gt_labels = gt_labels.long()
             target_scores = torch.zeros_like(pred_scores)
             for i in range(gt_labels.shape[1]):
-                target_scores.scatter_add_(2, gt_labels[:, :, i:i+1], torch.ones_like(gt_labels[:, :, i:i+1], dtype=pred_scores.dtype))
+                target_scores.scatter_add_(
+                    2, gt_labels[:, :, i : i + 1], torch.ones_like(gt_labels[:, :, i : i + 1], dtype=pred_scores.dtype)
+                )
             target_scores = target_scores / gt_labels.shape[1]  # Normalize scores
         else:
             target_scores = F.one_hot(gt_labels.long(), num_classes=self.nc).float()

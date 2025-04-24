@@ -597,7 +597,7 @@ class DEIMLoss(nn.Module):
         self.matcher = matcher
         self.weight_dict = weight_dict
         self.losses = losses
-        self.boxes_weight_format = "giou"
+        self.boxes_weight_format = None
         self.share_matched_indices = share_matched_indices
         self.alpha = alpha
         self.gamma = gamma

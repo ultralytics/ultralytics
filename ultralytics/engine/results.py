@@ -299,9 +299,8 @@ class Results(SimpleClass):
         Return the number of detections in the Results object.
 
         Returns:
-            (int): The number of detections, determined by the length of the first non-empty attribute
-
-                - boxes, masks, probs, keypoints, or obb.
+            (int): The number of detections, determined by the length of the first non-empty 
+                attribute in (masks, probs, keypoints, or obb).
 
         Examples:
             >>> results = Results(orig_img, path, names, boxes=torch.rand(5, 4))

@@ -816,33 +816,35 @@ class DEIMLoss(nn.Module):
             batch["gt_groups"],
         )
         self._clear_cache()
-        all_indices = indices
 
-        # indices_aux_list, cached_indices, cached_indices_enc = [], [], []
-        # aux_outputs_list = outputs["aux_outputs"]
-        # if "pre_outputs" in outputs:
-        #     aux_outputs_list = outputs["aux_outputs"] + [outputs["pre_outputs"]]
-        # for i, aux_outputs in enumerate(aux_outputs_list):
-        #     indices_aux = self.matcher(
-        #         aux_outputs["pred_boxes"].contiguous(),
-        #         aux_outputs["pred_logits"].contiguous(),
-        #         batch["bboxes"],
-        #         batch["cls"],
-        #         batch["gt_groups"],
-        #     )
-        #     cached_indices.append(indices_aux)
-        #     indices_aux_list.append(indices_aux)
-        # for i, aux_outputs in enumerate(outputs["enc_aux_outputs"]):
-        #     indices_enc = self.matcher(
-        #         aux_outputs["pred_boxes"].contiguous(),
-        #         aux_outputs["pred_logits"].contiguous(),
-        #         batch["bboxes"],
-        #         batch["cls"],
-        #         batch["gt_groups"],
-        #     )
-        #     cached_indices_enc.append(indices_enc)
-        #     indices_aux_list.append(indices_enc)
-        # all_indices = self._merge_indices(indices, indices_aux_list)
+        if self.use_uni_set:
+            indices_aux_list, cached_indices, cached_indices_enc = [], [], []
+            aux_outputs_list = outputs["aux_outputs"]
+            if "pre_outputs" in outputs:
+                aux_outputs_list = outputs["aux_outputs"] + [outputs["pre_outputs"]]
+            for i, aux_outputs in enumerate(aux_outputs_list):
+                indices_aux = self.matcher(
+                    aux_outputs["pred_boxes"].contiguous(),
+                    aux_outputs["pred_logits"].contiguous(),
+                    batch["bboxes"],
+                    batch["cls"],
+                    batch["gt_groups"],
+                )
+                cached_indices.append(indices_aux)
+                indices_aux_list.append(indices_aux)
+            for i, aux_outputs in enumerate(outputs["enc_aux_outputs"]):
+                indices_enc = self.matcher(
+                    aux_outputs["pred_boxes"].contiguous(),
+                    aux_outputs["pred_logits"].contiguous(),
+                    batch["bboxes"],
+                    batch["cls"],
+                    batch["gt_groups"],
+                )
+                cached_indices_enc.append(indices_enc)
+                indices_aux_list.append(indices_enc)
+            all_indices = self._merge_indices(indices, indices_aux_list)
+        else:
+            all_indices = indices
 
         # Compute all the requested losses, main loss
         losses = {}
@@ -853,12 +855,24 @@ class DEIMLoss(nn.Module):
             for i, aux_outputs in enumerate(outputs["aux_outputs"]):
                 if "local" in self.losses:  # only work for local loss
                     aux_outputs["up"], aux_outputs["reg_scale"] = outputs["up"], outputs["reg_scale"]
-                losses.update(self._get_loss(aux_outputs, batch, all_indices, suffix=f"_aux_{i}"))
+                losses.update(
+                    self._get_loss(
+                        aux_outputs,
+                        batch,
+                        all_indices,
+                        cached_indices[i] if self.use_uni_set else None,
+                        suffix=f"_aux_{i}",
+                    )
+                )
 
         # In case of auxiliary traditional head output at first decoder layer. just for dfine
         if "pre_outputs" in outputs:
             aux_outputs = outputs["pre_outputs"]
-            losses.update(self._get_loss(aux_outputs, batch, all_indices, suffix="_pre"))
+            losses.update(
+                self._get_loss(
+                    aux_outputs, batch, all_indices, cached_indices[-1] if self.use_uni_set else None, suffix="_pre"
+                )
+            )
 
         # In case of encoder auxiliary losses.
         if "enc_aux_outputs" in outputs:
@@ -874,7 +888,15 @@ class DEIMLoss(nn.Module):
                 enc_targets = batch
 
             for i, aux_outputs in enumerate(outputs["enc_aux_outputs"]):
-                losses.update(self._get_loss(aux_outputs, enc_targets, all_indices, suffix=f"_enc_{i}"))
+                losses.update(
+                    self._get_loss(
+                        aux_outputs,
+                        enc_targets,
+                        all_indices,
+                        cached_indices_enc[i] if self.use_uni_set else None,
+                        suffix=f"_enc_{i}",
+                    )
+                )
 
             if class_agnostic:
                 self.num_classes = orig_num_classes

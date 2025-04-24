@@ -4,7 +4,7 @@
 # Image is CUDA-optimized for YOLO11 single/multi-GPU training and inference
 
 # Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:25.02-py3
-FROM pytorch/pytorch:2.6.0-cuda12.6-cudnn9-runtime
+FROM pytorch/pytorch:2.7.0-cuda12.6-cudnn9-runtime
 
 # Set environment variables
 # Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library" https://github.com/pytorch/pytorch/issues/37377

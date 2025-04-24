@@ -332,7 +332,7 @@ class DETRLoss(nn.Module):
 
         gt_scores = torch.zeros([bs, nq], device=pred_scores.device)
         if len(gt_bboxes):
-            gt_scores[idx] = bbox_iou(pred_bboxes.detach(), gt_bboxes, xywh=True).squeeze(-1)
+            gt_scores[idx] = bbox_iou(pred_bboxes.detach(), gt_bboxes, xywh=True).squeeze(-1).clamp_(0)
 
         return {
             **self._get_loss_class(pred_scores, targets, gt_scores, len(gt_bboxes), postfix),
@@ -615,7 +615,7 @@ class DEIMLoss(nn.Module):
             # TODO
             src_boxes = outputs["pred_boxes"][pred_idx]
             target_boxes = targets["bboxes"][gt_idx]
-            ious = bbox_iou(src_boxes.detach(), target_boxes).squeeze(-1).detach()
+            ious = bbox_iou(src_boxes.detach(), target_boxes).squeeze(-1).detach().clamp_(0)
         else:
             ious = values
 
@@ -658,7 +658,7 @@ class DEIMLoss(nn.Module):
         # TODO: could use CIOU as well
         loss_giou = 1 - bbox_iou(src_boxes, target_boxes, GIoU=True)
         if self.boxes_weight_format is not None:
-            boxes_weight = bbox_iou(src_boxes.detach(), target_boxes, GIoU=self.boxes_weight_format == "giou")
+            boxes_weight = bbox_iou(src_boxes.detach(), target_boxes, GIoU=self.boxes_weight_format == "giou").clamp_(0)
             loss_giou *= boxes_weight
         losses["loss_giou"] = loss_giou.mean()
 
@@ -689,7 +689,7 @@ class DEIMLoss(nn.Module):
 
         target_corners, weight_right, weight_left = self.fgl_targets_dn if "is_dn" in outputs else self.fgl_targets
 
-        ious = bbox_iou(outputs["pred_boxes"][pred_idx], target_boxes)  # TODO: CIOU
+        ious = bbox_iou(outputs["pred_boxes"][pred_idx], target_boxes).clamp_(0)  # TODO: CIOU
         weight_targets = ious.repeat(1, 4).reshape(-1).detach()
 
         losses["loss_fgl"] = self.unimodal_distribution_focal_loss(
@@ -948,7 +948,7 @@ class DEIMLoss(nn.Module):
         target_boxes = targets["bboxes"][gt_idx]
 
         # TODO: could use CIOU as well
-        iou = bbox_iou(src_boxes.detach(), target_boxes, GIoU=self.boxes_weight_format == "giou").squeeze(-1)
+        iou = bbox_iou(src_boxes.detach(), target_boxes, GIoU=self.boxes_weight_format == "giou").squeeze(-1).clamp_(0)
         return {"values": iou}
 
     # @staticmethod

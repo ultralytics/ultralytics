@@ -5,7 +5,7 @@ from copy import copy
 import torch
 
 from ultralytics.models.yolo.detect import DetectionTrainer
-from ultralytics.nn.tasks import RTDETRDetectionModel, DFINEDetectModel
+from ultralytics.nn.tasks import RTDETRDetectionModel
 from ultralytics.utils import RANK, colorstr
 
 from .val import RTDETRDataset, RTDETRValidator
@@ -49,8 +49,7 @@ class RTDETRTrainer(DetectionTrainer):
         Returns:
             (RTDETRDetectionModel): Initialized model.
         """
-        # model = RTDETRDetectionModel(cfg, nc=self.data["nc"], verbose=verbose and RANK == -1)
-        model = DFINEDetectModel(cfg, nc=self.data["nc"], verbose=verbose and RANK == -1)
+        model = RTDETRDetectionModel(cfg, nc=self.data["nc"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
         return model

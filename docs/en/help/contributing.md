@@ -48,13 +48,13 @@ I have read the CLA Document and I sign the CLA
 
 ### ✍️ Google-Style Docstrings
 
-When adding new functions or classes, please include [Google-style docstrings](https://google.github.io/styleguide/pyguide.html). These docstrings provide clear, standardized documentation that helps other developers understand and maintain your code.
+When adding new functions or classes, include [Google-style docstrings](https://google.github.io/styleguide/pyguide.html) for clear, standardized documentation. Always enclose both input and output `types` in parentheses (e.g., `(bool)`, `(np.ndarray)`).
 
 !!! example "Example Docstrings"
 
     === "Google-style"
 
-        This example illustrates a Google-style docstring. Ensure that both input and output `types` are always enclosed in parentheses, e.g., `(bool)`.
+        This example illustrates the standard Google-style docstring format. Note how it clearly separates the function description, arguments, return value, and examples for maximum readability.
 
         ```python
         def example_function(arg1, arg2=4):
@@ -63,22 +63,86 @@ When adding new functions or classes, please include [Google-style docstrings](h
 
             Args:
                 arg1 (int): The first argument.
-                arg2 (int): The second argument, with a default value of 4.
+                arg2 (int): The second argument.
 
             Returns:
-                (bool): True if successful, False otherwise.
+                (bool): True if arguments are equal, False otherwise.
 
             Examples:
-                >>> result = example_function(1, 2)  # returns False
+                >>> example_function(4, 4)  # True
+                >>> example_function(1, 2)  # False
             """
-            if arg1 == arg2:
-                return True
-            return False
+            return arg1 == arg2
+        ```
+
+    === "Google-style named-returns"
+
+        This example demonstrates how to document named return variables. Using named returns can make your code more self-documenting and easier to understand, especially for complex functions.
+
+        ```python
+        def example_function(arg1, arg2=4):
+            """
+            Example function demonstrating Google-style docstrings.
+
+            Args:
+                arg1 (int): The first argument.
+                arg2 (int): The second argument.
+
+            Returns:
+                equals (bool): True if arguments are equal, False otherwise.
+
+            Examples:
+                >>> example_function(4, 4)  # True
+            """
+            equals = arg1 == arg2
+            return equals
+        ```
+
+    === "Google-style multiple returns"
+
+        This example shows how to document functions that return multiple values. Each return value should be documented separately with its own type and description for clarity.
+
+        ```python
+        def example_function(arg1, arg2=4):
+            """
+            Example function demonstrating Google-style docstrings.
+
+            Args:
+                arg1 (int): The first argument.
+                arg2 (int): The second argument.
+
+            Returns:
+                equals (bool): True if arguments are equal, False otherwise.
+                added (int): Sum of both input arguments.
+
+            Examples:
+                >>> equals, added = example_function(2, 2)  # True, 4
+            """
+            equals = arg1 == arg2
+            added = arg1 + arg2
+            return equals, added
+        ```
+
+        Note: Even though Python returns multiple values as a tuple (e.g., `return masks, scores`), always document each value separately for clarity and better tool integration. When documenting functions that return multiple values:
+
+        ✅ Good - Document each return value separately:
+        ```
+        Returns:
+           (np.ndarray): Predicted masks with shape HxWxN.
+           (list): Confidence scores for each instance.
+        ```
+
+        ❌ Bad - Don't document as a tuple with nested elements:
+        ```
+        Returns:
+           (tuple): Tuple containing:
+               - (np.ndarray): Predicted masks with shape HxWxN.
+               - (list): Confidence scores for each instance.
         ```
 
     === "Google-style with type hints"
 
-        This example includes both a Google-style docstring and [type hints](https://docs.python.org/3/library/typing.html) for arguments and returns, though using either independently is also acceptable.
+        This example combines Google-style docstrings with Python type hints. When using type hints, you can omit the type information in the docstring arguments section, as it's already specified in the function signature.
 
         ```python
         def example_function(arg1: int, arg2: int = 4) -> bool:
@@ -87,22 +151,20 @@ When adding new functions or classes, please include [Google-style docstrings](h
 
             Args:
                 arg1: The first argument.
-                arg2: The second argument, with a default value of 4.
+                arg2: The second argument.
 
             Returns:
-                True if successful, False otherwise.
+                True if arguments are equal, False otherwise.
 
             Examples:
-                >>> result = example_function(1, 2)  # returns False
+                >>> example_function(1, 1)  # True
             """
-            if arg1 == arg2:
-                return True
-            return False
+            return arg1 == arg2
         ```
 
     === "Single-line"
 
-        For smaller or simpler functions, a single-line docstring may be sufficient. The docstring must use three double-quotes, be a complete sentence, start with a capital letter, and end with a period.
+        For smaller or simpler functions, a single-line docstring may be sufficient. These should be concise but complete sentences that start with a capital letter and end with a period.
 
         ```python
         def example_small_function(arg1: int, arg2: int = 4) -> bool:

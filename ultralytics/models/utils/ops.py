@@ -30,7 +30,7 @@ class HungarianMatcher(nn.Module):
         _cost_mask: Computes the mask cost and dice cost if masks are predicted.
     """
 
-    def __init__(self, cost_gain=None, use_fl=True, with_mask=False, num_sample_points=12544, alpha=0.25, gamma=2.0):
+    def __init__(self, cost_gain=None, use_fl=False, with_mask=False, num_sample_points=12544, alpha=0.25, gamma=2.0):
         """
         Initialize a HungarianMatcher module for optimal assignment of predicted and ground truth bounding boxes.
 

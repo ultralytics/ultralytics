@@ -946,6 +946,10 @@ def entrypoint(debug: str = "") -> None:
         from ultralytics import RTDETR
 
         model = RTDETR(model)  # no task argument
+    elif "deim" in stem: 
+        from ultralytics import DEIM
+
+        model = DEIM(model)  # no task argument
     elif "fastsam" in stem:
         from ultralytics import FastSAM
 

@@ -299,7 +299,7 @@ class Results(SimpleClass):
         Return the number of detections in the Results object.
 
         Returns:
-            (int): The number of detections, determined by the length of the first non-empty 
+            (int): The number of detections, determined by the length of the first non-empty
                 attribute in (masks, probs, keypoints, or obb).
 
         Examples:
@@ -779,8 +779,8 @@ class Results(SimpleClass):
             decimals (int): Number of decimal places to round the output values to.
 
         Returns:
-            (List[Dict]): A list of dictionaries, each containing summarized information for a single detection 
-                or classification result. The structure of each dictionary varies based on the task type 
+            (List[Dict]): A list of dictionaries, each containing summarized information for a single detection
+                or classification result. The structure of each dictionary varies based on the task type
                 (classification or detection) and available information (boxes, masks, keypoints).
 
         Examples:

@@ -3,6 +3,7 @@
 # YOLO Continuous Integration (CI) GitHub Actions tests
 
 name: Ultralytics CI
+
 permissions:
   contents: read
 

@@ -16,7 +16,7 @@ class SpeedEstimator(BaseSolution):
 
     Attributes:
         spd (Dict[int, float]): Dictionary storing speed data for tracked objects.
-        trk_hist (Dict[int, float]): Dictionary storing previous timestamps for tracked objects.
+        trk_hist (Dict[int, float]): Dictionary storing the object tracking data.
         max_hist (int): maxiumum track history before computing speed
         meters_per_pixel (float): Real-world meters represented by one pixel (e.g., 0.04 for 4m over 100px).
         max_speed (int): Maximum allowed object speed; values above this will be capped at 120 km/h.
@@ -81,11 +81,12 @@ class SpeedEstimator(BaseSolution):
                 self.trk_frame_ids[track_id] = self.frame_count
 
             if track_id not in self.locked_ids:  # Keep updating history until speed is locked
-                self.trk_hist[track_id].append(self.track_line[-1])
+                trk_hist = self.trk_hist[track_id]
+                trk_hist.append(self.track_line[-1])
 
                 # Once enough history is collected, compute and lock speed
-                if len(self.trk_hist[track_id]) == self.max_hist:
-                    p0, p1 = self.trk_hist[track_id][0], self.trk_hist[track_id][-1]
+                if len(trk_hist) == self.max_hist:
+                    p0, p1 = trk_hist[0], trk_hist[-1]  # first and last point of track
                     dt = (self.frame_count - self.trk_frame_ids[track_id]) / self.fps  # convert frame count to seconds
                     if dt > 0:
                         dx, dy = p1[0] - p0[0], p1[1] - p0[1]  # pixel displacement

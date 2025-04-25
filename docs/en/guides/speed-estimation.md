@@ -75,8 +75,9 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
         speedestimator = solutions.SpeedEstimator(
             show=True,  # display the output
             model="yolo11n.pt",  # path to the YOLO11 model file.
+            # max_speed=120,  # cap speed to a max value (km/h) to avoid outliers
             # max_hist=5,  # minimum frames object tracked before computing speed
-            # meter_per_pixel=0.05  # highly depends on the camera configuration
+            # meter_per_pixel=0.05,  # highly depends on the camera configuration
             # classes=[0, 2],  # estimate speed of specific classes.
             # line_width=2,  # adjust the line width for bounding boxes
         )

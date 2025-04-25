@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Union
 
 import cv2
 
+from ultralytics import __version__
 from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG,
@@ -24,7 +25,6 @@ from ultralytics.utils import (
     SETTINGS_FILE,
     TESTS_RUNNING,
     IterableSimpleNamespace,
-    __version__,
     checks,
     colorstr,
     deprecation_warn,

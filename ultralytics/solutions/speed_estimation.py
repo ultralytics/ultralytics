@@ -76,7 +76,6 @@ class SpeedEstimator(BaseSolution):
 
         for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
             self.store_tracking_history(track_id, box)
-            pos = self.track_line[-1]
 
             # Initialize history if new track
             if track_id not in self.trk_hist:
@@ -84,7 +83,7 @@ class SpeedEstimator(BaseSolution):
 
             # Keep updating history until speed is locked
             if track_id not in self.locked_ids:
-                self.trk_hist[track_id].append((current_time, pos))
+                self.trk_hist[track_id].append((current_time, self.track_line[-1]))
 
                 # Once enough history is collected, compute and lock speed
                 if len(self.trk_hist[track_id]) == self.max_hist:

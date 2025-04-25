@@ -646,6 +646,7 @@ class Model(torch.nn.Module):
                 - half (bool): Whether to use half-precision (FP16) mode.
                 - int8 (bool): Whether to use int8 precision mode.
                 - device (str): Device to run the benchmark on (e.g., 'cpu', 'cuda').
+
         Returns:
             (dict): A dictionary containing the results of the benchmarking process, including metrics for
                 different export formats.

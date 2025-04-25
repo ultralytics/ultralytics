@@ -633,7 +633,7 @@ class Model(torch.nn.Module):
         data=None,
         format="",
         verbose=False,
-        **kwargs: Any,
+        **kwargs: Any
     ):
         """
         Benchmark the model across various export formats to evaluate performance.
@@ -678,6 +678,7 @@ class Model(torch.nn.Module):
         return benchmark(
             model=self,
             data=data,  # if no 'data' argument passed set data=None for default datasets
+            imgsz=args["imgsz"]
             device=args["device"],
             verbose=verbose,
             format=format,

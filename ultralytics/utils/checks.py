@@ -87,7 +87,7 @@ def parse_version(version="0.0.0") -> tuple:
         version (str): Version string, i.e. '2.0.1+cpu'
 
     Returns:
-        (tuple): Tuple of integers representing the numeric part of the version, i.e. (2, 0, 1)
+        (Tuple[int, int, int]): Tuple of integers representing the numeric part of the version, i.e. (2, 0, 1)
     """
     try:
         return tuple(map(int, re.findall(r"\d+", version)[:3]))  # '2.0.1+cpu' -> (2, 0, 1)

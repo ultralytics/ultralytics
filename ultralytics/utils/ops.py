@@ -300,7 +300,7 @@ def non_max_suppression(
 
         # Filter by class
         if classes is not None:
-            x = x[(x[:, 5:6] == classes).any(1)]
+            filt = (x[:, 5:6] == classes).any(1)
             x, xk = x[filt], xk[filt]
 
         # Check shape

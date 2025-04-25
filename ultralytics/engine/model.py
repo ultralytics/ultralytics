@@ -628,13 +628,7 @@ class Model(torch.nn.Module):
         self.metrics = validator.metrics
         return validator.metrics
 
-    def benchmark(
-        self,
-        data=None,
-        format="",
-        verbose=False,
-        **kwargs: Any
-    ):
+    def benchmark(self, data=None, format="", verbose=False, **kwargs: Any):
         """
         Benchmark the model across various export formats to evaluate performance.
 

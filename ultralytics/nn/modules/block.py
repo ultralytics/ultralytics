@@ -1328,7 +1328,8 @@ class Attention(nn.Module):
         )
 
         attn = (q.transpose(-2, -1) @ k) * self.scale
-        attn = attn.softmax(dim=-1)
+        # attn = attn.softmax(dim=-1)
+        attn = attn.sigmoid()
         x = (v @ attn.transpose(-2, -1)).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
         x = self.proj(x)
         return x

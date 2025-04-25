@@ -15,6 +15,7 @@ except ImportError:
     checks.check_requirements("git+https://github.com/ultralytics/CLIP.git")
     import clip
 
+
 class TextModel(nn.Module):
     """
     Abstract base class for text encoding models.
@@ -283,7 +284,7 @@ class MobileCLIPTS(TextModel):
         """
         super().__init__()
         from ultralytics.utils.downloads import attempt_download_asset
-        
+
         file = "mobileclip_blt.ts"
         attempt_download_asset(file)
         self.encoder = torch.jit.load(file, map_location=device)

@@ -23,6 +23,17 @@ This guide serves as a comprehensive introduction to setting up a Docker environ
 - Using a Display Server with Docker to Show Ultralytics Detection Results
 - Mounting local directories into the container
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/IYWQZvtOy_Q"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Get started with Docker | Usage of Ultralytics Python Package inside Docker live demo 🎉
+</p>
+
 ---
 
 ## Prerequisites

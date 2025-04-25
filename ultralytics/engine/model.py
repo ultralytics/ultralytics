@@ -630,6 +630,9 @@ class Model(torch.nn.Module):
 
     def benchmark(
         self,
+        data=None,
+        format="",
+        verbose=False,
         **kwargs: Any,
     ):
         """
@@ -669,14 +672,15 @@ class Model(torch.nn.Module):
 
         custom = {"verbose": False}  # method defaults
         args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, "mode": "benchmark"}
-        export_args = set([args for fmts in export_formats()["Arguments"] for args in fmts])
+        fmts = export_formats()
+        export_args = set(dict(zip(fmts["Argument"], fmts["Arguments"])).get(format, []))
         export_kwargs = {k: v for k, v in args.items() if k in export_args - set(["batch"])}
         return benchmark(
             model=self,
-            data=kwargs.get("data"),  # if no 'data' argument passed set data=None for default datasets
+            data=data,  # if no 'data' argument passed set data=None for default datasets
             device=args["device"],
-            verbose=kwargs.get("verbose", False),
-            format=kwargs.get("format", ""),
+            verbose=verbose,
+            format=format,
             **export_kwargs,
         )
 

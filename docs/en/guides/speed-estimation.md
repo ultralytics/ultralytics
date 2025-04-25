@@ -40,7 +40,7 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 
 ???+ warning "Speed is an Estimate"
 
-    Speed will be an estimate and may not be completely accurate. Additionally, the estimation can vary depending on GPU speed and environmental factors.
+    Speed will be an estimate and may not be completely accurate. Additionally, the estimation can vary on camera specifications and related factors.
 
 !!! example "Speed Estimation using Ultralytics YOLO"
 
@@ -106,7 +106,7 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 Here's a table with the `SpeedEstimator` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "region"]) }}
+{{ param_table(["model"]) }}
 
 The `SpeedEstimator` solution allows the use of `track` parameters:
 
@@ -137,7 +137,6 @@ video_writer = cv2.VideoWriter("speed_estimation.avi", cv2.VideoWriter_fourcc(*"
 
 # Initialize SpeedEstimator
 speedestimator = solutions.SpeedEstimator(
-    region=[(0, 360), (1280, 360)],
     model="yolo11n.pt",
     show=True,
 )

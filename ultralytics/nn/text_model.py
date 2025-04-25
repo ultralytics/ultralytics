@@ -15,7 +15,6 @@ except ImportError:
     checks.check_requirements("git+https://github.com/ultralytics/CLIP.git")
     import clip
 
-
 class TextModel(nn.Module):
     """
     Abstract base class for text encoding models.
@@ -178,6 +177,7 @@ class MobileCLIP(TextModel):
             >>> tokens = model.tokenize(["a photo of a cat", "a photo of a dog"])
             >>> features = model.encode_text(tokens)
         """
+
         try:
             import warnings
 
@@ -186,10 +186,8 @@ class MobileCLIP(TextModel):
                 warnings.filterwarnings("ignore", category=FutureWarning)
                 import mobileclip
         except ImportError:
-            # MobileCLIP repo has an incorrect version of torchvision as dependency
-            # Manually install other dependencies first and install mobileclip with "--no-deps" flag
-            checks.check_requirements(["open-clip-torch>=2.20.0", "timm>=0.9.5"])
-            checks.check_requirements("git+https://github.com/apple/ml-mobileclip.git", cmds="--no-deps")
+            # Ultralytics fork preferred since Apple MobileCLIP repo has incorrect version of torchvision
+            checks.check_requirements("git+https://github.com/ultralytics/mobileclip.git")
             import mobileclip
 
         super().__init__()

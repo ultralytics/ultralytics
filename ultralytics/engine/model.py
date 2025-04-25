@@ -678,7 +678,7 @@ class Model(torch.nn.Module):
         return benchmark(
             model=self,
             data=data,  # if no 'data' argument passed set data=None for default datasets
-            imgsz=args["imgsz"]
+            imgsz=args["imgsz"],
             device=args["device"],
             verbose=verbose,
             format=format,

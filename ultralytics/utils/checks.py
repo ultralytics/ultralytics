@@ -11,6 +11,7 @@ import subprocess
 import time
 from importlib import metadata
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Optional
 
 import cv2
@@ -37,7 +38,6 @@ from ultralytics.utils import (
     USER_CONFIG_DIR,
     WINDOWS,
     Retry,
-    SimpleNamespace,
     ThreadingLocked,
     TryExcept,
     clean_url,

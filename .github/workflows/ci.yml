@@ -351,6 +351,8 @@ jobs:
           cd ultralytics
           git checkout tags/v$VERSION
           pytest tests
+
+  # simualte a failed job        
   FailTest:
     runs-on: ubuntu-latest
     if: github.run_attempt == 1

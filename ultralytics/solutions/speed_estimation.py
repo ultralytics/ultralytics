@@ -1,7 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from time import time
-
+from collections import deque
+from math import sqrt
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
 
@@ -35,7 +36,6 @@ class SpeedEstimator(BaseSolution):
         >>> results = estimator.process(frame)
         >>> cv2.imshow("Speed Estimation", results.plot_im)
     """
-
     def __init__(self, **kwargs):
         """
         Initialize the SpeedEstimator object with speed estimation parameters and data structures.
@@ -45,12 +45,12 @@ class SpeedEstimator(BaseSolution):
         """
         super().__init__(**kwargs)
 
-        self.initialize_region()  # Initialize speed region
-
-        self.spd = {}  # Dictionary for speed data
-        self.trkd_ids = []  # List for already speed-estimated and tracked IDs
-        self.trk_pt = {}  # Dictionary for tracks' previous timestamps
-        self.trk_pp = {}  # Dictionary for tracks' previous positions
+        self.spd = {}  # Final speed per object (km/h), once locked
+        self.trk_hist = {}  # Track ID → deque of (time, position)
+        self.locked_ids = set()  # Track IDs whose speed has been finalized
+        self.max_hist = kwargs.get(5, "max_hist")  # Required frame history before computing speed
+        self.meters_per_pixel = kwargs.get("meter_per_pixel", 0.05)  # Scene scale, depends on camera details
+        self.max_speed = kwargs.get("max_speed")  # max_speed adjustment
 
     def process(self, im0):
         """
@@ -67,45 +67,45 @@ class SpeedEstimator(BaseSolution):
             >>> image = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
             >>> results = estimator.process(image)
         """
-        self.extract_tracks(im0)  # Extract tracks
-        annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
-
-        # Draw speed estimation region
+        self.extract_tracks(im0)
+        annotator = SolutionAnnotator(im0, line_width=self.line_width)
         annotator.draw_region(reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2)
 
+        current_time = time()
+
         for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
-            self.store_tracking_history(track_id, box)  # Store track history
+            self.store_tracking_history(track_id, box)
+            pos = self.track_line[-1]
 
-            # Initialize tracking data for new objects
-            if track_id not in self.trk_pt:
-                self.trk_pt[track_id] = 0
-            if track_id not in self.trk_pp:
-                self.trk_pp[track_id] = self.track_line[-1]
+            # Initialize history if new track
+            if track_id not in self.trk_hist:
+                self.trk_hist[track_id] = deque(maxlen=self.max_hist)
 
+            # Keep updating history until speed is locked
+            if track_id not in self.locked_ids:
+                self.trk_hist[track_id].append((current_time, pos))
+
+                # Once enough history is collected, compute and lock speed
+                if len(self.trk_hist[track_id]) == self.max_hist:
+                    t0, p0, t1, p1 = self.trk_hist[track_id][0], self.trk_hist[track_id][-1]
+                    dt = t1 - t0
+                    if dt > 0:
+                        dx, dy = p1[0] - p0[0], p1[1] - p0[1]
+                        pixel_distance = sqrt(dx * dx + dy * dy)
+                        meters = pixel_distance * self.meters_per_pixel
+                        speed_kmph = ((meters / dt) * 3.6)
+                        if self.max_speed is not None:
+                            speed_kmph = min(speed_kmph, 120)  # clamp max
+                        self.spd[track_id] = int(speed_kmph)
+                        self.locked_ids.add(track_id)  # lock this value
+
+            # Draw label: show locked speed if available
             speed_label = (
-                f"{int(self.spd[track_id])} km/h"
+                f"{self.spd[track_id]} km/h"
                 if track_id in self.spd and self.show_labels
                 else self.adjust_box_label(cls, conf, track_id)
             )
             annotator.box_label(box, label=speed_label, color=colors(track_id, True))  # Draw bounding box
-
-            # Determine if object is crossing the speed estimation region
-            if self.LineString([self.trk_pp[track_id], self.track_line[-1]]).intersects(self.r_s):
-                direction = "known"
-            else:
-                direction = "unknown"
-
-            # Calculate speed for objects crossing the region for the first time
-            if direction == "known" and track_id not in self.trkd_ids:
-                self.trkd_ids.append(track_id)
-                time_difference = time() - self.trk_pt[track_id]
-                if time_difference > 0:
-                    # Calculate speed based on vertical displacement and time
-                    self.spd[track_id] = abs(self.track_line[-1][1] - self.trk_pp[track_id][1]) / time_difference
-
-            # Update tracking data for next frame
-            self.trk_pt[track_id] = time()
-            self.trk_pp[track_id] = self.track_line[-1]
 
         plot_im = annotator.result()
         self.display_output(plot_im)  # Display output with base class function

@@ -256,7 +256,6 @@ class MobileCLIPTS(TextModel):
         encoder (mobileclip.model.MobileCLIP): The loaded MobileCLIP text encoder.
         tokenizer (callable): Tokenizer function for processing text inputs.
         device (torch.device): Device where the model is loaded.
-        config_size_map (dict): Mapping from size identifiers to model configuration names.
 
     Methods:
         tokenize: Convert input texts to MobileCLIP tokens.

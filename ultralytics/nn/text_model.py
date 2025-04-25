@@ -282,11 +282,10 @@ class MobileCLIPTS(TextModel):
             >>> features = model.encode_text(tokens)
         """
         super().__init__()
+        from ultralytics.utils.downloads import attempt_download_asset
+        
         file = "mobileclip_blt.ts"
-        if not Path(file).exists():
-            from ultralytics.utils.downloads import attempt_download_asset
-
-            attempt_download_asset(file)
+        attempt_download_asset(file)
         self.encoder = torch.jit.load(file, map_location=device)
         self.tokenizer = clip.clip.tokenize
         self.to(device)

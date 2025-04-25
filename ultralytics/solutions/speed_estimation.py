@@ -17,7 +17,7 @@ class SpeedEstimator(BaseSolution):
     Attributes:
         spd (Dict[int, float]): Dictionary storing speed data for tracked objects.
         trk_hist (Dict[int, float]): Dictionary storing the object tracking data.
-        max_hist (int): maxiumum track history before computing speed
+        max_hist (int): maximum track history before computing speed
         meters_per_pixel (float): Real-world meters represented by one pixel (e.g., 0.04 for 4m over 100px).
         max_speed (int): Maximum allowed object speed; values above this will be capped at 120 km/h.
 

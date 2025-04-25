@@ -96,8 +96,8 @@ class RegionCounter(BaseSolution):
 
         # Process bounding boxes & check containment
         if points:
-            for point, cls, track_id, box in zip(points, self.clss, self.track_ids, self.boxes):
-                annotator.box_label(box, label=self.names[cls], color=colors(track_id, True))
+            for point, cls, track_id, box, conf in zip(points, self.clss, self.track_ids, self.boxes, self.confs):
+                annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(track_id, True))
 
                 for region in self.counting_regions:
                     if region["prepared_polygon"].contains(point):

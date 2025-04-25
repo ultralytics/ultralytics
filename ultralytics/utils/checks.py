@@ -11,6 +11,7 @@ import subprocess
 import time
 from importlib import metadata
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Optional
 
 import cv2
@@ -45,7 +46,6 @@ from ultralytics.utils import (
     is_github_action_running,
     url2file,
 )
-from types import SimpleNamespace
 
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):

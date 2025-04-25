@@ -283,7 +283,7 @@ class MobileCLIPTS(TextModel):
         """
         super().__init__()
         file = "mobileclip_blt.ts"
-        if not Path(file).is_file():
+        if not Path(file).exists():
             from ultralytics.utils.downloads import attempt_download_asset
 
             attempt_download_asset(file)

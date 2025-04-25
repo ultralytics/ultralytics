@@ -638,15 +638,14 @@ class Model(torch.nn.Module):
         defaults, and any additional user-provided keyword arguments.
 
         Args:
+            data (str): Path to the dataset for benchmarking.
+            verbose (bool): Whether to print detailed benchmark information.
+            format (str): Export format name for specific benchmarking.
             **kwargs (Any): Arbitrary keyword arguments to customize the benchmarking process. Common options include:
-                - data (str): Path to the dataset for benchmarking.
                 - imgsz (int | List[int]): Image size for benchmarking.
                 - half (bool): Whether to use half-precision (FP16) mode.
                 - int8 (bool): Whether to use int8 precision mode.
                 - device (str): Device to run the benchmark on (e.g., 'cpu', 'cuda').
-                - verbose (bool): Whether to print detailed benchmark information.
-                - format (str): Export format name for specific benchmarking.
-
         Returns:
             (dict): A dictionary containing the results of the benchmarking process, including metrics for
                 different export formats.

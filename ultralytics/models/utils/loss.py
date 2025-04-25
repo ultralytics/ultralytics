@@ -32,7 +32,16 @@ class DETRLoss(nn.Module):
     """
 
     def __init__(
-        self, nc=80, loss_gain=None, aux_loss=True, use_fl=True, use_vfl=False, use_uni_match=False, uni_match_ind=0
+        self,
+        nc=80,
+        loss_gain=None,
+        aux_loss=True,
+        use_fl=True,
+        use_vfl=False,
+        use_uni_match=False,
+        uni_match_ind=0,
+        gamma=1.5,
+        alpha=0.25,
     ):
         """
         Initialize DETR loss function with customizable components and gains.
@@ -48,6 +57,8 @@ class DETRLoss(nn.Module):
             use_vfl (bool): Whether to use VarifocalLoss.
             use_uni_match (bool): Whether to use fixed layer for auxiliary branch label assignment.
             uni_match_ind (int): Index of fixed layer for uni_match.
+            gamma (float): The focusing parameter that controls how much the loss focuses on hard-to-classify examples.
+            alpha (float): The balancing factor used to address class imbalance.
         """
         super().__init__()
 
@@ -57,8 +68,8 @@ class DETRLoss(nn.Module):
         self.matcher = HungarianMatcher(cost_gain={"class": 2, "bbox": 5, "giou": 2})
         self.loss_gain = loss_gain
         self.aux_loss = aux_loss
-        self.fl = FocalLoss() if use_fl else None
-        self.vfl = VarifocalLoss() if use_vfl else None
+        self.fl = FocalLoss(gamma, alpha) if use_fl else None
+        self.vfl = VarifocalLoss(gamma, alpha) if use_vfl else None
 
         self.use_uni_match = use_uni_match
         self.uni_match_ind = uni_match_ind

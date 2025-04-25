@@ -4,6 +4,9 @@
 
 name: Publish Docker Images
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]

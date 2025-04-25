@@ -37,6 +37,7 @@ class SpeedEstimator(BaseSolution):
         >>> results = estimator.process(frame)
         >>> cv2.imshow("Speed Estimation", results.plot_im)
     """
+
     def __init__(self, **kwargs):
         """
         Initialize the SpeedEstimator object with speed estimation parameters and data structures.
@@ -94,7 +95,7 @@ class SpeedEstimator(BaseSolution):
                         dx, dy = p1[0] - p0[0], p1[1] - p0[1]
                         pixel_distance = sqrt(dx * dx + dy * dy)
                         meters = pixel_distance * self.meters_per_pixel
-                        speed_kmph = ((meters / dt) * 3.6)
+                        speed_kmph = (meters / dt) * 3.6
                         if self.max_speed is not None:
                             speed_kmph = min(speed_kmph, 120)  # clamp max
                         self.spd[track_id] = int(speed_kmph)

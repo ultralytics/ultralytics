@@ -926,6 +926,7 @@ class Exporter:
                 "onnx2tf>=1.26.3",
                 "onnxslim>=0.1.31",
                 "onnxruntime-gpu" if cuda else "onnxruntime",
+                "protobuf>=5",
             ),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
         )

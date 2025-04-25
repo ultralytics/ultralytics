@@ -53,8 +53,8 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
         # Pass a source video
         yolo solutions speed source="path/to/video.mp4"
 
-        # Pass region coordinates
-        yolo solutions speed region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
+        # Adjust meter per pixel value based on camera configuration
+        yolo solutions speed meter_per_pixel=0.05
         ```
 
     === "Python"
@@ -71,14 +71,12 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("speed_management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # speed region points
-        speed_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
-
         # Initialize speed estimation object
         speedestimator = solutions.SpeedEstimator(
             show=True,  # display the output
             model="yolo11n.pt",  # path to the YOLO11 model file.
-            region=speed_region,  # pass region points
+            # max_hist=5,  # minimum frames object tracked before computing speed
+            # meter_per_pixel=0.05  # highly depends on the camera configuration
             # classes=[0, 2],  # estimate speed of specific classes.
             # line_width=2,  # adjust the line width for bounding boxes
         )

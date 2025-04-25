@@ -37,7 +37,6 @@ from ultralytics.utils import (
     USER_CONFIG_DIR,
     WINDOWS,
     Retry,
-    SimpleNamespace,
     ThreadingLocked,
     TryExcept,
     clean_url,
@@ -46,6 +45,7 @@ from ultralytics.utils import (
     is_github_action_running,
     url2file,
 )
+from types import SimpleNamespace
 
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):

@@ -16,7 +16,8 @@ import torch
 from PIL import Image
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, imread, ops
+from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops
+from ultralytics.utils.patches import imread
 from ultralytics.utils.checks import check_requirements
 
 

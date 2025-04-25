@@ -1027,10 +1027,9 @@ class RandomPerspective:
             border (Tuple[int, int]): Border dimensions for the transformed image.
 
         Returns:
-            (Tuple[np.ndarray, np.ndarray, float]): A tuple containing:
-                - np.ndarray: Transformed image.
-                - np.ndarray: 3x3 transformation matrix.
-                - float: Scale factor applied during the transformation.
+            img (np.ndarray): Transformed image.
+            M (np.ndarray): 3x3 transformation matrix.
+            s (float): Scale factor applied during the transformation.
 
         Examples:
             >>> import numpy as np
@@ -1124,9 +1123,8 @@ class RandomPerspective:
             M (np.ndarray): Affine transformation matrix with shape (3, 3).
 
         Returns:
-            (Tuple[np.ndarray, np.ndarray]): A tuple containing:
-                - New bounding boxes with shape (N, 4) in xyxy format.
-                - Transformed and clipped segments with shape (N, M, 2).
+            bboxes (np.ndarray): New bounding boxes with shape (N, 4) in xyxy format.
+            segments (np.ndarray): Transformed and clipped segments with shape (N, M, 2).
 
         Examples:
             >>> segments = np.random.rand(10, 500, 2)  # 10 segments with 500 points each
@@ -2117,7 +2115,7 @@ class Format:
         if len(img.shape) < 3:
             img = np.expand_dims(img, -1)
         img = img.transpose(2, 0, 1)
-        img = np.ascontiguousarray(img[::-1] if random.uniform(0, 1) > self.bgr else img)
+        img = np.ascontiguousarray(img[::-1] if random.uniform(0, 1) > self.bgr and img.shape[0] == 3 else img)
         img = torch.from_numpy(img)
         return img
 

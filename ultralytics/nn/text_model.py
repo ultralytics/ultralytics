@@ -177,7 +177,6 @@ class MobileCLIP(TextModel):
             >>> tokens = model.tokenize(["a photo of a cat", "a photo of a dog"])
             >>> features = model.encode_text(tokens)
         """
-
         try:
             import warnings
 

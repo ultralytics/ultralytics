@@ -148,7 +148,7 @@ class AutoBackend(nn.Module):
         model, metadata, task = None, None, None
 
         # Set device
-        cuda = torch.cuda.is_available() and device.type != "cpu"  # use CUDA
+        cuda = isinstance(device, torch.device) and torch.cuda.is_available() and device.type != "cpu"  # use CUDA
         if cuda and not any([nn_module, pt, jit, engine, onnx, paddle]):  # GPU dataloader formats
             device = torch.device("cpu")
             cuda = False
@@ -264,6 +264,13 @@ class AutoBackend(nn.Module):
             import openvino as ov
 
             core = ov.Core()
+            device_name = "AUTO"
+            if isinstance(device, str) and device.startswith("intel"):
+                device_name = device.split(":")[1].upper()  # Intel OpenVINO device
+                device = torch.device("cpu")
+                if device_name not in core.available_devices:
+                    LOGGER.warning(f"OpenVINO device '{device_name}' not available. Using 'AUTO' instead.")
+                    device_name = "AUTO"
             w = Path(w)
             if not w.is_file():  # if not *.xml
                 w = next(w.glob("*.xml"))  # get *.xml file from *_openvino_model dir
@@ -276,7 +283,7 @@ class AutoBackend(nn.Module):
             LOGGER.info(f"Using OpenVINO {inference_mode} mode for batch={batch} inference...")
             ov_compiled_model = core.compile_model(
                 ov_model,
-                device_name="AUTO",  # AUTO selects best available device, do not modify
+                device_name=device_name,
                 config={"PERFORMANCE_HINT": inference_mode},
             )
             input_name = ov_compiled_model.input().get_any_name()
@@ -531,7 +538,7 @@ class AutoBackend(nn.Module):
             metadata = yaml_load(metadata)
         if metadata and isinstance(metadata, dict):
             for k, v in metadata.items():
-                if k in {"stride", "batch"}:
+                if k in {"stride", "batch", "channels"}:
                     metadata[k] = int(v)
                 elif k in {"imgsz", "names", "kpt_shape", "args"} and isinstance(v, str):
                     metadata[k] = eval(v)

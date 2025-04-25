@@ -105,7 +105,7 @@ from ultralytics.utils.checks import (
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.export import export_engine, export_onnx
 from ultralytics.utils.files import file_size, spaces_in_path
-from ultralytics.utils.ops import Profile, nms_rotated, xywh2xyxy
+from ultralytics.utils.ops import Profile, nms_rotated
 from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
 
 
@@ -113,7 +113,7 @@ def export_formats():
     """Return a dictionary of Ultralytics YOLO export formats."""
     x = [
         ["PyTorch", "-", ".pt", True, True, []],
-        ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize", "nms"]],
+        ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize", "half", "nms"]],
         ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"]],
         [
             "OpenVINO",
@@ -351,7 +351,7 @@ class Exporter:
         if self.args.int8 and not self.args.data:
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
-                "INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
+                f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
             )
         if tfjs and (ARM64 and LINUX):
             raise SystemError("TF.js exports are not currently supported on ARM64 Linux")
@@ -384,6 +384,7 @@ class Exporter:
                 m.export = True
                 m.format = self.args.format
                 m.max_det = self.args.max_det
+                m.xyxy = self.args.nms
             elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
@@ -1532,11 +1533,6 @@ class NMSModel(torch.nn.Module):
                 # Explicit length otherwise reshape error, hardcoded to `self.args.max_det * 5`
                 mask = score.topk(min(self.args.max_det * 5, score.shape[0])).indices
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
-            if not self.obb:
-                box = xywh2xyxy(box)
-                if self.is_tf:
-                    # TFlite bug returns less boxes
-                    box = torch.nn.functional.pad(box, (0, 0, 0, mask.shape[0] - box.shape[0]))
             nmsbox = box.clone()
             # `8` is the minimum value experimented to get correct NMS results for obb
             multiplier = 8 if self.obb else 1

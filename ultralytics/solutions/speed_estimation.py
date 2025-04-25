@@ -2,7 +2,6 @@
 
 from collections import deque
 from math import sqrt
-from time import time
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
@@ -17,12 +16,10 @@ class SpeedEstimator(BaseSolution):
 
     Attributes:
         spd (Dict[int, float]): Dictionary storing speed data for tracked objects.
-        trkd_ids (List[int]): List of tracked object IDs that have already been speed-estimated.
-        trk_pt (Dict[int, float]): Dictionary storing previous timestamps for tracked objects.
-        trk_pp (Dict[int, Tuple[float, float]]): Dictionary storing previous positions for tracked objects.
-        region (List[Tuple[int, int]]): List of points defining the speed estimation region.
-        track_line (List[Tuple[float, float]]): List of points representing the object's track.
-        r_s (LineString): LineString object representing the speed estimation region.
+        trk_hist (Dict[int, float]): Dictionary storing previous timestamps for tracked objects.
+        max_hist (int): maxiumum track history before computing speed
+        meters_per_pixel (float): Real-world meters represented by one pixel (e.g., 0.04 for 4m over 100px).
+        max_speed (int): Maximum allowed object speed; values above this will be capped at 120 km/h.
 
     Methods:
         initialize_region: Initializes the speed estimation region.
@@ -47,11 +44,14 @@ class SpeedEstimator(BaseSolution):
         """
         super().__init__(**kwargs)
 
+        self.fps = kwargs.get("fps", 30)  # assumed video FPS
+        self.frame_count = 0  # global frame count
+        self.trk_frame_ids = {}  # Track ID → first frame index
         self.spd = {}  # Final speed per object (km/h), once locked
         self.trk_hist = {}  # Track ID → deque of (time, position)
         self.locked_ids = set()  # Track IDs whose speed has been finalized
-        self.max_hist = kwargs.get(5, "max_hist")  # Required frame history before computing speed
-        self.meters_per_pixel = kwargs.get("meter_per_pixel", 0.05)  # Scene scale, depends on camera details
+        self.max_hist = kwargs.get("max_hist", 5)  # Required frame history before computing speed
+        self.meter_per_pixel = kwargs.get("meter_per_pixel", 0.05)  # Scene scale, depends on camera details
         self.max_speed = kwargs.get("max_speed")  # max_speed adjustment
 
     def process(self, im0):
@@ -69,44 +69,39 @@ class SpeedEstimator(BaseSolution):
             >>> image = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
             >>> results = estimator.process(image)
         """
+        self.frame_count += 1
         self.extract_tracks(im0)
         annotator = SolutionAnnotator(im0, line_width=self.line_width)
-        annotator.draw_region(reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2)
-
-        current_time = time()
 
         for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
             self.store_tracking_history(track_id, box)
 
-            # Initialize history if new track
-            if track_id not in self.trk_hist:
+            if track_id not in self.trk_hist:  # Initialize history if new track found
                 self.trk_hist[track_id] = deque(maxlen=self.max_hist)
+                self.trk_frame_ids[track_id] = self.frame_count
 
-            # Keep updating history until speed is locked
-            if track_id not in self.locked_ids:
-                self.trk_hist[track_id].append((current_time, self.track_line[-1]))
+            if track_id not in self.locked_ids:  # Keep updating history until speed is locked
+                self.trk_hist[track_id].append(self.track_line[-1])
 
                 # Once enough history is collected, compute and lock speed
                 if len(self.trk_hist[track_id]) == self.max_hist:
-                    t0, p0, t1, p1 = self.trk_hist[track_id][0], self.trk_hist[track_id][-1]
-                    dt = t1 - t0
+                    p0, p1 = self.trk_hist[track_id][0], self.trk_hist[track_id][-1]
+                    dt = (self.frame_count - self.trk_frame_ids[track_id]) / self.fps  # convert frame count to seconds
                     if dt > 0:
-                        dx, dy = p1[0] - p0[0], p1[1] - p0[1]
-                        pixel_distance = sqrt(dx * dx + dy * dy)
-                        meters = pixel_distance * self.meters_per_pixel
-                        speed_kmph = (meters / dt) * 3.6
+                        dx, dy = p1[0] - p0[0], p1[1] - p0[1]  # pixel displacement
+                        pixel_distance = sqrt(dx * dx + dy * dy)  # get pixel distance
+                        meters = pixel_distance * self.meter_per_pixel  # convert to meters
+                        speed_kmph = (meters / dt) * 3.6  # convert to km/h
                         if self.max_speed is not None:
-                            speed_kmph = min(speed_kmph, 120)  # clamp max
-                        self.spd[track_id] = int(speed_kmph)
-                        self.locked_ids.add(track_id)  # lock this value
+                            speed_kmph = min(speed_kmph, self.max_speed)  # clamp max speed
+                        self.spd[track_id] = int(speed_kmph)  # store final speed
+                        self.locked_ids.add(track_id)  # prevent further updates
+                        self.trk_hist.pop(track_id, None)  # free memory
+                        self.trk_frame_ids.pop(track_id, None)  # optional: remove frame start too
 
-            # Draw label: show locked speed if available
-            speed_label = (
-                f"{self.spd[track_id]} km/h"
-                if track_id in self.spd and self.show_labels
-                else self.adjust_box_label(cls, conf, track_id)
-            )
-            annotator.box_label(box, label=speed_label, color=colors(track_id, True))  # Draw bounding box
+            if track_id in self.spd:
+                speed_label = f"{self.spd[track_id]} km/h"
+                annotator.box_label(box, label=speed_label, color=colors(track_id, True))  # Draw bounding box
 
         plot_im = annotator.result()
         self.display_output(plot_im)  # Display output with base class function

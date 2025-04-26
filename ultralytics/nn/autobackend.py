@@ -90,7 +90,7 @@ class AutoBackend(nn.Module):
         _model_type: Determine the model type from file path.
 
     Examples:
-        >>> model = AutoBackend(weights="yolov8n.pt", device="cuda")
+        >>> model = AutoBackend(weights="yolo11n.pt", device="cuda")
         >>> results = model(img)
     """
 

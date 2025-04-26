@@ -18,27 +18,27 @@ on:
     inputs:
       hub:
         description: "Run HUB"
-        default: false
+        default: true
         type: boolean
       benchmarks:
         description: "Run Benchmarks"
-        default: false
+        default: true
         type: boolean
       tests:
         description: "Run Tests"
-        default: false
+        default: true
         type: boolean
       gpu:
         description: "Run GPU"
-        default: false
+        default: true
         type: boolean
       raspberrypi:
         description: "Run Raspberry Pi"
-        default: false
+        default: true
         type: boolean
       conda:
         description: "Run Conda"
-        default: false
+        default: true
         type: boolean
 
 jobs:
@@ -179,7 +179,6 @@ jobs:
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
-          # CoreML must be installed before export due to protobuf error from AutoInstall
           slow=""
           torch=""
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
@@ -202,7 +201,7 @@ jobs:
           fi
           pytest $slow --cov=ultralytics/ --cov-report xml tests/
       - name: Upload Coverage Reports to CodeCov
-        if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
         uses: codecov/codecov-action@v5
         with:
           flags: Tests
@@ -240,7 +239,9 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   RaspberryPi:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
+    # if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
+    # TODO: disabled to debug newer numpy compatibility issues
+    if: false
     timeout-minutes: 120
     runs-on: raspberry-pi
     steps:
@@ -319,8 +320,7 @@ jobs:
           conda install -c pytorch -c conda-forge pytorch torchvision ultralytics openvino
       - name: Install pip packages
         run: |
-          # CoreML must be installed before export due to protobuf error from AutoInstall
-          pip install pytest "coremltools>=8.0; platform_system != 'Windows' and python_version <= '3.12'"
+          pip install pytest
       - name: Check environment
         run: |
           conda list

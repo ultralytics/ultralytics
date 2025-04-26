@@ -34,11 +34,11 @@ on:
         type: boolean
       raspberrypi:
         description: "Run Raspberry Pi"
-        default: false
+        default: true
         type: boolean
       conda:
         description: "Run Conda"
-        default: false
+        default: true
         type: boolean
 
 jobs:

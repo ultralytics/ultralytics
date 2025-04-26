@@ -700,7 +700,7 @@ class Exporter:
 
     @try_export
     def export_mnn(self, prefix=colorstr("MNN:")):
-        """YOLOv8 MNN export using MNN https://github.com/alibaba/MNN."""
+        """YOLO MNN export using MNN https://github.com/alibaba/MNN."""
         f_onnx, _ = self.export_onnx()  # get onnx model first
 
         check_requirements("MNN>=2.9.6")

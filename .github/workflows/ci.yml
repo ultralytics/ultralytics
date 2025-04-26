@@ -34,11 +34,11 @@ on:
         type: boolean
       raspberrypi:
         description: "Run Raspberry Pi"
-        default: false
+        default: true
         type: boolean
       conda:
         description: "Run Conda"
-        default: false
+        default: true
         type: boolean
 
 jobs:
@@ -179,7 +179,6 @@ jobs:
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
-          # CoreML must be installed before export due to protobuf error from AutoInstall
           slow=""
           torch=""
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
@@ -321,8 +320,7 @@ jobs:
           conda install -c pytorch -c conda-forge pytorch torchvision ultralytics openvino
       - name: Install pip packages
         run: |
-          # CoreML must be installed before export due to protobuf error from AutoInstall
-          pip install pytest "coremltools>=8.0; platform_system != 'Windows' and python_version <= '3.13'"
+          pip install pytest
       - name: Check environment
         run: |
           conda list

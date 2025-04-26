@@ -33,8 +33,9 @@ COPY . .
 RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config
 ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
-# Pip install onnxruntime-gpu, torch, torchvision and ultralytics
+# Pip install numpy, onnxruntime-gpu, torch, torchvision and ultralytics
 RUN python3 -m pip install --upgrade pip uv
+RUN uv pip install --system numpy==1.26.4
 RUN uv pip install --system \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.20.0-cp310-cp310-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.5.0a0+872d972e41.nv24.08-cp310-cp310-linux_aarch64.whl \

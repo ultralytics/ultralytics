@@ -18,8 +18,8 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /actions-runner
 
 # Download and unpack the latest runner from https://github.com/actions/runner
-RUN FILENAME=actions-runner-linux-x64-2.320.0.tar.gz && \
-    curl -o $FILENAME -L https://github.com/actions/runner/releases/download/v2.320.0/$FILENAME && \
+RUN FILENAME=actions-runner-linux-x64-2.323.0.tar.gz && \
+    curl -o $FILENAME -L https://github.com/actions/runner/releases/download/v2.323.0/$FILENAME && \
     tar xzf $FILENAME && \
     rm $FILENAME
 

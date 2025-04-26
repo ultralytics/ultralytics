@@ -27,7 +27,7 @@ def export_onnx(
         opset (int): ONNX opset version to use for export.
         input_names (list): List of input tensor names.
         output_names (list): List of output tensor names.
-        dynamic (bool | dict, optional): Whether to enable dynamic axes. Defaults to False.
+        dynamic (bool | dict, optional): Whether to enable dynamic axes.
 
     Notes:
         - Setting `do_constant_folding=True` may cause issues with DNN inference for torch>=1.12.
@@ -41,7 +41,8 @@ def export_onnx(
         do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
         input_names=input_names,
         output_names=output_names,
-        dynamic_axes=dynamic or None,
+        dynamic_shapes=dynamic or None,
+        dynamo=True,
     )
 
 
@@ -65,16 +66,16 @@ def export_engine(
     Args:
         onnx_file (str): Path to the ONNX file to be converted.
         engine_file (str, optional): Path to save the generated TensorRT engine file.
-        workspace (int, optional): Workspace size in GB for TensorRT. Defaults to None.
-        half (bool, optional): Enable FP16 precision. Defaults to False.
-        int8 (bool, optional): Enable INT8 precision. Defaults to False.
-        dynamic (bool, optional): Enable dynamic input shapes. Defaults to False.
-        shape (tuple, optional): Input shape (batch, channels, height, width). Defaults to (1, 3, 640, 640).
-        dla (int, optional): DLA core to use (Jetson devices only). Defaults to None.
-        dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration. Defaults to None.
-        metadata (dict, optional): Metadata to include in the engine file. Defaults to None.
-        verbose (bool, optional): Enable verbose logging. Defaults to False.
-        prefix (str, optional): Prefix for log messages. Defaults to "".
+        workspace (int, optional): Workspace size in GB for TensorRT.
+        half (bool, optional): Enable FP16 precision.
+        int8 (bool, optional): Enable INT8 precision.
+        dynamic (bool, optional): Enable dynamic input shapes.
+        shape (tuple, optional): Input shape (batch, channels, height, width).
+        dla (int, optional): DLA core to use (Jetson devices only).
+        dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration.
+        metadata (dict, optional): Metadata to include in the engine file.
+        verbose (bool, optional): Enable verbose logging.
+        prefix (str, optional): Prefix for log messages.
 
     Raises:
         ValueError: If DLA is enabled on non-Jetson devices or required precision is not set.

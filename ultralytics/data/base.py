@@ -33,7 +33,7 @@ class BaseDataset(Dataset):
         single_cls (bool): Whether to treat all objects as a single class.
         prefix (str): Prefix to print in log messages.
         fraction (float): Fraction of dataset to utilize.
-        cv2_flags (int): OpenCV flags for reading images.
+        cv2_flag (int): OpenCV flags for reading images.
         im_files (List[str]): List of image file paths.
         labels (List[Dict]): List of label data dictionaries.
         ni (int): Number of images in the dataset.
@@ -64,8 +64,6 @@ class BaseDataset(Dataset):
         build_transforms: Build transformation pipeline to be implemented by subclasses.
         get_labels: Get labels method to be implemented by subclasses.
     """
-
-    flags = {1: cv2.IMREAD_GRAYSCALE, 3: cv2.IMREAD_COLOR}  # cv2 flags for reading images
 
     def __init__(
         self,
@@ -110,7 +108,8 @@ class BaseDataset(Dataset):
         self.single_cls = single_cls
         self.prefix = prefix
         self.fraction = fraction
-        self.cv2_flags = self.flags.get(channels, cv2.IMREAD_UNCHANGED)
+        self.channels = channels
+        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR,
         self.im_files = self.get_img_files(self.img_path)
         self.labels = self.get_labels()
         self.update_labels(include_class=classes)  # single_cls and include_class
@@ -230,9 +229,9 @@ class BaseDataset(Dataset):
                 except Exception as e:
                     LOGGER.warning(f"{self.prefix}Removing corrupt *.npy image file {fn} due to: {e}")
                     Path(fn).unlink(missing_ok=True)
-                    im = imread(f, flags=self.cv2_flags)  # BGR
+                    im = imread(f, flags=self.cv2_flag)  # BGR
             else:  # read image
-                im = imread(f, flags=self.cv2_flags)  # BGR
+                im = imread(f, flags=self.cv2_flag)  # BGR
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
 

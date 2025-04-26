@@ -109,7 +109,7 @@ class BaseDataset(Dataset):
         self.prefix = prefix
         self.fraction = fraction
         self.channels = channels
-        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR,
+        self.cv2_flag = (cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR,)
         self.im_files = self.get_img_files(self.img_path)
         self.labels = self.get_labels()
         self.update_labels(include_class=classes)  # single_cls and include_class

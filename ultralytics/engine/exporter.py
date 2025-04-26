@@ -70,6 +70,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
+from ultralytics import __version__
 from ultralytics.cfg import TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader
 from ultralytics.data.dataset import YOLODataset
@@ -81,7 +82,6 @@ from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
     IS_COLAB,
-    IS_JETSON,
     LINUX,
     LOGGER,
     MACOS,
@@ -89,13 +89,13 @@ from ultralytics.utils import (
     RKNN_CHIPS,
     ROOT,
     WINDOWS,
-    __version__,
     callbacks,
     colorstr,
     get_default_args,
     yaml_save,
 )
 from ultralytics.utils.checks import (
+    IS_PYTHON_MINIMUM_3_12,
     check_imgsz,
     check_is_path_safe,
     check_requirements,
@@ -238,9 +238,6 @@ class Exporter:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
-        if self.args.format.lower() in {"coreml", "mlmodel"}:  # fix attempt for protobuf<3.20.x errors
-            os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"  # must run before TensorBoard callback
-
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
@@ -384,7 +381,7 @@ class Exporter:
                 m.export = True
                 m.format = self.args.format
                 m.max_det = self.args.max_det
-                m.xyxy = self.args.nms
+                m.xyxy = self.args.nms and not coreml
             elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
@@ -925,10 +922,8 @@ class Exporter:
                 "onnx>=1.12.0",
                 "onnx2tf>=1.26.3",
                 "onnxslim>=0.1.31",
-                "tflite_support<=0.4.3" if IS_JETSON else "tflite_support",  # fix ImportError 'GLIBCXX_3.4.29'
-                "flatbuffers>=23.5.26,<100",  # update old 'flatbuffers' included inside tensorflow package
                 "onnxruntime-gpu" if cuda else "onnxruntime",
-                "protobuf>=5",  # tflite_support pins <=4 but >=5 works
+                "protobuf>=5",
             ),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
         )
@@ -1279,8 +1274,20 @@ class Exporter:
 
         return f, None
 
-    def _add_tflite_metadata(self, file):
+    def _add_tflite_metadata(self, file, use_flatbuffers=False):
         """Add metadata to *.tflite models per https://ai.google.dev/edge/litert/models/metadata."""
+        if not use_flatbuffers:
+            import zipfile
+
+            with zipfile.ZipFile(file, "a", zipfile.ZIP_DEFLATED) as zf:
+                zf.writestr("metadata.json", json.dumps(self.metadata, indent=2))
+            return
+
+        if IS_PYTHON_MINIMUM_3_12:
+            LOGGER.warning(f"TFLite Support package may not be compatible with Python>=3.12 environments for {file}")
+
+        # Update old 'flatbuffers' included inside tensorflow package
+        check_requirements(("tflite_support", "flatbuffers>=23.5.26,<100; platform_machine == 'aarch64'"))
         import flatbuffers
 
         try:

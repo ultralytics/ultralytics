@@ -244,10 +244,10 @@ jobs:
     runs-on: raspberry-pi
     steps:
       - uses: actions/checkout@v4
-      - name: Activate Virtual Environment
+      - name: Activate Virtual Environment for Tests
         run: |
-          python3.11 -m venv env
-          source env/bin/activate
+          python3.11 -m venv env-tests
+          source env-tests/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - uses: astral-sh/setup-uv@v5
       - name: Install requirements
@@ -259,8 +259,11 @@ jobs:
           uv pip list
       - name: Pytest tests
         run: pytest --slow tests/
-      - name: Check environment
-        run: uv pip list
+      - name: Activate Virtual Environment for Benchmarks
+        run: |
+          python3.11 -m venv env-benchmarks
+          source env-benchmarks/bin/activate
+          echo PATH=$PATH >> $GITHUB_ENV
       - name: Benchmark DetectionModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n.pt' imgsz=160 verbose=0.309
       - name: Benchmark ClassificationModel

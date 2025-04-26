@@ -29,16 +29,15 @@ class YOLO(Model):
         (YOLOWorld or YOLOE) based on the model filename.
 
         Args:
-            model (str | Path): Model name or path to model file, i.e. 'yolo11n.pt', 'yolov8n.yaml'.
+            model (str | Path): Model name or path to model file, i.e. 'yolo11n.pt', 'yolo11n.yaml'.
             task (str | None): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'.
                 Defaults to auto-detection based on model.
             verbose (bool): Display model info on load.
 
         Examples:
             >>> from ultralytics import YOLO
-            >>> model = YOLO("yolov8n.pt")  # load a pretrained YOLOv8n detection model
-            >>> model = YOLO("yolov8n-seg.pt")  # load a pretrained YOLOv8n segmentation model
             >>> model = YOLO("yolo11n.pt")  # load a pretrained YOLOv11n detection model
+            >>> model = YOLO("yolo11n-seg.pt")  # load a pretrained YOLO11n segmentation model
         """
         path = Path(model)
         if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model

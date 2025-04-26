@@ -42,7 +42,7 @@ RUN uv pip install --system numpy==1.26.4
 # Run exports to AutoInstall packages
 RUN yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32
 RUN yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32
-RUN yolo export model=tmp/yolov8n.pt format=imx imgsz=32
+RUN yolo export model=tmp/yolo11n.pt format=imx imgsz=32
 RUN uv pip install --system paddlepaddle x2paddle
 
 # Remove extra build files

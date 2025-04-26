@@ -63,7 +63,7 @@ jobs:
           - dockerfile: "Dockerfile"
             tags: "latest"
             platforms: "linux/amd64"
-            runs_on: "ubuntu-latest"
+            runs_on: "gpu-latest"
           - dockerfile: "Dockerfile-cpu"
             tags: "latest-cpu"
             platforms: "linux/amd64"

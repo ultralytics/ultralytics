@@ -33,7 +33,7 @@ class BaseDataset(Dataset):
         single_cls (bool): Whether to treat all objects as a single class.
         prefix (str): Prefix to print in log messages.
         fraction (float): Fraction of dataset to utilize.
-        cv2_flag (int): OpenCV flags for reading images.
+        cv2_flag (int): OpenCV flag for reading images.
         im_files (List[str]): List of image file paths.
         labels (List[Dict]): List of label data dictionaries.
         ni (int): Number of images in the dataset.

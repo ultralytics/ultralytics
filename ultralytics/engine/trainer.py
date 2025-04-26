@@ -21,6 +21,7 @@ import torch
 from torch import distributed as dist
 from torch import nn, optim
 
+from ultralytics import __version__
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
@@ -30,7 +31,6 @@ from ultralytics.utils import (
     LOGGER,
     RANK,
     TQDM,
-    __version__,
     callbacks,
     clean_url,
     colorstr,
@@ -268,7 +268,7 @@ class BaseTrainer:
             self.amp = torch.tensor(check_amp(self.model), device=self.device)
             callbacks.default_callbacks = callbacks_backup  # restore callbacks
         if RANK > -1 and world_size > 1:  # DDP
-            dist.broadcast(self.amp, src=0)  # broadcast the tensor from rank 0 to all other ranks (returns None)
+            dist.broadcast(self.amp.int(), src=0)  # broadcast from rank 0 to all other ranks; gloo errors with boolean
         self.amp = bool(self.amp)  # as boolean
         self.scaler = (
             torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)

@@ -287,9 +287,7 @@ class MobileCLIPTS(TextModel):
 
         self.encoder = torch.jit.load(attempt_download_asset("mobileclip_blt.ts"), map_location=device)
         self.tokenizer = clip.clip.tokenize
-        self.to(device)
         self.device = device
-        self.eval()
 
     def tokenize(self, texts):
         """

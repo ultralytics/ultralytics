@@ -264,6 +264,13 @@ jobs:
           python3.11 -m venv env-benchmarks
           source env-benchmarks/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
+      - name: Install requirements
+        run: |
+          uv pip install -e ".[export]" pytest mlflow pycocotools --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+      - name: Check environment
+        run: |
+          yolo checks
+          uv pip list
       - name: Benchmark DetectionModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n.pt' imgsz=160 verbose=0.309
       - name: Benchmark ClassificationModel

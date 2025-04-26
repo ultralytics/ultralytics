@@ -549,7 +549,7 @@ class Exporter:
         """YOLO ONNX export."""
         requirements = ["onnx>=1.12.0"]
         if self.args.simplify:
-            requirements += ["onnxslim", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
+            requirements += ["onnxslim>=0.1.46", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -574,7 +574,6 @@ class Exporter:
                 torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
             except RuntimeError:  # it will fail if it's already registered
                 pass
-            check_requirements("onnxslim>=0.1.46")  # Older versions has bug with OBB
 
         with arange_patch(self.args):
             export_onnx(
@@ -921,7 +920,7 @@ class Exporter:
                 "ai-edge-litert>=1.2.0",  # required by 'onnx2tf' package
                 "onnx>=1.12.0",
                 "onnx2tf>=1.26.3",
-                "onnxslim>=0.1.31",
+                "onnxslim>=0.1.46",
                 "onnxruntime-gpu" if cuda else "onnxruntime",
                 "protobuf>=5",
             ),

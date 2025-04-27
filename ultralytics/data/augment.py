@@ -1027,10 +1027,9 @@ class RandomPerspective:
             border (Tuple[int, int]): Border dimensions for the transformed image.
 
         Returns:
-            (Tuple[np.ndarray, np.ndarray, float]): A tuple containing:
-                - np.ndarray: Transformed image.
-                - np.ndarray: 3x3 transformation matrix.
-                - float: Scale factor applied during the transformation.
+            img (np.ndarray): Transformed image.
+            M (np.ndarray): 3x3 transformation matrix.
+            s (float): Scale factor applied during the transformation.
 
         Examples:
             >>> import numpy as np
@@ -1124,9 +1123,8 @@ class RandomPerspective:
             M (np.ndarray): Affine transformation matrix with shape (3, 3).
 
         Returns:
-            (Tuple[np.ndarray, np.ndarray]): A tuple containing:
-                - New bounding boxes with shape (N, 4) in xyxy format.
-                - Transformed and clipped segments with shape (N, M, 2).
+            bboxes (np.ndarray): New bounding boxes with shape (N, 4) in xyxy format.
+            segments (np.ndarray): Transformed and clipped segments with shape (N, M, 2).
 
         Examples:
             >>> segments = np.random.rand(10, 500, 2)  # 10 segments with 500 points each
@@ -1588,6 +1586,9 @@ class LetterBox:
 
         if shape[::-1] != new_unpad:  # resize
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
+            if img.ndim == 2:
+                img = img[..., None]
+
         top, bottom = int(round(dh - 0.1)) if self.center else 0, int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)) if self.center else 0, int(round(dw + 0.1))
         h, w, c = img.shape

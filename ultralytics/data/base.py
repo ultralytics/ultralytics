@@ -15,7 +15,8 @@ import psutil
 from torch.utils.data import Dataset
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS, check_file_speeds
-from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, imread
+from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
+from ultralytics.utils.patches import imread
 
 
 class BaseDataset(Dataset):
@@ -32,6 +33,7 @@ class BaseDataset(Dataset):
         single_cls (bool): Whether to treat all objects as a single class.
         prefix (str): Prefix to print in log messages.
         fraction (float): Fraction of dataset to utilize.
+        cv2_flag (int): OpenCV flag for reading images.
         im_files (List[str]): List of image file paths.
         labels (List[Dict]): List of label data dictionaries.
         ni (int): Number of images in the dataset.
@@ -78,6 +80,7 @@ class BaseDataset(Dataset):
         single_cls=False,
         classes=None,
         fraction=1.0,
+        channels=3,
     ):
         """
         Initialize BaseDataset with given configuration and options.
@@ -96,6 +99,7 @@ class BaseDataset(Dataset):
             single_cls (bool, optional): If True, single class training is used.
             classes (list, optional): List of included classes.
             fraction (float, optional): Fraction of dataset to utilize.
+            channels (int, optional): Number of channels in the images (1 for grayscale, 3 for RGB).
         """
         super().__init__()
         self.img_path = img_path
@@ -104,6 +108,8 @@ class BaseDataset(Dataset):
         self.single_cls = single_cls
         self.prefix = prefix
         self.fraction = fraction
+        self.channels = channels
+        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR
         self.im_files = self.get_img_files(self.img_path)
         self.labels = self.get_labels()
         self.update_labels(include_class=classes)  # single_cls and include_class
@@ -208,9 +214,9 @@ class BaseDataset(Dataset):
             rect_mode (bool, optional): Whether to use rectangular resizing.
 
         Returns:
-            (np.ndarray): Loaded image.
-            (tuple): Original image dimensions (h, w).
-            (tuple): Resized image dimensions (h, w).
+            (np.ndarray): Loaded image as a NumPy array.
+            (Tuple[int, int]): Original image dimensions in (height, width) format.
+            (Tuple[int, int]): Resized image dimensions in (height, width) format.
 
         Raises:
             FileNotFoundError: If the image file is not found.
@@ -223,9 +229,9 @@ class BaseDataset(Dataset):
                 except Exception as e:
                     LOGGER.warning(f"{self.prefix}Removing corrupt *.npy image file {fn} due to: {e}")
                     Path(fn).unlink(missing_ok=True)
-                    im = imread(f)  # BGR
+                    im = imread(f, flags=self.cv2_flag)  # BGR
             else:  # read image
-                im = imread(f)  # BGR
+                im = imread(f, flags=self.cv2_flag)  # BGR
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
 
@@ -237,6 +243,8 @@ class BaseDataset(Dataset):
                     im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
             elif not (h0 == w0 == self.imgsz):  # resize by stretching image to square imgsz
                 im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
+            if im.ndim == 2:
+                im = im[..., None]
 
             # Add to buffer if training with augmentations
             if self.augment:

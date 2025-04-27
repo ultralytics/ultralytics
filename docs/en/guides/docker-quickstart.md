@@ -128,29 +128,6 @@ sudo docker run -it --ipc=host --gpus '"device=2,3"' $t
 
 The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. The `--gpus` flag allows the container to access the host's GPUs.
 
-## Running Ultralytics in Docker Container
-
-Here's how to execute the Ultralytics Docker container:
-
-### Using only the CPU
-
-```bash
-# Run with all GPUs
-sudo docker run -it --ipc=host $t
-```
-
-### Using GPUs
-
-```bash
-# Run with all GPUs
-sudo docker run -it --ipc=host --gpus all $t
-
-# Run specifying which GPUs to use
-sudo docker run -it --ipc=host --gpus '"device=2,3"' $t
-```
-
-The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. The `--gpus` flag allows the container to access the host's GPUs.
-
 ### Note on File Accessibility
 
 To work with files on your local machine within the container, you can use Docker volumes:

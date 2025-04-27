@@ -88,9 +88,9 @@ class Tuner:
             "flipud": (0.0, 1.0),  # image flip up-down (probability)
             "fliplr": (0.0, 1.0),  # image flip left-right (probability)
             "bgr": (0.0, 1.0),  # image channel bgr (probability)
-            "mosaic": (0.0, 1.0),  # image mixup (probability)
+            "mosaic": (0.0, 1.0),  # image mosaic (probability)
             "mixup": (0.0, 1.0),  # image mixup (probability)
-            "cutmix": (0.0, 1.0),
+            "cutmix": (0.0, 1.0),  # image cutmix (probability)
             "copy_paste": (0.0, 1.0),  # segment copy-paste (probability)
         }
         self.args = get_cfg(overrides=args)

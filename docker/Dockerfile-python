@@ -18,6 +18,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     /root/.config/Ultralytics/
 
 # Install linux packages
+# gnupg required for Edge TPU install
 # Java runtime environment (default-jre) required for Sony IMX export
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \

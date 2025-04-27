@@ -23,6 +23,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     /root/.config/Ultralytics/
 
 # Install linux packages
+# gnupg required for Edge TPU install
 # libsm6 required by libqxcb to create QT-based windows for visualization; set 'QT_DEBUG_PLUGINS=1' to test in docker
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \

@@ -104,6 +104,7 @@ sudo docker pull $t
 ```
 
 ---
+
 ## Running Ultralytics in Docker Container
 
 Here's how to execute the Ultralytics Docker container:

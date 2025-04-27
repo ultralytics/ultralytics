@@ -1027,10 +1027,9 @@ class RandomPerspective:
             border (Tuple[int, int]): Border dimensions for the transformed image.
 
         Returns:
-            (Tuple[np.ndarray, np.ndarray, float]): A tuple containing:
-                - np.ndarray: Transformed image.
-                - np.ndarray: 3x3 transformation matrix.
-                - float: Scale factor applied during the transformation.
+            img (np.ndarray): Transformed image.
+            M (np.ndarray): 3x3 transformation matrix.
+            s (float): Scale factor applied during the transformation.
 
         Examples:
             >>> import numpy as np
@@ -1124,9 +1123,8 @@ class RandomPerspective:
             M (np.ndarray): Affine transformation matrix with shape (3, 3).
 
         Returns:
-            (Tuple[np.ndarray, np.ndarray]): A tuple containing:
-                - New bounding boxes with shape (N, 4) in xyxy format.
-                - Transformed and clipped segments with shape (N, M, 2).
+            bboxes (np.ndarray): New bounding boxes with shape (N, 4) in xyxy format.
+            segments (np.ndarray): Transformed and clipped segments with shape (N, M, 2).
 
         Examples:
             >>> segments = np.random.rand(10, 500, 2)  # 10 segments with 500 points each
@@ -1364,8 +1362,10 @@ class RandomHSV:
             >>> hsv_augmenter(labels)
             >>> augmented_img = labels["img"]
         """
+        img = labels["img"]
+        if img.shape[-1] != 3:  # only apply to RGB images
+            return labels
         if self.hgain or self.sgain or self.vgain:
-            img = labels["img"]
             dtype = img.dtype  # uint8
 
             r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain]  # random gains
@@ -1586,11 +1586,19 @@ class LetterBox:
 
         if shape[::-1] != new_unpad:  # resize
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
+            if img.ndim == 2:
+                img = img[..., None]
+
         top, bottom = int(round(dh - 0.1)) if self.center else 0, int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)) if self.center else 0, int(round(dw + 0.1))
-        img = cv2.copyMakeBorder(
-            img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114)
-        )  # add border
+        h, w, c = img.shape
+        if c == 3:
+            img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))
+        else:  # multispectral
+            pad_img = np.full((h + top + bottom, w + left + right, c), fill_value=114, dtype=img.dtype)
+            pad_img[top : top + h, left : left + w] = img
+            img = pad_img
+
         if labels.get("ratio_pad"):
             labels["ratio_pad"] = (labels["ratio_pad"], (left, top))  # for evaluation
 
@@ -1796,6 +1804,9 @@ class Albumentations:
         prefix = colorstr("albumentations: ")
 
         try:
+            import os
+
+            os.environ["NO_ALBUMENTATIONS_UPDATE"] = "1"  # suppress Albumentations upgrade message
             import albumentations as A
 
             check_version(A.__version__, "1.0.3", hard=True)  # version requirement
@@ -1905,10 +1916,13 @@ class Albumentations:
         if self.transform is None or random.random() > self.p:
             return labels
 
+        im = labels["img"]
+        if im.shape[2] != 3:  # Only apply Albumentation on 3-channel images
+            return labels
+
         if self.contains_spatial:
             cls = labels["cls"]
             if len(cls):
-                im = labels["img"]
                 labels["instances"].convert_bbox("xywh")
                 labels["instances"].normalize(*im.shape[:2][::-1])
                 bboxes = labels["instances"].bboxes
@@ -2104,7 +2118,7 @@ class Format:
         if len(img.shape) < 3:
             img = np.expand_dims(img, -1)
         img = img.transpose(2, 0, 1)
-        img = np.ascontiguousarray(img[::-1] if random.uniform(0, 1) > self.bgr else img)
+        img = np.ascontiguousarray(img[::-1] if random.uniform(0, 1) > self.bgr and img.shape[0] == 3 else img)
         img = torch.from_numpy(img)
         return img
 
@@ -2423,7 +2437,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
         kpt_shape = dataset.data.get("kpt_shape", None)
         if len(flip_idx) == 0 and hyp.fliplr > 0.0:
             hyp.fliplr = 0.0
-            LOGGER.warning("WARNING ⚠️ No 'flip_idx' array defined in data.yaml, setting augmentation 'fliplr=0.0'")
+            LOGGER.warning("No 'flip_idx' array defined in data.yaml, setting augmentation 'fliplr=0.0'")
         elif flip_idx and (len(flip_idx) != kpt_shape[0]):
             raise ValueError(f"data.yaml flip_idx={flip_idx} length must be equal to kpt_shape[0]={kpt_shape[0]}")
 

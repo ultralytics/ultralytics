@@ -278,6 +278,7 @@ nav:
           - Argoverse: datasets/detect/argoverse.md
           - COCO: datasets/detect/coco.md
           - COCO8: datasets/detect/coco8.md
+          - COCO8-Multispectral: datasets/detect/coco8-multispectral.md
           - COCO128: datasets/detect/coco128.md
           - LVIS: datasets/detect/lvis.md
           - GlobalWheat2020: datasets/detect/globalwheat2020.md
@@ -494,6 +495,7 @@ nav:
           - converter: reference/data/converter.md
           - dataset: reference/data/dataset.md
           - loaders: reference/data/loaders.md
+          - split: reference/data/split.md
           - split_dota: reference/data/split_dota.md
           - utils: reference/data/utils.md
       - engine:
@@ -630,6 +632,7 @@ nav:
           - dist: reference/utils/dist.md
           - downloads: reference/utils/downloads.md
           - errors: reference/utils/errors.md
+          - export: reference/utils/export.md
           - files: reference/utils/files.md
           - instance: reference/utils/instance.md
           - loss: reference/utils/loss.md

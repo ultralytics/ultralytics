@@ -41,7 +41,7 @@ class PosePredictor(DetectionPredictor):
         Examples:
             >>> from ultralytics.utils import ASSETS
             >>> from ultralytics.models.yolo.pose import PosePredictor
-            >>> args = dict(model="yolov8n-pose.pt", source=ASSETS)
+            >>> args = dict(model="yolo11n-pose.pt", source=ASSETS)
             >>> predictor = PosePredictor(overrides=args)
             >>> predictor.predict_cli()
         """
@@ -49,7 +49,7 @@ class PosePredictor(DetectionPredictor):
         self.args.task = "pose"
         if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
             LOGGER.warning(
-                "WARNING ⚠️ Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
+                "Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
                 "See https://github.com/ultralytics/ultralytics/issues/4031."
             )
 

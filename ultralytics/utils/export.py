@@ -41,8 +41,8 @@ def export_onnx(
         do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
         input_names=input_names,
         output_names=output_names,
-        dynamic_shapes=dynamic or None,
-        dynamo=True,
+        dynamic_axes=dynamic or None,
+        dynamo=True,  # TorchDynamo-based ONNX exporter
     )
 
 

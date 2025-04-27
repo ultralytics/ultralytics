@@ -29,12 +29,12 @@ RUN ./bin/installdependencies.sh && \
     apt-get -y install libicu-dev
 
 # Inline ENTRYPOINT command to configure and start runner with default TOKEN and NAME
-ENTRYPOINT sh -c './config.sh --url https://github.com/ultralytics/ultralytics \
-                              --token ${GITHUB_RUNNER_TOKEN:-TOKEN} \
-                              --name ${GITHUB_RUNNER_NAME:-NAME} \
-                              --labels gpu-latest \
-                              --replace && \
-                  ./run.sh'
+ENTRYPOINT exec sh -c './config.sh --url https://github.com/ultralytics/ultralytics \
+                                   --token ${GITHUB_RUNNER_TOKEN:-TOKEN} \
+                                   --name ${GITHUB_RUNNER_NAME:-NAME} \
+                                   --labels gpu-latest \
+                                   --replace && \
+                       ./run.sh'
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

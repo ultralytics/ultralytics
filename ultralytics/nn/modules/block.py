@@ -7,7 +7,7 @@ import torch.nn.functional as F
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
-from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad, ChannelAttention
+from .conv import ChannelAttention, Conv, DWConv, GhostConv, LightConv, RepConv, autopad
 from .transformer import TransformerBlock
 
 __all__ = (
@@ -1966,13 +1966,14 @@ class SAVPE(nn.Module):
 
         return F.normalize(aggregated.transpose(-2, -3).reshape(B, Q, -1), dim=-1, p=2)
 
+
 class CCAM(nn.Module):
     """
     Convolutional Coordinate Attention Module (CCAM) for enhanced feature extraction.
 
-    CCAM is a combination of Channel Attention Module (CAM) and Coordinate Attention (CA) for improved feature representation,
-    particularly in convolutional neural networks. It enhances the model's ability to focus on important features by
-    applying attention mechanisms in both channel and spatial dimensions.
+    CCAM is a combination of Channel Attention Module (CAM) and Coordinate Attention (CA) for improved feature
+    representation, particularly in convolutional neural networks. It enhances the model's ability to focus on important
+    features by applying attention mechanisms in both channel and spatial dimensions.
     """
 
     def __init__(self, c1, reduction=16):
@@ -1983,7 +1984,7 @@ class CCAM(nn.Module):
             c1 (int): Input channels.
             reduction (int): Reduction ratio for channel attention.
         """
-        super(CCAM, self).__init__()
+        super().__init__()
 
         # Initialize the channel attention.
         self.channel_attention = ChannelAttention(c1)

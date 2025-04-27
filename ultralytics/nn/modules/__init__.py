@@ -23,6 +23,7 @@ from .block import (
     C2PSA,
     C3,
     C3TR,
+    CCAM,
     CIB,
     DFL,
     ELAN1,
@@ -58,7 +59,6 @@ from .block import (
     RepVGGDW,
     ResNetLayer,
     SCDown,
-    CCAM,
     TorchVision,
 )
 from .conv import (

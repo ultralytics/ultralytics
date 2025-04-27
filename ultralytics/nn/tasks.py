@@ -18,6 +18,7 @@ from ultralytics.nn.modules import (
     C2PSA,
     C3,
     C3TR,
+    CCAM,
     ELAN1,
     OBB,
     PSA,
@@ -68,7 +69,6 @@ from ultralytics.nn.modules import (
     YOLOEDetect,
     YOLOESegment,
     v10Detect,
-    CCAM,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml

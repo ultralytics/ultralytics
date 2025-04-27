@@ -235,14 +235,14 @@ class YOLODataset(BaseDataset):
 
     def close_mosaic(self, hyp):
         """
-        Sets mosaic, copy_paste and mixup options to 0.0 and builds transformations.
+        Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their probabilities to 0.0.
 
         Args:
             hyp (dict): Hyperparameters for transforms.
         """
-        hyp.mosaic = 0.0  # set mosaic ratio=0.0
-        hyp.copy_paste = 0.0  # keep the same behavior as previous v8 close-mosaic
-        hyp.mixup = 0.0  # keep the same behavior as previous v8 close-mosaic
+        hyp.mosaic = 0.0
+        hyp.copy_paste = 0.0
+        hyp.mixup = 0.0
         hyp.cutmix = 0.0
         self.transforms = self.build_transforms(hyp)
 

@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import math
 from collections import defaultdict
 
 import cv2
@@ -81,12 +82,14 @@ class BaseSolution:
         self.region = self.CFG["region"]  # Store region data for other classes usage
         self.line_width = self.CFG["line_width"] if self.CFG["line_width"] not in (None, 0) else 2  # Store line_width
 
-        # Load Model and store classes names
+        # Load Model and store additional information (classes, show_conf, show_label)
         if self.CFG["model"] is None:
             self.CFG["model"] = "yolo11n.pt"
         self.model = YOLO(self.CFG["model"])
         self.names = self.model.names
         self.classes = self.CFG["classes"]
+        self.show_conf = self.CFG["show_conf"]
+        self.show_labels = self.CFG["show_labels"]
 
         self.track_add_args = {  # Tracker additional arguments for advance configuration
             k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker", "device", "verbose"]
@@ -94,7 +97,7 @@ class BaseSolution:
 
         if is_cli and self.CFG["source"] is None:
             d_s = "solutions_ci_demo.mp4" if "-pose" not in self.CFG["model"] else "solution_ci_pose_demo.mp4"
-            self.LOGGER.warning(f"⚠️ WARNING: source not provided. using default source {ASSETS_URL}/{d_s}")
+            self.LOGGER.warning(f"source not provided. using default source {ASSETS_URL}/{d_s}")
             from ultralytics.utils.downloads import safe_download
 
             safe_download(f"{ASSETS_URL}/{d_s}")  # download source from ultralytics assets
@@ -103,6 +106,25 @@ class BaseSolution:
         # Initialize environment and region setup
         self.env_check = check_imshow(warn=True)
         self.track_history = defaultdict(list)
+
+    def adjust_box_label(self, cls, conf, track_id=None):
+        """
+        Generates a formatted label for a bounding box.
+
+        This method constructs a label string for a bounding box using the class index and confidence score.
+        Optionally includes the track ID if provided. The label format adapts based on the display settings
+        defined in `self.show_conf` and `self.show_labels`.
+
+        Args:
+            cls (int): The class index of the detected object.
+            conf (float): The confidence score of the detection.
+            track_id (int, optional): The unique identifier for the tracked object. Defaults to None.
+
+        Returns:
+            (str or None): The formatted label string if `self.show_labels` is True; otherwise, None.
+        """
+        name = ("" if track_id is None else f"{track_id} ") + self.names[cls]
+        return (f"{name} {conf:.2f}" if self.show_conf else name) if self.show_labels else None
 
     def extract_tracks(self, im0):
         """
@@ -127,9 +149,10 @@ class BaseSolution:
             self.boxes = self.track_data.xyxy.cpu()
             self.clss = self.track_data.cls.cpu().tolist()
             self.track_ids = self.track_data.id.int().cpu().tolist()
+            self.confs = self.track_data.conf.cpu().tolist()
         else:
-            self.LOGGER.warning("WARNING ⚠️ no tracks found!")
-            self.boxes, self.clss, self.track_ids = [], [], []
+            self.LOGGER.warning("no tracks found!")
+            self.boxes, self.clss, self.track_ids, self.confs = [], [], [], []
 
     def store_tracking_history(self, track_id, box):
         """
@@ -347,12 +370,9 @@ class SolutionAnnotator(Annotator):
         Returns:
             (float): The angle in degrees between the three points.
         """
-        a, b, c = np.array(a), np.array(b), np.array(c)
-        radians = np.arctan2(c[1] - b[1], c[0] - b[0]) - np.arctan2(a[1] - b[1], a[0] - b[0])
-        angle = np.abs(radians * 180.0 / np.pi)
-        if angle > 180.0:
-            angle = 360 - angle
-        return angle
+        radians = math.atan2(c[1] - b[1], c[0] - b[0]) - math.atan2(a[1] - b[1], a[0] - b[0])
+        angle = abs(radians * 180.0 / math.pi)
+        return angle if angle <= 180.0 else (360 - angle)
 
     def draw_specific_kpts(self, keypoints, indices=None, radius=2, conf_thresh=0.25):
         """
@@ -576,11 +596,8 @@ class SolutionAnnotator(Annotator):
             txt_color (Tuple[int, int, int]): The color of the text (R, G, B).
             margin (int): The margin between the text and the circle border.
         """
-        # If label have more than 3 characters, skip other characters, due to circle size
         if len(label) > 3:
-            print(
-                f"Length of label is {len(label)}, initial 3 label characters will be considered for circle annotation!"
-            )
+            LOGGER.warning(f"Length of label is {len(label)}, only first 3 letters will be used for circle annotation.")
             label = label[:3]
 
         # Calculate the center of the box

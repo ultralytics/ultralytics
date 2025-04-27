@@ -4,7 +4,7 @@ import contextlib
 import importlib.metadata
 import inspect
 import json
-import logging.config
+import logging
 import os
 import platform
 import re
@@ -381,15 +381,25 @@ def set_logging(name="LOGGING_NAME", verbose=True):
     """
     level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
 
-    # Configure the console (stdout) encoding to UTF-8, with checks for compatibility
-    formatter = logging.Formatter("%(message)s")  # Default formatter
+    class PrefixFormatter(logging.Formatter):
+        def format(self, record):
+            """Format log records with prefixes based on level."""
+            # Apply prefixes based on log level
+            if record.levelno == logging.WARNING:
+                prefix = "WARNING ⚠️" if not WINDOWS else "WARNING"
+                record.msg = f"{prefix} {record.msg}"
+            elif record.levelno == logging.ERROR:
+                prefix = "ERROR ❌" if not WINDOWS else "ERROR"
+                record.msg = f"{prefix} {record.msg}"
+
+            # Handle emojis in message based on platform
+            formatted_message = super().format(record)
+            return emojis(formatted_message)
+
+    formatter = PrefixFormatter("%(message)s")
+
+    # Handle Windows UTF-8 encoding issues
     if WINDOWS and hasattr(sys.stdout, "encoding") and sys.stdout.encoding != "utf-8":
-
-        class CustomFormatter(logging.Formatter):
-            def format(self, record):
-                """Format log records with UTF-8 encoding for Windows compatibility."""
-                return emojis(super().format(record))
-
         try:
             # Attempt to reconfigure stdout to use UTF-8 encoding if possible
             if hasattr(sys.stdout, "reconfigure"):
@@ -399,11 +409,8 @@ def set_logging(name="LOGGING_NAME", verbose=True):
                 import io
 
                 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
-            else:
-                formatter = CustomFormatter("%(message)s")
-        except Exception as e:
-            print(f"Creating custom formatter for non UTF-8 environments due to {e}")
-            formatter = CustomFormatter("%(message)s")
+        except Exception:
+            pass
 
     # Create and configure the StreamHandler with the appropriate formatter and level
     stream_handler = logging.StreamHandler(sys.stdout)
@@ -821,7 +828,7 @@ def get_user_config_dir(sub_dir="Ultralytics"):
     # GCP and AWS lambda fix, only /tmp is writeable
     if not is_dir_writeable(path.parent):
         LOGGER.warning(
-            f"WARNING ⚠️ user config directory '{path}' is not writeable, defaulting to '/tmp' or CWD."
+            f"user config directory '{path}' is not writeable, defaulting to '/tmp' or CWD."
             "Alternatively you can define a YOLO_CONFIG_DIR environment variable for this path."
         )
         path = Path("/tmp") / sub_dir if is_dir_writeable("/tmp") else Path().cwd() / sub_dir
@@ -984,7 +991,7 @@ class Retry(contextlib.ContextDecorator):
                     return func(*args, **kwargs)
                 except Exception as e:
                     self._attempts += 1
-                    print(f"Retry {self._attempts}/{self.times} failed: {e}")
+                    LOGGER.warning(f"Retry {self._attempts}/{self.times} failed: {e}")
                     if self._attempts >= self.times:
                         raise e
                     time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
@@ -1140,9 +1147,9 @@ class JSONDict(dict):
                 with open(self.file_path) as f:
                     self.update(json.load(f))
         except json.JSONDecodeError:
-            print(f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary.")
+            LOGGER.warning(f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary.")
         except Exception as e:
-            print(f"Error reading from {self.file_path}: {e}")
+            LOGGER.error(f"Error reading from {self.file_path}: {e}")
 
     def _save(self):
         """Save the current state of the dictionary to the JSON file."""
@@ -1151,7 +1158,7 @@ class JSONDict(dict):
             with open(self.file_path, "w", encoding="utf-8") as f:
                 json.dump(dict(self), f, indent=2, default=self._json_default)
         except Exception as e:
-            print(f"Error writing to {self.file_path}: {e}")
+            LOGGER.error(f"Error writing to {self.file_path}: {e}")
 
     @staticmethod
     def _json_default(obj):
@@ -1243,7 +1250,7 @@ class SettingsManager(JSONDict):
             "mlflow": True,  # MLflow integration
             "neptune": True,  # Neptune integration
             "raytune": True,  # Ray Tune integration
-            "tensorboard": True,  # TensorBoard logging
+            "tensorboard": False,  # TensorBoard logging
             "wandb": False,  # Weights & Biases logging
             "vscode_msg": True,  # VSCode messaging
         }
@@ -1254,7 +1261,7 @@ class SettingsManager(JSONDict):
             "For help see https://docs.ultralytics.com/quickstart/#ultralytics-settings."
         )
 
-        with torch_distributed_zero_first(RANK):
+        with torch_distributed_zero_first(LOCAL_RANK):
             super().__init__(self.file)
 
             if not self.file.exists() or not self:  # Check if file doesn't exist or is empty
@@ -1271,14 +1278,14 @@ class SettingsManager(JSONDict):
 
         if not (correct_keys and correct_types and correct_version):
             LOGGER.warning(
-                "WARNING ⚠️ Ultralytics settings reset to default values. This may be due to a possible problem "
+                "Ultralytics settings reset to default values. This may be due to a possible problem "
                 f"with your settings or a recent ultralytics package update. {self.help_msg}"
             )
             self.reset()
 
         if self.get("datasets_dir") == self.get("runs_dir"):
             LOGGER.warning(
-                f"WARNING ⚠️ Ultralytics setting 'datasets_dir: {self.get('datasets_dir')}' "
+                f"Ultralytics setting 'datasets_dir: {self.get('datasets_dir')}' "
                 f"must be different than 'runs_dir: {self.get('runs_dir')}'. "
                 f"Please change one to avoid possible issues during training. {self.help_msg}"
             )
@@ -1310,7 +1317,7 @@ class SettingsManager(JSONDict):
 
 def deprecation_warn(arg, new_arg=None):
     """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
-    msg = f"WARNING ⚠️ '{arg}' is deprecated and will be removed in in the future."
+    msg = f"'{arg}' is deprecated and will be removed in in the future."
     if new_arg is not None:
         msg += f" Use '{new_arg}' instead."
     LOGGER.warning(msg)

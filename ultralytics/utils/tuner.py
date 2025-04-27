@@ -77,8 +77,9 @@ def run_ray_tune(
         "flipud": tune.uniform(0.0, 1.0),  # image flip up-down (probability)
         "fliplr": tune.uniform(0.0, 1.0),  # image flip left-right (probability)
         "bgr": tune.uniform(0.0, 1.0),  # image channel BGR (probability)
-        "mosaic": tune.uniform(0.0, 1.0),  # image mixup (probability)
+        "mosaic": tune.uniform(0.0, 1.0),  # image mosaic (probability)
         "mixup": tune.uniform(0.0, 1.0),  # image mixup (probability)
+        "cutmix": tune.uniform(0.0, 1.0),  # image cutmix (probability)
         "copy_paste": tune.uniform(0.0, 1.0),  # segment copy-paste (probability)
     }
 
@@ -97,13 +98,13 @@ def run_ray_tune(
     # Get search space
     if not space and not train_args.get("resume"):
         space = default_space
-        LOGGER.warning("WARNING ⚠️ search space not provided, using default search space.")
+        LOGGER.warning("search space not provided, using default search space.")
 
     # Get dataset
     data = train_args.get("data", TASK2DATA[task])
     space["data"] = data
     if "data" not in train_args:
-        LOGGER.warning(f'WARNING ⚠️ data not provided, using default "data={data}".')
+        LOGGER.warning(f'data not provided, using default "data={data}".')
 
     # Define the trainable function with allocated resources
     trainable_with_resources = tune.with_resources(_tune, {"cpu": NUM_THREADS, "gpu": gpu_per_trial or 0})

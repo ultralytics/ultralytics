@@ -63,6 +63,7 @@ class RTDETRDataset(YOLODataset):
         if self.augment:
             hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
+            hyp.cutmix = hyp.cutmix if self.augment and not self.rect else 0.0
             transforms = v8_transforms(self, self.imgsz, hyp, stretch=True)
         else:
             # transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)])
@@ -143,12 +144,10 @@ class RTDETRValidator(DetectionValidator):
         for i, bbox in enumerate(bboxes):  # (300, 4)
             bbox = ops.xywh2xyxy(bbox)
             score, cls = scores[i].max(-1)  # (300, )
-            # Do not need threshold for evaluation as only got 300 boxes here
-            # idx = score > self.args.conf
             pred = torch.cat([bbox, score[..., None], cls[..., None]], dim=-1)  # filter
             # Sort by confidence to correctly get internal metrics
             pred = pred[score.argsort(descending=True)]
-            outputs[i] = pred  # [idx]
+            outputs[i] = pred[score > self.args.conf]
 
         return outputs
 

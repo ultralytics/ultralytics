@@ -299,8 +299,8 @@ class Results(SimpleClass):
         Return the number of detections in the Results object.
 
         Returns:
-            (int): The number of detections, determined by the length of the first non-empty attribute
-                (boxes, masks, probs, keypoints, or obb).
+            (int): The number of detections, determined by the length of the first non-empty
+                attribute in (masks, probs, keypoints, or obb).
 
         Examples:
             >>> results = Results(orig_img, path, names, boxes=torch.rand(5, 4))
@@ -569,9 +569,9 @@ class Results(SimpleClass):
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
-            text = ",\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5)
+            text = "\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5)
             x = round(self.orig_shape[0] * 0.03)
-            annotator.text([x, x], text, txt_color=txt_color)
+            annotator.text([x, x], text, txt_color=txt_color, box_color=(64, 64, 64, 128))  # RGBA box
 
         # Plot Pose results
         if self.keypoints is not None:
@@ -590,7 +590,7 @@ class Results(SimpleClass):
 
         # Save results
         if save:
-            annotator.save(filename)
+            annotator.save(filename or f"results_{Path(self.path).name}")
 
         return annotator.im if pil else annotator.result()
 
@@ -752,10 +752,10 @@ class Results(SimpleClass):
             >>>     result.save_crop(save_dir="path/to/crops", file_name="detection")
         """
         if self.probs is not None:
-            LOGGER.warning("WARNING ⚠️ Classify task do not support `save_crop`.")
+            LOGGER.warning("Classify task do not support `save_crop`.")
             return
         if self.obb is not None:
-            LOGGER.warning("WARNING ⚠️ OBB task do not support `save_crop`.")
+            LOGGER.warning("OBB task do not support `save_crop`.")
             return
         for d in self.boxes:
             save_one_box(
@@ -779,9 +779,9 @@ class Results(SimpleClass):
             decimals (int): Number of decimal places to round the output values to.
 
         Returns:
-            (List[Dict]): A list of dictionaries, each containing summarized information for a single
-                detection or classification result. The structure of each dictionary varies based on the
-                task type (classification or detection) and available information (boxes, masks, keypoints).
+            (List[Dict]): A list of dictionaries, each containing summarized information for a single detection
+                or classification result. The structure of each dictionary varies based on the task type
+                (classification or detection) and available information (boxes, masks, keypoints).
 
         Examples:
             >>> results = model("image.jpg")
@@ -942,7 +942,7 @@ class Results(SimpleClass):
 
     def tojson(self, normalize=False, decimals=5):
         """Deprecated version of to_json()."""
-        LOGGER.warning("WARNING ⚠️ 'result.tojson()' is deprecated, replace with 'result.to_json()'.")
+        LOGGER.warning("'result.tojson()' is deprecated, replace with 'result.to_json()'.")
         return self.to_json(normalize, decimals)
 
     def to_json(self, normalize=False, decimals=5):
@@ -1005,7 +1005,7 @@ class Results(SimpleClass):
         # Convert results to a list of dictionaries
         data = self.summary(normalize=normalize, decimals=decimals)
         if len(data) == 0:
-            LOGGER.warning("⚠️ No results to save to SQL. Results dict is empty")
+            LOGGER.warning("No results to save to SQL. Results dict is empty.")
             return
 
         # Connect to the SQLite database

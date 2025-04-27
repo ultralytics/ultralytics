@@ -62,7 +62,7 @@ class PoseValidator(DetectionValidator):
 
         Examples:
             >>> from ultralytics.models.yolo.pose import PoseValidator
-            >>> args = dict(model="yolov8n-pose.pt", data="coco8-pose.yaml")
+            >>> args = dict(model="yolo11n-pose.pt", data="coco8-pose.yaml")
             >>> validator = PoseValidator(args=args)
             >>> validator()
 
@@ -78,7 +78,7 @@ class PoseValidator(DetectionValidator):
         self.metrics = PoseMetrics(save_dir=self.save_dir)
         if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
             LOGGER.warning(
-                "WARNING ⚠️ Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
+                "Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
                 "See https://github.com/ultralytics/ultralytics/issues/4031."
             )
 

@@ -88,8 +88,9 @@ class Tuner:
             "flipud": (0.0, 1.0),  # image flip up-down (probability)
             "fliplr": (0.0, 1.0),  # image flip left-right (probability)
             "bgr": (0.0, 1.0),  # image channel bgr (probability)
-            "mosaic": (0.0, 1.0),  # image mixup (probability)
+            "mosaic": (0.0, 1.0),  # image mosaic (probability)
             "mixup": (0.0, 1.0),  # image mixup (probability)
+            "cutmix": (0.0, 1.0),  # image cutmix (probability)
             "copy_paste": (0.0, 1.0),  # segment copy-paste (probability)
         }
         self.args = get_cfg(overrides=args)
@@ -198,7 +199,7 @@ class Tuner:
                 assert return_code == 0, "training failed"
 
             except Exception as e:
-                LOGGER.warning(f"WARNING ❌️ training failure for hyperparameter tuning iteration {i + 1}\n{e}")
+                LOGGER.error(f"training failure for hyperparameter tuning iteration {i + 1}\n{e}")
 
             # Save results and mutated_hyp to CSV
             fitness = metrics.get("fitness", 0.0)

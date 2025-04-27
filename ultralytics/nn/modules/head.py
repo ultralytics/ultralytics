@@ -32,6 +32,7 @@ class Detect(nn.Module):
     anchors = torch.empty(0)  # init
     strides = torch.empty(0)  # init
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
+    xyxy = False  # xyxy or xywh output
 
     def __init__(self, nc=80, ch=()):
         """Initialize the YOLO detection layer with specified number of classes and channels."""
@@ -83,9 +84,10 @@ class Detect(nn.Module):
             x (List[torch.Tensor]): Input feature maps from different levels.
 
         Returns:
-            (dict | tuple): If in training mode, returns a dictionary containing the outputs of both one2many and
-                one2one detections. If not in training mode, returns processed detections or a tuple with
-                processed detections and raw outputs.
+            (dict | tuple):
+
+                - If in training mode, returns a dictionary containing outputs of both one2many and one2one detections.
+                - If not in training mode, returns processed detections or a tuple with processed detections and raw outputs.
         """
         x_detach = [xi.detach() for xi in x]
         one2one = [
@@ -156,7 +158,7 @@ class Detect(nn.Module):
 
     def decode_bboxes(self, bboxes, anchors, xywh=True):
         """Decode bounding boxes."""
-        return dist2bbox(bboxes, anchors, xywh=xywh and (not self.end2end), dim=1)
+        return dist2bbox(bboxes, anchors, xywh=xywh and not (self.end2end or self.xyxy), dim=1)
 
     @staticmethod
     def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80):
@@ -370,7 +372,7 @@ class LRPCHead(nn.Module):
             pf_score = self.pf(cls_feat)[0, 0].flatten(0)
             mask = pf_score.sigmoid() > conf
             cls_feat = cls_feat.flatten(2).transpose(-1, -2)
-            cls_feat = self.vocab(cls_feat * mask.unsqueeze(-1).int() if not conf else cls_feat[:, mask])
+            cls_feat = self.vocab(cls_feat[:, mask] if conf else cls_feat * mask.unsqueeze(-1).int())
             return (self.loc(loc_feat), cls_feat.transpose(-1, -2)), mask
         else:
             cls_feat = self.vocab(cls_feat)
@@ -872,3 +874,7 @@ class v10Detect(Detect):
             for x in ch
         )
         self.one2one_cv3 = copy.deepcopy(self.cv3)
+
+    def fuse(self):
+        """Removes the one2many head."""
+        self.cv2 = self.cv3 = nn.ModuleList([nn.Identity()] * self.nl)

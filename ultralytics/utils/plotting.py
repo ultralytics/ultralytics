@@ -947,6 +947,106 @@ def plot_tune_results(csv_file="tune_results.csv"):
     _save_one_file(csv_file.with_name("tune_fitness.png"))
 
 
+def plot_matches(validator, batch, preds, ni):
+    """
+    Plot grid of GT, TP, FP, FN for each image.
+
+    Args:
+        validator (DetectionValidator): The validator instance.
+        batch (dict): Input batch data
+        preds (torch.Tensor | list): Model predictions
+        ni (int): Batch index
+    """
+    if not validator.confusion_matrix.matches:
+        return
+
+    task = validator.args.task
+    img = batch["img"][ni]
+    device = img.device
+    im_file = Path(batch["im_file"][ni]).name
+    matches = validator.confusion_matrix.matches[im_file]
+    idx = batch["batch_idx"] == ni
+
+    if task == "segment":
+        pred, pred_mask = preds[0][ni], preds[1][ni]
+    elif task == "pose":
+        pred_kpts = [p[:, 6:].view(-1, *validator.kpt_shape) for p in preds]
+        pred, pred_kpt = preds[ni], pred_kpts[ni]
+    else:
+        pred = preds[ni]
+
+    # format the gt_box for output_to_targets
+    box_dims = 7 if task == "obb" else 6
+    if task == "obb":
+        gt_box = torch.cat(
+            [
+                batch["bboxes"][idx][:, :-1],
+                torch.ones_like(batch["cls"][idx]),
+                batch["cls"][idx],
+                batch["bboxes"][idx][:, -1:],
+            ],
+            dim=-1,
+        ).view(-1, box_dims)
+    else:
+        gt_box = torch.cat(
+            [ops.xywh2xyxy(batch["bboxes"][idx]), torch.ones_like(batch["cls"][idx]), batch["cls"][idx]], dim=-1
+        ).view(-1, box_dims)
+
+    # Create batch of 4 (GT, TP, FP, FN)
+    # add the first element in batch, i.e. GT
+    box_batch = [gt_box]
+    extra_batch = None
+    if task == "pose":
+        extra_batch = [batch["keypoints"][idx]]  # kpt_batch
+    elif task == "segment":
+        gt_mask = batch["masks"][ni]
+        if gt_mask.shape[0] != gt_box.shape[0]:  # overlap_masks = True
+            idxs = torch.arange(gt_box.shape[0], device=device) + 1
+            gt_mask = gt_mask == idxs[:, None, None]
+        extra_batch = [gt_mask]  # mask_batch
+
+    # add FP, TP, FN as the 2nd, 3rd, 4th elements of batch
+    for k in ["FP", "TP", "FN"]:  # order is important; don't change to set
+        if k == "FN":  # FN is derived from GT
+            boxes = gt_box[matches[k]]
+            if extra_batch is not None:
+                extra = extra_batch[0][matches[k]]
+        else:
+            boxes = pred[matches[k]] if matches[k] else torch.empty(size=(0, box_dims), device=device)
+            if task == "pose":
+                extra = (
+                    pred_kpt[matches[k]] if matches[k] else torch.empty(size=(0, *validator.kpt_shape), device=device)
+                )
+            elif task == "segment":
+                extra = (
+                    validator.process(
+                        pred_mask,
+                        boxes[:, 6:].view(-1, pred_mask.shape[0]),
+                        boxes[:, :4].view(-1, 4),
+                        shape=img.shape[1:],
+                    )  # process mask
+                )
+        box_batch.append(boxes)
+        if extra_batch is not None:
+            extra_batch.append(extra)
+
+    plot_args = {
+        "paths": ["Ground Truth", "False Positives", "True Positives", "False Negatives"],
+        "fname": validator.save_dir / "visualizations" / im_file,
+        "names": validator.names,
+        "on_plot": validator.on_plot,
+        "max_subplots": 4,
+        "conf_thres": 0.001,
+    }
+    output_func = output_to_rotated_target if task == "obb" else output_to_target
+    if extra_batch is not None:
+        if task == "pose":
+            plot_args["kpts"] = torch.cat(extra_batch, 0)
+        elif task == "segment":
+            plot_args["masks"] = torch.cat(extra_batch, 0)
+    plot_images(img.repeat(4, 1, 1, 1), *output_func(box_batch, max_det=validator.args.max_det), **plot_args)
+
+
 def output_to_target(output, max_det=300):
     """Convert model output to target format [batch_id, class_id, x, y, w, h, conf] for plotting."""
     targets = []
@@ -959,7 +1059,7 @@ def output_to_target(output, max_det=300):
 
 
 def output_to_rotated_target(output, max_det=300):
-    """Convert model output to target format [batch_id, class_id, x, y, w, h, conf] for plotting."""
+    """Convert model output to target format [batch_id, class_id, x, y, w, h, angle, conf] for plotting."""
     targets = []
     for i, o in enumerate(output):
         box, conf, cls, angle = o[:max_det].cpu().split((4, 1, 1, 1), 1)

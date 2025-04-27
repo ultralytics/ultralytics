@@ -8,13 +8,20 @@ keywords: YOLOE, open-vocabulary detection, real-time object detection, instance
 
 ## Introduction
 
-![YOLOE Prompting Options](https://github.com/THU-MIG/yoloe/raw/main/figures/visualization.svg)
+![YOLOE Prompting Options](https://raw.githubusercontent.com/THU-MIG/yoloe/main/figures/visualization.svg)
 
 [YOLOE (Real-Time Seeing Anything)](https://arxiv.org/html/2503.07465v1) is a new advancement in zero-shot, promptable YOLO models, designed for **open-vocabulary** detection and segmentation. Unlike previous YOLO models limited to fixed categories, YOLOE uses text, image, or internal vocabulary prompts, enabling real-time detection of any object class. Built upon YOLOv10 and inspired by [YOLO-World](yolo-world.md), YOLOE achieves **state-of-the-art zero-shot performance** with minimal impact on speed and accuracy.
 
-!!! note "Ultralytics Integration Status 🚧"
-
-    The Ultralytics integration for YOLOE is currently under construction 🔨. The usage examples shown in this documentation will work once the integration is complete ✅. Please check back for updates 🔄 or follow our [GitHub repository](https://github.com/ultralytics/ultralytics) 🚀 for the latest developments.
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/HMOoM2NwFIQ"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to use YOLOE with Ultralytics Python package: Open Vocabulary & Real-Time Seeing Anything 🚀
+</p>
 
 Compared to earlier YOLO models, YOLOE significantly boosts efficiency and accuracy. It improves by **+3.5 AP** over YOLO-Worldv2 on LVIS while using just a third of the training resources and achieving 1.4× faster inference speeds. Fine-tuned on COCO, YOLOE-v8-large surpasses YOLOv8-L by **0.1 mAP**, using nearly **4× less training time**. This demonstrates YOLOE's exceptional balance of accuracy, efficiency, and versatility. The sections below explore YOLOE's architecture, benchmark comparisons, and integration with the [Ultralytics](https://www.ultralytics.com/) framework.
 
@@ -35,6 +42,588 @@ YOLOE retains the standard YOLO structure—a convolutional **backbone** (e.g., 
 Additionally, YOLOE integrates real-time **instance segmentation** by extending the detection head with a mask prediction branch (similar to YOLACT or YOLOv8-Seg), adding minimal overhead.
 
 Crucially, YOLOE's open-world modules introduce **no inference cost** when used as a regular closed-set YOLO. Post-training, YOLOE parameters can be re-parameterized into a standard YOLO head, preserving identical FLOPs and speed (e.g., matching [YOLO11](yolo11.md) exactly).
+
+## Available Models, Supported Tasks, and Operating Modes
+
+This section details the models available with their specific pre-trained weights, the tasks they support, and their compatibility with various operating modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), denoted by ✅ for supported modes and ❌ for unsupported modes.
+
+### Text/Visual Prompt models
+
+| Model Type | Pre-trained Weights                                                                                 | Tasks Supported                              | Inference | Validation | Training | Export |
+| ---------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLOE-11S  | [yoloe-11s-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yoloe-11s-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-11M  | [yoloe-11m-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yoloe-11m-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-11L  | [yoloe-11l-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yoloe-11l-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-v8S  | [yoloe-v8s-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yoloe-v8s-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-v8M  | [yoloe-v8m-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yoloe-v8m-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-v8L  | [yoloe-v8l-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yoloe-v8l-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+
+### Prompt Free models
+
+| Model Type   | Pre-trained Weights                                                                                       | Tasks Supported                              | Inference | Validation | Training | Export |
+| ------------ | --------------------------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLOE-11S-PF | [yoloe-11s-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yoloe-11s-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-11M-PF | [yoloe-11m-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yoloe-11m-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-11L-PF | [yoloe-11l-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yoloe-11l-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-v8S-PF | [yoloe-v8s-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yoloe-v8s-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-v8M-PF | [yoloe-v8m-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yoloe-v8m-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-v8L-PF | [yoloe-v8l-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yoloe-v8l-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+
+## Usage Examples
+
+The YOLOE models are easy to integrate into your Python applications. Ultralytics provides user-friendly [Python API](../usage/python.md) and [CLI commands](../usage/cli.md) to streamline development.
+
+### Train Usage
+
+#### Fine-Tuning on custom dataset
+
+!!! example
+
+    === "Fine-Tuning"
+
+        ```python
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
+
+        model = YOLOE("yoloe-11s-seg.pt")
+
+        model.train(
+            data="coco128-seg.yaml",
+            epochs=80,
+            close_mosaic=10,
+            batch=128,
+            optimizer="AdamW",
+            lr0=1e-3,
+            warmup_bias_lr=0.0,
+            weight_decay=0.025,
+            momentum=0.9,
+            workers=4,
+            device="0",
+            trainer=YOLOEPESegTrainer,
+        )
+        ```
+
+    === "Linear Probing"
+
+        ```python
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
+
+        model = YOLOE("yoloe-11s-seg.pt")
+        head_index = len(model.model.model) - 1
+        freeze = [str(f) for f in range(0, head_index)]
+        for name, child in model.model.model[-1].named_children():
+            if "cv3" not in name:
+                freeze.append(f"{head_index}.{name}")
+
+        freeze.extend(
+            [
+                f"{head_index}.cv3.0.0",
+                f"{head_index}.cv3.0.1",
+                f"{head_index}.cv3.1.0",
+                f"{head_index}.cv3.1.1",
+                f"{head_index}.cv3.2.0",
+                f"{head_index}.cv3.2.1",
+            ]
+        )
+
+        model.train(
+            data="coco128-seg.yaml",
+            epochs=2,
+            close_mosaic=0,
+            batch=16,
+            optimizer="AdamW",
+            lr0=1e-3,
+            warmup_bias_lr=0.0,
+            weight_decay=0.025,
+            momentum=0.9,
+            workers=4,
+            device="0",
+            trainer=YOLOEPESegTrainer,
+            freeze=freeze,
+        )
+        ```
+
+### Predict Usage
+
+YOLOE supports both text-based and visual prompting. Using prompts is straightforward—just pass them through the `predict` method as shown below:
+
+!!! example
+
+    === "Text Prompt"
+
+        Text prompts allow you to specify the classes that you wish to detect through textual descriptions. The following code shows how you can use YOLOE to detect people and buses in an image:
+
+        ```python
+        from ultralytics import YOLOE
+
+        # Initialize a YOLOE model
+        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
+
+        # Set text prompt to detect person and bus. You only need to do this once after you load the model.
+        names = ["person", "bus"]
+        model.set_classes(names, model.get_text_pe(names))
+
+        # Run detection on the given image
+        results = model.predict("path/to/image.jpg")
+
+        # Show results
+        results[0].show()
+        ```
+
+    === "Visual Prompt"
+
+        Visual prompts allow you to guide the model by showing it visual examples of the target classes, rather than describing them in text.
+
+        The `visual_prompts` argument takes a dictionary with two keys: `bboxes` and `cls`. Each bounding box in `bboxes` should tightly enclose an example of the object you want the model to detect, and the corresponding entry in `cls` specifies the class label for that box. This pairing tells the model, "This is what class X looks like—now find more like it."
+
+        Class IDs (`cls`) in `visual_prompts` are used to associate each bounding box with a specific category within your prompt. They aren't fixed labels, but temporary identifiers you assign to each example. The only requirement is that class IDs must be sequential, starting from 0. This helps the model correctly associate each box with its respective class.
+
+        You can provide visual prompts directly within the same image you want to run inference on. For example:
+
+        ```python
+        import numpy as np
+
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
+
+        # Initialize a YOLOE model
+        model = YOLOE("yoloe-11l-seg.pt")
+
+        # Define visual prompts using bounding boxes and their corresponding class IDs.
+        # Each box highlights an example of the object you want the model to detect.
+        visual_prompts = dict(
+            bboxes=np.array(
+                [
+                    [221.52, 405.8, 344.98, 857.54],  # Box enclosing person
+                    [120, 425, 160, 445],  # Box enclosing glasses
+                ],
+            ),
+            cls=np.array(
+                [
+                    0,  # ID to be assigned for person
+                    1,  # ID to be assigned for glassses
+                ]
+            ),
+        )
+
+        # Run inference on an image, using the provided visual prompts as guidance
+        results = model.predict(
+            "ultralytics/assets/bus.jpg",
+            visual_prompts=visual_prompts,
+            predictor=YOLOEVPSegPredictor,
+        )
+
+        # Show results
+        results[0].show()
+        ```
+
+        Or you can provide examples from a separate reference image using the `refer_image` argument. In that case, the `bboxes` and `cls` in `visual_prompts` should describe objects in the reference image, not the target image you're making predictions on:
+
+        !!! note
+
+            If `source` is a video or stream, the model automatically uses the first frame as the `refer_image`. This means your `visual_prompts` are applied to that initial frame to help the model understand what to look for in the rest of the video. Alternatively, you can explicitly pass any specific frame as the `refer_image` to control which visual examples the model uses as reference.
+
+        ```python
+        import numpy as np
+
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
+
+        # Initialize a YOLOE model
+        model = YOLOE("yoloe-11l-seg.pt")
+
+        # Define visual prompts based on a separate reference image
+        visual_prompts = dict(
+            bboxes=np.array([[221.52, 405.8, 344.98, 857.54]]),  # Box enclosing person
+            cls=np.array([0]),  # ID to be assigned for person
+        )
+
+        # Run prediction on a different image, using reference image to guide what to look for
+        results = model.predict(
+            "ultralytics/assets/zidane.jpg",  # Target image for detection
+            refer_image="ultralytics/assets/bus.jpg",  # Reference image used to get visual prompts
+            visual_prompts=visual_prompts,
+            predictor=YOLOEVPSegPredictor,
+        )
+
+        # Show results
+        results[0].show()
+        ```
+
+        You can also pass multiple target images to run prediction on:
+
+        ```python
+        import numpy as np
+
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
+
+        # Initialize a YOLOE model
+        model = YOLOE("yoloe-11l-seg.pt")
+
+        # Define visual prompts using bounding boxes and their corresponding class IDs.
+        # Each box highlights an example of the object you want the model to detect.
+        visual_prompts = dict(
+            bboxes=[
+                np.array(
+                    [
+                        [221.52, 405.8, 344.98, 857.54],  # Box enclosing person
+                        [120, 425, 160, 445],  # Box enclosing glasses
+                    ],
+                ),
+                np.array([[150, 200, 1150, 700]]),
+            ],
+            cls=[
+                np.array(
+                    [
+                        0,  # ID to be assigned for person
+                        1,  # ID to be assigned for glasses
+                    ]
+                ),
+                np.array([0]),
+            ],
+        )
+
+        # Run inference on multiple image, using the provided visual prompts as guidance
+        results = model.predict(
+            ["ultralytics/assets/bus.jpg", "ultralytics/assets/zidane.jpg"],
+            visual_prompts=visual_prompts,
+            predictor=YOLOEVPSegPredictor,
+        )
+
+        # Show results
+        results[0].show()
+        ```
+
+    === "Prompt free"
+
+        YOLOE also includes prompt-free variants that come with a built-in vocabulary. These models don't require any prompts and work like traditional YOLO models. Instead of relying on user-provided labels or visual examples, they detect objects from a [predefined list of 4,585 classes](https://github.com/xinyu1205/recognize-anything/blob/main/ram/data/ram_tag_list.txt) based on the tag set used by the [Recognize Anything Model Plus (RAM++)](https://arxiv.org/abs/2310.15200).
+
+        ```python
+        from ultralytics import YOLOE
+
+        # Initialize a YOLOE model
+        model = YOLOE("yoloe-11l-seg-pf.pt")
+
+        # Run prediction. No prompts required.
+        results = model.predict("path/to/image.jpg")
+
+        # Show results
+        results[0].show()
+        ```
+
+### Val Usage
+
+!!! example
+
+    === "Text Prompt"
+
+        ```python
+        from ultralytics import YOLOE
+
+        # Create a YOLOE model
+        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
+
+        # Conduct model validation on the COCO128-seg example dataset
+        metrics = model.val(data="coco128-seg.yaml")
+        ```
+
+    === "Visual Prompt"
+
+        Be default it's using the provided dataset to extract visual embeddings for each category.
+
+        ```python
+        from ultralytics import YOLOE
+
+        # Create a YOLOE model
+        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
+
+        # Conduct model validation on the COCO128-seg example dataset
+        metrics = model.val(data="coco128-seg.yaml", load_vp=True)
+        ```
+
+        Alternatively we could use another dataset as a reference dataset to extract visual embeddings for each category.
+        Note this reference dataset should have exactly the same categories as provided dataset.
+
+        ```python
+        from ultralytics import YOLOE
+
+        # Create a YOLOE model
+        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
+
+        # Conduct model validation on the COCO128-seg example dataset
+        metrics = model.val(data="coco128-seg.yaml", load_vp=True, refer_data="coco.yaml")
+        ```
+
+
+    === "Prompt Free"
+
+        ```python
+        from ultralytics import YOLOE
+
+        # Create a YOLOE model
+        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
+
+        # Conduct model validation on the COCO128-seg example dataset
+        metrics = model.val(data="coco128-seg.yaml")
+        ```
+
+Model validation on a dataset is streamlined as follows:
+
+### Train Official Models
+
+#### Prepare datasets
+
+!!! note
+
+    Training official YOLOE models needs segment annotations for train data, here's [the script provided by official team](https://github.com/THU-MIG/yoloe/blob/main/tools/generate_sam_masks.py) that converts datasets to segment annotations, powered by [SAM2.1 models](./sam-2.md). Or you can directly download the provided `Processed Segment Annotations` in following table provided by official team.
+
+- Train data
+
+| Dataset                                                           | Type                                                        | Samples | Boxes | Raw Detection Annotations                                                                                                                  | Processed Segment Annotations                                                                                                                |
+| ----------------------------------------------------------------- | ----------------------------------------------------------- | ------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Objects365v1](https://opendatalab.com/OpenDataLab/Objects365_v1) | Detection                                                   | 609k    | 9621k | [objects365_train.json](https://opendatalab.com/OpenDataLab/Objects365_v1)                                                                 | [objects365_train_segm.json](https://huggingface.co/datasets/jameslahm/yoloe/blob/main/objects365_train_segm.json)                           |
+| [GQA](https://downloads.cs.stanford.edu/nlp/data/gqa/images.zip)  | [Grounding](https://www.ultralytics.com/glossary/grounding) | 621k    | 3681k | [final_mixed_train_no_coco.json](https://huggingface.co/GLIPModel/GLIP/blob/main/mdetr_annotations/final_mixed_train_no_coco.json)         | [final_mixed_train_no_coco_segm.json](https://huggingface.co/datasets/jameslahm/yoloe/blob/main/final_mixed_train_no_coco_segm.json)         |
+| [Flickr30k](https://shannon.cs.illinois.edu/DenotationGraph/)     | Grounding                                                   | 149k    | 641k  | [final_flickr_separateGT_train.json](https://huggingface.co/GLIPModel/GLIP/blob/main/mdetr_annotations/final_flickr_separateGT_train.json) | [final_flickr_separateGT_train_segm.json](https://huggingface.co/datasets/jameslahm/yoloe/blob/main/final_flickr_separateGT_train_segm.json) |
+
+- Val data
+
+| Dataset                                                                                                 | Type      | Annotation Files                                                                                       |
+| ------------------------------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------ |
+| [LVIS minival](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/lvis.yaml) | Detection | [minival.txt](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/lvis.yaml) |
+
+#### Launching training from scratch
+
+!!! note
+
+    `Visual Prompt` models are fine-tuned based on trained-well `Text Prompt` models.
+
+!!! example
+
+    === "Text Prompt"
+
+        ```python
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOESegTrainerFromScratch
+
+        data = dict(
+            train=dict(
+                yolo_data=["Objects365.yaml"],
+                grounding_data=[
+                    dict(
+                        img_path="../datasets/flickr/full_images/",
+                        json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                    ),
+                    dict(
+                        img_path="../datasets/mixed_grounding/gqa/images",
+                        json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                    ),
+                ],
+            ),
+            val=dict(yolo_data=["lvis.yaml"]),
+        )
+
+        model = YOLOE("yoloe-11l-seg.yaml")
+        model.train(
+            data=data,
+            batch=128,
+            epochs=30,
+            close_mosaic=2,
+            optimizer="AdamW",
+            lr0=2e-3,
+            warmup_bias_lr=0.0,
+            weight_decay=0.025,
+            momentum=0.9,
+            workers=4,
+            trainer=YOLOESegTrainerFromScratch,
+            device="0,1,2,3,4,5,6,7",
+        )
+        ```
+
+    === "Visual Prompt"
+
+        Since only the `SAVPE` module needs to be updating during training.
+        Converting trained-well Text-prompt model to detection model and adopt detection pipeline with less training cost.
+        Note this step is optional, you can directly start from segmentation as well.
+
+        ```python
+        import torch
+
+        from ultralytics import YOLOE
+
+        det_model = YOLOE("yoloe-11l.yaml")
+        state = torch.load("yoloe-11l-seg.pt")
+        det_model.load(state["model"])
+        det_model.save("yoloe-11l-seg-det.pt")
+        ```
+
+        Start training:
+
+        ```python
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEVPTrainer
+
+        data = dict(
+            train=dict(
+                yolo_data=["Objects365.yaml"],
+                grounding_data=[
+                    dict(
+                        img_path="../datasets/flickr/full_images/",
+                        json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                    ),
+                    dict(
+                        img_path="../datasets/mixed_grounding/gqa/images",
+                        json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                    ),
+                ],
+            ),
+            val=dict(yolo_data=["lvis.yaml"]),
+        )
+
+        model = YOLOE("yoloe-11l-seg.pt")
+        # replace to yoloe-11l-seg-det.pt if converted to detection model
+        # model = YOLOE("yoloe-11l-seg-det.pt")
+
+        # freeze every layer except of the savpe module.
+        head_index = len(model.model.model) - 1
+        freeze = list(range(0, head_index))
+        for name, child in model.model.model[-1].named_children():
+            if "savpe" not in name:
+                freeze.append(f"{head_index}.{name}")
+
+        model.train(
+            data=data,
+            batch=128,
+            epochs=2,
+            close_mosaic=2,
+            optimizer="AdamW",
+            lr0=16e-3,
+            warmup_bias_lr=0.0,
+            weight_decay=0.025,
+            momentum=0.9,
+            workers=4,
+            trainer=YOLOEVPTrainer,
+            device="0,1,2,3,4,5,6,7",
+            freeze=freeze,
+        )
+        ```
+
+        Convert back to segmentation model after training. Only needed if you converted segmentation model to detection model before training.
+
+        ```python
+        from copy import deepcopy
+
+        from ultralytics import YOLOE
+
+        model = YOLOE("yoloe-11l-seg.yaml")
+        model.load("yoloe-11l-seg.pt")
+
+        vp_model = YOLOE("yoloe-11l-vp.pt")
+        model.model.model[-1].savpe = deepcopy(vp_model.model.model[-1].savpe)
+        model.eval()
+        model.save("yoloe-11l-seg.pt")
+        ```
+
+    === "Prompt Free"
+
+        Similar to visual prompt training, for prompt-free model there's only the specialized prompt embedding needs to be updating during training.
+        Converting trained-well Text-prompt model to detection model and adopt detection pipeline with less training cost.
+        Note this step is optional, you can directly start from segmentation as well.
+
+        ```python
+        import torch
+
+        from ultralytics import YOLOE
+
+        det_model = YOLOE("yoloe-11l.yaml")
+        state = torch.load("yoloe-11l-seg.pt")
+        det_model.load(state["model"])
+        det_model.save("yoloe-11l-seg-det.pt")
+        ```
+        Start training:
+        ```python
+        from ultralytics import YOLOE
+
+        data = dict(
+            train=dict(
+                yolo_data=["Objects365.yaml"],
+                grounding_data=[
+                    dict(
+                        img_path="../datasets/flickr/full_images/",
+                        json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                    ),
+                    dict(
+                        img_path="../datasets/mixed_grounding/gqa/images",
+                        json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                    ),
+                ],
+            ),
+            val=dict(yolo_data=["lvis.yaml"]),
+        )
+
+        model = YOLOE("yoloe-11l-seg.pt")
+        # replace to yoloe-11l-seg-det.pt if converted to detection model
+        # model = YOLOE("yoloe-11l-seg-det.pt")
+
+        # freeze layers.
+        head_index = len(model.model.model) - 1
+        freeze = [str(f) for f in range(0, head_index)]
+        for name, child in model.model.model[-1].named_children():
+            if "cv3" not in name:
+                freeze.append(f"{head_index}.{name}")
+
+        freeze.extend(
+            [
+                f"{head_index}.cv3.0.0",
+                f"{head_index}.cv3.0.1",
+                f"{head_index}.cv3.1.0",
+                f"{head_index}.cv3.1.1",
+                f"{head_index}.cv3.2.0",
+                f"{head_index}.cv3.2.1",
+            ]
+        )
+
+        model.train(
+            data=data,
+            batch=128,
+            epochs=1,
+            close_mosaic=1,
+            optimizer="AdamW",
+            lr0=2e-3,
+            warmup_bias_lr=0.0,
+            weight_decay=0.025,
+            momentum=0.9,
+            workers=4,
+            trainer=YOLOEPEFreeTrainer,
+            device="0,1,2,3,4,5,6,7",
+            freeze=freeze,
+            single_cls=True,  # this is needed
+        )
+        ```
+
+        Convert back to segmentation model after training. Only needed if you converted segmentation model to detection model before training.
+
+        ```python
+        from copy import deepcopy
+
+        from ultralytics import YOLOE
+
+        model = YOLOE("yoloe-11l-seg.pt")
+        model.eval()
+
+        pf_model = YOLOE("yoloe-11l-seg-pf.pt")
+        names = ["object"]
+        tpe = model.get_text_pe(names)
+        model.set_classes(names, tpe)
+        model.model.model[-1].fuse(model.model.pe)
+
+        model.model.model[-1].cv3[0][2] = deepcopy(pf_model.model.model[-1].cv3[0][2]).requires_grad_(True)
+        model.model.model[-1].cv3[1][2] = deepcopy(pf_model.model.model[-1].cv3[1][2]).requires_grad_(True)
+        model.model.model[-1].cv3[2][2] = deepcopy(pf_model.model.model[-1].cv3[2][2]).requires_grad_(True)
+        del model.model.pe
+        model.save("yoloe-11l-seg-pf.pt")
+        ```
 
 ## YOLOE Performance Comparison
 
@@ -112,10 +701,6 @@ Across all these use cases, YOLOE's core advantage is **versatility**, providing
 
 YOLOE integrates seamlessly with the [Ultralytics Python API](../usage/python.md) and [CLI](../usage/cli.md), similar to other YOLO models (YOLOv8, YOLO-World). Here's how to quickly get started:
 
-!!! note "Ultralytics Integration Status 🚧"
-
-    The Ultralytics integration for YOLOE is currently under development 🔨. The examples below demonstrate how the API will work once integration is complete ✅.
-
 !!! Example "Training and inference with YOLOE"
 
     === "Python"
@@ -124,7 +709,7 @@ YOLOE integrates seamlessly with the [Ultralytics Python API](../usage/python.md
         from ultralytics import YOLO
 
         # Load pre-trained YOLOE model and train on custom data
-        model = YOLO("yoloe-s.pt")
+        model = YOLO("yoloe-11s-seg.pt")
         model.train(data="path/to/data.yaml", epochs=50, imgsz=640)
 
         # Run inference using text prompts ("person", "bus")
@@ -139,10 +724,10 @@ YOLOE integrates seamlessly with the [Ultralytics Python API](../usage/python.md
 
         ```bash
         # Training YOLOE on custom dataset
-        yolo train model=yoloe-s.pt data=path/to/data.yaml epochs=50 imgsz=640
+        yolo train model=yoloe-11s-seg.pt data=path/to/data.yaml epochs=50 imgsz=640
 
         # Inference with text prompts
-        yolo predict model=yoloe-s.pt source="test_images/street.jpg" classes="person,bus"
+        yolo predict model=yoloe-11s-seg.pt source="test_images/street.jpg" classes="person,bus"
         ```
 
         CLI prompts (`classes`) guide YOLOE similarly to Python's `set_classes`. Visual prompting (image-based queries) currently requires the Python API.
@@ -177,27 +762,22 @@ Quickly set up YOLOE with Ultralytics by following these steps:
     - **Training**: Fine-tuning YOLOE on custom data typically requires just one GPU. Extensive open-vocabulary pre-training (LVIS/Objects365) used by authors required substantial compute (8× RTX 4090 GPUs).
 
 4. **Configuration**:
-   YOLOE configurations use standard Ultralytics YAML files. Default configs (e.g., `yoloe-s.yaml`) typically suffice, but you can modify backbone, classes, or image size as needed.
+   YOLOE configurations use standard Ultralytics YAML files. Default configs (e.g., `yoloe-11s-seg.yaml`) typically suffice, but you can modify backbone, classes, or image size as needed.
 
 5. **Running YOLOE**:
 
     - **Quick inference** (prompt-free):
         ```bash
-        yolo predict model=yoloe-s.pt source="image.jpg"
+        yolo predict model=yoloe-11s-seg-pf.pt source="image.jpg"
         ```
     - **Prompted detection** (text prompt example):
-
-        ```bash
-        yolo predict model=yoloe-s.pt source="kitchen.jpg" classes="bowl,apple"
-        ```
-
-        In Python:
 
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yoloe-s.pt")
-        model.set_classes(["bowl", "apple"])
+        model = YOLO("yoloe-11s-seg.pt")
+        names = ["bowl", "apple"]
+        model.set_classes(names, model.get_text_pe(names))
         results = model.predict("kitchen.jpg")
         results[0].save()
         ```
@@ -268,10 +848,11 @@ Similar to [YOLO-World](yolo-world.md), YOLOE supports a "prompt-then-detect" st
 from ultralytics import YOLO
 
 # Initialize a YOLOE model
-model = YOLO("yoloe-s.pt")
+model = YOLO("yoloe-11s-seg.pt")
 
 # Define custom classes
-model.set_classes(["person", "bus"])
+names = ["person", "bus"]
+model.set_classes(names, model.get_text_pe(names))
 
 # Execute prediction on an image
 results = model.predict("path/to/image.jpg")

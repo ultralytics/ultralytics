@@ -3,24 +3,24 @@
 import math
 import random
 from copy import deepcopy
-from typing import Tuple, Union
+from typing import List, Tuple, Union
 
 import cv2
 import numpy as np
 import torch
 from PIL import Image
+from torch.nn import functional as F
 
 from ultralytics.data.utils import polygons2masks, polygons2masks_overlap
 from ultralytics.utils import LOGGER, colorstr
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
-from ultralytics.utils.ops import segment2box, xyxyxyxy2xywhr
+from ultralytics.utils.ops import segment2box, xywh2xyxy, xyxyxyxy2xywhr
 from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
 DEFAULT_STD = (1.0, 1.0, 1.0)
-DEFAULT_CROP_FRACTION = 1.0
 
 
 class BaseTransform:
@@ -1138,10 +1138,9 @@ class RandomPerspective:
             border (Tuple[int, int]): Border dimensions for the transformed image.
 
         Returns:
-            (Tuple[np.ndarray, np.ndarray, float]): A tuple containing:
-                - np.ndarray: Transformed image.
-                - np.ndarray: 3x3 transformation matrix.
-                - float: Scale factor applied during the transformation.
+            img (np.ndarray): Transformed image.
+            M (np.ndarray): 3x3 transformation matrix.
+            s (float): Scale factor applied during the transformation.
 
         Examples:
             >>> import numpy as np
@@ -1235,9 +1234,8 @@ class RandomPerspective:
             M (np.ndarray): Affine transformation matrix with shape (3, 3).
 
         Returns:
-            (Tuple[np.ndarray, np.ndarray]): A tuple containing:
-                - New bounding boxes with shape (N, 4) in xyxy format.
-                - Transformed and clipped segments with shape (N, M, 2).
+            bboxes (np.ndarray): New bounding boxes with shape (N, 4) in xyxy format.
+            segments (np.ndarray): Transformed and clipped segments with shape (N, M, 2).
 
         Examples:
             >>> segments = np.random.rand(10, 500, 2)  # 10 segments with 500 points each
@@ -1475,8 +1473,10 @@ class RandomHSV:
             >>> hsv_augmenter(labels)
             >>> augmented_img = labels["img"]
         """
+        img = labels["img"]
+        if img.shape[-1] != 3:  # only apply to RGB images
+            return labels
         if self.hgain or self.sgain or self.vgain:
-            img = labels["img"]
             dtype = img.dtype  # uint8
 
             r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain]  # random gains
@@ -1697,11 +1697,19 @@ class LetterBox:
 
         if shape[::-1] != new_unpad:  # resize
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
+            if img.ndim == 2:
+                img = img[..., None]
+
         top, bottom = int(round(dh - 0.1)) if self.center else 0, int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)) if self.center else 0, int(round(dw + 0.1))
-        img = cv2.copyMakeBorder(
-            img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114)
-        )  # add border
+        h, w, c = img.shape
+        if c == 3:
+            img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))
+        else:  # multispectral
+            pad_img = np.full((h + top + bottom, w + left + right, c), fill_value=114, dtype=img.dtype)
+            pad_img[top : top + h, left : left + w] = img
+            img = pad_img
+
         if labels.get("ratio_pad"):
             labels["ratio_pad"] = (labels["ratio_pad"], (left, top))  # for evaluation
 
@@ -1907,6 +1915,9 @@ class Albumentations:
         prefix = colorstr("albumentations: ")
 
         try:
+            import os
+
+            os.environ["NO_ALBUMENTATIONS_UPDATE"] = "1"  # suppress Albumentations upgrade message
             import albumentations as A
 
             check_version(A.__version__, "1.0.3", hard=True)  # version requirement
@@ -2016,10 +2027,13 @@ class Albumentations:
         if self.transform is None or random.random() > self.p:
             return labels
 
+        im = labels["img"]
+        if im.shape[2] != 3:  # Only apply Albumentation on 3-channel images
+            return labels
+
         if self.contains_spatial:
             cls = labels["cls"]
             if len(cls):
-                im = labels["img"]
                 labels["instances"].convert_bbox("xywh")
                 labels["instances"].normalize(*im.shape[:2][::-1])
                 bboxes = labels["instances"].bboxes
@@ -2215,7 +2229,7 @@ class Format:
         if len(img.shape) < 3:
             img = np.expand_dims(img, -1)
         img = img.transpose(2, 0, 1)
-        img = np.ascontiguousarray(img[::-1] if random.uniform(0, 1) > self.bgr else img)
+        img = np.ascontiguousarray(img[::-1] if random.uniform(0, 1) > self.bgr and img.shape[0] == 3 else img)
         img = torch.from_numpy(img)
         return img
 
@@ -2251,6 +2265,99 @@ class Format:
         return masks, instances, cls
 
 
+class LoadVisualPrompt:
+    """Creates visual prompts from bounding boxes or masks for model input."""
+
+    def __init__(self, scale_factor=1 / 8):
+        """
+        Initialize the LoadVisualPrompt with a scale factor.
+
+        Args:
+            scale_factor (float): Factor to scale the input image dimensions.
+        """
+        self.scale_factor = scale_factor
+
+    def make_mask(self, boxes, h, w):
+        """
+        Create binary masks from bounding boxes.
+
+        Args:
+            boxes (torch.Tensor): Bounding boxes in xyxy format, shape: (N, 4).
+            h (int): Height of the mask.
+            w (int): Width of the mask.
+
+        Returns:
+            (torch.Tensor): Binary masks with shape (N, h, w).
+        """
+        x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
+        r = torch.arange(w)[None, None, :]  # rows shape(1,1,w)
+        c = torch.arange(h)[None, :, None]  # cols shape(1,h,1)
+
+        return (r >= x1) * (r < x2) * (c >= y1) * (c < y2)
+
+    def __call__(self, labels):
+        """
+        Process labels to create visual prompts.
+
+        Args:
+            labels (dict): Dictionary containing image data and annotations.
+
+        Returns:
+            (dict): Updated labels with visual prompts added.
+        """
+        imgsz = labels["img"].shape[1:]
+        bboxes, masks = None, None
+        if "bboxes" in labels:
+            bboxes = labels["bboxes"]
+            bboxes = xywh2xyxy(bboxes) * torch.tensor(imgsz)[[1, 0, 1, 0]]  # denormalize boxes
+
+        cls = labels["cls"].squeeze(-1).to(torch.int)
+        visuals = self.get_visuals(cls, imgsz, bboxes=bboxes, masks=masks)
+        labels["visuals"] = visuals
+        return labels
+
+    def get_visuals(self, category, shape, bboxes=None, masks=None):
+        """
+        Generate visual masks based on bounding boxes or masks.
+
+        Args:
+            category (int | np.ndarray | torch.Tensor): The category labels for the objects.
+            shape (tuple): The shape of the image (height, width).
+            bboxes (np.ndarray | torch.Tensor, optional): Bounding boxes for the objects, xyxy format. Defaults to None.
+            masks (np.ndarray | torch.Tensor, optional): Masks for the objects. Defaults to None.
+
+        Returns:
+            (torch.Tensor): A tensor containing the visual masks for each category.
+
+        Raises:
+            ValueError: If neither bboxes nor masks are provided.
+        """
+        masksz = (int(shape[0] * self.scale_factor), int(shape[1] * self.scale_factor))
+        if bboxes is not None:
+            if isinstance(bboxes, np.ndarray):
+                bboxes = torch.from_numpy(bboxes)
+            bboxes *= self.scale_factor
+            masks = self.make_mask(bboxes, *masksz).float()
+        elif masks is not None:
+            if isinstance(masks, np.ndarray):
+                masks = torch.from_numpy(masks)  # (N, H, W)
+            masks = F.interpolate(masks.unsqueeze(1), masksz, mode="nearest").squeeze(1).float()
+        else:
+            raise ValueError("LoadVisualPrompt must have bboxes or masks in the label")
+        if not isinstance(category, torch.Tensor):
+            category = torch.tensor(category, dtype=torch.int)
+        cls_unique, inverse_indices = torch.unique(category, sorted=True, return_inverse=True)
+        # NOTE: `cls` indices from RandomLoadText should be continuous.
+        # if len(cls_unique):
+        #     assert len(cls_unique) == cls_unique[-1] + 1, (
+        #         f"Expected a continuous range of class indices, but got {cls_unique}"
+        #     )
+        visuals = torch.zeros(len(cls_unique), *masksz)
+        for idx, mask in zip(inverse_indices, masks):
+            visuals[idx] = torch.logical_or(visuals[idx], mask)
+        return visuals
+
+
 class RandomLoadText:
     """
     Randomly samples positive and negative texts and updates class indices accordingly.
@@ -2283,7 +2390,7 @@ class RandomLoadText:
         neg_samples: Tuple[int, int] = (80, 80),
         max_samples: int = 80,
         padding: bool = False,
-        padding_value: str = "",
+        padding_value: List[str] = [""],
     ) -> None:
         """
         Initializes the RandomLoadText class for randomly sampling positive and negative texts.
@@ -2357,7 +2464,8 @@ class RandomLoadText:
         neg_labels = random.sample(neg_labels, k=neg_samples)
 
         sampled_labels = pos_labels + neg_labels
-        random.shuffle(sampled_labels)
+        # Randomness
+        # random.shuffle(sampled_labels)
 
         label2ids = {label: i for i, label in enumerate(sampled_labels)}
         valid_idx = np.zeros(len(labels["instances"]), dtype=bool)
@@ -2382,8 +2490,9 @@ class RandomLoadText:
             valid_labels = len(pos_labels) + len(neg_labels)
             num_padding = self.max_samples - valid_labels
             if num_padding > 0:
-                texts += [self.padding_value] * num_padding
+                texts += random.choices(self.padding_value, k=num_padding)
 
+        assert len(texts) == self.max_samples
         labels["texts"] = texts
         return labels
 
@@ -2439,7 +2548,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
         kpt_shape = dataset.data.get("kpt_shape", None)
         if len(flip_idx) == 0 and hyp.fliplr > 0.0:
             hyp.fliplr = 0.0
-            LOGGER.warning("WARNING ⚠️ No 'flip_idx' array defined in data.yaml, setting augmentation 'fliplr=0.0'")
+            LOGGER.warning("No 'flip_idx' array defined in data.yaml, setting augmentation 'fliplr=0.0'")
         elif flip_idx and (len(flip_idx) != kpt_shape[0]):
             raise ValueError(f"data.yaml flip_idx={flip_idx} length must be equal to kpt_shape[0]={kpt_shape[0]}")
 
@@ -2462,7 +2571,7 @@ def classify_transforms(
     mean=DEFAULT_MEAN,
     std=DEFAULT_STD,
     interpolation="BILINEAR",
-    crop_fraction: float = DEFAULT_CROP_FRACTION,
+    crop_fraction=None,
 ):
     """
     Creates a composition of image transforms for classification tasks.
@@ -2477,7 +2586,7 @@ def classify_transforms(
         mean (tuple): Mean values for each RGB channel used in normalization.
         std (tuple): Standard deviation values for each RGB channel used in normalization.
         interpolation (str): Interpolation method of either 'NEAREST', 'BILINEAR' or 'BICUBIC'.
-        crop_fraction (float): Fraction of the image to be cropped.
+        crop_fraction (float): Deprecated, will be removed in a future version.
 
     Returns:
         (torchvision.transforms.Compose): A composition of torchvision transforms.
@@ -2489,12 +2598,12 @@ def classify_transforms(
     """
     import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
-    if isinstance(size, (tuple, list)):
-        assert len(size) == 2, f"'size' tuples must be length 2, not length {len(size)}"
-        scale_size = tuple(math.floor(x / crop_fraction) for x in size)
-    else:
-        scale_size = math.floor(size / crop_fraction)
-        scale_size = (scale_size, scale_size)
+    scale_size = size if isinstance(size, (tuple, list)) and len(size) == 2 else (size, size)
+
+    if crop_fraction:
+        raise DeprecationWarning(
+            "'crop_fraction' arg of classify_transforms is deprecated, will be removed in a future version."
+        )
 
     # Aspect ratio is preserved, crops center within image, no borders are added, image is lost
     if scale_size[0] == scale_size[1]:
@@ -2503,13 +2612,7 @@ def classify_transforms(
     else:
         # Resize the shortest edge to matching target dim for non-square target
         tfl = [T.Resize(scale_size)]
-    tfl.extend(
-        [
-            T.CenterCrop(size),
-            T.ToTensor(),
-            T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std)),
-        ]
-    )
+    tfl += [T.CenterCrop(size), T.ToTensor(), T.Normalize(mean=torch.tensor(mean), std=torch.tensor(std))]
     return T.Compose(tfl)
 
 

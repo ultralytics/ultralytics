@@ -10,6 +10,17 @@ keywords: computer vision, project planning, problem statement, measurable objec
 
 The first step in any computer vision project is defining what you want to achieve. It's crucial to have a clear roadmap from the start, which includes everything from data collection to deploying your model.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/q1tXfShvbAw"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to define Computer Vision Project's Goal | Problem Statement and VisionAI Tasks Connection 🚀
+</p>
+
 If you need a quick refresher on the basics of a computer vision project, take a moment to read our guide on [the key steps in a computer vision project](./steps-of-a-cv-project.md). It'll give you a solid overview of the whole process. Once you're caught up, come back here to dive into how exactly you can define and refine the goals for your project.
 
 Now, let's get to the heart of defining a clear problem statement for your project and exploring the key decisions you'll need to make along the way.

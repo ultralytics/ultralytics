@@ -18,16 +18,21 @@ class VarifocalLoss(nn.Module):
     Varifocal loss by Zhang et al.
 
     https://arxiv.org/abs/2008.13367.
+
+    Args:
+        gamma (float): The focusing parameter that controls how much the loss focuses on hard-to-classify examples.
+        alpha (float): The balancing factor used to address class imbalance.
     """
 
-    def __init__(self):
+    def __init__(self, gamma=2.0, alpha=0.75):
         """Initialize the VarifocalLoss class."""
         super().__init__()
+        self.gamma = gamma
+        self.alpha = alpha
 
-    @staticmethod
-    def forward(pred_score, gt_score, label, alpha=0.75, gamma=2.0):
-        """Compute varfocal loss between predictions and ground truth."""
-        weight = alpha * pred_score.sigmoid().pow(gamma) * (1 - label) + gt_score * label
+    def forward(self, pred_score, gt_score, label):
+        """Compute varifocal loss between predictions and ground truth."""
+        weight = self.alpha * pred_score.sigmoid().pow(self.gamma) * (1 - label) + gt_score * label
         with autocast(enabled=False):
             loss = (
                 (F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(), reduction="none") * weight)
@@ -38,14 +43,21 @@ class VarifocalLoss(nn.Module):
 
 
 class FocalLoss(nn.Module):
-    """Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5)."""
+    """
+    Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5).
 
-    def __init__(self):
+    Args:
+        gamma (float): The focusing parameter that controls how much the loss focuses on hard-to-classify examples.
+        alpha (float): The balancing factor used to address class imbalance.
+    """
+
+    def __init__(self, gamma=1.5, alpha=0.25):
         """Initialize FocalLoss class with no parameters."""
         super().__init__()
+        self.gamma = gamma
+        self.alpha = alpha
 
-    @staticmethod
-    def forward(pred, label, gamma=1.5, alpha=0.25):
+    def forward(self, pred, label):
         """Calculate focal loss with modulating factors for class imbalance."""
         loss = F.binary_cross_entropy_with_logits(pred, label, reduction="none")
         # p_t = torch.exp(-loss)
@@ -54,10 +66,10 @@ class FocalLoss(nn.Module):
         # TF implementation https://github.com/tensorflow/addons/blob/v0.7.1/tensorflow_addons/losses/focal_loss.py
         pred_prob = pred.sigmoid()  # prob from logits
         p_t = label * pred_prob + (1 - label) * (1 - pred_prob)
-        modulating_factor = (1.0 - p_t) ** gamma
+        modulating_factor = (1.0 - p_t) ** self.gamma
         loss *= modulating_factor
-        if alpha > 0:
-            alpha_factor = label * alpha + (1 - label) * (1 - alpha)
+        if self.alpha > 0:
+            alpha_factor = label * self.alpha + (1 - label) * (1 - self.alpha)
             loss *= alpha_factor
         return loss.mean(1).sum()
 
@@ -252,7 +264,7 @@ class v8DetectionLoss:
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
 
-        return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
+        return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 
 
 class v8SegmentationLoss(v8DetectionLoss):
@@ -265,7 +277,7 @@ class v8SegmentationLoss(v8DetectionLoss):
 
     def __call__(self, preds, batch):
         """Calculate and return the combined loss for detection and segmentation."""
-        loss = torch.zeros(4, device=self.device)  # box, cls, dfl
+        loss = torch.zeros(4, device=self.device)  # box, seg, cls, dfl
         feats, pred_masks, proto = preds if len(preds) == 3 else preds[1]
         batch_size, _, mask_h, mask_w = proto.shape  # batch size, number of masks, mask height, mask width
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
@@ -344,7 +356,7 @@ class v8SegmentationLoss(v8DetectionLoss):
         loss[2] *= self.hyp.cls  # cls gain
         loss[3] *= self.hyp.dfl  # dfl gain
 
-        return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
+        return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 
     @staticmethod
     def single_mask_loss(
@@ -515,7 +527,7 @@ class v8PoseLoss(v8DetectionLoss):
         loss[3] *= self.hyp.cls  # cls gain
         loss[4] *= self.hyp.dfl  # dfl gain
 
-        return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
+        return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 
     @staticmethod
     def kpts_decode(anchor_points, pred_kpts):
@@ -700,7 +712,7 @@ class v8OBBLoss(v8DetectionLoss):
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
 
-        return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
+        return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 
     def bbox_decode(self, anchor_points, pred_dist, pred_angle):
         """
@@ -736,3 +748,64 @@ class E2EDetectLoss:
         one2one = preds["one2one"]
         loss_one2one = self.one2one(one2one, batch)
         return loss_one2many[0] + loss_one2one[0], loss_one2many[1] + loss_one2one[1]
+
+
+class TVPDetectLoss:
+    """Criterion class for computing training losses for text-visual prompt detection."""
+
+    def __init__(self, model):
+        """Initialize TVPDetectLoss with task-prompt and visual-prompt criteria using the provided model."""
+        self.vp_criterion = v8DetectionLoss(model)
+        # NOTE: store following info as it's changeable in __call__
+        self.ori_nc = self.vp_criterion.nc
+        self.ori_no = self.vp_criterion.no
+        self.ori_reg_max = self.vp_criterion.reg_max
+
+    def __call__(self, preds, batch):
+        """Calculate the loss for text-visual prompt detection."""
+        feats = preds[1] if isinstance(preds, tuple) else preds
+        assert self.ori_reg_max == self.vp_criterion.reg_max  # TODO: remove it
+
+        if self.ori_reg_max * 4 + self.ori_nc == feats[0].shape[1]:
+            loss = torch.zeros(3, device=self.vp_criterion.device, requires_grad=True)
+            return loss, loss.detach()
+
+        vp_feats = self._get_vp_features(feats)
+        vp_loss = self.vp_criterion(vp_feats, batch)
+        box_loss = vp_loss[0][1]
+        return box_loss, vp_loss[1]
+
+    def _get_vp_features(self, feats):
+        """Extract visual-prompt features from the model output."""
+        vnc = feats[0].shape[1] - self.ori_reg_max * 4 - self.ori_nc
+
+        self.vp_criterion.nc = vnc
+        self.vp_criterion.no = vnc + self.vp_criterion.reg_max * 4
+        self.vp_criterion.assigner.num_classes = vnc
+
+        return [
+            torch.cat((box, cls_vp), dim=1)
+            for box, _, cls_vp in [xi.split((self.ori_reg_max * 4, self.ori_nc, vnc), dim=1) for xi in feats]
+        ]
+
+
+class TVPSegmentLoss(TVPDetectLoss):
+    """Criterion class for computing training losses for text-visual prompt segmentation."""
+
+    def __init__(self, model):
+        """Initialize TVPSegmentLoss with task-prompt and visual-prompt criteria using the provided model."""
+        self.vp_criterion = v8SegmentationLoss(model)
+
+    def __call__(self, preds, batch):
+        """Calculate the loss for text-visual prompt segmentation."""
+        feats, pred_masks, proto = preds if len(preds) == 3 else preds[1]
+        assert self.tp_criterion.reg_max == self.vp_criterion.reg_max
+
+        if self.tp_criterion.reg_max * 4 + self.tp_criterion.nc == feats[0].shape[1]:
+            loss = torch.zeros(4, device=self.tp_criterion.device, requires_grad=True)
+            return loss, loss.detach()
+
+        vp_feats = self._get_vp_features(feats)
+        vp_loss = self.vp_criterion((vp_feats, pred_masks, proto), batch)
+        cls_loss = vp_loss[0][2]
+        return cls_loss, vp_loss[1]

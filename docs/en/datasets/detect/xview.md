@@ -15,6 +15,15 @@ The [xView](http://xviewdataset.org/) dataset is one of the largest publicly ava
 
 xView builds on the success of challenges like [Common Objects in Context (COCO)](../detect/coco.md) and aims to leverage computer vision to analyze the growing amount of available imagery from space in order to understand the visual world in new ways and address a range of important applications.
 
+!!! warning "Manual Download Required"
+
+    The xView dataset is **not** automatically downloaded by Ultralytics scripts. You **must** manually download the dataset first from the official source:
+
+    - **Source:** DIUx xView 2018 Challenge by U.S. National Geospatial-Intelligence Agency (NGA)
+    - **URL:** [https://challenge.xviewdataset.org](https://challenge.xviewdataset.org)
+
+    **Important:** After downloading the necessary files (e.g., `train_images.tif`, `val_images.tif`, `xView_train.geojson`), you need to extract them and place them into the correct directory structure, typically expected under a `datasets/xView/` folder, **before** running the training commands provided below. Ensure the dataset is properly set up as per the challenge instructions.
+
 ## Key Features
 
 - xView contains over 1 million object instances across 60 classes.
@@ -155,7 +164,7 @@ The xView dataset stands out due to its comprehensive set of features:
 
 ### What is the dataset structure of xView, and how is it annotated?
 
-The xView dataset comprises high-resolution satellite images collected from WorldView-3 satellites at a 0.3m ground sample distance. It encompasses over 1 million objects across 60 classes in approximately 1,400 km² of imagery. Each object within the dataset is annotated with bounding boxes, making it ideal for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models for object detection in overhead imagery. For a detailed overview, you can look at the dataset structure section [here](#dataset-structure).
+The xView dataset contains high-resolution satellite imagery captured by WorldView-3 satellites at a 0.3m ground sample distance, covering over 1 million objects across 60 distinct classes within approximately 1,400 km² of annotated imagery. Each object is labeled with bounding boxes, making the dataset highly suitable for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models for object detection in overhead views. For a detailed breakdown, refer to the [Dataset Structure section](#dataset-structure).
 
 ### How do I cite the xView dataset in my research?
 

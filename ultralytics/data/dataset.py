@@ -12,14 +12,14 @@ import torch
 from PIL import Image
 from torch.utils.data import ConcatDataset
 
-from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr
-from ultralytics.utils.ops import resample_segments
+from ultralytics.utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, colorstr
+from ultralytics.utils.instance import Instances
+from ultralytics.utils.ops import resample_segments, segments2boxes
 from ultralytics.utils.torch_utils import TORCHVISION_0_18
 
 from .augment import (
     Compose,
     Format,
-    Instances,
     LetterBox,
     RandomLoadText,
     classify_augmentations,
@@ -27,9 +27,10 @@ from .augment import (
     v8_transforms,
 )
 from .base import BaseDataset
+from .converter import merge_multi_segment
 from .utils import (
     HELP_URL,
-    LOGGER,
+    check_file_speeds,
     get_hash,
     img2label_paths,
     load_dataset_cache_file,
@@ -83,7 +84,7 @@ class YOLODataset(BaseDataset):
         self.use_obb = task == "obb"
         self.data = data
         assert not (self.use_segments and self.use_keypoints), "Can not use both segments and keypoints."
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, channels=self.data["channels"], **kwargs)
 
     def cache_labels(self, path=Path("./labels.cache")):
         """
@@ -146,7 +147,7 @@ class YOLODataset(BaseDataset):
         if msgs:
             LOGGER.info("\n".join(msgs))
         if nf == 0:
-            LOGGER.warning(f"{self.prefix}WARNING ⚠️ No labels found in {path}. {HELP_URL}")
+            LOGGER.warning(f"{self.prefix}No labels found in {path}. {HELP_URL}")
         x["hash"] = get_hash(self.label_files + self.im_files)
         x["results"] = nf, nm, ne, nc, len(self.im_files)
         x["msgs"] = msgs  # warnings
@@ -183,7 +184,7 @@ class YOLODataset(BaseDataset):
         [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
         labels = cache["labels"]
         if not labels:
-            LOGGER.warning(f"WARNING ⚠️ No images found in {cache_path}, training may not work correctly. {HELP_URL}")
+            LOGGER.warning(f"No images found in {cache_path}, training may not work correctly. {HELP_URL}")
         self.im_files = [lb["im_file"] for lb in labels]  # update im_files
 
         # Check if the dataset is all boxes or all segments
@@ -191,14 +192,14 @@ class YOLODataset(BaseDataset):
         len_cls, len_boxes, len_segments = (sum(x) for x in zip(*lengths))
         if len_segments and len_boxes != len_segments:
             LOGGER.warning(
-                f"WARNING ⚠️ Box and segment counts should be equal, but got len(segments) = {len_segments}, "
+                f"Box and segment counts should be equal, but got len(segments) = {len_segments}, "
                 f"len(boxes) = {len_boxes}. To resolve this only boxes will be used and all segments will be removed. "
                 "To avoid this please supply either a detect or segment dataset, not a detect-segment mixed dataset."
             )
             for lb in labels:
                 lb["segments"] = []
         if len_cls == 0:
-            LOGGER.warning(f"WARNING ⚠️ No labels found in {cache_path}, training may not work correctly. {HELP_URL}")
+            LOGGER.warning(f"No labels found in {cache_path}, training may not work correctly. {HELP_URL}")
         return labels
 
     def build_transforms(self, hyp=None):
@@ -291,12 +292,15 @@ class YOLODataset(BaseDataset):
             (dict): Collated batch with stacked tensors.
         """
         new_batch = {}
+        batch = [dict(sorted(b.items())) for b in batch]  # make sure the keys are in the same order
         keys = batch[0].keys()
         values = list(zip(*[list(b.values()) for b in batch]))
         for i, k in enumerate(keys):
             value = values[i]
-            if k == "img":
+            if k in {"img", "text_feats"}:
                 value = torch.stack(value, 0)
+            elif k == "visuals":
+                value = torch.nn.utils.rnn.pad_sequence(value, batch_first=True)
             if k in {"masks", "keypoints", "bboxes", "cls", "segments", "obb"}:
                 value = torch.cat(value, 0)
             new_batch[k] = value
@@ -348,7 +352,9 @@ class YOLOMultiModalDataset(YOLODataset):
         """
         labels = super().update_labels_info(label)
         # NOTE: some categories are concatenated with its synonyms by `/`.
+        # NOTE: and `RandomLoadText` would randomly select one of them if there are multiple words.
         labels["texts"] = [v.split("/") for _, v in self.data["names"].items()]
+
         return labels
 
     def build_transforms(self, hyp=None):
@@ -364,8 +370,45 @@ class YOLOMultiModalDataset(YOLODataset):
         transforms = super().build_transforms(hyp)
         if self.augment:
             # NOTE: hard-coded the args for now.
-            transforms.insert(-1, RandomLoadText(max_samples=min(self.data["nc"], 80), padding=True))
+            # NOTE: this implementation is different from official yoloe,
+            # the strategy of selecting negative is restricted in one dataset,
+            # while official pre-saved neg embeddings from all datasets at once.
+            transform = RandomLoadText(
+                max_samples=min(self.data["nc"], 80),
+                padding=True,
+                padding_value=self._get_neg_texts(self.category_freq),
+            )
+            transforms.insert(-1, transform)
         return transforms
+
+    @property
+    def category_names(self):
+        """
+        Return category names for the dataset.
+
+        Returns:
+            (Set[str]): List of class names.
+        """
+        names = self.data["names"].values()
+        return {n.strip() for name in names for n in name.split("/")}  # category names
+
+    @property
+    def category_freq(self):
+        """Return frequency of each category in the dataset."""
+        texts = [v.split("/") for v in self.data["names"].values()]
+        category_freq = defaultdict(int)
+        for label in self.labels:
+            for c in label["cls"].squeeze(-1):  # to check
+                text = texts[int(c)]
+                for t in text:
+                    t = t.strip()
+                    category_freq[t] += 1
+        return category_freq
+
+    @staticmethod
+    def _get_neg_texts(category_freq, threshold=100):
+        """Get negative text samples based on frequency threshold."""
+        return [k for k, v in category_freq.items() if v >= threshold]
 
 
 class GroundingDataset(YOLODataset):
@@ -388,17 +431,17 @@ class GroundingDataset(YOLODataset):
         >>> len(dataset)  # Number of valid images with annotations
     """
 
-    def __init__(self, *args, task="detect", json_file, **kwargs):
+    def __init__(self, *args, task="detect", json_file="", **kwargs):
         """
         Initialize a GroundingDataset for object detection.
 
         Args:
             json_file (str): Path to the JSON file containing annotations.
-            task (str): Must be 'detect' for GroundingDataset.
+            task (str): Must be 'detect' or 'segment' for GroundingDataset.
             *args (Any): Additional positional arguments for the parent class.
             **kwargs (Any): Additional keyword arguments for the parent class.
         """
-        assert task == "detect", "`GroundingDataset` only support `detect` task for now!"
+        assert task in {"detect", "segment"}, "GroundingDataset currently only supports `detect` and `segment` tasks"
         self.json_file = json_file
         super().__init__(*args, task=task, data={}, **kwargs)
 
@@ -414,14 +457,31 @@ class GroundingDataset(YOLODataset):
         """
         return []
 
-    def get_labels(self):
+    def verify_labels(self, labels):
+        """Verify the number of instances in the dataset matches expected counts."""
+        instance_count = sum(label["bboxes"].shape[0] for label in labels)
+        if "final_mixed_train_no_coco_segm" in self.json_file:
+            assert instance_count == 3662344
+        elif "final_mixed_train_no_coco" in self.json_file:
+            assert instance_count == 3681235
+        elif "final_flickr_separateGT_train_segm" in self.json_file:
+            assert instance_count == 638214
+        elif "final_flickr_separateGT_train" in self.json_file:
+            assert instance_count == 640704
+        else:
+            assert False
+
+    def cache_labels(self, path=Path("./labels.cache")):
         """
         Loads annotations from a JSON file, filters, and normalizes bounding boxes for each image.
 
+        Args:
+            path (Path): Path where to save the cache file.
+
         Returns:
-            (List[dict]): List of label dictionaries, each containing information about an image and its annotations.
+            (dict): Dictionary containing cached labels and related information.
         """
-        labels = []
+        x = {"labels": []}
         LOGGER.info("Loading annotation file...")
         with open(self.json_file) as f:
             annotations = json.load(f)
@@ -437,6 +497,7 @@ class GroundingDataset(YOLODataset):
                 continue
             self.im_files.append(str(im_file))
             bboxes = []
+            segments = []
             cat2id = {}
             texts = []
             for ann in anns:
@@ -450,7 +511,10 @@ class GroundingDataset(YOLODataset):
                     continue
 
                 caption = img["caption"]
-                cat_name = " ".join([caption[t[0] : t[1]] for t in ann["tokens_positive"]])
+                cat_name = " ".join([caption[t[0] : t[1]] for t in ann["tokens_positive"]]).lower().strip()
+                if not cat_name:
+                    continue
+
                 if cat_name not in cat2id:
                     cat2id[cat_name] = len(cat2id)
                     texts.append([cat_name])
@@ -458,18 +522,66 @@ class GroundingDataset(YOLODataset):
                 box = [cls] + box.tolist()
                 if box not in bboxes:
                     bboxes.append(box)
+                    if ann.get("segmentation") is not None:
+                        if len(ann["segmentation"]) == 0:
+                            segments.append(box)
+                            continue
+                        elif len(ann["segmentation"]) > 1:
+                            s = merge_multi_segment(ann["segmentation"])
+                            s = (np.concatenate(s, axis=0) / np.array([w, h], dtype=np.float32)).reshape(-1).tolist()
+                        else:
+                            s = [j for i in ann["segmentation"] for j in i]  # all segments concatenated
+                            s = (
+                                (np.array(s, dtype=np.float32).reshape(-1, 2) / np.array([w, h], dtype=np.float32))
+                                .reshape(-1)
+                                .tolist()
+                            )
+                        s = [cls] + s
+                        segments.append(s)
             lb = np.array(bboxes, dtype=np.float32) if len(bboxes) else np.zeros((0, 5), dtype=np.float32)
-            labels.append(
+
+            if segments:
+                classes = np.array([x[0] for x in segments], dtype=np.float32)
+                segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in segments]  # (cls, xy1...)
+                lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
+            lb = np.array(lb, dtype=np.float32)
+
+            x["labels"].append(
                 {
                     "im_file": im_file,
                     "shape": (h, w),
                     "cls": lb[:, 0:1],  # n, 1
                     "bboxes": lb[:, 1:],  # n, 4
+                    "segments": segments,
                     "normalized": True,
                     "bbox_format": "xywh",
                     "texts": texts,
                 }
             )
+        x["hash"] = get_hash(self.json_file)
+        save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
+        return x
+
+    def get_labels(self):
+        """
+        Load labels from cache or generate them from JSON file.
+
+        Returns:
+            (List[dict]): List of label dictionaries, each containing information about an image and its annotations.
+        """
+        cache_path = Path(self.json_file).with_suffix(".cache")
+        try:
+            cache, _ = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
+            assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
+            assert cache["hash"] == get_hash(self.json_file)  # identical hash
+        except (FileNotFoundError, AssertionError, AttributeError):
+            cache, _ = self.cache_labels(cache_path), False  # run cache ops
+        [cache.pop(k) for k in ("hash", "version")]  # remove items
+        labels = cache["labels"]
+        # self.verify_labels(labels)
+        self.im_files = [str(label["im_file"]) for label in labels]
+        if LOCAL_RANK in {-1, 0}:
+            LOGGER.info(f"Load {self.json_file} from cache file {cache_path}")
         return labels
 
     def build_transforms(self, hyp=None):
@@ -485,8 +597,37 @@ class GroundingDataset(YOLODataset):
         transforms = super().build_transforms(hyp)
         if self.augment:
             # NOTE: hard-coded the args for now.
-            transforms.insert(-1, RandomLoadText(max_samples=80, padding=True))
+            # NOTE: this implementation is different from official yoloe,
+            # the strategy of selecting negative is restricted in one dataset,
+            # while official pre-saved neg embeddings from all datasets at once.
+            transform = RandomLoadText(
+                max_samples=80,
+                padding=True,
+                padding_value=self._get_neg_texts(self.category_freq),
+            )
+            transforms.insert(-1, transform)
         return transforms
+
+    @property
+    def category_names(self):
+        """Return unique category names from the dataset."""
+        return {t.strip() for label in self.labels for text in label["texts"] for t in text}
+
+    @property
+    def category_freq(self):
+        """Return frequency of each category in the dataset."""
+        category_freq = defaultdict(int)
+        for label in self.labels:
+            for text in label["texts"]:
+                for t in text:
+                    t = t.strip()
+                    category_freq[t] += 1
+        return category_freq
+
+    @staticmethod
+    def _get_neg_texts(category_freq, threshold=100):
+        """Get negative text samples based on frequency threshold."""
+        return [k for k, v in category_freq.items() if v >= threshold]
 
 
 class YOLOConcatDataset(ConcatDataset):
@@ -517,6 +658,18 @@ class YOLOConcatDataset(ConcatDataset):
             (dict): Collated batch with stacked tensors.
         """
         return YOLODataset.collate_fn(batch)
+
+    def close_mosaic(self, hyp):
+        """
+        Sets mosaic, copy_paste and mixup options to 0.0 and builds transformations.
+
+        Args:
+            hyp (dict): Hyperparameters for transforms.
+        """
+        for dataset in self.datasets:
+            if not hasattr(dataset, "close_mosaic"):
+                continue
+            dataset.close_mosaic(hyp)
 
 
 # TODO: support semantic segmentation
@@ -579,7 +732,7 @@ class ClassificationDataset:
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
         if self.cache_ram:
             LOGGER.warning(
-                "WARNING ⚠️ Classification `cache_ram` training has known memory leak in "
+                "Classification `cache_ram` training has known memory leak in "
                 "https://github.com/ultralytics/ultralytics/issues/9824, setting `cache_ram=False`."
             )
             self.cache_ram = False
@@ -600,7 +753,7 @@ class ClassificationDataset:
                 hsv_v=args.hsv_v,
             )
             if augment
-            else classify_transforms(size=args.imgsz, crop_fraction=args.crop_fraction)
+            else classify_transforms(size=args.imgsz)
         )
 
     def __getitem__(self, i):
@@ -643,6 +796,7 @@ class ClassificationDataset:
         path = Path(self.root).with_suffix(".cache")  # *.cache file path
 
         try:
+            check_file_speeds([file for (file, _) in self.samples[:5]], prefix=self.prefix)  # check image read speeds
             cache = load_dataset_cache_file(path)  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
             assert cache["hash"] == get_hash([x[0] for x in self.samples])  # identical hash

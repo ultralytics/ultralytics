@@ -422,7 +422,7 @@ class C3Ghost(C3):
 
 
 class GhostBottleneck(nn.Module):
-    """Ghost Bottleneck https://github.com/huawei-noah/ghostnet."""
+    """Ghost Bottleneck https://github.com/huawei-noah/Efficient-AI-Backbones."""
 
     def __init__(self, c1, c2, k=3, s=1):
         """
@@ -603,7 +603,7 @@ class MaxSigmoidAttnBlock(nn.Module):
         bs, _, h, w = x.shape
 
         guide = self.gl(guide)
-        guide = guide.view(bs, -1, self.nh, self.hc)
+        guide = guide.view(bs, guide.shape[1], self.nh, self.hc)
         embed = self.ec(x) if self.ec is not None else x
         embed = embed.view(bs, self.nh, self.hc, h, w)
 
@@ -771,7 +771,7 @@ class ContrastiveHead(nn.Module):
 
 class BNContrastiveHead(nn.Module):
     """
-    Batch Norm Contrastive Head for YOLO-World using batch norm instead of l2-normalization.
+    Batch Norm Contrastive Head using batch norm instead of l2-normalization.
 
     Args:
         embed_dims (int): Embed dimensions of text and image features.
@@ -791,6 +791,21 @@ class BNContrastiveHead(nn.Module):
         # use -1.0 is more stable
         self.logit_scale = nn.Parameter(-1.0 * torch.ones([]))
 
+    def fuse(self):
+        """Fuse the batch normalization layer in the BNContrastiveHead module."""
+        del self.norm
+        del self.bias
+        del self.logit_scale
+        self.forward = self.forward_fuse
+
+    def forward_fuse(self, x, w):
+        """
+        Passes input out unchanged.
+
+        TODO: Update or remove?
+        """
+        return x
+
     def forward(self, x, w):
         """
         Forward function of contrastive learning with batch normalization.
@@ -804,6 +819,7 @@ class BNContrastiveHead(nn.Module):
         """
         x = self.norm(x)
         w = F.normalize(w, dim=-1, p=2)
+
         x = torch.einsum("bchw,bkc->bkhw", x, w)
         return x * self.logit_scale.exp() + self.bias
 
@@ -1859,3 +1875,92 @@ class A2C2f(nn.Module):
         if self.gamma is not None:
             return x + self.gamma.view(-1, len(self.gamma), 1, 1) * y
         return y
+
+
+class SwiGLUFFN(nn.Module):
+    """SwiGLU Feed-Forward Network for transformer-based architectures."""
+
+    def __init__(self, gc, ec, e=4) -> None:
+        """Initialize SwiGLU FFN with input dimension, output dimension, and expansion factor."""
+        super().__init__()
+        self.w12 = nn.Linear(gc, e * ec)
+        self.w3 = nn.Linear(e * ec // 2, ec)
+
+    def forward(self, x):
+        """Apply SwiGLU transformation to input features."""
+        x12 = self.w12(x)
+        x1, x2 = x12.chunk(2, dim=-1)
+        hidden = F.silu(x1) * x2
+        return self.w3(hidden)
+
+
+class Residual(nn.Module):
+    """Residual connection wrapper for neural network modules."""
+
+    def __init__(self, m) -> None:
+        """Initialize residual module with the wrapped module."""
+        super().__init__()
+        self.m = m
+        nn.init.zeros_(self.m.w3.bias)
+        # For models with l scale, please change the initialization to
+        # nn.init.constant_(self.m.w3.weight, 1e-6)
+        nn.init.zeros_(self.m.w3.weight)
+
+    def forward(self, x):
+        """Apply residual connection to input features."""
+        return x + self.m(x)
+
+
+class SAVPE(nn.Module):
+    """Spatial-Aware Visual Prompt Embedding module for feature enhancement."""
+
+    def __init__(self, ch, c3, embed):
+        """Initialize SAVPE module with channels, intermediate channels, and embedding dimension."""
+        super().__init__()
+        self.cv1 = nn.ModuleList(
+            nn.Sequential(
+                Conv(x, c3, 3), Conv(c3, c3, 3), nn.Upsample(scale_factor=i * 2) if i in {1, 2} else nn.Identity()
+            )
+            for i, x in enumerate(ch)
+        )
+
+        self.cv2 = nn.ModuleList(
+            nn.Sequential(Conv(x, c3, 1), nn.Upsample(scale_factor=i * 2) if i in {1, 2} else nn.Identity())
+            for i, x in enumerate(ch)
+        )
+
+        self.c = 16
+        self.cv3 = nn.Conv2d(3 * c3, embed, 1)
+        self.cv4 = nn.Conv2d(3 * c3, self.c, 3, padding=1)
+        self.cv5 = nn.Conv2d(1, self.c, 3, padding=1)
+        self.cv6 = nn.Sequential(Conv(2 * self.c, self.c, 3), nn.Conv2d(self.c, self.c, 3, padding=1))
+
+    def forward(self, x, vp):
+        """Process input features and visual prompts to generate enhanced embeddings."""
+        y = [self.cv2[i](xi) for i, xi in enumerate(x)]
+        y = self.cv4(torch.cat(y, dim=1))
+
+        x = [self.cv1[i](xi) for i, xi in enumerate(x)]
+        x = self.cv3(torch.cat(x, dim=1))
+
+        B, C, H, W = x.shape
+
+        Q = vp.shape[1]
+
+        x = x.view(B, C, -1)
+
+        y = y.reshape(B, 1, self.c, H, W).expand(-1, Q, -1, -1, -1).reshape(B * Q, self.c, H, W)
+        vp = vp.reshape(B, Q, 1, H, W).reshape(B * Q, 1, H, W)
+
+        y = self.cv6(torch.cat((y, self.cv5(vp)), dim=1))
+
+        y = y.reshape(B, Q, self.c, -1)
+        vp = vp.reshape(B, Q, 1, -1)
+
+        score = y * vp + torch.logical_not(vp) * torch.finfo(y.dtype).min
+
+        score = F.softmax(score, dim=-1, dtype=torch.float).to(score.dtype)
+
+        aggregated = score.transpose(-2, -3) @ x.reshape(B, self.c, C // self.c, -1).transpose(-1, -2)
+
+        return F.normalize(aggregated.transpose(-2, -3).reshape(B, Q, -1), dim=-1, p=2)

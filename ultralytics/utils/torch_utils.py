@@ -17,6 +17,7 @@ import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
 
+from ultralytics import __version__
 from ultralytics.utils import (
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_KEYS,
@@ -25,7 +26,6 @@ from ultralytics.utils import (
     PYTHON_VERSION,
     TORCHVISION_VERSION,
     WINDOWS,
-    __version__,
     colorstr,
 )
 from ultralytics.utils.checks import check_version
@@ -46,7 +46,7 @@ TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
 TORCHVISION_0_18 = check_version(TORCHVISION_VERSION, "0.18.0")
 if WINDOWS and check_version(torch.__version__, "==2.4.0"):  # reject version 2.4.0 on Windows
     LOGGER.warning(
-        "WARNING ⚠️ Known issue with torch==2.4.0 on Windows with CPU, recommend upgrading to torch>=2.4.1 to resolve "
+        "Known issue with torch==2.4.0 on Windows with CPU, recommend upgrading to torch>=2.4.1 to resolve "
         "https://github.com/ultralytics/ultralytics/issues/15049"
     )
 
@@ -55,12 +55,13 @@ if WINDOWS and check_version(torch.__version__, "==2.4.0"):  # reject version 2.
 def torch_distributed_zero_first(local_rank: int):
     """Ensures all processes in distributed training wait for the local master (rank 0) to complete a task first."""
     initialized = dist.is_available() and dist.is_initialized()
+    use_ids = initialized and dist.get_backend() == "nccl"
 
     if initialized and local_rank not in {-1, 0}:
-        dist.barrier(device_ids=[local_rank])
+        dist.barrier(device_ids=[local_rank]) if use_ids else dist.barrier()
     yield
     if initialized and local_rank == 0:
-        dist.barrier(device_ids=[local_rank])
+        dist.barrier(device_ids=[local_rank]) if use_ids else dist.barrier()
 
 
 def smart_inference_mode():
@@ -161,7 +162,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     Note:
         Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
     """
-    if isinstance(device, torch.device) or str(device).startswith("tpu"):
+    if isinstance(device, torch.device) or str(device).startswith("tpu") or str(device).startswith("intel"):
         return device
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{torch.__version__} "
@@ -238,7 +239,7 @@ def time_sync():
 
 
 def fuse_conv_and_bn(conv, bn):
-    """Fuse Conv2d() and BatchNorm2d() layers https://tehnokv.com/posts/fusing-batchnorm-and-conv/."""
+    """Fuse Conv2d() and BatchNorm2d() layers."""
     fusedconv = (
         nn.Conv2d(
             conv.in_channels,
@@ -260,7 +261,11 @@ def fuse_conv_and_bn(conv, bn):
     fusedconv.weight.copy_(torch.mm(w_bn, w_conv).view(fusedconv.weight.shape))
 
     # Prepare spatial bias
-    b_conv = torch.zeros(conv.weight.shape[0], device=conv.weight.device) if conv.bias is None else conv.bias
+    b_conv = (
+        torch.zeros(conv.weight.shape[0], dtype=conv.weight.dtype, device=conv.weight.device)
+        if conv.bias is None
+        else conv.bias
+    )
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
     fusedconv.bias.copy_(torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn)
 
@@ -386,14 +391,18 @@ def model_info_for_loggers(trainer):
 
 def get_flops(model, imgsz=640):
     """
-    Return a YOLO model's FLOPs.
+    Calculate FLOPs (floating point operations) for a model in billions.
+
+    Attempts two calculation methods: first with a stride-based tensor for efficiency,
+    then falls back to full image size if needed (e.g., for RTDETR models). Returns 0.0
+    if thop library is unavailable or calculation fails.
 
     Args:
         model (nn.Module): The model to calculate FLOPs for.
         imgsz (int | List[int], optional): Input image size. Defaults to 640.
 
     Returns:
-        (float): The model's FLOPs in billions.
+        (float): The model FLOPs in billions.
     """
     if not thop:
         return 0.0  # if not installed return 0.0 GFLOPs
@@ -404,13 +413,13 @@ def get_flops(model, imgsz=640):
         if not isinstance(imgsz, list):
             imgsz = [imgsz, imgsz]  # expand if int/float
         try:
-            # Use stride size for input tensor
+            # Method 1: Use stride-based input tensor
             stride = max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32  # max stride
             im = torch.empty((1, p.shape[1], stride, stride), device=p.device)  # input image in BCHW format
             flops = thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1e9 * 2  # stride GFLOPs
             return flops * imgsz[0] / stride * imgsz[1] / stride  # imgsz GFLOPs
         except Exception:
-            # Use actual image size for input tensor (i.e. required for RTDETR models)
+            # Method 2: Use actual image size (required for RTDETR models)
             im = torch.empty((1, p.shape[1], *imgsz), device=p.device)  # input image in BCHW format
             return thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1e9 * 2  # imgsz GFLOPs
     except Exception:
@@ -596,7 +605,7 @@ def init_seeds(seed=0, deterministic=False):
             os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
             os.environ["PYTHONHASHSEED"] = str(seed)
         else:
-            LOGGER.warning("WARNING ⚠️ Upgrade to torch>=2.0.0 for deterministic training.")
+            LOGGER.warning("Upgrade to torch>=2.0.0 for deterministic training.")
     else:
         unset_deterministic()
 
@@ -611,10 +620,10 @@ def unset_deterministic():
 
 class ModelEMA:
     """
-    Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models.
+    Updated Exponential Moving Average (EMA) implementation.
 
     Keeps a moving average of everything in the model state_dict (parameters and buffers).
-    For EMA details see https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
+    For EMA details see References.
 
     To disable EMA set the `enabled` attribute to `False`.
 
@@ -623,6 +632,10 @@ class ModelEMA:
         updates (int): Number of EMA updates.
         decay (function): Decay function that determines the EMA weight.
         enabled (bool): Whether EMA is enabled.
+
+    References:
+        - https://github.com/rwightman/pytorch-image-models
+        - https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
     """
 
     def __init__(self, model, decay=0.9999, tau=2000, updates=0):
@@ -696,7 +709,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
         assert isinstance(x, dict), "checkpoint is not a Python dictionary"
         assert "model" in x, "'model' missing from checkpoint"
     except Exception as e:
-        LOGGER.warning(f"WARNING ⚠️ Skipping {f}, not a valid Ultralytics model: {e}")
+        LOGGER.warning(f"Skipping {f}, not a valid Ultralytics model: {e}")
         return {}
 
     metadata = {

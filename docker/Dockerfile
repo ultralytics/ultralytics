@@ -47,8 +47,7 @@ RUN pip install uv
 RUN uv pip install --system -e ".[export]" albumentations pycocotools "onnxruntime-gpu" tensorrt wandb
 
 # Run exports to AutoInstall packages
-# Edge TPU export fails the first time so is run twice here
-RUN yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32 || yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32
+RUN yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32
 RUN yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32
 RUN uv pip install --system paddlepaddle x2paddle
 

@@ -30,6 +30,8 @@ import yaml
 from ultralytics import __version__
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_load, torch_save  # for patches
 
+from .errors import handle_errors as handle_errors  # allow imports from ultralytics.utils
+
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv("RANK", -1))
 LOCAL_RANK = int(os.getenv("LOCAL_RANK", -1))  # https://pytorch.org/docs/stable/elastic/run.html

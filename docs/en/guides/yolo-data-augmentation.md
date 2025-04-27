@@ -279,6 +279,22 @@ Then launch the training with the Python API:
 | :---------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------: |
 | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_identity.avif" alt="augmentation_mixup_identity_1" width="60%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_mixup_identity_2.avif" alt="augmentation_mixup_identity_2" width="60%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_mixup_on.avif" alt="mixup_on_augmentation" width="85%"/> |
 
+### CutMix (`cutmix`)
+
+- **Range**: `0.0` - `1.0`
+- **Default**: `{{ cutmix }}`
+- **Usage**: Cuts a rectangular region from one image and pastes it onto another image with given probability. The `cutmix` hyperparameter defines the probability of applying the transformation, with `cutmix=1.0` ensuring that all images undergo this transformation and `cutmix=0.0` disabling it completely. For example, with `cutmix=0.5`, each image has a 50% chance of having a region replaced with a patch from another image.
+- **Purpose**: Enhances model performance by creating realistic occlusion scenarios while maintaining local feature integrity. For example, in autonomous driving systems, cutmix helps the model learn to recognize vehicles or pedestrians even when they're partially occluded by other objects, improving detection accuracy in complex real-world environments with overlapping objects.
+- **Ultralytics' implementation**: [CutMix](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.CutMix)
+- **Note**:
+    - The size and position of the cut region is determined randomly for each application.
+    - Unlike mixup which blends pixel values globally, cutmix maintains the original pixel intensities within the cut regions, preserving local features.
+    - CutMix is particularly effective for object detection tasks as it creates hard examples that force the model to learn more robust representations.
+
+|                                                          **First image, `cutmix` off**                                                           |                                                              **Second image, `cutmix` off**                                                              |                                                             **`cutmix` on**                                                              |
+| :---------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------: |
+| <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_identity.avif" alt="augmentation_cutmix_identity_1" width="60%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_cutmix_identity_2.avif" alt="augmentation_cutmix_identity_2" width="60%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_cutmix_on.avif" alt="cutmix_on_augmentation" width="85%"/> |
+
 ## Segmentation-Specific Augmentations
 
 ### Copy-Paste (`copy_paste`)

@@ -108,7 +108,7 @@ solutions = [
     "streamlit>=1.29.0,<1.44.0",    # for live inference on web browser, i.e `yolo streamlit-predict`
 ]
 logging = [
-    "wandb", # https://docs.ultralytics.com/integrations/comet/
+    "wandb", # https://docs.ultralytics.com/integrations/weights-biases/
     "tensorboard",  # https://docs.ultralytics.com/integrations/tensorboard/
     "mlflow",  # https://docs.ultralytics.com/integrations/mlflow/
 ]

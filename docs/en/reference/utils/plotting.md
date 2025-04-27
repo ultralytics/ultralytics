@@ -43,6 +43,10 @@ keywords: ultralytics, plotting, utilities, documentation, data visualization, a
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.plotting.plot_matches
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.plotting.output_to_target
 
 <br><br><hr><br>

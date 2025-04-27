@@ -7,7 +7,7 @@ import torch.nn.functional as F
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
-from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
+from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad, ChannelAttention
 from .transformer import TransformerBlock
 
 __all__ = (
@@ -49,6 +49,7 @@ __all__ = (
     "Attention",
     "PSA",
     "SCDown",
+    "CCAM",
     "TorchVision",
 )
 
@@ -1964,3 +1965,71 @@ class SAVPE(nn.Module):
         aggregated = score.transpose(-2, -3) @ x.reshape(B, self.c, C // self.c, -1).transpose(-1, -2)
 
         return F.normalize(aggregated.transpose(-2, -3).reshape(B, Q, -1), dim=-1, p=2)
+
+class CCAM(nn.Module):
+    """
+    Convolutional Coordinate Attention Module (CCAM) for enhanced feature extraction.
+
+    CCAM is a combination of Channel Attention Module (CAM) and Coordinate Attention (CA) for improved feature representation,
+    particularly in convolutional neural networks. It enhances the model's ability to focus on important features by
+    applying attention mechanisms in both channel and spatial dimensions.
+    """
+
+    def __init__(self, c1, reduction=16):
+        """
+        Initialize CCAM module.
+
+        Args:
+            c1 (int): Input channels.
+            reduction (int): Reduction ratio for channel attention.
+        """
+        super(CCAM, self).__init__()
+
+        # Initialize the channel attention.
+        self.channel_attention = ChannelAttention(c1)
+
+        # Initialize the coordinate attention.
+        self.ca_avg_pool_h = nn.AdaptiveAvgPool2d((None, 1))
+        self.ca_avg_pool_w = nn.AdaptiveAvgPool2d((1, None))
+        mip = max(8, c1 // reduction)
+        self.conv1 = nn.Conv2d(in_channels=c1, out_channels=mip, kernel_size=1, stride=1, padding=0)
+        self.BN = nn.BatchNorm2d(mip)
+        self.act = nn.Hardswish()
+        # Height-wise and width-wise convolutional layers.
+        self.conv_h = nn.Conv2d(in_channels=mip, out_channels=c1, kernel_size=1, stride=1, padding=0)
+        self.conv_w = nn.Conv2d(in_channels=mip, out_channels=c1, kernel_size=1, stride=1, padding=0)
+
+    def forward(self, x):
+        """
+        Forward pass through CCAM module.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            (torch.Tensor): Output tensor after applying CCAM.
+        """
+        temp = x
+
+        # Channel Attention (CAM) forward pass
+        c_attention = self.channel_attention(x)
+        x = x * c_attention
+
+        # Coordinate Attention (CA) forward pass.
+        n, c, h, w = x.size()
+        ca_avg_h_out = self.ca_avg_pool_h(x)
+        ca_avg_w_out = self.ca_avg_pool_w(x).permute(0, 1, 3, 2)
+        # Concatenate along the channel dimension.
+        y = torch.cat([ca_avg_h_out, ca_avg_w_out], dim=2)
+        y = self.act(self.BN(self.conv1(y)))
+        # Split the output into height and width components.
+        ca_h_out, ca_w_out = torch.split(y, [h, w], dim=2)
+        ca_w_out = ca_w_out.permute(0, 1, 3, 2)
+        # Apply the coordinate attention.
+        h_attention = self.conv_h(ca_h_out).sigmoid()
+        w_attention = self.conv_w(ca_w_out).sigmoid()
+
+        # Apply the attention to the input tensor.
+        output = temp * h_attention * w_attention
+
+        return output

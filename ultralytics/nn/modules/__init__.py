@@ -58,6 +58,7 @@ from .block import (
     RepVGGDW,
     ResNetLayer,
     SCDown,
+    CCAM,
     TorchVision,
 )
 from .conv import (
@@ -179,4 +180,5 @@ __all__ = (
     "TorchVision",
     "Index",
     "A2C2f",
+    "CCAM",
 )

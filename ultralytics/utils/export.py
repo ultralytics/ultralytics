@@ -6,6 +6,7 @@ from pathlib import Path
 import torch
 
 from ultralytics.utils import IS_JETSON, LOGGER
+from ultralytics.utils.checks import check_version
 
 
 def export_onnx(
@@ -42,7 +43,7 @@ def export_onnx(
         input_names=input_names,
         output_names=output_names,
         dynamic_axes=dynamic or None,
-        dynamo=True,  # TorchDynamo-based ONNX exporter
+        dynamo=False if (dynamic or check_version(torch.__version__, "<2.5.0")) else True,  # TorchDynamo-based export
     )
 
 

@@ -23,7 +23,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
 # gnupg required for Edge TPU install
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    python3-pip git zip unzip wget curl htop gcc libgl1 libglib2.0-0 libpython3-dev \
+    python3-pip git zip unzip wget curl htop gcc libgl1 libglib2.0-0 libpython3-dev gnupg \
     && rm -rf /var/lib/apt/lists/*
 
 # Create working directory

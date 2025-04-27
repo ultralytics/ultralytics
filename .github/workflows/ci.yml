@@ -246,7 +246,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Activate Virtual Environment for Tests
         run: |
-          python3.11 -m venv env-tests
+          python3.12 -m venv env-tests
           source env-tests/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - uses: astral-sh/setup-uv@v5
@@ -261,7 +261,7 @@ jobs:
         run: pytest --slow tests/
       - name: Activate Virtual Environment for Benchmarks
         run: |
-          python3.11 -m venv env-benchmarks
+          python3.12 -m venv env-benchmarks
           source env-benchmarks/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
@@ -303,7 +303,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.11"]
+        python-version: ["3.12"]
     defaults:
       run:
         shell: bash -el {0}

@@ -244,12 +244,12 @@ jobs:
     runs-on: raspberry-pi
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
       - name: Activate Virtual Environment for Tests
         run: |
-          uv venv env-tests --python 3.12
+          python3.12 -m venv env-tests
           source env-tests/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
+      - uses: astral-sh/setup-uv@v5
       - name: Install requirements
         run: |
           uv pip install -e ".[export]" pytest mlflow pycocotools --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
@@ -261,7 +261,7 @@ jobs:
         run: pytest --slow tests/
       - name: Activate Virtual Environment for Benchmarks
         run: |
-          uv venv env-benchmarks --python 3.12
+          python3.12 -m venv env-benchmarks
           source env-benchmarks/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements

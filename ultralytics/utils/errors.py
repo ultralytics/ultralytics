@@ -2,6 +2,7 @@
 
 from ultralytics.utils import emojis
 
+
 class HUBModelError(Exception):
     """
     Exception raised when a model cannot be found or retrieved from Ultralytics HUB.

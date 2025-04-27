@@ -25,7 +25,7 @@ class DetectionTrainer(BaseTrainer):
 
     Attributes:
         model (DetectionModel): The YOLO detection model being trained.
-        data (Dict): Dictionary containing dataset information including class names and number of classes.
+        data (dict): Dictionary containing dataset information including class names and number of classes.
         loss_names (Tuple[str]): Names of the loss components used in training (box_loss, cls_loss, dfl_loss).
 
     Methods:
@@ -82,7 +82,7 @@ class DetectionTrainer(BaseTrainer):
             dataset = self.build_dataset(dataset_path, mode, batch_size)
         shuffle = mode == "train"
         if getattr(dataset, "rect", False) and shuffle:
-            LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
+            LOGGER.warning("'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
             shuffle = False
         workers = self.args.workers if mode == "train" else self.args.workers * 2
         return build_dataloader(dataset, batch_size, workers, shuffle, rank)  # return dataloader
@@ -92,10 +92,10 @@ class DetectionTrainer(BaseTrainer):
         Preprocess a batch of images by scaling and converting to float.
 
         Args:
-            batch (Dict): Dictionary containing batch data with 'img' tensor.
+            batch (dict): Dictionary containing batch data with 'img' tensor.
 
         Returns:
-            (Dict): Preprocessed batch with normalized images.
+            (dict): Preprocessed batch with normalized images.
         """
         batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255
         if self.args.multi_scale:
@@ -137,7 +137,7 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (DetectionModel): YOLO detection model.
         """
-        model = DetectionModel(cfg, nc=self.data["nc"], verbose=verbose and RANK == -1)
+        model = DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
         return model
@@ -182,7 +182,7 @@ class DetectionTrainer(BaseTrainer):
         Plot training samples with their annotations.
 
         Args:
-            batch (Dict): Dictionary containing batch data.
+            batch (dict): Dictionary containing batch data.
             ni (int): Number of iterations.
         """
         plot_images(

@@ -21,7 +21,6 @@ from ultralytics.utils import (
     SETTINGS,
     callbacks,
     checks,
-    emojis,
     yaml_load,
 )
 
@@ -35,15 +34,15 @@ class Model(torch.nn.Module):
     loaded from local files, Ultralytics HUB, or Triton Server.
 
     Attributes:
-        callbacks (Dict): A dictionary of callback functions for various events during model operations.
+        callbacks (dict): A dictionary of callback functions for various events during model operations.
         predictor (BasePredictor): The predictor object used for making predictions.
         model (torch.nn.Module): The underlying PyTorch model.
         trainer (BaseTrainer): The trainer object used for training the model.
-        ckpt (Dict): The checkpoint data if the model is loaded from a *.pt file.
+        ckpt (dict): The checkpoint data if the model is loaded from a *.pt file.
         cfg (str): The configuration of the model if loaded from a *.yaml file.
         ckpt_path (str): The path to the checkpoint file.
-        overrides (Dict): A dictionary of overrides for model configuration.
-        metrics (Dict): The latest training/validation metrics.
+        overrides (dict): A dictionary of overrides for model configuration.
+        metrics (dict): The latest training/validation metrics.
         session (HUBTrainingSession): The Ultralytics HUB session, if applicable.
         task (str): The type of task the model is intended for.
         model_name (str): The name of the model.
@@ -528,13 +527,13 @@ class Model(torch.nn.Module):
         """
         if source is None:
             source = ASSETS
-            LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using 'source={source}'.")
+            LOGGER.warning(f"'source' is missing. Using 'source={source}'.")
 
         is_cli = (ARGV[0].endswith("yolo") or ARGV[0].endswith("ultralytics")) and any(
             x in ARGV for x in ("predict", "track", "mode=predict", "mode=track")
         )
 
-        custom = {"conf": 0.25, "batch": 1, "save": is_cli, "mode": "predict"}  # method defaults
+        custom = {"conf": 0.25, "batch": 1, "save": is_cli, "mode": "predict", "rect": True}  # method defaults
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
         prompts = args.pop("prompts", None)  # for SAM-type models
 
@@ -652,7 +651,7 @@ class Model(torch.nn.Module):
                 - format (str): Export format name for specific benchmarking.
 
         Returns:
-            (Dict): A dictionary containing the results of the benchmarking process, including metrics for
+            (dict): A dictionary containing the results of the benchmarking process, including metrics for
                 different export formats.
 
         Raises:
@@ -766,7 +765,7 @@ class Model(torch.nn.Module):
         self._check_is_pytorch_model()
         if hasattr(self.session, "model") and self.session.model.id:  # Ultralytics HUB session with loaded model
             if any(kwargs):
-                LOGGER.warning("WARNING ⚠️ using HUB training arguments, ignoring local training arguments.")
+                LOGGER.warning("using HUB training arguments, ignoring local training arguments.")
             kwargs = self.session.train_args  # overwrite kwargs
 
         checks.check_pip_update_available()
@@ -820,7 +819,7 @@ class Model(torch.nn.Module):
                 overrides and defaults to configure the tuning process.
 
         Returns:
-            (Dict): Results of the hyperparameter search, including best parameters and performance metrics.
+            (dict): Results of the hyperparameter search, including best parameters and performance metrics.
 
         Raises:
             TypeError: If the model is not a PyTorch model.
@@ -1082,9 +1081,7 @@ class Model(torch.nn.Module):
         except Exception as e:
             name = self.__class__.__name__
             mode = inspect.stack()[1][3]  # get the function name.
-            raise NotImplementedError(
-                emojis(f"WARNING ⚠️ '{name}' model does not support '{mode}' mode for '{self.task}' task yet.")
-            ) from e
+            raise NotImplementedError(f"'{name}' model does not support '{mode}' mode for '{self.task}' task.") from e
 
     @property
     def task_map(self) -> dict:

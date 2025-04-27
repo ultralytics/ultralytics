@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover a variety of models supported by Ultralytics, including YOLOv3 to YOLOv10, NAS, SAM, and RT-DETR for detection, segmentation, and more.
-keywords: Ultralytics, supported models, YOLOv3, YOLOv4, YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv9, YOLOv10, SAM, NAS, RT-DETR, object detection, image segmentation, classification, pose estimation, multi-object tracking
+description: Discover a variety of models supported by Ultralytics, including YOLOv3 to YOLO11, NAS, SAM, and RT-DETR for detection, segmentation, and more.
+keywords: Ultralytics, supported models, YOLOv3, YOLOv4, YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv9, YOLOv10, YOLO11, SAM, SAM2, MobileSAM, FastSAM, YOLO-NAS, RT-DETR, YOLO-World, object detection, image segmentation, classification, pose estimation, multi-object tracking
 ---
 
 # Models Supported by Ultralytics
@@ -19,10 +19,10 @@ Here are some of the key models supported:
 3. **[YOLOv5](yolov5.md)**: An improved version of the YOLO architecture by Ultralytics, offering better performance and speed trade-offs compared to previous versions.
 4. **[YOLOv6](yolov6.md)**: Released by [Meituan](https://www.meituan.com/) in 2022, and in use in many of the company's autonomous delivery robots.
 5. **[YOLOv7](yolov7.md)**: Updated YOLO models released in 2022 by the authors of YOLOv4. Only inference is supported.
-6. **[YOLOv8](yolov8.md)**: The latest version of the YOLO family, featuring enhanced capabilities such as [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), pose/keypoints estimation, and classification.
+6. **[YOLOv8](yolov8.md)**: A versatile model featuring enhanced capabilities such as [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), pose/keypoints estimation, and classification.
 7. **[YOLOv9](yolov9.md)**: An experimental model trained on the Ultralytics [YOLOv5](yolov5.md) codebase implementing Programmable Gradient Information (PGI).
 8. **[YOLOv10](yolov10.md)**: By Tsinghua University, featuring NMS-free training and efficiency-accuracy driven architecture, delivering state-of-the-art performance and latency.
-9. **[YOLO11](yolo11.md) 🚀 NEW**: Ultralytics' latest YOLO models delivering state-of-the-art (SOTA) performance across multiple tasks.
+9. **[YOLO11](yolo11.md) 🚀 NEW**: Ultralytics' latest YOLO models delivering state-of-the-art (SOTA) performance across multiple tasks including detection, segmentation, pose estimation, tracking, and classification.
 10. **[Segment Anything Model (SAM)](sam.md)**: Meta's original Segment Anything Model (SAM).
 11. **[Segment Anything Model 2 (SAM2)](sam-2.md)**: The next generation of Meta's Segment Anything Model (SAM) for videos and images.
 12. **[Mobile Segment Anything Model (MobileSAM)](mobile-sam.md)**: MobileSAM for mobile applications, by Kyung Hee University.
@@ -30,6 +30,7 @@ Here are some of the key models supported:
 14. **[YOLO-NAS](yolo-nas.md)**: YOLO [Neural Architecture Search](https://www.ultralytics.com/glossary/neural-architecture-search-nas) (NAS) Models.
 15. **[Realtime Detection Transformers (RT-DETR)](rtdetr.md)**: Baidu's PaddlePaddle Realtime Detection [Transformer](https://www.ultralytics.com/glossary/transformer) (RT-DETR) models.
 16. **[YOLO-World](yolo-world.md)**: Real-time Open Vocabulary Object Detection models from Tencent AI Lab.
+17. **[YOLOE](yoloe.md)**: An improved open-vocabulary object detector that maintains YOLO's real-time performance while detecting arbitrary classes beyond its training data.
 
 <p align="center">
   <br>
@@ -102,13 +103,13 @@ For detailed steps, consult our [Contributing Guide](../help/contributing.md).
 
 ## FAQ
 
-### What are the key advantages of using Ultralytics YOLOv8 for object detection?
+### What are the key advantages of using Ultralytics YOLO11 for object detection?
 
-Ultralytics YOLOv8 offers enhanced capabilities such as real-time object detection, instance segmentation, pose estimation, and classification. Its optimized architecture ensures high-speed performance without sacrificing [accuracy](https://www.ultralytics.com/glossary/accuracy), making it ideal for a variety of applications. YOLOv8 also includes built-in compatibility with popular datasets and models, as detailed on the [YOLOv8 documentation page](../models/yolov8.md).
+Ultralytics YOLO11 offers enhanced capabilities such as real-time object detection, instance segmentation, pose estimation, and classification. Its optimized architecture ensures high-speed performance without sacrificing [accuracy](https://www.ultralytics.com/glossary/accuracy), making it ideal for a variety of applications across diverse AI domains. YOLO11 builds on previous versions with improved performance and additional features, as detailed on the [YOLO11 documentation page](../models/yolo11.md).
 
-### How can I train a YOLOv8 model on custom data?
+### How can I train a YOLO model on custom data?
 
-Training a YOLOv8 model on custom data can be easily accomplished using Ultralytics' libraries. Here's a quick example:
+Training a YOLO model on custom data can be easily accomplished using Ultralytics' libraries. Here's a quick example:
 
 !!! example
 
@@ -117,8 +118,8 @@ Training a YOLOv8 model on custom data can be easily accomplished using Ultralyt
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLOv8n model
-        model = YOLO("yolov8n.pt")
+        # Load a YOLO model
+        model = YOLO("yolo11n.pt")  # or any other YOLO model
 
         # Train the model on custom dataset
         results = model.train(data="custom_data.yaml", epochs=100, imgsz=640)
@@ -127,19 +128,19 @@ Training a YOLOv8 model on custom data can be easily accomplished using Ultralyt
     === "CLI"
 
         ```bash
-        yolo train model=yolov8n.pt data='custom_data.yaml' epochs=100 imgsz=640
+        yolo train model=yolo11n.pt data='custom_data.yaml' epochs=100 imgsz=640
         ```
 
 For more detailed instructions, visit the [Train](../modes/train.md) documentation page.
 
 ### Which YOLO versions are supported by Ultralytics?
 
-Ultralytics supports a comprehensive range of YOLO (You Only Look Once) versions from YOLOv3 to YOLOv10, along with models like NAS, SAM, and RT-DETR. Each version is optimized for various tasks such as detection, segmentation, and classification. For detailed information on each model, refer to the [Models Supported by Ultralytics](../models/index.md) documentation.
+Ultralytics supports a comprehensive range of YOLO (You Only Look Once) versions from YOLOv3 to YOLO11, along with models like YOLO-NAS, SAM, and RT-DETR. Each version is optimized for various tasks such as detection, segmentation, and classification. For detailed information on each model, refer to the [Models Supported by Ultralytics](../models/index.md) documentation.
 
 ### Why should I use Ultralytics HUB for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) projects?
 
-Ultralytics HUB provides a no-code, end-to-end platform for training, deploying, and managing YOLO models. It simplifies complex workflows, enabling users to focus on model performance and application. The HUB also offers cloud training capabilities, comprehensive dataset management, and user-friendly interfaces. Learn more about it on the [Ultralytics HUB](../hub/index.md) documentation page.
+[Ultralytics HUB](../hub/index.md) provides a no-code, end-to-end platform for training, deploying, and managing YOLO models. It simplifies complex workflows, enabling users to focus on model performance and application. The HUB also offers [cloud training capabilities](../hub/cloud-training.md), comprehensive dataset management, and user-friendly interfaces for both beginners and experienced developers.
 
-### What types of tasks can YOLOv8 perform, and how does it compare to other YOLO versions?
+### What types of tasks can YOLO11 perform, and how does it compare to other YOLO versions?
 
-YOLOv8 is a versatile model capable of performing tasks including object detection, instance segmentation, classification, and pose estimation. Compared to earlier versions like YOLOv3 and YOLOv4, YOLOv8 offers significant improvements in speed and accuracy due to its optimized architecture. For a deeper comparison, refer to the [YOLOv8 documentation](../models/yolov8.md) and the [Task pages](../tasks/index.md) for more details on specific tasks.
+YOLO11 is a versatile model capable of performing tasks including object detection, instance segmentation, classification, and pose estimation. Compared to earlier versions, YOLO11 offers significant improvements in speed and accuracy due to its optimized architecture and anchor-free design. For a deeper comparison, refer to the [YOLO11 documentation](../models/yolo11.md) and the [Task pages](../tasks/index.md) for more details on specific tasks.

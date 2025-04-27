@@ -9,6 +9,7 @@ from pathlib import Path
 
 import requests
 
+from ultralytics import __version__
 from ultralytics.utils import (
     ARGV,
     ENVIRONMENT,
@@ -22,7 +23,6 @@ from ultralytics.utils import (
     TESTS_RUNNING,
     TQDM,
     TryExcept,
-    __version__,
     colorstr,
     get_git_origin_url,
 )
@@ -177,7 +177,7 @@ class Events:
     Attributes:
         url (str): The URL to send anonymous events.
         rate_limit (float): The rate limit in seconds for sending events.
-        metadata (Dict): A dictionary containing metadata about the environment.
+        metadata (dict): A dictionary containing metadata about the environment.
         enabled (bool): A flag to enable or disable Events based on certain conditions.
     """
 

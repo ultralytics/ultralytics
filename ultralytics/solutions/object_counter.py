@@ -45,6 +45,7 @@ class ObjectCounter(BaseSolution):
 
         self.show_in = self.CFG["show_in"]
         self.show_out = self.CFG["show_out"]
+        self.margin = self.line_width * 2  # Scales the background rectangle size to display counts properly
 
     def count_objects(self, current_centroid, track_id, prev_position, cls):
         """
@@ -144,7 +145,7 @@ class ObjectCounter(BaseSolution):
             if value["IN"] != 0 or value["OUT"] != 0
         }
         if labels_dict:
-            self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), 10)
+            self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), self.margin)
 
     def process(self, im0):
         """
@@ -158,7 +159,7 @@ class ObjectCounter(BaseSolution):
 
         Returns:
             (SolutionResults): Contains processed image `im0`, 'in_count' (int, count of objects entering the region),
-                'out_count' (int, count of objects exiting the region), 'classwise_count' (Dict, per-class object count),
+                'out_count' (int, count of objects exiting the region), 'classwise_count' (dict, per-class object count),
                 and 'total_tracks' (int, total number of tracked objects).
 
         Examples:
@@ -178,9 +179,9 @@ class ObjectCounter(BaseSolution):
         )  # Draw region
 
         # Iterate over bounding boxes, track ids and classes index
-        for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
+        for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
             # Draw bounding box and counting region
-            self.annotator.box_label(box, label=self.names[cls], color=colors(cls, True))
+            self.annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(cls, True))
             self.store_tracking_history(track_id, box)  # Store track history
             self.store_classwise_counts(cls)  # Store classwise counts in dict
 

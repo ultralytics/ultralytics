@@ -24,9 +24,9 @@ def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall
     different classes.
 
     Args:
-        x (List): Values for the x-axis; expected to have length N.
-        y (List): Corresponding values for the y-axis; also expected to have length N.
-        classes (List): Labels identifying the class of each point; length N.
+        x (list): Values for the x-axis; expected to have length N.
+        y (list): Corresponding values for the y-axis; also expected to have length N.
+        classes (list): Labels identifying the class of each point; length N.
         title (str): Title for the plot; defaults to 'Precision Recall Curve'.
         x_title (str): Label for the x-axis; defaults to 'Recall'.
         y_title (str): Label for the y-axis; defaults to 'Precision'.
@@ -64,7 +64,7 @@ def _plot_curve(
     Args:
         x (np.ndarray): Data points for the x-axis with length N.
         y (np.ndarray): Corresponding data points for the y-axis with shape (C, N), where C is the number of classes.
-        names (List): Names of the classes corresponding to the y-axis data; length C.
+        names (list): Names of the classes corresponding to the y-axis data; length C.
         id (str): Unique identifier for the logged data in wandb.
         title (str): Title for the visualization plot.
         x_title (str): Label for the x-axis.
@@ -99,7 +99,22 @@ def _plot_curve(
 
 
 def _log_plots(plots, step):
-    """Logs plots from the input dictionary if they haven't been logged already at the specified step."""
+    """
+    Log plots to WandB at a specific step if they haven't been logged already.
+
+    This function checks each plot in the input dictionary against previously processed plots and logs
+    new or updated plots to WandB at the specified step.
+
+    Args:
+        plots (dict): Dictionary of plots to log, where keys are plot names and values are dictionaries
+            containing plot metadata including timestamps.
+        step (int): The step/epoch at which to log the plots in the WandB run.
+
+    Notes:
+        - The function uses a shallow copy of the plots dictionary to prevent modification during iteration
+        - Plots are identified by their stem name (filename without extension)
+        - Each plot is logged as a WandB Image object
+    """
     for name, params in plots.copy().items():  # shallow copy to prevent plots dict changing during iteration
         timestamp = params["timestamp"]
         if _processed_plots.get(name) != timestamp:

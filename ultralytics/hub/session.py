@@ -9,8 +9,9 @@ from urllib.parse import parse_qs, urlparse
 
 import requests
 
-from ultralytics.hub.utils import HELP_MSG, HUB_WEB_ROOT, PREFIX, TQDM
-from ultralytics.utils import IS_COLAB, LOGGER, SETTINGS, __version__, checks, emojis
+from ultralytics import __version__
+from ultralytics.hub.utils import HELP_MSG, HUB_WEB_ROOT, PREFIX
+from ultralytics.utils import IS_COLAB, LOGGER, SETTINGS, TQDM, checks, emojis
 from ultralytics.utils.errors import HUBModelError
 
 AGENT_NAME = f"python-{__version__}-colab" if IS_COLAB else f"python-{__version__}-local"
@@ -26,13 +27,13 @@ class HUBTrainingSession:
     Attributes:
         model_id (str): Identifier for the YOLO model being trained.
         model_url (str): URL for the model in Ultralytics HUB.
-        rate_limits (Dict): Rate limits for different API calls (in seconds).
-        timers (Dict): Timers for rate limiting.
-        metrics_queue (Dict): Queue for the model's metrics.
-        metrics_upload_failed_queue (Dict): Queue for metrics that failed to upload.
-        model (Dict): Model data fetched from Ultralytics HUB.
+        rate_limits (dict): Rate limits for different API calls (in seconds).
+        timers (dict): Timers for rate limiting.
+        metrics_queue (dict): Queue for the model's metrics.
+        metrics_upload_failed_queue (dict): Queue for metrics that failed to upload.
+        model (dict): Model data fetched from Ultralytics HUB.
         model_file (str): Path to the model file.
-        train_args (Dict): Arguments for training the model.
+        train_args (dict): Arguments for training the model.
         client (HUBClient): Client for interacting with Ultralytics HUB.
         filename (str): Filename of the model.
 
@@ -84,7 +85,7 @@ class HUBTrainingSession:
         except Exception:
             if identifier.startswith(f"{HUB_WEB_ROOT}/models/") and not self.client.authenticated:
                 LOGGER.warning(
-                    f"{PREFIX}WARNING ⚠️ Please log in using 'yolo login API_KEY'. "
+                    f"{PREFIX}Please log in using 'yolo login API_KEY'. "
                     "You can find your API Key at: https://hub.ultralytics.com/settings?tab=api+keys."
                 )
 
@@ -95,7 +96,7 @@ class HUBTrainingSession:
 
         Args:
             identifier (str): Model identifier used to initialize the HUB training session.
-            args (Dict, optional): Arguments for creating a new model if identifier is not a HUB model URL.
+            args (dict, optional): Arguments for creating a new model if identifier is not a HUB model URL.
 
         Returns:
             (HUBTrainingSession | None): An authenticated session or None if creation fails.
@@ -126,7 +127,7 @@ class HUBTrainingSession:
 
         self.model_url = f"{HUB_WEB_ROOT}/models/{self.model.id}"
         if self.model.is_trained():
-            print(emojis(f"Loading trained HUB model {self.model_url} 🚀"))
+            LOGGER.info(f"Loading trained HUB model {self.model_url} 🚀")
             url = self.model.get_weights_url("best")  # download URL with auth
             self.model_file = checks.check_file(url, download_dir=Path(SETTINGS["weights_dir"]) / "hub" / self.model.id)
             return
@@ -141,7 +142,7 @@ class HUBTrainingSession:
         Initialize a HUB training session with the specified model arguments.
 
         Args:
-            model_args (Dict): Arguments for creating the model, including batch size, epochs, image size, etc.
+            model_args (dict): Arguments for creating the model, including batch size, epochs, image size, etc.
 
         Returns:
             (None): If the model could not be created.
@@ -396,14 +397,14 @@ class HUBTrainingSession:
             last = weights.with_name(f"last{weights.suffix}")
             if final and last.is_file():
                 LOGGER.warning(
-                    f"{PREFIX} WARNING ⚠️ Model 'best.pt' not found, copying 'last.pt' to 'best.pt' and uploading. "
+                    f"{PREFIX} Model 'best.pt' not found, copying 'last.pt' to 'best.pt' and uploading. "
                     "This often happens when resuming training in transient environments like Google Colab. "
                     "For more reliable training, consider using Ultralytics HUB Cloud. "
                     "Learn more at https://docs.ultralytics.com/hub/cloud-training."
                 )
                 shutil.copy(last, weights)  # copy last.pt to best.pt
             else:
-                LOGGER.warning(f"{PREFIX} WARNING ⚠️ Model upload issue. Missing model {weights}.")
+                LOGGER.warning(f"{PREFIX} Model upload issue. Missing model {weights}.")
                 return
 
         self.request_queue(

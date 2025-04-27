@@ -61,7 +61,7 @@ Install the required dependencies:
 cd ultralytics
 pip install -r requirements.txt
 pip install ultralytics
-pip install onnx>=1.12.0
+pip install onnx
 ```
 
 ### Perform YOLO11 tasks
@@ -110,7 +110,7 @@ source activate yolo11env
 cd ultralytics
 pip install -r requirements.txt
 pip install ultralytics
-pip install onnx>=1.12.0
+pip install onnx
 ```
 
 Note that we need to use the `source activate yolo11env` for all the %%bash cells, to make sure that the %%bash cell uses environment we want.
@@ -166,7 +166,7 @@ Running YOLO11 on AzureML for model training involves several steps:
     conda create --name yolo11env -y python=3.12
     conda activate yolo11env
     conda install pip -y
-    pip install ultralytics onnx>=1.12.0
+    pip install ultralytics onnx
     ```
 
 3. **Run YOLO11 Tasks**: Use the Ultralytics CLI to train your model:
@@ -215,7 +215,7 @@ Yes, AzureML allows you to use both the Ultralytics CLI and the Python interface
     model.train(data="coco8.yaml", epochs=3)
     ```
 
-Refer to the quickstart guides for more detailed instructions [here](../quickstart.md#use-ultralytics-with-cli) and [here](../quickstart.md#use-ultralytics-with-python).
+For step-by-step instructions, refer to the [CLI quickstart guide](../quickstart.md#use-ultralytics-with-cli) and the [Python quickstart guide](../quickstart.md#use-ultralytics-with-python).
 
 ### What is the advantage of using Ultralytics YOLO11 over other [object detection](https://www.ultralytics.com/glossary/object-detection) models?
 

@@ -101,7 +101,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
         ```bash
         # Export a YOLO11n PyTorch model to TensorRT format
-        yolo export model=yolo11n.pt format=engine  # creates 'yolo11n.engine''
+        yolo export model=yolo11n.pt format=engine # creates 'yolo11n.engine''
 
         # Run inference with the exported model
         yolo predict model=yolo11n.engine source='https://ultralytics.com/images/bus.jpg'
@@ -109,18 +109,24 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
 ### Export Arguments
 
-| Argument    | Type              | Default        | Description                                                                                                                                                                                   |
-| ----------- | ----------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`    | `str`             | `'engine'`     | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
-| `imgsz`     | `int` or `tuple`  | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
-| `half`      | `bool`            | `False`        | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                                                                  |
-| `int8`      | `bool`            | `False`        | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
-| `dynamic`   | `bool`            | `False`        | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                       |
-| `simplify`  | `bool`            | `True`         | Simplifies the model graph with `onnxslim`, potentially improving performance and compatibility.                                                                                              |
-| `workspace` | `float` or `None` | `None`         | Sets the maximum workspace size in GiB for TensorRT optimizations, balancing memory usage and performance; use `None` for auto-allocation by TensorRT up to device maximum.                   |
-| `nms`       | `bool`            | `False`        | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                           |
-| `batch`     | `int`             | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                       |
-| `data`      | `str`             | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets/) configuration file (default: `coco8.yaml`), essential for quantization.                                                         |
+| Argument    | Type              | Default        | Description                                                                                                                                                                                                                                                      |
+| ----------- | ----------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`    | `str`             | `'engine'`     | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                               |
+| `imgsz`     | `int` or `tuple`  | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
+| `half`      | `bool`            | `False`        | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                                                                                                                                     |
+| `int8`      | `bool`            | `False`        | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices.                                                                    |
+| `dynamic`   | `bool`            | `False`        | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                                                                                          |
+| `simplify`  | `bool`            | `True`         | Simplifies the model graph with `onnxslim`, potentially improving performance and compatibility.                                                                                                                                                                 |
+| `workspace` | `float` or `None` | `None`         | Sets the maximum workspace size in GiB for TensorRT optimizations, balancing memory usage and performance; use `None` for auto-allocation by TensorRT up to device maximum.                                                                                      |
+| `nms`       | `bool`            | `False`        | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                                                              |
+| `batch`     | `int`             | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
+| `data`      | `str`             | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets/) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                            |
+| `fraction`  | `float`           | `1.0`          | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |
+| `device`    | `str`             | `None`         | Specifies the device for exporting: GPU (`device=0`), DLA for NVIDIA Jetson (`device=dla:0` or `device=dla:1`).                                                                                                                                                  |
+
+!!! tip
+
+    Please make sure to use a GPU with CUDA support when exporting to TensorRT.
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -192,7 +198,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
         ```bash
         # Export a YOLO11n PyTorch model to TensorRT format with INT8 quantization
-        yolo export model=yolo11n.pt format=engine batch=8 workspace=4 int8=True data=coco.yaml  # creates 'yolov8n.engine''
+        yolo export model=yolo11n.pt format=engine batch=8 workspace=4 int8=True data=coco.yaml # creates 'yolov8n.engine''
 
         # Run inference with the exported TensorRT quantized model
         yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'
@@ -487,7 +493,7 @@ To convert your Ultralytics YOLO11 models to TensorRT format for optimized NVIDI
     from ultralytics import YOLO
 
     model = YOLO("yolo11n.pt")
-    model.export(format="engine")  # creates 'yolov8n.engine'
+    model.export(format="engine")  # creates 'yolo11n.engine'
 
     # Run inference
     model = YOLO("yolo11n.engine")
@@ -505,7 +511,7 @@ Using TensorRT to optimize YOLO11 models offers several benefits:
 - **Layer Fusion**: Combines multiple layers into single operations, reducing computational complexity.
 - **Kernel Auto-Tuning**: Automatically selects optimized GPU kernels for each model layer, ensuring maximum performance.
 
-For more information, explore the detailed features of TensorRT [here](https://developer.nvidia.com/tensorrt) and read our [TensorRT overview section](#tensorrt).
+To learn more, explore the [official TensorRT documentation from NVIDIA](https://developer.nvidia.com/tensorrt) and our [in-depth TensorRT overview](#tensorrt).
 
 ### Can I use INT8 quantization with TensorRT for YOLO11 models?
 

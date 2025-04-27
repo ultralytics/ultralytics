@@ -44,9 +44,9 @@ Here's how you can deploy with TF GraphDef efficiently across various platforms.
 
 - **TensorFlow Serving:** This framework is designed to deploy TensorFlow models in production environments. TensorFlow Serving offers model management, versioning, and the infrastructure for efficient model serving at scale. It's a seamless way to integrate your GraphDef-based models into production web services or APIs.
 
-- **Mobile and Embedded Devices:** With tools like TensorFlow Lite, you can convert TF GraphDef models into formats optimized for smartphones, tablets, and various embedded devices. Your models can then be used for on-device inference, where execution is done locally, often providing performance gains and offline capabilities.
+- **Mobile and Embedded Devices:** With tools like [TensorFlow Lite](../integrations/tflite.md), you can convert TF GraphDef models into formats optimized for smartphones, tablets, and various embedded devices. Your models can then be used for on-device inference, where execution is done locally, often providing performance gains and offline capabilities.
 
-- **Web Browsers:** TensorFlow.js enables the deployment of TF GraphDef models directly within web browsers. It paves the way for real-time object detection applications running on the client side, using the capabilities of YOLO11 through JavaScript.
+- **Web Browsers:** [TensorFlow.js](../integrations/tfjs.md) enables the deployment of TF GraphDef models directly within web browsers. It paves the way for real-time object detection applications running on the client side, using the capabilities of YOLO11 through JavaScript.
 
 - **Specialized Hardware:** TF GraphDef's platform-agnostic nature allows it to target custom hardware, such as accelerators and TPUs (Tensor Processing Units). These devices can provide performance advantages for computationally intensive models.
 
@@ -71,7 +71,7 @@ For detailed instructions and best practices related to the installation process
 
 ### Usage
 
-Before diving into the usage instructions, it's important to note that while all [Ultralytics YOLO11 models](../models/index.md) are available for exporting, you can ensure that the model you select supports export functionality [here](../modes/export.md).
+All [Ultralytics YOLO11 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
 !!! example "Usage"
 
@@ -97,7 +97,7 @@ Before diving into the usage instructions, it's important to note that while all
 
         ```bash
         # Export a YOLO11n PyTorch model to TF GraphDef format
-        yolo export model=yolo11n.pt format=pb  # creates 'yolo11n.pb'
+        yolo export model=yolo11n.pt format=pb # creates 'yolo11n.pb'
 
         # Run inference with the exported model
         yolo predict model='yolo11n.pb' source='https://ultralytics.com/images/bus.jpg'
@@ -110,6 +110,7 @@ Before diving into the usage instructions, it's important to note that while all
 | `format` | `str`            | `'pb'`  | Target format for the exported model, defining compatibility with various deployment environments.                                      |
 | `imgsz`  | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
 | `batch`  | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `device` | `str`            | `None`  | Specifies the device for exporting: CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                           |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -163,7 +164,7 @@ Ultralytics YOLO11 models can be exported to TensorFlow GraphDef (TF GraphDef) f
 
         ```bash
         # Export a YOLO11n PyTorch model to TF GraphDef format
-        yolo export model="yolo11n.pt" format="pb"  # creates 'yolo11n.pb'
+        yolo export model="yolo11n.pt" format="pb" # creates 'yolo11n.pb'
 
         # Run inference with the exported model
         yolo predict model="yolo11n.pb" source="https://ultralytics.com/images/bus.jpg"
@@ -189,7 +190,7 @@ Ultralytics YOLO11 offers numerous advantages compared to other models like YOLO
 2. **Ease of Use**: Features a user-friendly API for model training, validation, prediction, and export, making it accessible for both beginners and experts.
 3. **Broad Compatibility**: Supports multiple export formats including ONNX, TensorRT, CoreML, and TensorFlow, for versatile deployment options.
 
-Explore further details in our [introduction to YOLO11](https://docs.ultralytics.com/models/yolov8/).
+Explore further details in our [introduction to YOLO11](../models/yolo11.md).
 
 ### How can I deploy a YOLO11 model on specialized hardware using TF GraphDef?
 

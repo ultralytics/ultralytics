@@ -15,7 +15,7 @@ keywords: Ultralytics Explorer, data exploration, semantic search, vector simila
 <a href="https://docs.ultralytics.com/ru">Русский</a> |
 <a href="https://docs.ultralytics.com/de">Deutsch</a> |
 <a href="https://docs.ultralytics.com/fr">Français</a> |
-<a href="https://docs.ultralytics.com/es/">Español</a> |
+<a href="https://docs.ultralytics.com/es">Español</a> |
 <a href="https://docs.ultralytics.com/pt">Português</a> |
 <a href="https://docs.ultralytics.com/tr">Türkçe</a> |
 <a href="https://docs.ultralytics.com/vi">Tiếng Việt</a> |
@@ -28,7 +28,7 @@ keywords: Ultralytics Explorer, data exploration, semantic search, vector simila
     <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="Ultralytics YOLO Citation"></a>
     <a href="https://discord.com/invite/ultralytics"><img alt="Ultralytics Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
     <a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
-    <a href="https://reddit.com/r/ultralytics"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
+    <a href="https://www.reddit.com/r/ultralytics/"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
     <br>
     <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run Ultralytics on Gradient"></a>
     <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Ultralytics In Colab"></a>

@@ -199,8 +199,8 @@ class Results(SimpleClass):
         probs (Probs | None): Classification probabilities.
         keypoints (Keypoints | None): Detected keypoints.
         obb (OBB | None): Oriented bounding boxes.
-        speed (Dict): Dictionary containing inference speed information.
-        names (Dict): Dictionary mapping class indices to class names.
+        speed (dict): Dictionary containing inference speed information.
+        names (dict): Dictionary mapping class indices to class names.
         path (str): Path to the input image file.
         save_dir (str | None): Directory to save results.
 
@@ -243,7 +243,7 @@ class Results(SimpleClass):
         Args:
             orig_img (numpy.ndarray): The original image as a numpy array.
             path (str): The path to the image file.
-            names (Dict): A dictionary of class names.
+            names (dict): A dictionary of class names.
             boxes (torch.Tensor | None): A 2D tensor of bounding box coordinates for each detection.
             masks (torch.Tensor | None): A 3D tensor of detection masks, where each mask is a binary image.
             probs (torch.Tensor | None): A 1D tensor of probabilities of each class for classification task.
@@ -299,8 +299,8 @@ class Results(SimpleClass):
         Return the number of detections in the Results object.
 
         Returns:
-            (int): The number of detections, determined by the length of the first non-empty attribute
-                (boxes, masks, probs, keypoints, or obb).
+            (int): The number of detections, determined by the length of the first non-empty
+                attribute in (masks, probs, keypoints, or obb).
 
         Examples:
             >>> results = Results(orig_img, path, names, boxes=torch.rand(5, 4))
@@ -472,6 +472,7 @@ class Results(SimpleClass):
         save=False,
         filename=None,
         color_mode="class",
+        txt_color=(255, 255, 255),
     ):
         """
         Plots detection results on an input RGB image.
@@ -494,6 +495,7 @@ class Results(SimpleClass):
             save (bool): Whether to save the annotated image.
             filename (str | None): Filename to save image if save is True.
             color_mode (bool): Specify the color mode, e.g., 'instance' or 'class'. Default to 'class'.
+            txt_color (tuple[int, int, int]): Specify the RGB text color for classification task
 
         Returns:
             (np.ndarray): Annotated image as a numpy array.
@@ -567,9 +569,9 @@ class Results(SimpleClass):
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
-            text = ",\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5)
+            text = "\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5)
             x = round(self.orig_shape[0] * 0.03)
-            annotator.text([x, x], text, txt_color=(255, 255, 255))  # TODO: allow setting colors
+            annotator.text([x, x], text, txt_color=txt_color, box_color=(64, 64, 64, 128))  # RGBA box
 
         # Plot Pose results
         if self.keypoints is not None:
@@ -588,7 +590,7 @@ class Results(SimpleClass):
 
         # Save results
         if save:
-            annotator.save(filename)
+            annotator.save(filename or f"results_{Path(self.path).name}")
 
         return annotator.im if pil else annotator.result()
 
@@ -750,10 +752,10 @@ class Results(SimpleClass):
             >>>     result.save_crop(save_dir="path/to/crops", file_name="detection")
         """
         if self.probs is not None:
-            LOGGER.warning("WARNING ⚠️ Classify task do not support `save_crop`.")
+            LOGGER.warning("Classify task do not support `save_crop`.")
             return
         if self.obb is not None:
-            LOGGER.warning("WARNING ⚠️ OBB task do not support `save_crop`.")
+            LOGGER.warning("OBB task do not support `save_crop`.")
             return
         for d in self.boxes:
             save_one_box(
@@ -777,9 +779,9 @@ class Results(SimpleClass):
             decimals (int): Number of decimal places to round the output values to.
 
         Returns:
-            (List[Dict]): A list of dictionaries, each containing summarized information for a single
-                detection or classification result. The structure of each dictionary varies based on the
-                task type (classification or detection) and available information (boxes, masks, keypoints).
+            (List[Dict]): A list of dictionaries, each containing summarized information for a single detection
+                or classification result. The structure of each dictionary varies based on the task type
+                (classification or detection) and available information (boxes, masks, keypoints).
 
         Examples:
             >>> results = model("image.jpg")
@@ -940,7 +942,7 @@ class Results(SimpleClass):
 
     def tojson(self, normalize=False, decimals=5):
         """Deprecated version of to_json()."""
-        LOGGER.warning("WARNING ⚠️ 'result.tojson()' is deprecated, replace with 'result.to_json()'.")
+        LOGGER.warning("'result.tojson()' is deprecated, replace with 'result.to_json()'.")
         return self.to_json(normalize, decimals)
 
     def to_json(self, normalize=False, decimals=5):
@@ -1003,7 +1005,7 @@ class Results(SimpleClass):
         # Convert results to a list of dictionaries
         data = self.summary(normalize=normalize, decimals=decimals)
         if len(data) == 0:
-            LOGGER.warning("⚠️ No results to save to SQL. Results dict is empty")
+            LOGGER.warning("No results to save to SQL. Results dict is empty.")
             return
 
         # Connect to the SQLite database

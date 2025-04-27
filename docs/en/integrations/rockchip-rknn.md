@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn how to export YOLO11 models to RKNN format for efficient deployment on Rockchip platforms with enhanced performance.
-keywords: YOLO11, RKNN, model export, Ultralytics, Rockchip, machine learning, model deployment, computer vision, deep learning
+keywords: YOLO11, RKNN, model export, Ultralytics, Rockchip, machine learning, model deployment, computer vision, deep learning, edge AI, NPU, embedded devices
 ---
 
 # Rockchip RKNN Export for Ultralytics YOLO11 Models
@@ -18,7 +18,7 @@ When deploying computer vision models on embedded devices, especially those powe
 
 ## What is Rockchip?
 
-Renowned for delivering versatile and power-efficient solutions, Rockchip designs advanced System-on-Chips (SoCs) that power a wide range of consumer electronics, industrial applications, and AI technologies. With ARM-based architecture, built-in Neural Processing Units (NPUs), and high-resolution multimedia support, Rockchip SoCs enable cutting-edge performance for devices like tablets, smart TVs, IoT systems, and edge AI applications. Companies like Radxa, ASUS, Pine64, Orange Pi, Odroid, Khadas, and Banana Pi offer a variety of products based on Rockchip SoCs, further extending their reach and impact across diverse markets.
+Renowned for delivering versatile and power-efficient solutions, Rockchip designs advanced System-on-Chips (SoCs) that power a wide range of consumer electronics, industrial applications, and AI technologies. With ARM-based architecture, built-in Neural Processing Units (NPUs), and high-resolution multimedia support, Rockchip SoCs enable cutting-edge performance for devices like tablets, smart TVs, IoT systems, and [edge AI applications](https://www.ultralytics.com/blog/understanding-the-real-world-applications-of-edge-ai). Companies like Radxa, ASUS, Pine64, Orange Pi, Odroid, Khadas, and Banana Pi offer a variety of products based on Rockchip SoCs, further extending their reach and impact across diverse markets.
 
 ## RKNN Toolkit
 
@@ -31,10 +31,11 @@ RKNN models offer several advantages for deployment on Rockchip platforms:
 - **Optimized for NPU**: RKNN models are specifically optimized to run on Rockchip's NPUs, ensuring maximum performance and efficiency.
 - **Low Latency**: The RKNN format minimizes inference latency, which is critical for real-time applications on edge devices.
 - **Platform-Specific Customization**: RKNN models can be tailored to specific Rockchip platforms, enabling better utilization of hardware resources.
+- **Power Efficiency**: By leveraging dedicated NPU hardware, RKNN models consume less power than CPU or GPU-based processing, extending battery life for portable devices.
 
 ## Flash OS to Rockchip hardware
 
-The first step after getting your hands on a Rockchip-based device is to flash an OS so that that the hardware can boot into a working environment. In this guide we will point to getting started guides of the two devices that we tested which are Radxa Rock 5B and Radxa Zero 3W.
+The first step after getting your hands on a Rockchip-based device is to flash an OS so that the hardware can boot into a working environment. In this guide we will point to getting started guides of the two devices that we tested which are Radxa Rock 5B and Radxa Zero 3W.
 
 - [Radxa Rock 5B Getting Started Guide](https://docs.radxa.com/en/rock5/rock5b)
 - [Radxa Zero 3W Getting Started Guide](https://docs.radxa.com/en/zero/zero3)
@@ -88,7 +89,7 @@ For detailed instructions and best practices related to the installation process
         ```bash
         # Export a YOLO11n PyTorch model to RKNN format
         # 'name' can be one of rk3588, rk3576, rk3566, rk3568, rk3562, rv1103, rv1106, rv1103b, rv1106b, rk2118
-        yolo export model=yolo11n.pt format=rknn name=rk3588  # creates '/yolo11n_rknn_model'
+        yolo export model=yolo11n.pt format=rknn name=rk3588 # creates '/yolo11n_rknn_model'
         ```
 
 ### Export Arguments
@@ -99,6 +100,11 @@ For detailed instructions and best practices related to the installation process
 | `imgsz`  | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
 | `batch`  | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
 | `name`   | `str`            | `'rk3588'` | Specifies the Rockchip model (rk3588, rk3576, rk3566, rk3568, rk3562, rv1103, rv1106, rv1103b, rv1106b, rk2118)                         |
+| `device` | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                               |
+
+!!! tip
+
+    Please make sure to use an x86 Linux machine when exporting to RKNN.
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -148,6 +154,16 @@ To install the required packages, run:
 
     ![RKNN export screenshot](https://github.com/ultralytics/assets/releases/download/v0.0.0/rknn-npu-log.avif)
 
+## Real-World Applications
+
+Rockchip-powered devices with YOLO11 RKNN models can be used in various applications:
+
+- **Smart Surveillance**: Deploy efficient object detection systems for security monitoring with low power consumption.
+- **Industrial Automation**: Implement quality control and defect detection directly on embedded devices.
+- **Retail Analytics**: Track customer behavior and inventory management in real-time without cloud dependency.
+- **Smart Agriculture**: Monitor crop health and detect pests using [computer vision in agriculture](https://www.ultralytics.com/solutions/ai-in-agriculture).
+- **Autonomous Robotics**: Enable vision-based navigation and obstacle detection on resource-constrained platforms.
+
 ## Benchmarks
 
 YOLO11 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based on Rockchip RK3588 with `rknn` model format measuring speed and accuracy.
@@ -167,6 +183,8 @@ YOLO11 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based 
 ## Summary
 
 In this guide, you've learned how to export Ultralytics YOLO11 models to RKNN format to enhance their deployment on Rockchip platforms. You were also introduced to the RKNN Toolkit and the specific advantages of using RKNN models for edge AI applications.
+
+The combination of [Ultralytics YOLO11](https://www.ultralytics.com/blog/all-you-need-to-know-about-ultralytics-yolo11-and-its-applications) and Rockchip's NPU technology provides an efficient solution for running advanced computer vision tasks on embedded devices. This approach enables real-time [object detection](https://www.ultralytics.com/blog/a-guide-to-deep-dive-into-object-detection-in-2025) and other vision AI applications with minimal power consumption and high performance.
 
 For further details on usage, visit the [RKNN official documentation](https://github.com/airockchip/rknn-toolkit2).
 

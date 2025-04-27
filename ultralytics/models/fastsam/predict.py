@@ -20,7 +20,7 @@ class FastSAMPredictor(SegmentationPredictor):
     single-class segmentation.
 
     Attributes:
-        prompts (Dict): Dictionary containing prompt information for segmentation (bboxes, points, labels, texts).
+        prompts (dict): Dictionary containing prompt information for segmentation (bboxes, points, labels, texts).
         device (torch.device): Device on which model and tensors are processed.
         clip_model (Any, optional): CLIP model for text-based prompting, loaded on demand.
         clip_preprocess (Any, optional): CLIP preprocessing function for images, loaded on demand.
@@ -33,7 +33,18 @@ class FastSAMPredictor(SegmentationPredictor):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initialize the FastSAMPredictor with configuration and callbacks."""
+        """
+        Initialize the FastSAMPredictor with configuration and callbacks.
+
+        This initializes a predictor specialized for Fast SAM (Segment Anything Model) segmentation tasks. The predictor
+        extends SegmentationPredictor with custom post-processing for mask prediction and non-maximum suppression
+        optimized for single-class segmentation.
+
+        Args:
+            cfg (dict): Configuration for the predictor. Defaults to Ultralytics DEFAULT_CFG.
+            overrides (dict, optional): Configuration overrides.
+            _callbacks (list, optional): List of callback functions.
+        """
         super().__init__(cfg, overrides, _callbacks)
         self.prompts = {}
 

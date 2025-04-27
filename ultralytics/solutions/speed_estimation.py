@@ -2,8 +2,6 @@
 
 from time import time
 
-import numpy as np
-
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
 
@@ -75,7 +73,7 @@ class SpeedEstimator(BaseSolution):
         # Draw speed estimation region
         annotator.draw_region(reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2)
 
-        for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
+        for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
             self.store_tracking_history(track_id, box)  # Store track history
 
             # Initialize tracking data for new objects
@@ -84,8 +82,11 @@ class SpeedEstimator(BaseSolution):
             if track_id not in self.trk_pp:
                 self.trk_pp[track_id] = self.track_line[-1]
 
-            # Prepare label with speed if available, otherwise use class name
-            speed_label = f"{int(self.spd[track_id])} km/h" if track_id in self.spd else self.names[int(cls)]
+            speed_label = (
+                f"{int(self.spd[track_id])} km/h"
+                if track_id in self.spd and self.show_labels
+                else self.adjust_box_label(cls, conf, track_id)
+            )
             annotator.box_label(box, label=speed_label, color=colors(track_id, True))  # Draw bounding box
 
             # Determine if object is crossing the speed estimation region
@@ -100,7 +101,7 @@ class SpeedEstimator(BaseSolution):
                 time_difference = time() - self.trk_pt[track_id]
                 if time_difference > 0:
                     # Calculate speed based on vertical displacement and time
-                    self.spd[track_id] = np.abs(self.track_line[-1][1] - self.trk_pp[track_id][1]) / time_difference
+                    self.spd[track_id] = abs(self.track_line[-1][1] - self.trk_pp[track_id][1]) / time_difference
 
             # Update tracking data for next frame
             self.trk_pt[track_id] = time()

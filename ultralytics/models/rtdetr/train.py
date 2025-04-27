@@ -2,8 +2,6 @@
 
 from copy import copy
 
-import torch
-
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import RTDETRDetectionModel
 from ultralytics.utils import RANK, colorstr
@@ -21,8 +19,8 @@ class RTDETRTrainer(DetectionTrainer):
 
     Attributes:
         loss_names (Tuple[str]): Names of the loss components used for training.
-        data (Dict): Dataset configuration containing class count and other parameters.
-        args (Dict): Training arguments and hyperparameters.
+        data (dict): Dataset configuration containing class count and other parameters.
+        args (dict): Training arguments and hyperparameters.
         save_dir (Path): Directory to save training results.
         test_loader (DataLoader): DataLoader for validation/testing data.
 
@@ -42,14 +40,14 @@ class RTDETRTrainer(DetectionTrainer):
         Initialize and return an RT-DETR model for object detection tasks.
 
         Args:
-            cfg (Dict, optional): Model configuration.
+            cfg (dict, optional): Model configuration.
             weights (str, optional): Path to pre-trained model weights.
             verbose (bool): Verbose logging if True.
 
         Returns:
             (RTDETRDetectionModel): Initialized model.
         """
-        model = RTDETRDetectionModel(cfg, nc=self.data["nc"], verbose=verbose and RANK == -1)
+        model = RTDETRDetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
         return model
@@ -85,22 +83,3 @@ class RTDETRTrainer(DetectionTrainer):
         """Returns a DetectionValidator suitable for RT-DETR model validation."""
         self.loss_names = "giou_loss", "cls_loss", "l1_loss"
         return RTDETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
-
-    def preprocess_batch(self, batch):
-        """
-        Preprocess a batch of images by scaling and converting to float format.
-
-        Args:
-            batch (Dict): Dictionary containing a batch of images, bboxes, and labels.
-
-        Returns:
-            (Dict): Preprocessed batch with ground truth bounding boxes and classes separated by batch index.
-        """
-        batch = super().preprocess_batch(batch)
-        bs = len(batch["img"])
-        batch_idx = batch["batch_idx"]
-        gt_bbox, gt_class = [], []
-        for i in range(bs):
-            gt_bbox.append(batch["bboxes"][batch_idx == i].to(batch_idx.device))
-            gt_class.append(batch["cls"][batch_idx == i].to(device=batch_idx.device, dtype=torch.long))
-        return batch

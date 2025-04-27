@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import math
 from collections import defaultdict
 
 import cv2
@@ -22,7 +23,7 @@ class BaseSolution:
         LineString (shapely.geometry.LineString): Class for creating line string geometries.
         Polygon (shapely.geometry.Polygon): Class for creating polygon geometries.
         Point (shapely.geometry.Point): Class for creating point geometries.
-        CFG (Dict): Configuration dictionary loaded from a YAML file and updated with kwargs.
+        CFG (dict): Configuration dictionary loaded from a YAML file and updated with kwargs.
         region (List[Tuple[int, int]]): List of coordinate tuples defining a region of interest.
         line_width (int): Width of lines used in visualizations.
         model (ultralytics.YOLO): Loaded YOLO model instance.
@@ -52,7 +53,7 @@ class BaseSolution:
             is_cli (bool): Enables CLI mode if set to True.
             **kwargs (Any): Additional configuration parameters that override defaults.
         """
-        check_requirements("shapely>=2.0.0")
+        check_requirements("shapely>=2.0.0,<2.1.0")
         from shapely.geometry import LineString, Point, Polygon
         from shapely.prepared import prep
 
@@ -79,16 +80,16 @@ class BaseSolution:
         self.LOGGER.info(f"Ultralytics Solutions: ✅ {DEFAULT_SOL_DICT}")
 
         self.region = self.CFG["region"]  # Store region data for other classes usage
-        self.line_width = (
-            self.CFG["line_width"] if self.CFG["line_width"] is not None else 2
-        )  # Store line_width for usage
+        self.line_width = self.CFG["line_width"] if self.CFG["line_width"] not in (None, 0) else 2  # Store line_width
 
-        # Load Model and store classes names
+        # Load Model and store additional information (classes, show_conf, show_label)
         if self.CFG["model"] is None:
             self.CFG["model"] = "yolo11n.pt"
         self.model = YOLO(self.CFG["model"])
         self.names = self.model.names
         self.classes = self.CFG["classes"]
+        self.show_conf = self.CFG["show_conf"]
+        self.show_labels = self.CFG["show_labels"]
 
         self.track_add_args = {  # Tracker additional arguments for advance configuration
             k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker", "device", "verbose"]
@@ -96,7 +97,7 @@ class BaseSolution:
 
         if is_cli and self.CFG["source"] is None:
             d_s = "solutions_ci_demo.mp4" if "-pose" not in self.CFG["model"] else "solution_ci_pose_demo.mp4"
-            self.LOGGER.warning(f"⚠️ WARNING: source not provided. using default source {ASSETS_URL}/{d_s}")
+            self.LOGGER.warning(f"source not provided. using default source {ASSETS_URL}/{d_s}")
             from ultralytics.utils.downloads import safe_download
 
             safe_download(f"{ASSETS_URL}/{d_s}")  # download source from ultralytics assets
@@ -105,6 +106,25 @@ class BaseSolution:
         # Initialize environment and region setup
         self.env_check = check_imshow(warn=True)
         self.track_history = defaultdict(list)
+
+    def adjust_box_label(self, cls, conf, track_id=None):
+        """
+        Generates a formatted label for a bounding box.
+
+        This method constructs a label string for a bounding box using the class index and confidence score.
+        Optionally includes the track ID if provided. The label format adapts based on the display settings
+        defined in `self.show_conf` and `self.show_labels`.
+
+        Args:
+            cls (int): The class index of the detected object.
+            conf (float): The confidence score of the detection.
+            track_id (int, optional): The unique identifier for the tracked object. Defaults to None.
+
+        Returns:
+            (str or None): The formatted label string if `self.show_labels` is True; otherwise, None.
+        """
+        name = ("" if track_id is None else f"{track_id} ") + self.names[cls]
+        return (f"{name} {conf:.2f}" if self.show_conf else name) if self.show_labels else None
 
     def extract_tracks(self, im0):
         """
@@ -122,16 +142,17 @@ class BaseSolution:
         self.track_data = self.tracks[0].obb or self.tracks[0].boxes  # Extract tracks for OBB or object detection
 
         self.masks = (
-            self.tracks[0].masks.xy if hasattr(self.tracks[0], "masks") and self.tracks[0].masks is not None else None
+            self.tracks[0].masks if hasattr(self.tracks[0], "masks") and self.tracks[0].masks is not None else None
         )
 
         if self.track_data and self.track_data.id is not None:
             self.boxes = self.track_data.xyxy.cpu()
             self.clss = self.track_data.cls.cpu().tolist()
             self.track_ids = self.track_data.id.int().cpu().tolist()
+            self.confs = self.track_data.conf.cpu().tolist()
         else:
-            self.LOGGER.warning("WARNING ⚠️ no tracks found!")
-            self.boxes, self.clss, self.track_ids = [], [], []
+            self.LOGGER.warning("no tracks found!")
+            self.boxes, self.clss, self.track_ids, self.confs = [], [], [], []
 
     def store_tracking_history(self, track_id, box):
         """
@@ -225,7 +246,6 @@ class SolutionAnnotator(Annotator):
         plot_angle_and_count_and_stage: Visualizes angle, step count, and stage for workout monitoring.
         plot_distance_and_line: Displays the distance between centroids and connects them with a line.
         display_objects_labels: Annotates bounding boxes with object class labels.
-        segmentation_mask: Draws mask for segmented objects and optionally labels them.
         sweep_annotator: Visualizes a vertical sweep line and optional label.
         visioneye: Maps and connects object centroids to a visual "eye" point.
         circle_label: Draws a circular label within a bounding box.
@@ -350,12 +370,9 @@ class SolutionAnnotator(Annotator):
         Returns:
             (float): The angle in degrees between the three points.
         """
-        a, b, c = np.array(a), np.array(b), np.array(c)
-        radians = np.arctan2(c[1] - b[1], c[0] - b[0]) - np.arctan2(a[1] - b[1], a[0] - b[0])
-        angle = np.abs(radians * 180.0 / np.pi)
-        if angle > 180.0:
-            angle = 360 - angle
-        return angle
+        radians = math.atan2(c[1] - b[1], c[0] - b[0]) - math.atan2(a[1] - b[1], a[0] - b[0])
+        angle = abs(radians * 180.0 / math.pi)
+        return angle if angle <= 180.0 else (360 - angle)
 
     def draw_specific_kpts(self, keypoints, indices=None, radius=2, conf_thresh=0.25):
         """
@@ -519,50 +536,6 @@ class SolutionAnnotator(Annotator):
             lineType=cv2.LINE_AA,
         )
 
-    def segmentation_mask(self, mask, mask_color=(255, 0, 255), label=None, alpha=0.5):
-        """
-        Draw an optimized segmentation mask with smooth corners, highlighted edge, and dynamic text box size.
-
-        Args:
-            mask (np.ndarray): A 2D array of shape (N, 2) containing the object mask.
-            mask_color (Tuple[int, int, int]): RGB color for the mask.
-            label (str, optional): Text label for the object.
-            alpha (float): Transparency level (0 = fully transparent, 1 = fully opaque).
-        """
-        if mask.size == 0:
-            return
-
-        overlay = self.im.copy()
-        mask = np.int32([mask])
-
-        # Approximate polygon for smooth corners with epsilon
-        refined_mask = cv2.approxPolyDP(mask, 0.002 * cv2.arcLength(mask, True), True)
-
-        # Apply a highlighter effect by drawing a thick outer shadow
-        cv2.polylines(overlay, [refined_mask], isClosed=True, color=mask_color, thickness=self.lw * 3)
-        cv2.fillPoly(overlay, [refined_mask], mask_color)  # draw mask with primary color
-
-        # Apply an inner glow effect for extra clarity
-        cv2.polylines(overlay, [refined_mask], isClosed=True, color=mask_color, thickness=self.lw)
-
-        self.im = cv2.addWeighted(overlay, alpha, self.im, 1 - alpha, 0)  # blend overlay with the original image
-
-        # Draw label if provided
-        if label:
-            text_size, _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, self.sf, self.tf)
-            text_x, text_y = refined_mask[0][0][0], refined_mask[0][0][1]
-            rect_start, rect_end = (text_x - 5, text_y - text_size[1] - 5), (text_x + text_size[0] + 5, text_y + 5)
-            cv2.rectangle(self.im, rect_start, rect_end, mask_color, -1)
-            cv2.putText(
-                self.im,
-                label,
-                (text_x, text_y),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                self.sf,
-                self.get_txt_color(mask_color),
-                self.tf,
-            )
-
     def sweep_annotator(self, line_x=0, line_y=0, label=None, color=(221, 0, 186), txt_color=(255, 255, 255)):
         """
         Draw a sweep annotation line and an optional label.
@@ -623,11 +596,8 @@ class SolutionAnnotator(Annotator):
             txt_color (Tuple[int, int, int]): The color of the text (R, G, B).
             margin (int): The margin between the text and the circle border.
         """
-        # If label have more than 3 characters, skip other characters, due to circle size
         if len(label) > 3:
-            print(
-                f"Length of label is {len(label)}, initial 3 label characters will be considered for circle annotation!"
-            )
+            LOGGER.warning(f"Length of label is {len(label)}, only first 3 letters will be used for circle annotation.")
             label = label[:3]
 
         # Calculate the center of the box
@@ -712,7 +682,7 @@ class SolutionResults:
         filled_slots (int): The number of filled slots in a monitored area.
         email_sent (bool): A flag indicating whether an email notification was sent.
         total_tracks (int): The total number of tracked objects.
-        region_counts (Dict): The count of objects within a specific region.
+        region_counts (dict): The count of objects within a specific region.
         speed_dict (Dict[str, float]): A dictionary containing speed information for tracked objects.
         total_crop_objects (int): Total number of cropped objects using ObjectCropper class.
     """

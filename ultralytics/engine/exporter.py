@@ -907,7 +907,6 @@ class Exporter:
             import tensorflow as tf  # noqa
         check_requirements(
             (
-                "keras",  # required by 'onnx2tf' package
                 "tf_keras",  # required by 'onnx2tf' package
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
                 "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package

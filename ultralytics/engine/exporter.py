@@ -569,11 +569,6 @@ class Exporter:
                 dynamic["output0"].pop(2)
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset_version  # for NMSModel
-            # OBB error https://github.com/pytorch/pytorch/issues/110859#issuecomment-1757841865
-            try:
-                torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
-            except RuntimeError:  # it will fail if it's already registered
-                pass
 
         with arange_patch(self.args):
             export_onnx(
@@ -1026,8 +1021,6 @@ class Exporter:
     @try_export
     def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):
         """YOLO Edge TPU export https://coral.ai/docs/edgetpu/models-intro/."""
-        LOGGER.warning(f"{prefix} Edge TPU known bug https://github.com/ultralytics/ultralytics/issues/1185")
-
         cmd = "edgetpu_compiler --version"
         help_url = "https://coral.ai/docs/edgetpu/compiler/"
         assert LINUX, f"export only supported on Linux. See {help_url}"

@@ -247,7 +247,6 @@ class BasePredictor:
                 Source for inference.
         """
         self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
-
         self.dataset = load_inference_source(
             source=source,
             batch=self.args.batch,

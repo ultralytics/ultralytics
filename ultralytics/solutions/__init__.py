@@ -36,5 +36,5 @@ __all__ = (
     "Analytics",
     "Inference",
     "TrackZone",
-    "SearchApp"
+    "SearchApp",
 )

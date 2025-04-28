@@ -16,7 +16,7 @@ from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.torch_utils import select_device
 
-check_requirements(['open-clip-torch', 'faiss-cpu'])
+check_requirements(["open-clip-torch", "faiss-cpu"])
 
 import faiss
 import open_clip as op
@@ -30,20 +30,23 @@ class VisualAISearch:
         data (str): Directory containing images.
         device (str): Computation device, e.g., 'cpu' or 'cuda'.
     """
-    def __init__(self, data='images', device=None):
+
+    def __init__(self, data="images", device=None):
         self.faiss_index = "faiss.index"
         self.data_path_npy = "paths.npy"
-        self.model_name = 'ViT-B-32-quickgelu'
+        self.model_name = "ViT-B-32-quickgelu"
         self.data_dir = Path(data)
         self.device = select_device(device)
 
         if not self.data_dir.exists():
             from ultralytics.utils import ASSETS_URL
+
             LOGGER.warning(f"{self.data_dir} not found. Downloading images.zip from {ASSETS_URL}/images.zip")
             from ultralytics.utils.downloads import safe_download
+
             safe_download(url=f"{ASSETS_URL}/images.zip", unzip=True, retry=3)
 
-        self.clip_model, _, self.preprocess = op.create_model_and_transforms(self.model_name, pretrained='openai')
+        self.clip_model, _, self.preprocess = op.create_model_and_transforms(self.model_name, pretrained="openai")
         self.clip_model = self.clip_model.to(self.device).eval()
         self.tokenizer = op.get_tokenizer(self.model_name)
 
@@ -103,7 +106,9 @@ class VisualAISearch:
         faiss.normalize_L2(text_feat)
 
         D, I = self.index.search(text_feat, k)
-        results = [(self.image_paths[i], float(D[0][idx])) for idx, i in enumerate(I[0]) if D[0][idx] >= similarity_thresh]
+        results = [
+            (self.image_paths[i], float(D[0][idx])) for idx, i in enumerate(I[0]) if D[0][idx] >= similarity_thresh
+        ]
         results.sort(key=lambda x: x[1], reverse=True)
 
         LOGGER.info("\n[INFO] Ranked Results:")
@@ -122,7 +127,7 @@ class SearchApp:
         device (str): Device to run inference on (e.g. 'cpu', 'cuda').
     """
 
-    def __init__(self, image_dir='images', device=None):
+    def __init__(self, image_dir="images", device=None):
         self.searcher = VisualAISearch(data=image_dir, device=device)
         self.app = Flask(__name__, template_folder="templates", static_folder="images")
         self.app.add_url_rule("/", view_func=self.index, methods=["GET", "POST"])
@@ -138,4 +143,5 @@ class SearchApp:
         """Runs the Flask web app with Waitress."""
         check_requirements("waitress")
         from waitress import serve
+
         serve(self.app)

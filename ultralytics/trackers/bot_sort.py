@@ -195,15 +195,13 @@ class BOTSORT(BYTETracker):
         # ReID module
         self.proximity_thresh = args.proximity_thresh
         self.appearance_thresh = args.appearance_thresh
-        if args.with_reid:
-            if args.model == "auto":
-                self.encoder = lambda feats, s: [
-                    f.cpu().numpy() for f in feats
-                ]  # native features do not require any model
-            else:
-                self.encoder = ReID(args.model)
-        else:
-            self.encoder = None
+        self.encoder = (
+            (lambda feats, s: [f.cpu().numpy() for f in feats])  # native features do not require any model
+            if self.args.model == "auto" and args.with_reid
+            else ReID(args.model)
+            if args.with_reid
+            else None
+                )
 
     def get_kalmanfilter(self):
         """Return an instance of KalmanFilterXYWH for predicting and updating object states in the tracking process."""

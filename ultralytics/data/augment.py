@@ -1015,8 +1015,6 @@ class CutMix(BaseMixTransform):
 
         # Get a random second image
         h, w = labels["img"].shape[:2]
-        # Generate random bounding box
-        x1, y1, x2, y2 = self._rand_bbox(w, h)
 
         cut_areas = np.asarray([self._rand_bbox(w, h) for _ in range(self.num_areas)], dtype=np.float32)
         ioa1 = bbox_ioa(cut_areas, labels["instances"].bboxes)  # (self.num_areas, num_boxes)
@@ -1025,22 +1023,22 @@ class CutMix(BaseMixTransform):
             return labels
 
         labels2 = labels.pop("mix_labels")[0]
-        areas = cut_areas[idx]
-        ioa2 = bbox_ioa(areas, labels2["instances"].bboxes)
-        indexes2 = np.nonzero((ioa2 >= 0.30).any(0))[0]
+        area = cut_areas[np.random.choice(idx)]  # randomle select one
+        ioa2 = bbox_ioa(area[None], labels2["instances"].bboxes).squeeze(0)
+        indexes2 = np.nonzero((ioa2 >= 0.30))[0]
 
         instances2 = labels2["instances"][indexes2]
         instances2.convert_bbox("xyxy")
         instances2.denormalize(w, h)
+
+        # Apply CutMix
+        x1, y1, x2, y2 = area.astype(np.int32)
+        labels["img"][y1:y2, x1:x2] = labels2["img"][y1:y2, x1:x2]
+
         # Restrain instances2 to the random bounding border
         instances2.add_padding(-x1, -y1)
         instances2.clip(x2 - x1, y2 - y1)
         instances2.add_padding(x1, y1)
-
-        # Apply CutMix
-        for area in areas:
-            x1, y1, x2, y2 = area.astype(np.int32)
-            labels["img"][y1:y2, x1:x2] = labels2["img"][y1:y2, x1:x2]
 
         labels["cls"] = np.concatenate([labels["cls"], labels2["cls"][indexes2]], axis=0)
         labels["instances"] = Instances.concatenate([labels["instances"], instances2], axis=0)

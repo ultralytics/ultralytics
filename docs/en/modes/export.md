@@ -25,8 +25,8 @@ The ultimate goal of training a model is to deploy it for real-world application
 
 ## Why Choose YOLO11's Export Mode?
 
-- **Versatility:** Export to multiple formats including ONNX, TensorRT, CoreML, and more.
-- **Performance:** Gain up to 5x GPU speedup with TensorRT and 3x CPU speedup with ONNX or OpenVINO.
+- **Versatility:** Export to multiple formats including [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [CoreML](../integrations/coreml.md), and more.
+- **Performance:** Gain up to 5x GPU speedup with TensorRT and 3x CPU speedup with ONNX or [OpenVINO](../integrations/openvino.md).
 - **Compatibility:** Make your model universally deployable across numerous hardware and software environments.
 - **Ease of Use:** Simple CLI and Python API for quick and straightforward model exporting.
 
@@ -66,8 +66,8 @@ Export a YOLO11n model to a different format like ONNX or TensorRT. See the Argu
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx  # export custom trained model
+        yolo export model=yolo11n.pt format=onnx      # export official model
+        yolo export model=path/to/best.pt format=onnx # export custom trained model
         ```
 
 ## Arguments
@@ -108,11 +108,11 @@ Exporting a YOLO11 model to ONNX format is straightforward with Ultralytics. It 
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx  # export custom trained model
+        yolo export model=yolo11n.pt format=onnx      # export official model
+        yolo export model=path/to/best.pt format=onnx # export custom trained model
         ```
 
-For more details on the process, including advanced options like handling different input sizes, refer to the [ONNX section](../integrations/onnx.md).
+For more details on the process, including advanced options like handling different input sizes, refer to the [ONNX integration guide](../integrations/onnx.md).
 
 ### What are the benefits of using TensorRT for model export?
 
@@ -142,14 +142,14 @@ INT8 quantization is an excellent way to compress the model and speed up inferen
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n.pt format=engine int8=True   # export TensorRT model with INT8 quantization
+        yolo export model=yolo11n.pt format=engine int8=True # export TensorRT model with INT8 quantization
         ```
 
-INT8 quantization can be applied to various formats, such as TensorRT and CoreML. More details can be found in the [Export section](../modes/export.md).
+INT8 quantization can be applied to various formats, such as [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), and [CoreML](../integrations/coreml.md). For optimal quantization results, provide a representative [dataset](https://docs.ultralytics.com/datasets/) using the `data` parameter.
 
 ### Why is dynamic input size important when exporting models?
 
-Dynamic input size allows the exported model to handle varying image dimensions, providing flexibility and optimizing processing efficiency for different use cases. When exporting to formats like ONNX or TensorRT, enabling dynamic input size ensures that the model can adapt to different input shapes seamlessly.
+Dynamic input size allows the exported model to handle varying image dimensions, providing flexibility and optimizing processing efficiency for different use cases. When exporting to formats like [ONNX](../integrations/onnx.md) or [TensorRT](../integrations/tensorrt.md), enabling dynamic input size ensures that the model can adapt to different input shapes seamlessly.
 
 To enable this feature, use the `dynamic=True` flag during export:
 
@@ -170,7 +170,7 @@ To enable this feature, use the `dynamic=True` flag during export:
         yolo export model=yolo11n.pt format=onnx dynamic=True
         ```
 
-For additional context, refer to the [dynamic input size configuration](#arguments).
+Dynamic input sizing is particularly useful for applications where input dimensions may vary, such as video processing or when handling images from different sources.
 
 ### What are the key export arguments to consider for optimizing model performance?
 
@@ -180,6 +180,6 @@ Understanding and configuring export arguments is crucial for optimizing model p
 - **`imgsz:`** Desired image size for the model input (e.g., `640` or `(height, width)`).
 - **`half:`** Enables FP16 quantization, reducing model size and potentially speeding up inference.
 - **`optimize:`** Applies specific optimizations for mobile or constrained environments.
-- **`int8:`** Enables INT8 quantization, highly beneficial for edge deployments.
+- **`int8:`** Enables INT8 quantization, highly beneficial for [edge AI](https://www.ultralytics.com/blog/deploying-computer-vision-applications-on-edge-ai-devices) deployments.
 
-For a detailed list and explanations of all the export arguments, visit the [Export Arguments section](#arguments).
+For deployment on specific hardware platforms, consider using specialized export formats like [TensorRT](../integrations/tensorrt.md) for NVIDIA GPUs, [CoreML](../integrations/coreml.md) for Apple devices, or [Edge TPU](../integrations/edge-tpu.md) for Google Coral devices.

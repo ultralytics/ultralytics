@@ -48,27 +48,40 @@ jobs:
           python-version: "3.x"
       - uses: astral-sh/setup-uv@v5
       - name: Install Dependencies
-        run: uv pip install --system ruff black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-redirects mkdocs-ultralytics-plugin mkdocs-macros-plugin
+        run: uv pip install --system ruff black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-ultralytics-plugin mkdocs-macros-plugin
       - name: Ruff fixes
         continue-on-error: true
-        run: ruff check --fix --unsafe-fixes --select D --ignore=D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 .
+        run: |
+          ruff check \
+          --fix \
+          --unsafe-fixes \
+          --extend-select I,D,UP \
+          --target-version py38 \
+          --ignore D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 \
+          .
       - name: Update Docs Reference Section and Push Changes
         continue-on-error: true
         run: |
           git config --global user.name "UltralyticsAssistant"
           git config --global user.email "web@ultralytics.com"
+          npm install --global prettier prettier-plugin-sh
           python docs/build_reference.py
           git pull origin "$GITHUB_REF"          
           git add .
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
-          if ! git diff --staged --quiet; then
+          if [[ "${{ github.event_name }}" == "pull_request" ]] && ! git diff --staged --quiet; then
             git commit -m "Auto-update Ultralytics Docs Reference by https://ultralytics.com/actions"
             git push
           else
             echo "No changes to commit"
           fi
       - name: Ruff checks
-        run: ruff check --select D --ignore=D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 .
+        run: |
+          ruff check \
+          --extend-select I,D,UP \
+          --target-version py38 \
+          --ignore D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 \
+          .
       - name: Build Docs and Check for Warnings
         run: |
           export JUPYTER_PLATFORM_DIRS=1
@@ -80,7 +93,7 @@ jobs:
           git pull origin "$GITHUB_REF"
           git add --update  # only add updated files
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
-          if ! git diff --staged --quiet; then
+          if [[ "${{ github.event_name }}" == "pull_request" ]] && ! git diff --staged --quiet; then
             git commit -m "Auto-update Ultralytics Docs by https://ultralytics.com/actions"
             git push
           else
@@ -91,8 +104,14 @@ jobs:
         run: |
           git clone --depth 1 --branch gh-pages https://github.com/ultralytics/docs.git docs-repo
           cd docs-repo
-          rm -rf *
+          if [ -f "vercel.json" ]; then
+            cp vercel.json /tmp/vercel.json
+          fi          
+          rm -rf *          
           cp -R ../site/* .
+          if [ -f "/tmp/vercel.json" ]; then
+            cp /tmp/vercel.json .
+          fi
           echo "${{ secrets.INDEXNOW_KEY_DOCS }}" > "${{ secrets.INDEXNOW_KEY_DOCS }}.txt"
           git add .
           if git diff --staged --quiet; then

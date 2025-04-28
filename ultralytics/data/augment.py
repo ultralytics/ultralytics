@@ -1025,7 +1025,6 @@ class CutMix(BaseMixTransform):
             return labels
 
         labels2 = labels["mix_labels"][0]
-        img2 = labels2["img"]
         areas = cut_areas[idx]
         ioa2 = bbox_ioa(areas, labels2["instances"].bboxes)
         indexes2 = np.nonzero((ioa2 >= 0.30).any(0))[0]
@@ -1041,7 +1040,7 @@ class CutMix(BaseMixTransform):
         # Apply CutMix
         for area in areas:
             x1, y1, x2, y2 = area.astype(np.int32)
-            labels["img"][y1:y2, x1:x2] = img2[y1:y2, x1:x2]
+            labels["img"][y1:y2, x1:x2] = labels2["img"][y1:y2, x1:x2]
 
         labels["cls"] = np.concatenate([labels["cls"], labels2["cls"][indexes2]], axis=0)
         labels["instances"] = Instances.concatenate([labels["instances"], instances2], axis=0)

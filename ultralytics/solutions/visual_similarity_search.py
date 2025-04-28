@@ -16,7 +16,7 @@ from ultralytics.utils.checks import check_requirements
 check_requirements(['open-clip-torch', 'faiss-cpu'])
 
 import faiss
-import open_clip as op  # CLIP from LAION
+import open_clip as op
 
 
 class VisualAISearch:
@@ -32,15 +32,14 @@ class VisualAISearch:
         self.data_path_npy = "paths.npy"
         self.model_name = 'ViT-B-32-quickgelu'
         self.data_dir = Path(data)
+        self.device = select_device(device)
 
         if not self.data_dir.exists():
-            LOGGER.warning(f"{self.data_dir} not found. Downloading sample dataset.")
-            from ultralytics.utils.downloads import safe_download
             from ultralytics.utils import ASSETS_URL
-            safe_download(url=f"{ASSETS_URL}/coco128-images.zip", dir="static", unzip=True, retry=3, exist_ok=True)
-            self.data_dir = Path("static")
+            LOGGER.warning(f"{self.data_dir} not found. Downloading images.zip from {ASSETS_URL}/images.zip")
+            from ultralytics.utils.downloads import safe_download
+            safe_download(url=f"{ASSETS_URL}/images.zip", unzip=True, retry=3)
 
-        self.device = select_device(device)
         self.clip_model, _, self.preprocess = op.create_model_and_transforms(self.model_name, pretrained='openai')
         self.clip_model = self.clip_model.to(self.device).eval()
         self.tokenizer = op.get_tokenizer(self.model_name)
@@ -122,7 +121,7 @@ class SearchApp:
 
     def __init__(self, image_dir='images', device=None):
         self.searcher = VisualAISearch(data=image_dir, device=device)
-        self.app = Flask(__name__, template_folder="templates", static_folder="static")
+        self.app = Flask(__name__, template_folder="templates", static_folder="images")
         self.app.add_url_rule("/", view_func=self.index, methods=["GET", "POST"])
 
     def index(self):
@@ -132,6 +131,8 @@ class SearchApp:
             results = self.searcher.search(query)
         return render_template("index.html", results=results)
 
-    def run(self):
-        """Runs the Flask web app."""
-        self.app.run()
+    def run(self, debug=False):
+        """Runs the Flask web app with Waitress."""
+        check_requirements("waitress")
+        from waitress import serve
+        serve(self.app)

@@ -201,7 +201,7 @@ class BOTSORT(BYTETracker):
             else ReID(args.model)
             if args.with_reid
             else None
-                )
+        )
 
     def get_kalmanfilter(self):
         """Return an instance of KalmanFilterXYWH for predicting and updating object states in the tracking process."""

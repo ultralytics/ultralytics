@@ -44,6 +44,7 @@ def export_onnx(
         output_names=output_names,
         dynamic_axes=dynamic or None,
         dynamo=False if (dynamic or check_version(torch.__version__, "<2.5.0")) else True,  # TorchDynamo-based export
+        external_data=False,  # do not create .onnx.data file
     )
 
 

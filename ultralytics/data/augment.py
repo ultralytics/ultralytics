@@ -439,7 +439,7 @@ class BaseMixTransform:
             >>> indexes = transform.get_indexes()
             >>> print(indexes)  # [3, 18, 7, 2]
         """
-        raise NotImplementedError
+        return random.randint(0, len(self.dataset) - 1)
 
     @staticmethod
     def _update_label_text(labels):
@@ -877,7 +877,6 @@ class MixUp(BaseMixTransform):
         p (float): Probability of applying MixUp augmentation.
 
     Methods:
-        get_indexes: Returns a random index from the dataset.
         _mix_transform: Applies MixUp augmentation to the input labels.
 
     Examples:
@@ -905,24 +904,6 @@ class MixUp(BaseMixTransform):
             >>> mixup = MixUp(dataset, pre_transform=None, p=0.5)
         """
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
-
-    def get_indexes(self):
-        """
-        Get a random index from the dataset.
-
-        This method returns a single random index from the dataset, which is used to select an image for MixUp
-        augmentation.
-
-        Returns:
-            (int): A random integer index within the range of the dataset length.
-
-        Examples:
-            >>> mixup = MixUp(dataset)
-            >>> index = mixup.get_indexes()
-            >>> print(index)
-            42
-        """
-        return random.randint(0, len(self.dataset) - 1)
 
     def _mix_transform(self, labels):
         """
@@ -963,7 +944,6 @@ class CutMix(BaseMixTransform):
         beta (float): Beta distribution parameter for sampling the mixing ratio (default=1.0).
 
     Methods:
-        get_indexes: Returns a random index from the dataset.
         _mix_transform: Applies CutMix augmentation to the input labels.
         _rand_bbox: Generates random bounding box coordinates for the cut region.
 
@@ -986,15 +966,6 @@ class CutMix(BaseMixTransform):
         """
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
         self.beta = beta
-
-    def get_indexes(self):
-        """
-        Get a random index from the dataset.
-
-        Returns:
-            (int): A random integer index within the range of the dataset length.
-        """
-        return random.randint(0, len(self.dataset) - 1)
 
     def _rand_bbox(self, width, height, lam):
         """
@@ -1777,7 +1748,6 @@ class CopyPaste(BaseMixTransform):
         p (float): Probability of applying Copy-Paste augmentation.
 
     Methods:
-        get_indexes: Returns a random index from the dataset.
         _mix_transform: Applies Copy-Paste augmentation to the input labels.
         __call__: Applies the Copy-Paste transformation to images and annotations.
 
@@ -1793,10 +1763,6 @@ class CopyPaste(BaseMixTransform):
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
         assert mode in {"flip", "mixup"}, f"Expected `mode` to be `flip` or `mixup`, but got {mode}."
         self.mode = mode
-
-    def get_indexes(self):
-        """Returns a list of random indexes from the dataset for CopyPaste augmentation."""
-        return random.randint(0, len(self.dataset) - 1)
 
     def _mix_transform(self, labels):
         """Applies Copy-Paste augmentation to combine objects from another image into the current image."""

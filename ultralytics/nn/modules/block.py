@@ -2019,7 +2019,7 @@ class CCAM(nn.Module):
         n, c, h, w = x.size()
         # Transfer the input tensor to CPU for deterministic pooling.
         # Use torch.float32 to avoid issues of AMP (such as torch.float16).
-        x_cpu = x.detach().to('cpu', dtype=torch.float32)
+        x_cpu = x.detach().to("cpu", dtype=torch.float32)
         # Apply average pooling to the input tensor, and convert back to the original device.
         ca_avg_h_out = self.ca_avg_pool_h(x_cpu).to(x.device, dtype=x.dtype)
         ca_avg_w_out = self.ca_avg_pool_w(x_cpu).permute(0, 1, 3, 2).to(x.device, dtype=x.dtype)

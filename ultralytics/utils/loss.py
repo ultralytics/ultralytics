@@ -48,29 +48,49 @@ class FocalLoss(nn.Module):
 
     Args:
         gamma (float): The focusing parameter that controls how much the loss focuses on hard-to-classify examples.
-        alpha (float): The balancing factor used to address class imbalance.
+        alpha (float | list): The balancing factor used to address class imbalance.
     """
 
     def __init__(self, gamma=1.5, alpha=0.25):
         """Initialize FocalLoss class with no parameters."""
         super().__init__()
         self.gamma = gamma
-        self.alpha = alpha
+
+        if isinstance(alpha, (list, torch.Tensor)):
+            self.alpha = torch.tensor(alpha, dtype=torch.float32)
+        else:
+            self.alpha = alpha
 
     def forward(self, pred, label):
         """Calculate focal loss with modulating factors for class imbalance."""
-        loss = F.binary_cross_entropy_with_logits(pred, label, reduction="none")
-        # p_t = torch.exp(-loss)
-        # loss *= self.alpha * (1.000001 - p_t) ** self.gamma  # non-zero power for gradient stability
 
         # TF implementation https://github.com/tensorflow/addons/blob/v0.7.1/tensorflow_addons/losses/focal_loss.py
-        pred_prob = pred.sigmoid()  # prob from logits
-        p_t = label * pred_prob + (1 - label) * (1 - pred_prob)
+        if isinstance(self.alpha, torch.Tensor):
+            if label.ndim == 3:  # Ensure labels are class indices, not one-hot
+                label = label.argmax(dim=-1)
+            loss = F.cross_entropy(pred.permute(0, 2, 1), label, reduction="none")
+            pred_prob = F.softmax(pred, dim=-1)
+            p_t = pred_prob.gather(2, label.unsqueeze(2)).squeeze(2)  # Pick prob of the true class
+        else:
+            loss = F.binary_cross_entropy_with_logits(pred, label, reduction="none")
+            pred_prob = pred.sigmoid()  # prob from logits
+            p_t = label * pred_prob + (1 - label) * (1 - pred_prob)
+        
+        # p_t = torch.exp(-loss)
+        # loss *= self.alpha * (1.000001 - p_t) ** self.gamma  # non-zero power for gradient stability
+        
         modulating_factor = (1.0 - p_t) ** self.gamma
         loss *= modulating_factor
-        if self.alpha > 0:
-            alpha_factor = label * self.alpha + (1 - label) * (1 - self.alpha)
+
+        if isinstance(self.alpha, torch.Tensor):
+            if self.alpha.device != pred.device:
+                self.alpha = self.alpha.to(pred.device)
+            alpha_factor = self.alpha[label]
             loss *= alpha_factor
+        else:
+            if self.alpha > 0:
+                alpha_factor = label * self.alpha + (1 - label) * (1 - self.alpha)
+                loss *= alpha_factor
         return loss.mean(1).sum()
 
 

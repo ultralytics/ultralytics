@@ -197,7 +197,7 @@ class BOTSORT(BYTETracker):
         self.appearance_thresh = args.appearance_thresh
         self.encoder = (
             (lambda feats, s: [f.cpu().numpy() for f in feats])  # native features do not require any model
-            if self.args.model == "auto" and args.with_reid
+            if args.with_reid and self.args.model == "auto"
             else ReID(args.model)
             if args.with_reid
             else None

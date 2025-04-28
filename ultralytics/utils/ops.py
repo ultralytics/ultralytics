@@ -213,7 +213,7 @@ def non_max_suppression(
         multi_label (bool): If True, each box may have multiple labels.
         labels (List[List[Union[int, float, torch.Tensor]]]): A list of lists, where each inner
             list contains the apriori labels for a given image. The list should be in the format
-            output by a dataloader, with each label being a tuple of (class_index, x1, y1, x2, y2).
+            output by a dataloader, with each label being a tuple of (class_index, x, y, w, h).
         max_det (int): The maximum number of boxes to keep after NMS.
         nc (int): The number of classes output by the model. Any indices after this will be considered masks.
         max_time_img (float): The maximum time (seconds) for processing one image.

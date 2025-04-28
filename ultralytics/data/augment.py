@@ -1050,13 +1050,24 @@ class CutMix(BaseMixTransform):
         x1, y1, x2, y2 = self._rand_bbox(w, h, lam)
 
         # Apply CutMix
+        # Remove boxes from original image that overlap with the cut region
         labels["img"][y1:y2, x1:x2] = img2[y1:y2, x1:x2]
+        ioa1 = bbox_ioa(np.asarray([[x1, y1, x2, y2]], dtype=np.float32), labels["instances"].bboxes).squeeze(0)
+        indexes1 = np.nonzero(ioa1 < 0.30)[0]
 
-        # Adjust lambda to match the actual area ratio
-        lam = 1 - ((x2 - x1) * (y2 - y1) / (w * h))
+        # Add boxes from additional image that overlap with the cut region
+        ioa2 = bbox_ioa(np.asarray([[x1, y1, x2, y2]], dtype=np.float32), labels2["instances"].bboxes).squeeze(0)
+        indexes2 = np.nonzero(ioa2 >= 0.30)[0]
+        instances2 = labels2["instances"][indexes2]
+        instances2.convert_bbox("xyxy")
+        instances2.denormalize(w, h)
+        # Restrain instances2 to the random bounding border
+        instances2.add_padding(-x1, -y1)
+        instances2.clip(x2 - x1, y2 - y1)
+        instances2.add_padding(x1, y1)
 
-        labels["cls"] = np.concatenate([labels["cls"], labels2["cls"]], axis=0)
-        labels["instances"] = Instances.concatenate([labels["instances"], labels2["instances"]], axis=0)
+        labels["cls"] = np.concatenate([labels["cls"][indexes1], labels2["cls"][indexes2]], axis=0)
+        labels["instances"] = Instances.concatenate([labels["instances"][indexes1], instances2], axis=0)
         return labels
 
 

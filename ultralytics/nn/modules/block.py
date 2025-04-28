@@ -1993,7 +1993,7 @@ class CCAM(nn.Module):
         self.ca_avg_pool_h = nn.AdaptiveAvgPool2d((None, 1))
         self.ca_avg_pool_w = nn.AdaptiveAvgPool2d((1, None))
         mip = max(8, c1 // reduction)
-        # Use Conv block
+        # Initialize Conv block
         self.hs = nn.Hardswish()
         self.conv = Conv(c1, mip, 1, 1, act=self.hs)
 
@@ -2011,19 +2011,20 @@ class CCAM(nn.Module):
         Returns:
             (torch.Tensor): Output tensor after applying CCAM.
         """
-        temp = x
-
         # Channel Attention (CAM) forward pass
         c_attention = self.channel_attention(x)
         x = x * c_attention
 
         # Coordinate Attention (CA) forward pass.
         n, c, h, w = x.size()
-        ca_avg_h_out = self.ca_avg_pool_h(x)
-        ca_avg_w_out = self.ca_avg_pool_w(x).permute(0, 1, 3, 2)
+        # Transfer the input tensor to CPU for deterministic pooling.
+        # Use torch.float32 to avoid issues of AMP (such as torch.float16).
+        x_cpu = x.detach().to('cpu', dtype=torch.float32)
+        # Apply average pooling to the input tensor, and convert back to the original device.
+        ca_avg_h_out = self.ca_avg_pool_h(x_cpu).to(x.device, dtype=x.dtype)
+        ca_avg_w_out = self.ca_avg_pool_w(x_cpu).permute(0, 1, 3, 2).to(x.device, dtype=x.dtype)
         # Concatenate along the channel dimension.
-        y = torch.cat([ca_avg_h_out, ca_avg_w_out], dim=2)
-        y = self.conv(y)
+        y = self.conv(torch.cat([ca_avg_h_out, ca_avg_w_out], dim=2))
         # Split the output into height and width components.
         ca_h_out, ca_w_out = torch.split(y, [h, w], dim=2)
         ca_w_out = ca_w_out.permute(0, 1, 3, 2)
@@ -2032,6 +2033,6 @@ class CCAM(nn.Module):
         w_attention = self.conv_w(ca_w_out).sigmoid()
 
         # Apply the attention to the input tensor.
-        output = temp * h_attention * w_attention
+        output = x * h_attention * w_attention
 
         return output

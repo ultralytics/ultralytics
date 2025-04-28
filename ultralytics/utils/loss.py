@@ -104,7 +104,8 @@ class BboxLoss(nn.Module):
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:
             target_ltrb = bbox2dist(anchor_points, target_bboxes)
-            loss_dfl = F.l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask]).sum()
+            loss_dfl = F.l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask]) * weight
+            loss_dfl = loss_dfl.sum() / target_scores_sum
 
         return loss_iou, loss_dfl
 

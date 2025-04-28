@@ -1024,7 +1024,7 @@ class CutMix(BaseMixTransform):
         if len(idx) == 0:
             return labels
 
-        labels2 = labels["mix_labels"][0]
+        labels2 = labels.pop("mix_labels")[0]
         areas = cut_areas[idx]
         ioa2 = bbox_ioa(areas, labels2["instances"].bboxes)
         indexes2 = np.nonzero((ioa2 >= 0.30).any(0))[0]

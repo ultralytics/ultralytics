@@ -60,19 +60,13 @@ class FocalLoss(nn.Module):
     def forward(self, pred, label):
         """Calculate focal loss with modulating factors for class imbalance."""
         # TF implementation https://github.com/tensorflow/addons/blob/v0.7.1/tensorflow_addons/losses/focal_loss.py
-        if isinstance(self.alpha, torch.Tensor):
-            if label.ndim == 3:  # Ensure labels are class indices, not one-hot
-                label = label.argmax(dim=-1)
-            loss = F.cross_entropy(pred.permute(0, 2, 1), label, reduction="none")
-            pred_prob = F.softmax(pred, dim=-1)
-            p_t = pred_prob.gather(2, label.unsqueeze(2)).squeeze(2)  # Pick prob of the true class
-        else:
-            loss = F.binary_cross_entropy_with_logits(pred, label, reduction="none")
-            pred_prob = pred.sigmoid()  # prob from logits
-            p_t = label * pred_prob + (1 - label) * (1 - pred_prob)
+
+        loss = F.binary_cross_entropy_with_logits(pred, label, reduction="none")
 
         # p_t = torch.exp(-loss)
         # loss *= self.alpha * (1.000001 - p_t) ** self.gamma  # non-zero power for gradient stability
+        pred_prob = pred.sigmoid()  # prob from logits
+        p_t = label * pred_prob + (1 - label) * (1 - pred_prob)
 
         modulating_factor = (1.0 - p_t) ** self.gamma
         loss *= modulating_factor
@@ -80,7 +74,7 @@ class FocalLoss(nn.Module):
         if isinstance(self.alpha, torch.Tensor):
             if self.alpha.device != pred.device:
                 self.alpha = self.alpha.to(pred.device)
-            alpha_factor = self.alpha[label]
+            alpha_factor = label * self.alpha + (1 - label) * (1 - self.alpha)
             loss *= alpha_factor
         elif self.alpha > 0:
             alpha_factor = label * self.alpha + (1 - label) * (1 - self.alpha)

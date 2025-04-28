@@ -3,7 +3,7 @@
 # Builds ultralytics/ultralytics:latest-cpu image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Image is CPU-optimized for ONNX, OpenVINO and PyTorch YOLO11 deployments
 
-# Use official Python base image for reproducibility (3.11.10 for export and 3.12.6 for inference)
+# Use official Python base image for reproducibility (3.11.10 for export and 3.12.10 for inference)
 FROM python:3.11.10-slim-bookworm
 
 # Set environment variables
@@ -18,11 +18,11 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     /root/.config/Ultralytics/
 
 # Install linux packages
-# g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package
+# gnupg required for Edge TPU install
 # Java runtime environment (default-jre) required for Sony IMX export
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    python3-pip git zip unzip wget curl htop libgl1 libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0 default-jre \
+    python3-pip git zip unzip wget curl htop libgl1 libglib2.0-0 libpython3-dev gnupg default-jre \
     && rm -rf /var/lib/apt/lists/*
 
 # Create working directory
@@ -42,7 +42,7 @@ RUN uv pip install --system numpy==1.26.4
 # Run exports to AutoInstall packages
 RUN yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32
 RUN yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32
-RUN yolo export model=tmp/yolov8n.pt format=imx imgsz=32
+RUN yolo export model=tmp/yolo11n.pt format=imx imgsz=32
 RUN uv pip install --system paddlepaddle x2paddle
 
 # Remove extra build files

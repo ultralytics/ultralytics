@@ -1012,7 +1012,6 @@ class CutMix(BaseMixTransform):
             >>> cutter = CutMix(dataset)
             >>> mixed_labels = cutter._mix_transform(labels)
         """
-
         # Get a random second image
         h, w = labels["img"].shape[:2]
 
@@ -1025,7 +1024,7 @@ class CutMix(BaseMixTransform):
         labels2 = labels.pop("mix_labels")[0]
         area = cut_areas[np.random.choice(idx)]  # randomle select one
         ioa2 = bbox_ioa(area[None], labels2["instances"].bboxes).squeeze(0)
-        indexes2 = np.nonzero((ioa2 >= 0.30))[0]
+        indexes2 = np.nonzero(ioa2 >= 0.30)[0]
 
         instances2 = labels2["instances"][indexes2]
         instances2.convert_bbox("xyxy")

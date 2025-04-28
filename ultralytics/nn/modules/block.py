@@ -1993,9 +1993,10 @@ class CCAM(nn.Module):
         self.ca_avg_pool_h = nn.AdaptiveAvgPool2d((None, 1))
         self.ca_avg_pool_w = nn.AdaptiveAvgPool2d((1, None))
         mip = max(8, c1 // reduction)
-        self.conv1 = nn.Conv2d(in_channels=c1, out_channels=mip, kernel_size=1, stride=1, padding=0)
-        self.BN = nn.BatchNorm2d(mip)
-        self.act = nn.Hardswish()
+        # Use Conv block
+        self.hs = nn.Hardswish()
+        self.conv = Conv(c1, mip, 1, 1, act=self.hs)
+
         # Height-wise and width-wise convolutional layers.
         self.conv_h = nn.Conv2d(in_channels=mip, out_channels=c1, kernel_size=1, stride=1, padding=0)
         self.conv_w = nn.Conv2d(in_channels=mip, out_channels=c1, kernel_size=1, stride=1, padding=0)
@@ -2022,7 +2023,7 @@ class CCAM(nn.Module):
         ca_avg_w_out = self.ca_avg_pool_w(x).permute(0, 1, 3, 2)
         # Concatenate along the channel dimension.
         y = torch.cat([ca_avg_h_out, ca_avg_w_out], dim=2)
-        y = self.act(self.BN(self.conv1(y)))
+        y = self.conv(y)
         # Split the output into height and width components.
         ca_h_out, ca_w_out = torch.split(y, [h, w], dim=2)
         ca_w_out = ca_w_out.permute(0, 1, 3, 2)

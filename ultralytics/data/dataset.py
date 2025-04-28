@@ -12,14 +12,14 @@ import torch
 from PIL import Image
 from torch.utils.data import ConcatDataset
 
-from ultralytics.utils import LOCAL_RANK, NUM_THREADS, TQDM, colorstr
+from ultralytics.utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, colorstr
+from ultralytics.utils.instance import Instances
 from ultralytics.utils.ops import resample_segments, segments2boxes
 from ultralytics.utils.torch_utils import TORCHVISION_0_18
 
 from .augment import (
     Compose,
     Format,
-    Instances,
     LetterBox,
     RandomLoadText,
     classify_augmentations,
@@ -30,7 +30,6 @@ from .base import BaseDataset
 from .converter import merge_multi_segment
 from .utils import (
     HELP_URL,
-    LOGGER,
     check_file_speeds,
     get_hash,
     img2label_paths,
@@ -85,7 +84,7 @@ class YOLODataset(BaseDataset):
         self.use_obb = task == "obb"
         self.data = data
         assert not (self.use_segments and self.use_keypoints), "Can not use both segments and keypoints."
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, channels=self.data["channels"], **kwargs)
 
     def cache_labels(self, path=Path("./labels.cache")):
         """
@@ -216,6 +215,7 @@ class YOLODataset(BaseDataset):
         if self.augment:
             hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
+            hyp.cutmix = hyp.cutmix if self.augment and not self.rect else 0.0
             transforms = v8_transforms(self, self.imgsz, hyp)
         else:
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
@@ -236,14 +236,15 @@ class YOLODataset(BaseDataset):
 
     def close_mosaic(self, hyp):
         """
-        Sets mosaic, copy_paste and mixup options to 0.0 and builds transformations.
+        Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their probabilities to 0.0.
 
         Args:
             hyp (dict): Hyperparameters for transforms.
         """
-        hyp.mosaic = 0.0  # set mosaic ratio=0.0
-        hyp.copy_paste = 0.0  # keep the same behavior as previous v8 close-mosaic
-        hyp.mixup = 0.0  # keep the same behavior as previous v8 close-mosaic
+        hyp.mosaic = 0.0
+        hyp.copy_paste = 0.0
+        hyp.mixup = 0.0
+        hyp.cutmix = 0.0
         self.transforms = self.build_transforms(hyp)
 
     def update_labels_info(self, label):
@@ -386,7 +387,7 @@ class YOLOMultiModalDataset(YOLODataset):
         Return category names for the dataset.
 
         Returns:
-            (Tuple[str]): List of class names.
+            (Set[str]): List of class names.
         """
         names = self.data["names"].values()
         return {n.strip() for name in names for n in name.split("/")}  # category names

@@ -323,7 +323,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
 
         # Conduct model validation on the COCO128-seg example dataset
         metrics = model.val(data="coco128-seg.yaml")
@@ -337,7 +337,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
 
         # Conduct model validation on the COCO128-seg example dataset
         metrics = model.val(data="coco128-seg.yaml", load_vp=True)
@@ -350,7 +350,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
 
         # Conduct model validation on the COCO128-seg example dataset
         metrics = model.val(data="coco128-seg.yaml", load_vp=True, refer_data="coco.yaml")
@@ -363,7 +363,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
 
         # Conduct model validation on the COCO128-seg example dataset
         metrics = model.val(data="coco128-seg.yaml")
@@ -709,7 +709,7 @@ YOLOE integrates seamlessly with the [Ultralytics Python API](../usage/python.md
         from ultralytics import YOLO
 
         # Load pre-trained YOLOE model and train on custom data
-        model = YOLO("yoloe-11s.pt")
+        model = YOLO("yoloe-11s-seg.pt")
         model.train(data="path/to/data.yaml", epochs=50, imgsz=640)
 
         # Run inference using text prompts ("person", "bus")
@@ -724,10 +724,10 @@ YOLOE integrates seamlessly with the [Ultralytics Python API](../usage/python.md
 
         ```bash
         # Training YOLOE on custom dataset
-        yolo train model=yoloe-11s.pt data=path/to/data.yaml epochs=50 imgsz=640
+        yolo train model=yoloe-11s-seg.pt data=path/to/data.yaml epochs=50 imgsz=640
 
         # Inference with text prompts
-        yolo predict model=yoloe-11s.pt source="test_images/street.jpg" classes="person,bus"
+        yolo predict model=yoloe-11s-seg.pt source="test_images/street.jpg" classes="person,bus"
         ```
 
         CLI prompts (`classes`) guide YOLOE similarly to Python's `set_classes`. Visual prompting (image-based queries) currently requires the Python API.
@@ -762,27 +762,22 @@ Quickly set up YOLOE with Ultralytics by following these steps:
     - **Training**: Fine-tuning YOLOE on custom data typically requires just one GPU. Extensive open-vocabulary pre-training (LVIS/Objects365) used by authors required substantial compute (8× RTX 4090 GPUs).
 
 4. **Configuration**:
-   YOLOE configurations use standard Ultralytics YAML files. Default configs (e.g., `yoloe-s.yaml`) typically suffice, but you can modify backbone, classes, or image size as needed.
+   YOLOE configurations use standard Ultralytics YAML files. Default configs (e.g., `yoloe-11s-seg.yaml`) typically suffice, but you can modify backbone, classes, or image size as needed.
 
 5. **Running YOLOE**:
 
     - **Quick inference** (prompt-free):
         ```bash
-        yolo predict model=yoloe-s.pt source="image.jpg"
+        yolo predict model=yoloe-11s-seg-pf.pt source="image.jpg"
         ```
     - **Prompted detection** (text prompt example):
-
-        ```bash
-        yolo predict model=yoloe-s.pt source="kitchen.jpg" classes="bowl,apple"
-        ```
-
-        In Python:
 
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yoloe-s.pt")
-        model.set_classes(["bowl", "apple"])
+        model = YOLO("yoloe-11s-seg.pt")
+        names = ["bowl", "apple"]
+        model.set_classes(names, model.get_text_pe(names))
         results = model.predict("kitchen.jpg")
         results[0].save()
         ```
@@ -853,10 +848,11 @@ Similar to [YOLO-World](yolo-world.md), YOLOE supports a "prompt-then-detect" st
 from ultralytics import YOLO
 
 # Initialize a YOLOE model
-model = YOLO("yoloe-s.pt")
+model = YOLO("yoloe-11s-seg.pt")
 
 # Define custom classes
-model.set_classes(["person", "bus"])
+names = ["person", "bus"]
+model.set_classes(names, model.get_text_pe(names))
 
 # Execute prediction on an image
 results = model.predict("path/to/image.jpg")

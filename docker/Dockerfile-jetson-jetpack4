@@ -46,7 +46,7 @@ ADD https://forums.developer.nvidia.com/uploads/short-url/hASzFOm9YsJx6VVFrDW1g4
 # Replace pyproject.toml TF.js version with 'tensorflowjs>=3.9.0' for JetPack4 compatibility
 RUN sed -i 's/^\( *"tensorflowjs\)>=.*\(".*\)/\1>=3.9.0\2/' pyproject.toml
 
-# Install pip packages
+# Install pip packages (pip must be upgraded first before installing uv due to missing setuptools)
 RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install uv
 RUN uv pip install --system \

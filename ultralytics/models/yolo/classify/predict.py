@@ -60,11 +60,7 @@ class ClassificationPredictor(BasePredictor):
             if hasattr(self.model.model, "transforms")
             else True
         )
-        self.transforms = (
-            self.model.model.transforms
-            if not updated
-            else classify_transforms(self.imgsz, crop_fraction=self.args.crop_fraction)
-        )
+        self.transforms = self.model.model.transforms if not updated else classify_transforms(self.imgsz)
 
     def preprocess(self, img):
         """Convert input images to model-compatible tensor format with appropriate normalization."""

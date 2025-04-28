@@ -942,6 +942,7 @@ class CutMix(BaseMixTransform):
         pre_transform (Callable | None): Optional transform to apply before CutMix.
         p (float): Probability of applying CutMix augmentation.
         beta (float): Beta distribution parameter for sampling the mixing ratio (default=1.0).
+        num_areas (int): Number of areas to try to cut and mix (default=3).
 
     Methods:
         _mix_transform: Applies CutMix augmentation to the input labels.
@@ -963,6 +964,7 @@ class CutMix(BaseMixTransform):
             pre_transform (Callable | None): Optional transform to apply before CutMix.
             p (float): Probability of applying CutMix augmentation.
             beta (float): Beta distribution parameter for sampling the mixing ratio (default=1.0).
+            num_areas (int): Number of areas to try to cut and mix (default=3).
         """
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
         self.beta = beta

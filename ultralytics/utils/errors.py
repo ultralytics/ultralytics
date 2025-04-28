@@ -1,7 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.utils import emojis
-
 
 class HUBModelError(Exception):
     """
@@ -40,6 +38,8 @@ class HUBModelError(Exception):
             ... except HUBModelError as e:
             ...     print(e)
         """
+        from ultralytics.utils import emojis
+
         super().__init__(emojis(message))
 
 

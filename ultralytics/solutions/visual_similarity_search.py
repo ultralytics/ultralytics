@@ -36,7 +36,7 @@ class VisualAISearch:
         if not self.data_dir.exists():
             LOGGER.warning(f"{self.data_dir} not found. Downloading sample dataset.")
             from ultralytics.utils.downloads import safe_download
-            from ultralytics import ASSETS_URL
+            from ultralytics.utils import ASSETS_URL
             safe_download(url=f"{ASSETS_URL}/coco128-images.zip", dir="static", unzip=True, retry=3, exist_ok=True)
             self.data_dir = Path("static")
 
@@ -120,7 +120,7 @@ class SearchApp:
         device (str): Device to run inference on (e.g. 'cpu', 'cuda').
     """
 
-    def __init__(self, image_dir='static', device=None):
+    def __init__(self, image_dir='images', device=None):
         self.searcher = VisualAISearch(data=image_dir, device=device)
         self.app = Flask(__name__, template_folder="templates", static_folder="static")
         self.app.add_url_rule("/", view_func=self.index, methods=["GET", "POST"])
@@ -134,4 +134,4 @@ class SearchApp:
 
     def run(self):
         """Runs the Flask web app."""
-        self.app.run(debug=True, host="0.0.0.0", port=5000)
+        self.app.run()

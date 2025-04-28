@@ -88,6 +88,58 @@ const data = {
     // d7: { speed: 128.07, mAP: 53.7 },
     // d8: { speed: 157.57, mAP: 55.1 }
   },
+  "Gold-YOLO": {
+    n: { speed: 1.66, mAP: 39.9 },
+    s: { speed: 3.43, mAP: 46.4 },
+    m: { speed: 6.43, mAP: 51.1 },
+    l: { speed: 10.64, mAP: 53.3 },
+  },
+  "D-FINE": {
+    n: { speed: 2.28, mAP: 42.8 },
+    s: { speed: 4.19, mAP: 48.5 },
+    m: { speed: 6.85, mAP: 52.3 },
+    l: { speed: 9.5, mAP: 54.0 },
+    x: { speed: 15.04, mAP: 55.8 },
+  },
+  "YOLO-World": {
+    s: { speed: 3.46, mAP: 46.1 },
+    m: { speed: 7.26, mAP: 51.0 },
+    l: { speed: 11.0, mAP: 53.9 },
+    x: { speed: 17.24, mAP: 54.7 },
+  },
+  RTMDet: {
+    t: { speed: 2.54, mAP: 41.1 },
+    s: { speed: 3.18, mAP: 44.6 },
+    m: { speed: 6.82, mAP: 49.4 },
+    l: { speed: 11.06, mAP: 51.5 },
+    x: { speed: 19.66, mAP: 52.8 },
+  },
+  "YOLO-NAS": {
+    s: { speed: 3.09, mAP: 47.5 },
+    m: { speed: 6.07, mAP: 51.6 },
+    l: { speed: 7.84, mAP: 52.2 },
+  },
+  FCOS: {
+    R50: { speed: 15.18, mAP: 36.6 },
+    R101: { speed: 18.91, mAP: 39.1 },
+  },
+  SSD: {
+    300: { speed: 3.97, mAP: 25.5 },
+    512: { speed: 8.96, mAP: 29.5 },
+  },
+  RTDETRv3: {
+    s: { speed: 5.03, mAP: 48.1 },
+    m: { speed: 7.51, mAP: 49.9 },
+    l: { speed: 9.76, mAP: 53.4 },
+    x: { speed: 15.03, mAP: 54.6 },
+  },
+  LWDETR: {
+    t: { speed: 2.56, mAP: 42.6 },
+    s: { speed: 3.72, mAP: 48.0 },
+    m: { speed: 6.59, mAP: 52.5 },
+    l: { speed: 10.57, mAP: 56.1 },
+    x: { speed: 22.29, mAP: 58.3 },
+  },
 };
 
 let modelComparisonChart = null; // chart variable will hold the reference to the current chart instance.
@@ -123,6 +175,15 @@ function updateChart(initialDatasets = []) {
     YOLOX: "#17becf",
     RTDETRv2: "#eccd22",
     EfficientDet: "#000000",
+    "Gold-YOLO": "#ffcc00",
+    "D-FINE": "#ff007f",
+    "YOLO-World": "#00a8ff",
+    RTMDet: "#ff6600",
+    "YOLO-NAS": "#8f00ff",
+    FCOS: "#00ff99",
+    SSD: "#0044ff",
+    RTDETRv3: "#ff3399",
+    LWDETR: "#33ffcc",
   };
 
   // Always include all models in the dataset creation
@@ -161,7 +222,7 @@ function updateChart(initialDatasets = []) {
       type: "line",
       data: { datasets },
       options: {
-        //aspectRatio: 2.5,  // higher is wider
+        aspectRatio: 1.5, // higher is wider
         plugins: {
           legend: {
             display: true,
@@ -208,7 +269,7 @@ function updateChart(initialDatasets = []) {
             title: { display: true, text: "COCO mAP 50-95", color: "#808080" },
             grid: { color: "#e0e0e0" },
             ticks: { color: "#808080" },
-            min: 36,
+            min: 28, // SSD model max value is 29.5, If min will be greater, SSD model line will not displayed
             max: 56,
           },
         },

@@ -603,6 +603,7 @@ nav:
           - streamlit_inference: reference/solutions/streamlit_inference.md
           - trackzone: reference/solutions/trackzone.md
           - vision_eye: reference/solutions/vision_eye.md
+          - visual_similarity_search: reference/solutions/visual_similarity_search.md
       - trackers:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md

@@ -2,17 +2,20 @@
 
 
 import os
+
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some systems
 
-import torch
-import numpy as np
-from PIL import Image
 from pathlib import Path
+
+import numpy as np
+import torch
 from flask import Flask, render_template, request
+from PIL import Image
 
 from ultralytics.utils import LOGGER
-from ultralytics.utils.torch_utils import select_device
 from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.torch_utils import select_device
+
 check_requirements(['open-clip-torch', 'faiss-cpu'])
 
 import faiss

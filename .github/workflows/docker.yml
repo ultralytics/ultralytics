@@ -17,35 +17,35 @@ on:
     inputs:
       Dockerfile:
         type: boolean
-        description: Use Dockerfile
+        description: Dockerfile
         default: true
       Dockerfile-cpu:
         type: boolean
-        description: Use Dockerfile-cpu
+        description: Dockerfile-cpu
         default: true
       Dockerfile-arm64:
         type: boolean
-        description: Use Dockerfile-arm64
+        description: Dockerfile-arm64
         default: true
       Dockerfile-jetson-jetpack6:
         type: boolean
-        description: Use Dockerfile-jetson-jetpack6
+        description: Dockerfile-jetson-jetpack6
         default: true
       Dockerfile-jetson-jetpack5:
         type: boolean
-        description: Use Dockerfile-jetson-jetpack5
+        description: Dockerfile-jetson-jetpack5
         default: true
       Dockerfile-jetson-jetpack4:
         type: boolean
-        description: Use Dockerfile-jetson-jetpack4
+        description: Dockerfile-jetson-jetpack4
         default: true
       Dockerfile-python:
         type: boolean
-        description: Use Dockerfile-python
+        description: Dockerfile-python
         default: true
       Dockerfile-conda:
         type: boolean
-        description: Use Dockerfile-conda
+        description: Dockerfile-conda
         default: true
       push:
         type: boolean
@@ -178,7 +178,7 @@ jobs:
 
       - name: Run Benchmarks
         # WARNING: Dockerfile (GPU) error on TF.js export 'module 'numpy' has no attribute 'object'.
-        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.platforms == 'linux/amd64' && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda' # arm64 images not supported on GitHub CI runners
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.dockerfile == 'Dockerfile-arm64') && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda' # Images for Jetson not supported on GitHub CI runners
         run: docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolo11n.pt imgsz=160 verbose=0.309
 
       - name: Push Docker Image with Ultralytics version tag

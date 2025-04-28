@@ -14,7 +14,7 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-from ultralytics.utils import ARM64, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, PYTHON_VERSION, ROOT, yaml_load
+from ultralytics.utils import ARM64, IS_JETSON, LINUX, LOGGER, PYTHON_VERSION, ROOT, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml, is_rockchip
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 
@@ -90,7 +90,7 @@ class AutoBackend(nn.Module):
         _model_type: Determine the model type from file path.
 
     Examples:
-        >>> model = AutoBackend(weights="yolov8n.pt", device="cuda")
+        >>> model = AutoBackend(weights="yolo11n.pt", device="cuda")
         >>> results = model(img)
     """
 
@@ -207,9 +207,6 @@ class AutoBackend(nn.Module):
         elif onnx or imx:
             LOGGER.info(f"Loading {w} for ONNX Runtime inference...")
             check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
-            if IS_RASPBERRYPI or IS_JETSON:
-                # Fix 'numpy.linalg._umath_linalg' has no attribute '_ilp64' for TF SavedModel on RPi and Jetson
-                check_requirements("numpy==1.23.5")
             import onnxruntime
 
             providers = ["CPUExecutionProvider"]
@@ -432,10 +429,14 @@ class AutoBackend(nn.Module):
             output_details = interpreter.get_output_details()  # outputs
             # Load metadata
             try:
-                with zipfile.ZipFile(w, "r") as model:
-                    meta_file = model.namelist()[0]
-                    metadata = ast.literal_eval(model.read(meta_file).decode("utf-8"))
-            except zipfile.BadZipFile:
+                with zipfile.ZipFile(w, "r") as zf:
+                    name = zf.namelist()[0]
+                    contents = zf.read(name).decode("utf-8")
+                    if name == "metadata.json":  # Custom Ultralytics metadata dict for Python>=3.12
+                        metadata = json.loads(contents)
+                    else:
+                        metadata = ast.literal_eval(contents)  # Default tflite-support metadata for Python<=3.11
+            except (zipfile.BadZipFile, SyntaxError, ValueError, json.JSONDecodeError):
                 pass
 
         # TF.js

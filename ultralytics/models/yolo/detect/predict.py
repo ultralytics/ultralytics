@@ -47,7 +47,7 @@ class DetectionPredictor(BasePredictor):
             (list): List of Results objects containing the post-processed predictions.
 
         Examples:
-            >>> predictor = DetectionPredictor(overrides=dict(model="yolov8n.pt"))
+            >>> predictor = DetectionPredictor(overrides=dict(model="yolo11n.pt"))
             >>> results = predictor.predict("path/to/image.jpg")
             >>> processed_results = predictor.postprocess(preds, img, orig_imgs)
         """
@@ -59,7 +59,7 @@ class DetectionPredictor(BasePredictor):
             self.args.classes,
             self.args.agnostic_nms,
             max_det=self.args.max_det,
-            nc=len(self.model.names),
+            nc=0 if self.args.task == "detect" else len(self.model.names),
             end2end=getattr(self.model, "end2end", False),
             rotated=self.args.task == "obb",
             return_idxs=save_feats,

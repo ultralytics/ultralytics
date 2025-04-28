@@ -52,7 +52,7 @@ class SpeedEstimator(BaseSolution):
         self.locked_ids = set()  # Track IDs whose speed has been finalized
         self.max_hist = kwargs.get("max_hist", 5)  # Required frame history before computing speed
         self.meter_per_pixel = kwargs.get("meter_per_pixel", 0.05)  # Scene scale, depends on camera details
-        self.max_speed = kwargs.get("max_speed")  # max_speed adjustment
+        self.max_speed = kwargs.get("max_speed", 120)  # max_speed adjustment
 
     def process(self, im0):
         """
@@ -73,29 +73,28 @@ class SpeedEstimator(BaseSolution):
         self.extract_tracks(im0)
         annotator = SolutionAnnotator(im0, line_width=self.line_width)
 
-        for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
+        for box, track_id, _, _ in zip(self.boxes, self.track_ids, self.clss, self.confs):
             self.store_tracking_history(track_id, box)
 
             if track_id not in self.trk_hist:  # Initialize history if new track found
                 self.trk_hist[track_id] = deque(maxlen=self.max_hist)
                 self.trk_frame_ids[track_id] = self.frame_count
 
-            if track_id not in self.locked_ids:  # Keep updating history until speed is locked
+            if track_id not in self.locked_ids:  # Update history until speed is locked
                 trk_hist = self.trk_hist[track_id]
                 trk_hist.append(self.track_line[-1])
 
-                # Once enough history is collected, compute and lock speed
+                # Compute and lock speed once enough history is collected
                 if len(trk_hist) == self.max_hist:
-                    p0, p1 = trk_hist[0], trk_hist[-1]  # first and last point of track
-                    dt = (self.frame_count - self.trk_frame_ids[track_id]) / self.fps  # convert frame count to seconds
+                    p0, p1 = trk_hist[0], trk_hist[-1]  # First and last points of track
+                    dt = (self.frame_count - self.trk_frame_ids[track_id]) / self.fps  # Time in seconds
                     if dt > 0:
                         dx, dy = p1[0] - p0[0], p1[1] - p0[1]  # pixel displacement
                         pixel_distance = sqrt(dx * dx + dy * dy)  # get pixel distance
                         meters = pixel_distance * self.meter_per_pixel  # convert to meters
-                        speed_kmph = (meters / dt) * 3.6  # convert to km/h
-                        if self.max_speed is not None:
-                            speed_kmph = min(speed_kmph, self.max_speed)  # clamp max speed
-                        self.spd[track_id] = int(speed_kmph)  # store final speed
+                        self.spd[track_id] = int(
+                            min((meters / dt) * 3.6, self.max_speed)
+                        )  # convert to km/h and store final speed
                         self.locked_ids.add(track_id)  # prevent further updates
                         self.trk_hist.pop(track_id, None)  # free memory
                         self.trk_frame_ids.pop(track_id, None)  # optional: remove frame start too

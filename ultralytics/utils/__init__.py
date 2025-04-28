@@ -4,7 +4,7 @@ import contextlib
 import importlib.metadata
 import inspect
 import json
-import logging.config
+import logging
 import os
 import platform
 import re

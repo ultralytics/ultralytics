@@ -71,8 +71,10 @@ Without further ado, let's dive in!
 3. Now, read the contents of the dataset YAML file and extract the indices of the class labels.
 
     ```python
+    import yaml
+
     yaml_file = "path/to/data.yaml"  # your data YAML with data directories and names dictionary
-    with open(yaml_file, "r", encoding="utf8") as y:
+    with open(yaml_file, encoding="utf8") as y:
         classes = yaml.safe_load(y)["names"]
     cls_idx = sorted(classes.keys())
     ```
@@ -94,7 +96,7 @@ Without further ado, let's dive in!
     for label in labels:
         lbl_counter = Counter()
 
-        with open(label, "r") as lf:
+        with open(label) as lf:
             lines = lf.readlines()
 
         for line in lines:
@@ -108,7 +110,7 @@ Without further ado, let's dive in!
 
 6. The following is a sample view of the populated DataFrame:
 
-    ```pandas
+    ```
                                                            0    1    2    3    4    5
     '0000a16e4b057580_jpg.rf.00ab48988370f64f5ca8ea4...'  0.0  0.0  0.0  0.0  0.0  7.0
     '0000a16e4b057580_jpg.rf.7e6dce029fb67f01eb19aa7...'  0.0  0.0  0.0  0.0  0.0  7.0
@@ -123,7 +125,7 @@ Without further ado, let's dive in!
     'fffe28b31f2a70d4_jpg.rf.7ea16bd637ba0711c53b540...'  0.0  6.0  0.0  0.0  0.0  0.0
     ```
 
-The rows index the label files, each corresponding to an image in your dataset, and the columns correspond to your class-label indices. Each row represents a pseudo feature-vector, with the count of each class-label present in your dataset. This data structure enables the application of K-Fold Cross Validation to an object detection dataset.
+The rows index the label files, each corresponding to an image in your dataset, and the columns correspond to your class-label indices. Each row represents a pseudo feature-vector, with the count of each class-label present in your dataset. This data structure enables the application of [K-Fold Cross Validation](https://www.ultralytics.com/glossary/cross-validation) to an object detection dataset.
 
 ## K-Fold Dataset Split
 
@@ -134,8 +136,11 @@ The rows index the label files, each corresponding to an image in your dataset, 
         - By setting `random_state=M` where `M` is a chosen integer, you can obtain repeatable results.
 
     ```python
+    import random
+
     from sklearn.model_selection import KFold
 
+    random.seed(0)  # for reproducibility
     ksplit = 5
     kf = KFold(n_splits=ksplit, shuffle=True, random_state=20)  # setting random_state for repeatable results
 
@@ -183,7 +188,7 @@ The rows index the label files, each corresponding to an image in your dataset, 
     for ext in supported_extensions:
         images.extend(sorted((dataset_path / "images").rglob(f"*{ext}")))
 
-    # Create the necessary directories and dataset YAML files (unchanged)
+    # Create the necessary directories and dataset YAML files
     save_path = Path(dataset_path / f"{datetime.date.today().isoformat()}_{ksplit}-Fold_Cross-val")
     save_path.mkdir(parents=True, exist_ok=True)
     ds_yamls = []
@@ -220,7 +225,9 @@ The rows index the label files, each corresponding to an image in your dataset, 
     ```python
     import shutil
 
-    for image, label in zip(images, labels):
+    from tqdm import tqdm
+
+    for image, label in tqdm(zip(images, labels), total=len(images), desc="Copying files"):
         for split, k_split in folds_df.loc[image.stem].items():
             # Destination directory
             img_to_path = save_path / split / k_split / "images"
@@ -247,11 +254,11 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
     ```python
     from ultralytics import YOLO
 
-    weights_path = "path/to/weights.pt"
+    weights_path = "path/to/weights.pt"  # use yolo11n.pt for a small model
     model = YOLO(weights_path, task="detect")
     ```
 
-2. Next, iterate over the dataset YAML files to run training. The results will be saved to a directory specified by the `project` and `name` arguments. By default, this directory is 'exp/runs#' where # is an integer index.
+2. Next, iterate over the dataset YAML files to run training. The results will be saved to a directory specified by the `project` and `name` arguments. By default, this directory is 'runs/detect/train#' where # is an integer index.
 
     ```python
     results = {}
@@ -261,11 +268,20 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
     project = "kfold_demo"
     epochs = 100
 
-    for k in range(ksplit):
-        dataset_yaml = ds_yamls[k]
+    for k, dataset_yaml in enumerate(ds_yamls):
         model = YOLO(weights_path, task="detect")
-        model.train(data=dataset_yaml, epochs=epochs, batch=batch, project=project)  # include any train arguments
-        results[k] = model.metrics  # save output metrics for further analysis
+        results[k] = model.train(
+            data=dataset_yaml, epochs=epochs, batch=batch, project=project, name=f"fold_{k + 1}"
+        )  # include any additional train arguments
+    ```
+
+3. You can also use [Ultralytics data.utils.autosplit](https://docs.ultralytics.com/reference/data/utils/) function for automatic dataset splitting:
+
+    ```python
+    from ultralytics.data.utils import autosplit
+
+    # Automatically split dataset into train/val/test
+    autosplit(path="path/to/images", weights=(0.8, 0.2, 0.0), annotated_only=True)
     ```
 
 ## Conclusion
@@ -278,7 +294,7 @@ Optionally, we saved our records for future reference, which could be particular
 
 Finally, we implemented the actual model training using each split in a loop, saving our training results for further analysis and comparison.
 
-This technique of K-Fold cross-validation is a robust way of making the most out of your available data, and it helps to ensure that your model performance is reliable and consistent across different data subsets. This results in a more generalizable and reliable model that is less likely to overfit to specific data patterns.
+This technique of K-Fold cross-validation is a robust way of making the most out of your available data, and it helps to ensure that your model performance is reliable and consistent across different data subsets. This results in a more generalizable and reliable model that is less likely to [overfit](https://www.ultralytics.com/glossary/overfitting) to specific data patterns.
 
 Remember that although we used YOLO in this guide, these steps are mostly transferable to other machine learning models. Understanding these steps allows you to apply cross-validation effectively in your own machine learning projects. Happy coding!
 
@@ -302,7 +318,7 @@ For a comprehensive guide, see the [K-Fold Dataset Split](#k-fold-dataset-split)
 
 ### Why should I use Ultralytics YOLO for object detection?
 
-Ultralytics YOLO offers state-of-the-art, real-time object detection with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency. It's versatile, supporting multiple [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as detection, segmentation, and classification. Additionally, it integrates seamlessly with tools like Ultralytics HUB for no-code model training and deployment. For more details, explore the benefits and features on our [Ultralytics YOLO page](https://www.ultralytics.com/yolo).
+Ultralytics YOLO offers state-of-the-art, real-time object detection with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency. It's versatile, supporting multiple [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as detection, segmentation, and classification. Additionally, it integrates seamlessly with tools like [Ultralytics HUB](https://docs.ultralytics.com/hub/) for no-code model training and deployment. For more details, explore the benefits and features on our [Ultralytics YOLO page](https://www.ultralytics.com/yolo).
 
 ### How can I ensure my annotations are in the correct format for Ultralytics YOLO?
 

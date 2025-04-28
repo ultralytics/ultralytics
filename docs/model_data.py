@@ -1,8 +1,35 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+"""
+Module for YOLO model metadata.
 
+This module stores detailed metadata for various YOLO models including authors, organizations,
+publication dates, arXiv links, GitHub repositories, documentation URLs, and performance metrics.
+When executed as a script, it serializes this metadata to a JSON file named "model_data.json".
+
+Examples:
+    >>> python model_metadata.py
+"""
+
+# Dictionary containing metadata for various models
 data = {
+    "YOLO12": {
+        "author": "Yunjie Tian, Qixiang Ye, and David Doermann",
+        "org": "University at Buffalo and University of Chinese Academy of Sciences",
+        "date": "2025-02-18",
+        "arxiv": "https://arxiv.org/abs/2502.12524",
+        "github": "https://github.com/sunsmarterjie/yolov12",
+        "docs": "https://docs.ultralytics.com/models/yolo12/",
+        "performance": {
+            "n": {"size": 640, "map": 40.6, "cpu": "", "t4": 1.64, "params": 2.6, "flops": 6.5},
+            "s": {"size": 640, "map": 48.0, "cpu": "", "t4": 2.61, "params": 9.3, "flops": 21.4},
+            "m": {"size": 640, "map": 52.5, "cpu": "", "t4": 4.86, "params": 20.2, "flops": 67.5},
+            "l": {"size": 640, "map": 53.7, "cpu": "", "t4": 6.77, "params": 26.4, "flops": 88.9},
+            "x": {"size": 640, "map": 55.2, "cpu": "", "t4": 11.79, "params": 59.1, "flops": 199.0},
+        },
+    },
     "YOLO11": {
         "author": "Glenn Jocher and Jing Qiu",
+        "org": "Ultralytics",
         "date": "2024-09-27",
         "arxiv": None,
         "github": "https://github.com/ultralytics/ultralytics",
@@ -17,6 +44,7 @@ data = {
     },
     "YOLOv10": {
         "author": "Ao Wang, Hui Chen, Lihao Liu, et al.",
+        "org": "Tsinghua University",
         "date": "2024-05-23",
         "arxiv": "https://arxiv.org/abs/2405.14458",
         "github": "https://github.com/THU-MIG/yolov10",
@@ -31,7 +59,8 @@ data = {
         },
     },
     "YOLOv9": {
-        "author": "Wang, Chien-Yao and Liao, Hong-Yuan Mark",
+        "author": "Chien-Yao Wang and Hong-Yuan Mark Liao",
+        "org": "Institute of Information Science, Academia Sinica, Taiwan",
         "date": "2024-02-21",
         "arxiv": "https://arxiv.org/abs/2402.13616",
         "github": "https://github.com/WongKinYiu/yolov9",
@@ -45,7 +74,8 @@ data = {
         },
     },
     "YOLOv8": {
-        "author": "Glenn Jocher and Ayush Chaurasia and Jing Qiu",
+        "author": "Glenn Jocher, Ayush Chaurasia, and Jing Qiu",
+        "org": "Ultralytics",
         "date": "2023-01-10",
         "arxiv": None,
         "github": "https://github.com/ultralytics/ultralytics",
@@ -59,7 +89,8 @@ data = {
         },
     },
     "YOLOv7": {
-        "author": "Wang, Chien-Yao and Bochkovskiy, Alexey and Liao, Hong-Yuan Mark",
+        "author": "Chien-Yao Wang, Alexey Bochkovskiy, and Hong-Yuan Mark Liao",
+        "org": "Institute of Information Science, Academia Sinica, Taiwan",
         "date": "2022-07-06",
         "arxiv": "https://arxiv.org/abs/2207.02696",
         "github": "https://github.com/WongKinYiu/yolov7",
@@ -70,7 +101,8 @@ data = {
         },
     },
     "YOLOv6-3.0": {
-        "author": "Chuyi Li and Lulu Li and Yifei Geng and Hongliang Jiang and Meng Cheng and Bo Zhang and Zaidan Ke and Xiaoming Xu and Xiangxiang Chu",
+        "author": "Chuyi Li, Lulu Li, Yifei Geng, Hongliang Jiang, Meng Cheng, Bo Zhang, Zaidan Ke, Xiaoming Xu, and Xiangxiang Chu",
+        "org": "Meituan",
         "date": "2023-01-13",
         "arxiv": "https://arxiv.org/abs/2301.05586",
         "github": "https://github.com/meituan/YOLOv6",
@@ -84,6 +116,7 @@ data = {
     },
     "YOLOv5": {
         "author": "Glenn Jocher",
+        "org": "Ultralytics",
         "date": "2020-06-26",
         "arxiv": None,
         "github": "https://github.com/ultralytics/yolov5",
@@ -98,6 +131,7 @@ data = {
     },
     "PP-YOLOE+": {
         "author": "PaddlePaddle Authors",
+        "org": "Baidu",
         "date": "2022-04-02",
         "arxiv": "https://arxiv.org/abs/2203.16250",
         "github": "https://github.com/PaddlePaddle/PaddleDetection/",
@@ -111,7 +145,8 @@ data = {
         },
     },
     "DAMO-YOLO": {
-        "author": "Xianzhe Xu and Yiqi Jiang and Weihua Chen and Yilun Huang and Yuan Zhang and Xiuyu Sun",
+        "author": "Xianzhe Xu, Yiqi Jiang, Weihua Chen, Yilun Huang, Yuan Zhang, and Xiuyu Sun",
+        "org": "Alibaba Group",
         "date": "2022-11-23",
         "arxiv": "https://arxiv.org/abs/2211.15444v2",
         "github": "https://github.com/tinyvision/DAMO-YOLO",
@@ -124,7 +159,8 @@ data = {
         },
     },
     "YOLOX": {
-        "author": "Zheng Ge and Songtao Liu and Feng Wang and Zeming Li and Jian Sun",
+        "author": "Zheng Ge, Songtao Liu, Feng Wang, Zeming Li, and Jian Sun",
+        "org": "Megvii",
         "date": "2021-07-18",
         "arxiv": "https://arxiv.org/abs/2107.08430",
         "github": "https://github.com/Megvii-BaseDetection/YOLOX",
@@ -139,7 +175,8 @@ data = {
         },
     },
     "RTDETRv2": {
-        "author": "Wenyu Lv and Yian Zhao and Qinyao Chang and Kui Huang and Guanzhong Wang and Yi Liu",
+        "author": "Wenyu Lv, Yian Zhao, Qinyao Chang, Kui Huang, Guanzhong Wang, and Yi Liu",
+        "org": "Baidu",
         "date": "2023-04-17",
         "arxiv": "https://arxiv.org/abs/2304.08069",
         "github": "https://github.com/lyuwenyu/RT-DETR/tree/main/rtdetrv2_pytorch",
@@ -152,7 +189,8 @@ data = {
         },
     },
     "EfficientDet": {
-        "author": "Mingxing Tan and Ruoming Pang and Quoc V. Le",
+        "author": "Mingxing Tan, Ruoming Pang, and Quoc V. Le",
+        "org": "Google",
         "date": "2019-11-20",
         "arxiv": "https://arxiv.org/abs/1911.09070",
         "github": "https://github.com/google/automl/tree/master/efficientdet",
@@ -169,7 +207,8 @@ data = {
         },
     },
     "Gold-YOLO": {
-        "author": "Mingxing Tan and Ruoming Pang and Quoc V. Le",
+        "author": "Mingxing Tan, Ruoming Pang, and Quoc V. Le",
+        "org": "Huawei Noah's Ark Lab",
         "date": "2023-09-20",
         "arxiv": "https://arxiv.org/abs/2309.11331",
         "github": "https://github.com/huawei-noah/Efficient-Computing/tree/master/Detection/Gold-YOLO",
@@ -182,7 +221,8 @@ data = {
         },
     },
     "D-FINE": {
-        "author": "Yansong Peng and Hebei Li and Peixi Wu and Yueyi Zhang and Xiaoyan Sun and Feng Wu",
+        "author": "Yansong Peng, Hebei Li, Peixi Wu, Yueyi Zhang, Xiaoyan Sun, and Feng Wu",
+        "org": "University of Science and Technology of China",
         "date": "2024-10-17",
         "arxiv": "https://arxiv.org/abs/2410.13842",
         "github": "https://github.com/Peterande/D-FINE",
@@ -196,7 +236,8 @@ data = {
         },
     },
     "YOLO-World": {
-        "author": "Cheng, Tianheng and Song, Lin and Ge, Yixiao and Liu, Wenyu and Wang, Xinggang and Shan, Ying",
+        "author": "Tianheng Cheng, Lin Song, Yixiao Ge, Wenyu Liu, Xinggang Wang, and Ying Shan",
+        "org": "Tencent AILab Computer Vision Center",
         "date": "2024-01-30",
         "arxiv": "https://arxiv.org/abs/2401.17270",
         "github": "https://github.com/AILab-CVC/YOLO-World",
@@ -209,7 +250,8 @@ data = {
         },
     },
     "RTMDet": {
-        "author": "Chengqi Lyu and Wenwei Zhang and Haian Huang and Yue Zhou and Yudong Wang and Yanyi Liu and Shilong Zhang and Kai Chen",
+        "author": "Chengqi Lyu, Wenwei Zhang, Haian Huang, Yue Zhou, Yudong Wang, Yanyi Liu, Shilong Zhang, and Kai Chen",
+        "org": "OpenMMLab",
         "date": "2022-12-14",
         "arxiv": "https://arxiv.org/abs/2212.07784",
         "github": "https://github.com/open-mmlab/mmdetection/tree/3.x/configs/rtmdet",
@@ -223,7 +265,8 @@ data = {
         },
     },
     "YOLO-NAS": {
-        "author": "Aharon, Shay and {Louis-Dupont} and {Ofri Masad} and Yurkova, Kate and {Lotem Fridman} and {Lkdci} and Khvedchenya, Eugene and Rubin, Ran and Bagrov, Natan and Tymchenko, Borys and Keren, Tomer and Zhilko, Alexander and {Eran-Deci}",
+        "author": "Shay Aharon, Louis-Dupont, Ofri Masad, Kate Yurkova, Lotem Fridman, Lkdci, Eugene Khvedchenya, Ran Rubin, Natan Bagrov, Borys Tymchenko, Tomer Keren, Alexander Zhilko, and Eran-Deci",
+        "org": "Deci AI (acquired by NVIDIA)",
         "date": "2023-05-03",
         "Arxiv": None,
         "github": "https://github.com/Deci-AI/super-gradients/blob/master/YOLONAS.md",
@@ -235,7 +278,8 @@ data = {
         },
     },
     "FCOS": {
-        "author": "Tian, Zhi and Shen, Chunhua and Chen, Hao and He, Tong",
+        "author": "Zhi Tian, Chunhua Shen, Hao Chen, and Tong He",
+        "org": "The University of Adelaide",
         "date": "2019-04-02",
         "Arxiv": "https://arxiv.org/abs/1904.01355",
         "github": "https://github.com/tianzhi0549/FCOS/",
@@ -246,7 +290,8 @@ data = {
         },
     },
     "SSD": {
-        "author": "Liu, Wei and Anguelov, Dragomir and Erhan, Dumitru and Szegedy, Christian and Reed, Scott and Fu, Cheng-Yang and Berg, Alexander C.",
+        "author": "Wei Liu, Dragomir Anguelov, Dumitru Erhan, Christian Szegedy, Scott Reed, Cheng-Yang Fu, and Alexander C. Berg",
+        "org": "University of North Carolina at Chapel Hill",
         "date": "2015-12-08",
         "Arxiv": "https://arxiv.org/abs/1512.02325",
         "github": "https://github.com/weiliu89/caffe/tree/ssd",
@@ -257,7 +302,8 @@ data = {
         },
     },
     "RTDETRv3": {
-        "author": "Shuo Wang and Chunlong Xia and Feng Lv and Yifeng Shi",
+        "author": "Shuo Wang, Chunlong Xia, Feng Lv and Yifeng Shi",
+        "org": "Baidu",
         "date": "2024-09-13",
         "arxiv": "https://arxiv.org/abs/2409.08475",
         "github": "https://github.com/clxia12/RT-DETRv3",
@@ -270,7 +316,8 @@ data = {
         },
     },
     "LWDETR": {
-        "author": "Qiang Chen and Xiangbo Su and Xinyu Zhang and Jian Wang and Jiahui Chen and Yunpeng Shen and Chuchu Han and Ziliang Chen and Weixiang Xu and Fanrong Li and Shan Zhang and Kun Yao and Errui Ding and Gang Zhang and Jingdong Wang",
+        "author": "Qiang Chen, Xiangbo Su, Xinyu Zhang, Jian Wang, Jiahui Chen, Yunpeng Shen, Chuchu Han, Ziliang Chen, Weixiang Xu, Fanrong Li, Shan Zhang, Kun Yao, Errui Ding, Gang Zhang, and Jingdong Wang",
+        "org": "Baidu",
         "date": "2024-06-05",
         "arxiv": "https://arxiv.org/abs/2406.03459",
         "github": "https://github.com/Atten4Vis/LW-DETR",
@@ -288,5 +335,6 @@ data = {
 if __name__ == "__main__":
     import json
 
+    # Save the YOLO model metadata to "model_data.json"
     with open("model_data.json", "w") as f:
         json.dump(data, f)

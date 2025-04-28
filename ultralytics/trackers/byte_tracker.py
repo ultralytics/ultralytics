@@ -17,7 +17,7 @@ class STrack(BaseTrack):
     and predictions based on Kalman filter.
 
     Attributes:
-        shared_kalman (KalmanFilterXYAH): Shared Kalman filter that is used across all STrack instances for prediction.
+        shared_kalman (KalmanFilterXYAH): Shared Kalman filter used across all STrack instances for prediction.
         _tlwh (np.ndarray): Private attribute to store top-left corner coordinates and width and height of bounding box.
         kalman_filter (KalmanFilterXYAH): Instance of Kalman filter used for this particular object track.
         mean (np.ndarray): Mean state estimate vector.
@@ -213,7 +213,7 @@ class STrack(BaseTrack):
     def xywha(self):
         """Returns position in (center x, center y, width, height, angle) format, warning if angle is missing."""
         if self.angle is None:
-            LOGGER.warning("WARNING ⚠️ `angle` attr not found, returning `xywh` instead.")
+            LOGGER.warning("`angle` attr not found, returning `xywh` instead.")
             return self.xywh
         return np.concatenate([self.xywh, self.angle[None]])
 
@@ -232,9 +232,9 @@ class BYTETracker:
     """
     BYTETracker: A tracking algorithm built on top of YOLOv8 for object detection and tracking.
 
-    Responsible for initializing, updating, and managing the tracks for detected objects in a video sequence.
-    It maintains the state of tracked, lost, and removed tracks over frames, utilizes Kalman filtering for predicting
-    the new object locations, and performs data association.
+    This class encapsulates the functionality for initializing, updating, and managing the tracks for detected objects in a
+    video sequence. It maintains the state of tracked, lost, and removed tracks over frames, utilizes Kalman filtering for
+    predicting the new object locations, and performs data association.
 
     Attributes:
         tracked_stracks (List[STrack]): List of successfully activated tracks.
@@ -286,7 +286,7 @@ class BYTETracker:
         self.kalman_filter = self.get_kalmanfilter()
         self.reset_id()
 
-    def update(self, results, img=None):
+    def update(self, results, img=None, feats=None):
         """Updates the tracker with new detections and returns the current list of tracked objects."""
         self.frame_id += 1
         activated_stracks = []
@@ -312,7 +312,7 @@ class BYTETracker:
         cls_keep = cls[remain_inds]
         cls_second = cls[inds_second]
 
-        detections = self.init_track(dets, scores_keep, cls_keep, img)
+        detections = self.init_track(dets, scores_keep, cls_keep, img if feats is None else feats)
         # Add newly detected tracklets to tracked_stracks
         unconfirmed = []
         tracked_stracks = []  # type: list[STrack]
@@ -343,7 +343,7 @@ class BYTETracker:
                 track.re_activate(det, self.frame_id, new_id=False)
                 refind_stracks.append(track)
         # Step 3: Second association, with low score detection boxes association the untrack to the low score detections
-        detections_second = self.init_track(dets_second, scores_second, cls_second, img)
+        detections_second = self.init_track(dets_second, scores_second, cls_second, img if feats is None else feats)
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
         # TODO
         dists = matching.iou_distance(r_tracked_stracks, detections_second)

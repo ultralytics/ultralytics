@@ -1,11 +1,20 @@
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 // YOLO models chart ---------------------------------------------------------------------------------------------------
 const data = {
+  //  YOLO12: {
+  //    n: { speed: 1.64, mAP: 40.6 },
+  //    s: { speed: 2.61, mAP: 48.0 },
+  //    m: { speed: 4.86, mAP: 52.5 },
+  //    l: { speed: 6.77, mAP: 53.7 },
+  //    x: { speed: 11.79, mAP: 55.2 },
+  //  },
   YOLO11: {
-    n: { speed: 1.55, mAP: 39.5 },
-    s: { speed: 2.63, mAP: 47.0 },
-    m: { speed: 5.27, mAP: 51.4 },
-    l: { speed: 6.84, mAP: 53.2 },
-    x: { speed: 12.49, mAP: 54.7 },
+    n: { speed: 1.5, mAP: 39.5 },
+    s: { speed: 2.5, mAP: 47.0 },
+    m: { speed: 4.7, mAP: 51.5 },
+    l: { speed: 6.2, mAP: 53.4 },
+    x: { speed: 11.3, mAP: 54.7 },
   },
   YOLOv10: {
     n: { speed: 1.56, mAP: 39.5 },
@@ -16,11 +25,11 @@ const data = {
     x: { speed: 12.2, mAP: 54.4 },
   },
   YOLOv9: {
-    t: { speed: 2.3, mAP: 37.8 },
-    s: { speed: 3.54, mAP: 46.5 },
-    m: { speed: 6.43, mAP: 51.5 },
-    c: { speed: 7.16, mAP: 52.8 },
-    e: { speed: 16.77, mAP: 55.1 },
+    t: { speed: 2.3, mAP: 38.3 },
+    s: { speed: 3.54, mAP: 46.8 },
+    m: { speed: 6.43, mAP: 51.4 },
+    c: { speed: 7.16, mAP: 53.0 },
+    e: { speed: 16.77, mAP: 55.6 },
   },
   YOLOv8: {
     n: { speed: 1.47, mAP: 37.3 },
@@ -69,10 +78,10 @@ const data = {
     x: { speed: 15.03, mAP: 54.3 },
   },
   EfficientDet: {
-    d0: { speed: 3.92, mAP: 33.8 },
-    d1: { speed: 7.31, mAP: 39.6 },
+    d0: { speed: 3.92, mAP: 34.6 },
+    d1: { speed: 7.31, mAP: 40.5 },
     d2: { speed: 10.92, mAP: 43.0 },
-    d3: { speed: 19.59, mAP: 45.8 },
+    d3: { speed: 19.59, mAP: 47.5 },
     // d4: { speed: 33.55, mAP: 49.4 },
     // d5: { speed: 67.86, mAP: 50.7 },
     // d6: { speed: 89.29, mAP: 51.7 },

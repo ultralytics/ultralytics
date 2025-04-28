@@ -14,7 +14,7 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
 
     You may need to refresh the page to view the graphs correctly due to potential cookie issues.
 
-<script async src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script defer src="../../javascript/benchmark.js"></script>
 
 <canvas id="modelComparisonChart" width="1024" height="400"></canvas>
@@ -136,7 +136,7 @@ For more details on benchmark arguments, visit the [Arguments](#arguments) secti
 
 ### What are the benefits of exporting YOLO11 models to different formats?
 
-Exporting YOLO11 models to different formats such as ONNX, TensorRT, and OpenVINO allows you to optimize performance based on your deployment environment. For instance:
+Exporting YOLO11 models to different formats such as [ONNX](https://docs.ultralytics.com/integrations/onnx/), [TensorRT](https://docs.ultralytics.com/integrations/tensorrt/), and [OpenVINO](https://docs.ultralytics.com/integrations/openvino/) allows you to optimize performance based on your deployment environment. For instance:
 
 - **ONNX:** Provides up to 3x CPU speedup.
 - **TensorRT:** Offers up to 5x GPU speedup.

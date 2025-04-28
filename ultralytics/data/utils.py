@@ -47,9 +47,90 @@ def img2label_paths(img_paths):
     return [sb.join(x.rsplit(sa, 1)).rsplit(".", 1)[0] + ".txt" for x in img_paths]
 
 
+def check_file_speeds(files, threshold_ms=10, threshold_mb=50, max_files=5, prefix=""):
+    """
+    Check dataset file access speed and provide performance feedback.
+
+    This function tests the access speed of dataset files by measuring ping (stat call) time and read speed.
+    It samples up to 5 files from the provided list and warns if access times exceed the threshold.
+
+    Args:
+        files (list): List of file paths to check for access speed.
+        threshold_ms (float, optional): Threshold in milliseconds for ping time warnings.
+        threshold_mb (float, optional): Threshold in megabytes per second for read speed warnings.
+        max_files (int, optional): The maximum number of files to check.
+        prefix (str, optional): Prefix string to add to log messages.
+
+    Examples:
+        >>> from pathlib import Path
+        >>> image_files = list(Path("dataset/images").glob("*.jpg"))
+        >>> check_file_speeds(image_files, threshold_ms=15)
+    """
+    if not files or len(files) == 0:
+        LOGGER.warning(f"{prefix}Image speed checks: No files to check")
+        return
+
+    # Sample files (max 5)
+    files = random.sample(files, min(max_files, len(files)))
+
+    # Test ping (stat time)
+    ping_times = []
+    file_sizes = []
+    read_speeds = []
+
+    for f in files:
+        try:
+            # Measure ping (stat call)
+            start = time.perf_counter()
+            file_size = os.stat(f).st_size
+            ping_times.append((time.perf_counter() - start) * 1000)  # ms
+            file_sizes.append(file_size)
+
+            # Measure read speed
+            start = time.perf_counter()
+            with open(f, "rb") as file_obj:
+                _ = file_obj.read()
+            read_time = time.perf_counter() - start
+            if read_time > 0:  # Avoid division by zero
+                read_speeds.append(file_size / (1 << 20) / read_time)  # MB/s
+        except Exception:
+            pass
+
+    if not ping_times:
+        LOGGER.warning(f"{prefix}Image speed checks: failed to access files")
+        return
+
+    # Calculate stats with uncertainties
+    avg_ping = np.mean(ping_times)
+    std_ping = np.std(ping_times, ddof=1) if len(ping_times) > 1 else 0
+    size_msg = f", size: {np.mean(file_sizes) / (1 << 10):.1f} KB"
+    ping_msg = f"ping: {avg_ping:.1f}±{std_ping:.1f} ms"
+
+    if read_speeds:
+        avg_speed = np.mean(read_speeds)
+        std_speed = np.std(read_speeds, ddof=1) if len(read_speeds) > 1 else 0
+        speed_msg = f", read: {avg_speed:.1f}±{std_speed:.1f} MB/s"
+    else:
+        speed_msg = ""
+
+    if avg_ping < threshold_ms or avg_speed < threshold_mb:
+        LOGGER.info(f"{prefix}Fast image access ✅ ({ping_msg}{speed_msg}{size_msg})")
+    else:
+        LOGGER.warning(
+            f"{prefix}Slow image access detected ({ping_msg}{speed_msg}{size_msg}). "
+            f"Use local storage instead of remote/mounted storage for better performance. "
+            f"See https://docs.ultralytics.com/guides/model-training-tips/"
+        )
+
+
 def get_hash(paths):
     """Returns a single hash value of a list of paths (files or dirs)."""
-    size = sum(os.path.getsize(p) for p in paths if os.path.exists(p))  # sizes
+    size = 0
+    for p in paths:
+        try:
+            size += os.stat(p).st_size
+        except OSError:
+            continue
     h = hashlib.sha256(str(size).encode())  # hash sizes
     h.update("".join(paths).encode())  # hash paths
     return h.hexdigest()  # return hash
@@ -86,17 +167,17 @@ def verify_image(args):
                 f.seek(-2, 2)
                 if f.read() != b"\xff\xd9":  # corrupt JPEG
                     ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
-                    msg = f"{prefix}WARNING ⚠️ {im_file}: corrupt JPEG restored and saved"
+                    msg = f"{prefix}{im_file}: corrupt JPEG restored and saved"
         nf = 1
     except Exception as e:
         nc = 1
-        msg = f"{prefix}WARNING ⚠️ {im_file}: ignoring corrupt image/label: {e}"
+        msg = f"{prefix}{im_file}: ignoring corrupt image/label: {e}"
     return (im_file, cls), nf, nc, msg
 
 
 def verify_image_label(args):
     """Verify one image-label pair."""
-    im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim = args
+    im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls = args
     # Number (missing, found, empty, corrupt), message, segments, keypoints
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
     try:
@@ -112,12 +193,12 @@ def verify_image_label(args):
                 f.seek(-2, 2)
                 if f.read() != b"\xff\xd9":  # corrupt JPEG
                     ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
-                    msg = f"{prefix}WARNING ⚠️ {im_file}: corrupt JPEG restored and saved"
+                    msg = f"{prefix}{im_file}: corrupt JPEG restored and saved"
 
         # Verify labels
         if os.path.isfile(lb_file):
             nf = 1  # label found
-            with open(lb_file) as f:
+            with open(lb_file, encoding="utf-8") as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
                 if any(len(x) > 6 for x in lb) and (not keypoint):  # is segment
                     classes = np.array([x[0] for x in lb], dtype=np.float32)
@@ -135,6 +216,8 @@ def verify_image_label(args):
                 assert lb.min() >= 0, f"negative label values {lb[lb < 0]}"
 
                 # All labels
+                if single_cls:
+                    lb[:, 0] = 0
                 max_cls = lb[:, 0].max()  # max label count
                 assert max_cls < num_cls, (
                     f"Label class {int(max_cls)} exceeds dataset class count {num_cls}. "
@@ -145,7 +228,7 @@ def verify_image_label(args):
                     lb = lb[i]  # remove duplicates
                     if segments:
                         segments = [segments[x] for x in i]
-                    msg = f"{prefix}WARNING ⚠️ {im_file}: {nl - len(i)} duplicate labels removed"
+                    msg = f"{prefix}{im_file}: {nl - len(i)} duplicate labels removed"
             else:
                 ne = 1  # label empty
                 lb = np.zeros((0, (5 + nkpt * ndim) if keypoint else 5), dtype=np.float32)
@@ -161,7 +244,7 @@ def verify_image_label(args):
         return im_file, lb, shape, segments, keypoints, nm, nf, ne, nc, msg
     except Exception as e:
         nc = 1
-        msg = f"{prefix}WARNING ⚠️ {im_file}: ignoring corrupt image/label: {e}"
+        msg = f"{prefix}{im_file}: ignoring corrupt image/label: {e}"
         return [None, None, None, None, None, nm, nf, ne, nc, msg]
 
 
@@ -175,16 +258,11 @@ def visualize_image_annotations(image_path, txt_path, label_map):
     adjusted for readability, depending on the background color's luminance.
 
     Args:
-        image_path (str): The path to the image file to annotate, and it can be in formats supported by PIL (e.g., .jpg, .png).
-        txt_path (str): The path to the annotation file in YOLO format, that should contain one line per object with:
-                        - class_id (int): The class index.
-                        - x_center (float): The X center of the bounding box (relative to image width).
-                        - y_center (float): The Y center of the bounding box (relative to image height).
-                        - width (float): The width of the bounding box (relative to image width).
-                        - height (float): The height of the bounding box (relative to image height).
+        image_path (str): The path to the image file to annotate, and it can be in formats supported by PIL.
+        txt_path (str): The path to the annotation file in YOLO format, that should contain one line per object.
         label_map (dict): A dictionary that maps class IDs (integers) to class labels (strings).
 
-    Example:
+    Examples:
         >>> label_map = {0: "cat", 1: "dog", 2: "bird"}  # It should include all annotated classes details
         >>> visualize_image_annotations("path/to/image.jpg", "path/to/annotations.txt", label_map)
     """
@@ -195,7 +273,7 @@ def visualize_image_annotations(image_path, txt_path, label_map):
     img = np.array(Image.open(image_path))
     img_height, img_width = img.shape[:2]
     annotations = []
-    with open(txt_path) as file:
+    with open(txt_path, encoding="utf-8") as file:
         for line in file:
             class_id, x_center, y_center, width, height = map(float, line.split())
             x = (x_center - width / 2) * img_width
@@ -222,8 +300,8 @@ def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
         imgsz (tuple): The size of the image as (height, width).
         polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where
                                      N is the number of polygons, and M is the number of points such that M % 2 = 0.
-        color (int, optional): The color value to fill in the polygons on the mask. Defaults to 1.
-        downsample_ratio (int, optional): Factor by which to downsample the mask. Defaults to 1.
+        color (int, optional): The color value to fill in the polygons on the mask.
+        downsample_ratio (int, optional): Factor by which to downsample the mask.
 
     Returns:
         (np.ndarray): A binary mask of the specified image size with the polygons filled in.
@@ -246,7 +324,7 @@ def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
         polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where
                                      N is the number of polygons, and M is the number of points such that M % 2 = 0.
         color (int): The color value to fill in the polygons on the masks.
-        downsample_ratio (int, optional): Factor by which to downsample each mask. Defaults to 1.
+        downsample_ratio (int, optional): Factor by which to downsample each mask.
 
     Returns:
         (np.ndarray): A set of binary masks of the specified image size with the polygons filled in.
@@ -281,8 +359,7 @@ def find_dataset_yaml(path: Path) -> Path:
     Find and return the YAML file associated with a Detect, Segment or Pose dataset.
 
     This function searches for a YAML file at the root level of the provided directory first, and if not found, it
-    performs a recursive search. It prefers YAML files that have the same stem as the provided path. An AssertionError
-    is raised if no YAML file is found or if multiple YAML files are found.
+    performs a recursive search. It prefers YAML files that have the same stem as the provided path.
 
     Args:
         path (Path): The directory path to search for the YAML file.
@@ -308,7 +385,7 @@ def check_det_dataset(dataset, autodownload=True):
 
     Args:
         dataset (str): Path to the dataset or dataset descriptor (like a YAML file).
-        autodownload (bool, optional): Whether to automatically download the dataset if not found. Defaults to True.
+        autodownload (bool, optional): Whether to automatically download the dataset if not found.
 
     Returns:
         (dict): Parsed dataset information and paths.
@@ -332,7 +409,7 @@ def check_det_dataset(dataset, autodownload=True):
                 raise SyntaxError(
                     emojis(f"{dataset} '{k}:' key missing ❌.\n'train' and 'val' are required in all data YAMLs.")
                 )
-            LOGGER.info("WARNING ⚠️ renaming data YAML 'validation' key to 'val' to match YOLO format.")
+            LOGGER.warning("renaming data YAML 'validation' key to 'val' to match YOLO format.")
             data["val"] = data.pop("validation")  # replace 'validation' key with 'val' key
     if "names" not in data and "nc" not in data:
         raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
@@ -344,6 +421,7 @@ def check_det_dataset(dataset, autodownload=True):
         data["nc"] = len(data["names"])
 
     data["names"] = check_class_names(data["names"])
+    data["channels"] = data.get("channels", 3)  # get image channels, default to 3
 
     # Resolve paths
     path = Path(extract_dir or data.get("path") or Path(data.get("yaml_file", "")).parent)  # dataset root
@@ -368,7 +446,8 @@ def check_det_dataset(dataset, autodownload=True):
         val = [Path(x).resolve() for x in (val if isinstance(val, list) else [val])]  # val path
         if not all(x.exists() for x in val):
             name = clean_url(dataset)  # dataset name with URL auth stripped
-            m = f"\nDataset '{name}' images not found ⚠️, missing path '{[x for x in val if not x.exists()][0]}'"
+            LOGGER.info("")
+            m = f"Dataset '{name}' images not found, missing path '{[x for x in val if not x.exists()][0]}'"
             if s and autodownload:
                 LOGGER.warning(m)
             else:
@@ -400,10 +479,11 @@ def check_cls_dataset(dataset, split=""):
 
     Args:
         dataset (str | Path): The name of the dataset.
-        split (str, optional): The split of the dataset. Either 'val', 'test', or ''. Defaults to ''.
+        split (str, optional): The split of the dataset. Either 'val', 'test', or ''.
 
     Returns:
         (dict): A dictionary containing the following keys:
+
             - 'train' (Path): The directory path containing the training set of the dataset.
             - 'val' (Path): The directory path containing the validation set of the dataset.
             - 'test' (Path): The directory path containing the test set of the dataset.
@@ -420,16 +500,27 @@ def check_cls_dataset(dataset, split=""):
     dataset = Path(dataset)
     data_dir = (dataset if dataset.is_dir() else (DATASETS_DIR / dataset)).resolve()
     if not data_dir.is_dir():
-        LOGGER.warning(f"\nDataset not found ⚠️, missing path {data_dir}, attempting download...")
+        LOGGER.info("")
+        LOGGER.warning(f"Dataset not found, missing path {data_dir}, attempting download...")
         t = time.time()
         if str(dataset) == "imagenet":
             subprocess.run(f"bash {ROOT / 'data/scripts/get_imagenet.sh'}", shell=True, check=True)
         else:
             url = f"https://github.com/ultralytics/assets/releases/download/v0.0.0/{dataset}.zip"
             download(url, dir=data_dir.parent)
-        s = f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n"
-        LOGGER.info(s)
+        LOGGER.info(f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n")
     train_set = data_dir / "train"
+    if not train_set.is_dir():
+        LOGGER.warning(f"Dataset 'split=train' not found at {train_set}")
+        image_files = list(data_dir.rglob("*.jpg")) + list(data_dir.rglob("*.png"))
+        if image_files:
+            from ultralytics.data.split import split_classify_dataset
+
+            LOGGER.info(f"Found {len(image_files)} images in subdirectories. Attempting to split...")
+            data_dir = split_classify_dataset(data_dir, train_ratio=0.8)
+            train_set = data_dir / "train"
+        else:
+            LOGGER.error(f"No images found in {data_dir} or its subdirectories.")
     val_set = (
         data_dir / "val"
         if (data_dir / "val").exists()
@@ -439,9 +530,11 @@ def check_cls_dataset(dataset, split=""):
     )  # data/test or data/val
     test_set = data_dir / "test" if (data_dir / "test").exists() else None  # data/val or data/test
     if split == "val" and not val_set:
-        LOGGER.warning("WARNING ⚠️ Dataset 'split=val' not found, using 'split=test' instead.")
+        LOGGER.warning("Dataset 'split=val' not found, using 'split=test' instead.")
+        val_set = test_set
     elif split == "test" and not test_set:
-        LOGGER.warning("WARNING ⚠️ Dataset 'split=test' not found, using 'split=val' instead.")
+        LOGGER.warning("Dataset 'split=test' not found, using 'split=val' instead.")
+        test_set = val_set
 
     nc = len([x for x in (data_dir / "train").glob("*") if x.is_dir()])  # number of classes
     names = [x.name for x in (data_dir / "train").iterdir() if x.is_dir()]  # class names list
@@ -458,15 +551,15 @@ def check_cls_dataset(dataset, split=""):
             nd = len({file.parent for file in files})  # number of directories
             if nf == 0:
                 if k == "train":
-                    raise FileNotFoundError(emojis(f"{dataset} '{k}:' no training images found ❌ "))
+                    raise FileNotFoundError(f"{dataset} '{k}:' no training images found")
                 else:
-                    LOGGER.warning(f"{prefix} found {nf} images in {nd} classes: WARNING ⚠️ no images found")
+                    LOGGER.warning(f"{prefix} found {nf} images in {nd} classes (no images found)")
             elif nd != nc:
-                LOGGER.warning(f"{prefix} found {nf} images in {nd} classes: ERROR ❌️ requires {nc} classes, not {nd}")
+                LOGGER.error(f"{prefix} found {nf} images in {nd} classes (requires {nc} classes, not {nd})")
             else:
                 LOGGER.info(f"{prefix} found {nf} images in {nd} classes ✅ ")
 
-    return {"train": train_set, "val": val_set, "test": test_set, "nc": nc, "names": names}
+    return {"train": train_set, "val": val_set, "test": test_set, "nc": nc, "names": names, "channels": 3}
 
 
 class HUBDatasetStats:
@@ -478,21 +571,19 @@ class HUBDatasetStats:
         task (str): Dataset task. Options are 'detect', 'segment', 'pose', 'classify'. Default is 'detect'.
         autodownload (bool): Attempt to download dataset if not found locally. Default is False.
 
-    Example:
+    Note:
         Download *.zip files from https://github.com/ultralytics/hub/tree/main/example_datasets
-            i.e. https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip for coco8.zip.
-        ```python
-        from ultralytics.data.utils import HUBDatasetStats
+        i.e. https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip for coco8.zip.
 
-        stats = HUBDatasetStats("path/to/coco8.zip", task="detect")  # detect dataset
-        stats = HUBDatasetStats("path/to/coco8-seg.zip", task="segment")  # segment dataset
-        stats = HUBDatasetStats("path/to/coco8-pose.zip", task="pose")  # pose dataset
-        stats = HUBDatasetStats("path/to/dota8.zip", task="obb")  # OBB dataset
-        stats = HUBDatasetStats("path/to/imagenet10.zip", task="classify")  # classification dataset
-
-        stats.get_json(save=True)
-        stats.process_images()
-        ```
+    Examples:
+        >>> from ultralytics.data.utils import HUBDatasetStats
+        >>> stats = HUBDatasetStats("path/to/coco8.zip", task="detect")  # detect dataset
+        >>> stats = HUBDatasetStats("path/to/coco8-seg.zip", task="segment")  # segment dataset
+        >>> stats = HUBDatasetStats("path/to/coco8-pose.zip", task="pose")  # pose dataset
+        >>> stats = HUBDatasetStats("path/to/dota8.zip", task="obb")  # OBB dataset
+        >>> stats = HUBDatasetStats("path/to/imagenet10.zip", task="classify")  # classification dataset
+        >>> stats.get_json(save=True)
+        >>> stats.process_images()
     """
 
     def __init__(self, path="coco8.yaml", task="detect", autodownload=False):
@@ -605,7 +696,7 @@ class HUBDatasetStats:
             self.hub_dir.mkdir(parents=True, exist_ok=True)  # makes dataset-hub/
             stats_path = self.hub_dir / "stats.json"
             LOGGER.info(f"Saving {stats_path.resolve()}...")
-            with open(stats_path, "w") as f:
+            with open(stats_path, "w", encoding="utf-8") as f:
                 json.dump(self.stats, f)  # save stats.json
         if verbose:
             LOGGER.info(json.dumps(self.stats, indent=2, sort_keys=False))
@@ -636,17 +727,14 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
     Args:
         f (str): The path to the input image file.
         f_new (str, optional): The path to the output image file. If not specified, the input file will be overwritten.
-        max_dim (int, optional): The maximum dimension (width or height) of the output image. Default is 1920 pixels.
-        quality (int, optional): The image compression quality as a percentage. Default is 50%.
+        max_dim (int, optional): The maximum dimension (width or height) of the output image.
+        quality (int, optional): The image compression quality as a percentage.
 
-    Example:
-        ```python
-        from pathlib import Path
-        from ultralytics.data.utils import compress_one_image
-
-        for f in Path("path/to/dataset").rglob("*.jpg"):
-            compress_one_image(f)
-        ```
+    Examples:
+        >>> from pathlib import Path
+        >>> from ultralytics.data.utils import compress_one_image
+        >>> for f in Path("path/to/dataset").rglob("*.jpg"):
+        >>>    compress_one_image(f)
     """
     try:  # use PIL
         im = Image.open(f)
@@ -655,47 +743,13 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
             im = im.resize((int(im.width * r), int(im.height * r)))
         im.save(f_new or f, "JPEG", quality=quality, optimize=True)  # save
     except Exception as e:  # use OpenCV
-        LOGGER.info(f"WARNING ⚠️ HUB ops PIL failure {f}: {e}")
+        LOGGER.warning(f"HUB ops PIL failure {f}: {e}")
         im = cv2.imread(f)
         im_height, im_width = im.shape[:2]
         r = max_dim / max(im_height, im_width)  # ratio
         if r < 1.0:  # image too large
             im = cv2.resize(im, (int(im_width * r), int(im_height * r)), interpolation=cv2.INTER_AREA)
         cv2.imwrite(str(f_new or f), im)
-
-
-def autosplit(path=DATASETS_DIR / "coco8/images", weights=(0.9, 0.1, 0.0), annotated_only=False):
-    """
-    Automatically split a dataset into train/val/test splits and save the resulting splits into autosplit_*.txt files.
-
-    Args:
-        path (Path, optional): Path to images directory. Defaults to DATASETS_DIR / 'coco8/images'.
-        weights (list | tuple, optional): Train, validation, and test split fractions. Defaults to (0.9, 0.1, 0.0).
-        annotated_only (bool, optional): If True, only images with an associated txt file are used. Defaults to False.
-
-    Example:
-        ```python
-        from ultralytics.data.utils import autosplit
-
-        autosplit()
-        ```
-    """
-    path = Path(path)  # images dir
-    files = sorted(x for x in path.rglob("*.*") if x.suffix[1:].lower() in IMG_FORMATS)  # image files only
-    n = len(files)  # number of files
-    random.seed(0)  # for reproducibility
-    indices = random.choices([0, 1, 2], weights=weights, k=n)  # assign each image to a split
-
-    txt = ["autosplit_train.txt", "autosplit_val.txt", "autosplit_test.txt"]  # 3 txt files
-    for x in txt:
-        if (path.parent / x).exists():
-            (path.parent / x).unlink()  # remove existing
-
-    LOGGER.info(f"Autosplitting images from {path}" + ", using *.txt labeled images only" * annotated_only)
-    for i, img in TQDM(zip(indices, files), total=n):
-        if not annotated_only or Path(img2label_paths([str(img)])[0]).exists():  # check label
-            with open(path.parent / txt[i], "a") as f:
-                f.write(f"./{img.relative_to(path.parent).as_posix()}" + "\n")  # add image to txt file
 
 
 def load_dataset_cache_file(path):
@@ -718,4 +772,4 @@ def save_dataset_cache_file(prefix, path, x, version):
             np.save(file, x)
         LOGGER.info(f"{prefix}New cache created: {path}")
     else:
-        LOGGER.warning(f"{prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable, cache not saved.")
+        LOGGER.warning(f"{prefix}Cache directory {path.parent} is not writeable, cache not saved.")

@@ -304,9 +304,6 @@ def safe_download(
         >>> link = "https://ultralytics.com/assets/bus.jpg"
         >>> path = safe_download(link)
     """
-    if curl and not shutil.which("curl"):  # Check if curl exists on the system
-        curl = False
-
     gdrive = url.startswith("https://drive.google.com/")  # check if the URL is a Google Drive link
     if gdrive:
         url, file = get_google_drive_file_info(url)
@@ -323,9 +320,10 @@ def safe_download(
         LOGGER.info(f"{desc}...")
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
         check_disk_space(url, path=f.parent)
+        curl_installed = shutil.which("curl")
         for i in range(retry + 1):
             try:
-                if curl or i > 0:  # curl download with retry, continue
+                if (curl or i > 0) and curl_installed:  # curl download with retry, continue
                     s = "sS" * (not progress)  # silent
                     r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
                     assert r == 0, f"Curl return value {r}"

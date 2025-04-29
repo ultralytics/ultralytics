@@ -237,7 +237,7 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
 
     def preprocess_batch(self, batch):
         """Preprocesses a batch of images for YOLOE training, adjusting formatting and dimensions as needed."""
-        batch = super(YOLOETrainer, self).preprocess_batch(batch)
+        batch = DetectionTrainer.preprocess_batch(self, batch)
         return batch
 
     def set_text_embeddings(self, datasets, batch):

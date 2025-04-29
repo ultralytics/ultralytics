@@ -59,18 +59,16 @@ class FocalLoss(nn.Module):
 
     def forward(self, pred, label):
         """Calculate focal loss with modulating factors for class imbalance."""
-        # TF implementation https://github.com/tensorflow/addons/blob/v0.7.1/tensorflow_addons/losses/focal_loss.py
-
         loss = F.binary_cross_entropy_with_logits(pred, label, reduction="none")
-
         # p_t = torch.exp(-loss)
         # loss *= self.alpha * (1.000001 - p_t) ** self.gamma  # non-zero power for gradient stability
+
+        # TF implementation https://github.com/tensorflow/addons/blob/v0.7.1/tensorflow_addons/losses/focal_loss.py
         pred_prob = pred.sigmoid()  # prob from logits
         p_t = label * pred_prob + (1 - label) * (1 - pred_prob)
 
         modulating_factor = (1.0 - p_t) ** self.gamma
         loss *= modulating_factor
-
         if (self.alpha > 0).any():
             self.alpha = self.alpha.to(device=pred.device, dtype=pred.dtype)
             alpha_factor = label * self.alpha + (1 - label) * (1 - self.alpha)

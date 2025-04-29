@@ -72,13 +72,11 @@ class FocalLoss(nn.Module):
         loss *= modulating_factor
 
         if isinstance(self.alpha, torch.Tensor):
-            if self.alpha.device != pred.device:
-                self.alpha = self.alpha.to(pred.device)
+            self.alpha = self.alpha.to(device=pred.device, dtype=pred.dtype)
             alpha_factor = label * self.alpha + (1 - label) * (1 - self.alpha)
-            loss *= alpha_factor
         elif self.alpha > 0:
             alpha_factor = label * self.alpha + (1 - label) * (1 - self.alpha)
-            loss *= alpha_factor
+        loss *= alpha_factor
         return loss.mean(1).sum()
 
 

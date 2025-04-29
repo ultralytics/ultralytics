@@ -462,7 +462,7 @@ Model validation on a dataset is streamlined as follows:
 
         ```python
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEVPTrainer
+        from ultralytics.models.yolo.yoloe import YOLOESegVPTrainer
 
         data = dict(
             train=dict(
@@ -503,7 +503,7 @@ Model validation on a dataset is streamlined as follows:
             weight_decay=0.025,
             momentum=0.9,
             workers=4,
-            trainer=YOLOEVPTrainer,
+            trainer=YOLOESegVPTrainer,  # use YOLOEVPTrainer if converted to detection model
             device="0,1,2,3,4,5,6,7",
             freeze=freeze,
         )

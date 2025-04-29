@@ -55,7 +55,7 @@ class FocalLoss(nn.Module):
         """Initialize FocalLoss class with no parameters."""
         super().__init__()
         self.gamma = gamma
-        self.alpha = torch.tensor(alpha, dtype=torch.float32) if isinstance(alpha, (list, torch.Tensor)) else alpha
+        self.alpha = torch.tensor(alpha)
 
     def forward(self, pred, label):
         """Calculate focal loss with modulating factors for class imbalance."""
@@ -71,12 +71,10 @@ class FocalLoss(nn.Module):
         modulating_factor = (1.0 - p_t) ** self.gamma
         loss *= modulating_factor
 
-        if isinstance(self.alpha, torch.Tensor):
+        if (self.alpha > 0).any():
             self.alpha = self.alpha.to(device=pred.device, dtype=pred.dtype)
             alpha_factor = label * self.alpha + (1 - label) * (1 - self.alpha)
-        elif self.alpha > 0:
-            alpha_factor = label * self.alpha + (1 - label) * (1 - self.alpha)
-        loss *= alpha_factor
+            loss *= alpha_factor
         return loss.mean(1).sum()
 
 

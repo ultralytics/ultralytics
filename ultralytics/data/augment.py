@@ -942,6 +942,7 @@ class CutMix(BaseMixTransform):
         pre_transform (Callable | None): Optional transform to apply before CutMix.
         p (float): Probability of applying CutMix augmentation.
         beta (float): Beta distribution parameter for sampling the mixing ratio (default=1.0).
+        num_areas (int): Number of areas to try to cut and mix (default=3).
 
     Methods:
         _mix_transform: Applies CutMix augmentation to the input labels.
@@ -954,7 +955,7 @@ class CutMix(BaseMixTransform):
         >>> augmented_labels = cutmix(original_labels)
     """
 
-    def __init__(self, dataset, pre_transform=None, p=0.0, beta=1.0) -> None:
+    def __init__(self, dataset, pre_transform=None, p=0.0, beta=1.0, num_areas=3) -> None:
         """
         Initializes the CutMix augmentation object.
 
@@ -963,22 +964,26 @@ class CutMix(BaseMixTransform):
             pre_transform (Callable | None): Optional transform to apply before CutMix.
             p (float): Probability of applying CutMix augmentation.
             beta (float): Beta distribution parameter for sampling the mixing ratio (default=1.0).
+            num_areas (int): Number of areas to try to cut and mix (default=3).
         """
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
         self.beta = beta
+        self.num_areas = num_areas
 
-    def _rand_bbox(self, width, height, lam):
+    def _rand_bbox(self, width, height):
         """
         Generates random bounding box coordinates for the cut region.
 
         Args:
             width (int): Width of the image.
             height (int): Height of the image.
-            lam (float): Mixing ratio from the Beta distribution.
 
         Returns:
             (tuple): (x1, y1, x2, y2) coordinates of the bounding box.
         """
+        # Sample mixing ratio from Beta distribution
+        lam = np.random.beta(self.beta, self.beta)
+
         cut_ratio = np.sqrt(1.0 - lam)
         cut_w = int(width * cut_ratio)
         cut_h = int(height * cut_ratio)
@@ -1009,25 +1014,35 @@ class CutMix(BaseMixTransform):
             >>> cutter = CutMix(dataset)
             >>> mixed_labels = cutter._mix_transform(labels)
         """
-        # Sample mixing ratio from Beta distribution
-        lam = np.random.beta(self.beta, self.beta)
-
         # Get a random second image
-        labels2 = labels["mix_labels"][0]
-        img2 = labels2["img"]
         h, w = labels["img"].shape[:2]
 
-        # Generate random bounding box
-        x1, y1, x2, y2 = self._rand_bbox(w, h, lam)
+        cut_areas = np.asarray([self._rand_bbox(w, h) for _ in range(self.num_areas)], dtype=np.float32)
+        ioa1 = bbox_ioa(cut_areas, labels["instances"].bboxes)  # (self.num_areas, num_boxes)
+        idx = np.nonzero(ioa1.sum(axis=1) <= 0)[0]
+        if len(idx) == 0:
+            return labels
+
+        labels2 = labels.pop("mix_labels")[0]
+        area = cut_areas[np.random.choice(idx)]  # randomle select one
+        ioa2 = bbox_ioa(area[None], labels2["instances"].bboxes).squeeze(0)
+        indexes2 = np.nonzero(ioa2 >= 0.01 if len(labels["instances"].segments) else 0.1)[0]
+
+        instances2 = labels2["instances"][indexes2]
+        instances2.convert_bbox("xyxy")
+        instances2.denormalize(w, h)
 
         # Apply CutMix
-        labels["img"][y1:y2, x1:x2] = img2[y1:y2, x1:x2]
+        x1, y1, x2, y2 = area.astype(np.int32)
+        labels["img"][y1:y2, x1:x2] = labels2["img"][y1:y2, x1:x2]
 
-        # Adjust lambda to match the actual area ratio
-        lam = 1 - ((x2 - x1) * (y2 - y1) / (w * h))
+        # Restrain instances2 to the random bounding border
+        instances2.add_padding(-x1, -y1)
+        instances2.clip(x2 - x1, y2 - y1)
+        instances2.add_padding(x1, y1)
 
-        labels["cls"] = np.concatenate([labels["cls"], labels2["cls"]], axis=0)
-        labels["instances"] = Instances.concatenate([labels["instances"], labels2["instances"]], axis=0)
+        labels["cls"] = np.concatenate([labels["cls"], labels2["cls"][indexes2]], axis=0)
+        labels["instances"] = Instances.concatenate([labels["instances"], instances2], axis=0)
         return labels
 
 

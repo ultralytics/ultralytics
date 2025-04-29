@@ -95,7 +95,6 @@ from ultralytics.utils import (
     yaml_save,
 )
 from ultralytics.utils.checks import (
-    IS_PYTHON_MINIMUM_3_12,
     check_imgsz,
     check_is_path_safe,
     check_requirements,
@@ -569,11 +568,6 @@ class Exporter:
                 dynamic["output0"].pop(2)
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset_version  # for NMSModel
-            # OBB error https://github.com/pytorch/pytorch/issues/110859#issuecomment-1757841865
-            try:
-                torch.onnx.register_custom_op_symbolic("aten::lift_fresh", lambda g, x: x, opset_version)
-            except RuntimeError:  # it will fail if it's already registered
-                pass
 
         with arange_patch(self.args):
             export_onnx(
@@ -913,7 +907,6 @@ class Exporter:
             import tensorflow as tf  # noqa
         check_requirements(
             (
-                "keras",  # required by 'onnx2tf' package
                 "tf_keras",  # required by 'onnx2tf' package
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
                 "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
@@ -1026,8 +1019,6 @@ class Exporter:
     @try_export
     def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):
         """YOLO Edge TPU export https://coral.ai/docs/edgetpu/models-intro/."""
-        LOGGER.warning(f"{prefix} Edge TPU known bug https://github.com/ultralytics/ultralytics/issues/1185")
-
         cmd = "edgetpu_compiler --version"
         help_url = "https://coral.ai/docs/edgetpu/compiler/"
         assert LINUX, f"export only supported on Linux. See {help_url}"
@@ -1274,81 +1265,12 @@ class Exporter:
 
         return f, None
 
-    def _add_tflite_metadata(self, file, use_flatbuffers=False):
+    def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://ai.google.dev/edge/litert/models/metadata."""
-        if not use_flatbuffers:
-            import zipfile
+        import zipfile
 
-            with zipfile.ZipFile(file, "a", zipfile.ZIP_DEFLATED) as zf:
-                zf.writestr("metadata.json", json.dumps(self.metadata, indent=2))
-            return
-
-        if IS_PYTHON_MINIMUM_3_12:
-            LOGGER.warning(f"TFLite Support package may not be compatible with Python>=3.12 environments for {file}")
-
-        # Update old 'flatbuffers' included inside tensorflow package
-        check_requirements(("tflite_support", "flatbuffers>=23.5.26,<100; platform_machine == 'aarch64'"))
-        import flatbuffers
-
-        try:
-            # TFLite Support bug https://github.com/tensorflow/tflite-support/issues/954#issuecomment-2108570845
-            from tensorflow_lite_support.metadata import metadata_schema_py_generated as schema  # noqa
-            from tensorflow_lite_support.metadata.python import metadata  # noqa
-        except ImportError:  # ARM64 systems may not have the 'tensorflow_lite_support' package available
-            from tflite_support import metadata  # noqa
-            from tflite_support import metadata_schema_py_generated as schema  # noqa
-
-        # Create model info
-        model_meta = schema.ModelMetadataT()
-        model_meta.name = self.metadata["description"]
-        model_meta.version = self.metadata["version"]
-        model_meta.author = self.metadata["author"]
-        model_meta.license = self.metadata["license"]
-
-        # Label file
-        tmp_file = Path(file).parent / "temp_meta.txt"
-        with open(tmp_file, "w", encoding="utf-8") as f:
-            f.write(str(self.metadata))
-
-        label_file = schema.AssociatedFileT()
-        label_file.name = tmp_file.name
-        label_file.type = schema.AssociatedFileType.TENSOR_AXIS_LABELS
-
-        # Create input info
-        input_meta = schema.TensorMetadataT()
-        input_meta.name = "image"
-        input_meta.description = "Input image to be detected."
-        input_meta.content = schema.ContentT()
-        input_meta.content.contentProperties = schema.ImagePropertiesT()
-        input_meta.content.contentProperties.colorSpace = schema.ColorSpaceType.RGB
-        input_meta.content.contentPropertiesType = schema.ContentProperties.ImageProperties
-
-        # Create output info
-        output1 = schema.TensorMetadataT()
-        output1.name = "output"
-        output1.description = "Coordinates of detected objects, class labels, and confidence score"
-        output1.associatedFiles = [label_file]
-        if self.model.task == "segment":
-            output2 = schema.TensorMetadataT()
-            output2.name = "output"
-            output2.description = "Mask protos"
-            output2.associatedFiles = [label_file]
-
-        # Create subgraph info
-        subgraph = schema.SubGraphMetadataT()
-        subgraph.inputTensorMetadata = [input_meta]
-        subgraph.outputTensorMetadata = [output1, output2] if self.model.task == "segment" else [output1]
-        model_meta.subgraphMetadata = [subgraph]
-
-        b = flatbuffers.Builder(0)
-        b.Finish(model_meta.Pack(b), metadata.MetadataPopulator.METADATA_FILE_IDENTIFIER)
-        metadata_buf = b.Output()
-
-        populator = metadata.MetadataPopulator.with_model_file(str(file))
-        populator.load_metadata_buffer(metadata_buf)
-        populator.load_associated_files([str(tmp_file)])
-        populator.populate()
-        tmp_file.unlink()
+        with zipfile.ZipFile(file, "a", zipfile.ZIP_DEFLATED) as zf:
+            zf.writestr("metadata.json", json.dumps(self.metadata, indent=2))
 
     def _pipeline_coreml(self, model, weights_dir=None, prefix=colorstr("CoreML Pipeline:")):
         """YOLO CoreML pipeline."""

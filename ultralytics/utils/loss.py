@@ -803,7 +803,7 @@ class TVPSegmentLoss(TVPDetectLoss):
         assert self.ori_reg_max == self.vp_criterion.reg_max  # TODO: remove it
 
         if self.ori_reg_max * 4 + self.ori_nc == feats[0].shape[1]:
-            loss = torch.zeros(3, device=self.vp_criterion.device, requires_grad=True)
+            loss = torch.zeros(4, device=self.vp_criterion.device, requires_grad=True)
             return loss, loss.detach()
 
         vp_feats = self._get_vp_features(feats)

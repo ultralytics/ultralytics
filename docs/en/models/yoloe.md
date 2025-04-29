@@ -462,7 +462,7 @@ Model validation on a dataset is streamlined as follows:
 
         ```python
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEVPTrainer, YOLOESegVPTrainer
+        from ultralytics.models.yolo.yoloe import YOLOESegVPTrainer
 
         data = dict(
             train=dict(

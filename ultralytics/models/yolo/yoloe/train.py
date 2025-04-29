@@ -291,8 +291,9 @@ class YOLOETrainerFromScratch(YOLOETrainer):
         # NOTE: to make training work properly, set `nc` and `names`
         final_data["nc"] = data["val"][0]["nc"]
         final_data["names"] = data["val"][0]["names"]
-        # NOTE: add path with lvis path
+        # NOTE: add path with lvis path and image channels
         final_data["path"] = data["val"][0]["path"]
+        final_data["channels"] = data["val"][0]["channels"]
         self.data = final_data
         if self.args.single_cls:  # consistent with base trainer
             LOGGER.info("Overriding class names with single class.")

@@ -93,11 +93,6 @@ class YOLOETrainer(DetectionTrainer):
             self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_modal=mode == "train"
         )
 
-    def preprocess_batch(self, batch):
-        """Process batch for training, moving text features to the appropriate device."""
-        batch = super().preprocess_batch(batch)
-        return batch
-
 
 class YOLOEPETrainer(DetectionTrainer):
     """Fine-tune YOLOE model in linear probing way."""
@@ -164,9 +159,10 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
             (YOLOConcatDataset | Dataset): The constructed dataset for training or validation.
         """
         datasets = WorldTrainerFromScratch.build_dataset(self, img_path, mode, batch)
-        self.set_text_embeddings(
-            datasets.datasets if hasattr(datasets, "datasets") else [datasets], batch
-        )  # cache text embeddings to accelerate training
+        if mode == "train":
+            self.set_text_embeddings(
+                datasets.datasets if hasattr(datasets, "datasets") else [datasets], batch
+            )  # cache text embeddings to accelerate training
         return datasets
 
     def set_text_embeddings(self, datasets, batch):
@@ -199,7 +195,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
 
     def preprocess_batch(self, batch):
         """Process batch for training, moving text features to the appropriate device."""
-        batch = super().preprocess_batch(batch)
+        batch = DetectionTrainer.preprocess_batch(self, batch)
 
         texts = list(itertools.chain(*batch["texts"]))
         txt_feats = torch.stack([self.text_embeddings[text] for text in texts]).to(self.device)

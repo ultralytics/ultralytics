@@ -66,7 +66,6 @@ class FocalLoss(nn.Module):
         # TF implementation https://github.com/tensorflow/addons/blob/v0.7.1/tensorflow_addons/losses/focal_loss.py
         pred_prob = pred.sigmoid()  # prob from logits
         p_t = label * pred_prob + (1 - label) * (1 - pred_prob)
-
         modulating_factor = (1.0 - p_t) ** self.gamma
         loss *= modulating_factor
         if (self.alpha > 0).any():

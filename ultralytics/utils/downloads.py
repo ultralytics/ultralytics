@@ -304,6 +304,9 @@ def safe_download(
         >>> link = "https://ultralytics.com/assets/bus.jpg"
         >>> path = safe_download(link)
     """
+    if curl and not shutil.which("curl"):  # Check if curl exists on the system
+        curl = False
+
     gdrive = url.startswith("https://drive.google.com/")  # check if the URL is a Google Drive link
     if gdrive:
         url, file = get_google_drive_file_info(url)

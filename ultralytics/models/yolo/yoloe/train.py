@@ -216,6 +216,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
             (dict): Dictionary mapping text samples to their embeddings.
         """
         if cache_path.exists():
+            LOGGER.info(f"Reading existed cache from '{cache_path}'")
             return torch.load(cache_path)
         assert self.model is not None
         txt_feats = self.model.get_text_pe(texts, batch, without_reprta=True)

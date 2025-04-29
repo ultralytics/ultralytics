@@ -443,7 +443,7 @@ class GroundingDataset(YOLODataset):
         """
         assert task in {"detect", "segment"}, "GroundingDataset currently only supports `detect` and `segment` tasks"
         self.json_file = json_file
-        super().__init__(*args, task=task, data={}, **kwargs)
+        super().__init__(*args, task=task, data={"channels": 3}, **kwargs)
 
     def get_img_files(self, img_path):
         """

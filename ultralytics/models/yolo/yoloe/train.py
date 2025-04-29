@@ -307,7 +307,7 @@ class YOLOETrainerFromScratch(YOLOETrainer):
         return final_data["train"], final_data["val"][0]
 
     def plot_training_labels(self):
-        """Do not plot labels for YOLO-World training."""
+        """Do not plot labels for YOLOE training."""
         pass
 
     def final_eval(self):

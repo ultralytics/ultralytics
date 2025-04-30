@@ -30,7 +30,7 @@ def bbox_iof(polygon1, bbox2, eps=1e-6):
         Polygon format: [x1, y1, x2, y2, x3, y3, x4, y4].
         Bounding box format: [x_min, y_min, x_max, y_max].
     """
-    check_requirements("shapely")
+    check_requirements("shapely>=2.0.0")
     from shapely.geometry import Polygon
 
     polygon1 = polygon1.reshape(-1, 4, 2)

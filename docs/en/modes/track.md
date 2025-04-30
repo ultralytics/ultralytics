@@ -171,7 +171,7 @@ The following table provides a description of each parameter:
 | `proximity_thresh`  | `0.0-1.0`                                     | Minimum IoU required for a valid match with ReID (Re-identification). Ensures spatial closeness before using appearance cues.                                               |
 | `appearance_thresh` | `0.0-1.0`                                     | Minimum appearance similarity required for ReID. Sets how visually similar two detections must be to be linked.                                                             |
 | `with_reid`         | `True`, `False`                               | Indicates whether to use ReID. Enables appearance-based matching for better tracking across occlusions. Only supported by BoTSORT.                                          |
-| `model`             | `auto`, `yolo11[nsmlx]-cls.pt`                | Specifies the model to use. Defaults to `auto`, which uses native features if the detector is YOLO, otherwise uses `yolo11n-cls.pt`. Selects the appearance model for ReID. |
+| `model`             | `auto`, `yolo11[nsmlx]-cls.pt`                | Specifies the model to use. Defaults to `auto`, which uses native features if the detector is YOLO, otherwise uses `yolo11n-cls.pt`. |
 
 ### Enabling Re-Identification (ReID)
 

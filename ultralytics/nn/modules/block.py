@@ -1395,6 +1395,96 @@ class SimAttention(nn.Module):
         return self.proj(x)
 
 
+class AreaAttention(nn.Module):
+    """
+    Same as the `AAttn` module but modified to work with `atten_ratio` argument.
+    Area-attention module for YOLO models, providing efficient attention mechanisms.
+
+    This module implements an area-based attention mechanism that processes input features in a spatially-aware manner,
+    making it particularly effective for object detection tasks.
+
+    Attributes:
+        area (int): Number of areas the feature map is divided.
+        num_heads (int): Number of heads into which the attention mechanism is divided.
+        head_dim (int): Dimension of each attention head.
+        qkv (Conv): Convolution layer for computing query, key and value tensors.
+        proj (Conv): Projection convolution layer.
+        pe (Conv): Position encoding convolution layer.
+
+    Methods:
+        forward: Applies area-attention to input tensor.
+
+    Examples:
+        >>> attn = AAttn(dim=256, num_heads=8, area=4)
+        >>> x = torch.randn(1, 256, 32, 32)
+        >>> output = attn(x)
+        >>> print(output.shape)
+        torch.Size([1, 256, 32, 32])
+    """
+
+    def __init__(self, dim, num_heads, area=1, attn_ratio=0.5):
+        """
+        Initialize an Area-attention module for YOLO models.
+
+        Args:
+            dim (int): Number of hidden channels.
+            num_heads (int): Number of heads into which the attention mechanism is divided.
+            area (int): Number of areas the feature map is divided, default is 1.
+        """
+        super().__init__()
+        self.area = area
+
+        self.num_heads = num_heads
+        self.head_dim = dim // num_heads
+        self.key_dim = int(self.head_dim * attn_ratio)
+        self.scale = self.key_dim**-0.5
+
+        nh_kd = self.key_dim * num_heads
+        h = dim + nh_kd * 2
+        self.qkv = Conv(dim, h, 1, act=False)
+        self.proj = Conv(dim, dim, 1, act=False)
+        self.pe = Conv(dim, dim, 7, 1, 3, g=dim, act=False)
+
+    def forward(self, x):
+        """
+        Process the input tensor through the area-attention.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            (torch.Tensor): Output tensor after area-attention.
+        """
+        B, C, H, W = x.shape
+        N = H * W
+
+        qkv = self.qkv(x).flatten(2).transpose(1, 2)
+        if self.area > 1:
+            qkv = qkv.reshape(B * self.area, N // self.area, self.num_heads * (self.key_dim * 2 + self.head_dim))
+            B, N, _ = qkv.shape
+        q, k, v = (
+            qkv.view(B, N, self.num_heads, self.key_dim * 2 + self.head_dim)
+            .permute(0, 2, 3, 1)
+            .split([self.key_dim, self.key_dim, self.head_dim], dim=2)
+        )
+        attn = (q.transpose(-2, -1) @ k) * self.scale
+        attn = attn.softmax(dim=-1)
+        x = v @ attn.transpose(-2, -1)
+        x = x.permute(0, 3, 1, 2)
+        v = v.permute(0, 3, 1, 2)
+
+        if self.area > 1:
+            x = x.reshape(B // self.area, N * self.area, C)
+            v = v.reshape(B // self.area, N * self.area, C)
+            B, N, _ = x.shape
+
+        x = x.reshape(B, H, W, C).permute(0, 3, 1, 2).contiguous()
+        v = v.reshape(B, H, W, C).permute(0, 3, 1, 2).contiguous()
+
+        x = x + self.pe(v)
+        return self.proj(x)
+
+
 class PSABlock(nn.Module):
     """
     PSABlock class implementing a Position-Sensitive Attention block for neural networks.
@@ -1435,7 +1525,7 @@ class PSABlock(nn.Module):
         elif attn == "sim":
             self.attn = SimAttention(c, num_heads=num_heads)
         else:
-            self.attn = AAttn(c, num_heads=num_heads, area=area)
+            self.attn = AreaAttention(c, num_heads=num_heads, attn_ratio=attn_ratio, area=area)
         self.ffn = nn.Sequential(Conv(c, c * 2, 1), Conv(c * 2, c, 1, act=False))
         self.add = shortcut
 

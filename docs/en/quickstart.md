@@ -170,7 +170,7 @@ While the standard installation methods cover most use cases, you might need a m
             # pip install torch torchvision torchaudio ...
 
             # Install other core dependencies (check pyproject.toml for exact versions)
-            pip install numpy matplotlib pandas pyyaml Pillow psutil requests tqdm > =2.23.0
+            pip install numpy matplotlib pandas pyyaml Pillow psutil requests>=2.23.0 tqdm
 
             # Install headless OpenCV instead of the default
             pip install opencv-python-headless
@@ -207,7 +207,7 @@ While the standard installation methods cover most use cases, you might need a m
             ```bash
             pip install git+https://github.com/YOUR_USERNAME/ultralytics.git@custom-opencv
             ```
-        This method ensures that your custom dependency set is used whenever you install from this specific URL.
+        This method ensures that your custom dependency set is used whenever you install from this specific URL. See Method 4 for using this in a `requirements.txt` file.
 
     === "Method 3: Local Clone, Modify, and Install"
 
@@ -233,6 +233,40 @@ While the standard installation methods cover most use cases, you might need a m
             pip install -e .
             ```
         This approach is useful for testing local changes to dependencies or build configurations before committing them or for setting up specific development environments.
+
+    === "Method 4: Using `requirements.txt` with Git"
+
+        If you manage your project dependencies using a `requirements.txt` file, you can specify your custom Ultralytics fork directly within it. This ensures that anyone setting up the project gets your specific version with its modified dependencies (like `opencv-python-headless`).
+
+        1.  **Create or edit `requirements.txt`:** Add a line pointing to your custom fork and branch (as prepared in Method 2).
+            ```text title="requirements.txt"
+            # Core dependencies
+            numpy
+            matplotlib
+            pandas
+            pyyaml
+            Pillow
+            psutil
+            requests>=2.23.0
+            tqdm
+            torch>=1.8.0 # Or specific version/variant
+            torchvision>=0.9.0 # Or specific version/variant
+
+            # Install ultralytics from a specific git commit or branch
+            # Replace YOUR_USERNAME and custom-opencv with your details
+            git+https://github.com/YOUR_USERNAME/ultralytics.git@custom-opencv
+
+            # Other project dependencies
+            flask
+            # ... etc
+            ```
+            *Note: You don't need to list dependencies already required by your custom `ultralytics` fork (like `opencv-python-headless`) here, as pip will install them based on the fork's `pyproject.toml`.*
+
+        2.  **Install** dependencies from the file:
+            ```bash
+            pip install -r requirements.txt
+            ```
+        This method integrates seamlessly with standard Python project dependency management workflows while allowing you to pin `ultralytics` to your customized Git source.
 
 ## Use Ultralytics with CLI
 

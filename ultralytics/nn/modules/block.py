@@ -1540,7 +1540,7 @@ class C2PSA(nn.Module):
         >>> output_tensor = c2psa(input_tensor)
     """
 
-    def __init__(self, c1, c2, n=1, e=0.5, act=True, attn="default"):
+    def __init__(self, c1, c2, n=1, e=0.5, act=True, attn="default", area=1):
         """
         Initialize C2PSA module.
 
@@ -1557,7 +1557,7 @@ class C2PSA(nn.Module):
         self.cv2 = Conv(2 * self.c, c1, 1, act=act)
 
         self.m = nn.Sequential(
-            *(PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1), attn=attn) for _ in range(n))
+            *(PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1), attn=attn, area=area) for _ in range(n))
         )
 
     def forward(self, x):

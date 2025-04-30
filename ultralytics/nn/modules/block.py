@@ -1335,6 +1335,66 @@ class Attention(nn.Module):
         return x
 
 
+class SimAttention(nn.Module):
+    """
+    Simplified Attention Module from MobileViTv2.
+
+    Args:
+        dim (int): The input tensor dimension.
+        num_heads (int): The number of attention heads.
+        attn_ratio (float): The ratio of the attention key dimension to the head dimension.
+
+    Attributes:
+        num_heads (int): The number of attention heads.
+        head_dim (int): The dimension of each attention head.
+        key_dim (int): The dimension of the attention key.
+        scale (float): The scaling factor for the attention scores.
+        qkv (Conv): Convolutional layer for computing the query, key, and value.
+        proj (Conv): Convolutional layer for projecting the attended values.
+        pe (Conv): Convolutional layer for positional encoding.
+    """
+
+    def __init__(self, dim, num_heads=8):
+        """
+        Initialize multi-head attention module.
+
+        Args:
+            dim (int): Input dimension.
+            num_heads (int): Number of attention heads.
+            attn_ratio (float): Attention ratio for key dimension.
+        """
+        super().__init__()
+        self.num_heads = num_heads
+        self.head_dim = dim // num_heads
+        self.key_dim = 1
+        h = (self.head_dim * 2 + self.key_dim) * num_heads
+        self.qkv = Conv(dim, h, 1, act=False)
+        self.proj = Conv(dim, dim, 1, act=False)
+        self.pe = Conv(dim, dim, 3, 1, g=dim, act=False)
+
+    def forward(self, x):
+        """
+        Forward pass of the Attention module.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+
+        Returns:
+            (torch.Tensor): The output tensor after self-attention.
+        """
+        B, C, H, W = x.shape
+        N = H * W
+        qkv = self.qkv(x)
+        q, k, v = qkv.view(B, self.num_heads, self.key_dim + self.head_dim * 2, N).split(
+            [self.key_dim, self.head_dim, self.head_dim], dim=2
+        )
+        q = q.softmax(dim=-1)  # (B, 1, num_heads, N)
+        k = k * q
+        k = k.sum(dim=-1, keepdim=True)
+        x = (F.relu(v) * k).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
+        return self.proj(x)
+
+
 class PSABlock(nn.Module):
     """
     PSABlock class implementing a Position-Sensitive Attention block for neural networks.

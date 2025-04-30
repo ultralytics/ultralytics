@@ -1443,7 +1443,7 @@ class AreaAttention(nn.Module):
         h = dim + nh_kd * 2
         self.qkv = Conv(dim, h, 1, act=False)
         self.proj = Conv(dim, dim, 1, act=False)
-        self.pe = Conv(dim, dim, 7, 1, 3, g=dim, act=False)
+        self.pe = Conv(dim, dim, 3, 1, g=dim, act=False)
 
     def forward(self, x):
         """

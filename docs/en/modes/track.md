@@ -152,27 +152,26 @@ Some tracking behaviors can be fine-tuned by editing the YAML configuration file
 - [`botsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/botsort.yaml)
 - [`bytetrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml)
 
-
 The following table provides a description of each parameter:
 
 !!! warning "Tracker Threshold Information"
 
     If object confidence score will be low, i.e lower than [`track_high_thresh`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml#L5), then there will be no tracks successfully returned and updated.
 
-| **Parameter**        | **Valid Values or Ranges**                                         | **Description**                                                                                          |
-|---------------------|---------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| `tracker_type`       | `botsort`, `bytetrack`                                             | Specifies the tracker type. Options are `botsort` or `bytetrack`. |
-| `track_high_thresh`  | `0.0-1.0`                                                          | Threshold for the first association during tracking used. Affects how confidently a detection is matched to an existing track. |
-| `track_low_thresh`   | `0.0-1.0`                                                          | Threshold for the second association during tracking. Used when the first association fails, with more lenient criteria. |
-| `new_track_thresh`   | `0.0-1.0`                                                          | Threshold to initialize a new track if the detection does not match any existing tracks. Controls when a new object is considered to appear. |
-| `track_buffer`       | `>=0`                                                              | Buffer used to indicate the number of frames lost tracks should be kept alive before getting removed. Higher value means more tolerance for occlusion. |
-| `match_thresh`       | `0.0-1.0`                                                          | Threshold for matching tracks. Higher values makes the matching more lenient. |
-| `fuse_score`         | `True`, `False`                                                    | Determines whether to fuse confidence scores with IoU distances before matching. Helps balance spatial and confidence information when associating. |
-| `gmc_method`         | `orb`, `sift`, `ecc`, `sparseOptFlow`, `None`                      | Method used for global motion compensation. Helps account for camera movement to improve tracking. |
-| `proximity_thresh`   | `0.0-1.0`                                                          | Minimum IoU required for a valid match with ReID (Re-identification). Ensures spatial closeness before using appearance cues. |
-| `appearance_thresh`  | `0.0-1.0`                                                          | Minimum appearance similarity required for ReID. Sets how visually similar two detections must be to be linked. |
-| `with_reid`          | `True`, `False`                                                    | Indicates whether to use ReID. Enables appearance-based matching for better tracking across occlusions. Only supported by BoTSORT. |
-| `model`              | `auto`, `yolo11[nsmlx]-cls.pt`                                     | Specifies the model to use. Defaults to `auto`, which uses native features if the detector is YOLO, otherwise uses `yolo11n-cls.pt`. Selects the appearance model for ReID. |
+| **Parameter**       | **Valid Values or Ranges**                    | **Description**                                                                                                                                                             |
+| ------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tracker_type`      | `botsort`, `bytetrack`                        | Specifies the tracker type. Options are `botsort` or `bytetrack`.                                                                                                           |
+| `track_high_thresh` | `0.0-1.0`                                     | Threshold for the first association during tracking used. Affects how confidently a detection is matched to an existing track.                                              |
+| `track_low_thresh`  | `0.0-1.0`                                     | Threshold for the second association during tracking. Used when the first association fails, with more lenient criteria.                                                    |
+| `new_track_thresh`  | `0.0-1.0`                                     | Threshold to initialize a new track if the detection does not match any existing tracks. Controls when a new object is considered to appear.                                |
+| `track_buffer`      | `>=0`                                         | Buffer used to indicate the number of frames lost tracks should be kept alive before getting removed. Higher value means more tolerance for occlusion.                      |
+| `match_thresh`      | `0.0-1.0`                                     | Threshold for matching tracks. Higher values makes the matching more lenient.                                                                                               |
+| `fuse_score`        | `True`, `False`                               | Determines whether to fuse confidence scores with IoU distances before matching. Helps balance spatial and confidence information when associating.                         |
+| `gmc_method`        | `orb`, `sift`, `ecc`, `sparseOptFlow`, `None` | Method used for global motion compensation. Helps account for camera movement to improve tracking.                                                                          |
+| `proximity_thresh`  | `0.0-1.0`                                     | Minimum IoU required for a valid match with ReID (Re-identification). Ensures spatial closeness before using appearance cues.                                               |
+| `appearance_thresh` | `0.0-1.0`                                     | Minimum appearance similarity required for ReID. Sets how visually similar two detections must be to be linked.                                                             |
+| `with_reid`         | `True`, `False`                               | Indicates whether to use ReID. Enables appearance-based matching for better tracking across occlusions. Only supported by BoTSORT.                                          |
+| `model`             | `auto`, `yolo11[nsmlx]-cls.pt`                | Specifies the model to use. Defaults to `auto`, which uses native features if the detector is YOLO, otherwise uses `yolo11n-cls.pt`. Selects the appearance model for ReID. |
 
 ### Enabling Re-Identification (ReID)
 
@@ -186,15 +185,16 @@ For better performance, especially when using a separate classification model fo
 !!! example "Exporting a ReID model to TensorRT"
 
     ```python
-    from ultralytics import YOLO
     from torch import nn
+
+    from ultralytics import YOLO
 
     # Load the classification model
     model = YOLO("yolo11n-cls.pt")
 
     # Add average pooling layer
     head = model.model.model[-1]
-    pool = nn.Sequential(nn.AdaptiveAvgPool2d((1,1)), nn.Flatten(start_dim=1))
+    pool = nn.Sequential(nn.AdaptiveAvgPool2d((1, 1)), nn.Flatten(start_dim=1))
     pool.f, pool.i = head.f, head.i
     model.model.model[-1] = pool
 

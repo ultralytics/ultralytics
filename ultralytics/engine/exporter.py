@@ -968,6 +968,7 @@ class Exporter:
             quant_type="per-tensor",  # "per-tensor" (faster) or "per-channel" (slower but more accurate)
             custom_input_op_name_np_data_path=np_data,
             output_signaturedefs=True,  # fix error with Attention block group convolution
+            optimization_for_gpu_delegate=True,
         )
         yaml_save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
 

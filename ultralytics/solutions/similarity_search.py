@@ -1,7 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
-
+import logging
 import os
+
+from ultralytics.data.utils import IMG_FORMATS
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some systems
 
@@ -84,12 +85,11 @@ class VisualAISearch:
         # Iterate over all image files in the data directory
         for file in self.data_dir.iterdir():
             # Skip files that are not valid image formats
-            if file.suffix.lower() not in [".jpg", ".jpeg", ".png", ".webp"]:
+            if file.suffix.lower() not in IMG_FORMATS:
                 continue
             try:
-                # Extract feature vector for the image
-                vec = self.extract_image_feature(file)
-                vectors.append(vec)  # Add the vector to the list
+                # Extract feature vector for the image and add to the list
+                vectors.append(self.extract_image_feature(file))
                 self.image_paths.append(file.name)  # Store the corresponding image name
             except Exception as e:
                 LOGGER.warning(f"Skipping {file.name}: {e}")
@@ -119,7 +119,7 @@ class VisualAISearch:
         ]
         results.sort(key=lambda x: x[1], reverse=True)
 
-        LOGGER.info("\n[INFO] Ranked Results:")
+        LOGGER.info("\nRanked Results:")
         for name, score in results:
             LOGGER.info(f"  - {name} | Similarity: {score:.4f}")
 

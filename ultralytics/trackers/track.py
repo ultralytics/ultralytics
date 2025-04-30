@@ -42,6 +42,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     cfg = IterableSimpleNamespace(**yaml_load(tracker))
     if predictor.args.conf < 0.25:  # Set track_high_thresh = conf if conf < 0.25
         from ultralytics.utils import LOGGER
+
         LOGGER.warning("confidence threshold is below 0.25, track_high_thresh is set to match the confidence value.")
         cfg.track_high_thresh = predictor.args.conf
     if cfg.tracker_type not in {"bytetrack", "botsort"}:

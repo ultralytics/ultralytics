@@ -57,64 +57,57 @@ class VisualAISearch:
 
     def extract_image_feature(self, path):
         """Extract CLIP image embedding."""
-        image = Image.open(path).convert("RGB")
-        tensor = self.preprocess(image).unsqueeze(0).to(self.device, memory_format=torch.channels_last)
+        image = Image.open(path)
+        tensor = self.preprocess(image).unsqueeze(0).to(self.device)
         with torch.no_grad():
-            features = self.clip_model.encode_image(tensor)
-        return features.cpu().numpy()
+            return self.clip_model.encode_image(tensor).cpu().numpy()
 
     def extract_text_feature(self, text):
         """Extract CLIP text embedding."""
-        tokens = self.tokenizer([text], return_tensors="pt").to(self.device)
+        tokens = self.tokenizer([text]).to(self.device)
         with torch.no_grad():
-            features = self.clip_model.encode_text(tokens)
-        return features.cpu().numpy()
+            return self.clip_model.encode_text(tokens).cpu().numpy()
 
     def load_or_build_index(self):
         """Loads FAISS index or builds a new one from image features."""
 
-        # Load existing FAISS index and image paths if available
+        # Check if the FAISS index and corresponding image paths already exist
         if Path(self.faiss_index).exists() and Path(self.data_path_npy).exists():
             LOGGER.info("Loading existing FAISS index...")
-            self.index = faiss.read_index(self.faiss_index)
-            self.image_paths = np.load(self.data_path_npy).tolist()
-            return
+            self.index = faiss.read_index(self.faiss_index)  # Load the FAISS index from disk
+            self.image_paths = np.load(self.data_path_npy)  # Load the saved image path list
+            return  # Exit the function as the index is successfully loaded
 
+        # If the index doesn't exist, start building it from scratch
         LOGGER.info("Building FAISS index from images...")
+        vectors = []  # List to store feature vectors of images
 
-        # Filter image files
-        image_files = [f for f in self.data_dir.iterdir() if f.suffix.lower() in [".jpg", ".jpeg", ".png", ".webp"]]
-        if not image_files:
-            raise RuntimeError("No valid image files found.")
-
-        vectors = []
-        image_paths = []
-
-        for file in image_files:
+        # Iterate over all image files in the data directory
+        for file in self.data_dir.iterdir():
+            # Skip files that are not valid image formats
+            if file.suffix.lower() not in [".jpg", ".jpeg", ".png", ".webp"]:
+                continue
             try:
-                vec = self.extract_image_feature(file)  # Could be batchified instead
-                vectors.append(vec)
-                image_paths.append(file.name)
-            except (OSError, RuntimeError) as e:  # Narrow the exception scope
+                # Extract feature vector for the image
+                vec = self.extract_image_feature(file)
+                vectors.append(vec)  # Add the vector to the list
+                self.image_paths.append(file.name)  # Store the corresponding image name
+            except Exception as e:
                 LOGGER.warning(f"Skipping {file.name}: {e}")
 
+        # If no vectors were successfully created, raise an error
         if not vectors:
             raise RuntimeError("No image embeddings could be generated.")
 
-        # Stack and normalize vectors
-        vectors = np.vstack(vectors).astype("float32", copy=False)
-        faiss.normalize_L2(vectors)
+        vectors = np.vstack(vectors).astype("float32")  # Stack all vectors into a NumPy array and convert to float32
+        faiss.normalize_L2(vectors)  # Normalize vectors to unit length for cosine similarity
 
-        # Build FAISS index
-        self.index = faiss.IndexFlatIP(vectors.shape[1])
-        self.index.add(vectors)
+        self.index = faiss.IndexFlatIP(vectors.shape[1])  # Create a new FAISS index using inner product
+        self.index.add(vectors)  # Add the normalized vectors to the FAISS index
+        faiss.write_index(self.index, self.faiss_index)  # Save the newly built FAISS index to disk
+        np.save(self.data_path_npy, np.array(self.image_paths))  # Save the list of image paths to disk
 
-        # Save index and image paths
-        faiss.write_index(self.index, self.faiss_index)
-        np.save(self.data_path_npy, np.array(image_paths))
-
-        self.image_paths = image_paths
-        LOGGER.info(f"Indexed {len(image_paths)} images.")
+        LOGGER.info(f"Indexed {len(self.image_paths)} images.")
 
     def search(self, query, k=30, similarity_thresh=0.1):
         """Returns top-k semantically similar images to the given query."""
@@ -145,7 +138,10 @@ class SearchApp:
 
     def __init__(self, image_dir="images", device=None):
         self.searcher = VisualAISearch(data=image_dir, device=device)
-        self.app = Flask(__name__, template_folder="templates", static_folder="images")
+        self.app = Flask(__name__, template_folder="templates",
+                         static_folder=image_dir,  # Absolute path to serve images
+                         static_url_path="/images"  # URL prefix for images
+        )
         self.app.add_url_rule("/", view_func=self.index, methods=["GET", "POST"])
 
     def index(self):

@@ -16,7 +16,7 @@ from .speed_estimation import SpeedEstimator
 from .streamlit_inference import Inference
 from .trackzone import TrackZone
 from .vision_eye import VisionEye
-from .visual_similarity_search import SearchApp
+from .similarity_search import SearchApp
 
 __all__ = (
     "ObjectCounter",

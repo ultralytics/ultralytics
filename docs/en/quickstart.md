@@ -166,17 +166,11 @@ While the standard installation methods cover most use cases, you might need a m
 
         2.  **Manually install dependencies:** You need to install all required packages listed in the `pyproject.toml` file, substituting or modifying versions as needed. For the headless OpenCV example:
             ```bash
-            # Install PyTorch (follow official PyTorch instructions first)
-            # pip install torch torchvision torchaudio ...
-
-            # Install other core dependencies (check pyproject.toml for exact versions)
-            pip install numpy matplotlib pandas pyyaml Pillow psutil requests tqdm > =2.23.0
+            # Install other core dependencies
+            pip install torch torchvision numpy matplotlib pandas pyyaml Pillow psutil requests tqdm scipy seaborn ultralytics-thop
 
             # Install headless OpenCV instead of the default
             pip install opencv-python-headless
-
-            # Install optional dependencies if needed (e.g., for export or specific integrations)
-            # pip install onnx coremltools openvino-dev tensorflow ...
             ```
 
         !!! warning "Dependency Management"
@@ -253,8 +247,8 @@ While the standard installation methods cover most use cases, you might need a m
             torchvision>=0.9.0 # Or specific version/variant
 
             # Install ultralytics from a specific git commit or branch
-            # Replace YOUR_USERNAME and custom-opencv with your details
-            git+https://github.com/YOUR_USERNAME/ultralytics.git@custom-opencv
+            # Replace YOUR_USERNAME and custom-branch with your details
+            git+https://github.com/YOUR_USERNAME/ultralytics.git@custom-branch
 
             # Other project dependencies
             flask

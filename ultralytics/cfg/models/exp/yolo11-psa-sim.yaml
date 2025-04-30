@@ -27,7 +27,7 @@ backbone:
   - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
   - [-1, 2, C3k2, [1024, True]]
   - [-1, 1, SPPF, [1024, 5]] # 9
-  - [-1, 2, C2PSA, [1024, 0.5, True, True]] # 10
+  - [-1, 2, C2PSA, [1024, 0.5, True, "sim"]] # 10
 
 # YOLO11n head
 head:

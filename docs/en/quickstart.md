@@ -170,7 +170,7 @@ While the standard installation methods cover most use cases, you might need a m
             # pip install torch torchvision torchaudio ...
 
             # Install other core dependencies (check pyproject.toml for exact versions)
-            pip install numpy matplotlib pandas pyyaml Pillow psutil requests>=2.23.0 tqdm
+            pip install numpy matplotlib pandas pyyaml Pillow psutil requests tqdm > =2.23.0
 
             # Install headless OpenCV instead of the default
             pip install opencv-python-headless

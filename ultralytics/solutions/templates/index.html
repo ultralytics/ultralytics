@@ -124,13 +124,13 @@
     </style>
   </head>
   <body>
-  <div style="text-align: center; margin-bottom: 1rem;">
-    <img
-      src="https://raw.githubusercontent.com/ultralytics/assets/main/logo/favicon.png"
-      alt="Ultralytics Logo"
-      style="height: 40px;"
-    />
-  </div>
+    <div style="text-align: center; margin-bottom: 1rem">
+      <img
+        src="https://raw.githubusercontent.com/ultralytics/assets/main/logo/favicon.png"
+        alt="Ultralytics Logo"
+        style="height: 40px"
+      />
+    </div>
     <h1>Semantic Image Search with AI</h1>
 
     <!-- Search box -->
@@ -149,10 +149,7 @@
     <div class="grid">
       {% for img in results %}
       <div class="card">
-        <img
-          src="{{ url_for('static', filename=img) }}"
-          alt="Result Image"
-        />
+        <img src="{{ url_for('static', filename=img) }}" alt="Result Image" />
       </div>
       {% endfor %}
     </div>

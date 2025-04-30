@@ -137,9 +137,11 @@ class SearchApp:
 
     def __init__(self, image_dir="images", device=None):
         self.searcher = VisualAISearch(data=image_dir, device=device)
-        self.app = Flask(__name__, template_folder="templates",
-                         static_folder=image_dir,  # Absolute path to serve images
-                         static_url_path="/images"  # URL prefix for images
+        self.app = Flask(
+            __name__,
+            template_folder="templates",
+            static_folder=image_dir,  # Absolute path to serve images
+            static_url_path="/images",  # URL prefix for images
         )
         self.app.add_url_rule("/", view_func=self.index, methods=["GET", "POST"])
 

@@ -53,56 +53,72 @@ class VisualAISearch:
         self.index = None
         self.image_paths = []
 
-        self._load_or_build_index()
+        self.load_or_build_index()
 
-    def _extract_image_feature(self, path):
+    def extract_image_feature(self, path):
         """Extract CLIP image embedding."""
         image = Image.open(path).convert("RGB")
-        tensor = self.preprocess(image).unsqueeze(0).to(self.device)
+        tensor = self.preprocess(image).unsqueeze(0).to(self.device, memory_format=torch.channels_last)
         with torch.no_grad():
-            return self.clip_model.encode_image(tensor).cpu().numpy()
+            features = self.clip_model.encode_image(tensor)
+        return features.cpu().numpy()
 
-    def _extract_text_feature(self, text):
+    def extract_text_feature(self, text):
         """Extract CLIP text embedding."""
-        tokens = self.tokenizer([text]).to(self.device)
+        tokens = self.tokenizer([text], return_tensors="pt").to(self.device)
         with torch.no_grad():
-            return self.clip_model.encode_text(tokens).cpu().numpy()
+            features = self.clip_model.encode_text(tokens)
+        return features.cpu().numpy()
 
-    def _load_or_build_index(self):
+    def load_or_build_index(self):
         """Loads FAISS index or builds a new one from image features."""
+
+        # Load existing FAISS index and image paths if available
         if Path(self.faiss_index).exists() and Path(self.data_path_npy).exists():
             LOGGER.info("Loading existing FAISS index...")
             self.index = faiss.read_index(self.faiss_index)
-            self.image_paths = np.load(self.data_path_npy)
+            self.image_paths = np.load(self.data_path_npy).tolist()
             return
 
         LOGGER.info("Building FAISS index from images...")
+
+        # Filter image files
+        image_files = [f for f in self.data_dir.iterdir() if f.suffix.lower() in [".jpg", ".jpeg", ".png", ".webp"]]
+        if not image_files:
+            raise RuntimeError("No valid image files found.")
+
         vectors = []
-        for file in self.data_dir.iterdir():
-            if file.suffix.lower() not in [".jpg", ".jpeg", ".png", ".webp"]:
-                continue
+        image_paths = []
+
+        for file in image_files:
             try:
-                vec = self._extract_image_feature(file)
+                vec = self.extract_image_feature(file)  # Could be batchified instead
                 vectors.append(vec)
-                self.image_paths.append(file.name)
-            except Exception as e:
+                image_paths.append(file.name)
+            except (OSError, RuntimeError) as e:  # Narrow the exception scope
                 LOGGER.warning(f"Skipping {file.name}: {e}")
 
         if not vectors:
             raise RuntimeError("No image embeddings could be generated.")
 
-        vectors = np.vstack(vectors).astype("float32")
+        # Stack and normalize vectors
+        vectors = np.vstack(vectors).astype("float32", copy=False)
         faiss.normalize_L2(vectors)
+
+        # Build FAISS index
         self.index = faiss.IndexFlatIP(vectors.shape[1])
         self.index.add(vectors)
 
+        # Save index and image paths
         faiss.write_index(self.index, self.faiss_index)
-        np.save(self.data_path_npy, np.array(self.image_paths))
-        LOGGER.info(f"Indexed {len(self.image_paths)} images.")
+        np.save(self.data_path_npy, np.array(image_paths))
+
+        self.image_paths = image_paths
+        LOGGER.info(f"Indexed {len(image_paths)} images.")
 
     def search(self, query, k=30, similarity_thresh=0.1):
         """Returns top-k semantically similar images to the given query."""
-        text_feat = self._extract_text_feature(query).astype("float32")
+        text_feat = self.extract_text_feature(query).astype("float32")
         faiss.normalize_L2(text_feat)
 
         D, I = self.index.search(text_feat, k)
@@ -140,8 +156,5 @@ class SearchApp:
         return render_template("index.html", results=results)
 
     def run(self, debug=False):
-        """Runs the Flask web app with Waitress."""
-        check_requirements("waitress")
-        from waitress import serve
-
-        serve(self.app)
+        """Runs the Flask web app."""
+        self.app.run(debug=debug)

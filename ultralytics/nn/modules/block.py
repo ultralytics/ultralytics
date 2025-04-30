@@ -1472,7 +1472,7 @@ class PSA(nn.Module):
         >>> output_tensor = psa.forward(input_tensor)
     """
 
-    def __init__(self, c1, c2, e=0.5):
+    def __init__(self, c1, c2, e=0.5, sim=False):
         """
         Initialize PSA module.
 
@@ -1487,7 +1487,10 @@ class PSA(nn.Module):
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
         self.cv2 = Conv(2 * self.c, c1, 1)
 
-        self.attn = Attention(self.c, attn_ratio=0.5, num_heads=self.c // 64)
+        num_heads = max(self.c // 64, 1)
+        self.attn = (
+            SimAttention(self.c, num_heads=num_heads) if sim else Attention(self.c, attn_ratio=0.5, num_heads=num_heads)
+        )
         self.ffn = nn.Sequential(Conv(self.c, self.c * 2, 1), Conv(self.c * 2, self.c, 1, act=False))
 
     def forward(self, x):
@@ -1531,7 +1534,7 @@ class C2PSA(nn.Module):
         >>> output_tensor = c2psa(input_tensor)
     """
 
-    def __init__(self, c1, c2, n=1, e=0.5, act=True):
+    def __init__(self, c1, c2, n=1, e=0.5, act=True, sim=False):
         """
         Initialize C2PSA module.
 
@@ -1547,7 +1550,9 @@ class C2PSA(nn.Module):
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
         self.cv2 = Conv(2 * self.c, c1, 1, act=act)
 
-        self.m = nn.Sequential(*(PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1)) for _ in range(n)))
+        self.m = nn.Sequential(
+            *(PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1), sim=sim) for _ in range(n))
+        )
 
     def forward(self, x):
         """

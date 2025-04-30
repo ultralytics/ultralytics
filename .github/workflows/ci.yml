@@ -49,13 +49,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.11"]
+        python-version: ["3.12"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v6
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
@@ -103,14 +103,14 @@ jobs:
       matrix:
         # Temporarily disable windows-latest due to https://github.com/ultralytics/ultralytics/actions/runs/13020330819/job/36319338854?pr=18921
         os: [ubuntu-latest, macos-14, ubuntu-24.04-arm]
-        python-version: ["3.11"]
+        python-version: ["3.12"]
         model: [yolo11n]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v6
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
@@ -164,7 +164,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-14, windows-latest, ubuntu-24.04-arm]
-        python-version: ["3.11"]
+        python-version: ["3.12"]
         torch: [latest]
         include:
           - os: ubuntu-latest
@@ -175,7 +175,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v6
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
@@ -216,7 +216,7 @@ jobs:
     runs-on: gpu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v6
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: uv pip install --system -e . pytest-cov
@@ -249,7 +249,7 @@ jobs:
           python3.11 -m venv env-tests
           source env-tests/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v6
       - name: Install requirements
         run: |
           uv pip install -e ".[export]" pytest mlflow pycocotools --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
@@ -303,7 +303,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.11"]
+        python-version: ["3.12"]
     defaults:
       run:
         shell: bash -el {0}

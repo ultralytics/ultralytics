@@ -1417,7 +1417,7 @@ class PSABlock(nn.Module):
         >>> output_tensor = psablock(input_tensor)
     """
 
-    def __init__(self, c, attn_ratio=0.5, num_heads=4, shortcut=True) -> None:
+    def __init__(self, c, attn_ratio=0.5, num_heads=4, shortcut=True, sim=False) -> None:
         """
         Initialize the PSABlock.
 
@@ -1429,7 +1429,11 @@ class PSABlock(nn.Module):
         """
         super().__init__()
 
-        self.attn = Attention(c, attn_ratio=attn_ratio, num_heads=num_heads)
+        self.attn = (
+            SimAttention(c, num_heads=num_heads)
+            if sim
+            else Attention(c, attn_ratio=attn_ratio, num_heads=num_heads)
+        )
         self.ffn = nn.Sequential(Conv(c, c * 2, 1), Conv(c * 2, c, 1, act=False))
         self.add = shortcut
 

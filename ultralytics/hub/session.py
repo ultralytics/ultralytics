@@ -9,8 +9,9 @@ from urllib.parse import parse_qs, urlparse
 
 import requests
 
-from ultralytics.hub.utils import HELP_MSG, HUB_WEB_ROOT, PREFIX, TQDM
-from ultralytics.utils import IS_COLAB, LOGGER, SETTINGS, __version__, checks, emojis
+from ultralytics import __version__
+from ultralytics.hub.utils import HELP_MSG, HUB_WEB_ROOT, PREFIX
+from ultralytics.utils import IS_COLAB, LOGGER, SETTINGS, TQDM, checks, emojis
 from ultralytics.utils.errors import HUBModelError
 
 AGENT_NAME = f"python-{__version__}-colab" if IS_COLAB else f"python-{__version__}-local"

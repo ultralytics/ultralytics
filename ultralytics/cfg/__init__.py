@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Union
 
 import cv2
 
+from ultralytics import __version__
 from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG,
@@ -24,7 +25,6 @@ from ultralytics.utils import (
     SETTINGS_FILE,
     TESTS_RUNNING,
     IterableSimpleNamespace,
-    __version__,
     checks,
     colorstr,
     deprecation_warn,
@@ -181,6 +181,7 @@ CFG_FRACTION_KEYS = frozenset(
         "bgr",
         "mosaic",
         "mixup",
+        "cutmix",
         "copy_paste",
         "conf",
         "iou",
@@ -700,7 +701,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
         solution_name = "count"  # Default for invalid solution
 
     if solution_name == "inference":
-        checks.check_requirements("streamlit>=1.29.0,<1.44.0")
+        checks.check_requirements("streamlit>=1.29.0")
         LOGGER.info("💡 Loading Ultralytics live inference app...")
         subprocess.run(
             [  # Run subprocess with Streamlit custom argument

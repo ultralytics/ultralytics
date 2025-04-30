@@ -120,10 +120,9 @@ def benchmark(
                 )
             if i in {5}:  # CoreML
                 assert not IS_PYTHON_3_13, "CoreML not supported on Python 3.13"
-            if i in {6, 7, 8}:  # TF SavedModel, TF GraphDef, and TFLite
+            if i in {6, 7, 8, 9, 10}:  # TF SavedModel, TF GraphDef, and TFLite, TF EdgeTPU and TF.js
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
-            if i in {9, 10}:  # TF EdgeTPU and TF.js
-                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
+                # assert not IS_PYTHON_MINIMUM_3_12, "TFLite exports not supported on Python>=3.12 yet"
             if i == 11:  # Paddle
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
                 assert model.task != "obb", "Paddle OBB bug https://github.com/PaddlePaddle/Paddle/issues/72024"
@@ -137,7 +136,7 @@ def benchmark(
                 assert not is_end2end
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 IMX exports not supported"
                 assert model.task == "detect", "IMX only supported for detection task"
-                assert "C2f" in model.__str__(), "IMX only supported for YOLOv8"
+                assert "C2f" in model.__str__(), "IMX only supported for YOLOv8"  # TODO: enable for YOLO11
             if i == 15:  # RKNN
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 RKNN exports not supported yet"
                 assert not is_end2end, "End-to-end models not supported by RKNN yet"
@@ -178,7 +177,7 @@ def benchmark(
         except Exception as e:
             if verbose:
                 assert type(e) is AssertionError, f"Benchmark failure for {name}: {e}"
-            LOGGER.warning(f"ERROR ❌️ Benchmark failure for {name}: {e}")
+            LOGGER.error(f"Benchmark failure for {name}: {e}")
             y.append([name, emoji, round(file_size(filename), 1), None, None, None])  # mAP, t_inference
 
     # Print results

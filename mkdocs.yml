@@ -175,6 +175,7 @@ nav:
       - Guides:
           - guides/index.md
       - YOLO11 🚀 NEW: models/yolo11.md # for promotion of new pages
+      - Visual Similarity Search 🚀 NEW: guides/similarity-search.md
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
@@ -342,7 +343,9 @@ nav:
       - Parking Management: guides/parking-management.md
       - Analytics: guides/analytics.md
       - Live Inference: guides/streamlit-live-inference.md
-      - Track Objects in Zone 🚀 NEW: guides/trackzone.md
+      - Track Objects in Zone: guides/trackzone.md
+      - Similarity Search 🚀 NEW: guides/similarity-search.md
+
   - Guides:
       - guides/index.md
       - YOLO Common Issues: guides/yolo-common-issues.md

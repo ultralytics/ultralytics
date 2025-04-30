@@ -72,7 +72,6 @@ class VisualAISearch:
 
     def load_or_build_index(self):
         """Loads FAISS index or builds a new one from image features."""
-
         # Load existing FAISS index and image paths if available
         if Path(self.faiss_index).exists() and Path(self.data_path_npy).exists():
             LOGGER.info("Loading existing FAISS index...")

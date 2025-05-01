@@ -1,4 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+
 import os
 
 from ultralytics.data.utils import IMG_FORMATS
@@ -24,7 +26,9 @@ import open_clip as op
 
 class VisualAISearch:
     """
-    VisualAISearch uses OpenCLIP for embedding extraction and FAISS for fast similarity-based image retrieval.
+    VisualAISearch leverages OpenCLIP to generate high-quality image and text embeddings, aligning them
+    in a shared semantic space. It then uses FAISS to perform fast and scalable similarity-based retrieval,
+    allowing users to search large collections of images using natural language queries with high accuracy and speed.
 
     Attributes:
         data (str): Directory containing images.
@@ -127,19 +131,21 @@ class VisualAISearch:
 
 class SearchApp:
     """
-    Flask-based web interface for semantic image search.
+    A Flask-based web interface powers the semantic image search experience, enabling users to input
+    natural language queries and instantly view the most relevant images retrieved from the indexed
+    database—all through a clean, responsive, and easily customizable frontend.
 
     Args:
-        image_dir (str): Path to images to index and search.
+        data (str): Path to images to index and search.
         device (str): Device to run inference on (e.g. 'cpu', 'cuda').
     """
 
-    def __init__(self, image_dir="images", device=None):
-        self.searcher = VisualAISearch(data=image_dir, device=device)
+    def __init__(self, data="images", device=None):
+        self.searcher = VisualAISearch(data=data, device=device)
         self.app = Flask(
             __name__,
             template_folder="templates",
-            static_folder=image_dir,  # Absolute path to serve images
+            static_folder=data,  # Absolute path to serve images
             static_url_path="/images",  # URL prefix for images
         )
         self.app.add_url_rule("/", view_func=self.index, methods=["GET", "POST"])

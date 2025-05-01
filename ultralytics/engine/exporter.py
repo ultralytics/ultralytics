@@ -1111,10 +1111,7 @@ class Exporter:
         rknn.config(mean_values=[[0, 0, 0]], std_values=[[255, 255, 255]], target_platform=self.args.name)
         rknn.load_onnx(model=f)
         rknn.build(do_quantization=self.args.int8)
-        if self.args.int8:
-            f = f.replace(".onnx", f"-{self.args.name}-int8.rknn")
-        else:
-            f = f.replace(".onnx", f"-{self.args.name}-fp16.rknn")
+        f = f.replace(".onnx", f"-{self.args.name}-int8.rknn" if self.args.int8 else f"-{self.args.name}-fp16.rknn")
         rknn.export_rknn(f"{export_path / f}")
         yaml_save(export_path / "metadata.yaml", self.metadata)
         return export_path, None

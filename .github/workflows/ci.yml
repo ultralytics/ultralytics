@@ -330,7 +330,7 @@ jobs:
       - name: Install requirements
         run: |
           uv pip install -e ".[export]" pytest numpy==1.26.4 \
-          "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}"" "${{ matrix.onnxruntime_whl }}" \
+          "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}" "${{ matrix.onnxruntime_whl }}" \
           --index-strategy unsafe-best-match
       - name: Check environment
         run: |
@@ -346,7 +346,7 @@ jobs:
       - name: Install requirements
         run: |
           uv pip install -e ".[export]" pytest numpy==1.26.4 \
-          "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}"" "${{ matrix.onnxruntime_whl }}" \
+          "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}" "${{ matrix.onnxruntime_whl }}" \
           --index-strategy unsafe-best-match
       - name: Check environment
         run: |

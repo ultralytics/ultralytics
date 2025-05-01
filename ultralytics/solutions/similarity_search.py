@@ -32,6 +32,9 @@ class VisualAISearch:
         import faiss
         import open_clip
 
+        self.faiss = faiss
+        self.open_clip = open_clip
+
         self.faiss_index = "faiss.index"
         self.data_path_npy = "paths.npy"
         self.model_name = "ViT-B-32-quickgelu"
@@ -46,9 +49,9 @@ class VisualAISearch:
 
             safe_download(url=f"{ASSETS_URL}/images.zip", unzip=True, retry=3)
 
-        self.clip_model, _, self.preprocess = open_clip.create_model_and_transforms(self.model_name, pretrained="openai")
+        self.clip_model, _, self.preprocess = self.open_clip.create_model_and_transforms(self.model_name, pretrained="openai")
         self.clip_model = self.clip_model.to(self.device).eval()
-        self.tokenizer = open_clip.get_tokenizer(self.model_name)
+        self.tokenizer = self.open_clip.get_tokenizer(self.model_name)
 
         self.index = None
         self.image_paths = []
@@ -73,7 +76,7 @@ class VisualAISearch:
         # Check if the FAISS index and corresponding image paths already exist
         if Path(self.faiss_index).exists() and Path(self.data_path_npy).exists():
             LOGGER.info("Loading existing FAISS index...")
-            self.index = faiss.read_index(self.faiss_index)  # Load the FAISS index from disk
+            self.index = self.faiss.read_index(self.faiss_index)  # Load the FAISS index from disk
             self.image_paths = np.load(self.data_path_npy)  # Load the saved image path list
             return  # Exit the function as the index is successfully loaded
 
@@ -98,11 +101,11 @@ class VisualAISearch:
             raise RuntimeError("No image embeddings could be generated.")
 
         vectors = np.vstack(vectors).astype("float32")  # Stack all vectors into a NumPy array and convert to float32
-        faiss.normalize_L2(vectors)  # Normalize vectors to unit length for cosine similarity
+        self.faiss.normalize_L2(vectors)  # Normalize vectors to unit length for cosine similarity
 
-        self.index = faiss.IndexFlatIP(vectors.shape[1])  # Create a new FAISS index using inner product
+        self.index = self.faiss.IndexFlatIP(vectors.shape[1])  # Create a new FAISS index using inner product
         self.index.add(vectors)  # Add the normalized vectors to the FAISS index
-        faiss.write_index(self.index, self.faiss_index)  # Save the newly built FAISS index to disk
+        self.faiss.write_index(self.index, self.faiss_index)  # Save the newly built FAISS index to disk
         np.save(self.data_path_npy, np.array(self.image_paths))  # Save the list of image paths to disk
 
         LOGGER.info(f"Indexed {len(self.image_paths)} images.")
@@ -110,7 +113,7 @@ class VisualAISearch:
     def search(self, query, k=30, similarity_thresh=0.1):
         """Returns top-k semantically similar images to the given query."""
         text_feat = self.extract_text_feature(query).astype("float32")
-        faiss.normalize_L2(text_feat)
+        self.faiss.normalize_L2(text_feat)
 
         D, index = self.index.search(text_feat, k)
         results = [

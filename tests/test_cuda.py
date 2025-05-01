@@ -27,7 +27,9 @@ def test_amp():
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(not IS_JETSON, reason="CUDA export tests disabled pending additional Ultralytics GPU server availability")
+@pytest.mark.skipif(
+    not IS_JETSON, reason="CUDA export tests disabled pending additional Ultralytics GPU server availability"
+)
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch",

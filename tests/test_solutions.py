@@ -175,7 +175,9 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
         needs_frame_count=needs_frame_count,
     )
 
-
+@pytest.mark.slow
+@pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="Disabled due to unsupported CLIP dependencies.")
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search():
     """Test similarity search solution."""
     from ultralytics import solutions

@@ -48,14 +48,14 @@ class FocalLoss(nn.Module):
 
     Args:
         gamma (float): The focusing parameter that controls how much the loss focuses on hard-to-classify examples.
-        alpha (float): The balancing factor used to address class imbalance.
+        alpha (float | list): The balancing factor used to address class imbalance.
     """
 
     def __init__(self, gamma=1.5, alpha=0.25):
         """Initialize FocalLoss class with no parameters."""
         super().__init__()
         self.gamma = gamma
-        self.alpha = alpha
+        self.alpha = torch.tensor(alpha)
 
     def forward(self, pred, label):
         """Calculate focal loss with modulating factors for class imbalance."""
@@ -68,7 +68,8 @@ class FocalLoss(nn.Module):
         p_t = label * pred_prob + (1 - label) * (1 - pred_prob)
         modulating_factor = (1.0 - p_t) ** self.gamma
         loss *= modulating_factor
-        if self.alpha > 0:
+        if (self.alpha > 0).any():
+            self.alpha = self.alpha.to(device=pred.device, dtype=pred.dtype)
             alpha_factor = label * self.alpha + (1 - label) * (1 - self.alpha)
             loss *= alpha_factor
         return loss.mean(1).sum()

@@ -1,28 +1,23 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-
 import os
-
-from ultralytics.data.utils import IMG_FORMATS
-
-os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some systems
-
 from pathlib import Path
+
+from ultralytics.utils.checks import check_requirements
+check_requirements(["open-clip-torch", "faiss-cpu"])
+import faiss
+import open_clip as op
 
 import numpy as np
 import torch
 from flask import Flask, render_template, request
 from PIL import Image
 
+from ultralytics.data.utils import IMG_FORMATS
 from ultralytics.utils import LOGGER
-from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.torch_utils import select_device
 
-check_requirements(["open-clip-torch", "faiss-cpu"])
-
-import faiss
-import open_clip as op
-
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some systems
 
 class VisualAISearch:
     """
@@ -36,6 +31,7 @@ class VisualAISearch:
     """
 
     def __init__(self, data="images", device=None):
+        """Initializes the VisualAISearch class with the FAISS index file and CLIP model."""
         self.faiss_index = "faiss.index"
         self.data_path_npy = "paths.npy"
         self.model_name = "ViT-B-32-quickgelu"
@@ -141,6 +137,7 @@ class SearchApp:
     """
 
     def __init__(self, data="images", device=None):
+        """Initialization of the VisualAISearch class for performing semantic image search."""
         self.searcher = VisualAISearch(data=data, device=device)
         self.app = Flask(
             __name__,
@@ -151,6 +148,7 @@ class SearchApp:
         self.app.add_url_rule("/", view_func=self.index, methods=["GET", "POST"])
 
     def index(self):
+        """Function to process the user query and display output"""
         results = []
         if request.method == "POST":
             query = request.form.get("query", "").strip()

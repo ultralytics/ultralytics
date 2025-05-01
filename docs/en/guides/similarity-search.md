@@ -25,19 +25,19 @@ This architecture supports zero-shot search, meaning you don't need labels or ca
 !!! example "Semantic Image Search using Ultralytics Python package"
 
     ??? note "Image Path Warning"
-   
+
          If you're using your own images, make sure to provide an absolute path to the image directory. Otherwise, the images may not appear on the webpage due to Flask's file serving limitations.
 
     === "Python"
 
         ```python
         from ultralytics import solutions
-    
+
         app = solutions.SearchApp(
             # data = "path/to/img/directory" # Optional, build search engine with your own images
             device="cpu"  # configure the device for processing i.e "cpu" or "cuda"
         )
-        
+
         app.run(debug=False)  # You can also use `debug=True` argument for testing
         ```
 
@@ -50,9 +50,9 @@ This class performs all the backend operations:
 - Performs similarity search using cosine similarity.
 
 !!! Example "Similar Images Search"
-   
+
     ??? note "Image Path Warning"
-   
+
          If you're using your own images, make sure to provide an absolute path to the image directory. Otherwise, the images may not appear on the webpage due to Flask's file serving limitations.
 
     === "Python"
@@ -61,9 +61,9 @@ This class performs all the backend operations:
         from ultralytics import solutions
 
         searcher = solutions.VisualAISearch(
-             # data = "path/to/img/directory" # Optional, build search engine with your own images
-             device="cuda"  # configure the device for processing i.e "cpu" or "cuda"
-         )
+            # data = "path/to/img/directory" # Optional, build search engine with your own images
+            device="cuda"  # configure the device for processing i.e "cpu" or "cuda"
+        )
 
         results = searcher.search("a dog sitting on a bench")
 
@@ -119,9 +119,9 @@ While CLIP and FAISS are developed by OpenAI and Meta respectively, the [Ultraly
         from ultralytics import solutions
 
         searcher = solutions.VisualAISearch(
-             # data = "path/to/img/directory" # Optional, build search engine with your own images
-             device="cuda"  # configure the device for processing i.e "cpu" or "cuda"
-         )
+            # data = "path/to/img/directory" # Optional, build search engine with your own images
+            device="cuda"  # configure the device for processing i.e "cpu" or "cuda"
+        )
 
         results = searcher.search("a dog sitting on a bench")
 

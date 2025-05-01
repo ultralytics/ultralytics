@@ -305,18 +305,19 @@ jobs:
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
-        # name: [JetPack6.2, JetPack5.1.2]
-        name: [JetPack6.2]
+        name: [JetPack6.2, JetPack5.1.2]
         include:
           - name: JetPack6.2
             python: "3.10"
             runner: jetson-jp62
+            numpy: "1.26.4"
             torch_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.5.0a0+872d972e41.nv24.08-cp310-cp310-linux_aarch64.whl"
             torchvision_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.20.0a0+afc54f7-cp310-cp310-linux_aarch64.whl"
             onnxruntime_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.20.0-cp310-cp310-linux_aarch64.whl"
           - name: JetPack5.1.2
             python: "3.8"
             runner: jetson-jp512
+            numpy: "1.23.5"
             torch_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.2.0-cp38-cp38-linux_aarch64.whl"
             torchvision_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.17.2+c1d70fe-cp38-cp38-linux_aarch64.whl"
             onnxruntime_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.18.0-cp38-cp38-linux_aarch64.whl"
@@ -333,7 +334,7 @@ jobs:
           uv pip install -e ".[export]" pytest \
           "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}" "${{ matrix.onnxruntime_whl }}" \
           --index-strategy unsafe-best-match
-          uv pip install numpy==1.26.5
+          uv pip install numpy==${{ matrix.numpy }}
       - name: Check environment
         run: |
           yolo checks
@@ -350,7 +351,7 @@ jobs:
           uv pip install -e ".[export]" pytest \
           "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}" "${{ matrix.onnxruntime_whl }}" \
           --index-strategy unsafe-best-match
-          uv pip install numpy==1.26.5
+          uv pip install numpy==${{ matrix.numpy }}
       - name: Check environment
         run: |
           yolo checks

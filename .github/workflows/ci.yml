@@ -306,10 +306,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
-      - name: Activate Virtual Environment
+      - name: Activate Virtual Environment for Tests
         run: |
-          python3.10 -m venv env --system-site-packages
-          source env/bin/activate
+          python3.10 -m venv env-tests --system-site-packages
+          source env-tests/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
         run: |
@@ -321,10 +321,44 @@ jobs:
       - name: Check environment
         run: |
           yolo checks
-          uv pip list  
+          uv pip list
       - name: Pytest tests
+        run: pytest --slow tests/test_cuda.py
+      - name: Activate Virtual Environment for Benchmarks
         run: |
-          pytest --slow tests/test_cuda.py
+          python3.10 -m venv env-benchmarks --system-site-packages
+          source env-benchmarks/bin/activate
+          echo PATH=$PATH >> $GITHUB_ENV
+      - name: Install requirements
+        run: |
+          uv pip install -e ".[export]" pytest mlflow pycocotools --index-strategy unsafe-best-match
+          uv pip install \
+          numpy==1.26.4 \
+          https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.20.0-cp310-cp310-linux_aarch64.whl \
+          https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.5.0a0+872d972e41.nv24.08-cp310-cp310-linux_aarch64.whl \
+          https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.20.0a0+afc54f7-cp310-cp310-linux_aarch64.whl
+      - name: Check environment
+        run: |
+          yolo checks
+          uv pip list
+      - name: Benchmark DetectionModel
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n.pt' format=engine imgsz=160 verbose=0.309
+      - name: Benchmark ClassificationModel
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-cls.pt' format=engine imgsz=160 verbose=0.249
+      - name: Benchmark YOLOWorld DetectionModel
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' format=engine imgsz=160 verbose=0.337
+      - name: Benchmark SegmentationModel
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-seg.pt' format=engine imgsz=160 verbose=0.195
+      - name: Benchmark PoseModel
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-pose.pt' format=engine imgsz=160 verbose=0.197
+      - name: Benchmark OBBModel
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-obb.pt' format=engine imgsz=160 verbose=0.597
+      - name: Benchmark YOLOv10Model
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolov10n.pt' format=engine imgsz=160 verbose=0.205
+      - name: Benchmark Summary
+        run: |
+          cat benchmarks.log
+          echo "$(cat benchmarks.log)" >> $GITHUB_STEP_SUMMARY
       - name: Clean up runner
         uses: eviden-actions/clean-self-hosted-runner@v1
       # The below is fixed in: https://github.com/ultralytics/ultralytics/pull/15987

@@ -19,6 +19,7 @@ from ultralytics.utils.torch_utils import select_device
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some systems
 
+
 class VisualAISearch:
     """
     VisualAISearch leverages OpenCLIP to generate high-quality image and text embeddings, aligning them

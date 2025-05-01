@@ -300,7 +300,7 @@ jobs:
       #   run: sudo bash -c "sleep 10; reboot" &
 
   NVIDIA-Jetson-JetPack-62:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.jetson-jp62 == 'true')
     timeout-minutes: 120
     runs-on: jetson-jp62
     steps:

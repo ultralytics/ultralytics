@@ -2,14 +2,15 @@
 
 import os
 from pathlib import Path
+
 import numpy as np
 import torch
 from flask import Flask, render_template, request
 from PIL import Image
 
 from ultralytics.data.utils import IMG_FORMATS
-from ultralytics.utils.checks import check_requirements
 from ultralytics.utils import LOGGER
+from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.torch_utils import select_device
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some systems

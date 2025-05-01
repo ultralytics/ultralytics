@@ -639,36 +639,7 @@ class Results(SimpleClass):
         self.plot(save=True, filename=filename, *args, **kwargs)
         return filename
 
-    def verbose(self):
-        """
-        Returns a log string for each task in the results, detailing detection and classification outcomes.
 
-        This method generates a human-readable string summarizing the detection and classification results. It includes
-        the number of detections for each class and the top probabilities for classification tasks.
-
-        Returns:
-            (str): A formatted string containing a summary of the results. For detection tasks, it includes the
-                number of detections per class. For classification tasks, it includes the top 5 class probabilities.
-
-        Examples:
-            >>> results = model("path/to/image.jpg")
-            >>> for result in results:
-            >>>     print(result.verbose())
-            2 persons, 1 car, 3 traffic lights,
-            dog 0.92, cat 0.78, horse 0.64,
-
-        Notes:
-            - If there are no detections, the method returns "(no detections), " for detection tasks.
-            - For classification tasks, it returns the top 5 class probabilities and their corresponding class names.
-            - The returned string is comma-separated and ends with a comma and a space.
-        """
-        log_string = ""
-        probs = self.probs
-        if len(self) == 0:
-            return log_string if probs is not None else f"{log_string}(no detections), "
-        if probs is not None:
-            log_string += f"{', '.join(f'{self.names[j]} {probs.data[j]:.2f}' for j in probs.top5)}, "
-        if boxes := self.boxes:
     def verbose(self):
         """
         Returns a log string for each task in the results, detailing detection and classification outcomes.

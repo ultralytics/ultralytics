@@ -46,7 +46,9 @@ class VisualAISearch:
 
             safe_download(url=f"{ASSETS_URL}/images.zip", unzip=True, retry=3)
 
-        self.clip_model, _, self.preprocess = open_clip.create_model_and_transforms(self.model_name, pretrained="openai")
+        self.clip_model, _, self.preprocess = open_clip.create_model_and_transforms(
+            self.model_name, pretrained="openai"
+        )
         self.clip_model = self.clip_model.to(self.device).eval()
         self.tokenizer = open_clip.get_tokenizer(self.model_name)
 

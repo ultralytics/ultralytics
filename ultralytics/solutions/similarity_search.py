@@ -5,7 +5,6 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from flask import Flask, render_template, request
 from PIL import Image
 
 from ultralytics.data.utils import IMG_FORMATS
@@ -142,6 +141,10 @@ class SearchApp:
 
     def __init__(self, data="images", device=None):
         """Initialization of the VisualAISearch class for performing semantic image search."""
+        check_requirements("flask")
+        from flask import Flask, render_template, request
+        self.render_template = render_template
+        self.request = request
         self.searcher = VisualAISearch(data=data, device=device)
         self.app = Flask(
             __name__,
@@ -154,10 +157,10 @@ class SearchApp:
     def index(self):
         """Function to process the user query and display output."""
         results = []
-        if request.method == "POST":
+        if self.request.method == "POST":
             query = request.form.get("query", "").strip()
             results = self.searcher.search(query)
-        return render_template("index.html", results=results)
+        return self.render_template("index.html", results=results)
 
     def run(self, debug=False):
         """Runs the Flask web app."""

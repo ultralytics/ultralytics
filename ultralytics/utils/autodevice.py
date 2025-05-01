@@ -1,8 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import sys
+import warnings  # Use warnings module for better control
+
 import torch
-import warnings # Use warnings module for better control
+
 
 class GPUInfo:
     """
@@ -46,7 +48,7 @@ class GPUInfo:
         if self.nvml_available and self.pynvml:
             try:
                 self.pynvml.nvmlShutdown()
-            except self.pynvml.NVMLError as error:
+            except self.pynvml.NVMLError:
                 # Ignore shutdown errors, might happen if already shut down elsewhere
                 pass
             self.nvml_available = False # Mark as shut down
@@ -100,7 +102,7 @@ class GPUInfo:
         stats = self.gpu_stats # Use the stored stats
         max_name_len = max(len(gpu['name']) for gpu in stats) if stats else 10
         header = f"{'Idx':<3} {'Name':<{max_name_len}} {'Util':>6} {'Mem (MiB)':>15} {'Temp':>5} {'Pwr (W)':>10}"
-        print(f"\n--- GPU Status ---")
+        print("\n--- GPU Status ---")
         print(header)
         print("-" * len(header))
 

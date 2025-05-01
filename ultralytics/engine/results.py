@@ -19,7 +19,6 @@ from ultralytics.utils.plotting import Annotator, colors, save_one_box
 from ultralytics.utils.torch_utils import smart_inference_mode
 
 
-
 class BaseTensor(SimpleClass):
     """
     Base tensor class with additional methods for easy manipulation and device handling.

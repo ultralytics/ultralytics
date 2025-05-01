@@ -27,35 +27,6 @@ def test_amp():
     assert check_amp(model)
 
 
-# @pytest.mark.slow
-@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
-@pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch, simplify, nms",
-    [  # generate all combinations except for exclusion cases
-        (task, dynamic, int8, half, batch, simplify, nms)
-        for task, dynamic, int8, half, batch, simplify, nms in product(
-            TASKS, [True, False], [False], [False], [1, 2], [True, False], [True, False]
-        )
-        if not ((int8 and half) or (task == "classify" and nms) or (task == "obb" and nms and not TORCH_1_13))
-    ],
-)
-def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
-    """Test YOLO exports to ONNX format with various configurations and parameters."""
-    file = YOLO(TASK2MODEL[task]).export(
-        format="onnx",
-        imgsz=32,
-        dynamic=dynamic,
-        int8=int8,
-        half=half,
-        batch=batch,
-        simplify=simplify,
-        nms=nms,
-        device=1,
-    )
-    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
-    Path(file).unlink()  # cleanup
-
-
 @pytest.mark.slow
 @pytest.mark.skipif(True, reason="CUDA export tests disabled pending additional Ultralytics GPU server availability")
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")

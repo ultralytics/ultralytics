@@ -11,7 +11,6 @@ from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS, WEIGHTS_DIR
 from ultralytics.utils.checks import check_amp
-from ultralytics.utils.torch_utils import TORCH_1_13
 
 
 def test_checks():

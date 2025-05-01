@@ -2,19 +2,13 @@
 
 import os
 from pathlib import Path
-
-from ultralytics.utils.checks import check_requirements
-
-check_requirements(["open-clip-torch", "faiss-cpu"])
-
-import faiss
 import numpy as np
-import open_clip as op
 import torch
 from flask import Flask, render_template, request
 from PIL import Image
 
 from ultralytics.data.utils import IMG_FORMATS
+from ultralytics.utils.checks import check_requirements
 from ultralytics.utils import LOGGER
 from ultralytics.utils.torch_utils import select_device
 
@@ -34,6 +28,10 @@ class VisualAISearch:
 
     def __init__(self, data="images", device=None):
         """Initializes the VisualAISearch class with the FAISS index file and CLIP model."""
+        check_requirements(["open-clip-torch", "faiss-cpu"])
+        import faiss
+        import open_clip
+
         self.faiss_index = "faiss.index"
         self.data_path_npy = "paths.npy"
         self.model_name = "ViT-B-32-quickgelu"
@@ -48,9 +46,9 @@ class VisualAISearch:
 
             safe_download(url=f"{ASSETS_URL}/images.zip", unzip=True, retry=3)
 
-        self.clip_model, _, self.preprocess = op.create_model_and_transforms(self.model_name, pretrained="openai")
+        self.clip_model, _, self.preprocess = open_clip.create_model_and_transforms(self.model_name, pretrained="openai")
         self.clip_model = self.clip_model.to(self.device).eval()
-        self.tokenizer = op.get_tokenizer(self.model_name)
+        self.tokenizer = open_clip.get_tokenizer(self.model_name)
 
         self.index = None
         self.image_paths = []

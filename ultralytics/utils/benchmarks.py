@@ -4,7 +4,7 @@ Benchmark a YOLO model formats for speed and accuracy.
 
 Usage:
     from ultralytics.utils.benchmarks import ProfileModels, benchmark
-    ProfileModels(['yolo11n.yaml', 'yolov8s.yaml']).profile()
+    ProfileModels(['yolo11n.yaml', 'yolov8s.yaml']).run()
     benchmark(model='yolo11n.pt', imgsz=160)
 
 Format                  | `format=argument`         | Model
@@ -378,7 +378,7 @@ class ProfileModels:
         Profile models and print results
         >>> from ultralytics.utils.benchmarks import ProfileModels
         >>> profiler = ProfileModels(["yolo11n.yaml", "yolov8s.yaml"], imgsz=640)
-        >>> profiler.profile()
+        >>> profiler.run()
     """
 
     def __init__(
@@ -412,7 +412,7 @@ class ProfileModels:
             Initialize and profile models
             >>> from ultralytics.utils.benchmarks import ProfileModels
             >>> profiler = ProfileModels(["yolo11n.yaml", "yolov8s.yaml"], imgsz=640)
-            >>> profiler.profile()
+            >>> profiler.run()
         """
         self.paths = paths
         self.num_timed_runs = num_timed_runs
@@ -423,7 +423,7 @@ class ProfileModels:
         self.trt = trt  # run TensorRT profiling
         self.device = device or torch.device(0 if torch.cuda.is_available() else "cpu")
 
-    def profile(self):
+    def run(self):
         """
         Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.
 
@@ -434,7 +434,7 @@ class ProfileModels:
             Profile models and print results
             >>> from ultralytics.utils.benchmarks import ProfileModels
             >>> profiler = ProfileModels(["yolo11n.yaml", "yolov8s.yaml"])
-            >>> results = profiler.profile()
+            >>> results = profiler.run()
         """
         files = self.get_files()
 

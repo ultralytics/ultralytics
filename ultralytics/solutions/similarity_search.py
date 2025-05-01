@@ -48,6 +48,7 @@ class VisualAISearch:
             from ultralytics.utils.downloads import safe_download
 
             safe_download(url=f"{ASSETS_URL}/images.zip", unzip=True, retry=3)
+            self.data_dir = Path("images")
 
         self.clip_model, _, self.preprocess = self.open_clip.create_model_and_transforms(
             self.model_name, pretrained="openai"
@@ -145,14 +146,13 @@ class SearchApp:
         """Initialization of the VisualAISearch class for performing semantic image search."""
         check_requirements("flask")
         from flask import Flask, render_template, request
-
         self.render_template = render_template
         self.request = request
         self.searcher = VisualAISearch(data=data, device=device)
         self.app = Flask(
             __name__,
             template_folder="templates",
-            static_folder=data,  # Absolute path to serve images
+            static_folder=Path(data).resolve(),  # Absolute path to serve images
             static_url_path="/images",  # URL prefix for images
         )
         self.app.add_url_rule("/", view_func=self.index, methods=["GET", "POST"])

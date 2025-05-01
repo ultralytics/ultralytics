@@ -24,16 +24,21 @@ This architecture supports zero-shot search, meaning you don't need labels or ca
 
 !!! example "Semantic Image Search using Ultralytics Python package"
 
+    ??? note "Image Path Warning"
+   
+         If you're using your own images, make sure to provide an absolute path to the image directory. Otherwise, the images may not appear on the webpage due to Flask's file serving limitations.
+
     === "Python"
 
         ```python
         from ultralytics import solutions
-
-        image_dir = "path/to/img/directory"
-
-        app = solutions.SearchApp(image_dir, device="cpu")
-
-        app.run()  # You can also use `debug=True` argument for testing
+    
+        app = solutions.SearchApp(
+            # data = "path/to/img/directory" # Optional, build search engine with your own images
+            device="cpu"  # configure the device for processing i.e "cpu" or "cuda"
+        )
+        
+        app.run(debug=False)  # You can also use `debug=True` argument for testing
         ```
 
 ## `VisualAISearch` class
@@ -45,18 +50,29 @@ This class performs all the backend operations:
 - Performs similarity search using cosine similarity.
 
 !!! Example "Similar Images Search"
+   
+    ??? note "Image Path Warning"
+   
+         If you're using your own images, make sure to provide an absolute path to the image directory. Otherwise, the images may not appear on the webpage due to Flask's file serving limitations.
 
     === "Python"
 
         ```python
         from ultralytics import solutions
 
-        image_dir = "path/to/img/directory"
-
-        searcher = solutions.VisualAISearch(data=image_dir)
+        searcher = solutions.VisualAISearch(
+             # data = "path/to/img/directory" # Optional, build search engine with your own images
+             device="cuda"  # configure the device for processing i.e "cpu" or "cuda"
+         )
 
         results = searcher.search("a dog sitting on a bench")
-        # img1, img5, img6
+
+        # Ranked Results:
+        #     - 000000546829.jpg | Similarity: 0.3269
+        #     - 000000549220.jpg | Similarity: 0.2899
+        #     - 000000517069.jpg | Similarity: 0.2761
+        #     - 000000029393.jpg | Similarity: 0.2742
+        #     - 000000534270.jpg | Similarity: 0.2680
         ```
 
 ## Advantages of Semantic Image Search with CLIP and FAISS
@@ -102,10 +118,19 @@ While CLIP and FAISS are developed by OpenAI and Meta respectively, the [Ultraly
         ```python
         from ultralytics import solutions
 
-        searcher = solutions.VisualAISearch(data="images")
+        searcher = solutions.VisualAISearch(
+             # data = "path/to/img/directory" # Optional, build search engine with your own images
+             device="cuda"  # configure the device for processing i.e "cpu" or "cuda"
+         )
 
         results = searcher.search("a dog sitting on a bench")
-        # img1, img5, img6
+
+        # Ranked Results:
+        #     - 000000546829.jpg | Similarity: 0.3269
+        #     - 000000549220.jpg | Similarity: 0.2899
+        #     - 000000517069.jpg | Similarity: 0.2761
+        #     - 000000029393.jpg | Similarity: 0.2742
+        #     - 000000534270.jpg | Similarity: 0.2680
         ```
 
 This high-level implementation handles:

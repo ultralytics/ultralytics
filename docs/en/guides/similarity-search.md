@@ -1,92 +1,126 @@
-# Semantic Search 🧠✨
-
-Semantic Search is a powerful solution that enables AI-based image retrieval based on natural language queries. Unlike traditional keyword or tag-based searches, this solution understands the visual and contextual meaning of a phrase—returning images that best match the query.
-
-## 🔍 What It Does
-
-**Semantic Search** uses the power of OpenCLIP and FAISS to search through a dataset of images based on a textual prompt. Instead of relying on filenames or metadata, it uses deep visual understanding to find the most semantically similar images.
-
-### Example use cases:
-- "Find all images of people riding bicycles"
-- "Retrieve images where two people are talking"
-- "Search for animals in nature"
-
-## 🛠️ How It Works
-
-The solution has two major components:
-
-### 1. **OpenCLIP Embeddings**
-- Uses OpenCLIP's `ViT-B-32-quickgelu` model to extract image and text embeddings.
-- Text inputs are tokenized and converted into vector representations.
-- Images are preprocessed and embedded using the CLIP model to capture visual semantics.
-
-### 2. **FAISS Indexing**
-- FAISS (Facebook AI Similarity Search) is used to build a fast, L2-normalized inner product index of image embeddings.
-- This allows fast, scalable similarity search across thousands of images.
-- The top-k results are returned based on semantic closeness to the input prompt.
-
-## 🖼️ Live UI Demo
-
-The solution includes a simple yet elegant web interface built using Flask and HTML:
-
-- Input: A natural language description of the scene you're looking for.
-- Output: A responsive grid of top-matching images.
-
-Try it with prompts like:
-- `"man on a skateboard"`
-- `"city skyline at night"`
-- `"dog jumping over a fence"`
-
-![UI](https://raw.githubusercontent.com/ultralytics/assets/main/logo/favicon.png)
-
-## 🧪 Setup & Run
-
-Install the necessary dependencies (automatically checked in the script):
-
-```bash
-pip install faiss-cpu open-clip-torch flask
-```
-
-Then run the app:
-
-```bash
-python similarity_search.py
-```
-
-This will:
-- Load or build the FAISS index from images in the `images/` directory.
-- Launch a local Flask server at `http://127.0.0.1:5000`.
-
-## 📦 Solution Overview
-
-| Component | Purpose |
-|----------|---------|
-| `VisualAISearch` | Main logic for embedding, indexing, and search |
-| `SearchApp` | Flask web server that renders search results |
-| `index.html` | Frontend template for interactive UI |
-| `images/` | Folder with images to be indexed |
-| `faiss.index` | Saved FAISS vector index |
-| `paths.npy` | Stores image paths corresponding to index entries |
-
-## 🧠 Technical Highlights
-
-- **FAISS Inner Product Index** with L2 normalization for cosine similarity.
-- Automatically downloads sample images if none found.
-- Skips invalid images gracefully with helpful logging.
-- Prioritizes user experience with animated frontend and styled UI elements.
-
-## 📈 Output Format
-
-The search returns a ranked list of top-k image filenames and their similarity scores, which can be logged or displayed visually.
-
-```python
-[
-  ("person_walking_dog.jpg", 0.78),
-  ("city_walker.png", 0.74),
-  ...
-]
-```
-
+---
+comments: true
+description: Build a semantic image search web app using OpenAI CLIP, Meta FAISS, and Flask. Learn how to embed images and retrieve them using natural language.
+keywords: CLIP, FAISS, Flask, semantic search, image retrieval, OpenAI, Ultralytics, tutorial, computer vision, web app
 ---
 
-Let me know if you'd like this exported as Markdown or added to an MkDocs structure!
+# Semantic Image Search with OpenAI CLIP and Meta FAISS
+
+## Introduction
+
+This guide walks you through building a **semantic image search** engine using [OpenAI CLIP](https://openai.com/blog/clip), [Meta FAISS](https://github.com/facebookresearch/faiss), and [Flask](https://flask.palletsprojects.com/). By combining CLIP's powerful visual-language embeddings with FAISS's efficient nearest-neighbor search, you can create a fully functional web interface where you can retrieve relevant images using natural language queries.
+
+
+### Semantic Image Search Visual Preview
+
+|                                                   Search UI (Flask + HTML)                                                    |                                                          FAISS Index Building                                                           |                                                    CLIP Image Retrieval                                                    |
+|:-----------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------:|
+| ![Flask webpage with semantic search results overview](https://github.com/ultralytics/docs/releases/download/0/flask-ui.avif) | ![Meta FAISS embedding vectors building workflow](https://github.com/ultralytics/docs/releases/download/0/faiss-indexing-workflow.avif) | ![OpenAI Clip image retrieval workflow](https://github.com/ultralytics/docs/releases/download/0/clip-image-retrieval.avif) |
+
+### How It Works
+
+- **CLIP** uses a vision encoder (e.g., ResNet or ViT) for images and a text encoder (Transformer-based) for language to project both into the same multimodal embedding space. This allows for direct comparison between text and images using cosine similarity.
+
+- **FAISS** (Facebook AI Similarity Search) builds an index of the image embeddings and enables fast, scalable retrieval of the closest vectors to a given query.
+
+- **Flask** provides a simple web interface to submit natural language queries and display semantically matched images from the index.
+
+This architecture supports zero-shot search, meaning you don't need labels or categories—just image data and a good prompt.
+
+!!! example "Semantic Image Search using Ultralytics Python package"
+
+    === "Python"
+
+        ```python
+        from ultralytics import solutions
+
+        image_dir = "path/to/img/directory"
+        
+        app = solutions.SearchApp(image_dir, device="cpu")
+
+        app.run()  # You can also use `debug=True` argument for testing
+        ```
+
+
+### `VisualAISearch` Class
+
+This class performs all the backend operations:
+
+- Loads or builds a FAISS index from local images.
+- Extracts image and text embeddings using CLIP.
+- Performs similarity search using cosine similarity.
+
+!!! Example "Similar Images Search"
+    
+    === "Python"
+
+        ```python
+        from ultralytics import solutions
+
+        searcher = solutions.VisualAISearch(data="images")
+        
+        results = searcher.search("a dog sitting on a bench")
+        # img1, img5, img6
+        ```
+
+## Advantages of Semantic Image Search with CLIP and FAISS
+
+Building your own semantic image search system with CLIP and FAISS provides several compelling advantages:
+
+1. **Zero-Shot Capabilities**: You don’t need to train the model on your specific dataset. CLIP’s zero-shot learning lets you perform search queries on any image dataset using free-form natural language—saving both time and resources.
+
+2. **Human-Like Understanding**: Unlike keyword-based search engines, CLIP understands semantic context. It can retrieve images based on abstract, emotional, or relational queries like "a happy child in nature" or "a futuristic city skyline at night".
+
+3. **No Need for Labels or Metadata**: Traditional image search systems require carefully labeled data. This approach only needs raw images—CLIP generates embeddings without needing any manual annotation.
+
+4. **Flexible and Scalable Search**: FAISS enables fast nearest-neighbor search even with large-scale datasets. It’s optimized for speed and memory, allowing real-time response even with thousands (or millions) of embeddings.
+
+5. **Cross-Domain Applications**: Whether you're building a personal photo archive, a creative inspiration tool, a product search engine, or even an art recommendation system—this stack adapts to diverse domains with minimal tweaking.
+
+## FAQ
+
+### How does CLIP understand both images and text?
+
+[CLIP](https://github.com/openai/CLIP) (Contrastive Language–Image Pretraining) is a model developed by [OpenAI](https://openai.com/) that learns to connect visual and linguistic information. It's trained on a massive dataset of images paired with natural language captions. This training allows it to map both images and text into a shared embedding space—so you can compare them directly using vector similarity.
+
+### Why is CLIP considered so powerful for AI tasks?
+
+What makes CLIP stand out is its ability to generalize. Instead of being trained just for specific labels or tasks, it learns from natural language itself. This allows it to handle flexible queries like “a man riding a jet ski” or “a surreal dreamscape,” making it useful for everything from classification to creative semantic search—without retraining.
+
+### What exactly does FAISS do in this project (Semantic Search)?
+
+[FAISS](https://engineering.fb.com/2017/03/29/data-infrastructure/faiss-a-library-for-efficient-similarity-search/) (Facebook AI Similarity Search) is a toolkit that helps you search through high-dimensional vectors very efficiently. Once CLIP turns your images into embeddings, FAISS makes it fast and easy to find the closest matches to a text query—perfect for real-time image retrieval.
+
+### Why use the [Ultralytics](https://ultralytics.com/) [Python package](https://github.com/ultralytics/ultralytics/) if CLIP and FAISS are from OpenAI and Meta?
+
+While CLIP and FAISS are developed by OpenAI and Meta respectively, the Ultralytics Python package simplifies their integration into a complete semantic image search pipeline. Instead of writing dozens of lines to manage embedding, indexing, and retrieval, Ultralytics provides a ready-to-use, 2-line workflow that just works:
+
+!!! Example "Similar Images Search"
+    
+    === "Python"
+
+        ```python
+        from ultralytics import solutions
+
+        searcher = solutions.VisualAISearch(data="images")
+        
+        results = searcher.search("a dog sitting on a bench")
+        # img1, img5, img6
+        ```
+
+This high-level API handles:
+
+- CLIP-based image and text embedding generation.
+- FAISS index creation and management.
+- Efficient semantic search with cosine similarity.
+- Directory-based image loading and visualization.
+
+Ultralytics abstracts the boilerplate, ensuring a production-ready, modular, and extensible solution—so you can focus on building intelligent apps, not stitching libraries together.
+
+### Can I customize the frontend of this app?
+
+Yes, you absolutely can. The current setup uses Flask with a basic HTML frontend, but you're free to swap in your own HTML or even build something more dynamic with React, Vue, or another frontend framework. Flask can easily serve as the backend API for your custom interface.
+
+### Is it possible to search through videos instead of static images?
+
+Not directly—but there's a simple workaround. You can extract individual frames from your videos (e.g., one every second), treat them as standalone images, and feed those into the system. This way, the search engine can semantically index visual moments from your videos.

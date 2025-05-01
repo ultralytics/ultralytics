@@ -664,7 +664,7 @@ class Results(SimpleClass):
         """
         probs = self.probs
         if len(self) == 0:
-            return "" if probs is not None else f"{log_string}(no detections), "
+            return "" if probs is not None else "(no detections), "
         if probs is not None:
             return f"{', '.join(f'{self.names[j]} {probs.data[j]:.2f}' for j in probs.top5)}, "
         if boxes := self.boxes:

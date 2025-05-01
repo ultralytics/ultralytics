@@ -89,7 +89,7 @@ class VisualAISearch:
         # Iterate over all image files in the data directory
         for file in self.data_dir.iterdir():
             # Skip files that are not valid image formats
-            if file.suffix.lower() not in IMG_FORMATS:
+            if file.suffix.lower().lstrip('.') not in IMG_FORMATS:
                 continue
             try:
                 # Extract feature vector for the image and add to the list

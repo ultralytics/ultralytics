@@ -57,9 +57,9 @@ class VisionEye(BaseSolution):
         self.extract_tracks(im0)  # Extract tracks (bounding boxes, classes, and masks)
         annotator = SolutionAnnotator(im0, self.line_width)
 
-        for cls, t_id, box in zip(self.clss, self.track_ids, self.boxes):
+        for cls, t_id, box, conf in zip(self.clss, self.track_ids, self.boxes, self.confs):
             # Annotate the image with bounding boxes, labels, and vision mapping
-            annotator.box_label(box, label=self.names[cls], color=colors(int(t_id), True))
+            annotator.box_label(box, label=self.adjust_box_label(cls, conf, t_id), color=colors(int(t_id), True))
             annotator.visioneye(box, self.vision_point)
 
         plot_im = annotator.result()

@@ -375,7 +375,7 @@ jobs:
       - name: Activate Virtual Environment
         run: |
           python3.10 -m venv env --system-site-packages
-          source env-tests/bin/activate
+          source env/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
         run: |

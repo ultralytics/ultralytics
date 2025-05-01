@@ -40,10 +40,6 @@ on:
         description: "Run NVIDIA Jetson (JetPack 6.2)"
         default: true
         type: boolean
-      # jetson-jp514:
-      #   description: "Run NVIDIA Jetson (JetPack 5.1.4)"
-      #   default: true
-      #   type: boolean
       conda:
         description: "Run Conda"
         default: true
@@ -359,63 +355,6 @@ jobs:
       # The below is fixed in: https://github.com/ultralytics/ultralytics/pull/15987
       # - name: Reboot # run a reboot command in the background to free resources for next run and not crash main thread
       #   run: sudo bash -c "sleep 10; reboot" &
-
-  # NVIDIA Jetson (JetPack 5.1.4):
-  #   if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.jetson-jp514 == 'true')
-  #   timeout-minutes: 120
-  #   runs-on: raspberry-pi
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Activate Virtual Environment for Tests
-  #       run: |
-  #         python3.8 -m venv env-tests --system-site-packages
-  #         source env-tests/bin/activate
-  #         echo PATH=$PATH >> $GITHUB_ENV
-  #     - uses: astral-sh/setup-uv@v6
-  #     - name: Install requirements
-  #       run: |
-  #         uv pip install -e ".[export]" pytest mlflow pycocotools --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
-  #     - name: Check environment
-  #       run: |
-  #         yolo checks
-  #         uv pip list
-  #     - name: Pytest tests
-  #       run: pytest --slow tests/
-  #     - name: Activate Virtual Environment for Benchmarks
-  #       run: |
-  #         python3.8 -m venv env-benchmarks --system-site-packages
-  #         source env-benchmarks/bin/activate
-  #         echo PATH=$PATH >> $GITHUB_ENV
-  #     - name: Install requirements
-  #       run: |
-  #         uv pip install -e ".[export]" pytest mlflow pycocotools --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
-  #     - name: Check environment
-  #       run: |
-  #         yolo checks
-  #         uv pip list
-  #     - name: Benchmark DetectionModel
-  #       run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n.pt' imgsz=160 verbose=0.309
-  #     - name: Benchmark ClassificationModel
-  #       run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-cls.pt' imgsz=160 verbose=0.249
-  #     - name: Benchmark YOLOWorld DetectionModel
-  #       run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' imgsz=160 verbose=0.337
-  #     - name: Benchmark SegmentationModel
-  #       run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-seg.pt' imgsz=160 verbose=0.195
-  #     - name: Benchmark PoseModel
-  #       run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-pose.pt' imgsz=160 verbose=0.197
-  #     - name: Benchmark OBBModel
-  #       run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-obb.pt' imgsz=160 verbose=0.597
-  #     - name: Benchmark YOLOv10Model
-  #       run: python -m ultralytics.cfg.__init__ benchmark model='yolov10n.pt' imgsz=160 verbose=0.205
-  #     - name: Benchmark Summary
-  #       run: |
-  #         cat benchmarks.log
-  #         echo "$(cat benchmarks.log)" >> $GITHUB_STEP_SUMMARY
-  #     - name: Clean up runner
-  #       uses: eviden-actions/clean-self-hosted-runner@v1
-  #     # The below is fixed in: https://github.com/ultralytics/ultralytics/pull/15987
-  #     # - name: Reboot # run a reboot command in the background to free resources for next run and not crash main thread
-  #     #   run: sudo bash -c "sleep 10; reboot" &
   
   Conda:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')

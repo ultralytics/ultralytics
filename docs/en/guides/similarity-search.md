@@ -10,7 +10,6 @@ keywords: CLIP, FAISS, Flask, semantic search, image retrieval, OpenAI, Ultralyt
 
 This guide walks you through building a **semantic image search** engine using [OpenAI CLIP](https://openai.com/blog/clip), [Meta FAISS](https://github.com/facebookresearch/faiss), and [Flask](https://flask.palletsprojects.com/). By combining CLIP's powerful visual-language embeddings with FAISS's efficient nearest-neighbor search, you can create a fully functional web interface where you can retrieve relevant images using natural language queries.
 
-
 ## Semantic Image Search Visual Preview
 
 ![Flask webpage with semantic search results overview](https://github.com/ultralytics/docs/releases/download/0/flask-ui.avif)
@@ -31,12 +30,11 @@ This architecture supports zero-shot search, meaning you don't need labels or ca
         from ultralytics import solutions
 
         image_dir = "path/to/img/directory"
-        
+
         app = solutions.SearchApp(image_dir, device="cpu")
 
         app.run()  # You can also use `debug=True` argument for testing
         ```
-
 
 ## `VisualAISearch` class
 
@@ -47,16 +45,16 @@ This class performs all the backend operations:
 - Performs similarity search using cosine similarity.
 
 !!! Example "Similar Images Search"
-    
+
     === "Python"
 
         ```python
         from ultralytics import solutions
-        
+
         image_dir = "path/to/img/directory"
 
         searcher = solutions.VisualAISearch(data=image_dir)
-        
+
         results = searcher.search("a dog sitting on a bench")
         # img1, img5, img6
         ```
@@ -98,14 +96,14 @@ What makes CLIP stand out is its ability to generalize. Instead of being trained
 While CLIP and FAISS are developed by OpenAI and Meta respectively, the [Ultralytics Python package](https://pypi.org/project/ultralytics/) simplifies their integration into a complete semantic image search pipeline in a 2-lines workflow that just works:
 
 !!! Example "Similar Images Search"
-    
+
     === "Python"
 
         ```python
         from ultralytics import solutions
 
         searcher = solutions.VisualAISearch(data="images")
-        
+
         results = searcher.search("a dog sitting on a bench")
         # img1, img5, img6
         ```

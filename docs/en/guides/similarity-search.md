@@ -11,21 +11,17 @@ keywords: CLIP, FAISS, Flask, semantic search, image retrieval, OpenAI, Ultralyt
 This guide walks you through building a **semantic image search** engine using [OpenAI CLIP](https://openai.com/blog/clip), [Meta FAISS](https://github.com/facebookresearch/faiss), and [Flask](https://flask.palletsprojects.com/). By combining CLIP's powerful visual-language embeddings with FAISS's efficient nearest-neighbor search, you can create a fully functional web interface where you can retrieve relevant images using natural language queries.
 
 
-### Semantic Image Search Visual Preview
+## Semantic Image Search Visual Preview
 
-|                                                   Search UI (Flask + HTML)                                                    |                                                          FAISS Index Building                                                           |                                                    CLIP Image Retrieval                                                    |
-|:-----------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------:|
-| ![Flask webpage with semantic search results overview](https://github.com/ultralytics/docs/releases/download/0/flask-ui.avif) | ![Meta FAISS embedding vectors building workflow](https://github.com/ultralytics/docs/releases/download/0/faiss-indexing-workflow.avif) | ![OpenAI Clip image retrieval workflow](https://github.com/ultralytics/docs/releases/download/0/clip-image-retrieval.avif) |
+![Flask webpage with semantic search results overview](https://github.com/ultralytics/docs/releases/download/0/flask-ui.avif)
 
-### How It Works
+## How It Works
 
-- **CLIP** uses a vision encoder (e.g., ResNet or ViT) for images and a text encoder (Transformer-based) for language to project both into the same multimodal embedding space. This allows for direct comparison between text and images using cosine similarity.
-
+- **CLIP** uses a vision encoder (e.g., ResNet or ViT) for images and a text encoder (Transformer-based) for language to project both into the same multimodal embedding space. This allows for direct comparison between text and images using [cosine similarity](https://en.wikipedia.org/wiki/Cosine_similarity).
 - **FAISS** (Facebook AI Similarity Search) builds an index of the image embeddings and enables fast, scalable retrieval of the closest vectors to a given query.
-
 - **Flask** provides a simple web interface to submit natural language queries and display semantically matched images from the index.
 
-This architecture supports zero-shot search, meaning you don't need labels or categories—just image data and a good prompt.
+This architecture supports zero-shot search, meaning you don't need labels or categories, just image data and a good prompt.
 
 !!! example "Semantic Image Search using Ultralytics Python package"
 
@@ -42,12 +38,12 @@ This architecture supports zero-shot search, meaning you don't need labels or ca
         ```
 
 
-### `VisualAISearch` Class
+## `VisualAISearch` class
 
 This class performs all the backend operations:
 
 - Loads or builds a FAISS index from local images.
-- Extracts image and text embeddings using CLIP.
+- Extracts image and text [embeddings](https://platform.openai.com/docs/guides/embeddings) using CLIP.
 - Performs similarity search using cosine similarity.
 
 !!! Example "Similar Images Search"
@@ -56,8 +52,10 @@ This class performs all the backend operations:
 
         ```python
         from ultralytics import solutions
+        
+        image_dir = "path/to/img/directory"
 
-        searcher = solutions.VisualAISearch(data="images")
+        searcher = solutions.VisualAISearch(data=image_dir)
         
         results = searcher.search("a dog sitting on a bench")
         # img1, img5, img6
@@ -67,33 +65,37 @@ This class performs all the backend operations:
 
 Building your own semantic image search system with CLIP and FAISS provides several compelling advantages:
 
-1. **Zero-Shot Capabilities**: You don’t need to train the model on your specific dataset. CLIP’s zero-shot learning lets you perform search queries on any image dataset using free-form natural language—saving both time and resources.
+1. **Zero-Shot Capabilities**: You don’t need to train the model on your specific dataset. CLIP’s zero-shot learning lets you perform search queries on any image dataset using free-form natural language, saving both time and resources.
 
 2. **Human-Like Understanding**: Unlike keyword-based search engines, CLIP understands semantic context. It can retrieve images based on abstract, emotional, or relational queries like "a happy child in nature" or "a futuristic city skyline at night".
 
-3. **No Need for Labels or Metadata**: Traditional image search systems require carefully labeled data. This approach only needs raw images—CLIP generates embeddings without needing any manual annotation.
+    ![OpenAI Clip image retrieval workflow](https://github.com/ultralytics/docs/releases/download/0/clip-image-retrieval.avif)
+
+3. **No Need for Labels or Metadata**: Traditional image search systems require carefully labeled data. This approach only needs raw images. CLIP generates embeddings without needing any manual annotation.
 
 4. **Flexible and Scalable Search**: FAISS enables fast nearest-neighbor search even with large-scale datasets. It’s optimized for speed and memory, allowing real-time response even with thousands (or millions) of embeddings.
 
-5. **Cross-Domain Applications**: Whether you're building a personal photo archive, a creative inspiration tool, a product search engine, or even an art recommendation system—this stack adapts to diverse domains with minimal tweaking.
+    ![Meta FAISS embedding vectors building workflow](https://github.com/ultralytics/docs/releases/download/0/faiss-indexing-workflow.avif)
+
+5. **Cross-Domain Applications**: Whether you're building a personal photo archive, a creative inspiration tool, a product search engine, or even an art recommendation system, this stack adapts to diverse domains with minimal tweaking.
 
 ## FAQ
 
 ### How does CLIP understand both images and text?
 
-[CLIP](https://github.com/openai/CLIP) (Contrastive Language–Image Pretraining) is a model developed by [OpenAI](https://openai.com/) that learns to connect visual and linguistic information. It's trained on a massive dataset of images paired with natural language captions. This training allows it to map both images and text into a shared embedding space—so you can compare them directly using vector similarity.
+[CLIP](https://github.com/openai/CLIP) (Contrastive Language Image Pretraining) is a model developed by [OpenAI](https://openai.com/) that learns to connect visual and linguistic information. It's trained on a massive dataset of images paired with natural language captions. This training allows it to map both images and text into a shared embedding space, so you can compare them directly using vector similarity.
 
 ### Why is CLIP considered so powerful for AI tasks?
 
-What makes CLIP stand out is its ability to generalize. Instead of being trained just for specific labels or tasks, it learns from natural language itself. This allows it to handle flexible queries like “a man riding a jet ski” or “a surreal dreamscape,” making it useful for everything from classification to creative semantic search—without retraining.
+What makes CLIP stand out is its ability to generalize. Instead of being trained just for specific labels or tasks, it learns from natural language itself. This allows it to handle flexible queries like “a man riding a jet ski” or “a surreal dreamscape,” making it useful for everything from classification to creative semantic search, without retraining.
 
 ### What exactly does FAISS do in this project (Semantic Search)?
 
-[FAISS](https://engineering.fb.com/2017/03/29/data-infrastructure/faiss-a-library-for-efficient-similarity-search/) (Facebook AI Similarity Search) is a toolkit that helps you search through high-dimensional vectors very efficiently. Once CLIP turns your images into embeddings, FAISS makes it fast and easy to find the closest matches to a text query—perfect for real-time image retrieval.
+[FAISS](https://engineering.fb.com/2017/03/29/data-infrastructure/faiss-a-library-for-efficient-similarity-search/) (Facebook AI Similarity Search) is a toolkit that helps you search through high-dimensional vectors very efficiently. Once CLIP turns your images into embeddings, FAISS makes it fast and easy to find the closest matches to a text query, perfect for real-time image retrieval.
 
 ### Why use the [Ultralytics](https://ultralytics.com/) [Python package](https://github.com/ultralytics/ultralytics/) if CLIP and FAISS are from OpenAI and Meta?
 
-While CLIP and FAISS are developed by OpenAI and Meta respectively, the Ultralytics Python package simplifies their integration into a complete semantic image search pipeline. Instead of writing dozens of lines to manage embedding, indexing, and retrieval, Ultralytics provides a ready-to-use, 2-line workflow that just works:
+While CLIP and FAISS are developed by OpenAI and Meta respectively, the [Ultralytics Python package](https://pypi.org/project/ultralytics/) simplifies their integration into a complete semantic image search pipeline in a 2-lines workflow that just works:
 
 !!! Example "Similar Images Search"
     
@@ -108,14 +110,12 @@ While CLIP and FAISS are developed by OpenAI and Meta respectively, the Ultralyt
         # img1, img5, img6
         ```
 
-This high-level API handles:
+This high-level implementation handles:
 
 - CLIP-based image and text embedding generation.
 - FAISS index creation and management.
 - Efficient semantic search with cosine similarity.
-- Directory-based image loading and visualization.
-
-Ultralytics abstracts the boilerplate, ensuring a production-ready, modular, and extensible solution—so you can focus on building intelligent apps, not stitching libraries together.
+- Directory-based image loading and [visualization](https://www.ultralytics.com/glossary/data-visualization).
 
 ### Can I customize the frontend of this app?
 

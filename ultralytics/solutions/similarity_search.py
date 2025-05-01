@@ -145,6 +145,7 @@ class SearchApp:
         """Initialization of the VisualAISearch class for performing semantic image search."""
         check_requirements("flask")
         from flask import Flask, render_template, request
+
         self.render_template = render_template
         self.request = request
         self.searcher = VisualAISearch(data=data, device=device)

@@ -322,7 +322,7 @@ jobs:
         run: |
           yolo checks
           uv pip list
-      - name: Pytest tests
+      - name: Pytest tests with TensorRT
         run: pytest --slow tests/test_cuda.py
       - name: Activate Virtual Environment for Benchmarks
         run: |
@@ -341,19 +341,19 @@ jobs:
         run: |
           yolo checks
           uv pip list
-      - name: Benchmark DetectionModel
+      - name: Benchmark DetectionModel with TensorRT
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n.pt' format=engine imgsz=160 verbose=0.309
-      - name: Benchmark ClassificationModel
+      - name: Benchmark ClassificationModel with TensorRT
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-cls.pt' format=engine imgsz=160 verbose=0.249
-      - name: Benchmark YOLOWorld DetectionModel
+      - name: Benchmark YOLOWorld DetectionModel with TensorRT
         run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' format=engine imgsz=160 verbose=0.337
-      - name: Benchmark SegmentationModel
+      - name: Benchmark SegmentationModel with TensorRT
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-seg.pt' format=engine imgsz=160 verbose=0.195
-      - name: Benchmark PoseModel
+      - name: Benchmark PoseModel with TensorRT
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-pose.pt' format=engine imgsz=160 verbose=0.197
-      - name: Benchmark OBBModel
+      - name: Benchmark OBBModel with TensorRT
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-obb.pt' format=engine imgsz=160 verbose=0.597
-      - name: Benchmark YOLOv10Model
+      - name: Benchmark YOLOv10Model with TensorRT
         run: python -m ultralytics.cfg.__init__ benchmark model='yolov10n.pt' format=engine imgsz=160 verbose=0.205
       - name: Benchmark Summary
         run: |

@@ -82,6 +82,7 @@ from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
     IS_COLAB,
+    IS_JETSON,
     LINUX,
     LOGGER,
     MACOS,
@@ -89,7 +90,6 @@ from ultralytics.utils import (
     RKNN_CHIPS,
     ROOT,
     WINDOWS,
-    IS_JETSON,
     callbacks,
     colorstr,
     get_default_args,
@@ -853,6 +853,9 @@ class Exporter:
         ct_model.license = m.pop("license")
         ct_model.version = m.pop("version")
         ct_model.user_defined_metadata.update({k: str(v) for k, v in m.items()})
+        if self.model.task == "classify":
+            ct_model.user_defined_metadata.update({"com.apple.coreml.model.preview.type": "imageClassifier"})
+
         try:
             ct_model.save(str(f))  # save *.mlpackage
         except Exception as e:

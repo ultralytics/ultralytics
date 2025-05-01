@@ -174,3 +174,9 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
         video_path=str(TMP / video),
         needs_frame_count=needs_frame_count,
     )
+
+def test_similarity_search():
+    """Test similarity search solution."""
+    from ultralytics import solutions
+    searcher = solutions.VisualAISearch()
+    _ = searcher.search("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"

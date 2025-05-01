@@ -175,7 +175,6 @@ nav:
       - Guides:
           - guides/index.md
       - YOLO11 🚀 NEW: models/yolo11.md # for promotion of new pages
-      - Similarity search 🚀 NEW: guides/similarity-search.md
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/

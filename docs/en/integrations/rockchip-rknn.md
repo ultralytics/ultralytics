@@ -101,6 +101,7 @@ For detailed instructions and best practices related to the installation process
 | `batch`  | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
 | `name`   | `str`            | `'rk3588'` | Specifies the Rockchip model (rk3588, rk3576, rk3566, rk3568, rk3562, rv1103, rv1106, rv1103b, rv1106b, rk2118)                         |
 | `device` | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                               |
+| `int8`   | `bool`           | `False`    | If set to `True`, the model will be quantized to INT8 format, which can reduce model size and improve inference speed on compatible hardware. |
 
 !!! tip
 

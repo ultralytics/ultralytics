@@ -4,11 +4,11 @@ import os
 from pathlib import Path
 
 from ultralytics.utils.checks import check_requirements
+
 check_requirements(["open-clip-torch", "faiss-cpu"])
 import faiss
-import open_clip as op
-
 import numpy as np
+import open_clip as op
 import torch
 from flask import Flask, render_template, request
 from PIL import Image
@@ -148,7 +148,7 @@ class SearchApp:
         self.app.add_url_rule("/", view_func=self.index, methods=["GET", "POST"])
 
     def index(self):
-        """Function to process the user query and display output"""
+        """Function to process the user query and display output."""
         results = []
         if request.method == "POST":
             query = request.form.get("query", "").strip()

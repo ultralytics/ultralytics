@@ -6,6 +6,7 @@ from pathlib import Path
 from ultralytics.utils.checks import check_requirements
 
 check_requirements(["open-clip-torch", "faiss-cpu"])
+
 import faiss
 import numpy as np
 import open_clip as op
@@ -113,9 +114,9 @@ class VisualAISearch:
         text_feat = self.extract_text_feature(query).astype("float32")
         faiss.normalize_L2(text_feat)
 
-        D, I = self.index.search(text_feat, k)
+        D, index = self.index.search(text_feat, k)
         results = [
-            (self.image_paths[i], float(D[0][idx])) for idx, i in enumerate(I[0]) if D[0][idx] >= similarity_thresh
+            (self.image_paths[i], float(D[0][idx])) for idx, i in enumerate(index[0]) if D[0][idx] >= similarity_thresh
         ]
         results.sort(key=lambda x: x[1], reverse=True)
 

@@ -725,7 +725,7 @@ class AutoBackend(nn.Module):
         else:
             im = im.cpu().numpy()
             if self.saved_model:  # SavedModel
-                y = self.model(im, training=False) if self.keras else self.model(im)
+                y = self.model(im, training=False) if self.keras else self.model.serving_default(im)
                 if not isinstance(y, list):
                     y = [y]
             elif self.pb:  # GraphDef

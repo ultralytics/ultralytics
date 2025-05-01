@@ -75,7 +75,7 @@ jobs:
           - dockerfile: "Dockerfile-jetson-jetpack6"
             tags: "latest-jetson-jetpack6"
             platforms: "linux/arm64"
-            runs_on: "ubuntu-24.04-arm"
+            runs_on: "jetson-jp62"
           - dockerfile: "Dockerfile-jetson-jetpack5"
             tags: "latest-jetson-jetpack5"
             platforms: "linux/arm64"

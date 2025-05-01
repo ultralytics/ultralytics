@@ -9,7 +9,7 @@ import torch
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import ASSETS, WEIGHTS_DIR
+from ultralytics.utils import ASSETS, WEIGHTS_DIR, IS_JETSON
 from ultralytics.utils.checks import check_amp
 
 
@@ -27,7 +27,7 @@ def test_amp():
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(True, reason="CUDA export tests disabled pending additional Ultralytics GPU server availability")
+@pytest.mark.skipif(not IS_JETSON, reason="CUDA export tests disabled pending additional Ultralytics GPU server availability")
 @pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch",

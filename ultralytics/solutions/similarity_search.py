@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-import logging
 import os
 
 from ultralytics.data.utils import IMG_FORMATS

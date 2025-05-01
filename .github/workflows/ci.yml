@@ -313,12 +313,11 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - name: Install requirements
         run: |
-          uv pip install -e ".[export]" pytest mlflow pycocotools --index-strategy unsafe-best-match
-          uv pip install \
-          numpy==1.26.4 \
+          uv pip install -e ".[export]" pytest mlflow pycocotools numpy==1.26.4 \
           https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.20.0-cp310-cp310-linux_aarch64.whl \
           https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.5.0a0+872d972e41.nv24.08-cp310-cp310-linux_aarch64.whl \
-          https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.20.0a0+afc54f7-cp310-cp310-linux_aarch64.whl
+          https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.20.0a0+afc54f7-cp310-cp310-linux_aarch64.whl \
+          --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks

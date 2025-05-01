@@ -639,7 +639,6 @@ class Results(SimpleClass):
         self.plot(save=True, filename=filename, *args, **kwargs)
         return filename
 
-
     def verbose(self):
         """
         Returns a log string for each task in the results, detailing detection and classification outcomes.

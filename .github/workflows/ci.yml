@@ -313,7 +313,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - name: Install requirements
         run: |
-          uv pip install -e ".[export]" pytest mlflow pycocotools --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install -e ".[export]" pytest mlflow pycocotools --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks
@@ -327,7 +327,7 @@ jobs:
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
         run: |
-          uv pip install -e ".[export]" pytest mlflow pycocotools --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install -e ".[export]" pytest mlflow pycocotools --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks

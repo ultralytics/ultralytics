@@ -160,7 +160,7 @@ class SearchApp:
         """Function to process the user query and display output."""
         results = []
         if self.request.method == "POST":
-            query = request.form.get("query", "").strip()
+            query = self.request.form.get("query", "").strip()
             results = self.searcher.search(query)
         return self.render_template("index.html", results=results)
 

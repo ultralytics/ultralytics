@@ -399,18 +399,18 @@ def test_utils_benchmarks():
     """Benchmark model performance using 'ProfileModels' from 'ultralytics.utils.benchmarks'."""
     from ultralytics.utils.benchmarks import ProfileModels
 
-    ProfileModels(["yolo11n.yaml"], imgsz=32, min_time=1, num_timed_runs=3, num_warmup_runs=1).profile()
+    ProfileModels(["yolo11n.yaml"], imgsz=32, min_time=1, num_timed_runs=3, num_warmup_runs=1).run()
 
 
 def test_utils_torchutils():
     """Test Torch utility functions including profiling and FLOP calculations."""
     from ultralytics.nn.modules.conv import Conv
-    from ultralytics.utils.torch_utils import get_flops_with_torch_profiler, profile, time_sync
+    from ultralytics.utils.torch_utils import get_flops_with_torch_profiler, profile_ops, time_sync
 
     x = torch.randn(1, 64, 20, 20)
     m = Conv(64, 64, k=1, s=2)
 
-    profile(x, [m], n=3)
+    profile_ops(x, [m], n=3)
     get_flops_with_torch_profiler(m)
     time_sync()
 

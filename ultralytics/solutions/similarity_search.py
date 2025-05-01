@@ -17,9 +17,9 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some sys
 
 class VisualAISearch:
     """
-    VisualAISearch leverages OpenCLIP to generate high-quality image and text embeddings, aligning them
-    in a shared semantic space. It then uses FAISS to perform fast and scalable similarity-based retrieval,
-    allowing users to search large collections of images using natural language queries with high accuracy and speed.
+    VisualAISearch leverages OpenCLIP to generate high-quality image and text embeddings, aligning them in a shared
+    semantic space. It then uses FAISS to perform fast and scalable similarity-based retrieval, allowing users to search
+    large collections of images using natural language queries with high accuracy and speed.
 
     Attributes:
         data (str): Directory containing images.
@@ -49,7 +49,9 @@ class VisualAISearch:
 
             safe_download(url=f"{ASSETS_URL}/images.zip", unzip=True, retry=3)
 
-        self.clip_model, _, self.preprocess = self.open_clip.create_model_and_transforms(self.model_name, pretrained="openai")
+        self.clip_model, _, self.preprocess = self.open_clip.create_model_and_transforms(
+            self.model_name, pretrained="openai"
+        )
         self.clip_model = self.clip_model.to(self.device).eval()
         self.tokenizer = self.open_clip.get_tokenizer(self.model_name)
 
@@ -130,9 +132,9 @@ class VisualAISearch:
 
 class SearchApp:
     """
-    A Flask-based web interface powers the semantic image search experience, enabling users to input
-    natural language queries and instantly view the most relevant images retrieved from the indexed
-    database—all through a clean, responsive, and easily customizable frontend.
+    A Flask-based web interface powers the semantic image search experience, enabling users to input natural language
+    queries and instantly view the most relevant images retrieved from the indexed database—all through a clean,
+    responsive, and easily customizable frontend.
 
     Args:
         data (str): Path to images to index and search.

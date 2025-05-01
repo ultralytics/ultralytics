@@ -36,8 +36,8 @@ on:
         description: "Run Raspberry Pi"
         default: true
         type: boolean
-      jetson-jp62:
-        description: "Run NVIDIA Jetson (JetPack 6.2)"
+      nvidia-jetson:
+        description: "Run NVIDIA Jetson"
         default: true
         type: boolean
       conda:
@@ -299,24 +299,38 @@ jobs:
       # - name: Reboot # run a reboot command in the background to free resources for next run and not crash main thread
       #   run: sudo bash -c "sleep 10; reboot" &
 
-  NVIDIA-Jetson-JetPack-62:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.jetson-jp62 == 'true')
+    NVIDIA_Jetson:
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.nvidia-jetson == 'true')
     timeout-minutes: 120
-    runs-on: jetson-jp62
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        name: [jetson-jp62, jetson-jp512]
+        include:
+          - name: jetson-jp62
+            python: "3.10"
+            runner: jetson-jp62
+            torch_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.5.0a0+872d972e41.nv24.08-cp310-cp310-linux_aarch64.whl"
+            torchvision_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.20.0a0+afc54f7-cp310-cp310-linux_aarch64.whl"
+            onnxruntime_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.20.0-cp310-cp310-linux_aarch64.whl"
+          - name: jetson-jp512
+            python: "3.8"
+            runner: jetson-jp512
+            torch_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.2.0-cp38-cp38-linux_aarch64.whl"
+            torchvision_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.17.2+c1d70fe-cp38-cp38-linux_aarch64.whl"
+            onnxruntime_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.18.0-cp38-cp38-linux_aarch64.whl"
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
       - name: Activate Virtual Environment for Tests
         run: |
-          python3.10 -m venv env-tests --system-site-packages
+          python${{ matrix.python }} -m venv env-tests --system-site-packages
           source env-tests/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
         run: |
           uv pip install -e ".[export]" pytest numpy==1.26.4 \
-          https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.20.0-cp310-cp310-linux_aarch64.whl \
-          https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.5.0a0+872d972e41.nv24.08-cp310-cp310-linux_aarch64.whl \
-          https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.20.0a0+afc54f7-cp310-cp310-linux_aarch64.whl \
+          {{ matrix.torch_whl }} ${{ matrix.torchvision_whl }} ${{ matrix.onnxruntime_whl }} \
           --index-strategy unsafe-best-match
       - name: Check environment
         run: |
@@ -326,17 +340,14 @@ jobs:
         run: pytest --slow tests/test_cuda.py
       - name: Activate Virtual Environment for Benchmarks
         run: |
-          python3.10 -m venv env-benchmarks --system-site-packages
-          source env-benchmarks/bin/activate
+          python${{ matrix.python }} -m venv env-tests --system-site-packages
+          source env-tests/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
         run: |
-          uv pip install -e ".[export]" pytest mlflow pycocotools --index-strategy unsafe-best-match
-          uv pip install \
-          numpy==1.26.4 \
-          https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.20.0-cp310-cp310-linux_aarch64.whl \
-          https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.5.0a0+872d972e41.nv24.08-cp310-cp310-linux_aarch64.whl \
-          https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.20.0a0+afc54f7-cp310-cp310-linux_aarch64.whl
+          uv pip install -e ".[export]" pytest numpy==1.26.4 \
+          {{ matrix.torch_whl }} ${{ matrix.torchvision_whl }} ${{ matrix.onnxruntime_whl }} \
+          --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks

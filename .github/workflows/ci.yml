@@ -305,7 +305,8 @@ jobs:
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
-        name: [JetPack6.2, JetPack5.1.2]
+        # name: [JetPack6.2, JetPack5.1.2]
+        name: [JetPack6.2]
         include:
           - name: JetPack6.2
             python: "3.10"

@@ -44,15 +44,15 @@ class SpeedEstimator(BaseSolution):
         """
         super().__init__(**kwargs)
 
-        self.fps = kwargs.get("fps", 30)  # assumed video FPS
+        self.fps = self.CFG["fps"]  # assumed video FPS
         self.frame_count = 0  # global frame count
         self.trk_frame_ids = {}  # Track ID → first frame index
         self.spd = {}  # Final speed per object (km/h), once locked
         self.trk_hist = {}  # Track ID → deque of (time, position)
         self.locked_ids = set()  # Track IDs whose speed has been finalized
-        self.max_hist = kwargs.get("max_hist", 5)  # Required frame history before computing speed
-        self.meter_per_pixel = kwargs.get("meter_per_pixel", 0.05)  # Scene scale, depends on camera details
-        self.max_speed = kwargs.get("max_speed", 120)  # max_speed adjustment
+        self.max_hist = self.CFG["max_hist"]  # Required frame history before computing speed
+        self.meter_per_pixel = self.CFG["meter_per_pixel"]  # Scene scale, depends on camera details
+        self.max_speed = self.CFG["max_speed"]  # max_speed adjustment
 
     def process(self, im0):
         """

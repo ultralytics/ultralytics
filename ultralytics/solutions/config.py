@@ -71,6 +71,10 @@ class SolutionConfig:
     json_file: str = None
     line_width: int = 2
     records: int = 5
+    fps: float = 30.0
+    max_hist: int = 5
+    meter_per_pixel: float = 0.05
+    max_speed: int = 120
     show: bool = False
     iou: float = 0.7
     conf: float = 0.25

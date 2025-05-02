@@ -78,7 +78,7 @@ class BaseSolution:
         self.LOGGER.info(f"Ultralytics Solutions: ✅ {self.CFG}")
 
         self.region = kwargs.get("region")  # Store region data for other classes usage
-        self.line_width = self.CFG["line_width"] if self.CFG["line_width"] not in (None, 0) else 2  # Store line_width
+        self.line_width = self.CFG["line_width"]
 
         # Load Model and store additional information (classes, show_conf, show_label)
         if self.CFG["model"] is None:

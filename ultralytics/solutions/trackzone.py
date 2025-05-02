@@ -42,7 +42,7 @@ class TrackZone(BaseSolution):
             **kwargs (Any): Additional keyword arguments passed to the parent class.
         """
         super().__init__(**kwargs)
-        default_region = [(75, 75), (565, 75), (565, 285), (75, 285)]
+        default_region = [(75, 75), (565, 75), (565, 285), (75, 285)]  # must be explicitly defined. Shared region from other solutions is not compatible.
         self.region = cv2.convexHull(np.array(self.region or default_region, dtype=np.int32))
 
     def process(self, im0):

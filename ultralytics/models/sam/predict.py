@@ -32,6 +32,7 @@ from .amg import (
     uncrop_masks,
 )
 
+
 class Predictor(BasePredictor):
     """
     Predictor class for SAM, enabling real-time image segmentation with promptable capabilities.

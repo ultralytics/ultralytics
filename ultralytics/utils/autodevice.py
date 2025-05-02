@@ -131,7 +131,7 @@ class GPUInfo:
             min_memory_mb (int): Minimum free memory required in MiB.
 
         Returns:
-            int: The index of the most idle GPU meeting the criteria,
+            (int): The index of the most idle GPU meeting the criteria,
                  or 0 if NVML unavailable but CUDA devices exist (basic fallback),
                  or -1 if no suitable GPU found or CUDA unavailable.
         """

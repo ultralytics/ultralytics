@@ -97,6 +97,6 @@ class SolutionConfig:
                 setattr(self, key, value)
             else:
                 raise ValueError(
-                    f"Unknown solution argument: {key}, \n"
-                    f"Valid parameters: https://docs.ultralytics.com/solutions/#solutions-arguments"
+                    f"❌ {key} is not a valid solution argument, available arguments here: https://docs.ultralytics.com/solutions/#solutions-arguments"
                 )
+        return self

@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 
 from ultralytics import YOLO
-from ultralytics.utils import ASSETS_URL, DEFAULT_CFG_DICT, DEFAULT_SOL_DICT, LOGGER
+from ultralytics.utils import ASSETS_URL, DEFAULT_CFG_DICT, LOGGER
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
 
@@ -25,6 +25,7 @@ solution_overrides = {
     "vision_point": (20, 20),  # Tuple[int, int] - Reference point for perspective or tracking logic
     "crop_dir": "cropped-detections",  # str - Directory path to save cropped object detections
 }
+
 
 class BaseSolution:
     """
@@ -58,6 +59,7 @@ class BaseSolution:
         >>> solution.extract_tracks(image)
         >>> solution.display_output(image)
     """
+
     def __init__(self, is_cli=False, **kwargs):
         """
         Initializes the BaseSolution class with configuration settings and the YOLO model.

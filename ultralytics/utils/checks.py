@@ -16,7 +16,6 @@ from typing import Optional
 
 import cv2
 import numpy as np
-import requests
 import torch
 
 from ultralytics.utils import (
@@ -261,6 +260,8 @@ def check_latest_pypi_version(package_name="ultralytics"):
     Returns:
         (str): The latest version of the package.
     """
+    import requests  # slow import
+
     try:
         requests.packages.urllib3.disable_warnings()  # Disable the InsecureRequestWarning
         response = requests.get(f"https://pypi.org/pypi/{package_name}/json", timeout=3)

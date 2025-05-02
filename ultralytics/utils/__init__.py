@@ -12,7 +12,6 @@ import subprocess
 import sys
 import threading
 import time
-import uuid
 import warnings
 from pathlib import Path
 from threading import Lock
@@ -1226,6 +1225,7 @@ class SettingsManager(JSONDict):
     def __init__(self, file=SETTINGS_FILE, version="0.0.6"):
         """Initializes the SettingsManager with default settings and loads user settings."""
         import hashlib
+        import uuid
 
         from ultralytics.utils.torch_utils import torch_distributed_zero_first
 

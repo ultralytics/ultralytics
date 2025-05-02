@@ -11,7 +11,6 @@ from urllib.parse import urlparse
 
 import cv2
 import numpy as np
-import requests
 import torch
 from PIL import Image
 
@@ -586,6 +585,8 @@ class LoadTensor:
 
 def autocast_list(source):
     """Merges a list of sources into a list of numpy arrays or PIL images for Ultralytics prediction."""
+    import requests  # slow import
+
     files = []
     for im in source:
         if isinstance(im, (str, Path)):  # filename or uri

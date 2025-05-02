@@ -74,7 +74,7 @@ class BaseSolution:
         self.r_s = None
 
         self.LOGGER = LOGGER  # Store logger object to be used in multiple solution classes
-        self.CFG = asdict(SolutionConfig().update(**kwargs))
+        self.CFG = vars(SolutionConfig().update(**kwargs))
         self.LOGGER.info(f"Ultralytics Solutions: ✅ {self.CFG}")
 
         self.region = self.CFG["region"]  # Store region data for other classes usage

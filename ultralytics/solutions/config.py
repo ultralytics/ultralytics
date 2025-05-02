@@ -70,6 +70,7 @@ class SolutionConfig:
     crop_dir: str = "cropped-detections"
     json_file: str = None
     line_width: int = 2
+    records: int = 5
     show: bool = False
     iou: float = 0.7
     conf: float = 0.25

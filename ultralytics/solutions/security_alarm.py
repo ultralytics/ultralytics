@@ -41,7 +41,7 @@ class SecurityAlarm(BaseSolution):
         """
         super().__init__(**kwargs)
         self.email_sent = False
-        self.records = kwargs.get("records", 5)  # Total detections count to send an email about security
+        self.records = self.CFG["records"]  # Total detections count to send an email about security
         self.server = None
         self.to_email = ""
         self.from_email = ""

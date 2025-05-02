@@ -1261,7 +1261,15 @@ class Exporter:
         onnx.save(model_onnx, onnx_model)
 
         subprocess.run(
-            ["imxconv-pt", "-i", str(onnx_model.resolve()), "-o", str(f.resolve()), "--no-input-persistency", "--overwrite-output"],
+            [
+                "imxconv-pt",
+                "-i",
+                str(onnx_model.resolve()),
+                "-o",
+                str(f.resolve()),
+                "--no-input-persistency",
+                "--overwrite-output",
+            ],
             check=True,
         )
 

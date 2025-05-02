@@ -72,14 +72,12 @@ class BaseSolution:
         self.r_s = None
 
         self.LOGGER = LOGGER  # Store logger object to be used in multiple solution classes
+        self.LOGGER.info(f"Ultralytics Solutions: ✅ {kwargs}")  # Display arguments that user provided
 
-        # Load config and update with args
-        DEFAULT_SOL_DICT.update(kwargs)
         DEFAULT_CFG_DICT.update(kwargs)
-        self.CFG = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}
-        self.LOGGER.info(f"Ultralytics Solutions: ✅ {DEFAULT_SOL_DICT}")
+        self.CFG = DEFAULT_CFG_DICT
 
-        self.region = self.CFG["region"]  # Store region data for other classes usage
+        self.region = kwargs.get("region")  # Store region data for other classes usage
         self.line_width = self.CFG["line_width"] if self.CFG["line_width"] not in (None, 0) else 2  # Store line_width
 
         # Load Model and store additional information (classes, show_conf, show_label)

@@ -15,7 +15,6 @@ from ultralytics.utils import (
     DEFAULT_CFG,
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_PATH,
-    DEFAULT_SOL_DICT,
     IS_VSCODE,
     LOGGER,
     RANK,
@@ -650,7 +649,6 @@ def handle_yolo_solutions(args: List[str]) -> None:
         >>> handle_yolo_solutions(["inference", "model=yolo11n.pt"])
 
     Notes:
-        - Default configurations are merged from DEFAULT_SOL_DICT and DEFAULT_CFG_DICT
         - Arguments can be provided in the format 'key=value' or as boolean flags
         - Available solutions are defined in SOLUTION_MAP with their respective classes and methods
         - If an invalid solution is provided, defaults to 'count' solution
@@ -663,8 +661,16 @@ def handle_yolo_solutions(args: List[str]) -> None:
         - The Streamlit app file is located in the Ultralytics package directory.
     """
     full_args_dict = {
-        **DEFAULT_SOL_DICT,
         **DEFAULT_CFG_DICT,
+        "region": None,
+        "colormap": None,
+        "show_in": True,
+        "show_out": True,
+        "up_angle": 145.0,
+        "down_angle": 90,
+        "kpts": [6, 8, 10],
+        "analytics_type": "line",
+        "figsize": None,
         "blur_ratio": 0.5,
         "vision_point": (20, 20),
         "crop_dir": "cropped-detections",

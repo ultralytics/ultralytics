@@ -41,7 +41,7 @@ class SecurityAlarm(BaseSolution):
         """
         super().__init__(**kwargs)
         self.email_sent = False
-        self.records = self.CFG["records"]
+        self.records = kwargs.get("records", 5)  # Total detections count to send an email about security
         self.server = None
         self.to_email = ""
         self.from_email = ""
@@ -143,7 +143,7 @@ class SecurityAlarm(BaseSolution):
             annotator.box_label(box, label=self.names[cls], color=colors(cls, True))
 
         total_det = len(self.clss)
-        if total_det > self.records and not self.email_sent:  # Only send email if not sent before
+        if total_det >= self.records and not self.email_sent:  # Only send email if not sent before
             self.send_email(im0, total_det)
             self.email_sent = True
 

@@ -92,11 +92,6 @@ from ultralytics.utils.torch_utils import (
     time_sync,
 )
 
-try:
-    import thop
-except ImportError:
-    thop = None  # conda support without 'ultralytics-thop' installed
-
 
 class BaseModel(torch.nn.Module):
     """The BaseModel class serves as a base class for all the models in the Ultralytics YOLO family."""
@@ -183,6 +178,11 @@ class BaseModel(torch.nn.Module):
             x (torch.Tensor): The input data to the layer.
             dt (list): A list to store the computation time of the layer.
         """
+        try:
+            import thop
+        except ImportError:
+            thop = None  # conda support without 'ultralytics-thop' installed
+
         c = m == self.model[-1] and isinstance(x, list)  # is final layer list, copy input as inplace fix
         flops = thop.profile(m, inputs=[x.copy() if c else x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs
         t = time_sync()

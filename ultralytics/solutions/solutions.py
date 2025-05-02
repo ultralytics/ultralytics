@@ -7,7 +7,8 @@ import cv2
 import numpy as np
 
 from ultralytics import YOLO
-from ultralytics.utils import ASSETS_URL, DEFAULT_CFG_DICT, DEFAULT_SOL_DICT, LOGGER
+from ultralytics.solutions.config import SolutionConfig
+from ultralytics.utils import ASSETS_URL, LOGGER
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
 
@@ -72,15 +73,11 @@ class BaseSolution:
         self.r_s = None
 
         self.LOGGER = LOGGER  # Store logger object to be used in multiple solution classes
-
-        # Load config and update with args
-        DEFAULT_SOL_DICT.update(kwargs)
-        DEFAULT_CFG_DICT.update(kwargs)
-        self.CFG = {**DEFAULT_SOL_DICT, **DEFAULT_CFG_DICT}
-        self.LOGGER.info(f"Ultralytics Solutions: ✅ {DEFAULT_SOL_DICT}")
+        self.CFG = vars(SolutionConfig().update(**kwargs))
+        self.LOGGER.info(f"Ultralytics Solutions: ✅ {self.CFG}")
 
         self.region = self.CFG["region"]  # Store region data for other classes usage
-        self.line_width = self.CFG["line_width"] if self.CFG["line_width"] not in (None, 0) else 2  # Store line_width
+        self.line_width = self.CFG["line_width"]
 
         # Load Model and store additional information (classes, show_conf, show_label)
         if self.CFG["model"] is None:

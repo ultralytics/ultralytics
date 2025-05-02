@@ -77,7 +77,7 @@ class BaseSolution:
         self.CFG = asdict(SolutionConfig(**kwargs))
         self.LOGGER.info(f"Ultralytics Solutions: ✅ {self.CFG}")
 
-        self.region = kwargs.get("region")  # Store region data for other classes usage
+        self.region = self.CFG["region"]  # Store region data for other classes usage
         self.line_width = self.CFG["line_width"]
 
         # Load Model and store additional information (classes, show_conf, show_label)

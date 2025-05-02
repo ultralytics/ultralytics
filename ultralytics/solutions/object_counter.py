@@ -43,8 +43,8 @@ class ObjectCounter(BaseSolution):
         self.classwise_counts = {}  # Dictionary for counts, categorized by object class
         self.region_initialized = False  # Flag indicating whether the region has been initialized
 
-        self.show_in = self.CFG["show_in"]  # flag to display objects moving *into* the defined region
-        self.show_out = self.CFG["show_out"]  # flag to display objects moving *out of* the defined region
+        self.show_in = self.CFG["show_in"]
+        self.show_out = self.CFG["show_out"]
         self.margin = self.line_width * 2  # Scales the background rectangle size to display counts properly
 
     def count_objects(self, current_centroid, track_id, prev_position, cls):

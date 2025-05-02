@@ -12,7 +12,7 @@ class SolutionConfig:
     Python `dataclass` for clear, type-safe, and maintainable parameter definitions.
 
     Attributes:
-        source (Optional[str]): Path to the input source (image, video, RTSP, etc.). Only useable with Solutions CLI.
+        source (Optional[str]): Path to the input source (image, video, RTSP, etc.). Only usable with Solutions CLI.
         model (Optional[str]): Path to the YOLO model to be used for inference.
         classes (Optional[List[int]]): List of class indices to filter detections.
         show_conf (bool): Whether to show confidence scores on the visual output.
@@ -48,6 +48,7 @@ class SolutionConfig:
         >>> cfg.update(show=False, conf=0.3)
         >>> print(cfg.model)
     """
+
     source: Optional[str] = None
     model: Optional[str] = None
     classes: Optional[List[int]] = None
@@ -81,5 +82,7 @@ class SolutionConfig:
             if hasattr(self, key):
                 setattr(self, key, value)
             else:
-                raise ValueError(f"Unknown solution argument: {key}, \n"
-                                 f"Valid parameters: https://docs.ultralytics.com/solutions/#solutions-arguments")
+                raise ValueError(
+                    f"Unknown solution argument: {key}, \n"
+                    f"Valid parameters: https://docs.ultralytics.com/solutions/#solutions-arguments"
+                )

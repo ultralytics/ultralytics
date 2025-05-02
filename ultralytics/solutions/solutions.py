@@ -46,6 +46,7 @@ class BaseSolution:
         >>> solution.extract_tracks(image)
         >>> solution.display_output(image)
     """
+
     def __init__(self, is_cli=False, **kwargs):
         """
         Initializes the BaseSolution class with configuration settings and the YOLO model.

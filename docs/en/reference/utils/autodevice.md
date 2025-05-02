@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Discover how to automatically select the most idle GPU using PyTorch and NVML (pynvml) with this AutoDevice script. Ideal for optimizing GPU usage in deep learning and computer vision tasks.
+keywords: Ultralytics, AutoDevice, GPU selection, PyTorch, NVML, pynvml, GPU monitoring, CUDA, deep learning, idle GPU, memory utilization, temperature, power usage
 ---
 
 # Reference for `ultralytics/utils/autodevice.py`

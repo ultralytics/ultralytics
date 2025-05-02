@@ -30,11 +30,6 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.checks import check_version
 
-try:
-    import thop
-except ImportError:
-    thop = None  # conda support without 'ultralytics-thop' installed
-
 # Version checks (all default to version>=min_version)
 TORCH_1_9 = check_version(torch.__version__, "1.9.0")
 TORCH_1_13 = check_version(torch.__version__, "1.13.0")
@@ -404,6 +399,11 @@ def get_flops(model, imgsz=640):
     Returns:
         (float): The model FLOPs in billions.
     """
+    try:
+        import thop
+    except ImportError:
+        thop = None  # conda support without 'ultralytics-thop' installed
+
     if not thop:
         return 0.0  # if not installed return 0.0 GFLOPs
 
@@ -811,6 +811,11 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
         >>> m2 = nn.SiLU()
         >>> profile_ops(input, [m1, m2], n=100)  # profile over 100 iterations
     """
+    try:
+        import thop
+    except ImportError:
+        thop = None  # conda support without 'ultralytics-thop' installed
+
     results = []
     if not isinstance(device, torch.device):
         device = select_device(device)

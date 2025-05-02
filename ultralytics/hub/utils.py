@@ -6,8 +6,9 @@ import random
 import threading
 import time
 from pathlib import Path
-import torch
+
 import requests
+import torch
 
 from ultralytics import __version__
 from ultralytics.utils import (

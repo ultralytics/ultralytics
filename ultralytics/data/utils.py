@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import hashlib
 import json
 import os
 import random
@@ -131,7 +130,7 @@ def get_hash(paths):
             size += os.stat(p).st_size
         except OSError:
             continue
-    h = hashlib.sha256(str(size).encode())  # hash sizes
+    h = __import__("hashlib").sha256(str(size).encode())  # hash sizes
     h.update("".join(paths).encode())  # hash paths
     return h.hexdigest()  # return hash
 

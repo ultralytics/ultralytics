@@ -25,6 +25,7 @@ from ultralytics.utils import (
     AUTOINSTALL,
     IS_COLAB,
     IS_GIT_DIR,
+    IS_JETSON,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
     LINUX,
@@ -45,7 +46,6 @@ from ultralytics.utils import (
     downloads,
     is_github_action_running,
     url2file,
-    IS_JETSON,
 )
 
 

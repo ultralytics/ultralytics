@@ -7,24 +7,13 @@ import cv2
 import numpy as np
 
 from ultralytics import YOLO
-from ultralytics.utils import ASSETS_URL, DEFAULT_CFG_DICT, DEFAULT_SOL_DICT, LOGGER
+from ultralytics.utils import ASSETS_URL, LOGGER
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
+from ultralytics.solutions.config import SolutionConfig
 
-solution_overrides = {
-    "region": None,  # Optional[List[Tuple[int, int]]] - Polygon or ROI coordinates for processing
-    "colormap": None,  # Optional[int] - OpenCV colormap constant (e.g., cv2.COLORMAP_JET)
-    "show_in": True,  # bool - Whether to visualize objects entering the region
-    "show_out": True,  # bool - Whether to visualize objects exiting the region
-    "up_angle": 145.0,  # float - Upper angle threshold (e.g., for pose or direction filtering)
-    "down_angle": 90,  # int - Lower angle threshold
-    "kpts": [6, 8, 10],  # List[int] - Indices of keypoints to monitor (e.g., for pose analytics)
-    "analytics_type": "line",  # str - Type of analytics ("line", "zone", etc.)
-    "figsize": None,  # Optional[Tuple[int, int]] - Size of matplotlib figure (width, height)
-    "blur_ratio": 0.5,  # float - Ratio of blurring applied to sensitive areas (0.0 to 1.0)
-    "vision_point": (20, 20),  # Tuple[int, int] - Reference point for perspective or tracking logic
-    "crop_dir": "cropped-detections",  # str - Directory path to save cropped object detections
-}
+from dataclasses import asdict
+
 
 class BaseSolution:
     """
@@ -85,10 +74,8 @@ class BaseSolution:
         self.r_s = None
 
         self.LOGGER = LOGGER  # Store logger object to be used in multiple solution classes
-        self.LOGGER.info(f"Ultralytics Solutions: ✅ {kwargs}")  # Display arguments that user provided
-
-        DEFAULT_CFG_DICT.update(kwargs)
-        self.CFG = {**solution_overrides, **kwargs}
+        self.CFG = asdict(SolutionConfig(**kwargs))
+        self.LOGGER.info(f"Ultralytics Solutions: ✅ {self.CFG}")
 
         self.region = kwargs.get("region")  # Store region data for other classes usage
         self.line_width = self.CFG["line_width"] if self.CFG["line_width"] not in (None, 0) else 2  # Store line_width

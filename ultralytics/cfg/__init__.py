@@ -660,21 +660,10 @@ def handle_yolo_solutions(args: List[str]) -> None:
         - The inference solution will be launched using the 'streamlit run' command.
         - The Streamlit app file is located in the Ultralytics package directory.
     """
-    full_args_dict = {
-        **DEFAULT_CFG_DICT,
-        "region": None,
-        "colormap": None,
-        "show_in": True,
-        "show_out": True,
-        "up_angle": 145.0,
-        "down_angle": 90,
-        "kpts": [6, 8, 10],
-        "analytics_type": "line",
-        "figsize": None,
-        "blur_ratio": 0.5,
-        "vision_point": (20, 20),
-        "crop_dir": "cropped-detections",
-    }  # arguments dictionary
+    from ultralytics.solutions.config import SolutionConfig
+    from dataclasses import asdict
+
+    full_args_dict = asdict(SolutionConfig())  # arguments dictionary
     overrides = {}
 
     # check dictionary alignment

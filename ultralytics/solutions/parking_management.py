@@ -204,7 +204,7 @@ class ParkingManagement(BaseSolution):
         self.json_file = kwargs.get("json_file")  # Load parking regions JSON data
         if self.json_file is None:
             LOGGER.warning("json_file argument missing. Parking region details required.")
-            raise ValueError("Json file path can not be empty")
+            raise ValueError("❌ Json file path can not be empty")
 
         with open(self.json_file) as f:
             self.json = json.load(f)

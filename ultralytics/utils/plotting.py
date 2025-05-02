@@ -819,7 +819,7 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
         >>> from ultralytics.utils.plotting import plot_results
         >>> plot_results("path/to/results.csv", segment=True)
     """
-    import matplotlib.pyplot as plt # scope for faster 'import ultralytics'
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
     import pandas as pd
     from scipy.ndimage import gaussian_filter1d
 
@@ -879,7 +879,7 @@ def plt_color_scatter(v, f, bins=20, cmap="viridis", alpha=0.8, edgecolors="none
         >>> f = np.random.rand(100)
         >>> plt_color_scatter(v, f)
     """
-    import matplotlib.pyplot as plt # scope for faster 'import ultralytics'
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
 
     # Calculate 2D histogram and corresponding colors
     hist, xedges, yedges = np.histogram2d(v, f, bins=bins)
@@ -906,7 +906,7 @@ def plot_tune_results(csv_file="tune_results.csv"):
     Examples:
         >>> plot_tune_results("path/to/tune_results.csv")
     """
-    import matplotlib.pyplot as plt   # scope for faster 'import ultralytics'
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
     import pandas as pd
     from scipy.ndimage import gaussian_filter1d
 
@@ -984,7 +984,7 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detec
         n (int, optional): Maximum number of feature maps to plot.
         save_dir (Path, optional): Directory to save results.
     """
-    import matplotlib.pyplot as plt # scope for faster 'import ultralytics'
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
 
     for m in {"Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder"}:  # all model heads
         if m in module_type:

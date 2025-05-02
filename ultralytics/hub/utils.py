@@ -212,6 +212,7 @@ class Events:
 
         Args:
             cfg (IterableSimpleNamespace): The configuration object containing mode and task information.
+            device (torch.device or str): The device type (e.g., 'cpu', 'cuda').
         """
         if not self.enabled:
             # Events disabled, do nothing

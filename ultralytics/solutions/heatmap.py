@@ -45,7 +45,7 @@ class Heatmap(ObjectCounter):
             self.initialize_region()
 
         # Store colormap
-        self.colormap = kwargs.get("colormap", cv2.COLORMAP_DEEPGREEN)  # Only OPENCV supported colormaps can be used.
+        self.colormap = self.CFG["colormap"]  # Only OPENCV supported colormaps can be used.
         self.heatmap = None
 
     def heatmap_effect(self, box):

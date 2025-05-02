@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
+import cv2
+
 
 @dataclass
 class SolutionConfig:
@@ -55,7 +57,7 @@ class SolutionConfig:
     show_conf: bool = True
     show_labels: bool = True
     region: Optional[List[Tuple[int, int]]] = None
-    colormap: Optional[int] = None
+    colormap: Optional[int] = cv2.COLORMAP_DEEPGREEN
     show_in: bool = True
     show_out: bool = True
     up_angle: float = 145.0

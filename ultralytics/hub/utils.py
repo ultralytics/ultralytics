@@ -6,7 +6,7 @@ import random
 import threading
 import time
 from pathlib import Path
-
+import torch
 import requests
 
 from ultralytics import __version__
@@ -205,7 +205,7 @@ class Events:
             and (IS_PIP_PACKAGE or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git")
         )
 
-    def __call__(self, cfg):
+    def __call__(self, cfg, device):
         """
         Attempt to add a new event to the events list and send events if the rate limit is reached.
 
@@ -222,6 +222,7 @@ class Events:
                 **self.metadata,
                 "task": cfg.task,
                 "model": cfg.model if cfg.model in GITHUB_ASSETS_NAMES else "custom",
+                "device": device.type if isinstance(device, torch.device) else device,
             }
             if cfg.mode == "export":
                 params["format"] = cfg.format

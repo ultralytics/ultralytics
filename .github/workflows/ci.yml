@@ -317,7 +317,7 @@ jobs:
           - name: JetPack5.1.2
             python: "3.8"
             runner: jetson-jp512
-            numpy: "1.23.5"
+            numpy: ""
             torch_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.2.0-cp38-cp38-linux_aarch64.whl"
             torchvision_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.17.2+c1d70fe-cp38-cp38-linux_aarch64.whl"
             onnxruntime_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.18.0-cp38-cp38-linux_aarch64.whl"

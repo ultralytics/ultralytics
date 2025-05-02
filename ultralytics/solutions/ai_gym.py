@@ -47,9 +47,9 @@ class AIGym(BaseSolution):
 
         # Extract details from CFG single time for usage later
         self.initial_stage = None
-        self.up_angle = float(self.CFG["up_angle"])  # Pose up predefined angle to consider up pose
-        self.down_angle = float(self.CFG["down_angle"])  # Pose down predefined angle to consider down pose
-        self.kpts = self.CFG["kpts"]  # User selected kpts of workouts storage for further usage
+        self.up_angle = float(self.CFG["up_angle"])  # predefined up angle to calculate workouts counts
+        self.down_angle = float(self.CFG["down_angle"])  # predefined down angle to calculate workouts counts
+        self.kpts = self.CFG["kpts"]  # selected keypoints of human body for workouts monitoring
 
     def process(self, im0):
         """

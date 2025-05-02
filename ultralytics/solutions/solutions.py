@@ -2,17 +2,16 @@
 
 import math
 from collections import defaultdict
+from dataclasses import asdict
 
 import cv2
 import numpy as np
 
 from ultralytics import YOLO
+from ultralytics.solutions.config import SolutionConfig
 from ultralytics.utils import ASSETS_URL, LOGGER
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
-from ultralytics.solutions.config import SolutionConfig
-
-from dataclasses import asdict
 
 
 class BaseSolution:

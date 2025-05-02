@@ -378,7 +378,7 @@ def model_info_for_loggers(trainer):
     if trainer.args.profile:  # profile ONNX and TensorRT times
         from ultralytics.utils.benchmarks import ProfileModels
 
-        results = ProfileModels([trainer.last], device=trainer.device).profile()[0]
+        results = ProfileModels([trainer.last], device=trainer.device).run()[0]
         results.pop("model/name")
     else:  # only return PyTorch times from most recent validation
         results = {
@@ -790,7 +790,7 @@ def cuda_memory_usage(device=None):
         yield cuda_info
 
 
-def profile(input, ops, n=10, device=None, max_num_obj=0):
+def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
     """
     Ultralytics speed, memory and FLOPs profiler.
 
@@ -805,11 +805,11 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
         (list): Profile results for each operation.
 
     Examples:
-        >>> from ultralytics.utils.torch_utils import profile
+        >>> from ultralytics.utils.torch_utils import profile_ops
         >>> input = torch.randn(16, 3, 640, 640)
         >>> m1 = lambda x: x * torch.sigmoid(x)
         >>> m2 = nn.SiLU()
-        >>> profile(input, [m1, m2], n=100)  # profile over 100 iterations
+        >>> profile_ops(input, [m1, m2], n=100)  # profile over 100 iterations
     """
     results = []
     if not isinstance(device, torch.device):

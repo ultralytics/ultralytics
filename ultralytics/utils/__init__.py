@@ -20,7 +20,6 @@ from typing import Union
 from urllib.parse import unquote
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import tqdm
@@ -330,6 +329,8 @@ def plt_settings(rcparams=None, backend="Agg"):
 
         def wrapper(*args, **kwargs):
             """Sets rc parameters and backend, calls the original function, and restores the settings."""
+            import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+
             original_backend = plt.get_backend()
             switch = backend.lower() != original_backend.lower()
             if switch:

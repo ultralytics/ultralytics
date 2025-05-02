@@ -3,10 +3,7 @@
 from itertools import cycle
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionResults  # Import a parent class
 
@@ -32,7 +29,7 @@ class Analytics(BaseSolution):
         clswise_count (Dict[str, int]): Dictionary for class-wise object counts.
         fig (Figure): Matplotlib figure object for the chart.
         ax (Axes): Matplotlib axes object for the chart.
-        canvas (FigureCanvas): Canvas for rendering the chart.
+        canvas (FigureCanvasAgg): Canvas for rendering the chart.
         lines (dict): Dictionary to store line objects for area charts.
         color_mapping (Dict[str, str]): Dictionary mapping class labels to colors for consistent visualization.
 
@@ -50,6 +47,10 @@ class Analytics(BaseSolution):
     def __init__(self, **kwargs):
         """Initialize Analytics class with various chart types for visual data representation."""
         super().__init__(**kwargs)
+
+        import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+        from matplotlib.backends.backend_agg import FigureCanvasAgg
+        from matplotlib.figure import Figure
 
         self.type = self.CFG["analytics_type"]  # type of analytics i.e "line", "pie", "bar" or "area" charts.
         self.x_label = "Classes" if self.type in {"bar", "pie"} else "Frame#"
@@ -71,14 +72,14 @@ class Analytics(BaseSolution):
         if self.type in {"line", "area"}:
             self.lines = {}
             self.fig = Figure(facecolor=self.bg_color, figsize=figsize)
-            self.canvas = FigureCanvas(self.fig)  # Set common axis properties
+            self.canvas = FigureCanvasAgg(self.fig)  # Set common axis properties
             self.ax = self.fig.add_subplot(111, facecolor=self.bg_color)
             if self.type == "line":
                 (self.line,) = self.ax.plot([], [], color="cyan", linewidth=self.line_width)
         elif self.type in {"bar", "pie"}:
             # Initialize bar or pie plot
             self.fig, self.ax = plt.subplots(figsize=figsize, facecolor=self.bg_color)
-            self.canvas = FigureCanvas(self.fig)  # Set common axis properties
+            self.canvas = FigureCanvasAgg(self.fig)  # Set common axis properties
             self.ax.set_facecolor(self.bg_color)
             self.color_mapping = {}
 

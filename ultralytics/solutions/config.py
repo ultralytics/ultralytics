@@ -68,6 +68,7 @@ class SolutionConfig:
     blur_ratio: float = 0.5
     vision_point: Tuple[int, int] = (20, 20)
     crop_dir: str = "cropped-detections"
+    json_file: str = None
     line_width: int = 2
     show: bool = False
     iou: float = 0.7

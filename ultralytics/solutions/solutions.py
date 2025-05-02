@@ -2,7 +2,6 @@
 
 import math
 from collections import defaultdict
-from dataclasses import asdict
 
 import cv2
 import numpy as np

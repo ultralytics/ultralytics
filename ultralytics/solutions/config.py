@@ -60,7 +60,7 @@ class SolutionConfig:
     down_angle: int = 90
     kpts: List[int] = field(default_factory=lambda: [6, 8, 10])
     analytics_type: str = "line"
-    figsize: Optional[Tuple[int, int]] = None
+    figsize: Optional[Tuple[int, int]] = (12.8, 7.2)
     blur_ratio: float = 0.5
     vision_point: Tuple[int, int] = (20, 20)
     crop_dir: str = "cropped-detections"

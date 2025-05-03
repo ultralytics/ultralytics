@@ -29,7 +29,9 @@ from ultralytics.utils import (
     WINDOWS,
     checks,
     is_dir_writeable,
-    is_github_action_running, yaml_load, yaml_save,
+    is_github_action_running,
+    yaml_load,
+    yaml_save,
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9

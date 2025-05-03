@@ -123,8 +123,9 @@ def test_utils_benchmarks():
 
     # Pre-export a dynamic engine model to use dynamic inference
     YOLO(MODEL).export(format="engine", imgsz=32, dynamic=True, batch=1, device=DEVICES[0])
-    ProfileModels([MODEL], imgsz=32, half=False, min_time=1, num_timed_runs=3,
-                  num_warmup_runs=1, device=DEVICES[0]).run()
+    ProfileModels(
+        [MODEL], imgsz=32, half=False, min_time=1, num_timed_runs=3, num_warmup_runs=1, device=DEVICES[0]
+    ).run()
 
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
@@ -146,9 +147,16 @@ def test_predict_sam():
     model(ASSETS / "zidane.jpg", points=[[[900, 370], [1000, 100]]], labels=[[1, 1]], device=DEVICES[0])
 
     # Test predictor
-    predictor = SAMPredictor(overrides=dict(
-        conf=0.25, task="segment", mode="predict", imgsz=1024,
-        model=WEIGHTS_DIR / "mobile_sam.pt", device=DEVICES[0]))
+    predictor = SAMPredictor(
+        overrides=dict(
+            conf=0.25,
+            task="segment",
+            mode="predict",
+            imgsz=1024,
+            model=WEIGHTS_DIR / "mobile_sam.pt",
+            device=DEVICES[0],
+        )
+    )
     predictor.set_image(ASSETS / "zidane.jpg")
     # predictor(bboxes=[439, 437, 524, 709])
     # predictor(points=[900, 370], labels=[1])

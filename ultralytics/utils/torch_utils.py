@@ -176,9 +176,6 @@ def select_device(device="", batch=0, newline=False, verbose=True):
             if parts[i] == "-1":
                 parts[i] = str(selected.pop(0)) if selected else ""
         device = ",".join(p for p in parts if p)
-        if verbose and device:
-            prefix = colorstr("AutoDevice: ")
-            LOGGER.info(f"{prefix}Auto-selected GPU device(s): {device}")
 
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)

@@ -193,7 +193,7 @@ def test_track_stream():
     for gmc in "orb", "sift", "ecc":
         default_args = yaml_load(ROOT / "cfg/trackers/botsort.yaml")
         custom_yaml = TMP / f"botsort-{gmc}.yaml"
-        yaml_save({**default_args, "gmc_method": gmc}, custom_yaml)
+        yaml_save(custom_yaml, {**default_args, "gmc_method": gmc})
         model.track(video_url, imgsz=160, tracker=custom_yaml)
 
 

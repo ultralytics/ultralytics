@@ -99,6 +99,26 @@ convert_coco(
 
 For additional information about the `convert_coco` function, [visit the reference page](../reference/data/converter.md#ultralytics.data.converter.convert_coco).
 
+### Convert LabelMe into YOLO Format
+
+If your annotations are in LabelMe JSON format, you can convert them to YOLO format using [labelme2yolo](https://pypi.org/project/labelme2yolo/).
+
+#### Example:
+
+```bash
+pip install labelme2yolo
+python labelme2yolo.py /path/to/labelme_dataset
+```
+
+This generates a YOLO-compatible directory with images/, labels/, and a data.yaml file.
+
+You can then train your model with:
+
+```bash
+yolo task=detect mode=train model=yolov8n.pt data=dataset/data.yaml
+```
+
+
 ### Get Bounding Box Dimensions
 
 ```python

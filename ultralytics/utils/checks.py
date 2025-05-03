@@ -11,11 +11,11 @@ import subprocess
 import time
 from importlib import metadata
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Optional
 
 import cv2
 import numpy as np
-import requests
 import torch
 
 from ultralytics.utils import (
@@ -37,7 +37,6 @@ from ultralytics.utils import (
     USER_CONFIG_DIR,
     WINDOWS,
     Retry,
-    SimpleNamespace,
     ThreadingLocked,
     TryExcept,
     clean_url,
@@ -87,7 +86,7 @@ def parse_version(version="0.0.0") -> tuple:
         version (str): Version string, i.e. '2.0.1+cpu'
 
     Returns:
-        (tuple): Tuple of integers representing the numeric part of the version, i.e. (2, 0, 1)
+        (Tuple[int, int, int]): Tuple of integers representing the numeric part of the version, i.e. (2, 0, 1)
     """
     try:
         return tuple(map(int, re.findall(r"\d+", version)[:3]))  # '2.0.1+cpu' -> (2, 0, 1)
@@ -261,6 +260,8 @@ def check_latest_pypi_version(package_name="ultralytics"):
     Returns:
         (str): The latest version of the package.
     """
+    import requests  # slow import
+
     try:
         requests.packages.urllib3.disable_warnings()  # Disable the InsecureRequestWarning
         response = requests.get(f"https://pypi.org/pypi/{package_name}/json", timeout=3)
@@ -304,7 +305,7 @@ def check_font(font="Arial.ttf"):
     Returns:
         (Path): Resolved font file path.
     """
-    from matplotlib import font_manager
+    from matplotlib import font_manager  # scope for faster 'import ultralytics'
 
     # Check USER_CONFIG_DIR
     name = Path(font).name
@@ -453,7 +454,7 @@ def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
     """
     if file and suffix:
         if isinstance(suffix, str):
-            suffix = (suffix,)
+            suffix = {suffix}
         for f in file if isinstance(file, (list, tuple)) else [file]:
             s = Path(f).suffix.lower().strip()  # file suffix
             if len(s):
@@ -883,7 +884,9 @@ check_torchvision()  # check torch-torchvision compatibility
 
 # Define constants
 IS_PYTHON_3_8 = PYTHON_VERSION.startswith("3.8")
-IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_3_11 = PYTHON_VERSION.startswith("3.11")
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")
 IS_PYTHON_3_13 = PYTHON_VERSION.startswith("3.13")
+
+IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
+IS_PYTHON_MINIMUM_3_12 = check_python("3.12", hard=False)

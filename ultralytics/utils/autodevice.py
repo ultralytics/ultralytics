@@ -152,7 +152,6 @@ class GPUInfo:
             LOGGER.warning("NVML stats unavailable.")
             return []
 
-        # --- NVML Selection Logic ---
         # Filter GPUs meeting memory requirement and having valid utilization
         eligible_gpus = [
             gpu

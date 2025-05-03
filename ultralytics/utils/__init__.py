@@ -23,7 +23,6 @@ import cv2
 import numpy as np
 import torch
 import tqdm
-import yaml
 
 from ultralytics import __version__
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_load, torch_save  # for patches
@@ -469,84 +468,142 @@ class ThreadingLocked:
         return decorated
 
 
-def yaml_save(file="data.yaml", data=None, header=""):
+class YAML:
     """
-    Save YAML data to a file.
+    YAML utility class for efficient file operations with automatic C-implementation detection.
 
-    Args:
-        file (str, optional): File name. Default is 'data.yaml'.
-        data (dict): Data to save in YAML format.
-        header (str, optional): YAML header to add.
+    This class provides optimized YAML loading and saving operations using PyYAML's fastest available implementation
+    (C-based when possible). It implements a singleton pattern with lazy initialization, allowing direct class method
+    usage without explicit instantiation. The class handles file path creation, validation, and character encoding
+    issues automatically.
 
-    Returns:
-        (None): Data is saved to the specified file.
+    The implementation prioritizes performance through:
+        - Automatic C-based loader/dumper selection when available
+        - Singleton pattern to reuse the same instance
+        - Lazy initialization to defer import costs until needed
+        - Fallback mechanisms for handling problematic YAML content
+
+    Attributes:
+        _instance: Internal singleton instance storage.
+        yaml: Reference to the PyYAML module.
+        SafeLoader: Best available YAML loader (CSafeLoader if available).
+        SafeDumper: Best available YAML dumper (CSafeDumper if available).
+
+    Examples:
+        >>> data = YAML.load("config.yaml")
+        >>> data["new_value"] = 123
+        >>> YAML.save("updated_config.yaml", data)
+        >>> YAML.print(data)
     """
-    if data is None:
-        data = {}
-    file = Path(file)
-    if not file.parent.exists():
-        # Create parent directories if they don't exist
+
+    _instance = None
+
+    @classmethod
+    def _get_instance(cls):
+        """Initialize singleton instance on first use."""
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+    def __init__(self):
+        """Initialize with optimal YAML implementation (C-based when available)."""
+        import yaml
+
+        self.yaml = yaml
+        # Use C-based implementation if available for better performance
+        try:
+            self.SafeLoader = yaml.CSafeLoader
+            self.SafeDumper = yaml.CSafeDumper
+        except (AttributeError, ImportError):
+            self.SafeLoader = yaml.SafeLoader
+            self.SafeDumper = yaml.SafeDumper
+
+    @classmethod
+    def save(cls, file="data.yaml", data=None, header=""):
+        """
+        Save Python object as YAML file.
+
+        Args:
+            file (str | Path): Path to save YAML file.
+            data (dict | None): Dict or compatible object to save.
+            header (str): Optional string to add at file beginning.
+        """
+        instance = cls._get_instance()
+        if data is None:
+            data = {}
+
+        # Create parent directories if needed
+        file = Path(file)
         file.parent.mkdir(parents=True, exist_ok=True)
 
-    # Convert Path objects to strings
-    valid_types = int, float, str, bool, list, tuple, dict, type(None)
-    for k, v in data.items():
-        if not isinstance(v, valid_types):
-            data[k] = str(v)
+        # Convert non-serializable objects to strings
+        valid_types = int, float, str, bool, list, tuple, dict, type(None)
+        for k, v in data.items():
+            if not isinstance(v, valid_types):
+                data[k] = str(v)
 
-    # Dump data to file in YAML format
-    with open(file, "w", errors="ignore", encoding="utf-8") as f:
-        if header:
-            f.write(header)
-        yaml.safe_dump(data, f, sort_keys=False, allow_unicode=True)
+        # Write YAML file
+        with open(file, "w", errors="ignore", encoding="utf-8") as f:
+            if header:
+                f.write(header)
+            instance.yaml.dump(data, f, sort_keys=False, allow_unicode=True, Dumper=instance.SafeDumper)
 
+    @classmethod
+    def load(cls, file="data.yaml", append_filename=False):
+        """
+        Load YAML file to Python object with robust error handling.
 
-def yaml_load(file="data.yaml", append_filename=False):
-    """
-    Load YAML data from a file.
+        Args:
+            file (str | Path): Path to YAML file.
+            append_filename (bool): Whether to add filename to returned dict.
 
-    Args:
-        file (str, optional): File name. Default is 'data.yaml'.
-        append_filename (bool): Add the YAML filename to the YAML dictionary. Default is False.
+        Returns:
+            (dict): Loaded YAML content.
+        """
+        instance = cls._get_instance()
+        assert str(file).endswith((".yaml", ".yml")), f"Not a YAML file: {file}"
 
-    Returns:
-        (dict): YAML data and file name.
-    """
-    assert Path(file).suffix in {".yaml", ".yml"}, f"Attempting to load non-YAML file {file} with yaml_load()"
-    with open(file, errors="ignore", encoding="utf-8") as f:
-        s = f.read()  # string
+        # Read file content
+        with open(file, errors="ignore", encoding="utf-8") as f:
+            s = f.read()
 
-        # Remove special characters
-        if not s.isprintable():
+        # Try loading YAML with fallback for problematic characters
+        try:
+            data = instance.yaml.load(s, Loader=instance.SafeLoader) or {}
+        except Exception:
+            # Remove problematic characters and retry
             s = re.sub(r"[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+", "", s)
+            data = instance.yaml.load(s, Loader=instance.SafeLoader) or {}
 
-        # Add YAML filename to dict and return
-        data = yaml.safe_load(s) or {}  # always return a dict (yaml.safe_load() may return None for empty files)
+        # Check for accidental user-error None strings (should be 'null' in YAML)
+        if "None" in data.values():
+            data = {k: None if v == "None" else v for k, v in data.items()}
+
         if append_filename:
             data["yaml_file"] = str(file)
         return data
 
+    @classmethod
+    def print(cls, yaml_file):
+        """
+        Pretty print YAML file or object to console.
 
-def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
-    """
-    Pretty prints a YAML file or a YAML-formatted dictionary.
+        Args:
+            yaml_file (str | Path | dict): Path to YAML file or dict to print.
+        """
+        instance = cls._get_instance()
 
-    Args:
-        yaml_file: The file path of the YAML file or a YAML-formatted dictionary.
+        # Load file if path provided
+        yaml_dict = cls.load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
 
-    Returns:
-        (None)
-    """
-    yaml_dict = yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
-    dump = yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=float("inf"))
-    LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
+        # Use -1 for unlimited width in C implementation
+        dump = instance.yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=-1, Dumper=instance.SafeDumper)
+
+        LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
 
 
 # Default configuration
-DEFAULT_CFG_DICT = yaml_load(DEFAULT_CFG_PATH)
-for k, v in DEFAULT_CFG_DICT.items():
-    if isinstance(v, str) and v.lower() == "none":
-        DEFAULT_CFG_DICT[k] = None
+DEFAULT_CFG_DICT = YAML.load(DEFAULT_CFG_PATH)
 DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
 DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 

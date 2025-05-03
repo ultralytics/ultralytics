@@ -186,6 +186,7 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
         """Return self as iterator to satisfy Iterable interface."""
         return super().__iter__()
 
+
 class SimpleClass:
     """
     A simple base class for creating objects with string representations of their attributes.

@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from ultralytics.utils import LOGGER
+from ultralytics.utils.checks import check_requirements
 
 
 class GPUInfo:
@@ -30,15 +31,15 @@ class GPUInfo:
         self.nvml_available = False
         self.gpu_stats = []
         try:
-            import pynvml
+            check_requirements("pynvml>=12.0.0")
 
-            self.pynvml = pynvml
+            self.pynvml = __import__("pynvml")
             self.pynvml.nvmlInit()
             self.nvml_available = True
             self.refresh_stats()
         except ImportError:
             LOGGER.warning("nvidia-ml-py (pynvml) not found. GPU stats features will be disabled.")
-        except pynvml.NVMLError as error:
+        except self.pynvml.NVMLError as error:
             LOGGER.warning(f"Failed to initialize NVML: {error}. GPU stats features will be disabled.")
             self.pynvml = None
         except Exception as e:
@@ -93,9 +94,7 @@ class GPUInfo:
                         "memory_free": memory.free >> 20 if memory else -1,
                         "temperature": safe_get(self.pynvml.nvmlDeviceGetTemperature, handle, temp_type),
                         "power_draw": safe_get(self.pynvml.nvmlDeviceGetPowerUsage, handle, divisor=1000),
-                        "power_limit": safe_get(
-                            self.pynvml.nvmlDeviceGetEnforcedPowerLimit, handle, divisor=1000, default="N/A"
-                        ),
+                        "power_limit": safe_get(self.pynvml.nvmlDeviceGetEnforcedPowerLimit, handle, divisor=1000),
                     }
                 )
         except self.pynvml.NVMLError as error:

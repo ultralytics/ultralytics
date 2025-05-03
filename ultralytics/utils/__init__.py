@@ -469,7 +469,8 @@ class ThreadingLocked:
 
 
 class YAML:
-    """YAML utility class for efficient file operations with automatic C-implementation detection.
+    """
+    YAML utility class for efficient file operations with automatic C-implementation detection.
 
     This class provides optimized YAML loading and saving operations using PyYAML's fastest available implementation
     (C-based when possible). It implements a singleton pattern with lazy initialization, allowing direct class method
@@ -489,9 +490,9 @@ class YAML:
         SafeDumper: Best available YAML dumper (CSafeDumper if available).
 
     Examples:
-        >>> data = YAML.load('config.yaml')
-        >>> data['new_value'] = 123
-        >>> YAML.save('updated_config.yaml', data)
+        >>> data = YAML.load("config.yaml")
+        >>> data["new_value"] = 123
+        >>> YAML.save("updated_config.yaml", data)
         >>> YAML.print(data)
     """
 
@@ -507,6 +508,7 @@ class YAML:
     def __init__(self):
         """Initialize with optimal YAML implementation (C-based when available)."""
         import yaml
+
         self.yaml = yaml
         # Use C-based implementation if available for better performance
         try:
@@ -518,7 +520,8 @@ class YAML:
 
     @classmethod
     def save(cls, file="data.yaml", data=None, header=""):
-        """Save Python object as YAML file.
+        """
+        Save Python object as YAML file.
 
         Args:
             file (str | Path): Path to save YAML file.
@@ -543,12 +546,12 @@ class YAML:
         with open(file, "w", errors="ignore", encoding="utf-8") as f:
             if header:
                 f.write(header)
-            instance.yaml.dump(data, f, sort_keys=False, allow_unicode=True,
-                               Dumper=instance.SafeDumper)
+            instance.yaml.dump(data, f, sort_keys=False, allow_unicode=True, Dumper=instance.SafeDumper)
 
     @classmethod
     def load(cls, file="data.yaml", append_filename=False):
-        """Load YAML file to Python object with robust error handling.
+        """
+        Load YAML file to Python object with robust error handling.
 
         Args:
             file (str | Path): Path to YAML file.
@@ -578,7 +581,8 @@ class YAML:
 
     @classmethod
     def print(cls, yaml_file):
-        """Pretty print YAML file or object to console.
+        """
+        Pretty print YAML file or object to console.
 
         Args:
             yaml_file (str | Path | dict): Path to YAML file or dict to print.
@@ -589,8 +593,7 @@ class YAML:
         yaml_dict = cls.load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
 
         # Use -1 for unlimited width in C implementation
-        dump = instance.yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True,
-                                  width=-1, Dumper=instance.SafeDumper)
+        dump = instance.yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=-1, Dumper=instance.SafeDumper)
 
         LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
 

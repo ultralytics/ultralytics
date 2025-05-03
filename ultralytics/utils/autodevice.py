@@ -8,12 +8,13 @@ import torch
 
 class GPUInfo:
     """
-    Provides information about system GPUs using pynvml, selecting the most idle GPU.
+    Provides information about system GPUs using pynvml, selecting the most idle GPUs.
 
     Attributes:
         pynvml (module | None): The imported pynvml module, or None if unavailable.
         nvml_available (bool): True if pynvml was successfully imported and initialized.
         gpu_stats (list): A list of dictionaries, each containing stats for a GPU.
+                             Refreshed by calling refresh_stats().
     """
 
     def __init__(self):
@@ -22,20 +23,16 @@ class GPUInfo:
         self.nvml_available = False
         self.gpu_stats = []
         try:
-            # Import pynvml here, making it optional
             import pynvml
-
             self.pynvml = pynvml
-            self.pynvml.nvmlInit()  # Initialize NVML
+            self.pynvml.nvmlInit()
             self.nvml_available = True
-            self.refresh_stats()  # Get initial stats
-            # Note: We keep NVML initialized until explicitly shut down or object deletion
-
+            self.refresh_stats()
         except ImportError:
             warnings.warn("nvidia-ml-py (pynvml) not found. GPU stats features will be disabled.", ImportWarning)
-        except self.pynvml.NVMLError as error:
+        except pynvml.NVMLError as error:
             warnings.warn(f"Failed to initialize NVML: {error}. GPU stats features will be disabled.", RuntimeWarning)
-            self.pynvml = None  # Ensure pynvml is None if init failed
+            self.pynvml = None
         except Exception as e:
             warnings.warn(f"An unexpected error occurred during pynvml initialization: {e}", RuntimeWarning)
             self.pynvml = None
@@ -50,14 +47,12 @@ class GPUInfo:
             try:
                 self.pynvml.nvmlShutdown()
             except self.pynvml.NVMLError:
-                # Ignore shutdown errors, might happen if already shut down elsewhere
                 pass
-            self.nvml_available = False  # Mark as shut down
+            self.nvml_available = False
 
     def refresh_stats(self):
         """Refreshes the internal gpu_stats list by querying NVML."""
         if not self.nvml_available or not self.pynvml:
-            # No NVML, clear stats
             self.gpu_stats = []
             return
 
@@ -69,142 +64,131 @@ class GPUInfo:
                 memory = self.pynvml.nvmlDeviceGetMemoryInfo(handle)
                 util = self.pynvml.nvmlDeviceGetUtilizationRates(handle)
 
-                # Helper to safely get optional stats directly using self.pynvml
                 def safe_get(func, *args, default=-1, divisor=1):
                     try:
-                        # Need to call via self.pynvml stored reference
                         val = getattr(self.pynvml, func.__name__)(*args)
-                        return val // divisor
-                    except self.pynvml.NVMLError:
-                        return default
+                        if divisor != 1 and isinstance(val, (int, float)): return val // divisor
+                        return val
+                    except (self.pynvml.NVMLError, AttributeError): return default
 
-                self.gpu_stats.append(
-                    {
-                        "index": i,
-                        "name": self.pynvml.nvmlDeviceGetName(handle),
-                        "utilization": util.gpu,
-                        "memory_used": memory.used >> 20,
-                        "memory_total": memory.total >> 20,
-                        "memory_free": memory.free >> 20,
-                        "temperature": safe_get(
-                            self.pynvml.nvmlDeviceGetTemperature, handle, self.pynvml.NVML_TEMPERATURE_GPU
-                        ),
-                        "power_draw": safe_get(self.pynvml.nvmlDeviceGetPowerUsage, handle, divisor=1000),
-                        "power_limit": safe_get(
-                            self.pynvml.nvmlDeviceGetEnforcedPowerLimit, handle, divisor=1000, default="N/A"
-                        ),
-                    }
-                )
+                temp_type = getattr(self.pynvml, 'NVML_TEMPERATURE_GPU', -1) # More concise getattr
+
+                self.gpu_stats.append({
+                    "index": i,
+                    "name": str(self.pynvml.nvmlDeviceGetName(handle).decode("utf-8")),
+                    "utilization": util.gpu if util else -1,
+                    "memory_used": memory.used >> 20 if memory else -1,
+                    "memory_total": memory.total >> 20 if memory else -1,
+                    "memory_free": memory.free >> 20 if memory else -1,
+                    "temperature": safe_get(self.pynvml.nvmlDeviceGetTemperature, handle, temp_type),
+                    "power_draw": safe_get(self.pynvml.nvmlDeviceGetPowerUsage, handle, divisor=1000),
+                    "power_limit": safe_get(self.pynvml.nvmlDeviceGetEnforcedPowerLimit, handle, divisor=1000, default="N/A"),
+                })
         except self.pynvml.NVMLError as error:
             warnings.warn(f"NVML error during device query: {error}", RuntimeWarning)
-            self.gpu_stats = []  # Clear stats on error
+            self.gpu_stats = []
+        except Exception as e:
+            warnings.warn(f"Unexpected error during device query: {e}", RuntimeWarning)
+            self.gpu_stats = []
 
     def print_status(self):
         """Prints GPU status in a compact table format using current stats."""
-        if not self.gpu_stats:  # Checks if list is empty (covers NVML unavailable or query errors)
-            print("No GPU stats available (NVML may be missing, failed to initialize, or no GPUs found).")
+        self.refresh_stats()
+        if not self.gpu_stats:
+            print("\nNo GPU stats available.")
+            try:
+                if torch.cuda.is_available(): print(f"PyTorch reports {torch.cuda.device_count()} CUDA devices.")
+                else: print("PyTorch reports no CUDA devices.")
+            except Exception: pass # Ignore torch check errors silently
             return
 
-        stats = self.gpu_stats  # Use the stored stats
-        max_name_len = max(len(gpu["name"]) for gpu in stats) if stats else 10
-        header = f"{'Idx':<3} {'Name':<{max_name_len}} {'Util':>6} {'Mem (MiB)':>15} {'Temp':>5} {'Pwr (W)':>10}"
-        print("\n--- GPU Status ---")
-        print(header)
-        print("-" * len(header))
-
+        stats = self.gpu_stats
+        max_name_len = max(len(gpu.get("name", "N/A")) for gpu in stats) if stats else 10
+        hdr = f"{'Idx':<3} {'Name':<{max_name_len}} {'Util':>6} {'Mem (MiB)':>15} {'Temp':>5} {'Pwr (W)':>10}"
+        print(f"\n--- GPU Status ---\n{hdr}\n{'-' * len(hdr)}")
         for gpu in stats:
-            mem_str = f"{gpu['memory_used']:>6}/{gpu['memory_total']:<6}"
-            temp_str = f"{gpu['temperature']}C" if gpu["temperature"] != -1 else "N/A"
-            pwr_str = f"{gpu['power_draw']:>3}/{str(gpu['power_limit']):<3}" if gpu["power_draw"] != -1 else "N/A"
-            print(
-                f"{gpu['index']:<3d} {gpu['name']:<{max_name_len}} {gpu['utilization']:>5}% "
-                f"{mem_str:>15} {temp_str:>5} {pwr_str:>10}"
-            )
-        print("-" * len(header))
-        print("")
+            u = f"{gpu.get('utilization', -1):>5}%" if gpu.get('utilization', -1) != -1 else " N/A "
+            m = f"{gpu.get('memory_used', -1):>6}/{gpu.get('memory_total', -1):<6}" if gpu.get('memory_used', -1) != -1 else " N/A / N/A "
+            t = f"{gpu.get('temperature', -1)}C" if gpu.get('temperature', -1) != -1 else " N/A "
+            p = f"{gpu.get('power_draw', -1):>3}/{str(gpu.get('power_limit', 'N/A')):<3}" if gpu.get('power_draw', -1) != -1 else " N/A "
+            print(f"{gpu.get('index', '?'):<3d} {gpu.get('name', 'N/A'):<{max_name_len}} {u:>6} {m:>15} {t:>5} {p:>10}")
+        print(f"{'-' * len(hdr)}\n")
 
-    def select_idle_gpu(self, min_memory_mb=2048):
+    def select_idle_gpu(self, count=1, min_memory_mb=0):
         """
-        Selects the most idle GPU based on utilization and free memory from current stats.
+        Selects the 'count' most idle GPUs based on utilization and free memory.
 
         Args:
-            min_memory_mb (int): Minimum free memory required in MiB.
+            count (int): The number of idle GPUs to select. Defaults to 1.
+            min_memory_mb (int): Minimum free memory required (MiB). Defaults to 0.
 
         Returns:
-            (int): The index of the most idle GPU meeting the criteria,
-                 or 0 if NVML unavailable but CUDA devices exist (basic fallback),
-                 or -1 if no suitable GPU found or CUDA unavailable.
+            (list[int]): Indices of the selected GPUs, sorted by idleness.
+                         Returns fewer than 'count' if not enough qualify or exist.
+                         Returns basic CUDA indices if NVML fails. Empty list if no GPUs found.
         """
-        if not self.gpu_stats:
-            warnings.warn("Cannot select GPU based on NVML stats. Falling back to basic check.", RuntimeWarning)
-            # Simple fallback check using torch
-            try:
-                if torch.cuda.is_available() and torch.cuda.device_count() > 0:
-                    warnings.warn("NVML unavailable, selecting default GPU index 0 as fallback.", RuntimeWarning)
-                    return 0  # Default to first GPU if CUDA is available
-            except Exception as e:  # Catch potential errors during torch check
-                warnings.warn(f"Error during PyTorch CUDA check: {e}", RuntimeWarning)
-            return -1  # No NVML and no CUDA devices detected by torch
+        if count <= 0: return []
+        self.refresh_stats()
 
-        stats = self.gpu_stats  # Use stored stats
+        # Fallback if NVML failed or no stats
+        if not self.nvml_available or not self.gpu_stats:
+            warnings.warn("NVML stats unavailable. Falling back to basic CUDA device check.", RuntimeWarning)
+            try:
+                if torch.cuda.is_available():
+                    num_devs = torch.cuda.device_count()
+                    return list(range(min(count, num_devs))) # Return first 'count' available devices
+            except Exception: pass # Ignore torch check errors
+            return [] # No NVML and no CUDA info
+
+        # --- NVML Selection Logic ---
         # Filter GPUs meeting memory requirement and having valid utilization
         eligible_gpus = [
-            gpu for gpu in stats if gpu.get("memory_free", 0) >= min_memory_mb and gpu.get("utilization") is not None
+            gpu for gpu in self.gpu_stats
+            if gpu.get("memory_free", -1) >= min_memory_mb and gpu.get("utilization", -1) != -1
         ]
 
-        # If none meet memory criteria, consider all GPUs with valid utilization as fallback
-        if not eligible_gpus:
-            print(f"Info: No GPUs found with >= {min_memory_mb} MiB free. Considering all GPUs based on utilization.")
-            eligible_gpus = [gpu for gpu in stats if gpu.get("utilization") is not None]
-
-        if not eligible_gpus:
-            print("Error: No suitable GPUs found for selection (no valid utilization reported).")
-            return -1  # No GPUs available or none with valid utilization
-
         # Sort by utilization (asc), then free memory (desc)
-        eligible_gpus.sort(key=lambda x: (x["utilization"], -x["memory_free"]))
+        eligible_gpus.sort(key=lambda x: (x.get("utilization", 101), -x.get("memory_free", 0)))
 
-        selected_gpu = eligible_gpus[0]
-        print(
-            f"Selected GPU {selected_gpu['index']} ({selected_gpu['name']}) - Util: {selected_gpu['utilization']}%, Free Mem: {selected_gpu['memory_free']} MiB"
-        )
-        return selected_gpu["index"]
+        # Select the top 'count' indices
+        selected_indices = [gpu["index"] for gpu in eligible_gpus[:count]]
+
+        # Optional: Print selection summary (can be removed for absolute minimum)
+        if selected_indices:
+             print(f"Selected GPU indices based on idleness: {selected_indices} (requested {count})")
+        elif self.gpu_stats: # Only warn if GPUs existed but didn't meet criteria
+             print(f"Info: No GPUs met the criteria (Util != -1, Free Mem >= {min_memory_mb} MiB).")
+        else: # Should be covered by fallback, but as a safeguard
+             print("Info: No GPUs detected by NVML.")
+
+        return selected_indices
 
 
-# Main execution example
+# Main execution example (remains the same)
 if __name__ == "__main__":
-    required_free_mem = 4096  # Require 4GB free VRAM
+    required_free_mem = 2048  # Require 2GB free VRAM
+    num_gpus_to_select = 2    # <<< Number of GPUs to select
 
-    # 1. Create GPUInfo instance (imports pynvml, initializes, gets stats)
+    print("Initializing GPUInfo...")
     gpu_info = GPUInfo()
-
-    # 2. Print status (uses stored stats)
     gpu_info.print_status()
 
-    # Optional: Refresh stats if needed after some time/operations
-    # gpu_info.refresh_stats()
-    # gpu_info.print_status()
+    print(f"Attempting to select {num_gpus_to_select} idle GPUs with >= {required_free_mem} MiB free memory...")
+    selected_indices = gpu_info.select_idle_gpu(count=num_gpus_to_select, min_memory_mb=required_free_mem)
 
-    # 3. Select GPU (uses stored stats)
-    selected_index = gpu_info.select_idle_gpu(min_memory_mb=required_free_mem)
-
-    # 4. Assign & Test (optional)
-    if selected_index != -1:
-        device = f"cuda:{selected_index}"
-        print(f"\n==> Assigning task to: {device}")
-        # Optional: Test assignment
+    if selected_indices:
+        print(f"\n==> Using selected GPU indices: {selected_indices}")
+        devices = [f"cuda:{idx}" for idx in selected_indices]
+        print(f"    Target devices: {devices}")
+        # Example: Test assignment on the first selected device
         try:
-            t = torch.zeros(1).to(device)
-            print(f"Successfully tested device {device}.")
-            del t
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
+            print(f"    Testing assignment on {devices[0]}...")
+            t = torch.zeros(1).to(devices[0])
+            print(f"    Successfully created tensor on {devices[0]}.")
+            del t; torch.cuda.empty_cache()
         except Exception as e:
-            print(f"Error testing device {device}: {e}", file=sys.stderr)
+            print(f"    Error testing device {devices[0]}: {e}", file=sys.stderr)
     else:
-        print("\n==> No suitable GPU found. Consider CPU or check GPU availability/status.")
-        device = "cpu"  # Example fallback
+        print(f"\n==> Failed to select {num_gpus_to_select} suitable GPUs.")
 
-    # 5. Clean up NVML explicitly if needed before script ends,
-    # otherwise __del__ will handle it eventually.
-    # gpu_info.shutdown()
+    print("\nScript finished.")

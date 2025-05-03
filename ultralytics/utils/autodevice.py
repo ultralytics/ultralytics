@@ -127,8 +127,10 @@ class GPUInfo:
 
         Returns:
             (list[int]): Indices of the selected GPUs, sorted by idleness.
-                         Returns fewer than 'count' if not enough qualify or exist.
-                         Returns basic CUDA indices if NVML fails. Empty list if no GPUs found.
+
+        Notes:
+             Returns fewer than 'count' if not enough qualify or exist.
+             Returns basic CUDA indices if NVML fails. Empty list if no GPUs found.
         """
         LOGGER.info(f"Searching for {count} idle GPUs with >= {min_memory_mb} MiB free memory...")
 

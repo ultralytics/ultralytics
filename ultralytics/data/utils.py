@@ -18,6 +18,7 @@ from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (
     DATASETS_DIR,
     LOGGER,
+    MACOS,
     NUM_THREADS,
     ROOT,
     SETTINGS_FILE,
@@ -28,7 +29,6 @@ from ultralytics.utils import (
     is_dir_writeable,
     yaml_load,
     yaml_save,
-    MACOS,
 )
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file

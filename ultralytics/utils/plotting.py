@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Callable, Dict, List, Optional, Union
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from PIL import Image, ImageDraw, ImageFont
@@ -534,8 +533,9 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
         save_dir (Path, optional): Directory to save the plot.
         on_plot (Callable, optional): Function to call after plot is saved.
     """
-    import pandas  # scope for faster 'import ultralytics'
-    import seaborn  # scope for faster 'import ultralytics'
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+    import pandas
+    import seaborn
 
     # Filter matplotlib>=3.7.2 warning and Seaborn use_inf and is_categorical FutureWarnings
     warnings.filterwarnings("ignore", category=UserWarning, message="The figure layout has changed to tight")
@@ -819,7 +819,8 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
         >>> from ultralytics.utils.plotting import plot_results
         >>> plot_results("path/to/results.csv", segment=True)
     """
-    import pandas as pd  # scope for faster 'import ultralytics'
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+    import pandas as pd
     from scipy.ndimage import gaussian_filter1d
 
     save_dir = Path(file).parent if file else Path(dir)
@@ -878,6 +879,8 @@ def plt_color_scatter(v, f, bins=20, cmap="viridis", alpha=0.8, edgecolors="none
         >>> f = np.random.rand(100)
         >>> plt_color_scatter(v, f)
     """
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+
     # Calculate 2D histogram and corresponding colors
     hist, xedges, yedges = np.histogram2d(v, f, bins=bins)
     colors = [
@@ -903,7 +906,8 @@ def plot_tune_results(csv_file="tune_results.csv"):
     Examples:
         >>> plot_tune_results("path/to/tune_results.csv")
     """
-    import pandas as pd  # scope for faster 'import ultralytics'
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+    import pandas as pd
     from scipy.ndimage import gaussian_filter1d
 
     def _save_one_file(file):
@@ -980,6 +984,8 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detec
         n (int, optional): Maximum number of feature maps to plot.
         save_dir (Path, optional): Directory to save results.
     """
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+
     for m in {"Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder"}:  # all model heads
         if m in module_type:
             return

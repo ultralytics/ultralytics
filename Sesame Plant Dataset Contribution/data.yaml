@@ -1,0 +1,5 @@
+train: Sesame Plant Dataset Contribution/Sesame Plant/train/images
+val: Sesame Plant Dataset Contribution/Sesame Plant/valid/images
+
+nc: 1
+names: ["SESAME_PLANT"]

@@ -38,7 +38,7 @@ def test_amp():
 
 
 # @pytest.mark.slow
-@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="CUDA is not available")
+@pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, simplify, nms",
     [  # generate all combinations except for exclusion cases
@@ -60,14 +60,14 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
         batch=batch,
         simplify=simplify,
         nms=nms,
-        device=0,
+        device=DEVICES[0],
     )
-    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
+    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference
     Path(file).unlink()  # cleanup
 
 
-@pytest.mark.slow
-@pytest.mark.skipif(True, reason="CUDA export tests disabled pending additional Ultralytics GPU server availability")
+# @pytest.mark.slow
+# @pytest.mark.skipif(True, reason="CUDA export tests disabled pending additional Ultralytics GPU server availability")
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch",

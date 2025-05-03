@@ -10,7 +10,6 @@ import cv2
 import numpy as np
 import pytest
 import torch
-import yaml
 from PIL import Image
 
 from tests import CFG, MODEL, SOURCE, SOURCES_LIST, TMP
@@ -30,7 +29,7 @@ from ultralytics.utils import (
     WINDOWS,
     checks,
     is_dir_writeable,
-    is_github_action_running,
+    is_github_action_running, yaml_load, yaml_save,
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
@@ -190,13 +189,10 @@ def test_track_stream():
 
     # Test Global Motion Compensation (GMC) methods
     for gmc in "orb", "sift", "ecc":
-        with open(ROOT / "cfg/trackers/botsort.yaml", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-        tracker = TMP / f"botsort-{gmc}.yaml"
-        data["gmc_method"] = gmc
-        with open(tracker, "w", encoding="utf-8") as f:
-            yaml.safe_dump(data, f)
-        model.track(video_url, imgsz=160, tracker=tracker)
+        default_args = yaml_load(ROOT / "cfg/trackers/botsort.yaml")
+        custom_yaml = TMP / f"botsort-{gmc}.yaml"
+        yaml_save({**default_args, "gmc_method": gmc}, custom_yaml)
+        model.track(video_url, imgsz=160, tracker=custom_yaml)
 
 
 def test_val():

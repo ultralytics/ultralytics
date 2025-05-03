@@ -36,7 +36,6 @@ from pathlib import Path
 
 import numpy as np
 import torch.cuda
-import yaml
 
 from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC

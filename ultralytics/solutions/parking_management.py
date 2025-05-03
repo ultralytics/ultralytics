@@ -201,9 +201,9 @@ class ParkingManagement(BaseSolution):
         """Initialize the parking management system with a YOLO model and visualization settings."""
         super().__init__(**kwargs)
 
-        self.json_file = self.CFG["json_file"]  # Load JSON data
+        self.json_file = self.CFG["json_file"]  # Load parking regions JSON data
         if self.json_file is None:
-            LOGGER.warning("❌ json_file argument missing. Parking region details required.")
+            LOGGER.warning("json_file argument missing. Parking region details required.")
             raise ValueError("❌ Json file path can not be empty")
 
         with open(self.json_file) as f:

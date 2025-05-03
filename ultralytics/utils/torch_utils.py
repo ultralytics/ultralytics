@@ -30,11 +30,6 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.checks import check_version
 
-try:
-    import thop
-except ImportError:
-    thop = None  # conda support without 'ultralytics-thop' installed
-
 # Version checks (all default to version>=min_version)
 TORCH_1_9 = check_version(torch.__version__, "1.9.0")
 TORCH_1_13 = check_version(torch.__version__, "1.13.0")
@@ -378,7 +373,7 @@ def model_info_for_loggers(trainer):
     if trainer.args.profile:  # profile ONNX and TensorRT times
         from ultralytics.utils.benchmarks import ProfileModels
 
-        results = ProfileModels([trainer.last], device=trainer.device).profile()[0]
+        results = ProfileModels([trainer.last], device=trainer.device).run()[0]
         results.pop("model/name")
     else:  # only return PyTorch times from most recent validation
         results = {
@@ -404,6 +399,11 @@ def get_flops(model, imgsz=640):
     Returns:
         (float): The model FLOPs in billions.
     """
+    try:
+        import thop
+    except ImportError:
+        thop = None  # conda support without 'ultralytics-thop' installed
+
     if not thop:
         return 0.0  # if not installed return 0.0 GFLOPs
 
@@ -790,7 +790,7 @@ def cuda_memory_usage(device=None):
         yield cuda_info
 
 
-def profile(input, ops, n=10, device=None, max_num_obj=0):
+def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
     """
     Ultralytics speed, memory and FLOPs profiler.
 
@@ -805,12 +805,17 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
         (list): Profile results for each operation.
 
     Examples:
-        >>> from ultralytics.utils.torch_utils import profile
+        >>> from ultralytics.utils.torch_utils import profile_ops
         >>> input = torch.randn(16, 3, 640, 640)
         >>> m1 = lambda x: x * torch.sigmoid(x)
         >>> m2 = nn.SiLU()
-        >>> profile(input, [m1, m2], n=100)  # profile over 100 iterations
+        >>> profile_ops(input, [m1, m2], n=100)  # profile over 100 iterations
     """
+    try:
+        import thop
+    except ImportError:
+        thop = None  # conda support without 'ultralytics-thop' installed
+
     results = []
     if not isinstance(device, torch.device):
         device = select_device(device)

@@ -16,7 +16,6 @@ from typing import Optional
 
 import cv2
 import numpy as np
-import requests
 import torch
 
 from ultralytics.utils import (
@@ -261,6 +260,8 @@ def check_latest_pypi_version(package_name="ultralytics"):
     Returns:
         (str): The latest version of the package.
     """
+    import requests  # slow import
+
     try:
         requests.packages.urllib3.disable_warnings()  # Disable the InsecureRequestWarning
         response = requests.get(f"https://pypi.org/pypi/{package_name}/json", timeout=3)
@@ -304,7 +305,7 @@ def check_font(font="Arial.ttf"):
     Returns:
         (Path): Resolved font file path.
     """
-    from matplotlib import font_manager
+    from matplotlib import font_manager  # scope for faster 'import ultralytics'
 
     # Check USER_CONFIG_DIR
     name = Path(font).name
@@ -453,7 +454,7 @@ def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
     """
     if file and suffix:
         if isinstance(suffix, str):
-            suffix = (suffix,)
+            suffix = {suffix}
         for f in file if isinstance(file, (list, tuple)) else [file]:
             s = Path(f).suffix.lower().strip()  # file suffix
             if len(s):

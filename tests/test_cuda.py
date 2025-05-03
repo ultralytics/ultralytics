@@ -16,15 +16,14 @@ from ultralytics.utils.checks import check_amp
 # Try to find idle devices if CUDA is available
 DEVICES = []
 if CUDA_IS_AVAILABLE:
-    gpu_info = GPUInfo()
-    gpu_info.print_status()
-    idle_gpus = gpu_info.select_idle_gpu(count=2, min_memory_mb=2048)
-    if idle_gpus:
-        DEVICES = idle_gpus
-    # NVIDIA Jetson has only one GPU per device
-    elif IS_JETSON:
-        DEVICES = 0
-
+    if IS_JETSON:
+        DEVICES = [0]  # NVIDIA Jetson has only one GPU per device
+    else:
+        gpu_info = GPUInfo()
+        gpu_info.print_status()
+        idle_gpus = gpu_info.select_idle_gpu(count=2, min_memory_mb=2048)
+        if idle_gpus:
+            DEVICES = idle_gpus
 
 def test_checks():
     """Validate CUDA settings against torch CUDA functions."""

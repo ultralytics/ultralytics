@@ -103,8 +103,8 @@ class GPUInfo:
             return
 
         stats = self.gpu_stats
-        max_name_len = max(len(gpu.get("name", "N/A")) for gpu in stats)
-        hdr = f"{'Idx':<3} {'Name':<{max_name_len}} {'Util':>6} {'Mem (MiB)':>15} {'Temp':>5} {'Pwr (W)':>10}"
+        name_len = max(len(gpu.get("name", "N/A")) for gpu in stats)
+        hdr = f"{'Idx':<3} {'Name':<{name_len}} {'Util':>6} {'Mem (MiB)':>15} {'Temp':>5} {'Pwr (W)':>10}"
         LOGGER.info(f"\n--- GPU Status ---\n{hdr}\n{'-' * len(hdr)}")
 
         for gpu in stats:
@@ -113,7 +113,7 @@ class GPUInfo:
             t = f"{gpu['temperature']}C" if gpu['temperature'] >= 0 else " N/A "
             p = f"{gpu['power_draw']:>3}/{gpu['power_limit']:<3}" if gpu['power_draw'] >= 0 else " N/A "
 
-            LOGGER.info(f"{gpu.get('index', '?'):<3d} {gpu.get('name', 'N/A'):<{max_name_len}} {u:>6} {m:>15} {t:>5} {p:>10}")
+            LOGGER.info(f"{gpu.get('index'):<3d} {gpu.get('name', 'N/A'):<{name_len}} {u:>6} {m:>15} {t:>5} {p:>10}")
 
         LOGGER.info(f"{'-' * len(hdr)}\n")
 

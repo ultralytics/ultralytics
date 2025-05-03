@@ -11,7 +11,7 @@ from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DetectionModel
-from ultralytics.utils import LOGGER, RANK
+from ultralytics.utils import LOGGER, RANK, NUM_THREADS
 from ultralytics.utils.plotting import plot_images, plot_labels, plot_results
 from ultralytics.utils.torch_utils import de_parallel, torch_distributed_zero_first
 
@@ -84,7 +84,7 @@ class DetectionTrainer(BaseTrainer):
         if getattr(dataset, "rect", False) and shuffle:
             LOGGER.warning("'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
             shuffle = False
-        workers = self.args.workers if mode == "train" else self.args.workers * 2
+        workers = self.args.workers if mode == "train" else min(self.args.workers * 2, NUM_THREADS)
         return build_dataloader(dataset, batch_size, workers, shuffle, rank)  # return dataloader
 
     def preprocess_batch(self, batch):

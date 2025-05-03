@@ -100,7 +100,7 @@ The `SecurityAlarm` solution supports a variety of `track` parameters:
 Moreover, the following visualization settings are available:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width"]) }}
+{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
 
 ## How It Works
 

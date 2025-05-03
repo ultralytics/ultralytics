@@ -270,8 +270,8 @@ def fuse_conv_and_bn(conv, bn):
 
 def fuse_deconv_and_bn(deconv, bn):
     """Fuse ConvTranspose2d() and BatchNorm2d() layers."""
-    fuseddconv = (
-        nn.ConvTranspose2d(
+    with torch.no_grad():
+        fused = nn.ConvTranspose2d(
             deconv.in_channels,
             deconv.out_channels,
             kernel_size=deconv.kernel_size,
@@ -281,22 +281,29 @@ def fuse_deconv_and_bn(deconv, bn):
             dilation=deconv.dilation,
             groups=deconv.groups,
             bias=True,
-        )
-        .requires_grad_(False)
-        .to(deconv.weight.device)
-    )
+        ).to(deconv.weight.device)
 
-    # Prepare filters
-    w_deconv = deconv.weight.view(deconv.out_channels, -1)
-    w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
-    fuseddconv.weight.copy_(torch.mm(w_bn, w_deconv).view(fuseddconv.weight.shape))
+        # BatchNorm params
+        eps = bn.eps
+        std = torch.sqrt(bn.running_var + eps)
+        gamma = bn.weight
+        beta = bn.bias
+        mean = bn.running_mean
 
-    # Prepare spatial bias
-    b_conv = torch.zeros(deconv.weight.shape[1], device=deconv.weight.device) if deconv.bias is None else deconv.bias
-    b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fuseddconv.bias.copy_(torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn)
+        # Rescale weights
+        scale = (gamma / std).reshape(1, -1, 1, 1)  # match out_channels (BN is on output)
+        fused.weight.copy_(deconv.weight * scale)
 
-    return fuseddconv
+        # Rescale bias
+        if deconv.bias is not None:
+            bias = deconv.bias
+        else:
+            bias = torch.zeros(deconv.out_channels, device=deconv.weight.device)
+
+        fused_bias = (gamma / std) * (bias - mean) + beta
+        fused.bias.copy_(fused_bias)
+
+    return fused
 
 
 def model_info(model, detailed=False, verbose=True, imgsz=640):

@@ -255,7 +255,7 @@ class BaseDataset(Dataset):
                         self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
 
             return im, (h0, w0), im.shape[:2]
-        
+
         # Update buffer
         elif self.cache == "ram" and self.augment:
             self.buffer.append(i)

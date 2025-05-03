@@ -23,7 +23,7 @@ import numpy as np
 import torch
 
 from ultralytics.cfg import get_cfg, get_save_dir
-from ultralytics.utils import DEFAULT_CFG, LOGGER, callbacks, colorstr, remove_colorstr, yaml_print, yaml_save
+from ultralytics.utils import DEFAULT_CFG, LOGGER, YAML, callbacks, colorstr, remove_colorstr
 from ultralytics.utils.plotting import plot_tune_results
 
 
@@ -88,8 +88,9 @@ class Tuner:
             "flipud": (0.0, 1.0),  # image flip up-down (probability)
             "fliplr": (0.0, 1.0),  # image flip left-right (probability)
             "bgr": (0.0, 1.0),  # image channel bgr (probability)
-            "mosaic": (0.0, 1.0),  # image mixup (probability)
+            "mosaic": (0.0, 1.0),  # image mosaic (probability)
             "mixup": (0.0, 1.0),  # image mixup (probability)
+            "cutmix": (0.0, 1.0),  # image cutmix (probability)
             "copy_paste": (0.0, 1.0),  # segment copy-paste (probability)
         }
         self.args = get_cfg(overrides=args)
@@ -234,9 +235,9 @@ class Tuner:
             )
             LOGGER.info("\n" + header)
             data = {k: float(x[best_idx, i + 1]) for i, k in enumerate(self.space.keys())}
-            yaml_save(
+            YAML.save(
                 self.tune_dir / "best_hyperparameters.yaml",
                 data=data,
                 header=remove_colorstr(header.replace(self.prefix, "# ")) + "\n",
             )
-            yaml_print(self.tune_dir / "best_hyperparameters.yaml")
+            YAML.print(self.tune_dir / "best_hyperparameters.yaml")

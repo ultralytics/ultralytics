@@ -111,7 +111,7 @@ The `AIGym` solution also supports a range of object tracking parameters:
 Additionally, the following visualization settings can be applied:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width"]) }}
+{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
 
 ## FAQ
 

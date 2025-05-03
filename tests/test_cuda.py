@@ -25,6 +25,7 @@ if CUDA_IS_AVAILABLE:
     elif IS_JETSON:
         DEVICES = 0
 
+
 def test_checks():
     """Validate CUDA settings against torch CUDA functions."""
     assert torch.cuda.is_available() == CUDA_IS_AVAILABLE

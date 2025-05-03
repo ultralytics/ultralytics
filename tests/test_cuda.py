@@ -66,8 +66,8 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
     Path(file).unlink()  # cleanup
 
 
-# @pytest.mark.slow
-# @pytest.mark.skipif(True, reason="CUDA export tests disabled pending additional Ultralytics GPU server availability")
+@pytest.mark.slow
+@pytest.mark.skipif(True, reason="CUDA export tests disabled pending additional Ultralytics GPU server availability")
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch",

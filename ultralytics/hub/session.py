@@ -9,8 +9,9 @@ from urllib.parse import parse_qs, urlparse
 
 import requests
 
-from ultralytics.hub.utils import HELP_MSG, HUB_WEB_ROOT, PREFIX, TQDM
-from ultralytics.utils import IS_COLAB, LOGGER, SETTINGS, __version__, checks, emojis
+from ultralytics import __version__
+from ultralytics.hub.utils import HELP_MSG, HUB_WEB_ROOT, PREFIX
+from ultralytics.utils import IS_COLAB, LOGGER, SETTINGS, TQDM, checks, emojis
 from ultralytics.utils.errors import HUBModelError
 
 AGENT_NAME = f"python-{__version__}-colab" if IS_COLAB else f"python-{__version__}-local"
@@ -200,7 +201,7 @@ class HUBTrainingSession:
             HUBModelError: If the identifier format is not recognized.
         """
         api_key, model_id, filename = None, None, None
-        if Path(identifier).suffix in {".pt", ".yaml"}:
+        if str(identifier).endswith((".pt", ".yaml")):
             filename = identifier
         elif identifier.startswith(f"{HUB_WEB_ROOT}/models/"):
             parsed_url = urlparse(identifier)

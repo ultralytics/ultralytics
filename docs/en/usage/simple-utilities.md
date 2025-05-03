@@ -118,7 +118,6 @@ You can then train your model with:
 yolo task=detect mode=train model=yolov8n.pt data=dataset/data.yaml
 ```
 
-
 ### Get Bounding Box Dimensions
 
 ```python

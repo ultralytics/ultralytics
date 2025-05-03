@@ -317,7 +317,7 @@ jobs:
           - name: JetPack5.1.2
             python: "3.8"
             runner: jetson-jp512
-            numpy: ""
+            numpy: "1.23.5"
             torch_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.2.0-cp38-cp38-linux_aarch64.whl"
             torchvision_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.17.2+c1d70fe-cp38-cp38-linux_aarch64.whl"
             onnxruntime_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.18.0-cp38-cp38-linux_aarch64.whl"
@@ -336,9 +336,10 @@ jobs:
           numpy="numpy==${{ matrix.numpy }}"
           fi
 
-          uv pip install -e ".[export]" pytest $numpy \
+          uv pip install -e ".[export]" pytest \
           "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}" "${{ matrix.onnxruntime_whl }}" \
           --index-strategy unsafe-best-match
+          uv pip install $numpy
       - name: Check environment
         run: |
           yolo checks
@@ -357,9 +358,10 @@ jobs:
           numpy="numpy==${{ matrix.numpy }}"
           fi
 
-          uv pip install -e ".[export]" $numpy \
+          uv pip install -e ".[export]" \
           "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}" "${{ matrix.onnxruntime_whl }}" \
           --index-strategy unsafe-best-match
+          uv pip install $numpy
       - name: Check environment
         run: |
           yolo checks

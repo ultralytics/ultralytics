@@ -520,10 +520,8 @@ def yaml_load(file="data.yaml", append_filename=False):
         if not s.isprintable():
             s = re.sub(r"[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+", "", s)
 
-        # Add YAML filename to dict and return (~73% faster with CSafeLoader: https://gist.github.com/ickc/f9d6c57338d4be07f6cf70991d462fc3)
-        data = (
-            yaml.load(s, Loader=yaml.CSafeLoader) or {}
-        )  # always return a dict (yaml.load() may return None for empty files)
+        # Add YAML filename to dict and return
+        data = yaml.load(s, Loader=yaml.CSafeLoader) or {}  # always return a dict
         if append_filename:
             data["yaml_file"] = str(file)
         return data
@@ -540,7 +538,7 @@ def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
         (None)
     """
     yaml_dict = yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
-    dump = yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=float("inf"))
+    dump = yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=float("inf"), Dumper=yaml.CDumper)
     LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
 
 

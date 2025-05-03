@@ -23,7 +23,7 @@ import cv2
 import numpy as np
 import torch
 import tqdm
-import yaml
+import fastyaml as yaml
 
 from ultralytics import __version__
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_load, torch_save  # for patches
@@ -498,7 +498,7 @@ def yaml_save(file="data.yaml", data=None, header=""):
     with open(file, "w", errors="ignore", encoding="utf-8") as f:
         if header:
             f.write(header)
-        yaml.safe_dump(data, f, sort_keys=False, allow_unicode=True)
+        yaml.dump(data, f)  # yaml.safe_dump(data, f, sort_keys=False, allow_unicode=True)
 
 
 def yaml_load(file="data.yaml", append_filename=False):
@@ -521,7 +521,10 @@ def yaml_load(file="data.yaml", append_filename=False):
             s = re.sub(r"[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+", "", s)
 
         # Add YAML filename to dict and return
-        data = yaml.safe_load(s) or {}  # always return a dict (yaml.safe_load() may return None for empty files)
+        try:
+            data = yaml.loads(s)
+        except Exception:
+            data = {}  # always return a dict (yaml.safe_load() may return None for empty files)
         if append_filename:
             data["yaml_file"] = str(file)
         return data
@@ -538,7 +541,8 @@ def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
         (None)
     """
     yaml_dict = yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
-    dump = yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=float("inf"))
+    # dump = yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=float("inf"))
+    dump = yaml.dumps(yaml_dict).replace("~", "None")
     LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
 
 

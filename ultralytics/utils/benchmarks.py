@@ -417,7 +417,7 @@ class ProfileModels:
         self.imgsz = imgsz
         self.half = half
         self.trt = trt  # run TensorRT profiling
-        self.device = device if isinstance(device, torch.Device) else select_device(device)
+        self.device = device if isinstance(device, torch.device) else select_device(device)
 
     def run(self):
         """

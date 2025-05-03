@@ -608,7 +608,7 @@ def check_yolo(verbose=True, device=""):
 
     Args:
         verbose (bool): Whether to print verbose information.
-        device (str | torch.Device): Device to use for YOLO.
+        device (str | torch.device): Device to use for YOLO.
     """
     import psutil
 

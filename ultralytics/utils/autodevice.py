@@ -186,7 +186,6 @@ class GPUInfo:
         return selected_indices
 
 
-# Main execution example (remains the same)
 if __name__ == "__main__":
     required_free_mem = 2048  # Require 2GB free VRAM
     num_gpus_to_select = 1  # <<< Number of GPUs to select

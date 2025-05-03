@@ -16,7 +16,6 @@ from typing import Optional
 
 import cv2
 import numpy as np
-import requests
 import torch
 
 from ultralytics.utils import (
@@ -262,6 +261,8 @@ def check_latest_pypi_version(package_name="ultralytics"):
     Returns:
         (str): The latest version of the package.
     """
+    import requests  # slow import
+
     try:
         requests.packages.urllib3.disable_warnings()  # Disable the InsecureRequestWarning
         response = requests.get(f"https://pypi.org/pypi/{package_name}/json", timeout=3)
@@ -305,7 +306,7 @@ def check_font(font="Arial.ttf"):
     Returns:
         (Path): Resolved font file path.
     """
-    from matplotlib import font_manager
+    from matplotlib import font_manager  # scope for faster 'import ultralytics'
 
     # Check USER_CONFIG_DIR
     name = Path(font).name
@@ -454,7 +455,7 @@ def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
     """
     if file and suffix:
         if isinstance(suffix, str):
-            suffix = (suffix,)
+            suffix = {suffix}
         for f in file if isinstance(file, (list, tuple)) else [file]:
             s = Path(f).suffix.lower().strip()  # file suffix
             if len(s):
@@ -608,7 +609,7 @@ def check_yolo(verbose=True, device=""):
 
     Args:
         verbose (bool): Whether to print verbose information.
-        device (str): Device to use for YOLO.
+        device (str | torch.device): Device to use for YOLO.
     """
     import psutil
 
@@ -810,7 +811,7 @@ def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
     except ValueError:
         file = Path(file).stem
     s = (f"{file}: " if show_file else "") + (f"{func}: " if show_func else "")
-    LOGGER.info(colorstr(s) + ", ".join(f"{k}={strip_auth(v)}" for k, v in args.items()))
+    LOGGER.info(colorstr(s) + ", ".join(f"{k}={strip_auth(v)}" for k, v in sorted(args.items())))
 
 
 def cuda_device_count() -> int:

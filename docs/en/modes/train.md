@@ -103,7 +103,7 @@ Multi-GPU training allows for more efficient utilization of available hardware r
         # Train the model with 2 GPUs
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=[0, 1])
 
-        # Train the model with any 2 idle GPUs
+        # Train the model with the two most idle GPUs
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=[-1, -1])
         ```
 
@@ -113,7 +113,7 @@ Multi-GPU training allows for more efficient utilization of available hardware r
         # Start training from a pretrained *.pt model using GPUs 0 and 1
         yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 device=0,1
 
-        # Start training from a pretrained *.pt model using any two idle GPUs
+        # Use the two most idle GPUs
         yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 device=-1,-1
         ```
 
@@ -151,6 +151,7 @@ Idle GPU Training enables automatic selection of the least utilized GPUs in mult
         ```
 
 The auto-selection algorithm prioritizes GPUs with:
+
 1. Lower current utilization percentages
 2. Higher available memory (free VRAM)
 3. Lower temperature and power consumption

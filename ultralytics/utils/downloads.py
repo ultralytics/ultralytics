@@ -8,7 +8,6 @@ from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from urllib import parse, request
 
-import requests
 import torch
 
 from ultralytics.utils import LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
@@ -34,6 +33,7 @@ GITHUB_ASSETS_NAMES = frozenset(
     + [f"FastSAM-{k}.pt" for k in "sx"]
     + [f"rtdetr-{k}.pt" for k in "lx"]
     + ["mobile_sam.pt"]
+    + ["mobileclip_blt.ts"]
     + ["calibration_image_sample_data_20x128x128x3_float32.npy.zip"]
 )
 GITHUB_ASSETS_STEMS = frozenset(k.rsplit(".", 1)[0] for k in GITHUB_ASSETS_NAMES)
@@ -202,6 +202,8 @@ def check_disk_space(url="https://ultralytics.com/assets/coco8.zip", path=Path.c
     Returns:
         (bool): True if there is sufficient disk space, False otherwise.
     """
+    import requests  # slow import
+
     try:
         r = requests.head(url)  # response
         assert r.status_code < 400, f"URL error for {url}: {r.status_code} {r.reason}"  # check response
@@ -243,6 +245,8 @@ def get_google_drive_file_info(link):
         >>> link = "https://drive.google.com/file/d/1cqT-cJgANNrhIHCrEufUYhQ4RqiWG_lJ/view?usp=drive_link"
         >>> url, filename = get_google_drive_file_info(link)
     """
+    import requests  # slow import
+
     file_id = link.split("/d/")[1].split("/view")[0]
     drive_url = f"https://drive.google.com/uc?export=download&id={file_id}"
     filename = None
@@ -319,9 +323,10 @@ def safe_download(
         LOGGER.info(f"{desc}...")
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
         check_disk_space(url, path=f.parent)
+        curl_installed = shutil.which("curl")
         for i in range(retry + 1):
             try:
-                if curl or i > 0:  # curl download with retry, continue
+                if (curl or i > 0) and curl_installed:  # curl download with retry, continue
                     s = "sS" * (not progress)  # silent
                     r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
                     assert r == 0, f"Curl return value {r}"
@@ -386,6 +391,8 @@ def get_github_assets(repo="ultralytics/assets", version="latest", retry=False):
     Examples:
         >>> tag, assets = get_github_assets(repo="ultralytics/assets", version="latest")
     """
+    import requests  # slow import
+
     if version != "latest":
         version = f"tags/{version}"  # i.e. tags/v6.2
     url = f"https://api.github.com/repos/{repo}/releases/{version}"

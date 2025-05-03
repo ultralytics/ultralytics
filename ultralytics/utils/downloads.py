@@ -8,7 +8,6 @@ from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from urllib import parse, request
 
-import requests
 import torch
 
 from ultralytics.utils import LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
@@ -203,6 +202,8 @@ def check_disk_space(url="https://ultralytics.com/assets/coco8.zip", path=Path.c
     Returns:
         (bool): True if there is sufficient disk space, False otherwise.
     """
+    import requests  # slow import
+
     try:
         r = requests.head(url)  # response
         assert r.status_code < 400, f"URL error for {url}: {r.status_code} {r.reason}"  # check response
@@ -244,6 +245,8 @@ def get_google_drive_file_info(link):
         >>> link = "https://drive.google.com/file/d/1cqT-cJgANNrhIHCrEufUYhQ4RqiWG_lJ/view?usp=drive_link"
         >>> url, filename = get_google_drive_file_info(link)
     """
+    import requests  # slow import
+
     file_id = link.split("/d/")[1].split("/view")[0]
     drive_url = f"https://drive.google.com/uc?export=download&id={file_id}"
     filename = None
@@ -388,6 +391,8 @@ def get_github_assets(repo="ultralytics/assets", version="latest", retry=False):
     Examples:
         >>> tag, assets = get_github_assets(repo="ultralytics/assets", version="latest")
     """
+    import requests  # slow import
+
     if version != "latest":
         version = f"tags/{version}"  # i.e. tags/v6.2
     url = f"https://api.github.com/repos/{repo}/releases/{version}"

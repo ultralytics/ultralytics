@@ -108,10 +108,10 @@ class GPUInfo:
         LOGGER.info(f"\n--- GPU Status ---\n{hdr}\n{'-' * len(hdr)}")
 
         for gpu in stats:
-            u = f"{gpu['utilization']:>5}%" if gpu['utilization'] >= 0 else " N/A "
-            m = f"{gpu['memory_used']:>6}/{gpu['memory_total']:<6}" if gpu['memory_used'] >= 0 else " N/A / N/A "
-            t = f"{gpu['temperature']}C" if gpu['temperature'] >= 0 else " N/A "
-            p = f"{gpu['power_draw']:>3}/{gpu['power_limit']:<3}" if gpu['power_draw'] >= 0 else " N/A "
+            u = f"{gpu['utilization']:>5}%" if gpu["utilization"] >= 0 else " N/A "
+            m = f"{gpu['memory_used']:>6}/{gpu['memory_total']:<6}" if gpu["memory_used"] >= 0 else " N/A / N/A "
+            t = f"{gpu['temperature']}C" if gpu["temperature"] >= 0 else " N/A "
+            p = f"{gpu['power_draw']:>3}/{gpu['power_limit']:<3}" if gpu["power_draw"] >= 0 else " N/A "
 
             LOGGER.info(f"{gpu.get('index'):<3d} {gpu.get('name', 'N/A'):<{name_len}} {u:>6} {m:>15} {t:>5} {p:>10}")
 
@@ -143,8 +143,11 @@ class GPUInfo:
             return []
 
         # Filter and sort eligible GPUs
-        eligible_gpus = [gpu for gpu in self.gpu_stats
-                         if gpu.get("memory_free", -1) >= min_memory_mb and gpu.get("utilization", -1) != -1]
+        eligible_gpus = [
+            gpu
+            for gpu in self.gpu_stats
+            if gpu.get("memory_free", -1) >= min_memory_mb and gpu.get("utilization", -1) != -1
+        ]
         eligible_gpus.sort(key=lambda x: (x.get("utilization", 101), -x.get("memory_free", 0)))
 
         # Select top 'count' indices

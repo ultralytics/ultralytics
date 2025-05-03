@@ -524,7 +524,6 @@ def yaml_load(file="data.yaml", append_filename=False):
             data = yaml.load(s, Loader=yaml.CSafeLoader) or {}  # always return a dict
 
         # Add YAML filename to dict and return
-        data = yaml.load(s, Loader=yaml.CSafeLoader) or {}  # always return a dict
         if append_filename:
             data["yaml_file"] = str(file)
         return data

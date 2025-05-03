@@ -11,7 +11,7 @@ from typing import Optional
 
 import cv2
 import numpy as np
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, get_worker_info
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS, check_file_speeds
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
@@ -128,19 +128,7 @@ class BaseDataset(Dataset):
         # Cache images (options are cache = True, False, None, "ram", "disk")
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
-        if isinstance(cache, str):
-            c = cache.lower()
-            if c in ("true", "ram"):
-                self.cache = "ram"
-            elif c == "disk":
-                self.cache = "disk"
-            else:
-                self.cache = None
-                LOGGER.warning(f"{self.prefix}Unknown cache option '{cache}', disabling cache.")
-        else:
-            self.cache = "ram" if cache else None
-
-        from torch.utils.data import get_worker_info
+        self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
 
         if get_worker_info() is None and self.cache is not None:
             if self.cache == "ram" and self.check_cache_ram():
@@ -305,8 +293,6 @@ class BaseDataset(Dataset):
             (bool): True if there's enough disk space, False otherwise.
         """
         import shutil
-
-        print(f"[PID {os.getpid()}] cache_images() called")
 
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
         n = min(self.ni, 30)  # extrapolate from 30 random images

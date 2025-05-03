@@ -55,7 +55,7 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 {{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
 
 !!! note "Visualization args"
-    
+
     You can use `show_conf`, `show_labels`, and other mentioned arguments to customize the visualization.
 
 {% from "macros/visualization-args.md" import param_table %}
@@ -92,12 +92,13 @@ All Solutions calls return a list of `SolutionResults` objects, containing compr
 
     ```python
     import cv2
+
     from ultralytics import solutions
-    
+
     im0 = cv2.imread("path/to/img")
-    
+
     region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
-    
+
     counter = solutions.ObjectCounter(
         show=True,  # display the output
         region=region,  # pass region points

@@ -4,7 +4,7 @@ Benchmark a YOLO model formats for speed and accuracy.
 
 Usage:
     from ultralytics.utils.benchmarks import ProfileModels, benchmark
-    ProfileModels(['yolo11n.yaml', 'yolov8s.yaml']).profile()
+    ProfileModels(['yolo11n.yaml', 'yolov8s.yaml']).run()
     benchmark(model='yolo11n.pt', imgsz=160)
 
 Format                  | `format=argument`         | Model
@@ -36,12 +36,11 @@ from pathlib import Path
 
 import numpy as np
 import torch.cuda
-import yaml
 
 from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
-from ultralytics.utils import ARM64, ASSETS, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR
+from ultralytics.utils import ARM64, ASSETS, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR, YAML
 from ultralytics.utils.checks import IS_PYTHON_3_13, check_imgsz, check_requirements, check_yolo, is_rockchip
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.files import file_size
@@ -283,12 +282,10 @@ class RF100Benchmark:
     @staticmethod
     def fix_yaml(path):
         """Fix the train and validation paths in a given YAML file."""
-        with open(path, encoding="utf-8") as file:
-            yaml_data = yaml.safe_load(file)
+        yaml_data = YAML.load(path)
         yaml_data["train"] = "train/images"
         yaml_data["val"] = "valid/images"
-        with open(path, "w", encoding="utf-8") as file:
-            yaml.safe_dump(yaml_data, file)
+        YAML.dump(yaml_data, path)
 
     def evaluate(self, yaml_path, val_log_file, eval_log_file, list_ind):
         """
@@ -309,8 +306,7 @@ class RF100Benchmark:
             >>> benchmark.evaluate("path/to/data.yaml", "path/to/val_log.txt", "path/to/eval_log.txt", 0)
         """
         skip_symbols = ["🚀", "⚠️", "💡", "❌"]
-        with open(yaml_path, encoding="utf-8") as stream:
-            class_names = yaml.safe_load(stream)["names"]
+        class_names = YAML.load(yaml_path)["names"]
         with open(val_log_file, encoding="utf-8") as f:
             lines = f.readlines()
             eval_lines = []
@@ -378,7 +374,7 @@ class ProfileModels:
         Profile models and print results
         >>> from ultralytics.utils.benchmarks import ProfileModels
         >>> profiler = ProfileModels(["yolo11n.yaml", "yolov8s.yaml"], imgsz=640)
-        >>> profiler.profile()
+        >>> profiler.run()
     """
 
     def __init__(
@@ -412,7 +408,7 @@ class ProfileModels:
             Initialize and profile models
             >>> from ultralytics.utils.benchmarks import ProfileModels
             >>> profiler = ProfileModels(["yolo11n.yaml", "yolov8s.yaml"], imgsz=640)
-            >>> profiler.profile()
+            >>> profiler.run()
         """
         self.paths = paths
         self.num_timed_runs = num_timed_runs
@@ -423,7 +419,7 @@ class ProfileModels:
         self.trt = trt  # run TensorRT profiling
         self.device = device or torch.device(0 if torch.cuda.is_available() else "cpu")
 
-    def profile(self):
+    def run(self):
         """
         Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.
 
@@ -434,7 +430,7 @@ class ProfileModels:
             Profile models and print results
             >>> from ultralytics.utils.benchmarks import ProfileModels
             >>> profiler = ProfileModels(["yolo11n.yaml", "yolov8s.yaml"])
-            >>> results = profiler.profile()
+            >>> results = profiler.run()
         """
         files = self.get_files()
 

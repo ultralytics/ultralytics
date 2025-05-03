@@ -10,8 +10,8 @@ from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS, WEIGHTS_DIR
-from ultralytics.utils.checks import check_amp
 from ultralytics.utils.autodevice import GPUInfo
+from ultralytics.utils.checks import check_amp
 
 
 def test_checks():

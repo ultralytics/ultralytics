@@ -367,19 +367,19 @@ jobs:
           yolo checks
           uv pip list
       - name: Benchmark DetectionModel with TensorRT
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n.pt' format=engine imgsz=160 verbose=0.309
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n.pt' format=engine imgsz=160
       - name: Benchmark ClassificationModel with TensorRT
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-cls.pt' format=engine imgsz=160 verbose=0.249
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-cls.pt' format=engine imgsz=160
       - name: Benchmark YOLOWorld DetectionModel with TensorRT
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' format=engine imgsz=160 verbose=0.337
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' format=engine imgsz=160
       - name: Benchmark SegmentationModel with TensorRT
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-seg.pt' format=engine imgsz=160 verbose=0.195
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-seg.pt' format=engine imgsz=160
       - name: Benchmark PoseModel with TensorRT
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-pose.pt' format=engine imgsz=160 verbose=0.197
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-pose.pt' format=engine imgsz=160
       - name: Benchmark OBBModel with TensorRT
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-obb.pt' format=engine imgsz=160 verbose=0.597
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-obb.pt' format=engine imgsz=160
       - name: Benchmark YOLOv10Model with TensorRT
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolov10n.pt' format=engine imgsz=160 verbose=0.205
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolov10n.pt' format=engine imgsz=160
       - name: Benchmark Summary
         run: |
           cat benchmarks.log

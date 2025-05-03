@@ -9,7 +9,7 @@ import torch
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import ASSETS, WEIGHTS_DIR
+from ultralytics.utils import ASSETS, WEIGHTS_DIR, IS_JETSON
 from ultralytics.utils.autodevice import GPUInfo
 from ultralytics.utils.checks import check_amp
 
@@ -21,7 +21,9 @@ if CUDA_IS_AVAILABLE:
     idle_gpus = gpu_info.select_idle_gpu(count=2, min_memory_mb=2048)
     if idle_gpus:
         DEVICES = idle_gpus
-
+    # NVIDIA Jetson has only one GPU per device
+    elif IS_JETSON:
+        DEVICES = 0
 
 def test_checks():
     """Validate CUDA settings against torch CUDA functions."""

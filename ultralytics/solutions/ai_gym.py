@@ -103,12 +103,13 @@ class AIGym(BaseSolution):
                     self.stage[ind] = "up"
 
                 # Display angle, count, and stage text
-                annotator.plot_angle_and_count_and_stage(
-                    angle_text=self.angle[ind],  # angle text for display
-                    count_text=self.count[ind],  # count text for workouts
-                    stage_text=self.stage[ind],  # stage position text
-                    center_kpt=k[int(self.kpts[1])],  # center keypoint for display
-                )
+                if self.show_labels:
+                    annotator.plot_angle_and_count_and_stage(
+                        angle_text=self.angle[ind],  # angle text for display
+                        count_text=self.count[ind],  # count text for workouts
+                        stage_text=self.stage[ind],  # stage position text
+                        center_kpt=k[int(self.kpts[1])],  # center keypoint for display
+                    )
         plot_im = annotator.result()
         self.display_output(plot_im)  # Display output image, if environment support display
 

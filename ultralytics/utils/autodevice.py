@@ -173,7 +173,7 @@ class GPUInfo:
         selected = [gpu["index"] for gpu in eligible_gpus[:count]]
 
         if selected:
-            LOGGER.info(f"Selected GPU indices based on idleness: {selected} (requested {count})")
+            LOGGER.info(f"Selected idle CUDA devices {selected}")
         elif self.gpu_stats:
             LOGGER.warning(f"No GPUs met the criteria (Util != -1, Free Mem >= {min_memory_mb} MiB).")
         else:

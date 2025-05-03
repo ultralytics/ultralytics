@@ -1,0 +1,5 @@
+# data/my_dataset.yaml
+train: C:/Users/Asus/Desktop/ultralytics/data/train/images
+val:   C:/Users/Asus/Desktop/ultralytics/data/train/images
+nc:    1
+names: ['myclass']

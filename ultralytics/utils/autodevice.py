@@ -80,7 +80,7 @@ class GPUInfo:
                 self.gpu_stats.append(
                     {
                         "index": i,
-                        "name": str(self.pynvml.nvmlDeviceGetName(handle).decode("utf-8")),
+                        "name": self.pynvml.nvmlDeviceGetName(handle),
                         "utilization": util.gpu if util else -1,
                         "memory_used": memory.used >> 20 if memory else -1,
                         "memory_total": memory.total >> 20 if memory else -1,

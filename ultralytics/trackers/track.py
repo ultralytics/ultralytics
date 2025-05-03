@@ -5,7 +5,7 @@ from pathlib import Path
 
 import torch
 
-from ultralytics.utils import IterableSimpleNamespace, yaml_load
+from ultralytics.utils import YAML, IterableSimpleNamespace
 from ultralytics.utils.checks import check_yaml
 
 from .bot_sort import BOTSORT
@@ -39,7 +39,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         return
 
     tracker = check_yaml(predictor.args.tracker)
-    cfg = IterableSimpleNamespace(**yaml_load(tracker))
+    cfg = IterableSimpleNamespace(**YAML.load(tracker))
 
     if cfg.tracker_type not in {"bytetrack", "botsort"}:
         raise AssertionError(f"Only 'bytetrack' and 'botsort' are supported for now, but got '{cfg.tracker_type}'")

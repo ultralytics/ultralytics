@@ -15,7 +15,6 @@ from typing import Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.utils.checkpoint as checkpoint
 
 from ultralytics.nn.modules import LayerNorm2d
 from ultralytics.utils.instance import to_2tuple
@@ -308,7 +307,7 @@ class ConvLayer(nn.Module):
     def forward(self, x):
         """Processes input through convolutional layers, applying MBConv blocks and optional downsampling."""
         for blk in self.blocks:
-            x = checkpoint.checkpoint(blk, x) if self.use_checkpoint else blk(x)
+            x = torch.utils.checkpoint(blk, x) if self.use_checkpoint else blk(x)  # warn: checkpoint is slow import
         return x if self.downsample is None else self.downsample(x)
 
 
@@ -751,7 +750,7 @@ class BasicLayer(nn.Module):
     def forward(self, x):
         """Processes input through TinyViT blocks and optional downsampling."""
         for blk in self.blocks:
-            x = checkpoint.checkpoint(blk, x) if self.use_checkpoint else blk(x)
+            x = torch.utils.checkpoint(blk, x) if self.use_checkpoint else blk(x)  # warn: checkpoint is slow import
         return x if self.downsample is None else self.downsample(x)
 
     def extra_repr(self) -> str:

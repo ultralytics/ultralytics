@@ -136,9 +136,9 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         device (str | torch.device, optional): Device string or torch.device object.
             Options are 'None', 'cpu', or 'cuda', or '0' or '0,1,2,3'. Defaults to an empty string, which auto-selects
             the first available GPU, or CPU if no GPU is available.
-        batch (int, optional): Batch size being used in your model. Defaults to 0.
-        newline (bool, optional): If True, adds a newline at the end of the log string. Defaults to False.
-        verbose (bool, optional): If True, logs the device information. Defaults to True.
+        batch (int, optional): Batch size being used in your model.
+        newline (bool, optional): If True, adds a newline at the end of the log string.
+        verbose (bool, optional): If True, logs the device information.
 
     Returns:
         (torch.device): Selected device.
@@ -157,7 +157,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     Note:
         Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
     """
-    if isinstance(device, torch.device) or str(device).startswith("tpu") or str(device).startswith("intel"):
+    if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel")):
         return device
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{torch.__version__} "
@@ -200,7 +200,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
             if batch < 1:
                 raise ValueError(
                     "AutoBatch with batch<1 not supported for Multi-GPU training, "
-                    "please specify a valid batch size, i.e. batch=16."
+                    f"please specify a valid batch size multiple of GPU count {n}, i.e. batch={n * 8}."
                 )
             if batch >= 0 and batch % n != 0:  # check batch_size is divisible by device_count
                 raise ValueError(

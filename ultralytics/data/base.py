@@ -255,6 +255,12 @@ class BaseDataset(Dataset):
                         self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
 
             return im, (h0, w0), im.shape[:2]
+        
+        # Update buffer
+        elif self.cache == "ram" and self.augment:
+            self.buffer.append(i)
+            if 1 < len(self.buffer) >= self.max_buffer_length:  # prevent empty buffer
+                self.buffer.pop(0)
 
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
 

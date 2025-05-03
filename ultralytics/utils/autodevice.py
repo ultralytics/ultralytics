@@ -103,7 +103,7 @@ class GPUInfo:
         """Prints GPU status in a compact table format using current stats."""
         self.refresh_stats()
         if not self.gpu_stats:
-            LOGGER.warning("\nNo GPU stats available.")
+            LOGGER.warning("No GPU stats available.")
             return
 
         stats = self.gpu_stats

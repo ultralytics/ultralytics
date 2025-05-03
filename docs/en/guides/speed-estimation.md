@@ -107,7 +107,7 @@ keywords: Ultralytics YOLO11, speed estimation, object tracking, computer vision
 Here's a table with the `SpeedEstimator` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model"]) }}
+{{ param_table(["model", "fps", "max_hist", "meter_per_pixel", "max_speed"]) }}
 
 The `SpeedEstimator` solution allows the use of `track` parameters:
 

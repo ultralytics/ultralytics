@@ -616,6 +616,7 @@ nav:
       - utils:
           - __init__: reference/utils/__init__.md
           - autobatch: reference/utils/autobatch.md
+          - autodevice: reference/utils/autodevice.md
           - benchmarks: reference/utils/benchmarks.md
           - callbacks:
               - base: reference/utils/callbacks/base.md

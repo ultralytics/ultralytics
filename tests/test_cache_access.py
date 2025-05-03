@@ -11,6 +11,8 @@ class AccessDataset(BaseDataset):
     """Dataset that fills and verifies RAM cache across workers."""
 
     def __init__(self, img_path, imgsz, cache="ram", **kwargs):
+        """Initialize dataset and populate RAM cache for testing."""
+        super().__init__(img_path, imgsz, cache=cache, **kwargs)
         super().__init__(img_path, imgsz, cache=cache, **kwargs)
 
     def get_img_files(self, img_path):

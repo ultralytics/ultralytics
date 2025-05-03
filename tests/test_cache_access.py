@@ -1,11 +1,13 @@
-import pytest
 import numpy as np
 from torch.utils.data import DataLoader, get_worker_info
+
 from ultralytics.data.base import BaseDataset
+
 
 def identity_transform(x):
     """A no-op transform for testing."""
     return x
+
 
 class AccessDataset(BaseDataset):
     """Dataset that fills and verifies RAM cache across workers."""
@@ -28,6 +30,7 @@ class AccessDataset(BaseDataset):
     def cache_images(self):
         """Pre-populate self.ims with a known pattern."""
         import numpy as _np
+
         self.ims = [_np.arange(5) for _ in range(self.ni)]
 
     def build_transforms(self, hyp=None):
@@ -41,15 +44,13 @@ class AccessDataset(BaseDataset):
     def __getitem__(self, idx):
         """Verify the RAM cache is present in each worker."""
         worker = get_worker_info()
-        assert hasattr(self, 'ims'), f"Cache not initialized in worker {worker}"
+        assert hasattr(self, "ims"), f"Cache not initialized in worker {worker}"
         assert self.ims[idx] is not None, f"Worker {worker} saw no RAM cache at idx {idx}"
         return self.ims[idx]
 
 
 def test_ram_cache_accessible_in_workers():
-    """
-    Ensure that RAM-cached images are accessible in each DataLoader worker.
-    """
+    """Ensure that RAM-cached images are accessible in each DataLoader worker."""
     ds = AccessDataset(img_path=["dummy"], imgsz=32, cache="ram")
     loader = DataLoader(ds, batch_size=2, num_workers=2)
 

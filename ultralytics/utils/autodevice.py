@@ -1,9 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import sys
-import warnings  # Use warnings module for better control
 
 import torch
+
+from ultralytics.utils import LOGGER
 
 
 class GPUInfo:
@@ -30,12 +31,12 @@ class GPUInfo:
             self.nvml_available = True
             self.refresh_stats()
         except ImportError:
-            warnings.warn("nvidia-ml-py (pynvml) not found. GPU stats features will be disabled.", ImportWarning)
+            LOGGER.warning("nvidia-ml-py (pynvml) not found. GPU stats features will be disabled.")
         except pynvml.NVMLError as error:
-            warnings.warn(f"Failed to initialize NVML: {error}. GPU stats features will be disabled.", RuntimeWarning)
+            LOGGER.warning(f"Failed to initialize NVML: {error}. GPU stats features will be disabled.")
             self.pynvml = None
         except Exception as e:
-            warnings.warn(f"An unexpected error occurred during pynvml initialization: {e}", RuntimeWarning)
+            LOGGER.warning(f"An unexpected error occurred during pynvml initialization: {e}")
             self.pynvml = None
 
     def __del__(self):
@@ -92,10 +93,10 @@ class GPUInfo:
                     }
                 )
         except self.pynvml.NVMLError as error:
-            warnings.warn(f"NVML error during device query: {error}", RuntimeWarning)
+            LOGGER.warning(f"NVML error during device query: {error}")
             self.gpu_stats = []
         except Exception as e:
-            warnings.warn(f"Unexpected error during device query: {e}", RuntimeWarning)
+            LOGGER.warning(f"Unexpected error during device query: {e}")
             self.gpu_stats = []
 
     def print_status(self):
@@ -151,7 +152,7 @@ class GPUInfo:
 
         # Fallback if NVML failed or no stats
         if not self.nvml_available or not self.gpu_stats:
-            warnings.warn("NVML stats unavailable. Falling back to basic CUDA device check.", RuntimeWarning)
+            LOGGER.warning("NVML stats unavailable. Falling back to basic CUDA device check.")
             try:
                 if torch.cuda.is_available():
                     num_devs = torch.cuda.device_count()

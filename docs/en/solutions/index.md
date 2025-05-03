@@ -97,11 +97,11 @@ All Solutions calls return a list of `SolutionResults` objects, containing compr
 
     im0 = cv2.imread("path/to/img")
 
-    region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
+    region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
     counter = solutions.ObjectCounter(
         show=True,  # display the output
-        region=region,  # pass region points
+        region=region_points,  # pass region points
         model="yolo11n.pt",  # model="yolo11n-obb.pt" for object counting with OBB model.
         # classes=[0, 2],  # count specific classes i.e. person and car with COCO pretrained model.
         # tracker="botsort.yaml"  # Choose trackers i.e "bytetrack.yaml"

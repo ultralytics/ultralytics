@@ -516,17 +516,19 @@ def yaml_load(file="data.yaml", append_filename=False):
     with open(file, errors="ignore", encoding="utf-8") as f:
         s = f.read()  # string
 
-        try:
-            data = yaml.load(s, Loader=yaml.CSafeLoader) or {}  # always return a dict
-        except Exception:
-            # Remove special characters first
-            s = re.sub(r"[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+", "", s)
-            data = yaml.load(s, Loader=yaml.CSafeLoader) or {}  # always return a dict
+    # Read YAML string contents
+    try:
+        data = yaml.load(s, Loader=yaml.CSafeLoader) or {}
+    except Exception:
+        # Remove special characters and retry only if the first attempt fails
+        s = re.sub(r"[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+", "", s)
+        data = yaml.load(s, Loader=yaml.CSafeLoader) or {}
 
-        # Add YAML filename to dict and return
-        if append_filename:
-            data["yaml_file"] = str(file)
-        return data
+    # Add YAML filename to dict
+    if append_filename:
+        data["yaml_file"] = str(file)
+
+    return data
 
 
 def yaml_print(yaml_file: Union[str, Path, dict]) -> None:

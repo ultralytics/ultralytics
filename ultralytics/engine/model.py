@@ -18,9 +18,9 @@ from ultralytics.utils import (
     LOGGER,
     RANK,
     SETTINGS,
+    YAML,
     callbacks,
     checks,
-    yaml_load,
 )
 
 
@@ -142,7 +142,7 @@ class Model(torch.nn.Module):
 
         # Load or create new YOLO model
         __import__("os").environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # to avoid deterministic warnings
-        if Path(model).suffix in {".yaml", ".yml"}:
+        if str(model).endswith((".yaml", ".yml")):
             self._new(model, task=task, verbose=verbose)
         else:
             self._load(model, task=task)
@@ -773,7 +773,7 @@ class Model(torch.nn.Module):
 
         checks.check_pip_update_available()
 
-        overrides = yaml_load(checks.check_yaml(kwargs["cfg"])) if kwargs.get("cfg") else self.overrides
+        overrides = YAML.load(checks.check_yaml(kwargs["cfg"])) if kwargs.get("cfg") else self.overrides
         custom = {
             # NOTE: handle the case when 'cfg' includes 'data'.
             "data": overrides.get("data") or DEFAULT_CFG_DICT["data"] or TASK2DATA[self.task],

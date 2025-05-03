@@ -37,13 +37,8 @@ class GPUInfo:
             self.pynvml.nvmlInit()
             self.nvml_available = True
             self.refresh_stats()
-        except ImportError:
-            LOGGER.warning("nvidia-ml-py (pynvml) not found. GPU stats features will be disabled.")
-        except self.pynvml.NVMLError as error:
-            LOGGER.warning(f"Failed to initialize NVML: {error}. GPU stats features will be disabled.")
-            self.pynvml = None
         except Exception as e:
-            LOGGER.warning(f"An unexpected error occurred during pynvml initialization: {e}")
+            LOGGER.warning(f"Failed to initialize pynvml, GPU stats features will be disabled: {e}")
             self.pynvml = None
 
     def __del__(self):

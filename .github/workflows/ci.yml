@@ -344,7 +344,7 @@ jobs:
           yolo checks
           uv pip list
       - name: Pytest tests with TensorRT
-        run: pytest --slow tests/test_cuda.py
+        run: pytest --slow tests/test_cuda.py -vv
       - name: Activate Virtual Environment for Benchmarks
         run: |
           python${{ matrix.python }} -m venv env-tests --system-site-packages
@@ -352,7 +352,12 @@ jobs:
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
         run: |
-          uv pip install -e ".[export]" pytest numpy==${{ matrix.numpy }} \
+          numpy=""
+          if [ -n "${{ matrix.numpy }}" ]; then
+          numpy="numpy==${{ matrix.numpy }}"
+          fi
+
+          uv pip install -e ".[export]" $numpy \
           "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}" "${{ matrix.onnxruntime_whl }}" \
           --index-strategy unsafe-best-match
       - name: Check environment

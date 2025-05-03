@@ -187,13 +187,12 @@ def check_source(source):
         source (str | int | Path | List | Tuple | np.ndarray | PIL.Image | torch.Tensor): The input source to check.
 
     Returns:
-        (tuple): A tuple containing:
-            - source: The processed source.
-            - webcam (bool): Whether the source is a webcam.
-            - screenshot (bool): Whether the source is a screenshot.
-            - from_img (bool): Whether the source is an image or list of images.
-            - in_memory (bool): Whether the source is an in-memory object.
-            - tensor (bool): Whether the source is a torch.Tensor.
+        source (str | int | Path | List | Tuple | np.ndarray | PIL.Image | torch.Tensor): The processed source.
+        webcam (bool): Whether the source is a webcam.
+        screenshot (bool): Whether the source is a screenshot.
+        from_img (bool): Whether the source is an image or list of images.
+        in_memory (bool): Whether the source is an in-memory object.
+        tensor (bool): Whether the source is a torch.Tensor.
 
     Raises:
         TypeError: If the source type is unsupported.

@@ -11,6 +11,9 @@
 
 name: Check Broken links
 
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
   schedule:

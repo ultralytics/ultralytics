@@ -11,7 +11,6 @@ from typing import Optional
 
 import cv2
 import numpy as np
-import psutil
 from torch.utils.data import Dataset
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS, check_file_speeds
@@ -336,7 +335,7 @@ class BaseDataset(Dataset):
             ratio = self.imgsz / max(im.shape[0], im.shape[1])  # max(h, w)  # ratio
             b += im.nbytes * ratio**2
         mem_required = b * self.ni / n * (1 + safety_margin)  # GB required to cache dataset into RAM
-        mem = psutil.virtual_memory()
+        mem = __import__("psutil").virtual_memory()
         if mem_required > mem.available:
             self.cache = None
             LOGGER.warning(

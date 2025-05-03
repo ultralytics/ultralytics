@@ -45,7 +45,7 @@ class Heatmap(ObjectCounter):
             self.initialize_region()
 
         # Store colormap
-        self.colormap = cv2.COLORMAP_PARULA if self.CFG["colormap"] is None else self.CFG["colormap"]
+        self.colormap = self.CFG["colormap"]
         self.heatmap = None
 
     def heatmap_effect(self, box):

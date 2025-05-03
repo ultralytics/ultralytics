@@ -575,6 +575,10 @@ class YAML:
             s = re.sub(r"[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+", "", s)
             data = instance.yaml.load(s, Loader=instance.SafeLoader) or {}
 
+        # Check for accidental user-error None strings (should be 'null' in YAML)
+        if "None" in data.values():
+            data = {k: None if v == "None" else v for k, v in data.items()}
+
         if append_filename:
             data["yaml_file"] = str(file)
         return data
@@ -600,9 +604,6 @@ class YAML:
 
 # Default configuration
 DEFAULT_CFG_DICT = YAML.load(DEFAULT_CFG_PATH)
-for k, v in DEFAULT_CFG_DICT.items():
-    if isinstance(v, str) and v.lower() == "none":
-        DEFAULT_CFG_DICT[k] = None
 DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
 DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 

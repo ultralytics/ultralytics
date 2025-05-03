@@ -520,7 +520,7 @@ def yaml_load(file="data.yaml", append_filename=False):
         if not s.isprintable():
             s = re.sub(r"[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+", "", s)
 
-        # Add YAML filename to dict and return
+        # Add YAML filename to dict and return (~73% faster with CSafeLoader: https://gist.github.com/ickc/f9d6c57338d4be07f6cf70991d462fc3)
         data = (
             yaml.load(s, Loader=yaml.CSafeLoader) or {}
         )  # always return a dict (yaml.load() may return None for empty files)

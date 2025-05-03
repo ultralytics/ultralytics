@@ -588,6 +588,7 @@ nav:
       - solutions:
           - ai_gym: reference/solutions/ai_gym.md
           - analytics: reference/solutions/analytics.md
+          - config: reference/solutions/config.md
           - distance_calculation: reference/solutions/distance_calculation.md
           - heatmap: reference/solutions/heatmap.md
           - instance_segmentation: reference/solutions/instance_segmentation.md

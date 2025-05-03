@@ -205,11 +205,7 @@ class BaseModel(torch.nn.Module):
         """
         if not self.is_fused():
             fusable_types = (Conv, Conv2, DWConv, ConvTranspose, RepConv, RepVGGDW, v10Detect)
-            fusable_modules = [
-                (name, m)
-                for name, m in self.model.named_modules()
-                if isinstance(m, fusable_types)
-            ]
+            fusable_modules = [(name, m) for name, m in self.model.named_modules() if isinstance(m, fusable_types)]
 
             for _, m in fusable_modules:
                 if isinstance(m, Conv2):

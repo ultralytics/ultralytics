@@ -236,19 +236,16 @@ def time_sync():
 def fuse_conv_and_bn(conv, bn):
     """Fuse Conv2d() and BatchNorm2d() layers."""
     with torch.no_grad():
-        fusedconv = (
-            nn.Conv2d(
-                conv.in_channels,
-                conv.out_channels,
-                kernel_size=conv.kernel_size,
-                stride=conv.stride,
-                padding=conv.padding,
-                dilation=conv.dilation,
-                groups=conv.groups,
-                bias=True,
-            )
-            .requires_grad_(False)
-        )
+        fusedconv = nn.Conv2d(
+            conv.in_channels,
+            conv.out_channels,
+            kernel_size=conv.kernel_size,
+            stride=conv.stride,
+            padding=conv.padding,
+            dilation=conv.dilation,
+            groups=conv.groups,
+            bias=True,
+        ).requires_grad_(False)
 
         eps = bn.eps
         std = torch.sqrt(bn.running_var + eps)
@@ -271,6 +268,7 @@ def fuse_conv_and_bn(conv, bn):
         fusedconv.bias.copy_(fused_bias)
 
         return fusedconv
+
 
 def fuse_deconv_and_bn(deconv, bn):
     """Fuse ConvTranspose2d() and BatchNorm2d() layers."""

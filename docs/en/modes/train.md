@@ -151,6 +151,7 @@ Idle GPU Training enables automatic selection of the least utilized GPUs in mult
         ```
 
 The auto-selection algorithm prioritizes GPUs with:
+
 1. Lower current utilization percentages
 2. Higher available memory (free VRAM)
 3. Lower temperature and power consumption

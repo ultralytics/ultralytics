@@ -1,8 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
-from pathlib import Path
 
 
 class GPUInfo:

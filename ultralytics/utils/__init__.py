@@ -498,7 +498,7 @@ def yaml_save(file="data.yaml", data=None, header=""):
     with open(file, "w", errors="ignore", encoding="utf-8") as f:
         if header:
             f.write(header)
-        yaml.safe_dump(data, f, sort_keys=False, allow_unicode=True)
+        yaml.safe_dump(data, f, sort_keys=False, allow_unicode=True, Dumper=yaml.CSafeDumper)
 
 
 def yaml_load(file="data.yaml", append_filename=False):

@@ -20,10 +20,10 @@ from typing import Union
 from urllib.parse import unquote
 
 import cv2
+import fastyaml as yaml
 import numpy as np
 import torch
 import tqdm
-import fastyaml as yaml
 
 from ultralytics import __version__
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_load, torch_save  # for patches

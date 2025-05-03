@@ -208,8 +208,9 @@ class BaseModel(torch.nn.Module):
             fusable_modules = [(name, m) for name, m in self.model.named_modules() if isinstance(m, fusable_types)]
 
             for _, m in fusable_modules:
-                if isinstance(m, Conv2):
-                    m.fuse_convs()
+                if isinstance(m, (Conv,Conv2)) and hasattr(m, "bn"):
+                    if isinstance(m, Conv2):
+                        m.fuse_convs()
                     m.conv = fuse_conv_and_bn(m.conv, m.bn)  # update conv
                     delattr(m, "bn")  # remove batchnorm
                     m.forward = m.forward_fuse  # update forward

@@ -129,7 +129,9 @@ class GPUInfo:
                 if gpu.get("power_draw", -1) != -1
                 else " N/A "
             )
-            LOGGER.info(f"{gpu.get('index', '?'):<3d} {gpu.get('name', 'N/A'):<{max_name_len}} {u:>6} {m:>15} {t:>5} {p:>10}")
+            LOGGER.info(
+                f"{gpu.get('index', '?'):<3d} {gpu.get('name', 'N/A'):<{max_name_len}} {u:>6} {m:>15} {t:>5} {p:>10}"
+            )
         LOGGER.info(f"{'-' * len(hdr)}\n")
 
     def select_idle_gpu(self, count=1, min_memory_mb=0):
@@ -195,4 +197,3 @@ if __name__ == "__main__":
         print(f"    Target devices: {devices}")
     else:
         print(f"\n==> Failed to select {num_gpus_to_select} suitable GPUs.")
-

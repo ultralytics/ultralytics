@@ -1,11 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import sys
-
-import torch
-
 from ultralytics.utils import LOGGER
-
 
 class GPUInfo:
     """
@@ -113,14 +108,7 @@ class GPUInfo:
         """Prints GPU status in a compact table format using current stats."""
         self.refresh_stats()
         if not self.gpu_stats:
-            LOGGER.info("\nNo GPU stats available.")
-            try:
-                if torch.cuda.is_available():
-                    LOGGER.info(f"PyTorch reports {torch.cuda.device_count()} CUDA devices.")
-                else:
-                    LOGGER.info("PyTorch reports no CUDA devices.")
-            except Exception:
-                pass  # Ignore torch check errors silently
+            LOGGER.warning("\nNo GPU stats available.")
             return
 
         stats = self.gpu_stats
@@ -164,14 +152,8 @@ class GPUInfo:
 
         # Fallback if NVML failed or no stats
         if not self.nvml_available or not self.gpu_stats:
-            LOGGER.warning("NVML stats unavailable. Falling back to basic CUDA device check.")
-            try:
-                if torch.cuda.is_available():
-                    num_devs = torch.cuda.device_count()
-                    return list(range(min(count, num_devs)))  # Return first 'count' available devices
-            except Exception:
-                pass  # Ignore torch check errors
-            return []  # No NVML and no CUDA info
+            LOGGER.warning("NVML stats unavailable.")
+            return []
 
         # --- NVML Selection Logic ---
         # Filter GPUs meeting memory requirement and having valid utilization
@@ -210,15 +192,6 @@ if __name__ == "__main__":
         print(f"\n==> Using selected GPU indices: {selected_indices}")
         devices = [f"cuda:{idx}" for idx in selected_indices]
         print(f"    Target devices: {devices}")
-        # Example: Test assignment on the first selected device
-        try:
-            print(f"    Testing assignment on {devices[0]}...")
-            t = torch.zeros(1).to(devices[0])
-            print(f"    Successfully created tensor on {devices[0]}.")
-            del t
-            torch.cuda.empty_cache()
-        except Exception as e:
-            print(f"    Error testing device {devices[0]}: {e}", file=sys.stderr)
     else:
         print(f"\n==> Failed to select {num_gpus_to_select} suitable GPUs.")
 

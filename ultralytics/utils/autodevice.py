@@ -2,6 +2,7 @@
 
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
+from pathlib import Path
 
 
 class GPUInfo:
@@ -30,16 +31,15 @@ class GPUInfo:
         self.pynvml = None
         self.nvml_available = False
         self.gpu_stats = []
+
         try:
             check_requirements("pynvml>=12.0.0")
-
             self.pynvml = __import__("pynvml")
             self.pynvml.nvmlInit()
             self.nvml_available = True
             self.refresh_stats()
         except Exception as e:
-            LOGGER.warning(f"Failed to initialize pynvml, GPU stats features will be disabled: {e}")
-            self.pynvml = None
+            LOGGER.warning(f"Failed to initialize pynvml, GPU stats disabled: {e}")
 
     def __del__(self):
         """Ensures NVML is shut down when the object is garbage collected."""
@@ -50,54 +50,50 @@ class GPUInfo:
         if self.nvml_available and self.pynvml:
             try:
                 self.pynvml.nvmlShutdown()
-            except self.pynvml.NVMLError:
+            except Exception:
                 pass
             self.nvml_available = False
 
     def refresh_stats(self):
         """Refreshes the internal gpu_stats list by querying NVML."""
+        self.gpu_stats = []
         if not self.nvml_available or not self.pynvml:
-            self.gpu_stats = []
             return
 
-        self.gpu_stats = []
         try:
             device_count = self.pynvml.nvmlDeviceGetCount()
             for i in range(device_count):
-                handle = self.pynvml.nvmlDeviceGetHandleByIndex(i)
-                memory = self.pynvml.nvmlDeviceGetMemoryInfo(handle)
-                util = self.pynvml.nvmlDeviceGetUtilizationRates(handle)
-
-                def safe_get(func, *args, default=-1, divisor=1):
-                    try:
-                        val = getattr(self.pynvml, func.__name__)(*args)
-                        if divisor != 1 and isinstance(val, (int, float)):
-                            return val // divisor
-                        return val
-                    except (self.pynvml.NVMLError, AttributeError):
-                        return default
-
-                temp_type = getattr(self.pynvml, "NVML_TEMPERATURE_GPU", -1)  # More concise getattr
-
-                self.gpu_stats.append(
-                    {
-                        "index": i,
-                        "name": self.pynvml.nvmlDeviceGetName(handle),
-                        "utilization": util.gpu if util else -1,
-                        "memory_used": memory.used >> 20 if memory else -1,
-                        "memory_total": memory.total >> 20 if memory else -1,
-                        "memory_free": memory.free >> 20 if memory else -1,
-                        "temperature": safe_get(self.pynvml.nvmlDeviceGetTemperature, handle, temp_type),
-                        "power_draw": safe_get(self.pynvml.nvmlDeviceGetPowerUsage, handle, divisor=1000),
-                        "power_limit": safe_get(self.pynvml.nvmlDeviceGetEnforcedPowerLimit, handle, divisor=1000),
-                    }
-                )
-        except self.pynvml.NVMLError as error:
-            LOGGER.warning(f"NVML error during device query: {error}")
-            self.gpu_stats = []
+                self.gpu_stats.append(self._get_device_stats(i))
         except Exception as e:
-            LOGGER.warning(f"Unexpected error during device query: {e}")
+            LOGGER.warning(f"Error during device query: {e}")
             self.gpu_stats = []
+
+    def _get_device_stats(self, index):
+        """Gets stats for a single GPU device."""
+        handle = self.pynvml.nvmlDeviceGetHandleByIndex(index)
+        memory = self.pynvml.nvmlDeviceGetMemoryInfo(handle)
+        util = self.pynvml.nvmlDeviceGetUtilizationRates(handle)
+
+        def safe_get(func, *args, default=-1, divisor=1):
+            try:
+                val = func(*args)
+                return val // divisor if divisor != 1 and isinstance(val, (int, float)) else val
+            except Exception:
+                return default
+
+        temp_type = getattr(self.pynvml, "NVML_TEMPERATURE_GPU", -1)
+
+        return {
+            "index": index,
+            "name": self.pynvml.nvmlDeviceGetName(handle),
+            "utilization": util.gpu if util else -1,
+            "memory_used": memory.used >> 20 if memory else -1,
+            "memory_total": memory.total >> 20 if memory else -1,
+            "memory_free": memory.free >> 20 if memory else -1,
+            "temperature": safe_get(self.pynvml.nvmlDeviceGetTemperature, handle, temp_type),
+            "power_draw": safe_get(self.pynvml.nvmlDeviceGetPowerUsage, handle, divisor=1000),
+            "power_limit": safe_get(self.pynvml.nvmlDeviceGetEnforcedPowerLimit, handle, divisor=1000),
+        }
 
     def print_status(self):
         """Prints GPU status in a compact table format using current stats."""
@@ -107,25 +103,18 @@ class GPUInfo:
             return
 
         stats = self.gpu_stats
-        max_name_len = max(len(gpu.get("name", "N/A")) for gpu in stats) if stats else 10
+        max_name_len = max(len(gpu.get("name", "N/A")) for gpu in stats)
         hdr = f"{'Idx':<3} {'Name':<{max_name_len}} {'Util':>6} {'Mem (MiB)':>15} {'Temp':>5} {'Pwr (W)':>10}"
         LOGGER.info(f"\n--- GPU Status ---\n{hdr}\n{'-' * len(hdr)}")
+
         for gpu in stats:
-            u = f"{gpu.get('utilization', -1):>5}%" if gpu.get("utilization", -1) != -1 else " N/A "
-            m = (
-                f"{gpu.get('memory_used', -1):>6}/{gpu.get('memory_total', -1):<6}"
-                if gpu.get("memory_used", -1) != -1
-                else " N/A / N/A "
-            )
-            t = f"{gpu.get('temperature', -1)}C" if gpu.get("temperature", -1) != -1 else " N/A "
-            p = (
-                f"{gpu.get('power_draw', -1):>3}/{str(gpu.get('power_limit', 'N/A')):<3}"
-                if gpu.get("power_draw", -1) != -1
-                else " N/A "
-            )
-            LOGGER.info(
-                f"{gpu.get('index', '?'):<3d} {gpu.get('name', 'N/A'):<{max_name_len}} {u:>6} {m:>15} {t:>5} {p:>10}"
-            )
+            u = f"{gpu['utilization']:>5}%" if gpu['utilization'] >= 0 else " N/A "
+            m = f"{gpu['memory_used']:>6}/{gpu['memory_total']:<6}" if gpu['memory_used'] >= 0 else " N/A / N/A "
+            t = f"{gpu['temperature']}C" if gpu['temperature'] >= 0 else " N/A "
+            p = f"{gpu['power_draw']:>3}/{gpu['power_limit']:<3}" if gpu['power_draw'] >= 0 else " N/A "
+
+            LOGGER.info(f"{gpu.get('index', '?'):<3d} {gpu.get('name', 'N/A'):<{max_name_len}} {u:>6} {m:>15} {t:>5} {p:>10}")
+
         LOGGER.info(f"{'-' * len(hdr)}\n")
 
     def select_idle_gpu(self, count=1, min_memory_mb=0):
@@ -145,39 +134,31 @@ class GPUInfo:
 
         if count <= 0:
             return []
-        self.refresh_stats()
 
-        # Fallback if NVML failed or no stats
-        if not self.nvml_available or not self.gpu_stats:
+        self.refresh_stats()
+        if not self.gpu_stats:
             LOGGER.warning("NVML stats unavailable.")
             return []
 
-        # Filter GPUs meeting memory requirement and having valid utilization
-        eligible_gpus = [
-            gpu
-            for gpu in self.gpu_stats
-            if gpu.get("memory_free", -1) >= min_memory_mb and gpu.get("utilization", -1) != -1
-        ]
-
-        # Sort by utilization (asc), then free memory (desc)
+        # Filter and sort eligible GPUs
+        eligible_gpus = [gpu for gpu in self.gpu_stats
+                         if gpu.get("memory_free", -1) >= min_memory_mb and gpu.get("utilization", -1) != -1]
         eligible_gpus.sort(key=lambda x: (x.get("utilization", 101), -x.get("memory_free", 0)))
 
-        # Select the top 'count' indices
+        # Select top 'count' indices
         selected = [gpu["index"] for gpu in eligible_gpus[:count]]
 
         if selected:
             LOGGER.info(f"Selected idle CUDA devices {selected}")
-        elif self.gpu_stats:
-            LOGGER.warning(f"No GPUs met the criteria (Util != -1, Free Mem >= {min_memory_mb} MiB).")
         else:
-            LOGGER.warning("No GPUs detected by NVML.")
+            LOGGER.warning(f"No GPUs met criteria (Util != -1, Free Mem >= {min_memory_mb} MiB).")
 
         return selected
 
 
 if __name__ == "__main__":
     required_free_mem = 2048  # Require 2GB free VRAM
-    num_gpus_to_select = 1  # <<< Number of GPUs to select
+    num_gpus_to_select = 1
 
     gpu_info = GPUInfo()
     gpu_info.print_status()

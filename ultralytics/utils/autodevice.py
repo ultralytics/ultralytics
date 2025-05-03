@@ -2,6 +2,7 @@
 
 from ultralytics.utils import LOGGER
 
+
 class GPUInfo:
     """
     Manages NVIDIA GPU information via pynvml with robust error handling.

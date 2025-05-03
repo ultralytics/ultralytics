@@ -131,7 +131,7 @@ class BaseDataset(Dataset):
         if isinstance(cache, str):
             c = cache.lower()
             if c in ("true", "ram"):
-                 self.cache = "ram"
+                self.cache = "ram"
             elif c == "disk":
                 self.cache = "disk"
             else:
@@ -141,6 +141,7 @@ class BaseDataset(Dataset):
             self.cache = "ram" if cache else None
 
         from torch.utils.data import get_worker_info
+
         if get_worker_info() is None and self.cache is not None:
             if self.cache == "ram" and self.check_cache_ram():
                 if hyp.deterministic:
@@ -305,7 +306,7 @@ class BaseDataset(Dataset):
         """
         import shutil
 
-        print(f"[PID {os.getpid()}] cache_images() called") 
+        print(f"[PID {os.getpid()}] cache_images() called")
 
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
         n = min(self.ni, 30)  # extrapolate from 30 random images

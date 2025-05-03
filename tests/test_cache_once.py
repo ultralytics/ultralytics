@@ -1,10 +1,11 @@
-import pytest
 from torch.utils.data import DataLoader
-from torch.utils.data import get_worker_info
+
 from ultralytics.data.base import BaseDataset
+
 
 def identity_transform(x):
     return x
+
 
 class DummyDataset(BaseDataset):
     def __init__(self, img_path, imgsz, batch, cache="ram", **kwargs):

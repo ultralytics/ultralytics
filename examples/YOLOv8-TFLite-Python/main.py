@@ -5,7 +5,6 @@ from typing import Tuple, Union
 
 import cv2
 import numpy as np
-import tensorflow as tf
 import yaml
 
 from ultralytics.utils import ASSETS

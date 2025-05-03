@@ -4,7 +4,7 @@
 # Image is CUDA-optimized for YOLO11 single/multi-GPU training and inference
 
 # Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:25.02-py3
-FROM pytorch/pytorch:2.6.0-cuda12.6-cudnn9-runtime
+FROM pytorch/pytorch:2.7.0-cuda12.6-cudnn9-runtime
 
 # Set environment variables
 # Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library" https://github.com/pytorch/pytorch/issues/37377
@@ -23,11 +23,11 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     /root/.config/Ultralytics/
 
 # Install linux packages
-# g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package
+# gnupg required for Edge TPU install
 # libsm6 required by libqxcb to create QT-based windows for visualization; set 'QT_DEBUG_PLUGINS=1' to test in docker
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    gcc git zip unzip wget curl htop libgl1 libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0 libsm6 \
+    gcc git zip unzip wget curl htop libgl1 libglib2.0-0 libpython3-dev gnupg libsm6 \
     && rm -rf /var/lib/apt/lists/*
 
 # Security updates
@@ -47,10 +47,9 @@ RUN pip install uv
 RUN uv pip install --system -e ".[export]" albumentations pycocotools "onnxruntime-gpu" tensorrt wandb
 
 # Run exports to AutoInstall packages
-# Edge TPU export fails the first time so is run twice here
-RUN yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32 || yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32
+RUN yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32
 RUN yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32
-RUN uv pip install --system "paddlepaddle<3.0.0" x2paddle
+RUN uv pip install --system paddlepaddle x2paddle
 
 # Remove extra build files
 RUN rm -rf tmp /root/.config/Ultralytics/persistent_cache.json

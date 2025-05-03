@@ -8,7 +8,7 @@ import numpy as np
 import onnxruntime as ort
 import torch
 
-from ultralytics.utils import ASSETS, yaml_load
+from ultralytics.utils import ASSETS, YAML
 from ultralytics.utils.checks import check_requirements, check_yaml
 
 
@@ -57,7 +57,7 @@ class RTDETR:
         self.input_height = self.model_input[0].shape[3]
 
         # Load class names from the COCO dataset YAML file
-        self.classes = yaml_load(check_yaml("coco8.yaml"))["names"]
+        self.classes = YAML.load(check_yaml("coco8.yaml"))["names"]
 
         # Generate a color palette for drawing bounding boxes
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))

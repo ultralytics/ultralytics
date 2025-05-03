@@ -260,7 +260,7 @@ To use TensorBoard in [Google Colab](https://colab.research.google.com/github/ul
         tensorboard --logdir ultralytics/runs # replace with 'runs' directory
         ```
 
-To use TensorBoard locally run the below command and view results at <http://localhost:6006/>.
+To use TensorBoard locally run the below command and view results at `http://localhost:6006/`.
 
 !!! example
 

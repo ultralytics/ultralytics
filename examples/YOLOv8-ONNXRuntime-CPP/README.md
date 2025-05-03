@@ -98,8 +98,8 @@ Ensure you have the following dependencies installed:
 1.  **Clone the Repository:**
 
     ```bash
-    git clone https://github.com/ultralytics/examples.git
-    cd examples/YOLOv8-ONNXRuntime-CPP
+    git clone https://github.com/ultralytics/ultralytics.git
+    cd ultralytics/examples/YOLOv8-ONNXRuntime-CPP
     ```
 
 2.  **Create Build Directory:**
@@ -171,4 +171,4 @@ Run the executable from the `build` directory:
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you find any issues or have suggestions for improvements, please feel free to open an issue or submit a pull request on the main [Ultralytics examples repository](https://github.com/ultralytics/examples).
+Contributions are welcome! If you find any issues or have suggestions for improvements, please feel free to open an issue or submit a pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).

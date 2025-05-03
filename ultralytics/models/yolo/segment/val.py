@@ -192,7 +192,7 @@ class SegmentationValidator(DetectionValidator):
             if self.args.plots and self.batch_i < 3:
                 self.plot_masks.append(pred_masks[:50].cpu())  # Limit plotted items for speed
                 if pred_masks.shape[0] > 50:
-                    LOGGER.warning("WARNING ⚠️ Limiting validation plots to first 50 items per image for speed...")
+                    LOGGER.warning("Limiting validation plots to first 50 items per image for speed...")
 
             # Save
             if self.args.save_json:
@@ -215,7 +215,16 @@ class SegmentationValidator(DetectionValidator):
                 )
 
     def finalize_metrics(self, *args, **kwargs):
-        """Set speed and confusion matrix for evaluation metrics."""
+        """
+        Finalize evaluation metrics by setting the speed attribute in the metrics object.
+
+        This method is called at the end of validation to set the processing speed for the metrics calculations.
+        It transfers the validator's speed measurement to the metrics object for reporting.
+
+        Args:
+            *args (Any): Variable length argument list.
+            **kwargs (Any): Arbitrary keyword arguments.
+        """
         self.metrics.speed = self.speed
         self.metrics.confusion_matrix = self.confusion_matrix
 

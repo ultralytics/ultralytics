@@ -19,6 +19,10 @@ The [Caltech-256](https://data.caltech.edu/records/nyy15-4j048) dataset is an ex
   <strong>Watch:</strong> How to Train <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> Model using Caltech-256 Dataset with Ultralytics HUB
 </p>
 
+!!! note "Automatic Data Splitting"
+
+    The Caltech-256 dataset, as provided, does not come with pre-defined train/validation splits. However, when you use the training commands provided in the usage examples below, the Ultralytics framework will automatically split the dataset for you. The default split used is 80% for the training set and 20% for the validation set.
+
 ## Key Features
 
 - The Caltech-256 dataset comprises around 30,000 color images divided into 257 categories.

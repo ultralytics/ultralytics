@@ -40,16 +40,16 @@ class ObjectCropper(BaseSolution):
         """
         super().__init__(**kwargs)
 
-        self.crop_dir = kwargs.get("crop_dir", "cropped-detections")  # Directory for storing cropped detections
+        self.crop_dir = self.CFG["crop_dir"]  # Directory for storing cropped detections
         if not os.path.exists(self.crop_dir):
             os.mkdir(self.crop_dir)  # Create directory if it does not exist
         if self.CFG["show"]:
-            self.LOGGER.info(
-                f"⚠️ show=True disabled for crop solution, results will be saved in the directory named: {self.crop_dir}"
+            self.LOGGER.warning(
+                f"show=True disabled for crop solution, results will be saved in the directory named: {self.crop_dir}"
             )
         self.crop_idx = 0  # Initialize counter for total cropped objects
         self.iou = self.CFG["iou"]
-        self.conf = self.CFG["conf"] if self.CFG["conf"] is not None else 0.25
+        self.conf = self.CFG["conf"]
 
     def process(self, im0):
         """

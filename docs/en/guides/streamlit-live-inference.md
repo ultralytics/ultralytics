@@ -157,7 +157,7 @@ Using Ultralytics YOLO11 with Streamlit for real-time object detection offers se
 - **User-Friendly Interface**: Streamlit's intuitive interface allows easy use and deployment without extensive technical knowledge.
 - **Resource Efficiency**: YOLO11's optimized algorithms ensure high-speed processing with minimal computational resources.
 
-Discover more about these advantages [here](#advantages-of-live-inference).
+Learn more about these benefits in the [Advantages of Live Inference section](#advantages-of-live-inference).
 
 ### How do I deploy a Streamlit object detection application in my web browser?
 

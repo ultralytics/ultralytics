@@ -129,8 +129,7 @@ class BaseDataset(Dataset):
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
         self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
-
-        if get_worker_info() is None and self.cache is not None:
+        if self.cache is not None and get_worker_info() is None:  # ensure caching occurs only in main process
             if self.cache == "ram" and self.check_cache_ram():
                 if hyp.deterministic:
                     LOGGER.warning(

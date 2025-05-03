@@ -112,7 +112,7 @@ The `ObjectCounter` solution allows the use of several `track` arguments:
 Additionally, the visualization arguments listed below are supported:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width"]) }}
+{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
 
 ## FAQ
 

@@ -167,7 +167,7 @@ def export_engine(
                 trt.IInt8Calibrator.__init__(self)
                 self.dataset = dataset
                 self.data_iter = iter(dataset)
-                self.algo = trt.CalibrationAlgoType.ENTROPY_CALIBRATION_2
+                self.algo = trt.CalibrationAlgoType.MINMAX_CALIBRATION
                 self.batch = dataset.batch_size
                 self.cache = Path(cache)
 

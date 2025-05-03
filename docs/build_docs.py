@@ -166,7 +166,7 @@ def update_docs_html():
 
     # Convert plaintext links to HTML hyperlinks
     files_modified = 0
-    for html_file in tqdm(SITE.rglob("*.html"), desc="Converting plaintext links", mininterval=1.0):
+    for html_file in tqdm(SITE.rglob("*.html"), desc="Updating bs4 soup", mininterval=1.0):
         with open(html_file, encoding="utf-8") as file:
             content = file.read()
         updated_content = update_docs_soup(content)
@@ -174,7 +174,7 @@ def update_docs_html():
             with open(html_file, "w", encoding="utf-8") as file:
                 file.write(updated_content)
             files_modified += 1
-    print(f"Modified plaintext links in {files_modified} files.")
+    print(f"Modified bs4 soup in {files_modified} files.")
 
     # Update HTML file head section
     script = ""
@@ -215,12 +215,13 @@ def update_docs_soup(content: str, max_title_length: int = 70) -> str:
 
     # Remove href attributes from code line numbers in code blocks
     for a in soup.select('a[href^="#__codelineno-"], a[id^="__codelineno-"]'):
-        span = soup.new_tag("span")
-        if a.string:
-            span.string = a.string
-        else:
-            span.extend(a.contents)
-        a.replace_with(span)
+        if a.string:  # If the a tag has text (the line number)
+            # Check if parent is a span with class="normal"
+            if a.parent and a.parent.name == "span" and "normal" in a.parent.get("class", []):
+                del a.parent["class"]
+            a.replace_with(a.string)  # Replace with just the text
+        else:  # If it has no text
+            a.replace_with(soup.new_tag("span"))  # Replace with an empty span
         modified = True
     return str(soup) if modified else content
 

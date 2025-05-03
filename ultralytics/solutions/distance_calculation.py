@@ -95,8 +95,8 @@ class DistanceCalculation(BaseSolution):
 
         pixels_distance = 0
         # Iterate over bounding boxes, track ids and classes index
-        for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
-            annotator.box_label(box, color=colors(int(cls), True), label=self.names[int(cls)])
+        for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
+            annotator.box_label(box, color=colors(int(cls), True), label=self.adjust_box_label(cls, conf, track_id))
 
             # Update selected boxes if they're being tracked
             if len(self.selected_boxes) == 2:

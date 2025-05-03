@@ -25,6 +25,7 @@ if CUDA_IS_AVAILABLE:
         if idle_gpus:
             DEVICES = idle_gpus
 
+
 def test_checks():
     """Validate CUDA settings against torch CUDA functions."""
     assert torch.cuda.is_available() == CUDA_IS_AVAILABLE

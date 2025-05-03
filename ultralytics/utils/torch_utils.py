@@ -268,7 +268,6 @@ def fuse_conv_and_bn(conv, bn):
         return fusedconv
 
 
-
 def fuse_deconv_and_bn(deconv, bn):
     """Fuse ConvTranspose2d() and BatchNorm2d() layers."""
     fuseddconv = (

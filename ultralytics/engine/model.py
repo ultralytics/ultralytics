@@ -18,9 +18,9 @@ from ultralytics.utils import (
     LOGGER,
     RANK,
     SETTINGS,
+    YAML,
     callbacks,
     checks,
-    yaml_load,
 )
 
 
@@ -773,7 +773,7 @@ class Model(torch.nn.Module):
 
         checks.check_pip_update_available()
 
-        overrides = yaml_load(checks.check_yaml(kwargs["cfg"])) if kwargs.get("cfg") else self.overrides
+        overrides = YAML.load(checks.check_yaml(kwargs["cfg"])) if kwargs.get("cfg") else self.overrides
         custom = {
             # NOTE: handle the case when 'cfg' includes 'data'.
             "data": overrides.get("data") or DEFAULT_CFG_DICT["data"] or TASK2DATA[self.task],

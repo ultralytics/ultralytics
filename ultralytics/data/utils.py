@@ -23,12 +23,11 @@ from ultralytics.utils import (
     ROOT,
     SETTINGS_FILE,
     TQDM,
+    YAML,
     clean_url,
     colorstr,
     emojis,
     is_dir_writeable,
-    yaml_load,
-    yaml_save,
 )
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file
@@ -400,7 +399,7 @@ def check_det_dataset(dataset, autodownload=True):
         extract_dir, autodownload = file.parent, False
 
     # Read YAML
-    data = yaml_load(file, append_filename=True)  # dictionary
+    data = YAML.load(file, append_filename=True)  # dictionary
 
     # Checks
     for k in "train", "val":
@@ -600,9 +599,9 @@ class HUBDatasetStats:
             _, data_dir, yaml_path = self._unzip(Path(path))
             try:
                 # Load YAML with checks
-                data = yaml_load(yaml_path)
+                data = YAML.load(yaml_path)
                 data["path"] = ""  # strip path since YAML should be in dataset root for all HUB datasets
-                yaml_save(yaml_path, data)
+                YAML.save(yaml_path, data)
                 data = check_det_dataset(yaml_path, autodownload)  # dict
                 data["path"] = data_dir  # YAML path should be set to '' (relative) or parent (absolute)
             except Exception as e:

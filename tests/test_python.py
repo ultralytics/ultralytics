@@ -27,11 +27,10 @@ from ultralytics.utils import (
     ROOT,
     WEIGHTS_DIR,
     WINDOWS,
+    YAML,
     checks,
     is_dir_writeable,
     is_github_action_running,
-    yaml_load,
-    yaml_save,
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
@@ -191,9 +190,9 @@ def test_track_stream():
 
     # Test Global Motion Compensation (GMC) methods
     for gmc in "orb", "sift", "ecc":
-        default_args = yaml_load(ROOT / "cfg/trackers/botsort.yaml")
+        default_args = YAML.load(ROOT / "cfg/trackers/botsort.yaml")
         custom_yaml = TMP / f"botsort-{gmc}.yaml"
-        yaml_save(custom_yaml, {**default_args, "gmc_method": gmc})
+        YAML.save(custom_yaml, {**default_args, "gmc_method": gmc})
         model.track(video_url, imgsz=160, tracker=custom_yaml)
 
 

@@ -9,7 +9,7 @@ import torch
 
 import ultralytics.utils.ops as ops
 from ultralytics.engine.results import Results
-from ultralytics.utils import ASSETS, yaml_load
+from ultralytics.utils import ASSETS, YAML
 from ultralytics.utils.checks import check_yaml
 
 
@@ -54,7 +54,7 @@ class YOLOv8Seg:
         )
 
         self.imgsz = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz
-        self.classes = yaml_load(check_yaml("coco8.yaml"))["names"]
+        self.classes = YAML.load(check_yaml("coco8.yaml"))["names"]
         self.conf = conf
         self.iou = iou
 

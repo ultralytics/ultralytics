@@ -105,6 +105,7 @@ export = [
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching
     "streamlit>=1.29.0",    # for live inference on web browser, i.e `yolo streamlit-predict`
+    "flask",  # for similarity search solution
 ]
 logging = [
     "wandb", # https://docs.ultralytics.com/integrations/weights-biases/

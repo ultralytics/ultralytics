@@ -174,3 +174,14 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
         video_path=str(TMP / video),
         needs_frame_count=needs_frame_count,
     )
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="Disabled due to unsupported CLIP dependencies.")
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
+def test_similarity_search():
+    """Test similarity search solution."""
+    from ultralytics import solutions
+
+    searcher = solutions.VisualAISearch()
+    _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"

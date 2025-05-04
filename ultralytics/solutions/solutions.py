@@ -89,7 +89,7 @@ class BaseSolution:
         self.show_labels = self.CFG["show_labels"]
 
         self.track_add_args = {  # Tracker additional arguments for advance configuration
-            k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker", "device", "verbose"]
+            k: self.CFG[k] for k in ["iou", "conf", "max_det", "half", "tracker", "device", "verbose"]
         }  # verbose must be passed to track method; setting it False in YOLO still logs the track information.
 
         if is_cli and self.CFG["source"] is None:

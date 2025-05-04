@@ -112,7 +112,7 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
             self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_modal=mode == "train"
         )
 
-    def get_text_feats(self, texts: list[str], device, dtype) -> torch.Tensor:
+    def get_text_feats(self, texts, device, dtype):
         """
         Get and cache the features of texts.
 
@@ -120,6 +120,9 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
             texts (list[str]): List of input texts, may contain duplicates.
             device (torch.device): Target device for tensor operations (e.g., "cuda:0" or "cpu").
             dtype (torch.dtype): Floating point type for feature tensors (e.g., torch.float32).
+
+        Returns:
+            (torch.Tensor): Text features corresponding to the parameter 'texts'.
         """
         seen = set()
         new_texts = [text for text in texts if not (text in seen or seen.add(text)) and text not in self.text_feats]

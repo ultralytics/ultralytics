@@ -1,6 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import itertools
+from collections import OrderedDict
+import torch
 
 from ultralytics.data import build_yolo_dataset
 from ultralytics.models import yolo
@@ -63,6 +65,9 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
             import clip
         self.clip = clip
 
+        self.text_feats = OrderedDict()
+        self.text_feats_num_limit = -1
+
     def get_model(self, cfg=None, weights=None, verbose=True):
         """
         Return WorldModel initialized with specified config and weights.
@@ -106,14 +111,69 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
             self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_modal=mode == "train"
         )
 
+    def get_text_feats(self, texts: list[str], device, dtype) -> torch.Tensor:
+        """
+        Get and cache the features of texts.
+
+        Args:
+            texts (list[str]): List of input texts, may contain duplicates.
+            device (torch.device): Target device for tensor operations (e.g., "cuda:0" or "cpu").
+            dtype (torch.dtype): Floating point type for feature tensors (e.g., torch.float32).
+        """
+        seen = set()
+        new_texts = [
+            text for text in texts
+            if not (text in seen or seen.add(text))
+               and text not in self.text_feats
+        ]
+
+        if new_texts:
+            new_tokens = self.clip.tokenize(new_texts).to(device)
+            new_feats = self.text_model.encode_text(new_tokens).to(dtype=dtype)
+            # The new feature will be automatically placed at the end of the dict.
+            self.text_feats.update(zip(new_texts, new_feats))
+
+        features = []
+        for text in texts:
+            # Move the features used to the end.
+            feat = self.text_feats[text]
+            self.text_feats.move_to_end(text)
+            features.append(feat)
+
+        # Cache management(LRU)
+        if self.text_feats_num_limit > 0:
+            while len(self.text_feats) > self.text_feats_num_limit:
+                # Retrieve the oldest unused features from the dict header.
+                oldest_key = next(iter(self.text_feats))
+                del self.text_feats[oldest_key]
+
+        return torch.stack(features, dim=0)
+
+    def set_cache_limit(self, num_limit: int):
+        """
+        Set a limit on the number of text feature caches.
+
+        There is no upper limit when the upper limit of quantity is less than 0 (default is -1).
+
+        Args:
+            num_limit (int): Cache quantity limit, each cache will occupy about 2KB memory.
+
+        Examples:
+        >>> from ultralytics.models.yolo.world import WorldModel
+        >>> args = dict(model="yolov8s-world.pt", data="coco8.yaml", epochs=3)
+        >>> trainer = WorldTrainer(overrides=args)
+        >>> trainer.enable_cache_limit(40960) # Up to approximately 80MB of memory will be occupied.
+        >>> trainer.train()
+        """
+        self.text_feats_num_limit = num_limit
+
     def preprocess_batch(self, batch):
         """Preprocess a batch of images and text for YOLOWorld training."""
         batch = super().preprocess_batch(batch)
 
         # Add text features
         texts = list(itertools.chain(*batch["texts"]))
-        text_token = self.clip.tokenize(texts).to(batch["img"].device)
-        txt_feats = self.text_model.encode_text(text_token).to(dtype=batch["img"].dtype)  # torch.float32
+        txt_feats = self.get_text_feats(texts, device=batch["img"].device, dtype=batch["img"].dtype)
         txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
         batch["txt_feats"] = txt_feats.reshape(len(batch["texts"]), -1, txt_feats.shape[-1])
         return batch

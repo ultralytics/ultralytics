@@ -1522,7 +1522,7 @@ def yaml_model_load(path):
         path = path.with_name(new_stem + path.suffix)
 
     unified_path = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
-    yaml_file = check_yaml(unified_path, hard=False) or check_yaml(path)
+    yaml_file = check_yaml(unified_path, hard=False) or check_yaml(str(path))
     d = YAML.load(yaml_file)  # model dict
     d["scale"] = guess_model_scale(path)
     d["yaml_file"] = str(path)

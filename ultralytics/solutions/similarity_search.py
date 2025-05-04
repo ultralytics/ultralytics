@@ -7,8 +7,8 @@ import numpy as np
 import torch
 from PIL import Image
 
-from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.data.utils import IMG_FORMATS
+from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.torch_utils import select_device
 

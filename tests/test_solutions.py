@@ -184,4 +184,4 @@ def test_similarity_search():
     from ultralytics import solutions
 
     searcher = solutions.VisualAISearch()
-    _ = searcher.search("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
+    _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"

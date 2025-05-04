@@ -529,7 +529,6 @@ class Mosaic(BaseMixTransform):
             imgsz (int): Image size (height and width) after mosaic pipeline of a single image.
             p (float): Probability of applying the mosaic augmentation. Must be in the range 0-1.
             n (int): The grid size, either 4 (for 2x2) or 9 (for 3x3).
-            buffer_enabled (bool): Whether to use buffered images while creating mosaic.
 
         Examples:
             >>> from ultralytics.data.augment import Mosaic

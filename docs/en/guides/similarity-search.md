@@ -65,7 +65,7 @@ This class performs all the backend operations:
             device="cuda"  # configure the device for processing i.e "cpu" or "cuda"
         )
 
-        results = searcher.search("a dog sitting on a bench")
+        results = searcher("a dog sitting on a bench")
 
         # Ranked Results:
         #     - 000000546829.jpg | Similarity: 0.3269
@@ -123,7 +123,7 @@ While CLIP and FAISS are developed by OpenAI and Meta respectively, the [Ultraly
             device="cuda"  # configure the device for processing i.e "cpu" or "cuda"
         )
 
-        results = searcher.search("a dog sitting on a bench")
+        results = searcher("a dog sitting on a bench")
 
         # Ranked Results:
         #     - 000000546829.jpg | Similarity: 0.3269

@@ -7,15 +7,15 @@ import numpy as np
 import torch
 from PIL import Image
 
+from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.data.utils import IMG_FORMATS
-from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.torch_utils import select_device
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some systems
 
 
-class VisualAISearch:
+class VisualAISearch(BaseSolution):
     """
     VisualAISearch leverages OpenCLIP to generate high-quality image and text embeddings, aligning them in a shared
     semantic space. It then uses FAISS to perform fast and scalable similarity-based retrieval, allowing users to search
@@ -26,8 +26,9 @@ class VisualAISearch:
         device (str): Computation device, e.g., 'cpu' or 'cuda'.
     """
 
-    def __init__(self, data="images", device=None):
+    def __init__(self, **kwargs):
         """Initializes the VisualAISearch class with the FAISS index file and CLIP model."""
+        super().__init__(**kwargs)
         check_requirements(["open-clip-torch", "faiss-cpu"])
         import faiss
         import open_clip
@@ -38,13 +39,13 @@ class VisualAISearch:
         self.faiss_index = "faiss.index"
         self.data_path_npy = "paths.npy"
         self.model_name = "ViT-B-32-quickgelu"
-        self.data_dir = Path(data)
-        self.device = select_device(device)
+        self.data_dir = Path(self.CFG["data"])
+        self.device = select_device(self.CFG["device"])
 
         if not self.data_dir.exists():
             from ultralytics.utils import ASSETS_URL
 
-            LOGGER.warning(f"{self.data_dir} not found. Downloading images.zip from {ASSETS_URL}/images.zip")
+            self.LOGGER.warning(f"{self.data_dir} not found. Downloading images.zip from {ASSETS_URL}/images.zip")
             from ultralytics.utils.downloads import safe_download
 
             safe_download(url=f"{ASSETS_URL}/images.zip", unzip=True, retry=3)
@@ -78,13 +79,13 @@ class VisualAISearch:
         """Loads FAISS index or builds a new one from image features."""
         # Check if the FAISS index and corresponding image paths already exist
         if Path(self.faiss_index).exists() and Path(self.data_path_npy).exists():
-            LOGGER.info("Loading existing FAISS index...")
+            self.LOGGER.info("Loading existing FAISS index...")
             self.index = self.faiss.read_index(self.faiss_index)  # Load the FAISS index from disk
             self.image_paths = np.load(self.data_path_npy)  # Load the saved image path list
             return  # Exit the function as the index is successfully loaded
 
         # If the index doesn't exist, start building it from scratch
-        LOGGER.info("Building FAISS index from images...")
+        self.LOGGER.info("Building FAISS index from images...")
         vectors = []  # List to store feature vectors of images
 
         # Iterate over all image files in the data directory
@@ -97,7 +98,7 @@ class VisualAISearch:
                 vectors.append(self.extract_image_feature(file))
                 self.image_paths.append(file.name)  # Store the corresponding image name
             except Exception as e:
-                LOGGER.warning(f"Skipping {file.name}: {e}")
+                self.LOGGER.warning(f"Skipping {file.name}: {e}")
 
         # If no vectors were successfully created, raise an error
         if not vectors:
@@ -111,7 +112,7 @@ class VisualAISearch:
         self.faiss.write_index(self.index, self.faiss_index)  # Save the newly built FAISS index to disk
         np.save(self.data_path_npy, np.array(self.image_paths))  # Save the list of image paths to disk
 
-        LOGGER.info(f"Indexed {len(self.image_paths)} images.")
+        self.LOGGER.info(f"Indexed {len(self.image_paths)} images.")
 
     def search(self, query, k=30, similarity_thresh=0.1):
         """Returns top-k semantically similar images to the given query."""
@@ -124,11 +125,15 @@ class VisualAISearch:
         ]
         results.sort(key=lambda x: x[1], reverse=True)
 
-        LOGGER.info("\nRanked Results:")
+        self.LOGGER.info("\nRanked Results:")
         for name, score in results:
-            LOGGER.info(f"  - {name} | Similarity: {score:.4f}")
+            self.LOGGER.info(f"  - {name} | Similarity: {score:.4f}")
 
         return [r[0] for r in results]
+
+    def __call__(self, query):
+        """Direct call for search function."""
+        return self.search(query)
 
 
 class SearchApp:
@@ -163,8 +168,8 @@ class SearchApp:
         results = []
         if self.request.method == "POST":
             query = self.request.form.get("query", "").strip()
-            results = self.searcher.search(query)
-        return self.render_template("index.html", results=results)
+            results = self.searcher(query)
+        return self.render_template("similarity-search.html", results=results)
 
     def run(self, debug=False):
         """Runs the Flask web app."""

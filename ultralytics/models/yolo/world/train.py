@@ -2,6 +2,7 @@
 
 import itertools
 from collections import OrderedDict
+
 import torch
 
 from ultralytics.data import build_yolo_dataset
@@ -121,11 +122,7 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
             dtype (torch.dtype): Floating point type for feature tensors (e.g., torch.float32).
         """
         seen = set()
-        new_texts = [
-            text for text in texts
-            if not (text in seen or seen.add(text))
-               and text not in self.text_feats
-        ]
+        new_texts = [text for text in texts if not (text in seen or seen.add(text)) and text not in self.text_feats]
 
         if new_texts:
             new_tokens = self.clip.tokenize(new_texts).to(device)
@@ -162,7 +159,7 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
         >>> from ultralytics.models.yolo.world import WorldModel
         >>> args = dict(model="yolov8s-world.pt", data="coco8.yaml", epochs=3)
         >>> trainer = WorldTrainer(overrides=args)
-        >>> trainer.enable_cache_limit(40960) # Up to approximately 80MB of memory will be occupied.
+        >>> trainer.enable_cache_limit(40960)  # Up to approximately 80MB of memory will be occupied.
         >>> trainer.train()
         """
         self.text_feats_num_limit = num_limit

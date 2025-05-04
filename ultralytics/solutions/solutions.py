@@ -54,28 +54,28 @@ class BaseSolution:
             is_cli (bool): Enables CLI mode if set to True.
             **kwargs (Any): Additional configuration parameters that override defaults.
         """
-        check_requirements("shapely>=2.0.0")
-        from shapely.geometry import LineString, Point, Polygon
-        from shapely.prepared import prep
-
-        self.LineString = LineString
-        self.Polygon = Polygon
-        self.Point = Point
-        self.prep = prep
-        self.annotator = None  # Initialize annotator
-        self.tracks = None
-        self.track_data = None
-        self.boxes = []
-        self.clss = []
-        self.track_ids = []
-        self.track_line = None
-        self.masks = None
-        self.r_s = None
-
-        self.LOGGER = LOGGER  # Store logger object to be used in multiple solution classes
         self.CFG = vars(SolutionConfig().update(**kwargs))
+        self.LOGGER = LOGGER  # Store logger object to be used in multiple solution classes
 
         if self.__class__.__name__ != "VisualAISearch":
+            check_requirements("shapely>=2.0.0")
+            from shapely.geometry import LineString, Point, Polygon
+            from shapely.prepared import prep
+
+            self.LineString = LineString
+            self.Polygon = Polygon
+            self.Point = Point
+            self.prep = prep
+            self.annotator = None  # Initialize annotator
+            self.tracks = None
+            self.track_data = None
+            self.boxes = []
+            self.clss = []
+            self.track_ids = []
+            self.track_line = None
+            self.masks = None
+            self.r_s = None
+
             self.LOGGER.info(f"Ultralytics Solutions: ✅ {self.CFG}")
             self.region = self.CFG["region"]  # Store region data for other classes usage
             self.line_width = self.CFG["line_width"]

@@ -53,9 +53,6 @@ theme:
     - content.code.annotate
     - content.code.copy
     - content.tooltips
-    - search.highlight
-    - search.share
-    - search.suggest
     - toc.follow
     - navigation.top
     - navigation.tabs
@@ -68,6 +65,9 @@ theme:
     - navigation.indexes
     - navigation.sections # navigation.expand or navigation.sections
     - content.tabs.link # all code tabs change simultaneously
+    # - search.highlight
+    # - search.share
+    # - search.suggest
 
 # Customization
 copyright: <a href="https://www.ultralytics.com/" target="_blank">© 2025 Ultralytics Inc.</a> All rights reserved.

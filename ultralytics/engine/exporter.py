@@ -82,6 +82,7 @@ from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
     IS_COLAB,
+    IS_JETSON,
     LINUX,
     LOGGER,
     MACOS,
@@ -93,7 +94,6 @@ from ultralytics.utils import (
     callbacks,
     colorstr,
     get_default_args,
-    IS_JETSON,
 )
 from ultralytics.utils.checks import (
     check_imgsz,

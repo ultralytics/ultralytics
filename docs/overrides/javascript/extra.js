@@ -166,20 +166,22 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Fix language switcher links for MkDocs Material
-(function() {
+(function () {
   // Update language links to maintain current path
   function updateLanguageLinks() {
     // Get current path
     const currentPath = location.pathname;
 
     // Select language links
-    const langLinks = document.querySelectorAll('.md-select__link');
+    const langLinks = document.querySelectorAll(".md-select__link");
     if (!langLinks.length) return;
 
     // Extract language codes from links
     const langCodes = [];
-    langLinks.forEach(link => {
-      const match = (link.getAttribute('href') || '').match(/^\/([a-z]{2})\/?$/);
+    langLinks.forEach((link) => {
+      const match = (link.getAttribute("href") || "").match(
+        /^\/([a-z]{2})\/?$/,
+      );
       if (match) langCodes.push(match[1]);
     });
 
@@ -193,59 +195,61 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Update all language links
-    langLinks.forEach(link => {
-      const href = link.getAttribute('href') || '';
+    langLinks.forEach((link) => {
+      const href = link.getAttribute("href") || "";
       const match = href.match(/^\/([a-z]{2})\/?$/);
 
       if (match) {
         link.href = `/${match[1]}${basePath}`;
-      } else if (href === '/' || href === '') {
+      } else if (href === "/" || href === "") {
         link.href = basePath;
       }
     });
 
     // Debug message
-    console.log('Language links updated for path:', currentPath);
+    console.log("Language links updated for path:", currentPath);
   }
 
   // Attach click handler to the language button
   function setupLanguageButton() {
-    const langButton = document.querySelector('button.md-header__button.md-icon[aria-label="Select language"]');
+    const langButton = document.querySelector(
+      'button.md-header__button.md-icon[aria-label="Select language"]',
+    );
     if (!langButton) {
-      console.log('Language button not found');
+      console.log("Language button not found");
       return;
     }
 
-    console.log('Language button found, attaching handler');
-    langButton.addEventListener('click', updateLanguageLinks);
+    console.log("Language button found, attaching handler");
+    langButton.addEventListener("click", updateLanguageLinks);
 
     // Also update on mouseover for hover-based menus
-    langButton.addEventListener('mouseover', updateLanguageLinks);
+    langButton.addEventListener("mouseover", updateLanguageLinks);
   }
 
   // Set up handlers on page load
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupLanguageButton);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", setupLanguageButton);
   } else {
     // Document already loaded
     setupLanguageButton();
   }
 
   // For MkDocs Material with instant loading
-  if (typeof document$ !== 'undefined') {
-    console.log('MkDocs document$ observable found');
+  if (typeof document$ !== "undefined") {
+    console.log("MkDocs document$ observable found");
     document$.subscribe(() => {
-      console.log('Navigation detected');
+      console.log("Navigation detected");
       setTimeout(setupLanguageButton, 10);
     });
   } else {
-    console.log('Fallback to URL change detection');
+    console.log("Fallback to URL change detection");
     // Fallback: check for URL changes
     let lastPath = location.pathname;
     setInterval(() => {
       const currentPath = location.pathname;
       if (currentPath !== lastPath) {
-        console.log('URL changed from', lastPath, 'to', currentPath);
+        console.log("URL changed from", lastPath, "to", currentPath);
         lastPath = currentPath;
         setTimeout(setupLanguageButton, 10);
       }

@@ -164,3 +164,55 @@ document.addEventListener("DOMContentLoaded", () => {
     widgetContainer && Inkeep.SearchBar("#inkeepSearchBar", config);
   });
 });
+
+// Fix language switcher links to maintain current path
+(function() {
+  // Update language links based on current path
+  function updateLanguageLinks() {
+    const currentPath = location.pathname;
+    const langLinks = document.querySelectorAll('.md-select__link');
+    if (!langLinks.length) return;
+
+    // Extract language codes and find base path
+    const langCodes = [];
+    langLinks.forEach(link => {
+      const match = (link.getAttribute('href') || '').match(/^\/([a-z]{2})\/?$/);
+      if (match) langCodes.push(match[1]);
+    });
+
+    // Find current language and base path
+    let basePath = currentPath;
+    for (const lang of langCodes) {
+      if (currentPath.startsWith(`/${lang}/`)) {
+        basePath = currentPath.substring(lang.length + 1);
+        break;
+      }
+    }
+
+    // Update links
+    langLinks.forEach(link => {
+      const href = link.getAttribute('href') || '';
+      const match = href.match(/^\/([a-z]{2})\/?$/);
+
+      if (match) link.href = `/${match[1]}${basePath}`;
+      else if (href === '/' || href === '') link.href = basePath;
+    });
+  }
+
+  // Set up language button events
+  function setupLanguageButton() {
+    const langButton = document.querySelector('button[aria-label="Select language"]');
+    if (langButton) {
+      langButton.addEventListener('click', updateLanguageLinks);
+      langButton.addEventListener('mouseover', updateLanguageLinks);
+    }
+  }
+
+  // Initialize and handle navigation
+  document.addEventListener('DOMContentLoaded', setupLanguageButton);
+
+  // Support for MkDocs instant loading
+  if (typeof document$ !== 'undefined') {
+    document$.subscribe(() => setTimeout(setupLanguageButton, 10));
+  }
+})();

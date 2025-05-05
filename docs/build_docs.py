@@ -235,10 +235,8 @@ def update_docs_soup(content: str, html_file: Path = None, max_title_length: int
             file_path = file_path[:-10]
 
         # Find current language prefix if any
-        current_lang = None
         for lang in lang_codes:
             if file_path.startswith(f"/{lang}/"):
-                current_lang = lang
                 # Remove language prefix from path
                 current_path = file_path[len(f"/{lang}") :]
                 break

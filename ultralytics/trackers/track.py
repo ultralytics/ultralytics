@@ -53,6 +53,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
             and not predictor.model.model.model[-1].end2end
         ):
             cfg.model = "yolo11n-cls.pt"
+            predictor._feats = None  # reset in case used earlier
         else:
             predictor.save_feats = True
             predictor._feats = None

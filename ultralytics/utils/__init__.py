@@ -1142,6 +1142,11 @@ def set_sentry():
             if exc_type in {KeyboardInterrupt, FileNotFoundError} or "out of memory" in str(exc_value):
                 return None  # do not send event
 
+        message = event.get("logentry", {}).get("message", "")
+        ignore_str = re.compile(r"\x1B\[[0-9;]*[A-Za-z]|❌")
+        if ignore_str.search(message):
+            return None
+
         event["tags"] = {
             "sys_argv": ARGV[0],
             "sys_argv_name": Path(ARGV[0]).name,

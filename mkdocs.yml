@@ -98,43 +98,43 @@ extra: # version:
     - icon: fontawesome/brands/weixin
       link: https://weixin.qq.com/r/mp/LxckPDfEgWr_rXNf90I9
   alternate:
-    - name: English
+    - name: 🇬🇧 English
       link: /
       lang: en
-    - name: 简体中文
+    - name: 🇨🇳 简体中文
       link: /zh/
       lang: zh
-    - name: 한국어
+    - name: 🇰🇷 한국어
       link: /ko/
       lang: ko
-    - name: 日本語
+    - name: 🇯🇵 日本語
       link: /ja/
       lang: ja
-    - name: Русский
+    - name: 🇷🇺 Русский
       link: /ru/
       lang: ru
-    - name: Deutsch
+    - name: 🇩🇪 Deutsch
       link: /de/
       lang: de
-    - name: Français
+    - name: 🇫🇷 Français
       link: /fr/
       lang: fr
-    - name: Español
+    - name: 🇪🇸 Español
       link: /es/
       lang: es
-    - name: Português
+    - name: 🇵🇹 Português
       link: /pt/
       lang: pt
-    - name: Italiano
+    - name: 🇮🇹 Italiano
       link: /it/
       lang: it
-    - name: Türkçe
+    - name: 🇹🇷 Türkçe
       link: /tr/
       lang: tr
-    - name: Tiếng Việt
+    - name: 🇻🇳 Tiếng Việt
       link: /vi/
       lang: vi
-    - name: العربية
+    - name: 🇸🇦 العربية
       link: /ar/
       lang: ar
 

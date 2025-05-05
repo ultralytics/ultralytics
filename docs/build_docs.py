@@ -169,7 +169,7 @@ def update_docs_html():
     for html_file in tqdm(SITE.rglob("*.html"), desc="Updating bs4 soup", mininterval=1.0):
         with open(html_file, encoding="utf-8") as file:
             content = file.read()
-        updated_content = update_docs_soup(content)
+        updated_content = update_docs_soup(content, html_file=html_file)
         if updated_content != content:
             with open(html_file, "w", encoding="utf-8") as file:
                 file.write(updated_content)
@@ -188,7 +188,7 @@ def update_docs_html():
         shutil.rmtree(macros_dir)
 
 
-def update_docs_soup(content: str, max_title_length: int = 70) -> str:
+def update_docs_soup(content: str, html_file: Path = None, max_title_length: int = 70) -> str:
     """Convert plaintext links to HTML hyperlinks, truncate long meta titles, and remove code line hrefs."""
     soup = BeautifulSoup(content, "html.parser")
     modified = False
@@ -223,6 +223,36 @@ def update_docs_soup(content: str, max_title_length: int = 70) -> str:
         else:  # If it has no text
             a.replace_with(soup.new_tag("span"))  # Replace with an empty span
         modified = True
+
+    # Fix language switcher links
+    if html_file:
+        # Get page path without index.html
+        current_path = file_path = "/" + str(html_file.relative_to(SITE)).replace("\\", "/").replace("index.html", "")
+
+        # Get language links and extract language codes
+        lang_links = soup.select(".md-select__link")
+        lang_codes = [m.group(1) for link in lang_links if (m := re.match(r"^/([a-z]{2})/?$", link.get("href", "")))]
+
+        # Find current language and path
+        for lang in lang_codes:
+            if file_path.startswith(f"/{lang}/"):
+                current_path = file_path[len(f"/{lang}") :]
+                break
+
+        # Update all language links
+        for link in lang_links:
+            href = link.get("href", "")
+            match = re.match(r"^/([a-z]{2})/?$", href)
+
+            if match:
+                # Language root link (e.g., /zh/)
+                link["href"] = f"/{match.group(1)}{current_path}"
+                modified = True
+            elif href == "/" or href == "":
+                # Default language link
+                link["href"] = current_path
+                modified = True
+
     return str(soup) if modified else content
 
 

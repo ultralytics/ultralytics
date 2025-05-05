@@ -93,6 +93,7 @@ from ultralytics.utils import (
     callbacks,
     colorstr,
     get_default_args,
+    IS_JETSON,
 )
 from ultralytics.utils.checks import (
     check_imgsz,
@@ -682,6 +683,7 @@ class Exporter:
     @try_export
     def export_paddle(self, prefix=colorstr("PaddlePaddle:")):
         """YOLO Paddle export."""
+        assert not IS_JETSON, "Jetson Paddle exports not supported yet"
         check_requirements(("paddlepaddle-gpu" if torch.cuda.is_available() else "paddlepaddle>=3.0.0", "x2paddle"))
         import x2paddle  # noqa
         from x2paddle.convert import pytorch2paddle  # noqa

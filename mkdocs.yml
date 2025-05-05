@@ -53,9 +53,6 @@ theme:
     - content.code.annotate
     - content.code.copy
     - content.tooltips
-    - search.highlight
-    - search.share
-    - search.suggest
     - toc.follow
     - navigation.top
     - navigation.tabs
@@ -68,12 +65,15 @@ theme:
     - navigation.indexes
     - navigation.sections # navigation.expand or navigation.sections
     - content.tabs.link # all code tabs change simultaneously
+    # - search.highlight
+    # - search.share
+    # - search.suggest
 
 # Customization
 copyright: <a href="https://www.ultralytics.com/" target="_blank">© 2025 Ultralytics Inc.</a> All rights reserved.
 extra: # version:
   homepage: https://www.ultralytics.com/
-  #   provider: mike  #  version drop-down menu
+  #   provider: mike # version drop-down menu
   robots: robots.txt
   analytics:
     provider: google
@@ -97,6 +97,46 @@ extra: # version:
       link: https://reddit.com/r/ultralytics
     - icon: fontawesome/brands/weixin
       link: https://weixin.qq.com/r/mp/LxckPDfEgWr_rXNf90I9
+  alternate:
+    - name: English
+      link: /
+      lang: en
+    - name: 简体中文
+      link: /zh/
+      lang: zh
+    - name: 한국어
+      link: /ko/
+      lang: ko
+    - name: 日本語
+      link: /ja/
+      lang: ja
+    - name: Русский
+      link: /ru/
+      lang: ru
+    - name: Deutsch
+      link: /de/
+      lang: de
+    - name: Français
+      link: /fr/
+      lang: fr
+    - name: Español
+      link: /es/
+      lang: es
+    - name: Português
+      link: /pt/
+      lang: pt
+    - name: Italiano
+      link: /it/
+      lang: it
+    - name: Türkçe
+      link: /tr/
+      lang: tr
+    - name: Tiếng Việt
+      link: /vi/
+      lang: vi
+    - name: العربية
+      link: /ar/
+      lang: ar
 
 extra_css:
   - stylesheets/style.css

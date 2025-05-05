@@ -1139,8 +1139,8 @@ def set_sentry():
         """
         if "exc_info" in hint:
             exc_type, exc_value, _ = hint["exc_info"]
-            ignore_str = re.compile(r"\x1B\[[0-9;]*[A-Za-z]|❌")
-            if "out of memory" in str(exc_value).lower() or ignore_str.search(exc_value):
+            ignore_str = re.compile(r"\x1B\[[0-9;]*[A-Za-z]|❌|out of memory")
+            if ignore_str.search(str(exc_value).lower()):
                 return None  # do not send event
 
         event["tags"] = {

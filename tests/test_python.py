@@ -189,7 +189,7 @@ def test_track_stream():
     model.track(video_url, imgsz=160, tracker="botsort.yaml", save_frames=True)  # test frame saving also
 
     # Test Global Motion Compensation (GMC) methods and ReID
-    for gmc, reidm in zip(["orb", "sift", "ecc"], ["auto", "auto", "yolo11-cls.pt"]):
+    for gmc, reidm in zip(["orb", "sift", "ecc"], ["auto", "auto", "yolo11n-cls.pt"]):
         default_args = YAML.load(ROOT / "cfg/trackers/botsort.yaml")
         custom_yaml = TMP / f"botsort-{gmc}.yaml"
         YAML.save(custom_yaml, {**default_args, "gmc_method": gmc, "with_reid": True, "model": reidm})

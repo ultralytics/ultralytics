@@ -226,27 +226,23 @@ def update_docs_soup(content: str, html_file: Path = None, max_title_length: int
 
     # Fix language switcher links
     if html_file:
-        # Language codes from your site
-        lang_codes = ["zh", "ko", "ja", "ru", "de", "fr", "es", "pt", "it", "tr", "vi", "ar"]
+        # Get page path without index.html
+        current_path = file_path = "/" + str(html_file.relative_to(SITE)).replace("\\", "/").replace("index.html", "")
 
-        # Get relative path from site root
-        file_path = "/" + str(html_file.relative_to(SITE)).replace("\\", "/")
-        if file_path.endswith("index.html"):
-            file_path = file_path[:-10]
+        # Get language links and extract language codes
+        lang_links = soup.select(".md-select__link")
+        lang_codes = [m.group(1) for link in lang_links if (m := re.match(r"^/([a-z]{2})/?$", link.get("href", "")))]
 
-        # Find current language prefix if any
+        # Find current language and path
         for lang in lang_codes:
             if file_path.startswith(f"/{lang}/"):
-                # Remove language prefix from path
                 current_path = file_path[len(f"/{lang}") :]
                 break
-        else:
-            current_path = file_path
 
-        # Update language switcher links
-        for link in soup.select(".md-select__link"):
+        # Update all language links
+        for link in lang_links:
             href = link.get("href", "")
-            match = re.match(r"^\/([a-z]{2})\/?$", href)
+            match = re.match(r"^/([a-z]{2})\/?$", href)
 
             if match:
                 # Language root link (e.g., /zh/)

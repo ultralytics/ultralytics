@@ -1142,7 +1142,7 @@ def set_sentry():
             if exc_type in {KeyboardInterrupt, FileNotFoundError} or "out of memory" in str(exc_value):
                 return None  # do not send event
 
-        message = event.get("logentry", {}).get("message", "")
+        message = event.get("exception", {}).get("values", [{}])[0].get("value", "")
         ignore_str = re.compile(r"\x1B\[[0-9;]*[A-Za-z]|❌")
         if ignore_str.search(message):
             return None

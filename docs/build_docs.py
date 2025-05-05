@@ -242,7 +242,7 @@ def update_docs_soup(content: str, html_file: Path = None, max_title_length: int
         # Update all language links
         for link in lang_links:
             href = link.get("href", "")
-            match = re.match(r"^/([a-z]{2})\/?$", href)
+            match = re.match(r"^/([a-z]{2})/?$", href)
 
             if match:
                 # Language root link (e.g., /zh/)

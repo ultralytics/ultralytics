@@ -1139,13 +1139,9 @@ def set_sentry():
         """
         if "exc_info" in hint:
             exc_type, exc_value, _ = hint["exc_info"]
-            if exc_type in {KeyboardInterrupt, FileNotFoundError} or "out of memory" in str(exc_value):
+            ignore_str = re.compile(r"\x1B\[[0-9;]*[A-Za-z]|❌")
+            if "out of memory" in str(exc_value) or ignore_str.search(exc_value):
                 return None  # do not send event
-
-        message = event.get("exception", {}).get("values", [{}])[0].get("value", "")
-        ignore_str = re.compile(r"\x1B\[[0-9;]*[A-Za-z]|❌")
-        if ignore_str.search(message):
-            return None
 
         event["tags"] = {
             "sys_argv": ARGV[0],
@@ -1163,7 +1159,7 @@ def set_sentry():
         release=__version__,
         environment="runpod" if is_runpod() else "production",
         before_send=before_send,
-        ignore_errors=[KeyboardInterrupt, FileNotFoundError],
+        ignore_errors=[KeyboardInterrupt, FileNotFoundError, SyntaxError],
     )
     sentry_sdk.set_user({"id": SETTINGS["uuid"]})  # SHA-256 anonymized UUID hash
 

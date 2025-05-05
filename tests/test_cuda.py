@@ -9,18 +9,21 @@ import torch
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import ASSETS, WEIGHTS_DIR
+from ultralytics.utils import ASSETS, IS_JETSON, WEIGHTS_DIR
 from ultralytics.utils.autodevice import GPUInfo
 from ultralytics.utils.checks import check_amp
 
 # Try to find idle devices if CUDA is available
 DEVICES = []
 if CUDA_IS_AVAILABLE:
-    gpu_info = GPUInfo()
-    gpu_info.print_status()
-    idle_gpus = gpu_info.select_idle_gpu(count=2, min_memory_mb=2048)
-    if idle_gpus:
-        DEVICES = idle_gpus
+    if IS_JETSON:
+        DEVICES = [0]  # NVIDIA Jetson has only one GPU per device
+    else:
+        gpu_info = GPUInfo()
+        gpu_info.print_status()
+        idle_gpus = gpu_info.select_idle_gpu(count=2, min_memory_mb=2048)
+        if idle_gpus:
+            DEVICES = idle_gpus
 
 
 def test_checks():

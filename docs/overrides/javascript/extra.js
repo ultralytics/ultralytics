@@ -165,97 +165,54 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// Fix missing trailing slash on language home pages
-document.addEventListener('DOMContentLoaded', () => {
-  const path = window.location.pathname;
-  if (['/zh', '/ko', '/ja', '/ru', '/de', '/fr', '/it', '/es', '/pt', '/tr', '/vi', '/ar'].includes(path)) {
-    window.location.href = path + '/' + window.location.search + window.location.hash;
-  }
-});
-
-
-// Simple fix for language switcher links
+// Fix language switcher links
 (function() {
-  // Function to update language links
-  function fixLanguageSwitcher() {
-    // Get current path
-    const currentPath = window.location.pathname;
+  function fixLanguageLinks() {
+    const path = location.pathname;
+    const links = document.querySelectorAll('.md-select__link');
+    if (!links.length) return;
 
-    // Get all language links
-    const langLinks = document.querySelectorAll('.md-select__link');
-    if (!langLinks.length) return;
-
-    // Get base URL
-    const baseUrl = window.location.origin;
-
-    // Find language codes and current language
-    const languages = [];
+    const langs = [];
     let defaultLink = null;
 
-    // Extract language codes from links
-    langLinks.forEach(link => {
+    // Extract language codes
+    links.forEach(link => {
       const href = link.getAttribute('href');
       if (!href) return;
 
-      try {
-        const url = new URL(href, baseUrl);
-        const path = url.pathname;
-        const match = path.match(/^\/([a-z]{2})\/?$/);
+      const url = new URL(href, location.origin);
+      const match = url.pathname.match(/^\/([a-z]{2})\/?$/);
 
-        if (match) {
-          languages.push({
-            code: match[1],
-            link: link
-          });
-        } else if (path === '/' || path === '') {
-          defaultLink = link;
-        }
-      } catch (e) {
-        // Skip invalid URLs
-      }
+      if (match) langs.push({ code: match[1], link });
+      else if (url.pathname === '/' || url.pathname === '') defaultLink = link;
     });
 
-    // Find current language prefix
-    let currentLang = null;
-    let basePath = currentPath;
-
-    for (const lang of languages) {
-      if (currentPath.startsWith('/' + lang.code + '/')) {
-        currentLang = lang.code;
-        basePath = currentPath.substring(lang.code.length + 1);
+    // Find current language and base path
+    let basePath = path;
+    for (const lang of langs) {
+      if (path.startsWith('/' + lang.code + '/')) {
+        basePath = path.substring(lang.code.length + 1);
         break;
       }
     }
 
-    // Update language links
-    languages.forEach(lang => {
-      const newPath = '/' + lang.code + basePath;
-      const newUrl = baseUrl + newPath;
-      lang.link.setAttribute('href', newUrl);
-    });
-
-    // Update default language link
-    if (defaultLink) {
-      defaultLink.setAttribute('href', baseUrl + basePath);
-    }
+    // Update links
+    langs.forEach(lang => lang.link.href = location.origin + '/' + lang.code + basePath);
+    if (defaultLink) defaultLink.href = location.origin + basePath;
   }
 
-  // Run immediately and after navigation
-  fixLanguageSwitcher();
+  // Run immediately
+  fixLanguageLinks();
 
-  // For MkDocs Material with instant loading
+  // Handle SPA navigation
   if (typeof document$ !== 'undefined') {
-    document$.subscribe(function() {
-      setTimeout(fixLanguageSwitcher, 50);
-    });
+    document$.subscribe(() => setTimeout(fixLanguageLinks, 50));
   } else {
-    // Fallback: check for URL changes
-    let lastPath = window.location.pathname;
-    setInterval(function() {
-      const currentPath = window.location.pathname;
-      if (currentPath !== lastPath) {
-        lastPath = currentPath;
-        setTimeout(fixLanguageSwitcher, 50);
+    let lastPath = location.pathname;
+    setInterval(() => {
+      if (location.pathname !== lastPath) {
+        lastPath = location.pathname;
+        setTimeout(fixLanguageLinks, 50);
       }
     }, 200);
   }

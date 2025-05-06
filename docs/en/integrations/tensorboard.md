@@ -58,7 +58,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
 !!! tip "Enable or Disable TensorBoard"
 
-    By default, TensorBoard logging is disabled. If you want to enable or disable logging in Ultralytics, you can use the `yolo settings` command.
+    By default, TensorBoard logging is disabled. You can enable or disable the logging by using the `yolo settings` command.
 
     === "CLI"
 

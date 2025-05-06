@@ -409,7 +409,7 @@ class ConfusionMatrix:
     @plt_settings()
     def plot(self, normalize=True, save_dir="", names=(), on_plot=None):
         """
-        Plot the confusion matrix using seaborn and save it to a file.
+        Plot the confusion matrix using matplotlib and save it to a file.
 
         Args:
             normalize (bool): Whether to normalize the confusion matrix.
@@ -418,34 +418,42 @@ class ConfusionMatrix:
             on_plot (func): An optional callback to pass plots path and data when they are rendered.
         """
         import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
-        import seaborn
 
         array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)  # normalize columns
         array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
 
-        fig, ax = plt.subplots(1, 1, figsize=(12, 9), tight_layout=True)
+        fig, ax = plt.subplots(1, 1, figsize=(12, 9))
         nc, nn = self.nc, len(names)  # number of classes, names
-        seaborn.set_theme(font_scale=1.0 if nc < 50 else 0.8)  # for label size
-        labels = (0 < nn < 99) and (nn == nc)  # apply names to ticklabels
-        ticklabels = (list(names) + ["background"]) if labels else "auto"
+        ticklabels = (list(names) + ["background"] if (0 < nn < 99 and nn + 1 == nc) else list(names)) if (
+                    0 < nn < 99 and (nn == nc or nn + 1 == nc)) else list(range(nc))
+        tick_fontsize, label_fontsize, title_fontsize = (6, 14, 18) if nc < 50 else (4.8, 11.2, 14.4)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
-            seaborn.heatmap(
-                array,
-                ax=ax,
-                annot=nc < 30,
-                annot_kws={"size": 8},
-                cmap="Blues",
-                fmt=".2f" if normalize else ".0f",
-                square=True,
-                vmin=0.0,
-                xticklabels=ticklabels,
-                yticklabels=ticklabels,
-            ).set_facecolor((1, 1, 1))
-        title = "Confusion Matrix" + " Normalized" * normalize
-        ax.set_xlabel("True")
-        ax.set_ylabel("Predicted")
-        ax.set_title(title)
+            im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation='none')
+            ax.set_xticks(np.arange(nc))
+            ax.set_yticks(np.arange(nc))
+            ax.set_xticklabels(ticklabels, fontsize=tick_fontsize, rotation=90, ha='center')
+            ax.set_yticklabels(ticklabels, fontsize=tick_fontsize)
+            ax.tick_params(axis='x', bottom=True, top=False, labelbottom=True, labeltop=False)
+            ax.tick_params(axis='y', left=True, right=False, labelleft=True, labelright=False)
+            ax.xaxis.set_label_position('bottom')
+            for spine in ax.spines.values():
+                spine.set_visible(False)
+            title = "Confusion Matrix" + " Normalized" * normalize
+            ax.set_title(title, fontsize=title_fontsize, pad=20)
+            ax.set_xlabel("True", fontsize=label_fontsize, labelpad=10)
+            ax.set_ylabel("Predicted", fontsize=label_fontsize, labelpad=10)
+            if nc < 30:  # Annotations (optional)
+                for i in range(nc):
+                    for j in range(nc):
+                        val = array[i, j]
+                        if not np.isnan(val):
+                            ax.text(j, i, f"{val:.2f}" if normalize else f"{int(val)}",
+                                    ha='center', va='center', fontsize=10)
+            cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.05)
+        for spine in cbar.ax.spines.values():
+            spine.set_visible(False)
+        fig.subplots_adjust(left=0, right=0.84, top=0.90, bottom=0.15)  # Adjust layout to ensure equal margins
         plot_fname = Path(save_dir) / f"{title.lower().replace(' ', '_')}.png"
         fig.savefig(plot_fname, dpi=250)
         plt.close(fig)

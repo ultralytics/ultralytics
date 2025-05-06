@@ -535,8 +535,8 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
     import pandas
-    from matplotlib.colors import LinearSegmentedColormap
     import seaborn
+    from matplotlib.colors import LinearSegmentedColormap
 
     # Filter matplotlib>=3.7.2 warning
     warnings.filterwarnings("ignore", category=UserWarning, message="The figure layout has changed to tight")

@@ -419,15 +419,11 @@ class ConfusionMatrix:
         """
         import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
 
-        # Normalize matrix
-        matrix = self.matrix.astype(float)
-        if normalize:
-            col_sums = matrix.sum(axis=0, keepdims=True) + 1e-9
-            matrix = np.divide(matrix, col_sums, where=col_sums != 0)
-        matrix[matrix < 0.005] = np.nan
+        array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)
+        array[array < 0.005] = np.nan
 
         # Tick label handling
-        nc, nn = matrix.shape[0], len(names)
+        nc, nn = array.shape[0], len(names)
         labels_match = (0 < nn < 99) and (nn == nc or nn + 1 == nc)
         ticklabels = list(names)
         if labels_match and nn + 1 == nc:
@@ -443,7 +439,7 @@ class ConfusionMatrix:
 
         # Create figure
         fig, ax = plt.subplots(figsize=(12, 9))
-        im = ax.imshow(matrix, cmap="Blues", vmin=0.0, interpolation='none')
+        im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation='none')
 
         # Ticks and labels
         ax.set_xticks(np.arange(nc))
@@ -468,7 +464,7 @@ class ConfusionMatrix:
         if nc < 30:
             for i in range(nc):
                 for j in range(nc):
-                    val = matrix[i, j]
+                    val = array[i, j]
                     if not np.isnan(val):
                         ax.text(j, i, f"{val:.2f}" if normalize else f"{int(val)}",
                                 ha='center', va='center', fontsize=10)

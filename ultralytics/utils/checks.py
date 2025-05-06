@@ -430,7 +430,7 @@ def check_torchvision():
     }
 
     # Check major and minor versions
-    v_torch = ".".join(torch.__version__.split("+")[0].split(".")[:2])
+    v_torch = ".".join(torch.__version__.split("+", 1)[0].split(".")[:2])
     if v_torch in compatibility_table:
         compatible_versions = compatibility_table[v_torch]
         v_torchvision = ".".join(TORCHVISION_VERSION.split("+")[0].split(".")[:2])
@@ -827,7 +827,7 @@ def cuda_device_count() -> int:
         )
 
         # Take the first line and strip any leading/trailing white space
-        first_line = output.strip().split("\n")[0]
+        first_line = output.strip().split("\n", 1)[0]
 
         return int(first_line)
     except (subprocess.CalledProcessError, FileNotFoundError, ValueError):

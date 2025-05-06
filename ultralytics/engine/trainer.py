@@ -105,9 +105,7 @@ class BaseTrainer:
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
         self.device = select_device(self.args.device, self.args.batch)
-        self.args.device = os.getenv(
-            "CUDA_VISIBLE_DEVICES"
-        )  # update "-1" devices so final_val does not repeat search
+        self.args.device = os.getenv("CUDA_VISIBLE_DEVICES")  # update "-1" devices so final_val does not repeat search
         self.validator = None
         self.metrics = None
         self.plots = {}

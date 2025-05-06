@@ -38,7 +38,7 @@ class VisualAISearch(BaseSolution):
 
         self.faiss_index = "faiss.index"
         self.data_path_npy = "paths.npy"
-        self.model_name = "ViT-B-32-quickgelu"
+        self.model_name = "ViT-B/32"
         self.data_dir = Path(self.CFG["data"])
         self.device = select_device(self.CFG["device"])
 
@@ -51,7 +51,7 @@ class VisualAISearch(BaseSolution):
             safe_download(url=f"{ASSETS_URL}/images.zip", unzip=True, retry=3)
             self.data_dir = Path("images")
 
-        self.model, self.preprocess = clip.load("ViT-B/32", device=self.device)
+        self.model, self.preprocess = clip.load(self.model_name, device=self.device)
 
         self.index = None
         self.image_paths = []

@@ -424,12 +424,8 @@ class ConfusionMatrix:
 
         fig, ax = plt.subplots(1, 1, figsize=(12, 9))
         nc, nn = self.nc, len(names)  # number of classes, names
-        labels_match = (0 < nn < 99) and (nn == nc or nn + 1 == nc)
-        ticklabels = list(names)
-        if labels_match and nn + 1 == nc:
-            ticklabels.append("background")
-        elif not labels_match:
-            ticklabels = list(range(nc))
+        ticklabels = (list(names) + ["background"] if (0 < nn < 99 and nn + 1 == nc) else list(names)) if (
+                    0 < nn < 99 and (nn == nc or nn + 1 == nc)) else list(range(nc))
         tick_fontsize, label_fontsize, title_fontsize = (6, 14, 18) if nc < 50 else (4.8, 11.2, 14.4)
 
         im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation='none')

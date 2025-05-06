@@ -424,14 +424,15 @@ class ConfusionMatrix:
 
         fig, ax = plt.subplots(1, 1, figsize=(12, 9))
         nc, nn = self.nc, len(names)  # number of classes, names
-        ticklabels = (list(names) + ["background"] if (0 < nn < 99 and nn + 1 == nc) else list(names)) if (
-                    0 < nn < 99 and (nn == nc or nn + 1 == nc)) else list(range(nc))
+        labels = (0 < nn < 99) and (nn == nc)  # apply names to ticklabels
+        ticklabels = (list(names) + ["background"]) if labels else "auto"
+        tick_count = len(ticklabels)
         tick_fontsize, label_fontsize, title_fontsize = (6, 14, 18) if nc < 50 else (4.8, 11.2, 14.4)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
             im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation='none')
-            ax.set_xticks(np.arange(nc))
-            ax.set_yticks(np.arange(nc))
+            ax.set_xticks(np.arange(tick_count))
+            ax.set_yticks(np.arange(tick_count))
             ax.set_xticklabels(ticklabels, fontsize=tick_fontsize, rotation=90, ha='center')
             ax.set_yticklabels(ticklabels, fontsize=tick_fontsize)
             ax.tick_params(axis='x', bottom=True, top=False, labelbottom=True, labeltop=False)

@@ -550,7 +550,7 @@ def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
     Search/download YAML file (if necessary) and return path, checking suffix.
 
     Args:
-        file (str): File name or path.
+        file (str | Path): File name or path.
         suffix (tuple): Acceptable file suffixes.
         hard (bool): Whether to raise an error if the file is not found.
 

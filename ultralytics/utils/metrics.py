@@ -427,37 +427,35 @@ class ConfusionMatrix:
         ticklabels = (list(names) + ["background"] if (0 < nn < 99 and nn + 1 == nc) else list(names)) if (
                     0 < nn < 99 and (nn == nc or nn + 1 == nc)) else list(range(nc))
         tick_fontsize, label_fontsize, title_fontsize = (6, 14, 18) if nc < 50 else (4.8, 11.2, 14.4)
-        im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation='none')
-        ax.set_xticks(np.arange(nc))
-        ax.set_yticks(np.arange(nc))
-        ax.set_xticklabels(ticklabels, fontsize=tick_fontsize, rotation=90, ha='center')
-        ax.set_yticklabels(ticklabels, fontsize=tick_fontsize)
-        ax.tick_params(axis='x', bottom=True, top=False, labelbottom=True, labeltop=False)
-        ax.tick_params(axis='y', left=True, right=False, labelleft=True, labelright=False)
-        ax.xaxis.set_label_position('bottom')
-        for spine in ax.spines.values():
-            spine.set_visible(False)
-        title = "Confusion Matrix" + " Normalized" * normalize
-        ax.set_title(title, fontsize=title_fontsize, pad=20)
-        ax.set_xlabel("True", fontsize=label_fontsize, labelpad=10)
-        ax.set_ylabel("Predicted", fontsize=label_fontsize, labelpad=10)
-        if nc < 30:  # Annotations (optional)
-            for i in range(nc):
-                for j in range(nc):
-                    val = array[i, j]
-                    if not np.isnan(val):
-                        ax.text(j, i, f"{val:.2f}" if normalize else f"{int(val)}",
-                                ha='center', va='center', fontsize=10)
-        cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.05)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
+            im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation='none')
+            ax.set_xticks(ax.set_yticks(np.arange(nc)))
+            ax.set_xticklabels(ticklabels, fontsize=tick_fontsize, rotation=90, ha='center')
+            ax.set_yticklabels(ticklabels, fontsize=tick_fontsize)
+            ax.tick_params(axis='x', bottom=True, labelbottom=True, top=False)
+            ax.tick_params(axis='y', left=True, labelleft=True, right=False)
+            ax.xaxis.set_label_position('bottom')
+            for spine in ax.spines.values():
+                spine.set_visible(False)
+            title = f"Confusion Matrix{' Normalized' if normalize else ''}"
+            ax.set_title(title, fontsize=title_fontsize, pad=20)
+            ax.set_xlabel("True", fontsize=label_fontsize, labelpad=10)
+            ax.set_ylabel("Predicted", fontsize=label_fontsize, labelpad=10)
+            if nc < 30:
+                for i in range(nc):
+                    for j in range(nc):
+                        val = array[i, j]
+                        if not np.isnan(val):
+                            fmt = f"{val:.2f}" if normalize else f"{int(val)}"
+                            ax.text(j, i, fmt, ha='center', va='center', fontsize=10)
+            cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.05)
         for spine in cbar.ax.spines.values():
             spine.set_visible(False)
-        fig.subplots_adjust(left=0, right=0.84, top=0.90, bottom=0.15)  # Adjust layout to ensure equal margins
+        fig.subplots_adjust(left=0, right=0.84, top=0.90, bottom=0.15)
         plot_fname = Path(save_dir) / f"{title.lower().replace(' ', '_')}.png"
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            fig.savefig(plot_fname, dpi=250)
+        fig.savefig(plot_fname, dpi=250)
         plt.close(fig)
-
         if on_plot:
             on_plot(plot_fname)
 

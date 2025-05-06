@@ -427,7 +427,6 @@ class ConfusionMatrix:
         ticklabels = (list(names) + ["background"] if (0 < nn < 99 and nn + 1 == nc) else list(names)) if (
                     0 < nn < 99 and (nn == nc or nn + 1 == nc)) else list(range(nc))
         tick_fontsize, label_fontsize, title_fontsize = (6, 14, 18) if nc < 50 else (4.8, 11.2, 14.4)
-
         im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation='none')
         ax.set_xticks(np.arange(nc))
         ax.set_yticks(np.arange(nc))

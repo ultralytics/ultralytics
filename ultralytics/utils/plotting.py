@@ -535,9 +535,10 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
     import pandas
+    from matplotlib.colors import LinearSegmentedColormap
     import seaborn
 
-    # Filter matplotlib>=3.7.2 warning and Seaborn use_inf and is_categorical FutureWarnings
+    # Filter matplotlib>=3.7.2 warning
     warnings.filterwarnings("ignore", category=UserWarning, message="The figure layout has changed to tight")
     warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -545,35 +546,44 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     LOGGER.info(f"Plotting labels to {save_dir / 'labels.jpg'}... ")
     nc = int(cls.max() + 1)  # number of classes
     boxes = boxes[:1000000]  # limit to 1M boxes
-    x = pandas.DataFrame(boxes, columns=["x", "y", "width", "height"])
+    x = pandas.DataFrame(boxes[:1000000], columns=["x", "y", "width", "height"])
 
     # Seaborn correlogram
     seaborn.pairplot(x, corner=True, diag_kind="auto", kind="hist", diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
     plt.savefig(save_dir / "labels_correlogram.jpg", dpi=200)
     plt.close()
 
-    # Matplotlib labels
-    ax = plt.subplots(2, 2, figsize=(8, 8), tight_layout=True)[1].ravel()
+    # labels.jpg
+    subplot_3_4_color = LinearSegmentedColormap.from_list("white_blue", ["white", "blue"])
+    ax = plt.subplots(2, 2, figsize=(8, 8), tight_layout=True)[1]
+    ax = ax.ravel()
+
+    # Histogram of class labels
     y = ax[0].hist(cls, bins=np.linspace(0, nc, nc + 1) - 0.5, rwidth=0.8)
     for i in range(nc):
-        y[2].patches[i].set_color([x / 255 for x in colors(i)])
+        y[2].patches[i].set_color([c / 255 for c in colors(i)])
     ax[0].set_ylabel("instances")
     if 0 < len(names) < 30:
         ax[0].set_xticks(range(len(names)))
         ax[0].set_xticklabels(list(names.values()), rotation=90, fontsize=10)
     else:
         ax[0].set_xlabel("classes")
-    seaborn.histplot(x, x="x", y="y", ax=ax[2], bins=50, pmax=0.9)
-    seaborn.histplot(x, x="width", y="height", ax=ax[3], bins=50, pmax=0.9)
 
-    # Rectangles
-    boxes[:, 0:2] = 0.5  # center
-    boxes = ops.xywh2xyxy(boxes) * 1000
+    # Rectangle image
+    rect_boxes = np.column_stack([0.5 - boxes[:, 2:4] / 2, 0.5 + boxes[:, 2:4] / 2]) * 1000
     img = Image.fromarray(np.ones((1000, 1000, 3), dtype=np.uint8) * 255)
-    for cls, box in zip(cls[:500], boxes[:500]):
-        ImageDraw.Draw(img).rectangle(box, width=1, outline=colors(cls))  # plot
+    for c, b in zip(cls[:500], rect_boxes[:500]):
+        ImageDraw.Draw(img).rectangle(list(b), width=1, outline=tuple(colors(c)))
     ax[1].imshow(img)
     ax[1].axis("off")
+
+    # Heatmaps with hist2d
+    ax[2].hist2d(x["x"], x["y"], bins=50, cmap=subplot_3_4_color)
+    ax[2].set_xlabel("x")
+    ax[2].set_ylabel("y")
+    ax[3].hist2d(x["width"], x["height"], bins=50, cmap=subplot_3_4_color)
+    ax[3].set_xlabel("width")
+    ax[3].set_ylabel("height")
 
     for a in [0, 1, 2, 3]:
         for s in ["top", "right", "left", "bottom"]:

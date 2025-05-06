@@ -71,8 +71,13 @@ def test_export_engine_matrix(task, dynamic, int8, half, batch):
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_train():
     """Test model training on a minimal dataset using available CUDA devices."""
-    device = DEVICES if len(DEVICES) > 1 else DEVICES[0]
-    YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device)  # requires imgsz>=64
+    import os
+
+    device = tuple(DEVICES) if len(DEVICES) > 1 else DEVICES[0]
+    model = YOLO(MODEL)
+    model.train(data="coco8.yaml", imgsz=64, epochs=1, device=device)  # requires imgsz>=64
+    visible = eval(os.environ["CUDA_VISIBLE_DEVICES"])
+    assert visible == device, f"Passed GPUs '{device}', but used GPUs '{visible}'"
 
 
 @pytest.mark.slow

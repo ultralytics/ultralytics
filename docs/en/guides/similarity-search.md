@@ -75,6 +75,18 @@ This class performs all the backend operations:
         #     - 000000534270.jpg | Similarity: 0.2680
         ```
 
+## VisualAISearch Parameters
+
+The table below outlines the available parameters for `VisualAISearch`:
+
+{% from "macros/solutions-args.md" import param_table %}
+{{ param_table(["data"]) }}
+
+You can also specify the tracker argument `device` to automatically determine the hardware used for embedding generation and processing.
+{% from "macros/track-args.md" import param_table %}
+{{ param_table(["device"]) }}
+
+
 ## Advantages of Semantic Image Search with CLIP and FAISS
 
 Building your own semantic image search system with CLIP and FAISS provides several compelling advantages:

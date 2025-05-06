@@ -423,7 +423,7 @@ class ConfusionMatrix:
         array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
 
         fig, ax = plt.subplots(1, 1, figsize=(12, 9))
-        nc, nn = self.nc, len(names)
+        nc, nn = self.nc, len(names) # number of classes, names
         labels_match = (0 < nn < 99) and (nn == nc or nn + 1 == nc)
         ticklabels = list(names)
         if labels_match and nn + 1 == nc:

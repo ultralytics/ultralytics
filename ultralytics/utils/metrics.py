@@ -441,16 +441,13 @@ class ConfusionMatrix:
         ax.set_title(title, fontsize=title_fontsize, pad=20)
         ax.set_xlabel("True", fontsize=label_fontsize, labelpad=10)
         ax.set_ylabel("Predicted", fontsize=label_fontsize, labelpad=10)
-
-        # Annotations (optional)
-        if nc < 30:
+        if nc < 30:  # Annotations (optional)
             for i in range(nc):
                 for j in range(nc):
                     val = array[i, j]
                     if not np.isnan(val):
                         ax.text(j, i, f"{val:.2f}" if normalize else f"{int(val)}",
                                 ha='center', va='center', fontsize=10)
-
         cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.05)
         for spine in cbar.ax.spines.values():
             spine.set_visible(False)

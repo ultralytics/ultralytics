@@ -81,8 +81,6 @@ The table below outlines the available parameters for `VisualAISearch`:
 
 {% from "macros/solutions-args.md" import param_table %}
 {{ param_table(["data"]) }}
-
-You can also specify the tracker argument `device` to choose the hardware used for embedding generation and processing.
 {% from "macros/track-args.md" import param_table %}
 {{ param_table(["device"]) }}
 

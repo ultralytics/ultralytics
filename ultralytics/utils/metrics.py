@@ -409,7 +409,7 @@ class ConfusionMatrix:
     @plt_settings()
     def plot(self, normalize=True, save_dir="", names=(), on_plot=None):
         """
-        Plot the confusion matrix using seaborn and save it to a file.
+        Plot the confusion matrix using matplotlib and save it to a file.
 
         Args:
             normalize (bool): Whether to normalize the confusion matrix.

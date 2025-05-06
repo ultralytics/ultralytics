@@ -565,12 +565,10 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
         ax[0].set_xticklabels(list(names.values()), rotation=90, fontsize=10)
     else:
         ax[0].set_xlabel("classes")
-
-    # Rectangle image
     boxes = np.column_stack([0.5 - boxes[:, 2:4] / 2, 0.5 + boxes[:, 2:4] / 2]) * 1000
     img = Image.fromarray(np.ones((1000, 1000, 3), dtype=np.uint8) * 255)
     for cls, box in zip(cls[:500], boxes[:500]):
-        ImageDraw.Draw(img).rectangle(list(box), width=1, outline=tuple(colors(cls)))
+        ImageDraw.Draw(img).rectangle(box, width=1, outline=colors(cls))  # plot
     ax[1].imshow(img)
     ax[1].axis("off")
 

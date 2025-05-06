@@ -86,7 +86,6 @@ You can also specify the tracker argument `device` to choose the hardware used f
 {% from "macros/track-args.md" import param_table %}
 {{ param_table(["device"]) }}
 
-
 ## Advantages of Semantic Image Search with CLIP and FAISS
 
 Building your own semantic image search system with CLIP and FAISS provides several compelling advantages:

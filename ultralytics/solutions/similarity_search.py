@@ -32,8 +32,8 @@ class VisualAISearch(BaseSolution):
         from ultralytics.utils.checks import check_clip_requirements  # scope for better processing time
         check_clip_requirements()
         check_requirements("faiss-cpu")
-        import faiss
         import clip
+        import faiss
 
         self.faiss = faiss
         self.clip = clip

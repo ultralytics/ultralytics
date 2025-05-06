@@ -571,6 +571,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
         ImageDraw.Draw(img).rectangle(box, width=1, outline=colors(cls))  # plot
     ax[1].imshow(img)
     ax[1].axis("off")
+
     ax[2].hist2d(x["x"], x["y"], bins=50, cmap=subplot_3_4_color)
     ax[2].set_xlabel("x")
     ax[2].set_ylabel("y")

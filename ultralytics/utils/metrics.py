@@ -422,26 +422,17 @@ class ConfusionMatrix:
         array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)  # normalize columns
         array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
 
-        # Tick label handling
-        nc, nn = array.shape[0], len(names)
+        fig, ax = plt.subplots(1, 1, figsize=(12, 9))
+        nc, nn = self.nc, len(names)
         labels_match = (0 < nn < 99) and (nn == nc or nn + 1 == nc)
         ticklabels = list(names)
         if labels_match and nn + 1 == nc:
             ticklabels.append("background")
         elif not labels_match:
             ticklabels = list(range(nc))
+        tick_fontsize, label_fontsize, title_fontsize = (6, 14, 18) if nc < 50 else (4.8, 11.2, 14.4)
 
-        # Font scaling
-        font_scale = 1.0 if nc < 50 else 0.8
-        tick_fontsize = 6 * font_scale
-        label_fontsize = 14 * font_scale
-        title_fontsize = 18 * font_scale
-
-        # Create figure
-        fig, ax = plt.subplots(figsize=(12, 9))
         im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation='none')
-
-        # Ticks and labels
         ax.set_xticks(np.arange(nc))
         ax.set_yticks(np.arange(nc))
         ax.set_xticklabels(ticklabels, fontsize=tick_fontsize, rotation=90, ha='center')
@@ -449,12 +440,8 @@ class ConfusionMatrix:
         ax.tick_params(axis='x', bottom=True, top=False, labelbottom=True, labeltop=False)
         ax.tick_params(axis='y', left=True, right=False, labelleft=True, labelright=False)
         ax.xaxis.set_label_position('bottom')
-
-        # ✅ Remove all spines (no rectangle around the matrix)
         for spine in ax.spines.values():
             spine.set_visible(False)
-
-        # Axis labels and title
         title = "Confusion Matrix" + " Normalized" * normalize
         ax.set_title(title, fontsize=title_fontsize, pad=20)
         ax.set_xlabel("True", fontsize=label_fontsize, labelpad=10)
@@ -469,12 +456,9 @@ class ConfusionMatrix:
                         ax.text(j, i, f"{val:.2f}" if normalize else f"{int(val)}",
                                 ha='center', va='center', fontsize=10)
 
-        # Colorbar (ensure minimal padding)
         cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.05)
         for spine in cbar.ax.spines.values():
             spine.set_visible(False)
-
-        # Save
         fig.subplots_adjust(left=0, right=0.84, top=0.90, bottom=0.15)  # Adjust layout to ensure equal margins
         plot_fname = Path(save_dir) / f"{title.lower().replace(' ', '_')}.png"
         with warnings.catch_warnings():

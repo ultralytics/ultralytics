@@ -1115,13 +1115,12 @@ class Exporter:
         rknn.load_onnx(model=f)
         dataset = None
         if self.args.int8:
-            import glob
             import tempfile
 
             data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
             img_path = data[self.args.split or "val"]
             with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8", delete=False) as dataset_file:
-                dataset_file.write("\n".join(glob.glob(str(Path(img_path) / "*"))))
+                dataset_file.write("\n".join(file for file in Path(img_path).glob("*")))
             dataset = dataset_file.name
         rknn.build(do_quantization=self.args.int8, dataset=dataset)
         f = f.replace(".onnx", f"-{self.args.name}-int8.rknn" if self.args.int8 else f"-{self.args.name}-fp16.rknn")

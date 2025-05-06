@@ -419,8 +419,8 @@ class ConfusionMatrix:
         """
         import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
 
-        array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1) # normalize columns
-        array[array < 0.005] = np.nan
+        array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)  # normalize columns
+        array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
 
         # Tick label handling
         nc, nn = array.shape[0], len(names)

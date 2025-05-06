@@ -340,6 +340,14 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
     return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard, verbose=verbose)
 
 
+def check_clip_requirements():
+    """Check OpenAI CLIP requirements."""
+    try:
+        import clip
+    except ImportError:
+        check_requirements("git+https://github.com/ultralytics/CLIP.git")
+
+
 @TryExcept()
 def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds=""):
     """

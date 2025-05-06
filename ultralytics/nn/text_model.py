@@ -7,11 +7,13 @@ import torch
 import torch.nn as nn
 
 from ultralytics.utils import checks
-from ultralytics.utils.checks import check_clip_requirements
 from ultralytics.utils.torch_utils import smart_inference_mode
 
-check_clip_requirements()
-import clip
+try:
+    import clip
+except ImportError:
+    checks.check_requirements("git+https://github.com/ultralytics/CLIP.git")
+    import clip
 
 
 class TextModel(nn.Module):

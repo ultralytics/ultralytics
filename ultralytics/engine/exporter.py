@@ -1115,7 +1115,8 @@ class Exporter:
         rknn.load_onnx(model=f)
         dataset = None
         if self.args.int8:
-            import tempfile, glob
+            import glob
+            import tempfile
 
             data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
             img_path = data[self.args.split or "val"]

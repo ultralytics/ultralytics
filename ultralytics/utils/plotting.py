@@ -553,7 +553,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     plt.savefig(save_dir / "labels_correlogram.jpg", dpi=200)
     plt.close()
 
-    # labels.jpg
+    # Matplotlib labels
     subplot_3_4_color = LinearSegmentedColormap.from_list("white_blue", ["white", "blue"])
     ax = plt.subplots(2, 2, figsize=(8, 8), tight_layout=True)[1].ravel()
 

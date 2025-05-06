@@ -44,6 +44,8 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     if cfg.tracker_type not in {"bytetrack", "botsort"}:
         raise AssertionError(f"Only 'bytetrack' and 'botsort' are supported for now, but got '{cfg.tracker_type}'")
 
+    predictor._feats = None  # reset in case used earlier
+    predictor.save_feats = False
     if cfg.tracker_type == "botsort" and cfg.with_reid and cfg.model == "auto":
         from ultralytics.nn.modules.head import Detect
 
@@ -55,7 +57,6 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
             cfg.model = "yolo11n-cls.pt"
         else:
             predictor.save_feats = True
-            predictor._feats = None
 
             # Register hook to extract input of Detect layer
             def pre_hook(module, input):

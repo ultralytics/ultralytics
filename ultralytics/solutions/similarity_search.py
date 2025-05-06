@@ -29,7 +29,7 @@ class VisualAISearch(BaseSolution):
     def __init__(self, **kwargs):
         """Initializes the VisualAISearch class with the FAISS index file and CLIP model."""
         super().__init__(**kwargs)
-        check_requirements(["faiss-cpu", "git+https://github.com/ultralytics/CLIP.git"])
+        check_requirements(["git+https://github.com/ultralytics/CLIP.git", "faiss-cpu"])
         import faiss
         import clip
 

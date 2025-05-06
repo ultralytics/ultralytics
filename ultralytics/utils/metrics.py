@@ -417,115 +417,38 @@ class ConfusionMatrix:
             names (tuple): Names of classes, used as labels on the plot.
             on_plot (func): An optional callback to pass plots path and data when they are rendered.
         """
-        # import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
-        # import seaborn
-        #
-        # array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)  # normalize columns
-        # array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
-        #
-        # fig, ax = plt.subplots(1, 1, figsize=(12, 9), tight_layout=True)
-        # nc, nn = self.nc, len(names)  # number of classes, names
-        # seaborn.set_theme(font_scale=1.0 if nc < 50 else 0.8)  # for label size
-        # labels = (0 < nn < 99) and (nn == nc)  # apply names to ticklabels
-        # ticklabels = (list(names) + ["background"]) if labels else "auto"
-        # with warnings.catch_warnings():
-        #     warnings.simplefilter("ignore")  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
-        #     seaborn.heatmap(
-        #         array,
-        #         ax=ax,
-        #         annot=nc < 30,
-        #         annot_kws={"size": 8},
-        #         cmap="Blues",
-        #         fmt=".2f" if normalize else ".0f",
-        #         square=True,
-        #         vmin=0.0,
-        #         xticklabels=ticklabels,
-        #         yticklabels=ticklabels,
-        #     ).set_facecolor((1, 1, 1))
-        # title = "Confusion Matrix" + " Normalized" * normalize
-        # ax.set_xlabel("True")
-        # ax.set_ylabel("Predicted")
-        # ax.set_title(title)
-        # plot_fname = Path(save_dir) / f"{title.lower().replace(' ', '_')}.png"
-        # fig.savefig(plot_fname, dpi=250)
-        # plt.close(fig)
-        # if on_plot:
-        #     on_plot(plot_fname)
+        import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+        import seaborn
 
-        import matplotlib.pyplot as plt
-        import warnings
+        array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)  # normalize columns
+        array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
 
-        # Normalize matrix
-        matrix = self.matrix.astype(float)
-        if normalize:
-            col_sums = matrix.sum(axis=0, keepdims=True) + 1e-9
-            matrix = np.divide(matrix, col_sums, where=col_sums != 0)
-        matrix[matrix < 0.005] = np.nan
-
-        # Tick label handling
-        nc, nn = matrix.shape[0], len(names)
-        labels_match = (0 < nn < 99) and (nn == nc or nn + 1 == nc)
-        ticklabels = list(names)
-        if labels_match and nn + 1 == nc:
-            ticklabels.append("background")
-        elif not labels_match:
-            ticklabels = list(range(nc))
-
-        # Font scaling
-        font_scale = 1.0 if nc < 50 else 0.8
-        tick_fontsize = 8 * font_scale
-        label_fontsize = 12 * font_scale
-        title_fontsize = 14 * font_scale
-
-        # Create figure
-        fig, ax = plt.subplots(figsize=(12, 8))
-        im = ax.imshow(matrix, cmap="Blues", vmin=0.0, interpolation='none')
-
-        # Ticks and labels
-        ax.set_xticks(np.arange(nc))
-        ax.set_yticks(np.arange(nc))
-        ax.set_xticklabels(ticklabels, fontsize=tick_fontsize, rotation=90, ha='center')
-        ax.set_yticklabels(ticklabels, fontsize=tick_fontsize)
-
-        ax.tick_params(axis='x', bottom=True, top=False, labelbottom=True, labeltop=False)
-        ax.tick_params(axis='y', left=True, right=False, labelleft=True, labelright=False)
-        ax.xaxis.set_label_position('bottom')
-
-        # ✅ Remove all spines (no rectangle around the matrix)
-        for spine in ax.spines.values():
-            spine.set_visible(False)
-
-        # Axis labels and title
-        title = "Confusion Matrix" + (" Normalized" if normalize else "")
-        ax.set_title(title, fontsize=title_fontsize, pad=20)
-        ax.set_xlabel("True", fontsize=label_fontsize, labelpad=10)
-        ax.set_ylabel("Predicted", fontsize=label_fontsize, labelpad=10)
-
-        # Annotations (optional)
-        if nc < 30:
-            for i in range(nc):
-                for j in range(nc):
-                    val = matrix[i, j]
-                    if not np.isnan(val):
-                        ax.text(j, i, f"{val:.2f}" if normalize else f"{int(val)}",
-                                ha='center', va='center', fontsize=10)
-
-        # Colorbar (ensure minimal padding)
-        cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.05)
-
-
-        for spine in cbar.ax.spines.values():
-            spine.set_visible(False)
-        # Save
-        save_path = Path(save_dir) if save_dir else Path(".")
-        save_path.mkdir(parents=True, exist_ok=True)
-        plot_fname = save_path / f"{title.lower().replace(' ', '_')}.png"
-
+        fig, ax = plt.subplots(1, 1, figsize=(12, 9), tight_layout=True)
+        nc, nn = self.nc, len(names)  # number of classes, names
+        seaborn.set_theme(font_scale=1.0 if nc < 50 else 0.8)  # for label size
+        labels = (0 < nn < 99) and (nn == nc)  # apply names to ticklabels
+        ticklabels = (list(names) + ["background"]) if labels else "auto"
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            fig.savefig(plot_fname, dpi=250, bbox_inches="tight")
+            warnings.simplefilter("ignore")  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
+            seaborn.heatmap(
+                array,
+                ax=ax,
+                annot=nc < 30,
+                annot_kws={"size": 8},
+                cmap="Blues",
+                fmt=".2f" if normalize else ".0f",
+                square=True,
+                vmin=0.0,
+                xticklabels=ticklabels,
+                yticklabels=ticklabels,
+            ).set_facecolor((1, 1, 1))
+        title = "Confusion Matrix" + " Normalized" * normalize
+        ax.set_xlabel("True")
+        ax.set_ylabel("Predicted")
+        ax.set_title(title)
+        plot_fname = Path(save_dir) / f"{title.lower().replace(' ', '_')}.png"
+        fig.savefig(plot_fname, dpi=250)
         plt.close(fig)
-
         if on_plot:
             on_plot(plot_fname)
 

@@ -74,7 +74,7 @@ from ultralytics import __version__
 from ultralytics.cfg import TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader
 from ultralytics.data.dataset import YOLODataset
-from ultralytics.data.utils import check_cls_dataset, check_det_dataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset, IMG_FORMATS
 from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
@@ -1120,7 +1120,7 @@ class Exporter:
             data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
             img_path = data[self.args.split or "val"]
             with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8", delete=False) as dataset_file:
-                dataset_file.write("\n".join(file for file in Path(img_path).glob("*")))
+                dataset_file.write("\n".join(str(x) for x in Path(img_path).glob("*") if x.suffix[1:] in IMG_FORMATS))
             dataset = dataset_file.name
         rknn.build(do_quantization=self.args.int8, dataset=dataset)
         f = f.replace(".onnx", f"-{self.args.name}-int8.rknn" if self.args.int8 else f"-{self.args.name}-fp16.rknn")

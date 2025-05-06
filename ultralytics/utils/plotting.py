@@ -557,10 +557,9 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     subplot_3_4_color = LinearSegmentedColormap.from_list("white_blue", ["white", "blue"])
     ax = plt.subplots(2, 2, figsize=(8, 8), tight_layout=True)[1].ravel()
 
-    # Histogram of class labels
     y = ax[0].hist(cls, bins=np.linspace(0, nc, nc + 1) - 0.5, rwidth=0.8)
     for i in range(nc):
-        y[2].patches[i].set_color([c / 255 for c in colors(i)])
+        y[2].patches[i].set_color([x / 255 for x in colors(i)])
     ax[0].set_ylabel("instances")
     if 0 < len(names) < 30:
         ax[0].set_xticks(range(len(names)))

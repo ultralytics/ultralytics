@@ -423,7 +423,7 @@ def check_det_dataset(dataset, autodownload=True):
     data["channels"] = data.get("channels", 3)  # get image channels, default to 3
 
     # Resolve paths
-    path = Path(extract_dir or data.get("path") or Path(data.get("yaml_file", "")).parent)  # dataset root
+    path = Path(extract_dir or data.get("path") or Path(data.get("yaml_file", "")).parent.resolve())  # dataset root
     if not path.is_absolute():
         path = (DATASETS_DIR / path).resolve()
 

@@ -30,6 +30,7 @@ class VisualAISearch(BaseSolution):
         """Initializes the VisualAISearch class with the FAISS index file and CLIP model."""
         super().__init__(**kwargs)
         from ultralytics.utils.checks import check_clip_requirements  # scope for better processing time
+
         check_clip_requirements()
         check_requirements("faiss-cpu")
         import clip

@@ -411,7 +411,7 @@ class LoadImagesAndVideos:
             else:
                 # Handle image files (including HEIC)
                 self.mode = "image"
-                if path.split(".")[-1].lower() == "heic":
+                if path.rsplit(".", 1)[-1].lower() == "heic":
                     # Load HEIC image using Pillow with pillow-heif
                     check_requirements("pillow-heif")
 

@@ -1113,6 +1113,7 @@ class Exporter:
         rknn = RKNN(verbose=False)
         rknn.config(mean_values=[[0, 0, 0]], std_values=[[255, 255, 255]], target_platform=self.args.name)
         rknn.load_onnx(model=f)
+        dataset = None
         if self.args.int8:
             import tempfile
             import glob
@@ -1127,9 +1128,10 @@ class Exporter:
                         if im_file.split(".")[-1].lower() in IMG_FORMATS
                     )
                 )
-                rknn.build(do_quantization=self.args.int8, dataset=dataset_file.name)
-        else:
-            rknn.build(do_quantization=False)
+                dataset = dataset_file.name
+        rknn.build(do_quantization=self.args.int8, dataset=dataset)
+        if dataset is not None and Path(dataset).exists():
+            os.remove(dataset)
         f = f.replace(".onnx", f"-{self.args.name}-int8.rknn" if self.args.int8 else f"-{self.args.name}-fp16.rknn")
         rknn.export_rknn(f"{export_path / f}")
         YAML.save(export_path / "metadata.yaml", self.metadata)

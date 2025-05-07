@@ -51,6 +51,46 @@ for result, frame in model.predict():  # or model.track()
     pass
 ```
 
+### Perform Validation After Every Epoch Using the `on_model_save` Callback
+
+In many research projects, model accuracy is crucial. Training for too many epochs can lead to overfitting, while too few may result in suboptimal performance. To address this, the `on_model_save` callback in Ultralytics allows you to run validation at the end of each epoch using the latest checkpoint.
+
+This approach helps you monitor accuracy and other metrics in real-time, saving time and offering clearer insights into model performance. It also provides per-epoch metrics that are essential for informed testing and optimization.
+
+Below is an example of how to implement per-epoch validation using Ultralytics Callbacks.
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolo11n.pt")
+
+batch, imgsz, workers, epochs = 2, 640, 1, 3
+data, device = "coco8.yaml", "0"
+
+def on_train_epoch_end(trainer):
+    print(f"\nRunning Validation {trainer.epoch+1}...")
+
+    from pathlib import Path
+    val_model = YOLO(Path(trainer.save_dir) / "weights" / "best.pt")
+
+    validation_results = val_model.val(
+        data=data,
+        imgsz=imgsz,
+        batch=batch * 2,  # validation with 2x batch required
+        workers=workers,
+        device=device
+    )
+    # print(validation_results)
+
+if __name__ == "__main__":
+    # Add on_train_epoch_end callback.
+    model.add_callback("on_model_save", on_train_epoch_end)
+
+    # Run model training on custom dataset.
+    results = model.train(data=data, epochs=epochs, batch=batch,
+                          imgsz=imgsz, device=device, workers=workers)
+```
+
 ## All Callbacks
 
 Below are all the supported callbacks. For more details, refer to the callbacks [source code](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/base.py).
@@ -99,6 +139,12 @@ Below are all the supported callbacks. For more details, refer to the callbacks 
 | ----------------- | ----------------------------------------- |
 | `on_export_start` | Triggered when the export process starts. |
 | `on_export_end`   | Triggered when the export process ends.   |
+
+### Model Callbacks
+
+| Callback        | Description                                                             |
+|-----------------|-------------------------------------------------------------------------|
+| `on_model_save` | Triggered at the end of each training epoch when the model checkpoint is saved. |
 
 ## FAQ
 

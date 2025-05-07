@@ -21,6 +21,7 @@ import torch
 from torch import distributed as dist
 from torch import nn, optim
 
+from ultralytics import __version__
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
@@ -30,12 +31,11 @@ from ultralytics.utils import (
     LOGGER,
     RANK,
     TQDM,
-    __version__,
+    YAML,
     callbacks,
     clean_url,
     colorstr,
     emojis,
-    yaml_save,
 )
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
@@ -105,6 +105,8 @@ class BaseTrainer:
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
         self.device = select_device(self.args.device, self.args.batch)
+        # update "-1" devices so post-training val does not repeat search
+        self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device) else str(self.device)
         self.validator = None
         self.metrics = None
         self.plots = {}
@@ -117,7 +119,7 @@ class BaseTrainer:
         if RANK in {-1, 0}:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
             self.args.save_dir = str(self.save_dir)
-            yaml_save(self.save_dir / "args.yaml", vars(self.args))  # save run args
+            YAML.save(self.save_dir / "args.yaml", vars(self.args))  # save run args
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
         self.save_period = self.args.save_period
         if self.args.conf is None:
@@ -190,12 +192,11 @@ class BaseTrainer:
         if world_size > 1 and "LOCAL_RANK" not in os.environ:
             # Argument checks
             if self.args.rect:
-                LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with Multi-GPU training, setting 'rect=False'")
+                LOGGER.warning("'rect=True' is incompatible with Multi-GPU training, setting 'rect=False'")
                 self.args.rect = False
             if self.args.batch < 1.0:
                 LOGGER.warning(
-                    "WARNING ⚠️ 'batch<1' for AutoBatch is incompatible with Multi-GPU training, setting "
-                    "default 'batch=16'"
+                    "'batch<1' for AutoBatch is incompatible with Multi-GPU training, setting default 'batch=16'"
                 )
                 self.args.batch = 16
 
@@ -258,8 +259,8 @@ class BaseTrainer:
                 LOGGER.info(f"Freezing layer '{k}'")
                 v.requires_grad = False
             elif not v.requires_grad and v.dtype.is_floating_point:  # only floating point Tensor can require gradients
-                LOGGER.info(
-                    f"WARNING ⚠️ setting 'requires_grad=True' for frozen layer '{k}'. "
+                LOGGER.warning(
+                    f"setting 'requires_grad=True' for frozen layer '{k}'. "
                     "See ultralytics.engine.trainer for customization of frozen layers."
                 )
                 v.requires_grad = True
@@ -271,7 +272,7 @@ class BaseTrainer:
             self.amp = torch.tensor(check_amp(self.model), device=self.device)
             callbacks.default_callbacks = callbacks_backup  # restore callbacks
         if RANK > -1 and world_size > 1:  # DDP
-            dist.broadcast(self.amp, src=0)  # broadcast the tensor from rank 0 to all other ranks (returns None)
+            dist.broadcast(self.amp.int(), src=0)  # broadcast from rank 0 to all other ranks; gloo errors with boolean
         self.amp = bool(self.amp)  # as boolean
         self.scaler = (
             torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
@@ -459,8 +460,8 @@ class BaseTrainer:
                 self.scheduler.last_epoch = self.epoch  # do not move
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
             self.run_callbacks("on_fit_epoch_end")
-            if self._get_memory(fraction=True) > 0.9:
-                self._clear_memory()  # clear if memory utilization > 90%
+            if self._get_memory(fraction=True) > 0.5:
+                self._clear_memory()  # clear if memory utilization > 50%
 
             # Early Stopping
             if RANK != -1:  # if DDP training

@@ -28,7 +28,7 @@ This guide provides a comprehensive introduction to setting up a Conda environme
 
 ## Prerequisites
 
-- You should have Anaconda or Miniconda installed on your system. If not, download and install it from [Anaconda](https://www.anaconda.com/) or [Miniconda](https://docs.conda.io/projects/miniconda/en/latest/).
+- You should have Anaconda or Miniconda installed on your system. If not, download and install it from [Anaconda](https://www.anaconda.com/) or [Miniconda](https://www.anaconda.com/docs/main).
 
 ---
 

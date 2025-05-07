@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Callable, Dict, List, Optional, Union
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from PIL import Image, ImageDraw, ImageFont
@@ -184,7 +183,9 @@ class Annotator:
         self.lw = line_width or max(round(sum(im.size if input_is_pil else im.shape) / 2 * 0.003), 2)
         if self.pil:  # use PIL
             self.im = im if input_is_pil else Image.fromarray(im)
-            self.draw = ImageDraw.Draw(self.im)
+            if self.im.mode not in {"RGB", "RGBA"}:  # multispectral
+                self.im = self.im.convert("RGB")
+            self.draw = ImageDraw.Draw(self.im, "RGBA")
             try:
                 font = check_font("Arial.Unicode.ttf" if non_ascii else font)
                 size = font_size or max(round(sum(self.im.size) / 2 * 0.035), 12)
@@ -195,6 +196,8 @@ class Annotator:
             if check_version(pil_version, "9.2.0"):
                 self.font.getsize = lambda x: self.font.getbbox(x)[2:4]  # text width, height
         else:  # use cv2
+            if im.shape[2] > 3:  # multispectral
+                im = np.ascontiguousarray(im[..., :3])
             assert im.data.contiguous, "Image not contiguous. Apply np.ascontiguousarray(im) to Annotator input images."
             self.im = im if im.flags.writeable else im.copy()
             self.tf = max(self.lw - 1, 1)  # font thickness
@@ -309,7 +312,7 @@ class Annotator:
                     (p1[0], p1[1] - h if outside else p1[1], p1[0] + w + 1, p1[1] + 1 if outside else p1[1] + h + 1),
                     fill=color,
                 )
-                # self.draw.text((box[0], box[1]), label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
+                # self.draw.text([box[0], box[1]], label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
                 self.draw.text((p1[0], p1[1] - h if outside else p1[1]), label, fill=txt_color, font=self.font)
         else:  # cv2
             if rotated:
@@ -437,7 +440,7 @@ class Annotator:
         """Add rectangle to image (PIL-only)."""
         self.draw.rectangle(xy, fill, outline, width)
 
-    def text(self, xy, text, txt_color=(255, 255, 255), anchor="top", box_style=False):
+    def text(self, xy, text, txt_color=(255, 255, 255), anchor="top", box_color=()):
         """
         Add text to an image using PIL or cv2.
 
@@ -446,34 +449,26 @@ class Annotator:
             text (str): Text to be drawn.
             txt_color (tuple, optional): Text color (R, G, B).
             anchor (str, optional): Text anchor position ('top' or 'bottom').
-            box_style (bool, optional): Whether to draw text with a background box.
+            box_color (tuple, optional): Box color (R, G, B, A) with optional alpha.
         """
-        if anchor == "bottom":  # start y from font bottom
-            w, h = self.font.getsize(text)  # text width, height
-            xy[1] += 1 - h
         if self.pil:
-            if box_style:
-                w, h = self.font.getsize(text)
-                self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=txt_color)
-                # Using `txt_color` for background and draw fg with white color
-                txt_color = (255, 255, 255)
-            if "\n" in text:
-                lines = text.split("\n")
-                _, h = self.font.getsize(text)
-                for line in lines:
-                    self.draw.text(xy, line, fill=txt_color, font=self.font)
-                    xy[1] += h
-            else:
-                self.draw.text(xy, text, fill=txt_color, font=self.font)
+            w, h = self.font.getsize(text)
+            if anchor == "bottom":  # start y from font bottom
+                xy[1] += 1 - h
+            for line in text.split("\n"):
+                if box_color:
+                    # Draw rectangle for each line
+                    w, h = self.font.getsize(line)
+                    self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=box_color)
+                self.draw.text(xy, line, fill=txt_color, font=self.font)
+                xy[1] += h
         else:
-            if box_style:
-                w, h = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
+            if box_color:
+                w, h = cv2.getTextSize(text, 0, fontScale=self.sf, thickness=self.tf)[0]
                 h += 3  # add pixels to pad text
                 outside = xy[1] >= h  # label fits outside box
                 p2 = xy[0] + w, xy[1] - h if outside else xy[1] + h
-                cv2.rectangle(self.im, xy, p2, txt_color, -1, cv2.LINE_AA)  # filled
-                # Using `txt_color` for background and draw fg with white color
-                txt_color = (255, 255, 255)
+                cv2.rectangle(self.im, xy, p2, box_color, -1, cv2.LINE_AA)  # filled
             cv2.putText(self.im, text, xy, 0, self.sf, txt_color, thickness=self.tf, lineType=cv2.LINE_AA)
 
     def fromarray(self, im):
@@ -538,8 +533,9 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
         save_dir (Path, optional): Directory to save the plot.
         on_plot (Callable, optional): Function to call after plot is saved.
     """
-    import pandas  # scope for faster 'import ultralytics'
-    import seaborn  # scope for faster 'import ultralytics'
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+    import pandas
+    import seaborn
 
     # Filter matplotlib>=3.7.2 warning and Seaborn use_inf and is_categorical FutureWarnings
     warnings.filterwarnings("ignore", category=UserWarning, message="The figure layout has changed to tight")
@@ -691,6 +687,8 @@ def plot_images(
         kpts = kpts.cpu().numpy()
     if isinstance(batch_idx, torch.Tensor):
         batch_idx = batch_idx.cpu().numpy()
+    if images.shape[1] > 3:
+        images = images[:, :3]  # crop multispectral images to first 3 channels
 
     bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images
@@ -714,12 +712,12 @@ def plot_images(
     # Annotate
     fs = int((h + w) * ns * 0.01)  # font size
     fs = max(fs, 18)  # ensure that the font size is large enough to be easily readable.
-    annotator = Annotator(mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=names)
+    annotator = Annotator(mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=str(names))
     for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
         annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders
         if paths:
-            annotator.text((x + 5, y + 5), text=Path(paths[i]).name[:40], txt_color=(220, 220, 220))  # filenames
+            annotator.text([x + 5, y + 5], text=Path(paths[i]).name[:40], txt_color=(220, 220, 220))  # filenames
         if len(cls) > 0:
             idx = batch_idx == i
             classes = cls[idx].astype("int")
@@ -750,7 +748,7 @@ def plot_images(
                 for c in classes:
                     color = colors(c)
                     c = names.get(c, c) if names else c
-                    annotator.text((x, y), f"{c}", txt_color=color, box_style=True)
+                    annotator.text([x, y], f"{c}", txt_color=color, box_color=(64, 64, 64, 128))
 
             # Plot keypoints
             if len(kpts):
@@ -821,7 +819,8 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
         >>> from ultralytics.utils.plotting import plot_results
         >>> plot_results("path/to/results.csv", segment=True)
     """
-    import pandas as pd  # scope for faster 'import ultralytics'
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+    import pandas as pd
     from scipy.ndimage import gaussian_filter1d
 
     save_dir = Path(file).parent if file else Path(dir)
@@ -854,7 +853,7 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
                 # if j in {8, 9, 10}:  # share train and val loss y axes
                 #     ax[i].get_shared_y_axes().join(ax[i], ax[i - 5])
         except Exception as e:
-            LOGGER.warning(f"WARNING: Plotting error for {f}: {e}")
+            LOGGER.error(f"Plotting error for {f}: {e}")
     ax[1].legend()
     fname = save_dir / "results.png"
     fig.savefig(fname, dpi=200)
@@ -880,6 +879,8 @@ def plt_color_scatter(v, f, bins=20, cmap="viridis", alpha=0.8, edgecolors="none
         >>> f = np.random.rand(100)
         >>> plt_color_scatter(v, f)
     """
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+
     # Calculate 2D histogram and corresponding colors
     hist, xedges, yedges = np.histogram2d(v, f, bins=bins)
     colors = [
@@ -905,7 +906,8 @@ def plot_tune_results(csv_file="tune_results.csv"):
     Examples:
         >>> plot_tune_results("path/to/tune_results.csv")
     """
-    import pandas as pd  # scope for faster 'import ultralytics'
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+    import pandas as pd
     from scipy.ndimage import gaussian_filter1d
 
     def _save_one_file(file):
@@ -982,6 +984,8 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detec
         n (int, optional): Maximum number of feature maps to plot.
         save_dir (Path, optional): Directory to save results.
     """
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+
     for m in {"Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder"}:  # all model heads
         if m in module_type:
             return

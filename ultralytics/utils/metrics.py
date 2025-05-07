@@ -5,11 +5,10 @@ import math
 import warnings
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER, SimpleClass, TryExcept, plt_settings
+from ultralytics.utils import LOGGER, SimpleClass, TryExcept, checks, plt_settings
 
 OKS_SIGMA = (
     np.array([0.26, 0.25, 0.25, 0.35, 0.35, 0.79, 0.79, 0.72, 0.72, 0.62, 0.62, 1.07, 1.07, 0.87, 0.87, 0.89, 0.89])
@@ -52,7 +51,7 @@ def bbox_ioa(box1, box2, iou=False, eps=1e-7):
 def box_iou(box1, box2, eps=1e-7):
     """
     Calculate intersection-over-union (IoU) of boxes. Both sets of boxes are expected to be in (x1, y1, x2, y2) format.
-    Based on https://github.com/pytorch/vision/blob/master/torchvision/ops/boxes.py.
+    Based on https://github.com/pytorch/vision/blob/main/torchvision/ops/boxes.py.
 
     Args:
         box1 (torch.Tensor): A tensor of shape (N, 4) representing N bounding boxes.
@@ -406,7 +405,7 @@ class ConfusionMatrix:
         # fn = self.matrix.sum(0) - tp  # false negatives (missed detections)
         return (tp[:-1], fp[:-1]) if self.task == "detect" else (tp, fp)  # remove background class if task=detect
 
-    @TryExcept("WARNING ⚠️ ConfusionMatrix plot failure")
+    @TryExcept(msg="ConfusionMatrix plot failure")
     @plt_settings()
     def plot(self, normalize=True, save_dir="", names=(), on_plot=None):
         """
@@ -418,7 +417,8 @@ class ConfusionMatrix:
             names (tuple): Names of classes, used as labels on the plot.
             on_plot (func): An optional callback to pass plots path and data when they are rendered.
         """
-        import seaborn  # scope for faster 'import ultralytics'
+        import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+        import seaborn
 
         array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)  # normalize columns
         array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
@@ -479,6 +479,8 @@ def plot_pr_curve(px, py, ap, save_dir=Path("pr_curve.png"), names={}, on_plot=N
         names (dict, optional): Dictionary mapping class indices to class names.
         on_plot (callable, optional): Function to call after plot is saved.
     """
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+
     fig, ax = plt.subplots(1, 1, figsize=(9, 6), tight_layout=True)
     py = np.stack(py, axis=1)
 
@@ -515,6 +517,8 @@ def plot_mc_curve(px, py, save_dir=Path("mc_curve.png"), names={}, xlabel="Confi
         ylabel (str, optional): Y-axis label.
         on_plot (callable, optional): Function to call after plot is saved.
     """
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+
     fig, ax = plt.subplots(1, 1, figsize=(9, 6), tight_layout=True)
 
     if 0 < len(names) < 21:  # display per-class legend if < 21 classes
@@ -523,7 +527,7 @@ def plot_mc_curve(px, py, save_dir=Path("mc_curve.png"), names={}, xlabel="Confi
     else:
         ax.plot(px, py.T, linewidth=1, color="grey")  # plot(confidence, metric)
 
-    y = smooth(py.mean(0), 0.05)
+    y = smooth(py.mean(0), 0.1)
     ax.plot(px, y, linewidth=3, color="blue", label=f"all classes {y.max():.2f} at {px[y.argmax()]:.3f}")
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
@@ -561,7 +565,8 @@ def compute_ap(recall, precision):
     method = "interp"  # methods: 'continuous', 'interp'
     if method == "interp":
         x = np.linspace(0, 1, 101)  # 101-point interp (COCO)
-        ap = np.trapz(np.interp(x, mrec, mpre), x)  # integrate
+        func = np.trapezoid if checks.check_version(np.__version__, ">=2.0") else np.trapz  # np.trapz deprecated
+        ap = func(np.interp(x, mrec, mpre), x)  # integrate
     else:  # 'continuous'
         i = np.where(mrec[1:] != mrec[:-1])[0]  # points where x-axis (recall) changes
         ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])  # area under curve

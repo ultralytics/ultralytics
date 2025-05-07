@@ -1,15 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import argparse
-from pathlib import Path
 
 import cv2
 from sahi import AutoDetectionModel
 from sahi.predict import get_sliced_prediction
-from sahi.utils.ultralytics import download_yolo11n_model
+from sahi.utils.ultralytics import download_model_weights
 
 from ultralytics.utils.files import increment_path
-from ultralytics.utils.plotting import Annotator, colors
 
 
 class SAHIInference:
@@ -32,17 +30,20 @@ class SAHIInference:
         """Initializes the SAHIInference class for performing sliced inference using SAHI with YOLO11 models."""
         self.detection_model = None
 
-    def load_model(self, weights: str) -> None:
+    def load_model(self, weights: str, device: str) -> None:
         """
         Load a YOLO11 model with specified weights for object detection using SAHI.
 
         Args:
             weights (str): Path to the model weights file.
+            device (str, optional): CUDA device, i.e., '0' or '0,1,2,3' or 'cpu'. Defaults to "".
         """
+        from ultralytics.utils.torch_utils import select_device
+
         yolo11_model_path = f"models/{weights}"
-        download_yolo11n_model(yolo11_model_path)  # Download model if not present
+        download_model_weights(yolo11_model_path)  # Download model if not present
         self.detection_model = AutoDetectionModel.from_pretrained(
-            model_type="ultralytics", model_path=yolo11_model_path, device="cpu"
+            model_type="ultralytics", model_path=yolo11_model_path, device=select_device(device)
         )
 
     def inference(
@@ -52,6 +53,10 @@ class SAHIInference:
         view_img: bool = False,
         save_img: bool = False,
         exist_ok: bool = False,
+        device: str = "",
+        hide_conf: bool = False,
+        slice_width: int = 512,
+        slice_height: int = 512,
     ) -> None:
         """
         Run object detection on a video using YOLO11 and SAHI.
@@ -60,72 +65,59 @@ class SAHIInference:
         and optionally displays and/or saves the results with bounding boxes and labels.
 
         Args:
-            weights (str): Model weights path.
+            weights (str): Model weights' path.
             source (str): Video file path.
             view_img (bool): Whether to display results in a window.
             save_img (bool): Whether to save results to a video file.
             exist_ok (bool): Whether to overwrite existing output files.
+            device (str, optional): CUDA device, i.e., '0' or '0,1,2,3' or 'cpu'. Defaults to "".
+            hide_conf (bool, optional): Flag to show or hide confidences in the output. Defaults to False.
+            slice_width (int, optional): Slice width for inference.
+            slice_height (int, optional): Slice height for inference.
         """
         # Video setup
         cap = cv2.VideoCapture(source)
         assert cap.isOpened(), "Error reading video file"
-        frame_width, frame_height = int(cap.get(3)), int(cap.get(4))
 
         # Output setup
-        save_dir = increment_path(Path("ultralytics_results_with_sahi") / "exp", exist_ok)
+        save_dir = increment_path("runs/detect/predict", exist_ok)
         save_dir.mkdir(parents=True, exist_ok=True)
-        video_writer = cv2.VideoWriter(
-            str(save_dir / f"{Path(source).stem}.avi"),
-            cv2.VideoWriter_fourcc(*"MJPG"),
-            int(cap.get(5)),
-            (frame_width, frame_height),
-        )
 
         # Load model
-        self.load_model(weights)
+        self.load_model(weights, device)
+        idx = 0  # index for image frame writing
         while cap.isOpened():
             success, frame = cap.read()
             if not success:
                 break
 
-            annotator = Annotator(frame)  # Initialize annotator for plotting detection results
-
             # Perform sliced prediction using SAHI
             results = get_sliced_prediction(
                 frame[..., ::-1],  # Convert BGR to RGB
                 self.detection_model,
-                slice_height=512,
-                slice_width=512,
+                slice_height=slice_height,
+                slice_width=slice_width,
             )
-
-            # Extract detection data from results
-            detection_data = [
-                (det.category.name, det.category.id, (det.bbox.minx, det.bbox.miny, det.bbox.maxx, det.bbox.maxy))
-                for det in results.object_prediction_list
-            ]
-
-            # Annotate frame with detection results
-            for det in detection_data:
-                annotator.box_label(det[2], label=str(det[0]), color=colors(int(det[1]), True))
 
             # Display results if requested
             if view_img:
-                cv2.imshow(Path(source).stem, frame)
+                cv2.imshow("Ultralytics YOLO Inference", frame)
 
             # Save results if requested
             if save_img:
-                video_writer.write(frame)
+                idx += 1
+                results.export_visuals(export_dir=save_dir, file_name=f"img_{idx}", hide_conf=hide_conf)
 
             # Break loop if 'q' is pressed
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
         # Clean up resources
-        video_writer.release()
         cap.release()
         cv2.destroyAllWindows()
 
-    def parse_opt(self) -> argparse.Namespace:
+    @staticmethod
+    def parse_opt() -> argparse.Namespace:
         """
         Parse command line arguments for the inference process.
 
@@ -138,6 +130,10 @@ class SAHIInference:
         parser.add_argument("--view-img", action="store_true", help="show results")
         parser.add_argument("--save-img", action="store_true", help="save results")
         parser.add_argument("--exist-ok", action="store_true", help="existing project/name ok, do not increment")
+        parser.add_argument("--device", default="", help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
+        parser.add_argument("--hide-conf", default=False, action="store_true", help="display or hide confidences")
+        parser.add_argument("--slice-width", default=512, type=int, help="Slice width for inference")
+        parser.add_argument("--slice-height", default=512, type=int, help="Slice height for inference")
         return parser.parse_args()
 
 

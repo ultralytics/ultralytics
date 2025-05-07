@@ -386,7 +386,24 @@ class MemoryEncoder(nn.Module):
         out_dim,
         in_dim=256,  # in_dim of pix_feats
     ):
-        """Initialize the MemoryEncoder for encoding pixel features and masks into memory representations."""
+        """
+        Initialize the MemoryEncoder for encoding pixel features and masks into memory representations.
+
+        This encoder processes pixel-level features and masks, fusing them to generate encoded memory representations
+        suitable for downstream tasks in image segmentation models like SAM (Segment Anything Model).
+
+        Args:
+            out_dim (int): Output dimension of the encoded features.
+            in_dim (int): Input dimension of the pixel features. Default is 256.
+
+        Examples:
+            >>> encoder = MemoryEncoder(out_dim=256, in_dim=256)
+            >>> pix_feat = torch.randn(1, 256, 64, 64)
+            >>> masks = torch.randn(1, 1, 64, 64)
+            >>> encoded_feat, pos = encoder(pix_feat, masks)
+            >>> print(encoded_feat.shape, pos.shape)
+            torch.Size([1, 256, 64, 64]) torch.Size([1, 128, 64, 64])
+        """
         super().__init__()
 
         self.mask_downsampler = MaskDownSampler(kernel_size=3, stride=2, padding=1)
@@ -453,7 +470,26 @@ class ImageEncoder(nn.Module):
         neck: nn.Module,
         scalp: int = 0,
     ):
-        """Initialize the ImageEncoder with trunk and neck networks for feature extraction and refinement."""
+        """
+        Initialize the ImageEncoder with trunk and neck networks for feature extraction and refinement.
+
+        This encoder combines a trunk network for feature extraction with a neck network for feature refinement
+        and positional encoding generation. It can optionally discard the lowest resolution features.
+
+        Args:
+            trunk (nn.Module): The trunk network for initial feature extraction.
+            neck (nn.Module): The neck network for feature refinement and positional encoding generation.
+            scalp (int): Number of lowest resolution feature levels to discard.
+
+        Examples:
+            >>> trunk = SomeTrunkNetwork()
+            >>> neck = SomeNeckNetwork()
+            >>> encoder = ImageEncoder(trunk, neck, scalp=1)
+            >>> image = torch.randn(1, 3, 224, 224)
+            >>> output = encoder(image)
+            >>> print(output.keys())
+            dict_keys(['vision_features', 'vision_pos_enc', 'backbone_fpn'])
+        """
         super().__init__()
         self.trunk = trunk
         self.neck = neck
@@ -681,7 +717,34 @@ class Hiera(nn.Module):
         ),
         return_interm_layers=True,  # return feats from every stage
     ):
-        """Initialize the Hiera model, configuring its hierarchical vision transformer architecture."""
+        """
+        Initialize a Hiera model, a hierarchical vision transformer for efficient multiscale feature extraction.
+
+        Hiera is a hierarchical vision transformer architecture designed for efficient multiscale feature extraction
+        in image processing tasks. It uses a series of transformer blocks organized into stages, with optional
+        pooling and global attention mechanisms.
+
+        Args:
+            embed_dim (int): Initial embedding dimension for the model.
+            num_heads (int): Initial number of attention heads.
+            drop_path_rate (float): Stochastic depth rate.
+            q_pool (int): Number of query pooling stages.
+            q_stride (Tuple[int, int]): Downsampling stride between stages.
+            stages (Tuple[int, ...]): Number of blocks per stage.
+            dim_mul (float): Dimension multiplier factor at stage transitions.
+            head_mul (float): Head multiplier factor at stage transitions.
+            window_pos_embed_bkg_spatial_size (Tuple[int, int]): Spatial size for window positional embedding background.
+            window_spec (Tuple[int, ...]): Window sizes for each stage when not using global attention.
+            global_att_blocks (Tuple[int, ...]): Indices of blocks that use global attention.
+            return_interm_layers (bool): Whether to return intermediate layer outputs.
+
+        Examples:
+            >>> model = Hiera(embed_dim=96, num_heads=1, stages=(2, 3, 16, 3))
+            >>> input_tensor = torch.randn(1, 3, 224, 224)
+            >>> output_features = model(input_tensor)
+            >>> for feat in output_features:
+            ...     print(feat.shape)
+        """
         super().__init__()
 
         assert len(stages) == len(window_spec)
@@ -756,7 +819,25 @@ class Hiera(nn.Module):
         return pos_embed
 
     def forward(self, x: torch.Tensor) -> List[torch.Tensor]:
-        """Perform forward pass through Hiera model, extracting multiscale features from input images."""
+        """
+        Perform forward pass through Hiera model, extracting multiscale features from input images.
+
+        Args:
+            x (torch.Tensor): Input tensor with shape (B, C, H, W) representing a batch of images.
+
+        Returns:
+            (List[torch.Tensor]): List of feature maps at different scales, each with shape (B, C_i, H_i, W_i), where
+                C_i is the channel dimension and H_i, W_i are the spatial dimensions at scale i. The list is ordered
+                from highest resolution (fine features) to lowest resolution (coarse features) if return_interm_layers
+                is True, otherwise contains only the final output.
+
+        Examples:
+            >>> model = Hiera(embed_dim=96, num_heads=1, stages=(2, 3, 16, 3))
+            >>> input_tensor = torch.randn(1, 3, 224, 224)
+            >>> output_features = model(input_tensor)
+            >>> for feat in output_features:
+            ...     print(feat.shape)
+        """
         x = self.patch_embed(x)
         # x: (B, H, W, C)
 

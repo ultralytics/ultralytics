@@ -507,11 +507,11 @@ def check_model_file_from_stem(model="yolo11n"):
 
 def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     """
-    Search/download file (if necessary) and return path.
+    Search/download file (if necessary), check suffix (if provided), and return path.
 
     Args:
         file (str): File name or path.
-        suffix (str): File suffix to check.
+        suffix (str | Tuple[str]): Acceptable suffix or tuple of suffixes to validate against the file.
         download (bool): Whether to download the file if it doesn't exist locally.
         download_dir (str): Directory to download the file to.
         hard (bool): Whether to raise an error if the file is not found.
@@ -539,9 +539,9 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     else:  # search
         files = glob.glob(str(ROOT / "**" / file), recursive=True) or glob.glob(str(ROOT.parent / file))  # find file
         if not files and hard:
-            raise FileNotFoundError(f"'{file}' does not exist")
+            raise FileNotFoundError(f"'{file}' does not exist")  # file does not exist
         elif len(files) > 1 and hard:
-            raise FileNotFoundError(f"Multiple files match '{file}', specify exact path: {files}")
+            raise FileNotFoundError(f"Multiple files match '{file}', specify exact path: {files}")  # multiple files exist
         return files[0] if len(files) else []  # return file
 
 
@@ -551,8 +551,8 @@ def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
 
     Args:
         file (str | Path): File name or path.
-        suffix (tuple): Acceptable file suffixes.
-        hard (bool): Whether to raise an error if the file is not found.
+        suffix (Tuple[str]): Tuple of acceptable YAML file suffixes.
+        hard (bool): Whether to raise an error if the file is not found or multiple files are found.
 
     Returns:
         (str): Path to the YAML file.

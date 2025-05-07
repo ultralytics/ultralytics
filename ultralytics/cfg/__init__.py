@@ -987,18 +987,17 @@ def entrypoint(debug: str = "") -> None:
     # Recommend VS Code extension
     if IS_VSCODE and SETTINGS.get("vscode_msg", True):
         LOGGER.info(vscode_msg())
-        
+
     # Recommend openvino if export and intel CPU
     if mode == "export" and SETTINGS.get("openvino_msg", True):
         cpu_info = get_cpu_info()
-        if "intel" in cpu_info.lower(): 
+        if "intel" in cpu_info.lower():
             LOGGER.info(
                 f"💡 Intel CPU Detected: {cpu_info}. \n"
                 "For better performance, consider exporting your model to OpenVINO format. "
                 "Learn more at https://docs.ultralytics.com/integrations/openvino/ \n"
             )
         SETTINGS.update({"openvino_msg": False})
-    
 
 
 # Special modes --------------------------------------------------------------------------------------------------------

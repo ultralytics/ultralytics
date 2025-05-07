@@ -66,27 +66,29 @@ model = YOLO("yolo11n.pt")
 
 batch, imgsz, workers, epochs, data, device = 2, 640, 1, 3, "coco8.yaml", "0"
 
+
 def on_train_epoch_end(trainer):
     from pathlib import Path
+
     val_model = YOLO(Path(trainer.save_dir) / "weights" / "best.pt")
 
-    print(f"\nRunning Validation {trainer.epoch+1}...")
+    print(f"\nRunning Validation {trainer.epoch + 1}...")
     validation_results = val_model.val(
         data=data,
         imgsz=imgsz,
         batch=batch * 2,  # validation with 2x batch required
         workers=workers,
-        device=device
+        device=device,
     )
     # print(validation_results)
+
 
 if __name__ == "__main__":
     # Add on_train_epoch_end callback.
     model.add_callback("on_model_save", on_train_epoch_end)
 
     # Run model training on custom dataset.
-    results = model.train(data=data, epochs=epochs, batch=batch,
-                          imgsz=imgsz, device=device, workers=workers)
+    results = model.train(data=data, epochs=epochs, batch=batch, imgsz=imgsz, device=device, workers=workers)
 ```
 
 ## All Callbacks
@@ -140,8 +142,8 @@ Below are all the supported callbacks. For more details, refer to the callbacks 
 
 ### Model Callbacks
 
-| Callback        | Description                                                             |
-|-----------------|-------------------------------------------------------------------------|
+| Callback        | Description                                                                     |
+| --------------- | ------------------------------------------------------------------------------- |
 | `on_model_save` | Triggered at the end of each training epoch when the model checkpoint is saved. |
 
 ## FAQ

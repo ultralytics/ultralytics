@@ -1127,7 +1127,6 @@ class Exporter:
                         if im_file.split(".")[-1].lower() in IMG_FORMATS
                     )
                 )
-                # print(dataset_file.name)
                 rknn.build(do_quantization=self.args.int8, dataset=dataset_file.name)
         else:
             rknn.build(do_quantization=False)

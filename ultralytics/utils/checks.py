@@ -608,7 +608,7 @@ def check_yolo(verbose=True, device=""):
 
     Args:
         verbose (bool): Whether to print verbose information.
-        device (str): Device to use for YOLO.
+        device (str | torch.device): Device to use for YOLO.
     """
     import psutil
 
@@ -810,7 +810,7 @@ def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
     except ValueError:
         file = Path(file).stem
     s = (f"{file}: " if show_file else "") + (f"{func}: " if show_func else "")
-    LOGGER.info(colorstr(s) + ", ".join(f"{k}={strip_auth(v)}" for k, v in args.items()))
+    LOGGER.info(colorstr(s) + ", ".join(f"{k}={strip_auth(v)}" for k, v in sorted(args.items())))
 
 
 def cuda_device_count() -> int:

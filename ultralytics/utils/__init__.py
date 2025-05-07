@@ -182,6 +182,10 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)
 
+    def __iter__(self):
+        """Return self as iterator to satisfy Iterable interface."""
+        return super().__iter__()
+
 
 class SimpleClass:
     """

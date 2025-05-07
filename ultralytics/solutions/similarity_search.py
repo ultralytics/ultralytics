@@ -29,16 +29,16 @@ class VisualAISearch(BaseSolution):
     def __init__(self, **kwargs):
         """Initializes the VisualAISearch class with the FAISS index file and CLIP model."""
         super().__init__(**kwargs)
-        check_requirements(["open-clip-torch", "faiss-cpu"])
+        check_requirements(["git+https://github.com/ultralytics/CLIP.git", "faiss-cpu"])
+        import clip
         import faiss
-        import open_clip
 
         self.faiss = faiss
-        self.open_clip = open_clip
+        self.clip = clip
 
         self.faiss_index = "faiss.index"
         self.data_path_npy = "paths.npy"
-        self.model_name = "ViT-B-32-quickgelu"
+        self.model_name = "ViT-B/32"
         self.data_dir = Path(self.CFG["data"])
         self.device = select_device(self.CFG["device"])
 
@@ -51,11 +51,7 @@ class VisualAISearch(BaseSolution):
             safe_download(url=f"{ASSETS_URL}/images.zip", unzip=True, retry=3)
             self.data_dir = Path("images")
 
-        self.clip_model, _, self.preprocess = self.open_clip.create_model_and_transforms(
-            self.model_name, pretrained="openai"
-        )
-        self.clip_model = self.clip_model.to(self.device).eval()
-        self.tokenizer = self.open_clip.get_tokenizer(self.model_name)
+        self.model, self.preprocess = clip.load(self.model_name, device=self.device)
 
         self.index = None
         self.image_paths = []
@@ -67,13 +63,13 @@ class VisualAISearch(BaseSolution):
         image = Image.open(path)
         tensor = self.preprocess(image).unsqueeze(0).to(self.device)
         with torch.no_grad():
-            return self.clip_model.encode_image(tensor).cpu().numpy()
+            return self.model.encode_image(tensor).cpu().numpy()
 
     def extract_text_feature(self, text):
         """Extract CLIP text embedding."""
-        tokens = self.tokenizer([text]).to(self.device)
+        tokens = self.clip.tokenize([text]).to(self.device)
         with torch.no_grad():
-            return self.clip_model.encode_text(tokens).cpu().numpy()
+            return self.model.encode_text(tokens).cpu().numpy()
 
     def load_or_build_index(self):
         """Loads FAISS index or builds a new one from image features."""

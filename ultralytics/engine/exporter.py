@@ -1130,8 +1130,8 @@ class Exporter:
                 )
                 dataset = dataset_file.name
         rknn.build(do_quantization=self.args.int8, dataset=dataset)
-        if dataset is not None and Path(dataset).exists():
-            os.remove(dataset)
+        if dataset and Path(dataset).is_file():
+            Path(dataset).unlink()
         f = f.replace(".onnx", f"-{self.args.name}-int8.rknn" if self.args.int8 else f"-{self.args.name}-fp16.rknn")
         rknn.export_rknn(f"{export_path / f}")
         YAML.save(export_path / "metadata.yaml", self.metadata)

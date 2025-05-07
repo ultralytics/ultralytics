@@ -108,7 +108,7 @@ def update_subdir_edit_links(subdir: str = "", docs_url: str = ""):
         # Find the anchor tag and update its href attribute
         a_tag = soup.find("a", {"class": "md-content__button md-icon"})
         if a_tag and a_tag["title"] == "Edit this page":
-            a_tag["href"] = f"{docs_url}{a_tag['href'].rsplit(subdir, maxsplit=1)[-1]}"
+            a_tag["href"] = f"{docs_url}{a_tag['href'].rsplit(subdir, 1)[-1]}"
 
         # Write the updated HTML back to the file
         with open(html_file, "w", encoding="utf-8") as file:

@@ -1116,11 +1116,18 @@ class Exporter:
         dataset = None
         if self.args.int8:
             import tempfile
+            import glob
 
             data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
             img_path = data[self.args.split or "val"]
             with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8", delete=False) as dataset_file:
-                dataset_file.write("\n".join(str(x) for x in Path(img_path).glob("*") if x.suffix[1:] in IMG_FORMATS))
+                dataset_file.write(
+                    "\n".join(
+                        im_file
+                        for im_file in glob.glob(str(Path(img_path) / "*"))
+                        if im_file.split(".")[-1].lower() in IMG_FORMATS
+                    )
+                )
             dataset = dataset_file.name
         rknn.build(do_quantization=self.args.int8, dataset=dataset)
         f = f.replace(".onnx", f"-{self.args.name}-int8.rknn" if self.args.int8 else f"-{self.args.name}-fp16.rknn")

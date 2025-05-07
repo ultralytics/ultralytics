@@ -71,7 +71,7 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
     for line in requires:
         line = line.strip()
         if line and not line.startswith("#"):
-            line = line.split("#")[0].strip()  # ignore inline comments
+            line = line.split("#", 1)[0].strip()  # ignore inline comments
             if match := re.match(r"([a-zA-Z0-9-_]+)\s*([<>!=~]+.*)?", line):
                 requirements.append(SimpleNamespace(name=match[1], specifier=match[2].strip() if match[2] else ""))
 
@@ -433,7 +433,7 @@ def check_torchvision():
     v_torch = ".".join(torch.__version__.split("+", 1)[0].split(".")[:2])
     if v_torch in compatibility_table:
         compatible_versions = compatibility_table[v_torch]
-        v_torchvision = ".".join(TORCHVISION_VERSION.split("+")[0].split(".")[:2])
+        v_torchvision = ".".join(TORCHVISION_VERSION.split("+", 1)[0].split(".")[:2])
         if all(v_torchvision != v for v in compatible_versions):
             LOGGER.warning(
                 f"torchvision=={v_torchvision} is incompatible with torch=={v_torch}.\n"

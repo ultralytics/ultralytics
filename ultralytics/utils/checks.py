@@ -541,7 +541,9 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         if not files and hard:
             raise FileNotFoundError(f"'{file}' does not exist")  # file does not exist
         elif len(files) > 1 and hard:
-            raise FileNotFoundError(f"Multiple files match '{file}', specify exact path: {files}")  # multiple files exist
+            raise FileNotFoundError(
+                f"Multiple files match '{file}', specify exact path: {files}"
+            )  # multiple files exist
         return files[0] if len(files) else []  # return file
 
 

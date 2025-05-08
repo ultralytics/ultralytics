@@ -74,7 +74,7 @@ def on_model_save(model):
 
 
 if __name__ == "__main__":
-    # Add on_train_epoch_end callback.
+    # Add on_model_save callback.
     model.add_callback("on_model_save", on_model_save)
 
     # Run model training on custom dataset.

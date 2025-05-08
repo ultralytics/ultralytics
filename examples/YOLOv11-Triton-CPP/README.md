@@ -78,6 +78,13 @@ std::string output_path = "output.jpg";
 std::vector<std::string> object_class_list = {"class1", "class2"};
 ```
 
-## 🤝Contributing
+## 🤝 Contributors:
 
 Contributions are welcome! If you find any issues or have suggestions for improvements, please feel free to open an issue or submit a pull request on the main Ultralytics repository.
+
+- Ahmet Selim Demirel
+- Doğan Mehmet Başoğlu
+- Enes Uzun
+- Elif Cansu Ada
+- Mevlüt Ardıç
+- Serhat Karaca

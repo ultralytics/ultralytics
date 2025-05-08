@@ -53,7 +53,7 @@ for result, frame in model.predict():  # or model.track()
 
 ### Access Model metrics using the `on_model_save` callback
 
-This example shows how to retrieve training details, such as the best_fitness score, total_loss, and other metrics after each epoch using the `on_model_save` callback.
+This example shows how to retrieve training details, such as the best_fitness score, total_loss, and other metrics after a checkpoint is saved using the `on_model_save` callback.
 
 ```python
 from ultralytics import YOLO

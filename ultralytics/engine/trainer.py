@@ -136,7 +136,9 @@ class BaseTrainer:
         # Model and Dataset
         self.model = check_model_file_from_stem(self.args.model)  # add suffix, i.e. yolo11n -> yolo11n.pt
         with torch_distributed_zero_first(LOCAL_RANK):  # avoid auto-downloading dataset multiple times
-            self.trainset, self.testset = self.get_dataset()
+            self.data = self.get_dataset()
+            self.trainset, self.testset = self.data["train"], self.data.get("val") or self.data.get("test")
+
         self.ema = None
 
         # Optimization utils init
@@ -585,12 +587,11 @@ class BaseTrainer:
                     self.args.data = data["yaml_file"]  # for validating 'yolo train data=url.zip' usage
         except Exception as e:
             raise RuntimeError(emojis(f"Dataset '{clean_url(self.args.data)}' error ❌ {e}")) from e
-        self.data = data
         if self.args.single_cls:
             LOGGER.info("Overriding class names with single class.")
-            self.data["names"] = {0: "item"}
-            self.data["nc"] = 1
-        return data["train"], data.get("val") or data.get("test")
+            data["names"] = {0: "item"}
+            data["nc"] = 1
+        return data
 
     def setup_model(self):
         """

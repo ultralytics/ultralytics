@@ -10,9 +10,9 @@
 #include <chrono>
 
 
-#define GORUNTU_GENISLIK 640
-#define GORUNTU_YUKSEKLIK 640
-#define GORUNTU_KANAL 3
+#define IMAGE_WIDTH 640
+#define IMAGE_HEIGHT 640
+#define IMAGE_CHANNEL 3
 
 #define NETWORK_THRESHOLD 0.50
 
@@ -29,17 +29,17 @@ int main(int argc, char *argv[])
     std::string url= "localhost:8001";
     std::string model_name= "yolov11";
     std::string model_version= "1";
-	std::string image_path = "/home/robolaunch/workspaces/opensource/ipms_contribute/test.jpg";
-	std::string output_path = "/home/robolaunch/workspaces/opensource/ipms_contribute";
-	std::vector<std::string> object_class_list = {"person", "forklift"};
+	std::string image_path = "test.jpg";
+	std::string output_path = "contribute";
+	std::vector<std::string> object_class_list = {"class1", "class2"};
 
     double ag_tespit_suresi_milisaniye;
     std::vector<uint16_t> triton_request_data;
-    triton_request_data.resize(3*GORUNTU_GENISLIK*GORUNTU_YUKSEKLIK);
+    triton_request_data.resize(3*IMAGE_WIDTH*IMAGE_HEIGHT);
 
     std::vector<struct detection_struct> detections;
 
-    std::shared_ptr<TritonCommunication> triton_communication = std::make_shared<TritonCommunication>(url, model_name, model_version, GORUNTU_KANAL, GORUNTU_GENISLIK, GORUNTU_YUKSEKLIK,object_class_list.size());
+    std::shared_ptr<TritonCommunication> triton_communication = std::make_shared<TritonCommunication>(url, model_name, model_version, IMAGE_CHANNEL, IMAGE_WIDTH, IMAGE_HEIGHT,object_class_list.size());
 
     cv::Mat frame = cv::imread(image_path);
     if (frame.empty())
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     int image_height = frame.rows;
 
     double preprocess_time = get_time_since_epoch_millis();
-	Image::preprocess(&frame, triton_request_data, GORUNTU_GENISLIK, GORUNTU_YUKSEKLIK);
+	Image::preprocess(&frame, triton_request_data, IMAGE_WIDTH, IMAGE_HEIGHT);
     std::cout << "Preprocess time : " << (get_time_since_epoch_millis() - preprocess_time)<< " millisecond."<< std::endl;
 
     double infer_time = get_time_since_epoch_millis();

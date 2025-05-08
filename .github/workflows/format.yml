@@ -4,6 +4,8 @@
 # This workflow automatically formats code and documentation in PRs to official Ultralytics standards
 
 name: Ultralytics Actions
+permissions:
+  contents: read
 
 on:
   issues:

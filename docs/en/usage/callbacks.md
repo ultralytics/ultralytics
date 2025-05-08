@@ -130,12 +130,6 @@ Below are all the supported callbacks. For more details, refer to the callbacks 
 | `on_export_start` | Triggered when the export process starts. |
 | `on_export_end`   | Triggered when the export process ends.   |
 
-### Model Callbacks
-
-| Callback        | Description                                                                     |
-| --------------- | ------------------------------------------------------------------------------- |
-| `on_model_save` | Triggered at the end of each training epoch when the model checkpoint is saved. |
-
 ## FAQ
 
 ### What are Ultralytics callbacks and how can I use them?

@@ -76,7 +76,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
         # Note: tests reduced below pending compute availability expansion as GPU CI runner utilization is high
         # for task, dynamic, int8, half, batch in product(TASKS, [True, False], [True, False], [True, False], [1, 2])
         for task, dynamic, int8, half, batch in product(TASKS, [True], [True], [False], [2])
-        if not (int8 and half)  # exclude cases where both int8 and half are True
+        if not ((int8 and half)  # exclude cases where both int8 and half are True
     ],
 )
 def test_export_engine_matrix(task, dynamic, int8, half, batch):
@@ -90,7 +90,7 @@ def test_export_engine_matrix(task, dynamic, int8, half, batch):
         batch=batch,
         data=TASK2DATA[task],
         workspace=1,  # reduce workspace GB for less resource utilization during testing
-        simplify=True,  # use 'onnxslim'
+        simplify=not dynamic,  # use 'onnxslim' (False if dynamic=True as onnxslim is slow for dynamic models)
         device=DEVICES[0],
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference

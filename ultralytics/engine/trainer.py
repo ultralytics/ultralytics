@@ -573,7 +573,7 @@ class BaseTrainer:
         Get train and validation datasets from data dictionary.
 
         Returns:
-            (tuple): A tuple containing the training and validation/test datasets.
+            (dict): A dictionary containing the training/validation/test dataset and category names.
         """
         try:
             if self.args.task == "classify":

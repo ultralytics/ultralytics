@@ -70,7 +70,7 @@ def on_model_save(model):
         f"Loss names: {model.loss_names}, "  # List of loss names
         f"Metrics: {model.metrics}, "
         f"Total loss: {model.tloss}"  # Total loss value
-    )  
+    )
 
 
 if __name__ == "__main__":

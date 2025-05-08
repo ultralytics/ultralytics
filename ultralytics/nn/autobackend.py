@@ -290,8 +290,8 @@ class AutoBackend(nn.Module):
         elif engine:
             LOGGER.info(f"Loading {w} for TensorRT inference...")
 
-            if IS_JETSON and check_version(PYTHON_VERSION, "<=3.8.0"):
-                # fix error: `np.bool` was a deprecated alias for the builtin `bool` for JetPack 4 with Python <= 3.8.0
+            if IS_JETSON and check_version(PYTHON_VERSION, "<=3.8.10"):
+                # fix error: `np.bool` was a deprecated alias for the builtin `bool` for JetPack 4 and JetPack 5 with Python <= 3.8.10
                 check_requirements("numpy==1.23.5")
 
             try:  # https://developer.nvidia.com/nvidia-tensorrt-download
@@ -311,11 +311,11 @@ class AutoBackend(nn.Module):
                 try:
                     meta_len = int.from_bytes(f.read(4), byteorder="little")  # read metadata length
                     metadata = json.loads(f.read(meta_len).decode("utf-8"))  # read metadata
+                    dla = metadata.get("dla", None)
+                    if dla is not None:
+                        runtime.DLA_core = int(dla)
                 except UnicodeDecodeError:
                     f.seek(0)  # engine file may lack embedded Ultralytics metadata
-                dla = metadata.get("dla", None)
-                if dla is not None:
-                    runtime.DLA_core = int(dla)
                 model = runtime.deserialize_cuda_engine(f.read())  # read engine
 
             # Model context

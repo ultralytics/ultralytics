@@ -2,7 +2,6 @@
 
 import os
 import shutil
-import socket
 import sys
 import tempfile
 
@@ -20,6 +19,8 @@ def find_free_network_port() -> int:
     Returns:
         (int): The available network port number.
     """
+    import socket
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("127.0.0.1", 0))
         return s.getsockname()[1]  # port
@@ -87,7 +88,7 @@ def generate_ddp_command(world_size, trainer):
         cmd (List[str]): The command to execute for distributed training.
         file (str): Path to the temporary file created for DDP training.
     """
-    import __main__  # noqa local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
+    import __main__  # noqa local import to avoid https://github.com/Lightning-AI/pytorch-lightning/issues/15218
 
     if not trainer.resume:
         shutil.rmtree(trainer.save_dir)  # remove the save_dir

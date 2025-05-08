@@ -41,7 +41,7 @@ def _get_comet_mode() -> str:
     comet_mode = os.getenv("COMET_MODE")
     if comet_mode is not None:
         LOGGER.warning(
-            "WARNING ⚠️ The COMET_MODE environment variable is deprecated. "
+            "The COMET_MODE environment variable is deprecated. "
             "Please use COMET_START_ONLINE to set the Comet experiment mode. "
             "To start an offline Comet experiment, use 'export COMET_START_ONLINE=0'. "
             "If COMET_START_ONLINE is not set or is set to '1', an online Comet experiment will be created."
@@ -112,7 +112,7 @@ def _resume_or_create_experiment(args: SimpleNamespace) -> None:
         experiment.log_other("Created from", "ultralytics")
 
     except Exception as e:
-        LOGGER.warning(f"WARNING ⚠️ Comet installed but not initialized correctly, not logging this run. {e}")
+        LOGGER.warning(f"Comet installed but not initialized correctly, not logging this run. {e}")
 
 
 def _fetch_trainer_metadata(trainer) -> dict:
@@ -184,7 +184,7 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
     indices = batch["batch_idx"] == img_idx
     bboxes = batch["bboxes"][indices]
     if len(bboxes) == 0:
-        LOGGER.debug(f"COMET WARNING: Image: {image_path} has no bounding boxes labels")
+        LOGGER.debug(f"Comet Image: {image_path} has no bounding boxes labels")
         return None
 
     cls_labels = batch["cls"][indices].squeeze(1).tolist()
@@ -216,12 +216,12 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
 
     predictions = metadata.get(image_id)
     if not predictions:
-        LOGGER.debug(f"COMET WARNING: Image: {image_path} has no bounding boxes predictions")
+        LOGGER.debug(f"Comet Image: {image_path} has no bounding boxes predictions")
         return None
 
-        # offset to align indices of class labels (starting from zero)
-        # with prediction's category ID indices (can start from one)
-    label_index_offset = sorted(class_map)[0] if class_map is not None else 0
+    # apply the mapping that was used to map the predicted classes when the JSON was created
+    if class_label_map and class_map:
+        class_label_map = {class_map[k]: v for k, v in class_label_map.items()}
     try:
         # import pycotools utilities to decompress annotations for various tasks, e.g. segmentation
         from pycocotools.mask import decode  # noqa
@@ -234,7 +234,7 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
         score = _scale_confidence_score(prediction["score"])
         cls_label = prediction["category_id"]
         if class_label_map:
-            cls_label = str(class_label_map[cls_label - label_index_offset])
+            cls_label = str(class_label_map[cls_label])
 
         annotation_data = {"boxes": [boxes], "label": cls_label, "score": score}
 
@@ -268,7 +268,7 @@ def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) ->
         annotations = [np.array(polygon).squeeze() for polygon in contours if len(polygon) >= 3]
         return [annotation.ravel().tolist() for annotation in annotations]
     except Exception as e:
-        LOGGER.warning(f"COMET WARNING: Failed to extract segmentation annotation: {e}")
+        LOGGER.warning(f"Comet Failed to extract segmentation annotation: {e}")
     return None
 
 

@@ -124,7 +124,7 @@ class DetectionValidator(BaseValidator):
             preds,
             self.args.conf,
             self.args.iou,
-            nc=self.nc,
+            nc=0 if self.args.task == "detect" else self.nc,
             multi_label=True,
             agnostic=self.args.single_cls or self.args.agnostic_nms,
             max_det=self.args.max_det,
@@ -257,7 +257,7 @@ class DetectionValidator(BaseValidator):
         pf = "%22s" + "%11i" * 2 + "%11.3g" * len(self.metrics.keys)  # print format
         LOGGER.info(pf % ("all", self.seen, self.nt_per_class.sum(), *self.metrics.mean_results()))
         if self.nt_per_class.sum() == 0:
-            LOGGER.warning(f"WARNING ⚠️ no labels found in {self.args.task} set, can not compute metrics without labels")
+            LOGGER.warning(f"no labels found in {self.args.task} set, can not compute metrics without labels")
 
         # Print results per class
         if self.args.verbose and not self.training and self.nc > 1 and len(self.stats):

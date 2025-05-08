@@ -109,7 +109,7 @@ For efficient data management, especially with large datasets or numerous experi
 
 ```bash
 # Ensure Google Cloud SDK is installed and initialized
-# If not installed: curl https://sdk.cloud.google.com | bash
+# If not installed: curl https://sdk.cloud.google.com/ | bash
 # Then initialize: gcloud init
 
 # Example: Copy your dataset from a GCS bucket to your VM

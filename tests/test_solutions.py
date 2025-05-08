@@ -8,7 +8,7 @@ import pytest
 
 from tests import MODEL, TMP
 from ultralytics import solutions
-from ultralytics.utils import ASSETS_URL, checks
+from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, LINUX, checks
 from ultralytics.utils.downloads import safe_download
 
 # Pre-defined arguments values
@@ -152,7 +152,10 @@ def process_video(solution, video_path, needs_frame_count=False):
     cap.release()
 
 
-@pytest.mark.skipif(True, reason="Disabled for testing due to --slow test errors after YOLOE PR.")
+@pytest.mark.skipif(
+    (LINUX and checks.IS_PYTHON_3_11) or IS_RASPBERRYPI,
+    reason="Disabled for testing due to --slow test errors after YOLOE PR.",
+)
 @pytest.mark.parametrize("name, solution_class, needs_frame_count, video, kwargs", SOLUTIONS)
 def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     """Test individual Ultralytics solution."""
@@ -161,10 +164,24 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     if name == "ParkingManager":
         safe_download(url=f"{ASSETS_URL}/{PARKING_AREAS_JSON}", dir=TMP)
         safe_download(url=f"{ASSETS_URL}/{PARKING_MODEL}", dir=TMP)
-    solution = solution_class(**kwargs)
+    elif name == "StreamlitInference":
+        if checks.check_imshow():  # do not merge with elif above
+            solution_class(**kwargs).inference()  # requires interactive GUI environment
+        return
 
-    if name == "StreamlitInference":
-        if checks.check_imshow():  # requires interactive GUI environment
-            solution.inference()
-    else:
-        process_video(solution, str(TMP / video), needs_frame_count)
+    process_video(
+        solution=solution_class(**kwargs),
+        video_path=str(TMP / video),
+        needs_frame_count=needs_frame_count,
+    )
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="Disabled due to unsupported CLIP dependencies.")
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
+def test_similarity_search():
+    """Test similarity search solution."""
+    from ultralytics import solutions
+
+    searcher = solutions.VisualAISearch()
+    _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"

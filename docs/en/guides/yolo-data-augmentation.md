@@ -29,39 +29,41 @@ Ultralytics YOLO's implementation provides a comprehensive suite of augmentation
 
 You can customize each parameter using the Python API, the command line interface (CLI), or a configuration file. Below are examples of how to set up data augmentation in each method.
 
-#### Using the Python API
+!!! example "Configuration Examples"
 
-```python
-from ultralytics import YOLO
+    === "Python"
 
-# Load a model
-model = YOLO("yolo11n.pt")
+        ```python
+        from ultralytics import YOLO
 
-# Training with custom augmentation parameters
-model.train(data="coco.yaml", epochs=100, hsv_h=0.03, hsv_s=0.6, hsv_v=0.5)
+        # Load a model
+        model = YOLO("yolo11n.pt")
 
-# Training without any augmentations (disabled values omitted for clarity)
-model.train(
-    data="coco.yaml",
-    epochs=100,
-    hsv_h=0.0,
-    hsv_s=0.0,
-    hsv_v=0.0,
-    translate=0.0,
-    scale=0.0,
-    fliplr=0.0,
-    mosaic=0.0,
-    erasing=0.0,
-    auto_augment=None,
-)
-```
+        # Training with custom augmentation parameters
+        model.train(data="coco.yaml", epochs=100, hsv_h=0.03, hsv_s=0.6, hsv_v=0.5)
 
-#### Using the CLI
+        # Training without any augmentations (disabled values omitted for clarity)
+        model.train(
+            data="coco.yaml",
+            epochs=100,
+            hsv_h=0.0,
+            hsv_s=0.0,
+            hsv_v=0.0,
+            translate=0.0,
+            scale=0.0,
+            fliplr=0.0,
+            mosaic=0.0,
+            erasing=0.0,
+            auto_augment=None,
+        )
+        ```
 
-```sh
-# Training with custom augmentation parameters
-yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 hsv_h=0.03 hsv_s=0.6 hsv_v=0.5
-```
+    === "CLI"
+
+        ```bash
+        # Training with custom augmentation parameters
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 hsv_h=0.03 hsv_s=0.6 hsv_v=0.5
+        ```
 
 #### Using a configuration file
 
@@ -81,18 +83,26 @@ hsv_v: 0.5
 
 Then launch the training with the Python API:
 
-```python
-from ultralytics import YOLO
+!!! example "Train Example"
 
-model = YOLO("yolo11n.pt")
-model.train(cfg="train_custom.yaml")
-```
+    === "Python"
 
-Or via the CLI:
+        ```python
+        from ultralytics import YOLO
 
-```sh
-yolo cfg=train_custom.yaml
-```
+        # Load a COCO-pretrained YOLO11n model
+        model = YOLO("yolo11n.pt")
+
+        # Train the model with custom configuration
+        model.train(cfg="train_custom.yaml")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Train the model with custom configuration
+        yolo detect train model="yolo11n.pt" cfg=train_custom.yaml
+        ```
 
 ## Color Space Augmentations
 
@@ -269,6 +279,23 @@ yolo cfg=train_custom.yaml
 | :---------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------: |
 | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_identity.avif" alt="augmentation_mixup_identity_1" width="60%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_mixup_identity_2.avif" alt="augmentation_mixup_identity_2" width="60%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_mixup_on.avif" alt="mixup_on_augmentation" width="85%"/> |
 
+### CutMix (`cutmix`)
+
+- **Range**: `0.0` - `1.0`
+- **Default**: `{{ cutmix }}`
+- **Usage**: Cuts a rectangular region from one image and pastes it onto another image with given probability. The `cutmix` hyperparameter defines the probability of applying the transformation, with `cutmix=1.0` ensuring that all images undergo this transformation and `cutmix=0.0` disabling it completely. For example, with `cutmix=0.5`, each image has a 50% chance of having a region replaced with a patch from another image.
+- **Purpose**: Enhances model performance by creating realistic occlusion scenarios while maintaining local feature integrity. For example, in autonomous driving systems, cutmix helps the model learn to recognize vehicles or pedestrians even when they're partially occluded by other objects, improving detection accuracy in complex real-world environments with overlapping objects.
+- **Ultralytics' implementation**: [CutMix](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.CutMix)
+- **Note**:
+    - The size and position of the cut region is determined randomly for each application.
+    - Unlike mixup which blends pixel values globally, `cutmix` maintains the original pixel intensities within the cut regions, preserving local features.
+    - A region is pasted into the target image only if it does not overlap with any existing bounding box. Additionally, only the bounding boxes that retain at least `0.1` (10%) of their original area within the pasted region are preserved.
+    - This minimum bounding box area threshold cannot be changed with the current implementation and is set to `0.1` by default.
+
+|                                                               **First image, `cutmix` off**                                                               |                                                              **Second image, `cutmix` off**                                                               |                                                              **`cutmix` on**                                                              |
+| :-------------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------: |
+| <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_cutmix_identity_1.avif" alt="augmentation_cutmix_identity_1" width="85%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_cutmix_identity_2.avif" alt="augmentation_cutmix_identity_2" width="85%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_cutmix_on.avif" alt="cutmix_on_augmentation" width="85%"/> |
+
 ## Segmentation-Specific Augmentations
 
 ### Copy-Paste (`copy_paste`)
@@ -280,8 +307,8 @@ yolo cfg=train_custom.yaml
 - **Ultralytics' implementation**: [CopyPaste](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.CopyPaste)
 - **Note**:
     - As pictured in the gif below, the `copy_paste` augmentation can be used to copy objects from one image to another.
-    - Once an object is copied, regardless of the `copy_paste_mode`, its Intersection over Area (IoA) is computed with all the object of the source image. If all the IoA are below a `0.3`, the object is pasted in the target image. If only one the IoA is above `0.3`, the object is not pasted in the target image.
-    - The IoA threshold cannot be changed with the [current implementation](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py#L1718) and is set to `0.3` by default.
+    - Once an object is copied, regardless of the `copy_paste_mode`, its Intersection over Area (IoA) is computed with all the object of the source image. If all the IoA are below `0.3` (30%), the object is pasted in the target image. If only one the IoA is above `0.3`, the object is not pasted in the target image.
+    - The IoA threshold cannot be changed with the current implementation and is set to `0.3` by default.
 
 |                                                             **`copy_paste` off**                                                              |                                                  **`copy_paste` on with `copy_paste_mode=flip`**                                                  |                                                            Visualize the `copy_paste` process                                                            |
 | :-------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------: |
@@ -341,7 +368,7 @@ yolo cfg=train_custom.yaml
 Choosing the right augmentations depends on your specific use case and dataset. Here are a few general guidelines to help you decide:
 
 - In most cases, slight variations in color and brightness are beneficial. The default values for `hsv_h`, `hsv_s`, and `hsv_v` are a solid starting point.
-- If the camera's point of view is consistent and won't change once the model is deployed, you can likely skip geometric transformations such as `rotation`, `translation`, `scale`, `shear`, or `perspective`. However, if the camera angle may vary and you need the model to be more robust, it's better to keep these augmentations.
+- If the camera's point of view is consistent and won't change once the model is deployed, you can likely skip geometric transformations such as `rotation`, `translation`, `scale`, `shear`, or `perspective`. However, if the camera angle may vary, and you need the model to be more robust, it's better to keep these augmentations.
 - Use the `mosaic` augmentation only if having partially occluded objects or multiple objects per image is acceptable and does not change the label value. Alternatively, you can keep `mosaic` active but increase the `close_mosaic` value to disable it earlier in the training process.
 
 In short: keep it simple. Start with a small set of augmentations and gradually add more as needed. The goal is to improve the model's generalization and robustness, not to overcomplicate the training process. Also, make sure the augmentations you apply reflect the same data distribution your model will encounter in production.

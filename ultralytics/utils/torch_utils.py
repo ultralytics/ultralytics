@@ -17,6 +17,7 @@ import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
 
+from ultralytics import __version__
 from ultralytics.utils import (
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_KEYS,
@@ -25,15 +26,9 @@ from ultralytics.utils import (
     PYTHON_VERSION,
     TORCHVISION_VERSION,
     WINDOWS,
-    __version__,
     colorstr,
 )
 from ultralytics.utils.checks import check_version
-
-try:
-    import thop
-except ImportError:
-    thop = None  # conda support without 'ultralytics-thop' installed
 
 # Version checks (all default to version>=min_version)
 TORCH_1_9 = check_version(torch.__version__, "1.9.0")
@@ -46,7 +41,7 @@ TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
 TORCHVISION_0_18 = check_version(TORCHVISION_VERSION, "0.18.0")
 if WINDOWS and check_version(torch.__version__, "==2.4.0"):  # reject version 2.4.0 on Windows
     LOGGER.warning(
-        "WARNING ⚠️ Known issue with torch==2.4.0 on Windows with CPU, recommend upgrading to torch>=2.4.1 to resolve "
+        "Known issue with torch==2.4.0 on Windows with CPU, recommend upgrading to torch>=2.4.1 to resolve "
         "https://github.com/ultralytics/ultralytics/issues/15049"
     )
 
@@ -55,12 +50,13 @@ if WINDOWS and check_version(torch.__version__, "==2.4.0"):  # reject version 2.
 def torch_distributed_zero_first(local_rank: int):
     """Ensures all processes in distributed training wait for the local master (rank 0) to complete a task first."""
     initialized = dist.is_available() and dist.is_initialized()
+    use_ids = initialized and dist.get_backend() == "nccl"
 
     if initialized and local_rank not in {-1, 0}:
-        dist.barrier(device_ids=[local_rank])
+        dist.barrier(device_ids=[local_rank]) if use_ids else dist.barrier()
     yield
     if initialized and local_rank == 0:
-        dist.barrier(device_ids=[local_rank])
+        dist.barrier(device_ids=[local_rank]) if use_ids else dist.barrier()
 
 
 def smart_inference_mode():
@@ -140,9 +136,9 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         device (str | torch.device, optional): Device string or torch.device object.
             Options are 'None', 'cpu', or 'cuda', or '0' or '0,1,2,3'. Defaults to an empty string, which auto-selects
             the first available GPU, or CPU if no GPU is available.
-        batch (int, optional): Batch size being used in your model. Defaults to 0.
-        newline (bool, optional): If True, adds a newline at the end of the log string. Defaults to False.
-        verbose (bool, optional): If True, logs the device information. Defaults to True.
+        batch (int, optional): Batch size being used in your model.
+        newline (bool, optional): If True, adds a newline at the end of the log string.
+        verbose (bool, optional): If True, logs the device information.
 
     Returns:
         (torch.device): Selected device.
@@ -161,13 +157,26 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     Note:
         Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
     """
-    if isinstance(device, torch.device) or str(device).startswith("tpu"):
+    if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel")):
         return device
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{torch.__version__} "
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
+
+    # Auto-select GPUs
+    if "-1" in device:
+        from ultralytics.utils.autodevice import GPUInfo
+
+        # Replace each -1 with a selected GPU or remove it
+        parts = device.split(",")
+        selected = GPUInfo().select_idle_gpu(count=parts.count("-1"), min_memory_mb=2048)
+        for i in range(len(parts)):
+            if parts[i] == "-1":
+                parts[i] = str(selected.pop(0)) if selected else ""
+        device = ",".join(p for p in parts if p)
+
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
     if cpu or mps:
@@ -204,7 +213,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
             if batch < 1:
                 raise ValueError(
                     "AutoBatch with batch<1 not supported for Multi-GPU training, "
-                    "please specify a valid batch size, i.e. batch=16."
+                    f"please specify a valid batch size multiple of GPU count {n}, i.e. batch={n * 8}."
                 )
             if batch >= 0 and batch % n != 0:  # check batch_size is divisible by device_count
                 raise ValueError(
@@ -238,7 +247,7 @@ def time_sync():
 
 
 def fuse_conv_and_bn(conv, bn):
-    """Fuse Conv2d() and BatchNorm2d() layers https://tehnokv.com/posts/fusing-batchnorm-and-conv/."""
+    """Fuse Conv2d() and BatchNorm2d() layers."""
     fusedconv = (
         nn.Conv2d(
             conv.in_channels,
@@ -377,7 +386,7 @@ def model_info_for_loggers(trainer):
     if trainer.args.profile:  # profile ONNX and TensorRT times
         from ultralytics.utils.benchmarks import ProfileModels
 
-        results = ProfileModels([trainer.last], device=trainer.device).profile()[0]
+        results = ProfileModels([trainer.last], device=trainer.device).run()[0]
         results.pop("model/name")
     else:  # only return PyTorch times from most recent validation
         results = {
@@ -403,6 +412,11 @@ def get_flops(model, imgsz=640):
     Returns:
         (float): The model FLOPs in billions.
     """
+    try:
+        import thop
+    except ImportError:
+        thop = None  # conda support without 'ultralytics-thop' installed
+
     if not thop:
         return 0.0  # if not installed return 0.0 GFLOPs
 
@@ -604,7 +618,7 @@ def init_seeds(seed=0, deterministic=False):
             os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
             os.environ["PYTHONHASHSEED"] = str(seed)
         else:
-            LOGGER.warning("WARNING ⚠️ Upgrade to torch>=2.0.0 for deterministic training.")
+            LOGGER.warning("Upgrade to torch>=2.0.0 for deterministic training.")
     else:
         unset_deterministic()
 
@@ -708,7 +722,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
         assert isinstance(x, dict), "checkpoint is not a Python dictionary"
         assert "model" in x, "'model' missing from checkpoint"
     except Exception as e:
-        LOGGER.warning(f"WARNING ⚠️ Skipping {f}, not a valid Ultralytics model: {e}")
+        LOGGER.warning(f"Skipping {f}, not a valid Ultralytics model: {e}")
         return {}
 
     metadata = {
@@ -789,7 +803,7 @@ def cuda_memory_usage(device=None):
         yield cuda_info
 
 
-def profile(input, ops, n=10, device=None, max_num_obj=0):
+def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
     """
     Ultralytics speed, memory and FLOPs profiler.
 
@@ -804,12 +818,17 @@ def profile(input, ops, n=10, device=None, max_num_obj=0):
         (list): Profile results for each operation.
 
     Examples:
-        >>> from ultralytics.utils.torch_utils import profile
+        >>> from ultralytics.utils.torch_utils import profile_ops
         >>> input = torch.randn(16, 3, 640, 640)
         >>> m1 = lambda x: x * torch.sigmoid(x)
         >>> m2 = nn.SiLU()
-        >>> profile(input, [m1, m2], n=100)  # profile over 100 iterations
+        >>> profile_ops(input, [m1, m2], n=100)  # profile over 100 iterations
     """
+    try:
+        import thop
+    except ImportError:
+        thop = None  # conda support without 'ultralytics-thop' installed
+
     results = []
     if not isinstance(device, torch.device):
         device = select_device(device)

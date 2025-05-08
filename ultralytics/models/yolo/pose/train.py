@@ -80,6 +80,10 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         Returns:
             (PoseModel): Initialized pose estimation model.
         """
+        assert self.data.get("kpt_shape"), (
+            f"No `kpt_shape` found in the {self.args.data} file.\n"
+            f"Correct example: https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-pose.yaml"
+        )
         model = PoseModel(
             cfg, nc=self.data["nc"], ch=self.data["channels"], data_kpt_shape=self.data["kpt_shape"], verbose=verbose
         )

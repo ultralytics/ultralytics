@@ -430,14 +430,14 @@ class ConfusionMatrix:
         tick_fontsize, label_fontsize, title_fontsize = (6, 14, 18) if nc < 50 else (4.8, 11.2, 14.4)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
-            im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation='none')
+            im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation="none")
             ax.set_xticks(np.arange(tick_count))
             ax.set_yticks(np.arange(tick_count))
-            ax.set_xticklabels(ticklabels, fontsize=tick_fontsize, rotation=90, ha='center')
+            ax.set_xticklabels(ticklabels, fontsize=tick_fontsize, rotation=90, ha="center")
             ax.set_yticklabels(ticklabels, fontsize=tick_fontsize)
-            ax.tick_params(axis='x', bottom=True, top=False, labelbottom=True, labeltop=False)
-            ax.tick_params(axis='y', left=True, right=False, labelleft=True, labelright=False)
-            ax.xaxis.set_label_position('bottom')
+            ax.tick_params(axis="x", bottom=True, top=False, labelbottom=True, labeltop=False)
+            ax.tick_params(axis="y", left=True, right=False, labelleft=True, labelright=False)
+            ax.xaxis.set_label_position("bottom")
             for spine in ax.spines.values():
                 spine.set_visible(False)
             title = "Confusion Matrix" + " Normalized" * normalize

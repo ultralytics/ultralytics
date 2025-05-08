@@ -541,17 +541,14 @@ class Mosaic(BaseMixTransform):
         self.imgsz = imgsz
         self.border = (-imgsz // 2, -imgsz // 2)  # width, height
         self.n = n
+        self.buffer_enabled = self.dataset.cache != "ram"
 
-    def get_indexes(self, buffer=True):
+    def get_indexes(self):
         """
         Returns a list of random indexes from the dataset for mosaic augmentation.
 
         This method selects random image indexes either from a buffer or from the entire dataset, depending on
         the 'buffer' parameter. It is used to choose images for creating mosaic augmentations.
-
-        Args:
-            buffer (bool): If True, selects images from the dataset buffer. If False, selects from the entire
-                dataset.
 
         Returns:
             (List[int]): A list of random image indexes. The length of the list is n-1, where n is the number
@@ -562,7 +559,7 @@ class Mosaic(BaseMixTransform):
             >>> indexes = mosaic.get_indexes()
             >>> print(len(indexes))  # Output: 3
         """
-        if buffer:  # select images from buffer
+        if self.buffer_enabled:  # select images from buffer
             return random.choices(list(self.dataset.buffer), k=self.n - 1)
         else:  # select any images
             return [random.randint(0, len(self.dataset) - 1) for _ in range(self.n - 1)]

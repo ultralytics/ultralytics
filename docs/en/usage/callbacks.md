@@ -51,31 +51,23 @@ for result, frame in model.predict():  # or model.track()
     pass
 ```
 
-### Get Notifications After Each Epoch with `on_model_save` Callback
+### Access Model metrics using the `on_model_save` callback
 
-In deep learning workflows, staying updated on training progress can save time and help you stay focused. While Ultralytics YOLO framework provides flexible callbacks, you can use the `on_model_save` callback to send desktop notifications automatically after each epoch when a model checkpoint is saved.
-
-Below is an example of how you can implement this functionality using the Python `plyer` library.
+This example shows how to retrieve training details, such as the best_fitness score, total_loss, and other metrics after each epoch using the `on_model_save` callback.
 
 ```python
 from ultralytics import YOLO
-from ultralytics.utils.checks import check_requirements
-
-check_requirements("plyer")
+from ultralytics.utils import LOGGER
 
 model = YOLO("yolo11n.pt")
 
-
 def on_model_save(model):
-    """Send notification once after each iteration model checkpoint saved."""
-    from plyer import notification
-
-    notification.notify(
-        title="Ultralytics YOLO 🚀",
-        message=f"Epoch {model.epoch + 1} is completed and model saved in the directory: {model.save_dir}",
-        timeout=5,  # seconds
-    )
-
+    """Print model details after each epoch"""
+    LOGGER.info(f"Model details\n"
+                f"Best fitness: {model.best_fitness}, "
+                f"Loss names: {model.loss_names}, "  # List of loss names
+                f"Metrics: {model.metrics}, "
+                f"Total loss: {model.tloss}")  # Total loss value
 
 if __name__ == "__main__":
     # Add on_train_epoch_end callback.

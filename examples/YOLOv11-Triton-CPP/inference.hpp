@@ -53,8 +53,8 @@ int getDetectionsFromTritonRawData(
     std::vector<struct detection_struct>& tespitler,
     std::vector<std::string>& object_class_list,
     float confidence_threshold,
-    int goruntu_genislik,
-    int goruntu_yukseklik
+    int IMAGE_HEIGHT,
+    int IMAGE_HEIGHT
 );
 
 std::vector<BoundingBox> NMS(const std::vector<BoundingBox>& boxes, float iou_threshold);

@@ -11,9 +11,9 @@
 #include <chrono>
 
 
-#define GORUNTU_GENISLIK 640
-#define GORUNTU_YUKSEKLIK 640
-#define GORUNTU_KANAL 3
+#define IMAGE_HEIGHT 640
+#define IMAGE_HEIGHT 640
+#define IMAGE_CHANNEL 3
 
 #define NETWORK_THRESHOLD 0.50
 
@@ -36,11 +36,11 @@ int main(int argc, char *argv[])
 
     double ag_tespit_suresi_milisaniye;
     std::vector<uint16_t> triton_request_data;
-    triton_request_data.resize(3*GORUNTU_GENISLIK*GORUNTU_YUKSEKLIK);
+    triton_request_data.resize(3*IMAGE_HEIGHT*IMAGE_HEIGHT);
 
     std::vector<struct detection_struct> detections;
 
-    std::shared_ptr<TritonCommunication> triton_communication = std::make_shared<TritonCommunication>(url, model_name, model_version, GORUNTU_KANAL, GORUNTU_GENISLIK, GORUNTU_YUKSEKLIK,object_class_list.size());
+    std::shared_ptr<TritonCommunication> triton_communication = std::make_shared<TritonCommunication>(url, model_name, model_version, IMAGE_CHANNEL, IMAGE_HEIGHT, IMAGE_HEIGHT,object_class_list.size());
 
     cv::Mat frame = cv::imread(image_path);
 	if (frame.empty()) {
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     int image_height = frame.rows;
 
     double preprocess_time = get_time_since_epoch_millis();
-	Image::preprocess(&frame, triton_request_data, GORUNTU_GENISLIK, GORUNTU_YUKSEKLIK);
+	Image::preprocess(&frame, triton_request_data, IMAGE_HEIGHT, IMAGE_HEIGHT);
     std::cout << "Preprocess time : " << (get_time_since_epoch_millis() - preprocess_time)<< " millisecond."<< std::endl;
 
 	double infer_time = get_time_since_epoch_millis(); 

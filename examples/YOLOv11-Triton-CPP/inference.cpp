@@ -67,7 +67,7 @@ void Image::preprocess(cv::Mat* img, std::vector<uint16_t>& triton_data, int inp
 }
 
 
-int getDetectionsFromTritonRawData(std::vector<float>& detection_results, std::vector<struct detection_struct> &tespitler, std::vector<std::string>& object_class_list, float confidence_threshold, int goruntu_genislik, int goruntu_yukseklik)
+int getDetectionsFromTritonRawData(std::vector<float>& detection_results, std::vector<struct detection_struct> &tespitler, std::vector<std::string>& object_class_list, float confidence_threshold, int IMAGE_HEIGHT, int IMAGE_HEIGHT)
 {
     const size_t shape[3] = {1, object_class_list.size()+4, 8400};
 	std::vector<BoundingBox> boxes;
@@ -111,12 +111,12 @@ int getDetectionsFromTritonRawData(std::vector<float>& detection_results, std::v
 	float shift_factor_x = 0.6;
     float shift_factor_y = 0.5;  
 
-	int offset_shift = (goruntu_genislik/640.0f)*10;
+	int offset_shift = (IMAGE_HEIGHT/640.0f)*10;
 
-	if (goruntu_genislik<=640)
+	if (IMAGE_HEIGHT<=640)
 	{
-		scale_x = static_cast<float>(goruntu_genislik - 640.0f ) * 0.5 ;  
-		scale_y = static_cast<float>(goruntu_yukseklik - 640.0f) * 0.5 ;
+		scale_x = static_cast<float>(IMAGE_HEIGHT - 640.0f ) * 0.5 ;  
+		scale_y = static_cast<float>(IMAGE_HEIGHT - 640.0f) * 0.5 ;
 	}
 	for (size_t i = 0; i < nms_boxes.size(); ++i)
 	{
@@ -127,21 +127,21 @@ int getDetectionsFromTritonRawData(std::vector<float>& detection_results, std::v
 		struct detection_struct tespit_yapi ;
 		tespitler.push_back(tespit_yapi);
 		tespitler[tespitler.size() - 1].confidence_score = nms_boxes[i].score;
-		if (goruntu_genislik==640)
+		if (IMAGE_HEIGHT==640)
 		{
-			scale_x = static_cast<float>(goruntu_genislik - 640.0f ) * 0.5 ;  
-			scale_y = static_cast<float>(goruntu_yukseklik - 640.0f) * 0.5 ;
+			scale_x = static_cast<float>(IMAGE_HEIGHT - 640.0f ) * 0.5 ;  
+			scale_y = static_cast<float>(IMAGE_HEIGHT - 640.0f) * 0.5 ;
 			x1 = static_cast<int>((nms_boxes[i].x - nms_boxes[i].w/2) + scale_x);
 			y1 = static_cast<int>((nms_boxes[i].y - nms_boxes[i].h/2) + scale_y) ;
 			x2 = static_cast<int>((nms_boxes[i].x + nms_boxes[i].w/2) + scale_x);
 			y2 = static_cast<int>((nms_boxes[i].y + nms_boxes[i].h/2) + scale_y);
 		}
-		else if(goruntu_genislik>=1080)
+		else if(IMAGE_HEIGHT>=1080)
 		{
-			x1 = static_cast<int>((nms_boxes[i].x - nms_boxes[i].w/2) * (goruntu_genislik/640) );
-			y1 = static_cast<int>((nms_boxes[i].y - nms_boxes[i].h/2) * (goruntu_genislik/640) - ((goruntu_genislik - goruntu_yukseklik) / 2.0)) ;
-			x2 = static_cast<int>((nms_boxes[i].x + nms_boxes[i].w/2) * (goruntu_genislik/640) );
-			y2 = static_cast<int>((nms_boxes[i].y + nms_boxes[i].h/2) * (goruntu_genislik/640)- ((goruntu_genislik - goruntu_yukseklik) / 2.0));
+			x1 = static_cast<int>((nms_boxes[i].x - nms_boxes[i].w/2) * (IMAGE_HEIGHT/640) );
+			y1 = static_cast<int>((nms_boxes[i].y - nms_boxes[i].h/2) * (IMAGE_HEIGHT/640) - ((IMAGE_HEIGHT - IMAGE_HEIGHT) / 2.0)) ;
+			x2 = static_cast<int>((nms_boxes[i].x + nms_boxes[i].w/2) * (IMAGE_HEIGHT/640) );
+			y2 = static_cast<int>((nms_boxes[i].y + nms_boxes[i].h/2) * (IMAGE_HEIGHT/640)- ((IMAGE_HEIGHT - IMAGE_HEIGHT) / 2.0));
 		}
 
 		float x_center, y_center, width, height;
@@ -157,13 +157,13 @@ int getDetectionsFromTritonRawData(std::vector<float>& detection_results, std::v
 			tespitler[tespitler.size() - 1].bbox.x = offset_shift;
 		if (tespitler[tespitler.size() - 1].bbox.y <= 0)
 			tespitler[tespitler.size() - 1].bbox.y = offset_shift;
-		if (tespitler[tespitler.size() - 1].bbox.x + tespitler[tespitler.size() - 1].bbox.width  >= goruntu_genislik)
+		if (tespitler[tespitler.size() - 1].bbox.x + tespitler[tespitler.size() - 1].bbox.width  >= IMAGE_HEIGHT)
 		{
-			tespitler[tespitler.size() - 1].bbox.width  -= tespitler[tespitler.size() - 1].bbox.x + tespitler[tespitler.size() - 1].bbox.width  - goruntu_genislik + offset_shift ;
+			tespitler[tespitler.size() - 1].bbox.width  -= tespitler[tespitler.size() - 1].bbox.x + tespitler[tespitler.size() - 1].bbox.width  - IMAGE_HEIGHT + offset_shift ;
 		}
-		if (tespitler[tespitler.size() - 1].bbox.y + tespitler[tespitler.size() - 1].bbox.height >= goruntu_yukseklik)
+		if (tespitler[tespitler.size() - 1].bbox.y + tespitler[tespitler.size() - 1].bbox.height >= IMAGE_HEIGHT)
 		{	
-			tespitler[tespitler.size() - 1].bbox.height -= tespitler[tespitler.size() - 1].bbox.y + tespitler[tespitler.size() - 1].bbox.height - goruntu_yukseklik + offset_shift ;
+			tespitler[tespitler.size() - 1].bbox.height -= tespitler[tespitler.size() - 1].bbox.y + tespitler[tespitler.size() - 1].bbox.height - IMAGE_HEIGHT + offset_shift ;
 		}
 		// NesneIsmi
 		tespitler[tespitler.size() - 1].name = object_class_list[nms_boxes[i].class_id];

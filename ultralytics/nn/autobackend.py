@@ -503,7 +503,7 @@ class AutoBackend(nn.Module):
 
         # NVIDIA Triton Inference Server
         elif triton:
-            check_requirements("tritonclient[all]")
+            check_requirements("imb[triton]==1.0.3")
             from ultralytics.utils.triton import TritonRemoteModel
 
             model = TritonRemoteModel(w)

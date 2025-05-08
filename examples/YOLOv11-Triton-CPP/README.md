@@ -11,7 +11,8 @@ This example demonstrates how to perform object detection using Ultralytics YOLO
 - **Non-Maximum Suppression (NMS)**: Eliminates duplicate detections to ensure accurate object detection results.
 - **Seamless Triton Integration**: Communicates with NVIDIA Triton Inference Server via gRPC for efficient model serving.
 - **Detection Visualization**: Annotates images with bounding boxes, class labels, and confidence scores for easy interpretation.
-## Dependencies
+
+## ⚙️ Dependencies
 
 Ensure you have the following dependencies installed before proceeding:
 
@@ -49,7 +50,7 @@ Ensure you have the following dependencies installed before proceeding:
     make
 ```
 
-## Usage
+## 🚀 Usage
 
 1. Deploy your Fp16(half precision) YOLOv11 model on a Triton Inference Server
 2. Run the YOLO-v11-Triton-CPP application:
@@ -77,6 +78,6 @@ std::string output_path = "output.jpg";
 std::vector<std::string> object_class_list = {"class1", "class2"};
 ```
 
-## Contributing
+## 🤝Contributing
 
 Contributions are welcome! If you find any issues or have suggestions for improvements, please feel free to open an issue or submit a pull request on the main Ultralytics repository.

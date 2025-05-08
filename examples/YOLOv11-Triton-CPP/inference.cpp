@@ -260,7 +260,7 @@ TritonCommunication::TritonCommunication(std::string triton_address, std::string
     bool model_ready;
     err = client->IsModelReady(&model_ready,model_name,model_version);
     if (!err.IsOk() || !model_ready) {
-        std::cerr << "Model:[" << model_name << "] has not been deployed on Triton Server. Triton Server Adress:["<<triton_address <<"]"<<std::endl;
+        std::cerr << "Model:[" << model_name << "] has not been deployed on Triton Server. Triton Server Address:["<<triton_address <<"]"<<std::endl;
         exit(-1);
     }
 

@@ -53,7 +53,7 @@ for result, frame in model.predict():  # or model.track()
 
 ### Get Notifications After Each Epoch with `on_model_save` Callback
 
-In deep learning workflows, staying updated on training progress can save time and help you stay focused. While Ultralytics' YOLO framework provides flexible callbacks, you can use the `on_model_save` callback to send desktop notifications automatically after each epoch when a model checkpoint is saved.
+In deep learning workflows, staying updated on training progress can save time and help you stay focused. While Ultralytics YOLO framework provides flexible callbacks, you can use the `on_model_save` callback to send desktop notifications automatically after each epoch when a model checkpoint is saved.
 
 Below is an example of how you can implement this functionality using the Python `plyer` library.
 

@@ -688,7 +688,7 @@ class DFINEDetectModel(RTDETRDetectionModel):
         """Initialize the loss criterion for the RTDETRDetectionModel."""
         from ultralytics.models.utils.loss import DEIMLoss
 
-        return DEIMLoss()
+        return DEIMLoss(num_classes=self.nc)
 
     def loss(self, batch, preds=None):
         """

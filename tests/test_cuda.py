@@ -37,7 +37,7 @@ def test_amp():
     assert check_amp(model)
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, simplify, nms",
@@ -46,7 +46,12 @@ def test_amp():
         for task, dynamic, int8, half, batch, simplify, nms in product(
             TASKS, [True, False], [False], [False], [1, 2], [True, False], [True, False]
         )
-        if not ((int8 and half) or (task == "classify" and nms) or (task == "obb" and nms and not TORCH_1_13))
+        if not (
+            (int8 and half)
+            or (task == "classify" and nms)
+            or (task == "obb" and nms and not TORCH_1_13)
+            or (simplify and dynamic)  # onnxslim is slow when dynamic=True
+        )
     ],
 )
 def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
@@ -90,7 +95,7 @@ def test_export_engine_matrix(task, dynamic, int8, half, batch):
         batch=batch,
         data=TASK2DATA[task],
         workspace=1,  # reduce workspace GB for less resource utilization during testing
-        simplify=not dynamic,  # use 'onnxslim' (False if dynamic=True as onnxslim is slow for dynamic models)
+        simplify=True,
         device=DEVICES[0],
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference

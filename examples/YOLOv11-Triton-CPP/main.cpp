@@ -30,9 +30,9 @@ int main(int argc, char *argv[])
     std::string url= "localhost:8001";
     std::string model_name= "yolov11";
     std::string model_version= "1";
-	std::string image_path = "/home/robolaunch/workspaces/opensource/ipms_contribute/test.jpg";
-	std::string output_path = "/home/robolaunch/workspaces/opensource/ipms_contribute";
-	std::vector<std::string> object_class_list = {"person", "forklift"};
+	std::string image_path = "test.jpg";
+	std::string output_path = "ipms_contribute";
+	std::vector<std::string> object_class_list = {"class1", "class2"};
 
     double ag_tespit_suresi_milisaniye;
     std::vector<uint16_t> triton_request_data;

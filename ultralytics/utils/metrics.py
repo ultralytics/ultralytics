@@ -393,6 +393,23 @@ class ConfusionMatrix:
         """Return the confusion matrix."""
         return self.matrix
 
+    def to_excel(self, classes, file_path="confusion_matrix.xlsx"):
+        """
+        Save the confusion matrix to an Excel file.
+
+        Args:
+            classes (list, optional): List of class names. If not provided, indices will be used.
+            file_path (str): Path to the Excel file to save.
+        """
+        import pandas as pd
+
+        if self.task == "detect" and len(classes) == self.nc:
+            nn = nn + ["background"]  # Append 'background' class
+
+        # Create DataFrame and save the Excel file
+        pd.DataFrame(self.matrix, index=nn, columns=nn).to_excel(file_path)
+        LOGGER.info(f"Confusion matrix saved to {file_path}")
+
     def tp_fp(self):
         """
         Return true positives and false positives.

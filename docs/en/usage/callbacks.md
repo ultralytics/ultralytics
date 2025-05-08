@@ -61,13 +61,17 @@ from ultralytics.utils import LOGGER
 
 model = YOLO("yolo11n.pt")
 
+
 def on_model_save(model):
-    """Print model details after each epoch"""
-    LOGGER.info(f"Model details\n"
-                f"Best fitness: {model.best_fitness}, "
-                f"Loss names: {model.loss_names}, "  # List of loss names
-                f"Metrics: {model.metrics}, "
-                f"Total loss: {model.tloss}")  # Total loss value
+    """Print model details after each epoch."""
+    LOGGER.info(
+        f"Model details\n"
+        f"Best fitness: {model.best_fitness}, "
+        f"Loss names: {model.loss_names}, "  # List of loss names
+        f"Metrics: {model.metrics}, "
+        f"Total loss: {model.tloss}"
+    )  # Total loss value
+
 
 if __name__ == "__main__":
     # Add on_train_epoch_end callback.

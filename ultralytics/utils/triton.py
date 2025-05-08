@@ -2,14 +2,24 @@
 
 from typing import List
 from urllib.parse import urlsplit
-from imb.triton import TritonClient
+
 import numpy as np
+from imb.triton import TritonClient
 
 
 class TritonRemoteModel:
-    def __init__(self, url: str, endpoint: str = "", scheme: str = "",
-                 max_batch_size: int = 0, fixed_batch: bool = True, is_async: bool = False,
-                 use_cuda_shm: bool = False, use_system_shm: bool = False, max_shm_regions: int = 0):
+    def __init__(
+        self,
+        url: str,
+        endpoint: str = "",
+        scheme: str = "",
+        max_batch_size: int = 0,
+        fixed_batch: bool = True,
+        is_async: bool = False,
+        use_cuda_shm: bool = False,
+        use_system_shm: bool = False,
+        max_shm_regions: int = 0,
+    ):
         """
         Initialize the TritonRemoteModel for interacting with a remote Triton Inference Server.
 
@@ -29,7 +39,9 @@ class TritonRemoteModel:
 
         Examples:
             >>> model = TritonRemoteModel(url="localhost:8000", endpoint="yolov8", scheme="http")
-            >>> model = TritonRemoteModel(url="http://localhost:8000/yolov8?use_system_shm=True&max_batch_size=8&max_shm_regions=1")
+            >>> model = TritonRemoteModel(
+            ...     url="http://localhost:8000/yolov8?use_system_shm=True&max_batch_size=8&max_shm_regions=1"
+            ... )
         """
         triton_params = dict()
         if not endpoint and not scheme:  # Parse all args from URL string
@@ -37,7 +49,7 @@ class TritonRemoteModel:
             endpoint = splits.path.strip("/").split("/")[0]
             scheme = splits.scheme
             url = splits.netloc
-        
+
             def convert_type(value: str):
                 if value.isdigit():
                     return int(value)
@@ -51,14 +63,14 @@ class TritonRemoteModel:
                 value = convert_type(value)
                 triton_params[key] = value
 
-        triton_params['max_batch_size'] = triton_params.get('max_batch_size', max_batch_size)
-        triton_params['fixed_batch'] = triton_params.get('fixed_batch', fixed_batch)
-        triton_params['is_async'] = triton_params.get('is_async', is_async)
-        triton_params['use_cuda_shm'] = triton_params.get('use_cuda_shm', use_cuda_shm)
-        triton_params['use_system_shm'] = triton_params.get('use_system_shm', use_system_shm)
-        triton_params['max_shm_regions'] = triton_params.get('max_shm_regions', max_shm_regions)
+        triton_params["max_batch_size"] = triton_params.get("max_batch_size", max_batch_size)
+        triton_params["fixed_batch"] = triton_params.get("fixed_batch", fixed_batch)
+        triton_params["is_async"] = triton_params.get("is_async", is_async)
+        triton_params["use_cuda_shm"] = triton_params.get("use_cuda_shm", use_cuda_shm)
+        triton_params["use_system_shm"] = triton_params.get("use_system_shm", use_system_shm)
+        triton_params["max_shm_regions"] = triton_params.get("max_shm_regions", max_shm_regions)
 
-        print('triton_params', triton_params)
+        print("triton_params", triton_params)
         self.triton_client = TritonClient(url, endpoint, scheme=scheme, return_dict=False, **triton_params)
 
         self.metadata = None

@@ -1268,7 +1268,7 @@ class Exporter:
                         -1, -1, kpts.size(-1)
                     )  # add new dimension at the end of tensor idx and expand to match the number of kpts (17*3)
                     out_kpts = torch.gather(kpts, 1, indices_expanded)
-                    return nms.boxes, nms.scores, out_kpts
+                    return nms.boxes, nms.scores, nms.labels, out_kpts
 
         quant_model = NMSWrapper(
             model=quant_model,

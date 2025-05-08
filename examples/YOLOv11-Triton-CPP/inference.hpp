@@ -1,20 +1,7 @@
 #pragma once
 
-#include <opencv2/core/mat.hpp>
 #include <opencv2/opencv.hpp>
-#include <string>
-#include <vector>
-
-#include <cstdio>
-#include <iostream>
-#include <cstdint>
-#include <clocale>
-#include <immintrin.h>
-#include <cmath>
 #include "grpc_client.h"
-
-
-
 
 class Image 
 {
@@ -53,8 +40,8 @@ int getDetectionsFromTritonRawData(
     std::vector<struct detection_struct>& tespitler,
     std::vector<std::string>& object_class_list,
     float confidence_threshold,
-    int IMAGE_HEIGHT,
-    int IMAGE_HEIGHT
+    int image_width,
+    int image_height
 );
 
 std::vector<BoundingBox> NMS(const std::vector<BoundingBox>& boxes, float iou_threshold);

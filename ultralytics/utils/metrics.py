@@ -403,10 +403,6 @@ class ConfusionMatrix:
             file (str): Excel file to save.
         """
         import pandas as pd
-
-        if self.task == "detect":
-            classes.append("background")  # Append 'background' class
-
         pd.DataFrame(self.matrix, index=classes, columns=classes).to_csv(Path(save_dir / file))
 
     def tp_fp(self):

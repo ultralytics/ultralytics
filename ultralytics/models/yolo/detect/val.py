@@ -271,7 +271,8 @@ class DetectionValidator(BaseValidator):
                 self.confusion_matrix.plot(
                     save_dir=self.save_dir, names=self.names.values(), normalize=normalize, on_plot=self.on_plot
                 )
-            self.confusion_matrix.to_csv(classes=list(self.names.values()), save_dir=self.save_dir)  # store in csv
+            # store in csv file with background class
+            self.confusion_matrix.to_csv(classes=list(self.names.values()) + ["background"], save_dir=self.save_dir)
 
     def _process_batch(self, detections, gt_bboxes, gt_cls):
         """

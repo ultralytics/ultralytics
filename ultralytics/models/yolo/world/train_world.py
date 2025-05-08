@@ -122,7 +122,8 @@ class WorldTrainerFromScratch(WorldTrainer):
         assert data_yaml.get("val", False), "validation dataset not found"  # lvis.yaml
         data = {k: [check_det_dataset(d) for d in v.get("yolo_data", [])] for k, v in data_yaml.items()}
         assert len(data["val"]) == 1, f"Only support validating on 1 dataset for now, but got {len(data['val'])}."
-        val_split = "minival" if "lvis" in data["val"][0]["val"] else "val"
+        data["val"] = data["val"][0]
+        val_split = "minival" if "lvis" in data["val"]["val"] else "val"
         for d in data["val"]:
             if d.get("minival") is None:  # for lvis dataset
                 continue
@@ -138,11 +139,11 @@ class WorldTrainerFromScratch(WorldTrainer):
                 assert isinstance(g, dict), f"Grounding data should be provided in dict format, but got {type(g)}"
             final_data[s] += grounding_data
         # NOTE: to make training work properly, set `nc` and `names`
-        final_data["nc"] = data["val"][0]["nc"]
-        final_data["names"] = data["val"][0]["names"]
+        final_data["nc"] = data["val"]["nc"]
+        final_data["names"] = data["val"]["names"]
         # NOTE: add path with lvis path
-        final_data["path"] = data["val"][0]["path"]
-        final_data["channels"] = data["val"][0]["channels"]
+        final_data["path"] = data["val"]["path"]
+        final_data["channels"] = data["val"]["channels"]
         self.data = final_data
         if self.args.single_cls:  # consistent with base trainer
             LOGGER.info("Overriding class names with single class.")
@@ -154,7 +155,7 @@ class WorldTrainerFromScratch(WorldTrainer):
                 d["names"] = {0: "object"}
                 d["nc"] = 1
             self.training_data[d["train"]] = d
-        return final_data["train"], final_data["val"][0]
+        return final_data["train"], final_data["val"]
 
     def plot_training_labels(self):
         """Do not plot labels for YOLO-World training."""

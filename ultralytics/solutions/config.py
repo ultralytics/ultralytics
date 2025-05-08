@@ -48,6 +48,7 @@ class SolutionConfig:
         half (bool): Whether to use FP16 precision (requires a supported CUDA device).
         tracker (str): Path to tracking configuration YAML file (e.g., 'botsort.yaml').
         verbose (bool): Enable verbose logging output for debugging or diagnostics.
+        data (str): Path to image directory used for similarity search.
 
     Methods:
         update: Update the configuration with user-defined keyword arguments and raise error on invalid keys.
@@ -91,6 +92,7 @@ class SolutionConfig:
     half: bool = False
     tracker: str = "botsort.yaml"
     verbose: bool = True
+    data: str = "images"
 
     def update(self, **kwargs):
         """Update configuration parameters with new values provided as keyword arguments."""

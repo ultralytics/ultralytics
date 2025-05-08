@@ -57,28 +57,28 @@ This example shows how to retrieve training details, such as the best_fitness sc
 
 ```python
 from ultralytics import YOLO
-from ultralytics.utils import LOGGER
 
+# Load a YOLO model
 model = YOLO("yolo11n.pt")
 
 
-def on_model_save(model):
-    """Print model details after each epoch."""
-    LOGGER.info(
+def print_checkpoint_metrics(trainer):
+    """Print trainer metrics and loss details after each checkpoint is saved."""
+    print(
         f"Model details\n"
-        f"Best fitness: {model.best_fitness}, "
-        f"Loss names: {model.loss_names}, "  # List of loss names
-        f"Metrics: {model.metrics}, "
-        f"Total loss: {model.tloss}"  # Total loss value
+        f"Best fitness: {trainer.best_fitness}, "
+        f"Loss names: {trainer.loss_names}, "  # List of loss names
+        f"Metrics: {trainer.metrics}, "
+        f"Total loss: {trainer.tloss}"  # Total loss value
     )
 
 
 if __name__ == "__main__":
     # Add on_model_save callback.
-    model.add_callback("on_model_save", on_model_save)
+    model.add_callback("on_model_save", print_checkpoint_metrics)
 
     # Run model training on custom dataset.
-    results = model.train(data="coco8.yaml", epochs=3, workers=1)
+    results = model.train(data="coco8.yaml", epochs=3)
 ```
 
 ## All Callbacks

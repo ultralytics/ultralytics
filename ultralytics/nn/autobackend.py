@@ -624,10 +624,7 @@ class AutoBackend(nn.Module):
                     y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
                 elif self.task == "pose":
                     # boxes, conf, kpts
-                    from ultralytics.utils import ops
-
-                    y = np.concatenate([ops.xyxy2xywh(y[0]), y[1][:, :, None], y[2]], axis=-1)
-                    y = y.transpose((0, 2, 1))
+                    y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None], y[3]], axis=-1)
 
         # OpenVINO
         elif self.xml:

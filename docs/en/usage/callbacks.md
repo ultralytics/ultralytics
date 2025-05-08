@@ -69,8 +69,8 @@ def on_model_save(model):
         f"Best fitness: {model.best_fitness}, "
         f"Loss names: {model.loss_names}, "  # List of loss names
         f"Metrics: {model.metrics}, "
-        f"Total loss: {model.tloss}"
-    )  # Total loss value
+        f"Total loss: {model.tloss}"  # Total loss value
+    )  
 
 
 if __name__ == "__main__":

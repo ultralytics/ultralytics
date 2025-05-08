@@ -400,7 +400,7 @@ class ConfusionMatrix:
         Args:
             classes (list, optional): List of class names.
             save_dir (str): Directory where the plot will be saved.
-            file (str): Excel file to save.
+            file (str): CSV file name.
         """
         import pandas as pd
         pd.DataFrame(self.matrix, index=classes, columns=classes).to_csv(Path(save_dir / file))

@@ -59,20 +59,23 @@ Below is an example of how you can implement this functionality using the Python
 
 ```python
 from ultralytics import YOLO
-
 from ultralytics.utils.checks import check_requirements
+
 check_requirements("plyer")
 
 model = YOLO("yolo11n.pt")
 
+
 def on_model_save(model):
-    """Send notification once after each iteration model checkpoint saved"""
+    """Send notification once after each iteration model checkpoint saved."""
     from plyer import notification
+
     notification.notify(
         title="Ultralytics YOLO 🚀",
-        message=f"Epoch {model.epoch+1} is completed and model saved in the directory: {model.save_dir}",
-        timeout=5  # seconds
+        message=f"Epoch {model.epoch + 1} is completed and model saved in the directory: {model.save_dir}",
+        timeout=5,  # seconds
     )
+
 
 if __name__ == "__main__":
     # Add on_train_epoch_end callback.

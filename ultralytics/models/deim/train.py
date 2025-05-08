@@ -30,3 +30,9 @@ class DEIMModelTrainer(RTDETRTrainer):
         if weights:
             model.load(weights)
         return model
+
+    def get_validator(self):
+        """Returns a DetectionValidator suitable for DEIM model validation."""
+        validator = super().get_validator()
+        self.loss_names = "giou_loss", "cls_loss", "fgl_loss"
+        return validator

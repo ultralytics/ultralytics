@@ -403,6 +403,7 @@ class ConfusionMatrix:
             file (str): CSV file name.
         """
         import pandas as pd
+
         pd.DataFrame(self.matrix, index=classes, columns=classes).to_csv(Path(save_dir / file))
 
     def tp_fp(self):

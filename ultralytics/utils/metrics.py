@@ -395,7 +395,7 @@ class ConfusionMatrix:
 
     def to_csv(self, classes, save_dir="", file="confusion_matrix.csv"):
         """
-        Save the confusion matrix to an Excel file.
+        Save the confusion matrix to an CSV file.
 
         Args:
             classes (list, optional): List of class names.

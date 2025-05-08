@@ -51,44 +51,35 @@ for result, frame in model.predict():  # or model.track()
     pass
 ```
 
-### Perform Validation After Every Epoch Using the `on_model_save` Callback
+### Get Notifications After Each Epoch with `on_model_save` Callback
 
-In many research projects, model accuracy is crucial. Training for too many epochs can lead to overfitting, while too few may result in suboptimal performance. To address this, the `on_model_save` callback in Ultralytics allows you to run validation at the end of each epoch using the latest checkpoint.
+In deep learning workflows, staying updated on training progress can save time and help you stay focused. While Ultralytics' YOLO framework provides flexible callbacks, you can use the `on_model_save` callback to send desktop notifications automatically after each epoch when a model checkpoint is saved.
 
-This approach helps you monitor accuracy and other metrics in real-time, saving time and offering clearer insights into model performance.
-
-Below is an example of how to implement per-epoch validation using Ultralytics Callbacks.
+Below is an example of how you can implement this functionality using the Python `plyer` library.
 
 ```python
 from ultralytics import YOLO
 
+from ultralytics.utils.checks import check_requirements
+check_requirements("plyer")
+
 model = YOLO("yolo11n.pt")
 
-batch, imgsz, workers, epochs, data, device = 2, 640, 1, 3, "coco8.yaml", "0"
-
-
-def on_train_epoch_end(trainer):
-    from pathlib import Path
-
-    val_model = YOLO(Path(trainer.save_dir) / "weights" / "best.pt")
-
-    print(f"\nRunning Validation {trainer.epoch + 1}...")
-    validation_results = val_model.val(
-        data=data,
-        imgsz=imgsz,
-        batch=batch * 2,  # validation with 2x batch required
-        workers=workers,
-        device=device,
+def on_model_save(model):
+    """Send notification once after each iteration model checkpoint saved"""
+    from plyer import notification
+    notification.notify(
+        title="Ultralytics YOLO 🚀",
+        message=f"Epoch {model.epoch+1} is completed and model saved in the directory: {model.save_dir}",
+        timeout=5  # seconds
     )
-    # print(validation_results)
-
 
 if __name__ == "__main__":
     # Add on_train_epoch_end callback.
-    model.add_callback("on_model_save", on_train_epoch_end)
+    model.add_callback("on_model_save", on_model_save)
 
     # Run model training on custom dataset.
-    results = model.train(data=data, epochs=epochs, batch=batch, imgsz=imgsz, device=device, workers=workers)
+    results = model.train(data="coco8.yaml", epochs=3, workers=1)
 ```
 
 ## All Callbacks

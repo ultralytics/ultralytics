@@ -777,7 +777,7 @@ class DEIMLoss(nn.Module):
             batch["cls"],
             batch["gt_groups"],
         )
-        test = self.tal_match(outputs["pred_boxes"].contiguous(), outputs["pred_logits"].contiguous(), batch)
+        # box, score, fg_mask = self.tal_match(outputs["pred_boxes"].contiguous(), outputs["pred_logits"].contiguous(), batch)
         self._clear_cache()
 
         if self.use_uni_set:

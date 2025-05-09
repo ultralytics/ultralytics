@@ -939,6 +939,15 @@ class DEIMLoss(nn.Module):
         )
         return target_bboxes, target_scores, fg_mask
 
+    def _tal_merge_indices(self, indices, indices_list):
+        target_bboxes, target_scores, fg_mask = indices
+        for indices_aux in indices_list:
+            target_bboxes_aux, target_scores_aux, fg_mask_aux = indices_aux
+            target_bboxes = torch.where(target_bboxes == 0, target_bboxes_aux, target_bboxes)
+            target_scores = torch.where(target_scores == 0, target_scores_aux, target_scores)
+            fg_mask |= fg_mask_aux
+        return target_bboxes, target_scores, fg_mask
+
     @staticmethod
     def tal_preprocess(targets, batch_size):
         """Preprocess targets by converting to tensor format and scaling coordinates."""

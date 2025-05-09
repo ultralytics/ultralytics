@@ -76,7 +76,7 @@ class DFL(nn.Module):
 
 
 class Proto(nn.Module):
-    """YOLO11 mask Proto module for segmentation models."""
+    """Ultralytics YOLO models mask Proto module for segmentation models."""
 
     def __init__(self, c1, c_=256, c2=32):
         """

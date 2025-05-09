@@ -835,6 +835,7 @@ class Metric(SimpleClass):
             [self.px, self.r_curve, "Confidence", "Recall"],
         ]
 
+
 class MetricsOutputMixin:
     """
     A mixin class for formatting and exporting validation metrics.
@@ -849,6 +850,7 @@ class MetricsOutputMixin:
         - to_csv(): Saves metrics to CSV and/or returns as a string.
         - to_json(): Saves metrics to JSON and/or returns as a string.
     """
+
     def to_df(self):
         """
         Converts validation results to a Pandas Dataframe.
@@ -961,6 +963,7 @@ class MetricsOutputMixin:
             Path(self.save_dir / file).write_text(json_data, encoding="utf-8")
 
         return json_data
+
 
 class DetMetrics(SimpleClass, MetricsOutputMixin):
     """

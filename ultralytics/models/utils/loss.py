@@ -923,6 +923,36 @@ class DEIMLoss(nn.Module):
             losses.update(l_dict)
         return losses
 
+    def _tal_get_loss(self, outputs, batch, all_match_indices, match_indices=None, suffix=""):
+        losses = {}
+        # NOTE: To try TAL assigner, have to strip gt_boxes and target_scores out of these loss functions
+        for loss in self.losses:
+            if match_indices is not None:
+                use_uni_set = self.use_uni_set and (loss in ["boxes", "local"])
+                indices_in = all_match_indices if use_uni_set else match_indices
+            else:
+                indices_in = all_match_indices
+
+            target_bboxes, target_scores, fg_mask = indices_in
+            pred_idx, gt_idx = fg_mask, fg_mask
+            gt_boxes = target_bboxes[gt_idx]
+            if loss == "boxes":
+                pred_boxes = outputs["pred_boxes"][pred_idx]
+                l_dict = self.loss_boxes(pred_boxes, gt_boxes)
+            elif loss == "mal":
+                pred_cls = outputs["pred_logits"]
+                one_hot = torch.where(target_scores != 0, 1.0, 0.0)
+                l_dict = self.loss_labels_mal(pred_cls, target_scores, gt_idx, one_hot)
+            elif loss == "local":
+                l_dict = self.loss_local(outputs, gt_boxes, pred_idx)
+            else:
+                raise ValueError(f"Unknown loss type: {loss}")
+            l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
+            if suffix:
+                l_dict = {k + suffix: v for k, v in l_dict.items()}
+            losses.update(l_dict)
+        return losses
+
     def tal_match(self, pred_boxes, pred_scores, batch):
         batch_size = pred_boxes.shape[0]
         targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)

@@ -476,23 +476,23 @@ class LoadPilAndNumpy:
         Loaded 2 images
     """
 
-    def __init__(self, im0):
+    def __init__(self, im0, channels=3):
         """Initializes a loader for PIL and Numpy images, converting inputs to a standardized format."""
         if not isinstance(im0, list):
             im0 = [im0]
         # use `image{i}.jpg` when Image.filename returns an empty path.
         self.paths = [getattr(im, "filename", "") or f"image{i}.jpg" for i, im in enumerate(im0)]
-        self.im0 = [self._single_check(im) for im in im0]
+        pil_flag = "L" if channels == 1 else "RGB"  # grayscale or RGB
+        self.im0 = [self._single_check(im, pil_flag) for im in im0]
         self.mode = "image"
         self.bs = len(self.im0)
 
     @staticmethod
-    def _single_check(im):
+    def _single_check(im, flag="RGB"):
         """Validate and format an image to numpy array, ensuring RGB order and contiguous memory."""
         assert isinstance(im, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(im)}"
         if isinstance(im, Image.Image):
-            if im.mode != "RGB":
-                im = im.convert("RGB")
+            im = im.convert(flag)
             im = np.asarray(im)[:, :, ::-1]  # RGB to BGR
             im = np.ascontiguousarray(im)  # contiguous
         return im

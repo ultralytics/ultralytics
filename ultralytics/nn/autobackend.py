@@ -160,8 +160,8 @@ class AutoBackend(nn.Module):
         # In-memory PyTorch model
         if nn_module:
             if fuse:
-                model = weights.fuse(verbose=verbose)
-            model = model.to(device)
+                weights = weights.fuse(verbose=verbose)
+            model = weights.to(device)
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only
             stride = max(int(model.stride.max()), 32)  # model stride

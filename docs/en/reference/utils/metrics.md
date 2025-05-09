@@ -11,15 +11,15 @@ keywords: Ultralytics, metrics, model validation, performance analysis, IoU, con
 
 <br>
 
+## ::: ultralytics.utils.metrics.MetricsOutputMixin
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.metrics.ConfusionMatrix
 
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.metrics.Metric
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.metrics.MetricsOutputMixin
 
 <br><br><hr><br>
 

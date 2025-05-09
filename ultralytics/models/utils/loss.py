@@ -884,6 +884,7 @@ class DEIMLoss(nn.Module):
 
     def _get_loss(self, outputs, batch, all_match_indices, match_indices=None, suffix=""):
         losses = {}
+        # NOTE: To try TAL assigner, have to strip gt_boxes and target_scores out of these loss functions
         for loss in self.losses:
             if match_indices is not None:
                 use_uni_set = self.use_uni_set and (loss in ["boxes", "local"])

@@ -454,11 +454,11 @@ class OBBModel(DetectionModel):
 
 
 class SegmentationModel(DetectionModel):
-    """YOLO segmentation model."""
+    """Ultralytics YOLO segmentation model."""
 
     def __init__(self, cfg="yolo11n-seg.yaml", ch=3, nc=None, verbose=True):
         """
-        Initialize YOLOv8 segmentation model with given config and parameters.
+        Initialize Ultralytics YOLO segmentation model with given config and parameters.
 
         Args:
             cfg (str | dict): Model configuration file path or dictionary.
@@ -478,7 +478,7 @@ class PoseModel(DetectionModel):
 
     def __init__(self, cfg="yolo11n-pose.yaml", ch=3, nc=None, data_kpt_shape=(None, None), verbose=True):
         """
-        Initialize YOLOv8 Pose model.
+        Initialize Ultralytics YOLO Pose model.
 
         Args:
             cfg (str | dict): Model configuration file path or dictionary.

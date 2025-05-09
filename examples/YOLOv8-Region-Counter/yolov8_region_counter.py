@@ -99,7 +99,7 @@ def run(
     region_thickness: int = 2,
 ) -> None:
     """
-    Run region counting on a video using YOLOv8 and ByteTrack.
+    Run region counting on a video using Ultralytics YOLO and ByteTrack.
 
     Args:
         weights (str): Model weights path.

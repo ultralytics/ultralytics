@@ -705,7 +705,7 @@ def check_amp(model):
     results, so AMP will be disabled during training.
 
     Args:
-        model (nn.Module): A YOLO11 model instance.
+        model (nn.Module): Ultralytics YOLO model instance.
 
     Returns:
         (bool): Returns True if the AMP functionality works correctly with YOLO11 model, else False.

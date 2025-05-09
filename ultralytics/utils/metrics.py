@@ -4,7 +4,6 @@
 import math
 import warnings
 from pathlib import Path
-from tkinter.font import names
 
 import numpy as np
 import torch

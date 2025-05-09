@@ -618,8 +618,9 @@ class ConfusionMatrix:
         """Exports the confusion matrix to 'confusion_matrix.csv' using the confusion matrix data."""
         import pandas as pd
 
-        pd.DataFrame(self.matrix, index=self.cm_plot_labels,
-                     columns=self.cm_plot_labels).to_csv(self.cm_save_dir / "confusion_matrix.csv")
+        pd.DataFrame(self.matrix, index=self.cm_plot_labels, columns=self.cm_plot_labels).to_csv(
+            self.cm_save_dir / "confusion_matrix.csv"
+        )
 
     def print(self):
         """Print the confusion matrix to the console."""

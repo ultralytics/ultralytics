@@ -777,6 +777,7 @@ class DEIMLoss(nn.Module):
             batch["cls"],
             batch["gt_groups"],
         )
+        test = self.tal_match(outputs["pred_boxes"].contiguous(), outputs["pred_logits"].contiguous(), batch)
         self._clear_cache()
 
         if self.use_uni_set:
@@ -925,7 +926,7 @@ class DEIMLoss(nn.Module):
     def tal_match(self, pred_boxes, pred_scores, batch):
         batch_size = pred_boxes.shape[0]
         targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
-        targets = self.preprocess(targets.to(self.device), batch_size)
+        targets = self.tal_preprocess(targets, batch_size)
         gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
         mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
         _, target_bboxes, target_scores, fg_mask, _ = self.assigner(

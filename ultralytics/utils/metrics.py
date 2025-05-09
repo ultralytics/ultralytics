@@ -324,46 +324,18 @@ class MetricsOutputMixin:
         """
         import pandas as pd  # scope for faster 'import ultralytics'
 
-        # Classification metrics
-        if hasattr(self, "top1") and hasattr(self, "top5"):
-            metrics = {
-                "classification-top1": self.top1,
-                "classification-top5": self.top5,
-            }
-        else:  # Detection metrics (box)
-            metrics = {
-                "box-ap50": self.box.ap50,
-                "box-ap": self.box.ap,
-                "box-map": self.box.map,
-                "box-map50": self.box.map50,
-                "box-map75": self.box.map75,
-                "box-precision": self.box.p,
-                "box-recall": self.box.r,
-                "box-f1": self.box.f1,
-            }
+        task = self.task
+        box_keys = ["ap50", "ap", "map", "map50", "map75", "p", "r", "f1"]
+        common_keys = ["map", "map50", "map75", "p", "r"]
 
-        # Optionally add segmentation metrics if available
-        # Check map > 0 to avoid including seg metrics in case of pose task, as pose task overrides SegmentMetrics
-        if hasattr(self, "seg") and getattr(self.seg, "map", 0) > 0:
-            seg_metrics = {
-                "segmentation-map": self.seg.map,
-                "segmentation-map50": self.seg.map50,
-                "segmentation-map75": self.seg.map75,
-                "segmentation-precision": self.seg.p,
-                "segmentation-recall": self.seg.r,
-            }
-            metrics.update(seg_metrics)
-
-        # Optionally add pose metrics if available
-        if hasattr(self, "pose"):
-            pose_metrics = {
-                "pose-map": self.pose.map,
-                "pose-map50": self.pose.map50,
-                "pose-map75": self.pose.map75,
-                "pose-precision": self.pose.p,
-                "pose-recall": self.pose.r,
-            }
-            metrics.update(pose_metrics)
+        if task == "classify":
+            metrics = {"classification-top1": self.top1, "classification-top5": self.top5}
+        else:
+            metrics = {f"box-{k}": getattr(self.box, k) for k in box_keys}
+            if task == "segment":
+                metrics.update({f"segmentation-{k}": getattr(self.seg, k) for k in common_keys})
+            elif task == "pose":
+                metrics.update({f"pose-{k}": getattr(self.pose, k) for k in common_keys})
 
         return pd.DataFrame([metrics])
 
@@ -1459,6 +1431,7 @@ class OBBMetrics(SimpleClass, MetricsOutputMixin):
         self.names = names
         self.box = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
+        self.task = "obb"
 
     def process(self, tp, conf, pred_cls, target_cls, on_plot=None):
         """

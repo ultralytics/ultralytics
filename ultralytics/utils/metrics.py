@@ -867,7 +867,6 @@ class MetricsOutputMixin:
         """
         import pandas as pd  # scope for faster 'import ultralytics'
 
-        import pandas as pd
 
         metrics = {  # Detection metrics (box)
             "box-ap50": self.box.ap50,

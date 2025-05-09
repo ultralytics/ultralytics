@@ -420,6 +420,33 @@ class MetricsOutputMixin:
 
         return json_data
 
+    def to_html(self, save=True, file="validation.html"):
+        """
+        Saves validation results to an HTML file.
+
+        This method return validation metrics into the XML format. It includes evaluation metrics such as
+        average precision scores (AP@50, AP@75, mAP), F1-score, precision, recall, and class-wise mAPs.
+
+        Args:
+            save (bool): Enable validation results saving in XML file.
+            file (str): Path to the output XML file where validation results will be saved. Defaults to 'validation.xml'.
+
+        Returns:
+            (str): XML string containing all the information about validation in an organized way.
+
+        Examples:
+            >>> model = YOLO("yolo11n.pt")
+            >>> metrics = model.val(data="coco8.yaml")
+            >>> xml_result = metrics.to_xml()
+        """
+        df = self.to_df()
+        html_data = df.to_html(index=False, border=1)
+
+        if save:
+            Path(self.save_dir / file).write_text(html_data, encoding="utf-8")
+
+        return html_data
+
 
 class ConfusionMatrix:
     """

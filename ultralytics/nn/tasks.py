@@ -454,7 +454,7 @@ class OBBModel(DetectionModel):
 
 
 class SegmentationModel(DetectionModel):
-    """Ultralytics YOLO segmentation model."""
+    """YOLO segmentation model."""
 
     def __init__(self, cfg="yolo11n-seg.yaml", ch=3, nc=None, verbose=True):
         """

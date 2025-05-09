@@ -581,7 +581,7 @@ class DEIMLoss(nn.Module):
         reg_max=32,
         share_matched_indices=False,
         mal_alpha=None,
-        use_uni_set=False,
+        use_uni_set=True,
     ):
         """Create the criterion.
         Parameters:

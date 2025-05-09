@@ -17,7 +17,7 @@ from .utils.kalman_filter import KalmanFilterXYWH
 
 class BOTrack(STrack):
     """
-    An extended version of the STrack class for YOLOv8, adding object tracking features.
+    An extended version of the STrack class for YOLO, adding object tracking features.
 
     This class extends the STrack class to include additional functionalities for object tracking, such as feature
     smoothing, Kalman filter prediction, and reactivation of tracks.
@@ -150,7 +150,7 @@ class BOTrack(STrack):
 
 class BOTSORT(BYTETracker):
     """
-    An extended version of the BYTETracker class for YOLOv8, designed for object tracking with ReID and GMC algorithm.
+    An extended version of the BYTETracker class for YOLO, designed for object tracking with ReID and GMC algorithm.
 
     Attributes:
         proximity_thresh (float): Threshold for spatial proximity (IoU) between tracks and detections.
@@ -163,7 +163,7 @@ class BOTSORT(BYTETracker):
         get_kalmanfilter: Return an instance of KalmanFilterXYWH for object tracking.
         init_track: Initialize track with detections, scores, and classes.
         get_dists: Get distances between tracks and detections using IoU and (optionally) ReID.
-        multi_predict: Predict and track multiple objects with YOLOv8 model.
+        multi_predict: Predict and track multiple objects with a YOLO model.
         reset: Reset the BOTSORT tracker to its initial state.
 
     Examples:
@@ -173,7 +173,7 @@ class BOTSORT(BYTETracker):
         >>> bot_sort.multi_predict(tracks)
 
     Note:
-        The class is designed to work with the YOLOv8 object detection model and supports ReID only if enabled via args.
+        The class is designed to work with a YOLO object detection model and supports ReID only if enabled via args.
     """
 
     def __init__(self, args, frame_rate=30):
@@ -197,7 +197,7 @@ class BOTSORT(BYTETracker):
         self.appearance_thresh = args.appearance_thresh
         self.encoder = (
             (lambda feats, s: [f.cpu().numpy() for f in feats])  # native features do not require any model
-            if self.args.model == "auto"
+            if args.with_reid and self.args.model == "auto"
             else ReID(args.model)
             if args.with_reid
             else None
@@ -255,4 +255,6 @@ class ReID:
     def __call__(self, img, dets):
         """Extract embeddings for detected objects."""
         feats = self.model([save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))])
+        if len(feats) != dets.shape[0] and feats[0].shape[0] == dets.shape[0]:
+            feats = feats[0]  # batched prediction with non-PyTorch backend
         return [f.cpu().numpy() for f in feats]

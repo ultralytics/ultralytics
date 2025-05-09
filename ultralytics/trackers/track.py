@@ -5,7 +5,7 @@ from pathlib import Path
 
 import torch
 
-from ultralytics.utils import IterableSimpleNamespace, yaml_load
+from ultralytics.utils import YAML, IterableSimpleNamespace
 from ultralytics.utils.checks import check_yaml
 
 from .bot_sort import BOTSORT
@@ -39,11 +39,13 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         return
 
     tracker = check_yaml(predictor.args.tracker)
-    cfg = IterableSimpleNamespace(**yaml_load(tracker))
+    cfg = IterableSimpleNamespace(**YAML.load(tracker))
 
     if cfg.tracker_type not in {"bytetrack", "botsort"}:
         raise AssertionError(f"Only 'bytetrack' and 'botsort' are supported for now, but got '{cfg.tracker_type}'")
 
+    predictor._feats = None  # reset in case used earlier
+    predictor.save_feats = False
     if cfg.tracker_type == "botsort" and cfg.with_reid and cfg.model == "auto":
         from ultralytics.nn.modules.head import Detect
 
@@ -55,13 +57,12 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
             cfg.model = "yolo11n-cls.pt"
         else:
             predictor.save_feats = True
-            predictor._feats = None
 
             # Register hook to extract input of Detect layer
-            def capture_io(module, input, output):
-                predictor._feats = input[0]
+            def pre_hook(module, input):
+                predictor._feats = [t.clone() for t in input[0]]
 
-            predictor.model.model.model[-1].register_forward_hook(capture_io)
+            predictor.model.model.model[-1].register_forward_pre_hook(pre_hook)
 
     trackers = []
     for _ in range(predictor.dataset.bs):

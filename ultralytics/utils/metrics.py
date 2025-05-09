@@ -609,6 +609,18 @@ class ConfusionMatrix:
         if on_plot:
             on_plot(plot_fname)
 
+        # Store confusion matrix results in CSV file.
+        self.cm_plot_labels = ticklabels  # confusion matrix labels (x and y axis)
+        self.cm_save_dir = save_dir  # directory for confusion_matrix.csv file storage
+        self.to_csv()
+
+    def to_csv(self):
+        """Exports the confusion matrix to 'confusion_matrix.csv' using the confusion matrix data."""
+        import pandas as pd
+
+        pd.DataFrame(self.matrix, index=self.cm_plot_labels,
+                     columns=self.cm_plot_labels).to_csv(self.cm_save_dir / "confusion_matrix.csv")
+
     def print(self):
         """Print the confusion matrix to the console."""
         for i in range(self.matrix.shape[0]):

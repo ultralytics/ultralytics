@@ -867,17 +867,22 @@ class MetricsOutputMixin:
         """
         import pandas as pd  # scope for faster 'import ultralytics'
 
-
-        metrics = {  # Detection metrics (box)
-            "box-ap50": self.box.ap50,
-            "box-ap": self.box.ap,
-            "box-map": self.box.map,
-            "box-map50": self.box.map50,
-            "box-map75": self.box.map75,
-            "box-precision": self.box.p,
-            "box-recall": self.box.r,
-            "box-f1": self.box.f1,
-        }
+        if hasattr(self, "cls") and self.cls is not None:
+            metrics = {
+                "top1_acc": self.top1,
+                "top5_acc": self.top5,
+            }
+        else:
+            metrics = {  # Detection metrics (box)
+                "box-ap50": self.box.ap50,
+                "box-ap": self.box.ap,
+                "box-map": self.box.map,
+                "box-map50": self.box.map50,
+                "box-map75": self.box.map75,
+                "box-precision": self.box.p,
+                "box-recall": self.box.r,
+                "box-f1": self.box.f1,
+            }
 
         # Optionally add segmentation metrics if available
         # Check map > 0 to avoid including seg metrics in case of pose task, as pose task overrides SegmentMetrics
@@ -1322,7 +1327,7 @@ class PoseMetrics(SegmentMetrics):
         return self.box.curves_results + self.pose.curves_results
 
 
-class ClassifyMetrics(SimpleClass):
+class ClassifyMetrics(SimpleClass, MetricsOutputMixin):
     """
     Class for computing classification metrics including top-1 and top-5 accuracy.
 

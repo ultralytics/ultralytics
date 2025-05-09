@@ -4,6 +4,7 @@
 import math
 import warnings
 from pathlib import Path
+from tkinter.font import names
 
 import numpy as np
 import torch
@@ -290,6 +291,133 @@ def smooth_bce(eps=0.1):
     """
     return 1.0 - 0.5 * eps, 0.5 * eps
 
+class MetricsOutputMixin:
+    """
+    A mixin class for formatting and exporting validation metrics.
+
+    This class provides common methods to convert detection, segmentation, and pose metrics
+    into structured representations such as Pandas DataFrames, CSV, and JSON. It supports
+    exporting class-wise evaluation metrics including AP@50, AP@75, precision, recall, F1-score,
+    and mean Average Precision (mAP) for each task, if available.
+
+    Methods:
+        - to_df(): Returns a class-wise DataFrame of available metrics.
+        - to_csv(): Saves metrics to CSV and/or returns as a string.
+        - to_json(): Saves metrics to JSON and/or returns as a string.
+    """
+    def to_df(self):
+        """
+        Converts validation results to a Pandas Dataframe.
+
+        This method converts the validation results into Pandas Dataframe format. It includes
+        evaluation metrics such as average precision scores (AP@50, AP@75, mAP), F1-score,
+        precision, recall, and class-wise mAPs.
+
+        Returns:
+            (DataFrame): A Pandas Dataframe containing all the information about validation in an organized way.
+
+        Examples:
+            >>> model = YOLO("yolo11n.pt")
+            >>> metrics = model.val(data="coco8.yaml")
+            >>> json_result = metrics.to_df()
+        """
+        import pandas as pd  # scope for faster 'import ultralytics'
+
+        # Classification metrics
+        if hasattr(self, "top1") and hasattr(self, "top5"):
+            metrics = {
+                "classification-top1": self.top1,
+                "classification-top5": self.top5,
+            }
+        else:  # Detection metrics (box)
+            metrics = {
+                "box-ap50": self.box.ap50,
+                "box-ap": self.box.ap,
+                "box-map": self.box.map,
+                "box-map50": self.box.map50,
+                "box-map75": self.box.map75,
+                "box-precision": self.box.p,
+                "box-recall": self.box.r,
+                "box-f1": self.box.f1,
+            }
+
+        # Optionally add segmentation metrics if available
+        # Check map > 0 to avoid including seg metrics in case of pose task, as pose task overrides SegmentMetrics
+        if hasattr(self, "seg") and getattr(self.seg, "map", 0) > 0:
+            seg_metrics = {
+                "segmentation-map": self.seg.map,
+                "segmentation-map50": self.seg.map50,
+                "segmentation-map75": self.seg.map75,
+                "segmentation-precision": self.seg.p,
+                "segmentation-recall": self.seg.r,
+            }
+            metrics.update(seg_metrics)
+
+        # Optionally add pose metrics if available
+        if hasattr(self, "pose"):
+            pose_metrics = {
+                "pose-map": self.pose.map,
+                "pose-map50": self.pose.map50,
+                "pose-map75": self.pose.map75,
+                "pose-precision": self.pose.p,
+                "pose-recall": self.pose.r,
+            }
+            metrics.update(pose_metrics)
+
+        return pd.DataFrame([metrics])
+
+    def to_csv(self, save=True, file="validation.csv"):
+        """
+        Saves validation results to a CSV file.
+
+        This method return validation metrics into a CSV format. It includes evaluation metrics such
+        as average precision scores (AP@50, AP@75, mAP), F1-score, precision, recall, and class-wise mAPs.
+
+        Args:
+            save (bool): Enable validation results saving in CSV file.
+            file (str): Path to the output CSV file where validation results will be saved. Defaults to 'validation.csv'.
+
+        Returns:
+            (str): CSV containing all the information about validation in an organized way.
+
+        Examples:
+            >>> model = YOLO("yolo11n.pt")
+            >>> metrics = model.val(data="coco8.yaml")
+            >>> json_result = metrics.to_csv()
+        """
+        df = self.to_df()
+        csv_data = df.to_csv(index=False)
+        if save:
+            with open(Path(self.save_dir / file), "w", encoding="utf-8") as f:
+                f.write(csv_data)
+        return csv_data
+
+    def to_json(self, save=True, file="validation.json"):
+        """
+        Saves validation results to an JSON file.
+
+        This method return validation metrics into the JSON format. It includes evaluation metrics such as
+        average precision scores (AP@50, AP@75, mAP), F1-score, precision, recall, and class-wise mAPs.
+
+        Args:
+            save (bool): Enable validation results saving in JSON file.
+            file (str): Path to the output JSON file where validation results will be saved. Defaults to 'validation.xml'.
+
+        Returns:
+            (str): JSON string containing all the information about validation in an organized way.
+
+        Examples:
+            >>> model = YOLO("yolo11n.pt")
+            >>> metrics = model.val(data="coco8.yaml")
+            >>> xml_result = metrics.to_json()
+        """
+        df = self.to_df()
+        json_data = df.to_json(orient="records", indent=4)
+
+        if save:
+            Path(self.save_dir / file).write_text(json_data, encoding="utf-8")
+
+        return json_data
 
 class ConfusionMatrix:
     """
@@ -834,137 +962,6 @@ class Metric(SimpleClass):
             [self.px, self.p_curve, "Confidence", "Precision"],
             [self.px, self.r_curve, "Confidence", "Recall"],
         ]
-
-
-class MetricsOutputMixin:
-    """
-    A mixin class for formatting and exporting validation metrics.
-
-    This class provides common methods to convert detection, segmentation, and pose metrics
-    into structured representations such as Pandas DataFrames, CSV, and JSON. It supports
-    exporting class-wise evaluation metrics including AP@50, AP@75, precision, recall, F1-score,
-    and mean Average Precision (mAP) for each task, if available.
-
-    Methods:
-        - to_df(): Returns a class-wise DataFrame of available metrics.
-        - to_csv(): Saves metrics to CSV and/or returns as a string.
-        - to_json(): Saves metrics to JSON and/or returns as a string.
-    """
-
-    def to_df(self):
-        """
-        Converts validation results to a Pandas Dataframe.
-
-        This method converts the validation results into Pandas Dataframe format. It includes
-        evaluation metrics such as average precision scores (AP@50, AP@75, mAP), F1-score,
-        precision, recall, and class-wise mAPs.
-
-        Returns:
-            (DataFrame): A Pandas Dataframe containing all the information about validation in an organized way.
-
-        Examples:
-            >>> model = YOLO("yolo11n.pt")
-            >>> metrics = model.val(data="coco8.yaml")
-            >>> json_result = metrics.to_df()
-        """
-        import pandas as pd  # scope for faster 'import ultralytics'
-
-        # Classification metrics
-        if hasattr(self, "top1") and hasattr(self, "top5"):
-            metrics = {
-                "classification-top1": self.top1,
-                "classification-top5": self.top5,
-            }
-        else:  # Detection metrics (box)
-            metrics = {
-                "box-ap50": self.box.ap50,
-                "box-ap": self.box.ap,
-                "box-map": self.box.map,
-                "box-map50": self.box.map50,
-                "box-map75": self.box.map75,
-                "box-precision": self.box.p,
-                "box-recall": self.box.r,
-                "box-f1": self.box.f1,
-            }
-
-        # Optionally add segmentation metrics if available
-        # Check map > 0 to avoid including seg metrics in case of pose task, as pose task overrides SegmentMetrics
-        if hasattr(self, "seg") and getattr(self.seg, "map", 0) > 0:
-            seg_metrics = {
-                "segmentation-map": self.seg.map,
-                "segmentation-map50": self.seg.map50,
-                "segmentation-map75": self.seg.map75,
-                "segmentation-precision": self.seg.p,
-                "segmentation-recall": self.seg.r,
-            }
-            metrics.update(seg_metrics)
-
-        # Optionally add pose metrics if available
-        if hasattr(self, "pose"):
-            pose_metrics = {
-                "pose-map": self.pose.map,
-                "pose-map50": self.pose.map50,
-                "pose-map75": self.pose.map75,
-                "pose-precision": self.pose.p,
-                "pose-recall": self.pose.r,
-            }
-            metrics.update(pose_metrics)
-
-        return pd.DataFrame([metrics])
-
-    def to_csv(self, save=True, file="validation.csv"):
-        """
-        Saves validation results to a CSV file.
-
-        This method return validation metrics into a CSV format. It includes evaluation metrics such
-        as average precision scores (AP@50, AP@75, mAP), F1-score, precision, recall, and class-wise mAPs.
-
-        Args:
-            save (bool): Enable validation results saving in CSV file.
-            file (str): Path to the output CSV file where validation results will be saved. Defaults to 'validation.csv'.
-
-        Returns:
-            (str): CSV containing all the information about validation in an organized way.
-
-        Examples:
-            >>> model = YOLO("yolo11n.pt")
-            >>> metrics = model.val(data="coco8.yaml")
-            >>> json_result = metrics.to_csv()
-        """
-        df = self.to_df()
-        csv_data = df.to_csv(index=False)
-        if save:
-            with open(Path(self.save_dir / file), "w", encoding="utf-8") as f:
-                f.write(csv_data)
-        return csv_data
-
-    def to_json(self, save=True, file="validation.json"):
-        """
-        Saves validation results to an JSON file.
-
-        This method return validation metrics into the JSON format. It includes evaluation metrics such as
-        average precision scores (AP@50, AP@75, mAP), F1-score, precision, recall, and class-wise mAPs.
-
-        Args:
-            save (bool): Enable validation results saving in JSON file.
-            file (str): Path to the output JSON file where validation results will be saved. Defaults to 'validation.xml'.
-
-        Returns:
-            (str): JSON string containing all the information about validation in an organized way.
-
-        Examples:
-            >>> model = YOLO("yolo11n.pt")
-            >>> metrics = model.val(data="coco8.yaml")
-            >>> xml_result = metrics.to_json()
-        """
-        df = self.to_df()
-        json_data = df.to_json(orient="records", indent=4)
-
-        if save:
-            Path(self.save_dir / file).write_text(json_data, encoding="utf-8")
-
-        return json_data
-
 
 class DetMetrics(SimpleClass, MetricsOutputMixin):
     """

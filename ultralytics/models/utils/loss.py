@@ -641,24 +641,19 @@ class DEIMLoss(nn.Module):
         loss = loss.mean(1).sum() * src_logits.shape[1] / len(gt_idx)
         return {"loss_mal": loss}
 
-    def loss_boxes(self, outputs, targets, indices):
+    def loss_boxes(self, pred_boxes, gt_boxes):
         """Compute the losses related to the bounding boxes, the L1 regression loss and the GIoU loss
         targets dicts must contain the key "boxes" containing a tensor of dim [nb_target_boxes, 4]
         The target boxes are expected in format (center_x, center_y, w, h), normalized by the image size.
         """
-        assert "pred_boxes" in outputs
-        pred_idx, gt_idx = DETRLoss._get_index(indices)
-        src_boxes = outputs["pred_boxes"][pred_idx]
-        target_boxes = targets["bboxes"][gt_idx]
-
         losses = {}
-        loss_bbox = F.l1_loss(src_boxes, target_boxes, reduction="none")
-        losses["loss_bbox"] = loss_bbox.sum() / len(target_boxes)
+        loss_bbox = F.l1_loss(pred_boxes, gt_boxes, reduction="none")
+        losses["loss_bbox"] = loss_bbox.sum() / len(gt_boxes)
 
         # TODO: could use CIOU as well
-        loss_giou = 1 - bbox_iou(src_boxes, target_boxes, GIoU=True)
+        loss_giou = 1 - bbox_iou(pred_boxes, gt_boxes, GIoU=True)
         if self.boxes_weight_format is not None:
-            boxes_weight = bbox_iou(src_boxes.detach(), target_boxes, GIoU=self.boxes_weight_format == "giou").clamp_(0)
+            boxes_weight = bbox_iou(pred_boxes.detach(), gt_boxes, GIoU=self.boxes_weight_format == "giou").clamp_(0)
             loss_giou *= boxes_weight
         losses["loss_giou"] = loss_giou.mean()
 
@@ -922,8 +917,11 @@ class DEIMLoss(nn.Module):
             else:
                 indices_in = all_match_indices
             meta = self.get_loss_meta_info(loss, outputs, batch, indices_in)
+            pred_idx, gt_idx = DETRLoss._get_index(indices_in)
             if loss == "boxes":
-                l_dict = self.loss_boxes(outputs, batch, indices_in, **meta)
+                pred_boxes = outputs["pred_boxes"][pred_idx]
+                gt_boxes = batch["bboxes"][gt_idx]
+                l_dict = self.loss_boxes(pred_boxes, gt_boxes)
             elif loss == "mal":
                 l_dict = self.loss_labels_mal(outputs, batch, indices_in, **meta)
             elif loss == "local":

@@ -867,13 +867,14 @@ class MetricsOutputMixin:
         """
         import pandas as pd  # scope for faster 'import ultralytics'
 
-        if hasattr(self, "cls") and self.cls is not None:
+        # Classification metrics
+        if hasattr(self, "top1") and hasattr(self, "top5"):
             metrics = {
-                "top1_acc": self.top1,
-                "top5_acc": self.top5,
+                "classification-top1": self.top1,
+                "classification-top5": self.top5,
             }
-        else:
-            metrics = {  # Detection metrics (box)
+        else:  # Detection metrics (box)
+            metrics = {
                 "box-ap50": self.box.ap50,
                 "box-ap": self.box.ap,
                 "box-map": self.box.map,
@@ -886,7 +887,7 @@ class MetricsOutputMixin:
 
         # Optionally add segmentation metrics if available
         # Check map > 0 to avoid including seg metrics in case of pose task, as pose task overrides SegmentMetrics
-        if hasattr(self, "seg") and self.seg is not None and getattr(self.seg, "map", 0) > 0:
+        if hasattr(self, "seg") and getattr(self.seg, "map", 0) > 0:
             seg_metrics = {
                 "segmentation-map": self.seg.map,
                 "segmentation-map50": self.seg.map50,
@@ -897,7 +898,7 @@ class MetricsOutputMixin:
             metrics.update(seg_metrics)
 
         # Optionally add pose metrics if available
-        if hasattr(self, "pose") and self.pose is not None:
+        if hasattr(self, "pose"):
             pose_metrics = {
                 "pose-map": self.pose.map,
                 "pose-map50": self.pose.map50,

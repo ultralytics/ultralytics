@@ -608,37 +608,17 @@ class DEIMLoss(nn.Module):
         self.mal_alpha = mal_alpha
         self.use_uni_set = use_uni_set
 
-    def loss_labels_mal(self, outputs, targets, indices, values=None):
-        assert "pred_boxes" in outputs
-        pred_idx, gt_idx = DETRLoss._get_index(indices)
-        if values is None:
-            # TODO
-            src_boxes = outputs["pred_boxes"][pred_idx]
-            target_boxes = targets["bboxes"][gt_idx]
-            ious = bbox_iou(src_boxes.detach(), target_boxes).squeeze(-1).detach().clamp_(0)
-        else:
-            ious = values
-
-        src_logits = outputs["pred_logits"]
-
-        target_classes = torch.full(src_logits.shape[:2], self.num_classes, dtype=torch.int64, device=src_logits.device)
-        target_classes[pred_idx] = targets["cls"][gt_idx]
-        target = F.one_hot(target_classes, num_classes=self.num_classes + 1)[..., :-1]
-
-        target_score_o = torch.zeros_like(target_classes, dtype=src_logits.dtype)
-        target_score_o[pred_idx] = ious.to(target_score_o.dtype)
-        target_score = target_score_o.unsqueeze(-1) * target
-
-        pred_score = F.sigmoid(src_logits).detach()
-        target_score = target_score.pow(self.gamma)
+    def loss_labels_mal(self, pred_cls, target_scores, gt_idx, one_hot):
+        pred_score = F.sigmoid(pred_cls).detach()
+        target_scores = target_scores.pow(self.gamma)
         weight = (
-            (self.mal_alpha * pred_score.pow(self.gamma) * (1 - target) + target)
+            (self.mal_alpha * pred_score.pow(self.gamma) * (1 - one_hot) + one_hot)
             if self.mal_alpha is not None
-            else (pred_score.pow(self.gamma) * (1 - target) + target)
+            else (pred_score.pow(self.gamma) * (1 - one_hot) + one_hot)
         )
 
-        loss = F.binary_cross_entropy_with_logits(src_logits, target_score, weight=weight, reduction="none")
-        loss = loss.mean(1).sum() * src_logits.shape[1] / len(gt_idx)
+        loss = F.binary_cross_entropy_with_logits(pred_cls, target_scores, weight=weight, reduction="none")
+        loss = loss.mean(1).sum() * pred_cls.shape[1] / len(gt_idx)
         return {"loss_mal": loss}
 
     def loss_boxes(self, pred_boxes, gt_boxes):
@@ -919,7 +899,18 @@ class DEIMLoss(nn.Module):
                 gt_boxes = batch["bboxes"][gt_idx]
                 l_dict = self.loss_boxes(pred_boxes, gt_boxes)
             elif loss == "mal":
-                l_dict = self.loss_labels_mal(outputs, batch, indices_in)
+                pred_boxes = outputs["pred_boxes"][pred_idx]
+                gt_boxes = batch["bboxes"][gt_idx]
+                ious = bbox_iou(pred_boxes.detach(), gt_boxes).squeeze(-1).detach().clamp_(0)
+                pred_cls = outputs["pred_logits"]
+                target_classes = torch.full(pred_cls.shape[:2], self.num_classes, dtype=torch.int64, device=pred_cls.device)
+                target_classes[pred_idx] = batch["cls"][gt_idx]
+                one_hot = F.one_hot(target_classes, num_classes=self.num_classes + 1)[..., :-1]
+
+                target_score_o = torch.zeros_like(target_classes, dtype=pred_cls.dtype)
+                target_score_o[pred_idx] = ious.to(target_score_o.dtype)
+                target_scores = target_score_o.unsqueeze(-1) * one_hot
+                l_dict = self.loss_labels_mal(pred_cls, target_scores, gt_idx, one_hot)
             elif loss == "local":
                 l_dict = self.loss_local(outputs, batch, indices_in)
             else:

@@ -136,7 +136,9 @@ class TaskAlignedAssigner(nn.Module):
             align_metric (torch.Tensor): Alignment metric with shape (bs, max_num_obj, h*w).
             overlaps (torch.Tensor): Overlaps between predicted and ground truth boxes with shape (bs, max_num_obj, h*w).
         """
-        mask_in_gts = self.select_candidates_in_gts(anc_points, gt_bboxes)
+        mask_in_gts = (
+            self.select_candidates_in_gts(anc_points, gt_bboxes) if anc_points is not None else torch.ones_like(mask_gt)
+        )
         # Get anchor_align metric, (b, max_num_obj, h*w)
         align_metric, overlaps = self.get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt)
         # Get topk_metric mask, (b, max_num_obj, h*w)

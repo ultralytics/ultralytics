@@ -87,7 +87,6 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
             (int8 and half)
             or (task == "classify" and nms)
             or (task == "obb" and nms and not TORCH_1_13)
-            or (simplify and dynamic)  # onnxslim is slow when dynamic=True
         )
     ],
 )

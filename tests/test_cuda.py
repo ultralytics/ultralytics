@@ -50,7 +50,6 @@ def test_amp():
             (int8 and half)
             or (task == "classify" and nms)
             or (task == "obb" and nms and not TORCH_1_13)
-            or (simplify and dynamic)  # onnxslim is slow when dynamic=True
         )
     ],
 )
@@ -63,7 +62,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
         int8=int8,
         half=half,
         batch=batch,
-        simplify=simplify,
+        simplify=True,
         nms=nms,
         device=DEVICES[0],
     )

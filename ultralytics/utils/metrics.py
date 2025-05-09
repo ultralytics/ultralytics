@@ -610,7 +610,9 @@ class ConfusionMatrix:
             on_plot(plot_fname)
 
         # Store confusion matrix results in CSV file.
-        self.cm_plot_labels = list(names) + ["background"] if self.task == "detect" else list(names)  # confusion matrix labels (x and y axis)
+        self.cm_plot_labels = (
+            list(names) + ["background"] if self.task == "detect" else list(names)
+        )  # confusion matrix labels (x and y axis)
         self.cm_save_dir = save_dir  # directory for confusion_matrix.csv file storage
         self.to_csv()
 

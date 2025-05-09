@@ -199,7 +199,6 @@ def test_track_stream():
 def test_val():
     """Test the validation mode of the YOLO model."""
     YOLO(MODEL).val(data="coco8.yaml", imgsz=32)
-    
 
 
 def test_train_scratch():

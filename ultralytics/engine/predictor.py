@@ -261,9 +261,8 @@ class BasePredictor:
             batch=self.args.batch,
             vid_stride=self.args.vid_stride,
             buffer=self.args.stream_buffer,
+            channels=getattr(self.model, "ch", 3)
         )
-        if getattr(self.model, "ch", 3) == 1:
-            self.dataset.cv2_flag = cv2.IMREAD_GRAYSCALE  # set cv2_flag to gray when model is grayscale
         self.source_type = self.dataset.source_type
         if not getattr(self, "stream", True) and (
             self.source_type.stream

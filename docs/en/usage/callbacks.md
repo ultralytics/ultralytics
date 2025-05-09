@@ -51,6 +51,36 @@ for result, frame in model.predict():  # or model.track()
     pass
 ```
 
+### Access Model metrics using the `on_model_save` callback
+
+This example shows how to retrieve training details, such as the best_fitness score, total_loss, and other metrics after a checkpoint is saved using the `on_model_save` callback.
+
+```python
+from ultralytics import YOLO
+
+# Load a YOLO model
+model = YOLO("yolo11n.pt")
+
+
+def print_checkpoint_metrics(trainer):
+    """Print trainer metrics and loss details after each checkpoint is saved."""
+    print(
+        f"Model details\n"
+        f"Best fitness: {trainer.best_fitness}, "
+        f"Loss names: {trainer.loss_names}, "  # List of loss names
+        f"Metrics: {trainer.metrics}, "
+        f"Total loss: {trainer.tloss}"  # Total loss value
+    )
+
+
+if __name__ == "__main__":
+    # Add on_model_save callback.
+    model.add_callback("on_model_save", print_checkpoint_metrics)
+
+    # Run model training on custom dataset.
+    results = model.train(data="coco8.yaml", epochs=3)
+```
+
 ## All Callbacks
 
 Below are all the supported callbacks. For more details, refer to the callbacks [source code](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/base.py).

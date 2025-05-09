@@ -300,6 +300,7 @@ class LoadImagesAndVideos:
         frames (int): Total number of frames in the video.
         count (int): Counter for iteration, initialized at 0 during __iter__().
         ni (int): Number of images.
+        cv2_flag (int): OpenCV flag for image reading (grayscale or RGB).
 
     Methods:
         __init__: Initialize the LoadImagesAndVideos object.

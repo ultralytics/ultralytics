@@ -132,7 +132,6 @@ class ClassificationValidator(BaseValidator):
                 self.confusion_matrix.plot(
                     save_dir=self.save_dir, names=self.names.values(), normalize=normalize, on_plot=self.on_plot
                 )
-            self.confusion_matrix.to_csv(classes=list(self.names.values()), save_dir=self.save_dir)  # store in csv file
         self.metrics.speed = self.speed
         self.metrics.confusion_matrix = self.confusion_matrix
         self.metrics.save_dir = self.save_dir

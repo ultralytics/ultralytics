@@ -300,10 +300,10 @@ class MetricsOutputMixin:
     showcasing key metrics such as AP@50, AP@75, mAP, precision, recall, and F1-score, grouped by class when applicable.
 
     Methods:
-        - to_df(): Generate a Pandas DataFrame summarizing evaluation metrics.
-        - to_csv(): Output results in CSV format or save to file.
-        - to_json(): Export results as a JSON string or save to file.
-        - to_html(): Create a styled HTML table for reporting metrics.
+        to_df(): Generate a Pandas DataFrame summarizing evaluation metrics.
+        to_csv(): Output results in CSV format or save to file.
+        to_json(): Export results as a JSON string or save to file.
+        to_html(): Create a styled HTML table for reporting metrics.
     """
 
     def to_df(self):

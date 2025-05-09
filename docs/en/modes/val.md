@@ -116,7 +116,7 @@ The `metrics` object provides the following methods for exporting validation res
 | `to_html()` | `str`       | Exports the validation results in HTML table format and returns the HTML string. |
 | `to_json()` | `str`       | Exports the validation results in JSON format and returns the JSON string.       |
 
-For more details see the [`MetricsOutputMixin` class documentation](../reference/utils/metrics/#ultralytics.utils.metrics.MetricsOutputMixin).
+For more details see the [`MetricsOutputMixin` class documentation](../reference/utils/metrics.md/#ultralytics.utils.metrics.MetricsOutputMixin).
 
 ## FAQ
 

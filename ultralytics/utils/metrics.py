@@ -293,34 +293,34 @@ def smooth_bce(eps=0.1):
 
 class MetricsOutputMixin:
     """
-    A mixin class for formatting and exporting validation metrics.
+    A utility mixin for storing the model validation metrics in various formats.
 
-    This class provides common methods to convert detection, segmentation, and pose metrics
-    into structured representations such as Pandas DataFrames, CSV, and JSON. It supports
-    exporting class-wise evaluation metrics including AP@50, AP@75, precision, recall, F1-score,
-    and mean Average Precision (mAP) for each task, if available.
+    This class streamlines the formatting of evaluation results for detection, segmentation, classification
+    and pose tasks. It supports structured export to formats like DataFrame, CSV, JSON, and HTML,
+    showcasing key metrics such as AP@50, AP@75, mAP, precision, recall, and F1-score, grouped by class when applicable.
 
     Methods:
-        - to_df(): Returns a class-wise DataFrame of available metrics.
-        - to_csv(): Saves metrics to CSV and/or returns as a string.
-        - to_json(): Saves metrics to JSON and/or returns as a string.
+        - to_df(): Generate a Pandas DataFrame summarizing evaluation metrics.
+        - to_csv(): Output results in CSV format or save to file.
+        - to_json(): Export results as a JSON string or save to file.
+        - to_html(): Create a styled HTML table for reporting metrics.
     """
 
     def to_df(self):
         """
-        Converts validation results to a Pandas Dataframe.
+        Convert validation metrics into a structured Pandas DataFrame.
 
-        This method converts the validation results into Pandas Dataframe format. It includes
-        evaluation metrics such as average precision scores (AP@50, AP@75, mAP), F1-score,
-        precision, recall, and class-wise mAPs.
+        Produces a DataFrame encapsulating evaluation data, including average precision scores
+        like AP@50, AP@75, mean AP (mAP), precision, recall, and F1-score for each supported task
+        (classification, detection, segmentation, and pose estimation).
 
         Returns:
-            (DataFrame): A Pandas Dataframe containing all the information about validation in an organized way.
+            (DataFrame): Tabular format of model evaluation metrics.
 
         Examples:
             >>> model = YOLO("yolo11n.pt")
             >>> metrics = model.val(data="coco8.yaml")
-            >>> df_result = metrics.to_df()
+            >>> df_data = metrics.to_df()
         """
         import pandas as pd  # scope for faster 'import ultralytics'
 
@@ -369,22 +369,22 @@ class MetricsOutputMixin:
 
     def to_csv(self, save=True, file="validation.csv"):
         """
-        Saves validation results to a CSV file.
+        Export validation metrics as a CSV string or save to a file.
 
-        This method return validation metrics into a CSV format. It includes evaluation metrics such
-        as average precision scores (AP@50, AP@75, mAP), F1-score, precision, recall, and class-wise mAPs.
+        Transforms evaluation metrics into comma-separated values, covering metrics like
+        AP@50, AP@75, mAP, recall, precision, and F1-score, useful for further analysis or logging.
 
         Args:
-            save (bool): Enable validation results saving in CSV file.
-            file (str): Path to the output CSV file where validation results will be saved. Defaults to 'validation.csv'.
+            save (bool): Whether to save the CSV output to a file.
+            file (str): Destination file name for the CSV output. Default is 'validation.csv'.
 
         Returns:
-            (str): CSV containing all the information about validation in an organized way.
+            (str): CSV string representation of the validation results.
 
         Examples:
             >>> model = YOLO("yolo11n.pt")
             >>> metrics = model.val(data="coco8.yaml")
-            >>> csv_result = metrics.to_csv()
+            >>> csv_data = metrics.to_csv()
         """
         df = self.to_df()
         csv_data = df.to_csv(index=False)
@@ -395,22 +395,22 @@ class MetricsOutputMixin:
 
     def to_json(self, save=True, file="validation.json"):
         """
-        Saves validation results to an JSON file.
+        Convert and export validation metrics to a JSON format.
 
-        This method return validation metrics into the JSON format. It includes evaluation metrics such as
-        average precision scores (AP@50, AP@75, mAP), F1-score, precision, recall, and class-wise mAPs.
+        Provides evaluation results in a structured JSON format, ideal for integration with
+        web services, APIs, or logging tools. Captures AP@50, mAP, recall, and other class-based metrics.
 
         Args:
-            save (bool): Enable validation results saving in JSON file.
-            file (str): Path to the output JSON file where validation results will be saved. Defaults to 'validation.xml'.
+            save (bool): Whether to write the JSON string to a file.
+            file (str): Output filename for saving JSON data. Default is 'validation.json'.
 
         Returns:
-            (str): JSON string containing all the information about validation in an organized way.
+            (str): JSON-formatted string of the evaluation metrics.
 
         Examples:
             >>> model = YOLO("yolo11n.pt")
             >>> metrics = model.val(data="coco8.yaml")
-            >>> json_result = metrics.to_json()
+            >>> json_data = metrics.to_json()
         """
         df = self.to_df()
         json_data = df.to_json(orient="records", indent=4)
@@ -422,22 +422,22 @@ class MetricsOutputMixin:
 
     def to_html(self, save=True, file="validation.html"):
         """
-        Saves validation results to an HTML file.
+        Generate an HTML report from validation results.
 
-        This method return validation metrics into the XML format. It includes evaluation metrics such as
-        average precision scores (AP@50, AP@75, mAP), F1-score, precision, recall, and class-wise mAPs.
+        Creates a visual representation of model metrics in HTML table format, suitable for dashboards,
+        web embedding, or human-readable reports. Captures essential metrics including mAP, AP@50, and F1-score.
 
         Args:
-            save (bool): Enable validation results saving in XML file.
-            file (str): Path to the output XML file where validation results will be saved. Defaults to 'validation.xml'.
+            save (bool): If True, writes the HTML output to a file.
+            file (str): Filename for the HTML report. Defaults to 'validation.html'.
 
         Returns:
-            (str): XML string containing all the information about validation in an organized way.
+            (str): HTML string containing the validation table.
 
         Examples:
             >>> model = YOLO("yolo11n.pt")
             >>> metrics = model.val(data="coco8.yaml")
-            >>> xml_result = metrics.to_xml()
+            >>> html_data = metrics.to_html()
         """
         df = self.to_df()
         html_data = df.to_html(index=False, border=1)

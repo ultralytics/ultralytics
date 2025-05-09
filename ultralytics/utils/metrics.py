@@ -320,7 +320,7 @@ class MetricsOutputMixin:
         Examples:
             >>> model = YOLO("yolo11n.pt")
             >>> metrics = model.val(data="coco8.yaml")
-            >>> json_result = metrics.to_df()
+            >>> df_result = metrics.to_df()
         """
         import pandas as pd  # scope for faster 'import ultralytics'
 
@@ -384,7 +384,7 @@ class MetricsOutputMixin:
         Examples:
             >>> model = YOLO("yolo11n.pt")
             >>> metrics = model.val(data="coco8.yaml")
-            >>> json_result = metrics.to_csv()
+            >>> csv_result = metrics.to_csv()
         """
         df = self.to_df()
         csv_data = df.to_csv(index=False)
@@ -410,7 +410,7 @@ class MetricsOutputMixin:
         Examples:
             >>> model = YOLO("yolo11n.pt")
             >>> metrics = model.val(data="coco8.yaml")
-            >>> xml_result = metrics.to_json()
+            >>> json_result = metrics.to_json()
         """
         df = self.to_df()
         json_data = df.to_json(orient="records", indent=4)

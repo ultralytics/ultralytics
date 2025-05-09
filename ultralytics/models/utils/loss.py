@@ -9,6 +9,7 @@ from ultralytics.utils.loss import FocalLoss, VarifocalLoss
 from ultralytics.utils.torch_utils import weighting_function
 from ultralytics.utils.metrics import bbox_iou
 from ultralytics.utils.ops import xywh2xyxy, xyxy2xywh
+from ultralytics.utils.tal import TaskAlignedAssigner
 
 from .ops import HungarianMatcher
 
@@ -607,6 +608,7 @@ class DEIMLoss(nn.Module):
         self.num_pos, self.num_neg = None, None
         self.mal_alpha = mal_alpha
         self.use_uni_set = use_uni_set
+        self.assigner = TaskAlignedAssigner(topk=1, num_classes=self.num_classes, alpha=0.5, beta=6.0)
 
     def loss_labels_mal(self, pred_cls, target_scores, gt_idx, one_hot):
         pred_score = F.sigmoid(pred_cls).detach()
@@ -919,6 +921,40 @@ class DEIMLoss(nn.Module):
                 l_dict = {k + suffix: v for k, v in l_dict.items()}
             losses.update(l_dict)
         return losses
+
+    def tal_match(self, pred_boxes, pred_scores, batch):
+        batch_size = pred_boxes.shape[0]
+        targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
+        targets = self.preprocess(targets.to(self.device), batch_size)
+        gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
+        mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
+        _, target_bboxes, target_scores, fg_mask, _ = self.assigner(
+            pred_scores.detach().sigmoid(),
+            xywh2xyxy(pred_boxes.detach()),
+            None,
+            gt_labels,
+            gt_bboxes,
+            mask_gt,
+        )
+        return target_bboxes, target_scores, fg_mask
+
+    @staticmethod
+    def tal_preprocess(targets, batch_size):
+        """Preprocess targets by converting to tensor format and scaling coordinates."""
+        nl, ne = targets.shape
+        if nl == 0:
+            out = torch.zeros(batch_size, 0, ne - 1, device=targets.device)
+        else:
+            i = targets[:, 0]  # image index
+            _, counts = i.unique(return_counts=True)
+            counts = counts.to(dtype=torch.int32)
+            out = torch.zeros(batch_size, counts.max(), ne - 1, device=targets.device)
+            for j in range(batch_size):
+                matches = i == j
+                if n := matches.sum():
+                    out[j, :n] = targets[matches, 1:]
+            out[..., 1:5] = xywh2xyxy(out[..., 1:5])
+        return out
 
     # @staticmethod
     # def get_cdn_matched_indices(dn_meta, targets):

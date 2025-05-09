@@ -962,6 +962,7 @@ class Metric(SimpleClass):
             [self.px, self.r_curve, "Confidence", "Recall"],
         ]
 
+
 class DetMetrics(SimpleClass, MetricsOutputMixin):
     """
     Utility class for computing detection metrics such as precision, recall, and mean average precision (mAP).

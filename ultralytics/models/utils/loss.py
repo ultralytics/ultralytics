@@ -762,15 +762,6 @@ class DEIMLoss(nn.Module):
         self.own_targets, self.own_targets_dn = None, None
         self.num_pos, self.num_neg = None, None
 
-    def get_loss(self, loss, outputs, targets, indices, **kwargs):
-        loss_map = {
-            "boxes": self.loss_boxes,
-            "mal": self.loss_labels_mal,
-            "local": self.loss_local,
-        }
-        assert loss in loss_map, f"do you really want to compute {loss} loss?"
-        return loss_map[loss](outputs, targets, indices, **kwargs)
-
     def forward(self, outputs, batch, reg_scale, up, dn_outputs=None, dn_meta=None):
         """This performs the loss computation.
         Parameters:
@@ -931,8 +922,14 @@ class DEIMLoss(nn.Module):
             else:
                 indices_in = all_match_indices
             meta = self.get_loss_meta_info(loss, outputs, batch, indices_in)
-            l_dict = self.get_loss(loss, outputs, batch, indices_in, **meta)
-
+            if loss == "boxes":
+                l_dict = self.loss_boxes(outputs, batch, indices_in, **meta)
+            elif loss == "mal":
+                l_dict = self.loss_labels_mal(outputs, batch, indices_in, **meta)
+            elif loss == "local":
+                l_dict = self.loss_local(outputs, batch, indices_in, **meta)
+            else:
+                raise ValueError(f"Unknown loss type: {loss}")
             l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
             if suffix:
                 l_dict = {k + suffix: v for k, v in l_dict.items()}

@@ -291,6 +291,163 @@ def smooth_bce(eps=0.1):
     return 1.0 - 0.5 * eps, 0.5 * eps
 
 
+class MetricsOutputMixin:
+    """
+    A utility mixin for storing the model validation metrics in various formats.
+
+    This class streamlines the formatting of evaluation results for detection, segmentation, classification
+    and pose tasks. It supports structured export to formats like DataFrame, CSV, JSON, and HTML,
+    showcasing key metrics such as AP@50, AP@75, mAP, precision, recall, and F1-score, grouped by class when applicable.
+
+    Methods:
+        to_df(): Generate a Pandas DataFrame summarizing evaluation metrics.
+        to_csv(): Output results in CSV format or save to file.
+        to_json(): Export results as a JSON string or save to file.
+        to_html(): Create a styled HTML table for reporting metrics.
+    """
+
+    def to_df(self):
+        """
+        Convert validation metrics into a structured Pandas DataFrame.
+
+        Produces a DataFrame encapsulating evaluation data, including average precision scores
+        like AP@50, AP@75, mean AP (mAP), precision, recall, and F1-score for each supported task
+        (classification, detection, segmentation, and pose estimation).
+
+        Returns:
+            (DataFrame): Tabular format of model evaluation metrics.
+
+        Examples:
+            >>> model = YOLO("yolo11n.pt")
+            >>> metrics = model.val(data="coco8.yaml")
+            >>> df_data = metrics.to_df()
+        """
+        import pandas as pd  # scope for faster 'import ultralytics'
+
+        # Classification metrics
+        if hasattr(self, "top1") and hasattr(self, "top5"):
+            metrics = {
+                "classification-top1": self.top1,
+                "classification-top5": self.top5,
+            }
+        else:  # Detection metrics (box)
+            metrics = {
+                "box-ap50": self.box.ap50,
+                "box-ap": self.box.ap,
+                "box-map": self.box.map,
+                "box-map50": self.box.map50,
+                "box-map75": self.box.map75,
+                "box-precision": self.box.p,
+                "box-recall": self.box.r,
+                "box-f1": self.box.f1,
+            }
+
+        # Optionally add segmentation metrics if available
+        # Check map > 0 to avoid including seg metrics in case of pose task, as pose task overrides SegmentMetrics
+        if hasattr(self, "seg") and getattr(self.seg, "map", 0) > 0:
+            seg_metrics = {
+                "segmentation-map": self.seg.map,
+                "segmentation-map50": self.seg.map50,
+                "segmentation-map75": self.seg.map75,
+                "segmentation-precision": self.seg.p,
+                "segmentation-recall": self.seg.r,
+            }
+            metrics.update(seg_metrics)
+
+        # Optionally add pose metrics if available
+        if hasattr(self, "pose"):
+            pose_metrics = {
+                "pose-map": self.pose.map,
+                "pose-map50": self.pose.map50,
+                "pose-map75": self.pose.map75,
+                "pose-precision": self.pose.p,
+                "pose-recall": self.pose.r,
+            }
+            metrics.update(pose_metrics)
+
+        return pd.DataFrame([metrics])
+
+    def to_csv(self, save=True, file="validation.csv"):
+        """
+        Export validation metrics as a CSV string or save to a file.
+
+        Transforms evaluation metrics into comma-separated values, covering metrics like
+        AP@50, AP@75, mAP, recall, precision, and F1-score, useful for further analysis or logging.
+
+        Args:
+            save (bool): Whether to save the CSV output to a file.
+            file (str): Destination file name for the CSV output. Default is 'validation.csv'.
+
+        Returns:
+            (str): CSV string representation of the validation results.
+
+        Examples:
+            >>> model = YOLO("yolo11n.pt")
+            >>> metrics = model.val(data="coco8.yaml")
+            >>> csv_data = metrics.to_csv()
+        """
+        df = self.to_df()
+        csv_data = df.to_csv(index=False)
+        if save:
+            with open(Path(self.save_dir / file), "w", encoding="utf-8") as f:
+                f.write(csv_data)
+        return csv_data
+
+    def to_json(self, save=True, file="validation.json"):
+        """
+        Convert and export validation metrics to a JSON format.
+
+        Provides evaluation results in a structured JSON format, ideal for integration with
+        web services, APIs, or logging tools. Captures AP@50, mAP, recall, and other class-based metrics.
+
+        Args:
+            save (bool): Whether to write the JSON string to a file.
+            file (str): Output filename for saving JSON data. Default is 'validation.json'.
+
+        Returns:
+            (str): JSON-formatted string of the evaluation metrics.
+
+        Examples:
+            >>> model = YOLO("yolo11n.pt")
+            >>> metrics = model.val(data="coco8.yaml")
+            >>> json_data = metrics.to_json()
+        """
+        df = self.to_df()
+        json_data = df.to_json(orient="records", indent=4)
+
+        if save:
+            Path(self.save_dir / file).write_text(json_data, encoding="utf-8")
+
+        return json_data
+
+    def to_html(self, save=True, file="validation.html"):
+        """
+        Generate an HTML report from validation results.
+
+        Creates a visual representation of model metrics in HTML table format, suitable for dashboards,
+        web embedding, or human-readable reports. Captures essential metrics including mAP, AP@50, and F1-score.
+
+        Args:
+            save (bool): If True, writes the HTML output to a file.
+            file (str): Filename for the HTML report. Defaults to 'validation.html'.
+
+        Returns:
+            (str): HTML string containing the validation table.
+
+        Examples:
+            >>> model = YOLO("yolo11n.pt")
+            >>> metrics = model.val(data="coco8.yaml")
+            >>> html_data = metrics.to_html()
+        """
+        df = self.to_df()
+        html_data = df.to_html(index=False, border=1)
+
+        if save:
+            Path(self.save_dir / file).write_text(html_data, encoding="utf-8")
+
+        return html_data
+
+
 class ConfusionMatrix:
     """
     A class for calculating and updating a confusion matrix for object detection and classification tasks.
@@ -451,6 +608,19 @@ class ConfusionMatrix:
         plt.close(fig)
         if on_plot:
             on_plot(plot_fname)
+
+        # Store confusion matrix results in CSV file.
+        self.cm_plot_labels = list(names) + ["background"] if self.task == "detect" else list(names)  # confusion matrix labels (x and y axis)
+        self.cm_save_dir = save_dir  # directory for confusion_matrix.csv file storage
+        self.to_csv()
+
+    def to_csv(self):
+        """Exports the confusion matrix to 'confusion_matrix.csv' using the confusion matrix data."""
+        import pandas as pd
+
+        pd.DataFrame(self.matrix, index=self.cm_plot_labels, columns=self.cm_plot_labels).to_csv(
+            self.cm_save_dir / "confusion_matrix.csv"
+        )
 
     def print(self):
         """Print the confusion matrix to the console."""
@@ -836,7 +1006,7 @@ class Metric(SimpleClass):
         ]
 
 
-class DetMetrics(SimpleClass):
+class DetMetrics(SimpleClass, MetricsOutputMixin):
     """
     Utility class for computing detection metrics such as precision, recall, and mean average precision (mAP).
 
@@ -933,7 +1103,7 @@ class DetMetrics(SimpleClass):
         return self.box.curves_results
 
 
-class SegmentMetrics(SimpleClass):
+class SegmentMetrics(SimpleClass, MetricsOutputMixin):
     """
     Calculates and aggregates detection and segmentation metrics over a given set of classes.
 
@@ -1201,7 +1371,7 @@ class PoseMetrics(SegmentMetrics):
         return self.box.curves_results + self.pose.curves_results
 
 
-class ClassifyMetrics(SimpleClass):
+class ClassifyMetrics(SimpleClass, MetricsOutputMixin):
     """
     Class for computing classification metrics including top-1 and top-5 accuracy.
 
@@ -1258,7 +1428,7 @@ class ClassifyMetrics(SimpleClass):
         return []
 
 
-class OBBMetrics(SimpleClass):
+class OBBMetrics(SimpleClass, MetricsOutputMixin):
     """
     Metrics for evaluating oriented bounding box (OBB) detection.
 

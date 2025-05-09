@@ -636,7 +636,7 @@ class DEIMLoss(nn.Module):
 
         return losses
 
-    def loss_local(self, outputs, targets, indices, T=5):
+    def loss_local(self, outputs, gt_boxes, pred_idx, T=5):
         """Compute Fine-Grained Localization (FGL) Loss
         and Decoupled Distillation Focal (DDF) Loss."""
 
@@ -644,28 +644,25 @@ class DEIMLoss(nn.Module):
         if "pred_corners" not in outputs:
             return losses
 
-        pred_idx, gt_idx = DETRLoss._get_index(indices)
-        target_boxes = targets["bboxes"][gt_idx]
-
         pred_corners = outputs["pred_corners"][pred_idx].reshape(-1, (self.reg_max + 1))
         ref_points = outputs["ref_points"][pred_idx].detach()
         with torch.no_grad():
             if self.fgl_targets_dn is None and "is_dn" in outputs:
                 self.fgl_targets_dn = bbox2distance(
-                    ref_points, xywh2xyxy(target_boxes), self.reg_max, outputs["reg_scale"], outputs["up"]
+                    ref_points, xywh2xyxy(gt_boxes), self.reg_max, outputs["reg_scale"], outputs["up"]
                 )
             if self.fgl_targets is None and "is_dn" not in outputs:
                 self.fgl_targets = bbox2distance(
-                    ref_points, xywh2xyxy(target_boxes), self.reg_max, outputs["reg_scale"], outputs["up"]
+                    ref_points, xywh2xyxy(gt_boxes), self.reg_max, outputs["reg_scale"], outputs["up"]
                 )
 
         target_corners, weight_right, weight_left = self.fgl_targets_dn if "is_dn" in outputs else self.fgl_targets
 
-        ious = bbox_iou(outputs["pred_boxes"][pred_idx], target_boxes).clamp_(0)  # TODO: CIOU
+        ious = bbox_iou(outputs["pred_boxes"][pred_idx], gt_boxes).clamp_(0)  # TODO: CIOU
         weight_targets = ious.repeat(1, 4).reshape(-1).detach()
 
         losses["loss_fgl"] = self.unimodal_distribution_focal_loss(
-            pred_corners, target_corners, weight_right, weight_left, weight_targets, avg_factor=len(target_boxes)
+            pred_corners, target_corners, weight_right, weight_left, weight_targets, avg_factor=len(gt_boxes)
         )
 
         if "teacher_corners" in outputs:
@@ -894,16 +891,17 @@ class DEIMLoss(nn.Module):
             else:
                 indices_in = all_match_indices
             pred_idx, gt_idx = DETRLoss._get_index(indices_in)
+            gt_boxes = batch["bboxes"][gt_idx]
             if loss == "boxes":
                 pred_boxes = outputs["pred_boxes"][pred_idx]
-                gt_boxes = batch["bboxes"][gt_idx]
                 l_dict = self.loss_boxes(pred_boxes, gt_boxes)
             elif loss == "mal":
                 pred_boxes = outputs["pred_boxes"][pred_idx]
-                gt_boxes = batch["bboxes"][gt_idx]
                 ious = bbox_iou(pred_boxes.detach(), gt_boxes).squeeze(-1).detach().clamp_(0)
                 pred_cls = outputs["pred_logits"]
-                target_classes = torch.full(pred_cls.shape[:2], self.num_classes, dtype=torch.int64, device=pred_cls.device)
+                target_classes = torch.full(
+                    pred_cls.shape[:2], self.num_classes, dtype=torch.int64, device=pred_cls.device
+                )
                 target_classes[pred_idx] = batch["cls"][gt_idx]
                 one_hot = F.one_hot(target_classes, num_classes=self.num_classes + 1)[..., :-1]
 
@@ -912,7 +910,7 @@ class DEIMLoss(nn.Module):
                 target_scores = target_score_o.unsqueeze(-1) * one_hot
                 l_dict = self.loss_labels_mal(pred_cls, target_scores, gt_idx, one_hot)
             elif loss == "local":
-                l_dict = self.loss_local(outputs, batch, indices_in)
+                l_dict = self.loss_local(outputs, gt_boxes, pred_idx)
             else:
                 raise ValueError(f"Unknown loss type: {loss}")
             l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}

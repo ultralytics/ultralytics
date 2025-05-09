@@ -887,14 +887,12 @@ class DEIMLoss(nn.Module):
                 if "local" in self.losses:  # only work for local loss
                     aux_outputs["is_dn"] = True
                     aux_outputs["up"], aux_outputs["reg_scale"] = outputs["up"], outputs["reg_scale"]
-                # losses.update(self._get_loss(aux_outputs, batch, indices_dn, suffix=f"_dn_{i}"))
-                losses.update(self._tal_get_loss(aux_outputs, batch, indices_dn, suffix=f"_dn_{i}"))
+                losses.update(self._get_loss(aux_outputs, batch, indices_dn, suffix=f"_dn_{i}"))
 
             # In case of auxiliary traditional head output at first decoder layer, just for dfine
             if "dn_pre_outputs" in outputs:
                 aux_outputs = outputs["dn_pre_outputs"]
-                # losses.update(self._get_loss(aux_outputs, batch, indices_dn, suffix="_dn_pre"))
-                losses.update(self._tal_get_loss(aux_outputs, batch, indices_dn, suffix="_dn_pre"))
+                losses.update(self._get_loss(aux_outputs, batch, indices_dn, suffix="_dn_pre"))
 
         # For debugging Objects365 pre-train.
         losses = {k: torch.nan_to_num(v, nan=0.0) for k, v in losses.items()}

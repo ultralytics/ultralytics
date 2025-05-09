@@ -357,6 +357,7 @@ class LoadImagesAndVideos:
         self.mode = "video" if ni == 0 else "image"  # default to video if no images
         self.vid_stride = vid_stride  # video frame-rate stride
         self.bs = batch
+        self.cv2_flag = cv2.IMREAD_COLOR
         if any(videos):
             self._new_video(videos[0])  # new video
         else:
@@ -421,7 +422,7 @@ class LoadImagesAndVideos:
                     with Image.open(path) as img:
                         im0 = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)  # convert image to BGR nparray
                 else:
-                    im0 = imread(path)  # BGR
+                    im0 = imread(path, flags=self.cv2_flag)  # BGR
                 if im0 is None:
                     LOGGER.warning(f"Image Read Error {path}")
                 else:

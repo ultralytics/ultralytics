@@ -38,7 +38,7 @@ def test_amp():
 
 
 # @pytest.mark.slow
-# @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
+@pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, simplify, nms",
     [  # generate all combinations except for exclusion cases

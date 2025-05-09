@@ -494,7 +494,8 @@ class LoadPilAndNumpy:
         assert isinstance(im, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(im)}"
         if isinstance(im, Image.Image):
             im = im.convert(flag)
-            im = np.asarray(im)[:, :, ::-1]  # RGB to BGR
+            if flag == "RGB":
+                im = np.asarray(im)[:, :, ::-1]  # RGB to BGR
             im = np.ascontiguousarray(im)  # contiguous
         return im
 

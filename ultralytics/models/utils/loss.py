@@ -652,9 +652,6 @@ class DEIMLoss(nn.Module):
 
         # TODO: could use CIOU as well
         loss_giou = 1 - bbox_iou(pred_boxes, gt_boxes, GIoU=True)
-        if self.boxes_weight_format is not None:
-            boxes_weight = bbox_iou(pred_boxes.detach(), gt_boxes, GIoU=self.boxes_weight_format == "giou").clamp_(0)
-            loss_giou *= boxes_weight
         losses["loss_giou"] = loss_giou.mean()
 
         return losses
@@ -916,16 +913,15 @@ class DEIMLoss(nn.Module):
                 indices_in = all_match_indices if use_uni_set else match_indices
             else:
                 indices_in = all_match_indices
-            meta = self.get_loss_meta_info(loss, outputs, batch, indices_in)
             pred_idx, gt_idx = DETRLoss._get_index(indices_in)
             if loss == "boxes":
                 pred_boxes = outputs["pred_boxes"][pred_idx]
                 gt_boxes = batch["bboxes"][gt_idx]
                 l_dict = self.loss_boxes(pred_boxes, gt_boxes)
             elif loss == "mal":
-                l_dict = self.loss_labels_mal(outputs, batch, indices_in, **meta)
+                l_dict = self.loss_labels_mal(outputs, batch, indices_in)
             elif loss == "local":
-                l_dict = self.loss_local(outputs, batch, indices_in, **meta)
+                l_dict = self.loss_local(outputs, batch, indices_in)
             else:
                 raise ValueError(f"Unknown loss type: {loss}")
             l_dict = {k: l_dict[k] * self.weight_dict[k] for k in l_dict if k in self.weight_dict}
@@ -933,18 +929,6 @@ class DEIMLoss(nn.Module):
                 l_dict = {k + suffix: v for k, v in l_dict.items()}
             losses.update(l_dict)
         return losses
-
-    def get_loss_meta_info(self, loss, outputs, targets, indices):
-        if self.boxes_weight_format is None or loss not in {"vfl", "mal"}:
-            return {}
-
-        pred_idx, gt_idx = DETRLoss._get_index(indices)
-        src_boxes = outputs["pred_boxes"][pred_idx]
-        target_boxes = targets["bboxes"][gt_idx]
-
-        # TODO: could use CIOU as well
-        iou = bbox_iou(src_boxes.detach(), target_boxes, GIoU=self.boxes_weight_format == "giou").squeeze(-1).clamp_(0)
-        return {"values": iou}
 
     # @staticmethod
     # def get_cdn_matched_indices(dn_meta, targets):

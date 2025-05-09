@@ -507,11 +507,11 @@ def check_model_file_from_stem(model="yolo11n"):
 
 def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     """
-    Search/download file (if necessary) and return path.
+    Search/download file (if necessary), check suffix (if provided), and return path.
 
     Args:
         file (str): File name or path.
-        suffix (str): File suffix to check.
+        suffix (str | Tuple[str]): Acceptable suffix or tuple of suffixes to validate against the file.
         download (bool): Whether to download the file if it doesn't exist locally.
         download_dir (str): Directory to download the file to.
         hard (bool): Whether to raise an error if the file is not found.
@@ -550,9 +550,9 @@ def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
     Search/download YAML file (if necessary) and return path, checking suffix.
 
     Args:
-        file (str): File name or path.
-        suffix (tuple): Acceptable file suffixes.
-        hard (bool): Whether to raise an error if the file is not found.
+        file (str | Path): File name or path.
+        suffix (Tuple[str]): Tuple of acceptable YAML file suffixes.
+        hard (bool): Whether to raise an error if the file is not found or multiple files are found.
 
     Returns:
         (str): Path to the YAML file.

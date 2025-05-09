@@ -317,7 +317,7 @@ class Compose:
 
 class BaseMixTransform:
     """
-    Base class for mix transformations like MixUp and Mosaic.
+    Base class for mix transformations like Cutmix, MixUp and Mosaic.
 
     This class provides a foundation for implementing mix transformations on datasets. It handles the
     probability-based application of transforms and manages the mixing of multiple images and labels.
@@ -348,7 +348,7 @@ class BaseMixTransform:
 
     def __init__(self, dataset, pre_transform=None, p=0.0) -> None:
         """
-        Initializes the BaseMixTransform object for mix transformations like MixUp and Mosaic.
+        Initializes the BaseMixTransform object for mix transformations like CutMix, MixUp and Mosaic.
 
         This class serves as a base for implementing mix transformations in image processing pipelines.
 
@@ -368,7 +368,7 @@ class BaseMixTransform:
 
     def __call__(self, labels):
         """
-        Applies pre-processing transforms and mixup/mosaic transforms to labels data.
+        Applies pre-processing transforms and cutmix/mixup/mosaic transforms to labels data.
 
         This method determines whether to apply the mix transform based on a probability factor. If applied, it
         selects additional images, applies pre-transforms if specified, and then performs the mix transform.
@@ -391,7 +391,7 @@ class BaseMixTransform:
         if isinstance(indexes, int):
             indexes = [indexes]
 
-        # Get images information will be used for Mosaic or MixUp
+        # Get images information will be used for Mosaic, CutMix or MixUp
         mix_labels = [self.dataset.get_image_and_label(i) for i in indexes]
 
         if self.pre_transform is not None:
@@ -401,16 +401,16 @@ class BaseMixTransform:
 
         # Update cls and texts
         labels = self._update_label_text(labels)
-        # Mosaic or MixUp
+        # Mosaic, CutMix or MixUp
         labels = self._mix_transform(labels)
         labels.pop("mix_labels", None)
         return labels
 
     def _mix_transform(self, labels):
         """
-        Applies MixUp or Mosaic augmentation to the label dictionary.
+        Applies CutMix, MixUp or Mosaic augmentation to the label dictionary.
 
-        This method should be implemented by subclasses to perform specific mix transformations like MixUp or
+        This method should be implemented by subclasses to perform specific mix transformations like CutMix, MixUp or
         Mosaic. It modifies the input label dictionary in-place with the augmented data.
 
         Args:
@@ -439,7 +439,7 @@ class BaseMixTransform:
             >>> indexes = transform.get_indexes()
             >>> print(indexes)  # [3, 18, 7, 2]
         """
-        raise NotImplementedError
+        return random.randint(0, len(self.dataset) - 1)
 
     @staticmethod
     def _update_label_text(labels):
@@ -541,17 +541,14 @@ class Mosaic(BaseMixTransform):
         self.imgsz = imgsz
         self.border = (-imgsz // 2, -imgsz // 2)  # width, height
         self.n = n
+        self.buffer_enabled = self.dataset.cache != "ram"
 
-    def get_indexes(self, buffer=True):
+    def get_indexes(self):
         """
         Returns a list of random indexes from the dataset for mosaic augmentation.
 
         This method selects random image indexes either from a buffer or from the entire dataset, depending on
         the 'buffer' parameter. It is used to choose images for creating mosaic augmentations.
-
-        Args:
-            buffer (bool): If True, selects images from the dataset buffer. If False, selects from the entire
-                dataset.
 
         Returns:
             (List[int]): A list of random image indexes. The length of the list is n-1, where n is the number
@@ -562,7 +559,7 @@ class Mosaic(BaseMixTransform):
             >>> indexes = mosaic.get_indexes()
             >>> print(len(indexes))  # Output: 3
         """
-        if buffer:  # select images from buffer
+        if self.buffer_enabled:  # select images from buffer
             return random.choices(list(self.dataset.buffer), k=self.n - 1)
         else:  # select any images
             return [random.randint(0, len(self.dataset) - 1) for _ in range(self.n - 1)]
@@ -877,7 +874,6 @@ class MixUp(BaseMixTransform):
         p (float): Probability of applying MixUp augmentation.
 
     Methods:
-        get_indexes: Returns a random index from the dataset.
         _mix_transform: Applies MixUp augmentation to the input labels.
 
     Examples:
@@ -906,24 +902,6 @@ class MixUp(BaseMixTransform):
         """
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
 
-    def get_indexes(self):
-        """
-        Get a random index from the dataset.
-
-        This method returns a single random index from the dataset, which is used to select an image for MixUp
-        augmentation.
-
-        Returns:
-            (int): A random integer index within the range of the dataset length.
-
-        Examples:
-            >>> mixup = MixUp(dataset)
-            >>> index = mixup.get_indexes()
-            >>> print(index)
-            42
-        """
-        return random.randint(0, len(self.dataset) - 1)
-
     def _mix_transform(self, labels):
         """
         Applies MixUp augmentation to the input labels.
@@ -946,6 +924,124 @@ class MixUp(BaseMixTransform):
         labels["img"] = (labels["img"] * r + labels2["img"] * (1 - r)).astype(np.uint8)
         labels["instances"] = Instances.concatenate([labels["instances"], labels2["instances"]], axis=0)
         labels["cls"] = np.concatenate([labels["cls"], labels2["cls"]], 0)
+        return labels
+
+
+class CutMix(BaseMixTransform):
+    """
+    Applies CutMix augmentation to image datasets as described in the paper https://arxiv.org/abs/1905.04899.
+
+    CutMix combines two images by replacing a random rectangular region of one image with the corresponding region from another image,
+    and adjusts the labels proportionally to the area of the mixed region.
+
+    Attributes:
+        dataset (Any): The dataset to which CutMix augmentation will be applied.
+        pre_transform (Callable | None): Optional transform to apply before CutMix.
+        p (float): Probability of applying CutMix augmentation.
+        beta (float): Beta distribution parameter for sampling the mixing ratio (default=1.0).
+        num_areas (int): Number of areas to try to cut and mix (default=3).
+
+    Methods:
+        _mix_transform: Applies CutMix augmentation to the input labels.
+        _rand_bbox: Generates random bounding box coordinates for the cut region.
+
+    Examples:
+        >>> from ultralytics.data.augment import CutMix
+        >>> dataset = YourDataset(...)  # Your image dataset
+        >>> cutmix = CutMix(dataset, p=0.5)
+        >>> augmented_labels = cutmix(original_labels)
+    """
+
+    def __init__(self, dataset, pre_transform=None, p=0.0, beta=1.0, num_areas=3) -> None:
+        """
+        Initializes the CutMix augmentation object.
+
+        Args:
+            dataset (Any): The dataset to which CutMix augmentation will be applied.
+            pre_transform (Callable | None): Optional transform to apply before CutMix.
+            p (float): Probability of applying CutMix augmentation.
+            beta (float): Beta distribution parameter for sampling the mixing ratio (default=1.0).
+            num_areas (int): Number of areas to try to cut and mix (default=3).
+        """
+        super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
+        self.beta = beta
+        self.num_areas = num_areas
+
+    def _rand_bbox(self, width, height):
+        """
+        Generates random bounding box coordinates for the cut region.
+
+        Args:
+            width (int): Width of the image.
+            height (int): Height of the image.
+
+        Returns:
+            (tuple): (x1, y1, x2, y2) coordinates of the bounding box.
+        """
+        # Sample mixing ratio from Beta distribution
+        lam = np.random.beta(self.beta, self.beta)
+
+        cut_ratio = np.sqrt(1.0 - lam)
+        cut_w = int(width * cut_ratio)
+        cut_h = int(height * cut_ratio)
+
+        # Random center
+        cx = np.random.randint(width)
+        cy = np.random.randint(height)
+
+        # Bounding box coordinates
+        x1 = np.clip(cx - cut_w // 2, 0, width)
+        y1 = np.clip(cy - cut_h // 2, 0, height)
+        x2 = np.clip(cx + cut_w // 2, 0, width)
+        y2 = np.clip(cy + cut_h // 2, 0, height)
+
+        return x1, y1, x2, y2
+
+    def _mix_transform(self, labels):
+        """
+        Applies CutMix augmentation to the input labels.
+
+        Args:
+            labels (dict): A dictionary containing the original image and label information.
+
+        Returns:
+            (dict): A dictionary containing the mixed image and adjusted labels.
+
+        Examples:
+            >>> cutter = CutMix(dataset)
+            >>> mixed_labels = cutter._mix_transform(labels)
+        """
+        # Get a random second image
+        h, w = labels["img"].shape[:2]
+
+        cut_areas = np.asarray([self._rand_bbox(w, h) for _ in range(self.num_areas)], dtype=np.float32)
+        ioa1 = bbox_ioa(cut_areas, labels["instances"].bboxes)  # (self.num_areas, num_boxes)
+        idx = np.nonzero(ioa1.sum(axis=1) <= 0)[0]
+        if len(idx) == 0:
+            return labels
+
+        labels2 = labels.pop("mix_labels")[0]
+        area = cut_areas[np.random.choice(idx)]  # randomle select one
+        ioa2 = bbox_ioa(area[None], labels2["instances"].bboxes).squeeze(0)
+        indexes2 = np.nonzero(ioa2 >= (0.01 if len(labels["instances"].segments) else 0.1))[0]
+        if len(indexes2) == 0:
+            return labels
+
+        instances2 = labels2["instances"][indexes2]
+        instances2.convert_bbox("xyxy")
+        instances2.denormalize(w, h)
+
+        # Apply CutMix
+        x1, y1, x2, y2 = area.astype(np.int32)
+        labels["img"][y1:y2, x1:x2] = labels2["img"][y1:y2, x1:x2]
+
+        # Restrain instances2 to the random bounding border
+        instances2.add_padding(-x1, -y1)
+        instances2.clip(x2 - x1, y2 - y1)
+        instances2.add_padding(x1, y1)
+
+        labels["cls"] = np.concatenate([labels["cls"], labels2["cls"][indexes2]], axis=0)
+        labels["instances"] = Instances.concatenate([labels["instances"], instances2], axis=0)
         return labels
 
 
@@ -1586,6 +1682,9 @@ class LetterBox:
 
         if shape[::-1] != new_unpad:  # resize
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
+            if img.ndim == 2:
+                img = img[..., None]
+
         top, bottom = int(round(dh - 0.1)) if self.center else 0, int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)) if self.center else 0, int(round(dw + 0.1))
         h, w, c = img.shape
@@ -1652,7 +1751,6 @@ class CopyPaste(BaseMixTransform):
         p (float): Probability of applying Copy-Paste augmentation.
 
     Methods:
-        get_indexes: Returns a random index from the dataset.
         _mix_transform: Applies Copy-Paste augmentation to the input labels.
         __call__: Applies the Copy-Paste transformation to images and annotations.
 
@@ -1668,10 +1766,6 @@ class CopyPaste(BaseMixTransform):
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
         assert mode in {"flip", "mixup"}, f"Expected `mode` to be `flip` or `mixup`, but got {mode}."
         self.mode = mode
-
-    def get_indexes(self):
-        """Returns a list of random indexes from the dataset for CopyPaste augmentation."""
-        return random.randint(0, len(self.dataset) - 1)
 
     def _mix_transform(self, labels):
         """Applies Copy-Paste augmentation to combine objects from another image into the current image."""
@@ -2442,6 +2536,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
         [
             pre_transform,
             MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
+            CutMix(dataset, pre_transform=pre_transform, p=hyp.cutmix),
             Albumentations(p=1.0),
             RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
             RandomFlip(direction="vertical", p=hyp.flipud),

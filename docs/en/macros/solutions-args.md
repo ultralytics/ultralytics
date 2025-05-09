@@ -17,17 +17,15 @@
     "blur_ratio": ["float", "0.5", "Adjusts percentage of blur intensity, with values in range `0.1 - 1.0`."],
     "crop_dir": ["str", "\"cropped-detections\"", "Directory name for storing cropped detections."],
     "records": ["int", "5", "Total detections count to trigger an email with security alarm system."],
-    "vision_point": ["tuple[int, int]", "(50, 50)", "The point where vision will track objects and draw paths using VisionEye Solution."],
-    "tracker": ["str", "'botsort.yaml'", "Specifies the tracking algorithm to use, e.g., `bytetrack.yaml` or `botsort.yaml`."],
-    "conf": ["float", "0.3", "Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives."],
-    "iou": ["float", "0.5", "Sets the Intersection over Union (IoU) threshold for filtering overlapping detections."],
-    "classes": ["list", "None", "Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes."],
-    "verbose": ["bool", "True", "Controls the display of tracking results, providing a visual output of tracked objects."],
-    "device": ["str", "None", "Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution."],
-    "show": ["bool", "False", "If `True`, displays the annotated images or videos in a window. Useful for immediate visual feedback during development or testing."],
-    "line_width": ["None or int", "None", "Specifies the line width of bounding boxes. If `None`, the line width is automatically adjusted based on the image size. Provides visual customization for clarity."]
+    "vision_point": ["tuple[int, int]", "(20, 20)", "The point where vision will track objects and draw paths using VisionEye Solution."],
+    "source": ["str", "None", "Path to the input source (video, RTSP, etc.). Only usable with Solutions command line interface (CLI)."],
+    "figsize": ["tuple[int, int]", "(12.8, 7.2)", "Figure size for analytics charts such as heatmaps or graphs."],
+    "fps": ["float", "30.0", "Frames per second used for speed calculations."],
+    "max_hist": ["int", "5", "Maximum historical points to track per object for speed/direction calculations."],
+    "meter_per_pixel": ["float", "0.05", "Scaling factor used for converting pixel distance to real-world units."],
+    "max_speed": ["int", "120", "Maximum speed limit in visual overlays (used in alerts)."],
+    "data": ["str", "images", "Path to image directory used for similarity search."],
 } %}
-
 {%- if not params %}
 {%- for param, details in default_params.items() %}
 | `{{ param }}` | `{{ details[0] }}` | `{{ details[1] }}` | {{ details[2] }} |

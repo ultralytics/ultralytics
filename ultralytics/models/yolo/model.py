@@ -15,7 +15,7 @@ from ultralytics.nn.tasks import (
     YOLOEModel,
     YOLOESegModel,
 )
-from ultralytics.utils import ROOT, yaml_load
+from ultralytics.utils import ROOT, YAML
 
 
 class YOLO(Model):
@@ -29,16 +29,15 @@ class YOLO(Model):
         (YOLOWorld or YOLOE) based on the model filename.
 
         Args:
-            model (str | Path): Model name or path to model file, i.e. 'yolo11n.pt', 'yolov8n.yaml'.
+            model (str | Path): Model name or path to model file, i.e. 'yolo11n.pt', 'yolo11n.yaml'.
             task (str | None): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'.
                 Defaults to auto-detection based on model.
             verbose (bool): Display model info on load.
 
         Examples:
             >>> from ultralytics import YOLO
-            >>> model = YOLO("yolov8n.pt")  # load a pretrained YOLOv8n detection model
-            >>> model = YOLO("yolov8n-seg.pt")  # load a pretrained YOLOv8n segmentation model
             >>> model = YOLO("yolo11n.pt")  # load a pretrained YOLOv11n detection model
+            >>> model = YOLO("yolo11n-seg.pt")  # load a pretrained YOLO11n segmentation model
         """
         path = Path(model)
         if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
@@ -108,7 +107,7 @@ class YOLOWorld(Model):
 
         # Assign default COCO class names when there are no custom names
         if not hasattr(self.model, "names"):
-            self.model.names = yaml_load(ROOT / "cfg/datasets/coco8.yaml").get("names")
+            self.model.names = YAML.load(ROOT / "cfg/datasets/coco8.yaml").get("names")
 
     @property
     def task_map(self):
@@ -157,7 +156,7 @@ class YOLOE(Model):
 
         # Assign default COCO class names when there are no custom names
         if not hasattr(self.model, "names"):
-            self.model.names = yaml_load(ROOT / "cfg/datasets/coco8.yaml").get("names")
+            self.model.names = YAML.load(ROOT / "cfg/datasets/coco8.yaml").get("names")
 
     @property
     def task_map(self):

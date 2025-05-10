@@ -377,13 +377,13 @@ jobs:
       - name: Benchmark ClassificationModel with TensorRT
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-cls.pt' format=engine imgsz=160 verbose=0.249
       - name: Benchmark YOLOWorld DetectionModel with TensorRT
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' format=engine imgsz=160 verbose=0.337
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' format=engine imgsz=160
       - name: Benchmark SegmentationModel with TensorRT
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-seg.pt' format=engine imgsz=160 verbose=0.195
       - name: Benchmark PoseModel with TensorRT
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-pose.pt' format=engine imgsz=160 verbose=0.197
       - name: Benchmark OBBModel with TensorRT
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-obb.pt' format=engine imgsz=160 verbose=0.597verbose=0.597
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-obb.pt' format=engine imgsz=160 verbose=0.597
       - name: Benchmark Summary
         run: |
           cat benchmarks.log

@@ -51,7 +51,7 @@ class YOLO(Model):
         else:
             # Continue with default YOLO initialization
             super().__init__(model=model, task=task, verbose=verbose)
-            if self._check_is_pytorch_model() and "RTDETR" in self.model.model[-1]._get_name():  # if RTDETR head
+            if hasattr(self.model, "model") and "RTDETR" in self.model.model[-1]._get_name():  # if RTDETR head
                 from ultralytics import RTDETR
 
                 new_instance = RTDETR(self)

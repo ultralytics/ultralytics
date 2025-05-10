@@ -23,7 +23,7 @@ double get_time_since_epoch_millis()
 int main(int argc, char *argv[])
 {
     std::string triton_address= "localhost:8001"; 
-    std::string model_name= "yolov11"; 
+    std::string model_name= "yolo11"; 
     std::string model_version= "1";
 	std::string image_path = "test.jpg";
 	std::string output_path = "output.jpg";

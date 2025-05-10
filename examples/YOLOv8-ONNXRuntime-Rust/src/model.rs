@@ -1,4 +1,5 @@
 #![allow(clippy::type_complexity)]
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 use ab_glyph::FontArc;
 use anyhow::Result;

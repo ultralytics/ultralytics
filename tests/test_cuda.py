@@ -18,7 +18,7 @@ from ultralytics.utils.torch_utils import TORCH_1_13
 DEVICES = []
 if CUDA_IS_AVAILABLE:
     if IS_JETSON:
-        DEVICES = [0] # NVIDIA Jetson only has one GPU and does not fully support pynvml library
+        DEVICES = [0]  # NVIDIA Jetson only has one GPU and does not fully support pynvml library
     else:
         gpu_info = GPUInfo()
         gpu_info.print_status()

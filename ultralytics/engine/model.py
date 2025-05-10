@@ -79,7 +79,7 @@ class Model(torch.nn.Module):
 
     def __init__(
         self,
-        model: Union[str, Path, 'Model'] = "yolo11n.pt",
+        model: Union[str, Path, "Model"] = "yolo11n.pt",
         task: str = None,
         verbose: bool = False,
     ) -> None:
@@ -109,7 +109,7 @@ class Model(torch.nn.Module):
             >>> model = Model("hub_model", verbose=True)
         """
         if isinstance(model, Model):
-            self.__dict__ = model.__dict__  # accepts an already intialized Model
+            self.__dict__ = model.__dict__  # accepts an already initialized Model
             return
         super().__init__()
         self.callbacks = callbacks.get_default_callbacks()

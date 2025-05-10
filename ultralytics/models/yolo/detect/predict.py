@@ -47,7 +47,7 @@ class DetectionPredictor(BasePredictor):
             (list): List of Results objects containing the post-processed predictions.
 
         Examples:
-            >>> predictor = DetectionPredictor(overrides=dict(model="yolov8n.pt"))
+            >>> predictor = DetectionPredictor(overrides=dict(model="yolo11n.pt"))
             >>> results = predictor.predict("path/to/image.jpg")
             >>> processed_results = predictor.postprocess(preds, img, orig_imgs)
         """
@@ -59,7 +59,7 @@ class DetectionPredictor(BasePredictor):
             self.args.classes,
             self.args.agnostic_nms,
             max_det=self.args.max_det,
-            nc=len(self.model.names),
+            nc=0 if self.args.task == "detect" else len(self.model.names),
             end2end=getattr(self.model, "end2end", False),
             rotated=self.args.task == "obb",
             return_idxs=save_feats,
@@ -82,15 +82,13 @@ class DetectionPredictor(BasePredictor):
 
     def get_obj_feats(self, feat_maps, idxs):
         """Extract object features from the feature maps."""
-        from math import gcd
-
         import torch
 
-        s = gcd(*[x.shape[1] for x in feat_maps])  # find smallest vector length
+        s = min([x.shape[1] for x in feat_maps])  # find smallest vector length
         obj_feats = torch.cat(
             [x.permute(0, 2, 3, 1).reshape(x.shape[0], -1, s, x.shape[1] // s).mean(dim=-1) for x in feat_maps], dim=1
         )  # mean reduce all vectors to same length
-        return [feats[idx] for feats, idx in zip(obj_feats, idxs)]  # for each image in batch, indexed separately
+        return [feats[idx] if len(idx) else [] for feats, idx in zip(obj_feats, idxs)]  # for each img in batch
 
     def construct_results(self, preds, img, orig_imgs):
         """

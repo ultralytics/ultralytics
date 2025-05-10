@@ -58,7 +58,7 @@ class DETRLoss(nn.Module):
             use_uni_match (bool): Whether to use fixed layer for auxiliary branch label assignment.
             uni_match_ind (int): Index of fixed layer for uni_match.
             gamma (float): The focusing parameter that controls how much the loss focuses on hard-to-classify examples.
-            alpha (float): The balancing factor used to address class imbalance.
+            alpha (float | list): The balancing factor used to address class imbalance.
         """
         super().__init__()
 

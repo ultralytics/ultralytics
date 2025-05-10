@@ -10,7 +10,6 @@ import cv2
 import numpy as np
 import pytest
 import torch
-import yaml
 from PIL import Image
 
 from tests import CFG, MODEL, SOURCE, SOURCES_LIST, TMP
@@ -28,6 +27,7 @@ from ultralytics.utils import (
     ROOT,
     WEIGHTS_DIR,
     WINDOWS,
+    YAML,
     checks,
     is_dir_writeable,
     is_github_action_running,
@@ -188,15 +188,12 @@ def test_track_stream():
     model.track(video_url, imgsz=160, tracker="bytetrack.yaml")
     model.track(video_url, imgsz=160, tracker="botsort.yaml", save_frames=True)  # test frame saving also
 
-    # Test Global Motion Compensation (GMC) methods
-    for gmc in "orb", "sift", "ecc":
-        with open(ROOT / "cfg/trackers/botsort.yaml", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-        tracker = TMP / f"botsort-{gmc}.yaml"
-        data["gmc_method"] = gmc
-        with open(tracker, "w", encoding="utf-8") as f:
-            yaml.safe_dump(data, f)
-        model.track(video_url, imgsz=160, tracker=tracker)
+    # Test Global Motion Compensation (GMC) methods and ReID
+    for gmc, reidm in zip(["orb", "sift", "ecc"], ["auto", "auto", "yolo11n-cls.pt"]):
+        default_args = YAML.load(ROOT / "cfg/trackers/botsort.yaml")
+        custom_yaml = TMP / f"botsort-{gmc}.yaml"
+        YAML.save(custom_yaml, {**default_args, "gmc_method": gmc, "with_reid": True, "model": reidm})
+        model.track(video_url, imgsz=160, tracker=custom_yaml)
 
 
 def test_val():
@@ -399,18 +396,18 @@ def test_utils_benchmarks():
     """Benchmark model performance using 'ProfileModels' from 'ultralytics.utils.benchmarks'."""
     from ultralytics.utils.benchmarks import ProfileModels
 
-    ProfileModels(["yolo11n.yaml"], imgsz=32, min_time=1, num_timed_runs=3, num_warmup_runs=1).profile()
+    ProfileModels(["yolo11n.yaml"], imgsz=32, min_time=1, num_timed_runs=3, num_warmup_runs=1).run()
 
 
 def test_utils_torchutils():
     """Test Torch utility functions including profiling and FLOP calculations."""
     from ultralytics.nn.modules.conv import Conv
-    from ultralytics.utils.torch_utils import get_flops_with_torch_profiler, profile, time_sync
+    from ultralytics.utils.torch_utils import get_flops_with_torch_profiler, profile_ops, time_sync
 
     x = torch.randn(1, 64, 20, 20)
     m = Conv(64, 64, k=1, s=2)
 
-    profile(x, [m], n=3)
+    profile_ops(x, [m], n=3)
     get_flops_with_torch_profiler(m)
     time_sync()
 

@@ -39,7 +39,7 @@ from .utils import (
     verify_image_label,
 )
 
-# Ultralytics dataset *.cache version, >= 1.0.0 for YOLOv8
+# Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
 DATASET_CACHE_VERSION = "1.0.3"
 
 
@@ -84,7 +84,7 @@ class YOLODataset(BaseDataset):
         self.use_obb = task == "obb"
         self.data = data
         assert not (self.use_segments and self.use_keypoints), "Can not use both segments and keypoints."
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, channels=self.data["channels"], **kwargs)
 
     def cache_labels(self, path=Path("./labels.cache")):
         """
@@ -215,6 +215,7 @@ class YOLODataset(BaseDataset):
         if self.augment:
             hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
+            hyp.cutmix = hyp.cutmix if self.augment and not self.rect else 0.0
             transforms = v8_transforms(self, self.imgsz, hyp)
         else:
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
@@ -235,14 +236,15 @@ class YOLODataset(BaseDataset):
 
     def close_mosaic(self, hyp):
         """
-        Sets mosaic, copy_paste and mixup options to 0.0 and builds transformations.
+        Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their probabilities to 0.0.
 
         Args:
             hyp (dict): Hyperparameters for transforms.
         """
-        hyp.mosaic = 0.0  # set mosaic ratio=0.0
-        hyp.copy_paste = 0.0  # keep the same behavior as previous v8 close-mosaic
-        hyp.mixup = 0.0  # keep the same behavior as previous v8 close-mosaic
+        hyp.mosaic = 0.0
+        hyp.copy_paste = 0.0
+        hyp.mixup = 0.0
+        hyp.cutmix = 0.0
         self.transforms = self.build_transforms(hyp)
 
     def update_labels_info(self, label):
@@ -441,7 +443,7 @@ class GroundingDataset(YOLODataset):
         """
         assert task in {"detect", "segment"}, "GroundingDataset currently only supports `detect` and `segment` tasks"
         self.json_file = json_file
-        super().__init__(*args, task=task, data={}, **kwargs)
+        super().__init__(*args, task=task, data={"channels": 3}, **kwargs)
 
     def get_img_files(self, img_path):
         """

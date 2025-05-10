@@ -1,11 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-
 from copy import copy, deepcopy
 
 from ultralytics.models.yolo.segment import SegmentationTrainer
 from ultralytics.nn.tasks import YOLOESegModel
-from ultralytics.utils import DEFAULT_CFG, RANK
+from ultralytics.utils import RANK
 
 from .train import YOLOETrainer, YOLOETrainerFromScratch, YOLOEVPTrainer
 from .val import YOLOESegValidator
@@ -23,22 +22,6 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
         overrides (dict): Dictionary with parameter overrides.
         _callbacks (list): List of callback functions for training events.
     """
-
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """
-        Initialize the YOLOESegTrainer class.
-
-        This class combines YOLOETrainer and SegmentationTrainer to provide training functionality
-        specifically for YOLOE segmentation models.
-
-        Args:
-            cfg (Dict): Configuration dictionary with training parameters.
-            overrides (Dict, optional): Dictionary with parameter overrides.
-            _callbacks (List, optional): List of callback functions for training events.
-        """
-        if overrides is None:
-            overrides = {}
-        super().__init__(cfg, overrides, _callbacks)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """

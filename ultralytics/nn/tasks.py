@@ -69,7 +69,7 @@ from ultralytics.nn.modules import (
     YOLOESegment,
     v10Detect,
 )
-from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
+from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2EDetectLoss,
@@ -91,11 +91,6 @@ from ultralytics.utils.torch_utils import (
     smart_inference_mode,
     time_sync,
 )
-
-try:
-    import thop
-except ImportError:
-    thop = None  # conda support without 'ultralytics-thop' installed
 
 
 class BaseModel(torch.nn.Module):
@@ -183,6 +178,11 @@ class BaseModel(torch.nn.Module):
             x (torch.Tensor): The input data to the layer.
             dt (list): A list to store the computation time of the layer.
         """
+        try:
+            import thop
+        except ImportError:
+            thop = None  # conda support without 'ultralytics-thop' installed
+
         c = m == self.model[-1] and isinstance(x, list)  # is final layer list, copy input as inplace fix
         flops = thop.profile(m, inputs=[x.copy() if c else x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs
         t = time_sync()
@@ -458,7 +458,7 @@ class SegmentationModel(DetectionModel):
 
     def __init__(self, cfg="yolo11n-seg.yaml", ch=3, nc=None, verbose=True):
         """
-        Initialize YOLOv8 segmentation model with given config and parameters.
+        Initialize Ultralytics YOLO segmentation model with given config and parameters.
 
         Args:
             cfg (str | dict): Model configuration file path or dictionary.
@@ -478,7 +478,7 @@ class PoseModel(DetectionModel):
 
     def __init__(self, cfg="yolo11n-pose.yaml", ch=3, nc=None, data_kpt_shape=(None, None), verbose=True):
         """
-        Initialize YOLOv8 Pose model.
+        Initialize Ultralytics YOLO Pose model.
 
         Args:
             cfg (str | dict): Model configuration file path or dictionary.
@@ -517,7 +517,7 @@ class ClassificationModel(BaseModel):
 
     def _from_yaml(self, cfg, ch, nc, verbose):
         """
-        Set YOLOv8 model configurations and define the model architecture.
+        Set Ultralytics YOLO model configurations and define the model architecture.
 
         Args:
             cfg (str | dict): Model configuration file path or dictionary.
@@ -1523,7 +1523,7 @@ def yaml_model_load(path):
 
     unified_path = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
     yaml_file = check_yaml(unified_path, hard=False) or check_yaml(path)
-    d = yaml_load(yaml_file)  # model dict
+    d = YAML.load(yaml_file)  # model dict
     d["scale"] = guess_model_scale(path)
     d["yaml_file"] = str(path)
     return d

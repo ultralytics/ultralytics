@@ -14,7 +14,7 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-from ultralytics.utils import ARM64, IS_JETSON, IS_RASPBERRYPI, LINUX, LOGGER, PYTHON_VERSION, ROOT, yaml_load
+from ultralytics.utils import ARM64, IS_JETSON, LINUX, LOGGER, PYTHON_VERSION, ROOT, YAML
 from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml, is_rockchip
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 
@@ -33,7 +33,7 @@ def check_class_names(names):
                 f"{min(names.keys())}-{max(names.keys())} defined in your dataset YAML."
             )
         if isinstance(names[0], str) and names[0].startswith("n0"):  # imagenet class codes, i.e. 'n01440764'
-            names_map = yaml_load(ROOT / "cfg/datasets/ImageNet.yaml")["map"]  # human-readable names
+            names_map = YAML.load(ROOT / "cfg/datasets/ImageNet.yaml")["map"]  # human-readable names
             names = {k: names_map[v] for k, v in names.items()}
     return names
 
@@ -42,7 +42,7 @@ def default_class_names(data=None):
     """Applies default class names to an input YAML file or returns numerical class names."""
     if data:
         try:
-            return yaml_load(check_yaml(data))["names"]
+            return YAML.load(check_yaml(data))["names"]
         except Exception:
             pass
     return {i: f"class{i}" for i in range(999)}  # return default if above errors
@@ -90,7 +90,7 @@ class AutoBackend(nn.Module):
         _model_type: Determine the model type from file path.
 
     Examples:
-        >>> model = AutoBackend(weights="yolov8n.pt", device="cuda")
+        >>> model = AutoBackend(weights="yolo11n.pt", device="cuda")
         >>> results = model(img)
     """
 
@@ -159,9 +159,9 @@ class AutoBackend(nn.Module):
 
         # In-memory PyTorch model
         if nn_module:
-            model = weights.to(device)
             if fuse:
-                model = model.fuse(verbose=verbose)
+                weights = weights.fuse(verbose=verbose)  # fuse before move to gpu
+            model = weights.to(device)
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only
             stride = max(int(model.stride.max()), 32)  # model stride
@@ -207,9 +207,6 @@ class AutoBackend(nn.Module):
         elif onnx or imx:
             LOGGER.info(f"Loading {w} for ONNX Runtime inference...")
             check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
-            if IS_RASPBERRYPI or IS_JETSON:
-                # Fix 'numpy.linalg._umath_linalg' has no attribute '_ilp64' for TF SavedModel on RPi and Jetson
-                check_requirements("numpy==1.23.5")
             import onnxruntime
 
             providers = ["CPUExecutionProvider"]
@@ -293,8 +290,8 @@ class AutoBackend(nn.Module):
         elif engine:
             LOGGER.info(f"Loading {w} for TensorRT inference...")
 
-            if IS_JETSON and check_version(PYTHON_VERSION, "<=3.8.0"):
-                # fix error: `np.bool` was a deprecated alias for the builtin `bool` for JetPack 4 with Python <= 3.8.0
+            if IS_JETSON and check_version(PYTHON_VERSION, "<=3.8.10"):
+                # fix error: `np.bool` was a deprecated alias for the builtin `bool` for JetPack 4 and JetPack 5 with Python <= 3.8.10
                 check_requirements("numpy==1.23.5")
 
             try:  # https://developer.nvidia.com/nvidia-tensorrt-download
@@ -314,11 +311,11 @@ class AutoBackend(nn.Module):
                 try:
                     meta_len = int.from_bytes(f.read(4), byteorder="little")  # read metadata length
                     metadata = json.loads(f.read(meta_len).decode("utf-8"))  # read metadata
+                    dla = metadata.get("dla", None)
+                    if dla is not None:
+                        runtime.DLA_core = int(dla)
                 except UnicodeDecodeError:
                     f.seek(0)  # engine file may lack embedded Ultralytics metadata
-                dla = metadata.get("dla", None)
-                if dla is not None:
-                    runtime.DLA_core = int(dla)
                 model = runtime.deserialize_cuda_engine(f.read())  # read engine
 
             # Model context
@@ -432,10 +429,14 @@ class AutoBackend(nn.Module):
             output_details = interpreter.get_output_details()  # outputs
             # Load metadata
             try:
-                with zipfile.ZipFile(w, "r") as model:
-                    meta_file = model.namelist()[0]
-                    metadata = ast.literal_eval(model.read(meta_file).decode("utf-8"))
-            except zipfile.BadZipFile:
+                with zipfile.ZipFile(w, "r") as zf:
+                    name = zf.namelist()[0]
+                    contents = zf.read(name).decode("utf-8")
+                    if name == "metadata.json":  # Custom Ultralytics metadata dict for Python>=3.12
+                        metadata = json.loads(contents)
+                    else:
+                        metadata = ast.literal_eval(contents)  # Default tflite-support metadata for Python<=3.11
+            except (zipfile.BadZipFile, SyntaxError, ValueError, json.JSONDecodeError):
                 pass
 
         # TF.js
@@ -535,7 +536,7 @@ class AutoBackend(nn.Module):
 
         # Load external metadata YAML
         if isinstance(metadata, (str, Path)) and Path(metadata).exists():
-            metadata = yaml_load(metadata)
+            metadata = YAML.load(metadata)
         if metadata and isinstance(metadata, dict):
             for k, v in metadata.items():
                 if k in {"stride", "batch", "channels"}:
@@ -724,7 +725,7 @@ class AutoBackend(nn.Module):
         else:
             im = im.cpu().numpy()
             if self.saved_model:  # SavedModel
-                y = self.model(im, training=False) if self.keras else self.model(im)
+                y = self.model(im, training=False) if self.keras else self.model.serving_default(im)
                 if not isinstance(y, list):
                     y = [y]
             elif self.pb:  # GraphDef

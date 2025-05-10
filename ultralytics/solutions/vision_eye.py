@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
 
@@ -34,7 +33,7 @@ class VisionEye(BaseSolution):
         """
         super().__init__(**kwargs)
         # Set the vision point where the system will view objects and draw tracks
-        self.vision_point = kwargs.get("vision_point", (30, 30))
+        self.vision_point = self.CFG["vision_point"]
 
     def process(self, im0):
         """

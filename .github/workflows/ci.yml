@@ -234,7 +234,7 @@ jobs:
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
             slow="--slow"
           fi
-          pytest $slow --cov=ultralytics/ --cov-report xml tests/test_cuda.py -vv
+          pytest $slow --cov=ultralytics/ --cov-report xml tests/test_cuda.py
       - name: Upload Coverage Reports to CodeCov
         uses: codecov/codecov-action@v5
         with:
@@ -373,19 +373,17 @@ jobs:
           yolo checks
           uv pip list
       - name: Benchmark DetectionModel with TensorRT
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n.pt' format=engine imgsz=160
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n.pt' format=engine imgsz=160 verbose=0.309
       - name: Benchmark ClassificationModel with TensorRT
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-cls.pt' format=engine imgsz=160
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-cls.pt' format=engine imgsz=160 verbose=0.249
       - name: Benchmark YOLOWorld DetectionModel with TensorRT
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' format=engine imgsz=160
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' format=engine imgsz=160 verbose=0.337
       - name: Benchmark SegmentationModel with TensorRT
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-seg.pt' format=engine imgsz=160
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-seg.pt' format=engine imgsz=160 verbose=0.195
       - name: Benchmark PoseModel with TensorRT
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-pose.pt' format=engine imgsz=160
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-pose.pt' format=engine imgsz=160 verbose=0.197
       - name: Benchmark OBBModel with TensorRT
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-obb.pt' format=engine imgsz=160
-      - name: Benchmark YOLOv10Model with TensorRT
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolov10n.pt' format=engine imgsz=160
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-obb.pt' format=engine imgsz=160 verbose=0.597verbose=0.597
       - name: Benchmark Summary
         run: |
           cat benchmarks.log

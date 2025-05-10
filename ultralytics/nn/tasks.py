@@ -283,6 +283,7 @@ class BaseModel(torch.nn.Module):
         csd = model.float().state_dict()  # checkpoint state_dict as FP32
         updated_csd = intersect_dicts(csd, self.state_dict())  # intersect
         self.load_state_dict(updated_csd, strict=False)  # load
+        len_updated_csd = len(updated_csd)
         first_conv = "model.0.conv.weight"
         if first_conv not in updated_csd:
             c1, c2, h, w = self.state_dict()[first_conv].shape
@@ -290,8 +291,9 @@ class BaseModel(torch.nn.Module):
             if ch == h and cw == w:
                 c1, c2 = min(c1, cc1), min(c2, cc2)
                 self.state_dict()[first_conv][:c1, :c2] = csd[first_conv][:c1, :c2]
+                len_updated_csd += 1
         if verbose:
-            LOGGER.info(f"Transferred {len(csd)}/{len(self.model.state_dict())} items from pretrained weights")
+            LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")
 
     def loss(self, batch, preds=None):
         """

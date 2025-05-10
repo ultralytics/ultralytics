@@ -738,7 +738,7 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
     try:  # use PIL
         Image.MAX_IMAGE_PIXELS = None  # Fix DecompressionBombError, allow optimization of image > ~178.9 million pixels
         im = Image.open(f)
-        if im.mode in ("RGBA", "LA"):  # Convert to RGB if needed (for JPEG)
+        if im.mode in {"RGBA", "LA"}:  # Convert to RGB if needed (for JPEG)
             im = im.convert("RGB")
         r = max_dim / max(im.height, im.width)  # ratio
         if r < 1.0:  # image too large

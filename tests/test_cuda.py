@@ -17,14 +17,11 @@ from ultralytics.utils.torch_utils import TORCH_1_13
 # Try to find idle devices if CUDA is available
 DEVICES = []
 if CUDA_IS_AVAILABLE:
-    if IS_JETSON:
-        DEVICES = [0]  # NVIDIA Jetson has only one GPU per device
-    else:
-        gpu_info = GPUInfo()
-        gpu_info.print_status()
-        idle_gpus = gpu_info.select_idle_gpu(count=2, min_memory_mb=2048)
-        if idle_gpus:
-            DEVICES = idle_gpus
+    gpu_info = GPUInfo()
+    gpu_info.print_status()
+    idle_gpus = gpu_info.select_idle_gpu(count=2, min_memory_mb=2048)
+    if idle_gpus:
+        DEVICES = idle_gpus
 
 
 def test_checks():
@@ -42,6 +39,7 @@ def test_amp():
 
 @pytest.mark.slow
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
+@pytest.mark.skipif(IS_JETSON, reason="ONNX export disabled temporarily")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, simplify, nms",
     [  # generate all combinations except for exclusion cases

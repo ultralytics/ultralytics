@@ -589,7 +589,7 @@ class Model(torch.nn.Module):
         if not hasattr(self.predictor, "trackers"):
             from ultralytics.trackers import register_tracker
 
-            register_tracker(self)
+            register_tracker(self, persist)
 
         if self.predictor:
             self.predictor.args.persist = persist

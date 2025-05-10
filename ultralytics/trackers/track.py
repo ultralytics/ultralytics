@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from functools import partial
 from pathlib import Path
 
 import torch
@@ -14,12 +15,13 @@ from .byte_tracker import BYTETracker
 TRACKER_MAP = {"bytetrack": BYTETracker, "botsort": BOTSORT}
 
 
-def on_predict_start(predictor: object) -> None:
+def on_predict_start(predictor: object, persist: bool) -> None:
     """
     Initialize trackers for object tracking during prediction.
 
     Args:
         predictor (object): The predictor object to initialize trackers for.
+        persist (bool): Whether to persist the trackers if they already exist.
 
     Raises:
         AssertionError: If the tracker_type is not 'bytetrack' or 'botsort'.
@@ -28,12 +30,12 @@ def on_predict_start(predictor: object) -> None:
     Examples:
         Initialize trackers for a predictor object:
         >>> predictor = SomePredictorClass()
-        >>> on_predict_start(predictor)
+        >>> on_predict_start(predictor, persist=True)
     """
     if predictor.args.task == "classify":
         raise ValueError("❌ Classification doesn't support 'mode=track'")
 
-    if hasattr(predictor, "trackers") and predictor.args.persist:
+    if hasattr(predictor, "trackers") and persist:
         return
 
     tracker = check_yaml(predictor.args.tracker)
@@ -42,6 +44,7 @@ def on_predict_start(predictor: object) -> None:
     if cfg.tracker_type not in {"bytetrack", "botsort"}:
         raise AssertionError(f"Only 'bytetrack' and 'botsort' are supported for now, but got '{cfg.tracker_type}'")
 
+    predictor.args.persist = persist
     predictor._feats = None  # reset in case used earlier
     predictor.save_feats = False
     if cfg.tracker_type == "botsort" and cfg.with_reid and cfg.model == "auto":
@@ -106,7 +109,7 @@ def on_predict_postprocess_end(predictor: object) -> None:
         predictor.results[i].update(**update_args)
 
 
-def register_tracker(model: object) -> None:
+def register_tracker(model: object, persist: bool) -> None:
     """
     Register tracking callbacks to the model for object tracking during prediction.
 
@@ -118,5 +121,5 @@ def register_tracker(model: object) -> None:
         >>> model = YOLOModel()
         >>> register_tracker(model)
     """
-    model.add_callback("on_predict_start", on_predict_start)
+    model.add_callback("on_predict_start", partial(on_predict_start, persist=persist))
     model.add_callback("on_predict_postprocess_end", on_predict_postprocess_end)

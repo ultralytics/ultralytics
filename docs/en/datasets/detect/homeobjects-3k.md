@@ -36,24 +36,23 @@ The dataset supports 12 everyday object categories, covering furniture, electron
     10. potted plant
     11. photo frame
 
-
 ## Applications
 
 HomeObjects-3K enables a wide spectrum of applications in indoor computer vision, spanning both research and real-world product development:
 
-* **Indoor object detection**: Use models like [Ultralytics YOLO11](../../models/yolo11.md) to find and locate common home items like beds, chairs, lamps, and laptops in images. This helps with real-time understanding of indoor scenes.
+- **Indoor object detection**: Use models like [Ultralytics YOLO11](../../models/yolo11.md) to find and locate common home items like beds, chairs, lamps, and laptops in images. This helps with real-time understanding of indoor scenes.
 
-* **Scene layout parsing**:  In robotics and smart home systems, this helps devices understand how rooms are arranged, where objects like doors, windows, and furniture are, so they can navigate safely and interact with their environment properly.
+- **Scene layout parsing**: In robotics and smart home systems, this helps devices understand how rooms are arranged, where objects like doors, windows, and furniture are, so they can navigate safely and interact with their environment properly.
 
-* **AR applications**: Power [object recognition](http://ultralytics.com/glossary/image-recognition) features in apps that use augmented reality. For example, detect TVs or wardrobes and show extra information or effects on them.
+- **AR applications**: Power [object recognition](http://ultralytics.com/glossary/image-recognition) features in apps that use augmented reality. For example, detect TVs or wardrobes and show extra information or effects on them.
 
-* **Education and research**: Support learning and academic projects by giving students and researchers a ready-to-use dataset for practicing indoor object detection with real-world examples.
+- **Education and research**: Support learning and academic projects by giving students and researchers a ready-to-use dataset for practicing indoor object detection with real-world examples.
 
-* **Home inventory and asset tracking**: Automatically detect and list home items in photos or videos, useful for managing belongings, organizing spaces, or visualizing furniture in real estate.
+- **Home inventory and asset tracking**: Automatically detect and list home items in photos or videos, useful for managing belongings, organizing spaces, or visualizing furniture in real estate.
 
 ## Dataset YAML
 
-The configuration for the HomeObjects-3K dataset is provided through a YAML file. This file outlines essential information such as image paths for train and validation directories, and the list of object classes. 
+The configuration for the HomeObjects-3K dataset is provided through a YAML file. This file outlines essential information such as image paths for train and validation directories, and the list of object classes.
 You can access the `HomeObjects-3K.yaml` file directly from the Ultralytics repository at: [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/HomeObjects-3K.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/HomeObjects-3K.yaml)
 
 !!! example "ultralytics/cfg/datasets/HomeObjects-3K.yaml"
@@ -69,19 +68,19 @@ You can train a YOLO11n model on the HomeObjects-3K dataset for 100 epochs using
 !!! example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load pretrained model
         model = YOLO("yolo11n.pt")
-        
+
         # Train the model on HomeObjects-3K dataset
         model.train(data="HomeObjects-3K.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
-    
+
         ```bash
         yolo detect train data=HomeObjects-3K.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
@@ -131,19 +130,19 @@ To train a YOLO model like YOLO11n, you’ll just need the `HomeObjects-3K.yaml`
 !!! example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-        
+
         # Load pretrained model
         model = YOLO("yolo11n.pt")
-        
+
         # Train the model on HomeObjects-3K dataset
         model.train(data="HomeObjects-3K.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
-    
+
         ```bash
         yolo detect train data=HomeObjects-3K.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
@@ -155,4 +154,3 @@ Absolutely. With clean labeling, and standardized YOLO-compatible annotations, H
 ### Where can I find the annotation format and YAML?
 
 Refer to the [Dataset YAML](#dataset-yaml) section. The format is standard YOLO, making it compatible with most object detection pipelines.
-

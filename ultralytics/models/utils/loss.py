@@ -632,8 +632,7 @@ class DEIMLoss(nn.Module):
         loss_bbox = F.l1_loss(pred_boxes, gt_boxes, reduction="none")
         losses["loss_bbox"] = loss_bbox.sum() / len(gt_boxes)
 
-        # TODO: could use CIOU as well
-        loss_giou = 1 - bbox_iou(pred_boxes, gt_boxes, GIoU=True)
+        loss_giou = 1 - bbox_iou(pred_boxes, gt_boxes, CIoU=True)
         losses["loss_giou"] = loss_giou.mean()
 
         return losses
@@ -660,7 +659,7 @@ class DEIMLoss(nn.Module):
 
         target_corners, weight_right, weight_left = self.fgl_targets_dn if "is_dn" in outputs else self.fgl_targets
 
-        ious = bbox_iou(outputs["pred_boxes"][pred_idx], gt_boxes).clamp_(0)  # TODO: CIOU
+        ious = bbox_iou(outputs["pred_boxes"][pred_idx], gt_boxes, CIoU=True).clamp_(0)
         weight_targets = ious.repeat(1, 4).reshape(-1).detach()
 
         losses["loss_fgl"] = self.unimodal_distribution_focal_loss(
@@ -914,7 +913,7 @@ class DEIMLoss(nn.Module):
                 l_dict = self.loss_boxes(pred_boxes, gt_boxes)
             elif loss == "mal":
                 pred_boxes = outputs["pred_boxes"][pred_idx]
-                ious = bbox_iou(pred_boxes.detach(), gt_boxes).squeeze(-1).detach().clamp_(0)
+                ious = bbox_iou(pred_boxes.detach(), gt_boxes, CIoU=True).squeeze(-1).detach().clamp_(0)
                 pred_cls = outputs["pred_logits"]
                 target_classes = torch.full(
                     pred_cls.shape[:2], self.num_classes, dtype=torch.int64, device=pred_cls.device

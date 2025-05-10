@@ -165,9 +165,9 @@ class BaseTrainer:
                 mode = "rb" if RANK >= 0 and cb_path.exists() else "wb"
                 with cb_path.open(mode) as f:
                     if mode == "rb":
-                        self.callbacks = dill.load(f)
+                        self.callbacks = dill.load(f)  # load the callbacks in DDP processes
                     else:
-                        dill.dump(_callbacks, f)
+                        dill.dump(_callbacks, f)  # dump from main process
             except ImportError:
                 pass
 

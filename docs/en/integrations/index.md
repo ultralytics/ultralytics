@@ -21,10 +21,6 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
   <strong>Watch:</strong> Ultralytics YOLO11 Deployment and Integrations
 </p>
 
-## Datasets Integrations
-
-- [Roboflow](roboflow.md): Facilitate seamless dataset management for Ultralytics models, offering robust annotation, preprocessing, and augmentation capabilities.
-
 ## Training Integrations
 
 - [Amazon SageMaker](amazon-sagemaker.md): Leverage Amazon SageMaker to efficiently build, train, and deploy Ultralytics models, providing an all-in-one platform for the ML lifecycle.
@@ -99,6 +95,10 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Seeed Studio reCamera](seeedstudio-recamera.md): Developed by [Seeed Studio](https://www.seeedstudio.com/), the reCamera is a cutting-edge edge AI device designed for real-time computer vision applications. Powered by the RISC-V-based SG200X processor, it delivers high-performance AI inference with energy efficiency. Its modular design, advanced video processing capabilities, and support for flexible deployment make it an ideal choice for various use cases, including safety monitoring, environmental applications, and manufacturing.
 
+## Datasets Integrations
+
+- [Roboflow](roboflow.md): Facilitate dataset labelling and management for Ultralytics models, offering annotation tools to label images.
+
 ### Export Formats
 
 We also support a variety of model export formats for deployment in different environments. Here are the available formats:
@@ -129,7 +129,7 @@ Yes, you can. Integrating [MLFlow](https://mlflow.org/) with Ultralytics models 
 
 ### What are the benefits of using Neural Magic for YOLO11 model optimization?
 
-[Neural Magic](https://www.neuralmagic.com/) optimizes YOLO11 models by leveraging techniques like Quantization Aware Training (QAT) and pruning, resulting in highly efficient, smaller models that perform better on resource-limited hardware. Check out the [Neural Magic](neural-magic.md) integration page to learn how to implement these optimizations for superior performance and leaner models. This is especially beneficial for deployment on edge devices where computational resources are constrained. Neural Magic's DeepSparse engine can deliver up to 6x faster inference on CPUs, making it possible to run complex models without specialized hardware.
+[Neural Magic](https://neuralmagic.com/) optimizes YOLO11 models by leveraging techniques like Quantization Aware Training (QAT) and pruning, resulting in highly efficient, smaller models that perform better on resource-limited hardware. Check out the [Neural Magic](neural-magic.md) integration page to learn how to implement these optimizations for superior performance and leaner models. This is especially beneficial for deployment on edge devices where computational resources are constrained. Neural Magic's DeepSparse engine can deliver up to 6x faster inference on CPUs, making it possible to run complex models without specialized hardware.
 
 ### How do I deploy Ultralytics YOLO models with Gradio for interactive demos?
 

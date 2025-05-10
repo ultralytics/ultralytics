@@ -1,3 +1,5 @@
+/* Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license */
+
 /* Table format like GitHub ----------------------------------------------------------------------------------------- */
 th,
 td {
@@ -209,9 +211,6 @@ div.highlight {
 /* MkDocs Ultralytics Plugin ---------------------------------------------------------------------------------------- */
 
 /* Inkeep ----------------------------------------------------------------------------------------------------------- */
-.ikp-floating-button {
-  color: #111f68;
-}
 #inkeepSearchBar {
   transition: all 0.2s ease-in-out;
 }

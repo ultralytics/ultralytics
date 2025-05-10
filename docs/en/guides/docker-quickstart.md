@@ -23,6 +23,17 @@ This guide serves as a comprehensive introduction to setting up a Docker environ
 - Using a Display Server with Docker to Show Ultralytics Detection Results
 - Mounting local directories into the container
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/IYWQZvtOy_Q"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Get started with Docker | Usage of Ultralytics Python Package inside Docker live demo 🎉
+</p>
+
 ---
 
 ## Prerequisites
@@ -75,9 +86,12 @@ Ultralytics offers several Docker images optimized for various platforms and use
 - **Dockerfile:** GPU image, ideal for training.
 - **Dockerfile-arm64:** For ARM64 architecture, suitable for devices like [Raspberry Pi](raspberry-pi.md).
 - **Dockerfile-cpu:** CPU-only version for inference and non-GPU environments.
-- **Dockerfile-jetson:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson/) devices.
+- **Dockerfile-jetson-jetpack4:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson/) devices running [NVIDIA JetPack 4](https://developer.nvidia.com/embedded/jetpack-sdk-461).
+- **Dockerfile-jetson-jetpack5:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson/) devices running [NVIDIA JetPack 5](https://developer.nvidia.com/embedded/jetpack-sdk-512).
+- **Dockerfile-jetson-jetpack6:** Optimized for [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson/) devices running [NVIDIA JetPack 6](https://developer.nvidia.com/embedded/jetpack-sdk-61).
+- **Dockerfile-jupyter:** For interactive development using JupyterLab in the browser.
 - **Dockerfile-python:** Minimal Python environment for lightweight applications.
-- **Dockerfile-conda:** Includes [Miniconda3](https://docs.conda.io/projects/miniconda/en/latest/) and Ultralytics package installed via Conda.
+- **Dockerfile-conda:** Includes [Miniconda3](https://www.anaconda.com/docs/main) and Ultralytics package installed via Conda.
 
 To pull the latest image:
 
@@ -99,29 +113,6 @@ Here's how to execute the Ultralytics Docker container:
 
 ```bash
 # Run without GPU
-sudo docker run -it --ipc=host $t
-```
-
-### Using GPUs
-
-```bash
-# Run with all GPUs
-sudo docker run -it --ipc=host --gpus all $t
-
-# Run specifying which GPUs to use
-sudo docker run -it --ipc=host --gpus '"device=2,3"' $t
-```
-
-The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. The `--gpus` flag allows the container to access the host's GPUs.
-
-## Running Ultralytics in Docker Container
-
-Here's how to execute the Ultralytics Docker container:
-
-### Using only the CPU
-
-```bash
-# Run with all GPUs
 sudo docker run -it --ipc=host $t
 ```
 

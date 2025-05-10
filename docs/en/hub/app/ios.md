@@ -25,7 +25,7 @@ keywords: Ultralytics, iOS App, YOLO models, real-time object detection, Apple N
   <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
   <br>
   <br>
-  <a href="https://apps.apple.com/xk/app/ultralytics/id1583935240" style="text-decoration:none;">
+  <a href="https://apps.apple.com/xk/app/ultralytics-hub/id1583935240" style="text-decoration:none;">
     <img src="https://raw.githubusercontent.com/ultralytics/assets/master/app/app-store.svg" width="15%" alt="Apple App store"></a>
 </div>
 
@@ -86,7 +86,7 @@ CoreML converts YOLO models to a format that's optimized for Apple devices, allo
 
 To get started with the Ultralytics iOS App, follow these steps:
 
-1. Download the Ultralytics App from the [App Store](https://apps.apple.com/xk/app/ultralytics/id1583935240).
+1. Download the Ultralytics App from the [App Store](https://apps.apple.com/xk/app/ultralytics-hub/id1583935240).
 
 2. Launch the app on your iOS device and sign in with your Ultralytics account. If you don't have an account yet, create one at [Ultralytics HUB](https://hub.ultralytics.com/).
 

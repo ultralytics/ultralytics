@@ -1,3 +1,5 @@
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 #ifndef YOLO_INFERENCE_H_
 #define YOLO_INFERENCE_H_
 

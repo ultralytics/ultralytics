@@ -81,7 +81,7 @@ class GMC:
         elif self.method in {"none", "None", None}:
             self.method = None
         else:
-            raise ValueError(f"Error: Unknown GMC method: {method}")
+            raise ValueError(f"Unknown GMC method: {method}")
 
         self.prevFrame = None
         self.prevKeyPoints = None
@@ -156,7 +156,7 @@ class GMC:
         try:
             (_, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria, None, 1)
         except Exception as e:
-            LOGGER.warning(f"WARNING: find transform failed. Set warp as identity {e}")
+            LOGGER.warning(f"find transform failed. Set warp as identity {e}")
 
         return H
 
@@ -294,7 +294,7 @@ class GMC:
                 H[0, 2] *= self.downscale
                 H[1, 2] *= self.downscale
         else:
-            LOGGER.warning("WARNING: not enough matching points")
+            LOGGER.warning("not enough matching points")
 
         # Store to next iteration
         self.prevFrame = frame.copy()
@@ -361,7 +361,7 @@ class GMC:
                 H[0, 2] *= self.downscale
                 H[1, 2] *= self.downscale
         else:
-            LOGGER.warning("WARNING: not enough matching points")
+            LOGGER.warning("not enough matching points")
 
         self.prevFrame = frame.copy()
         self.prevKeyPoints = copy.copy(keypoints)

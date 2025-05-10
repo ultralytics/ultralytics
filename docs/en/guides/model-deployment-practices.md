@@ -27,7 +27,7 @@ It's also important to follow best practices when deploying a model because depl
 
 Often times, once a model is [trained](./model-training-tips.md), [evaluated](./model-evaluation-insights.md), and [tested](./model-testing.md), it needs to be converted into specific formats to be deployed effectively in various environments, such as cloud, edge, or local devices.
 
-With respect to YOLO11, you can [export your model](../modes/export.md) to different formats. For example, when you need to transfer your model between different frameworks, ONNX is an excellent tool and [exporting to YOLO11 to ONNX](../integrations/onnx.md) is easy. You can check out more options about integrating your model into different environments smoothly and effectively [here](../integrations/index.md).
+With YOLO11, you can [export your model to various formats](../modes/export.md) depending on your deployment needs. For instance, [exporting YOLO11 to ONNX](../integrations/onnx.md) is straightforward and ideal for transferring models between frameworks. To explore more integration options and ensure a smooth deployment across different environments, visit our [model integration hub](../integrations/index.md).
 
 ### Choosing a Deployment Environment
 

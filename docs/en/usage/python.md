@@ -217,7 +217,7 @@ For example, users can load a model, train it, evaluate its performance on a val
 
 ## Track
 
-[Track mode](../modes/track.md) is used for tracking objects in real-time using a YOLO model. In this mode, the model is loaded from a checkpoint file, and the user can provide a live video stream to perform real-time object tracking. This mode is useful for applications such as surveillance systems or [self-driving cars](https://www.ultralytics.com/solutions/ai-in-self-driving).
+[Track mode](../modes/track.md) is used for tracking objects in real-time using a YOLO model. In this mode, the model is loaded from a checkpoint file, and the user can provide a live video stream to perform real-time object tracking. This mode is useful for applications such as surveillance systems or [self-driving cars](https://www.ultralytics.com/solutions/ai-in-automotive).
 
 !!! example "Track"
 

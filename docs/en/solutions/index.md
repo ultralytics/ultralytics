@@ -40,7 +40,8 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 - [Parking Management](../guides/parking-management.md): Organize and direct vehicle flow in parking areas with YOLO11, optimizing space utilization and user experience.
 - [Analytics](../guides/analytics.md): Conduct comprehensive data analysis to discover patterns and make informed decisions, leveraging YOLO11 for descriptive, predictive, and prescriptive analytics.
 - [Live Inference with Streamlit](../guides/streamlit-live-inference.md): Leverage the power of YOLO11 for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) directly through your web browser with a user-friendly Streamlit interface.
-- [Track Objects in Zone](../guides/trackzone.md) 🚀 NEW: Learn how to track objects within specific zones of video frames using YOLO11 for precise and efficient monitoring.
+- [Track Objects in Zone](../guides/trackzone.md): Learn how to track objects within specific zones of video frames using YOLO11 for precise and efficient monitoring.
+- [Similarity search](../guides/similarity-search.md) 🚀 NEW: Enable intelligent image retrieval by combining [OpenAI CLIP](https://cookbook.openai.com/examples/custom_image_embedding_search) embeddings with [Meta FAISS](https://ai.meta.com/tools/faiss/), allowing natural language queries like "person holding a bag" or "vehicles in motion."
 
 ### Solutions Arguments
 
@@ -53,6 +54,13 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 
 {% from "macros/track-args.md" import param_table %}
 {{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+
+!!! note "Visualization args"
+
+    You can use `show_conf`, `show_labels`, and other mentioned arguments to customize the visualization.
+
+{% from "macros/visualization-args.md" import param_table %}
+{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
 
 ### Usage of SolutionAnnotator
 
@@ -79,21 +87,29 @@ All Ultralytics Solutions use the separate class [`SolutionAnnotator`](https://d
 
 All Solutions calls return a list of `SolutionResults` objects, containing comprehensive information about the solutions.
 
-- For object counting, the results include `incounts`, `outcounts`, and `classwise_counts`.
+- For object counting, the results include `incount`, `outcount`, and `classwise_counts`.
 
 !!! example "SolutionResults"
 
     ```python
+    import cv2
+
+    from ultralytics import solutions
+
+    im0 = cv2.imread("path/to/img")
+
+    region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
+
     counter = solutions.ObjectCounter(
         show=True,  # display the output
         region=region_points,  # pass region points
         model="yolo11n.pt",  # model="yolo11n-obb.pt" for object counting with OBB model.
-        # classes=[0, 2],           # count specific classes i.e. person and car with COCO pretrained model.
-        # tracker="botsort.yaml"    # Choose trackers i.e "bytetrack.yaml"
+        # classes=[0, 2],  # count specific classes i.e. person and car with COCO pretrained model.
+        # tracker="botsort.yaml"  # Choose trackers i.e "bytetrack.yaml"
     )
-    results = counter.count(im0)
-    print(results.in_counts)  # display in_counts
-    print(results.out_counts)  # display out_counts
+    results = counter(im0)
+    print(results.in_count)  # display in_counts
+    print(results.out_count)  # display out_counts
     ```
 
 For more details, refer to the [`SolutionResults` class documentation](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator).

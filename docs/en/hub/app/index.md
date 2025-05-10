@@ -25,13 +25,13 @@ keywords: Ultralytics HUB App, YOLO models, mobile app, iOS, Android, hardware a
   <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
   <br>
   <br>
-  <a href="https://apps.apple.com/xk/app/ultralytics/id1583935240" style="text-decoration:none;">
+  <a href="https://apps.apple.com/xk/app/ultralytics-hub/id1583935240" style="text-decoration:none;">
     <img src="https://raw.githubusercontent.com/ultralytics/assets/master/app/app-store.svg" width="15%" alt="Apple App store"></a>
   <a href="https://play.google.com/store/apps/details?id=com.ultralytics.ultralytics_app" style="text-decoration:none;">
     <img src="https://raw.githubusercontent.com/ultralytics/assets/master/app/google-play.svg" width="15%" alt="Google Play store"></a>&nbsp;
 </div>
 
-Welcome to the Ultralytics HUB App! This powerful mobile application allows you to run Ultralytics YOLO models including YOLOv5, YOLOv8, and YOLO11 directly on your [iOS](https://apps.apple.com/xk/app/ultralytics/id1583935240) and [Android](https://play.google.com/store/apps/details?id=com.ultralytics.ultralytics_app) devices. The HUB App leverages hardware acceleration features like Apple's Neural Engine (ANE) on iOS or Android GPU and [Neural Network](https://www.ultralytics.com/glossary/neural-network-nn) API (NNAPI) delegates to deliver impressive real-time performance on your mobile device.
+Welcome to the Ultralytics HUB App! This powerful mobile application allows you to run Ultralytics YOLO models including YOLOv5, YOLOv8, and YOLO11 directly on your [iOS](https://apps.apple.com/xk/app/ultralytics-hub/id1583935240) and [Android](https://play.google.com/store/apps/details?id=com.ultralytics.ultralytics_app) devices. The HUB App leverages hardware acceleration features like Apple's Neural Engine (ANE) on iOS or Android GPU and [Neural Network](https://www.ultralytics.com/glossary/neural-network-nn) API (NNAPI) delegates to deliver impressive real-time performance on your mobile device.
 
 ## Features
 
@@ -46,7 +46,7 @@ Welcome to the Ultralytics HUB App! This powerful mobile application allows you 
 
 Getting started with the Ultralytics HUB App is simple:
 
-1. Download the app from the [App Store](https://apps.apple.com/xk/app/ultralytics/id1583935240) (iOS) or [Google Play](https://play.google.com/store/apps/details?id=com.ultralytics.ultralytics_app) (Android)
+1. Download the app from the [App Store](https://apps.apple.com/xk/app/ultralytics-hub/id1583935240) (iOS) or [Google Play](https://play.google.com/store/apps/details?id=com.ultralytics.ultralytics_app) (Android)
 2. Sign in with your Ultralytics account (or create one if you don't have it)
 3. Select a pre-trained model or one of your custom models
 4. Start detecting objects in real-time using your device's camera

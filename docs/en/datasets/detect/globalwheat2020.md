@@ -136,7 +136,7 @@ These features facilitate the development of robust models capable of generaliza
 
 ### Where can I find the configuration YAML file for the Global Wheat Head Dataset?
 
-The configuration YAML file for the Global Wheat Head Dataset, named `GlobalWheat2020.yaml`, is available on GitHub. You can access it at this [link](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/GlobalWheat2020.yaml). This file contains necessary information about dataset paths, classes, and other configuration details needed for model training in [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo11/).
+The configuration YAML file for the Global Wheat Head Dataset, named `GlobalWheat2020.yaml`, is available on GitHub. You can access it at <https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/GlobalWheat2020.yaml>. This file contains necessary information about dataset paths, classes, and other configuration details needed for model training in [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo11/).
 
 ### Why is wheat head detection important in crop management?
 

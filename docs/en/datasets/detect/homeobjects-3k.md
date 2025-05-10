@@ -54,12 +54,12 @@ HomeObjects-3K enables a wide spectrum of applications in indoor computer vision
 ## Dataset YAML
 
 The configuration for the HomeObjects-3K dataset is provided through a YAML file. This file outlines essential information such as image paths for train and validation directories, and the list of object classes. 
-You can access the `homeobjects-3k.yaml` file directly from the Ultralytics repository at: [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/homeobjects-3k.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/homeobjects-3k.yaml)
+You can access the `HomeObjects-3K.yaml` file directly from the Ultralytics repository at: [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/HomeObjects-3K.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/HomeObjects-3K.yaml)
 
-!!! example "ultralytics/cfg/datasets/homeobjects-3k.yaml"
+!!! example "ultralytics/cfg/datasets/HomeObjects-3K.yaml"
 
     ```yaml
-    --8<-- "ultralytics/cfg/datasets/homeobjects-3k.yaml"
+    --8<-- "ultralytics/cfg/datasets/HomeObjects-3K.yaml"
     ```
 
 ## Usage
@@ -126,7 +126,7 @@ The dataset includes 12 of the most commonly encountered household items: bed, s
 
 ### How can I train a YOLO model using the HomeObjects-3K dataset?
 
-To train a YOLO model like YOLO11n, you’ll just need the `homeobjects-3k.yaml` configuration file and the [pretrained model](../../models/index.md) weights. Whether you're using Python or the CLI, training can be launched with a single command. You can customize parameters such as epochs, image size, and batch size depending on your target performance and hardware setup.
+To train a YOLO model like YOLO11n, you’ll just need the `HomeObjects-3K.yaml` configuration file and the [pretrained model](../../models/index.md) weights. Whether you're using Python or the CLI, training can be launched with a single command. You can customize parameters such as epochs, image size, and batch size depending on your target performance and hardware setup.
 
 !!! example "Train Example"
 

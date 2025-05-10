@@ -16,13 +16,13 @@ This example demonstrates how to perform object detection using Ultralytics YOLO
 
 Ensure you have the following dependencies installed before proceeding:
 
-| Dependency                | Version | Description                                   |
-| ------------------------- | ------- | --------------------------------------------- |
-| Triton Inference Server   | 22.06   | Running with a deployed FP16 YOLO11 model     |
-| Triton Client libraries   | 2.23    | Required for communication with Triton Server |
-| C++ compiler              | C++ 17+ | For compiling the C++ client application      |
-| OpenCV library            | 3.4.15  | For image processing and visualization        |
-| CMake                     | 3.5+    | For building the project                      |
+| Dependency              | Version | Description                                   |
+| ----------------------- | ------- | --------------------------------------------- |
+| Triton Inference Server | 22.06   | Running with a deployed FP16 YOLO11 model     |
+| Triton Client libraries | 2.23    | Required for communication with Triton Server |
+| C++ compiler            | C++ 17+ | For compiling the C++ client application      |
+| OpenCV library          | 3.4.15  | For image processing and visualization        |
+| CMake                   | 3.5+    | For building the project                      |
 
 For more information on Triton, see the [NVIDIA Triton Inference Server documentation](https://github.com/triton-inference-server/server) and explore [model deployment options with Ultralytics](https://docs.ultralytics.com/guides/model-deployment-options/).
 

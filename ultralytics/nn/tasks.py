@@ -146,6 +146,14 @@ class BaseModel(torch.nn.Module):
             (torch.Tensor): The last output of the model.
         """
         y, dt, embeddings = [], [], []  # outputs
+
+        if embed:
+            if not hasattr(self, "_embed_set"):
+                self._embed_set = set(embed)
+                self._max_embed = max(embed)
+            embed_set = self._embed_set
+            max_embed = self._max_embed
+
         for m in self.model:
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
@@ -155,10 +163,11 @@ class BaseModel(torch.nn.Module):
             y.append(x if m.i in self.save else None)  # save output
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
-            if embed and m.i in embed:
-                embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
-                if m.i == max(embed):
-                    return torch.unbind(torch.cat(embeddings, 1), dim=0)
+            if embed:
+                if m.i in embed_set:
+                    embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))
+                    if m.i == max_embed:
+                        return torch.unbind(torch.cat(embeddings, 1), dim=0)
         return x
 
     def _predict_augment(self, x):

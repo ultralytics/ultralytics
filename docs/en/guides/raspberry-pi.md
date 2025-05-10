@@ -2,6 +2,7 @@
 comments: true
 description: Learn how to deploy Ultralytics YOLO11 on Raspberry Pi with our comprehensive guide. Get performance benchmarks, setup instructions, and best practices.
 keywords: Ultralytics, YOLO11, Raspberry Pi, setup, guide, benchmarks, computer vision, object detection, NCNN, Docker, camera modules
+benchmark_version: 8.3.39
 ---
 
 # Quick Start Guide: Raspberry Pi with Ultralytics YOLO11
@@ -94,7 +95,7 @@ Here we will install Ultralytics package on the Raspberry Pi with optional depen
 
 ## Use NCNN on Raspberry Pi
 
-Out of all the model export formats supported by Ultralytics, [NCNN](https://docs.ultralytics.com/integrations/ncnn/) delivers the best inference performance when working with Raspberry Pi devices because NCNN is highly optimized for mobile/ embedded platforms (such as ARM architecture). Therefor our recommendation is to use NCNN with Raspberry Pi.
+Out of all the model export formats supported by Ultralytics, [NCNN](https://docs.ultralytics.com/integrations/ncnn/) delivers the best inference performance when working with Raspberry Pi devices because NCNN is highly optimized for mobile/ embedded platforms (such as ARM architecture).
 
 ## Convert Model to NCNN and Run Inference
 
@@ -124,7 +125,7 @@ The YOLO11n model in PyTorch format is converted to NCNN to run inference with t
 
         ```bash
         # Export a YOLO11n PyTorch model to NCNN format
-        yolo export model=yolo11n.pt format=ncnn  # creates 'yolo11n_ncnn_model'
+        yolo export model=yolo11n.pt format=ncnn # creates 'yolo11n_ncnn_model'
 
         # Run inference with the exported model
         yolo predict model='yolo11n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
@@ -142,9 +143,10 @@ YOLO11 benchmarks were run by the Ultralytics team on nine different model forma
 
 We have only included benchmarks for YOLO11n and YOLO11s models because other models sizes are too big to run on the Raspberry Pis and does not offer decent performance.
 
-<div style="text-align: center;">
-    <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/rpi-yolo11-benchmarks.avif" alt="YOLO11 benchmarks on RPi 5">
-</div>
+<figure style="text-align: center;">
+    <img width="800" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/rpi-yolo11-benchmarks.avif" alt="YOLO11 benchmarks on RPi 5">
+    <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics {{ benchmark_version }}</figcaption>
+</figure>
 
 ### Detailed Comparison Table
 
@@ -156,29 +158,33 @@ The below table represents the benchmark results for two different models (YOLO1
 
         | Format        | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
         |---------------|--------|-------------------|-------------|------------------------|
-        | PyTorch       | ✅      | 5.4               | 0.61        | 524.828                |
-        | TorchScript   | ✅      | 10.5              | 0.6082      | 666.874                |
-        | ONNX          | ✅      | 10.2              | 0.6082      | 181.818                |
-        | OpenVINO      | ✅      | 10.4              | 0.6082      | 530.224                |
-        | TF SavedModel | ✅      | 25.8              | 0.6082      | 405.964                |
-        | TF GraphDef   | ✅      | 10.3              | 0.6082      | 473.558                |
-        | TF Lite       | ✅      | 10.3              | 0.6082      | 324.158                |
-        | PaddlePaddle  | ✅      | 20.4              | 0.6082      | 644.312                |
-        | NCNN          | ✅      | 10.2              | 0.6106      | 93.938                 |
+        | PyTorch       | ✅      | 5.4               | 0.6100      | 405.238                |
+        | TorchScript   | ✅      | 10.5              | 0.6082      | 526.628                |
+        | ONNX          | ✅      | 10.2              | 0.6082      | 168.082                |
+        | OpenVINO      | ✅      | 10.4              | 0.6082      | 81.192                 |
+        | TF SavedModel | ✅      | 25.8              | 0.6082      | 377.968                |
+        | TF GraphDef   | ✅      | 10.3              | 0.6082      | 487.244                |
+        | TF Lite       | ✅      | 10.3              | 0.6082      | 317.398                |
+        | PaddlePaddle  | ✅      | 20.4              | 0.6082      | 561.892                |
+        | MNN           | ✅      | 10.1              | 0.6106      | 112.554                |
+        | NCNN          | ✅      | 10.2              | 0.6106      | 88.026                 |
 
     === "YOLO11s"
 
         | Format        | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
         |---------------|--------|-------------------|-------------|------------------------|
-        | PyTorch       | ✅      | 18.4              | 0.7526      | 1226.426               |
-        | TorchScript   | ✅      | 36.5              | 0.7416      | 1507.95                |
-        | ONNX          | ✅      | 36.3              | 0.7416      | 415.24                 |
-        | OpenVINO      | ✅      | 36.4              | 0.7416      | 1167.102               |
-        | TF SavedModel | ✅      | 91.1              | 0.7416      | 776.14                 |
-        | TF GraphDef   | ✅      | 36.4              | 0.7416      | 1014.396               |
-        | TF Lite       | ✅      | 36.4              | 0.7416      | 845.934                |
-        | PaddlePaddle  | ✅      | 72.5              | 0.7416      | 1567.824               |
-        | NCNN          | ✅      | 36.2              | 0.7419      | 197.358                |
+        | PyTorch       | ✅      | 18.4              | 0.7526      | 1011.60                |
+        | TorchScript   | ✅      | 36.5              | 0.7416      | 1268.502               |
+        | ONNX          | ✅      | 36.3              | 0.7416      | 324.17                 |
+        | OpenVINO      | ✅      | 36.4              | 0.7416      | 179.324                |
+        | TF SavedModel | ✅      | 91.1              | 0.7416      | 714.382                |
+        | TF GraphDef   | ✅      | 36.4              | 0.7416      | 1019.83                |
+        | TF Lite       | ✅      | 36.4              | 0.7416      | 849.86                 |
+        | PaddlePaddle  | ✅      | 72.5              | 0.7416      | 1276.34                |
+        | MNN           | ✅      | 36.2              | 0.7409      | 273.032                |
+        | NCNN          | ✅      | 36.2              | 0.7419      | 194.858                |
+
+    Benchmarked with Ultralytics {{ benchmark_version }}
 
 ## Reproduce Our Results
 
@@ -195,7 +201,7 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
         model = YOLO("yolo11n.pt")
 
         # Benchmark YOLO11n speed and accuracy on the COCO8 dataset for all all export formats
-        results = model.benchmarks(data="coco8.yaml", imgsz=640)
+        results = model.benchmark(data="coco8.yaml", imgsz=640)
         ```
 
     === "CLI"
@@ -205,11 +211,11 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
         yolo benchmark model=yolo11n.pt data=coco8.yaml imgsz=640
         ```
 
-    Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results use a dataset with a large number of images, i.e. `data='coco8.yaml' (4 val images), or `data='coco.yaml'` (5000 val images).
+    Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results use a dataset with a large number of images, i.e. `data='coco8.yaml'` (4 val images), or `data='coco.yaml'` (5000 val images).
 
 ## Use Raspberry Pi Camera
 
-When using Raspberry Pi for Computer Vision projects, it can be essentially to grab real-time video feeds to perform inference. The onboard MIPI CSI connector on the Raspberry Pi allows you to connect official Raspberry PI camera modules. In this guide, we have used a [Raspberry Pi Camera Module 3](https://www.raspberrypi.com/products/camera-module-3/) to grab the video feeds and perform inference using YOLO11 models.
+When using Raspberry Pi for Computer Vision projects, it can be essential to grab real-time video feeds to perform inference. The onboard MIPI CSI connector on the Raspberry Pi allows you to connect official Raspberry PI camera modules. In this guide, we have used a [Raspberry Pi Camera Module 3](https://www.raspberrypi.com/products/camera-module-3/) to grab the video feeds and perform inference using YOLO11 models.
 
 !!! tip
 
@@ -217,7 +223,7 @@ When using Raspberry Pi for Computer Vision projects, it can be essentially to g
 
 !!! note
 
-    Raspberry Pi 5 uses smaller CSI connectors than the Raspberry Pi 4 (15-pin vs 22-pin), so you will need a [15-pin to 22pin adapter cable](https://www.raspberrypi.com/products/camera-cable/) to connect to a Raspberry Pi Camera.
+    Raspberry Pi 5 uses smaller CSI connectors than the Raspberry Pi 4 (15-pin vs 22-pin), so you will need a [15-pin to 22-pin adapter cable](https://www.raspberrypi.com/products/camera-cable/) to connect to a Raspberry Pi Camera.
 
 ### Test the Camera
 
@@ -239,7 +245,7 @@ There are 2 methods of using the Raspberry Pi Camera to inference YOLO11 models.
 
     === "Method 1"
 
-        We can use `picamera2`which comes pre-installed with Raspberry Pi OS to access the camera and inference YOLO11 models.
+        We can use `picamera2` which comes pre-installed with Raspberry Pi OS to access the camera and inference YOLO11 models.
 
         !!! example
 
@@ -315,7 +321,7 @@ There are 2 methods of using the Raspberry Pi Camera to inference YOLO11 models.
 
 !!! tip
 
-    Check our document on [Inference Sources](https://docs.ultralytics.com/modes/predict/#inference-sources) if you want to change the image/ video input type
+    Check our document on [Inference Sources](https://docs.ultralytics.com/modes/predict/#inference-sources) if you want to change the image/video input type
 
 ## Best Practices when using Raspberry Pi
 
@@ -328,6 +334,34 @@ There are a couple of best practices to follow in order to enable maximum perfor
 2. Flash without GUI
 
     When flashing Raspberry Pi OS, you can choose to not install the Desktop environment (Raspberry Pi OS Lite) and this can save a bit of RAM on the device, leaving more space for computer vision processing.
+
+3. Overclock Raspberry Pi
+
+    If you want a little boost in performance while running Ultralytics YOLO11 models on Raspberry Pi 5, you can overclock the CPU from its base 2.4GHz to 2.9GHz and the GPU from 800MHz to 1GHz. If the system becomes unstable or crashes, reduce the overclock values by 100MHz increments. Ensure proper cooling is in place, as overclocking increases heat generation and may lead to thermal throttling.
+
+    a. Upgrade the software
+
+    ```sh
+    sudo apt update && sudo apt dist-upgrade
+    ```
+
+    b. Open to edit the configuration file
+
+    ```sh
+    sudo nano /boot/firmware/config.txt
+    ```
+
+    c. Add the following lines at the bottom
+
+    ```sh
+    arm_freq=3000
+    gpu_freq=1000
+    force_turbo=1
+    ```
+
+    d. Save and exit by pressing CTRL + X, then Y, and hit ENTER
+
+    e. Reboot the Raspberry Pi
 
 ## Next Steps
 
@@ -364,7 +398,7 @@ For detailed instructions, refer to the [Start without Docker](#start-without-do
 
 ### Why should I use Ultralytics YOLO11's NCNN format on Raspberry Pi for AI tasks?
 
-Ultralytics YOLO11's NCNN format is highly optimized for mobile and embedded platforms, making it ideal for running AI tasks on Raspberry Pi devices. NCNN maximizes inference performance by leveraging ARM architecture, providing faster and more efficient processing compared to other formats. For more details on supported export options, visit the [Ultralytics documentation page on deployment options](../modes/export.md).
+Ultralytics YOLO11's NCNN format is highly optimized for mobile and embedded platforms, making it ideal for running AI tasks on Raspberry Pi devices. NCNN maximizes inference performance by leveraging ARM architecture, providing faster and more efficient processing compared to other formats. For more details on supported export options, visit the [Ultralytics documentation page on deployment options](https://docs.ultralytics.com/guides/model-deployment-options/).
 
 ### How can I convert a YOLO11 model to NCNN format for use on Raspberry Pi?
 
@@ -394,7 +428,7 @@ You can convert a PyTorch YOLO11 model to NCNN format using either Python or CLI
 
         ```bash
         # Export a YOLO11n PyTorch model to NCNN format
-        yolo export model=yolo11n.pt format=ncnn  # creates 'yolo11n_ncnn_model'
+        yolo export model=yolo11n.pt format=ncnn # creates 'yolo11n_ncnn_model'
 
         # Run inference with the exported model
         yolo predict model='yolo11n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'

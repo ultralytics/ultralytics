@@ -50,7 +50,7 @@ float letterbox(cv::Mat &input_image, cv::Mat &output_image, const std::vector<i
                0, 0, cv::INTER_AREA);
 
     cv::copyMakeBorder(output_image, output_image, top, bottom, left, right,
-                       cv::BORDER_CONSTANT, cv::Scalar(114.));
+                       cv::BORDER_CONSTANT, cv::Scalar(114., 114., 114));
     return resize_scale;
 }
 
@@ -226,6 +226,7 @@ int main() {
         cv::Mat image = cv::imread("/path/to/bus.jpg");
         cv::Mat input_image;
         letterbox(image, input_image, {640, 640});
+        cv::cvtColor(input_image, input_image, cv::COLOR_BGR2RGB);
 
         torch::Tensor image_tensor = torch::from_blob(input_image.data, {input_image.rows, input_image.cols, 3}, torch::kByte).to(device);
         image_tensor = image_tensor.toType(torch::kFloat32).div(255);

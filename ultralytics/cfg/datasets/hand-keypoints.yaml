@@ -1,4 +1,5 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Hand Keypoints dataset by Ultralytics
 # Documentation: https://docs.ultralytics.com/datasets/pose/hand-keypoints/
 # Example usage: yolo train data=hand-keypoints.yaml

@@ -51,16 +51,17 @@ With respect to YOLO11, normalization is seamlessly handled as part of its prepr
 
 ### Splitting the Dataset
 
-Once you've cleaned the data, you are ready to split the dataset. Splitting the data into training, validation, and test sets is done to ensure that the model can be evaluated on unseen data to assess its generalization performance. A common split is 70% for training, 20% for validation, and 10% for testing. There are various tools and libraries that you can use to split your data like scikit-learn or TensorFlow.
+Once you've cleaned the data, you are ready to split the dataset. Splitting the data into training, validation, and test sets is done to ensure that the model can be evaluated on unseen data to assess its generalization performance. A common split is 70% for training, 20% for validation, and 10% for testing. There are various tools and libraries that you can use to split your data like [scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html) or [TensorFlow](https://www.ultralytics.com/glossary/tensorflow).
 
 Consider the following when splitting your dataset:
 
 - **Maintaining Data Distribution**: Ensure that the data distribution of classes is maintained across training, validation, and test sets.
-- **Avoiding Data Leakage**: Typically, data augmentation is done after the dataset is split. Data augmentation and any other preprocessing should only be applied to the training set to prevent information from the validation or test sets from influencing the model training. -**Balancing Classes**: For imbalanced datasets, consider techniques such as oversampling the minority class or under-sampling the majority class within the training set.
+- **Avoiding Data Leakage**: Typically, data augmentation is done after the dataset is split. Data augmentation and any other preprocessing should only be applied to the training set to prevent information from the validation or test sets from influencing the model training.
+- **Balancing Classes**: For imbalanced datasets, consider techniques such as oversampling the minority class or under-sampling the majority class within the training set.
 
 ### What is Data Augmentation?
 
-The most commonly discussed data preprocessing step is data augmentation. Data augmentation artificially increases the size of the dataset by creating modified versions of images. By augmenting your data, you can reduce overfitting and improve model generalization.
+The most commonly discussed data preprocessing step is data augmentation. Data augmentation artificially increases the size of the dataset by creating modified versions of images. By augmenting your data, you can reduce [overfitting](https://www.ultralytics.com/glossary/overfitting) and improve model generalization.
 
 Here are some other benefits of data augmentation:
 
@@ -70,7 +71,7 @@ Here are some other benefits of data augmentation:
 
 #### Data Augmentation Methods
 
-Common augmentation techniques include flipping, rotation, scaling, and color adjustments. Several libraries, such as Albumentations, Imgaug, and TensorFlow's ImageDataGenerator, can generate these augmentations.
+Common augmentation techniques include flipping, rotation, scaling, and color adjustments. Several libraries, such as [Albumentations](../integrations/albumentations.md), Imgaug, and TensorFlow's ImageDataGenerator, can generate these augmentations.
 
 <p align="center">
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/overview-of-data-augmentations.avif" alt="Overview of Data Augmentations">
@@ -93,10 +94,10 @@ Consider a project aimed at developing a model to detect and classify different 
 
 Here's what each step of preprocessing would look like for this project:
 
-- Resizing Images: Since YOLO11 handles flexible input sizes and performs resizing automatically, manual resizing is not required. The model will adjust the image size according to the specified 'imgsz' parameter during training.
-- Normalizing Pixel Values: YOLO11 automatically normalizes pixel values to a range of 0 to 1 during preprocessing, so it's not required.
-- Splitting the Dataset: Divide the dataset into training (70%), validation (20%), and test (10%) sets using tools like scikit-learn.
-- [Data Augmentation](https://www.ultralytics.com/glossary/data-augmentation): Modify the dataset configuration file (.yaml) to include data augmentation techniques such as random crops, horizontal flips, and brightness adjustments.
+- **Resizing Images**: Since YOLO11 handles flexible input sizes and performs resizing automatically, manual resizing is not required. The model will adjust the image size according to the specified 'imgsz' parameter during training.
+- **Normalizing Pixel Values**: YOLO11 automatically normalizes pixel values to a range of 0 to 1 during preprocessing, so it's not required.
+- **Splitting the Dataset**: Divide the dataset into training (70%), validation (20%), and test (10%) sets using tools like scikit-learn.
+- **[Data Augmentation](https://www.ultralytics.com/glossary/data-augmentation)**: Modify the dataset configuration file (.yaml) to include data augmentation techniques such as random crops, horizontal flips, and brightness adjustments.
 
 These steps make sure the dataset is prepared without any potential issues and is ready for Exploratory Data Analysis (EDA).
 
@@ -110,13 +111,13 @@ Statistical techniques often begin with calculating basic metrics such as mean, 
 
 ### Visual EDA Techniques
 
-Visualizations are key in EDA for image datasets. For example, class imbalance analysis is another vital aspect of EDA. It helps determine if certain classes are underrepresented in your dataset, Visualizing the distribution of different image classes or categories using bar charts can quickly reveal any imbalances. Similarly, outliers can be identified using visualization tools like box plots, which highlight anomalies in pixel intensity or feature distributions. Outlier detection prevents unusual data points from skewing your results.
+Visualizations are key in EDA for image datasets. For example, class imbalance analysis is another vital aspect of EDA. It helps determine if certain classes are underrepresented in your dataset. Visualizing the distribution of different image classes or categories using bar charts can quickly reveal any imbalances. Similarly, outliers can be identified using visualization tools like box plots, which highlight anomalies in pixel intensity or feature distributions. Outlier detection prevents unusual data points from skewing your results.
 
 Common tools for visualizations include:
 
-- Histograms and Box Plots: Useful for understanding the distribution of pixel values and identifying outliers.
-- Scatter Plots: Helpful for exploring relationships between image features or annotations.
-- Heatmaps: Effective for visualizing the distribution of pixel intensities or the spatial distribution of annotated features within images.
+- **Histograms and Box Plots**: Useful for understanding the distribution of pixel values and identifying outliers.
+- **Scatter Plots**: Helpful for exploring relationships between image features or annotations.
+- **Heatmaps**: Effective for visualizing the distribution of pixel intensities or the spatial distribution of annotated features within images.
 
 ### Using Ultralytics Explorer for EDA
 

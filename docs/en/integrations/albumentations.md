@@ -12,7 +12,7 @@ By using Albumentations, you can boost your YOLO11 training data with techniques
 
 ## Albumentations for Image Augmentation
 
-[Albumentations](https://albumentations.ai/) is an open-source image augmentation library created in [June 2018](https://arxiv.org/pdf/1809.06839). It is designed to simplify and accelerate the image augmentation process in [computer vision](https://www.ultralytics.com/blog/exploring-image-processing-computer-vision-and-machine-vision). Created with [performance](https://www.ultralytics.com/blog/measuring-ai-performance-to-weigh-the-impact-of-your-innovations) and flexibility in mind, it supports many diverse augmentation techniques, ranging from simple transformations like rotations and flips to more complex adjustments like brightness and contrast changes. Albumentations helps developers generate rich, varied datasets for tasks like [image classification](https://www.youtube.com/watch?v=5BO0Il_YYAg), [object detection](https://www.youtube.com/watch?v=5ku7npMrW40&t=1s), and [segmentation](https://www.youtube.com/watch?v=o4Zd-IeMlSY).
+[Albumentations](https://www.albumentations.ai/) is an open-source image augmentation library created in [June 2018](https://arxiv.org/pdf/1809.06839). It is designed to simplify and accelerate the image augmentation process in [computer vision](https://www.ultralytics.com/blog/exploring-image-processing-computer-vision-and-machine-vision). Created with [performance](https://www.ultralytics.com/blog/measuring-ai-performance-to-weigh-the-impact-of-your-innovations) and flexibility in mind, it supports many diverse augmentation techniques, ranging from simple transformations like rotations and flips to more complex adjustments like brightness and contrast changes. Albumentations helps developers generate rich, varied datasets for tasks like [image classification](https://www.youtube.com/watch?v=5BO0Il_YYAg), [object detection](https://www.youtube.com/watch?v=5ku7npMrW40&t=1s), and [segmentation](https://www.youtube.com/watch?v=o4Zd-IeMlSY).
 
 You can use Albumentations to easily apply augmentations to images, [segmentation masks](https://www.ultralytics.com/glossary/image-segmentation), [bounding boxes](https://www.ultralytics.com/glossary/bounding-box), and [key points](../datasets/pose/index.md), and make sure that all elements of your dataset are transformed together. It works seamlessly with popular deep learning frameworks like [PyTorch](../integrations/torchscript.md) and [TensorFlow](../integrations/tensorboard.md), making it accessible for a wide range of projects.
 
@@ -34,7 +34,7 @@ Albumentations offers many useful features that simplify complex image augmentat
 
 ![Overview of the Different Levels of Augmentations](https://github.com/ultralytics/docs/releases/download/0/levels-of-augmentation.avif)
 
-- **[Benchmarking Results](https://albumentations.ai/docs/benchmarking_results/)**: When it comes to benchmarking, Albumentations consistently outperforms other libraries, especially with large datasets.
+- **[Benchmarking Results](https://www.albumentations.ai/docs/benchmarks/image-benchmarks/)**: When it comes to benchmarking, Albumentations consistently outperforms other libraries, especially with large datasets.
 
 ## Why Should You Use Albumentations for Your Vision AI Projects?
 
@@ -52,7 +52,7 @@ Now that we've covered what Albumentations is and what it can do, let's look at 
 
 ### Installation
 
-To use Albumentations with YOLOv11, start by making sure you have the necessary packages installed. If Albumentations isn't installed, the augmentations won't be applied during training. Once set up, you'll be ready to create an augmented dataset for training, with Albumentations integrated to enhance your model automatically.
+To use Albumentations with YOLO11, start by making sure you have the necessary packages installed. If Albumentations isn't installed, the augmentations won't be applied during training. Once set up, you'll be ready to create an augmented dataset for training, with Albumentations integrated to enhance your model automatically.
 
 !!! tip "Installation"
 
@@ -67,7 +67,7 @@ For detailed instructions and best practices related to the installation process
 
 ### Usage
 
-After installing the necessary packages, you're ready to start using Albumentations with YOLO11. When you train YOLOv11, a set of augmentations is automatically applied through its integration with Albumentations, making it easy to enhance your model's performance.
+After installing the necessary packages, you're ready to start using Albumentations with YOLO11. When you train YOLO11, a set of augmentations is automatically applied through its integration with Albumentations, making it easy to enhance your model's performance.
 
 !!! example "Usage"
 
@@ -87,7 +87,7 @@ Next, let's take look a closer look at the specific augmentations that are appli
 
 ### Blur
 
-The Blur transformation in Albumentations applies a simple blur effect to the image by averaging pixel values within a small square area, or kernel. This is done using OpenCV's `cv2.blur` function, which helps reduce noise in the image, though it also slightly reduces image details.
+The Blur transformation in Albumentations applies a simple blur effect to the image by averaging pixel values within a small square area, or kernel. This is done using OpenCV `cv2.blur` function, which helps reduce noise in the image, though it also slightly reduces image details.
 
 Here are the parameters and values used in this integration:
 
@@ -117,7 +117,7 @@ The ToGray transformation in Albumentations converts an image to grayscale, redu
 
 Here are the parameters and values used in this integration:
 
-- **num_output_channels**: Sets the number of channels in the output image. If this value is more than 1, the single grayscale channel will be replicated to create a multi-channel grayscale image. By default, it's set to 3, giving a grayscale image with three identical channels.
+- **num_output_channels**: Sets the number of channels in the output image. If this value is more than 1, the single grayscale channel will be replicated to create a multichannel grayscale image. By default, it's set to 3, giving a grayscale image with three identical channels.
 
 - **method**: Defines the grayscale conversion method. The default method, "weighted_average", applies a formula (0.299R + 0.587G + 0.114B) that closely aligns with human perception, providing a natural-looking grayscale effect. Other options, like "from_lab", "desaturation", "average", "max", and "pca", offer alternative ways to create grayscale images based on various needs for speed, brightness emphasis, or detail preservation.
 
@@ -135,7 +135,7 @@ Here are the parameters and values used in this integration:
 
 - **clip_limit**: Controls the contrast enhancement range. Set to a default range of (1, 4), it determines the maximum contrast allowed in each tile. Higher values are used for more contrast but may also introduce noise.
 
-- **tile_grid_size**: Defines the size of the grid of tiles, typically as (rows, columns). The default value is (8, 8), meaning the image is divided into an 8x8 grid. Smaller tile sizes provide more localized adjustments, while larger ones create effects closer to global equalization.
+- **tile_grid_size**: Defines the size of the grid of tiles, typically as (rows, columns). The default value is (8, 8), meaning the image is divided into a 8x8 grid. Smaller tile sizes provide more localized adjustments, while larger ones create effects closer to global equalization.
 
 - **p**: The probability of applying CLAHE. Here, p=0.01 introduces the enhancement effect only 1% of the time, ensuring that contrast adjustments are applied sparingly for occasional variation in training images.
 
@@ -147,7 +147,7 @@ The image below shows an example of the CLAHE transformation applied.
 
 If you are interested in learning more about Albumentations, check out the following resources for more in-depth instructions and examples:
 
-- **[Albumentations Documentation](https://albumentations.ai/docs/)**: The official documentation provides a full range of supported transformations and advanced usage techniques.
+- **[Albumentations Documentation](https://www.albumentations.ai/docs/)**: The official documentation provides a full range of supported transformations and advanced usage techniques.
 
 - **[Ultralytics Albumentations Guide](https://docs.ultralytics.com/reference/data/augment/?h=albumentation#ultralytics.data.augment.Albumentations)**: Get a closer look at the details of the function that facilitate this integration.
 
@@ -158,3 +158,42 @@ If you are interested in learning more about Albumentations, check out the follo
 In this guide, we explored the key aspects of Albumentations, a great Python library for image augmentation. We discussed its wide range of transformations, optimized performance, and how you can use it in your next YOLO11 project.
 
 Also, if you'd like to know more about other Ultralytics YOLO11 integrations, visit our [integration guide page](../integrations/index.md). You'll find valuable resources and insights there.
+
+## FAQ
+
+### How can I integrate Albumentations with YOLO11 for improved data augmentation?
+
+Albumentations integrates seamlessly with YOLO11 and applies automatically during training if you have the package installed. Here's how to get started:
+
+```python
+# Install required packages
+# !pip install albumentations ultralytics
+from ultralytics import YOLO
+
+# Load and train model with automatic augmentations
+model = YOLO("yolo11n.pt")
+model.train(data="coco8.yaml", epochs=100)
+```
+
+The integration includes optimized augmentations like blur, median blur, grayscale conversion, and CLAHE with carefully tuned probabilities to enhance model performance.
+
+### What are the key benefits of using Albumentations over other augmentation libraries?
+
+Albumentations stands out for several reasons:
+
+1. Performance: Built on OpenCV and NumPy with SIMD optimization for superior speed
+2. Flexibility: Supports 70+ transformations across pixel-level, spatial-level, and mixing-level augmentations
+3. Compatibility: Works seamlessly with popular frameworks like [PyTorch](../integrations/torchscript.md) and [TensorFlow](../integrations/tensorboard.md)
+4. Reliability: Extensive test suite prevents silent data corruption
+5. Ease of use: Single unified API for all augmentation types
+
+### What types of computer vision tasks can benefit from Albumentations augmentation?
+
+Albumentations enhances various [computer vision tasks](../tasks/index.md) including:
+
+- [Object Detection](../tasks/detect.md): Improves model robustness to lighting, scale, and orientation variations
+- [Instance Segmentation](../tasks/segment.md): Enhances mask prediction accuracy through diverse transformations
+- [Classification](../tasks/classify.md): Increases model generalization with color and geometric augmentations
+- [Pose Estimation](../tasks/pose.md): Helps models adapt to different viewpoints and lighting conditions
+
+The library's diverse augmentation options make it valuable for any vision task requiring robust model performance.

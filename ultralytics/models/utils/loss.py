@@ -948,7 +948,7 @@ class DEIMLoss(nn.Module):
 
             target_bboxes, target_scores, fg_mask = indices_in
             pred_idx, gt_idx = fg_mask, fg_mask
-            gt_boxes = target_bboxes[gt_idx]
+            gt_boxes = xyxy2xywh(target_bboxes[gt_idx])
             if loss == "boxes":
                 pred_boxes = outputs["pred_boxes"][pred_idx]
                 l_dict = self.loss_boxes(pred_boxes, gt_boxes)

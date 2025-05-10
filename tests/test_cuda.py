@@ -41,7 +41,7 @@ def test_amp():
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(IS_JETSON, reason="Temporary disbale ONNX for Jetson")
+@pytest.mark.skipif(IS_JETSON, reason="Temporary disable ONNX for Jetson")
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, simplify, nms",

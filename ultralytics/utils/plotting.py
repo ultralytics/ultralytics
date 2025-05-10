@@ -196,7 +196,9 @@ class Annotator:
             if check_version(pil_version, "9.2.0"):
                 self.font.getsize = lambda x: self.font.getbbox(x)[2:4]  # text width, height
         else:  # use cv2
-            if im.shape[2] > 3:  # multispectral
+            if im.shape[2] == 1:  # handle grayscale
+                im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
+            elif im.shape[2] > 3:  # multispectral
                 im = np.ascontiguousarray(im[..., :3])
             assert im.data.contiguous, "Image not contiguous. Apply np.ascontiguousarray(im) to Annotator input images."
             self.im = im if im.flags.writeable else im.copy()

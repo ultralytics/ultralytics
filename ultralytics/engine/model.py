@@ -591,7 +591,9 @@ class Model(torch.nn.Module):
 
             register_tracker(self)
 
-        self.predictor.args.persist = persist
+        if self.predictor:
+            self.predictor.args.persist = persist
+
         kwargs["conf"] = kwargs.get("conf") or 0.1  # ByteTrack-based method needs low confidence predictions as input
         kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
         kwargs["mode"] = "track"

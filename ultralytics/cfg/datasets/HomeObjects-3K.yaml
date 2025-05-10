@@ -1,0 +1,33 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# HomeObjects-3K dataset by Ultralytics
+# Documentation: https://docs.ultralytics.com/datasets/detect/homeobjects-3k/
+# Example usage: yolo train data=HomeObjects-3K.yaml
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── homeobjects-3K  ← downloads here (390 MB)
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: ../datasets/homeobjects-3K # dataset root dir
+train: train/images # train images (relative to 'path') 2285 images
+val: valid/images # val images (relative to 'path') 404 images
+test: # test images (relative to 'path')
+
+# Classes
+names:
+  0: bed
+  1: sofa
+  2: chair
+  3: table
+  4: lamp
+  5: tv
+  6: laptop
+  7: wardrobe
+  8: window
+  9: door
+  10: potted plant
+  11: photo frame
+
+# Download script/URL (optional)
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/homeobjects-3K.zip

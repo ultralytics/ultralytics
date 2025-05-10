@@ -125,7 +125,7 @@ The dataset includes 12 of the most commonly encountered household items: bed, s
 
 ### How can I train a YOLO model using the HomeObjects-3K dataset?
 
-To train a YOLO model like YOLO11n, you’ll just need the `HomeObjects-3K.yaml` configuration file and the [pretrained model](../../models/index.md) weights. Whether you're using Python or the CLI, training can be launched with a single command. You can customize parameters such as epochs, image size, and batch size depending on your target performance and hardware setup.
+To train a YOLO model like YOLO11n, you'll just need the `HomeObjects-3K.yaml` configuration file and the [pretrained model](../../models/index.md) weights. Whether you're using Python or the CLI, training can be launched with a single command. You can customize parameters such as epochs, image size, and batch size depending on your target performance and hardware setup.
 
 !!! example "Train Example"
 

@@ -617,7 +617,7 @@ def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False,
         >>> cropped_im = save_one_box(xyxy, im, file="cropped.jpg", square=True)
     """
     if is_obb:
-        pts = xyxy.xyxyxyxy.cpu().reshape(4, 2)  # shape (4, 2)
+        pts = xyxy.cpu().reshape(4, 2)  # shape (4, 2)
         s, d = pts.sum(1), np.diff(pts, axis=1).reshape(-1)  # Clockwise point ordering: tl, tr, br, bl
         o = np.stack([pts[s.argmin()], pts[d.argmin()], pts[s.argmax()], pts[d.argmax()]])  # ordering
         w = int(np.hypot(*(o[0] - o[1]) if np.sum((o[0] - o[1]) ** 2) > np.sum((o[2] - o[3]) ** 2) else (o[2] - o[3])))

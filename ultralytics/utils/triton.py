@@ -53,7 +53,7 @@ class TritonRemoteModel:
         """
         if not endpoint and not scheme:  # Parse all args from URL string
             splits = urlsplit(url)
-            endpoint = splits.path.strip("/").split("/")[0]
+            endpoint = splits.path.strip("/").split("/", 1)[0]
             scheme = splits.scheme
             url = splits.netloc
 

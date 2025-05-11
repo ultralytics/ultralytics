@@ -97,7 +97,7 @@ def export_engine(
     builder = trt.Builder(logger)
     config = builder.create_builder_config()
     workspace = int((workspace or 0) * (1 << 30))
-    is_trt10 = int(trt.__version__.split(".")[0]) >= 10  # is TensorRT >= 10
+    is_trt10 = int(trt.__version__.split(".", 1)[0]) >= 10  # is TensorRT >= 10
     if is_trt10 and workspace > 0:
         config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace)
     elif workspace > 0:  # TensorRT versions 7, 8

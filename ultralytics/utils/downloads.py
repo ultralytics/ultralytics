@@ -247,7 +247,7 @@ def get_google_drive_file_info(link):
     """
     import requests  # slow import
 
-    file_id = link.split("/d/")[1].split("/view")[0]
+    file_id = link.split("/d/")[1].split("/view", 1)[0]
     drive_url = f"https://drive.google.com/uc?export=download&id={file_id}"
     filename = None
 

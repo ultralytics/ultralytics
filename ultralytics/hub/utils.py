@@ -8,6 +8,7 @@ import time
 from pathlib import Path
 
 import requests
+import torch
 
 from ultralytics import __version__
 from ultralytics.utils import (
@@ -205,12 +206,13 @@ class Events:
             and (IS_PIP_PACKAGE or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git")
         )
 
-    def __call__(self, cfg):
+    def __call__(self, cfg, device):
         """
         Attempt to add a new event to the events list and send events if the rate limit is reached.
 
         Args:
             cfg (IterableSimpleNamespace): The configuration object containing mode and task information.
+            device (torch.device or str): The device type (e.g., 'cpu', 'cuda').
         """
         if not self.enabled:
             # Events disabled, do nothing
@@ -222,6 +224,7 @@ class Events:
                 **self.metadata,
                 "task": cfg.task,
                 "model": cfg.model if cfg.model in GITHUB_ASSETS_NAMES else "custom",
+                "device": device.type if isinstance(device, torch.device) else device,
             }
             if cfg.mode == "export":
                 params["format"] = cfg.format

@@ -243,7 +243,6 @@ class Exporter:
 
     def __call__(self, model=None) -> str:
         """Return list of exported files/dirs after running callbacks."""
-        self.run_callbacks("on_export_start")
         t = time.time()
         fmt = self.args.format.lower()  # to lowercase
         if fmt in {"tensorrt", "trt"}:  # 'engine' aliases
@@ -442,7 +441,7 @@ class Exporter:
             f"\n{colorstr('PyTorch:')} starting from '{file}' with input shape {tuple(im.shape)} BCHW and "
             f"output shape(s) {self.output_shape} ({file_size(file):.1f} MB)"
         )
-
+        self.run_callbacks("on_export_start")
         # Exports
         f = [""] * len(fmts)  # exported filenames
         if jit or ncnn:  # TorchScript

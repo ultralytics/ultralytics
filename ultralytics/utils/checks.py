@@ -821,8 +821,8 @@ def cuda_device_count() -> int:
     Returns:
         (int): The number of NVIDIA GPUs available.
     """
-    if IS_JETSON and IS_JETPACK_5:
-        # Jetson devices with JetPack5 and below do not support nvidia-smi; use PyTorch instead
+    if IS_JETSON:
+        # Jetson devices do not fully support nvidia-smi; use PyTorch instead
         return torch.cuda.device_count()
     else:
         try:
@@ -896,13 +896,3 @@ IS_PYTHON_3_13 = PYTHON_VERSION.startswith("3.13")
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_MINIMUM_3_12 = check_python("3.12", hard=False)
 
-# JetPack 5 detection (L4T 34.x or 35.x)
-IS_JETPACK_5 = False
-
-if IS_JETSON:
-    try:
-        with open("/etc/nv_tegra_release") as f:
-            if match := re.search(r"R(3[45])", f.read()):  # Match R34 or R35
-                IS_JETPACK_5 = True
-    except FileNotFoundError:
-        pass

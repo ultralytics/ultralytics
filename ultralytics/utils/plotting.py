@@ -618,15 +618,15 @@ def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False,
     """
     if is_obb:
         pts = xyxy.cpu().reshape(4, 2)  # shape (4, 2)
-        s, d = pts.sum(1), np.diff(pts, axis=1).reshape(-1)  # Clockwise point ordering: tl, tr, br, bl
+        s, d = pts.sum(1), np.diff(pts, axis=1).reshape(-1)  # clockwise point ordering: tl, tr, br, bl
         o = np.stack([pts[s.argmin()], pts[d.argmin()], pts[s.argmax()], pts[d.argmax()]])  # ordering
         w = int(np.hypot(*(o[0] - o[1]) if np.sum((o[0] - o[1]) ** 2) > np.sum((o[2] - o[3]) ** 2) else (o[2] - o[3])))
         h = int(np.hypot(*(o[0] - o[3]) if np.sum((o[0] - o[3]) ** 2) > np.sum((o[1] - o[2]) ** 2) else (o[1] - o[2])))
-        crop = cv2.warpPerspective(
+        crop = cv2.warpPerspective(  # wrap perspective transform
             im,
-            cv2.getPerspectiveTransform(
+            cv2.getPerspectiveTransform(  # compute perspective transform
                 o,
-                np.array(  # Compute perspective matrix and warp
+                np.array(  #  and warp
                     [[0, 0], [w - 1, 0], [w - 1, h - 1], [0, h - 1]], np.float32
                 ),
             ),

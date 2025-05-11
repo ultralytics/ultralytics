@@ -822,7 +822,7 @@ def cuda_device_count() -> int:
         (int): The number of NVIDIA GPUs available.
     """
     if IS_JETSON:
-        # NVIDIA JETSON does not fully support nvidia-smi; use PyTorch instead
+        # NVIDIA Jetson does not fully support nvidia-smi and therefore use PyTorch instead
         return torch.cuda.device_count()
     else:
         try:

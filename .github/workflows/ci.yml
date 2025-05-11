@@ -324,8 +324,8 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - name: Activate virtual environment
         run: |
-          python${{ matrix.python }} -m venv env-tests --system-site-packages
-          source env-tests/bin/activate
+          python${{ matrix.python }} -m venv env --system-site-packages
+          source env/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
         run: |

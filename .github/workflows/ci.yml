@@ -332,9 +332,7 @@ jobs:
           uv pip install -e ".[export]" pytest \
           "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}" "${{ matrix.onnxruntime_whl }}" \
           --index-strategy unsafe-best-match
-
-          numpy="numpy==${{ matrix.numpy }}"
-          uv pip install $numpy
+          uv pip install "numpy==${{ matrix.numpy }}"
       - name: Check environment
         run: |
           yolo checks

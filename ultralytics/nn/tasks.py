@@ -281,10 +281,19 @@ class BaseModel(torch.nn.Module):
         """
         model = weights["model"] if isinstance(weights, dict) else weights  # torchvision models are not dicts
         csd = model.float().state_dict()  # checkpoint state_dict as FP32
-        csd = intersect_dicts(csd, self.state_dict())  # intersect
-        self.load_state_dict(csd, strict=False)  # load
+        updated_csd = intersect_dicts(csd, self.state_dict())  # intersect
+        self.load_state_dict(updated_csd, strict=False)  # load
+        len_updated_csd = len(updated_csd)
+        first_conv = "model.0.conv.weight"
+        if first_conv not in updated_csd:  # mostly used to boost multi-channel training
+            c1, c2, h, w = self.state_dict()[first_conv].shape
+            cc1, cc2, ch, cw = csd[first_conv].shape
+            if ch == h and cw == w:
+                c1, c2 = min(c1, cc1), min(c2, cc2)
+                self.state_dict()[first_conv][:c1, :c2] = csd[first_conv][:c1, :c2]
+                len_updated_csd += 1
         if verbose:
-            LOGGER.info(f"Transferred {len(csd)}/{len(self.model.state_dict())} items from pretrained weights")
+            LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")
 
     def loss(self, batch, preds=None):
         """

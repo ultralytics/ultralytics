@@ -78,7 +78,6 @@ class ObjectCropper(BaseSolution):
                 im0,
                 file=Path(self.crop_dir) / f"crop_{self.crop_idx}.jpg",
                 BGR=True,
-                is_obb=True,
             )
 
         # Return SolutionResults

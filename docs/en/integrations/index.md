@@ -99,6 +99,10 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Roboflow](roboflow.md): Facilitate dataset labelling and management for Ultralytics models, offering annotation tools to label images.
 
+## Auto Annotation Integrations
+
+- [Microsoft Florence-2](microsoft-florence-2.md): A large vision foundation model by [Microsoft](https://www.microsoft.com/en-us/research/publication/florence-2-advancing-a-unified-representation-for-a-variety-of-vision-tasks/) that uses unified, prompt-based inputs to perform diverse computer vision and vision-language tasks—such as object detection, segmentation, OCR, and image captioning—enabling zero-shot and multitask inference without task-specific architectures.
+
 ### Export Formats
 
 We also support a variety of model export formats for deployment in different environments. Here are the available formats:

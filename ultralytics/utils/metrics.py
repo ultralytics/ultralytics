@@ -665,7 +665,7 @@ def ap_per_class(
 
 class Metric(SimpleClass):
     """
-    Class for computing evaluation metrics for YOLOv8 model.
+    Class for computing evaluation metrics for Ultralytics YOLO models.
 
     Attributes:
         p (list): Precision for each class. Shape: (nc,).

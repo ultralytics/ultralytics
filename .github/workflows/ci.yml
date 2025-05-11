@@ -329,9 +329,12 @@ jobs:
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
         run: |
-          uv pip install -e ".[export]" pytest "numpy==${{ matrix.numpy }}" \
+          uv pip install -e ".[export]" pytest \
           "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}" "${{ matrix.onnxruntime_whl }}" \
           --index-strategy unsafe-best-match
+
+          numpy="numpy==${{ matrix.numpy }}"
+          uv pip install $numpy
       - name: Check environment
         run: |
           yolo checks

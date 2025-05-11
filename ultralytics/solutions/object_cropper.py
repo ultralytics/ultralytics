@@ -71,9 +71,7 @@ class ObjectCropper(BaseSolution):
             im0, classes=self.classes, conf=self.conf, iou=self.iou, device=self.CFG["device"]
         )[0]
 
-        if getattr(results.obb )
         for box in results.boxes:
-        for box in results.obb.xyxyxyxy.reshape(-1, 4, 2).cpu().numpy():
             self.crop_idx += 1
             save_one_box(
                 box,

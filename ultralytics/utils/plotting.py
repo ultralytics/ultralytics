@@ -615,25 +615,17 @@ def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False,
         >>> im = cv2.imread("image.jpg")
         >>> cropped_im = save_one_box(xyxy, im, file="cropped.jpg", square=True)
     """
-    if not isinstance(xyxy, torch.Tensor):  # may be list
-        xyxy = torch.stack(xyxy)
     if is_obb:
-        polygon = xyxy.view(-1, 4, 2).cpu().numpy()[0].astype(np.float32)
-
-        # Perspective transform
-        (tl, tr, br, bl) = polygon
-        widthA = np.linalg.norm(br - bl)
-        widthB = np.linalg.norm(tr - tl)
-        heightA = np.linalg.norm(tr - br)
-        heightB = np.linalg.norm(tl - bl)
-
-        width = int(max(widthA, widthB))
-        height = int(max(heightA, heightB))
-
-        dst = np.array([[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]], dtype=np.float32)
-        M = cv2.getPerspectiveTransform(polygon, dst)
-        crop = cv2.warpPerspective(im, M, (width, height))
+        pts = xyxy.xyxyxyxy.cpu().reshape(4, 2)  # shape (4, 2)
+        s, d = pts.sum(1), np.diff(pts, axis=1).reshape(-1)  # Clockwise point ordering: tl, tr, br, bl
+        o = np.stack([pts[s.argmin()], pts[d.argmin()], pts[s.argmax()], pts[d.argmax()]])  # ordering
+        w = int(np.hypot(*(o[0] - o[1]) if np.sum((o[0] - o[1]) ** 2) > np.sum((o[2] - o[3]) ** 2) else (o[2] - o[3])))
+        h = int(np.hypot(*(o[0] - o[3]) if np.sum((o[0] - o[3]) ** 2) > np.sum((o[1] - o[2]) ** 2) else (o[1] - o[2])))
+        crop = cv2.warpPerspective(im, cv2.getPerspectiveTransform(o, np.array(  # Compute perspective matrix and warp
+            [[0, 0], [w - 1, 0], [w - 1, h - 1], [0, h - 1]], np.float32)), (w, h), flags=cv2.INTER_LINEAR)
     else:
+        if not isinstance(xyxy, torch.Tensor):  # may be list
+            xyxy = torch.stack(xyxy)
         b = ops.xyxy2xywh(xyxy.view(-1, 4))  # boxes
         if square:
             b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # attempt rectangle to square

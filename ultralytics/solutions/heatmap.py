@@ -104,7 +104,9 @@ class Heatmap(ObjectCounter):
                 prev_position = None
                 if len(self.track_history[track_id]) > 1:
                     prev_position = self.track_history[track_id][-2]
-                self.count_objects(self.track_history[track_id][-1], track_id, prev_position, cls)  # Perform object counting
+                self.count_objects(
+                    self.track_history[track_id][-1], track_id, prev_position, cls
+                )  # Perform object counting
 
         plot_im = self.annotator.result()
         if self.region is not None:

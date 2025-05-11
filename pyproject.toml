@@ -101,6 +101,10 @@ export = [
     "tensorflowjs>=2.0.0", # TF.js export, automatically installs tensorflow
     "tensorstore>=0.1.63; platform_machine == 'aarch64' and python_version >= '3.9'", # for TF Raspberry Pi exports
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
+    "onnx2tf>=1.27.0",  # Added to enable ONNX to TensorFlow/TFLite conversion (required for TFLite export)
+    "onnxruntime>=1.21.0",  # Added to resolve missing dependency errors during model export to TFLite
+    "onnx-graphsurgeon>=0.5.6"  # Added to fix graph modification issues when exporting to TFLite
+
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching

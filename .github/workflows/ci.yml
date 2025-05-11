@@ -329,7 +329,7 @@ jobs:
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
         run: |
-          uv pip install -e ".[export]" pytest "${{ matrix.numpy }}" \
+          uv pip install -e ".[export]" pytest "numpy==${{ matrix.numpy }}" \
           "${{ matrix.torch_whl }}" "${{ matrix.torchvision_whl }}" "${{ matrix.onnxruntime_whl }}" \
           --index-strategy unsafe-best-match
       - name: Check environment

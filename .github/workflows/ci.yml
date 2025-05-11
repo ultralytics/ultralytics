@@ -311,15 +311,15 @@ jobs:
             python: "3.10"
             runner: jetson-jp62
             numpy: "1.26.4"
-            torch_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.5.0a0+872d972e41.nv24.08-cp310-cp310-linux_aarch64.whl"
-            torchvision_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.20.0a0+afc54f7-cp310-cp310-linux_aarch64.whl"
+            torch_whl: "https://pypi.jetson-ai-lab.dev/jp6/cu126/+f/6ef/f643c0a7acda9/torch-2.7.0-cp310-cp310-linux_aarch64.whl#sha256=6eff643c0a7acda92734cc798338f733ff35c7df1a4434576f5ff7c66fc97319"
+            torchvision_whl: "https://pypi.jetson-ai-lab.dev/jp6/cu126/+f/daa/bff3a07259968/torchvision-0.22.0-cp310-cp310-linux_aarch64.whl#sha256=daabff3a0725996886b92e4b5dd143f5750ef4b181b5c7d01371a9185e8f0402"
             onnxruntime_whl: "https://pypi.jetson-ai-lab.dev/jp6/cu126/+f/869/e41abdc35e093/onnxruntime_gpu-1.22.0-cp310-cp310-linux_aarch64.whl#sha256=869e41abdc35e09345876f047fce49267d699df3e44b67c2518b0469739484ff"
           - name: JetPack5.1.2
             python: "3.8"
             runner: jetson-jp512
             numpy: "1.23.5"
-            torch_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.2.0-cp38-cp38-linux_aarch64.whl"
-            torchvision_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.17.2+c1d70fe-cp38-cp38-linux_aarch64.whl"
+            torch_whl: "https://pypi.jetson-ai-lab.dev/jp5/cu114/+f/4c1/d7a5d0ba92527/torch-2.2.0-cp38-cp38-linux_aarch64.whl#sha256=4c1d7a5d0ba92527c163ce9da74a2bdccce47541ef09a14d186e413a47337385"
+            torchvision_whl: "https://pypi.jetson-ai-lab.dev/jp5/cu114/+f/12c/2173bcd5255bd/torchvision-0.17.2+c1d70fe-cp38-cp38-linux_aarch64.whl#sha256=12c2173bcd5255bddad13047c573de24e0ce2ea47374c48ee8fb88466e021d2a"
             onnxruntime_whl: "https://pypi.jetson-ai-lab.dev/jp5/cu114/+f/ed5/8a16480d70d91/onnxruntime_gpu-1.16.3-cp38-cp38-linux_aarch64.whl#sha256=ed58a16480d70d917494de4d99ad7d6f0855a5241751aa67f477f2061875022e"
     steps:
       - uses: actions/checkout@v4

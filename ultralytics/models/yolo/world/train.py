@@ -1,14 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import itertools
-from collections import OrderedDict
-
+from pathlib import Path
 import torch
 
 from ultralytics.data import build_yolo_dataset
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import WorldModel
-from ultralytics.utils import DEFAULT_CFG, RANK, checks
+from ultralytics.utils import DEFAULT_CFG, RANK, checks, LOGGER
 from ultralytics.utils.torch_utils import de_parallel
 
 
@@ -18,10 +17,6 @@ def on_pretrain_routine_end(trainer):
         # Set class names for evaluation
         names = [name.split("/")[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
         de_parallel(trainer.ema.ema).set_classes(names, cache_clip_model=False)
-    device = next(trainer.model.parameters()).device
-    trainer.text_model, _ = trainer.clip.load("ViT-B/32", device=device)
-    for p in trainer.text_model.parameters():
-        p.requires_grad_(False)
 
 
 class WorldTrainer(yolo.detect.DetectionTrainer):
@@ -65,9 +60,7 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
             checks.check_requirements("git+https://github.com/ultralytics/CLIP.git")
             import clip
         self.clip = clip
-
-        self.text_feats = OrderedDict()
-        self.text_feats_num_limit = -1
+        self.text_embeddings = None
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """
@@ -108,64 +101,70 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
             (Dataset): YOLO dataset configured for training or validation.
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-        return build_yolo_dataset(
+        dataset = build_yolo_dataset(
             self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_modal=mode == "train"
         )
+        if mode == "train":
+            self.set_text_embeddings(
+                [dataset], batch
+            )  # cache text embeddings to accelerate training
+        return dataset
 
-    def get_text_feats(self, texts, device, dtype):
+    def set_text_embeddings(self, datasets, batch):
         """
-        Get and cache the features of texts.
+        Set text embeddings for datasets to accelerate training by caching category names.
+
+        This method collects unique category names from all datasets, then generates and caches text embeddings
+        for these categories to improve training efficiency.
 
         Args:
-            texts (list[str]): List of input texts, may contain duplicates.
-            device (torch.device): Target device for tensor operations (e.g., "cuda:0" or "cpu").
-            dtype (torch.dtype): Floating point type for feature tensors (e.g., torch.float32).
+            datasets (List[Dataset]): List of datasets from which to extract category names.
+            batch (int | None): Batch size used for processing.
+
+        Notes:
+            This method collects category names from datasets that have the 'category_names' attribute,
+            then uses the first dataset's image path to determine where to cache the generated text embeddings.
+        """
+        # TODO: open up an interface to determine whether to do cache
+        category_names = set()
+        for dataset in datasets:
+            if not hasattr(dataset, "category_names"):
+                continue
+            category_names |= dataset.category_names
+
+        # TODO: enable to update the path or use a more general way to get the path
+        img_path = datasets[0].img_path
+        self.text_embeddings = self.generate_text_embeddings(
+            list(category_names), batch, cache_path=Path(img_path).parent / "text_embeddings.pt"
+        )
+
+    def generate_text_embeddings(self, texts, batch, cache_path="embeddings.pt"):
+        """
+        Generate text embeddings for a list of text samples.
+
+        Args:
+            texts (List[str]): List of text samples to encode.
+            batch (int): Batch size for processing.
+            cache_path (str | Path): Path to save/load cached embeddings.
 
         Returns:
-            (torch.Tensor): Text features corresponding to the parameter 'texts'.
+            (dict): Dictionary mapping text samples to their embeddings.
         """
-        seen = set()
-        new_texts = [text for text in texts if not (text in seen or seen.add(text)) and text not in self.text_feats]
-
-        if new_texts:
-            new_tokens = self.clip.tokenize(new_texts).to(device)
-            new_feats = self.text_model.encode_text(new_tokens).to(dtype=dtype)
-            # The new feature will be automatically placed at the end of the dict.
-            self.text_feats.update(zip(new_texts, new_feats))
-
-        features = []
-        for text in texts:
-            # Move the features used to the end.
-            feat = self.text_feats[text]
-            self.text_feats.move_to_end(text)
-            features.append(feat)
-
-        # Cache management(LRU)
-        if self.text_feats_num_limit > 0:
-            while len(self.text_feats) > self.text_feats_num_limit:
-                # Retrieve the oldest unused features from the dict header.
-                oldest_key = next(iter(self.text_feats))
-                del self.text_feats[oldest_key]
-
-        return torch.stack(features, dim=0)
-
-    def set_cache_limit(self, num_limit: int):
-        """
-        Set a limit on the number of text feature caches.
-
-        There is no upper limit when the upper limit of quantity is less than 0 (default is -1).
-
-        Args:
-            num_limit (int): Cache quantity limit, each cache will occupy about 2KB memory.
-
-        Examples:
-        >>> from ultralytics.models.yolo.world import WorldModel
-        >>> args = dict(model="yolov8s-world.pt", data="coco8.yaml", epochs=3)
-        >>> trainer = WorldTrainer(overrides=args)
-        >>> trainer.enable_cache_limit(40960)  # Up to approximately 80MB of memory will be occupied.
-        >>> trainer.train()
-        """
-        self.text_feats_num_limit = num_limit
+        if cache_path.exists():
+            LOGGER.info(f"Reading existed cache from '{cache_path}'")
+            return torch.load(cache_path)
+        assert self.model is not None
+        device = next(self.model.parameters()).device
+        text_model, _ = self.clip.load("ViT-B/32", device=device)
+        for p in text_model.parameters():
+            p.requires_grad_(False)
+        txt_tokens = self.clip.tokenize(texts).to(self.device)
+        txt_feats = [text_model.encode_text(token).detach() for token in txt_tokens.split(batch)]
+        txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)
+        txt_feats = txt_feats.reshape(-1, len(texts), txt_feats.shape[-1])
+        txt_map = dict(zip(texts, txt_feats.squeeze(0)))
+        torch.save(txt_map, cache_path)
+        return txt_map
 
     def preprocess_batch(self, batch):
         """Preprocess a batch of images and text for YOLOWorld training."""
@@ -173,7 +172,7 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
 
         # Add text features
         texts = list(itertools.chain(*batch["texts"]))
-        txt_feats = self.get_text_feats(texts, device=batch["img"].device, dtype=batch["img"].dtype)
+        txt_feats = torch.stack([self.text_embeddings[text] for text in texts]).to(self.device)
         txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
         batch["txt_feats"] = txt_feats.reshape(len(batch["texts"]), -1, txt_feats.shape[-1])
         return batch

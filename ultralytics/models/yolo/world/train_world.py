@@ -100,7 +100,12 @@ class WorldTrainerFromScratch(WorldTrainer):
             else build_grounding(self.args, im_path["img_path"], im_path["json_file"], batch, stride=gs)
             for im_path in img_path
         ]
-        return YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
+        datasets = YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
+        if mode == "train":
+            self.set_text_embeddings(
+                datasets.datasets if hasattr(datasets, "datasets") else [datasets], batch
+            )  # cache text embeddings to accelerate training
+        return datasets
 
     def get_dataset(self):
         """

@@ -89,11 +89,12 @@ from ultralytics.utils import (
     MACOS_VERSION,
     RKNN_CHIPS,
     ROOT,
+    SETTINGS,
     WINDOWS,
     YAML,
     callbacks,
     colorstr,
-    get_default_args, SETTINGS,
+    get_default_args,
 )
 from ultralytics.utils.checks import (
     check_imgsz,
@@ -106,7 +107,7 @@ from ultralytics.utils.downloads import attempt_download_asset, get_github_asset
 from ultralytics.utils.export import export_engine, export_onnx
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile, nms_rotated
-from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device, get_cpu_info
+from ultralytics.utils.torch_utils import TORCH_1_13, get_cpu_info, get_latest_opset, select_device
 
 
 def export_formats():

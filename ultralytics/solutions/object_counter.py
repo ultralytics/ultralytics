@@ -174,6 +174,10 @@ class ObjectCounter(BaseSolution):
         self.extract_tracks(im0)  # Extract tracks
         self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
+        is_obb = getattr(self.tracks[0], "obb", None) is not None  # True if OBB results exist
+        if is_obb:
+            self.boxes = self.track_data.xyxyxyxy.reshape(-1, 4, 2).cpu()
+
         self.annotator.draw_region(
             reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2
         )  # Draw region
@@ -181,16 +185,17 @@ class ObjectCounter(BaseSolution):
         # Iterate over bounding boxes, track ids and classes index
         for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
             # Draw bounding box and counting region
-            self.annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(cls, True))
-            self.store_tracking_history(track_id, box)  # Store track history
+            self.annotator.box_label(
+                box, label=self.adjust_box_label(cls, conf, track_id), color=colors(cls, True), rotated=is_obb
+            )
+            self.store_tracking_history(track_id, box, is_obb=is_obb)  # Store track history
             self.store_classwise_counts(cls)  # Store classwise counts in dict
 
-            current_centroid = ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2)
             # Store previous position of track for object counting
             prev_position = None
             if len(self.track_history[track_id]) > 1:
                 prev_position = self.track_history[track_id][-2]
-            self.count_objects(current_centroid, track_id, prev_position, cls)  # Perform object counting
+            self.count_objects(self.track_history[track_id][-1], track_id, prev_position, cls)  # object counting
 
         plot_im = self.annotator.result()
         self.display_counts(plot_im)  # Display the counts on the frame

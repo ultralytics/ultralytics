@@ -241,7 +241,7 @@ class AutoAnnotator:
                     labels = result.get("labels") or []
 
                 if not bboxes or not labels:
-                    LOGGER.warning(f"⚠️ No output for image: {img_name}")
+                    LOGGER.warning(f"No output for image: {img_name}")
                     continue
 
                 lines = []

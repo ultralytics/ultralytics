@@ -300,6 +300,7 @@ class LoadImagesAndVideos:
         frames (int): Total number of frames in the video.
         count (int): Counter for iteration, initialized at 0 during __iter__().
         ni (int): Number of images.
+        cv2_flag (int): OpenCV flag for image reading (grayscale or RGB).
 
     Methods:
         __init__: Initialize the LoadImagesAndVideos object.
@@ -320,7 +321,7 @@ class LoadImagesAndVideos:
         - Can read from a text file containing paths to images and videos.
     """
 
-    def __init__(self, path, batch=1, vid_stride=1):
+    def __init__(self, path, batch=1, vid_stride=1, channels=3):
         """Initialize dataloader for images and videos, supporting various input formats."""
         parent = None
         if isinstance(path, str) and Path(path).suffix == ".txt":  # *.txt file with img/vid/dir on each line
@@ -357,6 +358,7 @@ class LoadImagesAndVideos:
         self.mode = "video" if ni == 0 else "image"  # default to video if no images
         self.vid_stride = vid_stride  # video frame-rate stride
         self.bs = batch
+        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or RGB
         if any(videos):
             self._new_video(videos[0])  # new video
         else:
@@ -421,7 +423,7 @@ class LoadImagesAndVideos:
                     with Image.open(path) as img:
                         im0 = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)  # convert image to BGR nparray
                 else:
-                    im0 = imread(path)  # BGR
+                    im0 = imread(path, flags=self.cv2_flag)  # BGR
                 if im0 is None:
                     LOGGER.warning(f"Image Read Error {path}")
                 else:
@@ -475,24 +477,25 @@ class LoadPilAndNumpy:
         Loaded 2 images
     """
 
-    def __init__(self, im0):
+    def __init__(self, im0, channels=3):
         """Initializes a loader for PIL and Numpy images, converting inputs to a standardized format."""
         if not isinstance(im0, list):
             im0 = [im0]
         # use `image{i}.jpg` when Image.filename returns an empty path.
         self.paths = [getattr(im, "filename", "") or f"image{i}.jpg" for i, im in enumerate(im0)]
-        self.im0 = [self._single_check(im) for im in im0]
+        pil_flag = "L" if channels == 1 else "RGB"  # grayscale or RGB
+        self.im0 = [self._single_check(im, pil_flag) for im in im0]
         self.mode = "image"
         self.bs = len(self.im0)
 
     @staticmethod
-    def _single_check(im):
+    def _single_check(im, flag="RGB"):
         """Validate and format an image to numpy array, ensuring RGB order and contiguous memory."""
         assert isinstance(im, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(im)}"
         if isinstance(im, Image.Image):
-            if im.mode != "RGB":
-                im = im.convert("RGB")
-            im = np.asarray(im)[:, :, ::-1]  # RGB to BGR
+            im = np.asarray(im.convert(flag))
+            # adding new axis if it's grayscale, and converting to BGR if it's RGB
+            im = im[..., None] if flag == "L" else im[..., ::-1]
             im = np.ascontiguousarray(im)  # contiguous
         return im
 

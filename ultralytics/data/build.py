@@ -221,7 +221,7 @@ def check_source(source):
     return source, webcam, screenshot, from_img, in_memory, tensor
 
 
-def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False):
+def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False, channels=3):
     """
     Load an inference source for object detection and apply necessary transformations.
 
@@ -230,6 +230,7 @@ def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False):
         batch (int, optional): Batch size for dataloaders.
         vid_stride (int, optional): The frame interval for video sources.
         buffer (bool, optional): Whether stream frames will be buffered.
+        channels (int): The number of input channels for the model.
 
     Returns:
         (Dataset): A dataset object for the specified input source with attached source_type attribute.
@@ -247,9 +248,9 @@ def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False):
     elif screenshot:
         dataset = LoadScreenshots(source)
     elif from_img:
-        dataset = LoadPilAndNumpy(source)
+        dataset = LoadPilAndNumpy(source, channels=channels)
     else:
-        dataset = LoadImagesAndVideos(source, batch=batch, vid_stride=vid_stride)
+        dataset = LoadImagesAndVideos(source, batch=batch, vid_stride=vid_stride, channels=channels)
 
     # Attach source types to the dataset
     setattr(dataset, "source_type", source_type)

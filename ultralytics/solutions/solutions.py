@@ -148,7 +148,7 @@ class BaseSolution:
             self.LOGGER.warning("no tracks found!")
             self.boxes, self.clss, self.track_ids, self.confs = [], [], [], []
 
-    def store_tracking_history(self, track_id, box):
+    def store_tracking_history(self, track_id, box, is_obb=False):
         """
         Stores the tracking history of an object.
 
@@ -158,6 +158,7 @@ class BaseSolution:
         Args:
             track_id (int): The unique identifier for the tracked object.
             box (List[float]): The bounding box coordinates of the object in the format [x1, y1, x2, y2].
+            is_obb (bool): True if OBB model is used (applies to object counting only).
 
         Examples:
             >>> solution = BaseSolution()
@@ -165,7 +166,7 @@ class BaseSolution:
         """
         # Store tracking history
         self.track_line = self.track_history[track_id]
-        self.track_line.append(((box[0] + box[2]) / 2, (box[1] + box[3]) / 2))
+        self.track_line.append(tuple(box.mean(dim=0)) if is_obb else (box[:4:2].mean(), box[1:4:2].mean()))
         if len(self.track_line) > 30:
             self.track_line.pop(0)
 

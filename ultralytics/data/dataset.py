@@ -39,7 +39,7 @@ from .utils import (
     verify_image_label,
 )
 
-# Ultralytics dataset *.cache version, >= 1.0.0 for YOLOv8
+# Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
 DATASET_CACHE_VERSION = "1.0.3"
 
 

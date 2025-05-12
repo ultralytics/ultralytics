@@ -665,7 +665,7 @@ def ap_per_class(
 
 class Metric(SimpleClass):
     """
-    Class for computing evaluation metrics for YOLOv8 model.
+    Class for computing evaluation metrics for Ultralytics YOLO models.
 
     Attributes:
         p (list): Precision for each class. Shape: (nc,).
@@ -788,7 +788,7 @@ class Metric(SimpleClass):
     def fitness(self):
         """Return model fitness as a weighted combination of metrics."""
         w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
-        return (np.array(self.mean_results()) * w).sum()
+        return (np.nan_to_num(np.array(self.mean_results())) * w).sum()
 
     def update(self, results):
         """

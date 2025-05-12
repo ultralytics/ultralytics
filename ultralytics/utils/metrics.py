@@ -452,8 +452,15 @@ class ConfusionMatrix:
                         if not np.isnan(val):
                             r, g, b, _ = cmap(norm(val))  # Get color from actual colormap scale
                             luminance = 0.299 * r + 0.587 * g + 0.114 * b  # perceived brightness
-                            ax.text(j, i, f"{val:.2f}" if normalize else f"{int(val)}", ha='center', va='center',
-                                    fontsize=10, color="white" if luminance < 0.5 else "black")
+                            ax.text(
+                                j,
+                                i,
+                                f"{val:.2f}" if normalize else f"{int(val)}",
+                                ha="center",
+                                va="center",
+                                fontsize=10,
+                                color="white" if luminance < 0.5 else "black",
+                            )
             cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.05)
         for spine in cbar.ax.spines.values():
             spine.set_visible(False)

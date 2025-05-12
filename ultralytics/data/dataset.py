@@ -185,7 +185,7 @@ class YOLODataset(BaseDataset):
         labels = cache["labels"]
         self.im_files = [lb["im_file"] for lb in labels]  # update im_files
         if not labels:
-            LOGGER.warning(f"No images found in {cache_path}, training may not work correctly. {HELP_URL}")
+            raise RuntimeError(f"No valid images found in {cache_path}. Images with incorrectly formatted labels are ignored. {HELP_URL}")
             return labels
 
         # Check if the dataset is all boxes or all segments
@@ -199,6 +199,8 @@ class YOLODataset(BaseDataset):
             )
             for lb in labels:
                 lb["segments"] = []
+        if len_cls == 0: 
+             LOGGER.warning(f"Labels are missing or empty in {cache_path}, training may not work correctly. {HELP_URL}")
         return labels
 
     def build_transforms(self, hyp=None):

@@ -81,7 +81,7 @@ class AutoAnnotator:
     It supports both YOLO-based and Florence2-based annotation pipelines, including visual output.
 
     Attributes:
-        Y0LO_MODEL (bool): Flag indicating if the annotation uses a YOLO model.
+        YOLO_MODEL (bool): Flag indicating if the annotation uses a YOLO model.
         model (YOLO | Florence2): Loaded model instance for annotation.
         processor (Florence2Processor): Used only for Florence2-based annotation.
         names (dict): Class names for YOLO-based models.
@@ -104,7 +104,7 @@ class AutoAnnotator:
         self.YOLO_MODEL = True  # Assume YOLO by default
 
         if model is None:
-            LOGGER.warning("⚠️ No model provided. Using default: yolo11n.pt")
+            LOGGER.warning("No model provided. Using default: yolo11n.pt")
             self.model = "yolo11n.pt"
         else:
             model_str = str(model).casefold()
@@ -116,8 +116,8 @@ class AutoAnnotator:
                 self.YOLO_MODEL = False
             else:
                 LOGGER.warning(
-                    f"⚠️ Unsupported model '{model}'. Using default: yolo11n.pt.\n"
-                    f"✅ Supported models:\n"
+                    f"Unsupported model '{model}'. Using default: yolo11n.pt.\n"
+                    f"Supported models:\n"
                     f"   - YOLO: yolov8n.pt, yolov11n.pt, yolov10.pt, yolo11n.pt, yolo12n.pt\n"
                     f"   - Florence2: florence2"
                 )
@@ -158,9 +158,9 @@ class AutoAnnotator:
             with open(output_dir / "classes.txt", "w", encoding="utf-8") as f:
                 for label, idx in sorted(label_map.items(), key=lambda x: x[1]):
                     f.write(f"{label}\n")
-            LOGGER.info(f"✅ Saved class names to {output_dir / 'classes.txt'}")
+            LOGGER.info(f"Saved class names to {output_dir / 'classes.txt'}")
         except Exception as e:
-            LOGGER.error(f"❌ Failed to save classes.txt: {e}")
+            LOGGER.error(f"Failed to save classes.txt: {e}")
 
     def annotate(
         self,
@@ -197,12 +197,12 @@ class AutoAnnotator:
         start = time.time()
 
         if source is None:
-            LOGGER.warning("⚠️ 'source' argument is missing. Using default source.")
+            LOGGER.warning("'source' argument is missing. Using default source.")
             source = ASSETS
 
         dataset = LoadImagesAndVideos(path=str(source))
         if not dataset:
-            LOGGER.warning("⚠️ No images or videos found in the source.")
+            LOGGER.warning("No images or videos found in the source.")
             return
 
         output_dir = Path(output_dir)
@@ -268,9 +268,9 @@ class AutoAnnotator:
                     if classes:
                         missing = set(classes) - found_labels
                         msg = f"Missing classes: {sorted(missing)}" if missing else "All boxes skipped."
-                        LOGGER.warning(f"⚠️ Skipping image {img_name}. {msg}")
+                        LOGGER.warning(f"Skipping image {img_name}. {msg}")
                     else:
-                        LOGGER.warning(f"⚠️ All boxes skipped for: {img_name}")
+                        LOGGER.warning(f"All boxes skipped for: {img_name}")
                     continue
 
                 if save:
@@ -282,15 +282,15 @@ class AutoAnnotator:
                 processed += 1
 
             except Exception as e:
-                LOGGER.error(f"❌ Error processing {path}: {e}", exc_info=True)
+                LOGGER.error(f"Error processing {path}: {e}", exc_info=True)
 
         if save and label_map:
             self.create_classes_txt(output_dir, label_map)
 
         if processed:
-            LOGGER.info(f"✅ Annotated {processed} image(s) in {time.time() - start:.2f} seconds.")
+            LOGGER.info(f"Annotated {processed} image(s) in {time.time() - start:.2f} seconds.")
         else:
-            LOGGER.warning("⚠️ No images were successfully annotated.")
+            LOGGER.warning("No images were successfully annotated.")
 
 
 class Florence2:
@@ -327,7 +327,7 @@ class Florence2:
 
         if variant not in supported_variants:
             LOGGER.warning(
-                f"⚠️ Invalid variant '{variant}' provided. Falling back to 'base'. "
+                f"Invalid variant '{variant}' provided. Falling back to 'base'. "
                 f"Supported variants: {supported_variants}"
             )
 
@@ -354,7 +354,7 @@ class Florence2:
 
         logging.set_verbosity_error()  # Minimize Hugging Face logs
 
-        LOGGER.info(f"💡 Initializing Florence2-{self.variant} on {str(self.device).upper()}")
+        LOGGER.info(f"Initializing Florence2-{self.variant} on {str(self.device).upper()}")
 
         self.model = AutoModelForCausalLM.from_pretrained(
             self.mid,

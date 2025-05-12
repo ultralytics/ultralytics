@@ -283,8 +283,6 @@ jobs:
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-pose.pt' imgsz=160 verbose=0.197
       - name: Benchmark OBBModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-obb.pt' imgsz=160 verbose=0.597
-      - name: Benchmark YOLOv10Model
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolov10n.pt' imgsz=160 verbose=0.205
       - name: Benchmark Summary
         run: |
           cat benchmarks.log

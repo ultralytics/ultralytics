@@ -284,8 +284,9 @@ class BaseModel(torch.nn.Module):
         updated_csd = intersect_dicts(csd, self.state_dict())  # intersect
         self.load_state_dict(updated_csd, strict=False)  # load
         len_updated_csd = len(updated_csd)
-        first_conv = "model.0.conv.weight"
-        if first_conv not in updated_csd:  # mostly used to boost multi-channel training
+        first_conv = "model.0.conv.weight"  # hard-coded to yolo models for now
+        # mostly used to boost multi-channel training
+        if first_conv not in updated_csd and first_conv in self.state_dict():
             c1, c2, h, w = self.state_dict()[first_conv].shape
             cc1, cc2, ch, cw = csd[first_conv].shape
             if ch == h and cw == w:

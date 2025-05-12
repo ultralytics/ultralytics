@@ -422,6 +422,7 @@ class ConfusionMatrix:
         array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)  # normalize columns
         array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
 
+        norm, cmap = plt.Normalize(vmin=0.0, vmax=np.nanmax(array)), plt.get_cmap("Blues")
         fig, ax = plt.subplots(1, 1, figsize=(12, 9))
         nc, nn = self.nc, len(names)  # number of classes, names
         labels = (0 < nn < 99) and (nn == nc)  # apply names to ticklabels
@@ -444,14 +445,15 @@ class ConfusionMatrix:
             ax.set_title(title, fontsize=title_fontsize, pad=20)
             ax.set_xlabel("True", fontsize=label_fontsize, labelpad=10)
             ax.set_ylabel("Predicted", fontsize=label_fontsize, labelpad=10)
-            if nc < 30:  # Add text label inside confusion matrix cells (optional)
+            if nc < 30:
                 for i in range(nc):
                     for j in range(nc):
                         val = array[i, j]
                         if not np.isnan(val):
-                            brightness = array[i, j]  # use normalized value directly as proxy for brightness
+                            r, g, b, _ = cmap(norm(val))  # Get color from actual colormap scale
+                            luminance = 0.299 * r + 0.587 * g + 0.114 * b  # perceived brightness
                             ax.text(j, i, f"{val:.2f}" if normalize else f"{int(val)}", ha='center', va='center',
-                                    fontsize=10, color="white" if brightness > 0.4 else "black")
+                                    fontsize=10, color="white" if luminance < 0.5 else "black")
             cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.05)
         for spine in cbar.ax.spines.values():
             spine.set_visible(False)

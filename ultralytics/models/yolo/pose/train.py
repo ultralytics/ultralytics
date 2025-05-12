@@ -137,3 +137,18 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
     def plot_metrics(self):
         """Plots training/val metrics."""
         plot_results(file=self.csv, pose=True, on_plot=self.on_plot)  # save results.png
+
+    def get_dataset(self):
+        """
+        Retrieves the dataset and ensures it contains the required `kpt_shape` key.
+
+        Returns:
+            (dict): A dictionary containing the training/validation/test dataset and category names.
+
+        Raises:
+            KeyError: If the `kpt_shape` key is not present in the dataset.
+        """
+        data = super().get_dataset()
+        if "kpt_shape" not in data:
+            raise KeyError(f"No `kpt_shape` in the {self.args.data}. See https://docs.ultralytics.com/datasets/pose/")
+        return data

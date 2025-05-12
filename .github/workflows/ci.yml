@@ -367,7 +367,7 @@ jobs:
     steps:
       - name: Check for failure and notify
         if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
-        uses: slackapi/slack-github-action@v2.0.0
+        uses: slackapi/slack-github-action@v2.1.0
         with:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}

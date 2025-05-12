@@ -1139,8 +1139,11 @@ def set_sentry():
         """
         if "exc_info" in hint:
             exc_type, exc_value, _ = hint["exc_info"]
-            handled_str = re.compile(r"\x1B\[[0-9;]*[A-Za-z]|❌|out of memory")
-            if exc_type is SyntaxError or handled_str.search(str(exc_value).lower()):
+            frame = event["exception"]["values"][0]["stacktrace"]["frames"][-1]
+            fname, line = frame["filename"], frame["context_line"]
+
+            # determine whether manually raised
+            if "ultralytics" in fname and ("raise" in line or "assert" in line):
                 event["exception"]["values"][0]["mechanism"]["handled"] = True  # mark as handled
 
         event["tags"] = {
@@ -1159,7 +1162,7 @@ def set_sentry():
         release=__version__,
         environment="runpod" if is_runpod() else "production",
         before_send=before_send,
-        ignore_errors=[KeyboardInterrupt, FileNotFoundError],
+        ignore_errors=[KeyboardInterrupt, FileNotFoundError, torch.OutOfMemoryError],
     )
     sentry_sdk.set_user({"id": SETTINGS["uuid"]})  # SHA-256 anonymized UUID hash
 

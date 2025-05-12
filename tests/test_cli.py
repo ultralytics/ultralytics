@@ -61,6 +61,7 @@ def test_rtdetr(task: str = "detect", model: str = "yolov8n-rtdetr.yaml", data: 
     if TORCH_1_9:
         weights = WEIGHTS_DIR / "rtdetr-l.pt"
         run(f"yolo predict {task} model={weights} source={ASSETS / 'bus.jpg'} imgsz=160 save save_crop save_txt")
+        run(f"yolo train {task} model={weights} epochs=1 imgsz=160 cache=disk data=coco8.yaml")
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="MobileSAM with CLIP is not supported in Python 3.12")

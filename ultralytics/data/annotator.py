@@ -235,7 +235,6 @@ class AutoAnnotator:
                     bboxes = result.get("bboxes", [])
                     labels = result.get("labels", [])
 
-
                 if not bboxes or not labels:
                     LOGGER.warning(f"No bounding box or label found in the image: {img_name}")
                     continue

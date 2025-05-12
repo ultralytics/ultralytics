@@ -227,7 +227,7 @@ class AutoAnnotator:
                 im0 = im0[0] if isinstance(im0, (list, tuple)) else im0
 
                 if im0 is None:
-                    LOGGER.warning(f"⚠️ Could not read image: {img_path}")
+                    LOGGER.warning(f"Could not read image: {img_path}")
                     continue
 
                 h, w = im0.shape[:2]

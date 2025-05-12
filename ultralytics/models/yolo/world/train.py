@@ -2,12 +2,13 @@
 
 import itertools
 from pathlib import Path
+
 import torch
 
 from ultralytics.data import build_yolo_dataset
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import WorldModel
-from ultralytics.utils import DEFAULT_CFG, RANK, checks, LOGGER
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, checks
 from ultralytics.utils.torch_utils import de_parallel
 
 
@@ -105,9 +106,7 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
             self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_modal=mode == "train"
         )
         if mode == "train":
-            self.set_text_embeddings(
-                [dataset], batch
-            )  # cache text embeddings to accelerate training
+            self.set_text_embeddings([dataset], batch)  # cache text embeddings to accelerate training
         return dataset
 
     def set_text_embeddings(self, datasets, batch):

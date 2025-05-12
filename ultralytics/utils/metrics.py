@@ -450,8 +450,15 @@ class ConfusionMatrix:
                         val = array[i, j]
                         if not np.isnan(val):
                             brightness = array[i, j]  # use normalized value directly as proxy for brightness
-                            ax.text(j, i, f"{val:.2f}" if normalize else f"{int(val)}", ha='center', va='center',
-                                    fontsize=10, color="white" if brightness > 0.4 else "black")
+                            ax.text(
+                                j,
+                                i,
+                                f"{val:.2f}" if normalize else f"{int(val)}",
+                                ha="center",
+                                va="center",
+                                fontsize=10,
+                                color="white" if brightness > 0.4 else "black",
+                            )
             cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.05)
         for spine in cbar.ax.spines.values():
             spine.set_visible(False)

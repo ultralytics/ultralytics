@@ -551,6 +551,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
 
     try:  # Seaborn correlogram
         import seaborn
+
         seaborn.pairplot(x, corner=True, diag_kind="auto", kind="hist", diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
         plt.savefig(save_dir / "labels_correlogram.jpg", dpi=200)
         plt.close()

@@ -1313,6 +1313,7 @@ class SettingsManager(JSONDict):
             "tensorboard": False,  # TensorBoard logging
             "wandb": False,  # Weights & Biases logging
             "vscode_msg": True,  # VSCode messaging
+            "openvino_msg": True,  # OpenVINO model serving
         }
 
         self.help_msg = (

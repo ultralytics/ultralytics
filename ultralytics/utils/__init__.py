@@ -1139,9 +1139,9 @@ def set_sentry():
         """
         if "exc_info" in hint:
             exc_type, exc_value, _ = hint["exc_info"]
-            ignore_str = re.compile(r"\x1B\[[0-9;]*[A-Za-z]|❌|out of memory")
-            if ignore_str.search(str(exc_value).lower()):
-                return None  # do not send event
+            handled_str = re.compile(r"\x1B\[[0-9;]*[A-Za-z]|❌|out of memory")
+            if exc_type is SyntaxError or handled_str.search(str(exc_value).lower()):
+                event["exception"]["values"][0]["mechanism"]["handled"] = True  # mark as handled
 
         event["tags"] = {
             "sys_argv": ARGV[0],
@@ -1159,7 +1159,7 @@ def set_sentry():
         release=__version__,
         environment="runpod" if is_runpod() else "production",
         before_send=before_send,
-        ignore_errors=[KeyboardInterrupt, FileNotFoundError, SyntaxError],
+        ignore_errors=[KeyboardInterrupt, FileNotFoundError],
     )
     sentry_sdk.set_user({"id": SETTINGS["uuid"]})  # SHA-256 anonymized UUID hash
 

@@ -659,7 +659,7 @@ class DEIMLoss(nn.Module):
 
         target_corners, weight_right, weight_left = self.fgl_targets_dn if "is_dn" in outputs else self.fgl_targets
 
-        ious = bbox_iou(outputs["pred_boxes"][pred_idx], gt_boxes, CIoU=True).clamp_(0)
+        ious = bbox_iou(outputs["pred_boxes"][pred_idx], gt_boxes).clamp_(0)
         weight_targets = ious.repeat(1, 4).reshape(-1).detach()
 
         losses["loss_fgl"] = self.unimodal_distribution_focal_loss(

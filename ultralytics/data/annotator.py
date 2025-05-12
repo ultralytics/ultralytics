@@ -1,9 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import time
 from pathlib import Path
 from typing import List, Optional, Union
 
-import time
 import torch
 
 from ultralytics import SAM, YOLO

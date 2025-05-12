@@ -1312,8 +1312,8 @@ class SettingsManager(JSONDict):
             "raytune": True,  # Ray Tune integration
             "tensorboard": False,  # TensorBoard logging
             "wandb": False,  # Weights & Biases logging
-            "vscode_msg": True,  # VSCode messaging
-            "openvino_msg": True,  # OpenVINO model serving
+            "vscode_msg": True,  # VSCode message
+            "openvino_msg": True,  # OpenVINO export on Intel CPU message
         }
 
         self.help_msg = (

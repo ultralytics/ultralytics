@@ -537,7 +537,6 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
     import pandas
-    import seaborn
     from matplotlib.colors import LinearSegmentedColormap
 
     # Filter matplotlib>=3.7.2 warning
@@ -550,10 +549,13 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     boxes = boxes[:1000000]  # limit to 1M boxes
     x = pandas.DataFrame(boxes, columns=["x", "y", "width", "height"])
 
-    # Seaborn correlogram
-    seaborn.pairplot(x, corner=True, diag_kind="auto", kind="hist", diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
-    plt.savefig(save_dir / "labels_correlogram.jpg", dpi=200)
-    plt.close()
+    try:  # Seaborn correlogram
+        import seaborn
+        seaborn.pairplot(x, corner=True, diag_kind="auto", kind="hist", diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
+        plt.savefig(save_dir / "labels_correlogram.jpg", dpi=200)
+        plt.close()
+    except ImportError:
+        pass  # Skip if seaborn is not installed
 
     # Matplotlib labels
     subplot_3_4_color = LinearSegmentedColormap.from_list("white_blue", ["white", "blue"])

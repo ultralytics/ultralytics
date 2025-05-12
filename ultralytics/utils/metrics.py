@@ -444,6 +444,14 @@ class ConfusionMatrix:
             ax.set_title(title, fontsize=title_fontsize, pad=20)
             ax.set_xlabel("True", fontsize=label_fontsize, labelpad=10)
             ax.set_ylabel("Predicted", fontsize=label_fontsize, labelpad=10)
+            if nc < 30:  # Add text label inside confusion matrix cells (optional)
+                for i in range(nc):
+                    for j in range(nc):
+                        val = array[i, j]
+                        if not np.isnan(val):
+                            brightness = array[i, j]  # use normalized value directly as proxy for brightness
+                            ax.text(j, i, f"{val:.2f}" if normalize else f"{int(val)}", ha='center', va='center',
+                                    fontsize=10, color="white" if brightness > 0.4 else "black")
             cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.05)
         for spine in cbar.ax.spines.values():
             spine.set_visible(False)

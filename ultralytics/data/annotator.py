@@ -3,11 +3,12 @@
 from pathlib import Path
 from typing import List, Optional, Union
 
+import time
 import torch
 
 from ultralytics import SAM, YOLO
 from ultralytics.data.loaders import LoadImagesAndVideos
-from ultralytics.utils import ASSETS, LOGGER
+from ultralytics.utils import ASSETS, LOGGER, TQDM
 from ultralytics.utils.ops import xyxy2xywhn
 from ultralytics.utils.plotting import Annotator, colors
 from ultralytics.utils.torch_utils import select_device
@@ -101,11 +102,10 @@ class AutoAnnotator:
             device (str): Device to use for inference (e.g., 'cpu', 'cuda:0').
             variant (str): Florence2 model variant if using Florence2 (e.g., "base", "large-ft").
         """
-        self.YOLO_MODEL = True  # Assume YOLO by default
-
         if model is None:
             LOGGER.warning("No model provided. Using default: yolo11n.pt")
             self.model = "yolo11n.pt"
+            self.yolo_model = True
         else:
             model_str = str(model).casefold()
 
@@ -113,7 +113,7 @@ class AutoAnnotator:
                 self.model = YOLO(model)
             elif model_str in ("florence2.pt", "florence2"):
                 self.model = Florence2(device=device, variant=variant)
-                self.YOLO_MODEL = False
+                self.yolo_model = False
             else:
                 LOGGER.warning(
                     f"Unsupported model '{model}'. Using default: yolo11n.pt.\n"
@@ -122,7 +122,7 @@ class AutoAnnotator:
                     f"   - Florence2: florence2"
                 )
                 self.model = YOLO("yolo11n.pt")
-
+                self.yolo_model = True
         if self.YOLO_MODEL:
             self.names = self.model.names
 
@@ -186,74 +186,68 @@ class AutoAnnotator:
             save_visuals (bool): Whether to save annotated visual images.
             visuals_output_dir (str): Directory to save annotated visual output.
         """
-        import time
-        from pathlib import Path
+        output_dir = Path(output_dir)
 
-        from tqdm import tqdm
+        if save_visuals:  # Create the output visuals directory
+            import cv2  # scope for fast speed
 
-        if save_visuals:
-            import cv2
+            visuals_output_dir = Path(visuals_output_dir or output_dir.parent / f"{output_dir.name}_visuals")
+            visuals_output_dir.mkdir(parents=True, exist_ok=True)
 
-        start = time.time()
+        if save:  # Create the output directory for annotation file storage
+            output_dir.mkdir(parents=True, exist_ok=True)
 
-        if source is None:
-            LOGGER.warning("'source' argument is missing. Using default source.")
+        if source is None:  # Check if source provided
+            LOGGER.warning("'source' argument is missing, using default source.")
             source = ASSETS
 
         dataset = LoadImagesAndVideos(path=str(source))
-        if not dataset:
-            LOGGER.warning("No images or videos found in the source.")
-            return
 
-        output_dir = Path(output_dir)
-        visuals_output_dir = Path(visuals_output_dir or output_dir.parent / f"{output_dir.name}_visuals")
+        label_map, processed = {}, 0
 
-        if save:
-            output_dir.mkdir(parents=True, exist_ok=True)
-        if save_visuals:
-            visuals_output_dir.mkdir(parents=True, exist_ok=True)
+        if self.yolo_model:
+            class_set = set(classes)  # Conversion to set for faster iteration
+            classes = [i for i, name in self.names.items() if name in class_set]
 
-        label_map = {}
-        processed = 0
-        is_yolo = self.YOLO_MODEL
-
-        if is_yolo:
-            classes = [i for i, name in self.names.items() if name in classes]
-
-        for path, im0, _ in tqdm(dataset, desc="Annotating Images"):
+        start = time.time()
+        for path, im0, _ in TQDM(dataset):
             try:
+                # Normalize inputs
                 img_path = path[0] if isinstance(path, (list, tuple)) else path
                 img_name = Path(img_path).stem
                 im0 = im0[0] if isinstance(im0, (list, tuple)) else im0
-
-                if im0 is None:
-                    LOGGER.warning(f"Could not read image: {img_path}")
-                    continue
-
                 h, w = im0.shape[:2]
-                if is_yolo:
+
+                if save_visuals:  # Only initialize annotator, if save_visuals is True
+                    annotator = Annotator(im0)
+
+                # if im0 is None:
+                #     LOGGER.warning(f"Could not read image: {img_path}")
+                #     continue
+
+                # Run inference using either YOLO or a custom model
+                if self.yolo_model:
                     result = self.model.predict(im0, classes=classes, verbose=False, conf=conf, iou=iou)[0]
                     bboxes = result.boxes.xyxy.tolist()
                     labels = result.boxes.cls.tolist()
                 else:
                     result = self.model.process(im0, w, h)
-                    bboxes = result.get("bboxes") or []
-                    labels = result.get("labels") or []
+                    bboxes = result.get("bboxes", [])
+                    labels = result.get("labels", [])
+
 
                 if not bboxes or not labels:
-                    LOGGER.warning(f"No output for image: {img_name}")
+                    LOGGER.warning(f"No bounding box or label found in the image: {img_name}")
                     continue
 
                 lines = []
-                if save_visuals:
-                    annotator = Annotator(im0)
 
                 found_labels = set()
 
                 for box, label in zip(bboxes, labels):
                     if classes is None or label in classes:
                         found_labels.add(label)
-                        label_name = self.names[label] if is_yolo else label
+                        label_name = self.names[label] if self.yolo_model else label
                         if label_name not in label_map:
                             label_map[label_name] = len(label_map)
                         mapped_id = label_map[label_name]
@@ -381,12 +375,9 @@ class Florence2:
             h (int): Image height.
 
         Returns:
-            result (dict): Dictionary with keys "bboxes" and "labels", formatted for YOLO annotation.
-                  Structure:
-                  {
-                      "bboxes": List of [x1, y1, x2, y2] floats,
-                      "labels": List of str or int label names
-                  }
+            result (dict): Dictionary with keys "bboxes" and "labels"
+                "bboxes": List of [x1, y1, x2, y2] floats,
+                "labels": List of str or int label names
 
         Example:
             >>> model = Florence2(device="cuda", variant="base")

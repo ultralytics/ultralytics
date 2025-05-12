@@ -139,10 +139,6 @@ class BaseSolution:
         self.tracks = self.model.track(source=im0, persist=True, classes=self.classes, **self.track_add_args)
         self.track_data = self.tracks[0].obb or self.tracks[0].boxes  # Extract tracks for OBB or object detection
 
-        self.masks = (
-            self.tracks[0].masks if hasattr(self.tracks[0], "masks") and self.tracks[0].masks is not None else None
-        )
-
         if self.track_data and self.track_data.id is not None:
             self.boxes = self.track_data.xyxy.cpu()
             self.clss = self.track_data.cls.cpu().tolist()

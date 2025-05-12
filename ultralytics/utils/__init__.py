@@ -182,6 +182,10 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)
 
+    def __iter__(self):
+        """Return self as iterator to satisfy Iterable interface."""
+        return super().__iter__()
+
 
 class SimpleClass:
     """
@@ -1308,7 +1312,8 @@ class SettingsManager(JSONDict):
             "raytune": True,  # Ray Tune integration
             "tensorboard": False,  # TensorBoard logging
             "wandb": False,  # Weights & Biases logging
-            "vscode_msg": True,  # VSCode messaging
+            "vscode_msg": True,  # VSCode message
+            "openvino_msg": True,  # OpenVINO export on Intel CPU message
         }
 
         self.help_msg = (

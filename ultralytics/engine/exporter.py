@@ -82,12 +82,14 @@ from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
     IS_COLAB,
+    IS_JETSON,
     LINUX,
     LOGGER,
     MACOS,
     MACOS_VERSION,
     RKNN_CHIPS,
     ROOT,
+    SETTINGS,
     WINDOWS,
     YAML,
     callbacks,
@@ -105,7 +107,7 @@ from ultralytics.utils.downloads import attempt_download_asset, get_github_asset
 from ultralytics.utils.export import export_engine, export_onnx
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile, nms_rotated
-from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
+from ultralytics.utils.torch_utils import TORCH_1_13, get_cpu_info, get_latest_opset, select_device
 
 
 def export_formats():
@@ -342,7 +344,6 @@ class Exporter:
                 "See https://docs.ultralytics.com/models/yolo-world for details."
             )
             model.clip_model = None  # openvino int8 export error: https://github.com/ultralytics/ultralytics/pull/18445
-
         if self.args.int8 and not self.args.data:
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
@@ -350,6 +351,14 @@ class Exporter:
             )
         if tfjs and (ARM64 and LINUX):
             raise SystemError("TF.js exports are not currently supported on ARM64 Linux")
+        # Recommend OpenVINO if export and Intel CPU
+        if SETTINGS.get("openvino_msg"):
+            if "intel" in get_cpu_info().lower():
+                LOGGER.info(
+                    "💡 ProTip: Export to OpenVINO format for best performance on Intel CPUs."
+                    " Learn more at https://docs.ultralytics.com/integrations/openvino/"
+                )
+            SETTINGS["openvino_msg"] = False
 
         # Input
         im = torch.zeros(self.args.batch, model.yaml.get("channels", 3), *self.imgsz).to(self.device)
@@ -681,6 +690,7 @@ class Exporter:
     @try_export
     def export_paddle(self, prefix=colorstr("PaddlePaddle:")):
         """YOLO Paddle export."""
+        assert not IS_JETSON, "Jetson Paddle exports not supported yet"
         check_requirements(("paddlepaddle-gpu" if torch.cuda.is_available() else "paddlepaddle>=3.0.0", "x2paddle"))
         import x2paddle  # noqa
         from x2paddle.convert import pytorch2paddle  # noqa

@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER, SimpleClass, TryExcept, checks, plt_settings
+from ultralytics.utils import LOGGER, ExportableMixin, SimpleClass, TryExcept, checks, plt_settings
 
 OKS_SIGMA = (
     np.array([0.26, 0.25, 0.25, 0.35, 0.35, 0.79, 0.79, 0.72, 0.72, 0.62, 0.62, 1.07, 1.07, 0.87, 0.87, 0.89, 0.89])
@@ -452,6 +452,21 @@ class ConfusionMatrix:
         if on_plot:
             on_plot(plot_fname)
 
+        # Store confusion matrix results in CSV file.
+        self.cm_plot_labels = (
+            list(names) + ["background"] if self.task == "detect" else list(names)
+        )  # confusion matrix labels (x and y axis)
+        self.cm_save_dir = save_dir  # directory for confusion_matrix.csv file storage
+        self.to_csv()
+
+    def to_csv(self):
+        """Exports the confusion matrix to 'confusion_matrix.csv' using the confusion matrix data."""
+        import pandas as pd
+
+        pd.DataFrame(self.matrix, index=self.cm_plot_labels, columns=self.cm_plot_labels).to_csv(
+            self.cm_save_dir / "confusion_matrix.csv"
+        )
+
     def print(self):
         """Print the confusion matrix to the console."""
         for i in range(self.matrix.shape[0]):
@@ -836,7 +851,7 @@ class Metric(SimpleClass):
         ]
 
 
-class DetMetrics(SimpleClass):
+class DetMetrics(SimpleClass, ExportableMixin):
     """
     Utility class for computing detection metrics such as precision, recall, and mean average precision (mAP).
 
@@ -933,7 +948,7 @@ class DetMetrics(SimpleClass):
         return self.box.curves_results
 
 
-class SegmentMetrics(SimpleClass):
+class SegmentMetrics(SimpleClass, ExportableMixin):
     """
     Calculates and aggregates detection and segmentation metrics over a given set of classes.
 
@@ -1201,7 +1216,7 @@ class PoseMetrics(SegmentMetrics):
         return self.box.curves_results + self.pose.curves_results
 
 
-class ClassifyMetrics(SimpleClass):
+class ClassifyMetrics(SimpleClass, ExportableMixin):
     """
     Class for computing classification metrics including top-1 and top-5 accuracy.
 
@@ -1258,7 +1273,7 @@ class ClassifyMetrics(SimpleClass):
         return []
 
 
-class OBBMetrics(SimpleClass):
+class OBBMetrics(SimpleClass, ExportableMixin):
     """
     Metrics for evaluating oriented bounding box (OBB) detection.
 
@@ -1287,6 +1302,7 @@ class OBBMetrics(SimpleClass):
         self.names = names
         self.box = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
+        self.task = "obb"
 
     def process(self, tp, conf, pred_cls, target_cls, on_plot=None):
         """

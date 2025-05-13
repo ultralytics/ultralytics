@@ -201,9 +201,9 @@ def test_val():
     metrics = YOLO(MODEL).val(data="coco8.yaml", imgsz=32)
     metrics.to_df()
     metrics.to_csv()
-    metrics.to_json()
+    metrics.to_xml()
     metrics.to_html()
-
+    metrics.to_json()
 
 def test_train_scratch():
     """Test training the YOLO model from scratch using the provided configuration."""

@@ -110,9 +110,10 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
 The `metrics` object provides the following methods for exporting validation results:
 
 | Method      | Return Type | Description                                                                      |
-| ----------- | ----------- | -------------------------------------------------------------------------------- |
+|-------------| ----------- |----------------------------------------------------------------------------------|
 | `to_df()`   | `DataFrame` | Returns the validation results as a structured Pandas DataFrame.                 |
 | `to_csv()`  | `str`       | Exports the validation results in CSV format and returns the CSV string.         |
+| `to_xml()`  | `str`       | Exports the validation results in XML format and returns the XML string.         |
 | `to_html()` | `str`       | Exports the validation results in HTML table format and returns the HTML string. |
 | `to_json()` | `str`       | Exports the validation results in JSON format and returns the JSON string.       |
 

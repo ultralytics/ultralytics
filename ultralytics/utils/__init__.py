@@ -236,7 +236,7 @@ class ExportableMixin:
 
         return summary
 
-    def create_df(self, normalize=False, decimals=5):
+    def to_df(self, normalize=False, decimals=5):
         """
         Create a pandas DataFrame from the prediction results summary or validation metrics.
 
@@ -258,20 +258,6 @@ class ExportableMixin:
             return pd.DataFrame(self.val_summary())
         else:
             raise NotImplementedError("to_ methods only usable with validation metrics or prediction results")
-
-    def to_df(self, normalize=False, decimals=5, save=False):
-        """
-        Alias for `create_df()` to comply with user-friendly `to_` interface.
-
-        Args:
-            normalize (bool, optional): Normalize numeric values. Defaults to False.
-            decimals (int, optional): Decimal precision. Defaults to 5.
-            save (bool, optional): Currently unused. Reserved for future use.
-
-        Returns:
-            (DataFrame): Summary or prediction results in DataFrame format.
-        """
-        return self.create_df(normalize, decimals)
 
     def to_csv(self, normalize=False, decimals=5):
         """
@@ -316,7 +302,7 @@ class ExportableMixin:
             index (bool, optional): Whether to include index column in the HTML table. Defaults to False.
 
         Returns:
-            str: HTML representation of the results.
+            (str): HTML representation of the results.
         """
         df = self.to_df(normalize=normalize, decimals=decimals)
         return "<table></table>" if df.empty else df.to_html(index=index)
@@ -335,7 +321,7 @@ class ExportableMixin:
             decimals (int, optional): Decimal precision. Defaults to 5.
 
         Returns:
-            str: JSON-formatted string of the results.
+            (str): JSON-formatted string of the results.
         """
         import json
 
@@ -350,7 +336,6 @@ class ExportableMixin:
             decimals (int, optional): Decimal precision. Defaults to 5.
             table_name (str, optional): Name of the SQL table. Defaults to "results".
             db_path (str, optional): SQLite database file path. Defaults to "results.db".
-
         """
         if not hasattr(self, "summary"):
             LOGGER.warning("SQL export is only supported for detection results with `summary()`.")

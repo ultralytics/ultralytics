@@ -255,7 +255,7 @@ class ExportableMixin:
         if hasattr(self, "summary"):
             return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
         elif any(hasattr(self, attr) for attr in ["box", "seg", "pose", "top1", "top5"]):
-            return pd.DataFrame([self.val_summary()] if self.task=="classify" else self.val_summary())
+            return pd.DataFrame([self.val_summary()] if self.task == "classify" else self.val_summary())
         else:
             raise NotImplementedError("to_ methods only usable with validation metrics or prediction results")
 

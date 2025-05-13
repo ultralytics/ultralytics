@@ -212,6 +212,6 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (int): Optimal batch size.
         """
-        train_dataset = self.build_dataset(self.trainset, mode="train", batch=16)
+        train_dataset = self.build_dataset(self.data["train"], mode="train", batch=16)
         max_num_obj = max(len(label["cls"]) for label in train_dataset.labels) * 4  # 4 for mosaic augmentation
         return super().auto_batch(max_num_obj)

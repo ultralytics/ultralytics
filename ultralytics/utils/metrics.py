@@ -430,7 +430,7 @@ class ConfusionMatrix:
         labels = (0 < nn < 99) and (nn == nc)  # apply names to ticklabels
         ticklabels = (list(names) + ["background"]) if labels else "auto"
         xy_ticks = np.arange(len(ticklabels))
-        tick_fontsize, label_fontsize, title_fontsize = (6, 14, 18) if nc < 50 else (4.8, 11.2, 14.4)
+        tick_fontsize, label_fontsize, title_fontsize, btm = (11, 11, 11, 0.22) if nc < 50 else (9.8, 9.8, 9.8, 0.18)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
             im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation="none")
@@ -467,7 +467,7 @@ class ConfusionMatrix:
             if s != "outline":
                 ax.spines[s].set_visible(False)  # Confusion matrix plot don't have outline
             cbar.ax.spines[s].set_visible(False)
-        fig.subplots_adjust(left=0, right=0.84, top=0.90, bottom=0.15)  # Adjust layout to ensure equal margins
+        fig.subplots_adjust(left=0, right=0.84, top=0.94, bottom=btm)  # Adjust layout to ensure equal margins
         plot_fname = Path(save_dir) / f"{title.lower().replace(' ', '_')}.png"
         fig.savefig(plot_fname, dpi=250)
         plt.close(fig)

@@ -422,7 +422,8 @@ class ConfusionMatrix:
         array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)  # normalize columns
         array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
 
-        get_rgb = lambda v: plt.get_cmap("Blues")(plt.Normalize(vmin=0.0, vmax=np.nanmax(array))(v))
+        def get_rgb(v):
+            return plt.get_cmap("Blues")(plt.Normalize(vmin=0.0, vmax=np.nanmax(array))(v))
         fig, ax = plt.subplots(1, 1, figsize=(12, 9))
         nc, nn = (self.nc, len(names)) if self.task == "classify" else (self.nc + 1, len(names) + 1)  # add background
         labels = (0 < nn < 99) and (nn == nc)  # apply names to ticklabels

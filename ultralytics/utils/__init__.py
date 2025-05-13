@@ -212,6 +212,7 @@ class ExportableMixin:
         top1 (float): Top-1 accuracy for classification tasks.
         top5 (float): Top-5 accuracy for classification tasks.
     """
+
     def val_summary(self):
         """
         Generate a summary dictionary of evaluation metrics depending on the task type.
@@ -257,7 +258,7 @@ class ExportableMixin:
         elif any(hasattr(self, attr) for attr in ["box", "seg", "pose", "top1", "top5"]):
             return pd.DataFrame(self.val_summary())
         else:
-            raise NotImplementedError("to_ methods only useable with validation metrics or prediction results")
+            raise NotImplementedError("to_ methods only usable with validation metrics or prediction results")
 
     def to_df(self, normalize=False, decimals=5, save=False):
         """
@@ -336,6 +337,7 @@ class ExportableMixin:
             str: JSON-formatted string of the results.
         """
         import json
+
         return self.to_df(normalize=normalize, decimals=decimals).to_json(orient="records", indent=2)
 
     def to_sql(self, normalize=False, decimals=5, table_name="results", db_path="results.db"):
@@ -354,6 +356,7 @@ class ExportableMixin:
             return
 
         import sqlite3
+
         df = self.to_df(normalize, decimals)
         if df.empty:
             LOGGER.warning("No results to save to SQL. DataFrame is empty.")
@@ -387,6 +390,7 @@ class ExportableMixin:
         conn.commit()
         conn.close()
         LOGGER.info(f"Results saved to SQL table '{table_name}' in '{db_path}'.")
+
 
 class SimpleClass:
     """

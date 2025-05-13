@@ -323,8 +323,6 @@ class ExportableMixin:
         Returns:
             (str): JSON-formatted string of the results.
         """
-        import json
-
         return self.to_df(normalize=normalize, decimals=decimals).to_json(orient="records", indent=2)
 
     def to_sql(self, normalize=False, decimals=5, table_name="results", db_path="results.db"):

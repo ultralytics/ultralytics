@@ -441,10 +441,6 @@ class ConfusionMatrix:
             ax.xaxis.set_label_position("bottom")
             for spine in ax.spines.values():
                 spine.set_visible(False)
-            title = "Confusion Matrix" + " Normalized" * normalize
-            ax.set_title(title, fontsize=title_fontsize, pad=20)
-            ax.set_xlabel("True", fontsize=label_fontsize, labelpad=10)
-            ax.set_ylabel("Predicted", fontsize=label_fontsize, labelpad=10)
             if nc < 30:
                 for i in range(nc):
                     for j in range(nc):
@@ -462,6 +458,10 @@ class ConfusionMatrix:
                                 color="white" if luminance < 0.5 else "black",
                             )
             cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.05)
+        title = "Confusion Matrix" + " Normalized" * normalize
+        ax.set_title(title, fontsize=title_fontsize, pad=20)
+        ax.set_xlabel("True", fontsize=label_fontsize, labelpad=10)
+        ax.set_ylabel("Predicted", fontsize=label_fontsize, labelpad=10)
         for spine in cbar.ax.spines.values():
             spine.set_visible(False)
         fig.subplots_adjust(left=0, right=0.84, top=0.90, bottom=0.15)  # Adjust layout to ensure equal margins

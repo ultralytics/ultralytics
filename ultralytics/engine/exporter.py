@@ -390,7 +390,7 @@ class Exporter:
                 m.format = self.args.format
                 m.max_det = self.args.max_det
                 m.xyxy = self.args.nms and not coreml
-            elif isinstance(m, C2f) and not is_tf_format:
+            elif isinstance(m, C2f):
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
             if isinstance(m, Detect) and imx:
@@ -555,7 +555,7 @@ class Exporter:
     @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """YOLO ONNX export."""
-        requirements = ["onnx>=1.12.0,<1.18.0"]
+        requirements = ["onnx>=1.12.0"]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.46", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)

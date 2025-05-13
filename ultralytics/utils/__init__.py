@@ -26,7 +26,6 @@ import tqdm
 
 from ultralytics import __version__
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_load, torch_save  # for patches
-from ultralytics.utils.checks import check_requirements
 
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv("RANK", -1))
@@ -300,6 +299,7 @@ class ExportableMixin:
         Note:
             Requires `lxml` package to be installed.
         """
+        from ultralytics.utils.checks import check_requirements
         check_requirements("lxml")
         df = self.to_df(normalize=normalize, decimals=decimals)
         return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>' if df.empty else df.to_xml()

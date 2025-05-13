@@ -529,7 +529,7 @@ class Model(torch.nn.Module):
             - For SAM-type models, 'prompts' can be passed as a keyword argument.
         """
         if source is None:
-            source = ASSETS
+            source = "https://ultralytics.com/images/boats.jpg" if self.task == "obb" else ASSETS
             LOGGER.warning(f"'source' is missing. Using 'source={source}'.")
 
         is_cli = (ARGV[0].endswith("yolo") or ARGV[0].endswith("ultralytics")) and any(

@@ -9,7 +9,7 @@ import torch
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import ASSETS, WEIGHTS_DIR
+from ultralytics.utils import ASSETS, IS_JETSON, WEIGHTS_DIR
 from ultralytics.utils.autodevice import GPUInfo
 from ultralytics.utils.checks import check_amp
 from ultralytics.utils.torch_utils import TORCH_1_13
@@ -17,11 +17,14 @@ from ultralytics.utils.torch_utils import TORCH_1_13
 # Try to find idle devices if CUDA is available
 DEVICES = []
 if CUDA_IS_AVAILABLE:
-    gpu_info = GPUInfo()
-    gpu_info.print_status()
-    idle_gpus = gpu_info.select_idle_gpu(count=2, min_memory_mb=2048)
-    if idle_gpus:
-        DEVICES = idle_gpus
+    if IS_JETSON:
+        DEVICES = [0]  # NVIDIA Jetson only has one GPU and does not fully support pynvml library
+    else:
+        gpu_info = GPUInfo()
+        gpu_info.print_status()
+        idle_gpus = gpu_info.select_idle_gpu(count=2, min_memory_mb=2048)
+        if idle_gpus:
+            DEVICES = idle_gpus
 
 
 def test_checks():
@@ -38,6 +41,7 @@ def test_amp():
 
 
 @pytest.mark.slow
+# @pytest.mark.skipif(IS_JETSON, reason="Temporary disable ONNX for Jetson")
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, simplify, nms",
@@ -49,7 +53,7 @@ def test_amp():
         if not (
             (int8 and half)
             or (task == "classify" and nms)
-            or (task == "obb" and nms and not TORCH_1_13)
+            or (task == "obb" and nms and (not TORCH_1_13 or IS_JETSON))  # obb nms fails on NVIDIA Jetson
             or (simplify and dynamic)  # onnxslim is slow when dynamic=True
         )
     ],
@@ -110,9 +114,11 @@ def test_train():
 
     device = tuple(DEVICES) if len(DEVICES) > 1 else DEVICES[0]
     results = YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device)  # requires imgsz>=64
-    visible = eval(os.environ["CUDA_VISIBLE_DEVICES"])
-    assert visible == device, f"Passed GPUs '{device}', but used GPUs '{visible}'"
-    assert results is (None if len(DEVICES) > 1 else not None)  # DDP returns None, single-GPU returns metrics
+    # NVIDIA Jetson only has one GPU and therefore skipping checks
+    if not IS_JETSON:
+        visible = eval(os.environ["CUDA_VISIBLE_DEVICES"])
+        assert visible == device, f"Passed GPUs '{device}', but used GPUs '{visible}'"
+        assert results is (None if len(DEVICES) > 1 else not None)  # DDP returns None, single-GPU returns metrics
 
 
 @pytest.mark.slow

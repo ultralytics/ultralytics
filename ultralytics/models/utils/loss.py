@@ -632,7 +632,7 @@ class DEIMLoss(nn.Module):
         loss_bbox = F.l1_loss(pred_boxes, gt_boxes, reduction="none")
         losses["loss_bbox"] = loss_bbox.sum() / len(gt_boxes)
 
-        loss_giou = 1 - bbox_iou(pred_boxes, gt_boxes, CIoU=True)
+        loss_giou = 1 - bbox_iou(pred_boxes, gt_boxes, GIoU=True)
         losses["loss_giou"] = loss_giou.mean()
 
         return losses
@@ -913,7 +913,7 @@ class DEIMLoss(nn.Module):
                 l_dict = self.loss_boxes(pred_boxes, gt_boxes)
             elif loss == "mal":
                 pred_boxes = outputs["pred_boxes"][pred_idx]
-                ious = bbox_iou(pred_boxes.detach(), gt_boxes, CIoU=True).squeeze(-1).detach().clamp_(0)
+                ious = bbox_iou(pred_boxes.detach(), gt_boxes).squeeze(-1).detach().clamp_(0)
                 pred_cls = outputs["pred_logits"]
                 target_classes = torch.full(
                     pred_cls.shape[:2], self.num_classes, dtype=torch.int64, device=pred_cls.device

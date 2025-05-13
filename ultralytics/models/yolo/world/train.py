@@ -167,7 +167,7 @@ class WorldTrainer(DetectionTrainer):
 
     def preprocess_batch(self, batch):
         """Preprocess a batch of images and text for YOLOWorld training."""
-        batch = DetectionTrainer().preprocess_batch(batch)
+        batch = DetectionTrainer.preprocess_batch(self, batch)
 
         # Add text features
         texts = list(itertools.chain(*batch["texts"]))

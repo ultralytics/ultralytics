@@ -1373,63 +1373,59 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
     ch = [ch]
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
-    base_modules = frozenset(
-        {
-            Classify,
-            Conv,
-            ConvTranspose,
-            GhostConv,
-            Bottleneck,
-            GhostBottleneck,
-            SPP,
-            SPPF,
-            C2fPSA,
-            C2PSA,
-            DWConv,
-            Focus,
-            BottleneckCSP,
-            C1,
-            C2,
-            C2f,
-            C3k2,
-            RepNCSPELAN4,
-            ELAN1,
-            ADown,
-            AConv,
-            SPPELAN,
-            C2fAttn,
-            C3,
-            C3TR,
-            C3Ghost,
-            torch.nn.ConvTranspose2d,
-            DWConvTranspose2d,
-            C3x,
-            RepC3,
-            PSA,
-            SCDown,
-            C2fCIB,
-            A2C2f,
-        }
-    )
-    repeat_modules = frozenset(  # modules with 'repeat' arguments
-        {
-            BottleneckCSP,
-            C1,
-            C2,
-            C2f,
-            C3k2,
-            C2fAttn,
-            C3,
-            C3TR,
-            C3Ghost,
-            C3x,
-            RepC3,
-            C2fPSA,
-            C2fCIB,
-            C2PSA,
-            A2C2f,
-        }
-    )
+    base_modules = {
+        Classify,
+        Conv,
+        ConvTranspose,
+        GhostConv,
+        Bottleneck,
+        GhostBottleneck,
+        SPP,
+        SPPF,
+        C2fPSA,
+        C2PSA,
+        DWConv,
+        Focus,
+        BottleneckCSP,
+        C1,
+        C2,
+        C2f,
+        C3k2,
+        RepNCSPELAN4,
+        ELAN1,
+        ADown,
+        AConv,
+        SPPELAN,
+        C2fAttn,
+        C3,
+        C3TR,
+        C3Ghost,
+        torch.nn.ConvTranspose2d,
+        DWConvTranspose2d,
+        C3x,
+        RepC3,
+        PSA,
+        SCDown,
+        C2fCIB,
+        A2C2f,
+    }
+    repeat_modules = {  # modules with 'repeat' arguments
+        BottleneckCSP,
+        C1,
+        C2,
+        C2f,
+        C3k2,
+        C2fAttn,
+        C3,
+        C3TR,
+        C3Ghost,
+        C3x,
+        RepC3,
+        C2fPSA,
+        C2fCIB,
+        C2PSA,
+        A2C2f,
+    }
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
         m = (
             getattr(torch.nn, m[3:])
@@ -1479,9 +1475,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in frozenset(
-            {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect}
-        ):
+        elif m in {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect}:
             args.append([ch[x] for x in f])
             if m is Segment or m is YOLOESegment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)

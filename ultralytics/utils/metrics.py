@@ -422,48 +422,42 @@ class ConfusionMatrix:
         array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)  # normalize columns
         array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
 
-        norm, cmap = plt.Normalize(vmin=0.0, vmax=np.nanmax(array)), plt.get_cmap("Blues")
+        get_rgb = lambda v: plt.get_cmap("Blues")(plt.Normalize(vmin=0.0, vmax=np.nanmax(array))(v))
         fig, ax = plt.subplots(1, 1, figsize=(12, 9))
-        nc, nn = self.nc, len(names)  # number of classes, names
+        nc, nn = (self.nc, len(names)) if self.task == "classify" else (self.nc + 1, len(names) + 1)  # add background
         labels = (0 < nn < 99) and (nn == nc)  # apply names to ticklabels
         ticklabels = (list(names) + ["background"]) if labels else "auto"
-        tick_count = len(ticklabels)
+        xy_ticks = np.arange(len(ticklabels))
         tick_fontsize, label_fontsize, title_fontsize = (6, 14, 18) if nc < 50 else (4.8, 11.2, 14.4)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
             im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation="none")
-            ax.set_xticks(np.arange(tick_count))
-            ax.set_yticks(np.arange(tick_count))
-            ax.set_xticklabels(ticklabels, fontsize=tick_fontsize, rotation=90, ha="center")
-            ax.set_yticklabels(ticklabels, fontsize=tick_fontsize)
-            ax.tick_params(axis="x", bottom=True, top=False, labelbottom=True, labeltop=False)
-            ax.tick_params(axis="y", left=True, right=False, labelleft=True, labelright=False)
             ax.xaxis.set_label_position("bottom")
-            for spine in ax.spines.values():
-                spine.set_visible(False)
-            if nc < 30:
-                for i in range(nc):
-                    for j in range(nc):
+            if nc < 30:  # Add score for each cell of confusion matrix
+                for i, row in enumerate(array[:nc]):
+                    for j, val in enumerate(row[:nc]):
                         val = array[i, j]
                         if not np.isnan(val):
-                            r, g, b, _ = cmap(norm(val))  # Get color from actual colormap scale
-                            luminance = 0.299 * r + 0.587 * g + 0.114 * b  # perceived brightness
-                            ax.text(
-                                j,
-                                i,
-                                f"{val:.2f}" if normalize else f"{int(val)}",
-                                ha="center",
-                                va="center",
-                                fontsize=10,
-                                color="white" if luminance < 0.5 else "black",
-                            )
+                            r, g, b, _ = get_rgb(val)  # Get color from actual colormap scale
+                            color = "white" if (0.299 * r + 0.587 * g + 0.114 * b) < 0.5 else "black"  # brightness
+                            ax.text(j, i, f"{val:.2f}" if normalize else f"{int(val)}", ha="center",
+                                    va="center", fontsize=10, color=color)
             cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.05)
         title = "Confusion Matrix" + " Normalized" * normalize
         ax.set_xlabel("True", fontsize=label_fontsize, labelpad=10)
         ax.set_ylabel("Predicted", fontsize=label_fontsize, labelpad=10)
         ax.set_title(title, fontsize=title_fontsize, pad=20)
-        for spine in cbar.ax.spines.values():
-            spine.set_visible(False)
+        ax.set_xticks(xy_ticks)
+        ax.set_yticks(xy_ticks)
+        ax.tick_params(axis="x", bottom=True, top=False, labelbottom=True, labeltop=False)
+        ax.tick_params(axis="y", left=True, right=False, labelleft=True, labelright=False)
+        if ticklabels != "auto":
+            ax.set_xticklabels(ticklabels, fontsize=tick_fontsize, rotation=90, ha="center")
+            ax.set_yticklabels(ticklabels, fontsize=tick_fontsize)
+        for s in ["left", "right", "bottom", "top", "outline"]:
+            if s!="outline":
+                ax.spines[s].set_visible(False)  # Confusion matrix plot don't have outline
+            cbar.ax.spines[s].set_visible(False)
         fig.subplots_adjust(left=0, right=0.84, top=0.90, bottom=0.15)  # Adjust layout to ensure equal margins
         plot_fname = Path(save_dir) / f"{title.lower().replace(' ', '_')}.png"
         fig.savefig(plot_fname, dpi=250)

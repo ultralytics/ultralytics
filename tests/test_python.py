@@ -205,6 +205,7 @@ def test_val():
     metrics.to_html()
     metrics.to_json()
 
+
 def test_train_scratch():
     """Test training the YOLO model from scratch using the provided configuration."""
     model = YOLO(CFG)

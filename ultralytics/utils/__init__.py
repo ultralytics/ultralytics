@@ -187,6 +187,207 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
         return super().__iter__()
 
 
+class ExportableMixin:
+    """
+    Mixin class for exporting validation metrics or prediction results in various formats.
+
+    This class provides utilities to export performance metrics (e.g., mAP, precision, recall) or prediction results
+    from classification, object detection, segmentation, or pose estimation tasks into various formats, Pandas DataFrame
+    CSV, XML, HTML, JSON and SQLite (SQL)
+
+    Examples:
+        >>> model = YOLO("yolov8n.pt")
+        >>> results = model("image.jpg")
+        >>> df = results.to_df()
+        >>> print(df)
+        >>> csv_data = results.to_csv()
+        >>> results.to_sql(table_name="yolo_results")
+
+    Attributes:
+        task (str): Task type such as "detect", "segment", "pose", "obb", or "classify".
+        box (Namespace): Detection box metrics, if applicable.
+        seg (Namespace): Segmentation metrics, if applicable.
+        pose (Namespace): Pose estimation metrics, if applicable.
+        top1 (float): Top-1 accuracy for classification tasks.
+        top5 (float): Top-5 accuracy for classification tasks.
+    """
+    def val_summary(self):
+        """
+        Generate a summary dictionary of evaluation metrics depending on the task type.
+
+        Returns:
+            (dict): Dictionary containing task-specific evaluation metrics.
+        """
+        task = self.task
+        box_keys = ["ap50", "ap", "map", "map50", "map75", "p", "r", "f1"]
+        common_keys = ["map", "map50", "map75", "p", "r"]
+
+        summary = {}
+
+        if task == "classify":
+            summary.update({"classification-top1": self.top1, "classification-top5": self.top5})
+        else:
+            summary.update({f"box-{k}": getattr(self.box, k) for k in box_keys if hasattr(self.box, k)})
+            if task == "segment":
+                summary.update({f"segmentation-{k}": getattr(self.seg, k) for k in common_keys if hasattr(self.seg, k)})
+            elif task == "pose":
+                summary.update({f"pose-{k}": getattr(self.pose, k) for k in common_keys if hasattr(self.pose, k)})
+
+        return summary
+
+    def create_df(self, normalize=False, decimals=5):
+        """
+        Create a pandas DataFrame from the prediction results summary or validation metrics.
+
+        Args:
+            normalize (bool, optional): Normalize numerical values for easier comparison. Defaults to False.
+            decimals (int, optional): Decimal places to round floats. Defaults to 5.
+
+        Returns:
+            (DataFrame): DataFrame containing the summary data.
+
+        Raises:
+            NotImplementedError: If the object lacks the necessary attributes or summary method.
+        """
+        import pandas as pd  # scope for faster 'import ultralytics'
+
+        if hasattr(self, "summary"):
+            return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
+        elif any(hasattr(self, attr) for attr in ["box", "seg", "pose", "top1", "top5"]):
+            return pd.DataFrame(self.val_summary())
+        else:
+            raise NotImplementedError("to_ methods only useable with validation metrics or prediction results")
+
+    def to_df(self, normalize=False, decimals=5, save=False):
+        """
+        Alias for `create_df()` to comply with user-friendly `to_` interface.
+
+        Args:
+            normalize (bool, optional): Normalize numeric values. Defaults to False.
+            decimals (int, optional): Decimal precision. Defaults to 5.
+            save (bool, optional): Currently unused. Reserved for future use.
+
+        Returns:
+            (DataFrame): Summary or prediction results in DataFrame format.
+        """
+        return self.create_df(normalize, decimals)
+
+    def to_csv(self, normalize=False, decimals=5):
+        """
+        Export results to CSV string format.
+
+        Args:
+           normalize (bool, optional): Normalize numeric values. Defaults to False.
+           decimals (int, optional): Decimal precision. Defaults to 5.
+
+        Returns:
+           (str): CSV content as string.
+        """
+        return self.to_df(normalize=normalize, decimals=decimals).to_csv()
+
+    def to_xml(self, normalize=False, decimals=5):
+        """
+        Export results to XML format.
+
+        Args:
+            normalize (bool, optional): Normalize numeric values. Defaults to False.
+            decimals (int, optional): Decimal precision. Defaults to 5.
+
+        Returns:
+            (str): XML string.
+
+        Note:
+            Requires `lxml` package to be installed.
+        """
+        from ultralytics.utils.checks import check_requirements
+        check_requirements("lxml")
+        df = self.to_df(normalize=normalize, decimals=decimals)
+        return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>' if df.empty else df.to_xml()
+
+    def to_html(self, normalize=False, decimals=5, index=False):
+        """
+        Export results to HTML table format.
+
+        Args:
+            normalize (bool, optional): Normalize numeric values. Defaults to False.
+            decimals (int, optional): Decimal precision. Defaults to 5.
+            index (bool, optional): Whether to include index column in the HTML table. Defaults to False.
+
+        Returns:
+            str: HTML representation of the results.
+        """
+        df = self.to_df(normalize=normalize, decimals=decimals)
+        return "<table></table>" if df.empty else df.to_html(index=index)
+
+    def tojson(self, normalize=False, decimals=5):
+        """Deprecated version of to_json()."""
+        LOGGER.warning("'result.tojson()' is deprecated, replace with 'result.to_json()'.")
+        return self.to_json(normalize, decimals)
+
+    def to_json(self, normalize=False, decimals=5):
+        """
+        Export results to JSON format.
+
+        Args:
+            normalize (bool, optional): Normalize numeric values. Defaults to False.
+            decimals (int, optional): Decimal precision. Defaults to 5.
+
+        Returns:
+            str: JSON-formatted string of the results.
+        """
+        import json
+        return self.to_df(normalize=normalize, decimals=decimals).to_json(orient="records", indent=2)
+
+    def to_sql(self, normalize=False, decimals=5, table_name="results", db_path="results.db"):
+        """
+        Save results to an SQLite database.
+
+        Args:
+            normalize (bool, optional): Normalize numeric values. Defaults to False.
+            decimals (int, optional): Decimal precision. Defaults to 5.
+            table_name (str, optional): Name of the SQL table. Defaults to "results".
+            db_path (str, optional): SQLite database file path. Defaults to "results.db".
+
+        """
+        if not hasattr(self, "summary"):
+            LOGGER.warning("SQL export is only supported for detection results with `summary()`.")
+            return
+
+        import sqlite3
+        df = self.to_df(normalize, decimals)
+        if df.empty:
+            LOGGER.warning("No results to save to SQL. DataFrame is empty.")
+            return
+
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""CREATE TABLE IF NOT EXISTS {table_name} (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                class_name TEXT,
+                confidence REAL,
+                box TEXT,
+                masks TEXT,
+                kpts TEXT
+            )"""
+        )
+
+        for _, row in df.iterrows():
+            cursor.execute(
+                f"INSERT INTO {table_name} (class_name, confidence, box, masks, kpts) VALUES (?, ?, ?, ?, ?)",
+                (
+                    row.get("name"),
+                    row.get("confidence"),
+                    json.dumps(row.get("box", {})),
+                    json.dumps(row.get("segments", {})),
+                    json.dumps(row.get("keypoints", {})),
+                ),
+            )
+
+        conn.commit()
+        conn.close()
+        LOGGER.info(f"Results saved to SQL table '{table_name}' in '{db_path}'.")
+
 class SimpleClass:
     """
     A simple base class for creating objects with string representations of their attributes.

@@ -131,9 +131,11 @@ class WorldTrainer(DetectionTrainer):
                 continue
             # TODO: enable to update the path or use a more general way to get the path
             img_path = dataset.img_path
-            text_embeddings.update(self.generate_text_embeddings(
-                list(dataset.category_names), batch, cache_path=Path(img_path).parent / "text_embeddings.pt"
-            ))
+            text_embeddings.update(
+                self.generate_text_embeddings(
+                    list(dataset.category_names), batch, cache_path=Path(img_path).parent / "text_embeddings.pt"
+                )
+            )
         self.text_embeddings = text_embeddings
 
     def generate_text_embeddings(self, texts, batch, cache_path="embeddings.pt"):

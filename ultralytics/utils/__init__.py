@@ -1140,7 +1140,7 @@ def set_sentry():
         if "exc_info" in hint:
             exc_type, exc_value, _ = hint["exc_info"]
             frame = event["exception"]["values"][0]["stacktrace"]["frames"][-1]
-            fname, line = frame["filename"], frame["context_line"].strip()
+            fname, line = frame["filename"].split(), frame["context_line"].strip()
 
             if "ultralytics" in fname and ("raise" in line or "assert" in line):  # determine whether manually raised
                 event["exception"]["values"][0]["mechanism"]["handled"] = True  # mark as handled

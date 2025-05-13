@@ -219,20 +219,19 @@ class ExportableMixin:
         Returns:
             (dict): Dictionary containing task-specific evaluation metrics.
         """
-        task = self.task
         box_keys = ["ap50", "ap", "map", "map50", "map75", "p", "r", "f1"]
         common_keys = ["map", "map50", "map75", "p", "r"]
 
         summary = {}
-
-        if task == "classify":
-            summary.update({"classification-top1": self.top1, "classification-top5": self.top5})
+        if self.task == "classify":
+            summary = {"classification-top1": self.top1, "classification-top5": self.top5}
         else:
-            summary.update({f"box-{k}": getattr(self.box, k) for k in box_keys if hasattr(self.box, k)})
-            if task == "segment":
-                summary.update({f"segmentation-{k}": getattr(self.seg, k) for k in common_keys if hasattr(self.seg, k)})
-            elif task == "pose":
-                summary.update({f"pose-{k}": getattr(self.pose, k) for k in common_keys if hasattr(self.pose, k)})
+            metrics = {f"box-{k}": getattr(self.box, k) for k in box_keys}
+            if self.task == "segment":
+                metrics.update({f"segmentation-{k}": getattr(self.seg, k) for k in common_keys})
+            elif self.task == "pose":
+                metrics.update({f"pose-{k}": getattr(self.pose, k) for k in common_keys})
+            summary = metrics
 
         return summary
 

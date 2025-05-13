@@ -1439,7 +1439,7 @@ class NMSModel(torch.nn.Module):
         self.model = model
         self.args = args
         self.obb = model.task == "obb"
-        self.is_tf = self.args.format in frozenset({"saved_model", "tflite", "tfjs"})
+        self.is_tf = self.args.format in {"saved_model", "tflite", "tfjs"}
 
     def forward(self, x):
         """

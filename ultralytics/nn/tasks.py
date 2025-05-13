@@ -1467,7 +1467,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 legacy = False
         elif m is AIFI:
             args = [ch[f], *args]
-        elif m in frozenset({HGStem, HGBlock}):
+        elif m in {HGStem, HGBlock}:
             c1, cm, c2 = ch[f], args[0], args[1]
             args = [c1, cm, c2, *args[2:]]
             if m is HGBlock:
@@ -1495,7 +1495,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [c1, c2, *args[1:]]
         elif m is CBFuse:
             c2 = ch[f[-1]]
-        elif m in frozenset({TorchVision, Index}):
+        elif m in {TorchVision, Index}:
             c2 = args[0]
             c1 = ch[f]
             args = [*args[1:]]

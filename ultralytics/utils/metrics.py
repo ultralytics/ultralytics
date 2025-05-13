@@ -424,6 +424,7 @@ class ConfusionMatrix:
 
         def get_rgb(v):
             return plt.get_cmap("Blues")(plt.Normalize(vmin=0.0, vmax=np.nanmax(array))(v))
+
         fig, ax = plt.subplots(1, 1, figsize=(12, 9))
         nc, nn = (self.nc, len(names)) if self.task == "classify" else (self.nc + 1, len(names) + 1)  # add background
         labels = (0 < nn < 99) and (nn == nc)  # apply names to ticklabels
@@ -441,8 +442,15 @@ class ConfusionMatrix:
                         if not np.isnan(val):
                             r, g, b, _ = get_rgb(val)  # Get color from actual colormap scale
                             color = "white" if (0.299 * r + 0.587 * g + 0.114 * b) < 0.5 else "black"  # brightness
-                            ax.text(j, i, f"{val:.2f}" if normalize else f"{int(val)}", ha="center",
-                                    va="center", fontsize=10, color=color)
+                            ax.text(
+                                j,
+                                i,
+                                f"{val:.2f}" if normalize else f"{int(val)}",
+                                ha="center",
+                                va="center",
+                                fontsize=10,
+                                color=color,
+                            )
             cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.05)
         title = "Confusion Matrix" + " Normalized" * normalize
         ax.set_xlabel("True", fontsize=label_fontsize, labelpad=10)
@@ -456,7 +464,7 @@ class ConfusionMatrix:
             ax.set_xticklabels(ticklabels, fontsize=tick_fontsize, rotation=90, ha="center")
             ax.set_yticklabels(ticklabels, fontsize=tick_fontsize)
         for s in ["left", "right", "bottom", "top", "outline"]:
-            if s!="outline":
+            if s != "outline":
                 ax.spines[s].set_visible(False)  # Confusion matrix plot don't have outline
             cbar.ax.spines[s].set_visible(False)
         fig.subplots_adjust(left=0, right=0.84, top=0.90, bottom=0.15)  # Adjust layout to ensure equal margins

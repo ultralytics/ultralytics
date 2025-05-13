@@ -448,7 +448,7 @@ class ConfusionMatrix:
                                 ha="center",
                                 va="center",
                                 fontsize=10,
-                                color="white" if (0.299 * r + 0.587 * g + 0.114 * b) < 0.5 else "black"
+                                color="white" if (0.299 * r + 0.587 * g + 0.114 * b) < 0.5 else "black",
                             )
             cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.05)
         title = "Confusion Matrix" + " Normalized" * normalize

@@ -6,7 +6,7 @@ from pathlib import Path
 import torch
 
 from ultralytics.data import build_yolo_dataset
-from ultralytics.models import yolo
+from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import WorldModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, checks
 from ultralytics.utils.torch_utils import de_parallel
@@ -20,7 +20,7 @@ def on_pretrain_routine_end(trainer):
         de_parallel(trainer.ema.ema).set_classes(names, cache_clip_model=False)
 
 
-class WorldTrainer(yolo.detect.DetectionTrainer):
+class WorldTrainer(DetectionTrainer):
     """
     A class to fine-tune a world model on a close-set dataset.
 
@@ -167,7 +167,7 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
 
     def preprocess_batch(self, batch):
         """Preprocess a batch of images and text for YOLOWorld training."""
-        batch = super().preprocess_batch(batch)
+        batch = DetectionTrainer().preprocess_batch(batch)
 
         # Add text features
         texts = list(itertools.chain(*batch["texts"]))

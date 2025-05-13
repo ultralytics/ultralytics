@@ -157,40 +157,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         Returns:
             (YOLOConcatDataset | Dataset): The constructed dataset for training or validation.
         """
-        datasets = WorldTrainerFromScratch.build_dataset(self, img_path, mode, batch)
-        if mode == "train":
-            self.set_text_embeddings(
-                datasets.datasets if hasattr(datasets, "datasets") else [datasets], batch
-            )  # cache text embeddings to accelerate training
-        return datasets
-
-    def set_text_embeddings(self, datasets, batch):
-        """
-        Set text embeddings for datasets to accelerate training by caching category names.
-
-        This method collects unique category names from all datasets, then generates and caches text embeddings
-        for these categories to improve training efficiency.
-
-        Args:
-            datasets (List[Dataset]): List of datasets from which to extract category names.
-            batch (int | None): Batch size used for processing.
-
-        Notes:
-            This method collects category names from datasets that have the 'category_names' attribute,
-            then uses the first dataset's image path to determine where to cache the generated text embeddings.
-        """
-        # TODO: open up an interface to determine whether to do cache
-        category_names = set()
-        for dataset in datasets:
-            if not hasattr(dataset, "category_names"):
-                continue
-            category_names |= dataset.category_names
-
-        # TODO: enable to update the path or use a more general way to get the path
-        img_path = datasets[0].img_path
-        self.text_embeddings = self.generate_text_embeddings(
-            category_names, batch, cache_path=Path(img_path).parent / "text_embeddings.pt"
-        )
+        return WorldTrainerFromScratch.build_dataset(self, img_path, mode, batch)
 
     def preprocess_batch(self, batch):
         """Process batch for training, moving text features to the appropriate device."""

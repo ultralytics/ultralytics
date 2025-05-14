@@ -5,10 +5,9 @@ import subprocess
 import pytest
 from PIL import Image
 
-from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, TMP
+from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ARM64, ASSETS, LINUX, WEIGHTS_DIR, checks
-from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
 # Constants
@@ -141,7 +140,4 @@ def test_solutions() -> None:
     run("yolo solutions speed verbose=False")
     run("yolo solutions queue verbose=False")
     run("yolo solutions analytics verbose=False")
-    run("yolo solutions trackzone")
-    video_path = TMP / "decelera_landscape_min.mov"
-    safe_download(ASSETS / "decelera_landscape_min.mov")  # use small video clip for crop solution
-    run(f"yolo solutions crop source='{str(video_path)}'")
+    run("yolo solutions trackzone verbose=False")

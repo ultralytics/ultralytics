@@ -36,7 +36,7 @@ class ObjectCounter(BaseSolution):
         >>> print(f"Inward count: {counter.in_count}, Outward count: {counter.out_count}")
     """
 
-    def __init__(self, line_start=None , line_end=None ,**kwargs):
+    def __init__(self, line_start=None, line_end=None, **kwargs):
         """Initializes the ObjectCounter class for real-time object counting in video streams."""
         super().__init__(**kwargs)
 

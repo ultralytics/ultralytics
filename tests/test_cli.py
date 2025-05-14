@@ -132,15 +132,16 @@ def test_train_gpu(task: str, model: str, data: str) -> None:
 
 def test_solutions() -> None:
     """Test various solutions command-line modes."""
-    run("yolo solutions count")
-    run("yolo solutions blur")
-    run("yolo solutions workout")
-    run("yolo solutions heatmap")
-    run("yolo solutions isegment")
-    run("yolo solutions visioneye")
-    run("yolo solutions speed")
-    run("yolo solutions queue")
-    run("yolo solutions analytics")
+    run("yolo solutions count verbose=False")
+    run("yolo solutions blur verbose=False")
+    run("yolo solutions workout verbose=False")
+    run("yolo solutions heatmap verbose=False")
+    run("yolo solutions isegment verbose=False")
+    run("yolo solutions visioneye verbose=False")
+    run("yolo solutions speed verbose=False")
+    run("yolo solutions queue verbose=False")
+    run("yolo solutions analytics verbose=False")
     run("yolo solutions trackzone")
+    video_path = TMP / "decelera_landscape_min.mov"
     safe_download(ASSETS / "decelera_landscape_min.mov")  # use small video clip for crop solution
-    run(f"yolo solutions crop source={str(TMP / 'decelera_landscape_min.mov')}")
+    run(f"yolo solutions crop source='{str(video_path)}'")

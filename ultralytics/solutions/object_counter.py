@@ -1,8 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from collections import defaultdict
+
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
-from collections import defaultdict
 
 
 class ObjectCounter(BaseSolution):

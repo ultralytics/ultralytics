@@ -244,7 +244,7 @@ def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False, chan
     elif in_memory:
         dataset = source
     elif stream:
-        dataset = LoadStreams(source, vid_stride=vid_stride, buffer=buffer)
+        dataset = LoadStreams(source, vid_stride=vid_stride, buffer=buffer, channels=channels)
     elif screenshot:
         dataset = LoadScreenshots(source)
     elif from_img:

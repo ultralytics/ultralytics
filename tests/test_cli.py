@@ -127,3 +127,11 @@ def test_train_gpu(task: str, model: str, data: str) -> None:
     """Test YOLO training on GPU(s) for various tasks and models."""
     run(f"yolo train {task} model={model} data={data} imgsz=32 epochs=1 device=0")  # single GPU
     run(f"yolo train {task} model={model} data={data} imgsz=32 epochs=1 device=0,1")  # multi GPU
+
+
+def test_solutions() -> None:
+    """Test various solutions command-line modes."""
+    solutions = ["count", "blur", "workout", "heatmap", "isegment",
+                 "visioneye", "speed", "queue", "analytics", "trackzone"]
+    for sol in solutions:
+        run(f"yolo solutions {sol}")

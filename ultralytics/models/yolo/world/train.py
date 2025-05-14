@@ -5,11 +5,11 @@ from pathlib import Path
 
 import torch
 
-from ultralytics.nn.text_model import build_text_model
 from ultralytics.data import build_yolo_dataset
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import WorldModel
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, checks
+from ultralytics.nn.text_model import build_text_model
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.torch_utils import de_parallel
 
 
@@ -125,9 +125,7 @@ class WorldTrainer(DetectionTrainer):
             # TODO: enable to update the path or use a more general way to get the path
             img_path = dataset.img_path
             text_embeddings.update(
-                self.generate_text_embeddings(
-                    list(dataset.category_names), batch, cache_dir=Path(img_path).parent
-                )
+                self.generate_text_embeddings(list(dataset.category_names), batch, cache_dir=Path(img_path).parent)
             )
         self.text_embeddings = text_embeddings
 
@@ -144,6 +142,7 @@ class WorldTrainer(DetectionTrainer):
         """
         import hashlib
         import json
+
         text_embedding_info = {
             "texts": sorted(texts),
             "text_model_variant": variant,
@@ -151,7 +150,7 @@ class WorldTrainer(DetectionTrainer):
 
         json_str = json.dumps(text_embedding_info, sort_keys=True)
         hasher = hashlib.sha256()
-        hasher.update(json_str.encode('utf-8'))
+        hasher.update(json_str.encode("utf-8"))
         return hasher.hexdigest()
 
     def generate_text_embeddings(self, texts, batch, cache_dir):

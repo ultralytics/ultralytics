@@ -141,6 +141,6 @@ def test_solutions() -> None:
     run("yolo solutions speed")
     run("yolo solutions queue")
     run("yolo solutions analytics")
-    run("yolo solutioons trackzone")
+    run("yolo solutions trackzone")
     safe_download(ASSETS / "decelera_landscape_min.mov")  # use small video clip for crop solution
     run(f"yolo solutions crop source={str(TMP / 'decelera_landscape_min.mov')}")

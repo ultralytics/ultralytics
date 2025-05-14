@@ -68,6 +68,7 @@ class LoadStreams:
         shape (List[Tuple[int, int, int]]): List of shapes for each stream.
         caps (List[cv2.VideoCapture]): List of cv2.VideoCapture objects for each stream.
         bs (int): Batch size for processing.
+        cv2_flag (int): OpenCV flag for image reading (grayscale or RGB).
 
     Methods:
         update: Read stream frames in daemon thread.
@@ -235,6 +236,7 @@ class LoadScreenshots:
         bs (int): Batch size, set to 1.
         fps (int): Frames per second, set to 30.
         monitor (Dict[str, int]): Monitor configuration details.
+        cv2_flag (int): OpenCV flag for image reading (grayscale or RGB).
 
     Methods:
         __iter__: Returns an iterator object.

@@ -711,7 +711,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
         solution = getattr(solutions, SOLUTION_MAP[solution_name])(is_cli=True, **overrides)  # class i.e ObjectCounter
 
-        cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
+                cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
         if solution_name != "crop":
             # extract width, height and fps of the video file, create save directory and initialize video writer
             w, h, fps = (
@@ -732,8 +732,9 @@ def handle_yolo_solutions(args: List[str]) -> None:
                 results = solution(frame, f_n := f_n + 1) if solution_name == "analytics" else solution(frame)
                 if solution_name != "crop":
                     vw.write(results.plot_im)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    break
+                if solution.CFG["show"]:
+                    if cv2.waitKey(1) & 0xFF == ord("q"):
+                        break
         finally:
             cap.release()
 

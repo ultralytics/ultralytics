@@ -1170,6 +1170,8 @@ class RandomPerspective:
                 img = cv2.warpPerspective(img, M, dsize=self.size, borderValue=(114, 114, 114))
             else:  # affine
                 img = cv2.warpAffine(img, M[:2], dsize=self.size, borderValue=(114, 114, 114))
+            if img.ndim == 2:
+                img = img[..., None]
         return img, M, s
 
     def apply_bboxes(self, bboxes, M):

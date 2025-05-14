@@ -135,8 +135,7 @@ def test_solutions() -> None:
     solutions = ["count", "blur", "workout", "heatmap", "isegment", "crop",
                  "visioneye", "speed", "queue", "analytics", "trackzone"]
     for sol in solutions:
-        if sol == "crop":
-            safe_download(ASSETS / "decelera_landscape_min.mov")
-            run(f"yolo solutions {sol} source={str(TMP / video)}")
-        else:
-            run(f"yolo solutions {sol}")
+        run(f"yolo solutions {sol}")
+    safe_download(ASSETS / "decelera_landscape_min.mov")
+    run(f"yolo solutions {sol} source={str(TMP / video)}")
+

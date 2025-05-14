@@ -137,5 +137,5 @@ def test_solutions() -> None:
     for sol in solutions:
         run(f"yolo solutions {sol}")
     safe_download(ASSETS / "decelera_landscape_min.mov")
-    run(f"yolo solutions {sol} source={str(TMP / video)}")
+    run(f"yolo solutions {sol} source={str(TMP / 'decelera_landscape_min.mov')}")
 

@@ -1170,6 +1170,8 @@ class RandomPerspective:
                 img = cv2.warpPerspective(img, M, dsize=self.size, borderValue=(114, 114, 114))
             else:  # affine
                 img = cv2.warpAffine(img, M[:2], dsize=self.size, borderValue=(114, 114, 114))
+            if img.ndim == 2:
+                img = img[..., None]
         return img, M, s
 
     def apply_bboxes(self, bboxes, M):
@@ -1824,6 +1826,8 @@ class CopyPaste(BaseMixTransform):
             cv2.drawContours(im_new, instances2.segments[[j]].astype(np.int32), -1, (1, 1, 1), cv2.FILLED)
 
         result = labels2.get("img", cv2.flip(im, 1))  # augment segments
+        if result.ndim == 2:  # cv2.flip would eliminate the last dimension for grayscale images
+            result = result[..., None]
         i = im_new.astype(bool)
         im[i] = result[i]
 

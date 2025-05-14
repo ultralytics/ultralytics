@@ -497,6 +497,8 @@ class LoadPilAndNumpy:
             # adding new axis if it's grayscale, and converting to BGR if it's RGB
             im = im[..., None] if flag == "L" else im[..., ::-1]
             im = np.ascontiguousarray(im)  # contiguous
+        elif im.ndim == 2:  # grayscale in numpy form
+            im = im[..., None]
         return im
 
     def __len__(self):

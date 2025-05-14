@@ -927,7 +927,7 @@ class Exporter:
                 "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
                 "ai-edge-litert>=1.2.0",  # required by 'onnx2tf' package
                 "onnx>=1.12.0",
-                "onnx2tf>=1.26.3",
+                "onnx2tf>=1.26.3,<1.27.4",
                 "onnxslim>=0.1.46",
                 "onnxruntime-gpu" if cuda else "onnxruntime",
                 "protobuf>=5",

@@ -132,8 +132,8 @@ class GMC:
             [[1. 0. 0.]
              [0. 1. 0.]]
         """
-        height, width, _ = raw_frame.shape
-        frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
+        height, width, c = raw_frame.shape
+        frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY) if c == 3 else raw_frame
         H = np.eye(2, 3, dtype=np.float32)
 
         # Downscale image
@@ -178,8 +178,8 @@ class GMC:
             >>> print(transformation_matrix.shape)
             (2, 3)
         """
-        height, width, _ = raw_frame.shape
-        frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
+        height, width, c = raw_frame.shape
+        frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY) if c == 3 else raw_frame
         H = np.eye(2, 3)
 
         # Downscale image
@@ -320,8 +320,8 @@ class GMC:
             [[1. 0. 0.]
              [0. 1. 0.]]
         """
-        height, width, _ = raw_frame.shape
-        frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
+        height, width, c = raw_frame.shape
+        frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY) if c == 3 else raw_frame
         H = np.eye(2, 3)
 
         # Downscale image

@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import functools
 import glob
 import inspect
 import math
@@ -296,6 +297,7 @@ def check_pip_update_available():
 
 
 @ThreadingLocked()
+@functools.lru_cache
 def check_font(font="Arial.ttf"):
     """
     Find font locally or download to user's configuration directory if it does not already exist.

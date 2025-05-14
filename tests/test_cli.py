@@ -128,16 +128,10 @@ def test_train_gpu(task: str, model: str, data: str) -> None:
     run(f"yolo train {task} model={model} data={data} imgsz=32 epochs=1 device=0")  # single GPU
     run(f"yolo train {task} model={model} data={data} imgsz=32 epochs=1 device=0,1")  # multi GPU
 
-
-def test_solutions() -> None:
-    """Test various solutions command-line modes."""
-    run("yolo solutions count verbose=False")
-    run("yolo solutions blur verbose=False")
-    run("yolo solutions workout verbose=False")
-    run("yolo solutions heatmap verbose=False")
-    run("yolo solutions isegment verbose=False")
-    run("yolo solutions visioneye verbose=False")
-    run("yolo solutions speed verbose=False")
-    run("yolo solutions queue verbose=False")
-    run("yolo solutions analytics verbose=False")
-    run("yolo solutions trackzone verbose=False")
+@pytest.mark.parametrize("solution", [
+    "count", "blur", "workout", "heatmap", "isegment", 
+    "visioneye", "speed", "queue", "analytics", "trackzone"
+])
+def test_solutions(solution: str) -> None:
+    """Test yolo solutions command-line modes."""
+    run(f"yolo solutions {solution} verbose=False")

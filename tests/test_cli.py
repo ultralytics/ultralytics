@@ -132,10 +132,20 @@ def test_train_gpu(task: str, model: str, data: str) -> None:
 
 def test_solutions() -> None:
     """Test various solutions command-line modes."""
-    solutions = ["count", "blur", "workout", "heatmap", "isegment", "crop",
-                 "visioneye", "speed", "queue", "analytics", "trackzone"]
+    solutions = [
+        "count",
+        "blur",
+        "workout",
+        "heatmap",
+        "isegment",
+        "crop",
+        "visioneye",
+        "speed",
+        "queue",
+        "analytics",
+        "trackzone",
+    ]
     for sol in solutions:
         run(f"yolo solutions {sol}")
     safe_download(ASSETS / "decelera_landscape_min.mov")
     run(f"yolo solutions {sol} source={str(TMP / video)}")
-

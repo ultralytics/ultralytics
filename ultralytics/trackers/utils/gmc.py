@@ -106,7 +106,7 @@ class GMC:
             >>> print(transformation_matrix.shape)
             (2, 3)
         """
-        raw_frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY) if raw_frame.ndim == 3 else raw_frame
+        raw_frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY) if raw_frame.shape[2] == 3 else raw_frame
         if self.method in {"orb", "sift"}:
             return self.apply_features(raw_frame, detections)
         elif self.method == "ecc":

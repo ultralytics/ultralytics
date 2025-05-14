@@ -333,7 +333,7 @@ class BYTETracker:
             # use try-except here to bypass errors from gmc module
             try:
                 warp = self.gmc.apply(img, dets)
-            except:
+            except Exception:
                 warp = np.eye(2, 3)
             STrack.multi_gmc(strack_pool, warp)
             STrack.multi_gmc(unconfirmed, warp)

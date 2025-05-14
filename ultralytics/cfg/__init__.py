@@ -717,7 +717,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
             w, h, fps = (
                 int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)
             )
-            if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
+            if solution_name == "analytics":  # analytics graphs follow fixed shape for output i.e. w=1920, h=1080
                 w, h = 1280, 720
             save_dir = get_save_dir(SimpleNamespace(project="runs/solutions", name="exp", exist_ok=False))
             save_dir.mkdir(parents=True)  # create the output directory i.e. runs/solutions/exp
@@ -732,7 +732,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
                 results = solution(frame, f_n := f_n + 1) if solution_name == "analytics" else solution(frame)
                 if solution_name != "crop":
                     vw.write(results.plot_im)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
+                if solution.CFG["show"] and cv2.waitKey(1) & 0xFF == ord("q"):
                     break
         finally:
             cap.release()

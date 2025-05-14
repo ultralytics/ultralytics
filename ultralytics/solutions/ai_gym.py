@@ -86,7 +86,7 @@ class AIGym(BaseSolution):
                 track_id = int(track_ids[i])  # get track id
                 state = self.states[track_id]  # get state details
                 # Get keypoints and estimate the angle
-                kpts = [k[int(idx)] for idx in self.kpts]
+                kpts = [idx for idx in range(3)]
                 state["angle"] = annotator.estimate_pose_angle(*kpts)
                 annotator.draw_specific_kpts(k, self.kpts, radius=self.line_width * 3)
 

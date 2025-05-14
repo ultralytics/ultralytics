@@ -246,7 +246,7 @@ class LoadScreenshots:
         ...     print(f"Captured frame: {im.shape}")
     """
 
-    def __init__(self, source):
+    def __init__(self, source, channels=3):
         """Initialize screenshot capture with specified screen and region parameters."""
         check_requirements("mss")
         import mss  # noqa
@@ -264,6 +264,7 @@ class LoadScreenshots:
         self.sct = mss.mss()
         self.bs = 1
         self.fps = 30
+        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or RGB
 
         # Parse monitor shape
         monitor = self.sct.monitors[self.screen]
@@ -280,6 +281,7 @@ class LoadScreenshots:
     def __next__(self):
         """Captures and returns the next screenshot as a numpy array using the mss library."""
         im0 = np.asarray(self.sct.grab(self.monitor))[:, :, :3]  # BGRA to BGR
+        im0 = cv2.cvtColor(im0, cv2.COLOR_BGR2GRAY)[..., None] if self.cv2_flag == cv2.IMREAD_GRAYSCALE else im0
         s = f"screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: "
 
         self.frame += 1

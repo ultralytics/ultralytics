@@ -202,7 +202,7 @@ class Annotator:
             assert im.data.contiguous, "Image not contiguous. Apply np.ascontiguousarray(im) to Annotator input images."
             self.im = im if im.flags.writeable else im.copy()
             self.tf = max(self.lw - 1, 1)  # font thickness
-            self.sf = self.lw / 3  # font scale
+            self.sf = self.lw / 3 if not font_size else font_size  # font scale
         # Pose
         self.skeleton = [
             [16, 14],
@@ -710,7 +710,7 @@ def plot_images(
         mosaic = cv2.resize(mosaic, tuple(int(x * ns) for x in (w, h)))
 
     # Annotate
-    fs = int((h + w) * ns * 0.01)  # font size
+    fs = int((h + w) * ns * 0.002)  # font size
     fs = max(fs, 18)  # ensure that the font size is large enough to be easily readable.
     annotator = Annotator(mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=str(names))
     for i in range(bs):

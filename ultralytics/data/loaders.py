@@ -395,6 +395,11 @@ class LoadImagesAndVideos:
 
                 if success:
                     success, im0 = self.cap.retrieve()
+                    im0 = (
+                        cv2.cvtColor(im0, cv2.COLOR_BGR2GRAY)[..., None]
+                        if self.cv2_flag == cv2.IMREAD_GRAYSCALE
+                        else im0
+                    )
                     if success:
                         self.frame += 1
                         paths.append(path)

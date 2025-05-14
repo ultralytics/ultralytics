@@ -8,6 +8,7 @@ from PIL import Image
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ARM64, ASSETS, LINUX, WEIGHTS_DIR, checks
+from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
 # Constants
@@ -131,7 +132,11 @@ def test_train_gpu(task: str, model: str, data: str) -> None:
 
 def test_solutions() -> None:
     """Test various solutions command-line modes."""
-    solutions = ["count", "blur", "workout", "heatmap", "isegment",
+    solutions = ["count", "blur", "workout", "heatmap", "isegment", "crop",
                  "visioneye", "speed", "queue", "analytics", "trackzone"]
     for sol in solutions:
-        run(f"yolo solutions {sol}")
+        if sol == "crop":
+            safe_download(ASSETS / "decelera_landscape_min.mov")
+            run(f"yolo solutions {sol} source={str(TMP / video)}")
+        else:
+            run(f"yolo solutions {sol}")

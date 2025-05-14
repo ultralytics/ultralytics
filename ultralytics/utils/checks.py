@@ -24,6 +24,7 @@ from ultralytics.utils import (
     AUTOINSTALL,
     IS_COLAB,
     IS_GIT_DIR,
+    IS_JETSON,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
     LINUX,
@@ -343,7 +344,7 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
 @TryExcept()
 def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds=""):
     """
-    Check if installed dependencies meet YOLOv8 requirements and attempt to auto-update if needed.
+    Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.
 
     Args:
         requirements (Union[Path, str, List[str]]): Path to a requirements.txt file, a single package requirement as a
@@ -507,11 +508,11 @@ def check_model_file_from_stem(model="yolo11n"):
 
 def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     """
-    Search/download file (if necessary) and return path.
+    Search/download file (if necessary), check suffix (if provided), and return path.
 
     Args:
         file (str): File name or path.
-        suffix (str): File suffix to check.
+        suffix (str | Tuple[str]): Acceptable suffix or tuple of suffixes to validate against the file.
         download (bool): Whether to download the file if it doesn't exist locally.
         download_dir (str): Directory to download the file to.
         hard (bool): Whether to raise an error if the file is not found.
@@ -550,9 +551,9 @@ def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
     Search/download YAML file (if necessary) and return path, checking suffix.
 
     Args:
-        file (str): File name or path.
-        suffix (tuple): Acceptable file suffixes.
-        hard (bool): Whether to raise an error if the file is not found.
+        file (str | Path): File name or path.
+        suffix (Tuple[str]): Tuple of acceptable YAML file suffixes.
+        hard (bool): Whether to raise an error if the file is not found or multiple files are found.
 
     Returns:
         (str): Path to the YAML file.
@@ -608,7 +609,7 @@ def check_yolo(verbose=True, device=""):
 
     Args:
         verbose (bool): Whether to print verbose information.
-        device (str): Device to use for YOLO.
+        device (str | torch.device): Device to use for YOLO.
     """
     import psutil
 
@@ -810,7 +811,7 @@ def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
     except ValueError:
         file = Path(file).stem
     s = (f"{file}: " if show_file else "") + (f"{func}: " if show_func else "")
-    LOGGER.info(colorstr(s) + ", ".join(f"{k}={strip_auth(v)}" for k, v in args.items()))
+    LOGGER.info(colorstr(s) + ", ".join(f"{k}={strip_auth(v)}" for k, v in sorted(args.items())))
 
 
 def cuda_device_count() -> int:
@@ -820,19 +821,23 @@ def cuda_device_count() -> int:
     Returns:
         (int): The number of NVIDIA GPUs available.
     """
-    try:
-        # Run the nvidia-smi command and capture its output
-        output = subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=count", "--format=csv,noheader,nounits"], encoding="utf-8"
-        )
+    if IS_JETSON:
+        # NVIDIA Jetson does not fully support nvidia-smi and therefore use PyTorch instead
+        return torch.cuda.device_count()
+    else:
+        try:
+            # Run the nvidia-smi command and capture its output
+            output = subprocess.check_output(
+                ["nvidia-smi", "--query-gpu=count", "--format=csv,noheader,nounits"], encoding="utf-8"
+            )
 
-        # Take the first line and strip any leading/trailing white space
-        first_line = output.strip().split("\n")[0]
+            # Take the first line and strip any leading/trailing white space
+            first_line = output.strip().split("\n")[0]
 
-        return int(first_line)
-    except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
-        # If the command fails, nvidia-smi is not found, or output is not an integer, assume no GPUs are available
-        return 0
+            return int(first_line)
+        except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
+            # If the command fails, nvidia-smi is not found, or output is not an integer, assume no GPUs are available
+            return 0
 
 
 def cuda_is_available() -> bool:

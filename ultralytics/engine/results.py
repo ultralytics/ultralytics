@@ -1032,7 +1032,7 @@ class Results(SimpleClass):
         conn.commit()
         conn.close()
 
-        LOGGER.info(f"✅ Detection results successfully written to SQL table '{table_name}' in database '{db_path}'.")
+        LOGGER.info(f"Detection results successfully written to SQL table '{table_name}' in database '{db_path}'.")
 
 
 class Boxes(BaseTensor):

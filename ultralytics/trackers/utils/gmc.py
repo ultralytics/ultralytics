@@ -106,7 +106,6 @@ class GMC:
             >>> print(transformation_matrix.shape)
             (2, 3)
         """
-        raw_frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY) if raw_frame.shape[2] == 3 else raw_frame
         if self.method in {"orb", "sift"}:
             return self.apply_features(raw_frame, detections)
         elif self.method == "ecc":
@@ -133,18 +132,19 @@ class GMC:
             [[1. 0. 0.]
              [0. 1. 0.]]
         """
-        height, width = raw_frame.shape
+        height, width, _ = raw_frame.shape
+        frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
         H = np.eye(2, 3, dtype=np.float32)
 
         # Downscale image
         if self.downscale > 1.0:
-            raw_frame = cv2.GaussianBlur(raw_frame, (3, 3), 1.5)
-            raw_frame = cv2.resize(raw_frame, (width // self.downscale, height // self.downscale))
+            frame = cv2.GaussianBlur(frame, (3, 3), 1.5)
+            frame = cv2.resize(frame, (width // self.downscale, height // self.downscale))
 
         # Handle first frame
         if not self.initializedFirstFrame:
             # Initialize data
-            self.prevFrame = raw_frame.copy()
+            self.prevFrame = frame.copy()
 
             # Initialization done
             self.initializedFirstFrame = True
@@ -154,7 +154,7 @@ class GMC:
         # Run the ECC algorithm. The results are stored in warp_matrix.
         # (cc, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria)
         try:
-            (_, H) = cv2.findTransformECC(self.prevFrame, raw_frame, H, self.warp_mode, self.criteria, None, 1)
+            (_, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria, None, 1)
         except Exception as e:
             LOGGER.warning(f"find transform failed. Set warp as identity {e}")
 
@@ -178,32 +178,33 @@ class GMC:
             >>> print(transformation_matrix.shape)
             (2, 3)
         """
-        height, width = raw_frame.shape
+        height, width, _ = raw_frame.shape
+        frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
         H = np.eye(2, 3)
 
         # Downscale image
         if self.downscale > 1.0:
-            raw_frame = cv2.resize(raw_frame, (width // self.downscale, height // self.downscale))
+            frame = cv2.resize(frame, (width // self.downscale, height // self.downscale))
             width = width // self.downscale
             height = height // self.downscale
 
         # Find the keypoints
-        mask = np.zeros_like(raw_frame)
+        mask = np.zeros_like(frame)
         mask[int(0.02 * height) : int(0.98 * height), int(0.02 * width) : int(0.98 * width)] = 255
         if detections is not None:
             for det in detections:
                 tlbr = (det[:4] / self.downscale).astype(np.int_)
                 mask[tlbr[1] : tlbr[3], tlbr[0] : tlbr[2]] = 0
 
-        keypoints = self.detector.detect(raw_frame, mask)
+        keypoints = self.detector.detect(frame, mask)
 
         # Compute the descriptors
-        keypoints, descriptors = self.extractor.compute(raw_frame, keypoints)
+        keypoints, descriptors = self.extractor.compute(frame, keypoints)
 
         # Handle first frame
         if not self.initializedFirstFrame:
             # Initialize data
-            self.prevFrame = raw_frame.copy()
+            self.prevFrame = frame.copy()
             self.prevKeyPoints = copy.copy(keypoints)
             self.prevDescriptors = copy.copy(descriptors)
 
@@ -224,7 +225,7 @@ class GMC:
         # Handle empty matches case
         if len(knnMatches) == 0:
             # Store to next iteration
-            self.prevFrame = raw_frame.copy()
+            self.prevFrame = frame.copy()
             self.prevKeyPoints = copy.copy(keypoints)
             self.prevDescriptors = copy.copy(descriptors)
 
@@ -296,7 +297,7 @@ class GMC:
             LOGGER.warning("not enough matching points")
 
         # Store to next iteration
-        self.prevFrame = raw_frame.copy()
+        self.prevFrame = frame.copy()
         self.prevKeyPoints = copy.copy(keypoints)
         self.prevDescriptors = copy.copy(descriptors)
 
@@ -319,25 +320,26 @@ class GMC:
             [[1. 0. 0.]
              [0. 1. 0.]]
         """
-        height, width = raw_frame.shape
+        height, width, _ = raw_frame.shape
+        frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
         H = np.eye(2, 3)
 
         # Downscale image
         if self.downscale > 1.0:
-            raw_frame = cv2.resize(raw_frame, (width // self.downscale, height // self.downscale))
+            frame = cv2.resize(frame, (width // self.downscale, height // self.downscale))
 
         # Find the keypoints
-        keypoints = cv2.goodFeaturesToTrack(raw_frame, mask=None, **self.feature_params)
+        keypoints = cv2.goodFeaturesToTrack(frame, mask=None, **self.feature_params)
 
         # Handle first frame
         if not self.initializedFirstFrame or self.prevKeyPoints is None:
-            self.prevFrame = raw_frame.copy()
+            self.prevFrame = frame.copy()
             self.prevKeyPoints = copy.copy(keypoints)
             self.initializedFirstFrame = True
             return H
 
         # Find correspondences
-        matchedKeypoints, status, _ = cv2.calcOpticalFlowPyrLK(self.prevFrame, raw_frame, self.prevKeyPoints, None)
+        matchedKeypoints, status, _ = cv2.calcOpticalFlowPyrLK(self.prevFrame, frame, self.prevKeyPoints, None)
 
         # Leave good correspondences only
         prevPoints = []
@@ -361,7 +363,7 @@ class GMC:
         else:
             LOGGER.warning("not enough matching points")
 
-        self.prevFrame = raw_frame.copy()
+        self.prevFrame = frame.copy()
         self.prevKeyPoints = copy.copy(keypoints)
 
         return H

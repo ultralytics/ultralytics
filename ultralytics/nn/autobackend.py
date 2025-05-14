@@ -105,6 +105,7 @@ class AutoBackend(nn.Module):
         batch: int = 1,
         fuse: bool = True,
         verbose: bool = True,
+        opts: dict = None,
     ):
         """
         Initialize the AutoBackend for inference.
@@ -118,6 +119,7 @@ class AutoBackend(nn.Module):
             batch (int): Batch-size to assume for inference.
             fuse (bool): Fuse Conv2D + BatchNorm layers for optimization.
             verbose (bool): Enable verbose logging.
+            opts (dict): Contains extra arguments that may be used by the backends.
         """
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
@@ -219,7 +221,7 @@ class AutoBackend(nn.Module):
                     cuda = False
             LOGGER.info(f"Using ONNX Runtime {providers[0]}")
             if onnx:
-                session = onnxruntime.InferenceSession(w, providers=providers)
+                session = onnxruntime.InferenceSession(w, providers=providers, sess_options=opts.get("onnx", {}).get("sess_options"))
             else:
                 check_requirements(
                     ["model-compression-toolkit>=2.3.0", "sony-custom-layers[torch]>=0.3.0", "onnxruntime-extensions"]
@@ -281,7 +283,7 @@ class AutoBackend(nn.Module):
             ov_compiled_model = core.compile_model(
                 ov_model,
                 device_name=device_name,
-                config={"PERFORMANCE_HINT": inference_mode},
+                config={**{"PERFORMANCE_HINT": inference_mode}, **opts.get("openvino", {}).get("config", {})},
             )
             input_name = ov_compiled_model.input().get_any_name()
             metadata = w.parent / "metadata.yaml"

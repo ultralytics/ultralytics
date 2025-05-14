@@ -122,6 +122,7 @@ erasing: 0.4 # (float) probability of random erasing during classification train
 
 # Custom config.yaml ---------------------------------------------------------------------------------------------------
 cfg: # (str, optional) for overriding defaults.yaml
+opts:  # (dict, optional) extra arguments used by various integrations
 
 # Tracker settings ------------------------------------------------------------------------------------------------------
 tracker: botsort.yaml # (str) tracker type, choices=[botsort.yaml, bytetrack.yaml]

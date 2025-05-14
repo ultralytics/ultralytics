@@ -5,6 +5,7 @@ from pathlib import Path
 
 import torch
 
+from ultralytics.nn.text_model import build_text_model
 from ultralytics.data import build_yolo_dataset
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import WorldModel
@@ -53,14 +54,6 @@ class WorldTrainer(DetectionTrainer):
         if overrides is None:
             overrides = {}
         super().__init__(cfg, overrides, _callbacks)
-
-        # Import and assign clip
-        try:
-            import clip
-        except ImportError:
-            checks.check_requirements("git+https://github.com/ultralytics/CLIP.git")
-            import clip
-        self.clip = clip
         self.text_embeddings = None
 
     def get_model(self, cfg=None, weights=None, verbose=True):
@@ -133,32 +126,57 @@ class WorldTrainer(DetectionTrainer):
             img_path = dataset.img_path
             text_embeddings.update(
                 self.generate_text_embeddings(
-                    list(dataset.category_names), batch, cache_path=Path(img_path).parent / "text_embeddings.pt"
+                    list(dataset.category_names), batch, cache_dir=Path(img_path).parent
                 )
             )
         self.text_embeddings = text_embeddings
 
-    def generate_text_embeddings(self, texts, batch, cache_path="embeddings.pt"):
+    def generate_text_embeddings_hash(self, texts, variant):
+        """
+        Generate a hash key for text embeddings based on texts and model variant.
+
+        Args:
+            texts (List[str]): List of text samples to encode.
+            variant (str): Identifier for the text model variant.
+
+        Returns:
+            (str): hash key
+        """
+        import hashlib
+        import json
+        text_embedding_info = {
+            "texts": sorted(texts),
+            "text_model_variant": variant,
+        }
+
+        json_str = json.dumps(text_embedding_info, sort_keys=True)
+        hasher = hashlib.sha256()
+        hasher.update(json_str.encode('utf-8'))
+        return hasher.hexdigest()
+
+    def generate_text_embeddings(self, texts, batch, cache_dir):
         """
         Generate text embeddings for a list of text samples.
 
         Args:
             texts (List[str]): List of text samples to encode.
             batch (int): Batch size for processing.
-            cache_path (str | Path): Path to save/load cached embeddings.
+            cache_dir (Path): Directory to save/load cached embeddings.
 
         Returns:
             (dict): Dictionary mapping text samples to their embeddings.
         """
+        hash_key = self.generate_text_embeddings_hash(texts, "clip:ViT-B/32")[0:8]
+        cache_path = cache_dir / f"text_embeddings_{hash_key}.pt"
         if cache_path.exists():
             LOGGER.info(f"Reading existed cache from '{cache_path}'")
             return torch.load(cache_path)
         assert self.model is not None
         device = next(self.model.parameters()).device
-        text_model, _ = self.clip.load("ViT-B/32", device=device)
+        text_model = build_text_model("clip:ViT-B/32", device=device)
         for p in text_model.parameters():
             p.requires_grad_(False)
-        txt_tokens = self.clip.tokenize(texts).to(self.device)
+        txt_tokens = text_model.tokenize(texts).to(self.device)
         txt_feats = [text_model.encode_text(token).detach() for token in txt_tokens.split(batch)]
         txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)
         txt_feats = txt_feats.reshape(-1, len(texts), txt_feats.shape[-1])

@@ -168,18 +168,20 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         batch["txt_feats"] = txt_feats
         return batch
 
-    def generate_text_embeddings(self, texts, batch, cache_path="embeddings.pt"):
+    def generate_text_embeddings(self, texts, batch, cache_dir):
         """
         Generate text embeddings for a list of text samples.
 
         Args:
             texts (List[str]): List of text samples to encode.
             batch (int): Batch size for processing.
-            cache_path (str | Path): Path to save/load cached embeddings.
+            cache_dir (Path): Directory to save/load cached embeddings.
 
         Returns:
             (dict): Dictionary mapping text samples to their embeddings.
         """
+        hash_key = self.generate_text_embeddings_hash(texts, "mobileclip:blt")[0:8]
+        cache_path = cache_dir / f"text_embeddings_{hash_key}.pt"
         if cache_path.exists():
             LOGGER.info(f"Reading existed cache from '{cache_path}'")
             return torch.load(cache_path)

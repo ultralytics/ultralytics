@@ -346,6 +346,6 @@ def build_text_model(variant, device=None):
     if base == "clip":
         return CLIP(size, device)
     elif base == "mobileclip":
-        return MobileCLIPTS(device)
+        return MobileCLIP(size, device)
     else:
         raise ValueError(f"Unrecognized base model: '{base}'. Supported base models: 'clip', 'mobileclip'.")

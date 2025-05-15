@@ -116,15 +116,12 @@ class WorldTrainer(DetectionTrainer):
             This method collects category names from datasets that have the 'category_names' attribute,
             then uses the first dataset's image path to determine where to cache the generated text embeddings.
         """
-        # TODO: open up an interface to determine whether to do cache
         text_embeddings = {}
         for dataset in datasets:
             if not hasattr(dataset, "category_names"):
                 continue
-            # TODO: enable to update the path or use a more general way to get the path
-            img_path = dataset.img_path
             text_embeddings.update(
-                self.generate_text_embeddings(list(dataset.category_names), batch, cache_dir=Path(img_path).parent)
+                self.generate_text_embeddings(list(dataset.category_names), batch, cache_dir=Path(dataset.img_path).parent)
             )
         self.text_embeddings = text_embeddings
 

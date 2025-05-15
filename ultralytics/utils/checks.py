@@ -585,6 +585,7 @@ def check_is_path_safe(basedir, path):
     return path_resolved.exists() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
 
 
+@functools.lru_cache
 def check_imshow(warn=False):
     """
     Check if environment supports image displays.

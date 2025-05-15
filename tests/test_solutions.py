@@ -186,14 +186,16 @@ def test_similarity_search():
     searcher = solutions.VisualAISearch()
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
 
+
 def test_instance_segmentation_with_defaults():
     """Test segmentation solution defaults."""
     segmenter = solutions.InstanceSegmentation()
     assert segmenter.model.endswith("yolo11n-seg.pt")
     assert segmenter.show_conf is True
 
+
 def test_object_counter_with_defaults():
-    """"Test object counting solution defaults."""
+    """ "Test object counting solution defaults."""
     counter = solutions.ObjectCounter()
     assert counter.in_count == 0
     assert counter.out_count == 0

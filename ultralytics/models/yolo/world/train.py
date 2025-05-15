@@ -129,21 +129,6 @@ class WorldTrainer(DetectionTrainer):
             )
         self.text_embeddings = text_embeddings
 
-    def generate_text_embeddings_hash(self, texts):
-        """
-        Generate a hash key for text embeddings based on texts and model variant.
-
-        Args:
-            texts (List[str]): List of text samples to encode.
-
-        Returns:
-            (str): hash key
-        """
-        hasher = __import__("hashlib").sha256()
-
-        hasher.update(str(texts).encode("utf-8"))
-        return hasher.hexdigest()
-
     def generate_text_embeddings(self, texts, batch, cache_dir):
         """
         Generate text embeddings for a list of text samples.
@@ -161,7 +146,7 @@ class WorldTrainer(DetectionTrainer):
         if cache_path.exists():
             LOGGER.info(f"Reading existed cache from '{cache_path}'")
             txt_map = torch.load(cache_path)
-            if self.generate_text_embeddings_hash(txt_map.keys()) == self.generate_text_embeddings_hash(texts):
+            if sorted(txt_map.keys()) == sorted(texts):
                 return txt_map
         assert self.model is not None
         device = next(self.model.parameters()).device

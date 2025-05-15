@@ -344,7 +344,7 @@ jobs:
   
   Conda:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')
-    continue-on-error: true
+    timeout-minutes: 120
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

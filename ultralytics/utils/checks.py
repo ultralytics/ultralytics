@@ -164,6 +164,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     return sz
 
 
+@functools.lru_cache
 def check_version(
     current: str = "0.0.0",
     required: str = "0.0.0",

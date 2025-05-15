@@ -291,7 +291,7 @@ def smooth_bce(eps=0.1):
     return 1.0 - 0.5 * eps, 0.5 * eps
 
 
-class ConfusionMatrix(ExportableMixin):
+class ConfusionMatrix:
     """
     A class for calculating and updating a confusion matrix for object detection and classification tasks.
 
@@ -451,9 +451,6 @@ class ConfusionMatrix(ExportableMixin):
         plt.close(fig)
         if on_plot:
             on_plot(plot_fname)
-
-    def summary(self):
-        return {self.matrix, list(self.names) + ["background"] if self.task == "detect" else list(names)}
 
     def print(self):
         """Print the confusion matrix to the console."""

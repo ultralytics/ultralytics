@@ -202,3 +202,15 @@ def test_object_counting_with_defaults(monkeypatch):
     assert not counter.region_initialized
     assert hasattr(counter, "show_in")
     assert hasattr(counter, "show_out")
+
+def test_display_counts_with_labels(monkeypatch):
+    """Test display counts function."""
+    counter = solutions.ObjectCounter()
+    counter.classwise_counts = {"person": {"IN": 2, "OUT": 1}}
+    counter.show_in = True
+    counter.show_out = True
+    mock_annotator = Mock()  # Fake annotator
+    monkeypatch.setattr(counter, "annotator", mock_annotator)
+    dummy_frame = np.ones((480, 640, 3), dtype=np.uint8)
+    counter.display_counts(dummy_frame)
+    mock_annotator.display_analytics.assert_called_once()

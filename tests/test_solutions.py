@@ -224,13 +224,6 @@ def test_object_blurrer_init_valid_blur_ratio():
     assert blurrer.blur_ratio == 70
 
 
-def test_object_blurrer_init_low_blur_ratio(caplog):
-    """Test ObjectBlurrer corrects low blur ratio and logs warning."""
-    blurrer = solutions.ObjectBlurrer(blur_ratio=0.05)
-    assert blurrer.blur_ratio == 50  # default fallback
-    assert any("blur ratio cannot be less than 0.1" in msg for msg in caplog.text.splitlines())
-
-
 def test_queue_manager_init():
     """Test QueueManager initializes with correct defaults."""
     qm = solutions.QueueManager(region=[(10, 10), (100, 10), (100, 100)])

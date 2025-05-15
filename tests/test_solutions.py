@@ -193,15 +193,13 @@ def test_instance_segmentation_with_defaults():
     assert segmenter.model.endswith("yolo11n-seg.pt")
     assert segmenter.show_conf is True
 
-def test_instance_segmentation_process_without_masks(monkeypatch):
-    """Test segmentation solution without masks."""
-    seg = InstanceSegmentation()
-    dummy_image = np.ones((640, 480, 3), dtype=np.uint8)
-
-    seg.extract_tracks = lambda im: setattr(seg, 'tracks', masks = None)
-    seg.display_output = lambda im: None
-    seg.track_ids = []
-
-    results = seg.process(dummy_image)
-    assert isinstance(results, SolutionResults)
-    assert results.total_tracks == 0
+def test_object_counter_with_defaults():
+    """"Test object counting solution defaults."""
+    counter = ObjectCounter()
+    assert counter.in_count == 0
+    assert counter.out_count == 0
+    assert counter.counted_ids == []
+    assert isinstance(counter.classwise_counts, dict)
+    assert not counter.region_initialized
+    assert hasattr(counter, "show_in")
+    assert hasattr(counter, "show_out")

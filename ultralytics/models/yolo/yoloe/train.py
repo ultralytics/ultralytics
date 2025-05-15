@@ -180,11 +180,13 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         Returns:
             (dict): Dictionary mapping text samples to their embeddings.
         """
-        hash_key = self.generate_text_embeddings_hash(texts, "mobileclip:blt")[0:8]
-        cache_path = cache_dir / f"text_embeddings_{hash_key}.pt"
+        model = "mobileclip:blt"
+        cache_path = cache_dir / f"text_embeddings_{model.replace(':', '-').replace('/', '-')}.pt"
         if cache_path.exists():
             LOGGER.info(f"Reading existed cache from '{cache_path}'")
-            return torch.load(cache_path)
+            txt_map = torch.load(cache_path)
+            if sorted(txt_map.keys()) == sorted(texts):
+                return txt_map
         assert self.model is not None
         txt_feats = self.model.get_text_pe(texts, batch, without_reprta=True)
         txt_map = dict(zip(texts, txt_feats.squeeze(0)))

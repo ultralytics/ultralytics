@@ -185,3 +185,20 @@ def test_similarity_search():
 
     searcher = solutions.VisualAISearch()
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
+
+
+def test_instance_segmentation_with_defaults(monkeypatch):
+    """Test segmentation solution defaults."""
+    segmenter = solutions.InstanceSegmentation()
+    assert segmenter.show_conf is True
+
+def test_object_counting_with_defaults(monkeypatch):
+    """Test object counting solution defaults."""
+    counter = solutions.ObjectCounter()
+    assert counter.in_count == 0
+    assert counter.out_count == 0
+    assert counter.counted_ids == []
+    assert isinstance(counter.classwise_counts, dict)
+    assert not counter.region_initialized
+    assert hasattr(counter, "show_in")
+    assert hasattr(counter, "show_out")

@@ -706,6 +706,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
         )
     else:
         import cv2  # Only needed for cap and vw functionality
+
         from ultralytics import solutions
 
         solution = getattr(solutions, SOLUTION_MAP[solution_name])(is_cli=True, **overrides)  # class i.e ObjectCounter

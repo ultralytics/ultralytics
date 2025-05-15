@@ -5,6 +5,8 @@
 
 import cv2
 import pytest
+import numpy as np
+from unittest.mock import patch
 
 from tests import MODEL, TMP
 from ultralytics import solutions
@@ -185,3 +187,51 @@ def test_similarity_search():
 
     searcher = solutions.VisualAISearch()
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
+
+
+def get_dummy_frame():
+    """Returns a dummy black image frame of size 480x640"""
+    return np.zeros((480, 640, 3), dtype=np.uint8)
+
+@patch("ultralytics.solutions.object_counter.SolutionAnnotator")
+def test_process_with_patch(mock_annotator):
+    """Test process() with mocked SolutionAnnotator using @patch"""
+    mock_instance = MagicMock()
+    mock_annotator.return_value = mock_instance
+    mock_instance.result.return_value = get_dummy_frame()
+
+    counter = ObjectCounter(CFG={"show_in": True, "show_out": True})
+    counter.track_ids = [1]
+    counter.boxes = [np.array([0, 0, 50, 50])]
+    counter.clss = [0]
+    counter.confs = [0.9]
+    counter.names = {0: "object"}
+    counter.track_history = {1: [(10, 10), (20, 20)]}
+    counter.region = [(0, 0), (0, 100)]
+
+    # Patch other methods
+    counter.extract_tracks = lambda x: None
+    counter.initialize_region = lambda: None
+    counter.display_output = lambda x: None
+
+    with patch("ultralytics.solutions.object_counter.LineString") as mock_line:
+        mock_line.return_value.intersects.return_value = True
+        result = counter.process(get_dummy_frame())
+
+    assert isinstance(result, SolutionResults)
+    mock_instance.box_label.assert_called()
+    mock_instance.draw_region.assert_called()
+
+def test_display_counts_skips_empty():
+    """Test display_counts() doesn't crash with no counts"""
+    counter = ObjectCounter(CFG={"show_in": True, "show_out": True})
+    frame = get_dummy_frame()
+    # Should run silently with no labels drawn
+    counter.display_counts(frame)
+
+def test_instance_segmentation_cfg_flags():
+    """Test CFG flags are set correctly on init"""
+    seg = InstanceSegmentation(CFG={"show_conf": False, "show_labels": False, "show_boxes": False})
+    assert not seg.show_conf
+    assert not seg.show_labels
+    assert not seg.show_boxes

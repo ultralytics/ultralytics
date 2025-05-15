@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import functools
 import glob
 import inspect
 import math
@@ -24,6 +25,7 @@ from ultralytics.utils import (
     AUTOINSTALL,
     IS_COLAB,
     IS_GIT_DIR,
+    IS_JETSON,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
     LINUX,
@@ -78,6 +80,7 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
     return requirements
 
 
+@functools.lru_cache
 def parse_version(version="0.0.0") -> tuple:
     """
     Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
@@ -162,6 +165,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     return sz
 
 
+@functools.lru_cache
 def check_version(
     current: str = "0.0.0",
     required: str = "0.0.0",
@@ -295,6 +299,7 @@ def check_pip_update_available():
 
 
 @ThreadingLocked()
+@functools.lru_cache
 def check_font(font="Arial.ttf"):
     """
     Find font locally or download to user's configuration directory if it does not already exist.
@@ -343,7 +348,7 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
 @TryExcept()
 def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds=""):
     """
-    Check if installed dependencies meet YOLOv8 requirements and attempt to auto-update if needed.
+    Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.
 
     Args:
         requirements (Union[Path, str, List[str]]): Path to a requirements.txt file, a single package requirement as a
@@ -577,6 +582,7 @@ def check_is_path_safe(basedir, path):
     return path_resolved.exists() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
 
 
+@functools.lru_cache
 def check_imshow(warn=False):
     """
     Check if environment supports image displays.
@@ -820,19 +826,23 @@ def cuda_device_count() -> int:
     Returns:
         (int): The number of NVIDIA GPUs available.
     """
-    try:
-        # Run the nvidia-smi command and capture its output
-        output = subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=count", "--format=csv,noheader,nounits"], encoding="utf-8"
-        )
+    if IS_JETSON:
+        # NVIDIA Jetson does not fully support nvidia-smi and therefore use PyTorch instead
+        return torch.cuda.device_count()
+    else:
+        try:
+            # Run the nvidia-smi command and capture its output
+            output = subprocess.check_output(
+                ["nvidia-smi", "--query-gpu=count", "--format=csv,noheader,nounits"], encoding="utf-8"
+            )
 
-        # Take the first line and strip any leading/trailing white space
-        first_line = output.strip().split("\n")[0]
+            # Take the first line and strip any leading/trailing white space
+            first_line = output.strip().split("\n")[0]
 
-        return int(first_line)
-    except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
-        # If the command fails, nvidia-smi is not found, or output is not an integer, assume no GPUs are available
-        return 0
+            return int(first_line)
+        except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
+            # If the command fails, nvidia-smi is not found, or output is not an integer, assume no GPUs are available
+            return 0
 
 
 def cuda_is_available() -> bool:

@@ -98,7 +98,6 @@ def parse_version(version="0.0.0") -> tuple:
         return 0, 0, 0
 
 
-@functools.lru_cache
 def is_ascii(s) -> bool:
     """
     Check if a string is composed of only ASCII characters.

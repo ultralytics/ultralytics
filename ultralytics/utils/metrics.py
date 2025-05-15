@@ -937,16 +937,16 @@ class DetMetrics(SimpleClass, ExportableMixin):
 
     def summary(self, **kwargs):
         """Returns per-class detection metrics with shared scalar values included."""
-        m = {
+        scalars = {
             "box-map": self.box.map,
             "box-map50": self.box.map50,
             "box-map75": self.box.map75,
+        }
+        per_class = {
             "box-p": self.box.p,
             "box-r": self.box.r,
             "box-f1": self.box.f1,
         }
-        scalars = {k: v for k, v in m.items() if not hasattr(v, "__len__")}
-        per_class = {k: v for k, v in m.items() if hasattr(v, "__len__")}
         return [
             {
                 "class_name": self.names[i] if hasattr(self, "names") and i in self.names else str(i),

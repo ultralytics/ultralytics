@@ -20,7 +20,10 @@ PARKING_VIDEO = "solution_ci_parking_demo.mp4"  # only for parking management so
 PARKING_AREAS_JSON = "solution_ci_parking_areas.json"  # only for parking management solution
 PARKING_MODEL = "solutions_ci_parking_model.pt"  # only for parking management solution
 REGION = [(10, 200), (540, 200), (540, 180), (10, 180)]  # for object counting, speed estimation and queue management
-LINE = [(10, 200), (540,200)]  # Add line cord for tests to incrase coverage: https://app.codecov.io/gh/ultralytics/ultralytics
+LINE = [
+    (10, 200),
+    (540, 200),
+]  # Add line cord for tests to increase coverage: https://app.codecov.io/gh/ultralytics/ultralytics
 
 # Test configs for each solution : (name, class, needs_frame_count, video, kwargs)
 SOLUTIONS = [

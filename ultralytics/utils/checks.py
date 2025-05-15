@@ -344,9 +344,8 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
     """
     return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard, verbose=verbose)
 
-
-@TryExcept()
 @functools.lru_cache
+@TryExcept()
 def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds=""):
     """
     Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.

@@ -80,6 +80,7 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
     return requirements
 
 
+@functools.lru_cache
 def parse_version(version="0.0.0") -> tuple:
     """
     Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
@@ -97,6 +98,7 @@ def parse_version(version="0.0.0") -> tuple:
         return 0, 0, 0
 
 
+@functools.lru_cache
 def is_ascii(s) -> bool:
     """
     Check if a string is composed of only ASCII characters.
@@ -110,6 +112,7 @@ def is_ascii(s) -> bool:
     return all(ord(c) < 128 for c in str(s))
 
 
+@functools.lru_cache
 def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     """
     Verify image size is a multiple of the given stride in each dimension. If the image size is not a multiple of the
@@ -345,6 +348,7 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
 
 
 @TryExcept()
+@functools.lru_cache
 def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds=""):
     """
     Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.

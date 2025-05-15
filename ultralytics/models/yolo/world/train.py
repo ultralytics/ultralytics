@@ -8,7 +8,6 @@ import torch
 from ultralytics.data import build_yolo_dataset
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import WorldModel
-from ultralytics.nn.text_model import build_text_model
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.torch_utils import de_parallel
 

@@ -142,12 +142,13 @@ class WorldTrainer(DetectionTrainer):
             (dict): Dictionary mapping text samples to their embeddings.
         """
         model = "clip:ViT-B/32"
-        cache_path = cache_dir / f"text_embeddings_{model.replace(':', '-').replace('/', '-')}.pt"
+        cache_path = cache_dir / f"text_embeddings_{model.replace(':', '_').replace('/', '_')}.pt"
         if cache_path.exists():
             LOGGER.info(f"Reading existed cache from '{cache_path}'")
             txt_map = torch.load(cache_path)
             if sorted(txt_map.keys()) == sorted(texts):
                 return txt_map
+        LOGGER.info(f"Caching text embeddings to '{cache_path}'")
         assert self.model is not None
         device = next(self.model.parameters()).device
         text_model = build_text_model(model, device=device)

@@ -27,6 +27,9 @@ on:
         default: true
         type: boolean
 
+permissions:
+  contents: write # Modify code in PRs
+
 jobs:
   Docs:
     if: github.repository == 'ultralytics/ultralytics'

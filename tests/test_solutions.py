@@ -194,6 +194,7 @@ def get_dummy_frame():
     """Returns a dummy black image frame of size 480x640."""
     return np.zeros((480, 640, 3), dtype=np.uint8)
 
+
 @patch("ultralytics.solutions.object_counter.SolutionAnnotator")
 def test_process_with_patch(mock_annotator):
     """Test process() with mocked SolutionAnnotator using @patch."""
@@ -223,12 +224,14 @@ def test_process_with_patch(mock_annotator):
     mock_instance.box_label.assert_called()
     mock_instance.draw_region.assert_called()
 
+
 def test_display_counts_skips_empty():
     """Test display_counts() doesn't crash with no counts."""
     counter = ObjectCounter(CFG={"show_in": True, "show_out": True})
     frame = get_dummy_frame()
     # Should run silently with no labels drawn
     counter.display_counts(frame)
+
 
 def test_instance_segmentation_cfg_flags():
     """Test CFG flags are set correctly on init."""

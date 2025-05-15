@@ -212,6 +212,7 @@ class ExportableMixin:
         >>> csv_data = results.to_csv()
         >>> results.to_sql(table_name="yolo_results")
     """
+
     def to_df(self, normalize=False, decimals=5):
         """
         Create a pandas DataFrame from the prediction results summary or validation metrics.
@@ -224,6 +225,7 @@ class ExportableMixin:
             (DataFrame): DataFrame containing the summary data.
         """
         import pandas as pd  # scope for faster 'import ultralytics'
+
         return pd.DataFrame(self.summary())
 
     def to_csv(self, normalize=False, decimals=5):

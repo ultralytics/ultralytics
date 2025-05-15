@@ -188,13 +188,13 @@ def test_similarity_search():
 
 
 def test_instance_segmentation_with_defaults():
-    """Test segmentation solution defaults"""
+    """Test segmentation solution defaults."""
     segmenter = solutions.InstanceSegmentation()
     assert segmenter.model.endswith("yolo11n-seg.pt")
     assert segmenter.show_conf is True
 
 def test_instance_segmentation_process_without_masks(monkeypatch):
-    """Test segmentation solution without masks"""
+    """Test segmentation solution without masks."""
     seg = InstanceSegmentation()
     dummy_image = np.ones((640, 480, 3), dtype=np.uint8)
 

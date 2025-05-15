@@ -8,7 +8,6 @@ import torch
 from ultralytics.data import build_yolo_dataset
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import WorldModel
-from ultralytics.nn.text_model import build_text_model
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.torch_utils import de_parallel
 
@@ -150,14 +149,7 @@ class WorldTrainer(DetectionTrainer):
                 return txt_map
         LOGGER.info(f"Caching text embeddings to '{cache_path}'")
         assert self.model is not None
-        device = next(self.model.parameters()).device
-        text_model = build_text_model(model, device=device)
-        for p in text_model.parameters():
-            p.requires_grad_(False)
-        txt_tokens = text_model.tokenize(texts).to(self.device)
-        txt_feats = [text_model.encode_text(token).detach() for token in txt_tokens.split(batch)]
-        txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)
-        txt_feats = txt_feats.reshape(-1, len(texts), txt_feats.shape[-1])
+        txt_feats = self.model.get_text_pe(texts, batch, cache_clip_model=False)
         txt_map = dict(zip(texts, txt_feats.squeeze(0)))
         torch.save(txt_map, cache_path)
         return txt_map

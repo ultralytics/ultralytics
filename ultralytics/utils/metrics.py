@@ -291,7 +291,7 @@ def smooth_bce(eps=0.1):
     return 1.0 - 0.5 * eps, 0.5 * eps
 
 
-class ConfusionMatrix:
+class ConfusionMatrix(ExportableMixin):
     """
     A class for calculating and updating a confusion matrix for object detection and classification tasks.
 
@@ -452,20 +452,11 @@ class ConfusionMatrix:
         if on_plot:
             on_plot(plot_fname)
 
-        # Store confusion matrix results in CSV file.
-        self.cm_plot_labels = (
-            list(names) + ["background"] if self.task == "detect" else list(names)
-        )  # confusion matrix labels (x and y axis)
-        self.cm_save_dir = save_dir  # directory for confusion_matrix.csv file storage
-        self.to_csv()
-
-    def to_csv(self):
-        """Exports the confusion matrix to 'confusion_matrix.csv' using the confusion matrix data."""
-        import pandas as pd
-
-        pd.DataFrame(self.matrix, index=self.cm_plot_labels, columns=self.cm_plot_labels).to_csv(
-            self.cm_save_dir / "confusion_matrix.csv"
-        )
+    def summary(self):
+        return {
+            self.matrix,
+            list(self.names) + ["background"] if self.task == "detect" else list(names)
+        }
 
     def print(self):
         """Print the confusion matrix to the console."""
@@ -947,6 +938,26 @@ class DetMetrics(SimpleClass, ExportableMixin):
         """Return dictionary of computed performance metrics and statistics."""
         return self.box.curves_results
 
+    def summary(self, **kwargs):
+        """Returns per-class detection metrics with shared scalar values included."""
+        m = {
+            "box-map": self.box.map,
+            "box-map50": self.box.map50,
+            "box-map75": self.box.map75,
+            "box-p": self.box.p,
+            "box-r": self.box.r,
+            "box-f1": self.box.f1
+        }
+        scalars = {k: v for k, v in m.items() if not hasattr(v, '__len__')}
+        per_class = {k: v for k, v in m.items() if hasattr(v, '__len__')}
+        return [
+            {
+                "class_name": self.names[i] if hasattr(self, "names") and i in self.names else str(i),
+                **{k: v[i] for k, v in per_class.items()},
+                **scalars
+            }
+            for i in range(len(next(iter(per_class.values()), [])))
+        ]
 
 class SegmentMetrics(SimpleClass, ExportableMixin):
     """
@@ -1083,6 +1094,26 @@ class SegmentMetrics(SimpleClass, ExportableMixin):
         """Return dictionary of computed performance metrics and statistics."""
         return self.box.curves_results + self.seg.curves_results
 
+    def summary(self, **kwargs):
+        """Returns per-class segmentation metrics with shared scalar values included (box + mask)."""
+        scalars = {
+            "box-map": self.box.map,
+            "box-map50": self.box.map50,
+            "box-map75": self.box.map75,
+            "mask-map": self.seg.map,
+            "mask-map50": self.seg.map50,
+            "mask-map75": self.seg.map75,
+        }
+        per_class = {
+            "box-p": self.box.p,
+            "box-r": self.box.r,
+            "box-f1": self.box.f1,
+            "mask-p": self.seg.p,
+            "mask-r": self.seg.r,
+            "mask-f1": self.seg.f1,
+        }
+        return [{"class_name": self.names[i], **{k: v[i] for k, v in per_class.items()}, **scalars}
+                for i in range(len(next(iter(per_class.values()), [])))]
 
 class PoseMetrics(SegmentMetrics):
     """
@@ -1215,6 +1246,27 @@ class PoseMetrics(SegmentMetrics):
         """Return dictionary of computed performance metrics and statistics."""
         return self.box.curves_results + self.pose.curves_results
 
+    def summary(self, **kwargs):
+        """Returns per-class pose metrics with shared scalar values included (box + pose)."""
+        scalars = {
+            "box-map": self.box.map,
+            "box-map50": self.box.map50,
+            "box-map75": self.box.map75,
+            "pose-map": self.pose.map,
+            "pose-map50": self.pose.map50,
+            "pose-map75": self.pose.map75,
+        }
+        per_class = {
+            "box-p": self.box.p,
+            "box-r": self.box.r,
+            "box-f1": self.box.f1,
+            "pose-p": self.pose.p,
+            "pose-r": self.pose.r,
+            "pose-f1": self.pose.f1,
+
+        }
+        return [{"class_name": self.names[i], **{k: v[i] for k, v in per_class.items()}, **scalars}
+                for i in range(len(next(iter(per_class.values()), [])))]
 
 class ClassifyMetrics(SimpleClass, ExportableMixin):
     """
@@ -1272,6 +1324,12 @@ class ClassifyMetrics(SimpleClass, ExportableMixin):
         """Return a list of curves for accessing specific metrics curves."""
         return []
 
+    def summary(self, **kwargs):
+        """Returns a single-row summary for classification metrics (top1/top5)."""
+        return [{
+            "classify-top1": self.top1,
+            "classify-top5": self.top5
+        }]
 
 class OBBMetrics(SimpleClass, ExportableMixin):
     """
@@ -1370,3 +1428,18 @@ class OBBMetrics(SimpleClass, ExportableMixin):
     def curves_results(self):
         """Return a list of curves for accessing specific metrics curves."""
         return []
+
+    def summary(self, **kwargs):
+        """Returns per-class detection metrics with shared scalar values included."""
+        scalars = {
+            "box-map": self.box.map,
+            "box-map50": self.box.map50,
+            "box-map75": self.box.map75,
+        }
+        per_class = {
+            "box-p": self.box.p,
+            "box-r": self.box.r,
+            "box-f1": self.box.f1
+        }
+        return [{"class_name": self.names[i], **{k: v[i] for k, v in per_class.items()}, **scalars}
+            for i in range(len(next(iter(per_class.values()), [])))]

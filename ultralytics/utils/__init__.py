@@ -195,6 +195,15 @@ class ExportableMixin:
     from classification, object detection, segmentation, or pose estimation tasks into various formats, Pandas DataFrame
     CSV, XML, HTML, JSON and SQLite (SQL)
 
+    Methods:
+        to_df(): Convert summary to a Pandas DataFrame.
+        to_csv(): Export results as a CSV string.
+        to_xml(): Export results as an XML string (requires `lxml`).
+        to_html(): Export results as an HTML table.
+        to_json(): Export results as a JSON string.
+        tojson(): Deprecated alias for `to_json()`.
+        to_sql(): Export results to an SQLite database.
+
     Examples:
         >>> model = YOLO("yolov8n.pt")
         >>> results = model("image.jpg")
@@ -202,39 +211,7 @@ class ExportableMixin:
         >>> print(df)
         >>> csv_data = results.to_csv()
         >>> results.to_sql(table_name="yolo_results")
-
-    Attributes:
-        task (str): Task type such as "detect", "segment", "pose", "obb", or "classify".
-        box (Namespace): Detection box metrics, if applicable.
-        seg (Namespace): Segmentation metrics, if applicable.
-        pose (Namespace): Pose estimation metrics, if applicable.
-        top1 (float): Top-1 accuracy for classification tasks.
-        top5 (float): Top-5 accuracy for classification tasks.
     """
-
-    def val_summary(self):
-        """
-        Generate a summary dictionary of evaluation metrics depending on the task type.
-
-        Returns:
-            (dict): Dictionary containing task-specific evaluation metrics.
-        """
-        box_keys = ["ap50", "ap", "map", "map50", "map75", "p", "r", "f1"]
-        common_keys = ["map", "map50", "map75", "p", "r"]
-
-        summary = {}
-        if self.task == "classify":
-            summary = {"classification-top1": self.top1, "classification-top5": self.top5}
-        else:
-            metrics = {f"box-{k}": getattr(self.box, k) for k in box_keys}
-            if self.task == "segment":
-                metrics.update({f"segmentation-{k}": getattr(self.seg, k) for k in common_keys})
-            elif self.task == "pose":
-                metrics.update({f"pose-{k}": getattr(self.pose, k) for k in common_keys})
-            summary = metrics
-
-        return summary
-
     def to_df(self, normalize=False, decimals=5):
         """
         Create a pandas DataFrame from the prediction results summary or validation metrics.
@@ -245,18 +222,9 @@ class ExportableMixin:
 
         Returns:
             (DataFrame): DataFrame containing the summary data.
-
-        Raises:
-            NotImplementedError: If the object lacks the necessary attributes or summary method.
         """
         import pandas as pd  # scope for faster 'import ultralytics'
-
-        if hasattr(self, "summary"):
-            return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
-        elif any(hasattr(self, attr) for attr in ["box", "seg", "pose", "top1", "top5"]):
-            return pd.DataFrame([self.val_summary()] if self.task == "classify" else self.val_summary())
-        else:
-            raise NotImplementedError("to_ methods only usable with validation metrics or prediction results")
+        return pd.DataFrame(self.summary())
 
     def to_csv(self, normalize=False, decimals=5):
         """

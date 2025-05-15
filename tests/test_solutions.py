@@ -185,3 +185,23 @@ def test_similarity_search():
 
     searcher = solutions.VisualAISearch()
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
+
+
+def test_instance_segmentation_with_defaults():
+    """Test segmentation solution defaults"""
+    segmenter = solutions.InstanceSegmentation()
+    assert segmenter.model.endswith("yolo11n-seg.pt")
+    assert segmenter.show_conf is True
+
+def test_instance_segmentation_process_without_masks(monkeypatch):
+    """Test segmentation solution without masks"""
+    seg = InstanceSegmentation()
+    dummy_image = np.ones((640, 480, 3), dtype=np.uint8)
+
+    seg.extract_tracks = lambda im: setattr(seg, 'tracks', masks = None)
+    seg.display_output = lambda im: None
+    seg.track_ids = []
+
+    results = seg.process(dummy_image)
+    assert isinstance(results, SolutionResults)
+    assert results.total_tracks == 0

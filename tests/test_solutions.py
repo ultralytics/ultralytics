@@ -192,6 +192,7 @@ def test_instance_segmentation_with_defaults(monkeypatch):
     segmenter = solutions.InstanceSegmentation()
     assert segmenter.show_conf is True
 
+
 def test_object_counting_with_defaults(monkeypatch):
     """Test object counting solution defaults."""
     counter = solutions.ObjectCounter()

@@ -6,7 +6,7 @@
 import cv2
 import pytest
 import numpy as np
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from tests import MODEL, TMP
 from ultralytics import solutions
@@ -200,7 +200,7 @@ def test_process_with_patch(mock_annotator):
     mock_annotator.return_value = mock_instance
     mock_instance.result.return_value = get_dummy_frame()
 
-    counter = ObjectCounter(CFG={"show_in": True, "show_out": True})
+    counter = solutions.ObjectCounter(CFG={"show_in": True, "show_out": True})
     counter.track_ids = [1]
     counter.boxes = [np.array([0, 0, 50, 50])]
     counter.clss = [0]
@@ -218,20 +218,20 @@ def test_process_with_patch(mock_annotator):
         mock_line.return_value.intersects.return_value = True
         result = counter.process(get_dummy_frame())
 
-    assert isinstance(result, SolutionResults)
+    assert isinstance(result, solutions.solutions.SolutionResults)
     mock_instance.box_label.assert_called()
     mock_instance.draw_region.assert_called()
 
 def test_display_counts_skips_empty():
     """Test display_counts() doesn't crash with no counts"""
-    counter = ObjectCounter(CFG={"show_in": True, "show_out": True})
+    counter = solutions.ObjectCounter(CFG={"show_in": True, "show_out": True})
     frame = get_dummy_frame()
     # Should run silently with no labels drawn
     counter.display_counts(frame)
 
 def test_instance_segmentation_cfg_flags():
     """Test CFG flags are set correctly on init"""
-    seg = InstanceSegmentation(CFG={"show_conf": False, "show_labels": False, "show_boxes": False})
+    seg = solutions.InstanceSegmentation(CFG={"show_conf": False, "show_labels": False, "show_boxes": False})
     assert not seg.show_conf
     assert not seg.show_labels
     assert not seg.show_boxes

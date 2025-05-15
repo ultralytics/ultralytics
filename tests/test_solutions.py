@@ -20,6 +20,7 @@ PARKING_VIDEO = "solution_ci_parking_demo.mp4"  # only for parking management so
 PARKING_AREAS_JSON = "solution_ci_parking_areas.json"  # only for parking management solution
 PARKING_MODEL = "solutions_ci_parking_model.pt"  # only for parking management solution
 REGION = [(10, 200), (540, 200), (540, 180), (10, 180)]  # for object counting, speed estimation and queue management
+LINE = [(10, 200), (540,200)]  # Add line cord for tests to incrase coverage: https://app.codecov.io/gh/ultralytics/ultralytics
 
 # Test configs for each solution : (name, class, needs_frame_count, video, kwargs)
 SOLUTIONS = [
@@ -29,6 +30,13 @@ SOLUTIONS = [
         False,
         DEMO_VIDEO,
         {"region": REGION, "model": MODEL, "show": SHOW},
+    ),
+    (
+        "ObjectCounterWithLine",
+        solutions.ObjectCounter,
+        False,
+        DEMO_VIDEO,
+        {"region": LINE, "model": MODEL, "show": SHOW},
     ),
     (
         "Heatmap",
@@ -45,11 +53,18 @@ SOLUTIONS = [
         {"colormap": cv2.COLORMAP_PARULA, "region": REGION, "model": MODEL, "show": SHOW},
     ),
     (
+        "HeatmapWithLine",
+        solutions.Heatmap,
+        False,
+        DEMO_VIDEO,
+        {"colormap": cv2.COLORMAP_PARULA, "region": LINE, "model": MODEL, "show": SHOW},
+    ),
+    (
         "SpeedEstimator",
         solutions.SpeedEstimator,
         False,
         DEMO_VIDEO,
-        {"region": REGION, "model": MODEL, "show": SHOW},
+        {"model": MODEL, "show": SHOW, "max_hist": 20, "meter_per_pixel": 0.05, "max_speed": 120},
     ),
     (
         "QueueManager",
@@ -109,6 +124,7 @@ SOLUTIONS = [
         {"model": "yolo11n-seg.pt", "show": SHOW},
     ),
     ("VisionEye", solutions.VisionEye, False, DEMO_VIDEO, {"model": MODEL, "show": SHOW}),
+    ("VisionEye", solutions.VisionEye, False, DEMO_VIDEO, {"model": MODEL, "show": SHOW, "vision_point": (20, 20)}),
     (
         "RegionCounter",
         solutions.RegionCounter,
@@ -116,6 +132,7 @@ SOLUTIONS = [
         DEMO_VIDEO,
         {"region": REGION, "model": MODEL, "show": SHOW},
     ),
+    ("AIGym", solutions.AIGym, False, POSE_VIDEO, {"show": SHOW}),
     ("AIGym", solutions.AIGym, False, POSE_VIDEO, {"kpts": [6, 8, 10], "show": SHOW}),
     (
         "ParkingManager",

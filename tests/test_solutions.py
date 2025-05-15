@@ -195,7 +195,7 @@ def test_instance_segmentation_with_defaults():
 
 def test_object_counter_with_defaults():
     """"Test object counting solution defaults."""
-    counter = ObjectCounter()
+    counter = solutions.ObjectCounter()
     assert counter.in_count == 0
     assert counter.out_count == 0
     assert counter.counted_ids == []

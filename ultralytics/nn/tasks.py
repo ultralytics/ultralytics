@@ -146,7 +146,7 @@ class BaseModel(torch.nn.Module):
             (torch.Tensor): The last output of the model.
         """
         y, dt, embeddings = [], [], []  # outputs
-        embed = set(embed) if embed is not None else {-1}
+        embed = frozenset(embed) if embed is not None else {-1}
         max_idx = max(embed)
         for m in self.model:
             if m.f != -1:  # if not from previous layer
@@ -679,7 +679,7 @@ class RTDETRDetectionModel(DetectionModel):
             (torch.Tensor): Model's output tensor.
         """
         y, dt, embeddings = [], [], []  # outputs
-        embed = set(embed) if embed is not None else {-1}
+        embed = frozenset(embed) if embed is not None else {-1}
         max_idx = max(embed)
         for m in self.model[:-1]:  # except the head part
             if m.f != -1:  # if not from previous layer
@@ -764,7 +764,7 @@ class WorldModel(DetectionModel):
             txt_feats = txt_feats.expand(x.shape[0], -1, -1)
         ori_txt_feats = txt_feats.clone()
         y, dt, embeddings = [], [], []  # outputs
-        embed = set(embed) if embed is not None else {-1}
+        embed = frozenset(embed) if embed is not None else {-1}
         max_idx = max(embed)
         for m in self.model:  # except the head part
             if m.f != -1:  # if not from previous layer
@@ -982,7 +982,7 @@ class YOLOEModel(DetectionModel):
         """
         y, dt, embeddings = [], [], []  # outputs
         b = x.shape[0]
-        embed = set(embed) if embed is not None else {-1}
+        embed = frozenset(embed) if embed is not None else {-1}
         max_idx = max(embed)
         for m in self.model:  # except the head part
             if m.f != -1:  # if not from previous layer

@@ -5,6 +5,7 @@
 
 import cv2
 import pytest
+import numpy as np
 
 from tests import MODEL, TMP
 from ultralytics import solutions
@@ -185,3 +186,54 @@ def test_similarity_search():
 
     searcher = solutions.VisualAISearch()
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
+
+
+def get_dummy_frame():
+    """Returns a dummy black frame"""
+    return np.zeros((480, 640, 3), dtype=np.uint8)
+
+
+def test_instance_segmentation_with_defaults():
+    """Test segmentation solution defaults."""
+    segmenter = solutions.InstanceSegmentation()
+    assert segmenter.show_conf is True
+
+
+def test_object_counter_with_defaults():
+    """Test object counting solution defaults."""
+    counter = solutions.ObjectCounter()
+    assert counter.in_count == 0
+    assert counter.out_count == 0
+    assert counter.counted_ids == []
+    assert isinstance(counter.classwise_counts, dict)
+    assert not counter.region_initialized
+    assert hasattr(counter, "show_in")
+    assert hasattr(counter, "show_out")
+
+
+def test_display_counts_skips_empty():
+    """Test display_counts() doesn't crash with no counts"""
+    counter = solutions.ObjectCounter(show_in=True, show_out=True)
+    frame = get_dummy_frame()
+    counter.display_counts(frame)  # should run silently with no labels drawn
+
+
+def test_object_blurrer_init_valid_blur_ratio():
+    """Test ObjectBlurrer initializes with valid blur ratio"""
+    blurrer = solutions.ObjectBlurrer(blur_ratio=0.7)
+    assert blurrer.blur_ratio == 70
+
+
+def test_object_blurrer_init_low_blur_ratio(caplog):
+    """Test ObjectBlurrer corrects low blur ratio and logs warning"""
+    blurrer = solutions.ObjectBlurrer(blur_ratio=0.05)
+    assert blurrer.blur_ratio == 50  # default fallback
+    assert any("blur ratio cannot be less than 0.1" in msg for msg in caplog.text.splitlines())
+
+
+def test_queue_manager_init():
+    """Test QueueManager initializes with correct defaults"""
+    qm = solutions.QueueManager(region=[(10, 10), (100, 10), (100, 100)])
+    assert qm.counts == 0
+    assert qm.rect_color == (255, 255, 255)
+    assert qm.region_length == 3

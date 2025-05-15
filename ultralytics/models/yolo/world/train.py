@@ -152,8 +152,6 @@ class WorldTrainer(DetectionTrainer):
         assert self.model is not None
         device = next(self.model.parameters()).device
         text_model = build_text_model(model, device=device)
-        for p in text_model.parameters():
-            p.requires_grad_(False)
         txt_tokens = text_model.tokenize(texts).to(self.device)
         txt_feats = [text_model.encode_text(token).detach() for token in txt_tokens.split(batch)]
         txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)

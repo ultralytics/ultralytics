@@ -121,7 +121,9 @@ class WorldTrainer(DetectionTrainer):
             if not hasattr(dataset, "category_names"):
                 continue
             text_embeddings.update(
-                self.generate_text_embeddings(list(dataset.category_names), batch, cache_dir=Path(dataset.img_path).parent)
+                self.generate_text_embeddings(
+                    list(dataset.category_names), batch, cache_dir=Path(dataset.img_path).parent
+                )
             )
         self.text_embeddings = text_embeddings
 

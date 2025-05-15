@@ -345,7 +345,6 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
     return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard, verbose=verbose)
 
 
-@functools.lru_cache
 @TryExcept()
 def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds=""):
     """

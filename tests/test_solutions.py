@@ -186,6 +186,7 @@ def test_similarity_search():
     searcher = solutions.VisualAISearch()
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
 
+
 def test_instance_segmentation_with_defaults():
     """Test segmentation solution defaults"""
     segmenter = solutions.InstanceSegmentation()

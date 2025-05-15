@@ -129,28 +129,19 @@ class WorldTrainer(DetectionTrainer):
             )
         self.text_embeddings = text_embeddings
 
-    def generate_text_embeddings_hash(self, texts, variant):
+    def generate_text_embeddings_hash(self, texts):
         """
         Generate a hash key for text embeddings based on texts and model variant.
 
         Args:
             texts (List[str]): List of text samples to encode.
-            variant (str): Identifier for the text model variant.
 
         Returns:
             (str): hash key
         """
-        import hashlib
-        import json
+        hasher = __import__("hashlib").sha256()
 
-        text_embedding_info = {
-            "texts": sorted(texts),
-            "text_model_variant": variant,
-        }
-
-        json_str = json.dumps(text_embedding_info, sort_keys=True)
-        hasher = hashlib.sha256()
-        hasher.update(json_str.encode("utf-8"))
+        hasher.update(str(texts).encode("utf-8"))
         return hasher.hexdigest()
 
     def generate_text_embeddings(self, texts, batch, cache_dir):
@@ -165,14 +156,16 @@ class WorldTrainer(DetectionTrainer):
         Returns:
             (dict): Dictionary mapping text samples to their embeddings.
         """
-        hash_key = self.generate_text_embeddings_hash(texts, "clip:ViT-B/32")[0:8]
-        cache_path = cache_dir / f"text_embeddings_{hash_key}.pt"
+        model = "clip:ViT-B/32"
+        cache_path = cache_dir / f"text_embeddings_{model.replace(':', '-').replace('/', '-')}.pt"
         if cache_path.exists():
             LOGGER.info(f"Reading existed cache from '{cache_path}'")
-            return torch.load(cache_path)
+            txt_map = torch.load(cache_path)
+            if self.generate_text_embeddings_hash(txt_map.keys()) == self.generate_text_embeddings_hash(texts):
+                return txt_map
         assert self.model is not None
         device = next(self.model.parameters()).device
-        text_model = build_text_model("clip:ViT-B/32", device=device)
+        text_model = build_text_model(model, device=device)
         for p in text_model.parameters():
             p.requires_grad_(False)
         txt_tokens = text_model.tokenize(texts).to(self.device)

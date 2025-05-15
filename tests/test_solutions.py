@@ -185,3 +185,8 @@ def test_similarity_search():
 
     searcher = solutions.VisualAISearch()
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
+
+def test_instance_segmentation_with_defaults():
+    segmenter = solutions.InstanceSegmentation()
+    assert segmenter.model.endswith("yolo11n-seg.pt")
+    assert segmenter.show_conf is True

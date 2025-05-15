@@ -5,7 +5,6 @@ import math
 import warnings
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
@@ -418,7 +417,8 @@ class ConfusionMatrix:
             names (tuple): Names of classes, used as labels on the plot.
             on_plot (func): An optional callback to pass plots path and data when they are rendered.
         """
-        import seaborn  # scope for faster 'import ultralytics'
+        import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+        import seaborn
 
         array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)  # normalize columns
         array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
@@ -479,6 +479,8 @@ def plot_pr_curve(px, py, ap, save_dir=Path("pr_curve.png"), names={}, on_plot=N
         names (dict, optional): Dictionary mapping class indices to class names.
         on_plot (callable, optional): Function to call after plot is saved.
     """
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+
     fig, ax = plt.subplots(1, 1, figsize=(9, 6), tight_layout=True)
     py = np.stack(py, axis=1)
 
@@ -515,6 +517,8 @@ def plot_mc_curve(px, py, save_dir=Path("mc_curve.png"), names={}, xlabel="Confi
         ylabel (str, optional): Y-axis label.
         on_plot (callable, optional): Function to call after plot is saved.
     """
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+
     fig, ax = plt.subplots(1, 1, figsize=(9, 6), tight_layout=True)
 
     if 0 < len(names) < 21:  # display per-class legend if < 21 classes
@@ -661,7 +665,7 @@ def ap_per_class(
 
 class Metric(SimpleClass):
     """
-    Class for computing evaluation metrics for YOLOv8 model.
+    Class for computing evaluation metrics for Ultralytics YOLO models.
 
     Attributes:
         p (list): Precision for each class. Shape: (nc,).
@@ -784,7 +788,7 @@ class Metric(SimpleClass):
     def fitness(self):
         """Return model fitness as a weighted combination of metrics."""
         w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
-        return (np.array(self.mean_results()) * w).sum()
+        return (np.nan_to_num(np.array(self.mean_results())) * w).sum()
 
     def update(self, results):
         """

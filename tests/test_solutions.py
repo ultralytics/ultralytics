@@ -3,10 +3,11 @@
 # Tests Ultralytics Solutions: https://docs.ultralytics.com/solutions/,
 # including every solution excluding DistanceCalculation and Security Alarm System.
 
+from unittest.mock import MagicMock, patch
+
 import cv2
-import pytest
 import numpy as np
-from unittest.mock import patch, MagicMock
+import pytest
 
 from tests import MODEL, TMP
 from ultralytics import solutions
@@ -190,12 +191,12 @@ def test_similarity_search():
 
 
 def get_dummy_frame():
-    """Returns a dummy black image frame of size 480x640"""
+    """Returns a dummy black image frame of size 480x640."""
     return np.zeros((480, 640, 3), dtype=np.uint8)
 
 @patch("ultralytics.solutions.object_counter.SolutionAnnotator")
 def test_process_with_patch(mock_annotator):
-    """Test process() with mocked SolutionAnnotator using @patch"""
+    """Test process() with mocked SolutionAnnotator using @patch."""
     mock_instance = MagicMock()
     mock_annotator.return_value = mock_instance
     mock_instance.result.return_value = get_dummy_frame()
@@ -223,14 +224,14 @@ def test_process_with_patch(mock_annotator):
     mock_instance.draw_region.assert_called()
 
 def test_display_counts_skips_empty():
-    """Test display_counts() doesn't crash with no counts"""
+    """Test display_counts() doesn't crash with no counts."""
     counter = solutions.ObjectCounter(CFG={"show_in": True, "show_out": True})
     frame = get_dummy_frame()
     # Should run silently with no labels drawn
     counter.display_counts(frame)
 
 def test_instance_segmentation_cfg_flags():
-    """Test CFG flags are set correctly on init"""
+    """Test CFG flags are set correctly on init."""
     seg = solutions.InstanceSegmentation(CFG={"show_conf": False, "show_labels": False, "show_boxes": False})
     assert not seg.show_conf
     assert not seg.show_labels

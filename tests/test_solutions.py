@@ -193,8 +193,9 @@ def test_instance_segmentation_with_defaults():
     assert segmenter.model.endswith("yolo11n-seg.pt")
     assert segmenter.show_conf is True
 
+
 def test_object_counter_with_defaults():
-    """"Test object counting solution defaults."""
+    """ "Test object counting solution defaults."""
     counter = solutions.ObjectCounter()
     assert counter.in_count == 0
     assert counter.out_count == 0

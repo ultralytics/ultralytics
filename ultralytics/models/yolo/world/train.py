@@ -150,12 +150,7 @@ class WorldTrainer(DetectionTrainer):
                 return txt_map
         LOGGER.info(f"Caching text embeddings to '{cache_path}'")
         assert self.model is not None
-        device = next(self.model.parameters()).device
-        text_model = build_text_model(model, device=device)
-        txt_tokens = text_model.tokenize(texts).to(self.device)
-        txt_feats = [text_model.encode_text(token).detach() for token in txt_tokens.split(batch)]
-        txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)
-        txt_feats = txt_feats.reshape(-1, len(texts), txt_feats.shape[-1])
+        txt_feats = self.model.get_text_pe(texts, batch, cache_clip_model=True)
         txt_map = dict(zip(texts, txt_feats.squeeze(0)))
         torch.save(txt_map, cache_path)
         return txt_map

@@ -458,7 +458,7 @@ The below table represents the benchmark results for five different models (YOLO
         | MNN             | ✅      | 217.3             | 0.8286      | 522.32                 |
         | NCNN            | ✅      | 217.3             | 0.8277      | 301.36                 |
 
-    Benchmarked with Ultralytics 8.3.133   
+    Benchmarked with Ultralytics 8.3.133
 
 #### NVIDIA Jetson Orin Nano Super Developer Kit
 

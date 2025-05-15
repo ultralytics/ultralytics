@@ -732,7 +732,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
                 results = solution(frame, f_n := f_n + 1) if solution_name == "analytics" else solution(frame)
                 if solution_name != "crop":
                     vw.write(results.plot_im)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
+                if solution.CFG["show"] and cv2.waitKey(1) & 0xFF == ord("q"):
                     break
         finally:
             cap.release()

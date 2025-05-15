@@ -271,10 +271,12 @@ def test_results(model):
         r = r.to(device="cpu", dtype=torch.float32)
         r.save_txt(txt_file=TMP / "runs/tests/label.txt", save_conf=True)
         r.save_crop(save_dir=TMP / "runs/tests/crops/")
-        r.to_json(normalize=True)
-        r.to_df(decimals=3)
+        r.to_df(decimals=3)  # Align to_ methods: https://docs.ultralytics.com/modes/predict/#working-with-results
         r.to_csv()
         r.to_xml()
+        r.to_html()
+        r.to_json(normalize=True)
+        r.to_sql()
         r.plot(pil=True, save=True, filename=TMP / "results_plot_save.jpg")
         r.plot(conf=True, boxes=True)
         print(r, len(r), r.path)  # print after methods

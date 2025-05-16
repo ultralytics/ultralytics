@@ -919,7 +919,7 @@ def entrypoint(debug: str = "") -> None:
         if task not in TASKS:
             if task == "track":
                 LOGGER.warning(
-                    "invalid 'task=track', setting 'task=detect' and 'mode=track'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}."
+                    f"invalid 'task=track', setting 'task=detect' and 'mode=track'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}."
                 )
                 task, mode = "detect", "track"
             else:

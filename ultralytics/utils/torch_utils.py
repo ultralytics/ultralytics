@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import functools
 import gc
 import math
 import os
@@ -101,6 +102,7 @@ def autocast(enabled: bool, device: str = "cuda"):
         return torch.cuda.amp.autocast(enabled)
 
 
+@functools.lru_cache
 def get_cpu_info():
     """Return a string with system CPU information, i.e. 'Apple M2'."""
     from ultralytics.utils import PERSISTENT_CACHE  # avoid circular import error
@@ -118,6 +120,7 @@ def get_cpu_info():
     return PERSISTENT_CACHE.get("cpu_info", "unknown")
 
 
+@functools.lru_cache
 def get_gpu_info(index):
     """Return a string with system GPU information, i.e. 'Tesla T4, 15102MiB'."""
     properties = torch.cuda.get_device_properties(index)

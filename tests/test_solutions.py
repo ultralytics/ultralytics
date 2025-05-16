@@ -20,6 +20,7 @@ PARKING_VIDEO = "solution_ci_parking_demo.mp4"  # only for parking management so
 PARKING_AREAS_JSON = "solution_ci_parking_areas.json"  # only for parking management solution
 PARKING_MODEL = "solutions_ci_parking_model.pt"  # only for parking management solution
 REGION = [(10, 200), (540, 200), (540, 180), (10, 180)]  # for object counting, speed estimation and queue management
+LINE = [(10, 200), (540, 200)]  # for object counting, speed estimation and queue management
 
 # Test configs for each solution : (name, class, needs_frame_count, video, kwargs)
 SOLUTIONS = [
@@ -35,7 +36,7 @@ SOLUTIONS = [
         solutions.ObjectCounter,
         False,
         DEMO_VIDEO,
-        {"region": REGION, "model": MODEL, "show": SHOW},
+        {"region": LINE, "model": MODEL, "show": SHOW},
     ),
     (
         "ObjectCounterwithOBB",
@@ -209,3 +210,21 @@ def test_analytics_graph_not_supported():
         assert False, "Expected ModuleNotFoundError for unsupported chart type"
     except ModuleNotFoundError as e:
         assert "test chart is not supported" in str(e)
+
+
+def test_area_chart_padding():
+    """Test area chart updates with padding logic for coverage"""
+    analytics = solutions.Analytics(analytics_type="area")
+    analytics.update_graph(frame_number=1, count_dict={"car": 2}, plot="area")
+    plot_im = analytics.update_graph(frame_number=2, count_dict={"car": 3, "person": 1}, plot="area")
+    assert plot_im is not None
+
+
+def test_update_invalid_argument():
+    """Test update method with an invalid keyword argument"""
+    obj = solutions.config.SolutionConfig()
+    try:
+        obj.update(invalid_key=123)
+        assert False, "Expected ValueError for invalid update argument"
+    except ValueError as e:
+        assert "❌ invalid_key is not a valid solution argument" in str(e)

@@ -226,6 +226,7 @@ def get_cdn_group(
         known_bbox += rand_part * diff
         known_bbox.clip_(min=0.0, max=1.0)
         dn_bbox = xyxy2xywh(known_bbox)
+        dn_bbox[dn_bbox < 0] *= -1
         dn_bbox = torch.logit(dn_bbox, eps=1e-6)  # inverse sigmoid
 
     num_dn = int(max_nums * 2 * num_group)  # total denoising queries

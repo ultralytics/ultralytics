@@ -1,11 +1,14 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import itertools
+from pathlib import Path
+
+import torch
 
 from ultralytics.data import build_yolo_dataset
-from ultralytics.models import yolo
+from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import WorldModel
-from ultralytics.utils import DEFAULT_CFG, RANK, checks
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.torch_utils import de_parallel
 
 
@@ -15,13 +18,9 @@ def on_pretrain_routine_end(trainer):
         # Set class names for evaluation
         names = [name.split("/")[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
         de_parallel(trainer.ema.ema).set_classes(names, cache_clip_model=False)
-    device = next(trainer.model.parameters()).device
-    trainer.text_model, _ = trainer.clip.load("ViT-B/32", device=device)
-    for p in trainer.text_model.parameters():
-        p.requires_grad_(False)
 
 
-class WorldTrainer(yolo.detect.DetectionTrainer):
+class WorldTrainer(DetectionTrainer):
     """
     A class to fine-tune a world model on a close-set dataset.
 
@@ -54,14 +53,7 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
         if overrides is None:
             overrides = {}
         super().__init__(cfg, overrides, _callbacks)
-
-        # Import and assign clip
-        try:
-            import clip
-        except ImportError:
-            checks.check_requirements("git+https://github.com/ultralytics/CLIP.git")
-            import clip
-        self.clip = clip
+        self.text_embeddings = None
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """
@@ -102,18 +94,72 @@ class WorldTrainer(yolo.detect.DetectionTrainer):
             (Dataset): YOLO dataset configured for training or validation.
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-        return build_yolo_dataset(
+        dataset = build_yolo_dataset(
             self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_modal=mode == "train"
         )
+        if mode == "train":
+            self.set_text_embeddings([dataset], batch)  # cache text embeddings to accelerate training
+        return dataset
+
+    def set_text_embeddings(self, datasets, batch):
+        """
+        Set text embeddings for datasets to accelerate training by caching category names.
+
+        This method collects unique category names from all datasets, then generates and caches text embeddings
+        for these categories to improve training efficiency.
+
+        Args:
+            datasets (List[Dataset]): List of datasets from which to extract category names.
+            batch (int | None): Batch size used for processing.
+
+        Notes:
+            This method collects category names from datasets that have the 'category_names' attribute,
+            then uses the first dataset's image path to determine where to cache the generated text embeddings.
+        """
+        text_embeddings = {}
+        for dataset in datasets:
+            if not hasattr(dataset, "category_names"):
+                continue
+            text_embeddings.update(
+                self.generate_text_embeddings(
+                    list(dataset.category_names), batch, cache_dir=Path(dataset.img_path).parent
+                )
+            )
+        self.text_embeddings = text_embeddings
+
+    def generate_text_embeddings(self, texts, batch, cache_dir):
+        """
+        Generate text embeddings for a list of text samples.
+
+        Args:
+            texts (List[str]): List of text samples to encode.
+            batch (int): Batch size for processing.
+            cache_dir (Path): Directory to save/load cached embeddings.
+
+        Returns:
+            (dict): Dictionary mapping text samples to their embeddings.
+        """
+        model = "clip:ViT-B/32"
+        cache_path = cache_dir / f"text_embeddings_{model.replace(':', '_').replace('/', '_')}.pt"
+        if cache_path.exists():
+            LOGGER.info(f"Reading existed cache from '{cache_path}'")
+            txt_map = torch.load(cache_path)
+            if sorted(txt_map.keys()) == sorted(texts):
+                return txt_map
+        LOGGER.info(f"Caching text embeddings to '{cache_path}'")
+        assert self.model is not None
+        txt_feats = self.model.get_text_pe(texts, batch, cache_clip_model=False)
+        txt_map = dict(zip(texts, txt_feats.squeeze(0)))
+        torch.save(txt_map, cache_path)
+        return txt_map
 
     def preprocess_batch(self, batch):
         """Preprocess a batch of images and text for YOLOWorld training."""
-        batch = super().preprocess_batch(batch)
+        batch = DetectionTrainer.preprocess_batch(self, batch)
 
         # Add text features
         texts = list(itertools.chain(*batch["texts"]))
-        text_token = self.clip.tokenize(texts).to(batch["img"].device)
-        txt_feats = self.text_model.encode_text(text_token).to(dtype=batch["img"].dtype)  # torch.float32
+        txt_feats = torch.stack([self.text_embeddings[text] for text in texts]).to(self.device)
         txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
         batch["txt_feats"] = txt_feats.reshape(len(batch["texts"]), -1, txt_feats.shape[-1])
         return batch

@@ -208,4 +208,4 @@ def test_analytics_graph_not_supported():
         analytics.process(im0=None, frame_number=0)
         assert False, "Expected ModuleNotFoundError for unsupported chart type"
     except ModuleNotFoundError as e:
-        assert "test chart is not supported" in str(e)     
+        assert "test chart is not supported" in str(e)

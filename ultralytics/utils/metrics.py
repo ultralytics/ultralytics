@@ -447,7 +447,8 @@ class ConfusionMatrix:
                 for i, row in enumerate(array[:nc]):
                     for j, val in enumerate(row[:nc]):
                         val = array[i, j]
-                        if np.isnan(val): continue
+                        if np.isnan(val):
+                            continue
                         ax.text(
                             j,
                             i,

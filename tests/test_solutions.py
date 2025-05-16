@@ -4,7 +4,6 @@
 # including every solution excluding DistanceCalculation and Security Alarm System.
 
 import cv2
-import numpy as np
 import pytest
 
 from tests import MODEL, TMP
@@ -203,7 +202,7 @@ def test_similarity_search():
 
 
 def test_analytics_graph_not_supported():
-    """Test for analytical graph not supported"""
+    """Test for analytical graph not supported."""
     try:
         analytics = solutions.Analytics(analytics_type="test")  # 'test' is unsupported
         analytics.process_frame(im0=None, frame_number=0)

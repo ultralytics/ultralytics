@@ -620,7 +620,7 @@ class DEIMLoss(nn.Module):
         )
 
         loss = F.binary_cross_entropy_with_logits(pred_cls, target_scores, weight=weight, reduction="none")
-        loss = loss.mean(1).sum() * pred_cls.shape[1] / len(gt_idx)
+        loss = loss.mean(1).sum() * pred_cls.shape[1] / max(len(gt_idx), 1)
         return {"loss_mal": loss}
 
     def loss_boxes(self, pred_boxes, gt_boxes):
@@ -629,6 +629,10 @@ class DEIMLoss(nn.Module):
         The target boxes are expected in format (center_x, center_y, w, h), normalized by the image size.
         """
         losses = {}
+        if len(gt_boxes) == 0:
+            losses["loss_bbox"] = torch.tensor(0.0, device=self.device)
+            losses["loss_giou"] = torch.tensor(0.0, device=self.device)
+            return losses
         loss_bbox = F.l1_loss(pred_boxes, gt_boxes, reduction="none")
         losses["loss_bbox"] = loss_bbox.sum() / len(gt_boxes)
 
@@ -1078,7 +1082,7 @@ class DEIMLoss(nn.Module):
             loss = loss * weight
 
         if avg_factor is not None:
-            loss = loss.sum() / avg_factor
+            loss = loss.sum() / max(avg_factor, 1)
         elif reduction == "mean":
             loss = loss.mean()
         elif reduction == "sum":

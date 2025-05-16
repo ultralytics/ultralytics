@@ -887,7 +887,7 @@ class DEIMLoss(nn.Module):
             indices_dn = RTDETRDetectionLoss.get_dn_match_indices(dn_pos_idx, dn_num_group, batch["gt_groups"])
             # NOTE: to be compatible with TAL match
             device = outputs["pred_boxes"].device
-            dn_num = dn_meta["dn_num_split"][0] 
+            dn_num = dn_meta["dn_num_split"][0]
             fg_mask = torch.zeros((len(batch["gt_groups"]), dn_num), device=device, dtype=torch.bool)
             target_bboxes = torch.zeros((len(batch["gt_groups"]), dn_num, 4), device=device)
             target_labels = torch.zeros((len(batch["gt_groups"]), dn_num), device=device, dtype=batch["cls"].dtype)
@@ -904,13 +904,13 @@ class DEIMLoss(nn.Module):
                     aux_outputs["is_dn"] = True
                     aux_outputs["up"], aux_outputs["reg_scale"] = outputs["up"], outputs["reg_scale"]
                 # losses.update(self._get_loss(aux_outputs, batch, indices_dn, suffix=f"_dn_{i}"))
-                losses.update(self._tal_get_loss(aux_outputs, batch, indices_dn, suffix=f"_dn_{i}"))
+                losses.update(self._tal_get_loss(aux_outputs, batch, indices_dn, suffix=f"_dn_{i}", dn=True))
 
             # In case of auxiliary traditional head output at first decoder layer, just for dfine
             if "dn_pre_outputs" in outputs:
                 aux_outputs = outputs["dn_pre_outputs"]
                 # losses.update(self._get_loss(aux_outputs, batch, indices_dn, suffix="_dn_pre"))
-                losses.update(self._tal_get_loss(aux_outputs, batch, indices_dn, suffix="_dn_pre"))
+                losses.update(self._tal_get_loss(aux_outputs, batch, indices_dn, suffix="_dn_pre", dn=True))
 
         # For debugging Objects365 pre-train.
         losses = {k: torch.nan_to_num(v, nan=0.0) for k, v in losses.items()}
@@ -954,7 +954,7 @@ class DEIMLoss(nn.Module):
             losses.update(l_dict)
         return losses
 
-    def _tal_get_loss(self, outputs, batch, all_match_indices, match_indices=None, suffix=""):
+    def _tal_get_loss(self, outputs, batch, all_match_indices, match_indices=None, suffix="", dn=False):
         losses = {}
         # NOTE: To try TAL assigner, have to strip gt_boxes and target_scores out of these loss functions
         for loss in self.losses:
@@ -971,9 +971,21 @@ class DEIMLoss(nn.Module):
                 pred_boxes = outputs["pred_boxes"][pred_idx]
                 l_dict = self.loss_boxes(pred_boxes, gt_boxes)
             elif loss == "mal":
-                pred_cls = outputs["pred_logits"]
-                one_hot = torch.where(target_scores != 0, 1.0, 0.0)
-                l_dict = self.loss_labels_mal(pred_cls, target_scores, gt_idx, one_hot)
+                if not dn:
+                    # directly use scores from TAL
+                    pred_cls = outputs["pred_logits"]
+                    one_hot = torch.where(target_scores != 0, 1.0, 0.0)
+                    l_dict = self.loss_labels_mal(pred_cls, target_scores, gt_idx, one_hot)
+                else:
+                    # calculate scores
+                    pred_boxes = outputs["pred_boxes"][pred_idx]
+                    ious = bbox_iou(pred_boxes.detach(), gt_boxes).squeeze(-1).detach().clamp_(0)
+                    pred_cls = outputs["pred_logits"]
+                    one_hot = target_scores
+                    target_score_o = torch.zeros(pred_cls.shape[:2], dtype=pred_cls.dtype, device=pred_cls.device)
+                    target_score_o[pred_idx] = ious.to(target_score_o.dtype)
+                    target_scores = target_score_o.unsqueeze(-1) * one_hot
+                    l_dict = self.loss_labels_mal(pred_cls, target_scores, gt_idx, one_hot)
             elif loss == "local":
                 l_dict = self.loss_local(outputs, gt_boxes, pred_idx)
             else:

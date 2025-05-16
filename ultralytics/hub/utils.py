@@ -1,7 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import os
-import platform
 import random
 import threading
 import time
@@ -19,16 +18,17 @@ from ultralytics.utils import (
     IS_PIP_PACKAGE,
     LOGGER,
     ONLINE,
+    PYTHON_VERSION,
     RANK,
     SETTINGS,
     TESTS_RUNNING,
     TQDM,
     TryExcept,
     colorstr,
-    get_git_origin_url, PYTHON_VERSION,
+    get_git_origin_url,
 )
 from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES
-from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
+from ultralytics.utils.torch_utils import get_cpu_info
 
 HUB_API_ROOT = os.environ.get("ULTRALYTICS_HUB_API", "https://api.ultralytics.com")
 HUB_WEB_ROOT = os.environ.get("ULTRALYTICS_HUB_WEB", "https://hub.ultralytics.com")

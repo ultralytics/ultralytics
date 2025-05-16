@@ -286,7 +286,7 @@ def test_display_counts():
 def test_process_with_none_masks():
     """Test that process() returns the original image when masks are None."""
     dummy_image = np.ones((480, 640, 3), dtype=np.uint8) * 255
-    segmenter = InstanceSegmentation()
+    segmenter = solutions.InstanceSegmentation()
     segmenter.masks = None
     result = segmenter.process(dummy_image)
     assert np.array_equal(result.plot_im, dummy_image)

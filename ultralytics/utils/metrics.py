@@ -422,12 +422,23 @@ class ConfusionMatrix:
         array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)  # normalize columns
         array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
 
+        names = list(names)
         fig, ax = plt.subplots(1, 1, figsize=(12, 9))
-        nc, nn = (self.nc, len(names)) if self.task == "classify" else (self.nc + 1, len(names) + 1)  # add background
-        labels = (0 < nn < 99) and (nn == nc)  # apply names to ticklabels
-        ticklabels = (list(names) + ["background"]) if labels else "auto"
+        if self.nc >= 100:  # downsample for large class count
+            k = max(2, self.nc // 60)  # step size for downsampling, always > 1
+            keep_idx = slice(None, None, k)  # create slice instead of array
+            names = names[keep_idx]  # slice class names
+            array = array[keep_idx, :][:, keep_idx]  # slice matrix rows and cols
+            n = (self.nc + k - 1) // k  # number of retained classes
+            nc = nn = n if self.task == "classify" else n + 1  # adjust for background if needed
+        else:
+            nc = nn = self.nc if self.task == "classify" else self.nc + 1
+        ticklabels = (names + ["background"]) if (0 < nn < 99) and (nn == nc) else "auto"
         xy_ticks = np.arange(len(ticklabels))
-        tick_fontsize, label_fontsize, title_fontsize, btm = (11, 11, 11, 0.22) if nc < 50 else (9.8, 9.8, 9.8, 0.18)
+        tick_fontsize = max(6, 15 - 0.1 * nc)  # Minimum size is 6
+        label_fontsize = max(6, 12 - 0.1 * nc)
+        title_fontsize = max(6, 12 - 0.1 * nc)
+        btm = max(0.1, 0.25 - 0.001 * nc)  # Minimum value is 0.1
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
             im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation="none")
@@ -436,16 +447,16 @@ class ConfusionMatrix:
                 for i, row in enumerate(array[:nc]):
                     for j, val in enumerate(row[:nc]):
                         val = array[i, j]
-                        if not np.isnan(val):
-                            ax.text(
-                                j,
-                                i,
-                                f"{val:.2f}" if normalize else f"{int(val)}",
-                                ha="center",
-                                va="center",
-                                fontsize=10,
-                                color="white" if val > (0.7 if normalize else 2) else "black",
-                            )
+                        if np.isnan(val): continue
+                        ax.text(
+                            j,
+                            i,
+                            f"{val:.2f}" if normalize else f"{int(val)}",
+                            ha="center",
+                            va="center",
+                            fontsize=10,
+                            color="white" if val > (0.7 if normalize else 2) else "black",
+                        )
             cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.05)
         title = "Confusion Matrix" + " Normalized" * normalize
         ax.set_xlabel("True", fontsize=label_fontsize, labelpad=10)

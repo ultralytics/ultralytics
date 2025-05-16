@@ -423,6 +423,7 @@ def check_torchvision():
     to the compatibility table based on: https://github.com/pytorch/vision#installation.
     """
     compatibility_table = {
+        "2.7": ["0.22"],
         "2.6": ["0.21"],
         "2.5": ["0.20"],
         "2.4": ["0.19"],
@@ -655,7 +656,7 @@ def collect_system_info():
     from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
 
     gib = 1 << 30  # bytes per GiB
-    cuda = torch and torch.cuda.is_available()
+    cuda = torch.cuda.is_available()
     check_yolo()
     total, used, free = shutil.disk_usage("/")
 
@@ -826,23 +827,16 @@ def cuda_device_count() -> int:
     Returns:
         (int): The number of NVIDIA GPUs available.
     """
-    if IS_JETSON:
-        # NVIDIA Jetson does not fully support nvidia-smi and therefore use PyTorch instead
-        return torch.cuda.device_count()
-    else:
-        try:
-            # Run the nvidia-smi command and capture its output
-            output = subprocess.check_output(
-                ["nvidia-smi", "--query-gpu=count", "--format=csv,noheader,nounits"], encoding="utf-8"
-            )
+    try:
+        check_requirements("pynvml>=12.0.0")
+        
+        import pynvml
 
-            # Take the first line and strip any leading/trailing white space
-            first_line = output.strip().split("\n")[0]
-
-            return int(first_line)
-        except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
-            # If the command fails, nvidia-smi is not found, or output is not an integer, assume no GPUs are available
-            return 0
+        pynvml.nvmlInit()
+        return int(pynvml.nvmlDeviceGetCount())
+    except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
+        # If the command fails, nvidia-smi is not found, or output is not an integer, assume no GPUs are available
+        return 0
 
 
 def cuda_is_available() -> bool:

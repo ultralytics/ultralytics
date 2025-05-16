@@ -80,6 +80,7 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
     return requirements
 
 
+@functools.lru_cache
 def parse_version(version="0.0.0") -> tuple:
     """
     Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
@@ -164,6 +165,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     return sz
 
 
+@functools.lru_cache
 def check_version(
     current: str = "0.0.0",
     required: str = "0.0.0",
@@ -580,6 +582,7 @@ def check_is_path_safe(basedir, path):
     return path_resolved.exists() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
 
 
+@functools.lru_cache
 def check_imshow(warn=False):
     """
     Check if environment supports image displays.

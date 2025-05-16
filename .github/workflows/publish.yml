@@ -96,6 +96,8 @@ jobs:
     needs: [check, publish]
     if: always() && needs.check.outputs.increment == 'True'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Extract PR Details

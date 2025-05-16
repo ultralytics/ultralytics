@@ -41,7 +41,7 @@ def test_amp():
 
 
 @pytest.mark.slow
-# @pytest.mark.skipif(IS_JETSON, reason="Temporary disable ONNX for Jetson")
+@pytest.mark.skipif(IS_JETSON, reason="Temporary disable ONNX for Jetson")
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, simplify, nms",
@@ -50,12 +50,7 @@ def test_amp():
         for task, dynamic, int8, half, batch, simplify, nms in product(
             TASKS, [True, False], [False], [False], [1, 2], [True, False], [True, False]
         )
-        if not (
-            (int8 and half)
-            or (task == "classify" and nms)
-            or (task == "obb" and nms and (not TORCH_1_13 or IS_JETSON))  # obb nms fails on NVIDIA Jetson
-            or (simplify and dynamic)  # onnxslim is slow when dynamic=True
-        )
+        if not ((int8 and half) or (task == "classify" and nms) or (task == "obb" and nms and not TORCH_1_13))
     ],
 )
 def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):

@@ -656,7 +656,7 @@ def collect_system_info():
     from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
 
     gib = 1 << 30  # bytes per GiB
-    cuda = torch and torch.cuda.is_available()
+    cuda = torch.cuda.is_available()
     check_yolo()
     total, used, free = shutil.disk_usage("/")
 

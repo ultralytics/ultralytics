@@ -25,9 +25,10 @@ from ultralytics.utils import (
     TQDM,
     TryExcept,
     colorstr,
-    get_git_origin_url,
+    get_git_origin_url, PYTHON_VERSION,
 )
 from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES
+from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
 
 HUB_API_ROOT = os.environ.get("ULTRALYTICS_HUB_API", "https://api.ultralytics.com")
 HUB_WEB_ROOT = os.environ.get("ULTRALYTICS_HUB_WEB", "https://hub.ultralytics.com")
@@ -192,7 +193,9 @@ class Events:
         self.metadata = {
             "cli": Path(ARGV[0]).name == "yolo",
             "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
-            "python": ".".join(platform.python_version_tuple()[:2]),  # i.e. 3.10
+            "python": PYTHON_VERSION.rsplit(".", 1)[0],  # i.e. 3.10
+            "CPU": get_cpu_info(),
+            # "GPU": get_gpu_info(index=0) if cuda else None,
             "version": __version__,
             "env": ENVIRONMENT,
             "session_id": round(random.random() * 1e15),

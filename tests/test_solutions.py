@@ -114,7 +114,7 @@ SOLUTIONS = [
         solutions.ObjectBlurrer,
         False,
         DEMO_VIDEO,
-        {"blur_ratio": 0.5, "model": MODEL, "show": SHOW},
+        {"blur_ratio": 0.02, "model": MODEL, "show": SHOW},
     ),
     (
         "InstanceSegmentation",

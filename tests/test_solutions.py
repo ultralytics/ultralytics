@@ -31,7 +31,7 @@ SOLUTIONS = [
         DEMO_VIDEO,
         {"region": REGION, "model": MODEL, "show": SHOW},
     ),
-(
+    (
         "ObjectCounter",
         solutions.ObjectCounter,
         False,
@@ -246,38 +246,39 @@ def test_distance_process_output():
 def test_count_objects_linear_region():
     """Test object counting across a linear region."""
     counter = solutions.ObjectCounter()
-    counter.names = {0: 'person'}
+    counter.names = {0: "person"}
     counter.region = [(100, 100), (200, 100)]  # Horizontal line
-    counter.classwise_counts = {'person': {'IN': 0, 'OUT': 0}}
+    counter.classwise_counts = {"person": {"IN": 0, "OUT": 0}}
     prev_position = (90, 100)
     current_centroid = (110, 100)
     track_id = 1
     cls = 0
     counter.count_objects(current_centroid, track_id, prev_position, cls)
     assert counter.in_count == 1
-    assert counter.classwise_counts['person']['IN'] == 1
+    assert counter.classwise_counts["person"]["IN"] == 1
     assert track_id in counter.counted_ids
 
 
 def test_count_objects_polygonal_region():
     """Test object counting within a polygonal region."""
     counter = solutions.ObjectCounter()
-    counter.names = {0: 'person'}
+    counter.names = {0: "person"}
     counter.region = [(100, 100), (200, 100), (200, 200), (100, 200)]  # Square
-    counter.classwise_counts = {'person': {'IN': 0, 'OUT': 0}}
+    counter.classwise_counts = {"person": {"IN": 0, "OUT": 0}}
     prev_position = (90, 90)
     current_centroid = (150, 150)
     track_id = 2
     cls = 0
     counter.count_objects(current_centroid, track_id, prev_position, cls)
     assert counter.in_count == 1
-    assert counter.classwise_counts['person']['IN'] == 1
+    assert counter.classwise_counts["person"]["IN"] == 1
     assert track_id in counter.counted_ids
+
 
 def test_display_counts():
     """Test that display_counts executes without errors."""
     counter = solutions.ObjectCounter()
-    counter.classwise_counts = {'person': {'IN': 1, 'OUT': 0}}
+    counter.classwise_counts = {"person": {"IN": 1, "OUT": 0}}
     dummy_image = np.zeros((480, 640, 3), dtype=np.uint8)
     counter.display_counts(dummy_image)
     # No assertion needed; test passes if no exceptions are raised

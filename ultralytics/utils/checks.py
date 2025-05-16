@@ -833,8 +833,8 @@ def cuda_device_count() -> int:
 
         pynvml.nvmlInit()
         return int(pynvml.nvmlDeviceGetCount())
-    except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
-        # If the command fails, nvidia-smi is not found, or output is not an integer, assume no GPUs are available
+    except (ImportError, ValueError):
+        # Assume no GPUs are available
         return 0
 
 

@@ -773,14 +773,14 @@ class DEIMLoss(nn.Module):
         dn_outputs = outputs.pop("dn_outputs", None)
 
         # Retrieve the matching between the outputs of the last layer and the targets
-        indices = self.matcher(
-            outputs["pred_boxes"].contiguous(),
-            outputs["pred_logits"].contiguous(),
-            batch["bboxes"],
-            batch["cls"],
-            batch["gt_groups"],
-        )
-        # indices = self.tal_match(outputs["pred_boxes"].contiguous(), outputs["pred_logits"].contiguous(), batch)
+        # indices = self.matcher(
+        #     outputs["pred_boxes"].contiguous(),
+        #     outputs["pred_logits"].contiguous(),
+        #     batch["bboxes"],
+        #     batch["cls"],
+        #     batch["gt_groups"],
+        # )
+        indices = self.tal_match(outputs["pred_boxes"].contiguous(), outputs["pred_logits"].contiguous(), batch)
         # box, score, fg_mask = self.tal_match(outputs["pred_boxes"].contiguous(), outputs["pred_logits"].contiguous(), batch)
         self._clear_cache()
 
@@ -790,41 +790,41 @@ class DEIMLoss(nn.Module):
             if "pre_outputs" in outputs:
                 aux_outputs_list = outputs["aux_outputs"] + [outputs["pre_outputs"]]
             for i, aux_outputs in enumerate(aux_outputs_list):
-                indices_aux = self.matcher(
-                    aux_outputs["pred_boxes"].contiguous(),
-                    aux_outputs["pred_logits"].contiguous(),
-                    batch["bboxes"],
-                    batch["cls"],
-                    batch["gt_groups"],
-                )
-                # indices_aux = self.tal_match(
-                #     aux_outputs["pred_boxes"].contiguous(), aux_outputs["pred_logits"].contiguous(), batch
+                # indices_aux = self.matcher(
+                #     aux_outputs["pred_boxes"].contiguous(),
+                #     aux_outputs["pred_logits"].contiguous(),
+                #     batch["bboxes"],
+                #     batch["cls"],
+                #     batch["gt_groups"],
                 # )
+                indices_aux = self.tal_match(
+                    aux_outputs["pred_boxes"].contiguous(), aux_outputs["pred_logits"].contiguous(), batch
+                )
                 cached_indices.append(indices_aux)
                 indices_aux_list.append(indices_aux)
             for i, aux_outputs in enumerate(outputs["enc_aux_outputs"]):
-                indices_enc = self.matcher(
-                    aux_outputs["pred_boxes"].contiguous(),
-                    aux_outputs["pred_logits"].contiguous(),
-                    batch["bboxes"],
-                    batch["cls"],
-                    batch["gt_groups"],
-                )
-                # indices_enc = self.tal_match(
-                #     aux_outputs["pred_boxes"].contiguous(), aux_outputs["pred_logits"].contiguous(), batch
+                # indices_enc = self.matcher(
+                #     aux_outputs["pred_boxes"].contiguous(),
+                #     aux_outputs["pred_logits"].contiguous(),
+                #     batch["bboxes"],
+                #     batch["cls"],
+                #     batch["gt_groups"],
                 # )
+                indices_enc = self.tal_match(
+                    aux_outputs["pred_boxes"].contiguous(), aux_outputs["pred_logits"].contiguous(), batch
+                )
 
                 cached_indices_enc.append(indices_enc)
                 indices_aux_list.append(indices_enc)
-            all_indices = self._merge_indices(indices, indices_aux_list)
-            # all_indices = self._tal_merge_indices(indices, indices_aux_list)
+            # all_indices = self._merge_indices(indices, indices_aux_list)
+            all_indices = self._tal_merge_indices(indices, indices_aux_list)
         else:
             all_indices = indices
 
         # Compute all the requested losses, main loss
         losses = {}
-        losses.update(self._get_loss(outputs, batch, all_indices, indices))
-        # losses.update(self._tal_get_loss(outputs, batch, all_indices, indices))
+        # losses.update(self._get_loss(outputs, batch, all_indices, indices))
+        losses.update(self._tal_get_loss(outputs, batch, all_indices, indices))
 
         # In case of auxiliary losses, we repeat this process with the output of each intermediate layer.
         if "aux_outputs" in outputs:
@@ -832,8 +832,8 @@ class DEIMLoss(nn.Module):
                 if "local" in self.losses:  # only work for local loss
                     aux_outputs["up"], aux_outputs["reg_scale"] = outputs["up"], outputs["reg_scale"]
                 losses.update(
-                    self._get_loss(
-                    # self._tal_get_loss(
+                    # self._get_loss(
+                    self._tal_get_loss(
                         aux_outputs,
                         batch,
                         all_indices,
@@ -846,8 +846,8 @@ class DEIMLoss(nn.Module):
         if "pre_outputs" in outputs:
             aux_outputs = outputs["pre_outputs"]
             losses.update(
-                self._get_loss(
-                # self._tal_get_loss(
+                # self._get_loss(
+                self._tal_get_loss(
                     aux_outputs, batch, all_indices, cached_indices[-1] if self.use_uni_set else None, suffix="_pre"
                 )
             )
@@ -867,8 +867,8 @@ class DEIMLoss(nn.Module):
 
             for i, aux_outputs in enumerate(outputs["enc_aux_outputs"]):
                 losses.update(
-                    self._get_loss(
-                    # self._tal_get_loss(
+                    # self._get_loss(
+                    self._tal_get_loss(
                         aux_outputs,
                         enc_targets,
                         all_indices,

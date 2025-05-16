@@ -811,6 +811,7 @@ class Mosaic(BaseMixTransform):
         labels["instances"].convert_bbox(format="xyxy")
         labels["instances"].denormalize(nw, nh)
         labels["instances"].add_padding(padw, padh)
+        labels["instances"].add_padding_obb(padw, padh)
         return labels
 
     def _cat_labels(self, mosaic_labels):
@@ -1076,7 +1077,7 @@ class RandomPerspective:
                 img = cv2.warpPerspective(img, M, dsize=self.size, borderValue=(114, 114, 114))
             else:  # affine
                 img = cv2.warpAffine(img, M[:2], dsize=self.size, borderValue=(114, 114, 114))
-        return img, M, s
+        return img, M, s, a
 
     def apply_bboxes(self, bboxes, M):
         """
@@ -1233,9 +1234,10 @@ class RandomPerspective:
         self.size = img.shape[1] + border[1] * 2, img.shape[0] + border[0] * 2  # w, h
         # M is affine matrix
         # Scale for func:`box_candidates`
-        img, M, scale = self.affine_transform(img, border)
+        img, M, scale, rotation = self.affine_transform(img, border)
 
         bboxes = self.apply_bboxes(instances.bboxes, M)
+        instances.apply_affine_obb(M, scale, rotation)
 
         segments = instances.segments
         keypoints = instances.keypoints
@@ -1245,7 +1247,7 @@ class RandomPerspective:
 
         if keypoints is not None:
             keypoints = self.apply_keypoints(keypoints, M)
-        new_instances = Instances(bboxes, segments, keypoints, bbox_format="xyxy", normalized=False)
+        new_instances = Instances(bboxes, segments, keypoints, bbox_format="xyxy", normalized=False, obbData=instances.obbData)
         # Clip
         new_instances.clip(*self.size)
 
@@ -1459,6 +1461,8 @@ class RandomFlip:
         instances = labels.pop("instances")
         instances.convert_bbox(format="xywh")
         h, w = img.shape[:2]
+        imageW = w
+        imageH = h
         h = 1 if instances.normalized else h
         w = 1 if instances.normalized else w
 
@@ -1466,9 +1470,11 @@ class RandomFlip:
         if self.direction == "vertical" and random.random() < self.p:
             img = np.flipud(img)
             instances.flipud(h)
+            instances.flipud_obb(imageH)
         if self.direction == "horizontal" and random.random() < self.p:
             img = np.fliplr(img)
             instances.fliplr(w)
+            instances.fliplr_obb(imageW)
             # For keypoints
             if self.flip_idx is not None and instances.keypoints is not None:
                 instances.keypoints = np.ascontiguousarray(instances.keypoints[:, self.flip_idx, :])
@@ -1631,6 +1637,7 @@ class LetterBox:
         labels["instances"].denormalize(*labels["img"].shape[:2][::-1])
         labels["instances"].scale(*ratio)
         labels["instances"].add_padding(padw, padh)
+        labels["instances"].add_padding_obb(padw, padh)
         return labels
 
 
@@ -2066,9 +2073,11 @@ class Format:
                 labels["keypoints"][..., 0] /= w
                 labels["keypoints"][..., 1] /= h
         if self.return_obb:
-            labels["bboxes"] = (
-                xyxyxyxy2xywhr(torch.from_numpy(instances.segments)) if len(instances.segments) else torch.zeros((0, 5))
-            )
+            newboxes = instances.get_obb_boxes(w, h)
+            labels["bboxes"] = torch.from_numpy(newboxes)
+            #labels["bboxes"] = (
+            #    xyxyxyxy2xywhr(torch.from_numpy(instances.segments)) if len(instances.segments) else torch.zeros((0, 5))
+            #)
         # NOTE: need to normalize obb in xywhr format for width-height consistency
         if self.normalize:
             labels["bboxes"][:, [0, 2]] /= w

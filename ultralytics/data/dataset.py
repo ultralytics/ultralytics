@@ -276,6 +276,7 @@ class YOLODataset(BaseDataset):
         else:
             segments = np.zeros((0, segment_resamples, 2), dtype=np.float32)
         label["instances"] = Instances(bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized)
+        label["instances"].initOrientedBoundingBoxes(label["resized_shape"][1], label["resized_shape"][0])
         return label
 
     @staticmethod

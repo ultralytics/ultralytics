@@ -7,7 +7,6 @@ import time
 from pathlib import Path
 
 import requests
-import torch
 
 from ultralytics import __version__
 from ultralytics.utils import (

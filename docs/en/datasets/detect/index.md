@@ -77,11 +77,13 @@ Here is a list of the supported datasets and a brief description for each:
 - [COCO](coco.md): Common Objects in Context (COCO) is a large-scale [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and captioning dataset with 80 object categories.
 - [LVIS](lvis.md): A large-scale object detection, segmentation, and captioning dataset with 1203 object categories.
 - [COCO8](coco8.md): A smaller subset of the first 4 images from COCO train and COCO val, suitable for quick tests.
+- [COCO8-Multispectral](coco8-multispectral.md): A 10-channel multispectral version of COCO8 created by interpolating RGB wavelengths, useful for spectral-aware model evaluation.
 - [COCO128](coco128.md): A smaller subset of the first 128 images from COCO train and COCO val, suitable for tests.
 - [Global Wheat 2020](globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
 - [Objects365](objects365.md): A high-quality, large-scale dataset for object detection with 365 object categories and over 600K annotated images.
 - [OpenImagesV7](open-images-v7.md): A comprehensive dataset by Google with 1.7M train images and 42k validation images.
 - [SKU-110K](sku-110k.md): A dataset featuring dense object detection in retail environments with over 11K images and 1.7 million [bounding boxes](https://www.ultralytics.com/glossary/bounding-box).
+- [HomeObjects-3K](homeobjects-3k.md) New 🚀: A dataset of indoor household items including beds, chairs, TVs, and more—ideal for applications in smart home automation, robotics, augmented reality, and room layout analysis.
 - [VisDrone](visdrone.md): A dataset containing object detection and multi-object tracking data from drone-captured imagery with over 10K images and video sequences.
 - [VOC](voc.md): The Pascal Visual Object Classes (VOC) dataset for object detection and segmentation with 20 object classes and over 11K images.
 - [xView](xview.md): A dataset for object detection in overhead imagery with 60 object categories and over 1 million annotated objects.

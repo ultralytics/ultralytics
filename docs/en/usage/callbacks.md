@@ -10,13 +10,13 @@ Ultralytics framework supports callbacks, which serve as entry points at strateg
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/GsXGnb-A4Kc?start=67"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ENQXiK7HF5o"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Mastering Ultralytics YOLO: Callbacks
+  <strong>Watch:</strong> How to use Ultralytics Callbacks | Predict, Train, Validate and Export Callbacks | Ultralytics YOLO🚀
 </p>
 
 ## Examples
@@ -49,6 +49,36 @@ model.add_callback("on_predict_batch_end", on_predict_batch_end)
 # Iterate through the results and frames
 for result, frame in model.predict():  # or model.track()
     pass
+```
+
+### Access Model metrics using the `on_model_save` callback
+
+This example shows how to retrieve training details, such as the best_fitness score, total_loss, and other metrics after a checkpoint is saved using the `on_model_save` callback.
+
+```python
+from ultralytics import YOLO
+
+# Load a YOLO model
+model = YOLO("yolo11n.pt")
+
+
+def print_checkpoint_metrics(trainer):
+    """Print trainer metrics and loss details after each checkpoint is saved."""
+    print(
+        f"Model details\n"
+        f"Best fitness: {trainer.best_fitness}, "
+        f"Loss names: {trainer.loss_names}, "  # List of loss names
+        f"Metrics: {trainer.metrics}, "
+        f"Total loss: {trainer.tloss}"  # Total loss value
+    )
+
+
+if __name__ == "__main__":
+    # Add on_model_save callback.
+    model.add_callback("on_model_save", print_checkpoint_metrics)
+
+    # Run model training on custom dataset.
+    results = model.train(data="coco8.yaml", epochs=3)
 ```
 
 ## All Callbacks

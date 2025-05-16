@@ -45,10 +45,11 @@ jobs:
 
           ignore-pr-updates: true
           remove-pr-stale-when-updated: false
-          include-only-assigned: true
+          exempt-all-assignees: true
           days-before-issue-stale: 30
           days-before-issue-close: 10
           days-before-pr-stale: 90
           days-before-pr-close: 30
           exempt-issue-labels: "documentation,tutorial,TODO"
+          exempt-pr-labels: "TODO"
           operations-per-run: 300 # The maximum number of operations per run, used to control rate limiting.

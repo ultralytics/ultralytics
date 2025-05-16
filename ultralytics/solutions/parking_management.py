@@ -58,10 +58,10 @@ class ParkingPtsSelection:
                 "Linux": "sudo apt install python3-tk (Debian/Ubuntu) | sudo dnf install python3-tkinter (Fedora) | "
                 "sudo pacman -S tk (Arch)",
                 "Windows": "reinstall Python and enable the checkbox `tcl/tk and IDLE` on **Optional Features** during installation",
-                "Darwin": "reinstall Python from https://www.python.org/downloads/mac-osx/ or `brew install python-tk`",
+                "Darwin": "reinstall Python from https://www.python.org/downloads/macos/ or `brew install python-tk`",
             }.get(platform.system(), "Unknown OS. Check your Python installation.")
 
-            LOGGER.warning(f"WARNING ⚠️  Tkinter is not configured or supported. Potential fix: {install_cmd}")
+            LOGGER.warning(f" Tkinter is not configured or supported. Potential fix: {install_cmd}")
             return
 
         if not check_imshow(warn=True):
@@ -201,9 +201,9 @@ class ParkingManagement(BaseSolution):
         """Initialize the parking management system with a YOLO model and visualization settings."""
         super().__init__(**kwargs)
 
-        self.json_file = self.CFG["json_file"]  # Load JSON data
+        self.json_file = self.CFG["json_file"]  # Load parking regions JSON data
         if self.json_file is None:
-            LOGGER.warning("❌ json_file argument missing. Parking region details required.")
+            LOGGER.warning("json_file argument missing. Parking region details required.")
             raise ValueError("❌ Json file path can not be empty")
 
         with open(self.json_file) as f:

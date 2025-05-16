@@ -213,7 +213,7 @@ def test_analytics_graph_not_supported():
 
 
 def test_area_chart_padding():
-    """Test area chart updates with padding logic for coverage"""
+    """Test area chart updates with padding logic for coverage."""
     analytics = solutions.Analytics(analytics_type="area")
     analytics.update_graph(frame_number=1, count_dict={"car": 2}, plot="area")
     plot_im = analytics.update_graph(frame_number=2, count_dict={"car": 3, "person": 1}, plot="area")
@@ -221,7 +221,7 @@ def test_area_chart_padding():
 
 
 def test_update_invalid_argument():
-    """Test update method with an invalid keyword argument"""
+    """Test update method with an invalid keyword argument."""
     obj = solutions.config.SolutionConfig()
     try:
         obj.update(invalid_key=123)

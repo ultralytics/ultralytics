@@ -231,6 +231,7 @@ def test_queue_manager_init():
     assert qm.rect_color == (255, 255, 255)
     assert qm.region_length == 3
 
+
 def test_default_region():
     tracker = solutions.TrackZone()
     assert tracker.region.shape[0] > 0

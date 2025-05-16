@@ -77,8 +77,6 @@ class BaseTrainer:
         amp (bool): Flag to enable AMP (Automatic Mixed Precision).
         scaler (amp.GradScaler): Gradient scaler for AMP.
         data (str): Path to data.
-        trainset (torch.utils.data.Dataset): Training dataset.
-        testset (torch.utils.data.Dataset): Testing dataset.
         ema (nn.Module): EMA (Exponential Moving Average) of the model.
         resume (bool): Resume training from a checkpoint.
         lf (nn.Module): Loss function.
@@ -136,7 +134,8 @@ class BaseTrainer:
         # Model and Dataset
         self.model = check_model_file_from_stem(self.args.model)  # add suffix, i.e. yolo11n -> yolo11n.pt
         with torch_distributed_zero_first(LOCAL_RANK):  # avoid auto-downloading dataset multiple times
-            self.trainset, self.testset = self.get_dataset()
+            self.data = self.get_dataset()
+
         self.ema = None
 
         # Optimization utils init
@@ -289,11 +288,16 @@ class BaseTrainer:
 
         # Dataloaders
         batch_size = self.batch_size // max(world_size, 1)
-        self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=LOCAL_RANK, mode="train")
+        self.train_loader = self.get_dataloader(
+            self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
+        )
         if RANK in {-1, 0}:
             # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
             self.test_loader = self.get_dataloader(
-                self.testset, batch_size=batch_size if self.args.task == "obb" else batch_size * 2, rank=-1, mode="val"
+                self.data.get("val") or self.data.get("test"),
+                batch_size=batch_size if self.args.task == "obb" else batch_size * 2,
+                rank=-1,
+                mode="val",
             )
             self.validator = self.get_validator()
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
@@ -569,7 +573,7 @@ class BaseTrainer:
         Get train and validation datasets from data dictionary.
 
         Returns:
-            (tuple): A tuple containing the training and validation/test datasets.
+            (dict): A dictionary containing the training/validation/test dataset and category names.
         """
         try:
             if self.args.task == "classify":
@@ -585,12 +589,11 @@ class BaseTrainer:
                     self.args.data = data["yaml_file"]  # for validating 'yolo train data=url.zip' usage
         except Exception as e:
             raise RuntimeError(emojis(f"Dataset '{clean_url(self.args.data)}' error ❌ {e}")) from e
-        self.data = data
         if self.args.single_cls:
             LOGGER.info("Overriding class names with single class.")
-            self.data["names"] = {0: "item"}
-            self.data["nc"] = 1
-        return data["train"], data.get("val") or data.get("test")
+            data["names"] = {0: "item"}
+            data["nc"] = 1
+        return data
 
     def setup_model(self):
         """

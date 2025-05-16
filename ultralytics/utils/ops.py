@@ -297,7 +297,7 @@ def non_max_suppression(
 
         if multi_label:
             i, j = torch.where(cls > conf_thres)
-            x = torch.cat((box[i], x[i, 4 + j, None], j[:, None].float(), mask[i]), 1)
+            x = torch.cat((box[i], x[i, 4 + j, None], j[:, None].float(), mask[i], obj[i]), 1)
             xk = xk[i]
         else:  # best class only
             conf, j = cls.max(1, keepdim=True)

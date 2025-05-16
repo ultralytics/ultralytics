@@ -40,7 +40,6 @@ def test_amp():
     assert check_amp(model)
 
 
-
 # @pytest.mark.slow
 @pytest.mark.skipif(IS_JETSON, reason="Temporary disable ONNX for Jetson")
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")

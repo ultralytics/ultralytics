@@ -885,17 +885,32 @@ class DEIMLoss(nn.Module):
             assert dn_meta is not None
             dn_pos_idx, dn_num_group = dn_meta["dn_pos_idx"], dn_meta["dn_num_group"]
             indices_dn = RTDETRDetectionLoss.get_dn_match_indices(dn_pos_idx, dn_num_group, batch["gt_groups"])
+            # NOTE: to be compatible with TAL match
+            device = outputs["pred_boxes"].device
+            dn_num = dn_meta["dn_num_split"][0] 
+            fg_mask = torch.zeros((len(batch["gt_groups"]), dn_num), device=device, dtype=torch.bool)
+            target_bboxes = torch.zeros((len(batch["gt_groups"]), dn_num, 4), device=device)
+            target_labels = torch.zeros((len(batch["gt_groups"]), dn_num), device=device, dtype=batch["cls"].dtype)
+            target_scores = torch.zeros((len(batch["gt_groups"]), dn_num, self.num_classes), device=device)
+            pred_idx, gt_idx = DETRLoss._get_index(indices_dn)
+            target_labels[pred_idx] = batch["cls"][gt_idx]
+            target_scores.scatter_(2, target_labels.unsqueeze(-1), 1.0)
+            target_bboxes[pred_idx] = xywh2xyxy(batch["bboxes"][gt_idx])
+            fg_mask[pred_idx] = True
+            indices_dn = (target_bboxes, target_scores, fg_mask)
 
             for i, aux_outputs in enumerate(dn_outputs):
                 if "local" in self.losses:  # only work for local loss
                     aux_outputs["is_dn"] = True
                     aux_outputs["up"], aux_outputs["reg_scale"] = outputs["up"], outputs["reg_scale"]
-                losses.update(self._get_loss(aux_outputs, batch, indices_dn, suffix=f"_dn_{i}"))
+                # losses.update(self._get_loss(aux_outputs, batch, indices_dn, suffix=f"_dn_{i}"))
+                losses.update(self._tal_get_loss(aux_outputs, batch, indices_dn, suffix=f"_dn_{i}"))
 
             # In case of auxiliary traditional head output at first decoder layer, just for dfine
             if "dn_pre_outputs" in outputs:
                 aux_outputs = outputs["dn_pre_outputs"]
-                losses.update(self._get_loss(aux_outputs, batch, indices_dn, suffix="_dn_pre"))
+                # losses.update(self._get_loss(aux_outputs, batch, indices_dn, suffix="_dn_pre"))
+                losses.update(self._tal_get_loss(aux_outputs, batch, indices_dn, suffix="_dn_pre"))
 
         # For debugging Objects365 pre-train.
         losses = {k: torch.nan_to_num(v, nan=0.0) for k, v in losses.items()}

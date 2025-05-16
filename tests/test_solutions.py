@@ -4,10 +4,10 @@
 # including every solution excluding DistanceCalculation and Security Alarm System.
 
 import cv2
+import numpy as np
 import pytest
 
 from tests import MODEL, TMP
-import numpy as np
 from ultralytics import solutions
 from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, LINUX, checks
 from ultralytics.utils.downloads import safe_download

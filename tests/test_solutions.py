@@ -205,7 +205,7 @@ def test_analytics_graph_not_supported():
     """Test for analytical graph not supported."""
     try:
         analytics = solutions.Analytics(analytics_type="test")  # 'test' is unsupported
-        analytics.process_frame(im0=None, frame_number=0)
+        analytics.process(im0=None, frame_number=0)
         assert False, "Expected ModuleNotFoundError for unsupported chart type"
     except ModuleNotFoundError as e:
         assert "test chart is not supported" in str(e)     

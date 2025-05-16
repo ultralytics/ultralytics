@@ -68,6 +68,7 @@ class LoadStreams:
         shape (List[Tuple[int, int, int]]): List of shapes for each stream.
         caps (List[cv2.VideoCapture]): List of cv2.VideoCapture objects for each stream.
         bs (int): Batch size for processing.
+        cv2_flag (int): OpenCV flag for image reading (grayscale or RGB).
 
     Methods:
         update: Read stream frames in daemon thread.
@@ -89,13 +90,14 @@ class LoadStreams:
         - The class implements a buffer system to manage frame storage and retrieval.
     """
 
-    def __init__(self, sources="file.streams", vid_stride=1, buffer=False):
+    def __init__(self, sources="file.streams", vid_stride=1, buffer=False, channels=3):
         """Initialize stream loader for multiple video sources, supporting various stream types."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
         self.buffer = buffer  # buffer input streams
         self.running = True  # running flag for Thread
         self.mode = "stream"
         self.vid_stride = vid_stride  # video frame-rate stride
+        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or RGB
 
         sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
         n = len(sources)
@@ -131,6 +133,7 @@ class LoadStreams:
             self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
 
             success, im = self.caps[i].read()  # guarantee first frame
+            im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)[..., None] if self.cv2_flag == cv2.IMREAD_GRAYSCALE else im
             if not success or im is None:
                 raise ConnectionError(f"{st}Failed to read images from {s}")
             self.imgs[i].append(im)
@@ -149,6 +152,9 @@ class LoadStreams:
                 cap.grab()  # .read() = .grab() followed by .retrieve()
                 if n % self.vid_stride == 0:
                     success, im = cap.retrieve()
+                    im = (
+                        cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)[..., None] if self.cv2_flag == cv2.IMREAD_GRAYSCALE else im
+                    )
                     if not success:
                         im = np.zeros(self.shape[i], dtype=np.uint8)
                         LOGGER.warning("Video stream unresponsive, please check your IP camera connection.")
@@ -230,6 +236,7 @@ class LoadScreenshots:
         bs (int): Batch size, set to 1.
         fps (int): Frames per second, set to 30.
         monitor (Dict[str, int]): Monitor configuration details.
+        cv2_flag (int): OpenCV flag for image reading (grayscale or RGB).
 
     Methods:
         __iter__: Returns an iterator object.
@@ -241,7 +248,7 @@ class LoadScreenshots:
         ...     print(f"Captured frame: {im.shape}")
     """
 
-    def __init__(self, source):
+    def __init__(self, source, channels=3):
         """Initialize screenshot capture with specified screen and region parameters."""
         check_requirements("mss")
         import mss  # noqa
@@ -259,6 +266,7 @@ class LoadScreenshots:
         self.sct = mss.mss()
         self.bs = 1
         self.fps = 30
+        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or RGB
 
         # Parse monitor shape
         monitor = self.sct.monitors[self.screen]
@@ -275,6 +283,7 @@ class LoadScreenshots:
     def __next__(self):
         """Captures and returns the next screenshot as a numpy array using the mss library."""
         im0 = np.asarray(self.sct.grab(self.monitor))[:, :, :3]  # BGRA to BGR
+        im0 = cv2.cvtColor(im0, cv2.COLOR_BGR2GRAY)[..., None] if self.cv2_flag == cv2.IMREAD_GRAYSCALE else im0
         s = f"screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: "
 
         self.frame += 1
@@ -395,6 +404,11 @@ class LoadImagesAndVideos:
 
                 if success:
                     success, im0 = self.cap.retrieve()
+                    im0 = (
+                        cv2.cvtColor(im0, cv2.COLOR_BGR2GRAY)[..., None]
+                        if self.cv2_flag == cv2.IMREAD_GRAYSCALE
+                        else im0
+                    )
                     if success:
                         self.frame += 1
                         paths.append(path)
@@ -497,6 +511,8 @@ class LoadPilAndNumpy:
             # adding new axis if it's grayscale, and converting to BGR if it's RGB
             im = im[..., None] if flag == "L" else im[..., ::-1]
             im = np.ascontiguousarray(im)  # contiguous
+        elif im.ndim == 2:  # grayscale in numpy form
+            im = im[..., None]
         return im
 
     def __len__(self):

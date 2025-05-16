@@ -58,7 +58,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
         int8=int8,
         half=half,
         batch=batch,
-        simplify=False,
+        simplify=simplify,
         nms=nms,
         device=DEVICES[0],
     )

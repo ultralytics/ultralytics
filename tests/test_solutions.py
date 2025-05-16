@@ -282,3 +282,18 @@ def test_display_counts():
     dummy_image = np.zeros((480, 640, 3), dtype=np.uint8)
     counter.display_counts(dummy_image)
     # No assertion needed; test passes if no exceptions are raised
+
+def test_process_with_none_masks():
+    """Test that process() returns the original image when masks are None."""
+    dummy_image = np.ones((480, 640, 3), dtype=np.uint8) * 255
+    segmenter = InstanceSegmentation()
+    segmenter.masks = None
+    result = segmenter.process(dummy_image)
+    assert np.array_equal(result.plot_im, dummy_image)
+
+
+def test_update_invalid_parameter():
+    """Test that updating with an invalid parameter raises ValueError."""
+    config = solutions.solutions.SolutionConfig()
+    with pytest.raises(ValueError):
+        config.update(test=0.3)  # 'test' is not a valid config attribute

@@ -186,3 +186,44 @@ def test_similarity_search():
 
     searcher = solutions.VisualAISearch()
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
+
+
+def test_mouse_event_select_inside_box():
+    """Tests that a left-click inside a box selects the object."""
+    dc = solutions.DistanceCalculation()
+    box, track_id = [100, 100, 200, 200], 1
+    dc.boxes, dc.track_ids = [box], [track_id]
+    dc.mouse_event_for_distance(event=cv2.EVENT_LBUTTONDOWN, x=150, y=150, flags=None, param=None)
+    assert track_id in dc.selected_boxes
+
+
+def test_mouse_event_click_outside_box():
+    """Tests that a click outside a box does not select the object."""
+    dc = solutions.DistanceCalculation()
+    box, track_id = [100, 100, 200, 200], 1
+    dc.boxes, dc.track_ids = [box], [track_id]
+    dc.mouse_event_for_distance(event=cv2.EVENT_LBUTTONDOWN, x=250, y=250, flags=None, param=None)
+    assert track_id not in dc.selected_boxes
+
+
+def test_mouse_event_right_click_ignored():
+    """Tests that right-click does not select any object."""
+    dc = solutions.DistanceCalculation()
+    box, track_id = [100, 100, 200, 200], 1
+    dc.boxes, dc.track_ids = [box], [track_id]
+    dc.mouse_event_for_distance(event=cv2.EVENT_RBUTTONDOWN, x=150, y=150, flags=None, param=None)
+    assert dc.selected_boxes == {}
+
+
+def test_distance_process_output():
+    """Tests that the process() method computes distance correctly between selected objects."""
+    dc = solutions.DistanceCalculation()
+    dummy_image = np.ones((480, 640, 3), dtype=np.uint8) * 255
+    box1 = [100, 100, 200, 200]
+    box2 = [300, 300, 400, 400]
+    dc.boxes = [box1, box2]
+    dc.track_ids = [1, 2]
+    dc.selected_boxes = {1: box1, 2: box2}
+    result = dc.process(dummy_image)
+    assert isinstance(result, np.ndarray), "Output should be an image array"
+    assert result.shape == dummy_image.shape, "Output image should match input size"

@@ -833,7 +833,7 @@ def cuda_device_count() -> int:
 
         pynvml.nvmlInit()
         return int(pynvml.nvmlDeviceGetCount())
-    except (ImportError, ValueError):
+    except Exception:
         # Assume no GPUs are available
         return 0
 

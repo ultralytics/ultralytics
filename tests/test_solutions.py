@@ -4,6 +4,7 @@
 # including every solution excluding DistanceCalculation and Security Alarm System.
 
 import cv2
+import numpy as np
 import pytest
 
 from tests import MODEL, TMP
@@ -29,6 +30,20 @@ SOLUTIONS = [
         False,
         DEMO_VIDEO,
         {"region": REGION, "model": MODEL, "show": SHOW},
+    ),
+    (
+        "ObjectCounter",
+        solutions.ObjectCounter,
+        False,
+        DEMO_VIDEO,
+        {"region": REGION, "model": MODEL, "show": SHOW},
+    ),
+    (
+        "ObjectCounterwithOBB",
+        solutions.ObjectCounter,
+        False,
+        DEMO_VIDEO,
+        {"region": REGION, "model": "yolo11n-obb.pt", "show": SHOW},
     ),
     (
         "Heatmap",
@@ -185,3 +200,13 @@ def test_similarity_search():
 
     searcher = solutions.VisualAISearch()
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
+
+
+def test_analytics_graph_not_supported():
+    """Test for analytical graph not supported"""
+    try:
+        analytics = solutions.Analytics(analytics_type="test")  # 'test' is unsupported
+        analytics.process_frame(im0=None, frame_number=0)
+        assert False, "Expected ModuleNotFoundError for unsupported chart type"
+    except ModuleNotFoundError as e:
+        assert "test chart is not supported" in str(e)     

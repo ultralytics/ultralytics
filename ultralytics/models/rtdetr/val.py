@@ -148,6 +148,21 @@ class RTDETRValidator(DetectionValidator):
             pred = torch.cat([bbox, score[..., None], cls[..., None]], dim=-1)  # filter
             # Sort by confidence to correctly get internal metrics
             pred = pred[score.argsort(descending=True)]
+            # # NOTE: add nms test
+            # bbox = ops.xyxy2xywh(pred[:, :4])
+            # one_hot = torch.zeros(len(pred), 80, device=pred.device)
+            # one_hot.scatter_(1, pred[:, -1].long().unsqueeze(-1), pred[:, -2].unsqueeze(-1))
+            # pred = torch.cat((bbox, one_hot), dim=1)  # (300, 4 + 80)
+            # pred = pred.unsqueeze(0).transpose(-2, -1)
+            # pred = ops.non_max_suppression(
+            #     pred,
+            #     self.args.conf,
+            #     self.args.iou,
+            #     self.args.classes,
+            #     self.args.agnostic_nms,
+            #     max_det=self.args.max_det,
+            #     nc=80,
+            # )[0]
             outputs[i] = pred  # [idx]
 
         return outputs

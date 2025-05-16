@@ -66,6 +66,21 @@ class RTDETRPredictor(BasePredictor):
             oh, ow = orig_img.shape[:2]
             pred[..., [0, 2]] *= ow  # scale x coordinates to original width
             pred[..., [1, 3]] *= oh  # scale y coordinates to original height
+            # # NOTE: add nms test
+            # bbox = ops.xyxy2xywh(pred[:, :4])
+            # one_hot = torch.zeros(len(pred), 80, device=pred.device)
+            # one_hot.scatter_(1, pred[:, -1].long().unsqueeze(-1), pred[:, -2].unsqueeze(-1))
+            # pred = torch.cat((bbox, one_hot), dim=1)  # (300, 4 + 80)
+            # pred = pred.unsqueeze(0).transpose(-2, -1)
+            # pred = ops.non_max_suppression(
+            #     pred,
+            #     self.args.conf,
+            #     self.args.iou,
+            #     self.args.classes,
+            #     self.args.agnostic_nms,
+            #     max_det=self.args.max_det,
+            #     nc=len(self.model.names),
+            # )[0]
             results.append(Results(orig_img, path=img_path, names=self.model.names, boxes=pred))
         return results
 

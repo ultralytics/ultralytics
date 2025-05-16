@@ -828,7 +828,7 @@ def cuda_device_count() -> int:
     """
     try:
         check_requirements("pynvml>=12.0.0")
-        
+
         import pynvml
 
         pynvml.nvmlInit()

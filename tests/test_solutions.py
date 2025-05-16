@@ -283,6 +283,7 @@ def test_display_counts():
     counter.display_counts(dummy_image)
     # No assertion needed; test passes if no exceptions are raised
 
+
 def test_process_with_none_masks():
     """Test that process() returns the original image when masks are None."""
     dummy_image = np.ones((480, 640, 3), dtype=np.uint8) * 255

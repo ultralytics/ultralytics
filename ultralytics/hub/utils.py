@@ -227,7 +227,7 @@ class Events:
                 **self.metadata,
                 "task": cfg.task,
                 "model": cfg.model if cfg.model in GITHUB_ASSETS_NAMES else "custom",
-                "device": device.type if isinstance(device, torch.device) else device,
+                "device": str(device),
             }
             if cfg.mode == "export":
                 params["format"] = cfg.format

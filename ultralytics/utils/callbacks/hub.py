@@ -78,7 +78,8 @@ def on_train_start(trainer):
 
 def on_val_start(validator):
     """Run events on validation start."""
-    events(validator.args, validator.device)
+    if not validator.training:
+        events(validator.args, validator.device)
 
 
 def on_predict_start(predictor):

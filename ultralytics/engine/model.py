@@ -319,7 +319,7 @@ class Model(torch.nn.Module):
             >>> model = Model("yolo11n.onnx")
             >>> model._check_is_pytorch_model()  # Raises TypeError
         """
-        pt_str = isinstance(self.model, (str, Path)) and Path(self.model).suffix == ".pt"
+        pt_str = isinstance(self.model, (str, Path)) and str(self.model).rpartition(".")[-1] == "pt"
         pt_module = isinstance(self.model, torch.nn.Module)
         if not (pt_module or pt_str):
             raise TypeError(

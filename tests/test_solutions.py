@@ -318,8 +318,9 @@ def test_search_app_init():
 
 
 def test_process_distance_calculation():
-    """Distance calculation process function test"""
+    """Distance calculation process function test."""
     from unittest.mock import patch
+
     from ultralytics.solutions.solutions import SolutionResults
     dc = solutions.DistanceCalculation()
     dc.boxes = [[100, 100, 200, 200], [300, 300, 400, 400]]

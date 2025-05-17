@@ -400,8 +400,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:
         if install and AUTOINSTALL:  # check environment variable
-            use_uv = subprocess.run(["command", "-v", "uv"], capture_output=True, shell=True).returncode == 0
-            use_uv = True
+            use_uv = subprocess.run(["command", "-v", "uv"], capture_output=True, shell=True).returncode == 0 and not MACOS
             n = len(pkgs)  # number of packages updates
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:

@@ -23,6 +23,7 @@ from .block import (
     C2PSA,
     C3,
     C3TR,
+    CCAM,
     CIB,
     DFL,
     ELAN1,
@@ -179,4 +180,5 @@ __all__ = (
     "TorchVision",
     "Index",
     "A2C2f",
+    "CCAM",
 )

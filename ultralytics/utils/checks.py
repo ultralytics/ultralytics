@@ -400,7 +400,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:
         if install and AUTOINSTALL:  # check environment variable
-            uv = subprocess.run(["command", "-v", "uv"], capture_output=True).returncode == 0
+            uv = subprocess.run(["command", "-v", "uv"], capture_output=True, shell=True).returncode == 0
             n = len(pkgs)  # number of packages updates
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:

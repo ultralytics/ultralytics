@@ -325,6 +325,7 @@ def test_similarity_search_complete(tmp_path):
 def test_distance_calculation_process_method():
     """Test DistanceCalculation.process() computes distance between selected boxes."""
     from unittest.mock import patch
+
     from ultralytics.solutions.solutions import SolutionResults
     dc = solutions.DistanceCalculation()
     dc.boxes = [[100, 100, 200, 200], [300, 300, 400, 400]]

@@ -245,6 +245,7 @@ def test_plot_with_no_masks():
     results = isegment(im0)
     assert results.plot_im is not None
 
+
 def test_parking_json_none():
     """Test instance segmentation with no masks."""
     im0 = np.zeros((640, 480, 3), dtype=np.uint8)

@@ -239,14 +239,14 @@ def test_update_invalid_argument():
 
 
 def test_plot_with_no_masks():
-    """Test instance segmentation with no masks"""
+    """Test instance segmentation with no masks."""
     im0 = np.zeros((640, 480, 3), dtype=np.uint8)
     isegment = solutions.InstanceSegmentation(model="yolo11n-seg.pt")
     results = isegment(im0)
     assert results.plot_im is not None
 
 def test_parking_json_none():
-    """Test instance segmentation with no masks"""
+    """Test instance segmentation with no masks."""
     im0 = np.zeros((640, 480, 3), dtype=np.uint8)
     parkingmanager = solutions.ParkingManagement()
     with pytest.raises(ValueError, match="Json file path can not be empty"):
@@ -254,7 +254,7 @@ def test_parking_json_none():
 
 
 def test_left_click_selection():
-    """Test distance calculation left click"""
+    """Test distance calculation left click."""
     dc = solutions.DistanceCalculation()
     dc.boxes = [[10, 10, 50, 50]]
     dc.track_ids = [1]
@@ -263,7 +263,7 @@ def test_left_click_selection():
 
 
 def test_right_click_reset():
-    """Test distance calculation right click"""
+    """Test distance calculation right click."""
     dc = solutions.DistanceCalculation()
     dc.selected_boxes = {1: [10, 10, 50, 50]}
     dc.left_mouse_count = 1

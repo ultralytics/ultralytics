@@ -386,8 +386,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     def attempt_install(packages, commands):
         """Attempt package installation with uv if available, falling back to pip."""
         if use_uv:
-            # cmd = f"uv pip install --system --no-cache-dir {packages} {commands} --index-strategy=unsafe-best-match --prerelease=allow"
-            cmd = f"uv pip install --system --no-cache-dir {packages} {commands} --index-strategy=unsafe-first-match --prerelease=allow"
+            cmd = f"uv pip install --system --no-cache-dir {packages} {commands} --index-strategy=unsafe-best-match --prerelease=allow"
+            # cmd = f"uv pip install --system --no-cache-dir {packages} {commands} --index-strategy=unsafe-first-match --prerelease=allow"
         else:
             cmd = f"pip install --no-cache-dir {packages} {commands}"
         return subprocess.check_output(cmd, shell=True).decode()
@@ -396,7 +396,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     if s:
         if install and AUTOINSTALL:  # check environment variable
             use_uv = subprocess.run(["command", "-v", "uv"], capture_output=True, shell=True).returncode == 0
-            use_uv = False
+            use_uv = True
             n = len(pkgs)  # number of packages updates
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:

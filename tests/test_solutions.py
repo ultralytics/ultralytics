@@ -219,8 +219,7 @@ def test_similarity_search():
 def test_left_click_selection():
     """Test distance calculation left click."""
     dc = solutions.DistanceCalculation()
-    dc.boxes = [[10, 10, 50, 50]]
-    dc.track_ids = [1]
+    dc.boxes, dc.track_ids = [[10, 10, 50, 50]], [1]
     dc.mouse_event_for_distance(cv2.EVENT_LBUTTONDOWN, 30, 30, None, None)
     assert 1 in dc.selected_boxes
 
@@ -228,8 +227,7 @@ def test_left_click_selection():
 def test_right_click_reset():
     """Test distance calculation right click."""
     dc = solutions.DistanceCalculation()
-    dc.selected_boxes = {1: [10, 10, 50, 50]}
-    dc.left_mouse_count = 1
+    dc.selected_boxes, dc.left_mouse_count = {1: [10, 10, 50, 50]}, 1
     dc.mouse_event_for_distance(cv2.EVENT_RBUTTONDOWN, 0, 0, None, None)
     assert dc.selected_boxes == {}
     assert dc.left_mouse_count == 0
@@ -329,10 +327,7 @@ def test_distance_calculation_process_method():
     from ultralytics.solutions.solutions import SolutionResults
 
     dc = solutions.DistanceCalculation()
-    dc.boxes = [[100, 100, 200, 200], [300, 300, 400, 400]]
-    dc.track_ids = [1, 2]
-    dc.clss = [0, 0]
-    dc.confs = [0.9, 0.95]
+    dc.boxes,dc.track_ids, dc.clss, dc.confs = [[100, 100, 200, 200], [300, 300, 400, 400]], [1, 2], [0, 0], [0.9, 0.95]
     dc.selected_boxes = {1: dc.boxes[0], 2: dc.boxes[1]}
     frame = np.zeros((480, 640, 3), dtype=np.uint8)
     with patch.object(dc, "extract_tracks"), patch.object(dc, "display_output"), patch("cv2.setMouseCallback"):

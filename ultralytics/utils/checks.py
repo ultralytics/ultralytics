@@ -73,7 +73,7 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
     for line in requires:
         line = line.strip()
         if line and not line.startswith("#"):
-            line = line.split("#")[0].strip()  # ignore inline comments
+            line = line.partition("#")[0].strip()  # ignore inline comments
             if match := re.match(r"([a-zA-Z0-9-_]+)\s*([<>!=~]+.*)?", line):
                 requirements.append(SimpleNamespace(name=match[1], specifier=match[2].strip() if match[2] else ""))
 
@@ -379,7 +379,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
     pkgs = []
     for r in requirements:
-        r_stripped = r.split("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
+        r_stripped = r.rpartition("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
         match = re.match(r"([a-zA-Z0-9-_]+)([<>!=~]+.*)?", r_stripped)
         name, required = match[1], match[2].strip() if match[2] else ""
         try:
@@ -436,10 +436,10 @@ def check_torchvision():
     }
 
     # Check major and minor versions
-    v_torch = ".".join(torch.__version__.split("+")[0].split(".")[:2])
+    v_torch = ".".join(torch.__version__.split("+", 1)[0].split(".")[:2])
     if v_torch in compatibility_table:
         compatible_versions = compatibility_table[v_torch]
-        v_torchvision = ".".join(TORCHVISION_VERSION.split("+")[0].split(".")[:2])
+        v_torchvision = ".".join(TORCHVISION_VERSION.split("+", 1)[0].split(".")[:2])
         if all(v_torchvision != v for v in compatible_versions):
             LOGGER.warning(
                 f"torchvision=={v_torchvision} is incompatible with torch=={v_torch}.\n"
@@ -838,7 +838,7 @@ def cuda_device_count() -> int:
             )
 
             # Take the first line and strip any leading/trailing white space
-            first_line = output.strip().split("\n")[0]
+            first_line = output.strip().split("\n", 1)[0]
 
             return int(first_line)
         except (subprocess.CalledProcessError, FileNotFoundError, ValueError):

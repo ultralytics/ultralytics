@@ -327,7 +327,12 @@ def test_distance_calculation_process_method():
     from ultralytics.solutions.solutions import SolutionResults
 
     dc = solutions.DistanceCalculation()
-    dc.boxes,dc.track_ids, dc.clss, dc.confs = [[100, 100, 200, 200], [300, 300, 400, 400]], [1, 2], [0, 0], [0.9, 0.95]
+    dc.boxes, dc.track_ids, dc.clss, dc.confs = (
+        [[100, 100, 200, 200], [300, 300, 400, 400]],
+        [1, 2],
+        [0, 0],
+        [0.9, 0.95],
+    )
     dc.selected_boxes = {1: dc.boxes[0], 2: dc.boxes[1]}
     frame = np.zeros((480, 640, 3), dtype=np.uint8)
     with patch.object(dc, "extract_tracks"), patch.object(dc, "display_output"), patch("cv2.setMouseCallback"):

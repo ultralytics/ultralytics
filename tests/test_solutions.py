@@ -4,8 +4,8 @@
 # including every solution excluding DistanceCalculation and Security Alarm System.
 
 import cv2
-import pytest
 import numpy as np
+import pytest
 
 from tests import MODEL, TMP
 from ultralytics import solutions

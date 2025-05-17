@@ -322,6 +322,7 @@ def test_process_distance_calculation():
     from unittest.mock import patch
 
     from ultralytics.solutions.solutions import SolutionResults
+
     dc = solutions.DistanceCalculation()
     dc.boxes = [[100, 100, 200, 200], [300, 300, 400, 400]]
     dc.track_ids = [1, 2]
@@ -334,4 +335,3 @@ def test_process_distance_calculation():
     assert isinstance(result, SolutionResults)
     assert result.total_tracks == 2
     assert result.pixels_distance > 0
-

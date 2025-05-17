@@ -3,11 +3,12 @@
 # Tests Ultralytics Solutions: https://docs.ultralytics.com/solutions/,
 # including every solution excluding DistanceCalculation and Security Alarm System.
 
-import cv2
 import os
+from unittest.mock import patch
+
+import cv2
 import numpy as np
 import pytest
-from unittest.mock import patch
 
 from tests import MODEL, TMP
 from ultralytics import solutions

@@ -285,7 +285,7 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
         for line in lines:
             # Only remove comments if they're not part of a URL
             if "//" in line and "http://" not in line and "https://" not in line:
-                processed_lines.append(line.split("//", 1)[0])
+                processed_lines.append(line.partition("//")[0])
             else:
                 processed_lines.append(line)
         content = "\n".join(processed_lines)

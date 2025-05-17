@@ -358,7 +358,7 @@ def test_events():
     events.enabled = True
     cfg = copy(DEFAULT_CFG)  # does not require deepcopy
     cfg.mode = "test"
-    events(cfg, "cpu")  # test event sending with cpu device
+    events(cfg)
 
 
 def test_cfg_init():

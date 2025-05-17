@@ -187,7 +187,7 @@ def process_video(solution, video_path, needs_frame_count=False):
 def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     """Test individual Ultralytics solution."""
     if video:
-        if name!="ObjectCounterVertical":
+        if name != "ObjectCounterVertical":
             safe_download(url=f"{ASSETS_URL}/{video}", dir=TMP)
         else:
             safe_download(url=f"{ASSETS_URL}/{VERTICAL_VIDEO}", dir=TMP)
@@ -199,7 +199,7 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
             solution_class(**kwargs).inference()  # requires interactive GUI environment
         return
 
-    video=VERTICAL_VIDEO if name=="ObjectCounterVertical" else video
+    video = VERTICAL_VIDEO if name == "ObjectCounterVertical" else video
     process_video(
         solution=solution_class(**kwargs),
         video_path=str(TMP / video),
@@ -327,6 +327,7 @@ def test_distance_calculation_process_method():
     from unittest.mock import patch
 
     from ultralytics.solutions.solutions import SolutionResults
+
     dc = solutions.DistanceCalculation()
     dc.boxes = [[100, 100, 200, 200], [300, 300, 400, 400]]
     dc.track_ids = [1, 2]
@@ -351,9 +352,9 @@ def test_display_output_method():
     counter = solutions.ObjectCounter(show=True)
     counter.env_check = True
     frame = np.zeros((100, 100, 3), dtype=np.uint8)
-    with patch("cv2.imshow") as mock_imshow, \
-            patch("cv2.waitKey", return_value=ord("q")) as mock_wait, \
-            patch("cv2.destroyAllWindows") as mock_destroy:
+    with patch("cv2.imshow") as mock_imshow, patch("cv2.waitKey", return_value=ord("q")) as mock_wait, patch(
+        "cv2.destroyAllWindows"
+    ) as mock_destroy:
         counter.display_output(frame)
         mock_imshow.assert_called_once()
         mock_wait.assert_called_once()

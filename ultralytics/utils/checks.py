@@ -73,7 +73,7 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
     for line in requires:
         line = line.strip()
         if line and not line.startswith("#"):
-            line = line.split("#")[0].strip()  # ignore inline comments
+            line = line.partition("#")[0].strip()  # ignore inline comments
             if match := re.match(r"([a-zA-Z0-9-_]+)\s*([<>!=~]+.*)?", line):
                 requirements.append(SimpleNamespace(name=match[1], specifier=match[2].strip() if match[2] else ""))
 
@@ -379,7 +379,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
     pkgs = []
     for r in requirements:
-        r_stripped = r.split("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
+        r_stripped = r.rpartition("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
         match = re.match(r"([a-zA-Z0-9-_]+)([<>!=~]+.*)?", r_stripped)
         name, required = match[1], match[2].strip() if match[2] else ""
         try:
@@ -436,10 +436,10 @@ def check_torchvision():
     }
 
     # Check major and minor versions
-    v_torch = ".".join(torch.__version__.split("+")[0].split(".")[:2])
+    v_torch = ".".join(torch.__version__.split("+", 1)[0].split(".")[:2])
     if v_torch in compatibility_table:
         compatible_versions = compatibility_table[v_torch]
-        v_torchvision = ".".join(TORCHVISION_VERSION.split("+")[0].split(".")[:2])
+        v_torchvision = ".".join(TORCHVISION_VERSION.split("+", 1)[0].split(".")[:2])
         if all(v_torchvision != v for v in compatible_versions):
             LOGGER.warning(
                 f"torchvision=={v_torchvision} is incompatible with torch=={v_torch}.\n"
@@ -462,9 +462,8 @@ def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
         if isinstance(suffix, str):
             suffix = {suffix}
         for f in file if isinstance(file, (list, tuple)) else [file]:
-            s = Path(f).suffix.lower().strip()  # file suffix
-            if len(s):
-                assert s in suffix, f"{msg}{f} acceptable suffix is {suffix}, not {s}"
+            if s := str(f).rpartition(".")[-1].lower().strip():  # file suffix
+                assert f".{s}" in suffix, f"{msg}{f} acceptable suffix is {suffix}, not .{s}"
 
 
 def check_yolov5u_filename(file: str, verbose: bool = True):
@@ -505,10 +504,10 @@ def check_model_file_from_stem(model="yolo11n"):
     Returns:
         (str | Path): Model filename with appropriate suffix.
     """
-    if model and not Path(model).suffix and Path(model).stem in downloads.GITHUB_ASSETS_STEMS:
-        return Path(model).with_suffix(".pt")  # add suffix, i.e. yolo11n -> yolo11n.pt
-    else:
-        return model
+    path = Path(model)
+    if not path.suffix and path.stem in downloads.GITHUB_ASSETS_STEMS:
+        return path.with_suffix(".pt")  # add suffix, i.e. yolo11n -> yolo11n.pt
+    return model
 
 
 def check_file(file, suffix="", download=True, download_dir=".", hard=True):
@@ -838,7 +837,7 @@ def cuda_device_count() -> int:
             )
 
             # Take the first line and strip any leading/trailing white space
-            first_line = output.strip().split("\n")[0]
+            first_line = output.strip().split("\n", 1)[0]
 
             return int(first_line)
         except (subprocess.CalledProcessError, FileNotFoundError, ValueError):

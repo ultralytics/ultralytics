@@ -210,6 +210,7 @@ class ParkingManagement(BaseSolution):
             self.json = json.load(f)
 
         self.pr_info = {"Occupancy": 0, "Available": 0}  # dictionary for parking information
+        self.json_len = len(self.json)
 
         self.arc = (0, 0, 255)  # available region color
         self.occ = (0, 255, 0)  # occupied region color
@@ -236,7 +237,7 @@ class ParkingManagement(BaseSolution):
             >>> results = parking_manager.process(image)
         """
         self.extract_tracks(im0)  # extract tracks from im0
-        es, fs = len(self.json), 0  # empty slots, filled slots
+        es, fs = self.json_len, 0  # empty slots, filled slots
         annotator = SolutionAnnotator(im0, self.line_width)  # init annotator
 
         for region in self.json:

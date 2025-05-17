@@ -182,6 +182,10 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)
 
+    def __iter__(self):
+        """Return self as iterator to satisfy Iterable interface."""
+        return super().__iter__()
+
 
 class SimpleClass:
     """
@@ -1308,7 +1312,8 @@ class SettingsManager(JSONDict):
             "raytune": True,  # Ray Tune integration
             "tensorboard": False,  # TensorBoard logging
             "wandb": False,  # Weights & Biases logging
-            "vscode_msg": True,  # VSCode messaging
+            "vscode_msg": True,  # VSCode message
+            "openvino_msg": True,  # OpenVINO export on Intel CPU message
         }
 
         self.help_msg = (
@@ -1382,7 +1387,7 @@ def deprecation_warn(arg, new_arg=None):
 def clean_url(url):
     """Strip auth from URL, i.e. https://url.com/file.txt?auth -> https://url.com/file.txt."""
     url = Path(url).as_posix().replace(":/", "://")  # Pathlib turns :// -> :/, as_posix() for Windows
-    return unquote(url).split("?")[0]  # '%2F' to '/', split https://url.com/file.txt?auth
+    return unquote(url).split("?", 1)[0]  # '%2F' to '/', split https://url.com/file.txt?auth
 
 
 def url2file(url):

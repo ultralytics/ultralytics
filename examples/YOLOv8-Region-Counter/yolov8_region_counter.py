@@ -19,7 +19,7 @@ track_history = defaultdict(list)
 current_region = None
 counting_regions = [
     {
-        "name": "YOLOv8 Polygon Region",
+        "name": "Ultralytics YOLO Polygon Region",
         "polygon": Polygon([(50, 80), (250, 20), (450, 80), (400, 350), (100, 350)]),  # Polygon points
         "counts": 0,
         "dragging": False,
@@ -27,7 +27,7 @@ counting_regions = [
         "text_color": (255, 255, 255),  # Region Text Color
     },
     {
-        "name": "YOLOv8 Rectangle Region",
+        "name": "Ultralytics YOLO Rectangle Region",
         "polygon": Polygon([(200, 250), (440, 250), (440, 550), (200, 550)]),  # Polygon points
         "counts": 0,
         "dragging": False,
@@ -99,7 +99,7 @@ def run(
     region_thickness: int = 2,
 ) -> None:
     """
-    Run region counting on a video using YOLOv8 and ByteTrack.
+    Run region counting on a video using Ultralytics YOLO and ByteTrack.
 
     Args:
         weights (str): Model weights path.
@@ -204,9 +204,9 @@ def run(
 
         if view_img:
             if vid_frame_count == 1:
-                cv2.namedWindow("Ultralytics YOLOv8 Region Counter Movable")
+                cv2.namedWindow("Ultralytics YOLO Region Counter Movable")
                 cv2.setMouseCallback("Ultralytics YOLOv8 Region Counter Movable", mouse_callback)
-            cv2.imshow("Ultralytics YOLOv8 Region Counter Movable", frame)
+            cv2.imshow("Ultralytics YOLO Region Counter Movable", frame)
 
         if save_img:
             video_writer.write(frame)

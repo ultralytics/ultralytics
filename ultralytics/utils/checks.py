@@ -388,7 +388,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             pkgs.append(r)
 
     @Retry(times=2, delay=1)
-    def attempt_install(packages, commands):
+    def attempt_install(packages, commands, use_uv):
         """Attempt package installation with uv if available, falling back to pip."""
         if use_uv:
             cmd = f"uv pip install --system --no-cache-dir {packages} {commands} --index-strategy=unsafe-first-match --prerelease=allow"
@@ -399,15 +399,13 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:
         if install and AUTOINSTALL:  # check environment variable
-            use_uv = (
-                subprocess.run(["command", "-v", "uv"], capture_output=True, shell=True).returncode == 0 and not MACOS
-            )
+            uv = not MACOS and subprocess.run(["command", "-v", "uv"], capture_output=True, shell=True).returncode == 0
             n = len(pkgs)  # number of packages updates
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
-                LOGGER.info(attempt_install(s, cmds))
+                LOGGER.info(attempt_install(s, cmds, uv))
                 dt = time.time() - t
                 LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}")
                 LOGGER.warning(

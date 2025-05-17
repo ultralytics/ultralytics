@@ -116,6 +116,7 @@ extra = [
     "ipython", # interactive notebook
     "albumentations>=1.4.6", # training augmentations
     "pycocotools>=2.0.7", # COCO mAP
+    "seaborn>=0.11.0", # plotting
 ]
 
 [project.urls]

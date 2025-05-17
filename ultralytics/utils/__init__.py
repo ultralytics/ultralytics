@@ -1387,7 +1387,7 @@ def deprecation_warn(arg, new_arg=None):
 def clean_url(url):
     """Strip auth from URL, i.e. https://url.com/file.txt?auth -> https://url.com/file.txt."""
     url = Path(url).as_posix().replace(":/", "://")  # Pathlib turns :// -> :/, as_posix() for Windows
-    return unquote(url).split("?")[0]  # '%2F' to '/', split https://url.com/file.txt?auth
+    return unquote(url).split("?", 1)[0]  # '%2F' to '/', split https://url.com/file.txt?auth
 
 
 def url2file(url):

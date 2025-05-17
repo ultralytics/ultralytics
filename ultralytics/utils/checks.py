@@ -407,7 +407,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 assert ONLINE, "AutoUpdate skipped (offline)"
                 LOGGER.info(attempt_install(s, cmds, uv))
                 dt = time.time() - t
-                LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}")
+                LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s")
                 LOGGER.warning(
                     f"{prefix} {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
                 )

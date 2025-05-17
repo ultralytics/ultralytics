@@ -406,7 +406,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             try:
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
-                LOGGER.info(attempt_install(s, cmds, use_uv=uv and not MACOS and not IS_RASPBERRYPI))
+                LOGGER.info(attempt_install(s, cmds, use_uv=uv and not ARM64))
                 dt = time.time() - t
                 LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s")
                 LOGGER.warning(

@@ -208,13 +208,13 @@ class Events:
             and (IS_PIP_PACKAGE or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git")
         )
 
-    def __call__(self, cfg, device):
+    def __call__(self, cfg, device=None):
         """
         Attempt to add a new event to the events list and send events if the rate limit is reached.
 
         Args:
             cfg (IterableSimpleNamespace): The configuration object containing mode and task information.
-            device (torch.device or str): The device type (e.g., 'cpu', 'cuda').
+            device (torch.device | str): The device type (e.g., 'cpu', 'cuda').
         """
         if not self.enabled:
             # Events disabled, do nothing

@@ -4,8 +4,10 @@
 # including every solution excluding DistanceCalculation and Security Alarm System.
 
 import cv2
+import os
 import numpy as np
 import pytest
+from unittest.mock import patch
 
 from tests import MODEL, TMP
 from ultralytics import solutions
@@ -280,8 +282,7 @@ def test_plot_with_no_masks():
 def test_streamlit_handle_video_upload_creates_file():
     """Test Streamlit video upload logic saves file correctly."""
     import io
-    import os
-
+    
     fake_file = io.BytesIO(b"fake video content")
     fake_file.read = fake_file.getvalue
     if fake_file is not None:
@@ -307,8 +308,6 @@ def test_similarity_search_app_init():
 
 def test_similarity_search_complete(tmp_path):
     """Test VisualAISearch end-to-end with sample image and query."""
-    import os
-
     from PIL import Image
 
     image_dir = tmp_path / "images"
@@ -323,8 +322,6 @@ def test_similarity_search_complete(tmp_path):
 
 def test_distance_calculation_process_method():
     """Test DistanceCalculation.process() computes distance between selected boxes."""
-    from unittest.mock import patch
-
     from ultralytics.solutions.solutions import SolutionResults
 
     dc = solutions.DistanceCalculation()
@@ -350,8 +347,6 @@ def test_object_crop_with_show_True():
 
 def test_display_output_method():
     """Test that display_output triggers imshow, waitKey, and destroyAllWindows when enabled."""
-    from unittest.mock import patch
-
     counter = solutions.ObjectCounter(show=True)
     counter.env_check = True
     frame = np.zeros((100, 100, 3), dtype=np.uint8)

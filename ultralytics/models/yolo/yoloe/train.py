@@ -2,7 +2,6 @@
 
 import itertools
 from copy import copy, deepcopy
-from pathlib import Path
 
 import torch
 
@@ -157,40 +156,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         Returns:
             (YOLOConcatDataset | Dataset): The constructed dataset for training or validation.
         """
-        datasets = WorldTrainerFromScratch.build_dataset(self, img_path, mode, batch)
-        if mode == "train":
-            self.set_text_embeddings(
-                datasets.datasets if hasattr(datasets, "datasets") else [datasets], batch
-            )  # cache text embeddings to accelerate training
-        return datasets
-
-    def set_text_embeddings(self, datasets, batch):
-        """
-        Set text embeddings for datasets to accelerate training by caching category names.
-
-        This method collects unique category names from all datasets, then generates and caches text embeddings
-        for these categories to improve training efficiency.
-
-        Args:
-            datasets (List[Dataset]): List of datasets from which to extract category names.
-            batch (int | None): Batch size used for processing.
-
-        Notes:
-            This method collects category names from datasets that have the 'category_names' attribute,
-            then uses the first dataset's image path to determine where to cache the generated text embeddings.
-        """
-        # TODO: open up an interface to determine whether to do cache
-        category_names = set()
-        for dataset in datasets:
-            if not hasattr(dataset, "category_names"):
-                continue
-            category_names |= dataset.category_names
-
-        # TODO: enable to update the path or use a more general way to get the path
-        img_path = datasets[0].img_path
-        self.text_embeddings = self.generate_text_embeddings(
-            category_names, batch, cache_path=Path(img_path).parent / "text_embeddings.pt"
-        )
+        return WorldTrainerFromScratch.build_dataset(self, img_path, mode, batch)
 
     def preprocess_batch(self, batch):
         """Process batch for training, moving text features to the appropriate device."""
@@ -202,23 +168,28 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         batch["txt_feats"] = txt_feats
         return batch
 
-    def generate_text_embeddings(self, texts, batch, cache_path="embeddings.pt"):
+    def generate_text_embeddings(self, texts, batch, cache_dir):
         """
         Generate text embeddings for a list of text samples.
 
         Args:
             texts (List[str]): List of text samples to encode.
             batch (int): Batch size for processing.
-            cache_path (str | Path): Path to save/load cached embeddings.
+            cache_dir (Path): Directory to save/load cached embeddings.
 
         Returns:
             (dict): Dictionary mapping text samples to their embeddings.
         """
+        model = "mobileclip:blt"
+        cache_path = cache_dir / f"text_embeddings_{model.replace(':', '_').replace('/', '_')}.pt"
         if cache_path.exists():
             LOGGER.info(f"Reading existed cache from '{cache_path}'")
-            return torch.load(cache_path)
+            txt_map = torch.load(cache_path)
+            if sorted(txt_map.keys()) == sorted(texts):
+                return txt_map
+        LOGGER.info(f"Caching text embeddings to '{cache_path}'")
         assert self.model is not None
-        txt_feats = self.model.get_text_pe(texts, batch, without_reprta=True)
+        txt_feats = self.model.get_text_pe(texts, batch, without_reprta=True, cache_clip_model=False)
         txt_map = dict(zip(texts, txt_feats.squeeze(0)))
         torch.save(txt_map, cache_path)
         return txt_map

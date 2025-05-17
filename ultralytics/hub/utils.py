@@ -192,7 +192,7 @@ class Events:
         self.metadata = {
             "cli": Path(ARGV[0]).name == "yolo",
             "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
-            "python": PYTHON_VERSION.rsplit(".", 1)[0],  # i.e. 3.10
+            "python": PYTHON_VERSION.rsplit(".", 1)[0],  # i.e. 3.13
             "CPU": get_cpu_info(),
             # "GPU": get_gpu_info(index=0) if cuda else None,
             "version": __version__,

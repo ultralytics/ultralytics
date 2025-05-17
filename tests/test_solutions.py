@@ -211,7 +211,6 @@ def test_similarity_search():
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
 
 
-
 def test_left_click_selection():
     """Test distance calculation left click."""
     dc = solutions.DistanceCalculation()
@@ -281,6 +280,7 @@ def test_handle_video_upload_creates_file():
     """Handle streamlit video upload function."""
     import io
     import os
+
     fake_file = io.BytesIO(b"fake video content")
     fake_file.read = fake_file.getvalue
     if fake_file is not None:
@@ -300,6 +300,7 @@ def test_handle_video_upload_creates_file():
 def test_visual_ai_search_full(tmp_path):
     """Test visual search init method."""
     from PIL import Image
+
     image_dir = tmp_path / "images"
     os.makedirs(image_dir, exist_ok=True)
     img = Image.fromarray(np.uint8(np.random.rand(224, 224, 3) * 255))
@@ -314,4 +315,3 @@ def test_search_app_init():
     app = solutions.SearchApp(device="cpu")
     assert hasattr(app, "searcher")
     assert hasattr(app, "run")
-

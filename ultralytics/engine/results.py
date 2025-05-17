@@ -1051,6 +1051,7 @@ class Boxes(BaseTensor):
         conf (torch.Tensor | numpy.ndarray): Confidence scores for each box.
         cls (torch.Tensor | numpy.ndarray): Class labels for each box.
         id (torch.Tensor | None): Tracking IDs for each box (if available).
+        obj (torch.Tensor | None): objectness score
         xywh (torch.Tensor | numpy.ndarray): Boxes in [x, y, width, height] format.
         xyxyn (torch.Tensor | numpy.ndarray): Normalized [x1, y1, x2, y2] boxes relative to orig_shape.
         xywhn (torch.Tensor | numpy.ndarray): Normalized [x, y, width, height] boxes relative to orig_shape.
@@ -1063,7 +1064,7 @@ class Boxes(BaseTensor):
 
     Examples:
         >>> import torch
-        >>> boxes_data = torch.tensor([[100, 50, 150, 100, 0.9, 0], [200, 150, 300, 250, 0.8, 1]])
+        >>> boxes_data = torch.tensor([[100, 50, 150, 100, 0.9, 0, 0.5], [200, 150, 300, 250, 0.8, 1, 0.1]])
         >>> orig_shape = (480, 640)  # height, width
         >>> boxes = Boxes(boxes_data, orig_shape)
         >>> print(boxes.xyxy)
@@ -1082,8 +1083,8 @@ class Boxes(BaseTensor):
 
         Args:
             boxes (torch.Tensor | np.ndarray): A tensor or numpy array with detection boxes of shape
-                (num_boxes, 6) or (num_boxes, 7). Columns should contain
-                [x1, y1, x2, y2, confidence, class, (optional) track_id].
+                (num_boxes, 7) or (num_boxes, 8). Columns should contain
+                [x1, y1, x2, y2, confidence, class, (optional) track_id, obj_score].
             orig_shape (Tuple[int, int]): The original image shape as (height, width). Used for normalization.
 
         Attributes:
@@ -1093,7 +1094,7 @@ class Boxes(BaseTensor):
 
         Examples:
             >>> import torch
-            >>> boxes = torch.tensor([[100, 50, 150, 100, 0.9, 0]])
+            >>> boxes = torch.tensor([[100, 50, 150, 100, 0.9, 0, 0.5]])
             >>> orig_shape = (480, 640)
             >>> detection_boxes = Boxes(boxes, orig_shape)
             >>> print(detection_boxes.xyxy)
@@ -1102,9 +1103,9 @@ class Boxes(BaseTensor):
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         n = boxes.shape[-1]
-        assert n in {6, 7}, f"expected 6 or 7 values but got {n}"  # xyxy, track_id, conf, cls
+        assert n in {7, 8}, f"expected 7 or 8 values but got {n}"  # xyxy, track_id, conf, cls
         super().__init__(boxes, orig_shape)
-        self.is_track = n == 7
+        self.is_track = n == 8
         self.orig_shape = orig_shape
 
     @property
@@ -1134,12 +1135,12 @@ class Boxes(BaseTensor):
                 with shape (N,) where N is the number of detections.
 
         Examples:
-            >>> boxes = Boxes(torch.tensor([[10, 20, 30, 40, 0.9, 0]]), orig_shape=(100, 100))
+            >>> boxes = Boxes(torch.tensor([[10, 20, 30, 40, 0.9, 0, id, 0.5]]), orig_shape=(100, 100))
             >>> conf_scores = boxes.conf
             >>> print(conf_scores)
             tensor([0.9000])
         """
-        return self.data[:, -2]
+        return self.data[:, 4]
 
     @property
     def cls(self):
@@ -1156,7 +1157,7 @@ class Boxes(BaseTensor):
             >>> class_ids = boxes.cls
             >>> print(class_ids)  # tensor([0., 2., 1.])
         """
-        return self.data[:, -1]
+        return self.data[:, 5]
 
     @property
     def id(self):
@@ -1181,7 +1182,12 @@ class Boxes(BaseTensor):
             - This property is only available when tracking is enabled (i.e., when `is_track` is True).
             - The tracking IDs are typically used to associate detections across multiple frames in video analysis.
         """
-        return self.data[:, -3] if self.is_track else None
+        return self.data[:, -2] if self.is_track else None
+
+    @property
+    def obj(self):
+        """Raw objectness score (after sigmoid)."""
+        return self.data[:, -1]
 
     @property
     @lru_cache(maxsize=2)  # maxsize 1 should suffice

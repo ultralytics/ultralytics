@@ -307,8 +307,9 @@ def test_similarity_search_app_init():
 
 def test_similarity_search_complete(tmp_path):
     """Test VisualAISearch end-to-end with sample image and query."""
-    from PIL import Image
     import os
+
+    from PIL import Image
 
     image_dir = tmp_path / "images"
     os.makedirs(image_dir, exist_ok=True)

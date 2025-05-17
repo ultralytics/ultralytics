@@ -20,7 +20,8 @@ PARKING_VIDEO = "solution_ci_parking_demo.mp4"  # only for parking management so
 PARKING_AREAS_JSON = "solution_ci_parking_areas.json"  # only for parking management solution
 PARKING_MODEL = "solutions_ci_parking_model.pt"  # only for parking management solution
 REGION = [(10, 200), (540, 200), (540, 180), (10, 180)]  # for object counting, speed estimation and queue management
-LINE = [(10, 200), (540, 200)]  # for object counting, speed estimation and queue management
+HORIZONTAL_LINE = [(10, 200), (540, 200)]  # for object counting
+VERTICAL_LINE = [(200, 0), (200, 400)]  # for object counting
 
 # Test configs for each solution : (name, class, needs_frame_count, video, kwargs)
 SOLUTIONS = [
@@ -36,7 +37,14 @@ SOLUTIONS = [
         solutions.ObjectCounter,
         False,
         DEMO_VIDEO,
-        {"region": LINE, "model": MODEL, "show": SHOW},
+        {"region": HORIZONTAL_LINE, "model": MODEL, "show": SHOW},
+    ),
+    (
+        "ObjectCounter",
+        solutions.ObjectCounter,
+        False,
+        DEMO_VIDEO,
+        {"region": VERTICAL_LINE, "model": MODEL, "show": SHOW},
     ),
     (
         "ObjectCounterwithOBB",
@@ -228,3 +236,37 @@ def test_update_invalid_argument():
         assert False, "Expected ValueError for invalid update argument"
     except ValueError as e:
         assert "❌ invalid_key is not a valid solution argument" in str(e)
+
+
+def test_plot_with_no_masks():
+    """Test instance segmentation with no masks"""
+    im0 = np.zeros((640, 480, 3), dtype=np.uint8)
+    isegment = solutions.InstanceSegmentation(model="yolo11n-seg.pt")
+    results = isegment(im0)
+    assert results.plot_im is not None
+
+def test_parking_json_none():
+    """Test instance segmentation with no masks"""
+    im0 = np.zeros((640, 480, 3), dtype=np.uint8)
+    parkingmanager = solutions.ParkingManagement()
+    with pytest.raises(ValueError, match="Json file path can not be empty"):
+        parkingmanager(im0)
+
+
+def test_left_click_selection():
+    """Test distance calculation left click"""
+    dc = solutions.DistanceCalculation()
+    dc.boxes = [[10, 10, 50, 50]]
+    dc.track_ids = [1]
+    dc.mouse_event_for_distance(cv2.EVENT_LBUTTONDOWN, 30, 30, None, None)
+    assert 1 in dc.selected_boxes
+
+
+def test_right_click_reset():
+    """Test distance calculation right click"""
+    dc = solutions.DistanceCalculation()
+    dc.selected_boxes = {1: [10, 10, 50, 50]}
+    dc.left_mouse_count = 1
+    dc.mouse_event_for_distance(cv2.EVENT_RBUTTONDOWN, 0, 0, None, None)
+    assert dc.selected_boxes == {}
+    assert dc.left_mouse_count == 0

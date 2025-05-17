@@ -5,6 +5,7 @@
 
 import cv2
 import pytest
+import numpy as np
 
 from tests import MODEL, TMP
 from ultralytics import solutions

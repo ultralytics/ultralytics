@@ -1,7 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import os
-import platform
 import random
 import threading
 import time
@@ -18,6 +17,7 @@ from ultralytics.utils import (
     IS_PIP_PACKAGE,
     LOGGER,
     ONLINE,
+    PYTHON_VERSION,
     RANK,
     SETTINGS,
     TESTS_RUNNING,
@@ -27,6 +27,7 @@ from ultralytics.utils import (
     get_git_origin_url,
 )
 from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES
+from ultralytics.utils.torch_utils import get_cpu_info
 
 HUB_API_ROOT = os.environ.get("ULTRALYTICS_HUB_API", "https://api.ultralytics.com")
 HUB_WEB_ROOT = os.environ.get("ULTRALYTICS_HUB_WEB", "https://hub.ultralytics.com")
@@ -191,7 +192,9 @@ class Events:
         self.metadata = {
             "cli": Path(ARGV[0]).name == "yolo",
             "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
-            "python": ".".join(platform.python_version_tuple()[:2]),  # i.e. 3.10
+            "python": PYTHON_VERSION.rsplit(".", 1)[0],  # i.e. 3.13
+            "CPU": get_cpu_info(),
+            # "GPU": get_gpu_info(index=0) if cuda else None,
             "version": __version__,
             "env": ENVIRONMENT,
             "session_id": round(random.random() * 1e15),
@@ -205,12 +208,13 @@ class Events:
             and (IS_PIP_PACKAGE or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git")
         )
 
-    def __call__(self, cfg):
+    def __call__(self, cfg, device=None):
         """
         Attempt to add a new event to the events list and send events if the rate limit is reached.
 
         Args:
             cfg (IterableSimpleNamespace): The configuration object containing mode and task information.
+            device (torch.device | str): The device type (e.g., 'cpu', 'cuda').
         """
         if not self.enabled:
             # Events disabled, do nothing
@@ -222,6 +226,7 @@ class Events:
                 **self.metadata,
                 "task": cfg.task,
                 "model": cfg.model if cfg.model in GITHUB_ASSETS_NAMES else "custom",
+                "device": str(device),
             }
             if cfg.mode == "export":
                 params["format"] = cfg.format

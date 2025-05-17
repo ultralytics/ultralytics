@@ -15,16 +15,17 @@ from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, LINUX, checks
 from ultralytics.utils.downloads import safe_download
 
 # Pre-defined arguments values
-SHOW = False
+SHOW = True
 DEMO_VIDEO = "solutions_ci_demo.mp4"  # for all the solutions, except workout, object cropping and parking management
 CROP_VIDEO = "decelera_landscape_min.mov"  # for object cropping solution
 POSE_VIDEO = "solution_ci_pose_demo.mp4"  # only for workouts monitoring solution
 PARKING_VIDEO = "solution_ci_parking_demo.mp4"  # only for parking management solution
 PARKING_AREAS_JSON = "solution_ci_parking_areas.json"  # only for parking management solution
 PARKING_MODEL = "solutions_ci_parking_model.pt"  # only for parking management solution
+VERTICAL_VIDEO = "solution_vertical_demo.mp4"  # only for vertical line counting
 REGION = [(10, 200), (540, 200), (540, 180), (10, 180)]  # for object counting, speed estimation and queue management
 HORIZONTAL_LINE = [(10, 200), (540, 200)]  # for object counting
-VERTICAL_LINE = [(200, 0), (200, 400)]  # for object counting
+VERTICAL_LINE = [(320, 0), (320, 400)]  # for object counting
 
 # Test configs for each solution : (name, class, needs_frame_count, video, kwargs)
 SOLUTIONS = [
@@ -43,7 +44,7 @@ SOLUTIONS = [
         {"region": HORIZONTAL_LINE, "model": MODEL, "show": SHOW},
     ),
     (
-        "ObjectCounter",
+        "ObjectCounterVertical",
         solutions.ObjectCounter,
         False,
         DEMO_VIDEO,
@@ -89,28 +90,28 @@ SOLUTIONS = [
         solutions.Analytics,
         True,
         DEMO_VIDEO,
-        {"analytics_type": "line", "model": MODEL, "show": SHOW},
+        {"analytics_type": "line", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.2)},
     ),
     (
         "PieAnalytics",
         solutions.Analytics,
         True,
         DEMO_VIDEO,
-        {"analytics_type": "pie", "model": MODEL, "show": SHOW},
+        {"analytics_type": "pie", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.2)},
     ),
     (
         "BarAnalytics",
         solutions.Analytics,
         True,
         DEMO_VIDEO,
-        {"analytics_type": "bar", "model": MODEL, "show": SHOW},
+        {"analytics_type": "bar", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.2)},
     ),
     (
         "AreaAnalytics",
         solutions.Analytics,
         True,
         DEMO_VIDEO,
-        {"analytics_type": "area", "model": MODEL, "show": SHOW},
+        {"analytics_type": "area", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.2)},
     ),
     ("TrackZone", solutions.TrackZone, False, DEMO_VIDEO, {"region": REGION, "model": MODEL, "show": SHOW}),
     (
@@ -186,7 +187,10 @@ def process_video(solution, video_path, needs_frame_count=False):
 def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     """Test individual Ultralytics solution."""
     if video:
-        safe_download(url=f"{ASSETS_URL}/{video}", dir=TMP)
+        if name!="ObjectCounterVertical":
+            safe_download(url=f"{ASSETS_URL}/{video}", dir=TMP)
+        else:
+            safe_download(url=f"{ASSETS_URL}/{VERTICAL_VIDEO}", dir=TMP)
     if name == "ParkingManager":
         safe_download(url=f"{ASSETS_URL}/{PARKING_AREAS_JSON}", dir=TMP)
         safe_download(url=f"{ASSETS_URL}/{PARKING_MODEL}", dir=TMP)
@@ -195,6 +199,7 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
             solution_class(**kwargs).inference()  # requires interactive GUI environment
         return
 
+    video=VERTICAL_VIDEO if name=="ObjectCounterVertical" else video
     process_video(
         solution=solution_class(**kwargs),
         video_path=str(TMP / video),
@@ -231,7 +236,7 @@ def test_right_click_reset():
 
 
 def test_parking_json_none():
-    """Skip test if no JSON file is provided."""
+    """Test that ParkingManagement skips or errors cleanly when no JSON is provided."""
     im0 = np.zeros((640, 480, 3), dtype=np.uint8)
     try:
         parkingmanager = solutions.ParkingManagement(json_path=None)
@@ -241,7 +246,7 @@ def test_parking_json_none():
 
 
 def test_analytics_graph_not_supported():
-    """Test for analytical graph not supported."""
+    """Test that unsupported analytics type raises ModuleNotFoundError."""
     try:
         analytics = solutions.Analytics(analytics_type="test")  # 'test' is unsupported
         analytics.process(im0=None, frame_number=0)
@@ -251,15 +256,15 @@ def test_analytics_graph_not_supported():
 
 
 def test_area_chart_padding():
-    """Test area chart updates with padding logic for coverage."""
+    """Test area chart graph update with dynamic class padding logic."""
     analytics = solutions.Analytics(analytics_type="area")
     analytics.update_graph(frame_number=1, count_dict={"car": 2}, plot="area")
     plot_im = analytics.update_graph(frame_number=2, count_dict={"car": 3, "person": 1}, plot="area")
     assert plot_im is not None
 
 
-def test_update_invalid_argument():
-    """Test update method with an invalid keyword argument."""
+def test_config_update_method_with_invalid_argument():
+    """Test that update() raises ValueError for invalid config keys."""
     obj = solutions.config.SolutionConfig()
     try:
         obj.update(invalid_key=123)
@@ -269,15 +274,15 @@ def test_update_invalid_argument():
 
 
 def test_plot_with_no_masks():
-    """Test instance segmentation with no masks."""
+    """Test that instance segmentation handles cases with no masks."""
     im0 = np.zeros((640, 480, 3), dtype=np.uint8)
     isegment = solutions.InstanceSegmentation(model="yolo11n-seg.pt")
     results = isegment(im0)
     assert results.plot_im is not None
 
 
-def test_handle_video_upload_creates_file():
-    """Handle streamlit video upload function."""
+def test_streamlit_handle_video_upload_creates_file():
+    """Test Streamlit video upload logic saves file correctly."""
     import io
     import os
 
@@ -297,8 +302,15 @@ def test_handle_video_upload_creates_file():
     os.remove("ultralytics.mp4")
 
 
-def test_visual_ai_search_full(tmp_path):
-    """Test visual search init method."""
+def test_similarity_search_app_init():
+    """Test SearchApp initializes with required attributes."""
+    app = solutions.SearchApp(device="cpu")
+    assert hasattr(app, "searcher")
+    assert hasattr(app, "run")
+
+
+def test_similarity_search_complete(tmp_path):
+    """Test VisualAISearch end-to-end with sample image and query."""
     from PIL import Image
 
     image_dir = tmp_path / "images"
@@ -310,15 +322,8 @@ def test_visual_ai_search_full(tmp_path):
     assert any("test_image_" in r for r in results)
 
 
-def test_search_app_init():
-    """Test flask application init method."""
-    app = solutions.SearchApp(device="cpu")
-    assert hasattr(app, "searcher")
-    assert hasattr(app, "run")
-
-
-def test_process_distance_calculation():
-    """Distance calculation process function test"""
+def test_distance_calculation_process_method():
+    """Test DistanceCalculation.process() computes distance between selected boxes."""
     from unittest.mock import patch
     from ultralytics.solutions.solutions import SolutionResults
     dc = solutions.DistanceCalculation()
@@ -334,3 +339,21 @@ def test_process_distance_calculation():
     assert result.total_tracks == 2
     assert result.pixels_distance > 0
 
+
+def test_object_crop_with_show_True():
+    """Test ObjectCropper init with show=True to cover display warning."""
+    solutions.ObjectCropper(show=True)
+
+
+def test_display_output_method():
+    """Test that display_output triggers imshow, waitKey, and destroyAllWindows when enabled."""
+    counter = solutions.ObjectCounter(show=True)
+    counter.env_check = True
+    frame = np.zeros((100, 100, 3), dtype=np.uint8)
+    with patch("cv2.imshow") as mock_imshow, \
+            patch("cv2.waitKey", return_value=ord("q")) as mock_wait, \
+            patch("cv2.destroyAllWindows") as mock_destroy:
+        counter.display_output(frame)
+        mock_imshow.assert_called_once()
+        mock_wait.assert_called_once()
+        mock_destroy.assert_called_once()

@@ -28,7 +28,6 @@ from ultralytics.utils import (
     IS_JETSON,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
-    IS_RASPBERRYPI,
     LINUX,
     LOGGER,
     MACOS,

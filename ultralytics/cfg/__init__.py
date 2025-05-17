@@ -7,15 +7,12 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Dict, List, Union
 
-import cv2
-
 from ultralytics import __version__
 from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG,
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_PATH,
-    DEFAULT_SOL_DICT,
     IS_VSCODE,
     LOGGER,
     RANK,
@@ -24,13 +21,12 @@ from ultralytics.utils import (
     SETTINGS,
     SETTINGS_FILE,
     TESTS_RUNNING,
+    YAML,
     IterableSimpleNamespace,
     checks,
     colorstr,
     deprecation_warn,
     vscode_msg,
-    yaml_load,
-    yaml_print,
 )
 
 # Define valid solutions
@@ -271,7 +267,7 @@ def cfg2dict(cfg: Union[str, Path, Dict, SimpleNamespace]) -> Dict:
         - If cfg is already a dictionary, it's returned unchanged.
     """
     if isinstance(cfg, (str, Path)):
-        cfg = yaml_load(cfg)  # load dict
+        cfg = YAML.load(cfg)  # load dict
     elif isinstance(cfg, SimpleNamespace):
         cfg = vars(cfg)  # convert to dict
     return cfg
@@ -650,7 +646,6 @@ def handle_yolo_solutions(args: List[str]) -> None:
         >>> handle_yolo_solutions(["inference", "model=yolo11n.pt"])
 
     Notes:
-        - Default configurations are merged from DEFAULT_SOL_DICT and DEFAULT_CFG_DICT
         - Arguments can be provided in the format 'key=value' or as boolean flags
         - Available solutions are defined in SOLUTION_MAP with their respective classes and methods
         - If an invalid solution is provided, defaults to 'count' solution
@@ -662,13 +657,9 @@ def handle_yolo_solutions(args: List[str]) -> None:
         - The inference solution will be launched using the 'streamlit run' command.
         - The Streamlit app file is located in the Ultralytics package directory.
     """
-    full_args_dict = {
-        **DEFAULT_SOL_DICT,
-        **DEFAULT_CFG_DICT,
-        "blur_ratio": 0.5,
-        "vision_point": (20, 20),
-        "crop_dir": "cropped-detections",
-    }  # arguments dictionary
+    from ultralytics.solutions.config import SolutionConfig
+
+    full_args_dict = vars(SolutionConfig())  # arguments dictionary
     overrides = {}
 
     # check dictionary alignment
@@ -701,7 +692,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
         solution_name = "count"  # Default for invalid solution
 
     if solution_name == "inference":
-        checks.check_requirements("streamlit>=1.29.0,<1.44.0")
+        checks.check_requirements("streamlit>=1.29.0")
         LOGGER.info("💡 Loading Ultralytics live inference app...")
         subprocess.run(
             [  # Run subprocess with Streamlit custom argument
@@ -714,6 +705,8 @@ def handle_yolo_solutions(args: List[str]) -> None:
             ]
         )
     else:
+        import cv2  # Only needed for cap and vw functionality
+
         from ultralytics import solutions
 
         solution = getattr(solutions, SOLUTION_MAP[solution_name])(is_cli=True, **overrides)  # class i.e ObjectCounter
@@ -739,7 +732,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
                 results = solution(frame, f_n := f_n + 1) if solution_name == "analytics" else solution(frame)
                 if solution_name != "crop":
                     vw.write(results.plot_im)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
+                if solution.CFG["show"] and cv2.waitKey(1) & 0xFF == ord("q"):
                     break
         finally:
             cap.release()
@@ -859,7 +852,7 @@ def entrypoint(debug: str = "") -> None:
         "checks": checks.collect_system_info,
         "version": lambda: LOGGER.info(__version__),
         "settings": lambda: handle_yolo_settings(args[1:]),
-        "cfg": lambda: yaml_print(DEFAULT_CFG_PATH),
+        "cfg": lambda: YAML.print(DEFAULT_CFG_PATH),
         "hub": lambda: handle_yolo_hub(args[1:]),
         "login": lambda: handle_yolo_hub(args),
         "logout": lambda: handle_yolo_hub(args),
@@ -886,7 +879,7 @@ def entrypoint(debug: str = "") -> None:
                 k, v = parse_key_value_pair(a)
                 if k == "cfg" and v is not None:  # custom.yaml passed
                     LOGGER.info(f"Overriding {DEFAULT_CFG_PATH} with {v}")
-                    overrides = {k: val for k, val in yaml_load(checks.check_yaml(v)).items() if k != "cfg"}
+                    overrides = {k: val for k, val in YAML.load(checks.check_yaml(v)).items() if k != "cfg"}
                 else:
                     overrides[k] = v
             except (NameError, SyntaxError, ValueError, AssertionError) as e:
@@ -926,7 +919,7 @@ def entrypoint(debug: str = "") -> None:
         if task not in TASKS:
             if task == "track":
                 LOGGER.warning(
-                    "invalid 'task=track', setting 'task=detect' and 'mode=track'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}."
+                    f"invalid 'task=track', setting 'task=detect' and 'mode=track'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}."
                 )
                 task, mode = "detect", "track"
             else:

@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import functools
 import glob
 import inspect
 import math
@@ -16,7 +17,6 @@ from typing import Optional
 
 import cv2
 import numpy as np
-import requests
 import torch
 
 from ultralytics.utils import (
@@ -25,6 +25,7 @@ from ultralytics.utils import (
     AUTOINSTALL,
     IS_COLAB,
     IS_GIT_DIR,
+    IS_JETSON,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
     LINUX,
@@ -79,6 +80,7 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
     return requirements
 
 
+@functools.lru_cache
 def parse_version(version="0.0.0") -> tuple:
     """
     Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
@@ -163,6 +165,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     return sz
 
 
+@functools.lru_cache
 def check_version(
     current: str = "0.0.0",
     required: str = "0.0.0",
@@ -261,6 +264,8 @@ def check_latest_pypi_version(package_name="ultralytics"):
     Returns:
         (str): The latest version of the package.
     """
+    import requests  # slow import
+
     try:
         requests.packages.urllib3.disable_warnings()  # Disable the InsecureRequestWarning
         response = requests.get(f"https://pypi.org/pypi/{package_name}/json", timeout=3)
@@ -294,6 +299,7 @@ def check_pip_update_available():
 
 
 @ThreadingLocked()
+@functools.lru_cache
 def check_font(font="Arial.ttf"):
     """
     Find font locally or download to user's configuration directory if it does not already exist.
@@ -304,7 +310,7 @@ def check_font(font="Arial.ttf"):
     Returns:
         (Path): Resolved font file path.
     """
-    from matplotlib import font_manager
+    from matplotlib import font_manager  # scope for faster 'import ultralytics'
 
     # Check USER_CONFIG_DIR
     name = Path(font).name
@@ -342,7 +348,7 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
 @TryExcept()
 def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds=""):
     """
-    Check if installed dependencies meet YOLOv8 requirements and attempt to auto-update if needed.
+    Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.
 
     Args:
         requirements (Union[Path, str, List[str]]): Path to a requirements.txt file, a single package requirement as a
@@ -417,6 +423,7 @@ def check_torchvision():
     to the compatibility table based on: https://github.com/pytorch/vision#installation.
     """
     compatibility_table = {
+        "2.7": ["0.22"],
         "2.6": ["0.21"],
         "2.5": ["0.20"],
         "2.4": ["0.19"],
@@ -453,7 +460,7 @@ def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
     """
     if file and suffix:
         if isinstance(suffix, str):
-            suffix = (suffix,)
+            suffix = {suffix}
         for f in file if isinstance(file, (list, tuple)) else [file]:
             s = Path(f).suffix.lower().strip()  # file suffix
             if len(s):
@@ -506,11 +513,11 @@ def check_model_file_from_stem(model="yolo11n"):
 
 def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     """
-    Search/download file (if necessary) and return path.
+    Search/download file (if necessary), check suffix (if provided), and return path.
 
     Args:
         file (str): File name or path.
-        suffix (str): File suffix to check.
+        suffix (str | Tuple[str]): Acceptable suffix or tuple of suffixes to validate against the file.
         download (bool): Whether to download the file if it doesn't exist locally.
         download_dir (str): Directory to download the file to.
         hard (bool): Whether to raise an error if the file is not found.
@@ -549,9 +556,9 @@ def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
     Search/download YAML file (if necessary) and return path, checking suffix.
 
     Args:
-        file (str): File name or path.
-        suffix (tuple): Acceptable file suffixes.
-        hard (bool): Whether to raise an error if the file is not found.
+        file (str | Path): File name or path.
+        suffix (Tuple[str]): Tuple of acceptable YAML file suffixes.
+        hard (bool): Whether to raise an error if the file is not found or multiple files are found.
 
     Returns:
         (str): Path to the YAML file.
@@ -576,6 +583,7 @@ def check_is_path_safe(basedir, path):
     return path_resolved.exists() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
 
 
+@functools.lru_cache
 def check_imshow(warn=False):
     """
     Check if environment supports image displays.
@@ -607,7 +615,7 @@ def check_yolo(verbose=True, device=""):
 
     Args:
         verbose (bool): Whether to print verbose information.
-        device (str): Device to use for YOLO.
+        device (str | torch.device): Device to use for YOLO.
     """
     import psutil
 
@@ -648,7 +656,7 @@ def collect_system_info():
     from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
 
     gib = 1 << 30  # bytes per GiB
-    cuda = torch and torch.cuda.is_available()
+    cuda = torch.cuda.is_available()
     check_yolo()
     total, used, free = shutil.disk_usage("/")
 
@@ -809,7 +817,7 @@ def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
     except ValueError:
         file = Path(file).stem
     s = (f"{file}: " if show_file else "") + (f"{func}: " if show_func else "")
-    LOGGER.info(colorstr(s) + ", ".join(f"{k}={strip_auth(v)}" for k, v in args.items()))
+    LOGGER.info(colorstr(s) + ", ".join(f"{k}={strip_auth(v)}" for k, v in sorted(args.items())))
 
 
 def cuda_device_count() -> int:
@@ -819,19 +827,23 @@ def cuda_device_count() -> int:
     Returns:
         (int): The number of NVIDIA GPUs available.
     """
-    try:
-        # Run the nvidia-smi command and capture its output
-        output = subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=count", "--format=csv,noheader,nounits"], encoding="utf-8"
-        )
+    if IS_JETSON:
+        # NVIDIA Jetson does not fully support nvidia-smi and therefore use PyTorch instead
+        return torch.cuda.device_count()
+    else:
+        try:
+            # Run the nvidia-smi command and capture its output
+            output = subprocess.check_output(
+                ["nvidia-smi", "--query-gpu=count", "--format=csv,noheader,nounits"], encoding="utf-8"
+            )
 
-        # Take the first line and strip any leading/trailing white space
-        first_line = output.strip().split("\n")[0]
+            # Take the first line and strip any leading/trailing white space
+            first_line = output.strip().split("\n")[0]
 
-        return int(first_line)
-    except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
-        # If the command fails, nvidia-smi is not found, or output is not an integer, assume no GPUs are available
-        return 0
+            return int(first_line)
+        except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
+            # If the command fails, nvidia-smi is not found, or output is not an integer, assume no GPUs are available
+            return 0
 
 
 def cuda_is_available() -> bool:

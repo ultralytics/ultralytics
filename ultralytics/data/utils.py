@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import hashlib
 import json
 import os
 import random
@@ -19,16 +18,16 @@ from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (
     DATASETS_DIR,
     LOGGER,
+    MACOS,
     NUM_THREADS,
     ROOT,
     SETTINGS_FILE,
     TQDM,
+    YAML,
     clean_url,
     colorstr,
     emojis,
     is_dir_writeable,
-    yaml_load,
-    yaml_save,
 )
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file
@@ -37,7 +36,7 @@ from ultralytics.utils.ops import segments2boxes
 HELP_URL = "See https://docs.ultralytics.com/datasets for dataset formatting guidance."
 IMG_FORMATS = {"bmp", "dng", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp", "pfm", "heic"}  # image suffixes
 VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv", "webm"}  # video suffixes
-PIN_MEMORY = str(os.getenv("PIN_MEMORY", True)).lower() == "true"  # global pin_memory for dataloaders
+PIN_MEMORY = str(os.getenv("PIN_MEMORY", not MACOS)).lower() == "true"  # global pin_memory for dataloaders
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
 
 
@@ -131,7 +130,7 @@ def get_hash(paths):
             size += os.stat(p).st_size
         except OSError:
             continue
-    h = hashlib.sha256(str(size).encode())  # hash sizes
+    h = __import__("hashlib").sha256(str(size).encode())  # hash sizes
     h.update("".join(paths).encode())  # hash paths
     return h.hexdigest()  # return hash
 
@@ -400,7 +399,7 @@ def check_det_dataset(dataset, autodownload=True):
         extract_dir, autodownload = file.parent, False
 
     # Read YAML
-    data = yaml_load(file, append_filename=True)  # dictionary
+    data = YAML.load(file, append_filename=True)  # dictionary
 
     # Checks
     for k in "train", "val":
@@ -425,8 +424,8 @@ def check_det_dataset(dataset, autodownload=True):
 
     # Resolve paths
     path = Path(extract_dir or data.get("path") or Path(data.get("yaml_file", "")).parent)  # dataset root
-    if not path.is_absolute():
-        path = (DATASETS_DIR / path).resolve()
+    if not path.exists() and not path.is_absolute():
+        path = (DATASETS_DIR / path).resolve()  # path relative to DATASETS_DIR
 
     # Set paths
     data["path"] = path  # download scripts
@@ -493,7 +492,7 @@ def check_cls_dataset(dataset, split=""):
     # Download (optional if dataset=https://file.zip is passed directly)
     if str(dataset).startswith(("http:/", "https:/")):
         dataset = safe_download(dataset, dir=DATASETS_DIR, unzip=True, delete=False)
-    elif Path(dataset).suffix in {".zip", ".tar", ".gz"}:
+    elif str(dataset).endswith((".zip", ".tar", ".gz")):
         file = check_file(dataset)
         dataset = safe_download(file, dir=DATASETS_DIR, unzip=True, delete=False)
 
@@ -600,9 +599,9 @@ class HUBDatasetStats:
             _, data_dir, yaml_path = self._unzip(Path(path))
             try:
                 # Load YAML with checks
-                data = yaml_load(yaml_path)
+                data = YAML.load(yaml_path)
                 data["path"] = ""  # strip path since YAML should be in dataset root for all HUB datasets
-                yaml_save(yaml_path, data)
+                YAML.save(yaml_path, data)
                 data = check_det_dataset(yaml_path, autodownload)  # dict
                 data["path"] = data_dir  # YAML path should be set to '' (relative) or parent (absolute)
             except Exception as e:
@@ -737,7 +736,10 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
         >>>    compress_one_image(f)
     """
     try:  # use PIL
+        Image.MAX_IMAGE_PIXELS = None  # Fix DecompressionBombError, allow optimization of image > ~178.9 million pixels
         im = Image.open(f)
+        if im.mode in {"RGBA", "LA"}:  # Convert to RGB if needed (for JPEG)
+            im = im.convert("RGB")
         r = max_dim / max(im.height, im.width)  # ratio
         if r < 1.0:  # image too large
             im = im.resize((int(im.width * r), int(im.height * r)))

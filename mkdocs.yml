@@ -53,9 +53,6 @@ theme:
     - content.code.annotate
     - content.code.copy
     - content.tooltips
-    - search.highlight
-    - search.share
-    - search.suggest
     - toc.follow
     - navigation.top
     - navigation.tabs
@@ -68,12 +65,15 @@ theme:
     - navigation.indexes
     - navigation.sections # navigation.expand or navigation.sections
     - content.tabs.link # all code tabs change simultaneously
+    # - search.highlight
+    # - search.share
+    # - search.suggest
 
 # Customization
 copyright: <a href="https://www.ultralytics.com/" target="_blank">© 2025 Ultralytics Inc.</a> All rights reserved.
 extra: # version:
   homepage: https://www.ultralytics.com/
-  #   provider: mike  #  version drop-down menu
+  #   provider: mike # version drop-down menu
   robots: robots.txt
   analytics:
     provider: google
@@ -97,6 +97,46 @@ extra: # version:
       link: https://reddit.com/r/ultralytics
     - icon: fontawesome/brands/weixin
       link: https://weixin.qq.com/r/mp/LxckPDfEgWr_rXNf90I9
+  alternate:
+    - name: 🇬🇧 English
+      link: /
+      lang: en
+    - name: 🇨🇳 简体中文
+      link: /zh/
+      lang: zh
+    - name: 🇰🇷 한국어
+      link: /ko/
+      lang: ko
+    - name: 🇯🇵 日本語
+      link: /ja/
+      lang: ja
+    - name: 🇷🇺 Русский
+      link: /ru/
+      lang: ru
+    - name: 🇩🇪 Deutsch
+      link: /de/
+      lang: de
+    - name: 🇫🇷 Français
+      link: /fr/
+      lang: fr
+    - name: 🇪🇸 Español
+      link: /es/
+      lang: es
+    - name: 🇵🇹 Português
+      link: /pt/
+      lang: pt
+    - name: 🇮🇹 Italiano
+      link: /it/
+      lang: it
+    - name: 🇹🇷 Türkçe
+      link: /tr/
+      lang: tr
+    - name: 🇻🇳 Tiếng Việt
+      link: /vi/
+      lang: vi
+    - name: 🇸🇦 العربية
+      link: /ar/
+      lang: ar
 
 extra_css:
   - stylesheets/style.css
@@ -285,6 +325,7 @@ nav:
           - Objects365: datasets/detect/objects365.md
           - OpenImagesV7: datasets/detect/open-images-v7.md
           - SKU-110K: datasets/detect/sku-110k.md
+          - HomeObjects-3K: datasets/detect/homeobjects-3k.md
           - VisDrone: datasets/detect/visdrone.md
           - VOC: datasets/detect/voc.md
           - xView: datasets/detect/xview.md
@@ -342,7 +383,9 @@ nav:
       - Parking Management: guides/parking-management.md
       - Analytics: guides/analytics.md
       - Live Inference: guides/streamlit-live-inference.md
-      - Track Objects in Zone 🚀 NEW: guides/trackzone.md
+      - Track Objects in Zone: guides/trackzone.md
+      - Similarity Search 🚀 NEW: guides/similarity-search.md
+
   - Guides:
       - guides/index.md
       - YOLO Common Issues: guides/yolo-common-issues.md
@@ -588,6 +631,7 @@ nav:
       - solutions:
           - ai_gym: reference/solutions/ai_gym.md
           - analytics: reference/solutions/analytics.md
+          - config: reference/solutions/config.md
           - distance_calculation: reference/solutions/distance_calculation.md
           - heatmap: reference/solutions/heatmap.md
           - instance_segmentation: reference/solutions/instance_segmentation.md
@@ -598,6 +642,7 @@ nav:
           - queue_management: reference/solutions/queue_management.md
           - region_counter: reference/solutions/region_counter.md
           - security_alarm: reference/solutions/security_alarm.md
+          - similarity_search: reference/solutions/similarity_search.md
           - solutions: reference/solutions/solutions.md
           - speed_estimation: reference/solutions/speed_estimation.md
           - streamlit_inference: reference/solutions/streamlit_inference.md
@@ -615,6 +660,7 @@ nav:
       - utils:
           - __init__: reference/utils/__init__.md
           - autobatch: reference/utils/autobatch.md
+          - autodevice: reference/utils/autodevice.md
           - benchmarks: reference/utils/benchmarks.md
           - callbacks:
               - base: reference/utils/callbacks/base.md

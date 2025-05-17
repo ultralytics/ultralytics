@@ -10,7 +10,6 @@ from PIL import Image
 
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
-from ultralytics.hub import HUB_WEB_ROOT, HUBTrainingSession
 from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, yaml_model_load
 from ultralytics.utils import (
     ARGV,
@@ -19,9 +18,9 @@ from ultralytics.utils import (
     LOGGER,
     RANK,
     SETTINGS,
+    YAML,
     callbacks,
     checks,
-    yaml_load,
 )
 
 
@@ -126,6 +125,8 @@ class Model(torch.nn.Module):
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
         if self.is_hub_model(model):
+            from ultralytics.hub import HUBTrainingSession
+
             # Fetch model from HUB
             checks.check_requirements("hub-sdk>=0.0.12")
             session = HUBTrainingSession.create_session(model)
@@ -141,7 +142,7 @@ class Model(torch.nn.Module):
 
         # Load or create new YOLO model
         __import__("os").environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # to avoid deterministic warnings
-        if Path(model).suffix in {".yaml", ".yml"}:
+        if str(model).endswith((".yaml", ".yml")):
             self._new(model, task=task, verbose=verbose)
         else:
             self._load(model, task=task)
@@ -225,6 +226,8 @@ class Model(torch.nn.Module):
             >>> Model.is_hub_model("yolo11n.pt")
             False
         """
+        from ultralytics.hub import HUB_WEB_ROOT
+
         return model.startswith(f"{HUB_WEB_ROOT}/models/")
 
     def _new(self, cfg: str, task=None, model=None, verbose=False) -> None:
@@ -526,7 +529,7 @@ class Model(torch.nn.Module):
             - For SAM-type models, 'prompts' can be passed as a keyword argument.
         """
         if source is None:
-            source = ASSETS
+            source = "https://ultralytics.com/images/boats.jpg" if self.task == "obb" else ASSETS
             LOGGER.warning(f"'source' is missing. Using 'source={source}'.")
 
         is_cli = (ARGV[0].endswith("yolo") or ARGV[0].endswith("ultralytics")) and any(
@@ -770,7 +773,7 @@ class Model(torch.nn.Module):
 
         checks.check_pip_update_available()
 
-        overrides = yaml_load(checks.check_yaml(kwargs["cfg"])) if kwargs.get("cfg") else self.overrides
+        overrides = YAML.load(checks.check_yaml(kwargs["cfg"])) if kwargs.get("cfg") else self.overrides
         custom = {
             # NOTE: handle the case when 'cfg' includes 'data'.
             "data": overrides.get("data") or DEFAULT_CFG_DICT["data"] or TASK2DATA[self.task],

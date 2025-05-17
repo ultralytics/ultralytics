@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-
 import cv2
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
@@ -41,7 +40,7 @@ class ObjectBlurrer(BaseSolution):
                 blur_ratio (float): Intensity of the blur effect (0.1-1.0, default=0.5).
         """
         super().__init__(**kwargs)
-        blur_ratio = kwargs.get("blur_ratio", 0.5)
+        blur_ratio = self.CFG["blur_ratio"]
         if blur_ratio < 0.1:
             LOGGER.warning("blur ratio cannot be less than 0.1, updating it to default value 0.5")
             blur_ratio = 0.5

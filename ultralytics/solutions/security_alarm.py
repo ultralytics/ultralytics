@@ -110,7 +110,7 @@ class SecurityAlarm(BaseSolution):
         # Send the email
         try:
             self.server.send_message(message)
-            LOGGER.info("✅ Email sent successfully!")
+            LOGGER.info("Email sent successfully!")
         except Exception as e:
             LOGGER.error(f"Failed to send email: {e}")
 
@@ -143,7 +143,7 @@ class SecurityAlarm(BaseSolution):
             annotator.box_label(box, label=self.names[cls], color=colors(cls, True))
 
         total_det = len(self.clss)
-        if total_det > self.records and not self.email_sent:  # Only send email if not sent before
+        if total_det >= self.records and not self.email_sent:  # Only send email if not sent before
             self.send_email(im0, total_det)
             self.email_sent = True
 

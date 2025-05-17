@@ -15,7 +15,7 @@ from ultralytics.nn.tasks import (
     YOLOEModel,
     YOLOESegModel,
 )
-from ultralytics.utils import ROOT, yaml_load
+from ultralytics.utils import ROOT, YAML
 
 
 class YOLO(Model):
@@ -107,7 +107,7 @@ class YOLOWorld(Model):
 
         # Assign default COCO class names when there are no custom names
         if not hasattr(self.model, "names"):
-            self.model.names = yaml_load(ROOT / "cfg/datasets/coco8.yaml").get("names")
+            self.model.names = YAML.load(ROOT / "cfg/datasets/coco8.yaml").get("names")
 
     @property
     def task_map(self):
@@ -156,7 +156,7 @@ class YOLOE(Model):
 
         # Assign default COCO class names when there are no custom names
         if not hasattr(self.model, "names"):
-            self.model.names = yaml_load(ROOT / "cfg/datasets/coco8.yaml").get("names")
+            self.model.names = YAML.load(ROOT / "cfg/datasets/coco8.yaml").get("names")
 
     @property
     def task_map(self):
@@ -331,7 +331,7 @@ class YOLOE(Model):
         if len(visual_prompts):
             num_cls = (
                 max(len(set(c)) for c in visual_prompts["cls"])
-                if isinstance(source, list)  # means multiple images
+                if isinstance(source, list) and refer_image is None  # means multiple images
                 else len(set(visual_prompts["cls"]))
             )
             self.model.model[-1].nc = num_cls

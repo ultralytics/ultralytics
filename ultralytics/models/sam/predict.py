@@ -31,7 +31,6 @@ from .amg import (
     uncrop_boxes_xyxy,
     uncrop_masks,
 )
-from .build import build_sam
 
 
 class Predictor(BasePredictor):
@@ -439,6 +438,8 @@ class Predictor(BasePredictor):
 
     def get_model(self):
         """Retrieves or builds the Segment Anything Model (SAM) for image segmentation tasks."""
+        from .build import build_sam  # slow import
+
         return build_sam(self.args.model)
 
     def postprocess(self, preds, img, orig_imgs):
@@ -658,6 +659,8 @@ class SAM2Predictor(Predictor):
 
     def get_model(self):
         """Retrieves and initializes the Segment Anything Model 2 (SAM2) for image segmentation tasks."""
+        from .build import build_sam  # slow import
+
         return build_sam(self.args.model)
 
     def prompt_inference(

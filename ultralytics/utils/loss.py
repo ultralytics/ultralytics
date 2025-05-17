@@ -48,14 +48,14 @@ class FocalLoss(nn.Module):
 
     Args:
         gamma (float): The focusing parameter that controls how much the loss focuses on hard-to-classify examples.
-        alpha (float): The balancing factor used to address class imbalance.
+        alpha (float | list): The balancing factor used to address class imbalance.
     """
 
     def __init__(self, gamma=1.5, alpha=0.25):
         """Initialize FocalLoss class with no parameters."""
         super().__init__()
         self.gamma = gamma
-        self.alpha = alpha
+        self.alpha = torch.tensor(alpha)
 
     def forward(self, pred, label):
         """Calculate focal loss with modulating factors for class imbalance."""
@@ -68,7 +68,8 @@ class FocalLoss(nn.Module):
         p_t = label * pred_prob + (1 - label) * (1 - pred_prob)
         modulating_factor = (1.0 - p_t) ** self.gamma
         loss *= modulating_factor
-        if self.alpha > 0:
+        if (self.alpha > 0).any():
+            self.alpha = self.alpha.to(device=pred.device, dtype=pred.dtype)
             alpha_factor = label * self.alpha + (1 - label) * (1 - self.alpha)
             loss *= alpha_factor
         return loss.mean(1).sum()
@@ -673,7 +674,7 @@ class v8OBBLoss(v8DetectionLoss):
             raise TypeError(
                 "ERROR ❌ OBB dataset incorrectly formatted or not a OBB dataset.\n"
                 "This error can occur when incorrectly training a 'OBB' model on a 'detect' dataset, "
-                "i.e. 'yolo train model=yolo11n-obb.pt data=dota8.yaml'.\nVerify your dataset is a "
+                "i.e. 'yolo train model=yolo11n-obb.pt data=coco8.yaml'.\nVerify your dataset is a "
                 "correctly formatted 'OBB' dataset using 'data=dota8.yaml' "
                 "as an example.\nSee https://docs.ultralytics.com/datasets/obb/ for help."
             ) from e
@@ -794,15 +795,16 @@ class TVPSegmentLoss(TVPDetectLoss):
 
     def __init__(self, model):
         """Initialize TVPSegmentLoss with task-prompt and visual-prompt criteria using the provided model."""
+        super().__init__(model)
         self.vp_criterion = v8SegmentationLoss(model)
 
     def __call__(self, preds, batch):
         """Calculate the loss for text-visual prompt segmentation."""
         feats, pred_masks, proto = preds if len(preds) == 3 else preds[1]
-        assert self.tp_criterion.reg_max == self.vp_criterion.reg_max
+        assert self.ori_reg_max == self.vp_criterion.reg_max  # TODO: remove it
 
-        if self.tp_criterion.reg_max * 4 + self.tp_criterion.nc == feats[0].shape[1]:
-            loss = torch.zeros(4, device=self.tp_criterion.device, requires_grad=True)
+        if self.ori_reg_max * 4 + self.ori_nc == feats[0].shape[1]:
+            loss = torch.zeros(4, device=self.vp_criterion.device, requires_grad=True)
             return loss, loss.detach()
 
         vp_feats = self._get_vp_features(feats)

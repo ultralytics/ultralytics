@@ -276,7 +276,7 @@ class Exporter:
             LOGGER.warning("TensorRT requires GPU export, automatically assigning device=0")
             self.args.device = "0"
         if fmt == "engine" and "dla" in str(self.args.device):  # convert int/list to str first
-            dla = self.args.device.split(":")[-1]
+            dla = self.args.device.rsplit(":", 1)[-1]
             self.args.device = "0"  # update device to "0"
             assert dla in {"0", "1"}, f"Expected self.args.device='dla:0' or 'dla:1, but got {self.args.device}."
         if imx and self.args.device is None and torch.cuda.is_available():
@@ -788,7 +788,7 @@ class Exporter:
         subprocess.run(cmd, check=True)
 
         # Remove debug files
-        pnnx_files = [x.split("=")[-1] for x in pnnx_args]
+        pnnx_files = [x.rsplit("=", 1)[-1] for x in pnnx_args]
         for f_debug in ("debug.bin", "debug.param", "debug2.bin", "debug2.param", *pnnx_files):
             Path(f_debug).unlink(missing_ok=True)
 
@@ -1047,7 +1047,7 @@ class Exporter:
                 "sudo apt-get install edgetpu-compiler",
             ):
                 subprocess.run(c if is_sudo_available() else c.replace("sudo ", ""), shell=True, check=True)
-        ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().split()[-1]
+        ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
 
         LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
         f = str(tflite_model).replace(".tflite", "_edgetpu.tflite")  # Edge TPU model

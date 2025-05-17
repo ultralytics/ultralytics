@@ -375,7 +375,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
     pkgs = []
     for r in requirements:
-        r_stripped = r.partition("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
+        r_stripped = r.rpartition("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
         match = re.match(r"([a-zA-Z0-9-_]+)([<>!=~]+.*)?", r_stripped)
         name, required = match[1], match[2].strip() if match[2] else ""
         try:

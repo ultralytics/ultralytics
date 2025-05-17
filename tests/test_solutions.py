@@ -283,7 +283,7 @@ def test_plot_with_no_masks():
 def test_streamlit_handle_video_upload_creates_file():
     """Test Streamlit video upload logic saves file correctly."""
     import io
-    
+
     fake_file = io.BytesIO(b"fake video content")
     fake_file.read = fake_file.getvalue
     if fake_file is not None:

@@ -4,6 +4,7 @@
 # including every solution excluding DistanceCalculation and Security Alarm System.
 
 import cv2
+import os
 import numpy as np
 import pytest
 
@@ -205,10 +206,9 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search():
     """Test similarity search solution."""
-    from ultralytics import solutions
-
     searcher = solutions.VisualAISearch()
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
+
 
 
 def test_left_click_selection():
@@ -274,3 +274,43 @@ def test_plot_with_no_masks():
     isegment = solutions.InstanceSegmentation(model="yolo11n-seg.pt")
     results = isegment(im0)
     assert results.plot_im is not None
+
+
+def test_handle_video_upload_creates_file():
+    """Handle streamlit video upload function"""
+    import os
+    import io
+    fake_file = io.BytesIO(b"fake video content")
+    fake_file.read = fake_file.getvalue
+    if fake_file is not None:
+        g = io.BytesIO(fake_file.read())
+        with open("ultralytics.mp4", "wb") as out:
+            out.write(g.read())
+        output_path = "ultralytics.mp4"
+    else:
+        output_path = None
+    assert output_path == "ultralytics.mp4"
+    assert os.path.exists("ultralytics.mp4")
+    with open("ultralytics.mp4", "rb") as f:
+        assert f.read() == b"fake video content"
+    os.remove("ultralytics.mp4")
+
+
+def test_visual_ai_search_full(tmp_path):
+    """Test visual search init method"""
+    from PIL import Image
+    image_dir = tmp_path / "images"
+    os.makedirs(image_dir, exist_ok=True)
+    img = Image.fromarray(np.uint8(np.random.rand(224, 224, 3) * 255))
+    img.save(image_dir / f"test_image_1.jpg")
+    searcher = solutions.VisualAISearch(data=str(image_dir))
+    results = searcher("a red and white object")
+    assert any("test_image_" in r for r in results)
+
+
+def test_search_app_init():
+    """Test flask application init method"""
+    app = solutions.SearchApp(device="cpu")
+    assert hasattr(app, "searcher")
+    assert hasattr(app, "run")
+

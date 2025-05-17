@@ -315,3 +315,22 @@ def test_search_app_init():
     app = solutions.SearchApp(device="cpu")
     assert hasattr(app, "searcher")
     assert hasattr(app, "run")
+
+
+def test_process_distance_calculation():
+    """Distance calculation process function test"""
+    from unittest.mock import patch
+    from ultralytics.solutions.solutions import SolutionResults
+    dc = solutions.DistanceCalculation()
+    dc.boxes = [[100, 100, 200, 200], [300, 300, 400, 400]]
+    dc.track_ids = [1, 2]
+    dc.clss = [0, 0]
+    dc.confs = [0.9, 0.95]
+    dc.selected_boxes = {1: dc.boxes[0], 2: dc.boxes[1]}
+    frame = np.zeros((480, 640, 3), dtype=np.uint8)
+    with patch.object(dc, "extract_tracks"), patch.object(dc, "display_output"), patch("cv2.setMouseCallback"):
+        result = dc.process(frame)
+    assert isinstance(result, SolutionResults)
+    assert result.total_tracks == 2
+    assert result.pixels_distance > 0
+

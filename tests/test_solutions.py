@@ -348,6 +348,7 @@ def test_object_crop_with_show_True():
 
 def test_display_output_method():
     """Test that display_output triggers imshow, waitKey, and destroyAllWindows when enabled."""
+    from unittest.mock import patch
     counter = solutions.ObjectCounter(show=True)
     counter.env_check = True
     frame = np.zeros((100, 100, 3), dtype=np.uint8)

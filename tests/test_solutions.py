@@ -3,8 +3,6 @@
 # Tests Ultralytics Solutions: https://docs.ultralytics.com/solutions/,
 # including every solution excluding DistanceCalculation and Security Alarm System.
 
-import os
-
 import cv2
 import numpy as np
 import pytest
@@ -310,6 +308,7 @@ def test_similarity_search_app_init():
 def test_similarity_search_complete(tmp_path):
     """Test VisualAISearch end-to-end with sample image and query."""
     from PIL import Image
+    import os
 
     image_dir = tmp_path / "images"
     os.makedirs(image_dir, exist_ok=True)

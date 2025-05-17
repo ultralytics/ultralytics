@@ -28,6 +28,7 @@ from ultralytics.utils import (
     IS_JETSON,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
+    IS_RASPBERRYPI,
     LINUX,
     LOGGER,
     MACOS,
@@ -399,13 +400,13 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:
         if install and AUTOINSTALL:  # check environment variable
-            uv = not MACOS and subprocess.run(["command", "-v", "uv"], capture_output=True, shell=True).returncode == 0
+            uv = subprocess.run(["command", "-v", "uv"], capture_output=True).returncode == 0
             n = len(pkgs)  # number of packages updates
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
-                LOGGER.info(attempt_install(s, cmds, uv))
+                LOGGER.info(attempt_install(s, cmds, use_uv=uv and not MACOS and not IS_RASPBERRYPI))
                 dt = time.time() - t
                 LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s")
                 LOGGER.warning(

@@ -313,8 +313,9 @@ def test_similarity_search_complete(tmp_path):
 
     image_dir = tmp_path / "images"
     os.makedirs(image_dir, exist_ok=True)
-    img = Image.fromarray(np.uint8(np.random.rand(224, 224, 3) * 255))
-    img.save(image_dir / "test_image_1.jpg")
+    for i in range(2):
+        img = Image.fromarray(np.uint8(np.random.rand(224, 224, 3) * 255))
+        img.save(image_dir / f"test_image_{i}.jpg")
     searcher = solutions.VisualAISearch(data=str(image_dir))
     results = searcher("a red and white object")
     assert any("test_image_" in r for r in results)

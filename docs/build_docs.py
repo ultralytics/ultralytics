@@ -108,7 +108,7 @@ def update_subdir_edit_links(subdir: str = "", docs_url: str = ""):
         # Find the anchor tag and update its href attribute
         a_tag = soup.find("a", {"class": "md-content__button md-icon"})
         if a_tag and a_tag["title"] == "Edit this page":
-            a_tag["href"] = f"{docs_url}{a_tag['href'].split(subdir)[-1]}"
+            a_tag["href"] = f"{docs_url}{a_tag['href'].rpartition(subdir)[-1]}"
 
         # Write the updated HTML back to the file
         with open(html_file, "w", encoding="utf-8") as file:
@@ -285,7 +285,7 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
         for line in lines:
             # Only remove comments if they're not part of a URL
             if "//" in line and "http://" not in line and "https://" not in line:
-                processed_lines.append(line.split("//")[0])
+                processed_lines.append(line.partition("//")[0])
             else:
                 processed_lines.append(line)
         content = "\n".join(processed_lines)

@@ -13,6 +13,8 @@ from shapely.geometry.point import Point
 from ultralytics import YOLO
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.utils.checks import check_imshow
+
 
 track_history = defaultdict(list)
 
@@ -202,7 +204,7 @@ def run(
             )
             cv2.polylines(frame, [polygon_coordinates], isClosed=True, color=region_color, thickness=region_thickness)
 
-        if view_img:
+        if view_img and check_imshow(warn=True):
             if vid_frame_count == 1:
                 cv2.namedWindow("Ultralytics YOLO Region Counter Movable")
                 cv2.setMouseCallback("Ultralytics YOLOv8 Region Counter Movable", mouse_callback)

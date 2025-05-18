@@ -9,7 +9,7 @@ import onnxruntime as ort
 import torch
 
 from ultralytics.utils import ASSETS, YAML
-from ultralytics.utils.checks import check_requirements, check_yaml
+from ultralytics.utils.checks import check_requirements, check_yaml, check_imshow
 
 
 class RTDETR:
@@ -235,6 +235,7 @@ if __name__ == "__main__":
     output_image = detection.main()
 
     # Display the annotated output image
-    cv2.namedWindow("Output", cv2.WINDOW_NORMAL)
-    cv2.imshow("Output", output_image)
-    cv2.waitKey(0)
+    if check_imshow(warn=True):
+        cv2.namedWindow("Output", cv2.WINDOW_NORMAL)
+        cv2.imshow("Output", output_image)
+        cv2.waitKey(0)

@@ -10,7 +10,7 @@ import torch
 import ultralytics.utils.ops as ops
 from ultralytics.engine.results import Results
 from ultralytics.utils import ASSETS, YAML
-from ultralytics.utils.checks import check_yaml
+from ultralytics.utils.checks import check_yaml, check_imshow
 
 
 class YOLOv8Seg:
@@ -32,7 +32,6 @@ class YOLOv8Seg:
         >>> model = YOLOv8Seg("yolov8n-seg.onnx", conf=0.25, iou=0.7)
         >>> img = cv2.imread("image.jpg")
         >>> results = model(img)
-        >>> cv2.imshow("Segmentation", results[0].plot())
     """
 
     def __init__(self, onnx_model, conf=0.25, iou=0.7, imgsz=640):
@@ -173,6 +172,7 @@ if __name__ == "__main__":
     img = cv2.imread(args.source)
     results = model(img)
 
-    cv2.imshow("Segmented Image", results[0].plot())
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    if check_imshow(warn=True):
+        cv2.imshow("Segmented Image", results[0].plot())
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()

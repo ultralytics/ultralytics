@@ -8,6 +8,8 @@ import numpy as np
 import yaml
 
 from ultralytics.utils import ASSETS
+from ultralytics.utils.checks import check_imshow
+
 
 try:
     from tflite_runtime.interpreter import Interpreter
@@ -255,5 +257,6 @@ if __name__ == "__main__":
     detector = YOLOv8TFLite(args.model, args.conf, args.iou, args.metadata)
     result = detector.detect(str(ASSETS / "bus.jpg"))
 
-    cv2.imshow("Output", result)
-    cv2.waitKey(0)
+    if check_imshow(warn=True):
+        cv2.imshow("Output", result)
+        cv2.waitKey(0)

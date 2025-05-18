@@ -7,6 +7,8 @@ import cv2
 from ultralytics import YOLO
 from ultralytics.utils import LOGGER
 from ultralytics.utils.plotting import Annotator, colors
+from ultralytics.utils.checks import check_imshow
+
 
 enable_gpu = False  # Set True if running with CUDA
 model_file = "yolo11s.pt"  # Path to model file
@@ -207,7 +209,8 @@ while cap.isOpened():
         cv2.rectangle(im, (10 - 5, 25 - th - 5), (10 + tw + 5, 25 + bl), (255, 255, 255), -1)
         cv2.putText(im, fps_text, (10, 25), 0, 0.7, (104, 31, 17), 1, cv2.LINE_AA)
 
-    cv2.imshow(window_name, im)
+    if check_imshow(warn=True):
+        cv2.imshow(window_name, im)
     if save_video and vw is not None:
         vw.write(im)
     # Terminal logging

@@ -4,16 +4,6 @@ description: Learn how to evaluate your YOLO11 model's performance in real-world
 keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, export formats, ONNX, TensorRT, OpenVINO, CoreML, TensorFlow, optimization, mAP50-95, inference time
 ---
 
-<script>
-  const script = document.createElement('script');
-  script.src = "https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js";
-  document.head.appendChild(script);
-
-  const anotherScript = document.createElement('script');
-  anotherScript.src = "../../javascript/benchmark.js";
-  document.head.appendChild(anotherScript);
-</script>
-
 # Model Benchmarking with Ultralytics YOLO
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
@@ -24,22 +14,10 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
 
     You may need to refresh the page to view the graphs correctly due to potential cookie issues.
 
-<div style="display: flex; align-items: flex-start;">
-  <div style="margin-right: 20px;">
-    <label><input type="checkbox" name="algorithm" value="YOLO11" checked><span>YOLO11</span></label><br>
-    <label><input type="checkbox" name="algorithm" value="YOLOv10" checked><span>YOLOv10</span></label><br>
-    <label><input type="checkbox" name="algorithm" value="YOLOv9" checked><span>YOLOv9</span></label><br>
-    <label><input type="checkbox" name="algorithm" value="YOLOv8" checked><span>YOLOv8</span></label><br>
-    <label><input type="checkbox" name="algorithm" value="YOLOv7" checked><span>YOLOv7</span></label><br>
-    <label><input type="checkbox" name="algorithm" value="YOLOv6-3.0" checked><span>YOLOv6-3.0</span></label><br>
-    <label><input type="checkbox" name="algorithm" value="YOLOv5" checked><span>YOLOv5</span></label><br>
-    <label><input type="checkbox" name="algorithm" value="PP-YOLOE+" checked><span>PP-YOLOE+</span></label><br>
-    <label><input type="checkbox" name="algorithm" value="DAMO-YOLO" checked><span>DAMO-YOLO</span></label><br>
-    <label><input type="checkbox" name="algorithm" value="YOLOX" checked><span>YOLOX</span></label><br>
-    <label><input type="checkbox" name="algorithm" value="RTDETRv2" checked><span>RTDETRv2</span></label>
-</div> 
-  <div style="flex-grow: 1;"><canvas id="chart"></canvas></div>
-</div>
+<script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script defer src="../../javascript/benchmark.js"></script>
+
+<canvas id="modelComparisonChart" width="1024" height="400"></canvas>
 
 ## Introduction
 
@@ -94,17 +72,23 @@ Run YOLO11n benchmarks on all supported export formats including ONNX, TensorRT 
 
         # Benchmark on GPU
         benchmark(model="yolo11n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+
+        # Benchmark specific export format
+        benchmark(model="yolo11n.pt", data="coco8.yaml", imgsz=640, format="onnx")
         ```
 
     === "CLI"
 
         ```bash
         yolo benchmark model=yolo11n.pt data='coco8.yaml' imgsz=640 half=False device=0
+
+        # Benchmark specific export format
+        yolo benchmark model=yolo11n.pt data='coco8.yaml' imgsz=640 format=onnx
         ```
 
 ## Arguments
 
-Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` provide users with the flexibility to fine-tune the benchmarks to their specific needs and compare the performance of different export formats with ease.
+Arguments such as `model`, `data`, `imgsz`, `half`, `device`, `verbose` and `format` provide users with the flexibility to fine-tune the benchmarks to their specific needs and compare the performance of different export formats with ease.
 
 | Key       | Default Value | Description                                                                                                                                                                                             |
 | --------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -115,10 +99,11 @@ Arguments such as `model`, `data`, `imgsz`, `half`, `device`, and `verbose` prov
 | `int8`    | `False`       | Activates INT8 quantization for further optimized performance on supported devices, especially useful for edge devices. Set `int8=True` to use.                                                         |
 | `device`  | `None`        | Defines the computation device(s) for benchmarking, such as `"cpu"` or `"cuda:0"`.                                                                                                                      |
 | `verbose` | `False`       | Controls the level of detail in logging output. A boolean value; set `verbose=True` for detailed logs or a float for thresholding errors.                                                               |
+| `format`  | `''`          | Benchmark the model on a single export format. i.e `format=onnx`                                                                                                                                        |
 
 ## Export Formats
 
-Benchmarks will attempt to run automatically on all possible export formats below.
+Benchmarks will attempt to run automatically on all possible export formats listed below. Alternatively, you can run benchmarks for a specific format by using the `format` argument, which accepts any of the formats mentioned below.
 
 {% include "macros/export-table.md" %}
 
@@ -151,7 +136,7 @@ For more details on benchmark arguments, visit the [Arguments](#arguments) secti
 
 ### What are the benefits of exporting YOLO11 models to different formats?
 
-Exporting YOLO11 models to different formats such as ONNX, TensorRT, and OpenVINO allows you to optimize performance based on your deployment environment. For instance:
+Exporting YOLO11 models to different formats such as [ONNX](https://docs.ultralytics.com/integrations/onnx/), [TensorRT](https://docs.ultralytics.com/integrations/tensorrt/), and [OpenVINO](https://docs.ultralytics.com/integrations/openvino/) allows you to optimize performance based on your deployment environment. For instance:
 
 - **ONNX:** Provides up to 3x CPU speedup.
 - **TensorRT:** Offers up to 5x GPU speedup.

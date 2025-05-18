@@ -8,6 +8,17 @@ keywords: YOLO11, Google Colab, machine learning, deep learning, model training,
 
 Many developers lack the powerful computing resources needed to build [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models. Acquiring high-end hardware or renting a decent GPU can be expensive. Google Colab is a great solution to this. It's a browser-based platform that allows you to work with large datasets, develop complex models, and share your work with others without a huge cost.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ZN3nRZT7b24"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train Ultralytics YOLO11 models on Your Custom Dataset in <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb" target="_blank">Google Colab</a>.
+</p>
+
 You can use Google Colab to work on projects related to [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models. Google Colab's user-friendly environment is well suited for efficient model development and experimentation. Let's learn more about Google Colab, its key features, and how you can use it to train YOLO11 models.
 
 ## Google Colaboratory
@@ -19,23 +30,6 @@ You can use Google Colab regardless of the specifications and configurations of 
 ## Training YOLO11 Using Google Colaboratory
 
 Training YOLO11 models on Google Colab is pretty straightforward. Thanks to the integration, you can access the [Google Colab YOLO11 Notebook](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb) and start training your model immediately. For a detailed understanding of the model training process and best practices, refer to our [YOLO11 Model Training guide](../modes/train.md).
-
-Sign in to your Google account and run the notebook's cells to train your model.
-
-![Training YOLO11 Using Google Colab](https://github.com/ultralytics/docs/releases/download/0/training-yolov8-using-google-colab.avif)
-
-Learn how to train a YOLO11 model with custom data on YouTube with Nicolai. Check out the guide below.
-
-<p align="center">
-  <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/LNwODJXcvt4?si=lB9UAc4hatSSEr2a"
-    title="YouTube video player" frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen>
-  </iframe>
-  <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO11 models on Your Custom Dataset in Google Colab | Episode 3
-</p>
 
 ### Common Questions While Working with Google Colab
 
@@ -91,11 +85,23 @@ There are many options for training and evaluating YOLO11 models, so what makes 
 
 - **Extensions and Widgets:** Google Colab allows for adding functionality through third-party extensions and interactive widgets.
 
+## Tips for Working with YOLO11 on Google Colab
+
+To make the most of your Google Colab experience when working with YOLO11 models, consider these practical tips:
+
+- **Enable GPU Acceleration:** Always enable GPU acceleration in the runtime settings to significantly speed up training.
+- **Maintain a Stable Connection:** Since Colab runs in the cloud, ensure you have a stable internet connection to prevent interruptions during training.
+- **Organize Your Files:** Store your datasets and models in Google Drive or GitHub for easy access and management within Colab.
+- **Optimize Memory Usage:** If you encounter memory limitations on the free tier, try reducing image size or batch size during training.
+- **Save Regularly:** Due to Colab's session time limits, save your model and results frequently to avoid losing progress.
+
 ## Keep Learning about Google Colab
 
 If you'd like to dive deeper into Google Colab, here are a few resources to guide you.
 
 - **[Training Custom Datasets with Ultralytics YOLO11 in Google Colab](https://www.ultralytics.com/blog/training-custom-datasets-with-ultralytics-yolov8-in-google-colab)**: Learn how to train custom datasets with Ultralytics YOLO11 on Google Colab. This comprehensive blog post will take you through the entire process, from initial setup to the training and evaluation stages.
+
+- **[Image Segmentation with Ultralytics YOLO11 on Google Colab](https://www.ultralytics.com/blog/image-segmentation-with-ultralytics-yolo11-on-google-colab)**: Explore how to perform image segmentation tasks using YOLO11 in the Google Colab environment, with practical examples using datasets like the Roboflow Carparts Segmentation Dataset.
 
 - **[Curated Notebooks](https://colab.google/notebooks/)**: Here you can explore a series of organized and educational notebooks, each grouped by specific topic areas.
 
@@ -103,11 +109,11 @@ If you'd like to dive deeper into Google Colab, here are a few resources to guid
 
 ## Summary
 
-We've discussed how you can easily experiment with Ultralytics YOLO11 models on Google Colab. You can use Google Colab to train and evaluate your models on GPUs and TPUs with a few clicks.
+We've discussed how you can easily experiment with Ultralytics YOLO11 models on Google Colab. You can use Google Colab to train and evaluate your models on GPUs and TPUs with a few clicks, making it an accessible platform for developers without high-end hardware.
 
 For more details, visit [Google Colab's FAQ page](https://research.google.com/colaboratory/intl/en-GB/faq.html).
 
-Interested in more YOLO11 integrations? Visit the [Ultralytics integration guide page](index.md) to explore additional tools and capabilities that can improve your machine-learning projects.
+Interested in more YOLO11 integrations? Visit the [Ultralytics integration guide page](index.md) to explore additional tools and capabilities that can improve your machine-learning projects, or check out [Kaggle integration](kaggle.md) for another cloud-based alternative.
 
 ## FAQ
 

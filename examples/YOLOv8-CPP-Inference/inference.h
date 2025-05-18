@@ -1,3 +1,5 @@
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 #ifndef INFERENCE_H
 #define INFERENCE_H
 
@@ -30,7 +32,7 @@ public:
 private:
     void loadClassesFromFile();
     void loadOnnxNetwork();
-    cv::Mat formatToSquare(const cv::Mat &source);
+    cv::Mat formatToSquare(const cv::Mat &source, int *pad_x, int *pad_y, float *scale);
 
     std::string modelPath{};
     std::string classesPath{};

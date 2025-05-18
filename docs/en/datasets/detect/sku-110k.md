@@ -6,7 +6,7 @@ keywords: SKU-110k, dataset, object detection, retail shelf images, deep learnin
 
 # SKU-110k Dataset
 
-The [SKU-110k](https://github.com/eg4000/SKU110K_CVPR19) dataset is a collection of densely packed retail shelf images, designed to support research in [object detection](https://www.ultralytics.com/glossary/object-detection) tasks. Developed by Eran Goldman et al., the dataset contains over 110,000 unique store keeping unit (SKU) categories with densely packed objects, often looking similar or even identical, positioned in close proximity.
+The [SKU-110k](https://github.com/eg4000/SKU110K_CVPR19) dataset is a collection of densely packed retail shelf images, designed to support research in [object detection](https://www.ultralytics.com/glossary/object-detection) tasks. Developed by Eran Goldman et al., the dataset contains over 110,000 unique store keeping unit (SKU) categories with densely packed objects, often looking similar or even identical, positioned in proximity.
 
 <p align="center">
   <br>
@@ -31,13 +31,21 @@ The [SKU-110k](https://github.com/eg4000/SKU110K_CVPR19) dataset is a collection
 
 The SKU-110k dataset is organized into three main subsets:
 
-1. **Training set**: This subset contains images and annotations used for training object detection models.
-2. **Validation set**: This subset consists of images and annotations used for model validation during training.
-3. **Test set**: This subset is designed for the final evaluation of trained object detection models.
+1. **Training set**: This subset contains 8,219 images and annotations used for training object detection models.
+2. **Validation set**: This subset consists of 588 images and annotations used for model validation during training.
+3. **Test set**: This subset includes 2,936 images designed for the final evaluation of trained object detection models.
 
 ## Applications
 
-The SKU-110k dataset is widely used for training and evaluating deep learning models in object detection tasks, especially in densely packed scenes such as retail shelf displays. The dataset's diverse set of SKU categories and densely packed object arrangements make it a valuable resource for researchers and practitioners in the field of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv).
+The SKU-110k dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in object detection tasks, especially in densely packed scenes such as retail shelf displays. Its applications include:
+
+- Retail inventory management and automation
+- Product recognition in e-commerce platforms
+- Planogram compliance verification
+- Self-checkout systems in stores
+- Robotic picking and sorting in warehouses
+
+The dataset's diverse set of SKU categories and densely packed object arrangements make it a valuable resource for researchers and practitioners in the field of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv).
 
 ## Dataset YAML
 
@@ -82,7 +90,7 @@ The SKU-110k dataset contains a diverse set of retail shelf images with densely 
 
 - **Densely packed retail shelf image**: This image demonstrates an example of densely packed objects in a retail shelf setting. Objects are annotated with bounding boxes and SKU category labels.
 
-The example showcases the variety and complexity of the data in the SKU-110k dataset and highlights the importance of high-quality data for object detection tasks.
+The example showcases the variety and complexity of the data in the SKU-110k dataset and highlights the importance of high-quality data for object detection tasks. The dense arrangement of products presents unique challenges for detection algorithms, making this dataset particularly valuable for developing robust retail-focused computer vision solutions.
 
 ## Citations and Acknowledgments
 
@@ -94,10 +102,10 @@ If you use the SKU-110k dataset in your research or development work, please cit
 
         ```bibtex
         @inproceedings{goldman2019dense,
-         author    = {Eran Goldman and Roei Herzig and Aviv Eisenschtat and Jacob Goldberger and Tal Hassner},
-         title     = {Precise Detection in Densely Packed Scenes},
-         booktitle = {Proc. Conf. Comput. Vision Pattern Recognition (CVPR)},
-         year      = {2019}
+          author    = {Eran Goldman and Roei Herzig and Aviv Eisenschtat and Jacob Goldberger and Tal Hassner},
+          title     = {Precise Detection in Densely Packed Scenes},
+          booktitle = {Proc. Conf. Comput. Vision Pattern Recognition (CVPR)},
+          year      = {2019}
         }
         ```
 
@@ -107,7 +115,7 @@ We would like to acknowledge Eran Goldman et al. for creating and maintaining th
 
 ### What is the SKU-110k dataset and why is it important for object detection?
 
-The SKU-110k dataset consists of densely packed retail shelf images designed to aid research in object detection tasks. Developed by Eran Goldman et al., it includes over 110,000 unique SKU categories. Its importance lies in its ability to challenge state-of-the-art object detectors with diverse object appearances and close proximity, making it an invaluable resource for researchers and practitioners in computer vision. Learn more about the dataset's structure and applications in our [SKU-110k Dataset](#sku-110k-dataset) section.
+The SKU-110k dataset consists of densely packed retail shelf images designed to aid research in object detection tasks. Developed by Eran Goldman et al., it includes over 110,000 unique SKU categories. Its importance lies in its ability to challenge state-of-the-art object detectors with diverse object appearances and proximity, making it an invaluable resource for researchers and practitioners in computer vision. Learn more about the dataset's structure and applications in our [SKU-110k Dataset](#sku-110k-dataset) section.
 
 ### How do I train a YOLO11 model using the SKU-110k dataset?
 
@@ -141,9 +149,9 @@ For a comprehensive list of available arguments, refer to the model [Training](.
 
 The SKU-110k dataset is organized into three main subsets:
 
-1. **Training set**: Contains images and annotations used for training object detection models.
-2. **Validation set**: Consists of images and annotations used for model validation during training.
-3. **Test set**: Designed for the final evaluation of trained object detection models.
+1. **Training set**: Contains 8,219 images and annotations used for training object detection models.
+2. **Validation set**: Consists of 588 images and annotations used for model validation during training.
+3. **Test set**: Includes 2,936 images designed for the final evaluation of trained object detection models.
 
 Refer to the [Dataset Structure](#dataset-structure) section for more details.
 
@@ -171,10 +179,10 @@ If you use the SKU-110k dataset in your research or development work, please cit
 
         ```bibtex
         @inproceedings{goldman2019dense,
-         author    = {Eran Goldman and Roei Herzig and Aviv Eisenschtat and Jacob Goldberger and Tal Hassner},
-         title     = {Precise Detection in Densely Packed Scenes},
-         booktitle = {Proc. Conf. Comput. Vision Pattern Recognition (CVPR)},
-         year      = {2019}
+          author    = {Eran Goldman and Roei Herzig and Aviv Eisenschtat and Jacob Goldberger and Tal Hassner},
+          title     = {Precise Detection in Densely Packed Scenes},
+          booktitle = {Proc. Conf. Comput. Vision Pattern Recognition (CVPR)},
+          year      = {2019}
         }
         ```
 

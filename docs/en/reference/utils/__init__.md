@@ -15,6 +15,10 @@ keywords: Ultralytics, utils, TQDM, Python, ML, Machine Learning utilities, YOLO
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.DataExportMixin
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.SimpleClass
 
 <br><br><hr><br>
@@ -24,6 +28,10 @@ keywords: Ultralytics, utils, TQDM, Python, ML, Machine Learning utilities, YOLO
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.ThreadingLocked
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.YAML
 
 <br><br><hr><br>
 
@@ -55,18 +63,6 @@ keywords: Ultralytics, utils, TQDM, Python, ML, Machine Learning utilities, YOLO
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.yaml_save
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.yaml_load
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.yaml_print
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.read_device_model
 
 <br><br><hr><br>
@@ -84,6 +80,10 @@ keywords: Ultralytics, utils, TQDM, Python, ML, Machine Learning utilities, YOLO
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.is_jupyter
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.is_runpod
 
 <br><br><hr><br>
 

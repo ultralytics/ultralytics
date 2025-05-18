@@ -32,7 +32,7 @@ Ensure MLflow is installed. If not, install it using pip:
 pip install mlflow
 ```
 
-Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this is controlled by the settings `mflow` key. See the [settings](../quickstart.md#ultralytics-settings) page for more info.
+Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this is controlled by the settings `mlflow` key. See the [settings](../quickstart.md#ultralytics-settings) page for more info.
 
 !!! example "Update Ultralytics MLflow Settings"
 
@@ -54,7 +54,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
         If you prefer using the command-line interface, the following commands will allow you to modify your settings:
         ```bash
         # Update a setting
-        yolo settings runs_dir='/path/to/runs'
+        yolo settings mlflow=True
 
         # Reset settings to default values
         yolo settings reset
@@ -67,7 +67,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
 1. **Set a Project Name**: You can set the project name via an environment variable:
 
     ```bash
-    export MLFLOW_EXPERIMENT_NAME=<your_experiment_name>
+    export MLFLOW_EXPERIMENT_NAME=YOUR_EXPERIMENT_NAME
     ```
 
     Or use the `project=<project>` argument when training a YOLO model, i.e. `yolo train project=my_project`.
@@ -75,7 +75,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
 2. **Set a Run Name**: Similar to setting a project name, you can set the run name via an environment variable:
 
     ```bash
-    export MLFLOW_RUN=<your_run_name>
+    export MLFLOW_RUN=YOUR_RUN_NAME
     ```
 
     Or use the `name=<name>` argument when training a YOLO model, i.e. `yolo train project=my_project name=my_name`.
@@ -83,10 +83,10 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
 3. **Start Local MLflow Server**: To start tracking, use:
 
     ```bash
-    mlflow server --backend-store-uri runs/mlflow'
+    mlflow server --backend-store-uri runs/mlflow
     ```
 
-    This will start a local server at http://127.0.0.1:5000 by default and save all mlflow logs to the 'runs/mlflow' directory. To specify a different URI, set the `MLFLOW_TRACKING_URI` environment variable.
+    This will start a local server at `http://127.0.0.1:5000` by default and save all mlflow logs to the 'runs/mlflow' directory. To specify a different URI, set the `MLFLOW_TRACKING_URI` environment variable.
 
 4. **Kill MLflow Server Instances**: To stop all running MLflow instances, run:
 
@@ -96,13 +96,13 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
 
 ### Logging
 
-The logging is taken care of by the `on_pretrain_routine_end`, `on_fit_epoch_end`, and `on_train_end` callback functions. These functions are automatically called during the respective stages of the training process, and they handle the logging of parameters, metrics, and artifacts.
+The logging is taken care of by the `on_pretrain_routine_end`, `on_fit_epoch_end`, and `on_train_end` [callback functions](../reference/utils/callbacks/mlflow.md). These functions are automatically called during the respective stages of the training process, and they handle the logging of parameters, metrics, and artifacts.
 
 ## Examples
 
 1. **Logging Custom Metrics**: You can add custom metrics to be logged by modifying the `trainer.metrics` dictionary before `on_fit_epoch_end` is called.
 
-2. **View Experiment**: To view your logs, navigate to your MLflow server (usually http://127.0.0.1:5000) and select your experiment and run. <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/yolo-mlflow-experiment.avif" alt="YOLO MLflow Experiment">
+2. **View Experiment**: To view your logs, navigate to your MLflow server (usually `http://127.0.0.1:5000`) and select your experiment and run. <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/yolo-mlflow-experiment.avif" alt="YOLO MLflow Experiment">
 
 3. **View Run**: Runs are individual models inside an experiment. Click on a Run and see the Run details, including uploaded artifacts and model weights. <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/yolo-mlflow-run.avif" alt="YOLO MLflow Run">
 
@@ -116,7 +116,7 @@ yolo settings mlflow=False
 
 ## Conclusion
 
-MLflow logging integration with Ultralytics YOLO offers a streamlined way to keep track of your machine learning experiments. It empowers you to monitor performance metrics and manage artifacts effectively, thus aiding in robust model development and deployment. For further details please visit the MLflow [official documentation](https://mlflow.org/docs/latest/index.html).
+MLflow logging integration with Ultralytics YOLO offers a streamlined way to keep track of your [machine learning experiments](https://www.ultralytics.com/blog/log-ultralytics-yolo-experiments-using-mlflow-integration). It empowers you to monitor performance metrics and manage artifacts effectively, thus aiding in robust model development and deployment. For further details please visit the MLflow [official documentation](https://mlflow.org/docs/latest/index.html).
 
 ## FAQ
 
@@ -148,7 +148,7 @@ Next, enable MLflow logging in Ultralytics settings. This can be controlled usin
 
         ```bash
         # Update a setting
-        yolo settings runs_dir='/path/to/runs'
+        yolo settings mlflow=True
 
         # Reset settings to default values
         yolo settings reset
@@ -188,7 +188,7 @@ To start an MLflow server for tracking your experiments in Ultralytics YOLO, use
 mlflow server --backend-store-uri runs/mlflow
 ```
 
-This command starts a local server at http://127.0.0.1:5000 by default. If you need to stop running MLflow server instances, use the following bash command:
+This command starts a local server at `http://127.0.0.1:5000` by default. If you need to stop running MLflow server instances, use the following bash command:
 
 ```bash
 ps aux | grep 'mlflow' | grep -v 'grep' | awk '{print $2}' | xargs kill -9
@@ -203,5 +203,7 @@ Integrating MLflow with Ultralytics YOLO offers several benefits for managing yo
 - **Enhanced Experiment Tracking**: Easily track and compare different runs and their outcomes.
 - **Improved Model Reproducibility**: Ensure that your experiments are reproducible by logging all parameters and artifacts.
 - **Performance Monitoring**: Visualize performance metrics over time to make data-driven decisions for model improvements.
+- **Streamlined Workflow**: Automate the logging process to focus more on model development rather than manual tracking.
+- **Collaborative Development**: Share experiment results with team members for better collaboration and knowledge sharing.
 
 For an in-depth look at setting up and leveraging MLflow with Ultralytics YOLO, explore the [MLflow Integration for Ultralytics YOLO](#introduction) documentation.

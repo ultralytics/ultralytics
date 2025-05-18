@@ -13,14 +13,14 @@ keywords: YOLOv5, Test-Time Augmentation, TTA, machine learning, deep learning, 
 Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
-git clone https://github.com/ultralytics/yolov5  # clone
+git clone https://github.com/ultralytics/yolov5 # clone
 cd yolov5
-pip install -r requirements.txt  # install
+pip install -r requirements.txt # install
 ```
 
 ## Test Normally
 
-Before trying TTA we want to establish a baseline performance to compare to. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate model available. Other options are `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or you own checkpoint from training a custom dataset `./weights/best.pt`. For details on all available models please see our README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
+Before trying TTA we want to establish a baseline performance to compare to. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate model available. Other options are `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or your own checkpoint from training a custom dataset `./weights/best.pt`. For details on all available models please see our [YOLOv5 documentation](https://docs.ultralytics.com/models/yolov5/).
 
 ```bash
 python val.py --weights yolov5x.pt --data coco.yaml --img 640 --half
@@ -28,8 +28,8 @@ python val.py --weights yolov5x.pt --data coco.yaml --img 640 --half
 
 Output:
 
-```shell
-val: data=./data/coco.yaml, weights=['yolov5x.pt'], batch_size=32, imgsz=640, conf_thres=0.001, iou_thres=0.65, task=val, device=, single_cls=False, augment=False, verbose=False, save_txt=False, save_hybrid=False, save_conf=False, save_json=True, project=runs/val, name=exp, exist_ok=False, half=True
+```output
+val: data=./data/coco.yaml, weights=['yolov5x.pt'], batch_size=32, imgsz=640, conf_thres=0.001, iou_thres=0.65, task=val, device=, single_cls=False, augment=False, verbose=False, save_txt=False, save_conf=False, save_json=True, project=runs/val, name=exp, exist_ok=False, half=True
 YOLOv5 🚀 v5.0-267-g6a3ee7c torch 1.9.0+cu102 CUDA:0 (Tesla P100-PCIE-16GB, 16280.875MB)
 
 Fusing layers...
@@ -59,7 +59,7 @@ Evaluating pycocotools mAP... saving runs/val/exp/yolov5x_predictions.json...
 
 ## Test with TTA
 
-Append `--augment` to any existing `val.py` command to enable TTA, and increase the image size by about 30% for improved results. Note that inference with TTA enabled will typically take about 2-3X the time of normal inference as the images are being left-right flipped and processed at 3 different resolutions, with the outputs merged before NMS. Part of the speed decrease is simply due to larger image sizes (832 vs 640), while part is due to the actual TTA operations.
+Append `--augment` to any existing `val.py` command to enable TTA, and increase the image size by about 30% for improved results. Note that inference with TTA enabled will typically take about 2-3X the time of normal inference as the images are being left-right flipped and processed at 3 different resolutions, with the outputs merged before [NMS](https://www.ultralytics.com/glossary/non-maximum-suppression-nms). Part of the speed decrease is simply due to larger image sizes (832 vs 640), while part is due to the actual TTA operations.
 
 ```bash
 python val.py --weights yolov5x.pt --data coco.yaml --img 832 --augment --half
@@ -67,8 +67,8 @@ python val.py --weights yolov5x.pt --data coco.yaml --img 832 --augment --half
 
 Output:
 
-```shell
-val: data=./data/coco.yaml, weights=['yolov5x.pt'], batch_size=32, imgsz=832, conf_thres=0.001, iou_thres=0.6, task=val, device=, single_cls=False, augment=True, verbose=False, save_txt=False, save_hybrid=False, save_conf=False, save_json=True, project=runs/val, name=exp, exist_ok=False, half=True
+```output
+val: data=./data/coco.yaml, weights=['yolov5x.pt'], batch_size=32, imgsz=832, conf_thres=0.001, iou_thres=0.6, task=val, device=, single_cls=False, augment=True, verbose=False, save_txt=False, save_conf=False, save_json=True, project=runs/val, name=exp, exist_ok=False, half=True
 YOLOv5 🚀 v5.0-267-g6a3ee7c torch 1.9.0+cu102 CUDA:0 (Tesla P100-PCIE-16GB, 16280.875MB)
 
 Fusing layers...
@@ -107,7 +107,7 @@ python detect.py --weights yolov5s.pt --img 832 --source data/images --augment
 
 Output:
 
-```bash
+```output
 YOLOv5 🚀 v5.0-267-g6a3ee7c torch 1.9.0+cu102 CUDA:0 (Tesla P100-PCIE-16GB, 16280.875MB)
 
 Downloading https://github.com/ultralytics/yolov5/releases/download/v5.0/yolov5s.pt to yolov5s.pt...
@@ -145,7 +145,18 @@ results.print()  # or .show(), .save(), .crop(), .pandas(), etc.
 
 ### Customize
 
-You can customize the TTA ops applied in the YOLOv5 `forward_augment()` method [here](https://github.com/ultralytics/yolov5/blob/8c6f9e15bfc0000d18b976a95b9d7c17d407ec91/models/yolo.py#L125-L137).
+You can customize the TTA operations applied in the [YOLOv5 `forward_augment()` method](https://github.com/ultralytics/yolov5/blob/8c6f9e15bfc0000d18b976a95b9d7c17d407ec91/models/yolo.py#L125-L137).
+
+## Benefits of Test-Time Augmentation
+
+Test-Time Augmentation offers several key advantages for [object detection](https://www.ultralytics.com/glossary/object-detection) tasks:
+
+- **Improved Accuracy**: As demonstrated in the results above, TTA increases mAP from 0.504 to 0.516 and mAR from 0.681 to 0.696.
+- **Better Small Object Detection**: TTA particularly enhances detection of small objects, with small area AP improving from 0.351 to 0.361.
+- **Increased Robustness**: By testing multiple variations of each image, TTA reduces the impact of viewing angle, lighting, and other environmental factors.
+- **Simple Implementation**: Requires only adding the `--augment` flag to existing commands.
+
+The tradeoff is increased inference time, making TTA more suitable for applications where accuracy is prioritized over speed.
 
 ## Supported Environments
 

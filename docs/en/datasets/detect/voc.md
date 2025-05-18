@@ -25,7 +25,7 @@ The VOC dataset is split into three subsets:
 
 ## Applications
 
-The VOC dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in object detection (such as YOLO, Faster R-CNN, and SSD), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) (such as Mask R-CNN), and [image classification](https://www.ultralytics.com/glossary/image-classification). The dataset's diverse set of object categories, large number of annotated images, and standardized evaluation metrics make it an essential resource for computer vision researchers and practitioners.
+The VOC dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in object detection (such as [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo11/), [Faster R-CNN](https://arxiv.org/abs/1506.01497), and [SSD](https://arxiv.org/abs/1512.02325)), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) (such as [Mask R-CNN](https://arxiv.org/abs/1703.06870)), and [image classification](https://www.ultralytics.com/glossary/image-classification). The dataset's diverse set of object categories, large number of annotated images, and standardized evaluation metrics make it an essential resource for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) researchers and practitioners.
 
 ## Dataset YAML
 
@@ -134,4 +134,4 @@ The PASCAL VOC dataset enhances model benchmarking and evaluation through its de
 
 ### How do I use the VOC dataset for [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) in YOLO models?
 
-To use the VOC dataset for semantic segmentation tasks with YOLO models, you need to configure the dataset properly in a YAML file. The YAML file defines paths and classes needed for training segmentation models. Check the VOC dataset YAML configuration file at [VOC.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/VOC.yaml) for detailed setups.
+To use the VOC dataset for semantic segmentation tasks with YOLO models, you need to configure the dataset properly in a YAML file. The YAML file defines paths and classes needed for training segmentation models. Check the VOC dataset YAML configuration file at [VOC.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/VOC.yaml) for detailed setups. For segmentation tasks, you would use a segmentation-specific model like `yolo11n-seg.pt` instead of the detection model.

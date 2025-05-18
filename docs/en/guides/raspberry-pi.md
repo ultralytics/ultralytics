@@ -137,7 +137,7 @@ The YOLO11n model in PyTorch format is converted to NCNN to run inference with t
 
 ## Raspberry Pi 5 YOLO11 Benchmarks
 
-YOLO11 benchmarks were run by the Ultralytics team on nine different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN. Benchmarks were run on a Raspberry Pi 5 at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
+YOLO11 benchmarks were run by the Ultralytics team on ten different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, MNN, NCNN. Benchmarks were run on a Raspberry Pi 5 at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
 
 ### Comparison Chart
 
@@ -150,7 +150,7 @@ We have only included benchmarks for YOLO11n and YOLO11s models because other mo
 
 ### Detailed Comparison Table
 
-The below table represents the benchmark results for two different models (YOLO11n, YOLO11s) across nine different formats (PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, NCNN), running on a Raspberry Pi 5, giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
+The below table represents the benchmark results for two different models (YOLO11n, YOLO11s) across ten different formats (PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, MNN, NCNN), running on a Raspberry Pi 5, giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
 
 !!! tip "Performance"
 
@@ -211,7 +211,7 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
         yolo benchmark model=yolo11n.pt data=coco8.yaml imgsz=640
         ```
 
-    Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results use a dataset with a large number of images, i.e. `data='coco8.yaml'` (4 val images), or `data='coco.yaml'` (5000 val images).
+    Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results use a dataset with a large number of images, i.e. `data='coco128.yaml'` (128 val images), or `data='coco.yaml'` (5000 val images).
 
 ## Use Raspberry Pi Camera
 

@@ -176,6 +176,11 @@ jobs:
           - os: ubuntu-latest
             python-version: "3.8" # torch 1.8.0 requires python >=3.6, <=3.9
             torch: "1.8.0" # min torch version CI https://pypi.org/project/torchvision/
+            varient: default # opencv-python
+          - os: ubuntu-latest
+            python-version: "3.8"
+            torch: "1.8.0"
+            variant: headless #opencv-python-headless
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

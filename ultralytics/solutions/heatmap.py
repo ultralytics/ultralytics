@@ -99,13 +99,11 @@ class Heatmap(ObjectCounter):
             if self.region is not None:
                 self.annotator.draw_region(reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2)
                 self.store_tracking_history(track_id, box)  # Store track history
-                self.store_classwise_counts(cls)  # Store classwise counts in dict
-                current_centroid = ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2)
                 # Get previous position if available
                 prev_position = None
                 if len(self.track_history[track_id]) > 1:
                     prev_position = self.track_history[track_id][-2]
-                self.count_objects(current_centroid, track_id, prev_position, cls)  # Perform object counting
+                self.count_objects(self.track_history[track_id][-1], track_id, prev_position, cls)  # object counting
 
         plot_im = self.annotator.result()
         if self.region is not None:
@@ -124,6 +122,6 @@ class Heatmap(ObjectCounter):
             plot_im=plot_im,
             in_count=self.in_count,
             out_count=self.out_count,
-            classwise_count=self.classwise_counts,
+            classwise_count=dict(self.classwise_counts),
             total_tracks=len(self.track_ids),
         )

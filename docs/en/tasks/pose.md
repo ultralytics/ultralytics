@@ -119,6 +119,10 @@ Validate trained YOLO11n-pose model [accuracy](https://www.ultralytics.com/gloss
         metrics.box.map50  # map50
         metrics.box.map75  # map75
         metrics.box.maps  # a list contains map50-95 of each category
+        metrics.pose.map  # map50-95(P)
+        metrics.pose.map50  # map50(P)
+        metrics.pose.map75  # map75(P)
+        metrics.pse.maps  # a list contains map50-95(P) of each category
         ```
 
     === "CLI"

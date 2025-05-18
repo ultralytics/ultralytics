@@ -130,7 +130,7 @@ class Inference:
         # Add dropdown menu for model selection
         available_models = [x.replace("yolo", "YOLO") for x in GITHUB_ASSETS_STEMS if x.startswith("yolo11")]
         if self.model_path:  # If user provided the custom model, insert model without suffix as *.pt is added later
-            available_models.insert(0, self.model_path.split(".pt")[0])
+            available_models.insert(0, self.model_path.split(".pt", 1)[0])
         selected_model = self.st.sidebar.selectbox("Model", available_models)
 
         with self.st.spinner("Model is downloading..."):

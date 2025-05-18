@@ -30,12 +30,9 @@ class VisualAISearch(BaseSolution):
         """Initializes the VisualAISearch class with the FAISS index file and CLIP model."""
         super().__init__(**kwargs)
         check_requirements(["git+https://github.com/ultralytics/CLIP.git", "faiss-cpu"])
-        import clip
-        import faiss
 
-        self.faiss = faiss
-        self.clip = clip
-
+        self.faiss = __import__("faiss")
+        self.clip = __import__("clip")
         self.faiss_index = "faiss.index"
         self.data_path_npy = "paths.npy"
         self.model_name = "ViT-B/32"
@@ -51,7 +48,7 @@ class VisualAISearch(BaseSolution):
             safe_download(url=f"{ASSETS_URL}/images.zip", unzip=True, retry=3)
             self.data_dir = Path("images")
 
-        self.model, self.preprocess = clip.load(self.model_name, device=self.device)
+        self.model, self.preprocess = self.clip.load(self.model_name, device=self.device)
 
         self.index = None
         self.image_paths = []

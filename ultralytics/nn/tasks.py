@@ -146,6 +146,8 @@ class BaseModel(torch.nn.Module):
             (torch.Tensor): The last output of the model.
         """
         y, dt, embeddings = [], [], []  # outputs
+        embed = frozenset(embed) if embed is not None else {-1}
+        max_idx = max(embed)
         for m in self.model:
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
@@ -155,9 +157,9 @@ class BaseModel(torch.nn.Module):
             y.append(x if m.i in self.save else None)  # save output
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
-            if embed and m.i in embed:
+            if m.i in embed:
                 embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
-                if m.i == max(embed):
+                if m.i == max_idx:
                     return torch.unbind(torch.cat(embeddings, 1), dim=0)
         return x
 
@@ -677,6 +679,8 @@ class RTDETRDetectionModel(DetectionModel):
             (torch.Tensor): Model's output tensor.
         """
         y, dt, embeddings = [], [], []  # outputs
+        embed = frozenset(embed) if embed is not None else {-1}
+        max_idx = max(embed)
         for m in self.model[:-1]:  # except the head part
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
@@ -686,9 +690,9 @@ class RTDETRDetectionModel(DetectionModel):
             y.append(x if m.i in self.save else None)  # save output
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
-            if embed and m.i in embed:
+            if m.i in embed:
                 embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
-                if m.i == max(embed):
+                if m.i == max_idx:
                     return torch.unbind(torch.cat(embeddings, 1), dim=0)
         head = self.model[-1]
         x = head([y[j] for j in head.f], batch)  # head inference
@@ -721,24 +725,33 @@ class WorldModel(DetectionModel):
             batch (int): Batch size for processing text tokens.
             cache_clip_model (bool): Whether to cache the CLIP model.
         """
-        try:
-            import clip
-        except ImportError:
-            check_requirements("git+https://github.com/ultralytics/CLIP.git")
-            import clip
+        self.txt_feats = self.get_text_pe(text, batch=batch, cache_clip_model=cache_clip_model)
+        self.model[-1].nc = len(text)
 
-        if (
-            not getattr(self, "clip_model", None) and cache_clip_model
-        ):  # for backwards compatibility of models lacking clip_model attribute
-            self.clip_model = clip.load("ViT-B/32")[0]
-        model = self.clip_model if cache_clip_model else clip.load("ViT-B/32")[0]
-        device = next(model.parameters()).device
-        text_token = clip.tokenize(text).to(device)
+    @smart_inference_mode()
+    def get_text_pe(self, text, batch=80, cache_clip_model=True):
+        """
+        Set classes in advance so that model could do offline-inference without clip model.
+
+        Args:
+            text (List[str]): List of class names.
+            batch (int): Batch size for processing text tokens.
+            cache_clip_model (bool): Whether to cache the CLIP model.
+
+        Returns:
+            (torch.Tensor): Text positional embeddings.
+        """
+        from ultralytics.nn.text_model import build_text_model
+
+        device = next(self.model.parameters()).device
+        if not getattr(self, "clip_model", None) and cache_clip_model:
+            # For backwards compatibility of models lacking clip_model attribute
+            self.clip_model = build_text_model("clip:ViT-B/32", device=device)
+        model = self.clip_model if cache_clip_model else build_text_model("clip:ViT-B/32", device=device)
+        text_token = model.tokenize(text)
         txt_feats = [model.encode_text(token).detach() for token in text_token.split(batch)]
         txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)
-        txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
-        self.txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
-        self.model[-1].nc = len(text)
+        return txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
 
     def predict(self, x, profile=False, visualize=False, txt_feats=None, augment=False, embed=None):
         """
@@ -760,6 +773,8 @@ class WorldModel(DetectionModel):
             txt_feats = txt_feats.expand(x.shape[0], -1, -1)
         ori_txt_feats = txt_feats.clone()
         y, dt, embeddings = [], [], []  # outputs
+        embed = frozenset(embed) if embed is not None else {-1}
+        max_idx = max(embed)
         for m in self.model:  # except the head part
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
@@ -777,9 +792,9 @@ class WorldModel(DetectionModel):
             y.append(x if m.i in self.save else None)  # save output
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
-            if embed and m.i in embed:
+            if m.i in embed:
                 embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
-                if m.i == max(embed):
+                if m.i == max_idx:
                     return torch.unbind(torch.cat(embeddings, 1), dim=0)
         return x
 
@@ -976,6 +991,8 @@ class YOLOEModel(DetectionModel):
         """
         y, dt, embeddings = [], [], []  # outputs
         b = x.shape[0]
+        embed = frozenset(embed) if embed is not None else {-1}
+        max_idx = max(embed)
         for m in self.model:  # except the head part
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
@@ -997,9 +1014,9 @@ class YOLOEModel(DetectionModel):
             y.append(x if m.i in self.save else None)  # save output
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
-            if embed and m.i in embed:
+            if m.i in embed:
                 embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
-                if m.i == max(embed):
+                if m.i == max_idx:
                     return torch.unbind(torch.cat(embeddings, 1), dim=0)
         return x
 

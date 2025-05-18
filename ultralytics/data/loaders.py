@@ -353,7 +353,7 @@ class LoadImagesAndVideos:
         # Define files as images or videos
         images, videos = [], []
         for f in files:
-            suffix = f.split(".")[-1].lower()  # Get file extension without the dot and lowercase
+            suffix = f.rpartition(".")[-1].lower()  # Get file extension without the dot and lowercase
             if suffix in IMG_FORMATS:
                 images.append(f)
             elif suffix in VID_FORMATS:
@@ -427,7 +427,7 @@ class LoadImagesAndVideos:
             else:
                 # Handle image files (including HEIC)
                 self.mode = "image"
-                if path.split(".")[-1].lower() == "heic":
+                if path.rpartition(".")[-1].lower() == "heic":
                     # Load HEIC image using Pillow with pillow-heif
                     check_requirements("pillow-heif")
 

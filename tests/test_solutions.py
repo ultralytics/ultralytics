@@ -300,6 +300,7 @@ def test_streamlit_handle_video_upload_creates_file():
     os.remove("ultralytics.mp4")
 
 
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search_app_init():
     """Test SearchApp initializes with required attributes."""
     app = solutions.SearchApp(device="cpu")
@@ -307,6 +308,7 @@ def test_similarity_search_app_init():
     assert hasattr(app, "run")
 
 
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search_complete(tmp_path):
     """Test VisualAISearch end-to-end with sample image and query."""
     from PIL import Image

@@ -28,6 +28,8 @@ class DistanceCalculation(BaseSolution):
         >>> distance_calc = DistanceCalculation()
         >>> frame = cv2.imread("frame.jpg")
         >>> results = distance_calc.process(frame)
+         >>> cv2.imshow("Distance Calculation", results.plot_im)
+        >>> cv2.waitKey(0)
     """
 
     def __init__(self, **kwargs):

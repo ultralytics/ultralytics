@@ -56,6 +56,20 @@ When using Google Colab, it's important to set up TensorBoard before starting yo
 
 Before diving into the usage instructions, be sure to check out the range of [YOLO11 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
+!!! tip "Enable or Disable TensorBoard"
+
+    By default, TensorBoard logging is disabled. You can enable or disable the logging by using the `yolo settings` command.
+
+    === "CLI"
+
+        ```bash
+        # Enable TensorBoard logging
+        yolo settings tensorboard=True
+
+        # Disable TensorBoard logging
+        yolo settings tensorboard=False
+        ```
+
 !!! example "Usage"
 
     === "Python"

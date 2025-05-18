@@ -14,6 +14,7 @@ from transformers import AutoModel, AutoProcessor
 from ultralytics import YOLO
 from ultralytics.data.loaders import get_best_youtube_url
 from ultralytics.utils.plotting import Annotator
+from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.torch_utils import select_device
 
 
@@ -460,7 +461,8 @@ def run(
             out.write(frame)
 
         # Display the annotated frame
-        cv2.imshow("YOLOv8 Tracking with S3D Classification", frame)
+        if check_imshow(warn=True):
+            cv2.imshow("YOLOv8 Tracking with S3D Classification", frame)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break

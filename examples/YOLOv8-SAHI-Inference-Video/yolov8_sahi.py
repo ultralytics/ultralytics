@@ -8,6 +8,7 @@ from sahi.predict import get_sliced_prediction
 from sahi.utils.ultralytics import download_model_weights
 
 from ultralytics.utils.files import increment_path
+from ultralytics.utils.checks import check_imshow
 
 
 class SAHIInference:
@@ -100,8 +101,10 @@ class SAHIInference:
             )
 
             # Display results if requested
+
             if view_img:
-                cv2.imshow("Ultralytics YOLO Inference", frame)
+                if check_imshow(warn=True):
+                    cv2.imshow("Ultralytics YOLO Inference", frame)
 
             # Save results if requested
             if save_img:

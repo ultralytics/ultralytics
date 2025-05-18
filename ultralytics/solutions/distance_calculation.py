@@ -28,8 +28,6 @@ class DistanceCalculation(BaseSolution):
         >>> distance_calc = DistanceCalculation()
         >>> frame = cv2.imread("frame.jpg")
         >>> results = distance_calc.process(frame)
-        >>> cv2.imshow("Distance Calculation", results.plot_im)
-        >>> cv2.waitKey(0)
     """
 
     def __init__(self, **kwargs):
@@ -118,7 +116,9 @@ class DistanceCalculation(BaseSolution):
         self.centroids = []  # Reset centroids for next frame
         plot_im = annotator.result()
         self.display_output(plot_im)  # Display output with base class function
-        cv2.setMouseCallback("Ultralytics Solutions", self.mouse_event_for_distance)
-
+        if self.env_check:
+            cv2.setMouseCallback("Ultralytics Solutions", self.mouse_event_for_distance)
+        else:
+            LOGGER.warning("Mouse callback event not supported in opencv-python-headless or where imshow not supported")
         # Return SolutionResults with processed image and calculated metrics
         return SolutionResults(plot_im=plot_im, pixels_distance=pixels_distance, total_tracks=len(self.track_ids))

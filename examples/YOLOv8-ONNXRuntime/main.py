@@ -9,7 +9,7 @@ import onnxruntime as ort
 import torch
 
 from ultralytics.utils import ASSETS, YAML
-from ultralytics.utils.checks import check_requirements, check_yaml
+from ultralytics.utils.checks import check_requirements, check_yaml, check_imshow
 
 
 class YOLOv8:
@@ -275,8 +275,9 @@ if __name__ == "__main__":
     output_image = detection.main()
 
     # Display the output image in a window
-    cv2.namedWindow("Output", cv2.WINDOW_NORMAL)
-    cv2.imshow("Output", output_image)
+    if check_imshow(warn=True):
+        cv2.namedWindow("Output", cv2.WINDOW_NORMAL)
+        cv2.imshow("Output", output_image)
 
-    # Wait for a key press to exit
-    cv2.waitKey(0)
+        # Wait for a key press to exit
+        cv2.waitKey(0)

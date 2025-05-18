@@ -26,8 +26,6 @@ class AIGym(BaseSolution):
         >>> image = cv2.imread("gym_scene.jpg")
         >>> results = gym.process(image)
         >>> processed_image = results.plot_im
-        >>> cv2.imshow("Processed Image", processed_image)
-        >>> cv2.waitKey(0)
     """
 
     def __init__(self, **kwargs):

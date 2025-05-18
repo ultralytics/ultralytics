@@ -31,7 +31,6 @@ class TrackZone(BaseSolution):
         >>> tracker = TrackZone()
         >>> frame = cv2.imread("frame.jpg")
         >>> results = tracker.process(frame)
-        >>> cv2.imshow("Tracked Frame", results.plot_im)
     """
 
     def __init__(self, **kwargs):

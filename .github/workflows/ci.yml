@@ -161,7 +161,7 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
 
   Tests:
-    name: Tests (${{ matrix.variant }})
+    name: Tests (${{ matrix.os }}, ${{ matrix.python-version }}, ${{ matrix.torch }}, opencv-${{ matrix.variant }})
     if: github.event_name != 'workflow_dispatch' || github.event.inputs.tests == 'true'
     timeout-minutes: 360
     runs-on: ${{ matrix.os }}

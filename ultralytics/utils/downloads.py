@@ -32,11 +32,13 @@ GITHUB_ASSETS_NAMES = frozenset(
     + [f"sam2.1_{k}.pt" for k in "blst"]
     + [f"FastSAM-{k}.pt" for k in "sx"]
     + [f"rtdetr-{k}.pt" for k in "lx"]
-    + ["mobile_sam.pt"]
-    + ["mobileclip_blt.ts"]
-    + ["calibration_image_sample_data_20x128x128x3_float32.npy.zip"]
+    + [
+        "mobile_sam.pt",
+        "mobileclip_blt.ts",
+        "calibration_image_sample_data_20x128x128x3_float32.npy.zip",
+    ]
 )
-GITHUB_ASSETS_STEMS = frozenset(k.rsplit(".", 1)[0] for k in GITHUB_ASSETS_NAMES)
+GITHUB_ASSETS_STEMS = frozenset(k.rpartition(".")[0] for k in GITHUB_ASSETS_NAMES)
 
 
 def is_url(url, check=False):
@@ -247,7 +249,7 @@ def get_google_drive_file_info(link):
     """
     import requests  # slow import
 
-    file_id = link.split("/d/")[1].split("/view")[0]
+    file_id = link.split("/d/")[1].split("/view", 1)[0]
     drive_url = f"https://drive.google.com/uc?export=download&id={file_id}"
     filename = None
 

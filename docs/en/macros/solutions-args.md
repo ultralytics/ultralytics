@@ -24,6 +24,7 @@
     "max_hist": ["int", "5", "Maximum historical points to track per object for speed/direction calculations."],
     "meter_per_pixel": ["float", "0.05", "Scaling factor used for converting pixel distance to real-world units."],
     "max_speed": ["int", "120", "Maximum speed limit in visual overlays (used in alerts)."],
+    "data": ["str", "images", "Path to image directory used for similarity search."],
 } %}
 {%- if not params %}
 {%- for param, details in default_params.items() %}

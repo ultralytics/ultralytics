@@ -7,8 +7,8 @@ from sahi import AutoDetectionModel
 from sahi.predict import get_sliced_prediction
 from sahi.utils.ultralytics import download_model_weights
 
-from ultralytics.utils.files import increment_path
 from ultralytics.utils.checks import check_imshow
+from ultralytics.utils.files import increment_path
 
 
 class SAHIInference:

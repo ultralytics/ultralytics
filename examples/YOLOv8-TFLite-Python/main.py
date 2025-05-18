@@ -10,7 +10,6 @@ import yaml
 from ultralytics.utils import ASSETS
 from ultralytics.utils.checks import check_imshow
 
-
 try:
     from tflite_runtime.interpreter import Interpreter
 except ImportError:

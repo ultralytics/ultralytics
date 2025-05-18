@@ -10,7 +10,7 @@ import torch
 import ultralytics.utils.ops as ops
 from ultralytics.engine.results import Results
 from ultralytics.utils import ASSETS, YAML
-from ultralytics.utils.checks import check_yaml, check_imshow
+from ultralytics.utils.checks import check_imshow, check_yaml
 
 
 class YOLOv8Seg:

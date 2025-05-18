@@ -11,10 +11,9 @@ from shapely.geometry import Polygon
 from shapely.geometry.point import Point
 
 from ultralytics import YOLO
+from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.plotting import Annotator, colors
-from ultralytics.utils.checks import check_imshow
-
 
 track_history = defaultdict(list)
 

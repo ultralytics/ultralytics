@@ -76,11 +76,11 @@ class DFL(nn.Module):
 
 
 class Proto(nn.Module):
-    """YOLOv8 mask Proto module for segmentation models."""
+    """Ultralytics YOLO models mask Proto module for segmentation models."""
 
     def __init__(self, c1, c_=256, c2=32):
         """
-        Initialize the YOLOv8 mask Proto module with specified number of protos and masks.
+        Initialize the Ultralytics YOLO models mask Proto module with specified number of protos and masks.
 
         Args:
             c1 (int): Input channels.

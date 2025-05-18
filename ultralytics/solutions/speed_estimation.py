@@ -32,6 +32,7 @@ class SpeedEstimator(BaseSolution):
         >>> estimator = SpeedEstimator()
         >>> frame = cv2.imread("frame.jpg")
         >>> results = estimator.process(frame)
+        >>> cv2.imshow("Speed Estimation", results.plot_im)
     """
 
     def __init__(self, **kwargs):

@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER, ExportableMixin, SimpleClass, TryExcept, checks, plt_settings
+from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, TryExcept, checks, plt_settings
 
 OKS_SIGMA = (
     np.array([0.26, 0.25, 0.25, 0.35, 0.35, 0.79, 0.79, 0.72, 0.72, 0.62, 0.62, 1.07, 1.07, 0.87, 0.87, 0.89, 0.89])
@@ -865,7 +865,7 @@ class Metric(SimpleClass):
         ]
 
 
-class DetMetrics(SimpleClass, ExportableMixin):
+class DetMetrics(SimpleClass, DataExportMixin):
     """
     Utility class for computing detection metrics such as precision, recall, and mean average precision (mAP).
 
@@ -983,7 +983,7 @@ class DetMetrics(SimpleClass, ExportableMixin):
         ]
 
 
-class SegmentMetrics(SimpleClass, ExportableMixin):
+class SegmentMetrics(SimpleClass, DataExportMixin):
     """
     Calculates and aggregates detection and segmentation metrics over a given set of classes.
 
@@ -1297,7 +1297,7 @@ class PoseMetrics(SegmentMetrics):
         ]
 
 
-class ClassifyMetrics(SimpleClass, ExportableMixin):
+class ClassifyMetrics(SimpleClass, DataExportMixin):
     """
     Class for computing classification metrics including top-1 and top-5 accuracy.
 
@@ -1358,7 +1358,7 @@ class ClassifyMetrics(SimpleClass, ExportableMixin):
         return [{"classify-top1": self.top1, "classify-top5": self.top5}]
 
 
-class OBBMetrics(SimpleClass, ExportableMixin):
+class OBBMetrics(SimpleClass, DataExportMixin):
     """
     Metrics for evaluating oriented bounding box (OBB) detection.
 

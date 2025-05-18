@@ -187,7 +187,7 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
         return super().__iter__()
 
 
-class ExportableMixin:
+class DataExportMixin:
     """
     Mixin class for exporting validation metrics or prediction results in various formats.
 

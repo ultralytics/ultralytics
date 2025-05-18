@@ -55,7 +55,7 @@ Train YOLO11n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/
 
 !!! example "Single-GPU and CPU Training Example"
 
-    Device is determined automatically. If a GPU is available then it will be used, otherwise training will start on CPU.
+    Device is determined automatically. If a GPU is available then it will be used (default CUDA device 0), otherwise training will start on CPU.
 
     === "Python"
 
@@ -102,6 +102,9 @@ Multi-GPU training allows for more efficient utilization of available hardware r
 
         # Train the model with 2 GPUs
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=[0, 1])
+
+        # Train the model with the two most idle GPUs
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=[-1, -1])
         ```
 
     === "CLI"
@@ -109,7 +112,51 @@ Multi-GPU training allows for more efficient utilization of available hardware r
         ```bash
         # Start training from a pretrained *.pt model using GPUs 0 and 1
         yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 device=0,1
+
+        # Use the two most idle GPUs
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 device=-1,-1
         ```
+
+### Idle GPU Training
+
+Idle GPU Training enables automatic selection of the least utilized GPUs in multi-GPU systems, optimizing resource usage without manual GPU selection. This feature identifies available GPUs based on utilization metrics and VRAM availability.
+
+!!! example "Idle GPU Training Example"
+
+    To automatically select and use the most idle GPU(s) for training, use the `-1` device parameter. This is particularly useful in shared computing environments or servers with multiple users.
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+
+        # Train using the single most idle GPU
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=-1)
+
+        # Train using the two most idle GPUs
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=[-1, -1])
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Start training using the single most idle GPU
+        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=-1
+
+        # Start training using the two most idle GPUs
+        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=-1,-1
+        ```
+
+The auto-selection algorithm prioritizes GPUs with:
+
+1. Lower current utilization percentages
+2. Higher available memory (free VRAM)
+3. Lower temperature and power consumption
+
+This feature is especially valuable in shared computing environments or when running multiple training jobs across different models. It automatically adapts to changing system conditions, ensuring optimal resource allocation without manual intervention.
 
 ### Apple Silicon MPS Training
 

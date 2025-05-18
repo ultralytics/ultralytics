@@ -1,3 +1,5 @@
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 const options = { build: "latest", package: "Pip" };
 
 const updateOption = (key, value) => {

@@ -11,6 +11,9 @@ on:
   #   branches:
   #     - ${{ github.event.repository.default_branch }}
 
+permissions:
+  contents: write # Modify code in PRs
+
 jobs:
   Merge:
     if: github.repository == 'ultralytics/ultralytics'

@@ -110,7 +110,7 @@ class SecurityAlarm(BaseSolution):
         # Send the email
         try:
             self.server.send_message(message)
-            LOGGER.info("✅ Email sent successfully!")
+            LOGGER.info("Email sent successfully!")
         except Exception as e:
             LOGGER.error(f"Failed to send email: {e}")
 

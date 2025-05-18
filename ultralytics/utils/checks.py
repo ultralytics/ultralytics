@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import functools
 import glob
 import inspect
 import math
@@ -24,6 +25,7 @@ from ultralytics.utils import (
     AUTOINSTALL,
     IS_COLAB,
     IS_GIT_DIR,
+    IS_JETSON,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
     LINUX,
@@ -71,13 +73,14 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
     for line in requires:
         line = line.strip()
         if line and not line.startswith("#"):
-            line = line.split("#")[0].strip()  # ignore inline comments
+            line = line.partition("#")[0].strip()  # ignore inline comments
             if match := re.match(r"([a-zA-Z0-9-_]+)\s*([<>!=~]+.*)?", line):
                 requirements.append(SimpleNamespace(name=match[1], specifier=match[2].strip() if match[2] else ""))
 
     return requirements
 
 
+@functools.lru_cache
 def parse_version(version="0.0.0") -> tuple:
     """
     Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
@@ -162,6 +165,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     return sz
 
 
+@functools.lru_cache
 def check_version(
     current: str = "0.0.0",
     required: str = "0.0.0",
@@ -295,6 +299,7 @@ def check_pip_update_available():
 
 
 @ThreadingLocked()
+@functools.lru_cache
 def check_font(font="Arial.ttf"):
     """
     Find font locally or download to user's configuration directory if it does not already exist.
@@ -343,7 +348,7 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
 @TryExcept()
 def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds=""):
     """
-    Check if installed dependencies meet YOLOv8 requirements and attempt to auto-update if needed.
+    Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.
 
     Args:
         requirements (Union[Path, str, List[str]]): Path to a requirements.txt file, a single package requirement as a
@@ -374,7 +379,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
     pkgs = []
     for r in requirements:
-        r_stripped = r.split("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
+        r_stripped = r.rpartition("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
         match = re.match(r"([a-zA-Z0-9-_]+)([<>!=~]+.*)?", r_stripped)
         name, required = match[1], match[2].strip() if match[2] else ""
         try:
@@ -383,21 +388,28 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             pkgs.append(r)
 
     @Retry(times=2, delay=1)
-    def attempt_install(packages, commands):
-        """Attempt pip install command with retries on failure."""
-        return subprocess.check_output(f"pip install --no-cache-dir {packages} {commands}", shell=True).decode()
+    def attempt_install(packages, commands, use_uv):
+        """Attempt package installation with uv if available, falling back to pip."""
+        if use_uv:
+            # Note requires --break-system-packages on ARM64 dockerfile
+            cmd = f"uv pip install --system --no-cache-dir {packages} {commands} --index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
+        else:
+            cmd = f"pip install --no-cache-dir {packages} {commands}"
+        return subprocess.check_output(cmd, shell=True).decode()
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:
         if install and AUTOINSTALL:  # check environment variable
+            # Note uv fails on arm64 macOS and Raspberry Pi runners
+            uv = not ARM64 and subprocess.run(["command", "-v", "uv"], capture_output=True, shell=True).returncode == 0
             n = len(pkgs)  # number of packages updates
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
-                LOGGER.info(attempt_install(s, cmds))
+                LOGGER.info(attempt_install(s, cmds, use_uv=uv))
                 dt = time.time() - t
-                LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}")
+                LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s")
                 LOGGER.warning(
                     f"{prefix} {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
                 )
@@ -418,6 +430,7 @@ def check_torchvision():
     to the compatibility table based on: https://github.com/pytorch/vision#installation.
     """
     compatibility_table = {
+        "2.7": ["0.22"],
         "2.6": ["0.21"],
         "2.5": ["0.20"],
         "2.4": ["0.19"],
@@ -430,10 +443,10 @@ def check_torchvision():
     }
 
     # Check major and minor versions
-    v_torch = ".".join(torch.__version__.split("+")[0].split(".")[:2])
+    v_torch = ".".join(torch.__version__.split("+", 1)[0].split(".")[:2])
     if v_torch in compatibility_table:
         compatible_versions = compatibility_table[v_torch]
-        v_torchvision = ".".join(TORCHVISION_VERSION.split("+")[0].split(".")[:2])
+        v_torchvision = ".".join(TORCHVISION_VERSION.split("+", 1)[0].split(".")[:2])
         if all(v_torchvision != v for v in compatible_versions):
             LOGGER.warning(
                 f"torchvision=={v_torchvision} is incompatible with torch=={v_torch}.\n"
@@ -456,9 +469,8 @@ def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
         if isinstance(suffix, str):
             suffix = {suffix}
         for f in file if isinstance(file, (list, tuple)) else [file]:
-            s = Path(f).suffix.lower().strip()  # file suffix
-            if len(s):
-                assert s in suffix, f"{msg}{f} acceptable suffix is {suffix}, not {s}"
+            if s := str(f).rpartition(".")[-1].lower().strip():  # file suffix
+                assert f".{s}" in suffix, f"{msg}{f} acceptable suffix is {suffix}, not .{s}"
 
 
 def check_yolov5u_filename(file: str, verbose: bool = True):
@@ -499,19 +511,19 @@ def check_model_file_from_stem(model="yolo11n"):
     Returns:
         (str | Path): Model filename with appropriate suffix.
     """
-    if model and not Path(model).suffix and Path(model).stem in downloads.GITHUB_ASSETS_STEMS:
-        return Path(model).with_suffix(".pt")  # add suffix, i.e. yolo11n -> yolo11n.pt
-    else:
-        return model
+    path = Path(model)
+    if not path.suffix and path.stem in downloads.GITHUB_ASSETS_STEMS:
+        return path.with_suffix(".pt")  # add suffix, i.e. yolo11n -> yolo11n.pt
+    return model
 
 
 def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     """
-    Search/download file (if necessary) and return path.
+    Search/download file (if necessary), check suffix (if provided), and return path.
 
     Args:
         file (str): File name or path.
-        suffix (str): File suffix to check.
+        suffix (str | Tuple[str]): Acceptable suffix or tuple of suffixes to validate against the file.
         download (bool): Whether to download the file if it doesn't exist locally.
         download_dir (str): Directory to download the file to.
         hard (bool): Whether to raise an error if the file is not found.
@@ -550,9 +562,9 @@ def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
     Search/download YAML file (if necessary) and return path, checking suffix.
 
     Args:
-        file (str): File name or path.
-        suffix (tuple): Acceptable file suffixes.
-        hard (bool): Whether to raise an error if the file is not found.
+        file (str | Path): File name or path.
+        suffix (Tuple[str]): Tuple of acceptable YAML file suffixes.
+        hard (bool): Whether to raise an error if the file is not found or multiple files are found.
 
     Returns:
         (str): Path to the YAML file.
@@ -577,6 +589,7 @@ def check_is_path_safe(basedir, path):
     return path_resolved.exists() and path_resolved.parts[: len(base_dir_resolved.parts)] == base_dir_resolved.parts
 
 
+@functools.lru_cache
 def check_imshow(warn=False):
     """
     Check if environment supports image displays.
@@ -608,7 +621,7 @@ def check_yolo(verbose=True, device=""):
 
     Args:
         verbose (bool): Whether to print verbose information.
-        device (str): Device to use for YOLO.
+        device (str | torch.device): Device to use for YOLO.
     """
     import psutil
 
@@ -649,7 +662,7 @@ def collect_system_info():
     from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
 
     gib = 1 << 30  # bytes per GiB
-    cuda = torch and torch.cuda.is_available()
+    cuda = torch.cuda.is_available()
     check_yolo()
     total, used, free = shutil.disk_usage("/")
 
@@ -810,7 +823,7 @@ def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
     except ValueError:
         file = Path(file).stem
     s = (f"{file}: " if show_file else "") + (f"{func}: " if show_func else "")
-    LOGGER.info(colorstr(s) + ", ".join(f"{k}={strip_auth(v)}" for k, v in args.items()))
+    LOGGER.info(colorstr(s) + ", ".join(f"{k}={strip_auth(v)}" for k, v in sorted(args.items())))
 
 
 def cuda_device_count() -> int:
@@ -820,19 +833,23 @@ def cuda_device_count() -> int:
     Returns:
         (int): The number of NVIDIA GPUs available.
     """
-    try:
-        # Run the nvidia-smi command and capture its output
-        output = subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=count", "--format=csv,noheader,nounits"], encoding="utf-8"
-        )
+    if IS_JETSON:
+        # NVIDIA Jetson does not fully support nvidia-smi and therefore use PyTorch instead
+        return torch.cuda.device_count()
+    else:
+        try:
+            # Run the nvidia-smi command and capture its output
+            output = subprocess.check_output(
+                ["nvidia-smi", "--query-gpu=count", "--format=csv,noheader,nounits"], encoding="utf-8"
+            )
 
-        # Take the first line and strip any leading/trailing white space
-        first_line = output.strip().split("\n")[0]
+            # Take the first line and strip any leading/trailing white space
+            first_line = output.strip().split("\n", 1)[0]
 
-        return int(first_line)
-    except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
-        # If the command fails, nvidia-smi is not found, or output is not an integer, assume no GPUs are available
-        return 0
+            return int(first_line)
+        except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
+            # If the command fails, nvidia-smi is not found, or output is not an integer, assume no GPUs are available
+            return 0
 
 
 def cuda_is_available() -> bool:

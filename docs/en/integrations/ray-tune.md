@@ -4,7 +4,7 @@ description: Optimize YOLO11 model performance with Ray Tune. Learn efficient hy
 keywords: YOLO11, Ray Tune, hyperparameter tuning, model optimization, machine learning, deep learning, AI, Ultralytics, Weights & Biases
 ---
 
-# Efficient [Hyperparameter Tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) with Ray Tune and YOLO11
+# Efficient Hyperparameter Tuning with Ray Tune and YOLO11
 
 Hyperparameter tuning is vital in achieving peak model performance by discovering the optimal set of hyperparameters. This involves running trials with different hyperparameters and evaluating each trial's performance.
 
@@ -75,29 +75,30 @@ By customizing these parameters, you can fine-tune the hyperparameter optimizati
 
 The following table lists the default search space parameters for hyperparameter tuning in YOLO11 with Ray Tune. Each parameter has a specific value range defined by `tune.uniform()`.
 
-| Parameter         | Value Range                | Description                                                                 |
-| ----------------- | -------------------------- | --------------------------------------------------------------------------- |
-| `lr0`             | `tune.uniform(1e-5, 1e-1)` | Initial [learning rate](https://www.ultralytics.com/glossary/learning-rate) |
-| `lrf`             | `tune.uniform(0.01, 1.0)`  | Final learning rate factor                                                  |
-| `momentum`        | `tune.uniform(0.6, 0.98)`  | Momentum                                                                    |
-| `weight_decay`    | `tune.uniform(0.0, 0.001)` | Weight decay                                                                |
-| `warmup_epochs`   | `tune.uniform(0.0, 5.0)`   | Warmup epochs                                                               |
-| `warmup_momentum` | `tune.uniform(0.0, 0.95)`  | Warmup momentum                                                             |
-| `box`             | `tune.uniform(0.02, 0.2)`  | Box loss weight                                                             |
-| `cls`             | `tune.uniform(0.2, 4.0)`   | Class loss weight                                                           |
-| `hsv_h`           | `tune.uniform(0.0, 0.1)`   | Hue augmentation range                                                      |
-| `hsv_s`           | `tune.uniform(0.0, 0.9)`   | Saturation augmentation range                                               |
-| `hsv_v`           | `tune.uniform(0.0, 0.9)`   | Value (brightness) augmentation range                                       |
-| `degrees`         | `tune.uniform(0.0, 45.0)`  | Rotation augmentation range (degrees)                                       |
-| `translate`       | `tune.uniform(0.0, 0.9)`   | Translation augmentation range                                              |
-| `scale`           | `tune.uniform(0.0, 0.9)`   | Scaling augmentation range                                                  |
-| `shear`           | `tune.uniform(0.0, 10.0)`  | Shear augmentation range (degrees)                                          |
-| `perspective`     | `tune.uniform(0.0, 0.001)` | Perspective augmentation range                                              |
-| `flipud`          | `tune.uniform(0.0, 1.0)`   | Vertical flip augmentation probability                                      |
-| `fliplr`          | `tune.uniform(0.0, 1.0)`   | Horizontal flip augmentation probability                                    |
-| `mosaic`          | `tune.uniform(0.0, 1.0)`   | Mosaic augmentation probability                                             |
-| `mixup`           | `tune.uniform(0.0, 1.0)`   | Mixup augmentation probability                                              |
-| `copy_paste`      | `tune.uniform(0.0, 1.0)`   | Copy-paste augmentation probability                                         |
+| Parameter         | Range                      | Description                                                                                                                                      |
+| ----------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `lr0`             | `tune.uniform(1e-5, 1e-1)` | Initial learning rate that controls the step size during optimization. Higher values speed up training but may cause instability.                |
+| `lrf`             | `tune.uniform(0.01, 1.0)`  | Final learning rate factor that determines how much the learning rate decreases by the end of training.                                          |
+| `momentum`        | `tune.uniform(0.6, 0.98)`  | Momentum factor for the optimizer that helps accelerate training and overcome local minima.                                                      |
+| `weight_decay`    | `tune.uniform(0.0, 0.001)` | Regularization parameter that prevents overfitting by penalizing large weight values.                                                            |
+| `warmup_epochs`   | `tune.uniform(0.0, 5.0)`   | Number of epochs with gradually increasing learning rate to stabilize early training.                                                            |
+| `warmup_momentum` | `tune.uniform(0.0, 0.95)`  | Initial momentum value that gradually increases during the warmup period.                                                                        |
+| `box`             | `tune.uniform(0.02, 0.2)`  | Weight for the bounding box loss component, balancing localization accuracy in the model.                                                        |
+| `cls`             | `tune.uniform(0.2, 4.0)`   | Weight for the classification loss component, balancing class prediction accuracy in the model.                                                  |
+| `hsv_h`           | `tune.uniform(0.0, 0.1)`   | Hue augmentation range that introduces color variability to help the model generalize.                                                           |
+| `hsv_s`           | `tune.uniform(0.0, 0.9)`   | Saturation augmentation range that varies color intensity to improve robustness.                                                                 |
+| `hsv_v`           | `tune.uniform(0.0, 0.9)`   | Value (brightness) augmentation range that helps the model perform under various lighting conditions.                                            |
+| `degrees`         | `tune.uniform(0.0, 45.0)`  | Rotation augmentation range in degrees, improving recognition of rotated objects.                                                                |
+| `translate`       | `tune.uniform(0.0, 0.9)`   | Translation augmentation range that shifts images horizontally and vertically.                                                                   |
+| `scale`           | `tune.uniform(0.0, 0.9)`   | Scaling augmentation range that simulates objects at different distances.                                                                        |
+| `shear`           | `tune.uniform(0.0, 10.0)`  | Shear augmentation range in degrees, simulating perspective shifts.                                                                              |
+| `perspective`     | `tune.uniform(0.0, 0.001)` | Perspective augmentation range that simulates 3D viewpoint changes.                                                                              |
+| `flipud`          | `tune.uniform(0.0, 1.0)`   | Vertical flip augmentation probability, increasing dataset diversity.                                                                            |
+| `fliplr`          | `tune.uniform(0.0, 1.0)`   | Horizontal flip augmentation probability, useful for symmetrical objects.                                                                        |
+| `mosaic`          | `tune.uniform(0.0, 1.0)`   | Mosaic augmentation probability that combines four images into one training sample.                                                              |
+| `mixup`           | `tune.uniform(0.0, 1.0)`   | Mixup augmentation probability that blends two images and their labels together.                                                                 |
+| `cutmix`          | `tune.uniform(0.0, 1.0)`   | Cutmix augmentation probability that combines image regions while maintaining local features, improving detection of partially occluded objects. |
+| `copy_paste`      | `tune.uniform(0.0, 1.0)`   | Copy-paste augmentation probability that transfers objects between images to increase instance diversity.                                        |
 
 ## Custom Search Space Example
 
@@ -123,6 +124,25 @@ In this example, we demonstrate how to use a custom search space for hyperparame
     ```
 
 In the code snippet above, we create a YOLO model with the "yolo11n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco8.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-1)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.
+
+## Resuming An Interrupted Hyperparameter Tuning Session With Ray Tune
+
+You can resume an interrupted Ray Tune session by passing `resume=True`. You can optionally pass the directory `name` used by Ray Tune under `runs/{task}` to resume. Otherwise, it would resume the last interrupted session. You don't need to provide the `iterations` and `space` again, but you need to provide the rest of the training arguments again including `data` and `epochs`.
+
+!!! example "Using `resume=True` with `model.tune()`"
+
+    ```python
+    from ultralytics import YOLO
+
+    # Define a YOLO model
+    model = YOLO("yolo11n.pt")
+
+    # Resume previous run
+    results = model.tune(use_ray=True, data="coco8.yaml", epochs=50, resume=True)
+
+    # Resume Ray Tune run with name 'tune_exp_2'
+    results = model.tune(use_ray=True, data="coco8.yaml", epochs=50, name="tune_exp_2", resume=True)
+    ```
 
 ## Processing Ray Tune Results
 
@@ -196,7 +216,7 @@ To tune the hyperparameters of your Ultralytics YOLO11 model using Ray Tune, fol
 
     ```bash
     pip install -U ultralytics "ray[tune]"
-    pip install wandb  # optional for logging
+    pip install wandb # optional for logging
     ```
 
 2. **Load your YOLO11 model and start tuning:**
@@ -263,11 +283,11 @@ This setup will allow you to monitor the tuning process, track hyperparameter co
 
 Ray Tune offers numerous advantages for hyperparameter optimization:
 
-- **Advanced Search Strategies:** Utilizes algorithms like Bayesian Optimization and HyperOpt for efficient parameter search.
+- **Advanced Search Strategies:** Utilizes algorithms like [Bayesian Optimization](https://www.ultralytics.com/glossary/bayesian-network) and HyperOpt for efficient parameter search.
 - **Parallelism:** Supports parallel execution of multiple trials, significantly speeding up the tuning process.
 - **Early Stopping:** Employs strategies like ASHA to terminate under-performing trials early, saving computational resources.
 
-Ray Tune seamlessly integrates with Ultralytics YOLO11, providing an easy-to-use interface for tuning hyperparameters effectively. To get started, check out the [Efficient Hyperparameter Tuning with Ray Tune and YOLO11](../guides/hyperparameter-tuning.md) guide.
+Ray Tune seamlessly integrates with Ultralytics YOLO11, providing an easy-to-use interface for tuning hyperparameters effectively. To get started, check out the [Hyperparameter Tuning](../guides/hyperparameter-tuning.md) guide.
 
 ### How can I define a custom search space for YOLO11 hyperparameter tuning?
 

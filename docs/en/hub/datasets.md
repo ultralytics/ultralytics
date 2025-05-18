@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Effortlessly manage, upload, and share your custom datasets on Ultralytics HUB for seamless model training integration. Simplify your workflow today!.
+description: Effortlessly manage, upload, and share your custom datasets on Ultralytics HUB for seamless model training integration. Simplify your workflow today!
 keywords: Ultralytics HUB, datasets, custom datasets, dataset management, model training, upload datasets, share datasets, dataset workflow
 ---
 

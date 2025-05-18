@@ -32,11 +32,8 @@ This guide serves as a comprehensive aid for troubleshooting common issues encou
 Installation errors can arise due to various reasons, such as incompatible versions, missing dependencies, or incorrect environment setups. First, check to make sure you are doing the following:
 
 - You're using Python 3.8 or later as recommended.
-
 - Ensure that you have the correct version of [PyTorch](https://www.ultralytics.com/glossary/pytorch) (1.8 or later) installed.
-
 - Consider using virtual environments to avoid conflicts.
-
 - Follow the [official installation guide](../quickstart.md) step by step.
 
 Additionally, here are some common installation issues users have encountered, along with their respective solutions:
@@ -89,11 +86,8 @@ model.train(data="/path/to/your/data.yaml", batch=4)
 **Solution**: Increasing the [batch size](https://www.ultralytics.com/glossary/batch-size) can accelerate training, but it's essential to consider GPU memory capacity. To speed up training with multiple GPUs, follow these steps:
 
 - Ensure that you have multiple GPUs available.
-
 - Modify your .yaml configuration file to specify the number of GPUs to use, e.g., gpus: 4.
-
 - Increase the batch size accordingly to fully utilize the multiple GPUs without exceeding memory limits.
-
 - Modify your training command to utilize multiple GPUs:
 
 ```python
@@ -146,31 +140,26 @@ Here are some things to keep in mind, if you are facing issues related to model 
 **Dataset Format and Labels**
 
 - Importance: The foundation of any [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) model lies in the quality and format of the data it is trained on.
-
 - Recommendation: Ensure that your custom dataset and its associated labels adhere to the expected format. It's crucial to verify that annotations are accurate and of high quality. Incorrect or subpar annotations can derail the model's learning process, leading to unpredictable outcomes.
 
 **Model Convergence**
 
 - Importance: Achieving model convergence ensures that the model has sufficiently learned from the [training data](https://www.ultralytics.com/glossary/training-data).
-
 - Recommendation: When training a model 'from scratch', it's vital to ensure that the model reaches a satisfactory level of convergence. This might necessitate a longer training duration, with more [epochs](https://www.ultralytics.com/glossary/epoch), compared to when you're fine-tuning an existing model.
 
 **[Learning Rate](https://www.ultralytics.com/glossary/learning-rate) and Batch Size**
 
 - Importance: These hyperparameters play a pivotal role in determining how the model updates its weights during training.
-
 - Recommendation: Regularly evaluate if the chosen learning rate and batch size are optimal for your specific dataset. Parameters that are not in harmony with the dataset's characteristics can hinder the model's performance.
 
 **Class Distribution**
 
 - Importance: The distribution of classes in your dataset can influence the model's prediction tendencies.
-
 - Recommendation: Regularly assess the distribution of classes within your dataset. If there's a class imbalance, there's a risk that the model will develop a bias towards the more prevalent class. This bias can be evident in the confusion matrix, where the model might predominantly predict the majority class.
 
 **Cross-Check with Pretrained Weights**
 
 - Importance: Leveraging pretrained weights can provide a solid starting point for model training, especially when data is limited.
-
 - Recommendation: As a diagnostic step, consider training your model using the same data but initializing it with pretrained weights. If this approach yields a well-formed confusion matrix, it could suggest that the 'from scratch' model might require further training or adjustments.
 
 ### Issues Related to Model Predictions
@@ -251,15 +240,10 @@ for box in boxes:
 **Solution:**
 
 - Compatibility Check: Ensure that you are using versions of libraries and frameworks that are compatible with each other. Mismatched versions can lead to unexpected errors during conversion.
-
 - Environment Reset: If you're using an interactive environment like Jupyter or Colab, consider restarting your environment after making significant changes or installations. A fresh start can sometimes resolve underlying issues.
-
 - Official Documentation: Always refer to the official documentation of the tool or library you are using for conversion. It often contains specific guidelines and best practices for model exporting.
-
 - Community Support: Check the library or framework's official repository for similar issues reported by other users. The maintainers or community might have provided solutions or workarounds in discussion threads.
-
 - Update Regularly: Ensure that you are using the latest version of the tool or library. Developers frequently release updates that fix known bugs or improve functionality.
-
 - Test Incrementally: Before performing a full conversion, test the process with a smaller model or dataset to identify potential issues early on.
 
 ## Community and Support

@@ -41,7 +41,7 @@ _Quick Tip:_ When running inferences, if you aren't seeing any predictions, and 
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/intersection-over-union-overview.avif" alt="Intersection over Union Overview">
 </p>
 
-### Mean Average [Precision](https://www.ultralytics.com/glossary/precision)
+### Mean Average Precision
 
 [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP) is a way to measure how well an object detection model performs. It looks at the precision of detecting each object class, averages these scores, and gives an overall number that shows how accurately the model can identify and classify objects.
 
@@ -122,9 +122,9 @@ Fine-tuning involves taking a pre-trained model and adjusting its parameters to 
 
 Fine-tuning a model means paying close attention to several vital parameters and techniques to achieve optimal performance. Here are some essential tips to guide you through the process.
 
-### Starting With a Higher [Learning Rate](https://www.ultralytics.com/glossary/learning-rate)
+### Starting With a Higher Learning Rate
 
-Usually, during the initial training [epochs](https://www.ultralytics.com/glossary/epoch), the learning rate starts low and gradually increases to stabilize the training process. However, since your model has already learned some features from the previous dataset, starting with a higher learning rate right away can be more beneficial.
+Usually, during the initial training [epochs](https://www.ultralytics.com/glossary/epoch), the learning rate starts low and gradually increases to stabilize the training process. However, since your model has already learned some features from the previous dataset, starting with a higher [learning rate](https://www.ultralytics.com/glossary/learning-rate) right away can be more beneficial.
 
 When evaluating your YOLO11 model, you can set the `warmup_epochs` validation parameter to `warmup_epochs=0` to prevent the learning rate from starting too high. By following this process, the training will continue from the provided weights, adjusting to the nuances of your new data.
 

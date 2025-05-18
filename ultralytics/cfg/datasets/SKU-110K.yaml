@@ -31,27 +31,27 @@ download: |
   from ultralytics.utils.ops import xyxy2xywh
 
   # Download
-  dir = Path(yaml['path'])  # dataset root dir
+  dir = Path(yaml["path"])  # dataset root dir
   parent = Path(dir.parent)  # download dir
-  urls = ['http://trax-geometry.s3.amazonaws.com/cvpr_challenge/SKU110K_fixed.tar.gz']
+  urls = ["http://trax-geometry.s3.amazonaws.com/cvpr_challenge/SKU110K_fixed.tar.gz"]
   download(urls, dir=parent)
 
   # Rename directories
   if dir.exists():
       shutil.rmtree(dir)
-  (parent / 'SKU110K_fixed').rename(dir)  # rename dir
-  (dir / 'labels').mkdir(parents=True, exist_ok=True)  # create labels dir
+  (parent / "SKU110K_fixed").rename(dir)  # rename dir
+  (dir / "labels").mkdir(parents=True, exist_ok=True)  # create labels dir
 
   # Convert labels
-  names = 'image', 'x1', 'y1', 'x2', 'y2', 'class', 'image_width', 'image_height'  # column names
-  for d in 'annotations_train.csv', 'annotations_val.csv', 'annotations_test.csv':
-      x = pd.read_csv(dir / 'annotations' / d, names=names).values  # annotations
+  names = "image", "x1", "y1", "x2", "y2", "class", "image_width", "image_height"  # column names
+  for d in "annotations_train.csv", "annotations_val.csv", "annotations_test.csv":
+      x = pd.read_csv(dir / "annotations" / d, names=names).values  # annotations
       images, unique_images = x[:, 0], np.unique(x[:, 0])
-      with open((dir / d).with_suffix('.txt').__str__().replace('annotations_', ''), 'w') as f:
-          f.writelines(f'./images/{s}\n' for s in unique_images)
-      for im in tqdm(unique_images, desc=f'Converting {dir / d}'):
+      with open((dir / d).with_suffix(".txt").__str__().replace("annotations_", ""), "w", encoding="utf-8") as f:
+          f.writelines(f"./images/{s}\n" for s in unique_images)
+      for im in tqdm(unique_images, desc=f"Converting {dir / d}"):
           cls = 0  # single-class dataset
-          with open((dir / 'labels' / im).with_suffix('.txt'), 'a') as f:
+          with open((dir / "labels" / im).with_suffix(".txt"), "a", encoding="utf-8") as f:
               for r in x[images == im]:
                   w, h = r[6], r[7]  # image width, height
                   xywh = xyxy2xywh(np.array([[r[1] / w, r[2] / h, r[3] / w, r[4] / h]]))[0]  # instance

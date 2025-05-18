@@ -36,11 +36,11 @@ The CIFAR-10 dataset is split into two subsets:
 
 ## Applications
 
-The CIFAR-10 dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in image classification tasks, such as [Convolutional Neural Networks](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNNs), Support Vector Machines (SVMs), and various other machine learning algorithms. The diversity of the dataset in terms of classes and the presence of color images make it a well-rounded dataset for research and development in the field of machine learning and computer vision.
+The CIFAR-10 dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in image classification tasks, such as [Convolutional Neural Networks](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNNs), [Support Vector Machines](https://www.ultralytics.com/glossary/support-vector-machine-svm) (SVMs), and various other machine learning algorithms. The diversity of the dataset in terms of classes and the presence of color images make it a well-rounded dataset for research and development in the field of machine learning and computer vision.
 
 ## Usage
 
-To train a YOLO model on the CIFAR-10 dataset for 100 epochs with an image size of 32x32, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO model on the CIFAR-10 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 32x32, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -94,7 +94,7 @@ We would like to acknowledge Alex Krizhevsky for creating and maintaining the CI
 
 ### How can I train a YOLO model on the CIFAR-10 dataset?
 
-To train a YOLO model on the CIFAR-10 dataset using Ultralytics, you can follow the examples provided for both Python and CLI. Here is a basic example to train your model for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 32x32 pixels:
+To train a YOLO model on the CIFAR-10 dataset using Ultralytics, you can follow the examples provided for both Python and CLI. Here is a basic example to train your model for 100 epochs with an image size of 32x32 pixels:
 
 !!! example
 
@@ -170,4 +170,4 @@ Acknowledging the dataset's creators helps support continued research and develo
 
 ### What are some practical examples of using the CIFAR-10 dataset?
 
-The CIFAR-10 dataset is often used for training image classification models, such as Convolutional Neural Networks (CNNs) and [Support Vector Machines](https://www.ultralytics.com/glossary/support-vector-machine-svm) (SVMs). These models can be employed in various computer vision tasks including [object detection](https://www.ultralytics.com/glossary/object-detection), [image recognition](https://www.ultralytics.com/glossary/image-recognition), and automated tagging. To see some practical examples, check the code snippets in the [usage](#usage) section.
+The CIFAR-10 dataset is often used for training image classification models, such as Convolutional Neural Networks (CNNs) and Support Vector Machines (SVMs). These models can be employed in various computer vision tasks including [object detection](https://www.ultralytics.com/glossary/object-detection), [image recognition](https://www.ultralytics.com/glossary/image-recognition), and automated tagging. To see some practical examples, check the code snippets in the [usage](#usage) section.

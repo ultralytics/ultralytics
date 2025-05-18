@@ -32,23 +32,37 @@ names:
 
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
-  from ultralytics.utils.downloads import download
   from pathlib import Path
 
+  from ultralytics.utils.downloads import download
+
   # Download
-  dir = Path(yaml['path'])  # dataset root dir
-  urls = ['https://zenodo.org/record/4298502/files/global-wheat-codalab-official.zip',
-          'https://github.com/ultralytics/assets/releases/download/v0.0.0/GlobalWheat2020_labels.zip']
+  dir = Path(yaml["path"])  # dataset root dir
+  urls = [
+      "https://zenodo.org/record/4298502/files/global-wheat-codalab-official.zip",
+      "https://github.com/ultralytics/assets/releases/download/v0.0.0/GlobalWheat2020_labels.zip",
+  ]
   download(urls, dir=dir)
 
   # Make Directories
-  for p in 'annotations', 'images', 'labels':
+  for p in "annotations", "images", "labels":
       (dir / p).mkdir(parents=True, exist_ok=True)
 
   # Move
-  for p in 'arvalis_1', 'arvalis_2', 'arvalis_3', 'ethz_1', 'rres_1', 'inrae_1', 'usask_1', \
-           'utokyo_1', 'utokyo_2', 'nau_1', 'uq_1':
-      (dir / 'global-wheat-codalab-official' / p).rename(dir / 'images' / p)  # move to /images
-      f = (dir / 'global-wheat-codalab-official' / p).with_suffix('.json')  # json file
+  for p in (
+      "arvalis_1",
+      "arvalis_2",
+      "arvalis_3",
+      "ethz_1",
+      "rres_1",
+      "inrae_1",
+      "usask_1",
+      "utokyo_1",
+      "utokyo_2",
+      "nau_1",
+      "uq_1",
+  ):
+      (dir / "global-wheat-codalab-official" / p).rename(dir / "images" / p)  # move to /images
+      f = (dir / "global-wheat-codalab-official" / p).with_suffix(".json")  # json file
       if f.exists():
-          f.rename((dir / 'annotations' / p).with_suffix('.json'))  # move to /annotations
+          f.rename((dir / "annotations" / p).with_suffix(".json"))  # move to /annotations

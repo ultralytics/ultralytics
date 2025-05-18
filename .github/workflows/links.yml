@@ -11,6 +11,9 @@
 
 name: Check Broken links
 
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
   schedule:
@@ -18,6 +21,7 @@ on:
 
 jobs:
   Links:
+    if: github.repository == 'ultralytics/ultralytics'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -56,6 +60,11 @@ jobs:
             './**/*.md' \
             './**/*.html' | tee -a $GITHUB_STEP_SUMMARY
 
+            # Raise error if broken links found
+            if ! grep -q "0 Errors" $GITHUB_STEP_SUMMARY; then
+              exit 1
+            fi
+
       - name: Test Markdown, HTML, YAML, Python and Notebook links with retry
         if: github.event_name == 'workflow_dispatch'
         uses: ultralytics/actions/retry@main
@@ -90,3 +99,8 @@ jobs:
             './**/*.yaml' \
             './**/*.py' \
             './**/*.ipynb' | tee -a $GITHUB_STEP_SUMMARY
+
+            # Raise error if broken links found
+            if ! grep -q "0 Errors" $GITHUB_STEP_SUMMARY; then
+              exit 1
+            fi

@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from collections import defaultdict
+
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 
 
@@ -11,10 +13,7 @@ class AIGym(BaseSolution):
     repetitions of exercises based on predefined angle thresholds for up and down positions.
 
     Attributes:
-        count (List[int]): Repetition counts for each detected person.
-        angle (List[float]): Current angle of the tracked body part for each person.
-        stage (List[str]): Current exercise stage ('up', 'down', or '-') for each person.
-        initial_stage (str | None): Initial stage of the exercise.
+        states (Dict[float, int, str]): Stores per-track angle, count, and stage for workout monitoring.
         up_angle (float): Angle threshold for considering the 'up' position of an exercise.
         down_angle (float): Angle threshold for considering the 'down' position of an exercise.
         kpts (List[int]): Indices of keypoints used for angle calculation.
@@ -41,12 +40,9 @@ class AIGym(BaseSolution):
         """
         kwargs["model"] = kwargs.get("model", "yolo11n-pose.pt")
         super().__init__(**kwargs)
-        self.count = []  # List for counts, necessary where there are multiple objects in frame
-        self.angle = []  # List for angle, necessary where there are multiple objects in frame
-        self.stage = []  # List for stage, necessary where there are multiple objects in frame
+        self.states = defaultdict(lambda: {"angle": 0, "count": 0, "stage": "-"})  # Dict for count, angle and stage
 
         # Extract details from CFG single time for usage later
-        self.initial_stage = None
         self.up_angle = float(self.CFG["up_angle"])  # Pose up predefined angle to consider up pose
         self.down_angle = float(self.CFG["down_angle"])  # Pose down predefined angle to consider down pose
         self.kpts = self.CFG["kpts"]  # User selected kpts of workouts storage for further usage
@@ -81,33 +77,30 @@ class AIGym(BaseSolution):
         tracks = self.tracks[0]
 
         if tracks.boxes.id is not None:
-            if len(tracks) > len(self.count):  # Add new entries for newly detected people
-                new_human = len(tracks) - len(self.count)
-                self.angle += [0] * new_human
-                self.count += [0] * new_human
-                self.stage += ["-"] * new_human
+            track_ids = tracks.boxes.id.cpu().tolist()
+            kpt_data = tracks.keypoints.data.cpu()  # Avoid repeated .cpu() calls
 
-            # Enumerate over keypoints
-            for ind, k in enumerate(reversed(tracks.keypoints.data)):
+            for i, k in enumerate(kpt_data):
+                track_id = int(track_ids[i])  # get track id
+                state = self.states[track_id]  # get state details
                 # Get keypoints and estimate the angle
-                kpts = [k[int(self.kpts[i])].cpu() for i in range(3)]
-                self.angle[ind] = annotator.estimate_pose_angle(*kpts)
+                state["angle"] = annotator.estimate_pose_angle(*[k[int(idx)] for idx in self.kpts])
                 annotator.draw_specific_kpts(k, self.kpts, radius=self.line_width * 3)
 
                 # Determine stage and count logic based on angle thresholds
-                if self.angle[ind] < self.down_angle:
-                    if self.stage[ind] == "up":
-                        self.count[ind] += 1
-                    self.stage[ind] = "down"
-                elif self.angle[ind] > self.up_angle:
-                    self.stage[ind] = "up"
+                if state["angle"] < self.down_angle:
+                    if state["stage"] == "up":
+                        state["count"] += 1
+                    state["stage"] = "down"
+                elif state["angle"] > self.up_angle:
+                    state["stage"] = "up"
 
                 # Display angle, count, and stage text
                 if self.show_labels:
                     annotator.plot_angle_and_count_and_stage(
-                        angle_text=self.angle[ind],  # angle text for display
-                        count_text=self.count[ind],  # count text for workouts
-                        stage_text=self.stage[ind],  # stage position text
+                        angle_text=state["angle"],  # angle text for display
+                        count_text=state["count"],  # count text for workouts
+                        stage_text=state["stage"],  # stage position text
                         center_kpt=k[int(self.kpts[1])],  # center keypoint for display
                     )
         plot_im = annotator.result()
@@ -116,8 +109,8 @@ class AIGym(BaseSolution):
         # Return SolutionResults
         return SolutionResults(
             plot_im=plot_im,
-            workout_count=self.count,
-            workout_stage=self.stage,
-            workout_angle=self.angle,
+            workout_count=[v["count"] for v in self.states.values()],
+            workout_stage=[v["stage"] for v in self.states.values()],
+            workout_angle=[v["angle"] for v in self.states.values()],
             total_tracks=len(self.track_ids),
         )

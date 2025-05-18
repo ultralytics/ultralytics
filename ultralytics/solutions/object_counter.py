@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from collections import defaultdict
+
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
 
@@ -22,7 +24,6 @@ class ObjectCounter(BaseSolution):
 
     Methods:
         count_objects: Counts objects within a polygonal or linear region.
-        store_classwise_counts: Initializes class-wise counts if not already present.
         display_counts: Displays object counts on the frame.
         process: Processes input data (frames or object tracks) and updates counts.
 
@@ -40,7 +41,7 @@ class ObjectCounter(BaseSolution):
         self.in_count = 0  # Counter for objects moving inward
         self.out_count = 0  # Counter for objects moving outward
         self.counted_ids = []  # List of IDs of objects that have been counted
-        self.classwise_counts = {}  # Dictionary for counts, categorized by object class
+        self.classwise_counts = defaultdict(lambda: {"IN": 0, "OUT": 0})  # Dictionary for counts, categorized by class
         self.region_initialized = False  # Flag indicating whether the region has been initialized
 
         self.show_in = self.CFG["show_in"]
@@ -110,22 +111,6 @@ class ObjectCounter(BaseSolution):
                     self.classwise_counts[self.names[cls]]["OUT"] += 1
                 self.counted_ids.append(track_id)
 
-    def store_classwise_counts(self, cls):
-        """
-        Initialize class-wise counts for a specific object class if not already present.
-
-        Args:
-            cls (int): Class index for classwise count updates.
-
-        Examples:
-            >>> counter = ObjectCounter()
-            >>> counter.store_classwise_counts(0)  # Initialize counts for class index 0
-            >>> print(counter.classwise_counts)
-            {'person': {'IN': 0, 'OUT': 0}}
-        """
-        if self.names[cls] not in self.classwise_counts:
-            self.classwise_counts[self.names[cls]] = {"IN": 0, "OUT": 0}
-
     def display_counts(self, plot_im):
         """
         Display object counts on the input image or frame.
@@ -189,7 +174,6 @@ class ObjectCounter(BaseSolution):
                 box, label=self.adjust_box_label(cls, conf, track_id), color=colors(cls, True), rotated=is_obb
             )
             self.store_tracking_history(track_id, box, is_obb=is_obb)  # Store track history
-            self.store_classwise_counts(cls)  # Store classwise counts in dict
 
             # Store previous position of track for object counting
             prev_position = None
@@ -206,6 +190,6 @@ class ObjectCounter(BaseSolution):
             plot_im=plot_im,
             in_count=self.in_count,
             out_count=self.out_count,
-            classwise_count=self.classwise_counts,
+            classwise_count=dict(self.classwise_counts),
             total_tracks=len(self.track_ids),
         )

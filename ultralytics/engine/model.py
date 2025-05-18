@@ -288,7 +288,7 @@ class Model(torch.nn.Module):
             weights = checks.check_file(weights, download_dir=SETTINGS["weights_dir"])  # download and return local file
         weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo11n -> yolo11n.pt
 
-        if Path(weights).suffix == ".pt":
+        if str(weights).rpartition(".")[-1] == "pt":
             self.model, self.ckpt = attempt_load_one_weight(weights)
             self.task = self.model.args["task"]
             self.overrides = self.model.args = self._reset_ckpt_args(self.model.args)
@@ -319,7 +319,7 @@ class Model(torch.nn.Module):
             >>> model = Model("yolo11n.onnx")
             >>> model._check_is_pytorch_model()  # Raises TypeError
         """
-        pt_str = isinstance(self.model, (str, Path)) and Path(self.model).suffix == ".pt"
+        pt_str = isinstance(self.model, (str, Path)) and str(self.model).rpartition(".")[-1] == "pt"
         pt_module = isinstance(self.model, torch.nn.Module)
         if not (pt_module or pt_str):
             raise TypeError(

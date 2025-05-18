@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER, SimpleClass, TryExcept, checks, plt_settings
+from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, TryExcept, checks, plt_settings
 
 OKS_SIGMA = (
     np.array([0.26, 0.25, 0.25, 0.35, 0.35, 0.79, 0.79, 0.72, 0.72, 0.62, 0.62, 1.07, 1.07, 0.87, 0.87, 0.89, 0.89])
@@ -865,7 +865,7 @@ class Metric(SimpleClass):
         ]
 
 
-class DetMetrics(SimpleClass):
+class DetMetrics(SimpleClass, DataExportMixin):
     """
     Utility class for computing detection metrics such as precision, recall, and mean average precision (mAP).
 
@@ -961,8 +961,29 @@ class DetMetrics(SimpleClass):
         """Return dictionary of computed performance metrics and statistics."""
         return self.box.curves_results
 
+    def summary(self, **kwargs):
+        """Returns per-class detection metrics with shared scalar values included."""
+        scalars = {
+            "box-map": self.box.map,
+            "box-map50": self.box.map50,
+            "box-map75": self.box.map75,
+        }
+        per_class = {
+            "box-p": self.box.p,
+            "box-r": self.box.r,
+            "box-f1": self.box.f1,
+        }
+        return [
+            {
+                "class_name": self.names[i] if hasattr(self, "names") and i in self.names else str(i),
+                **{k: v[i] for k, v in per_class.items()},
+                **scalars,
+            }
+            for i in range(len(next(iter(per_class.values()), [])))
+        ]
 
-class SegmentMetrics(SimpleClass):
+
+class SegmentMetrics(SimpleClass, DataExportMixin):
     """
     Calculates and aggregates detection and segmentation metrics over a given set of classes.
 
@@ -1097,6 +1118,29 @@ class SegmentMetrics(SimpleClass):
         """Return dictionary of computed performance metrics and statistics."""
         return self.box.curves_results + self.seg.curves_results
 
+    def summary(self, **kwargs):
+        """Returns per-class segmentation metrics with shared scalar values included (box + mask)."""
+        scalars = {
+            "box-map": self.box.map,
+            "box-map50": self.box.map50,
+            "box-map75": self.box.map75,
+            "mask-map": self.seg.map,
+            "mask-map50": self.seg.map50,
+            "mask-map75": self.seg.map75,
+        }
+        per_class = {
+            "box-p": self.box.p,
+            "box-r": self.box.r,
+            "box-f1": self.box.f1,
+            "mask-p": self.seg.p,
+            "mask-r": self.seg.r,
+            "mask-f1": self.seg.f1,
+        }
+        return [
+            {"class_name": self.names[i], **{k: v[i] for k, v in per_class.items()}, **scalars}
+            for i in range(len(next(iter(per_class.values()), [])))
+        ]
+
 
 class PoseMetrics(SegmentMetrics):
     """
@@ -1229,8 +1273,31 @@ class PoseMetrics(SegmentMetrics):
         """Return dictionary of computed performance metrics and statistics."""
         return self.box.curves_results + self.pose.curves_results
 
+    def summary(self, **kwargs):
+        """Returns per-class pose metrics with shared scalar values included (box + pose)."""
+        scalars = {
+            "box-map": self.box.map,
+            "box-map50": self.box.map50,
+            "box-map75": self.box.map75,
+            "pose-map": self.pose.map,
+            "pose-map50": self.pose.map50,
+            "pose-map75": self.pose.map75,
+        }
+        per_class = {
+            "box-p": self.box.p,
+            "box-r": self.box.r,
+            "box-f1": self.box.f1,
+            "pose-p": self.pose.p,
+            "pose-r": self.pose.r,
+            "pose-f1": self.pose.f1,
+        }
+        return [
+            {"class_name": self.names[i], **{k: v[i] for k, v in per_class.items()}, **scalars}
+            for i in range(len(next(iter(per_class.values()), [])))
+        ]
 
-class ClassifyMetrics(SimpleClass):
+
+class ClassifyMetrics(SimpleClass, DataExportMixin):
     """
     Class for computing classification metrics including top-1 and top-5 accuracy.
 
@@ -1286,8 +1353,12 @@ class ClassifyMetrics(SimpleClass):
         """Return a list of curves for accessing specific metrics curves."""
         return []
 
+    def summary(self, **kwargs):
+        """Returns a single-row summary for classification metrics (top1/top5)."""
+        return [{"classify-top1": self.top1, "classify-top5": self.top5}]
 
-class OBBMetrics(SimpleClass):
+
+class OBBMetrics(SimpleClass, DataExportMixin):
     """
     Metrics for evaluating oriented bounding box (OBB) detection.
 
@@ -1316,6 +1387,7 @@ class OBBMetrics(SimpleClass):
         self.names = names
         self.box = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
+        self.task = "obb"
 
     def process(self, tp, conf, pred_cls, target_cls, on_plot=None):
         """
@@ -1383,3 +1455,16 @@ class OBBMetrics(SimpleClass):
     def curves_results(self):
         """Return a list of curves for accessing specific metrics curves."""
         return []
+
+    def summary(self, **kwargs):
+        """Returns per-class detection metrics with shared scalar values included."""
+        scalars = {
+            "box-map": self.box.map,
+            "box-map50": self.box.map50,
+            "box-map75": self.box.map75,
+        }
+        per_class = {"box-p": self.box.p, "box-r": self.box.r, "box-f1": self.box.f1}
+        return [
+            {"class_name": self.names[i], **{k: v[i] for k, v in per_class.items()}, **scalars}
+            for i in range(len(next(iter(per_class.values()), [])))
+        ]

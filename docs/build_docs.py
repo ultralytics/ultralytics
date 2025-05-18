@@ -108,7 +108,7 @@ def update_subdir_edit_links(subdir: str = "", docs_url: str = ""):
         # Find the anchor tag and update its href attribute
         a_tag = soup.find("a", {"class": "md-content__button md-icon"})
         if a_tag and a_tag["title"] == "Edit this page":
-            a_tag["href"] = f"{docs_url}{a_tag['href'].split(subdir)[-1]}"
+            a_tag["href"] = f"{docs_url}{a_tag['href'].rpartition(subdir)[-1]}"
 
         # Write the updated HTML back to the file
         with open(html_file, "w", encoding="utf-8") as file:
@@ -169,7 +169,7 @@ def update_docs_html():
     for html_file in tqdm(SITE.rglob("*.html"), desc="Updating bs4 soup", mininterval=1.0):
         with open(html_file, encoding="utf-8") as file:
             content = file.read()
-        updated_content = update_docs_soup(content)
+        updated_content = update_docs_soup(content, html_file=html_file)
         if updated_content != content:
             with open(html_file, "w", encoding="utf-8") as file:
                 file.write(updated_content)
@@ -188,7 +188,7 @@ def update_docs_html():
         shutil.rmtree(macros_dir)
 
 
-def update_docs_soup(content: str, max_title_length: int = 70) -> str:
+def update_docs_soup(content: str, html_file: Path = None, max_title_length: int = 70) -> str:
     """Convert plaintext links to HTML hyperlinks, truncate long meta titles, and remove code line hrefs."""
     soup = BeautifulSoup(content, "html.parser")
     modified = False
@@ -223,6 +223,7 @@ def update_docs_soup(content: str, max_title_length: int = 70) -> str:
         else:  # If it has no text
             a.replace_with(soup.new_tag("span"))  # Replace with an empty span
         modified = True
+
     return str(soup) if modified else content
 
 
@@ -284,7 +285,7 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
         for line in lines:
             # Only remove comments if they're not part of a URL
             if "//" in line and "http://" not in line and "https://" not in line:
-                processed_lines.append(line.split("//")[0])
+                processed_lines.append(line.partition("//")[0])
             else:
                 processed_lines.append(line)
         content = "\n".join(processed_lines)

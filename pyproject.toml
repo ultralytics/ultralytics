@@ -63,7 +63,7 @@ classifiers = [
 dependencies = [
     "numpy>=1.23.0",
     "matplotlib>=3.3.0",
-    "opencv-python-headless>=4.6.0",
+    "opencv-python>=4.6.0",
     "pillow>=7.1.2",
     "pyyaml>=5.3.1",
     "requests>=2.23.0",
@@ -100,6 +100,23 @@ export = [
     "tensorflowjs>=2.0.0", # TF.js export, automatically installs tensorflow
     "tensorstore>=0.1.63; platform_machine == 'aarch64' and python_version >= '3.9'", # for TF Raspberry Pi exports
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
+]
+headless = [
+    "numpy>=1.23.0",
+    "matplotlib>=3.3.0",
+    "opencv-python-headless>=4.6.0",
+    "pillow>=7.1.2",
+    "pyyaml>=5.3.1",
+    "requests>=2.23.0",
+    "scipy>=1.4.1",
+    "torch>=1.8.0",
+    "torch>=1.8.0,!=2.4.0; sys_platform == 'win32'", # Windows CPU errors w/ 2.4.0 https://github.com/ultralytics/ultralytics/issues/15049
+    "torchvision>=0.9.0",
+    "tqdm>=4.64.0", # progress bars
+    "psutil", # system utilization
+    "py-cpuinfo", # display CPU info
+    "pandas>=1.1.4",
+    "ultralytics-thop>=2.0.0", # FLOPs computation https://github.com/ultralytics/thop
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching

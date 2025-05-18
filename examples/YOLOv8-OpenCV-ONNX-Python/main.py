@@ -115,7 +115,6 @@ def main(onnx_model, input_image):
             round((box[1] + box[3]) * scale),
         )
 
-
     # Display the image with bounding boxes
     if check_imshow(warn=True):
         cv2.imshow("image", original_image)

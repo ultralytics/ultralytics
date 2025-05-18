@@ -97,7 +97,7 @@ def export_engine(
     builder = trt.Builder(logger)
     config = builder.create_builder_config()
     workspace = int((workspace or 0) * (1 << 30))
-    is_trt10 = int(trt.__version__.split(".")[0]) >= 10  # is TensorRT >= 10
+    is_trt10 = int(trt.__version__.split(".", 1)[0]) >= 10  # is TensorRT >= 10
     if is_trt10 and workspace > 0:
         config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace)
     elif workspace > 0:  # TensorRT versions 7, 8
@@ -138,7 +138,7 @@ def export_engine(
             LOGGER.warning(f"{prefix} 'dynamic=True' model requires max batch size, i.e. 'batch=16'")
         profile = builder.create_optimization_profile()
         min_shape = (1, shape[1], 32, 32)  # minimum input shape
-        max_shape = (*shape[:2], *(int(max(1, workspace or 1) * d) for d in shape[2:]))  # max input shape
+        max_shape = (*shape[:2], *(int(max(2, workspace or 2) * d) for d in shape[2:]))  # max input shape
         for inp in inputs:
             profile.set_shape(inp.name, min=min_shape, opt=shape, max=max_shape)
         config.add_optimization_profile(profile)

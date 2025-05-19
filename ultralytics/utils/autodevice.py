@@ -122,7 +122,7 @@ class GPUInfo:
 
         Args:
             count (int): The number of idle GPUs to select. Defaults to 1.
-            min_memory_ratio (float): Minimum free memory required (MiB). Defaults to 0.
+            min_memory_ratio (float): Minimum free memory required (percentage). Defaults to 0.
 
         Returns:
             (list[int]): Indices of the selected GPUs, sorted by idleness.

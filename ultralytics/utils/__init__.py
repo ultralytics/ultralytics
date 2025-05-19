@@ -226,7 +226,7 @@ class DataExportMixin:
         """
         import pandas as pd  # scope for faster 'import ultralytics'
 
-        return pd.DataFrame(self.summary())
+        return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
 
     def to_csv(self, normalize=False, decimals=5):
         """

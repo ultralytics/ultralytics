@@ -9,7 +9,6 @@ from unittest.mock import patch
 import cv2
 import numpy as np
 import pytest
-from nltk.downloader import unzip
 
 from tests import MODEL, TMP
 from ultralytics import solutions

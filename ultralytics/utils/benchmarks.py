@@ -141,10 +141,7 @@ def benchmark(
                 assert not is_end2end, "End-to-end models not supported by RKNN yet"
                 assert LINUX and not ARM64, "RKNN export only supported on non-aarch64 Linux"
             if "cpu" in device.type:
-                if i == 15:  # RKNN
-                    pass  # defer RKNN device check to predict section
-                else:
-                    assert cpu, "inference not supported on CPU"
+                assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:
                 assert gpu, "inference not supported on GPU"
 

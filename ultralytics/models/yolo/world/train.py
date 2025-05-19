@@ -16,7 +16,7 @@ def on_pretrain_routine_end(trainer):
     """Callback to set up model classes and text encoder at the end of the pretrain routine."""
     if RANK in {-1, 0}:
         # Set class names for evaluation
-        names = [name.split("/")[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
+        names = [name.split("/", 1)[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
         de_parallel(trainer.ema.ema).set_classes(names, cache_clip_model=False)
 
 

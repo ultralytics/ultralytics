@@ -401,7 +401,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:
         if install and AUTOINSTALL:  # check environment variable
-            # Note uv fails on arm64 macOS, CONDA envirnoment and Raspberry Pi runners
+            # Note uv fails on arm64 macOS, CONDA environment and Raspberry Pi runners
             uv = (
                 not ARM64
                 and not IS_CONDA

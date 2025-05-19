@@ -225,8 +225,10 @@ class DataExportMixin:
             (DataFrame): DataFrame containing the summary data.
         """
         import pandas as pd  # scope for faster 'import ultralytics'
-
-        return pd.DataFrame(self.summary())
+        summary = self.summary()
+        if not summary:
+            raise ValueError("Results are empty. Cannot export to DataFrame.")
+        return pd.DataFrame(summary)
 
     def to_csv(self, normalize=False, decimals=5):
         """
@@ -307,10 +309,6 @@ class DataExportMixin:
         import sqlite3
 
         df = self.to_df(normalize, decimals)
-        if df.empty:
-            LOGGER.warning("Validation metrics or prediction results are None.")
-            return
-
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
 

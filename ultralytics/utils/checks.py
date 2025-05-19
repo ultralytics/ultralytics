@@ -166,6 +166,15 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
 
 
 @functools.lru_cache
+def check_uv():
+    """Check if uv is installed and can run successfully."""
+    try:
+        return subprocess.run(["uv", "-V"], capture_output=True).returncode == 0
+    except FileNotFoundError:
+        return False
+
+
+@functools.lru_cache
 def check_version(
     current: str = "0.0.0",
     required: str = "0.0.0",
@@ -401,13 +410,12 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     if s:
         if install and AUTOINSTALL:  # check environment variable
             # Note uv fails on arm64 macOS and Raspberry Pi runners
-            uv = not ARM64 and subprocess.run(["command", "-v", "uv"], capture_output=True, shell=True).returncode == 0
             n = len(pkgs)  # number of packages updates
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
-                LOGGER.info(attempt_install(s, cmds, use_uv=uv))
+                LOGGER.info(attempt_install(s, cmds, use_uv=not ARM64 and check_uv()))
                 dt = time.time() - t
                 LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s")
                 LOGGER.warning(

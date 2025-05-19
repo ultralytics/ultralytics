@@ -270,6 +270,7 @@ def test_predict_callback_and_setup():
 @pytest.mark.parametrize("model", MODELS)
 def test_results(model):
     """Test YOLO model results processing and output in various formats."""
+    SOURCE="https://ultralytics.com/images/boats.jpg" if model=="yolo11n-obb.pt" else SOURCE
     results = YOLO(WEIGHTS_DIR / model)([SOURCE, SOURCE], imgsz=160)
     for r in results:
         r = r.cpu().numpy()
@@ -277,6 +278,7 @@ def test_results(model):
         r = r.to(device="cpu", dtype=torch.float32)
         r.save_txt(txt_file=TMP / "runs/tests/label.txt", save_conf=True)
         r.save_crop(save_dir=TMP / "runs/tests/crops/")
+        assert len(r) > 0, "No results returned (empty list)."  # OBB preds always None for metrics export.
         r.to_df(decimals=3)  # Align to_ methods: https://docs.ultralytics.com/modes/predict/#working-with-results
         r.to_csv()
         r.to_xml()

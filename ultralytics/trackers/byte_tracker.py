@@ -400,7 +400,7 @@ class BYTETracker:
         self.tracked_stracks = self.joint_stracks(self.tracked_stracks, refind_stracks)
         self.lost_stracks = self.sub_stracks(self.lost_stracks, self.tracked_stracks)
         self.lost_stracks.extend(lost_stracks)
-        self.lost_stracks = self.sub_stracks(self.lost_stracks, self.removed_stracks)
+        self.lost_stracks = self.sub_stracks(self.lost_stracks, removed_stracks)
         self.tracked_stracks, self.lost_stracks = self.remove_duplicate_stracks(self.tracked_stracks, self.lost_stracks)
         self.removed_stracks.extend(removed_stracks)
         if len(self.removed_stracks) > 1000:

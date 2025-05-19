@@ -879,7 +879,7 @@ def is_conda() -> bool:
     Returns:
         (bool): True if running in a Conda environment, False otherwise.
     """
-    return os.environ.get("CONDA_PREFIX") or os.path.exists(os.path.join(sys.prefix, "conda-meta"))
+    return bool(os.environ.get("CONDA_PREFIX") or os.path.exists(os.path.join(sys.prefix, "conda-meta")))
 
 
 def is_online() -> bool:

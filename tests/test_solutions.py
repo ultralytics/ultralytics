@@ -9,6 +9,7 @@ from unittest.mock import patch
 import cv2
 import numpy as np
 import pytest
+from nltk.downloader import unzip
 
 from tests import MODEL, TMP
 from ultralytics import solutions
@@ -213,7 +214,8 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search():
     """Test similarity search solution."""
-    searcher = solutions.VisualAISearch()
+    safe_download(f"{ASSETS_URL}/4-imgs-similaritysearch.zip")
+    searcher = solutions.VisualAISearch(data=str(TMP / "4-imgs-similaritysearch"))
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
 
 

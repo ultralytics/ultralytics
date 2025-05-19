@@ -266,7 +266,15 @@ class Results(SimpleClass, DataExportMixin):
         self.orig_img = orig_img
         self.orig_shape = orig_img.shape[:2]
         self.boxes = Boxes(boxes, self.orig_shape) if boxes is not None else None  # native size boxes
-        self.masks = Masks(masks, self.orig_shape) if masks is not None else None  # native size or imgsz masks
+        if masks is not None:
+            self.masks = Masks(masks, self.orig_shape)  # native size or imgsz masks
+        else:
+            LOGGER.warning(
+                "No segmentation masks found. This usually occurs when using a detection model for inference,\n"
+                "e.g. `yolo segment predict model=yolo11n.pt`, or when the model can't segment the given class.\n"
+                "Accessing masks[0].xy or masks[0].xyn will not work in this case."
+            )
+            self.masks = None
         self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.obb = OBB(obb, self.orig_shape) if obb is not None else None

@@ -304,11 +304,11 @@ class DataExportMixin:
             table_name (str, optional): Name of the SQL table. Defaults to "results".
             db_path (str, optional): SQLite database file path. Defaults to "results.db".
         """
-        import sqlite3
-
         df = self.to_df(normalize, decimals)
         if df.empty or df.columns.empty:  # Exit if df is None or has no columns (i.e., no schema)
             return
+
+        import sqlite3
 
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()

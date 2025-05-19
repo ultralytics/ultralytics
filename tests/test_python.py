@@ -163,7 +163,7 @@ def test_predict_grey_and_4ch():
 
 
 def test_mask_is_none():
-    """Test instance segmentation model with no mask return"""
+    """Test instance segmentation model with no mask return."""
     im = np.zeros((480, 640, 3), dtype=np.uint8)
     model = YOLO("yolo11n-seg.pt")
     results = model.predict(im, classes=0)  # Run predictions with class filter

@@ -872,6 +872,16 @@ def is_jetson() -> bool:
     return "tegra" in DEVICE_MODEL
 
 
+def is_conda() -> bool:
+    """
+    Check if the current Python environment is a Conda environment.
+
+    Returns:
+        (bool): True if running in a Conda environment, False otherwise.
+    """
+    return "CONDA_DEFAULT_ENV" in os.environ or os.path.exists(os.path.join(sys.prefix, "conda-meta"))
+
+
 def is_online() -> bool:
     """
     Check internet connectivity by attempting to connect to a known online host.
@@ -1066,6 +1076,7 @@ IS_JETSON = is_jetson()
 IS_JUPYTER = is_jupyter()
 IS_PIP_PACKAGE = is_pip_package()
 IS_RASPBERRYPI = is_raspberrypi()
+IS_CONDA = is_conda()
 GIT_DIR = get_git_dir()
 IS_GIT_DIR = is_git_dir()
 USER_CONFIG_DIR = Path(os.getenv("YOLO_CONFIG_DIR") or get_user_config_dir())  # Ultralytics settings dir

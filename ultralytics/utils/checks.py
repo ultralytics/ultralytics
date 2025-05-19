@@ -27,6 +27,7 @@ from ultralytics.utils import (
     IS_GIT_DIR,
     IS_JETSON,
     IS_KAGGLE,
+    IS_CONDA,
     IS_PIP_PACKAGE,
     LINUX,
     LOGGER,
@@ -407,7 +408,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             try:
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
-                LOGGER.info(attempt_install(s, cmds, use_uv=uv))
+                LOGGER.info(attempt_install(s, cmds, use_uv=uv and not IS_CONDA))
                 dt = time.time() - t
                 LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s")
                 LOGGER.warning(

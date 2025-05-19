@@ -229,7 +229,7 @@ class BaseValidator:
 
             self.run_callbacks("on_val_batch_end")
 
-        if self.training:
+        if self.training and self.args.end2end:
             model.criterion.update()  # apply to ema model as well
         stats = self.get_stats()
         self.check_stats(stats)

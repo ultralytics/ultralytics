@@ -244,7 +244,6 @@ class Exporter:
 
     def __call__(self, model=None) -> str:
         """Return list of exported files/dirs after running callbacks."""
-        self.run_callbacks("on_export_start")
         t = time.time()
         fmt = self.args.format.lower()  # to lowercase
         if fmt in {"tensorrt", "trt"}:  # 'engine' aliases
@@ -277,7 +276,7 @@ class Exporter:
             LOGGER.warning("TensorRT requires GPU export, automatically assigning device=0")
             self.args.device = "0"
         if fmt == "engine" and "dla" in str(self.args.device):  # convert int/list to str first
-            dla = self.args.device.split(":")[-1]
+            dla = self.args.device.rsplit(":", 1)[-1]
             self.args.device = "0"  # update device to "0"
             assert dla in {"0", "1"}, f"Expected self.args.device='dla:0' or 'dla:1, but got {self.args.device}."
         if imx and self.args.device is None and torch.cuda.is_available():
@@ -450,7 +449,7 @@ class Exporter:
             f"\n{colorstr('PyTorch:')} starting from '{file}' with input shape {tuple(im.shape)} BCHW and "
             f"output shape(s) {self.output_shape} ({file_size(file):.1f} MB)"
         )
-
+        self.run_callbacks("on_export_start")
         # Exports
         f = [""] * len(fmts)  # exported filenames
         if jit or ncnn:  # TorchScript
@@ -557,7 +556,7 @@ class Exporter:
         """YOLO ONNX export."""
         requirements = ["onnx>=1.12.0,<1.18.0"]
         if self.args.simplify:
-            requirements += ["onnxslim>=0.1.46", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
+            requirements += ["onnxslim>=0.1.53", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -789,7 +788,7 @@ class Exporter:
         subprocess.run(cmd, check=True)
 
         # Remove debug files
-        pnnx_files = [x.split("=")[-1] for x in pnnx_args]
+        pnnx_files = [x.rsplit("=", 1)[-1] for x in pnnx_args]
         for f_debug in ("debug.bin", "debug.param", "debug2.bin", "debug2.param", *pnnx_files):
             Path(f_debug).unlink(missing_ok=True)
 
@@ -926,9 +925,9 @@ class Exporter:
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
                 "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
                 "ai-edge-litert>=1.2.0",  # required by 'onnx2tf' package
-                "onnx>=1.12.0",
+                "onnx>=1.12.0,<1.18.0",
                 "onnx2tf>=1.26.3",
-                "onnxslim>=0.1.46",
+                "onnxslim>=0.1.53",
                 "onnxruntime-gpu" if cuda else "onnxruntime",
                 "protobuf>=5",
             ),
@@ -943,8 +942,6 @@ class Exporter:
             verbose=True,
             msg="https://github.com/ultralytics/ultralytics/issues/5161",
         )
-        import onnx2tf
-
         f = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
         if f.is_dir():
             shutil.rmtree(f)  # delete output folder
@@ -971,6 +968,8 @@ class Exporter:
                 np.save(str(tmp_file), images.numpy().astype(np.float32))  # BHWC
                 np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]
 
+        import onnx2tf  # scoped for after ONNX export for reduced conflict during import
+
         LOGGER.info(f"{prefix} starting TFLite export with onnx2tf {onnx2tf.__version__}...")
         keras_model = onnx2tf.convert(
             input_onnx_file_path=f_onnx,
@@ -982,6 +981,7 @@ class Exporter:
             custom_input_op_name_np_data_path=np_data,
             enable_batchmatmul_unfold=True,  # fix lower no. of detected objects on GPU delegate
             output_signaturedefs=True,  # fix error with Attention block group convolution
+            disable_group_convolution=self.args.format == "tfjs",  # fix TF.js error with group convolution
             optimization_for_gpu_delegate=True,
         )
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
@@ -1048,7 +1048,7 @@ class Exporter:
                 "sudo apt-get install edgetpu-compiler",
             ):
                 subprocess.run(c if is_sudo_available() else c.replace("sudo ", ""), shell=True, check=True)
-        ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().split()[-1]
+        ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
 
         LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
         f = str(tflite_model).replace(".tflite", "_edgetpu.tflite")  # Edge TPU model

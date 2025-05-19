@@ -200,10 +200,11 @@ def check_source(source):
     webcam, screenshot, from_img, in_memory, tensor = False, False, False, False, False
     if isinstance(source, (str, int, Path)):  # int for local usb camera
         source = str(source)
-        is_file = Path(source).suffix[1:] in (IMG_FORMATS | VID_FORMATS)
-        is_url = source.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://"))
+        source_lower = source.lower()
+        is_file = source_lower.rpartition(".")[-1] in (IMG_FORMATS | VID_FORMATS)
+        is_url = source_lower.startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://"))
         webcam = source.isnumeric() or source.endswith(".streams") or (is_url and not is_file)
-        screenshot = source.lower() == "screen"
+        screenshot = source_lower == "screen"
         if is_url and is_file:
             source = check_file(source)  # download
     elif isinstance(source, LOADERS):
@@ -244,9 +245,9 @@ def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False, chan
     elif in_memory:
         dataset = source
     elif stream:
-        dataset = LoadStreams(source, vid_stride=vid_stride, buffer=buffer)
+        dataset = LoadStreams(source, vid_stride=vid_stride, buffer=buffer, channels=channels)
     elif screenshot:
-        dataset = LoadScreenshots(source)
+        dataset = LoadScreenshots(source, channels=channels)
     elif from_img:
         dataset = LoadPilAndNumpy(source, channels=channels)
     else:

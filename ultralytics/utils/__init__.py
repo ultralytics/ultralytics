@@ -304,41 +304,36 @@ class DataExportMixin:
             table_name (str, optional): Name of the SQL table. Defaults to "results".
             db_path (str, optional): SQLite database file path. Defaults to "results.db".
         """
-        if not hasattr(self, "summary"):
-            LOGGER.warning("SQL export is only supported for detection results with `summary()`.")
+        df = self.to_df(normalize, decimals)
+        if df.empty or df.columns.empty:  # Exit if df is None or has no columns (i.e., no schema)
             return
 
         import sqlite3
 
-        df = self.to_df(normalize, decimals)
-        if df.empty:
-            LOGGER.warning("No results to save to SQL. DataFrame is empty.")
-            return
-
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
-        cursor.execute(
-            f"""CREATE TABLE IF NOT EXISTS {table_name} (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                class_name TEXT,
-                confidence REAL,
-                box TEXT,
-                masks TEXT,
-                kpts TEXT
-            )"""
-        )
+
+        # Dynamically create table schema based on summary to support prediction and validation results export
+        columns = []
+        for col in df.columns:
+            sample_val = df[col].dropna().iloc[0] if not df[col].dropna().empty else ""
+            if isinstance(sample_val, dict):
+                col_type = "TEXT"
+            elif isinstance(sample_val, (float, int)):
+                col_type = "REAL"
+            else:
+                col_type = "TEXT"
+            columns.append(f'"{col}" {col_type}')  # Quote column names to handle special characters like hyphens
+
+        # Create table (Drop table from db if it's already exist)
+        cursor.execute(f'DROP TABLE IF EXISTS "{table_name}"')
+        cursor.execute(f'CREATE TABLE "{table_name}" (id INTEGER PRIMARY KEY AUTOINCREMENT, {", ".join(columns)})')
 
         for _, row in df.iterrows():
-            cursor.execute(
-                f"INSERT INTO {table_name} (class_name, confidence, box, masks, kpts) VALUES (?, ?, ?, ?, ?)",
-                (
-                    row.get("name"),
-                    row.get("confidence"),
-                    json.dumps(row.get("box", {})),
-                    json.dumps(row.get("segments", {})),
-                    json.dumps(row.get("keypoints", {})),
-                ),
-            )
+            values = [json.dumps(v) if isinstance(v, dict) else v for v in row]
+            column_names = ", ".join(f'"{col}"' for col in df.columns)
+            placeholders = ", ".join("?" for _ in df.columns)
+            cursor.execute(f'INSERT INTO "{table_name}" ({column_names}) VALUES ({placeholders})', values)
 
         conn.commit()
         conn.close()

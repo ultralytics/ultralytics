@@ -142,7 +142,6 @@ class GPUInfo:
             return []
 
         # Filter and sort eligible GPUs
-        gpu = self.gpu_stats[0]
         eligible_gpus = [
             gpu
             for gpu in self.gpu_stats

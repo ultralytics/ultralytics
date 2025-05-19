@@ -132,7 +132,7 @@ class GPUInfo:
              Returns basic CUDA indices if NVML fails. Empty list if no GPUs found.
         """
         assert min_memory_ratio <= 1.0, f"min_memory_ratio must be <= 1.0, got {min_memory_ratio}"
-        LOGGER.info(f"Searching for {count} idle GPUs with >= {min_memory_ratio * 100}% free memory...")
+        LOGGER.info(f"Searching for {count} idle GPUs with >= {min_memory_ratio * 100:.1f}% free memory...")
 
         if count <= 0:
             return []

@@ -750,7 +750,7 @@ class Exporter:
             try:
                 release, assets = get_github_assets(repo="pnnx/pnnx")
                 asset = [x for x in assets if f"{system}.zip" in x][0]
-                assert isinstance(asset, str), "Unable to retrieve PNNX repo assets"  # i.e. pnnx-20240410-macos.zip
+                assert isinstance(asset, str), "Unable to retrieve PNNX repo assets"  # i.e. ncnn-20240410-macos.zip
                 LOGGER.info(f"{prefix} successfully found latest PNNX asset file {asset}")
             except Exception as e:
                 release = "20240410"
@@ -800,7 +800,7 @@ class Exporter:
             try:
                 release, assets = get_github_assets(repo="Tencent/ncnn")
                 asset = asset = [x for x in assets if f"{system}.zip" in x][0]
-                assert isinstance(asset, str), "Unable to retrieve NCNN repo assets"  # i.e. pnnx-20240410-macos.zip
+                assert isinstance(asset, str), "Unable to retrieve NCNN repo assets"  # i.e. ncnn-20240820-macos.zip
                 LOGGER.info(f"{prefix} successfully found latest NCNN asset file {asset}")
             except Exception as e:
                 release = "20240820"

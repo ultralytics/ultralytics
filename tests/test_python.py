@@ -271,7 +271,7 @@ def test_predict_callback_and_setup():
 def test_results(model):
     """Test YOLO model results processing and output in various formats."""
     if model == "yolo11n-obb.pt":
-        SOURCE="https://ultralytics.com/images/boats.jpg"
+        SOURCE = "https://ultralytics.com/images/boats.jpg"
     results = YOLO(WEIGHTS_DIR / model)([SOURCE, SOURCE], imgsz=160)
     for r in results:
         r = r.cpu().numpy()

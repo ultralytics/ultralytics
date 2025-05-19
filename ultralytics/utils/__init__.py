@@ -333,8 +333,8 @@ class DataExportMixin:
 
         for _, row in df.iterrows():
             values = [json.dumps(v) if isinstance(v, dict) else v for v in row]
-            column_names = ', '.join(f'"{col}"' for col in df.columns)
-            placeholders = ', '.join('?' for _ in df.columns)
+            column_names = ", ".join(f'"{col}"' for col in df.columns)
+            placeholders = ", ".join("?" for _ in df.columns)
             cursor.execute(f'INSERT INTO "{table_name}" ({column_names}) VALUES ({placeholders})', values)
 
         conn.commit()

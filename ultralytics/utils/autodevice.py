@@ -116,13 +116,13 @@ class GPUInfo:
 
         LOGGER.info(f"{'-' * len(hdr)}\n")
 
-    def select_idle_gpu(self, count=1, min_memory_mb=0):
+    def select_idle_gpu(self, count=1, min_memory_ratio=0):
         """
         Selects the 'count' most idle GPUs based on utilization and free memory.
 
         Args:
             count (int): The number of idle GPUs to select. Defaults to 1.
-            min_memory_mb (int): Minimum free memory required (MiB). Defaults to 0.
+            min_memory_ratio (float): Minimum free memory required (MiB). Defaults to 0.
 
         Returns:
             (list[int]): Indices of the selected GPUs, sorted by idleness.
@@ -131,7 +131,7 @@ class GPUInfo:
              Returns fewer than 'count' if not enough qualify or exist.
              Returns basic CUDA indices if NVML fails. Empty list if no GPUs found.
         """
-        LOGGER.info(f"Searching for {count} idle GPUs with >= {min_memory_mb} MiB free memory...")
+        LOGGER.info(f"Searching for {count} idle GPUs with >= {min_memory_ratio} MiB free memory...")
 
         if count <= 0:
             return []
@@ -142,10 +142,12 @@ class GPUInfo:
             return []
 
         # Filter and sort eligible GPUs
+        gpu = self.gpu_stats[0]
         eligible_gpus = [
             gpu
             for gpu in self.gpu_stats
-            if gpu.get("memory_free", -1) >= min_memory_mb and gpu.get("utilization", -1) != -1
+            if gpu.get("memory_free", 0) / gpu.get("memory_total", 1) >= min_memory_ratio
+            and gpu.get("utilization", -1) != -1
         ]
         eligible_gpus.sort(key=lambda x: (x.get("utilization", 101), -x.get("memory_free", 0)))
 
@@ -155,19 +157,19 @@ class GPUInfo:
         if selected:
             LOGGER.info(f"Selected idle CUDA devices {selected}")
         else:
-            LOGGER.warning(f"No GPUs met criteria (Util != -1, Free Mem >= {min_memory_mb} MiB).")
+            LOGGER.warning(f"No GPUs met criteria (Util != -1, Free Mem >= {min_memory_ratio} MiB).")
 
         return selected
 
 
 if __name__ == "__main__":
-    required_free_mem = 2048  # Require 2GB free VRAM
+    required_free_mem_ratio = 0.2  # Require 20% free VRAM
     num_gpus_to_select = 1
 
     gpu_info = GPUInfo()
     gpu_info.print_status()
 
-    selected = gpu_info.select_idle_gpu(count=num_gpus_to_select, min_memory_mb=required_free_mem)
+    selected = gpu_info.select_idle_gpu(count=num_gpus_to_select, min_memory_ratio=required_free_mem_ratio)
     if selected:
         print(f"\n==> Using selected GPU indices: {selected}")
         devices = [f"cuda:{idx}" for idx in selected]

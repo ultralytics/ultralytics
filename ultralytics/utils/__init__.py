@@ -328,9 +328,7 @@ class DataExportMixin:
 
         # Create table (Drop table from db if it's already exist)
         cursor.execute(f'DROP TABLE IF EXISTS "{table_name}"')
-        cursor.execute(
-            f'CREATE TABLE "{table_name}" (id INTEGER PRIMARY KEY AUTOINCREMENT, {", ".join(columns)})'
-        )
+        cursor.execute(f'CREATE TABLE "{table_name}" (id INTEGER PRIMARY KEY AUTOINCREMENT, {", ".join(columns)})')
 
         for _, row in df.iterrows():
             values = [json.dumps(v) if isinstance(v, dict) else v for v in row]

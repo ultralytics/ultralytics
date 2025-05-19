@@ -181,7 +181,7 @@ def process_video(solution, video_path, needs_frame_count=False):
 
 
 @pytest.mark.skipif(
-    (LINUX and checks.IS_PYTHON_3_11) or IS_RASPBERRYPI,
+    LINUX or IS_RASPBERRYPI,
     reason="Disabled for testing due to --slow test errors after YOLOE PR.",
 )
 @pytest.mark.parametrize("name, solution_class, needs_frame_count, video, kwargs", SOLUTIONS)

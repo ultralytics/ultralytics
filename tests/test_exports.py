@@ -235,4 +235,4 @@ def test_export_imx():
 def test_export_rknn():
     """Test YOLO exports to RKNN format."""
     YOLO(MODEL).export(format="rknn", imgsz=32)
-    # TODO RKNN inference on-device after local CIs are in place
+    # TODO: RKNN inference on-device after local CIs are in place

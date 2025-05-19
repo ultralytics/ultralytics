@@ -326,9 +326,10 @@ class DataExportMixin:
                 col_type = "TEXT"
             columns.append(f'"{col}" {col_type}')  # Quote column names to handle special characters like hyphens
 
-        # Create table
+        # Create table (Drop table from db if it's already exist)
+        cursor.execute(f'DROP TABLE IF EXISTS "{table_name}"')
         cursor.execute(
-            f'CREATE TABLE IF NOT EXISTS "{table_name}" (id INTEGER PRIMARY KEY AUTOINCREMENT, {", ".join(columns)})'
+            f'CREATE TABLE "{table_name}" (id INTEGER PRIMARY KEY AUTOINCREMENT, {", ".join(columns)})'
         )
 
         for _, row in df.iterrows():

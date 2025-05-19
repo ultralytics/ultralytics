@@ -204,6 +204,7 @@ def test_val():
     metrics.to_xml()
     metrics.to_html()
     metrics.to_json()
+    metrics.to_sql()
 
 
 def test_train_scratch():

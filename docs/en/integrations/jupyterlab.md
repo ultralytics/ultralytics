@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore our integration guide that explains how you can use JupyterLab to train a YOLO11 model. We'll also cover key features and tips for common issues.
-keywords: JupyterLab, What is JupyterLab, How to Use JupyterLab, JupyterLab How to Use, YOLO11, Ultralytics, Model Training, GPU, TPU, cloud computing
+description: Learn how to use JupyterLab to train and experiment with Ultralytics YOLO11 models. Discover key features, setup instructions, and solutions to common issues.
+keywords: JupyterLab, YOLO11, Ultralytics, Model Training, Deep Learning, Interactive Coding, Data Science, Machine Learning, Jupyter Notebook, Model Development
 ---
 
 # A Guide on How to Use JupyterLab to Train Your YOLO11 Models
@@ -38,7 +38,7 @@ There are multiple platforms for developing and evaluating machine learning mode
 
 ## Common Issues While Working with JupyterLab
 
-When working with Kaggle, you might come across some common issues. Here are some tips to help you navigate the platform smoothly:
+When working with JupyterLab, you might come across some common issues. Here are some tips to help you navigate the platform smoothly:
 
 - **Managing Kernels**: Kernels are crucial because they manage the connection between the code you write in JupyterLab and the environment where it runs. They can also access and share data between notebooks. When you close a Jupyter Notebook, the kernel might still be running because other notebooks could be using it. If you want to completely shut down a kernel, you can select it, right-click, and choose "Shut Down Kernel" from the pop-up menu.
 - **Installing Python Packages**: Sometimes, you might need additional Python packages that aren't pre-installed on the server. You can easily install these packages in your home directory or a virtual environment by using the command `python -m pip install package-name`. To see all installed packages, use `python -m pip list`.
@@ -100,10 +100,13 @@ If you're excited to learn more about JupyterLab, here are some great resources 
 - [**JupyterLab Documentation**](https://jupyterlab.readthedocs.io/en/stable/getting_started/starting.html): Dive into the official JupyterLab Documentation to explore its features and capabilities. It's a great way to understand how to use this powerful tool to its fullest potential.
 - [**Try It With Binder**](https://mybinder.org/v2/gh/jupyterlab/jupyterlab-demo/HEAD?urlpath=lab/tree/demo): Experiment with JupyterLab without installing anything by using Binder, which lets you launch a live JupyterLab instance directly in your browser. It's a great way to start experimenting immediately.
 - [**Installation Guide**](https://jupyterlab.readthedocs.io/en/stable/getting_started/installation.html): For a step-by-step guide on installing JupyterLab on your local machine, check out the installation guide.
+- [**Train Ultralytics YOLO11 using JupyterLab**](https://www.ultralytics.com/blog/train-ultralytics-yolo11-using-the-jupyterlab-integration): Learn more about the practical applications of using JupyterLab with YOLO11 models in this detailed blog post.
 
 ## Summary
 
 We've explored how JupyterLab can be a powerful tool for experimenting with Ultralytics YOLO11 models. Using its flexible and interactive environment, you can easily set up JupyterLab on your local machine and start working with YOLO11. JupyterLab makes it simple to [train](../guides/model-training-tips.md) and [evaluate](../guides/model-testing.md) your models, visualize outputs, and [document your findings](../guides/model-monitoring-and-maintenance.md) all in one place.
+
+Unlike other platforms such as [Google Colab](../integrations/google-colab.md), JupyterLab runs locally on your machine, giving you more control over your computing environment while still providing an interactive notebook experience. This makes it particularly valuable for developers who need consistent access to their development environment without relying on cloud resources.
 
 For more details, visit the [JupyterLab FAQ Page](https://jupyterlab.readthedocs.io/en/stable/getting_started/faq.html).
 
@@ -208,3 +211,4 @@ When working with JupyterLab and YOLO11, you might encounter some common issues.
 
 3. Kernel crashes:
     - Restart the kernel and run cells one by one to identify the problematic code.
+    - Check for memory leaks in your code, especially when processing large datasets.

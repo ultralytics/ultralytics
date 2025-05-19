@@ -1,15 +1,19 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
-# YOLOv8 object detection model with P3-P6 outputs. For Usage examples see https://docs.ultralytics.com/tasks/detect
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics YOLOv8 object detection model with P3/8 - P6/64 outputs
+# Model docs: https://docs.ultralytics.com/models/yolov8
+# Task docs: https://docs.ultralytics.com/tasks/detect
+# Employs Ghost convolutions and modules proposed in Huawei's GhostNet in https://arxiv.org/abs/1911.11907v2
 
 # Parameters
 nc: 80 # number of classes
 scales: # model compound scaling constants, i.e. 'model=yolov8n-p6.yaml' will call yolov8-p6.yaml with scale 'n'
   # [depth, width, max_channels]
-  n: [0.33, 0.25, 1024] # YOLOv8n-ghost-p6 summary: 529 layers, 2901100 parameters, 2901084 gradients, 5.8 GFLOPs
-  s: [0.33, 0.50, 1024] # YOLOv8s-ghost-p6 summary: 529 layers, 9520008 parameters, 9519992 gradients, 16.4 GFLOPs
-  m: [0.67, 0.75, 768] # YOLOv8m-ghost-p6 summary: 789 layers, 18002904 parameters, 18002888 gradients, 34.4 GFLOPs
-  l: [1.00, 1.00, 512] # YOLOv8l-ghost-p6 summary: 1049 layers, 21227584 parameters, 21227568 gradients, 55.3 GFLOPs
-  x: [1.00, 1.25, 512] # YOLOv8x-ghost-p6 summary: 1049 layers, 33057852 parameters, 33057836 gradients, 85.7 GFLOPs
+  n: [0.33, 0.25, 1024] # YOLOv8n-ghost-p6 summary: 312 layers, 2901100 parameters, 2901084 gradients, 5.8 GFLOPs
+  s: [0.33, 0.50, 1024] # YOLOv8s-ghost-p6 summary: 312 layers, 9520008 parameters, 9519992 gradients, 16.4 GFLOPs
+  m: [0.67, 0.75, 768] # YOLOv8m-ghost-p6 summary: 468 layers, 18002904 parameters, 18002888 gradients, 34.4 GFLOPs
+  l: [1.00, 1.00, 512] # YOLOv8l-ghost-p6 summary: 624 layers, 21227584 parameters, 21227568 gradients, 55.3 GFLOPs
+  x: [1.00, 1.25, 512] # YOLOv8x-ghost-p6 summary: 624 layers, 33057852 parameters, 33057836 gradients, 85.7 GFLOPs
 
 # YOLOv8.0-ghost backbone
 backbone:

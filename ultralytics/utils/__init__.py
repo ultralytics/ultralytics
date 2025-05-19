@@ -225,6 +225,7 @@ class DataExportMixin:
             (DataFrame): DataFrame containing the summary data.
         """
         import pandas as pd  # scope for faster 'import ultralytics'
+
         summary = self.summary()
         if not summary:
             raise ValueError("Results are empty. Cannot export to DataFrame.")

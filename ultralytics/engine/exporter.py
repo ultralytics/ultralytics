@@ -799,13 +799,12 @@ class Exporter:
             system = f"ubuntu-{str(guv()).replace('.', '')}" if LINUX else "windows-vs2022" if WINDOWS else system
             try:
                 release, assets = get_github_assets(repo="Tencent/ncnn")
-                asset = asset = [x for x in assets if f"{system}.zip" in x][0]
-                assert isinstance(asset, str), "Unable to retrieve NCNN repo assets"  # i.e. ncnn-20240820-macos.zip
-                LOGGER.info(f"{prefix} successfully found latest NCNN asset file {asset}")
+                asset = [x for x in assets if f"{system}.zip" in x][0]
+                LOGGER.info(f"{prefix} found NCNN asset {asset}")
             except Exception as e:
                 release = "20240820"
                 asset = f"ncnn-{release}-{system}.zip"
-                LOGGER.warning(f"{prefix} NCNN GitHub assets not found: {e}, using default {asset}")
+                LOGGER.warning(f"{prefix} NCNN assets not found: {e}, using default {asset}")
             unzip_dir = safe_download(
                 f"https://github.com/Tencent/ncnn/releases/download/{release}/{asset}", delete=True
             )
@@ -814,37 +813,29 @@ class Exporter:
                 file.chmod(0o777)
 
             self.args.batch = 1
-            data = self.get_int8_calibration_dataloader()
-            calib_dir = f / "calibration"
+            data, calib_dir = self.get_int8_calibration_dataloader(), f / "calibration"
             calib_dir.mkdir(exist_ok=True)
-            fns = []
-            for i, batch in enumerate(data):
-                fns += [str((calib_dir / str(i)).with_suffix(".npy"))]
-                np.save(fns[-1], batch["img"][0] / 255.0)
-            with open(calib_dir / "images.txt", "w") as txt:
+            fns = [str((calib_dir / str(i)).with_suffix(".npy")) for i, batch in enumerate(data)]
+            for fn, batch in zip(fns, data):
+                np.save(fn, batch["img"][0] / 255.0)
+            with open(calib_dir / "ims.txt", "w") as txt:
                 txt.writelines([fn + "\n" for fn in fns])
 
             opt_files = [f / "model-opt.ncnn.param", f / "model-opt.ncnn.bin"]
             model_files = [f / "model.ncnn.param", f / "model.ncnn.bin"]
-            cmd = [bin_dir / "ncnnoptimize", *model_files, *opt_files, "0"]
-            subprocess.run(cmd, check=True)
-            s = [*batch["img"].shape[-2:], batch["img"].shape[1]]
-            cmd = [
-                bin_dir / "ncnn2table",
-                *opt_files,
-                calib_dir / "images.txt",
-                calib_dir / "calib.table",
-                f"shape={s}",
-                "threads=8",
-                "method=kl",
-                "type=1",
-            ]
-            subprocess.run(cmd, check=True)
-            cmd = [bin_dir / "ncnn2int8", *opt_files, *model_files, calib_dir / "calib.table"]
-            subprocess.run(cmd, check=True)
+            subprocess.run([bin_dir / "ncnnoptimize", *model_files, *opt_files, "0"], check=True)
+            subprocess.run(
+                [
+                    *[bin_dir / "ncnn2table", *model_files, calib_dir / "ims.txt", calib_dir / "cal.tbl"],
+                    *[f"shape={[*batch['img'].shape[-2:], batch['img'].shape[1]]}", "threads=8", "method=kl", "type=1"],
+                ],
+                check=True,
+            )
+            subprocess.run([bin_dir / "ncnn2int8", *opt_files, *model_files, calib_dir / "cal.tbl"], check=True)
             for of in opt_files:
                 of.unlink(missing_ok=True)
-            shutil.rmtree(calib_dir), shutil.rmtree(unzip_dir)
+            shutil.rmtree(calib_dir)
+            shutil.rmtree(unzip_dir)
 
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
         return str(f), None

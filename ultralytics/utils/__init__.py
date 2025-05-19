@@ -226,10 +226,7 @@ class DataExportMixin:
         """
         import pandas as pd  # scope for faster 'import ultralytics'
 
-        summary = self.summary(normalize=normalize, decimals=decimals)
-        if not summary:
-            raise ValueError("Results are empty. Cannot export to DataFrame.")
-        return pd.DataFrame(summary)
+        return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
 
     def to_csv(self, normalize=False, decimals=5):
         """
@@ -310,6 +307,9 @@ class DataExportMixin:
         import sqlite3
 
         df = self.to_df(normalize, decimals)
+        if df.empty or df.columns.empty:  # Exit if df is None or has no columns (i.e., no schema)
+            return
+
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
 

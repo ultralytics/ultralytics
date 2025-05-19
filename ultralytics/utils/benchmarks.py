@@ -139,8 +139,12 @@ def benchmark(
             if i == 15:  # RKNN
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 RKNN exports not supported yet"
                 assert not is_end2end, "End-to-end models not supported by RKNN yet"
+                assert LINUX and not ARM64, "RKNN export only supported on non-aarch64 Linux"
             if "cpu" in device.type:
-                assert cpu, "inference not supported on CPU"
+                if i == 15:  # RKNN
+                    pass  # defer RKNN device check to predict section
+                else:
+                    assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:
                 assert gpu, "inference not supported on GPU"
 
@@ -162,8 +166,7 @@ def benchmark(
             assert i != 5 or platform.system() == "Darwin", "inference only supported on macOS>=10.13"  # CoreML
             if i in {13}:
                 assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
-            if i == 15:  # RKNN
-                assert is_rockchip(), "inference only supported on Rockchip devices"
+            assert i != 15 or is_rockchip(), "inference only supported on Rockchip devices" # RKNN
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, verbose=False)
 
             # Validate

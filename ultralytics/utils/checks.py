@@ -402,7 +402,11 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     if s:
         if install and AUTOINSTALL:  # check environment variable
             # Note uv fails on arm64 macOS and Raspberry Pi runners
-            uv = not ARM64 and not IS_CONDA and subprocess.run(["command", "-v", "uv"], capture_output=True, shell=True).returncode == 0
+            uv = (
+                not ARM64
+                and not IS_CONDA
+                and subprocess.run(["command", "-v", "uv"], capture_output=True, shell=True).returncode == 0
+            )
             n = len(pkgs)  # number of packages updates
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:

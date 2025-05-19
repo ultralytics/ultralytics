@@ -806,7 +806,8 @@ class Exporter:
             # Create calibration table
             self.args.batch = 1
             data = self.get_int8_calibration_dataloader()
-            calib_dir = f / "calibration"; calib_dir.mkdir(exist_ok=True)
+            calib_dir = f / "calibration"
+            calib_dir.mkdir(exist_ok=True)
             fns = []
             for i, batch in enumerate(data):
                 fns += [str((calib_dir / str(i)).with_suffix(".npy"))]

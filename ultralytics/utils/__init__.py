@@ -226,7 +226,7 @@ class DataExportMixin:
         """
         import pandas as pd  # scope for faster 'import ultralytics'
 
-        summary = self.summary()
+        summary = self.summary(normalize=normalize, decimals=decimals)
         if not summary:
             raise ValueError("Results are empty. Cannot export to DataFrame.")
         return pd.DataFrame(summary)

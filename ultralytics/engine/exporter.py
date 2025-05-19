@@ -827,7 +827,7 @@ class Exporter:
             subprocess.run(
                 [
                     *[bin_dir / "ncnn2table", *model_files, calib_dir / "ims.txt", calib_dir / "cal.tbl"],
-                    *[f"shape={[*batch['img'].shape[-2:], batch['img'].shape[1]]}", "threads=8", "method=kl", "type=1"],
+                    *[f"shape={[*batch['img'].shape[-2:], batch['img'].shape[1]]}", "threads=8", "method=aciq", "type=1"],
                 ],
                 check=True,
             )

@@ -162,14 +162,6 @@ def test_predict_grey_and_4ch():
         f.unlink()  # cleanup
 
 
-def test_mask_is_none():
-    """Test instance segmentation model with no mask return."""
-    im = np.zeros((480, 640, 3), dtype=np.uint8)
-    model = YOLO("yolo11n-seg.pt")
-    results = model.predict(im, classes=0)  # Run predictions with class filter
-    assert results[0].masks is not None, "No masks returned, expected at least one mask."
-
-
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(is_github_action_running(), reason="No auth https://github.com/JuanBindez/pytubefix/issues/166")

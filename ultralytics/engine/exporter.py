@@ -794,16 +794,25 @@ class Exporter:
             Path(f_debug).unlink(missing_ok=True)
 
         if self.args.int8:
-            system = "ubuntu-2204" if LINUX else "windows-vs2022" if WINDOWS else system  # TODO: check ubuntu-version
-            release, assets = get_github_assets(repo="Tencent/ncnn")
-            asset = [x for x in assets if f"{system}.zip" in x][0]
-            assert isinstance(asset, str), "Unable to retrieve NCNN repo assets"
-            LOGGER.info(f"{prefix} successfully found latest NCNN asset file {asset}")
+            from ultralytics.utils import get_ubuntu_version as guv
+
+            system = f"ubuntu-{str(guv()).replace('.', '')}" if LINUX else "windows-vs2022" if WINDOWS else system
+            try:
+                release, assets = get_github_assets(repo="Tencent/ncnn")
+                asset = asset = [x for x in assets if f"{system}.zip" in x][0]
+                assert isinstance(asset, str), "Unable to retrieve NCNN repo assets"  # i.e. pnnx-20240410-macos.zip
+                LOGGER.info(f"{prefix} successfully found latest NCNN asset file {asset}")
+            except Exception as e:
+                release = "20240820"
+                asset = f"ncnn-{release}-{system}.zip"
+                LOGGER.warning(f"{prefix} NCNN GitHub assets not found: {e}, using default {asset}")
             unzip_dir = safe_download(
                 f"https://github.com/Tencent/ncnn/releases/download/{release}/{asset}", delete=True
             )
             bin_dir = unzip_dir / "bin"
-            # Create calibration table
+            for file in bin_dir.iterdir():
+                file.chmod(0o777)
+
             self.args.batch = 1
             data = self.get_int8_calibration_dataloader()
             calib_dir = f / "calibration"
@@ -814,6 +823,7 @@ class Exporter:
                 np.save(fns[-1], batch["img"][0] / 255.0)
             with open(calib_dir / "images.txt", "w") as txt:
                 txt.writelines([fn + "\n" for fn in fns])
+
             opt_files = [f / "model-opt.ncnn.param", f / "model-opt.ncnn.bin"]
             model_files = [f / "model.ncnn.param", f / "model.ncnn.bin"]
             cmd = [bin_dir / "ncnnoptimize", *model_files, *opt_files, "0"]
@@ -834,7 +844,7 @@ class Exporter:
             subprocess.run(cmd, check=True)
             for of in opt_files:
                 of.unlink(missing_ok=True)
-            shutil.rmtree(calib_dir)
+            shutil.rmtree(calib_dir), shutil.rmtree(unzip_dir)
 
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
         return str(f), None

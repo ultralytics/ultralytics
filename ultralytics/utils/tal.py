@@ -325,9 +325,13 @@ class TaskAlignedAssigner(nn.Module):
         if self.topk2 != self.topk:
             align_metric = align_metric * mask_pos  # update overlaps
             max_overlaps_idx = torch.topk(align_metric, self.topk2, dim=-1, largest=True).indices  # (b, n_max_boxes)
-            mask_pos = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)  # update mask_pos
-            mask_pos.scatter_(-1, max_overlaps_idx, 1.0)
+            topk_idx = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)  # update mask_pos
+            topk_idx.scatter_(-1, max_overlaps_idx, 1.0)
+            # WARNING: directly use topk_idx might assign empty labels
+            # mask_pos = topk_idx  # (b, n_max_boxes, h*w)
+            mask_pos = torch.where(topk_idx <= 0, 0.0, mask_pos).float()  # (b, n_max_boxes, h*w)
             fg_mask = mask_pos.sum(-2)
+            # print(mask_pos.max(), fg_mask[0].max())
         # Find each grid serve which gt(index)
         target_gt_idx = mask_pos.argmax(-2)  # (b, h*w)
         return target_gt_idx, fg_mask, mask_pos

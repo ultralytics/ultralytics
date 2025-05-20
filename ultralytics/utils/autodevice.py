@@ -157,7 +157,7 @@ class GPUInfo:
         if selected:
             LOGGER.info(f"Selected idle CUDA devices {selected}")
         else:
-            LOGGER.warning(f"No GPUs met criteria (Util != -1, Free Mem >= {min_memory_fraction} MiB).")
+            LOGGER.warning(f"No GPUs met criteria (Util != -1, Free Mem >= {min_memory_fraction * 100:.1f}%).")
 
         return selected
 

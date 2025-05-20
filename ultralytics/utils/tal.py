@@ -294,8 +294,8 @@ class TaskAlignedAssigner(nn.Module):
         bs, n_boxes, _ = gt_bboxes.shape
         lt, rb = gt_bboxes.view(-1, 1, 4).chunk(2, 2)  # left-top, right-bottom
         if scale != 1.0:
-            lt = (1.0 - scale) * lt
-            rb = (1.0 + scale) * rb
+            lt = lt - (scale - 1.0) * lt
+            rb = rb + (scale - 1.0) * rb
         bbox_deltas = torch.cat((xy_centers[None] - lt, rb - xy_centers[None]), dim=2).view(bs, n_boxes, n_anchors, -1)
         return bbox_deltas.amin(3).gt_(eps)
 

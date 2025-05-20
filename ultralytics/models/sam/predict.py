@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 Generate predictions using the Segment Anything Model (SAM).
 
@@ -31,7 +31,6 @@ from .amg import (
     uncrop_boxes_xyxy,
     uncrop_masks,
 )
-from .build import build_sam
 
 
 class Predictor(BasePredictor):
@@ -48,7 +47,7 @@ class Predictor(BasePredictor):
         device (torch.device): The device (CPU or GPU) on which the model is loaded.
         im (torch.Tensor): The preprocessed input image.
         features (torch.Tensor): Extracted image features.
-        prompts (Dict): Dictionary to store various types of prompts (e.g., bboxes, points, masks).
+        prompts (dict): Dictionary to store various types of prompts (e.g., bboxes, points, masks).
         segment_all (bool): Flag to indicate if full image segmentation should be performed.
         mean (torch.Tensor): Mean values for image normalization.
         std (torch.Tensor): Standard deviation values for image normalization.
@@ -73,8 +72,8 @@ class Predictor(BasePredictor):
         >>> predictor = Predictor()
         >>> predictor.setup_model(model_path="sam_model.pt")
         >>> predictor.set_image("image.jpg")
-        >>> masks, scores, boxes = predictor.generate()
-        >>> results = predictor.postprocess((masks, scores, boxes), im, orig_img)
+        >>> bboxes = [[100, 100, 200, 200]]
+        >>> results = predictor(bboxes=bboxes)
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -86,7 +85,7 @@ class Predictor(BasePredictor):
         for optimal results.
 
         Args:
-            cfg (Dict): Configuration dictionary containing default settings.
+            cfg (dict): Configuration dictionary containing default settings.
             overrides (Dict | None): Dictionary of values to override default configuration.
             _callbacks (Dict | None): Dictionary of callback functions to customize behavior.
 
@@ -191,7 +190,7 @@ class Predictor(BasePredictor):
             >>> predictor = Predictor()
             >>> predictor.setup_model(model_path="sam_model.pt")
             >>> predictor.set_image("image.jpg")
-            >>> masks, scores, logits = predictor.inference(im, bboxes=[[0, 0, 100, 100]])
+            >>> results = predictor(bboxes=[[0, 0, 100, 100]])
         """
         # Override prompts if any stored in self.prompts
         bboxes = self.prompts.pop("bboxes", bboxes)
@@ -439,6 +438,8 @@ class Predictor(BasePredictor):
 
     def get_model(self):
         """Retrieves or builds the Segment Anything Model (SAM) for image segmentation tasks."""
+        from .build import build_sam  # slow import
+
         return build_sam(self.args.model)
 
     def postprocess(self, preds, img, orig_imgs):
@@ -634,7 +635,7 @@ class SAM2Predictor(Predictor):
         device (torch.device): The device (CPU or GPU) on which the model is loaded.
         features (Dict[str, torch.Tensor]): Cached image features for efficient inference.
         segment_all (bool): Flag to indicate if all segments should be predicted.
-        prompts (Dict): Dictionary to store various types of prompts for inference.
+        prompts (dict): Dictionary to store various types of prompts for inference.
 
     Methods:
         get_model: Retrieves and initializes the SAM2 model.
@@ -646,8 +647,8 @@ class SAM2Predictor(Predictor):
         >>> predictor = SAM2Predictor(cfg)
         >>> predictor.set_image("path/to/image.jpg")
         >>> bboxes = [[100, 100, 200, 200]]
-        >>> masks, scores, _ = predictor.prompt_inference(predictor.im, bboxes=bboxes)
-        >>> print(f"Predicted {len(masks)} masks with average score {scores.mean():.2f}")
+        >>> result = predictor(bboxes=bboxes)[0]
+        >>> print(f"Predicted {len(result.masks)} masks with average score {result.boxes.conf.mean():.2f}")
     """
 
     _bb_feat_sizes = [
@@ -658,6 +659,8 @@ class SAM2Predictor(Predictor):
 
     def get_model(self):
         """Retrieves and initializes the Segment Anything Model 2 (SAM2) for image segmentation tasks."""
+        from .build import build_sam  # slow import
+
         return build_sam(self.args.model)
 
     def prompt_inference(
@@ -694,16 +697,13 @@ class SAM2Predictor(Predictor):
             >>> predictor = SAM2Predictor(cfg)
             >>> image = torch.rand(1, 3, 640, 640)
             >>> bboxes = [[100, 100, 200, 200]]
-            >>> masks, scores, logits = predictor.prompt_inference(image, bboxes=bboxes)
-            >>> print(f"Generated {masks.shape[0]} masks with average score {scores.mean():.2f}")
+            >>> result = predictor(image, bboxes=bboxes)[0]
+            >>> print(f"Generated {result.masks.shape[0]} masks with average score {result.boxes.conf.mean():.2f}")
 
         Notes:
             - The method supports batched inference for multiple objects when points or bboxes are provided.
             - Input prompts (bboxes, points) are automatically scaled to match the input image dimensions.
             - When both bboxes and points are provided, they are merged into a single 'points' input for the model.
-
-        References:
-            - SAM2 Paper: [Add link to SAM2 paper when available]
         """
         features = self.get_im_features(im) if self.features is None else self.features
 
@@ -821,16 +821,16 @@ class SAM2VideoPredictor(SAM2Predictor):
     clearing memory for non-conditional inputs, and setting up callbacks for prediction events.
 
     Attributes:
-        inference_state (Dict): A dictionary to store the current state of inference operations.
+        inference_state (dict): A dictionary to store the current state of inference operations.
         non_overlap_masks (bool): A flag indicating whether masks should be non-overlapping.
         clear_non_cond_mem_around_input (bool): A flag to control clearing non-conditional memory around inputs.
         clear_non_cond_mem_for_multi_obj (bool): A flag to control clearing non-conditional memory for multi-object scenarios.
-        callbacks (Dict): A dictionary of callbacks for various prediction lifecycle events.
+        callbacks (dict): A dictionary of callbacks for various prediction lifecycle events.
 
     Args:
-        cfg (Dict, Optional): Configuration settings for the predictor. Defaults to DEFAULT_CFG.
-        overrides (Dict, Optional): Additional configuration overrides. Defaults to None.
-        _callbacks (List, Optional): Custom callbacks to be added. Defaults to None.
+        cfg (dict, Optional): Configuration settings for the predictor. Defaults to DEFAULT_CFG.
+        overrides (dict, Optional): Additional configuration overrides. Defaults to None.
+        _callbacks (list, Optional): Custom callbacks to be added. Defaults to None.
 
     Note:
         The `fill_hole_area` attribute is defined but not used in the current implementation.
@@ -847,7 +847,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         that control the behavior of the predictor.
 
         Args:
-            cfg (Dict): Configuration dictionary containing default settings.
+            cfg (dict): Configuration dictionary containing default settings.
             overrides (Dict | None): Dictionary of values to override default configuration.
             _callbacks (Dict | None): Dictionary of callback functions to customize behavior.
 
@@ -1287,11 +1287,11 @@ class SAM2VideoPredictor(SAM2Predictor):
         Run tracking on a single frame based on current inputs and previous memory.
 
         Args:
-            output_dict (Dict): The dictionary containing the output states of the tracking process.
+            output_dict (dict): The dictionary containing the output states of the tracking process.
             frame_idx (int): The index of the current frame.
             batch_size (int): The batch size for processing the frame.
             is_init_cond_frame (bool): Indicates if the current frame is an initial conditioning frame.
-            point_inputs (Dict, Optional): Input points and their labels. Defaults to None.
+            point_inputs (dict, Optional): Input points and their labels. Defaults to None.
             mask_inputs (torch.Tensor, Optional): Input binary masks. Defaults to None.
             reverse (bool): Indicates if the tracking should be performed in reverse order.
             run_mem_encoder (bool): Indicates if the memory encoder should be executed.
@@ -1562,7 +1562,7 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         Args:
             frame_idx (int): The index of the current frame.
-            current_out (Dict): The current output dictionary containing multi-object outputs.
+            current_out (dict): The current output dictionary containing multi-object outputs.
             storage_key (str): The key used to store the output in the per-object output dictionary.
         """
         maskmem_features = current_out["maskmem_features"]

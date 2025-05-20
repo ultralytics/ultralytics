@@ -1,4 +1,5 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Builds ultralytics/ultralytics:latest-arm64 image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Image is aarch64-compatible for Apple M1, M2, M3, Raspberry Pi and other ARM architectures
 
@@ -18,11 +19,11 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     /root/.config/Ultralytics/
 
 # Install linux packages
-# g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package
 # pkg-config and libhdf5-dev (not included) are needed to build 'h5py==3.11.0' aarch64 wheel required by 'tensorflow'
+# gnupg required for Edge TPU install
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    python3-pip git zip unzip wget curl htop gcc libgl1 libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0 \
+    python3-pip git zip unzip wget curl htop gcc libgl1 libglib2.0-0 libpython3-dev gnupg \
     && rm -rf /var/lib/apt/lists/*
 
 # Create working directory
@@ -38,7 +39,7 @@ RUN pip install uv
 RUN uv pip install --system -e ".[export]" --break-system-packages
 
 # Creates a symbolic link to make 'python' point to 'python3'
-RUN ln -sf /usr/bin/python3 /usr/bin/python
+RUN which python3 && ln -sf $(which python3) $(dirname $(which python3))/python || echo "Python3 not found"
 
 # Remove extra build files
 RUN rm -rf /root/.config/Ultralytics/persistent_cache.json

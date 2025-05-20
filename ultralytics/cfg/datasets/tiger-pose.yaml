@@ -1,4 +1,5 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Tiger Pose dataset by Ultralytics
 # Documentation: https://docs.ultralytics.com/datasets/pose/tiger-pose/
 # Example usage: yolo train data=tiger-pose.yaml

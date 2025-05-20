@@ -315,6 +315,13 @@ class TaskAlignedAssigner(nn.Module):
         """
         # Convert (b, n_max_boxes, h*w) -> (b, h*w)
         fg_mask = mask_pos.sum(-2)
+        # for i, m in enumerate(mask_gt[0, :, 0]):
+        #     if not m:
+        #         continue
+        #     x = mask_pos[0, i].sum()
+        #     print(x)
+        #     if x == 0:
+        #         exit()
         if fg_mask.max() > 1:  # one anchor is assigned to multiple gt_bboxes
             mask_multi_gts = (fg_mask.unsqueeze(1) > 1).expand(-1, n_max_boxes, -1)  # (b, n_max_boxes, h*w)
             max_overlaps_idx = overlaps.argmax(1)  # (b, h*w)
@@ -324,6 +331,13 @@ class TaskAlignedAssigner(nn.Module):
 
             mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos).float()  # (b, n_max_boxes, h*w)
             fg_mask = mask_pos.sum(-2)
+            # for i, m in enumerate(mask_gt[0, :, 0]):
+            #     if not m:
+            #         continue
+            #     x = mask_pos[0, i].sum()
+            #     print("--", x)
+            #     if x == 0:
+            #         exit()
 
         if self.topk2 != self.topk:
             align_metric = align_metric * mask_pos  # update overlaps

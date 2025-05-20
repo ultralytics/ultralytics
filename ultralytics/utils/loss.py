@@ -171,7 +171,7 @@ class v8DetectionLoss:
 
         self.use_dfl = m.reg_max > 1
 
-        self.assigner = TaskAlignedAssigner(topk=tal_topk, num_classes=self.nc, alpha=0.5, beta=6.0)
+        self.assigner = TaskAlignedAssigner(topk=tal_topk, num_classes=self.nc, alpha=0.5, beta=6.0, topk2=1)
         self.tal_topk = tal_topk
         self.updates = 0
         self.bbox_loss = BboxLoss(m.reg_max).to(device)

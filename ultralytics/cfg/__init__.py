@@ -24,6 +24,7 @@ from ultralytics.utils import (
     YAML,
     IterableSimpleNamespace,
     checks,
+    closest_match,
     colorstr,
     deprecation_warn,
     vscode_msg,
@@ -81,7 +82,7 @@ SOLUTIONS_HELP_MSG = f"""
         Where SOLUTION (optional) is one of {list(SOLUTION_MAP.keys())[:-1]}
               ARGS (optional) are any number of custom 'arg=value' pairs like 'show_in=True' that override defaults 
                   at https://docs.ultralytics.com/usage/cfg
-                
+
     1. Call object counting solution
         yolo solutions count source="path/to/video.mp4" region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
 
@@ -96,7 +97,7 @@ SOLUTIONS_HELP_MSG = f"""
 
     5. Generate analytical graphs
         yolo solutions analytics analytics_type="pie"
-    
+
     6. Track objects within specific zones
         yolo solutions trackzone source="path/to/video.mp4" region="[(150, 150), (1130, 150), (1130, 570), (150, 570)]"
         

@@ -274,7 +274,7 @@ class TaskAlignedAssigner(nn.Module):
         return target_labels, target_bboxes, target_scores
 
     @staticmethod
-    def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9):
+    def select_candidates_in_gts(xy_centers, gt_bboxes, scale=1.0, eps=1e-9):
         """
         Select positive anchor centers within ground truth bounding boxes.
 
@@ -293,6 +293,9 @@ class TaskAlignedAssigner(nn.Module):
         n_anchors = xy_centers.shape[0]
         bs, n_boxes, _ = gt_bboxes.shape
         lt, rb = gt_bboxes.view(-1, 1, 4).chunk(2, 2)  # left-top, right-bottom
+        if scale != 1.0:
+            lt = (1.0 - scale) * lt
+            rb = (1.0 + scale) * rb
         bbox_deltas = torch.cat((xy_centers[None] - lt, rb - xy_centers[None]), dim=2).view(bs, n_boxes, n_anchors, -1)
         return bbox_deltas.amin(3).gt_(eps)
 

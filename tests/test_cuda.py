@@ -22,7 +22,7 @@ if CUDA_IS_AVAILABLE:
     else:
         gpu_info = GPUInfo()
         gpu_info.print_status()
-        idle_gpus = gpu_info.select_idle_gpu(count=2, min_memory_mb=2048)
+        idle_gpus = gpu_info.select_idle_gpu(count=2, min_memory_fraction=0.2)
         if idle_gpus:
             DEVICES = idle_gpus
 
@@ -41,7 +41,6 @@ def test_amp():
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(IS_JETSON, reason="Temporary disable ONNX for Jetson")
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, simplify, nms",
@@ -50,7 +49,9 @@ def test_amp():
         for task, dynamic, int8, half, batch, simplify, nms in product(
             TASKS, [True, False], [False], [False], [1, 2], [True, False], [True, False]
         )
-        if not ((int8 and half) or (task == "classify" and nms) or (task == "obb" and nms and not TORCH_1_13))
+        if not (
+            (int8 and half) or (task == "classify" and nms) or (task == "obb" and nms and (not TORCH_1_13 or IS_JETSON))
+        )
     ],
 )
 def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):

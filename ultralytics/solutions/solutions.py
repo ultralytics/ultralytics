@@ -8,7 +8,7 @@ import numpy as np
 
 from ultralytics import YOLO
 from ultralytics.solutions.config import SolutionConfig
-from ultralytics.utils import ASSETS_URL, LOGGER
+from ultralytics.utils import ASSETS_URL, LOGGER, ops
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
 
@@ -88,6 +88,7 @@ class BaseSolution:
             self.classes = self.CFG["classes"]
             self.show_conf = self.CFG["show_conf"]
             self.show_labels = self.CFG["show_labels"]
+            self.device = self.CFG["device"]
 
             self.track_add_args = {  # Tracker additional arguments for advance configuration
                 k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker", "device", "verbose"]
@@ -104,6 +105,12 @@ class BaseSolution:
             # Initialize environment and region setup
             self.env_check = check_imshow(warn=True)
             self.track_history = defaultdict(list)
+
+            self.profilers = (
+                ops.Profile(device=self.device),  # object tracking
+                ops.Profile(device=self.device),  # object counting
+                ops.Profile(device=self.device),  # post-processing
+            )
 
     def adjust_box_label(self, cls, conf, track_id=None):
         """
@@ -136,7 +143,8 @@ class BaseSolution:
             >>> frame = cv2.imread("path/to/image.jpg")
             >>> solution.extract_tracks(frame)
         """
-        self.tracks = self.model.track(source=im0, persist=True, classes=self.classes, **self.track_add_args)
+        with self.profilers[0]:
+            self.tracks = self.model.track(source=im0, persist=True, classes=self.classes, **self.track_add_args)
         self.track_data = self.tracks[0].obb or self.tracks[0].boxes  # Extract tracks for OBB or object detection
 
         if self.track_data and self.track_data.id is not None:
@@ -209,7 +217,14 @@ class BaseSolution:
 
     def __call__(self, *args, **kwargs):
         """Allow instances to be called like a function with flexible arguments."""
-        result = self.process(*args, **kwargs)  # Call the subclass-specific process method
+        with self.profilers[2]:
+            result = self.process(*args, **kwargs)  # Call the subclass-specific process method
+
+        self.results.speed_dict = {
+            "preprocess": self.profilers[0].dt * 1e3 / n,
+            "inference": self.profilers[1].dt * 1e3 / n,
+            "postprocess": self.profilers[2].dt * 1e3 / n,
+        }
         if self.CFG["verbose"]:  # extract verbose value to display the output logs if True
             LOGGER.info(f"🚀 Results: {result}")
         return result

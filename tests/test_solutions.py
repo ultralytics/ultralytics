@@ -297,6 +297,7 @@ def test_streamlit_handle_video_upload_creates_file():
     os.remove("ultralytics.mp4")
 
 
+@pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="Disabled due to unsupported CLIP dependencies.")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search_app_init():
     """Test SearchApp initializes with required attributes."""

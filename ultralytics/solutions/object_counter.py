@@ -156,7 +156,8 @@ class ObjectCounter(BaseSolution):
             self.initialize_region()
             self.region_initialized = True
 
-        self.extract_tracks(im0)  # Extract tracks
+        with self.profilers[0]:
+            self.extract_tracks(im0)  # Extract tracks
         self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
         is_obb = getattr(self.tracks[0], "obb", None) is not None  # True if OBB results exist
@@ -168,22 +169,24 @@ class ObjectCounter(BaseSolution):
         )  # Draw region
 
         # Iterate over bounding boxes, track ids and classes index
-        for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
-            # Draw bounding box and counting region
-            self.annotator.box_label(
-                box, label=self.adjust_box_label(cls, conf, track_id), color=colors(cls, True), rotated=is_obb
-            )
-            self.store_tracking_history(track_id, box, is_obb=is_obb)  # Store track history
+        with self.profilers[1]:
+            for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
+                # Draw bounding box and counting region
+                self.annotator.box_label(
+                    box, label=self.adjust_box_label(cls, conf, track_id), color=colors(cls, True), rotated=is_obb
+                )
+                self.store_tracking_history(track_id, box, is_obb=is_obb)  # Store track history
 
-            # Store previous position of track for object counting
-            prev_position = None
-            if len(self.track_history[track_id]) > 1:
-                prev_position = self.track_history[track_id][-2]
-            self.count_objects(self.track_history[track_id][-1], track_id, prev_position, cls)  # object counting
+                # Store previous position of track for object counting
+                prev_position = None
+                if len(self.track_history[track_id]) > 1:
+                    prev_position = self.track_history[track_id][-2]
+                self.count_objects(self.track_history[track_id][-1], track_id, prev_position, cls)  # object counting
 
         plot_im = self.annotator.result()
-        self.display_counts(plot_im)  # Display the counts on the frame
-        self.display_output(plot_im)  # Display output with base class function
+        with self.profilers[2]:
+            self.display_counts(plot_im)  # Display the counts on the frame
+            self.display_output(plot_im)  # Display output with base class function
 
         # Return SolutionResults
         return SolutionResults(

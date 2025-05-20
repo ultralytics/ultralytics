@@ -89,9 +89,10 @@ class BaseSolution:
             self.show_conf = self.CFG["show_conf"]
             self.show_labels = self.CFG["show_labels"]
             self.device = self.CFG["device"]
+            self.image_shape = None
 
             self.track_add_args = {  # Tracker additional arguments for advance configuration
-                k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker", "device", "verbose"]
+                k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker", "device"]
             }  # verbose must be passed to track method; setting it False in YOLO still logs the track information.
 
             if is_cli and self.CFG["source"] is None:
@@ -143,8 +144,8 @@ class BaseSolution:
             >>> frame = cv2.imread("path/to/image.jpg")
             >>> solution.extract_tracks(frame)
         """
-        with self.profilers[0]:
-            self.tracks = self.model.track(source=im0, persist=True, classes=self.classes, **self.track_add_args)
+        self.image_shape = im0.shape
+        self.tracks = self.model.track(source=im0, persist=True, classes=self.classes, verbose=True, **self.track_add_args)
         self.track_data = self.tracks[0].obb or self.tracks[0].boxes  # Extract tracks for OBB or object detection
 
         if self.track_data and self.track_data.id is not None:
@@ -217,15 +218,22 @@ class BaseSolution:
 
     def __call__(self, *args, **kwargs):
         """Allow instances to be called like a function with flexible arguments."""
-        with self.profilers[2]:
-            result = self.process(*args, **kwargs)  # Call the subclass-specific process method
-
-        self.results.speed_dict = {
-            "preprocess": self.profilers[0].dt * 1e3 / n,
-            "inference": self.profilers[1].dt * 1e3 / n,
-            "postprocess": self.profilers[2].dt * 1e3 / n,
+        result = self.process(*args, **kwargs)  # Call the subclass-specific process method
+        result.speed_dict = {
+            "track": self.profilers[0].dt * 1e3,
+            "solution": self.profilers[1].dt * 1e3,
+            "visualization": self.profilers[2].dt * 1e3,
         }
+        # Profiling times in milliseconds
+        preprocess_time = self.profilers[0].dt * 1e3
+        inference_time = self.profilers[1].dt * 1e3
+        postprocess_time = self.profilers[2].dt * 1e3
         if self.CFG["verbose"]:  # extract verbose value to display the output logs if True
+            LOGGER.info(
+                f"Speed: {preprocess_time:.1f}ms preprocess, {inference_time:.1f}ms inference, "
+                f"{postprocess_time:.1f}ms postprocess per image at shape "
+                f"(1, {getattr(self.model, 'ch', 3)}, {self.image_shape})"
+            )
             LOGGER.info(f"🚀 Results: {result}")
         return result
 

@@ -264,7 +264,8 @@ class v8DetectionLoss:
         self.assigner.topk = self.decay(self.updates)
 
     def decay(self, x):
-        return int(round(self.tal_topk - ((self.tal_topk - 1) / self.hyp.epochs) * x))
+        # return int(round(self.tal_topk - ((self.tal_topk - 1) / self.hyp.epochs) * x))
+        return max(int(round(self.tal_topk - (self.tal_topk / self.hyp.epochs) * x)), 1)
 
 
 class v8SegmentationLoss(v8DetectionLoss):

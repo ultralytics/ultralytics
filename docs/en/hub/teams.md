@@ -18,7 +18,7 @@ Here, you'll learn how to manage team members, share resources seamlessly, and c
 
 !!! note
 
-    You need to [upgrade](./pro.md#upgrade) to the [Pro Plan](./pro.md) in order to create a team.
+    You need to [upgrade](./pro.md#how-to-upgrade) to the [Pro Plan](./pro.md) in order to create a team.
 
     ![Ultralytics HUB screenshot of the Settings page Teams tab with an arrow pointing to the Upgrade button](https://github.com/ultralytics/docs/releases/download/0/hub-create-team-settings-page.avif)
 
@@ -98,7 +98,7 @@ When a new unique member joins one of your teams, the number of seats increases,
 
 Each unique member counts as one seat, regardless of how many teams they are in. For example, if John Doe is a member of 5 of your teams, he is using one seat.
 
-When you remove a unique member from the last team they are a member of, the number of seats decreases. The charge is prorated and can be applied to adding other unique members, paying for the [Pro Plan](./pro.md), or topping up your [account balance](./pro.md#account-balance).
+When you remove a unique member from the last team they are a member of, the number of seats decreases. The charge is prorated and can be applied to adding other unique members, paying for the [Pro Plan](./pro.md), or topping up your [account balance](./pro.md#managing-your-account-balance).
 
 You can see the number of seats on the [Teams](https://hub.ultralytics.com/settings?tab=teams) page.
 

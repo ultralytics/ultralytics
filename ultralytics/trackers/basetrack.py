@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Module defines the base classes and structures for object tracking in YOLO."""
 
 from collections import OrderedDict
@@ -38,7 +38,7 @@ class BaseTrack:
         is_activated (bool): Flag indicating whether the track is currently active.
         state (TrackState): Current state of the track.
         history (OrderedDict): Ordered history of the track's states.
-        features (List): List of features extracted from the object for tracking.
+        features (list): List of features extracted from the object for tracking.
         curr_feature (Any): The current feature of the object being tracked.
         score (float): The confidence score of the tracking.
         start_frame (int): The frame number where tracking started.
@@ -67,7 +67,7 @@ class BaseTrack:
 
     def __init__(self):
         """
-        Initializes a new track with a unique ID and foundational tracking attributes.
+        Initialize a new track with a unique ID and foundational tracking attributes.
 
         Examples:
             Initialize a new track

@@ -1,16 +1,19 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
-# YOLO11-pose keypoints/pose estimation model. For Usage examples see https://docs.ultralytics.com/tasks/pose
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics YOLO11-pose keypoints/pose estimation model with P3/8 - P5/32 outputs
+# Model docs: https://docs.ultralytics.com/models/yolo11
+# Task docs: https://docs.ultralytics.com/tasks/pose
 
 # Parameters
 nc: 80 # number of classes
 kpt_shape: [17, 3] # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
 scales: # model compound scaling constants, i.e. 'model=yolo11n-pose.yaml' will call yolo11.yaml with scale 'n'
   # [depth, width, max_channels]
-  n: [0.50, 0.25, 1024] # summary: 344 layers, 2908507 parameters, 2908491 gradients, 7.7 GFLOPs
-  s: [0.50, 0.50, 1024] # summary: 344 layers, 9948811 parameters, 9948795 gradients, 23.5 GFLOPs
-  m: [0.50, 1.00, 512] # summary: 434 layers, 20973273 parameters, 20973257 gradients, 72.3 GFLOPs
-  l: [1.00, 1.00, 512] # summary: 656 layers, 26230745 parameters, 26230729 gradients, 91.4 GFLOPs
-  x: [1.00, 1.50, 512] # summary: 656 layers, 58889881 parameters, 58889865 gradients, 204.3 GFLOPs
+  n: [0.50, 0.25, 1024] # summary: 196 layers, 2908507 parameters, 2908491 gradients, 7.7 GFLOPs
+  s: [0.50, 0.50, 1024] # summary: 196 layers, 9948811 parameters, 9948795 gradients, 23.5 GFLOPs
+  m: [0.50, 1.00, 512] # summary: 246 layers, 20973273 parameters, 20973257 gradients, 72.3 GFLOPs
+  l: [1.00, 1.00, 512] # summary: 372 layers, 26230745 parameters, 26230729 gradients, 91.4 GFLOPs
+  x: [1.00, 1.50, 512] # summary: 372 layers, 58889881 parameters, 58889865 gradients, 204.3 GFLOPs
 
 # YOLO11n backbone
 backbone:

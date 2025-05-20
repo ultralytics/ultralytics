@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import copy
 import math
@@ -707,7 +707,7 @@ class PositionEmbeddingSine(nn.Module):
         temperature (int): Temperature parameter for the sinusoidal functions.
         normalize (bool): Whether to normalize the positional embeddings.
         scale (float): Scaling factor for the embeddings when normalize is True.
-        cache (Dict): Cache for storing precomputed embeddings.
+        cache (dict): Cache for storing precomputed embeddings.
 
     Methods:
         _encode_xy: Encodes 2D positions using sine and cosine functions.

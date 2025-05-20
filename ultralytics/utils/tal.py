@@ -332,7 +332,7 @@ class TaskAlignedAssigner(nn.Module):
             topk_idx.scatter_(-1, max_overlaps_idx, 1.0)
             # WARNING: directly use topk_idx might assign empty labels
             # mask_pos = topk_idx  # (b, n_max_boxes, h*w)
-            mask_pos = torch.where(topk_idx <= 0, 0.0, mask_pos).float()  # (b, n_max_boxes, h*w)
+            mask_pos *= topk_idx
             fg_mask = mask_pos.sum(-2)
             # print(mask_pos.max(), fg_mask[0].max())
         # Find each grid serve which gt(index)

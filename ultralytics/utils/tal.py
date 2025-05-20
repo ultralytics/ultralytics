@@ -106,7 +106,7 @@ class TaskAlignedAssigner(nn.Module):
             pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt
         )
 
-        target_gt_idx, fg_mask, mask_pos = self.select_highest_overlaps(mask_pos, overlaps, self.n_max_boxes, align_metric)
+        target_gt_idx, fg_mask, mask_pos = self.select_highest_overlaps(mask_pos, overlaps, self.n_max_boxes, align_metric, mask_gt)
 
         # Assigned target
         target_labels, target_bboxes, target_scores = self.get_targets(gt_labels, gt_bboxes, target_gt_idx, fg_mask)
@@ -299,7 +299,7 @@ class TaskAlignedAssigner(nn.Module):
         bbox_deltas = torch.cat((xy_centers[None] - lt, rb - xy_centers[None]), dim=2).view(bs, n_boxes, n_anchors, -1)
         return bbox_deltas.amin(3).gt_(eps)
 
-    def select_highest_overlaps(self, mask_pos, overlaps, n_max_boxes, align_metric):
+    def select_highest_overlaps(self, mask_pos, overlaps, n_max_boxes, align_metric, mask_gt):
         """
         Select anchor boxes with highest IoU when assigned to multiple ground truths.
 
@@ -324,10 +324,16 @@ class TaskAlignedAssigner(nn.Module):
         #         exit()
         if fg_mask.max() > 1:  # one anchor is assigned to multiple gt_bboxes
             mask_multi_gts = (fg_mask.unsqueeze(1) > 1).expand(-1, n_max_boxes, -1)  # (b, n_max_boxes, h*w)
-            max_overlaps_idx = overlaps.argmax(1)  # (b, h*w)
+            # max_overlaps_idx = overlaps.argmax(1)  # (b, h*w)
+            # is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
+            # is_max_overlaps.scatter_(1, max_overlaps_idx.unsqueeze(1), 1)
 
+            sum_pos = mask_pos.sum(-1)
+            sum_pos.masked_fill_(sum_pos == 0, sum_pos.max())  # (b, n_max_boxes, h*w)
+            min_idx = torch.argmin(sum_pos, dim=-1)  # (b, )
+            mask_pos_min = mask_pos[torch.arange(len(mask_pos)), min_idx].long()  # (b, h*w)
             is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
-            is_max_overlaps.scatter_(1, max_overlaps_idx.unsqueeze(1), 1)
+            is_max_overlaps.scatter_(1, mask_pos_min.unsqueeze(1), 1)
 
             mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos).float()  # (b, n_max_boxes, h*w)
             fg_mask = mask_pos.sum(-2)

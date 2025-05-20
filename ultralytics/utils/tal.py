@@ -21,7 +21,6 @@ class TaskAlignedAssigner(nn.Module):
     Attributes:
         topk (int): The number of top candidates to consider.
         num_classes (int): The number of object classes.
-        bg_idx (int): Background class index.
         alpha (float): The alpha parameter for the classification component of the task-aligned metric.
         beta (float): The beta parameter for the localization component of the task-aligned metric.
         eps (float): A small value to prevent division by zero.
@@ -32,7 +31,6 @@ class TaskAlignedAssigner(nn.Module):
         super().__init__()
         self.topk = topk
         self.num_classes = num_classes
-        self.bg_idx = num_classes
         self.alpha = alpha
         self.beta = beta
         self.eps = eps
@@ -66,7 +64,7 @@ class TaskAlignedAssigner(nn.Module):
 
         if self.n_max_boxes == 0:
             return (
-                torch.full_like(pd_scores[..., 0], self.bg_idx),
+                torch.full_like(pd_scores[..., 0], self.num_classes),
                 torch.zeros_like(pd_bboxes),
                 torch.zeros_like(pd_scores),
                 torch.zeros_like(pd_scores[..., 0]),

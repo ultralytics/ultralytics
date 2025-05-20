@@ -108,7 +108,7 @@ YOLOv8 kann verschiedene Arten von Eingabequellen für die Inferenz verarbeiten,
 | CSV                | `'sources.csv'`                            | `str` oder `Path` | CSV-Datei mit Pfaden zu Bildern, Videos oder Verzeichnissen.                                   |
 | video ✅           | `'video.mp4'`                              | `str` oder `Path` | Videodatei in Formaten wie MP4, AVI, usw.                                                      |
 | Verzeichnis ✅     | `'path/'`                                  | `str` oder `Path` | Pfad zu einem Verzeichnis mit Bildern oder Videos.                                             |
-| glob ✅            | `'path/*.jpg'`                             | `str`             | Glob-Muster, um mehrere Dateien zu finden. Verwenden Sie das `*` Zeichen also Platzhalter.      |
+| glob ✅            | `'path/*.jpg'`                             | `str`             | Glob-Muster, um mehrere Dateien zu finden. Verwenden Sie das `*` Zeichen also Platzhalter.     |
 | YouTube ✅         | `'https://youtu.be/LNwODJXcvt4'`           | `str`             | URL zu einem YouTube-Video.                                                                    |
 | stream ✅          | `'rtsp://example.com/media.mp4'`           | `str`             | URL für Streaming-Protokolle wie RTSP, RTMP, TCP oder eine IP-Adresse.                         |
 | Multi-Stream ✅    | `'list.streams'`                           | `str` oder `Path` | `*.streams` Textdatei mit einer Stream-URL pro Zeile, z.B. 8 Streams laufen bei Batch-Größe 8. |

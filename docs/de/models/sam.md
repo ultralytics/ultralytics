@@ -135,7 +135,7 @@ Das Segment Anything Model kann für eine Vielzahl von Aufgaben verwendet werden
 
 Hier vergleichen wir Meta's kleinstes SAM-Modell, SAM-b, mit Ultralytics kleinstem Segmentierungsmodell, [YOLOv8n-seg](../tasks/segment.md):
 
-| Model                                         | Größe                         | Parameter                    | Geschwindigkeit (CPU)                  |
+| Model                                          | Größe                         | Parameter                    | Geschwindigkeit (CPU)                  |
 | ---------------------------------------------- | ----------------------------- | ---------------------------- | -------------------------------------- |
 | Meta's SAM-b                                   | 358 MB                        | 94,7 M                       | 51096 ms/pro Bild                      |
 | [MobileSAM](mobile-sam.md)                     | 40,7 MB                       | 10,1 M                       | 46122 ms/pro Bild                      |
@@ -192,7 +192,7 @@ Um Ihren Datensatz mit dem Ultralytics-Framework automatisch zu annotieren, verw
 
 | Argument   | Typ                 | Beschreibung                                                                                                              | Standard     |
 | ---------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| data       | str                 | Pfad zu einem Order, der die zu annotierenden Bilder enthält.                                                            |              |
+| data       | str                 | Pfad zu einem Order, der die zu annotierenden Bilder enthält.                                                             |              |
 | det_model  | str, optional       | Vortrainiertes YOLO-Detektionsmodell. Standardmäßig 'yolov8x.pt'.                                                         | 'yolov8x.pt' |
 | sam_model  | str, optional       | Vortrainiertes SAM-Segmentierungsmodell. Standardmäßig 'sam_b.pt'.                                                        | 'sam_b.pt'   |
 | device     | str, optional       | Gerät, auf dem die Modelle ausgeführt werden. Standardmäßig ein leerer String (CPU oder GPU, falls verfügbar).            |              |

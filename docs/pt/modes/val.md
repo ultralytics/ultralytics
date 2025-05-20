@@ -74,14 +74,14 @@ As configurações de validação para os modelos YOLO referem-se aos vários hi
 | `batch`       | `16`    | número de imagens por lote (-1 para AutoBatch)                                    |
 | `save_json`   | `False` | salvar resultados em arquivo JSON                                                 |
 | `save_hybrid` | `False` | salvar versão híbrida das etiquetas (etiquetas + previsões adicionais)            |
-| `conf`        | `0.001` | limit de confiança do objeto para detecção                                       |
+| `conf`        | `0.001` | limit de confiança do objeto para detecção                                        |
 | `iou`         | `0.6`   | limiar de interseção sobre união (IoU) para NMS                                   |
 | `max_det`     | `300`   | número máximo de detecções por imagem                                             |
 | `half`        | `True`  | usar precisão meia (FP16)                                                         |
 | `device`      | `None`  | dispositivo para execução, ex. dispositivo cuda=0/1/2/3 ou device=cpu             |
 | `dnn`         | `False` | usar OpenCV DNN para inferência ONNX                                              |
 | `plots`       | `False` | mostrar gráficos durante o treinamento                                            |
-| `rect`        | `False` | val rectangular com cada lote colado para minimizar o preenchimento                |
+| `rect`        | `False` | val rectangular com cada lote colado para minimizar o preenchimento               |
 | `split`       | `val`   | divisão do conjunto de dados para usar na validação, ex. 'val', 'test' ou 'train' |
 
 |

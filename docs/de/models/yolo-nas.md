@@ -23,7 +23,7 @@ Entwickelt von Deci AI, ist YOLO-NAS ein bahnbrechendes Model für die Objekterk
 
 Erleben Sie die Leistungsfähigkeit der Objekterkennung der nächsten Generation mit den vortrainierten YOLO-NAS-Modellen von Ultralytics. Diese Modelle sind darauf ausgelegt, sowohl bei Geschwindigkeit also auch bei Genauigkeit hervorragende Leistung zu liefern. Wählen Sie aus einer Vielzahl von Optionen, die auf Ihre spezifischen Anforderungen zugeschnitten sind:
 
-| Model           | mAP   | Latenz (ms) |
+| Model            | mAP   | Latenz (ms) |
 | ---------------- | ----- | ----------- |
 | YOLO-NAS S       | 47,5  | 3,21        |
 | YOLO-NAS M       | 51,55 | 5,85        |

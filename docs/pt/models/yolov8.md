@@ -25,7 +25,7 @@ A série YOLOv8 oferece uma variedade de modelos, cada um especializado em taref
 
 Cada variante da série YOLOv8 é otimizada para a respectiva tarefa, garantindo alto desempenho e precisão. Além disso, esses modelos são compatíveis com diversos modos operacionais, incluindo [Inferência](../modes/predict.md), [Validação](../modes/val.md), [Treinamento](../modes/train.md) e [Exportação](../modes/export.md), facilitando o uso em diferentes estágios de implantação e desenvolvimento.
 
-| Modelo      | Gnomes de Arquivo                                                                                               | Tarefa                                           | Inferência | Validação | Treinamento | Exportação |
+| Modelo      | Gnomes de Arquivo                                                                                              | Tarefa                                           | Inferência | Validação | Treinamento | Exportação |
 | ----------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ---------- | --------- | ----------- | ---------- |
 | YOLOv8      | `yolov8n.pt` `yolov8s.pt` `yolov8m.pt` `yolov8l.pt` `yolov8x.pt`                                               | [Detecção](../tasks/detect.md)                   | ✅         | ✅        | ✅          | ✅         |
 | YOLOv8-seg  | `yolov8n-seg.pt` `yolov8s-seg.pt` `yolov8m-seg.pt` `yolov8l-seg.pt` `yolov8x-seg.pt`                           | [Segmentação de Instâncias](../tasks/segment.md) | ✅         | ✅        | ✅          | ✅         |

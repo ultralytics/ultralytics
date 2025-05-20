@@ -34,6 +34,7 @@ try:
     from pathlib import Path
 
     PREFIX = colorstr("MLflow: ")
+
     def SANITIZE(x):
         return {k.replace("(", "").replace(")", ""): float(v) for k, v in x.items()}
 

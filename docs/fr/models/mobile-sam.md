@@ -47,9 +47,9 @@ SAM d'origine et MobileSAM utilisent tous deux le même décodeur de masque bas�
 Voici une comparison du pipeline complete :
 
 | Pipeline Complete (Enc+Dec) | SAM d'Origine | MobileSAM |
-| -------------------------- | ------------- | --------- |
-| Paramètres                 | 615M          | 9.66M     |
-| Vitesse                    | 456 ms        | 12 ms     |
+| --------------------------- | ------------- | --------- |
+| Paramètres                  | 615M          | 9.66M     |
+| Vitesse                     | 456 ms        | 12 ms     |
 
 Les performances de MobileSAM et de SAM d'origine sont démontrées en utilisant à la fois un point et une boîte comme instructions.
 

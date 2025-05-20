@@ -61,15 +61,15 @@ Exécutez les benchmarks YOLOv8n sur tous les formats d'exportation supportés, 
 
 Des arguments tels que `model`, `data`, `imgsz`, `half`, `device` et `verbose` offrent aux utilisateurs la flexibilité d'ajuster précisément les benchmarks à leurs besoins spécifiques et de comparer facilement les performances de différents formats d'exportation.
 
-| Clé       | Valeur  | Description                                                                           |
-| --------- | ------- | ------------------------------------------------------------------------------------- |
-| `model`   | `None`  | chemin vers le fichier modèle, par ex. yolov8n.pt, yolov8n.yaml                       |
-| `data`    | `None`  | chemin vers le YAML référençant le dataset de benchmarking (sous l'étiquette `val`)   |
-| `imgsz`   | `640`   | taille de l'image comme scalaire ou liste (h, w), par ex. (640, 480)                  |
-| `half`    | `False` | quantification FP16                                                                   |
-| `int8`    | `False` | quantification INT8                                                                   |
+| Clé       | Valeur  | Description                                                                         |
+| --------- | ------- | ----------------------------------------------------------------------------------- |
+| `model`   | `None`  | chemin vers le fichier modèle, par ex. yolov8n.pt, yolov8n.yaml                     |
+| `data`    | `None`  | chemin vers le YAML référençant le dataset de benchmarking (sous l'étiquette `val`) |
+| `imgsz`   | `640`   | taille de l'image comme scalaire ou liste (h, w), par ex. (640, 480)                |
+| `half`    | `False` | quantification FP16                                                                 |
+| `int8`    | `False` | quantification INT8                                                                 |
 | `device`  | `None`  | apparel sur lequel exécuter, par ex. apparel cuda=0 ou device=0,1,2,3 ou device=cpu |
-| `verbose` | `False` | ne pas continuer en cas d'erreur (bool), ou seuil de plancher val (float)             |
+| `verbose` | `False` | ne pas continuer en cas d'erreur (bool), ou seuil de plancher val (float)           |
 
 ## Formats d'Exportation
 

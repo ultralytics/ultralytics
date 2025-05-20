@@ -76,6 +76,7 @@ class Detect(nn.Module):
         if self.training:  # Training path
             return x
         y = self._inference(x)
+        # y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
         return y if self.export else (y, x)
 
     def forward_end2end(self, x):
@@ -180,9 +181,10 @@ class Detect(nn.Module):
         boxes, scores = preds.split([4, nc], dim=-1)
         index = scores.amax(dim=-1).topk(min(max_det, anchors))[1].unsqueeze(-1)
         boxes = boxes.gather(dim=1, index=index.repeat(1, 1, 4))
-        scores = scores.gather(dim=1, index=index.repeat(1, 1, nc))
-        scores, index = scores.flatten(1).topk(min(max_det, anchors))
+        ori_scores = scores.gather(dim=1, index=index.repeat(1, 1, nc))
+        scores, index = ori_scores.flatten(1).topk(min(max_det, anchors))
         i = torch.arange(batch_size)[..., None]  # batch indices
+        # return torch.cat([boxes[i, index // nc], ori_scores], dim=-1).permute(0, 2, 1)
         return torch.cat([boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1)
 
 

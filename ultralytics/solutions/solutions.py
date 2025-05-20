@@ -108,7 +108,7 @@ class BaseSolution:
 
             self.profilers = (
                 ops.Profile(device=self.device),  # object tracking
-                ops.Profile(device=self.device),  # object counting
+                ops.Profile(device=self.device),  # each solution processing
                 ops.Profile(device=self.device),  # post-processing
             )
 

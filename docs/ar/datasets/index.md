@@ -110,14 +110,15 @@ keywords: الرؤية الحاسوبية ، مجموعات البيانات ، 
 
     ```python
     from pathlib import Path
+
     from ultralytics.data.utils import compress_one_image
     from ultralytics.utils.downloads import zip_directory
 
     # تعيين مسار مجلد مجموعة البيانات
-    path = Path('path/to/dataset')
+    path = Path("path/to/dataset")
 
     # تحسين الصور في مجموعة البيانات (اختياري)
-    for f in path.rglob('*.jpg'):
+    for f in path.rglob("*.jpg"):
         compress_one_image(f)
 
     # ضغط مجلد مجموعة البيانات في ملف زيب

@@ -26,7 +26,7 @@ keywords: Ultralytics، YOLOv8، وضع التنبؤ، مصادر التنبؤ،
 ## التطبيقات في العالم الحقيقي
 
 |                      التصنيع                      |                       الرياضة                        |                   السلامة                   |
-|:-------------------------------------------------:|:----------------------------------------------------:|:-------------------------------------------:|
+| :-----------------------------------------------: | :--------------------------------------------------: | :-----------------------------------------: |
 | ![Vehicle Spare Parts Detection][car spare parts] | ![Football Player Detection][football player detect] | ![People Fall Detection][human fall detect] |
 |               كشف قطع غيار المركبات               |                 كشف لاعبي كرة القدم                  |              كشف سقوط الأشخاص               |
 
@@ -57,10 +57,10 @@ keywords: Ultralytics، YOLOv8، وضع التنبؤ، مصادر التنبؤ،
         from ultralytics import YOLO
 
         # تحميل نموذج
-        model = YOLO('yolov8n.pt')  # نموذج YOLOv8n المُدرَّب مسبقًا
+        model = YOLO("yolov8n.pt")  # نموذج YOLOv8n المُدرَّب مسبقًا
 
         # تشغيل التنبؤ بدُفعة على قائمة من الصور
-        results = model(['im1.jpg', 'im2.jpg'])  # العودة بقائمة من كائنات 'النتائج'
+        results = model(["im1.jpg", "im2.jpg"])  # العودة بقائمة من كائنات 'النتائج'
 
         # معالجة قائمة النتائج
         for result in results:
@@ -75,10 +75,10 @@ keywords: Ultralytics، YOLOv8، وضع التنبؤ، مصادر التنبؤ،
         from ultralytics import YOLO
 
         # تحميل نموذج
-        model = YOLO('yolov8n.pt')  # نموذج YOLOv8n المُدرَّب مسبقًا
+        model = YOLO("yolov8n.pt")  # نموذج YOLOv8n المُدرَّب مسبقًا
 
         # تشغيل التنبؤ بدُفعة على قائمة من الصور
-        results = model(['im1.jpg', 'im2.jpg'], stream=True)  # العودة بمُنشئ فعال لكائنات 'النتائج'
+        results = model(["im1.jpg", "im2.jpg"], stream=True)  # العودة بمُنشئ فعال لكائنات 'النتائج'
 
         # معالجة المُنشئ الفعال
         for result in results:
@@ -97,7 +97,7 @@ keywords: Ultralytics، YOLOv8، وضع التنبؤ، مصادر التنبؤ،
     استخدم `stream=True` لمعالجة مقاطع الفيديو الطويلة أو مجموعات البيانات الكبيرة لإدارة الذاكرة بكفاءة. عندما تكون القيمة مساوية لـ `stream=False`، يتم تخزين النتائج لجميع الإطارات أو نقاط البيانات في الذاكرة، والتي يمكن أن تتراكم بسرعة وتُسبِّب أخطاء الذاكرة غير الكافية للمدخلات الكبيرة. على النقيض من ذلك، يستخدم التدفق `stream=True` مولدًا يُبقي نتائج الإطار الحالي أو نقطة البيانات الحالية في الذاكرة فقط، مما يقلل بشكل كبير من استهلاك الذاكرة ويمنع مشكلات عدم كفاية الذاكرة.
 
 | مصدر             | الوسيط                                     | النوع           | الملاحظات                                                                                    |
-|------------------|--------------------------------------------|-----------------|----------------------------------------------------------------------------------------------|
+| ---------------- | ------------------------------------------ | --------------- | -------------------------------------------------------------------------------------------- |
 | صورة             | `'صورة.jpg'`                               | `str` or `Path` | ملف صورة واحدة.                                                                              |
 | رابط URL         | `'https://ultralytics.com/images/bus.jpg'` | `str`           | رابط URL لصورة ما.                                                                           |
 | لقطة شاشة برمجية | `'الشاشة'`                                 | `str`           | قم بالتقاط لقطة شاشة برمجية.                                                                 |
@@ -106,12 +106,12 @@ keywords: Ultralytics، YOLOv8، وضع التنبؤ، مصادر التنبؤ،
 | numpy            | `np.zeros((640,1280,3))`                   | `np.ndarray`    | الصيغة HWC مع قنوات BGR `uint8 (0-255)`.                                                     |
 | torch            | `torch.zeros(16,3,320,640)`                | `torch.Tensor`  | الصيغة BCHW مع قنوات RGB `float32 (0.0-1.0)`.                                                |
 | CSV              | `'المصادر.csv'`                            | `str` or `Path` | ملف CSV يحتوي على مسارات الصور أو مقاطع الفيديو أو المجلدات.                                 |
-| فيديو  ✅         | `'الفيديو.mp4'`                            | `str` or `Path` | ملف فيديو بتنسيقات مثل MP4 و AVI وما إلى ذلك.                                                |
-| الدليل  ✅        | `'المسار/'`                                | `str` or `Path` | مسار إلى مجلد يحتوي على صور أو مقاطع فيديو.                                                  |
-| glob ✅           | `'المسار/*.jpg'`                           | `str`           | نمط glob لمطابقة عدة ملفات. استخدم حرف `*` كحرطوم.                                           |
-| يوتيوب ✅         | `'https://youtu.be/LNwODJXcvt4'`           | `str`           | رابط URL إلى فيديو يوتيوب.                                                                   |
-| تدفق ✅           | `'rtsp://example.com/media.mp4'`           | `str`           | عنوان URL لبروتوكولات التدفق مثل RTSP و RTMP و TCP أو عنوان IP.                              |
-| تدفق متعدد ✅     | `'list.streams'`                           | `str` or `Path` | ملف نصي `*.streams` مع عنوان تدفق URL في كل صف، على سبيل المثال 8 تدفقات ستعمل بحجم دُفعة 8. |
+| فيديو ✅         | `'الفيديو.mp4'`                            | `str` or `Path` | ملف فيديو بتنسيقات مثل MP4 و AVI وما إلى ذلك.                                                |
+| الدليل ✅        | `'المسار/'`                                | `str` or `Path` | مسار إلى مجلد يحتوي على صور أو مقاطع فيديو.                                                  |
+| glob ✅          | `'المسار/*.jpg'`                           | `str`           | نمط glob لمطابقة عدة ملفات. استخدم حرف `*` كحرطوم.                                           |
+| يوتيوب ✅        | `'https://youtu.be/LNwODJXcvt4'`           | `str`           | رابط URL إلى فيديو يوتيوب.                                                                   |
+| تدفق ✅          | `'rtsp://example.com/media.mp4'`           | `str`           | عنوان URL لبروتوكولات التدفق مثل RTSP و RTMP و TCP أو عنوان IP.                              |
+| تدفق متعدد ✅    | `'list.streams'`                           | `str` or `Path` | ملف نصي `*.streams` مع عنوان تدفق URL في كل صف، على سبيل المثال 8 تدفقات ستعمل بحجم دُفعة 8. |
 
 فيما يلي أمثلة تعليمات برمجية لاستخدام كل نوع من مصدر:
 
@@ -123,10 +123,10 @@ keywords: Ultralytics، YOLOv8، وضع التنبؤ، مصادر التنبؤ،
         from ultralytics import YOLO
 
         # تحميل نموذج YOLOv8n المدرب مسبقًا
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # تنشيط عملية التنبؤ لملف الصورة
-        source = 'المسار/إلى/الصورة.jpg'
+        source = "المسار/إلى/الصورة.jpg"
 
         # الجمع بين التنبؤ على المصدر
         results = model(source)  # قائمة كائنات النتائج
@@ -138,10 +138,10 @@ keywords: Ultralytics، YOLOv8، وضع التنبؤ، مصادر التنبؤ،
         from ultralytics import YOLO
 
         # تحميل نموذج YOLOv8n المدرب مسبقًا
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # تعريف اللقطة الحالية كمصدر
-        source = 'الشاشة'
+        source = "الشاشة"
 
         # الجمع بين التنبؤ على المصدر
         results = model(source)  # قائمة كائنات النتائج
@@ -153,10 +153,10 @@ keywords: Ultralytics، YOLOv8، وضع التنبؤ، مصادر التنبؤ،
         from ultralytics import YOLO
 
         # تحميل نموذج YOLOv8n المدرب مسبقًا
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # تعريف رابط الصورة أو الفيديو على الإنترنت
-        source = 'https://ultralytics.com/images/bus.jpg'
+        source = "https://ultralytics.com/images/bus.jpg"
 
         # الجمع بين التنبؤ على المصدر
         results = model(source)  # قائمة كائنات النتائج
@@ -166,13 +166,14 @@ keywords: Ultralytics، YOLOv8، وضع التنبؤ، مصادر التنبؤ،
         قم بأجراء عملية التنبؤ على صورة مفتوحة بواسطة مكتبة Python Imaging Library (PIL).
         ```python
         from PIL import Image
+
         from ultralytics import YOLO
 
         # تحميل نموذج YOLOv8n المدرب مسبقًا
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # فتح صورة باستخدام PIL
-        source = Image.open('المسار/إلى/الصورة.jpg')
+        source = Image.open("المسار/إلى/الصورة.jpg")
 
         # الجمع بين التنبؤ على المصدر
         results = model(source)  # قائمة كائنات النتائج
@@ -182,13 +183,14 @@ keywords: Ultralytics، YOLOv8، وضع التنبؤ، مصادر التنبؤ،
         قم بأجراء عملية التنبؤ على صورة مُقروءة بواسطة OpenCV.
         ```python
         import cv2
+
         from ultralytics import YOLO
 
         # تحميل نموذج YOLOv8n المدرب مسبقًا
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # قراءة صورة باستخدام OpenCV
-        source = cv2.imread('المسار/إلى/الصورة.jpg')
+        source = cv2.imread("المسار/إلى/الصورة.jpg")
 
         # الجمع بين التنبؤ على المصدر
         results = model(source)  # قائمة كائنات النتائج
@@ -198,20 +200,19 @@ keywords: Ultralytics، YOLOv8، وضع التنبؤ، مصادر التنبؤ،
         قم بأجراء عملية التنبؤ على صورة مُمثلة كمصفوفة numpy.
         ```python
         import numpy as np
+
         from ultralytics import YOLO
 
         # تحميل نموذج YOLOv8n المدرب مسبقًا
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # إنشاء مصفوفة numpy عشوائية في صيغة HWC (640, 640, 3) بقيم بين [0, 255] ونوع uint8
-        source = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype='uint8')
+        source = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype="uint8")
 
         # الجمع بين التنبؤ على المصدر
         results = model(source)  # قائمة كائنات النتائج
         ```
 
 [car spare parts]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1
-
 [football player detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442
-
 [human fall detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43

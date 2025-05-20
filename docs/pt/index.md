@@ -37,7 +37,7 @@ keywords: Ultralytics, YOLOv8, detecção de objetos, segmentação de imagens, 
 
 Apresentamos o [Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics), a mais recente versão do aclamado modelo de detecção de objetos em tempo real e segmentação de imagens. O YOLOv8 é baseado nos mais recentes avanços do aprendizado profundo e visão computacional, oferecendo um desempenho sem paralelo em termos de velocidade e precisão. Seu design simplificado o torna adequado para várias aplicações e facilmente adaptável a diferentes plataformas de hardware, desde dispositivos de borda até APIs na nuvem.
 
-Explore os Documentos do YOLOv8, um recurso abrangente projetado para ajudá-lo a entender e utilizar suas características e capacidades. Seja você um praticante experiente de aprendizado de máquina ou novo no campo, este hub tem como objetivo maximizar o potencial do YOLOv8 em seus projetos
+Explore os Documentos do YOLOv8, um recurso abrangente projetado para ajudá-lo a entender e utilizar suas características e capacidades. Seja você um praticante experiente de aprendizado de máquina ou novo no campo, este hub tem como objetivo maximizar o potential do YOLOv8 em seus projetos
 
 !!! Note "Nota"
 
@@ -78,6 +78,6 @@ Explore os Documentos do YOLOv8, um recurso abrangente projetado para ajudá-lo 
 A Ultralytics oferece duas opções de licença para acomodar casos de uso diversos:
 
 - **Licença AGPL-3.0**: Essa licença de código aberto [aprovada pela OSI](https://opensource.org/licenses/) é ideal para estudantes e entusiastas, promovendo colaboração aberta e compartilhamento de conhecimento. Veja o arquivo [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) para mais detalhes.
-- **Licença Empresarial**: Projetada para uso comercial, esta licença permite a integração perfeita do software Ultralytics e modelos de IA em bens e serviços comerciais, contornando os requisitos de código aberto da AGPL-3.0. Se o seu cenário envolver a incorporação de nossas soluções em uma oferta comercial, entre em contato através do [Licenciamento da Ultralytics](https://ultralytics.com/license).
+- **Licença Empresarial**: Projetada para uso commercial, esta licença permite a integração perfeita do software Ultralytics e modelos de IA em bens e serviços comerciais, contornando os requisitos de código aberto da AGPL-3.0. Se o seu cenário envolver a incorporação de nossas soluções em uma oferta commercial, entre em contato através do [Licenciamento da Ultralytics](https://ultralytics.com/license).
 
-Nossa estratégia de licenciamento é projetada para garantir que qualquer melhoria em nossos projetos de código aberto retorne à comunidade. Mantemos os princípios de código aberto próximos ao nosso coração ❤️, e nossa missão é garantir que nossas contribuições possam ser utilizadas e expandidas de formas que beneficiem todos.
+Nossa estratégia de licenciamento é projetada para garantir que qualquer melhoria em nossos projetos de código aberto retorne à comunidade. Mantemos os princípios de código aberto próximos ao nosso coração ❤️, e nossa missão é garantir que nossas contribuições possam set utilizadas e expandidas de formas que beneficiem todos.

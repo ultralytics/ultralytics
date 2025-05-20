@@ -22,11 +22,11 @@ O YOLOv5u representa um avanço nas metodologias de detecção de objetos. Origi
 
 ## Tarefas e Modos Suportados
 
-Os modelos YOLOv5u, com vários pesos pré-treinados, se destacam nas tarefas de [Detecção de Objetos](../tasks/detect.md). Eles suportam uma ampla gama de modos, tornando-os adequados para aplicações diversas, desde o desenvolvimento até a implantação.
+Os modelos YOLOv5u, com vários pesos pré-treinados, se destacam nas tarefas de [Detecção de Objetos](../tasks/detect.md). Else suportam uma ampla gama de modos, tornando-os adequados para aplicações diversas, desde o desenvolvimento até a implantação.
 
 | Tipo de Modelo | Pesos Pré-Treinados                                                                                                         | Tarefa                                    | Inferência | Validação | Treinamento | Exportação |
-|----------------|-----------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|------------|-----------|-------------|------------|
-| YOLOv5u        | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [Detecção de Objetos](../tasks/detect.md) | ✅          | ✅         | ✅           | ✅          |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- | ---------- | --------- | ----------- | ---------- |
+| YOLOv5u        | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [Detecção de Objetos](../tasks/detect.md) | ✅         | ✅        | ✅          | ✅         |
 
 Essa tabela oferece uma visão detalhada das variantes do modelo YOLOv5u, destacando sua aplicabilidade em tarefas de detecção de objetos e suporte a diversos modos operacionais, como [Inferência](../modes/predict.md), [Validação](../modes/val.md), [Treinamento](../modes/train.md) e [Exportação](../modes/export.md). Esse suporte abrangente garante que os usuários possam aproveitar totalmente as capacidades dos modelos YOLOv5u em uma ampla gama de cenários de detecção de objetos.
 
@@ -60,27 +60,27 @@ Este exemplo fornece exemplos simples de treinamento e inferência do YOLOv5. Pa
 
     === "Python"
 
-        Modelos pré-treinados `*.pt` do PyTorch, assim como os arquivos de configuração `*.yaml`, podem ser passados para a classe `YOLO()` para criar uma instância do modelo em Python:
+        Modelos pré-treinados `*.pt` do PyTorch, assim como os arquivos de configuração `*.yaml`, podem set passados para a classe `YOLO()` para criar uma instância do modelo em Python:
 
         ```python
         from ultralytics import YOLO
 
         # Carrega um modelo YOLOv5n pré-treinado no COCO
-        modelo = YOLO('yolov5n.pt')
+        modelo = YOLO("yolov5n.pt")
 
         # Mostra informações do modelo (opcional)
         modelo.info()
 
         # Treina o modelo no conjunto de dados de exemplo COCO8 por 100 épocas
-        resultados = modelo.train(data='coco8.yaml', epochs=100, imgsz=640)
+        resultados = modelo.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Executa a inferência com o modelo YOLOv5n na imagem 'bus.jpg'
-        resultados = modelo('path/to/bus.jpg')
+        resultados = modelo("path/to/bus.jpg")
         ```
 
     === "CLI"
 
-        Comandos CLI estão disponíveis para executar diretamente os modelos:
+        Commandos CLI estão disponíveis para executar diretamente os modelos:
 
         ```bash
         # Carrega um modelo YOLOv5n pré-treinado no COCO e o treina no conjunto de dados de exemplo COCO8 por 100 épocas

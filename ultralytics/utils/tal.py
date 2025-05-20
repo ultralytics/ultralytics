@@ -7,7 +7,7 @@ from .checks import check_version
 from .metrics import bbox_iou, probiou
 from .ops import xywhr2xyxyxyxy
 
-TORCH_1_10 = check_version(torch.__version__, '1.10.0')
+TORCH_1_10 = check_version(torch.__version__, "1.10.0")
 
 
 class TaskAlignedAssigner(nn.Module):
@@ -61,12 +61,17 @@ class TaskAlignedAssigner(nn.Module):
 
         if self.n_max_boxes == 0:
             device = gt_bboxes.device
-            return (torch.full_like(pd_scores[..., 0], self.bg_idx).to(device), torch.zeros_like(pd_bboxes).to(device),
-                    torch.zeros_like(pd_scores).to(device), torch.zeros_like(pd_scores[..., 0]).to(device),
-                    torch.zeros_like(pd_scores[..., 0]).to(device))
+            return (
+                torch.full_like(pd_scores[..., 0], self.bg_idx).to(device),
+                torch.zeros_like(pd_bboxes).to(device),
+                torch.zeros_like(pd_scores).to(device),
+                torch.zeros_like(pd_scores[..., 0]).to(device),
+                torch.zeros_like(pd_scores[..., 0]).to(device),
+            )
 
-        mask_pos, align_metric, overlaps = self.get_pos_mask(pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points,
-                                                             mask_gt)
+        mask_pos, align_metric, overlaps = self.get_pos_mask(
+            pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt
+        )
 
         target_gt_idx, fg_mask, mask_pos = self.select_highest_overlaps(mask_pos, overlaps, self.n_max_boxes)
 
@@ -135,7 +140,6 @@ class TaskAlignedAssigner(nn.Module):
         Returns:
             (Tensor): A tensor of shape (b, max_num_obj, h*w) containing the selected top-k candidates.
         """
-
         # (b, max_num_obj, topk)
         topk_metrics, topk_idxs = torch.topk(metrics, self.topk, dim=-1, largest=largest)
         if topk_mask is None:
@@ -148,7 +152,7 @@ class TaskAlignedAssigner(nn.Module):
         ones = torch.ones_like(topk_idxs[:, :, :1], dtype=torch.int8, device=topk_idxs.device)
         for k in range(self.topk):
             # Expand topk_idxs for each value of k and add 1 at the specified positions
-            count_tensor.scatter_add_(-1, topk_idxs[:, :, k:k + 1], ones)
+            count_tensor.scatter_add_(-1, topk_idxs[:, :, k : k + 1], ones)
         # count_tensor.scatter_add_(-1, topk_idxs, torch.ones_like(topk_idxs, dtype=torch.int8, device=topk_idxs.device))
         # Filter invalid bboxes
         count_tensor.masked_fill_(count_tensor > 1, 0)
@@ -179,7 +183,6 @@ class TaskAlignedAssigner(nn.Module):
                                           for positive anchor points, where num_classes is the number
                                           of object classes.
         """
-
         # Assigned target labels, (b, 1)
         batch_ind = torch.arange(end=self.bs, dtype=torch.int64, device=gt_labels.device)[..., None]
         target_gt_idx = target_gt_idx + batch_ind * self.n_max_boxes  # (b, h*w)
@@ -192,9 +195,11 @@ class TaskAlignedAssigner(nn.Module):
         target_labels.clamp_(0)
 
         # 10x faster than F.one_hot()
-        target_scores = torch.zeros((target_labels.shape[0], target_labels.shape[1], self.num_classes),
-                                    dtype=torch.int64,
-                                    device=target_labels.device)  # (b, h*w, 80)
+        target_scores = torch.zeros(
+            (target_labels.shape[0], target_labels.shape[1], self.num_classes),
+            dtype=torch.int64,
+            device=target_labels.device,
+        )  # (b, h*w, 80)
         target_scores.scatter_(2, target_labels.unsqueeze(-1), 1)
 
         fg_scores_mask = fg_mask[:, :, None].repeat(1, 1, self.num_classes)  # (b, h*w, 80)
@@ -252,7 +257,6 @@ class TaskAlignedAssigner(nn.Module):
 
 
 class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
-
     def iou_calculation(self, gt_bboxes, pd_bboxes):
         """Iou calculation for rotated bounding boxes."""
         return probiou(gt_bboxes, pd_bboxes).squeeze(-1).clamp_(0)
@@ -295,7 +299,7 @@ def make_anchors(feats, strides, grid_cell_offset=0.5):
         _, _, h, w = feats[i].shape
         sx = torch.arange(end=w, device=device, dtype=dtype) + grid_cell_offset  # shift x
         sy = torch.arange(end=h, device=device, dtype=dtype) + grid_cell_offset  # shift y
-        sy, sx = torch.meshgrid(sy, sx, indexing='ij') if TORCH_1_10 else torch.meshgrid(sy, sx)
+        sy, sx = torch.meshgrid(sy, sx, indexing="ij") if TORCH_1_10 else torch.meshgrid(sy, sx)
         anchor_points.append(torch.stack((sx, sy), -1).view(-1, 2))
         stride_tensor.append(torch.full((h * w, 1), stride, dtype=dtype, device=device))
     return torch.cat(anchor_points), torch.cat(stride_tensor)
@@ -327,6 +331,7 @@ def dist2rbox(pred_dist, pred_angle, anchor_points, dim=-1):
         pred_dist (torch.Tensor): Predicted rotated distance, (bs, h*w, 4).
         pred_angle (torch.Tensor): Predicted angle, (bs, h*w, 1).
         anchor_points (torch.Tensor): Anchor points, (h*w, 2).
+
     Returns:
         (torch.Tensor): Predicted rotated bounding boxes, (bs, h*w, 4).
     """

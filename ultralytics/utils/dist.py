@@ -18,13 +18,13 @@ def find_free_network_port() -> int:
     `MASTER_PORT` environment variable.
     """
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('127.0.0.1', 0))
+        s.bind(("127.0.0.1", 0))
         return s.getsockname()[1]  # port
 
 
 def generate_ddp_file(trainer):
     """Generates a DDP file and returns its file name."""
-    module, name = f'{trainer.__class__.__module__}.{trainer.__class__.__name__}'.rsplit('.', 1)
+    module, name = f"{trainer.__class__.__module__}.{trainer.__class__.__name__}".rsplit(".", 1)
 
     content = f"""
 # Ultralytics Multi-GPU training temp file (should be automatically deleted after use)
@@ -39,13 +39,15 @@ if __name__ == "__main__":
     trainer = {name}(cfg=cfg, overrides=overrides)
     results = trainer.train()
 """
-    (USER_CONFIG_DIR / 'DDP').mkdir(exist_ok=True)
-    with tempfile.NamedTemporaryFile(prefix='_temp_',
-                                     suffix=f'{id(trainer)}.py',
-                                     mode='w+',
-                                     encoding='utf-8',
-                                     dir=USER_CONFIG_DIR / 'DDP',
-                                     delete=False) as file:
+    (USER_CONFIG_DIR / "DDP").mkdir(exist_ok=True)
+    with tempfile.NamedTemporaryFile(
+        prefix="_temp_",
+        suffix=f"{id(trainer)}.py",
+        mode="w+",
+        encoding="utf-8",
+        dir=USER_CONFIG_DIR / "DDP",
+        delete=False,
+    ) as file:
         file.write(content)
     return file.name
 
@@ -53,16 +55,17 @@ if __name__ == "__main__":
 def generate_ddp_command(world_size, trainer):
     """Generates and returns command for distributed training."""
     import __main__  # noqa local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
+
     if not trainer.resume:
         shutil.rmtree(trainer.save_dir)  # remove the save_dir
     file = generate_ddp_file(trainer)
-    dist_cmd = 'torch.distributed.run' if TORCH_1_9 else 'torch.distributed.launch'
+    dist_cmd = "torch.distributed.run" if TORCH_1_9 else "torch.distributed.launch"
     port = find_free_network_port()
-    cmd = [sys.executable, '-m', dist_cmd, '--nproc_per_node', f'{world_size}', '--master_port', f'{port}', file]
+    cmd = [sys.executable, "-m", dist_cmd, "--nproc_per_node", f"{world_size}", "--master_port", f"{port}", file]
     return cmd, file
 
 
 def ddp_cleanup(trainer, file):
     """Delete temp file if created."""
-    if f'{id(trainer)}.py' in file:  # if temp_file suffix in file
+    if f"{id(trainer)}.py" in file:  # if temp_file suffix in file
         os.remove(file)

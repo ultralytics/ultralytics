@@ -91,9 +91,7 @@ counting_regions = [
     },
     {
         "name": "YOLOv8 Rectangle Region",
-        "polygon": Polygon(
-            [(200, 250), (440, 250), (440, 550), (200, 550)]
-        ),  # Rectangle with four points
+        "polygon": Polygon([(200, 250), (440, 250), (440, 550), (200, 550)]),  # Rectangle with four points
         "counts": 0,
         "dragging": False,
         "region_color": (37, 255, 225),  # BGR Value

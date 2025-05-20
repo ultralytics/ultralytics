@@ -46,7 +46,7 @@ Klassifizierung ist eine Aufgabe, die das Einordnen eines Bildes in verschiedene
 
 ## [Pose](pose.md)
 
-Die Pose-/Keypoint-Erkennung ist eine Aufgabe, die das Erkennen von spezifischen Punkten in einem Bild oder Videobild beinhaltet. Diese Punkte werden als Keypoints bezeichnet und werden zur Bewegungsverfolgung oder Pose-Schätzung verwendet. YOLOv8 kann Keypoints in einem Bild oder Videobild mit hoher Genauigkeit und Geschwindigkeit erkennen.
+Die Pose-/Keypoint-Erkennung ist eine Aufgabe, die das Erkennen von spezifischen Punkten in einem Bild oder Videobild beinhaltet. Diese Punkte werden also Keypoints bezeichnet und werden zur Bewegungsverfolgung oder Pose-Schätzung verwendet. YOLOv8 kann Keypoints in einem Bild oder Videobild mit hoher Genauigkeit und Geschwindigkeit erkennen.
 
 [Beispiele für Posen](pose.md){ .md-button }
 

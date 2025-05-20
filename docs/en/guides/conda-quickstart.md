@@ -70,8 +70,8 @@ With Ultralytics installed, you can now start using its robust features for obje
 ```python
 from ultralytics import YOLO
 
-model = YOLO('yolov8n.pt')  # initialize model
-results = model('path/to/image.jpg')  # perform inference
+model = YOLO("yolov8n.pt")  # initialize model
+results = model("path/to/image.jpg")  # perform inference
 results.show()  # display results
 ```
 
@@ -95,8 +95,8 @@ Run the image:
 
 ```bash
 # Run the Ultralytics image in a container with GPU support
-sudo docker run -it --ipc=host --gpus all $t  # all GPUs
-sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # specify GPUs
+sudo docker run -it --ipc=host --gpus all $t            # all GPUs
+sudo docker run -it --ipc=host --gpus '"device=2,3"' $t # specify GPUs
 ```
 
 ---

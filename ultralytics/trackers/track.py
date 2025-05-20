@@ -11,7 +11,7 @@ from .byte_tracker import BYTETracker
 from .sparse_tracker import SparseTracker
 
 # A mapping of tracker types to corresponding tracker classes
-TRACKER_MAP = {'bytetrack': BYTETracker, 'botsort': BOTSORT, 'sparsetrack': SparseTracker}
+TRACKER_MAP = {"bytetrack": BYTETracker, "botsort": BOTSORT, "sparsetrack": SparseTracker}
 
 
 def on_predict_start(predictor: object, persist: bool = False) -> None:
@@ -25,15 +25,15 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     Raises:
         AssertionError: If the tracker_type is not 'bytetrack' or 'botsort'.
     """
-    if predictor.args.task == 'obb':
-        raise NotImplementedError('ERROR ❌ OBB task does not support track mode!')
-    if hasattr(predictor, 'trackers') and persist:
+    if predictor.args.task == "obb":
+        raise NotImplementedError("ERROR ❌ OBB task does not support track mode!")
+    if hasattr(predictor, "trackers") and persist:
         return
 
     tracker = check_yaml(predictor.args.tracker)
     cfg = IterableSimpleNamespace(**yaml_load(tracker))
 
-    if cfg.tracker_type not in ['bytetrack', 'botsort', 'sparsetrack']:
+    if cfg.tracker_type not in ["bytetrack", "botsort", "sparsetrack"]:
         raise AssertionError(f"Only 'bytetrack' and 'botsort' are supported for now, but got '{cfg.tracker_type}'")
 
     trackers = []
@@ -77,5 +77,5 @@ def register_tracker(model: object, persist: bool) -> None:
         model (object): The model object to register tracking callbacks for.
         persist (bool): Whether to persist the trackers if they already exist.
     """
-    model.add_callback('on_predict_start', partial(on_predict_start, persist=persist))
-    model.add_callback('on_predict_postprocess_end', partial(on_predict_postprocess_end, persist=persist))
+    model.add_callback("on_predict_start", partial(on_predict_start, persist=persist))
+    model.add_callback("on_predict_postprocess_end", partial(on_predict_postprocess_end, persist=persist))

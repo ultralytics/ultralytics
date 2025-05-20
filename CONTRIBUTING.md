@@ -58,17 +58,17 @@ Not all functions or classes require docstrings but when they do, we follow [goo
 
 ```python
 """
-    What the function does. Performs NMS on given detection predictions.
+What the function does. Performs NMS on given detection predictions.
 
-    Args:
-        arg1: The description of the 1st argument
-        arg2: The description of the 2nd argument
+Args:
+    arg1: The description of the 1st argument
+    arg2: The description of the 2nd argument
 
-    Returns:
-        What the function returns. Empty if nothing is returned.
+Returns:
+    What the function returns. Empty if nothing is returned.
 
-    Raises:
-        Exception Class: When and why this exception can be raised by the function.
+Raises:
+    Exception Class: When and why this exception can be raised by the function.
 """
 ```
 

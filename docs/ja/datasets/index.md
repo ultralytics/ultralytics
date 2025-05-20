@@ -110,14 +110,15 @@ Ultralyticsは、検出、インスタンスセグメンテーション、ポー
 
     ```python
     from pathlib import Path
+
     from ultralytics.data.utils import compress_one_image
     from ultralytics.utils.downloads import zip_directory
 
     # データセットディレクトリを定義
-    path = Path('path/to/dataset')
+    path = Path("path/to/dataset")
 
     # データセット内の画像を最適化 (オプショナル)
-    for f in path.rglob('*.jpg'):
+    for f in path.rglob("*.jpg"):
         compress_one_image(f)
 
     # 'path/to/dataset.zip'にデータセットをZip

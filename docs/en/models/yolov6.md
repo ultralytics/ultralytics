@@ -35,7 +35,7 @@ YOLOv6 also provides quantized models for different precisions and models optimi
 
 ## Usage Examples
 
-This example provides simple YOLOv6 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md),  [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
+This example provides simple YOLOv6 training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
 
 !!! Example
 
@@ -47,16 +47,16 @@ This example provides simple YOLOv6 training and inference examples. For full do
         from ultralytics import YOLO
 
         # Build a YOLOv6n model from scratch
-        model = YOLO('yolov6n.yaml')
+        model = YOLO("yolov6n.yaml")
 
         # Display model information (optional)
         model.info()
 
         # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv6n model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -76,12 +76,12 @@ This example provides simple YOLOv6 training and inference examples. For full do
 The YOLOv6 series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
 | Model Type | Pre-trained Weights | Tasks Supported                        | Inference | Validation | Training | Export |
-|------------|---------------------|----------------------------------------|-----------|------------|----------|--------|
-| YOLOv6-N   | `yolov6-n.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
-| YOLOv6-S   | `yolov6-s.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
-| YOLOv6-M   | `yolov6-m.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
-| YOLOv6-L   | `yolov6-l.pt`       | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
-| YOLOv6-L6  | `yolov6-l6.pt`      | [Object Detection](../tasks/detect.md) | ✅         | ✅          | ✅        | ✅      |
+| ---------- | ------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLOv6-N   | `yolov6-n.pt`       | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv6-S   | `yolov6-s.pt`       | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv6-M   | `yolov6-m.pt`       | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv6-L   | `yolov6-l.pt`       | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOv6-L6  | `yolov6-l6.pt`      | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
 This table provides a detailed overview of the YOLOv6 model variants, highlighting their capabilities in object detection tasks and their compatibility with various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv6 models in a broad range of object detection scenarios.
 

@@ -32,6 +32,7 @@ To test the speed of `SPP` and `SPPF`, the following code can be used:
 
 ```python
 import time
+
 import torch
 import torch.nn as nn
 
@@ -82,7 +83,7 @@ def main():
     print(f"SPPF time: {time.time() - t_start}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
 ```
 
@@ -102,28 +103,28 @@ YOLOv5 employs various data augmentation techniques to improve the model's abili
 
 - **Mosaic Augmentation**: An image processing technique that combines four training images into one in ways that encourage object detection models to better handle various object scales and translations.
 
-  ![mosaic](https://user-images.githubusercontent.com/31005897/159109235-c7aad8f2-1d4f-41f9-8d5f-b2fde6f2885e.png)
+    ![mosaic](https://user-images.githubusercontent.com/31005897/159109235-c7aad8f2-1d4f-41f9-8d5f-b2fde6f2885e.png)
 
 - **Copy-Paste Augmentation**: An innovative data augmentation method that copies random patches from an image and pastes them onto another randomly chosen image, effectively generating a new training sample.
 
-  ![copy-paste](https://user-images.githubusercontent.com/31005897/159116277-91b45033-6bec-4f82-afc4-41138866628e.png)
+    ![copy-paste](https://user-images.githubusercontent.com/31005897/159116277-91b45033-6bec-4f82-afc4-41138866628e.png)
 
 - **Random Affine Transformations**: This includes random rotation, scaling, translation, and shearing of the images.
 
-  ![random-affine](https://user-images.githubusercontent.com/31005897/159109326-45cd5acb-14fa-43e7-9235-0f21b0021c7d.png)
+    ![random-affine](https://user-images.githubusercontent.com/31005897/159109326-45cd5acb-14fa-43e7-9235-0f21b0021c7d.png)
 
 - **MixUp Augmentation**: A method that creates composite images by taking a linear combination of two images and their associated labels.
 
-  ![mixup](https://user-images.githubusercontent.com/31005897/159109361-3b24333b-f481-478b-ae00-df7838f0b5cd.png)
+    ![mixup](https://user-images.githubusercontent.com/31005897/159109361-3b24333b-f481-478b-ae00-df7838f0b5cd.png)
 
 - **Albumentations**: A powerful library for image augmenting that supports a wide variety of augmentation techniques.
 - **HSV Augmentation**: Random changes to the Hue, Saturation, and Value of the images.
 
-  ![hsv](https://user-images.githubusercontent.com/31005897/159109407-83d100ba-1aba-4f4b-aa03-4f048f815981.png)
+    ![hsv](https://user-images.githubusercontent.com/31005897/159109407-83d100ba-1aba-4f4b-aa03-4f048f815981.png)
 
 - **Random Horizontal Flip**: An augmentation method that randomly flips images horizontally.
 
-  ![horizontal-flip](https://user-images.githubusercontent.com/31005897/159109429-0d44619a-a76a-49eb-bfc0-6709860c043e.png)
+    ![horizontal-flip](https://user-images.githubusercontent.com/31005897/159109429-0d44619a-a76a-49eb-bfc0-6709860c043e.png)
 
 ## 3. Training Strategies
 
@@ -160,8 +161,8 @@ The objectness losses of the three prediction layers (`P3`, `P4`, `P5`) are weig
 
 The YOLOv5 architecture makes some important changes to the box prediction strategy compared to earlier versions of YOLO. In YOLOv2 and YOLOv3, the box coordinates were directly predicted using the activation of the last layer.
 
-![b_x](https://latex.codecogs.com/svg.image?b_x=\sigma(t_x)+c_x)
-![b_y](https://latex.codecogs.com/svg.image?b_y=\sigma(t_y)+c_y)
+![b_x](<https://latex.codecogs.com/svg.image?b_x=\sigma(t_x)+c_x>)
+![b_y](<https://latex.codecogs.com/svg.image?b_y=\sigma(t_y)+c_y>)
 ![b_w](https://latex.codecogs.com/svg.image?b_w=p_w\cdot&space;e^{t_w})
 ![b_h](https://latex.codecogs.com/svg.image?b_h=p_h\cdot&space;e^{t_h})
 
@@ -171,10 +172,10 @@ However, in YOLOv5, the formula for predicting the box coordinates has been upda
 
 The revised formulas for calculating the predicted bounding box are as follows:
 
-![bx](https://latex.codecogs.com/svg.image?b_x=(2\cdot\sigma(t_x)-0.5)+c_x)
-![by](https://latex.codecogs.com/svg.image?b_y=(2\cdot\sigma(t_y)-0.5)+c_y)
-![bw](https://latex.codecogs.com/svg.image?b_w=p_w\cdot(2\cdot\sigma(t_w))^2)
-![bh](https://latex.codecogs.com/svg.image?b_h=p_h\cdot(2\cdot\sigma(t_h))^2)
+![bx](<https://latex.codecogs.com/svg.image?b_x=(2\cdot\sigma(t_x)-0.5)+c_x>)
+![by](<https://latex.codecogs.com/svg.image?b_y=(2\cdot\sigma(t_y)-0.5)+c_y>)
+![bw](<https://latex.codecogs.com/svg.image?b_w=p_w\cdot(2\cdot\sigma(t_w))^2>)
+![bh](<https://latex.codecogs.com/svg.image?b_h=p_h\cdot(2\cdot\sigma(t_h))^2>)
 
 Compare the center point offset before and after scaling. The center point offset range is adjusted from (0, 1) to (-0.5, 1.5). Therefore, offset can easily get 0 or 1.
 
@@ -196,11 +197,11 @@ This process follows these steps:
 
 ![rh](https://latex.codecogs.com/svg.image?r_h=h_{gt}/h_{at})
 
-![rwmax](https://latex.codecogs.com/svg.image?r_w^{max}=max(r_w,1/r_w))
+![rwmax](<https://latex.codecogs.com/svg.image?r_w^{max}=max(r_w,1/r_w)>)
 
-![rhmax](https://latex.codecogs.com/svg.image?r_h^{max}=max(r_h,1/r_h))
+![rhmax](<https://latex.codecogs.com/svg.image?r_h^{max}=max(r_h,1/r_h)>)
 
-![rmax](https://latex.codecogs.com/svg.image?r^{max}=max(r_w^{max},r_h^{max}))
+![rmax](<https://latex.codecogs.com/svg.image?r^{max}=max(r_w^{max},r_h^{max})>)
 
 ![match](https://latex.codecogs.com/svg.image?r^{max}<{\rm&space;anchor_t})
 

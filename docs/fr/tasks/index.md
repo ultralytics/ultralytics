@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Découvrez les tâches fondamentales de vision par ordinateur que YOLOv8 peut effectuer, y compris la détection, la segmentation, la classification et l'estimation de la pose. Comprenez leur utilité dans vos projets d'IA.
+description: Découvrez les tâches fondamentales de vision par ordinateur que YOLOv8 peut effectuer, y compris la détection, la segmentation, la classification et l'estimation de la pose. Comprenez leur utilité dans vos projects d'IA.
 keywords: Ultralytics, YOLOv8, Détection, Segmentation, Classification, Estimation de la Pose, Cadre IA, Tâches de Vision par Ordinateur
 ---
 
@@ -28,27 +28,27 @@ YOLOv8 est un cadre d'intelligence artificielle qui prend en charge de multiples
 
 ## [Détection](detect.md)
 
-La détection est la tâche principale prise en charge par YOLOv8. Elle implique de détecter des objets dans une image ou une trame vidéo et de dessiner des boîtes englobantes autour d'eux. Les objets détectés sont classés dans différentes catégories en fonction de leurs caractéristiques. YOLOv8 peut détecter plusieurs objets dans une seule image ou trame vidéo avec une grande précision et rapidité.
+La détection est la tâche principale prise en charge par YOLOv8. Elle implique de détecter des objects dans une image ou une trame vidéo et de dessiner des boîtes englobantes autour d'eux. Les objects détectés sont classés dans différentes catégories en function de leurs caractéristiques. YOLOv8 peut détecter plusieurs objects dans une seule image ou trame vidéo avec une grande précision et rapidité.
 
-[Exemples de Détection](detect.md){ .md-button }
+[Examples de Détection](detect.md){ .md-button }
 
 ## [Segmentation](segment.md)
 
-La segmentation est une tâche qui implique de segmenter une image en différentes régions en fonction du contenu de l'image. Chaque région se voit attribuer une étiquette en fonction de son contenu. Cette tâche est utile dans des applications telles que la segmentation d'image et l'imagerie médicale. YOLOv8 utilise une variante de l'architecture U-Net pour effectuer la segmentation.
+La segmentation est une tâche qui implique de segmenter une image en différentes régions en function du contenu de l'image. Chaque région se voit attribuer une étiquette en function de son contenu. Cette tâche est utile dans des applications telles que la segmentation d'image et l'imagerie médicale. YOLOv8 utilise une variante de l'architecture U-Net pour effectuer la segmentation.
 
-[Exemples de Segmentation](segment.md){ .md-button }
+[Examples de Segmentation](segment.md){ .md-button }
 
 ## [Classification](classify.md)
 
-La classification est une tâche qui implique de classer une image dans différentes catégories. YOLOv8 peut être utilisé pour classifier des images en fonction de leur contenu. Il utilise une variante de l'architecture EfficientNet pour effectuer la classification.
+La classification est une tâche qui implique de classer une image dans différentes catégories. YOLOv8 peut être utilisé pour classifier des images en function de leur contenu. Il utilise une variante de l'architecture EfficientNet pour effectuer la classification.
 
-[Exemples de Classification](classify.md){ .md-button }
+[Examples de Classification](classify.md){ .md-button }
 
 ## [Pose](pose.md)
 
-La détection de pose/points clés est une tâche qui implique de détecter des points spécifiques dans une image ou une trame vidéo. Ces points sont appelés points clés et sont utilisés pour suivre le mouvement ou pour l'estimation de la pose. YOLOv8 peut détecter des points clés dans une image ou une trame vidéo avec une grande précision et rapidité.
+La détection de pose/points clés est une tâche qui implique de détecter des points spécifiques dans une image ou une trame vidéo. Ces points sont appelés points clés et sont utilisés pour suivre le movement ou pour l'estimation de la pose. YOLOv8 peut détecter des points clés dans une image ou une trame vidéo avec une grande précision et rapidité.
 
-[Exemples de Pose](pose.md){ .md-button }
+[Examples de Pose](pose.md){ .md-button }
 
 ## Conclusion
 

@@ -32,10 +32,10 @@ Ultralyticsのトラッカーからの出力は標準のオブジェクト検出
 
 ## 実世界での応用例
 
-|                                                       交通                                                        |                                                       小売                                                        |                                                      水産業                                                       |
-|:---------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------:|
+|                                                           交通                                                           |                                                           小売                                                           |                                                         水産業                                                         |
+| :----------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------: |
 | ![車両のトラッキング](https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab) | ![人々のトラッキング](https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527) | ![魚のトラッキング](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142) |
-|                                                    車両トラッキング                                                     |                                                    人々のトラッキング                                                    |                                                    魚のトラッキング                                                    |
+|                                                     車両トラッキング                                                     |                                                    人々のトラッキング                                                    |                                                    魚のトラッキング                                                    |
 
 ## 一目でわかる機能
 
@@ -49,8 +49,8 @@ Ultralytics YOLOは、オブジェクト検出機能を拡張して、堅牢で�
 
 Ultralytics YOLOは、次のトラッキングアルゴリズムをサポートしています。それらは、関連するYAML構成ファイル（たとえば`tracker=tracker_type.yaml`）を渡すことで有効にすることができます：
 
-* [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - このトラッカーを有効にするには`botsort.yaml`を使用します。
-* [ByteTrack](https://github.com/ifzhang/ByteTrack) - このトラッカーを有効にするには`bytetrack.yaml`を使用します。
+- [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - このトラッカーを有効にするには`botsort.yaml`を使用します。
+- [ByteTrack](https://github.com/ifzhang/ByteTrack) - このトラッカーを有効にするには`bytetrack.yaml`を使用します。
 
 デフォルトのトラッカーはBoT-SORTです。
 
@@ -66,24 +66,26 @@ Ultralytics YOLOは、次のトラッキングアルゴリズムをサポート�
         from ultralytics import YOLO
 
         # 公式またはカスタムモデルをロード
-        model = YOLO('yolov8n.pt')  # 公式のDetectモデルをロード
-        model = YOLO('yolov8n-seg.pt')  # 公式のSegmentモデルをロード
-        model = YOLO('yolov8n-pose.pt')  # 公式のPoseモデルをロード
-        model = YOLO('path/to/best.pt')  # カスタムトレーニング済みモデルをロード
+        model = YOLO("yolov8n.pt")  # 公式のDetectモデルをロード
+        model = YOLO("yolov8n-seg.pt")  # 公式のSegmentモデルをロード
+        model = YOLO("yolov8n-pose.pt")  # 公式のPoseモデルをロード
+        model = YOLO("path/to/best.pt")  # カスタムトレーニング済みモデルをロード
 
         # モデルでトラッキングを実行
         results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)  # デフォルトトラッカーでトラッキング
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")  # ByteTrackトラッカーでトラッキング
+        results = model.track(
+            source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml"
+        )  # ByteTrackトラッカーでトラッキング
         ```
 
     === "CLI"
 
         ```bash
         # コマンドラインインターフェースを使用して、様々なモデルでトラッキングを実行
-        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4"  # 公式のDetectモデル
+        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4"      # 公式のDetectモデル
         yolo track model=yolov8n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # 公式のSegmentモデル
-        yolo track model=yolov8n-pose.pt source="https://youtu.be/LNwODJXcvt4"  # 公式のPoseモデル
-        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4"  # カスタムトレーニング済みモデル
+        yolo track model=yolov8n-pose.pt source="https://youtu.be/LNwODJXcvt4" # 公式のPoseモデル
+        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4" # カスタムトレーニング済みモデル
 
         # ByteTrackトラッカーを使用してトラッキング
         yolo track model=path/to/best.pt tracker="bytetrack.yaml"
@@ -105,7 +107,7 @@ Ultralytics YOLOは、次のトラッキングアルゴリズムをサポート�
         from ultralytics import YOLO
 
         # トラッキングパラメーターを構成し、トラッカーを実行
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
         results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
         ```
 
@@ -128,8 +130,8 @@ Ultralyticsは、変更されたトラッカー構成ファイルの使用も可
         from ultralytics import YOLO
 
         # モデルをロードし、カスタム構成ファイルでトラッカーを実行
-        model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker='custom_tracker.yaml')
+        model = YOLO("yolov8n.pt")
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker="custom_tracker.yaml")
         ```
 
     === "CLI"
@@ -151,10 +153,11 @@ Ultralyticsは、変更されたトラッカー構成ファイルの使用も可
 
     ```python
     import cv2
+
     from ultralytics import YOLO
 
     # YOLOv8モデルをロード
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # ビデオファイルを開く
     video_path = "path/to/video.mp4"

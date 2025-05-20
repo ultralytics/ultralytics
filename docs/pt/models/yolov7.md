@@ -32,7 +32,7 @@ O YOLOv7 apresenta vários recursos principais:
 
 ## Exemplos de Uso
 
-No momento em que este texto foi escrito, a Ultralytics ainda não oferece suporte aos modelos YOLOv7. Portanto, qualquer usuário interessado em usar o YOLOv7 precisará se referir diretamente ao repositório do YOLOv7 no GitHub para obter instruções de instalação e uso.
+No memento em que este texto foi escrito, a Ultralytics ainda não oferece suporte aos modelos YOLOv7. Portanto, qualquer usuário interessado em usar o YOLOv7 precisará se referir diretamente ao repositório do YOLOv7 no GitHub para obter instruções de instalação e uso.
 
 Aqui está uma breve visão geral das etapas típicas que você pode seguir para usar o YOLOv7:
 
@@ -42,7 +42,7 @@ Aqui está uma breve visão geral das etapas típicas que você pode seguir para
 
 3. Após a conclusão da instalação, você pode treinar e usar o modelo conforme as instruções de uso fornecidas no repositório. Isso geralmente envolve a preparação do conjunto de dados, a configuração dos parâmetros do modelo, o treinamento do modelo e, em seguida, o uso do modelo treinado para realizar a detecção de objetos.
 
-Observe que as etapas específicas podem variar dependendo do caso de uso específico e do estado atual do repositório do YOLOv7. Portanto, é altamente recomendável consultar diretamente as instruções fornecidas no repositório do YOLOv7 no GitHub.
+Observe que as etapas específicas podem variar dependendo do caso de uso específico e do estado actual do repositório do YOLOv7. Portanto, é altamente recomendável consultar diretamente as instruções fornecidas no repositório do YOLOv7 no GitHub.
 
 Lamentamos qualquer inconveniente que isso possa causar e nos esforçaremos para atualizar este documento com exemplos de uso para a Ultralytics assim que o suporte para o YOLOv7 for implementado.
 
@@ -63,4 +63,4 @@ Gostaríamos de agradecer aos autores do YOLOv7 por suas contribuições signifi
         }
         ```
 
-O artigo original do YOLOv7 pode ser encontrado no [arXiv](https://arxiv.org/pdf/2207.02696.pdf). Os autores disponibilizaram publicamente seu trabalho, e o código pode ser acessado no [GitHub](https://github.com/WongKinYiu/yolov7). Agradecemos seus esforços em avançar o campo e tornar seu trabalho acessível à comunidade em geral.
+O artigo original do YOLOv7 pode set encontrado no [arXiv](https://arxiv.org/pdf/2207.02696.pdf). Os autores disponibilizaram publicamente seu trabalho, e o código pode set acessado no [GitHub](https://github.com/WongKinYiu/yolov7). Agradecemos seus esforços em avançar o campo e tornar seu trabalho acessível à comunidade em geral.

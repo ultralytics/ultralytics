@@ -8,14 +8,14 @@ keywords: RT-DETR, Baidu, Vision Transformers, detecção de objetos, desempenho
 
 ## Visão Geral
 
-O Real-Time Detection Transformer (RT-DETR), desenvolvido pela Baidu, é um detector de objetos de última geração que proporciona desempenho em tempo real mantendo alta precisão. Ele utiliza a potência dos Vision Transformers (ViT) para processar eficientemente recursos multiescala, separando a interação intra-escala e a fusão entre escalas. O RT-DETR é altamente adaptável, com suporte para ajuste flexível da velocidade de inferência usando diferentes camadas de decodificador sem a necessidade de retratamento. O modelo se destaca em backends acelerados como o CUDA com o TensorRT, superando muitos outros detectores de objetos em tempo real.
+O Real-Time Detection Transformer (RT-DETR), desenvolvido pela Baidu, é um detector de objetos de última geração que proporciona desempenho em tempo real mantendo alta precisão. Ele utilize a potência dos Vision Transformers (ViT) para processar eficientemente recursos multiescala, separando a interação intra-escala e a fusão entre escalas. O RT-DETR é altamente adaptável, com suporte para ajuste flexível da velocidade de inferência usando diferentes camadas de decodificador sem a necessidade de retratamento. O modelo se destaca em backends acelerados como o CUDA com o TensorRT, superando muitos outros detectores de objetos em tempo real.
 
 ![Exemplo de imagem do modelo](https://user-images.githubusercontent.com/26833433/238963168-90e8483f-90aa-4eb6-a5e1-0d408b23dd33.png)
-**Visão geral do RT-DETR da Baidu.** O diagrama da arquitetura do modelo RT-DETR mostra as últimas três etapas da espinha dorsal {S3, S4, S5} como entrada para o codificador. O codificador híbrido eficiente transforma recursos multiescala em uma sequência de recursos de imagem por meio da interação de recursos intra-escala (AIFI) e do módulo de fusão de recursos entre escalas (CCFM). A seleção de consulta, consciente da IoU, é utilizada para selecionar um número fixo de recursos de imagem para servir como consultas de objeto iniciais para o decodificador. Por fim, o decodificador com cabeçotes de previsão auxiliares otimiza iterativamente as consultas de objeto para gerar caixas e pontuações de confiança ([fonte](https://arxiv.org/pdf/2304.08069.pdf)).
+**Visão geral do RT-DETR da Baidu.** O diagram da arquitetura do modelo RT-DETR mostra as últimas três etapas da espinha dorsal {S3, S4, S5} como entrada para o codificador. O codificador híbrido eficiente transforma recursos multiescala em uma sequência de recursos de imagem por meio da interação de recursos intra-escala (AIFI) e do módulo de fusão de recursos entre escalas (CCFM). A seleção de consulta, consciente da IoU, é utilizada para selecionar um número fixo de recursos de imagem para servir como consultas de objeto iniciais para o decodificador. Por fim, o decodificador com cabeçotes de previsão auxiliares otimiza iterativamente as consultas de objeto para gerar caixas e pontuações de confiança ([fonte](https://arxiv.org/pdf/2304.08069.pdf)).
 
 ### Características Principais
 
-- **Codificador Híbrido Eficiente:** O RT-DETR da Baidu utiliza um codificador híbrido eficiente para processar recursos multiescala por meio da separação da interação intra-escala e da fusão entre escalas. Esse design exclusivo baseado em Vision Transformers reduz os custos computacionais e permite a detecção de objetos em tempo real.
+- **Codificador Híbrido Eficiente:** O RT-DETR da Baidu utilize um codificador híbrido eficiente para processar recursos multiescala por meio da separação da interação intra-escala e da fusão entre escalas. Esse design exclusivo baseado em Vision Transformers reduz os custos computacionais e permite a detecção de objetos em tempo real.
 - **Seleção de Consulta Consciente de IoU:** O RT-DETR da Baidu melhora a inicialização das consultas de objeto ao utilizar seleção de consulta consciente de IoU. Isso permite que o modelo foque nos objetos mais relevantes na cena, aprimorando a precisão da detecção.
 - **Velocidade de Inferência Adaptável:** O RT-DETR da Baidu suporta ajustes flexíveis da velocidade de inferência ao utilizar diferentes camadas de decodificador sem a necessidade de retratamento. Essa adaptabilidade facilita a aplicação prática em diversos cenários de detecção de objetos em tempo real.
 
@@ -38,16 +38,16 @@ Este exemplo fornece exemplos simples de treinamento e inferência com o RT-DETR
         from ultralytics import RTDETR
 
         # Carregue um modelo RT-DETR-l pré-treinado no COCO
-        model = RTDETR('rtdetr-l.pt')
+        model = RTDETR("rtdetr-l.pt")
 
         # Exiba informações do modelo (opcional)
         model.info()
 
         # Treine o modelo com o conjunto de dados de exemplo COCO8 por 100 épocas
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Execute a inferência com o modelo RT-DETR-l na imagem 'bus.jpg'
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -65,9 +65,9 @@ Este exemplo fornece exemplos simples de treinamento e inferência com o RT-DETR
 Esta tabela apresenta os tipos de modelo, os pesos pré-treinados específicos, as tarefas suportadas por cada modelo e os vários modos ([Train](../modes/train.md), [Val](../modes/val.md), [Predict](../modes/predict.md), [Export](../modes/export.md)) que são suportados, indicados por emojis ✅.
 
 | Tipo de Modelo       | Pesos Pré-treinados | Tarefas Suportadas                        | Inferência | Validação | Treinamento | Exportação |
-|----------------------|---------------------|-------------------------------------------|------------|-----------|-------------|------------|
-| RT-DETR Grande       | `rtdetr-l.pt`       | [Detecção de Objetos](../tasks/detect.md) | ✅          | ✅         | ✅           | ✅          |
-| RT-DETR Extra-Grande | `rtdetr-x.pt`       | [Detecção de Objetos](../tasks/detect.md) | ✅          | ✅         | ✅           | ✅          |
+| -------------------- | ------------------- | ----------------------------------------- | ---------- | --------- | ----------- | ---------- |
+| RT-DETR Grande       | `rtdetr-l.pt`       | [Detecção de Objetos](../tasks/detect.md) | ✅         | ✅        | ✅          | ✅         |
+| RT-DETR Extra-Grande | `rtdetr-x.pt`       | [Detecção de Objetos](../tasks/detect.md) | ✅         | ✅        | ✅          | ✅         |
 
 ## Citações e Reconhecimentos
 
@@ -90,4 +90,4 @@ Se você utilizar o RT-DETR da Baidu em seu trabalho de pesquisa ou desenvolvime
 
 Gostaríamos de agradecer à Baidu e à equipe do [PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection) por criar e manter esse recurso valioso para a comunidade de visão computacional. Sua contribuição para o campo com o desenvolvimento do detector de objetos em tempo real baseado em Vision Transformers, RT-DETR, é muito apreciada.
 
-*keywords: RT-DETR, Transformer, ViT, Vision Transformers, RT-DETR da Baidu, PaddlePaddle, modelos pré-treinados PaddlePaddle RT-DETR, uso do RT-DETR da Baidu, API Python do Ultralytics*
+_keywords: RT-DETR, Transformer, ViT, Vision Transformers, RT-DETR da Baidu, PaddlePaddle, modelos pré-treinados PaddlePaddle RT-DETR, uso do RT-DETR da Baidu, API Python do Ultralytics_

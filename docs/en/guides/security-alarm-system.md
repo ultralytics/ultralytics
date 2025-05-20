@@ -30,15 +30,7 @@ The Security Alarm System Project utilizing Ultralytics YOLOv8 integrates advanc
 #### Import Libraries
 
 ```python
-import torch
-import numpy as np
-import cv2
-from time import time
-from ultralytics import YOLO
-from ultralytics.utils.plotting import Annotator, colors
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+
 ```
 
 #### Set up the parameters of the message
@@ -58,7 +50,7 @@ to_email = ""  # receiver email
 #### Server creation and authentication
 
 ```python
-server = smtplib.SMTP('smtp.gmail.com: 587')
+server = smtplib.SMTP("smtp.gmail.com: 587")
 server.starttls()
 server.login(from_email, password)
 ```
@@ -68,13 +60,13 @@ server.login(from_email, password)
 ```python
 def send_email(to_email, from_email, object_detected=1):
     message = MIMEMultipart()
-    message['From'] = from_email
-    message['To'] = to_email
-    message['Subject'] = "Security Alert"
+    message["From"] = from_email
+    message["To"] = to_email
+    message["Subject"] = "Security Alert"
     # Add in the message body
-    message_body = f'ALERT - {object_detected} objects has been detected!!'
+    message_body = f"ALERT - {object_detected} objects has been detected!!"
 
-    message.attach(MIMEText(message_body, 'plain'))
+    message.attach(MIMEText(message_body, "plain"))
     server.sendmail(from_email, to_email, message.as_string())
 ```
 
@@ -96,7 +88,7 @@ class ObjectDetection:
         self.end_time = 0
 
         # device information
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
     def predict(self, im0):
         results = self.model(im0)
@@ -105,10 +97,12 @@ class ObjectDetection:
     def display_fps(self, im0):
         self.end_time = time()
         fps = 1 / np.round(self.end_time - self.start_time, 2)
-        text = f'FPS: {int(fps)}'
+        text = f"FPS: {int(fps)}"
         text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 1.0, 2)[0]
         gap = 10
-        cv2.rectangle(im0, (20 - gap, 70 - text_size[1] - gap), (20 + text_size[0] + gap, 70 + gap), (255, 255, 255), -1)
+        cv2.rectangle(
+            im0, (20 - gap, 70 - text_size[1] - gap), (20 + text_size[0] + gap, 70 + gap), (255, 255, 255), -1
+        )
         cv2.putText(im0, text, (20, 70), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0), 2)
 
     def plot_bboxes(self, results, im0):
@@ -143,7 +137,7 @@ class ObjectDetection:
                 self.email_sent = False
 
             self.display_fps(im0)
-            cv2.imshow('YOLOv8 Detection', im0)
+            cv2.imshow("YOLOv8 Detection", im0)
             frame_count += 1
             if cv2.waitKey(5) & 0xFF == 27:
                 break

@@ -32,11 +32,11 @@ YOLOv3, YOLOv3-Ultralytics 및 YOLOv3u 시리즈는 물체 탐지 작업을 위�
 
 세 가지 모델은 [추론](../modes/predict.md), [유효성 검사](../modes/val.md), [훈련](../modes/train.md) 및 [내보내기](../modes/export.md)와 같은 포괄적인 모드를 지원하여 효과적인 물체 탐지를 위한 완벽한 도구 세트를 제공합니다.
 
-| 모델 유형              | 지원되는 작업                     | 추론 | 유효성 검사 | 훈련 | 내보내기 |
-|--------------------|-----------------------------|----|--------|----|------|
-| YOLOv3             | [물체 탐지](../tasks/detect.md) | ✅  | ✅      | ✅  | ✅    |
-| YOLOv3-Ultralytics | [물체 탐지](../tasks/detect.md) | ✅  | ✅      | ✅  | ✅    |
-| YOLOv3u            | [물체 탐지](../tasks/detect.md) | ✅  | ✅      | ✅  | ✅    |
+| 모델 유형          | 지원되는 작업                   | 추론 | 유효성 검사 | 훈련 | 내보내기 |
+| ------------------ | ------------------------------- | ---- | ----------- | ---- | -------- |
+| YOLOv3             | [물체 탐지](../tasks/detect.md) | ✅   | ✅          | ✅   | ✅       |
+| YOLOv3-Ultralytics | [물체 탐지](../tasks/detect.md) | ✅   | ✅          | ✅   | ✅       |
+| YOLOv3u            | [물체 탐지](../tasks/detect.md) | ✅   | ✅          | ✅   | ✅       |
 
 이 표는 각 YOLOv3 버전의 기능을 한 눈에 보여주며, 물체 탐지 워크플로우의 다양한 작업 및 운영 모드에 대해 다양성과 적합성을 강조합니다.
 
@@ -54,16 +54,16 @@ YOLOv3, YOLOv3-Ultralytics 및 YOLOv3u 시리즈는 물체 탐지 작업을 위�
         from ultralytics import YOLO
 
         # COCO 사전 훈련된 YOLOv3n 모델 로드
-        model = YOLO('yolov3n.pt')
+        model = YOLO("yolov3n.pt")
 
         # 모델 정보 표시 (선택 사항)
         model.info()
 
         # COCO8 예제 데이터셋에서 100 epoch 동안 모델 훈련
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # YOLOv3n 모델로 'bus.jpg' 이미지에 추론 실행
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

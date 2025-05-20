@@ -35,9 +35,9 @@ FastSAM, [सेगमेंट एनीथिंग मॉडल (एसएए
 इस सारणी में उपलब्ध मॉडल, उनके विशिष्ट पूर्व-प्रशिक्षित वेट और उनके समर्थनित कार्यों को पेश किया गया है, साथ ही उनकी विभिन्न ऑपरेटिंग मोड के साथ संगतता को दर्शाने के लिए समर्थित मोजी में ✅ इमोज़ी और असमर्थित मोजी में ❌ इमोज़ी लगाए गए हैं।
 
 | मॉडल प्रकार     | पूर्व-प्रशिक्षित वेट्स | समर्थित कार्य                              | भावना | मान्यीकरण | प्रशिक्षण | निर्यात |
-|-----------------|------------------------|--------------------------------------------|-------|-----------|-----------|---------|
-| फास्टएसएएम-एस   | `FastSAM-s.pt`         | [इंस्टेंस सेगमेंटेशन](../tasks/segment.md) | ✅     | ❌         | ❌         | ✅       |
-| फास्टएसएएम-एक्स | `FastSAM-x.pt`         | [इंस्टेंस सेगमेंटेशन](../tasks/segment.md) | ✅     | ❌         | ❌         | ✅       |
+| --------------- | ---------------------- | ------------------------------------------ | ----- | --------- | --------- | ------- |
+| फास्टएसएएम-एस   | `FastSAM-s.pt`         | [इंस्टेंस सेगमेंटेशन](../tasks/segment.md) | ✅    | ❌        | ❌        | ✅      |
+| फास्टएसएएम-एक्स | `FastSAM-x.pt`         | [इंस्टेंस सेगमेंटेशन](../tasks/segment.md) | ✅    | ❌        | ❌        | ✅      |
 
 ## उपयोग के उदाहरण
 
@@ -55,16 +55,16 @@ FastSAM, [सेगमेंट एनीथिंग मॉडल (एसएए
         from ultralytics.models.fastsam import FastSAMPrompt
 
         # एक inference source निर्धारित करें
-        source = 'path/to/bus.jpg'
+        source = "path/to/bus.jpg"
 
         # एक फास्टएसएएम मॉडल बनाएं
-        model = FastSAM('FastSAM-s.pt')  # या FastSAM-x.pt
+        model = FastSAM("FastSAM-s.pt")  # या FastSAM-x.pt
 
         # छवि पर inference चलाएं
-        everything_results = model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+        everything_results = model(source, device="cpu", retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
 
         # प्रोम्प्ट प्रक्रिया वस्तु को तैयार करें
-        prompt_process = FastSAMPrompt(source, everything_results, device='cpu')
+        prompt_process = FastSAMPrompt(source, everything_results, device="cpu")
 
         # सब कुछ प्रोम्प्ट
         ann = prompt_process.everything_prompt()
@@ -73,13 +73,13 @@ FastSAM, [सेगमेंट एनीथिंग मॉडल (एसएए
         ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
 
         # पाठ प्रोम्प्ट
-        ann = prompt_process.text_prompt(text='a photo of a dog')
+        ann = prompt_process.text_prompt(text="a photo of a dog")
 
         # पॉइंट प्रोम्प्ट
         # डिफ़ॉल्ट point [[0,0]] [[x1,y1],[x2,y2]]
         # डिफ़ॉल्ट point_label [0] [1,0] 0:background, 1:foreground
         ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
-        prompt_process.plot(annotations=ann, output='./')
+        prompt_process.plot(annotations=ann, output="./")
         ```
 
     === "CLI"
@@ -101,10 +101,10 @@ FastSAM, [सेगमेंट एनीथिंग मॉडल (एसएए
         from ultralytics import FastSAM
 
         # एक फास्टएसएएम मॉडल बनाएं
-        model = FastSAM('FastSAM-s.pt')  # या FastSAM-x.pt
+        model = FastSAM("FastSAM-s.pt")  # या FastSAM-x.pt
 
         # मॉडल को मान्यित करें
-        results = model.val(data='coco8-seg.yaml')
+        results = model.val(data="coco8-seg.yaml")
         ```
 
     === "CLI"
@@ -122,26 +122,29 @@ FastSAM, [सेगमेंट एनीथिंग मॉडल (एसएए
 ### स्थापना
 
 1. फास्टएसएएम रिपॉजिटरी क्लोन करें:
-   ```शेल
-   git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
-   ```
+
+    ```शेल
+    git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
+    ```
 
 2. पायथन 3.9 के साथ एक रुपे में संचालित करने के लिए एक Conda वातावरण बनाएं और सक्रिय करें:
-   ```शेल
-   conda create -n FastSAM python=3.9
-   conda activate FastSAM
-   ```
+
+    ```शेल
+    conda create -n FastSAM python=3.9
+    conda activate FastSAM
+    ```
 
 3. क्लोन किए गए रिपॉजिटरी में जाएं और आवश्यक पैकेजों को स्थापित करें:
-   ```शेल
-   cd FastSAM
-   pip install -r requirements.txt
-   ```
+
+    ```शेल
+    cd FastSAM
+    pip install -r requirements.txt
+    ```
 
 4. CLIP मॉडल स्थापित करें:
-   ```शेल
-   pip install git+https://github.com/openai/CLIP.git
-   ```
+    ```शेल
+    pip install git+https://github.com/openai/CLIP.git
+    ```
 
 ### उदाहरण उपयोग
 
@@ -150,24 +153,27 @@ FastSAM, [सेगमेंट एनीथिंग मॉडल (एसएए
 2. FastSAM का उपयोग करके इंफरेंस करें। उदाहरण कमांड:
 
     - छवि में सब कुछ सेगमेंट करें:
-      ```शेल
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
-      ```
+
+        ```शेल
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
+        ```
 
     - पाठ प्रोम्प्ट का उपयोग करके विशेष ऑब्जेक्ट सेगमेंट करें:
-      ```शेल
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "the yellow dog"
-      ```
+
+        ```शेल
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "the yellow dog"
+        ```
 
     - एक बाउंडिंग बॉक्स के भीतर बाउंडर ऑब्जेक्ट को सेगमेंट करें (xywh स्वरूप में बॉक्स की कोणयों की निर्धारण करें):
-      ```शेल
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
-      ```
+
+        ```शेल
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
+        ```
 
     - विशेष बिंदुओं के पास ऑब्जेक्ट को सेगमेंट करें:
-      ```शेल
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
-      ```
+        ```शेल
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
+        ```
 
 इसके अलावा, आप फास्टएसएएम का उपयोग करने के लिए एक [कोलैब डेमो](https://colab.research.google.com/drive/1oX14f6IneGGw612WgVlAiy91UHwFAvr9?usp=sharing) या एक [हगिंगफेस वेब डेमो](https://huggingface.co/spaces/An-619/FastSAM) पर भी प्रयास कर सकते हैं।
 

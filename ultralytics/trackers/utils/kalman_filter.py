@@ -17,7 +17,7 @@ class KalmanFilterXYAH:
 
     def __init__(self):
         """Initialize Kalman filter model matrices with motion and observation uncertainty weights."""
-        ndim, dt = 4, 1.
+        ndim, dt = 4, 1.0
 
         # Create Kalman filter model matrices
         self._motion_mat = np.eye(2 * ndim, 2 * ndim)
@@ -27,8 +27,8 @@ class KalmanFilterXYAH:
 
         # Motion and observation uncertainty are chosen relative to the current state estimate. These weights control
         # the amount of uncertainty in the model.
-        self._std_weight_position = 1. / 20
-        self._std_weight_velocity = 1. / 160
+        self._std_weight_position = 1.0 / 20
+        self._std_weight_velocity = 1.0 / 160
 
     def initiate(self, measurement: np.ndarray) -> tuple:
         """
@@ -47,9 +47,15 @@ class KalmanFilterXYAH:
         mean = np.r_[mean_pos, mean_vel]
 
         std = [
-            2 * self._std_weight_position * measurement[3], 2 * self._std_weight_position * measurement[3], 1e-2,
-            2 * self._std_weight_position * measurement[3], 10 * self._std_weight_velocity * measurement[3],
-            10 * self._std_weight_velocity * measurement[3], 1e-5, 10 * self._std_weight_velocity * measurement[3]]
+            2 * self._std_weight_position * measurement[3],
+            2 * self._std_weight_position * measurement[3],
+            1e-2,
+            2 * self._std_weight_position * measurement[3],
+            10 * self._std_weight_velocity * measurement[3],
+            10 * self._std_weight_velocity * measurement[3],
+            1e-5,
+            10 * self._std_weight_velocity * measurement[3],
+        ]
         covariance = np.diag(np.square(std))
         return mean, covariance
 
@@ -66,11 +72,17 @@ class KalmanFilterXYAH:
                 velocities are initialized to 0 mean.
         """
         std_pos = [
-            self._std_weight_position * mean[3], self._std_weight_position * mean[3], 1e-2,
-            self._std_weight_position * mean[3]]
+            self._std_weight_position * mean[3],
+            self._std_weight_position * mean[3],
+            1e-2,
+            self._std_weight_position * mean[3],
+        ]
         std_vel = [
-            self._std_weight_velocity * mean[3], self._std_weight_velocity * mean[3], 1e-5,
-            self._std_weight_velocity * mean[3]]
+            self._std_weight_velocity * mean[3],
+            self._std_weight_velocity * mean[3],
+            1e-5,
+            self._std_weight_velocity * mean[3],
+        ]
         motion_cov = np.diag(np.square(np.r_[std_pos, std_vel]))
 
         mean = np.dot(mean, self._motion_mat.T)
@@ -90,8 +102,11 @@ class KalmanFilterXYAH:
             (tuple[ndarray, ndarray]): Returns the projected mean and covariance matrix of the given state estimate.
         """
         std = [
-            self._std_weight_position * mean[3], self._std_weight_position * mean[3], 1e-1,
-            self._std_weight_position * mean[3]]
+            self._std_weight_position * mean[3],
+            self._std_weight_position * mean[3],
+            1e-1,
+            self._std_weight_position * mean[3],
+        ]
         innovation_cov = np.diag(np.square(std))
 
         mean = np.dot(self._update_mat, mean)
@@ -111,11 +126,17 @@ class KalmanFilterXYAH:
                 velocities are initialized to 0 mean.
         """
         std_pos = [
-            self._std_weight_position * mean[:, 3], self._std_weight_position * mean[:, 3],
-            1e-2 * np.ones_like(mean[:, 3]), self._std_weight_position * mean[:, 3]]
+            self._std_weight_position * mean[:, 3],
+            self._std_weight_position * mean[:, 3],
+            1e-2 * np.ones_like(mean[:, 3]),
+            self._std_weight_position * mean[:, 3],
+        ]
         std_vel = [
-            self._std_weight_velocity * mean[:, 3], self._std_weight_velocity * mean[:, 3],
-            1e-5 * np.ones_like(mean[:, 3]), self._std_weight_velocity * mean[:, 3]]
+            self._std_weight_velocity * mean[:, 3],
+            self._std_weight_velocity * mean[:, 3],
+            1e-5 * np.ones_like(mean[:, 3]),
+            self._std_weight_velocity * mean[:, 3],
+        ]
         sqr = np.square(np.r_[std_pos, std_vel]).T
 
         motion_cov = [np.diag(sqr[i]) for i in range(len(mean))]
@@ -143,21 +164,23 @@ class KalmanFilterXYAH:
         projected_mean, projected_cov = self.project(mean, covariance)
 
         chol_factor, lower = scipy.linalg.cho_factor(projected_cov, lower=True, check_finite=False)
-        kalman_gain = scipy.linalg.cho_solve((chol_factor, lower),
-                                             np.dot(covariance, self._update_mat.T).T,
-                                             check_finite=False).T
+        kalman_gain = scipy.linalg.cho_solve(
+            (chol_factor, lower), np.dot(covariance, self._update_mat.T).T, check_finite=False
+        ).T
         innovation = measurement - projected_mean
 
         new_mean = mean + np.dot(innovation, kalman_gain.T)
         new_covariance = covariance - np.linalg.multi_dot((kalman_gain, projected_cov, kalman_gain.T))
         return new_mean, new_covariance
 
-    def gating_distance(self,
-                        mean: np.ndarray,
-                        covariance: np.ndarray,
-                        measurements: np.ndarray,
-                        only_position: bool = False,
-                        metric: str = 'maha') -> np.ndarray:
+    def gating_distance(
+        self,
+        mean: np.ndarray,
+        covariance: np.ndarray,
+        measurements: np.ndarray,
+        only_position: bool = False,
+        metric: str = "maha",
+    ) -> np.ndarray:
         """
         Compute gating distance between state distribution and measurements. A suitable distance threshold can be
         obtained from `chi2inv95`. If `only_position` is False, the chi-square distribution has 4 degrees of freedom,
@@ -183,14 +206,14 @@ class KalmanFilterXYAH:
             measurements = measurements[:, :2]
 
         d = measurements - mean
-        if metric == 'gaussian':
+        if metric == "gaussian":
             return np.sum(d * d, axis=1)
-        elif metric == 'maha':
+        elif metric == "maha":
             cholesky_factor = np.linalg.cholesky(covariance)
             z = scipy.linalg.solve_triangular(cholesky_factor, d.T, lower=True, check_finite=False, overwrite_b=True)
             return np.sum(z * z, axis=0)  # square maha
         else:
-            raise ValueError('Invalid distance metric')
+            raise ValueError("Invalid distance metric")
 
 
 class KalmanFilterXYWH(KalmanFilterXYAH):
@@ -220,10 +243,15 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         mean = np.r_[mean_pos, mean_vel]
 
         std = [
-            2 * self._std_weight_position * measurement[2], 2 * self._std_weight_position * measurement[3],
-            2 * self._std_weight_position * measurement[2], 2 * self._std_weight_position * measurement[3],
-            10 * self._std_weight_velocity * measurement[2], 10 * self._std_weight_velocity * measurement[3],
-            10 * self._std_weight_velocity * measurement[2], 10 * self._std_weight_velocity * measurement[3]]
+            2 * self._std_weight_position * measurement[2],
+            2 * self._std_weight_position * measurement[3],
+            2 * self._std_weight_position * measurement[2],
+            2 * self._std_weight_position * measurement[3],
+            10 * self._std_weight_velocity * measurement[2],
+            10 * self._std_weight_velocity * measurement[3],
+            10 * self._std_weight_velocity * measurement[2],
+            10 * self._std_weight_velocity * measurement[3],
+        ]
         covariance = np.diag(np.square(std))
         return mean, covariance
 
@@ -240,11 +268,17 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
                 velocities are initialized to 0 mean.
         """
         std_pos = [
-            self._std_weight_position * mean[2], self._std_weight_position * mean[3],
-            self._std_weight_position * mean[2], self._std_weight_position * mean[3]]
+            self._std_weight_position * mean[2],
+            self._std_weight_position * mean[3],
+            self._std_weight_position * mean[2],
+            self._std_weight_position * mean[3],
+        ]
         std_vel = [
-            self._std_weight_velocity * mean[2], self._std_weight_velocity * mean[3],
-            self._std_weight_velocity * mean[2], self._std_weight_velocity * mean[3]]
+            self._std_weight_velocity * mean[2],
+            self._std_weight_velocity * mean[3],
+            self._std_weight_velocity * mean[2],
+            self._std_weight_velocity * mean[3],
+        ]
         motion_cov = np.diag(np.square(np.r_[std_pos, std_vel]))
 
         mean = np.dot(mean, self._motion_mat.T)
@@ -264,8 +298,11 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             (tuple[ndarray, ndarray]): Returns the projected mean and covariance matrix of the given state estimate.
         """
         std = [
-            self._std_weight_position * mean[2], self._std_weight_position * mean[3],
-            self._std_weight_position * mean[2], self._std_weight_position * mean[3]]
+            self._std_weight_position * mean[2],
+            self._std_weight_position * mean[3],
+            self._std_weight_position * mean[2],
+            self._std_weight_position * mean[3],
+        ]
         innovation_cov = np.diag(np.square(std))
 
         mean = np.dot(self._update_mat, mean)
@@ -285,11 +322,17 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
                 velocities are initialized to 0 mean.
         """
         std_pos = [
-            self._std_weight_position * mean[:, 2], self._std_weight_position * mean[:, 3],
-            self._std_weight_position * mean[:, 2], self._std_weight_position * mean[:, 3]]
+            self._std_weight_position * mean[:, 2],
+            self._std_weight_position * mean[:, 3],
+            self._std_weight_position * mean[:, 2],
+            self._std_weight_position * mean[:, 3],
+        ]
         std_vel = [
-            self._std_weight_velocity * mean[:, 2], self._std_weight_velocity * mean[:, 3],
-            self._std_weight_velocity * mean[:, 2], self._std_weight_velocity * mean[:, 3]]
+            self._std_weight_velocity * mean[:, 2],
+            self._std_weight_velocity * mean[:, 3],
+            self._std_weight_velocity * mean[:, 2],
+            self._std_weight_velocity * mean[:, 3],
+        ]
         sqr = np.square(np.r_[std_pos, std_vel]).T
 
         motion_cov = [np.diag(sqr[i]) for i in range(len(mean))]

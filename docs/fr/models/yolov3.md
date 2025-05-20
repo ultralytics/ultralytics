@@ -20,31 +20,31 @@ Ce document présente un aperçu de trois modèles de détection d'objets étroi
 
 ## Caractéristiques clés
 
-- **YOLOv3**: A introduit l'utilisation de trois échelles différentes pour la détection, en tirant parti de trois tailles différentes de noyaux de détection : 13x13, 26x26 et 52x52. Cela a considérablement amélioré la précision de la détection pour les objets de différentes tailles. De plus, YOLOv3 a ajouté des fonctionnalités telles que des prédictions multi-étiquettes pour chaque boîte englobante et un meilleur réseau d'extraction de caractéristiques.
+- **YOLOv3**: A introduit l'utilisation de trois échelles différentes pour la détection, en tirant parti de trois tailles différentes de noyaux de détection : 13x13, 26x26 et 52x52. Cela a considérablement amélioré la précision de la détection pour les objects de différentes tailles. De plus, YOLOv3 a ajouté des fonctionnalités telles que des prédictions multi-étiquettes pour chaque boîte englobante et un meilleur réseau d'extraction de caractéristiques.
 
 - **YOLOv3-Ultralytics**: L'implémentation d'Ultralytics de YOLOv3 offre les mêmes performances que le modèle d'origine, mais propose également un support supplémentaire pour plus de modèles pré-entraînés, des méthodes d'entraînement supplémentaires et des options de personnalisation plus faciles. Cela le rend plus polyvalent et convivial pour les applications pratiques.
 
-- **YOLOv3u**: Ce modèle mis à jour intègre la nouvelle tête de détection sans ancrage et sans objectivité de YOLOv8. En éliminant le besoin de boîtes d'ancrage prédéfinies et de scores d'objectivité, cette conception de tête de détection peut améliorer la capacité du modèle à détecter des objets de différentes tailles et formes. Cela rend YOLOv3u plus robuste et précis pour les tâches de détection d'objets.
+- **YOLOv3u**: Ce modèle mis à jour intègre la nouvelle tête de détection sans ancrage et sans objectivité de YOLOv8. En éliminant le besoin de boîtes d'ancrage prédéfinies et de scores d'objectivité, cette conception de tête de détection peut améliorer la capacité du modèle à détecter des objects de différentes tailles et formes. Cela rend YOLOv3u plus robuste et précis pour les tâches de détection d'objects.
 
 ## Tâches et modes pris en charge
 
 Les modèles de la série YOLOv3, notamment YOLOv3, YOLOv3-Ultralytics et YOLOv3u, sont spécialement conçus pour les tâches de détection d'objets. Ces modèles sont réputés pour leur efficacité dans divers scénarios réels, alliant précision et rapidité. Chaque variante propose des fonctionnalités et des optimisations uniques, les rendant adaptés à une gamme d'applications.
 
-Les trois modèles prennent en charge un ensemble complet de modes, garantissant ainsi leur polyvalence à différentes étapes du déploiement et du développement du modèle. Ces modes comprennent [Inférence](../modes/predict.md), [Validation](../modes/val.md), [Entraînement](../modes/train.md) et [Export](../modes/export.md), offrant aux utilisateurs un ensemble complet d'outils pour une détection d'objets efficace.
+Les trois modèles prennent en charge un ensemble complete de modes, garantissant ainsi leur polyvalence à différentes étapes du déploiement et du développement du modèle. Ces modes comprennent [Inférence](../modes/predict.md), [Validation](../modes/val.md), [Entraînement](../modes/train.md) et [Export](../modes/export.md), offrant aux utilisateurs un ensemble complete d'outils pour une détection d'objets efficace.
 
 | Type de modèle     | Tâches prises en charge                  | Inférence | Validation | Entraînement | Export |
-|--------------------|------------------------------------------|-----------|------------|--------------|--------|
-| YOLOv3             | [Détection d'objets](../tasks/detect.md) | ✅         | ✅          | ✅            | ✅      |
-| YOLOv3-Ultralytics | [Détection d'objets](../tasks/detect.md) | ✅         | ✅          | ✅            | ✅      |
-| YOLOv3u            | [Détection d'objets](../tasks/detect.md) | ✅         | ✅          | ✅            | ✅      |
+| ------------------ | ---------------------------------------- | --------- | ---------- | ------------ | ------ |
+| YOLOv3             | [Détection d'objets](../tasks/detect.md) | ✅        | ✅         | ✅           | ✅     |
+| YOLOv3-Ultralytics | [Détection d'objets](../tasks/detect.md) | ✅        | ✅         | ✅           | ✅     |
+| YOLOv3u            | [Détection d'objets](../tasks/detect.md) | ✅        | ✅         | ✅           | ✅     |
 
 Ce tableau offre un aperçu rapide des capacités de chaque variante de YOLOv3, mettant en évidence leur polyvalence et leur pertinence pour diverses tâches et modes opérationnels dans les flux de travail de détection d'objets.
 
-## Exemples d'utilisation
+## Examples d'utilisation
 
-Cet exemple présente des exemples simples d'entraînement et d'inférence de YOLOv3. Pour une documentation complète sur ces exemples et d'autres [modes](../modes/index.md), consultez les pages de documentation sur [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) et [Export](../modes/export.md).
+Cet example présente des examples simples d'entraînement et d'inférence de YOLOv3. Pour une documentation complète sur ces examples et d'autres [modes](../modes/index.md), consultez les pages de documentation sur [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) et [Export](../modes/export.md).
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -54,16 +54,16 @@ Cet exemple présente des exemples simples d'entraînement et d'inférence de YO
         from ultralytics import YOLO
 
         # Charger un modèle YOLOv3n pré-entraîné avec COCO
-        model = YOLO('yolov3n.pt')
+        model = YOLO("yolov3n.pt")
 
-        # Afficher les informations sur le modèle (facultatif)
+        # Afficher les information sur le modèle (facultatif)
         model.info()
 
         # Entraîner le modèle sur l'ensemble de données d'exemple COCO8 pendant 100 époques
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Exécuter l'inférence avec le modèle YOLOv3n sur l'image 'bus.jpg'
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

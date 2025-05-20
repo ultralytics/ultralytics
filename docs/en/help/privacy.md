@@ -85,7 +85,7 @@ To gain insight into the current configuration of your settings, you can view th
         print(settings)
 
         # Return analytics and crash reporting setting
-        value = settings['sync']
+        value = settings["sync"]
         ```
 
     === "CLI"
@@ -106,7 +106,7 @@ Ultralytics allows users to easily modify their settings. Changes can be perform
         from ultralytics import settings
 
         # Disable analytics and crash reporting
-        settings.update({'sync': False})
+        settings.update({"sync": False})
 
         # Reset settings to default values
         settings.reset()

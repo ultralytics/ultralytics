@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Explorez diverses méthodes pour installer Ultralytics en utilisant pip, conda, git et Docker. Apprenez comment utiliser Ultralytics avec l'interface en ligne de commande ou au sein de vos projets Python.
+description: Explorez diverses méthodes pour installer Ultralytics en utilisant pip, conda, git et Docker. Apprenez comment utiliser Ultralytics avec l'interface en ligne de commande ou au sein de vos projects Python.
 keywords: installation d'Ultralytics, pip install Ultralytics, Docker install Ultralytics, interface en ligne de commande Ultralytics, interface Python Ultralytics
 ---
 
@@ -41,7 +41,7 @@ Ultralytics propose diverses méthodes d'installation, y compris pip, conda et D
 
         !!! Note "Note"
 
-            Si vous installez dans un environnement CUDA, la meilleure pratique est d'installer `ultralytics`, `pytorch` et `pytorch-cuda` dans la même commande pour permettre au gestionnaire de package conda de résoudre les conflits, ou bien d'installer `pytorch-cuda` en dernier pour lui permettre de remplacer le package `pytorch` spécifique aux CPU si nécessaire.
+            Si vous installez dans un environment CUDA, la meilleure pratique est d'installer `ultralytics`, `pytorch` et `pytorch-cuda` dans la même commande pour permettre au gestionnaire de package conda de résoudre les conflicts, ou bien d'installer `pytorch-cuda` en dernier pour lui permettre de remplacer le package `pytorch` spécifique aux CPU si nécessaire.
             ```bash
             # Installer tous les packages ensemble en utilisant conda
             conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
@@ -49,7 +49,7 @@ Ultralytics propose diverses méthodes d'installation, y compris pip, conda et D
 
         ### Image Docker Conda
 
-        Les images Docker Conda d'Ultralytics sont également disponibles sur [DockerHub](https://hub.docker.com/r/ultralytics/ultralytics). Ces images sont basées sur [Miniconda3](https://docs.conda.io/projects/miniconda/en/latest/) et constituent un moyen simple de commencer à utiliser `ultralytics` dans un environnement Conda.
+        Les images Docker Conda d'Ultralytics sont également disponibles sur [DockerHub](https://hub.docker.com/r/ultralytics/ultralytics). Ces images sont basées sur [Miniconda3](https://docs.conda.io/projects/miniconda/en/latest/) et constituent un moyen simple de commencer à utiliser `ultralytics` dans un environment Conda.
 
         ```bash
         # Définir le nom de l'image comme variable
@@ -59,8 +59,8 @@ Ultralytics propose diverses méthodes d'installation, y compris pip, conda et D
         sudo docker pull $t
 
         # Exécuter l'image ultralytics dans un conteneur avec support GPU
-        sudo docker run -it --ipc=host --gpus all $t  # tous les GPUs
-        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # spécifier les GPUs
+        sudo docker run -it --ipc=host --gpus all $t            # tous les GPUs
+        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t # spécifier les GPUs
         ```
 
     === "Clone Git"
@@ -76,7 +76,7 @@ Ultralytics propose diverses méthodes d'installation, y compris pip, conda et D
         pip install -e .
         ```
 
-Voir le fichier [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) d'`ultralytics` pour une liste des dépendances. Notez que tous les exemples ci-dessus installent toutes les dépendances requises.
+Voir le fichier [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) d'`ultralytics` pour une liste des dépendances. Notez que tous les examples ci-dessus installent toutes les dépendances requises.
 
 <p align="center">
   <br>
@@ -91,7 +91,7 @@ Voir le fichier [requirements.txt](https://github.com/ultralytics/ultralytics/bl
 
 !!! astuce "Conseil"
 
-    Les prérequis de PyTorch varient selon le système d'exploitation et les exigences CUDA, donc il est recommandé d'installer PyTorch en premier en suivant les instructions sur [https://pytorch.org/get-started/locally](https://pytorch.org/get-started/locally).
+    Les prérequis de PyTorch variant selon le système d'exploitation et les exigences CUDA, donc il est recommandé d'installer PyTorch en premier en suivant les instructions sur [https://pytorch.org/get-started/locally](https://pytorch.org/get-started/locally).
 
     <a href="https://pytorch.org/get-started/locally/">
         <img width="800" alt="Instructions d'installation de PyTorch" src="https://user-images.githubusercontent.com/26833433/228650108-ab0ec98a-b328-4f40-a40d-95355e8a84e3.png">
@@ -101,11 +101,11 @@ Voir le fichier [requirements.txt](https://github.com/ultralytics/ultralytics/bl
 
 L'interface en ligne de commande (CLI) d'Ultralytics permet l'utilisation de commandes simples en une seule ligne sans nécessiter d'environnement Python. La CLI ne requiert pas de personnalisation ou de code Python. Vous pouvez simplement exécuter toutes les tâches depuis le terminal avec la commande `yolo`. Consultez le [Guide CLI](/../usage/cli.md) pour en savoir plus sur l'utilisation de YOLOv8 depuis la ligne de commande.
 
-!!! Example "Exemple"
+!!! Example "Example"
 
-    === "Syntaxe"
+    === "Syntax"
 
-        Les commandes `yolo` d'Ultralytics utilisent la syntaxe suivante :
+        Les commandes `yolo` d'Ultralytics utilisent la syntax suivante :
         ```bash
         yolo TÂCHE MODE ARGS
 
@@ -113,7 +113,7 @@ L'interface en ligne de commande (CLI) d'Ultralytics permet l'utilisation de com
              MODE (obligatoire) est l'un de [train, val, predict, export, track]
              ARGS (facultatif) sont n'importe quel nombre de paires personnalisées 'arg=valeur' comme 'imgsz=320' qui remplacent les valeurs par défaut.
         ```
-        Voyez tous les ARGS dans le [Guide de Configuration](/../usage/cfg.md) complet ou avec `yolo cfg`
+        Voyez tous les ARGS dans le [Guide de Configuration](/../usage/cfg.md) complete ou avec `yolo cfg`
 
     === "Entraînement"
 
@@ -157,7 +157,7 @@ L'interface en ligne de commande (CLI) d'Ultralytics permet l'utilisation de com
 
 !!! Warning "Avertissement"
 
-    Les arguments doivent être passés sous forme de paires `arg=val`, séparés par un signe égal `=` et délimités par des espaces ` ` entre les paires. N'utilisez pas de préfixes d'arguments `--` ou de virgules `,` entre les arguments.
+    Les arguments doivent être passés sous forme de paires `arg=val`, séparés par un signe égal `=` et délimités par des escapes ` ` entre les paires. N'utilisez pas de préfixes d'arguments `--` ou de virgules `,` entre les arguments.
 
     - `yolo predict model=yolov8n.pt imgsz=640 conf=0.25` &nbsp; ✅
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
@@ -167,32 +167,32 @@ L'interface en ligne de commande (CLI) d'Ultralytics permet l'utilisation de com
 
 ## Utiliser Ultralytics avec Python
 
-L'interface Python de YOLOv8 permet une intégration transparente dans vos projets Python, facilitant le chargement, l'exécution et le traitement de la sortie du modèle. Conçue avec simplicité et facilité d'utilisation à l'esprit, l'interface Python permet aux utilisateurs de mettre en œuvre rapidement la détection d'objets, la segmentation et la classification dans leurs projets. Cela fait de l'interface Python de YOLOv8 un outil inestimable pour quiconque cherche à intégrer ces fonctionnalités dans ses projets Python.
+L'interface Python de YOLOv8 permet une intégration transparente dans vos projects Python, facilitant le chargement, l'exécution et le traitement de la sortie du modèle. Conçue avec simplicité et facilité d'utilisation à l'esprit, l'interface Python permet aux utilisateurs de mettre en œuvre rapidement la détection d'objets, la segmentation et la classification dans leurs projects. Cela fait de l'interface Python de YOLOv8 un outil inestimable pour quiconque cherche à intégrer ces fonctionnalités dans ses projects Python.
 
-Par exemple, les utilisateurs peuvent charger un modèle, l'entraîner, évaluer ses performances sur un set de validation, et même l'exporter au format ONNX avec seulement quelques lignes de code. Consultez le [Guide Python](/../usage/python.md) pour en savoir plus sur l'utilisation de YOLOv8 au sein de vos projets Python.
+Par example, les utilisateurs peuvent charger un modèle, l'entraîner, évaluer ses performances sur un set de validation, et même l'exporter au format ONNX avec seulement quelques lignes de code. Consultez le [Guide Python](/../usage/python.md) pour en savoir plus sur l'utilisation de YOLOv8 au sein de vos projects Python.
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     ```python
     from ultralytics import YOLO
 
     # Créer un nouveau modèle YOLO à partir de zéro
-    model = YOLO('yolov8n.yaml')
+    model = YOLO("yolov8n.yaml")
 
     # Charger un modèle YOLO pré-entraîné (recommandé pour l'entraînement)
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # Entraîner le modèle en utilisant le jeu de données 'coco128.yaml' pour 3 epochs
-    résultats = model.train(data='coco128.yaml', epochs=3)
+    résultats = model.train(data="coco128.yaml", epochs=3)
 
     # Évaluer la performance du modèle sur le set de validation
     résultats = model.val()
 
     # Effectuer la détection d'objets sur une image en utilisant le modèle
-    résultats = model('https://ultralytics.com/images/bus.jpg')
+    résultats = model("https://ultralytics.com/images/bus.jpg")
 
     # Exporter le modèle au format ONNX
-    succès = model.export(format='onnx')
+    succès = model.export(format="onnx")
     ```
 
 [Guide Python](/../usage/python.md){.md-button .md-button--primary}

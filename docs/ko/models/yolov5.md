@@ -24,9 +24,9 @@ YOLOv5u는 객체 감지 기법에서의 진보를 나타냅니다. Ultralytics�
 
 разнобойacionales of YOLOv5u 모델은 다양한 사전 훈련된 가중치로 [객체 감지](../tasks/detect.md) 작업에서 뛰어난 성능을 발휘합니다. 이들은 개발부터 배포까지 다양한 응용 프로그램에 적합한 다양한 모드를 지원합니다.
 
-| 모델 유형   | 사전 훈련된 가중치                                                                                                                  | 작업                          | 추론 | 검증 | 훈련 | 내보내기 |
-|---------|-----------------------------------------------------------------------------------------------------------------------------|-----------------------------|----|----|----|------|
-| YOLOv5u | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [객체 감지](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅    |
+| 모델 유형 | 사전 훈련된 가중치                                                                                                          | 작업                            | 추론 | 검증 | 훈련 | 내보내기 |
+| --------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | ---- | ---- | ---- | -------- |
+| YOLOv5u   | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [객체 감지](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅       |
 
 이 표는 YOLOv5u 모델의 다양한 변형을 상세히 보여주며, 객체 감지 작업에서의 적용 가능성과 [추론](../modes/predict.md), [검증](../modes/val.md), [훈련](../modes/train.md), [내보내기](../modes/export.md)와 같은 다양한 작업 모드의 지원을 강조합니다. 이러한 포괄적인 지원을 통해 사용자는 다양한 객체 감지 시나리오에서 YOLOv5u 모델의 기능을 완전히 활용할 수 있습니다.
 
@@ -66,16 +66,16 @@ YOLOv5u는 객체 감지 기법에서의 진보를 나타냅니다. Ultralytics�
         from ultralytics import YOLO
 
         # COCO 사전 훈련된 YOLOv5n 모델 로드
-        model = YOLO('yolov5n.pt')
+        model = YOLO("yolov5n.pt")
 
         # 모델 정보 표시 (선택 사항)
         model.info()
 
         # COCO8 예제 데이터셋을 사용하여 모델을 100번 에포크로 훈련
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # 'bus.jpg' 이미지에 대해 YOLOv5n 모델로 추론 실행
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

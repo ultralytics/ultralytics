@@ -34,7 +34,7 @@ keywords: yolov8, сегментация объектов, Ultralytics, набо
 [Модели](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) автоматически загружаются из последнего [релиза](https://github.com/ultralytics/assets/releases) Ultralytics при первом использовании.
 
 | Модель                                                                                       | размер<br><sup>(пиксели) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Скорость<br><sup>CPU ONNX<br>(мс) | Скорость<br><sup>A100 TensorRT<br>(мс) | параметры<br><sup>(М) | FLOPs<br><sup>(B) |
-|----------------------------------------------------------------------------------------------|--------------------------|----------------------|-----------------------|-----------------------------------|----------------------------------------|-----------------------|-------------------|
+| -------------------------------------------------------------------------------------------- | ------------------------ | -------------------- | --------------------- | --------------------------------- | -------------------------------------- | --------------------- | ----------------- |
 | [YOLOv8n-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-seg.pt) | 640                      | 36.7                 | 30.5                  | 96.1                              | 1.21                                   | 3.4                   | 12.6              |
 | [YOLOv8s-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-seg.pt) | 640                      | 44.6                 | 36.8                  | 155.7                             | 1.47                                   | 11.8                  | 42.6              |
 | [YOLOv8m-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt) | 640                      | 49.9                 | 40.8                  | 317.0                             | 2.18                                   | 27.3                  | 110.2             |
@@ -59,12 +59,12 @@ keywords: yolov8, сегментация объектов, Ultralytics, набо
         from ultralytics import YOLO
 
         # Загрузить модель
-        model = YOLO('yolov8n-seg.yaml')  # создать новую модель из YAML
-        model = YOLO('yolov8n-seg.pt')  # загрузить предварительно обученную модель (рекомендуется для обучения)
-        model = YOLO('yolov8n-seg.yaml').load('yolov8n.pt')  # создать из YAML и перенести веса
+        model = YOLO("yolov8n-seg.yaml")  # создать новую модель из YAML
+        model = YOLO("yolov8n-seg.pt")  # загрузить предварительно обученную модель (рекомендуется для обучения)
+        model = YOLO("yolov8n-seg.yaml").load("yolov8n.pt")  # создать из YAML и перенести веса
 
         # Обучить модель
-        results = model.train(data='coco128-seg.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco128-seg.yaml", epochs=100, imgsz=640)
         ```
     === "CLI"
 
@@ -95,25 +95,25 @@ keywords: yolov8, сегментация объектов, Ultralytics, набо
         from ultralytics import YOLO
 
         # Загрузить модель
-        model = YOLO('yolov8n-seg.pt')  # загрузить официальную модель
-        model = YOLO('path/to/best.pt')  # загрузить пользовательскую модель
+        model = YOLO("yolov8n-seg.pt")  # загрузить официальную модель
+        model = YOLO("path/to/best.pt")  # загрузить пользовательскую модель
 
         # Провалидировать модель
         metrics = model.val()  # аргументы не нужны, набор данных и настройки запомнены
-        metrics.box.map    # map50-95(B)
+        metrics.box.map  # map50-95(B)
         metrics.box.map50  # map50(B)
         metrics.box.map75  # map75(B)
-        metrics.box.maps   # список содержит map50-95(B) каждой категории
-        metrics.seg.map    # map50-95(M)
+        metrics.box.maps  # список содержит map50-95(B) каждой категории
+        metrics.seg.map  # map50-95(M)
         metrics.seg.map50  # map50(M)
         metrics.seg.map75  # map75(M)
-        metrics.seg.maps   # список содержит map50-95(M) каждой категории
+        metrics.seg.maps  # список содержит map50-95(M) каждой категории
         ```
     === "CLI"
 
         ```bash
         yolo segment val model=yolov8n-seg.pt  # валидация официальной модели
-        yolo segment val model=path/to/best.pt  # валидация пользовательской модели
+        yolo segment val model=path/to/best.pt # валидация пользовательской модели
         ```
 
 ## Предсказание
@@ -128,17 +128,17 @@ keywords: yolov8, сегментация объектов, Ultralytics, набо
         from ultralytics import YOLO
 
         # Загрузить модель
-        model = YOLO('yolov8n-seg.pt')  # загрузить официальную модель
-        model = YOLO('path/to/best.pt')  # загрузить пользовательскую модель
+        model = YOLO("yolov8n-seg.pt")  # загрузить официальную модель
+        model = YOLO("path/to/best.pt")  # загрузить пользовательскую модель
 
         # Сделать предсказание с помощью модели
-        results = model('https://ultralytics.com/images/bus.jpg')  # предсказать по изображению
+        results = model("https://ultralytics.com/images/bus.jpg")  # предсказать по изображению
         ```
     === "CLI"
 
         ```bash
         yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # предсказать с официальной моделью
-        yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # предсказать с пользовательской моделью
+        yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg' # предсказать с пользовательской моделью
         ```
 
 Полная информация о режиме `predict` на странице [Predict](https://docs.ultralytics.com/modes/predict/).
@@ -155,35 +155,35 @@ keywords: yolov8, сегментация объектов, Ultralytics, набо
         from ultralytics import YOLO
 
         # Загрузить модель
-        model = YOLO('yolov8n-seg.pt')  # загрузить официальную модель
-        model = YOLO('path/to/best.pt')  # загрузить пользовательскую обученную модель
+        model = YOLO("yolov8n-seg.pt")  # загрузить официальную модель
+        model = YOLO("path/to/best.pt")  # загрузить пользовательскую обученную модель
 
         # Экспортировать модель
-        model.export(format='onnx')
+        model.export(format="onnx")
         ```
     === "CLI"
 
         ```bash
         yolo export model=yolov8n-seg.pt format=onnx  # экспортировать официальную модель
-        yolo export model=path/to/best.pt format=onnx  # экспортировать пользовательскую обученную модель
+        yolo export model=path/to/best.pt format=onnx # экспортировать пользовательскую обученную модель
         ```
 
 Доступные форматы экспорта YOLOv8-seg приведены в таблице ниже. После завершения экспорта для вашей модели показаны примеры использования, включая прямое предсказание или валидацию на экспортированных моделях, например `yolo predict model=yolov8n-seg.onnx`.
 
 | Формат                                                             | Аргумент `format` | Модель                        | Метаданные | Аргументы                                           |
-|--------------------------------------------------------------------|-------------------|-------------------------------|------------|-----------------------------------------------------|
-| [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-seg.pt`              | ✅          | -                                                   |
-| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-seg.torchscript`     | ✅          | `imgsz`, `optimize`                                 |
-| [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n-seg.onnx`            | ✅          | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
-| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`        | `yolov8n-seg_openvino_model/` | ✅          | `imgsz`, `half`                                     |
-| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`          | `yolov8n-seg.engine`          | ✅          | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n-seg.mlpackage`       | ✅          | `imgsz`, `half`, `int8`, `nms`                      |
-| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n-seg_saved_model/`    | ✅          | `imgsz`, `keras`                                    |
-| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`              | `yolov8n-seg.pb`              | ❌          | `imgsz`                                             |
-| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`          | `yolov8n-seg.tflite`          | ✅          | `imgsz`, `half`, `int8`                             |
-| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n-seg_edgetpu.tflite`  | ✅          | `imgsz`                                             |
-| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n-seg_web_model/`      | ✅          | `imgsz`                                             |
-| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-seg_paddle_model/`   | ✅          | `imgsz`                                             |
-| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n-seg_ncnn_model/`     | ✅          | `imgsz`, `half`                                     |
+| ------------------------------------------------------------------ | ----------------- | ----------------------------- | ---------- | --------------------------------------------------- |
+| [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-seg.pt`              | ✅         | -                                                   |
+| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-seg.torchscript`     | ✅         | `imgsz`, `optimize`                                 |
+| [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n-seg.onnx`            | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
+| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`        | `yolov8n-seg_openvino_model/` | ✅         | `imgsz`, `half`                                     |
+| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`          | `yolov8n-seg.engine`          | ✅         | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
+| [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n-seg.mlpackage`       | ✅         | `imgsz`, `half`, `int8`, `nms`                      |
+| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n-seg_saved_model/`    | ✅         | `imgsz`, `keras`                                    |
+| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`              | `yolov8n-seg.pb`              | ❌         | `imgsz`                                             |
+| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`          | `yolov8n-seg.tflite`          | ✅         | `imgsz`, `half`, `int8`                             |
+| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n-seg_edgetpu.tflite`  | ✅         | `imgsz`                                             |
+| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n-seg_web_model/`      | ✅         | `imgsz`                                             |
+| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-seg_paddle_model/`   | ✅         | `imgsz`                                             |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n-seg_ncnn_model/`     | ✅         | `imgsz`, `half`                                     |
 
 Подробности о режиме `export` смотрите на странице [Export](https://docs.ultralytics.com/modes/export/).

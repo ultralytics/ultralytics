@@ -24,7 +24,7 @@ keywords: YOLO-NAS, Deci AI, كشف الكائنات, deep learning, البحث 
 استمتع بقوة كشف الكائنات من الجيل القادم مع الطرز المدربة مسبقًا لـ YOLO-NAS التي يوفرها Ultralytics. تم تصميم هذه الطرز لتقديم أداء متفوق من حيث السرعة والدقة. اختر من بين مجموعة متنوعة من الخيارات المصممة وفقًا لاحتياجاتك الخاصة:
 
 | الطراز           | مؤشر التقدير المتوسط (mAP) | تأخر الوقت (ms) |
-|------------------|----------------------------|-----------------|
+| ---------------- | -------------------------- | --------------- |
 | YOLO-NAS S       | 47.5                       | 3.21            |
 | YOLO-NAS M       | 51.55                      | 5.85            |
 | YOLO-NAS L       | 52.22                      | 7.87            |
@@ -91,10 +91,10 @@ keywords: YOLO-NAS, Deci AI, كشف الكائنات, deep learning, البحث 
 أدناه نظرة عامة مفصلة عن كل نموذج ، بما في ذلك روابط أوزانهم المدربين مسبقًا ، والمهام التي يدعمونها ، وتوافقهم مع وضعيات التشغيل المختلفة.
 
 | نوع النموذج | أوزان مدربة مسبقًا                                                                            | المهام المدعومة                    | الاستدلال | التحقق | التدريب | التصدير |
-|-------------|-----------------------------------------------------------------------------------------------|------------------------------------|-----------|--------|---------|---------|
-| YOLO-NAS-s  | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [كشف الكائنات](../tasks/detect.md) | ✅         | ✅      | ❌       | ✅       |
-| YOLO-NAS-m  | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [كشف الكائنات](../tasks/detect.md) | ✅         | ✅      | ❌       | ✅       |
-| YOLO-NAS-l  | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [كشف الكائنات](../tasks/detect.md) | ✅         | ✅      | ❌       | ✅       |
+| ----------- | --------------------------------------------------------------------------------------------- | ---------------------------------- | --------- | ------ | ------- | ------- |
+| YOLO-NAS-s  | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [كشف الكائنات](../tasks/detect.md) | ✅        | ✅     | ❌      | ✅      |
+| YOLO-NAS-m  | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [كشف الكائنات](../tasks/detect.md) | ✅        | ✅     | ❌      | ✅      |
+| YOLO-NAS-l  | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [كشف الكائنات](../tasks/detect.md) | ✅        | ✅     | ❌      | ✅      |
 
 ## الاقتباسات والشكر
 
@@ -118,4 +118,4 @@ keywords: YOLO-NAS, Deci AI, كشف الكائنات, deep learning, البحث 
 
 نعبر عن امتناننا لفريق [SuperGradients](https://github.com/Deci-AI/super-gradients/) في Deci AI لجهودهم في إنشاء وصيانة هذة الموارد القيمة لمجتمع رؤية الحاسوب. نعتقد أن YOLO-NAS ، بتصميمه المبتكر وقدرته الاستشعار المتفوقة للكائنات ، سيصبح أداة حاسمة للمطورين والباحثين على حد سواء.
 
-*keywords: YOLO-NAS, Deci AI, كشف الكائنات, deep learning, البحث في الهندسة العصبية, واجهة برمجة Ultralytics Python, نموذج YOLO, SuperGradients, الطرز المدربة مسبقًا, كتلة أساسية ودية للتمثيل الكموني, أنظمة تدريب متطورة, تمثيل كمي بعد التدريب, تحسين AutoNAC, COCO, Objects365, Roboflow 100*
+_keywords: YOLO-NAS, Deci AI, كشف الكائنات, deep learning, البحث في الهندسة العصبية, واجهة برمجة Ultralytics Python, نموذج YOLO, SuperGradients, الطرز المدربة مسبقًا, كتلة أساسية ودية للتمثيل الكموني, أنظمة تدريب متطورة, تمثيل كمي بعد التدريب, تحسين AutoNAC, COCO, Objects365, Roboflow 100_

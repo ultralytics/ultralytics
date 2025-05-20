@@ -55,16 +55,16 @@ Ultralytics के मॉडल दस्तावेज़ीकरण मे�
         from ultralytics import YOLO
 
         # COCO-प्रीट्रेन्ड YOLOv8n मॉडल लोड करें
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # मॉडल की जानकारी दिखाएँ (वैकल्पिक)
         model.info()
 
         # COCO8 उदाहरण डेटासेट पर 100 एपोक्स के लिए मॉडल प्रशिक्षित करें
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # 'bus.jpg' इमेज पर YOLOv8n मॉडल के साथ अनुमान चलाएँ
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

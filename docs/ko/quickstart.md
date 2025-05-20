@@ -59,8 +59,8 @@ Ultralytics는 pip, conda, Docker를 포함한 다양한 설치 방법을 제공
         sudo docker pull $t
 
         # GPU 지원으로 ultralytics 이미지를 컨테이너에서 실행하기
-        sudo docker run -it --ipc=host --gpus all $t  # 모든 GPU 사용
-        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # 특정 GPU 지정
+        sudo docker run -it --ipc=host --gpus all $t            # 모든 GPU 사용
+        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t # 특정 GPU 지정
         ```
 
 
@@ -100,8 +100,8 @@ Ultralytics는 pip, conda, Docker를 포함한 다양한 설치 방법을 제공
         sudo docker pull $t
 
         # GPU 지원으로 ultralytics 이미지를 컨테이너에서 실행하기
-        sudo docker run -it --ipc=host --gpus all $t  # 모든 GPU 사용
-        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # 특정 GPU 지정
+        sudo docker run -it --ipc=host --gpus all $t            # 모든 GPU 사용
+        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t # 특정 GPU 지정
         ```
 
         위 명령어는 최신 `ultralytics` 이미지로 Docker 컨테이너를 초기화합니다. `-it` 플래그는 pseudo-TTY를 할당하고 표준 입력을 유지하여 컨테이너와 상호 작용할 수 있게 해줍니다. `--ipc=host` 플래그는 프로세스 간 메모리 공유에 필요한 IPC(Inter-Process Communication) 네임스페이스를 호스트로 설정합니다. `--gpus all` 플래그는 컨테이너 내에서 사용 가능한 모든 GPU에 대한 접근을 활성화하는데, GPU 계산이 필요한 작업에 중요합니다.

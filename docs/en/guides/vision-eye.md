@@ -13,7 +13,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
 ## Samples
 
 |                                                                        VisionEye View                                                                        |                                                                        VisionEye View With Object Tracking                                                                        |
-|:------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| :----------------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![VisionEye View Object Mapping using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d593acc-2e37-41b0-ad0e-92b4ffae6647) | ![VisionEye View Object Mapping with Object Tracking using Ultralytics YOLOv8](https://github.com/RizwanMunawar/ultralytics/assets/62513924/fcd85952-390f-451e-8fb0-b82e943af89c) |
 |                                                    VisionEye View Object Mapping using Ultralytics YOLOv8                                                    |                                                    VisionEye View Object Mapping with Object Tracking using Ultralytics YOLOv8                                                    |
 
@@ -22,15 +22,15 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
     === "VisionEye Object Mapping"
         ```python
         import cv2
+
         from ultralytics import YOLO
-        from ultralytics.utils.plotting import colors, Annotator
+        from ultralytics.utils.plotting import Annotator, colors
 
         model = YOLO("yolov8n.pt")
         names = model.model.names
         cap = cv2.VideoCapture("path/to/video/file.mp4")
 
-        out = cv2.VideoWriter('visioneye-pinpoint.avi', cv2.VideoWriter_fourcc(*'MJPG'),
-                              30, (int(cap.get(3)), int(cap.get(4))))
+        out = cv2.VideoWriter("visioneye-pinpoint.avi", cv2.VideoWriter_fourcc(*"MJPG"), 30, (int(cap.get(3)), int(cap.get(4))))
 
         center_point = (-10, int(cap.get(4)))
 
@@ -53,7 +53,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
             out.write(im0)
             cv2.imshow("visioneye-pinpoint", im0)
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
         out.release()
@@ -64,14 +64,14 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
     === "VisionEye Object Mapping with Object Tracking"
         ```python
         import cv2
+
         from ultralytics import YOLO
-        from ultralytics.utils.plotting import colors, Annotator
+        from ultralytics.utils.plotting import Annotator, colors
 
         model = YOLO("yolov8n.pt")
         cap = cv2.VideoCapture("path/to/video/file.mp4")
 
-        out = cv2.VideoWriter('visioneye-pinpoint.avi', cv2.VideoWriter_fourcc(*'MJPG'),
-                              30, (int(cap.get(3)), int(cap.get(4))))
+        out = cv2.VideoWriter("visioneye-pinpoint.avi", cv2.VideoWriter_fourcc(*"MJPG"), 30, (int(cap.get(3)), int(cap.get(4))))
 
         center_point = (-10, int(cap.get(4)))
 
@@ -94,7 +94,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
             out.write(im0)
             cv2.imshow("visioneye-pinpoint", im0)
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
         out.release()
@@ -105,7 +105,7 @@ keywords: Ultralytics, YOLOv8, Object Detection, Object Tracking, IDetection, Vi
 ### `visioneye` Arguments
 
 | Name          | Type    | Default          | Description                                      |
-|---------------|---------|------------------|--------------------------------------------------|
+| ------------- | ------- | ---------------- | ------------------------------------------------ |
 | `color`       | `tuple` | `(235, 219, 11)` | Line and object centroid color                   |
 | `pin_color`   | `tuple` | `(255, 0, 255)`  | VisionEye pinpoint color                         |
 | `thickness`   | `int`   | `2`              | pinpoint to object line thickness                |

@@ -20,9 +20,9 @@ MobileSAM은 1%의 원본 이미지로 구성된 100k 데이터셋에서 하루 
 
 이 표에서는 사용 가능한 모델과 해당 모델에 대한 사전 훈련 가중치, 지원되는 작업, [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md) 및 [Export](../modes/export.md)와 같은 다양한 작동 모드의 호환성을 나타냅니다. 지원되는 모드는 ✅ 이모지로 표시되고, 지원되지 않는 모드는 ❌ 이모지로 표시됩니다.
 
-| 모델 유형     | 사전 훈련 가중치       | 지원되는 작업                            | Inference | Validation | Training | Export |
-|-----------|-----------------|------------------------------------|-----------|------------|----------|--------|
-| MobileSAM | `mobile_sam.pt` | [인스턴스 세그멘테이션](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
+| 모델 유형 | 사전 훈련 가중치 | 지원되는 작업                                | Inference | Validation | Training | Export |
+| --------- | ---------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
+| MobileSAM | `mobile_sam.pt`  | [인스턴스 세그멘테이션](../tasks/segment.md) | ✅        | ❌         | ❌       | ✅     |
 
 ## SAM에서 MobileSAM으로의 적응
 
@@ -33,23 +33,23 @@ MobileSAM은 원본 SAM과 비교 가능한 성능을 발휘하며, 이미지 �
 다음 표는 ViT 기반 이미지 인코더를 비교합니다:
 
 | 이미지 인코더 | 원본 SAM | MobileSAM |
-|---------|--------|-----------|
-| 매개변수    | 611M   | 5M        |
-| 속도      | 452ms  | 8ms       |
+| ------------- | -------- | --------- |
+| 매개변수      | 611M     | 5M        |
+| 속도          | 452ms    | 8ms       |
 
 원본 SAM과 MobileSAM은 동일한 프롬프트 가이드 마스크 디코더를 사용합니다:
 
 | 마스크 디코더 | 원본 SAM | MobileSAM |
-|---------|--------|-----------|
-| 매개변수    | 3.876M | 3.876M    |
-| 속도      | 4ms    | 4ms       |
+| ------------- | -------- | --------- |
+| 매개변수      | 3.876M   | 3.876M    |
+| 속도          | 4ms      | 4ms       |
 
 전체 파이프라인의 비교는 다음과 같습니다:
 
 | 전체 파이프라인 (인코더+디코더) | 원본 SAM | MobileSAM |
-|--------------------|--------|-----------|
-| 매개변수               | 615M   | 9.66M     |
-| 속도                 | 456ms  | 12ms      |
+| ------------------------------- | -------- | --------- |
+| 매개변수                        | 615M     | 9.66M     |
+| 속도                            | 456ms    | 12ms      |
 
 MobileSAM과 원본 SAM의 성능은 포인트 및 박스를 사용한 프롬프트를 통해 확인할 수 있습니다.
 
@@ -76,10 +76,10 @@ MobileSAM은 우수한 성능을 자랑하며, 현재의 FastSAM보다 약 5배 
         from ultralytics import SAM
 
         # 모델 불러오기
-        model = SAM('mobile_sam.pt')
+        model = SAM("mobile_sam.pt")
 
         # 포인트 프롬프트를 기반으로 세그먼트 예측
-        model.predict('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
+        model.predict("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
         ```
 
 ### 박스 프롬프트
@@ -91,10 +91,10 @@ MobileSAM은 우수한 성능을 자랑하며, 현재의 FastSAM보다 약 5배 
         from ultralytics import SAM
 
         # 모델 불러오기
-        model = SAM('mobile_sam.pt')
+        model = SAM("mobile_sam.pt")
 
         # 박스 프롬프트를 기반으로 세그먼트 예측
-        model.predict('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
+        model.predict("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
         ```
 
 `MobileSAM`과 `SAM`은 동일한 API를 사용하여 구현되었습니다. 더 많은 사용법에 대해서는 [SAM 페이지](sam.md)를 참조하세요.

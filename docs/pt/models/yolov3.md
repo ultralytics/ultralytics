@@ -33,10 +33,10 @@ A série YOLOv3, incluindo YOLOv3, YOLOv3-Ultralytics e YOLOv3u, foi projetada e
 Os três modelos suportam um conjunto abrangente de modos, garantindo versatilidade em várias etapas do desenvolvimento e implantação de modelos. Esses modos incluem [Inferência](../modes/predict.md), [Validação](../modes/val.md), [Treinamento](../modes/train.md) e [Exportação](../modes/export.md), fornecendo aos usuários um conjunto completo de ferramentas para detecção eficaz de objetos.
 
 | Tipo de Modelo     | Tarefas Suportadas                        | Inferência | Validação | Treinamento | Exportação |
-|--------------------|-------------------------------------------|------------|-----------|-------------|------------|
-| YOLOv3             | [Detecção de Objetos](../tasks/detect.md) | ✅          | ✅         | ✅           | ✅          |
-| YOLOv3-Ultralytics | [Detecção de Objetos](../tasks/detect.md) | ✅          | ✅         | ✅           | ✅          |
-| YOLOv3u            | [Detecção de Objetos](../tasks/detect.md) | ✅          | ✅         | ✅           | ✅          |
+| ------------------ | ----------------------------------------- | ---------- | --------- | ----------- | ---------- |
+| YOLOv3             | [Detecção de Objetos](../tasks/detect.md) | ✅         | ✅        | ✅          | ✅         |
+| YOLOv3-Ultralytics | [Detecção de Objetos](../tasks/detect.md) | ✅         | ✅        | ✅          | ✅         |
+| YOLOv3u            | [Detecção de Objetos](../tasks/detect.md) | ✅         | ✅        | ✅          | ✅         |
 
 Esta tabela fornece uma visão rápida das capacidades de cada variante do YOLOv3, destacando sua versatilidade e adequação para várias tarefas e modos operacionais em fluxos de trabalho de detecção de objetos.
 
@@ -48,27 +48,27 @@ Este exemplo apresenta exemplos simples de treinamento e inferência do YOLOv3. 
 
     === "Python"
 
-        Modelos pré-treinados do PyTorch `*.pt`, bem como arquivos de configuração `*.yaml`, podem ser passados para a classe `YOLO()` para criar uma instância do modelo em Python:
+        Modelos pré-treinados do PyTorch `*.pt`, bem como arquivos de configuração `*.yaml`, podem set passados para a classe `YOLO()` para criar uma instância do modelo em Python:
 
         ```python
         from ultralytics import YOLO
 
         # Carregue um modelo YOLOv3n pré-treinado na COCO
-        model = YOLO('yolov3n.pt')
+        model = YOLO("yolov3n.pt")
 
         # Exiba informações sobre o modelo (opcional)
         model.info()
 
         # Treine o modelo no conjunto de dados de exemplo COCO8 por 100 épocas
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Execute inferência com o modelo YOLOv3n na imagem 'bus.jpg'
-        results = model('caminho/para/bus.jpg')
+        results = model("caminho/para/bus.jpg")
         ```
 
     === "CLI"
 
-        Comandos CLI estão disponíveis para executar diretamente os modelos:
+        Commandos CLI estão disponíveis para executar diretamente os modelos:
 
         ```bash
         # Carregue um modelo YOLOv3n pré-treinado na COCO e treine-o no conjunto de dados de exemplo COCO8 por 100 épocas

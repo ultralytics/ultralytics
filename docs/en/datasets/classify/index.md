@@ -88,10 +88,10 @@ In this example, the `train` directory contains subdirectories for each class in
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='path/to/dataset', epochs=100, imgsz=640)
+        results = model.train(data="path/to/dataset", epochs=100, imgsz=640)
         ```
     === "CLI"
 

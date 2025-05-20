@@ -59,12 +59,12 @@ COCO128データセットでYOLOv8nを100エポック、画像サイズ640でト
         from ultralytics import YOLO
 
         # モデルをロード
-        model = YOLO('yolov8n.yaml')  # YAMLから新しいモデルを作成
-        model = YOLO('yolov8n.pt')  # トレーニングにはおすすめの事前学習済みモデルをロード
-        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # YAMLからモデルを作成し、重みを転送
+        model = YOLO("yolov8n.yaml")  # YAMLから新しいモデルを作成
+        model = YOLO("yolov8n.pt")  # トレーニングにはおすすめの事前学習済みモデルをロード
+        model = YOLO("yolov8n.yaml").load("yolov8n.pt")  # YAMLからモデルを作成し、重みを転送
 
         # モデルをトレーニング
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -94,10 +94,10 @@ COCO128データセットでYOLOv8nを100エポック、画像サイズ640でト
         from ultralytics import YOLO
 
         # モデルをロード
-        model = YOLO('yolov8n.pt')  # トレーニングにはおすすめの事前学習済みモデルをロード
+        model = YOLO("yolov8n.pt")  # トレーニングにはおすすめの事前学習済みモデルをロード
 
         # 2つのGPUでモデルをトレーニング
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640, device=[0, 1])
         ```
 
     === "CLI"
@@ -121,10 +121,10 @@ AppleのM1およびM2チップでのトレーニングを有効にするには�
         from ultralytics import YOLO
 
         # モデルをロード
-        model = YOLO('yolov8n.pt')  # トレーニングにはおすすめの事前学習済みモデルをロード
+        model = YOLO("yolov8n.pt")  # トレーニングにはおすすめの事前学習済みモデルをロード
 
         # MPSを使ってモデルをトレーニング
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640, device="mps")
         ```
 
     === "CLI"
@@ -189,7 +189,7 @@ ClearMLを使用するには：
     === "CLI"
         ```bash
         load_ext tensorboard
-        tensorboard --logdir ultralytics/runs  # 'runs'ディレクトリと置き換えてください
+        tensorboard --logdir ultralytics/runs # 'runs'ディレクトリと置き換えてください
         ```
 
 TensorBoardをローカルで使用する場合は、http://localhost:6006/ で結果を確認できます。
@@ -198,7 +198,7 @@ TensorBoardをローカルで使用する場合は、http://localhost:6006/ で�
 
     === "CLI"
         ```bash
-        tensorboard --logdir ultralytics/runs  # 'runs'ディレクトリと置き換えてください
+        tensorboard --logdir ultralytics/runs # 'runs'ディレクトリと置き換えてください
         ```
 
 これでTensorBoardがロードされ、トレーニングログが保存されているディレクトリを指定します。

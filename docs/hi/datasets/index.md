@@ -117,14 +117,15 @@ Ultralytics कंप्यूटर विज्ञान कार्यों
 
     ```python
     from pathlib import Path
+
     from ultralytics.data.utils import compress_one_image
     from ultralytics.utils.downloads import zip_directory
 
     # डेटासेट निर्देशिका को परिभाषित करें
-    path = Path('path/to/dataset')
+    path = Path("path/to/dataset")
 
     # डेटासेट में छवि अवधित करें (वैकल्पिक)
-    for f in path.rglob('*.jpg'):
+    for f in path.rglob("*.jpg"):
         compress_one_image(f)
 
     # डेटासेट को 'path/to/dataset.zip' में ज़िप करें

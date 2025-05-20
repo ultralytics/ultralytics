@@ -13,9 +13,9 @@ keywords: Ultralytics, YOLOv5, model export, PyTorch, TorchScript, ONNX, OpenVIN
 Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
-git clone https://github.com/ultralytics/yolov5  # clone
+git clone https://github.com/ultralytics/yolov5 # clone
 cd yolov5
-pip install -r requirements.txt  # install
+pip install -r requirements.txt # install
 ```
 
 For [TensorRT](https://developer.nvidia.com/tensorrt) export example (requires GPU) see our Colab [notebook](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb#scrollTo=VTRwsvA9u7ln&line=2&uniqifier=1) appendix section. <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
@@ -27,7 +27,7 @@ YOLOv5 inference is officially supported in 11 formats:
 💡 ProTip: Export to ONNX or OpenVINO for up to 3x CPU speedup. See [CPU Benchmarks](https://github.com/ultralytics/yolov5/pull/6613). 💡 ProTip: Export to TensorRT for up to 5x GPU speedup. See [GPU Benchmarks](https://github.com/ultralytics/yolov5/pull/6963).
 
 | Format                                                                     | `export.py --include` | Model                     |
-|:---------------------------------------------------------------------------|:----------------------|:--------------------------|
+| :------------------------------------------------------------------------- | :-------------------- | :------------------------ |
 | [PyTorch](https://pytorch.org/)                                            | -                     | `yolov5s.pt`              |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)                    | `torchscript`         | `yolov5s.torchscript`     |
 | [ONNX](https://onnx.ai/)                                                   | `onnx`                | `yolov5s.onnx`            |
@@ -134,9 +134,11 @@ Visualize:       https://netron.app/
 ```
 
 The 3 exported models will be saved alongside the original PyTorch model:
+
 <p align="center"><img width="700" src="https://user-images.githubusercontent.com/26833433/122827190-57a8f880-d2e4-11eb-860e-dbb7f9fc57fb.png" alt="YOLO export locations"></p>
 
 [Netron Viewer](https://github.com/lutzroeder/netron) is recommended for visualizing exported models:
+
 <p align="center"><img width="850" src="https://user-images.githubusercontent.com/26833433/191003260-f94011a7-5b2e-4fe3-93c1-e1a935e0a728.png" alt="YOLO model visualization"></p>
 
 ## Exported Model Usage Examples
@@ -144,38 +146,38 @@ The 3 exported models will be saved alongside the original PyTorch model:
 `detect.py` runs inference on exported models:
 
 ```bash
-python detect.py --weights yolov5s.pt                 # PyTorch
-                           yolov5s.torchscript        # TorchScript
-                           yolov5s.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
-                           yolov5s_openvino_model     # OpenVINO
-                           yolov5s.engine             # TensorRT
-                           yolov5s.mlmodel            # CoreML (macOS only)
-                           yolov5s_saved_model        # TensorFlow SavedModel
-                           yolov5s.pb                 # TensorFlow GraphDef
-                           yolov5s.tflite             # TensorFlow Lite
-                           yolov5s_edgetpu.tflite     # TensorFlow Edge TPU
-                           yolov5s_paddle_model       # PaddlePaddle
+python detect.py --weights yolov5s.pt # PyTorch
+yolov5s.torchscript                   # TorchScript
+yolov5s.onnx                          # ONNX Runtime or OpenCV DNN with dnn=True
+yolov5s_openvino_model                # OpenVINO
+yolov5s.engine                        # TensorRT
+yolov5s.mlmodel                       # CoreML (macOS only)
+yolov5s_saved_model                   # TensorFlow SavedModel
+yolov5s.pb                            # TensorFlow GraphDef
+yolov5s.tflite                        # TensorFlow Lite
+yolov5s_edgetpu.tflite                # TensorFlow Edge TPU
+yolov5s_paddle_model                  # PaddlePaddle
 ```
 
 `val.py` runs validation on exported models:
 
 ```bash
-python val.py --weights yolov5s.pt                 # PyTorch
-                        yolov5s.torchscript        # TorchScript
-                        yolov5s.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
-                        yolov5s_openvino_model     # OpenVINO
-                        yolov5s.engine             # TensorRT
-                        yolov5s.mlmodel            # CoreML (macOS Only)
-                        yolov5s_saved_model        # TensorFlow SavedModel
-                        yolov5s.pb                 # TensorFlow GraphDef
-                        yolov5s.tflite             # TensorFlow Lite
-                        yolov5s_edgetpu.tflite     # TensorFlow Edge TPU
-                        yolov5s_paddle_model       # PaddlePaddle
+python val.py --weights yolov5s.pt # PyTorch
+yolov5s.torchscript                # TorchScript
+yolov5s.onnx                       # ONNX Runtime or OpenCV DNN with dnn=True
+yolov5s_openvino_model             # OpenVINO
+yolov5s.engine                     # TensorRT
+yolov5s.mlmodel                    # CoreML (macOS Only)
+yolov5s_saved_model                # TensorFlow SavedModel
+yolov5s.pb                         # TensorFlow GraphDef
+yolov5s.tflite                     # TensorFlow Lite
+yolov5s_edgetpu.tflite             # TensorFlow Edge TPU
+yolov5s_paddle_model               # PaddlePaddle
 ```
 
 Use PyTorch Hub with exported YOLOv5 models:
 
-``` python
+```python
 import torch
 
 # Model
@@ -208,8 +210,8 @@ OpenCV inference with ONNX models:
 ```bash
 python export.py --weights yolov5s.pt --include onnx
 
-python detect.py --weights yolov5s.onnx --dnn  # detect
-python val.py --weights yolov5s.onnx --dnn  # validate
+python detect.py --weights yolov5s.onnx --dnn # detect
+python val.py --weights yolov5s.onnx --dnn    # validate
 ```
 
 ## C++ Inference

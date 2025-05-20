@@ -25,12 +25,12 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
         """Initialize a OBBTrainer object with given arguments."""
         if overrides is None:
             overrides = {}
-        overrides['task'] = 'obb'
+        overrides["task"] = "obb"
         super().__init__(cfg, overrides, _callbacks)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return OBBModel initialized with specified config and weights."""
-        model = OBBModel(cfg, ch=3, nc=self.data['nc'], verbose=verbose and RANK == -1)
+        model = OBBModel(cfg, ch=3, nc=self.data["nc"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
 
@@ -38,5 +38,5 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
 
     def get_validator(self):
         """Return an instance of OBBValidator for validation of YOLO model."""
-        self.loss_names = 'box_loss', 'cls_loss', 'dfl_loss'
+        self.loss_names = "box_loss", "cls_loss", "dfl_loss"
         return yolo.obb.OBBValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))

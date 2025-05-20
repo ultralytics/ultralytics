@@ -50,10 +50,10 @@ To install the required packages, run:
         from ultralytics import YOLO
 
         # Load a YOLOv8n model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Start tuning hyperparameters for YOLOv8n training on the COCO8 dataset
-        result_grid = model.tune(data='coco8.yaml', use_ray=True)
+        result_grid = model.tune(data="coco8.yaml", use_ray=True)
         ```
 
 ## `tune()` Method Parameters
@@ -61,7 +61,7 @@ To install the required packages, run:
 The `tune()` method in YOLOv8 provides an easy-to-use interface for hyperparameter tuning with Ray Tune. It accepts several arguments that allow you to customize the tuning process. Below is a detailed explanation of each parameter:
 
 | Parameter       | Type             | Description                                                                                                                                                                                                                                                                                    | Default Value |
-|-----------------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|
+| --------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
 | `data`          | `str`            | The dataset configuration file (in YAML format) to run the tuner on. This file should specify the training and validation data paths, as well as other dataset-specific settings.                                                                                                              |               |
 | `space`         | `dict, optional` | A dictionary defining the hyperparameter search space for Ray Tune. Each key corresponds to a hyperparameter name, and the value specifies the range of values to explore during tuning. If not provided, YOLOv8 uses a default search space with various hyperparameters.                     |               |
 | `grace_period`  | `int, optional`  | The grace period in epochs for the [ASHA scheduler](https://docs.ray.io/en/latest/tune/api/schedulers.html) in Ray Tune. The scheduler will not terminate any trial before this number of epochs, allowing the model to have some minimum training before making a decision on early stopping. | 10            |
@@ -76,7 +76,7 @@ By customizing these parameters, you can fine-tune the hyperparameter optimizati
 The following table lists the default search space parameters for hyperparameter tuning in YOLOv8 with Ray Tune. Each parameter has a specific value range defined by `tune.uniform()`.
 
 | Parameter         | Value Range                | Description                              |
-|-------------------|----------------------------|------------------------------------------|
+| ----------------- | -------------------------- | ---------------------------------------- |
 | `lr0`             | `tune.uniform(1e-5, 1e-1)` | Initial learning rate                    |
 | `lrf`             | `tune.uniform(0.01, 1.0)`  | Final learning rate factor               |
 | `momentum`        | `tune.uniform(0.6, 0.98)`  | Momentum                                 |
@@ -112,10 +112,7 @@ In this example, we demonstrate how to use a custom search space for hyperparame
     model = YOLO("yolov8n.pt")
 
     # Run Ray Tune on the model
-    result_grid = model.tune(data="coco128.yaml",
-                             space={"lr0": tune.uniform(1e-5, 1e-1)},
-                             epochs=50,
-                             use_ray=True)
+    result_grid = model.tune(data="coco128.yaml", space={"lr0": tune.uniform(1e-5, 1e-1)}, epochs=50, use_ray=True)
     ```
 
 In the code snippet above, we create a YOLO model with the "yolov8n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco128.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-1)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.
@@ -164,10 +161,12 @@ You can plot the history of reported metrics for each trial to see how the metri
 import matplotlib.pyplot as plt
 
 for result in result_grid:
-    plt.plot(result.metrics_dataframe["training_iteration"], result.metrics_dataframe["mean_accuracy"], label=f"Trial {i}")
+    plt.plot(
+        result.metrics_dataframe["training_iteration"], result.metrics_dataframe["mean_accuracy"], label=f"Trial {i}"
+    )
 
-plt.xlabel('Training Iterations')
-plt.ylabel('Mean Accuracy')
+plt.xlabel("Training Iterations")
+plt.ylabel("Mean Accuracy")
 plt.legend()
 plt.show()
 ```

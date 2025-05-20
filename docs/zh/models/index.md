@@ -55,16 +55,16 @@ keywords: Ultralytics, 文档, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR,
         from ultralytics import YOLO
 
         # 加载 COCO 预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # 显示模型信息（可选）
         model.info()
 
         # 在 COCO8 示例数据集上训练模型 100 个周期
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # 使用 YOLOv8n 模型对 'bus.jpg' 图像进行推理
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

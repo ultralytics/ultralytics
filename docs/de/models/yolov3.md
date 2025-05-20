@@ -8,7 +8,7 @@ keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, Objekterkennung, Inferenz, Traini
 
 ## Übersicht
 
-Dieses Dokument bietet eine Übersicht über drei eng verwandte Modelle zur Objekterkennung, nämlich [YOLOv3](https://pjreddie.com/darknet/yolo/), [YOLOv3-Ultralytics](https://github.com/ultralytics/yolov3) und [YOLOv3u](https://github.com/ultralytics/ultralytics).
+Dieses Document bietet eine Übersicht über drei eng verwandte Modelle zur Objekterkennung, nämlich [YOLOv3](https://pjreddie.com/darknet/yolo/), [YOLOv3-Ultralytics](https://github.com/ultralytics/yolov3) und [YOLOv3u](https://github.com/ultralytics/ultralytics).
 
 1. **YOLOv3:** Dies ist die dritte Version des You Only Look Once (YOLO) Objekterkennungsalgorithmus. Ursprünglich entwickelt von Joseph Redmon, verbesserte YOLOv3 seine Vorgängermodelle durch die Einführung von Funktionen wie mehrskaligen Vorhersagen und drei verschiedenen Größen von Erkennungskernen.
 
@@ -20,11 +20,11 @@ Dieses Dokument bietet eine Übersicht über drei eng verwandte Modelle zur Obje
 
 ## Wichtigste Funktionen
 
-- **YOLOv3:** Einführung der Verwendung von drei unterschiedlichen Skalen für die Erkennung unter Verwendung von drei verschiedenen Größen von Erkennungskernen: 13x13, 26x26 und 52x52. Dadurch wurde die Erkennungsgenauigkeit für Objekte unterschiedlicher Größe erheblich verbessert. Darüber hinaus fügte YOLOv3 Funktionen wie Mehrfachkennzeichnungen für jeden Begrenzungsrahmen und ein besseres Feature-Extraktionsnetzwerk hinzu.
+- **YOLOv3:** Einführung der Verwendung von drei unterschiedlichen Skalen für die Erkennung under Verwendung von drei verschiedenen Größen von Erkennungskernen: 13x13, 26x26 und 52x52. Dadurch wurde die Erkennungsgenauigkeit für Objekte unterschiedlicher Größe erheblich verbessert. Darüber hinaus fügte YOLOv3 Funktionen wie Mehrfachkennzeichnungen für jeden Begrenzungsrahmen und ein besseres Feature-Extraktionsnetzwerk hinzu.
 
-- **YOLOv3-Ultralytics:** Ultralytics' Implementierung von YOLOv3 bietet die gleiche Leistung wie das ursprüngliche Modell, bietet jedoch zusätzliche Unterstützung für weitere vortrainierte Modelle, zusätzliche Trainingsmethoden und einfachere Anpassungsoptionen. Dadurch wird es vielseitiger und benutzerfreundlicher für praktische Anwendungen.
+- **YOLOv3-Ultralytics:** Ultralytics' Implementierung von YOLOv3 bietet die gleiche Leistung wie das ursprüngliche Model, bietet jedoch zusätzliche Unterstützung für weitere vortrainierte Modelle, zusätzliche Trainingsmethoden und einfachere Anpassungsoptionen. Dadurch wird es vielseitiger und benutzerfreundlicher für praktische Anwendungen.
 
-- **YOLOv3u:** Dieses aktualisierte Modell enthält den anchor-freien, objektfreien Split Head aus YOLOv8. Durch die Beseitigung der Notwendigkeit vordefinierter Ankerfelder und Objektheitsscores kann dieses Entwurfsmerkmal für den Erkennungskopf die Fähigkeit des Modells verbessern, Objekte unterschiedlicher Größe und Form zu erkennen. Dadurch wird YOLOv3u robuster und genauer für Aufgaben der Objekterkennung.
+- **YOLOv3u:** Dieses aktualisierte Model enthält den anchor-freien, objektfreien Split Head aus YOLOv8. Durch die Beseitigung der Notwendigkeit vordefinierter Ankerfelder und Objektheitsscores kann dieses Entwurfsmerkmal für den Erkennungskopf die Fähigkeit des Models verbessern, Objekte unterschiedlicher Größe und Form zu erkennen. Dadurch wird YOLOv3u robuster und genauer für Aufgaben der Objekterkennung.
 
 ## Unterstützte Aufgaben und Modi
 
@@ -33,10 +33,10 @@ Die YOLOv3-Serie, einschließlich YOLOv3, YOLOv3-Ultralytics und YOLOv3u, ist sp
 Alle drei Modelle unterstützen einen umfangreichen Satz von Modi, um Vielseitigkeit in verschiedenen Phasen der Modellbereitstellung und -entwicklung zu gewährleisten. Zu diesen Modi gehören [Inferenz](../modes/predict.md), [Validierung](../modes/val.md), [Training](../modes/train.md) und [Export](../modes/export.md), was den Benutzern ein vollständiges Toolkit für eine effektive Objekterkennung bietet.
 
 | Modelltyp          | Unterstützte Aufgaben                 | Inferenz | Validierung | Training | Export |
-|--------------------|---------------------------------------|----------|-------------|----------|--------|
-| YOLOv3             | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ✅        | ✅      |
-| YOLOv3-Ultralytics | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ✅        | ✅      |
-| YOLOv3u            | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ✅        | ✅      |
+| ------------------ | ------------------------------------- | -------- | ----------- | -------- | ------ |
+| YOLOv3             | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ✅       | ✅     |
+| YOLOv3-Ultralytics | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ✅       | ✅     |
+| YOLOv3u            | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ✅       | ✅     |
 
 Diese Tabelle bietet einen schnellen Überblick über die Fähigkeiten jeder YOLOv3-Variante und hebt ihre Vielseitigkeit und Eignung für verschiedene Aufgaben und Betriebsmodi in Workflows zur Objekterkennung hervor.
 
@@ -54,16 +54,16 @@ Dieses Beispiel enthält einfache Trainings- und Inferenzbeispiele für YOLOv3. 
         from ultralytics import YOLO
 
         # Lade ein vortrainiertes YOLOv3n-Modell für COCO
-        model = YOLO('yolov3n.pt')
+        model = YOLO("yolov3n.pt")
 
-        # Zeige Informationen zum Modell an (optional)
+        # Zeige Informationen zum Model an (optional)
         model.info()
 
-        # Trainiere das Modell mit dem COCO8-Beispieldatensatz für 100 Epochen
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        # Trainiere das Model mit dem COCO8-Beispieldatensatz für 100 Epochen
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Führe Inferenz mit dem YOLOv3n-Modell auf dem Bild "bus.jpg" durch
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

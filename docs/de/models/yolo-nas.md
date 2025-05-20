@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Erfahren Sie mehr über YOLO-NAS, ein herausragendes Modell für die Objekterkennung. Erfahren Sie mehr über seine Funktionen, vortrainierte Modelle, Nutzung mit der Ultralytics Python API und vieles mehr.
+description: Erfahren Sie mehr über YOLO-NAS, ein herausragendes Model für die Objekterkennung. Erfahren Sie mehr über seine Funktionen, vortrainierte Modelle, Nutzung mit der Ultralytics Python API und vieles mehr.
 keywords: YOLO-NAS, Deci AI, Objekterkennung, Deep Learning, Neural Architecture Search, Ultralytics Python API, YOLO-Modell, vortrainierte Modelle, Quantisierung, Optimierung, COCO, Objects365, Roboflow 100
 ---
 
@@ -8,10 +8,10 @@ keywords: YOLO-NAS, Deci AI, Objekterkennung, Deep Learning, Neural Architecture
 
 ## Übersicht
 
-Entwickelt von Deci AI, ist YOLO-NAS ein bahnbrechendes Modell für die Objekterkennung. Es ist das Ergebnis fortschrittlicher Technologien zur Neural Architecture Search und wurde sorgfältig entworfen, um die Einschränkungen früherer YOLO-Modelle zu überwinden. Mit signifikanten Verbesserungen in der Quantisierungsunterstützung und Abwägung von Genauigkeit und Latenz stellt YOLO-NAS einen großen Fortschritt in der Objekterkennung dar.
+Entwickelt von Deci AI, ist YOLO-NAS ein bahnbrechendes Model für die Objekterkennung. Es ist das Ergebnis fortschrittlicher Technologien zur Neural Architecture Search und wurde sorgfältig entworfen, um die Einschränkungen früherer YOLO-Modelle zu überwinden. Mit signifikanten Verbesserungen in der Quantisierungsunterstützung und Abwägung von Genauigkeit und Latenz stellt YOLO-NAS einen großen Fortschritt in der Objekterkennung dar.
 
 ![Modellbeispielbild](https://learnopencv.com/wp-content/uploads/2023/05/yolo-nas_COCO_map_metrics.png)
-**Übersicht über YOLO-NAS.** YOLO-NAS verwendet Quantisierungsblöcke und selektive Quantisierung für optimale Leistung. Das Modell weist bei der Konvertierung in seine quantisierte Version mit INT8 einen minimalen Präzisionsverlust auf, was im Vergleich zu anderen Modellen eine signifikante Verbesserung darstellt. Diese Entwicklungen führen zu einer überlegenen Architektur mit beispiellosen Fähigkeiten zur Objekterkennung und herausragender Leistung.
+**Übersicht über YOLO-NAS.** YOLO-NAS verwendet Quantisierungsblöcke und selektive Quantisierung für optimale Leistung. Das Model weist bei der Konvertierung in seine quantisierte Version mit INT8 einen minimalen Präzisionsverlust auf, was im Vergleich zu anderen Modellen eine signifikante Verbesserung darstellt. Diese Entwicklungen führen zu einer überlegenen Architektur mit beispiellosen Fähigkeiten zur Objekterkennung und herausragender Leistung.
 
 ### Schlüsselfunktionen
 
@@ -21,10 +21,10 @@ Entwickelt von Deci AI, ist YOLO-NAS ein bahnbrechendes Modell für die Objekter
 
 ## Vortrainierte Modelle
 
-Erleben Sie die Leistungsfähigkeit der Objekterkennung der nächsten Generation mit den vortrainierten YOLO-NAS-Modellen von Ultralytics. Diese Modelle sind darauf ausgelegt, sowohl bei Geschwindigkeit als auch bei Genauigkeit hervorragende Leistung zu liefern. Wählen Sie aus einer Vielzahl von Optionen, die auf Ihre spezifischen Anforderungen zugeschnitten sind:
+Erleben Sie die Leistungsfähigkeit der Objekterkennung der nächsten Generation mit den vortrainierten YOLO-NAS-Modellen von Ultralytics. Diese Modelle sind darauf ausgelegt, sowohl bei Geschwindigkeit also auch bei Genauigkeit hervorragende Leistung zu liefern. Wählen Sie aus einer Vielzahl von Optionen, die auf Ihre spezifischen Anforderungen zugeschnitten sind:
 
-| Modell           | mAP   | Latenz (ms) |
-|------------------|-------|-------------|
+| Model           | mAP   | Latenz (ms) |
+| ---------------- | ----- | ----------- |
 | YOLO-NAS S       | 47,5  | 3,21        |
 | YOLO-NAS M       | 51,55 | 5,85        |
 | YOLO-NAS L       | 52,22 | 7,87        |
@@ -36,7 +36,7 @@ Jede Modellvariante ist darauf ausgelegt, eine Balance zwischen Mean Average Pre
 
 ## Beispiele zur Verwendung
 
-Ultralytics hat es einfach gemacht, YOLO-NAS-Modelle in Ihre Python-Anwendungen über unser `ultralytics` Python-Paket zu integrieren. Das Paket bietet eine benutzerfreundliche Python-API, um den Prozess zu optimieren.
+Ultralytics hat es einfach gemacht, YOLO-NAS-Modelle in Ihre Python-Anwendungen über unser `ultralytics` Python-Packet zu integrieren. Das Packet bietet eine benutzerfreundliche Python-API, um den Process zu optimieren.
 
 Die folgenden Beispiele zeigen, wie Sie YOLO-NAS-Modelle mit dem `ultralytics`-Paket für Inferenz und Validierung verwenden:
 
@@ -56,16 +56,16 @@ In diesem Beispiel validieren wir YOLO-NAS-s auf dem COCO8-Datensatz.
         from ultralytics import NAS
 
         # Laden Sie ein auf COCO vortrainiertes YOLO-NAS-s-Modell
-        model = NAS('yolo_nas_s.pt')
+        model = NAS("yolo_nas_s.pt")
 
         # Modelinformationen anzeigen (optional)
         model.info()
 
-        # Validieren Sie das Modell am Beispiel des COCO8-Datensatzes
-        results = model.val(data='coco8.yaml')
+        # Validieren Sie das Model am Beispiel des COCO8-Datensatzes
+        results = model.val(data="coco8.yaml")
 
         # Führen Sie Inferenz mit dem YOLO-NAS-s-Modell auf dem Bild 'bus.jpg' aus
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -88,13 +88,13 @@ Wir bieten drei Varianten der YOLO-NAS-Modelle an: Small (s), Medium (m) und Lar
 - **YOLO-NAS-m**: Bietet einen ausgewogenen Ansatz und ist für die Objekterkennung im Allgemeinen mit höherer Genauigkeit geeignet.
 - **YOLO-NAS-l**: Maßgeschneidert für Szenarien, bei denen höchste Genauigkeit gefordert ist und Rechenressourcen weniger einschränkend sind.
 
-Im Folgenden finden Sie eine detaillierte Übersicht über jedes Modell, einschließlich Links zu den vortrainierten Gewichten, den unterstützten Aufgaben und deren Kompatibilität mit verschiedenen Betriebsmodi.
+Im Folgenden finden Sie eine detaillierte Übersicht über jedes Model, einschließlich Links zu den vortrainierten Gewichten, den unterstützten Aufgaben und deren Kompatibilität mit verschiedenen Betriebsmodi.
 
 | Modelltyp  | Vortrainierte Gewichte                                                                        | Unterstützte Aufgaben                 | Inferenz | Validierung | Training | Export |
-|------------|-----------------------------------------------------------------------------------------------|---------------------------------------|----------|-------------|----------|--------|
-| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ❌        | ✅      |
-| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ❌        | ✅      |
-| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [Objekterkennung](../tasks/detect.md) | ✅        | ✅           | ❌        | ✅      |
+| ---------- | --------------------------------------------------------------------------------------------- | ------------------------------------- | -------- | ----------- | -------- | ------ |
+| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ❌       | ✅     |
+| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ❌       | ✅     |
+| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [Objekterkennung](../tasks/detect.md) | ✅       | ✅          | ❌       | ✅     |
 
 ## Zitierungen und Danksagungen
 
@@ -116,6 +116,6 @@ Wenn Sie YOLO-NAS in Ihrer Forschungs- oder Entwicklungsarbeit verwenden, zitier
         }
         ```
 
-Wir möchten dem [SuperGradients](https://github.com/Deci-AI/super-gradients/)-Team von Deci AI für ihre Bemühungen bei der Erstellung und Pflege dieser wertvollen Ressource für die Computer Vision Community danken. Wir sind der Meinung, dass YOLO-NAS mit seiner innovativen Architektur und seinen herausragenden Fähigkeiten zur Objekterkennung ein wichtiges Werkzeug für Entwickler und Forscher gleichermaßen wird.
+Wir möchten dem [SuperGradients](https://github.com/Deci-AI/super-gradients/)-Team von Deci AI für ihre Bemühungen bei der Erstellung und Pflege dieser wertvollen Resource für die Computer Vision Community danken. Wir sind der Meinung, dass YOLO-NAS mit seiner innovativen Architektur und seinen herausragenden Fähigkeiten zur Objekterkennung ein wichtiges Werkzeug für Entwickler und Forscher gleichermaßen wird.
 
-*Keywords: YOLO-NAS, Deci AI, Objekterkennung, Deep Learning, Neural Architecture Search, Ultralytics Python API, YOLO-Modell, SuperGradients, vortrainierte Modelle, quantisierungsfreundliches Basiselement, fortschrittliche Trainingsschemata, post-training Quantisierung, AutoNAC-Optimierung, COCO, Objects365, Roboflow 100*
+_Keywords: YOLO-NAS, Deci AI, Objekterkennung, Deep Learning, Neural Architecture Search, Ultralytics Python API, YOLO-Modell, SuperGradients, vortrainierte Modelle, quantisierungsfreundliches Basiselement, fortschrittliche Trainingsschemata, post-training Quantisierung, AutoNAC-Optimierung, COCO, Objects365, Roboflow 100_

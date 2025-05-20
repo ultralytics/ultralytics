@@ -35,9 +35,9 @@ keywords: FastSAM ، التعلم الآلي ، حلاً مبنيًا على ا�
 يعرض هذا الجدول النماذج المتاحة مع أوزانها المحددة ، والمهام التي تدعمها ، ومدى توافقها مع أوضاع التشغيل المختلفة مثل [الاستنتاج](../modes/predict.md) ، [التحقق](../modes/val.md) ، [التدريب](../modes/train.md) ، و[التصدير](../modes/export.md) ، مشار إليها برموز الـ✅ للأوضاع المدعومة والرموز ❌ للأوضاع غير المدعومة.
 
 | نوع النموذج | أوزان تم تدريبها مسبقًا | المهام المدعومة                       | الاستنتاج | التحقق | التدريب | التصدير |
-|-------------|-------------------------|---------------------------------------|-----------|--------|---------|---------|
-| FastSAM-s   | `FastSAM-s.pt`          | [تجزئة المثيلات](../tasks/segment.md) | ✅         | ❌      | ❌       | ✅       |
-| FastSAM-x   | `FastSAM-x.pt`          | [تجزئة المثيلات](../tasks/segment.md) | ✅         | ❌      | ❌       | ✅       |
+| ----------- | ----------------------- | ------------------------------------- | --------- | ------ | ------- | ------- |
+| FastSAM-s   | `FastSAM-s.pt`          | [تجزئة المثيلات](../tasks/segment.md) | ✅        | ❌     | ❌      | ✅      |
+| FastSAM-x   | `FastSAM-x.pt`          | [تجزئة المثيلات](../tasks/segment.md) | ✅        | ❌     | ❌      | ✅      |
 
 ## أمثلة الاستخدام
 
@@ -99,10 +99,10 @@ keywords: FastSAM ، التعلم الآلي ، حلاً مبنيًا على ا�
         from ultralytics import FastSAM
 
         # قم بإنشاء نموذج FastSAM
-        model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+        model = FastSAM("FastSAM-s.pt")  # or FastSAM-x.pt
 
         # قم بتنفيذ التحقق من النموذج
-        results = model.val(data='coco8-seg.yaml')
+        results = model.val(data="coco8-seg.yaml")
         ```
 
     === "CLI"
@@ -120,26 +120,29 @@ keywords: FastSAM ، التعلم الآلي ، حلاً مبنيًا على ا�
 ### التثبيت
 
 1. استنسخ مستودع FastSAM:
-   ```shell
-   git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
-   ```
+
+    ```shell
+    git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
+    ```
 
 2. أنشئ بيئة Conda وفعّلها بـ Python 3.9:
-   ```shell
-   conda create -n FastSAM python=3.9
-   conda activate FastSAM
-   ```
+
+    ```shell
+    conda create -n FastSAM python=3.9
+    conda activate FastSAM
+    ```
 
 3. انتقل إلى المستودع المنسخ وقم بتثبيت الحزم المطلوبة:
-   ```shell
-   cd FastSAM
-   pip install -r requirements.txt
-   ```
+
+    ```shell
+    cd FastSAM
+    pip install -r requirements.txt
+    ```
 
 4. قم بتثبيت نموذج CLIP:
-   ```shell
-   pip install git+https://github.com/openai/CLIP.git
-   ```
+    ```shell
+    pip install git+https://github.com/openai/CLIP.git
+    ```
 
 ### مثال الاستخدام
 
@@ -148,24 +151,27 @@ keywords: FastSAM ، التعلم الآلي ، حلاً مبنيًا على ا�
 2. استخدم FastSAM للتوقع. أمثلة الأوامر:
 
     - تجزئة كل شيء في صورة:
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
-      ```
+
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
+        ```
 
     - تجزئة كائنات محددة باستخدام تعليمات النص:
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "الكلب الأصفر"
-      ```
+
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "الكلب الأصفر"
+        ```
 
     - تجزئة كائنات داخل مربع محدد (تقديم إحداثيات الصندوق في تنسيق xywh):
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
-      ```
+
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
+        ```
 
     - تجزئة كائنات قرب النقاط المحددة:
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
-      ```
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
+        ```
 
 بالإضافة إلى ذلك ، يمكنك تجربة FastSAM من خلال [Colab demo](https://colab.research.google.com/drive/1oX14f6IneGGw612WgVlAiy91UHwFAvr9?usp=sharing) أو على [HuggingFace web demo](https://huggingface.co/spaces/An-619/FastSAM) لتجربة بصرية.
 

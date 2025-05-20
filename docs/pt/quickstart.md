@@ -1,17 +1,17 @@
 ---
 comments: true
-description: Explore os diversos métodos para instalar o Ultralytics usando pip, conda, git e Docker. Aprenda a usar o Ultralytics com a interface de linha de comando ou dentro dos seus projetos Python.
-keywords: Instalação do Ultralytics, pip install Ultralytics, Docker install Ultralytics, interface de linha de comando do Ultralytics, interface Python do Ultralytics
+description: Explore os diversos métodos para instalar o Ultralytics usando pip, conda, git e Docker. Aprenda a usar o Ultralytics com a interface de linha de commando ou dentro dos seus projetos Python.
+keywords: Instalação do Ultralytics, pip install Ultralytics, Docker install Ultralytics, interface de linha de commando do Ultralytics, interface Python do Ultralytics
 ---
 
 ## Instalação do Ultralytics
 
-O Ultralytics oferece diversos métodos de instalação, incluindo pip, conda e Docker. Instale o YOLOv8 através do pacote `ultralytics` pip para a versão estável mais recente ou clonando o [repositório GitHub do Ultralytics](https://github.com/ultralytics/ultralytics) para obter a versão mais atualizada. O Docker pode ser usado para executar o pacote em um contêiner isolado, evitando a instalação local.
+O Ultralytics oferece diversos métodos de instalação, incluindo pip, conda e Docker. Install o YOLOv8 através do pacote `ultralytics` pip para a versão estável mais recente ou clonando o [repositório GitHub do Ultralytics](https://github.com/ultralytics/ultralytics) para obter a versão mais atualizada. O Docker pode set usado para executar o pacote em um contêiner isolado, evitando a instalação local.
 
 !!! Example "Instalar"
 
     === "Pip install (recomendado)"
-        Instale o pacote `ultralytics` usando pip, ou atualize uma instalação existente executando `pip install -U ultralytics`. Visite o Índice de Pacotes Python (PyPI) para mais detalhes sobre o pacote `ultralytics`: [https://pypi.org/project/ultralytics/](https://pypi.org/project/ultralytics/).
+        Install o pacote `ultralytics` usando pip, ou atualize uma instalação existente executando `pip install -U ultralytics`. Visite o Índice de Pacotes Python (PyPI) para mais detalhes sobre o pacote `ultralytics`: [https://pypi.org/project/ultralytics/](https://pypi.org/project/ultralytics/).
 
         [![PyPI version](https://badge.fury.io/py/ultralytics.svg)](https://badge.fury.io/py/ultralytics) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics)
 
@@ -20,7 +20,7 @@ O Ultralytics oferece diversos métodos de instalação, incluindo pip, conda e 
         pip install ultralytics
         ```
 
-        Você também pode instalar o pacote `ultralytics` diretamente do [repositório](https://github.com/ultralytics/ultralytics) GitHub. Isso pode ser útil se você desejar a versão de desenvolvimento mais recente. Certifique-se de ter a ferramenta de linha de comando Git instalada no seu sistema. O comando `@main` instala a branch `main` e pode ser modificado para outra branch, ou seja, `@my-branch`, ou removido completamente para padrão na branch `main`.
+        Você também pode instalar o pacote `ultralytics` diretamente do [repositório](https://github.com/ultralytics/ultralytics) GitHub. Isso pode set útil se você desejar a versão de desenvolvimento mais recente. Certifique-se de ter a ferramenta de linha de commando Git instalada no seu sistema. O commando `@main` instala a branch `main` e pode set modificado para outra branch, ou seja, `@my-branch`, ou removido completamente para padrão na branch `main`.
 
         ```bash
         # Instalar o pacote ultralytics do GitHub
@@ -29,7 +29,7 @@ O Ultralytics oferece diversos métodos de instalação, incluindo pip, conda e 
 
 
     === "Conda install"
-        Conda é um gerenciador de pacotes alternativo ao pip que também pode ser usado para instalação. Visite Anaconda para mais detalhes em [https://anaconda.org/conda-forge/ultralytics](https://anaconda.org/conda-forge/ultralytics). O repositório de feedstock do Ultralytics para atualizar o pacote conda está em [https://github.com/conda-forge/ultralytics-feedstock/](https://github.com/conda-forge/ultralytics-feedstock/).
+        Conda é um gerenciador de pacotes alternativo ao pip que também pode set usado para instalação. Visite Anaconda para mais detalhes em [https://anaconda.org/conda-forge/ultralytics](https://anaconda.org/conda-forge/ultralytics). O repositório de feedstock do Ultralytics para atualizar o pacote conda está em [https://github.com/conda-forge/ultralytics-feedstock/](https://github.com/conda-forge/ultralytics-feedstock/).
 
 
         [![Conda Recipe](https://img.shields.io/badge/recipe-ultralytics-green.svg)](https://anaconda.org/conda-forge/ultralytics) [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics) [![Conda Version](https://img.shields.io/conda/vn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics) [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics)
@@ -41,7 +41,7 @@ O Ultralytics oferece diversos métodos de instalação, incluindo pip, conda e 
 
         !!! Note "Nota"
 
-            Se você está instalando em um ambiente CUDA a prática recomendada é instalar `ultralytics`, `pytorch` e `pytorch-cuda` no mesmo comando para permitir que o gerenciador de pacotes conda resolva quaisquer conflitos, ou instalar `pytorch-cuda` por último para permitir que ele substitua o pacote específico para CPU `pytorch`, se necessário.
+            Se você está instalando em um ambiente CUDA a prática recomendada é instalar `ultralytics`, `pytorch` e `pytorch-cuda` no mesmo commando para permitir que o gerenciador de pacotes conda resolva quaisquer conflitos, ou instalar `pytorch-cuda` por último para permitir que ele substitua o pacote específico para CPU `pytorch`, se necessário.
             ```bash
             # Instalar todos os pacotes juntos usando conda
             conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=11.8 ultralytics
@@ -52,19 +52,19 @@ O Ultralytics oferece diversos métodos de instalação, incluindo pip, conda e 
         As imagens Docker Conda do Ultralytics também estão disponíveis em [DockerHub](https://hub.docker.com/r/ultralytics/ultralytics). Estas imagens são baseadas em [Miniconda3](https://docs.conda.io/projects/miniconda/en/latest/) e são um modo simples de começar a usar `ultralytics` em um ambiente Conda.
 
         ```bash
-        # Definir o nome da imagem como uma variável
+        # Definir o gnome da imagem como uma variável
         t=ultralytics/ultralytics:latest-conda
 
         # Puxar a imagem mais recente do ultralytics do Docker Hub
         sudo docker pull $t
 
         # Executar a imagem ultralytics em um contêiner com suporte a GPU
-        sudo docker run -it --ipc=host --gpus all $t  # todas as GPUs
-        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t  # especificar GPUs
+        sudo docker run -it --ipc=host --gpus all $t            # todas as GPUs
+        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t # especificar GPUs
         ```
 
     === "Git clone"
-        Clone o repositório `ultralytics` se você está interessado em contribuir para o desenvolvimento ou deseja experimentar com o código-fonte mais recente. Após clonar, navegue até o diretório e instale o pacote em modo editável `-e` usando pip.
+        Clone o repositório `ultralytics` se você está interessado em contribuir para o desenvolvimento ou deseja experimentar com o código-fonte mais recente. Após clonar, navegue até o diretório e install o pacote em modo editável `-e` usando pip.
         ```bash
         # Clonar o repositório ultralytics
         git clone https://github.com/ultralytics/ultralytics
@@ -99,21 +99,21 @@ Veja o arquivo [requirements.txt](https://github.com/ultralytics/ultralytics/blo
 
 ## Use o Ultralytics com CLI
 
-A interface de linha de comando (CLI) do Ultralytics permite comandos simples de uma única linha sem a necessidade de um ambiente Python. O CLI não requer personalização ou código Python. Você pode simplesmente rodar todas as tarefas do terminal com o comando `yolo`. Confira o [Guia CLI](/../usage/cli.md) para aprender mais sobre o uso do YOLOv8 pela linha de comando.
+A interface de linha de commando (CLI) do Ultralytics permite commandos simples de uma única linha sem a necessidade de um ambiente Python. O CLI não requer personalização ou código Python. Você pode simplesmente rodar todas as tarefas do terminal com o commando `yolo`. Confira o [Guia CLI](/../usage/cli.md) para aprender mais sobre o uso do YOLOv8 pela linha de commando.
 
 !!! Example "Exemplo"
 
     === "Sintaxe"
 
-        Os comandos `yolo` do Ultralytics usam a seguinte sintaxe:
+        Os commandos `yolo` do Ultralytics usam a seguinte sintaxe:
         ```bash
-        yolo TAREFA MODO ARGUMENTOS
+        yolo TAREFA MODO ARGUMENTS
 
         Onde   TAREFA (opcional) é um entre [detect, segment, classify]
                 MODO (obrigatório) é um entre [train, val, predict, export, track]
-                ARGUMENTOS (opcional) são qualquer número de pares personalizados 'arg=valor' como 'imgsz=320' que substituem os padrões.
+                ARGUMENTS (opcional) são qualquer número de pairs personalizados 'arg=valor' como 'imgsz=320' que substituem os padrões.
         ```
-        Veja todos os ARGUMENTOS no guia completo de [Configuração](/../usage/cfg.md) ou com `yolo cfg`
+        Veja todos os ARGUMENTS no guia completo de [Configuração](/../usage/cfg.md) ou com `yolo cfg`
 
     === "Train"
 
@@ -145,7 +145,7 @@ A interface de linha de comando (CLI) do Ultralytics permite comandos simples de
 
     === "Special"
 
-        Executar comandos especiais para ver versão, visualizar configurações, rodar verificações e mais:
+        Executar commandos especiais para ver versão, visualizar configurações, rodar verificações e mais:
         ```bash
         yolo help
         yolo checks
@@ -157,7 +157,7 @@ A interface de linha de comando (CLI) do Ultralytics permite comandos simples de
 
 !!! Warning "Aviso"
 
-    Argumentos devem ser passados como pares `arg=valor`, separados por um sinal de igual `=` e delimitados por espaços ` ` entre pares. Não use prefixos de argumentos `--` ou vírgulas `,` entre os argumentos.
+    Arguments devem set passados como pairs `arg=valor`, separados por um sinal de igual `=` e delimitados por espaços ` ` entre pairs. Não use prefixos de arguments `--` ou vírgulas `,` entre os arguments.
 
     - `yolo predict model=yolov8n.pt imgsz=640 conf=0.25` &nbsp; ✅
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
@@ -177,22 +177,22 @@ Por exemplo, os usuários podem carregar um modelo, treiná-lo, avaliar o seu de
     from ultralytics import YOLO
 
     # Criar um novo modelo YOLO do zero
-    model = YOLO('yolov8n.yaml')
+    model = YOLO("yolov8n.yaml")
 
     # Carregar um modelo YOLO pré-treinado (recomendado para treinamento)
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # Treinar o modelo usando o conjunto de dados 'coco128.yaml' por 3 épocas
-    results = model.train(data='coco128.yaml', epochs=3)
+    results = model.train(data="coco128.yaml", epochs=3)
 
     # Avaliar o desempenho do modelo no conjunto de validação
     results = model.val()
 
     # Realizar detecção de objetos em uma imagem usando o modelo
-    results = model('https://ultralytics.com/images/bus.jpg')
+    results = model("https://ultralytics.com/images/bus.jpg")
 
     # Exportar o modelo para formato ONNX
-    success = model.export(format='onnx')
+    success = model.export(format="onnx")
     ```
 
 [Guia Python](/../usage/python.md){.md-button .md-button--primary}

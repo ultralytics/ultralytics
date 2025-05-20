@@ -35,9 +35,9 @@ FastSAM разработана для преодоления ограничен�
 В следующей таблице представлены доступные модели с их конкретными заранее обученными весами, поддерживаемые задачи и совместимость с различными режимами работы, такими как [Вывод](../modes/predict.md), [Валидация](../modes/val.md), [Обучение](../modes/train.md) и [Экспорт](../modes/export.md), обозначенные значками ✅ для поддерживаемых режимов и значками ❌ для неподдерживаемых режимов.
 
 | Тип модели | Заранее обученные веса | Поддерживаемые задачи                          | Вывод | Валидация | Обучение | Экспорт |
-|------------|------------------------|------------------------------------------------|-------|-----------|----------|---------|
-| FastSAM-s  | `FastSAM-s.pt`         | [Сегментация экземпляров](../tasks/segment.md) | ✅     | ❌         | ❌        | ✅       |
-| FastSAM-x  | `FastSAM-x.pt`         | [Сегментация экземпляров](../tasks/segment.md) | ✅     | ❌         | ❌        | ✅       |
+| ---------- | ---------------------- | ---------------------------------------------- | ----- | --------- | -------- | ------- |
+| FastSAM-s  | `FastSAM-s.pt`         | [Сегментация экземпляров](../tasks/segment.md) | ✅    | ❌        | ❌       | ✅      |
+| FastSAM-x  | `FastSAM-x.pt`         | [Сегментация экземпляров](../tasks/segment.md) | ✅    | ❌        | ❌       | ✅      |
 
 ## Примеры использования
 
@@ -55,16 +55,16 @@ FastSAM разработана для преодоления ограничен�
         from ultralytics.models.fastsam import FastSAMPrompt
 
         # Определение исхода вывода
-        source = 'путь/к/фото_автобуса.jpg'
+        source = "путь/к/фото_автобуса.jpg"
 
         # Создание модели FastSAM
-        model = FastSAM('FastSAM-s.pt')  # или FastSAM-x.pt
+        model = FastSAM("FastSAM-s.pt")  # или FastSAM-x.pt
 
         # Выполнение вывода на изображение
-        результаты = model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+        результаты = model(source, device="cpu", retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
 
         # Создание объекта Prompt Process
-        prompt_process = FastSAMPrompt(source, результаты, device='cpu')
+        prompt_process = FastSAMPrompt(source, результаты, device="cpu")
 
         # Вывод всего
         ann = prompt_process.everything_prompt()
@@ -73,13 +73,13 @@ FastSAM разработана для преодоления ограничен�
         ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
 
         # Текстовый запрос
-        ann = prompt_process.text_prompt(text='фотография собаки')
+        ann = prompt_process.text_prompt(text="фотография собаки")
 
         # Запрос точки
         # Точки по умолчанию [[0,0]] [[x1,y1],[x2,y2]]
         # метка точки по умолчанию [0] [1,0] 0:фон, 1:передний план
         ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
-        prompt_process.plot(annotations=ann, output='./')
+        prompt_process.plot(annotations=ann, output="./")
         ```
 
     === "CLI"
@@ -101,10 +101,10 @@ FastSAM разработана для преодоления ограничен�
         from ultralytics import FastSAM
 
         # Создание модели FastSAM
-        model = FastSAM('FastSAM-s.pt')  # или FastSAM-x.pt
+        model = FastSAM("FastSAM-s.pt")  # или FastSAM-x.pt
 
         # Валидация модели
-        результаты = model.val(data='coco8-seg.yaml')
+        результаты = model.val(data="coco8-seg.yaml")
         ```
 
     === "CLI"
@@ -122,26 +122,29 @@ FastSAM также доступна непосредственно из репо
 ### Установка
 
 1. Клонируйте репозиторий FastSAM:
-   ```shell
-   git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
-   ```
+
+    ```shell
+    git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
+    ```
 
 2. Создайте и активируйте виртуальное окружение Conda с Python 3.9:
-   ```shell
-   conda create -n FastSAM python=3.9
-   conda activate FastSAM
-   ```
+
+    ```shell
+    conda create -n FastSAM python=3.9
+    conda activate FastSAM
+    ```
 
 3. Перейдите в каталог склонированного репозитория и установите требуемые пакеты:
-   ```shell
-   cd FastSAM
-   pip install -r requirements.txt
-   ```
+
+    ```shell
+    cd FastSAM
+    pip install -r requirements.txt
+    ```
 
 4. Установите модель CLIP:
-   ```shell
-   pip install git+https://github.com/openai/CLIP.git
-   ```
+    ```shell
+    pip install git+https://github.com/openai/CLIP.git
+    ```
 
 ### Пример использования
 
@@ -150,24 +153,27 @@ FastSAM также доступна непосредственно из репо
 2. Используйте модель FastSAM для выполнения вывода. Примеры команд:
 
     - Сегментация всего объекта на изображении:
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
-      ```
+
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
+        ```
 
     - Сегментация определенных объектов с использованием текстового запроса:
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "желтая собака"
-      ```
+
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "желтая собака"
+        ```
 
     - Сегментация объектов в пределах ограничивающей рамки (укажите координаты рамки в формате xywh):
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
-      ```
+
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
+        ```
 
     - Сегментация объектов, находящихся близко к определенным точкам:
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
-      ```
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
+        ```
 
 Кроме того, вы можете опробовать FastSAM с помощью [демонстрационного ноутбука Colab](https://colab.research.google.com/drive/1oX14f6IneGGw612WgVlAiy91UHwFAvr9?usp=sharing) или на [веб-демо HuggingFace](https://huggingface.co/spaces/An-619/FastSAM) для визуального опыта.
 

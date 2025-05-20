@@ -21,8 +21,8 @@ Both the Ultralytics YOLO command-line and Python interfaces are simply a high-l
 
 BaseTrainer contains the generic boilerplate training routine. It can be customized for any task based over overriding the required functions or operations as long the as correct formats are followed. For example, you can support your own custom model and dataloader by just overriding these functions:
 
-* `get_model(cfg, weights)` - The function that builds the model to be trained
-* `get_dataloader()` - The function that builds the dataloader More details and source code can be found in [`BaseTrainer` Reference](../reference/engine/trainer.md)
+- `get_model(cfg, weights)` - The function that builds the model to be trained
+- `get_dataloader()` - The function that builds the dataloader More details and source code can be found in [`BaseTrainer` Reference](../reference/engine/trainer.md)
 
 ## DetectionTrainer
 
@@ -45,8 +45,7 @@ from ultralytics.models.yolo.detect import DetectionTrainer
 
 
 class CustomTrainer(DetectionTrainer):
-    def get_model(self, cfg, weights):
-        ...
+    def get_model(self, cfg, weights): ...
 
 
 trainer = CustomTrainer(overrides={...})
@@ -55,8 +54,8 @@ trainer.train()
 
 You now realize that you need to customize the trainer further to:
 
-* Customize the `loss function`.
-* Add `callback` that uploads model to your Google Drive after every 10 `epochs`
+- Customize the `loss function`.
+- Add `callback` that uploads model to your Google Drive after every 10 `epochs`
   Here's how you can do it:
 
 ```python
@@ -65,8 +64,7 @@ from ultralytics.nn.tasks import DetectionModel
 
 
 class MyCustomModel(DetectionModel):
-    def init_criterion(self):
-        ...
+    def init_criterion(self): ...
 
 
 class CustomTrainer(DetectionTrainer):

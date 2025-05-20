@@ -38,16 +38,16 @@ Ultralytics Python APIは、異なるスケールの事前学習済みPaddlePadd
         from ultralytics import RTDETR
 
         # COCOで事前学習済みのRT-DETR-lモデルをロードします
-        model = RTDETR('rtdetr-l.pt')
+        model = RTDETR("rtdetr-l.pt")
 
         # モデル情報を表示します（オプション）
         model.info()
 
         # COCO8の例のデータセットでモデルを100エポックトレーニングします
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # 'bus.jpg'画像でRT-DETR-lモデルで推論を実行します
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -64,10 +64,10 @@ Ultralytics Python APIは、異なるスケールの事前学習済みPaddlePadd
 
 この表には、各モデルがサポートするタスク、特定の事前学習済み重み、およびサポートされるさまざまなモード（[Train](../modes/train.md)、[Val](../modes/val.md)、[Predict](../modes/predict.md)、[Export](../modes/export.md)）が✅絵文字で示されている情報が示されています。
 
-| モデルの種類              | 事前学習済み重み      | サポートされるタスク                     | 推論 | 検証 | 訓練 | エクスポート |
-|---------------------|---------------|--------------------------------|----|----|----|--------|
-| RT-DETR Large       | `rtdetr-l.pt` | [オブジェクト検出](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅      |
-| RT-DETR Extra-Large | `rtdetr-x.pt` | [オブジェクト検出](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅      |
+| モデルの種類        | 事前学習済み重み | サポートされるタスク                   | 推論 | 検証 | 訓練 | エクスポート |
+| ------------------- | ---------------- | -------------------------------------- | ---- | ---- | ---- | ------------ |
+| RT-DETR Large       | `rtdetr-l.pt`    | [オブジェクト検出](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅           |
+| RT-DETR Extra-Large | `rtdetr-x.pt`    | [オブジェクト検出](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅           |
 
 ## 引用と謝辞
 
@@ -90,4 +90,4 @@ Ultralytics Python APIは、異なるスケールの事前学習済みPaddlePadd
 
 私たちは、Baiduと[PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection)チームに、コンピュータビジョンコミュニティ向けのこの貴重なリソースを作成しメンテナンスしていただいたことに感謝いたします。Vision Transformersベースのリアルタイムオブジェクト検出器であるRT-DETRの開発による、彼らのフィールドへの貢献は非常に評価されています。
 
-*Keywords: RT-DETR, Transformer, ViT, Vision Transformers, Baidu RT-DETR, PaddlePaddle, Paddle Paddle RT-DETR, real-time object detection, Vision Transformers-based object detection, pre-trained PaddlePaddle RT-DETR models, Baidu's RT-DETR usage, Ultralytics Python API*
+_Keywords: RT-DETR, Transformer, ViT, Vision Transformers, Baidu RT-DETR, PaddlePaddle, Paddle Paddle RT-DETR, real-time object detection, Vision Transformers-based object detection, pre-trained PaddlePaddle RT-DETR models, Baidu's RT-DETR usage, Ultralytics Python API_

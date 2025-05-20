@@ -110,14 +110,15 @@ Ultralytics는 탐지, 인스턴스 세분화, 자세 추정, 분류 및 다중 
 
     ```python
     from pathlib import Path
+
     from ultralytics.data.utils import compress_one_image
     from ultralytics.utils.downloads import zip_directory
 
     # 데이터셋 디렉토리 정의
-    path = Path('path/to/dataset')
+    path = Path("path/to/dataset")
 
     # 데이터셋의 이미지 최적화 (선택사항)
-    for f in path.rglob('*.jpg'):
+    for f in path.rglob("*.jpg"):
         compress_one_image(f)
 
     # 'path/to/dataset.zip'으로 데이터셋 압축

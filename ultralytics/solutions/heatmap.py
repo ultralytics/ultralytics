@@ -8,7 +8,7 @@ import numpy as np
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
 
-check_requirements('shapely>=2.0.0')
+check_requirements("shapely>=2.0.0")
 
 from shapely.geometry import LineString, Point, Polygon
 
@@ -18,11 +18,10 @@ class Heatmap:
 
     def __init__(self):
         """Initializes the heatmap class with default values for Visual, Image, track, count and heatmap parameters."""
-
         # Visual information
         self.annotator = None
         self.view_img = False
-        self.shape = 'circle'
+        self.shape = "circle"
 
         # Image information
         self.imw = None
@@ -61,21 +60,23 @@ class Heatmap:
         # Check if environment support imshow
         self.env_check = check_imshow(warn=True)
 
-    def set_args(self,
-                 imw,
-                 imh,
-                 colormap=cv2.COLORMAP_JET,
-                 heatmap_alpha=0.5,
-                 view_img=False,
-                 count_reg_pts=None,
-                 count_txt_thickness=2,
-                 count_txt_color=(0, 0, 0),
-                 count_color=(255, 255, 255),
-                 count_reg_color=(255, 0, 255),
-                 region_thickness=5,
-                 line_dist_thresh=15,
-                 decay_factor=0.99,
-                 shape='circle'):
+    def set_args(
+        self,
+        imw,
+        imh,
+        colormap=cv2.COLORMAP_JET,
+        heatmap_alpha=0.5,
+        view_img=False,
+        count_reg_pts=None,
+        count_txt_thickness=2,
+        count_txt_color=(0, 0, 0),
+        count_color=(255, 255, 255),
+        count_reg_color=(255, 0, 255),
+        region_thickness=5,
+        line_dist_thresh=15,
+        decay_factor=0.99,
+        shape="circle",
+    ):
         """
         Configures the heatmap colormap, width, height and display parameters.
 
@@ -103,20 +104,19 @@ class Heatmap:
 
         # Region and line selection
         if count_reg_pts is not None:
-
             if len(count_reg_pts) == 2:
-                print('Line Counter Initiated.')
+                print("Line Counter Initiated.")
                 self.count_reg_pts = count_reg_pts
                 self.counting_region = LineString(count_reg_pts)
 
             elif len(count_reg_pts) == 4:
-                print('Region Counter Initiated.')
+                print("Region Counter Initiated.")
                 self.count_reg_pts = count_reg_pts
                 self.counting_region = Polygon(self.count_reg_pts)
 
             else:
-                print('Region or line points Invalid, 2 or 4 points supported')
-                print('Using Line Counter Now')
+                print("Region or line points Invalid, 2 or 4 points supported")
+                print("Using Line Counter Now")
                 self.counting_region = Polygon([(20, 400), (1260, 400)])  # dummy points
 
         # Heatmap new frame
@@ -132,10 +132,10 @@ class Heatmap:
         self.shape = shape
 
         # shape of heatmap, if not selected
-        if self.shape not in ['circle', 'rect']:
+        if self.shape not in ["circle", "rect"]:
             print("Unknown shape value provided, 'circle' & 'rect' supported")
-            print('Using Circular shape now')
-            self.shape = 'circle'
+            print("Using Circular shape now")
+            self.shape = "circle"
 
     def extract_results(self, tracks):
         """
@@ -165,26 +165,25 @@ class Heatmap:
         self.annotator = Annotator(self.im0, self.count_txt_thickness, None)
 
         if self.count_reg_pts is not None:
-
             # Draw counting region
-            self.annotator.draw_region(reg_pts=self.count_reg_pts,
-                                       color=self.region_color,
-                                       thickness=self.region_thickness)
+            self.annotator.draw_region(
+                reg_pts=self.count_reg_pts, color=self.region_color, thickness=self.region_thickness
+            )
 
             for box, cls, track_id in zip(self.boxes, self.clss, self.track_ids):
-
-                if self.shape == 'circle':
+                if self.shape == "circle":
                     center = (int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2))
                     radius = min(int(box[2]) - int(box[0]), int(box[3]) - int(box[1])) // 2
 
-                    y, x = np.ogrid[0:self.heatmap.shape[0], 0:self.heatmap.shape[1]]
-                    mask = (x - center[0]) ** 2 + (y - center[1]) ** 2 <= radius ** 2
+                    y, x = np.ogrid[0 : self.heatmap.shape[0], 0 : self.heatmap.shape[1]]
+                    mask = (x - center[0]) ** 2 + (y - center[1]) ** 2 <= radius**2
 
-                    self.heatmap[int(box[1]):int(box[3]), int(box[0]):int(box[2])] += \
-                        (2 * mask[int(box[1]):int(box[3]), int(box[0]):int(box[2])])
+                    self.heatmap[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += (
+                        2 * mask[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]
+                    )
 
                 else:
-                    self.heatmap[int(box[1]):int(box[3]), int(box[0]):int(box[2])] += 2
+                    self.heatmap[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += 2
 
                 # Store tracking hist
                 track_line = self.track_history[track_id]
@@ -213,32 +212,34 @@ class Heatmap:
                                 self.in_counts += 1
         else:
             for box, cls in zip(self.boxes, self.clss):
-
-                if self.shape == 'circle':
+                if self.shape == "circle":
                     center = (int((box[0] + box[2]) // 2), int((box[1] + box[3]) // 2))
                     radius = min(int(box[2]) - int(box[0]), int(box[3]) - int(box[1])) // 2
 
-                    y, x = np.ogrid[0:self.heatmap.shape[0], 0:self.heatmap.shape[1]]
-                    mask = (x - center[0]) ** 2 + (y - center[1]) ** 2 <= radius ** 2
+                    y, x = np.ogrid[0 : self.heatmap.shape[0], 0 : self.heatmap.shape[1]]
+                    mask = (x - center[0]) ** 2 + (y - center[1]) ** 2 <= radius**2
 
-                    self.heatmap[int(box[1]):int(box[3]), int(box[0]):int(box[2])] += \
-                        (2 * mask[int(box[1]):int(box[3]), int(box[0]):int(box[2])])
+                    self.heatmap[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += (
+                        2 * mask[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])]
+                    )
 
                 else:
-                    self.heatmap[int(box[1]):int(box[3]), int(box[0]):int(box[2])] += 2
+                    self.heatmap[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] += 2
 
         # Normalize, apply colormap to heatmap and combine with original image
         heatmap_normalized = cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX)
         heatmap_colored = cv2.applyColorMap(heatmap_normalized.astype(np.uint8), self.colormap)
 
         if self.count_reg_pts is not None:
-            incount_label = 'InCount : ' + f'{self.in_counts}'
-            outcount_label = 'OutCount : ' + f'{self.out_counts}'
-            self.annotator.count_labels(in_count=incount_label,
-                                        out_count=outcount_label,
-                                        count_txt_size=self.count_txt_thickness,
-                                        txt_color=self.count_txt_color,
-                                        color=self.count_color)
+            incount_label = "InCount : " + f"{self.in_counts}"
+            outcount_label = "OutCount : " + f"{self.out_counts}"
+            self.annotator.count_labels(
+                in_count=incount_label,
+                out_count=outcount_label,
+                count_txt_size=self.count_txt_thickness,
+                txt_color=self.count_txt_color,
+                color=self.count_color,
+            )
 
         im0_with_heatmap = cv2.addWeighted(self.im0, 1 - self.heatmap_alpha, heatmap_colored, self.heatmap_alpha, 0)
 
@@ -255,11 +256,11 @@ class Heatmap:
         Args:
             im0_with_heatmap (nd array): Original Image with heatmap
         """
-        cv2.imshow('Ultralytics Heatmap', im0_with_heatmap)
+        cv2.imshow("Ultralytics Heatmap", im0_with_heatmap)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             return
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     Heatmap()

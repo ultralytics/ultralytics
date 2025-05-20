@@ -14,19 +14,19 @@ YOLOv5u représente une avancée dans les méthodologies de détection d'objets.
 
 ## Principales fonctionnalités
 
-- **Division sans ancre Ultralytics :** Les modèles de détection d'objets traditionnels reposent sur des boîtes d'ancrage prédéfinies pour prédire les emplacements des objets. Cependant, YOLOv5u modernise cette approche. En adoptant une division sans ancre Ultralytics, il garantit un mécanisme de détection plus flexible et adaptatif, ce qui améliore les performances dans divers scénarios.
+- **Division sans ancre Ultralytics :** Les modèles de détection d'objects traditionnels reposent sur des boîtes d'ancrage prédéfinies pour prédire les emplacements des objects. Cependant, YOLOv5u modernise cette approach. En adoptant une division sans ancre Ultralytics, il garantit un mécanisme de détection plus flexible et adaptatif, ce qui améliore les performances dans divers scénarios.
 
 - **Bon compromis entre précision et vitesse optimisée :** La vitesse et la précision sont souvent opposées. Mais YOLOv5u remet en question ce compromis. Il offre un équilibre calibré, garantissant des détections en temps réel sans compromettre la précision. Cette fonctionnalité est particulièrement précieuse pour les applications qui demandent des réponses rapides, comme les véhicules autonomes, la robotique et l'analyse vidéo en temps réel.
 
-- **Variété de modèles pré-entraînés :** Comprendre que différentes tâches nécessitent différents ensembles d'outils, YOLOv5u propose une pléthore de modèles pré-entraînés. Que vous vous concentriez sur l'inférence, la validation ou l'entraînement, un modèle sur mesure vous attend. Cette variété garantit que vous n'utilisez pas une solution universelle, mais un modèle spécifiquement ajusté à votre défi unique.
+- **Variété de modèles pré-entraînés :** Comprendre que différentes tâches nécessitent différents ensembles d'outils, YOLOv5u propose une pléthore de modèles pré-entraînés. Que vous vous concentriez sur l'inférence, la validation ou l'entraînement, un modèle sur measure vous attend. Cette variété garantit que vous n'utilisez pas une solution universelle, mais un modèle spécifiquement ajusté à votre défi unique.
 
 ## Tâches et modes pris en charge
 
 Les modèles YOLOv5u, avec divers poids pré-entraînés, excellent dans les tâches de [détection d'objets](../tasks/detect.md). Ils prennent en charge une gamme complète de modes, ce qui les rend adaptés à diverses applications, du développement au déploiement.
 
 | Type de modèle | Poids pré-entraînés                                                                                                         | Tâche                                    | Inférence | Validation | Entraînement | Export |
-|----------------|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------|-----------|------------|--------------|--------|
-| YOLOv5u        | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [Détection d'objets](../tasks/detect.md) | ✅         | ✅          | ✅            | ✅      |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | --------- | ---------- | ------------ | ------ |
+| YOLOv5u        | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [Détection d'objets](../tasks/detect.md) | ✅        | ✅         | ✅           | ✅     |
 
 Ce tableau fournit un aperçu détaillé des variantes de modèles YOLOv5u, mettant en évidence leur applicabilité dans les tâches de détection d'objets et leur prise en charge de divers modes opérationnels tels que [Inférence](../modes/predict.md), [Validation](../modes/val.md), [Entraînement](../modes/train.md) et [Exportation](../modes/export.md). Cette prise en charge complète garantit que les utilisateurs peuvent exploiter pleinement les capacités des modèles YOLOv5u dans un large éventail de scénarios de détection d'objets.
 
@@ -36,7 +36,7 @@ Ce tableau fournit un aperçu détaillé des variantes de modèles YOLOv5u, mett
 
     === "Détection"
 
-    Consultez la [documentation sur la détection](https://docs.ultralytics.com/tasks/detect/) pour des exemples d'utilisation avec ces modèles formés sur [COCO](https://docs.ultralytics.com/datasets/detect/coco/), qui comprennent 80 classes pré-entraînées.
+    Consultez la [documentation sur la détection](https://docs.ultralytics.com/tasks/detect/) pour des examples d'utilisation avec ces modèles formés sur [COCO](https://docs.ultralytics.com/datasets/detect/coco/), qui comprennent 80 classes pré-entraînées.
 
     | Modèle                                                                                     | YAML                                                                                                           | taille<br><sup>(pixels) | mAP<sup>val<br>50-95 | Vitesse<br><sup>CPU ONNX<br>(ms) | Vitesse<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
     |-------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|-----------------------|----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
@@ -52,11 +52,11 @@ Ce tableau fournit un aperçu détaillé des variantes de modèles YOLOv5u, mett
     | [yolov5l6u.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5l6u.pt) | [yolov5l6.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml) | 1280                  | 55,7                 | 1470,9                         | 5,47                                | 86,1               | 137,4             |
     | [yolov5x6u.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5x6u.pt) | [yolov5x6.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml) | 1280                  | 56,8                 | 2436,5                         | 8,98                                | 155,4              | 250,7             |
 
-## Exemples d'utilisation
+## Examples d'utilisation
 
-Cet exemple présente des exemples simples d'entraînement et d'inférence YOLOv5. Pour une documentation complète sur ces exemples et d'autres [modes](../modes/index.md), consultez les pages de documentation [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) et [Export](../modes/export.md).
+Cet example présente des examples simples d'entraînement et d'inférence YOLOv5. Pour une documentation complète sur ces examples et d'autres [modes](../modes/index.md), consultez les pages de documentation [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) et [Export](../modes/export.md).
 
-!!! Example "Exemple"
+!!! Example "Example"
 
     === "Python"
 
@@ -66,16 +66,16 @@ Cet exemple présente des exemples simples d'entraînement et d'inférence YOLOv
         from ultralytics import YOLO
 
         # Charger un modèle YOLOv5n pré-entraîné sur COCO
-        model = YOLO('yolov5n.pt')
+        model = YOLO("yolov5n.pt")
 
-        # Afficher les informations sur le modèle (facultatif)
+        # Afficher les information sur le modèle (facultatif)
         model.info()
 
         # Former le modèle sur l'ensemble de données d'exemple COCO8 pendant 100 époques
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Exécuter l'inférence avec le modèle YOLOv5n sur l'image 'bus.jpg'
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

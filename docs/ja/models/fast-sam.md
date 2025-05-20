@@ -34,10 +34,10 @@ FastSAMは、[Segment Anything Model (SAM)](sam.md)の制約事項に対処す�
 
 この表は、利用可能なモデルとそれぞれの特定の事前学習済みウェイト、サポートされるタスク、およびInference、Validation、Training、Exportなどの異なる操作モードとの互換性を示しています。サポートされているモードは✅、サポートされていないモードは❌の絵文字で示されます。
 
-| モデルの種類    | 事前学習済みウェイト     | サポートされるタスク                             | Inference | Validation | Training | Export |
-|-----------|----------------|----------------------------------------|-----------|------------|----------|--------|
-| FastSAM-s | `FastSAM-s.pt` | [インスタンスセグメンテーション](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
-| FastSAM-x | `FastSAM-x.pt` | [インスタンスセグメンテーション](../tasks/segment.md) | ✅         | ❌          | ❌        | ✅      |
+| モデルの種類 | 事前学習済みウェイト | サポートされるタスク                                  | Inference | Validation | Training | Export |
+| ------------ | -------------------- | ----------------------------------------------------- | --------- | ---------- | -------- | ------ |
+| FastSAM-s    | `FastSAM-s.pt`       | [インスタンスセグメンテーション](../tasks/segment.md) | ✅        | ❌         | ❌       | ✅     |
+| FastSAM-x    | `FastSAM-x.pt`       | [インスタンスセグメンテーション](../tasks/segment.md) | ✅        | ❌         | ❌       | ✅     |
 
 ## 使用例
 
@@ -55,16 +55,16 @@ FastSAMモデルは、Pythonアプリケーションに簡単に統合できま�
         from ultralytics.models.fastsam import FastSAMPrompt
 
         # 推論元のソースを定義する
-        source = 'path/to/bus.jpg'
+        source = "path/to/bus.jpg"
 
         # FastSAMモデルを作成する
-        model = FastSAM('FastSAM-s.pt')  # または FastSAM-x.pt
+        model = FastSAM("FastSAM-s.pt")  # または FastSAM-x.pt
 
         # 画像への推論を実行する
-        everything_results = model(source, device='cpu', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
+        everything_results = model(source, device="cpu", retina_masks=True, imgsz=1024, conf=0.4, iou=0.9)
 
         # Prompt Processオブジェクトを準備する
-        prompt_process = FastSAMPrompt(source, everything_results, device='cpu')
+        prompt_process = FastSAMPrompt(source, everything_results, device="cpu")
 
         # Everything prompt
         ann = prompt_process.everything_prompt()
@@ -73,13 +73,13 @@ FastSAMモデルは、Pythonアプリケーションに簡単に統合できま�
         ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
 
         # テキストプロンプト
-        ann = prompt_process.text_prompt(text='a photo of a dog')
+        ann = prompt_process.text_prompt(text="a photo of a dog")
 
         # ポイントプロンプト
         # pointsのデフォルトは [[0,0]] [[x1,y1],[x2,y2]]
         # point_labelのデフォルトは [0] [1,0] 0:background, 1:foreground
         ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
-        prompt_process.plot(annotations=ann, output='./')
+        prompt_process.plot(annotations=ann, output="./")
         ```
 
     === "CLI"
@@ -101,10 +101,10 @@ FastSAMモデルは、Pythonアプリケーションに簡単に統合できま�
         from ultralytics import FastSAM
 
         # FastSAMモデルを作成する
-        model = FastSAM('FastSAM-s.pt')  # または FastSAM-x.pt
+        model = FastSAM("FastSAM-s.pt")  # または FastSAM-x.pt
 
         # モデルを検証する
-        results = model.val(data='coco8-seg.yaml')
+        results = model.val(data="coco8-seg.yaml")
         ```
 
     === "CLI"
@@ -122,26 +122,29 @@ FastSAMは、[https://github.com/CASIA-IVA-Lab/FastSAM](https://github.com/CASIA
 ### インストール
 
 1. FastSAMリポジトリをクローンする：
-   ```shell
-   git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
-   ```
+
+    ```shell
+    git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
+    ```
 
 2. Python 3.9を使用したConda環境を作成してアクティベートする：
-   ```shell
-   conda create -n FastSAM python=3.9
-   conda activate FastSAM
-   ```
+
+    ```shell
+    conda create -n FastSAM python=3.9
+    conda activate FastSAM
+    ```
 
 3. クローンされたリポジトリに移動し、必要なパッケージをインストールする：
-   ```shell
-   cd FastSAM
-   pip install -r requirements.txt
-   ```
+
+    ```shell
+    cd FastSAM
+    pip install -r requirements.txt
+    ```
 
 4. CLIPモデルをインストールする：
-   ```shell
-   pip install git+https://github.com/openai/CLIP.git
-   ```
+    ```shell
+    pip install git+https://github.com/openai/CLIP.git
+    ```
 
 ### 使用例
 
@@ -150,24 +153,27 @@ FastSAMは、[https://github.com/CASIA-IVA-Lab/FastSAM](https://github.com/CASIA
 2. FastSAMを推論に使用します。以下は実行例です：
 
     - 画像内のすべてをセグメント化する：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
-      ```
+
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg
+        ```
 
     - テキストプロンプトを使用して特定のオブジェクトをセグメント化する：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "the yellow dog"
-      ```
+
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --text_prompt "the yellow dog"
+        ```
 
     - バウンディングボックス内のオブジェクトをセグメント化する（xywh形式でボックス座標を指定します）：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
-      ```
+
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --box_prompt "[570,200,230,400]"
+        ```
 
     - 特定のポイントの近くにあるオブジェクトをセグメント化する：
-      ```shell
-      python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
-      ```
+        ```shell
+        python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
+        ```
 
 さらに、FastSAMを[Colabデモ](https://colab.research.google.com/drive/1oX14f6IneGGw612WgVlAiy91UHwFAvr9?usp=sharing)や[HuggingFaceウェブデモ](https://huggingface.co/spaces/An-619/FastSAM)で試すこともできます。
 

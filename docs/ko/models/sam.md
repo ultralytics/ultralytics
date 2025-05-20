@@ -30,10 +30,10 @@ Segment Anything Model 및 SA-1B 데이터셋에 대한 자세한 내용은 [Seg
 
 아래 표는 사용 가능한 모델과 해당 모델의 사전 훈련 가중치, 지원하는 작업 및 [추론](../modes/predict.md), [검증](../modes/val.md), [훈련](../modes/train.md) 및 [내보내기](../modes/export.md)와 같은 다른 운영 모드와의 호환성을 나타냅니다. 지원되는 모드는 ✅ 이모지로, 지원되지 않는 모드는 ❌ 이모지로 표시되었습니다.
 
-| 모델 유형     | 사전 훈련 가중치  | 지원 작업                           | 추론 | 검증 | 훈련 | 내보내기 |
-|-----------|------------|---------------------------------|----|----|----|------|
-| SAM base  | `sam_b.pt` | [인스턴스 세분화](../tasks/segment.md) | ✅  | ❌  | ❌  | ✅    |
-| SAM large | `sam_l.pt` | [인스턴스 세분화](../tasks/segment.md) | ✅  | ❌  | ❌  | ✅    |
+| 모델 유형 | 사전 훈련 가중치 | 지원 작업                              | 추론 | 검증 | 훈련 | 내보내기 |
+| --------- | ---------------- | -------------------------------------- | ---- | ---- | ---- | -------- |
+| SAM base  | `sam_b.pt`       | [인스턴스 세분화](../tasks/segment.md) | ✅   | ❌   | ❌   | ✅       |
+| SAM large | `sam_l.pt`       | [인스턴스 세분화](../tasks/segment.md) | ✅   | ❌   | ❌   | ✅       |
 
 ## SAM 사용 방법: 이미지 세분화에서의 다재다능함과 강력함
 
@@ -51,16 +51,16 @@ Segment Anything Model은 훈련 데이터를 초월하는 다양한 하위 작�
         from ultralytics import SAM
 
         # 모델 로드
-        model = SAM('sam_b.pt')
+        model = SAM("sam_b.pt")
 
         # 모델 정보 표시 (선택 사항)
         model.info()
 
         # bboxes 프롬프트로 추론 실행
-        model('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
+        model("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
 
         # points 프롬프트로 추론 실행
-        model('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
+        model("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
         ```
 
 !!! Example "전체 이미지 세분화"
@@ -73,13 +73,13 @@ Segment Anything Model은 훈련 데이터를 초월하는 다양한 하위 작�
         from ultralytics import SAM
 
         # 모델 로드
-        model = SAM('sam_b.pt')
+        model = SAM("sam_b.pt")
 
         # 모델 정보 표시 (선택 사항)
         model.info()
 
         # 추론 실행
-        model('path/to/image.jpg')
+        model("path/to/image.jpg")
         ```
 
     === "CLI"
@@ -101,7 +101,7 @@ Segment Anything Model은 훈련 데이터를 초월하는 다양한 하위 작�
         from ultralytics.models.sam import Predictor as SAMPredictor
 
         # SAMPredictor 생성
-        overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="mobile_sam.pt")
         predictor = SAMPredictor(overrides=overrides)
 
         # 이미지 설정
@@ -122,7 +122,7 @@ Segment Anything Model은 훈련 데이터를 초월하는 다양한 하위 작�
         from ultralytics.models.sam import Predictor as SAMPredictor
 
         # SAMPredictor 생성
-        overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="mobile_sam.pt")
         predictor = SAMPredictor(overrides=overrides)
 
         # 추가 인수로 이미지 세분화
@@ -135,11 +135,11 @@ Segment Anything Model은 훈련 데이터를 초월하는 다양한 하위 작�
 
 여기서는 Meta의 가장 작은 SAM 모델인 SAM-b를 얼트라리얼리틱스의 가장 작은 세분화 모델, [YOLOv8n-seg](../tasks/segment.md),과 비교합니다:
 
-| 모델                                             | 크기                    | 파라미터                 | 속도 (CPU)               |
-|------------------------------------------------|-----------------------|----------------------|------------------------|
-| Meta's SAM-b                                   | 358 MB                | 94.7 M               | 51096 ms/im            |
-| [MobileSAM](mobile-sam.md)                     | 40.7 MB               | 10.1 M               | 46122 ms/im            |
-| [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB               | 11.8 M               | 115 ms/im              |
+| 모델                                           | 크기                     | 파라미터                | 속도 (CPU)                |
+| ---------------------------------------------- | ------------------------ | ----------------------- | ------------------------- |
+| Meta's SAM-b                                   | 358 MB                   | 94.7 M                  | 51096 ms/im               |
+| [MobileSAM](mobile-sam.md)                     | 40.7 MB                  | 10.1 M                  | 46122 ms/im               |
+| [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB                  | 11.8 M                  | 115 ms/im                 |
 | Ultralytics [YOLOv8n-seg](../tasks/segment.md) | **6.7 MB** (53.4배 작음) | **3.4 M** (27.9배 적음) | **59 ms/im** (866배 빠름) |
 
 이 비교는 모델 크기 및 속도에 대한 상당한 차이를 보여줍니다. SAM은 자동으로 세분화하는 독특한 기능을 제공하지만, 작은 크기와 높은 처리 속도로 인해 YOLOv8 세분화 모델과 직접 경쟁하지는 않습니다.
@@ -150,27 +150,27 @@ Segment Anything Model은 훈련 데이터를 초월하는 다양한 하위 작�
 
     === "파이썬"
         ```python
-        from ultralytics import FastSAM, SAM, YOLO
+        from ultralytics import SAM, YOLO, FastSAM
 
         # SAM-b 프로파일링
-        model = SAM('sam_b.pt')
+        model = SAM("sam_b.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
 
         # MobileSAM 프로파일링
-        model = SAM('mobile_sam.pt')
+        model = SAM("mobile_sam.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
 
         # FastSAM-s 프로파일링
-        model = FastSAM('FastSAM-s.pt')
+        model = FastSAM("FastSAM-s.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
 
         # YOLOv8n-seg 프로파일링
-        model = YOLO('yolov8n-seg.pt')
+        model = YOLO("yolov8n-seg.pt")
         model.info()
-        model('ultralytics/assets')
+        model("ultralytics/assets")
         ```
 
 ## 자동 주석: 세분화 데이터셋을 위한 신속한 경로
@@ -187,15 +187,15 @@ Ultralytics 프레임워크를 사용하여 미리 훈련된 탐지 및 SAM 세�
         ```python
         from ultralytics.data.annotator import auto_annotate
 
-        auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
+        auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model="sam_b.pt")
         ```
 
-| 인수         | 유형              | 설명                                                                | 기본값          |
-|------------|-----------------|-------------------------------------------------------------------|--------------|
-| data       | 문자열             | 주석을 달 이미지가 포함된 폴더 경로.                                             |              |
-| det_model  | 문자열, 선택사항       | 미리 훈련된 YOLO 탐지 모델. 기본값은 'yolov8x.pt'.                             | 'yolov8x.pt' |
-| sam_model  | 문자열, 선택사항       | 미리 훈련된 SAM 세분화 모델. 기본값은 'sam_b.pt'.                               | 'sam_b.pt'   |
-| device     | 문자열, 선택사항       | 모델을 실행할 디바이스. 기본값은 빈 문자열 (CPU 또는 사용 가능한 GPU 사용).                  |              |
+| 인수       | 유형                   | 설명                                                                                                   | 기본값       |
+| ---------- | ---------------------- | ------------------------------------------------------------------------------------------------------ | ------------ |
+| data       | 문자열                 | 주석을 달 이미지가 포함된 폴더 경로.                                                                   |              |
+| det_model  | 문자열, 선택사항       | 미리 훈련된 YOLO 탐지 모델. 기본값은 'yolov8x.pt'.                                                     | 'yolov8x.pt' |
+| sam_model  | 문자열, 선택사항       | 미리 훈련된 SAM 세분화 모델. 기본값은 'sam_b.pt'.                                                      | 'sam_b.pt'   |
+| device     | 문자열, 선택사항       | 모델을 실행할 디바이스. 기본값은 빈 문자열 (CPU 또는 사용 가능한 GPU 사용).                            |              |
 | output_dir | 문자열, None, 선택사항 | 주석이 포함된 결과를 저장할 디렉토리 경로. 기본값은 'data'와 같은 디렉토리 내부의 'labels' 폴더입니다. | None         |
 
 `auto_annotate` 함수는 이미지 경로를 입력으로 받아, 입력한 미리 훈련된 탐지와 SAM 세분화 모델, 이 함수를 실행할 디바이스 및 주석이 포함된 결과를 저장할 디렉토리 경로를 선택적으로 지정할 수 있는 기능을 제공합니다.
@@ -223,4 +223,4 @@ Ultralytics 프레임워크를 사용하여 미리 훈련된 탐지 및 SAM 세�
 
 모델 개발과 알고리즘 개발을 위한 귀중한 리소스를 만들고 유지 관리하는 Meta AI에게 감사의 말씀을 드립니다.
 
-*keywords: Segment Anything, Segment Anything Model, SAM, Meta SAM, 이미지 세분화, 프롬프트 기반 세분화, 제로샷 성능, SA-1B 데이터셋, 고급설계, 자동 주석, 얼트라리얼리틱스, 사전 훈련 모델, SAM base, SAM large, 인스턴스 세분화, 컴퓨터 비전, 인공 지능, 머신 러닝, 데이터 주석, 세분화 마스크, 탐지 모델, YOLO 탐지 모델, bibtex, Meta AI.*
+_keywords: Segment Anything, Segment Anything Model, SAM, Meta SAM, 이미지 세분화, 프롬프트 기반 세분화, 제로샷 성능, SA-1B 데이터셋, 고급설계, 자동 주석, 얼트라리얼리틱스, 사전 훈련 모델, SAM base, SAM large, 인스턴스 세분화, 컴퓨터 비전, 인공 지능, 머신 러닝, 데이터 주석, 세분화 마스크, 탐지 모델, YOLO 탐지 모델, bibtex, Meta AI._

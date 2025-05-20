@@ -30,6 +30,7 @@ class DSTrack(STrack):
         ds_track.predict()
         ds_track.update(new_track, frame_id)
     """
+
     shared_kalman = KalmanFilterXYWH()
 
     def __init__(self, tlbr, score, cls):
@@ -140,12 +141,20 @@ class SparseTracker(BYTETracker):
         if max_len != mix_len:
             deep_range = np.arange(mix_len, max_len, (max_len - mix_len + 1) / step)
             if deep_range[-1] < max_len:
-                deep_range = np.concatenate([deep_range, np.array([max_len], )])
+                deep_range = np.concatenate(
+                    [
+                        deep_range,
+                        np.array(
+                            [max_len],
+                        ),
+                    ]
+                )
                 deep_range[0] = np.floor(deep_range[0])
                 deep_range[-1] = np.ceil(deep_range[-1])
         else:
             deep_range = [
-                mix_len, ]
+                mix_len,
+            ]
         mask = self.get_sub_mask(deep_range, col)
         return mask
 
@@ -184,18 +193,18 @@ class SparseTracker(BYTETracker):
         if len(track_mask) != 0:
             if len(track_mask) < len(det_mask):
                 for i in range(len(det_mask) - len(track_mask)):
-                    idx = np.argwhere(det_mask[len(track_mask) + i] == True)
+                    idx = np.argwhere(det_mask[len(track_mask) + i])
                     for idd in idx:
                         res_det.append(detections[idd[0]])
             elif len(track_mask) > len(det_mask):
                 for i in range(len(track_mask) - len(det_mask)):
-                    idx = np.argwhere(track_mask[len(det_mask) + i] == True)
+                    idx = np.argwhere(track_mask[len(det_mask) + i])
                     for idd in idx:
                         res_track.append(tracks[idd[0]])
 
             for dm, tm in zip(det_mask, track_mask):
-                det_idx = np.argwhere(dm == True)
-                trk_idx = np.argwhere(tm == True)
+                det_idx = np.argwhere(dm)
+                trk_idx = np.argwhere(tm)
 
                 # search det
                 det_ = []
@@ -293,13 +302,15 @@ class SparseTracker(BYTETracker):
         DSTrack.multi_gmc(unconfirmed, warp[:2, :])
 
         # DCM
-        activated_starcks, refind_stracks, u_track, u_detection_high = self.DCM(detections,
-                                                                                strack_pool,
-                                                                                activated_starcks,
-                                                                                refind_stracks,
-                                                                                self.layers,
-                                                                                self.args.match_thresh,
-                                                                                is_fuse=True)
+        activated_starcks, refind_stracks, u_track, u_detection_high = self.DCM(
+            detections,
+            strack_pool,
+            activated_starcks,
+            refind_stracks,
+            self.layers,
+            self.args.match_thresh,
+            is_fuse=True,
+        )
 
         # association the untrack to the low score detections
         if len(dets_second) > 0:
@@ -310,13 +321,15 @@ class SparseTracker(BYTETracker):
         r_tracked_stracks = [t for t in u_track if t.state == TrackState.Tracked]
 
         # DCM
-        activated_starcks, refind_stracks, u_strack, u_detection_sec = self.DCM(detections_second,
-                                                                                r_tracked_stracks,
-                                                                                activated_starcks,
-                                                                                refind_stracks,
-                                                                                self.args.depth_levels_low,
-                                                                                0.3,
-                                                                                is_fuse=False)
+        activated_starcks, refind_stracks, u_strack, u_detection_sec = self.DCM(
+            detections_second,
+            r_tracked_stracks,
+            activated_starcks,
+            refind_stracks,
+            self.args.depth_levels_low,
+            0.3,
+            is_fuse=False,
+        )
         for track in u_strack:
             if not track.state == TrackState.Lost:
                 track.mark_lost()
@@ -363,7 +376,8 @@ class SparseTracker(BYTETracker):
         # output_stracks = [track for track in self.tracked_stracks if track.is_activated]
         output_stracks = np.asarray(
             [x.tlbr.tolist() + [x.track_id, x.score, x.cls, x.idx] for x in self.tracked_stracks if x.is_activated],
-            dtype=np.float32)
+            dtype=np.float32,
+        )
 
         self.pre_img = curr_img
         return output_stracks

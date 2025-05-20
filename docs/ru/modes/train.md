@@ -59,12 +59,12 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
         from ultralytics import YOLO
 
         # Загрузить модель
-        model = YOLO('yolov8n.yaml')  # создать новую модель из YAML
-        model = YOLO('yolov8n.pt')  # загрузить предобученную модель (рекомендуется для обучения)
-        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # создать из YAML и перенести веса
+        model = YOLO("yolov8n.yaml")  # создать новую модель из YAML
+        model = YOLO("yolov8n.pt")  # загрузить предобученную модель (рекомендуется для обучения)
+        model = YOLO("yolov8n.yaml").load("yolov8n.pt")  # создать из YAML и перенести веса
 
         # Обучить модель
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -94,10 +94,10 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
         from ultralytics import YOLO
 
         # Загрузить модель
-        model = YOLO('yolov8n.pt')  # загрузить предобученную модель (рекомендуется для обучения)
+        model = YOLO("yolov8n.pt")  # загрузить предобученную модель (рекомендуется для обучения)
 
         # Обучить модель с использованием 2 GPU
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640, device=[0, 1])
         ```
 
     === "CLI"
@@ -121,10 +121,10 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
         from ultralytics import YOLO
 
         # Загрузить модель
-        model = YOLO('yolov8n.pt')  # загрузить предобученную модель (рекомендуется для обучения)
+        model = YOLO("yolov8n.pt")  # загрузить предобученную модель (рекомендуется для обучения)
 
         # Обучить модель с использованием MPS
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640, device="mps")
         ```
 
     === "CLI"
@@ -189,7 +189,7 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
     === "CLI"
         ```bash
         load_ext tensorboard
-        tensorboard --logdir ultralytics/runs  # заменить на директорию 'runs'
+        tensorboard --logdir ultralytics/runs # заменить на директорию 'runs'
         ```
 
 Чтобы использовать TensorBoard локально, запустите приведенную ниже команду и просмотрите результаты по адресу http://localhost:6006/.
@@ -198,7 +198,7 @@ keywords: Ultralytics, YOLOv8, YOLO, обнаружение объектов, р
 
     === "CLI"
         ```bash
-        tensorboard --logdir ultralytics/runs  # заменить на директорию 'runs'
+        tensorboard --logdir ultralytics/runs # заменить на директорию 'runs'
         ```
 
 Это загрузит TensorBoard и направит его к каталогу, где сохраняются ваши журналы обучения.

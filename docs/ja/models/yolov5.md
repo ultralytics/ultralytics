@@ -24,9 +24,9 @@ YOLOv5uは、物体検出方法論の進歩を表しています。Ultralytics�
 
 各種の事前トレーニング済みのYOLOv5uモデルは、[物体検出](../tasks/detect.md)タスクで優れたパフォーマンスを発揮します。[Inference](../modes/predict.md)、[Validation](../modes/val.md)、[Training](../modes/train.md)、および[Export](../modes/export.md)などのさまざまなモードをサポートしているため、開発から展開まで幅広いアプリケーションに適しています。
 
-| モデルの種類  | 事前トレーニング済みの重み                                                                                                               | タスク                        | 推論 | 汎化 | トレーニング | エクスポート |
-|---------|-----------------------------------------------------------------------------------------------------------------------------|----------------------------|----|----|--------|--------|
-| YOLOv5u | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [物体検出](../tasks/detect.md) | ✅  | ✅  | ✅      | ✅      |
+| モデルの種類 | 事前トレーニング済みの重み                                                                                                  | タスク                         | 推論 | 汎化 | トレーニング | エクスポート |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ---- | ---- | ------------ | ------------ |
+| YOLOv5u      | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [物体検出](../tasks/detect.md) | ✅   | ✅   | ✅           | ✅           |
 
 この表では、YOLOv5uモデルのバリアントについて詳細な概要を提供し、物体検出タスクでの適用可能性と、[Inference](../modes/predict.md)、[Validation](../modes/val.md)、[Training](../modes/train.md)、[Export](../modes/export.md)などのさまざまな操作モードのサポートを強調しています。この包括的なサポートにより、ユーザーは広範な物体検出シナリオでYOLOv5uモデルの機能を十分に活用することができます。
 
@@ -66,16 +66,16 @@ YOLOv5uは、物体検出方法論の進歩を表しています。Ultralytics�
         from ultralytics import YOLO
 
         # COCOで事前トレーニング済みのYOLOv5nモデルをロードする
-        model = YOLO('yolov5n.pt')
+        model = YOLO("yolov5n.pt")
 
         # モデル情報を表示する（任意）
         model.info()
 
         # COCO8の例のデータセットでモデルを100エポックトレーニングする
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # YOLOv5nモデルを使用して'bus.jpg'画像で推論を実行する
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

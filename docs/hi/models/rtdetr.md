@@ -1,7 +1,7 @@
 ---
 comments: true
 description:
-  Baidu के RT-DETR का अवलोकन करें: विज़न ट्रांसफॉर्मर के द्वारा संचालित, उन्नत और अनुकूलनयोग्य वास्तविक समय ऑब्जेक्ट डिटेक्टर, जिसमें तैयार मॉडल शामिल हैं।
+    Baidu के RT-DETR का अवलोकन करें: विज़न ट्रांसफॉर्मर के द्वारा संचालित, उन्नत और अनुकूलनयोग्य वास्तविक समय ऑब्जेक्ट डिटेक्टर, जिसमें तैयार मॉडल शामिल हैं।
 keywords: RT-DETR, Baidu, विज़न ट्रांसफॉर्मर्स, ऑब्जेक्ट डिटेक्शन, वास्तविक समय प्रदर्शन, CUDA, TensorRT, IoU-जागरूक क्वेरी चयन, Ultralytics, पायथन एपीआई, PaddlePaddle
 ---
 
@@ -29,7 +29,7 @@ Ultralytics Python API विभिन्न स्केलों के सा
 
 ## उपयोग उदाहरण
 
-यह उदाहरण सरल RT-DETRR प्रशिक्षण और संदर्भ उदाहरण प्रदान करता है। पूरे दस्तावेज़ीकरण के लिए इन और अन्य [modes](../modes/index.md) पर देखें: [Predict](../modes/predict.md),  [Train](../modes/train.md), [Val](../modes/val.md) और [Export](../modes/export.md) दस्तावेज़ पृष्ठों।
+यह उदाहरण सरल RT-DETRR प्रशिक्षण और संदर्भ उदाहरण प्रदान करता है। पूरे दस्तावेज़ीकरण के लिए इन और अन्य [modes](../modes/index.md) पर देखें: [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) और [Export](../modes/export.md) दस्तावेज़ पृष्ठों।
 
 !!! Example "उदाहरण"
 
@@ -39,16 +39,16 @@ Ultralytics Python API विभिन्न स्केलों के सा
         from ultralytics import RTDETR
 
         # COCO-प्री-तारकित RT-DETR-l मॉडल लोड करें
-        model = RTDETR('rtdetr-l.pt')
+        model = RTDETR("rtdetr-l.pt")
 
         # मॉडल जानकारी प्रदर्शित करें (वैकल्पिक)
         model.info()
 
         # COCO8 उदाहरण डेटासेट पर मॉडल को 100 एपिसोड के लिए प्रशिक्षित करें
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # RT-DETR-l मॉडल के साथ 'bus.jpg' छवि पर संदर्भ चलाएं
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -66,9 +66,9 @@ Ultralytics Python API विभिन्न स्केलों के सा
 इस तालिका में मॉडल प्रकार, विशेष प्री-तारकित भार, हर मॉडल द्वारा समर्थित कार्य, और [Train](../modes/train.md) , [Val](../modes/val.md), [Predict](../modes/predict.md), [Export](../modes/export.md) इत्यादि जैसे विभिन्न मोड्स विभाजित की गई हैं, ✅ इमोजियों द्वारा संकेतित हैं
 
 | मॉडल प्रकार         | प्री-तारकित भार | समर्थित कार्य                           | संदर्भ | मान्यता | प्रशिक्षण | निर्यात |
-|---------------------|-----------------|-----------------------------------------|--------|---------|-----------|---------|
-| RT-DETR Large       | `rtdetr-l.pt`   | [ऑब्जेक्ट डिटेक्शन](../tasks/detect.md) | ✅      | ✅       | ✅         | ✅       |
-| RT-DETR Extra-Large | `rtdetr-x.pt`   | [ऑब्जेक्ट डिटेक्शन](../tasks/detect.md) | ✅      | ✅       | ✅         | ✅       |
+| ------------------- | --------------- | --------------------------------------- | ------ | ------- | --------- | ------- |
+| RT-DETR Large       | `rtdetr-l.pt`   | [ऑब्जेक्ट डिटेक्शन](../tasks/detect.md) | ✅     | ✅      | ✅        | ✅      |
+| RT-DETR Extra-Large | `rtdetr-x.pt`   | [ऑब्जेक्ट डिटेक्शन](../tasks/detect.md) | ✅     | ✅      | ✅        | ✅      |
 
 ## प्रशंसापत्र और आभार
 
@@ -91,4 +91,4 @@ Ultralytics Python API विभिन्न स्केलों के सा
 
 हम Baidu और [PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection) टीम को आभार प्रकट करना चाहेंगे जिन्होंने बिल्कुल लोक-दृष्टि समुदाय के लिए इस योग्य संसाधन को बनाने और संभालने का कार्य किया है। विज़न ट्रांसफॉर्मर्स-आधारित वास्तविक समय ऑब्जेक्ट डिटेक्टर RT-DETR के विकास के साथ उनके योगदान को बड़ा रूप से स्वीकार किया जाता है।
 
-*Keywords: RT-DETR, ट्रांसफॉर्मर, ViT, विज़न ट्रांसफॉर्मर्स, Baidu RT-DETR, PaddlePaddle, PaddlePaddle RT-DETR, वास्तविक समय ऑब्जेक्ट डिटेक्शन, विज़न ट्रांसफॉर्मर्स आधारित ऑब्जेक्ट डिटेक्शन, प्री-तारकित PaddlePaddle RT-DETR मॉडल, Baidu के RT-DETR का उपयोग, Ultralytics Python API*
+_Keywords: RT-DETR, ट्रांसफॉर्मर, ViT, विज़न ट्रांसफॉर्मर्स, Baidu RT-DETR, PaddlePaddle, PaddlePaddle RT-DETR, वास्तविक समय ऑब्जेक्ट डिटेक्शन, विज़न ट्रांसफॉर्मर्स आधारित ऑब्जेक्ट डिटेक्शन, प्री-तारकित PaddlePaddle RT-DETR मॉडल, Baidu के RT-DETR का उपयोग, Ultralytics Python API_

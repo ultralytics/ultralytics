@@ -22,13 +22,13 @@ keywords: Ultralytics, YOLOv8, 图像分类, 预训练模型, YOLOv8n-cls, 训�
 
 [模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models)会在首次使用时自动从Ultralytics的最新[发布版本](https://github.com/ultralytics/assets/releases)中下载。
 
-| 模型                                                                                           | 尺寸<br><sup>(像素) | 准确率<br><sup>top1 | 准确率<br><sup>top5 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>A100 TensorRT<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
-|----------------------------------------------------------------------------------------------|-----------------|------------------|------------------|-----------------------------|----------------------------------|----------------|--------------------------|
-| [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-cls.pt) | 224             | 66.6             | 87.0             | 12.9                        | 0.31                             | 2.7            | 4.3                      |
-| [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-cls.pt) | 224             | 72.3             | 91.1             | 23.4                        | 0.35                             | 6.4            | 13.5                     |
-| [YOLOv8m-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-cls.pt) | 224             | 76.4             | 93.2             | 85.4                        | 0.62                             | 17.0           | 42.7                     |
-| [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-cls.pt) | 224             | 78.0             | 94.1             | 163.0                       | 0.87                             | 37.5           | 99.7                     |
-| [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224             | 78.4             | 94.3             | 232.0                       | 1.01                             | 57.4           | 154.8                    |
+| 模型                                                                                         | 尺寸<br><sup>(像素) | 准确率<br><sup>top1 | 准确率<br><sup>top5 | 速度<br><sup>CPU ONNX<br>(ms) | 速度<br><sup>A100 TensorRT<br>(ms) | 参数<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
+| -------------------------------------------------------------------------------------------- | ------------------- | ------------------- | ------------------- | ----------------------------- | ---------------------------------- | ---------------- | ------------------------ |
+| [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-cls.pt) | 224                 | 66.6                | 87.0                | 12.9                          | 0.31                               | 2.7              | 4.3                      |
+| [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-cls.pt) | 224                 | 72.3                | 91.1                | 23.4                          | 0.35                               | 6.4              | 13.5                     |
+| [YOLOv8m-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-cls.pt) | 224                 | 76.4                | 93.2                | 85.4                          | 0.62                               | 17.0             | 42.7                     |
+| [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-cls.pt) | 224                 | 78.0                | 94.1                | 163.0                         | 0.87                               | 37.5             | 99.7                     |
+| [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224                 | 78.4                | 94.3                | 232.0                         | 1.01                               | 57.4             | 154.8                    |
 
 - **准确率** 是模型在[ImageNet](https://www.image-net.org/)数据集验证集上的准确度。
   <br>通过`yolo val classify data=path/to/ImageNet device=0`复现结果。
@@ -47,12 +47,12 @@ keywords: Ultralytics, YOLOv8, 图像分类, 预训练模型, YOLOv8n-cls, 训�
         from ultralytics import YOLO
 
         # 加载模型
-        model = YOLO('yolov8n-cls.yaml')  # 从YAML构建新模型
-        model = YOLO('yolov8n-cls.pt')  # 加载预训练模型（推荐用于训练）
-        model = YOLO('yolov8n-cls.yaml').load('yolov8n-cls.pt')  # 从YAML构建并转移权重
+        model = YOLO("yolov8n-cls.yaml")  # 从YAML构建新模型
+        model = YOLO("yolov8n-cls.pt")  # 加载预训练模型（推荐用于训练）
+        model = YOLO("yolov8n-cls.yaml").load("yolov8n-cls.pt")  # 从YAML构建并转移权重
 
         # 训练模型
-        results = model.train(data='mnist160', epochs=100, imgsz=64)
+        results = model.train(data="mnist160", epochs=100, imgsz=64)
         ```
 
     === "CLI"
@@ -84,19 +84,19 @@ YOLO分类数据集的格式详情请参见[数据集指南](/../datasets/classi
         from ultralytics import YOLO
 
         # 加载模型
-        model = YOLO('yolov8n-cls.pt')  # 加载官方模型
-        model = YOLO('path/to/best.pt')  # 加载自定义模型
+        model = YOLO("yolov8n-cls.pt")  # 加载官方模型
+        model = YOLO("path/to/best.pt")  # 加载自定义模型
 
         # 验证模型
         metrics = model.val()  # 无需参数，数据集和设置已记忆
-        metrics.top1   # top1准确率
-        metrics.top5   # top5准确率
+        metrics.top1  # top1准确率
+        metrics.top5  # top5准确率
         ```
     === "CLI"
 
         ```bash
         yolo classify val model=yolov8n-cls.pt  # 验证官方模型
-        yolo classify val model=path/to/best.pt  # 验证自定义模型
+        yolo classify val model=path/to/best.pt # 验证自定义模型
         ```
 
 ## 预测
@@ -111,17 +111,17 @@ YOLO分类数据集的格式详情请参见[数据集指南](/../datasets/classi
         from ultralytics import YOLO
 
         # 加载模型
-        model = YOLO('yolov8n-cls.pt')  # 加载官方模型
-        model = YOLO('path/to/best.pt')  # 加载自定义模型
+        model = YOLO("yolov8n-cls.pt")  # 加载官方模型
+        model = YOLO("path/to/best.pt")  # 加载自定义模型
 
         # 使用模型进行预测
-        results = model('https://ultralytics.com/images/bus.jpg')  # 对图像进行预测
+        results = model("https://ultralytics.com/images/bus.jpg")  # 对图像进行预测
         ```
     === "CLI"
 
         ```bash
         yolo classify predict model=yolov8n-cls.pt source='https://ultralytics.com/images/bus.jpg'  # 使用官方模型进行预测
-        yolo classify predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # 使用自定义模型进行预测
+        yolo classify predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg' # 使用自定义模型进行预测
         ```
 
 有关`predict`模式的完整详细信息，请参见[预测](https://docs.ultralytics.com/modes/predict/)页面。
@@ -138,35 +138,35 @@ YOLO分类数据集的格式详情请参见[数据集指南](/../datasets/classi
         from ultralytics import YOLO
 
         # 加载模型
-        model = YOLO('yolov8n-cls.pt')  # 加载官方模型
-        model = YOLO('path/to/best.pt')  # 加载自定义训练模型
+        model = YOLO("yolov8n-cls.pt")  # 加载官方模型
+        model = YOLO("path/to/best.pt")  # 加载自定义训练模型
 
         # 导出模型
-        model.export(format='onnx')
+        model.export(format="onnx")
         ```
     === "CLI"
 
         ```bash
         yolo export model=yolov8n-cls.pt format=onnx  # 导出官方模型
-        yolo export model=path/to/best.pt format=onnx  # 导出自定义训练模型
+        yolo export model=path/to/best.pt format=onnx # 导出自定义训练模型
         ```
 
 下表中提供了YOLOv8-cls模型可导出的格式。您可以直接在导出的模型上进行预测或验证，即`yolo predict model=yolov8n-cls.onnx`。导出完成后，示例用法会显示您的模型。
 
-| 格式                                                                 | `format` 参数   | 模型                            | 元数据 | 参数                                                  |
-|--------------------------------------------------------------------|---------------|-------------------------------|-----|-----------------------------------------------------|
-| [PyTorch](https://pytorch.org/)                                    | -             | `yolov8n-cls.pt`              | ✅   | -                                                   |
-| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript` | `yolov8n-cls.torchscript`     | ✅   | `imgsz`, `optimize`                                 |
-| [ONNX](https://onnx.ai/)                                           | `onnx`        | `yolov8n-cls.onnx`            | ✅   | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
-| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`    | `yolov8n-cls_openvino_model/` | ✅   | `imgsz`, `half`                                     |
-| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`      | `yolov8n-cls.engine`          | ✅   | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`      | `yolov8n-cls.mlpackage`       | ✅   | `imgsz`, `half`, `int8`, `nms`                      |
-| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model` | `yolov8n-cls_saved_model/`    | ✅   | `imgsz`, `keras`                                    |
-| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`          | `yolov8n-cls.pb`              | ❌   | `imgsz`                                             |
-| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`      | `yolov8n-cls.tflite`          | ✅   | `imgsz`, `half`, `int8`                             |
-| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`     | `yolov8n-cls_edgetpu.tflite`  | ✅   | `imgsz`                                             |
-| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`        | `yolov8n-cls_web_model/`      | ✅   | `imgsz`                                             |
-| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`      | `yolov8n-cls_paddle_model/`   | ✅   | `imgsz`                                             |
-| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`        | `yolov8n-cls_ncnn_model/`     | ✅   | `imgsz`, `half`                                     |
+| 格式                                                               | `format` 参数 | 模型                          | 元数据 | 参数                                                |
+| ------------------------------------------------------------------ | ------------- | ----------------------------- | ------ | --------------------------------------------------- |
+| [PyTorch](https://pytorch.org/)                                    | -             | `yolov8n-cls.pt`              | ✅     | -                                                   |
+| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript` | `yolov8n-cls.torchscript`     | ✅     | `imgsz`, `optimize`                                 |
+| [ONNX](https://onnx.ai/)                                           | `onnx`        | `yolov8n-cls.onnx`            | ✅     | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
+| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`    | `yolov8n-cls_openvino_model/` | ✅     | `imgsz`, `half`                                     |
+| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`      | `yolov8n-cls.engine`          | ✅     | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
+| [CoreML](https://github.com/apple/coremltools)                     | `coreml`      | `yolov8n-cls.mlpackage`       | ✅     | `imgsz`, `half`, `int8`, `nms`                      |
+| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model` | `yolov8n-cls_saved_model/`    | ✅     | `imgsz`, `keras`                                    |
+| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`          | `yolov8n-cls.pb`              | ❌     | `imgsz`                                             |
+| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`      | `yolov8n-cls.tflite`          | ✅     | `imgsz`, `half`, `int8`                             |
+| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`     | `yolov8n-cls_edgetpu.tflite`  | ✅     | `imgsz`                                             |
+| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`        | `yolov8n-cls_web_model/`      | ✅     | `imgsz`                                             |
+| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`      | `yolov8n-cls_paddle_model/`   | ✅     | `imgsz`                                             |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`        | `yolov8n-cls_ncnn_model/`     | ✅     | `imgsz`, `half`                                     |
 
 有关`export`的完整详细信息，请参见[导出](https://docs.ultralytics.com/modes/export/)页面。

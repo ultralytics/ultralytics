@@ -23,14 +23,14 @@ Deci AI에서 개발한 YOLO-NAS는 원래의 YOLO 모델의 한계를 해결하
 
 Ultralytics가 제공하는 사전 훈련된 YOLO-NAS 모델로 다음 세대의 물체 감지 기술의 힘을 체험해 보세요. 이러한 모델은 속도와 정확성 측면에서 최고의 성능을 제공하기 위해 설계되었습니다. 특정 요구에 맞게 다양한 옵션 중 선택하세요:
 
-| 모델               | mAP   | 지연 시간 (밀리초) |
-|------------------|-------|-------------|
-| YOLO-NAS S       | 47.5  | 3.21        |
-| YOLO-NAS M       | 51.55 | 5.85        |
-| YOLO-NAS L       | 52.22 | 7.87        |
-| YOLO-NAS S INT-8 | 47.03 | 2.36        |
-| YOLO-NAS M INT-8 | 51.0  | 3.78        |
-| YOLO-NAS L INT-8 | 52.1  | 4.78        |
+| 모델             | mAP   | 지연 시간 (밀리초) |
+| ---------------- | ----- | ------------------ |
+| YOLO-NAS S       | 47.5  | 3.21               |
+| YOLO-NAS M       | 51.55 | 5.85               |
+| YOLO-NAS L       | 52.22 | 7.87               |
+| YOLO-NAS S INT-8 | 47.03 | 2.36               |
+| YOLO-NAS M INT-8 | 51.0  | 3.78               |
+| YOLO-NAS L INT-8 | 52.1  | 4.78               |
 
 각 모델 변형은 평균 평균 정밀도(mAP)와 지연 시간 간의 균형을 제공하여 물체 감지 작업을 성능과 속도 모두 최적화할 수 있도록 합니다.
 
@@ -56,16 +56,16 @@ Ultralytics는 YOLO-NAS 모델을 `ultralytics` Python 패키지를 통해 Pytho
         from ultralytics import NAS
 
         # COCO 사전 훈련된 YOLO-NAS-s 모델 로드
-        model = NAS('yolo_nas_s.pt')
+        model = NAS("yolo_nas_s.pt")
 
         # 모델 정보 표시 (선택 사항)
         model.info()
 
         # COCO8 예제 데이터셋에서 모델 유효성 검사
-        results = model.val(data='coco8.yaml')
+        results = model.val(data="coco8.yaml")
 
         # YOLO-NAS-s 모델로 'bus.jpg' 이미지에 추론 실행
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -90,11 +90,11 @@ YOLO-NAS 모델은 Small (s), Medium (m) 및 Large (l) 세 가지 변형이 있�
 
 아래는 각 모델에 대한 자세한 개요로, 사전 훈련된 가중치, 지원하는 작업, 다양한 작동 모드와의 호환성에 대한 링크가 제공됩니다.
 
-| 모델 유형      | 사전 훈련된 가중치                                                                                    | 지원되는 작업                     | 추론 | 유효성 검사 | 훈련 | 내보내기 |
-|------------|-----------------------------------------------------------------------------------------------|-----------------------------|----|--------|----|------|
-| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [물체 감지](../tasks/detect.md) | ✅  | ✅      | ❌  | ✅    |
-| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [물체 감지](../tasks/detect.md) | ✅  | ✅      | ❌  | ✅    |
-| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [물체 감지](../tasks/detect.md) | ✅  | ✅      | ❌  | ✅    |
+| 모델 유형  | 사전 훈련된 가중치                                                                            | 지원되는 작업                   | 추론 | 유효성 검사 | 훈련 | 내보내기 |
+| ---------- | --------------------------------------------------------------------------------------------- | ------------------------------- | ---- | ----------- | ---- | -------- |
+| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_s.pt) | [물체 감지](../tasks/detect.md) | ✅   | ✅          | ❌   | ✅       |
+| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_m.pt) | [물체 감지](../tasks/detect.md) | ✅   | ✅          | ❌   | ✅       |
+| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo_nas_l.pt) | [물체 감지](../tasks/detect.md) | ✅   | ✅          | ❌   | ✅       |
 
 ## 인용 및 감사의 말씀
 

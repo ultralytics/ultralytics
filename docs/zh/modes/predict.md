@@ -25,8 +25,8 @@ keywords: Ultralytics, YOLOv8, 预测模式, 推理源, 预测任务, 流式模�
 
 ## 实际应用领域
 
-|                                                      制造业                                                      |                                                      体育                                                       |                                                      安全                                                      |
-|:-------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------:|
+|                                                        制造业                                                        |                                                         体育                                                         |                                                        安全                                                        |
+| :------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------: |
 | ![车辆零部件检测](https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1) | ![足球运动员检测](https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442) | ![人员摔倒检测](https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43) |
 |                                                    车辆零部件检测                                                    |                                                    足球运动员检测                                                    |                                                    人员摔倒检测                                                    |
 
@@ -57,10 +57,10 @@ Ultralytics YOLO 模型在进行推理时返回一个 Python `Results` 对象列
         from ultralytics import YOLO
 
         # 加载模型
-        model = YOLO('yolov8n.pt')  # 预训练的 YOLOv8n 模型
+        model = YOLO("yolov8n.pt")  # 预训练的 YOLOv8n 模型
 
         # 在图片列表上运行批量推理
-        results = model(['im1.jpg', 'im2.jpg'])  # 返回 Results 对象列表
+        results = model(["im1.jpg", "im2.jpg"])  # 返回 Results 对象列表
 
         # 处理结果列表
         for result in results:
@@ -75,10 +75,10 @@ Ultralytics YOLO 模型在进行推理时返回一个 Python `Results` 对象列
         from ultralytics import YOLO
 
         # 加载模型
-        model = YOLO('yolov8n.pt')  # 预训练的 YOLOv8n 模型
+        model = YOLO("yolov8n.pt")  # 预训练的 YOLOv8n 模型
 
         # 在图片列表上运行批量推理
-        results = model(['im1.jpg', 'im2.jpg'], stream=True)  # 返回 Results 对象生成器
+        results = model(["im1.jpg", "im2.jpg"], stream=True)  # 返回 Results 对象生成器
 
         # 处理结果生成器
         for result in results:
@@ -96,22 +96,22 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
 
     使用 `stream=True` 处理长视频或大型数据集来高效地管理内存。当 `stream=False` 时，所有帧或数据点的结果都将存储在内存中，这可能很快导致内存不足错误。相对地，`stream=True` 使用生成器，只保留当前帧或数据点的结果在内存中，显著减少了内存消耗，防止内存不足问题。
 
-| 来源        | 参数                                         | 类型             | 备注                                                 |
-|-----------|--------------------------------------------|----------------|----------------------------------------------------|
-| 图像        | `'image.jpg'`                              | `str` 或 `Path` | 单个图像文件。                                            |
-| URL       | `'https://ultralytics.com/images/bus.jpg'` | `str`          | 图像的 URL 地址。                                        |
-| 截屏        | `'screen'`                                 | `str`          | 截取屏幕图像。                                            |
-| PIL       | `Image.open('im.jpg')`                     | `PIL.Image`    | RGB 通道的 HWC 格式图像。                                  |
-| OpenCV    | `cv2.imread('im.jpg')`                     | `np.ndarray`   | BGR 通道的 HWC 格式图像 `uint8 (0-255)`。                  |
-| numpy     | `np.zeros((640,1280,3))`                   | `np.ndarray`   | BGR 通道的 HWC 格式图像 `uint8 (0-255)`。                  |
-| torch     | `torch.zeros(16,3,320,640)`                | `torch.Tensor` | RGB 通道的 BCHW 格式图像 `float32 (0.0-1.0)`。             |
-| CSV       | `'sources.csv'`                            | `str` 或 `Path` | 包含图像、视频或目录路径的 CSV 文件。                              |
-| 视频 ✅      | `'video.mp4'`                              | `str` 或 `Path` | 如 MP4, AVI 等格式的视频文件。                               |
-| 目录 ✅      | `'path/'`                                  | `str` 或 `Path` | 包含图像或视频文件的目录路径。                                    |
-| 通配符 ✅     | `'path/*.jpg'`                             | `str`          | 匹配多个文件的通配符模式。使用 `*` 字符作为通配符。                       |
-| YouTube ✅ | `'https://youtu.be/LNwODJXcvt4'`           | `str`          | YouTube 视频的 URL 地址。                                |
-| 流媒体 ✅     | `'rtsp://example.com/media.mp4'`           | `str`          | RTSP, RTMP, TCP 或 IP 地址等流协议的 URL 地址。               |
-| 多流媒体 ✅    | `'list.streams'`                           | `str` 或 `Path` | 一个流 URL 每行的 `*.streams` 文本文件，例如 8 个流将以 8 的批处理大小运行。 |
+| 来源        | 参数                                       | 类型            | 备注                                                                         |
+| ----------- | ------------------------------------------ | --------------- | ---------------------------------------------------------------------------- |
+| 图像        | `'image.jpg'`                              | `str` 或 `Path` | 单个图像文件。                                                               |
+| URL         | `'https://ultralytics.com/images/bus.jpg'` | `str`           | 图像的 URL 地址。                                                            |
+| 截屏        | `'screen'`                                 | `str`           | 截取屏幕图像。                                                               |
+| PIL         | `Image.open('im.jpg')`                     | `PIL.Image`     | RGB 通道的 HWC 格式图像。                                                    |
+| OpenCV      | `cv2.imread('im.jpg')`                     | `np.ndarray`    | BGR 通道的 HWC 格式图像 `uint8 (0-255)`。                                    |
+| numpy       | `np.zeros((640,1280,3))`                   | `np.ndarray`    | BGR 通道的 HWC 格式图像 `uint8 (0-255)`。                                    |
+| torch       | `torch.zeros(16,3,320,640)`                | `torch.Tensor`  | RGB 通道的 BCHW 格式图像 `float32 (0.0-1.0)`。                               |
+| CSV         | `'sources.csv'`                            | `str` 或 `Path` | 包含图像、视频或目录路径的 CSV 文件。                                        |
+| 视频 ✅     | `'video.mp4'`                              | `str` 或 `Path` | 如 MP4, AVI 等格式的视频文件。                                               |
+| 目录 ✅     | `'path/'`                                  | `str` 或 `Path` | 包含图像或视频文件的目录路径。                                               |
+| 通配符 ✅   | `'path/*.jpg'`                             | `str`           | 匹配多个文件的通配符模式。使用 `*` 字符作为通配符。                          |
+| YouTube ✅  | `'https://youtu.be/LNwODJXcvt4'`           | `str`           | YouTube 视频的 URL 地址。                                                    |
+| 流媒体 ✅   | `'rtsp://example.com/media.mp4'`           | `str`           | RTSP, RTMP, TCP 或 IP 地址等流协议的 URL 地址。                              |
+| 多流媒体 ✅ | `'list.streams'`                           | `str` 或 `Path` | 一个流 URL 每行的 `*.streams` 文本文件，例如 8 个流将以 8 的批处理大小运行。 |
 
 下面为每种来源类型使用代码的示例：
 
@@ -123,10 +123,10 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
         from ultralytics import YOLO
 
         # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # 定义图像文件的路径
-        source = 'path/to/image.jpg'
+        source = "path/to/image.jpg"
 
         # 对来源进行推理
         results = model(source)  # Results 对象列表
@@ -138,10 +138,10 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
         from ultralytics import YOLO
 
         # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # 定义当前截屏为来源
-        source = 'screen'
+        source = "screen"
 
         # 对来源进行推理
         results = model(source)  # Results 对象列表
@@ -153,10 +153,10 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
         from ultralytics import YOLO
 
         # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # 定义远程图像或视频 URL
-        source = 'https://ultralytics.com/images/bus.jpg'
+        source = "https://ultralytics.com/images/bus.jpg"
 
         # 对来源进行推理
         results = model(source)  # Results 对象列表
@@ -166,13 +166,14 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
         对使用 Python Imaging Library (PIL) 打开的图像进行推理。
         ```python
         from PIL import Image
+
         from ultralytics import YOLO
 
         # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # 使用 PIL 打开图像
-        source = Image.open('path/to/image.jpg')
+        source = Image.open("path/to/image.jpg")
 
         # 对来源进行推理
         results = model(source)  # Results 对象列表
@@ -182,13 +183,14 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
         对使用 OpenCV 读取的图像进行推理。
         ```python
         import cv2
+
         from ultralytics import YOLO
 
         # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # 使用 OpenCV 读取图像
-        source = cv2.imread('path/to/image.jpg')
+        source = cv2.imread("path/to/image.jpg")
 
         # 对来源进行推理
         results = model(source)  # Results 对象列表
@@ -198,13 +200,14 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
         对表示为 numpy 数组的图像进行推理。
         ```python
         import numpy as np
+
         from ultralytics import YOLO
 
         # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # 创建一个 HWC 形状 (640, 640, 3) 的随机 numpy 数组，数值范围 [0, 255] 类型为 uint8
-        source = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype='uint8')
+        source = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype="uint8")
 
         # 对来源进行推理
         results = model(source)  # Results 对象列表
@@ -214,10 +217,11 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
         对表示为 PyTorch 张量的图像进行推理。
         ```python
         import torch
+
         from ultralytics import YOLO
 
         # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # 创建一个 BCHW 形状 (1, 3, 640, 640) 的随机 torch 张量，数值范围 [0, 1] 类型为 float32
         source = torch.rand(1, 3, 640, 640, dtype=torch.float32)
@@ -229,14 +233,13 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
     === "CSV"
         对 CSV 文件中列出的图像、URLs、视频和目录进行推理。
         ```python
-        import torch
         from ultralytics import YOLO
 
         # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # 定义一个包含图像、URLs、视频和目录路径的 CSV 文件路径
-        source = 'path/to/file.csv'
+        source = "path/to/file.csv"
 
         # 对来源进行推理
         results = model(source)  # Results 对象列表
@@ -248,10 +251,10 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
         from ultralytics import YOLO
 
         # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # 定义视频文件路径
-        source = 'path/to/video.mp4'
+        source = "path/to/video.mp4"
 
         # 对来源进行推理
         results = model(source, stream=True)  # Results 对象的生成器
@@ -263,10 +266,10 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
         from ultralytics import YOLO
 
         # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # 定义包含图像和视频文件用于推理的目录路径
-        source = 'path/to/dir'
+        source = "path/to/dir"
 
         # 对来源进行推理
         results = model(source, stream=True)  # Results 对象的生成器
@@ -278,13 +281,13 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
         from ultralytics import YOLO
 
         # 加载预训练的 YOLOv8n 模型
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # 定义一个目录下所有 JPG 文件的通配符搜索
-        source = 'path/to/dir/*.jpg'
+        source = "path/to/dir/*.jpg"
 
         # 或定义一个包括子目录的所有 JPG 文件的递归通配符搜索
-        source = 'path/to/dir/**/*.jpg'
+        source = "path/to/dir/**/*.jpg"
 
         # 对来源进行推理
         results = model(source, stream=True)  # Results 对象的生成器
@@ -296,10 +299,10 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
         from ultralytics import YOLO
 
         # 加载预训练的YOLOv8n模型
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # 定义源为YouTube视频URL
-        source = 'https://youtu.be/LNwODJXcvt4'
+        source = "https://youtu.be/LNwODJXcvt4"
 
         # 在源上运行推理
         results = model(source, stream=True)  # Results对象的生成器
@@ -311,13 +314,13 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
         from ultralytics import YOLO
 
         # 加载预训练的YOLOv8n模型
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # 单流媒体源批大小1推理
-        source = 'rtsp://example.com/media.mp4'  # RTSP、RTMP、TCP或IP流媒体地址
+        source = "rtsp://example.com/media.mp4"  # RTSP、RTMP、TCP或IP流媒体地址
 
         # 多个流媒体源的批量推理（例如，8个流的批大小为8）
-        source = 'path/to/list.streams'  # *.streams文本文件，每行一个流媒体地址
+        source = "path/to/list.streams"  # *.streams文本文件，每行一个流媒体地址
 
         # 在源上运行推理
         results = model(source, stream=True)  # Results对象的生成器
@@ -333,39 +336,39 @@ YOLOv8 可以处理推理输入的不同类型，如下表所示。来源包括�
     from ultralytics import YOLO
 
     # 加载预训练的YOLOv8n模型
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # 在'bus.jpg'上运行推理，并附加参数
-    model.predict('bus.jpg', save=True, imgsz=320, conf=0.5)
+    model.predict("bus.jpg", save=True, imgsz=320, conf=0.5)
     ```
 
 支持的所有参数：
 
-| 名称              | 类型             | 默认值                    | 描述                                       |
-|-----------------|----------------|------------------------|------------------------------------------|
-| `source`        | `str`          | `'ultralytics/assets'` | 图像或视频的源目录                                |
-| `conf`          | `float`        | `0.25`                 | 检测对象的置信度阈值                               |
-| `iou`           | `float`        | `0.7`                  | 用于NMS的交并比（IoU）阈值                         |
-| `imgsz`         | `int or tuple` | `640`                  | 图像大小，可以是标量或（h, w）列表，例如（640, 480）         |
-| `half`          | `bool`         | `False`                | 使用半精度（FP16）                              |
-| `device`        | `None or str`  | `None`                 | 运行设备，例如 cuda device=0/1/2/3 或 device=cpu |
-| `show`          | `bool`         | `False`                | 如果可能，显示结果                                |
-| `save`          | `bool`         | `False`                | 保存带有结果的图像                                |
-| `save_txt`      | `bool`         | `False`                | 将结果保存为.txt文件                             |
+| 名称            | 类型           | 默认值                 | 描述                                                 |
+| --------------- | -------------- | ---------------------- | ---------------------------------------------------- |
+| `source`        | `str`          | `'ultralytics/assets'` | 图像或视频的源目录                                   |
+| `conf`          | `float`        | `0.25`                 | 检测对象的置信度阈值                                 |
+| `iou`           | `float`        | `0.7`                  | 用于NMS的交并比（IoU）阈值                           |
+| `imgsz`         | `int or tuple` | `640`                  | 图像大小，可以是标量或（h, w）列表，例如（640, 480） |
+| `half`          | `bool`         | `False`                | 使用半精度（FP16）                                   |
+| `device`        | `None or str`  | `None`                 | 运行设备，例如 cuda device=0/1/2/3 或 device=cpu     |
+| `show`          | `bool`         | `False`                | 如果可能，显示结果                                   |
+| `save`          | `bool`         | `False`                | 保存带有结果的图像                                   |
+| `save_txt`      | `bool`         | `False`                | 将结果保存为.txt文件                                 |
 | `save_conf`     | `bool`         | `False`                | 保存带有置信度分数的结果                             |
-| `save_crop`     | `bool`         | `False`                | 保存带有结果的裁剪图像                              |
-| `show_labels`   | `bool`         | `True`                 | 隐藏标签                                     |
-| `show_conf`     | `bool`         | `True`                 | 隐藏置信度分数                                  |
-| `max_det`       | `int`          | `300`                  | 每张图像的最大检测数量                              |
-| `vid_stride`    | `bool`         | `False`                | 视频帧速率跳跃                                  |
-| `stream_buffer` | `bool`         | `False`                | 缓冲所有流媒体帧（True）或返回最新帧（False）              |
-| `line_width`    | `None or int`  | `None`                 | 边框线宽度。如果为None，则按图像大小缩放。                  |
-| `visualize`     | `bool`         | `False`                | 可视化模型特征                                  |
-| `augment`       | `bool`         | `False`                | 应用图像增强到预测源                               |
-| `agnostic_nms`  | `bool`         | `False`                | 类别不敏感的NMS                                |
-| `retina_masks`  | `bool`         | `False`                | 使用高分辨率分割掩码                               |
+| `save_crop`     | `bool`         | `False`                | 保存带有结果的裁剪图像                               |
+| `show_labels`   | `bool`         | `True`                 | 隐藏标签                                             |
+| `show_conf`     | `bool`         | `True`                 | 隐藏置信度分数                                       |
+| `max_det`       | `int`          | `300`                  | 每张图像的最大检测数量                               |
+| `vid_stride`    | `bool`         | `False`                | 视频帧速率跳跃                                       |
+| `stream_buffer` | `bool`         | `False`                | 缓冲所有流媒体帧（True）或返回最新帧（False）        |
+| `line_width`    | `None or int`  | `None`                 | 边框线宽度。如果为None，则按图像大小缩放。           |
+| `visualize`     | `bool`         | `False`                | 可视化模型特征                                       |
+| `augment`       | `bool`         | `False`                | 应用图像增强到预测源                                 |
+| `agnostic_nms`  | `bool`         | `False`                | 类别不敏感的NMS                                      |
+| `retina_masks`  | `bool`         | `False`                | 使用高分辨率分割掩码                                 |
 | `classes`       | `None or list` | `None`                 | 按类别过滤结果，例如 classes=0，或 classes=[0,2,3]   |
-| `boxes`         | `bool`         | `True`                 | 在分割预测中显示框                                |
+| `boxes`         | `bool`         | `True`                 | 在分割预测中显示框                                   |
 
 ## 图像和视频格式
 
@@ -375,37 +378,37 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 下表包含了Ultralytics支持的有效图像格式。
 
-| 图像后缀  | 示例预测命令                           | 参考链接                                                                          |
-|-------|----------------------------------|-------------------------------------------------------------------------------|
-| .bmp  | `yolo predict source=image.bmp`  | [Microsoft BMP文件格式](https://en.wikipedia.org/wiki/BMP_file_format)            |
-| .dng  | `yolo predict source=image.dng`  | [Adobe DNG](https://www.adobe.com/products/photoshop/extend.displayTab2.html) |
-| .jpeg | `yolo predict source=image.jpeg` | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
-| .jpg  | `yolo predict source=image.jpg`  | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
-| .mpo  | `yolo predict source=image.mpo`  | [多图像对象](https://fileinfo.com/extension/mpo)                                   |
-| .png  | `yolo predict source=image.png`  | [便携式网络图形](https://en.wikipedia.org/wiki/PNG)                                  |
-| .tif  | `yolo predict source=image.tif`  | [标签图像文件格式](https://en.wikipedia.org/wiki/TIFF)                                |
-| .tiff | `yolo predict source=image.tiff` | [标签图像文件格式](https://en.wikipedia.org/wiki/TIFF)                                |
-| .webp | `yolo predict source=image.webp` | [WebP](https://en.wikipedia.org/wiki/WebP)                                    |
-| .pfm  | `yolo predict source=image.pfm`  | [便携式浮点映射](https://en.wikipedia.org/wiki/Netpbm#File_formats)                  |
+| 图像后缀 | 示例预测命令                     | 参考链接                                                                      |
+| -------- | -------------------------------- | ----------------------------------------------------------------------------- |
+| .bmp     | `yolo predict source=image.bmp`  | [Microsoft BMP文件格式](https://en.wikipedia.org/wiki/BMP_file_format)        |
+| .dng     | `yolo predict source=image.dng`  | [Adobe DNG](https://www.adobe.com/products/photoshop/extend.displayTab2.html) |
+| .jpeg    | `yolo predict source=image.jpeg` | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
+| .jpg     | `yolo predict source=image.jpg`  | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
+| .mpo     | `yolo predict source=image.mpo`  | [多图像对象](https://fileinfo.com/extension/mpo)                              |
+| .png     | `yolo predict source=image.png`  | [便携式网络图形](https://en.wikipedia.org/wiki/PNG)                           |
+| .tif     | `yolo predict source=image.tif`  | [标签图像文件格式](https://en.wikipedia.org/wiki/TIFF)                        |
+| .tiff    | `yolo predict source=image.tiff` | [标签图像文件格式](https://en.wikipedia.org/wiki/TIFF)                        |
+| .webp    | `yolo predict source=image.webp` | [WebP](https://en.wikipedia.org/wiki/WebP)                                    |
+| .pfm     | `yolo predict source=image.pfm`  | [便携式浮点映射](https://en.wikipedia.org/wiki/Netpbm#File_formats)           |
 
 ### 视频
 
 以下表格包含有效的Ultralytics视频格式。
 
-| 视频后缀名 | 示例预测命令                           | 参考链接                                                                 |
-|-------|----------------------------------|----------------------------------------------------------------------|
-| .asf  | `yolo predict source=video.asf`  | [高级系统格式](https://en.wikipedia.org/wiki/Advanced_Systems_Format)      |
-| .avi  | `yolo predict source=video.avi`  | [音视频交错](https://en.wikipedia.org/wiki/Audio_Video_Interleave)        |
-| .gif  | `yolo predict source=video.gif`  | [图形交换格式](https://en.wikipedia.org/wiki/GIF)                          |
-| .m4v  | `yolo predict source=video.m4v`  | [MPEG-4第14部分](https://en.wikipedia.org/wiki/M4V)                     |
-| .mkv  | `yolo predict source=video.mkv`  | [Matroska](https://en.wikipedia.org/wiki/Matroska)                   |
-| .mov  | `yolo predict source=video.mov`  | [QuickTime文件格式](https://en.wikipedia.org/wiki/QuickTime_File_Format) |
-| .mp4  | `yolo predict source=video.mp4`  | [MPEG-4第14部分](https://en.wikipedia.org/wiki/MPEG-4_Part_14)          |
-| .mpeg | `yolo predict source=video.mpeg` | [MPEG-1第2部分](https://en.wikipedia.org/wiki/MPEG-1)                   |
-| .mpg  | `yolo predict source=video.mpg`  | [MPEG-1第2部分](https://en.wikipedia.org/wiki/MPEG-1)                   |
-| .ts   | `yolo predict source=video.ts`   | [MPEG传输流](https://en.wikipedia.org/wiki/MPEG_transport_stream)       |
-| .wmv  | `yolo predict source=video.wmv`  | [Windows媒体视频](https://en.wikipedia.org/wiki/Windows_Media_Video)     |
-| .webm | `yolo predict source=video.webm` | [WebM项目](https://en.wikipedia.org/wiki/WebM)                         |
+| 视频后缀名 | 示例预测命令                     | 参考链接                                                                 |
+| ---------- | -------------------------------- | ------------------------------------------------------------------------ |
+| .asf       | `yolo predict source=video.asf`  | [高级系统格式](https://en.wikipedia.org/wiki/Advanced_Systems_Format)    |
+| .avi       | `yolo predict source=video.avi`  | [音视频交错](https://en.wikipedia.org/wiki/Audio_Video_Interleave)       |
+| .gif       | `yolo predict source=video.gif`  | [图形交换格式](https://en.wikipedia.org/wiki/GIF)                        |
+| .m4v       | `yolo predict source=video.m4v`  | [MPEG-4第14部分](https://en.wikipedia.org/wiki/M4V)                      |
+| .mkv       | `yolo predict source=video.mkv`  | [Matroska](https://en.wikipedia.org/wiki/Matroska)                       |
+| .mov       | `yolo predict source=video.mov`  | [QuickTime文件格式](https://en.wikipedia.org/wiki/QuickTime_File_Format) |
+| .mp4       | `yolo predict source=video.mp4`  | [MPEG-4第14部分](https://en.wikipedia.org/wiki/MPEG-4_Part_14)           |
+| .mpeg      | `yolo predict source=video.mpeg` | [MPEG-1第2部分](https://en.wikipedia.org/wiki/MPEG-1)                    |
+| .mpg       | `yolo predict source=video.mpg`  | [MPEG-1第2部分](https://en.wikipedia.org/wiki/MPEG-1)                    |
+| .ts        | `yolo predict source=video.ts`   | [MPEG传输流](https://en.wikipedia.org/wiki/MPEG_transport_stream)        |
+| .wmv       | `yolo predict source=video.wmv`  | [Windows媒体视频](https://en.wikipedia.org/wiki/Windows_Media_Video)     |
+| .webm      | `yolo predict source=video.webm` | [WebM项目](https://en.wikipedia.org/wiki/WebM)                           |
 
 ## 处理结果
 
@@ -417,45 +420,45 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
     from ultralytics import YOLO
 
     # 加载预训练的YOLOv8n模型
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # 在图片上运行推理
-    results = model('bus.jpg')  # 1个Results对象的列表
-    results = model(['bus.jpg', 'zidane.jpg'])  # 2个Results对象的列表
+    results = model("bus.jpg")  # 1个Results对象的列表
+    results = model(["bus.jpg", "zidane.jpg"])  # 2个Results对象的列表
     ```
 
 `Results`对象具有以下属性：
 
-| 属性           | 类型              | 描述                           |
-|--------------|-----------------|------------------------------|
-| `orig_img`   | `numpy.ndarray` | 原始图像的numpy数组。                |
-| `orig_shape` | `tuple`         | 原始图像的形状，格式为（高度，宽度）。          |
-| `boxes`      | `Boxes, 可选`     | 包含检测边界框的Boxes对象。             |
-| `masks`      | `Masks, 可选`     | 包含检测掩码的Masks对象。              |
-| `probs`      | `Probs, 可选`     | 包含每个类别的概率的Probs对象，用于分类任务。    |
-| `keypoints`  | `Keypoints, 可选` | 包含每个对象检测到的关键点的Keypoints对象。   |
-| `speed`      | `dict`          | 以毫秒为单位的每张图片的预处理、推理和后处理速度的字典。 |
-| `names`      | `dict`          | 类别名称的字典。                     |
-| `path`       | `str`           | 图像文件的路径。                     |
+| 属性         | 类型              | 描述                                                     |
+| ------------ | ----------------- | -------------------------------------------------------- |
+| `orig_img`   | `numpy.ndarray`   | 原始图像的numpy数组。                                    |
+| `orig_shape` | `tuple`           | 原始图像的形状，格式为（高度，宽度）。                   |
+| `boxes`      | `Boxes, 可选`     | 包含检测边界框的Boxes对象。                              |
+| `masks`      | `Masks, 可选`     | 包含检测掩码的Masks对象。                                |
+| `probs`      | `Probs, 可选`     | 包含每个类别的概率的Probs对象，用于分类任务。            |
+| `keypoints`  | `Keypoints, 可选` | 包含每个对象检测到的关键点的Keypoints对象。              |
+| `speed`      | `dict`            | 以毫秒为单位的每张图片的预处理、推理和后处理速度的字典。 |
+| `names`      | `dict`            | 类别名称的字典。                                         |
+| `path`       | `str`             | 图像文件的路径。                                         |
 
 `Results`对象具有以下方法：
 
-| 方法              | 返回类型            | 描述                                     |
-|-----------------|-----------------|----------------------------------------|
-| `__getitem__()` | `Results`       | 返回指定索引的Results对象。                      |
-| `__len__()`     | `int`           | 返回Results对象中的检测数量。                     |
-| `update()`      | `None`          | 更新Results对象的boxes, masks和probs属性。      |
-| `cpu()`         | `Results`       | 将所有张量移动到CPU内存上的Results对象的副本。           |
-| `numpy()`       | `Results`       | 将所有张量转换为numpy数组的Results对象的副本。          |
-| `cuda()`        | `Results`       | 将所有张量移动到GPU内存上的Results对象的副本。           |
-| `to()`          | `Results`       | 返回将张量移动到指定设备和dtype的Results对象的副本。       |
-| `new()`         | `Results`       | 返回一个带有相同图像、路径和名称的新Results对象。           |
-| `keys()`        | `List[str]`     | 返回非空属性名称的列表。                           |
-| `plot()`        | `numpy.ndarray` | 绘制检测结果。返回带有注释的图像的numpy数组。              |
-| `verbose()`     | `str`           | 返回每个任务的日志字符串。                          |
-| `save_txt()`    | `None`          | 将预测保存到txt文件中。                          |
-| `save_crop()`   | `None`          | 将裁剪的预测保存到`save_dir/cls/file_name.jpg`。 |
-| `tojson()`      | `None`          | 将对象转换为JSON格式。                          |
+| 方法            | 返回类型        | 描述                                                 |
+| --------------- | --------------- | ---------------------------------------------------- |
+| `__getitem__()` | `Results`       | 返回指定索引的Results对象。                          |
+| `__len__()`     | `int`           | 返回Results对象中的检测数量。                        |
+| `update()`      | `None`          | 更新Results对象的boxes, masks和probs属性。           |
+| `cpu()`         | `Results`       | 将所有张量移动到CPU内存上的Results对象的副本。       |
+| `numpy()`       | `Results`       | 将所有张量转换为numpy数组的Results对象的副本。       |
+| `cuda()`        | `Results`       | 将所有张量移动到GPU内存上的Results对象的副本。       |
+| `to()`          | `Results`       | 返回将张量移动到指定设备和dtype的Results对象的副本。 |
+| `new()`         | `Results`       | 返回一个带有相同图像、路径和名称的新Results对象。    |
+| `keys()`        | `List[str]`     | 返回非空属性名称的列表。                             |
+| `plot()`        | `numpy.ndarray` | 绘制检测结果。返回带有注释的图像的numpy数组。        |
+| `verbose()`     | `str`           | 返回每个任务的日志字符串。                           |
+| `save_txt()`    | `None`          | 将预测保存到txt文件中。                              |
+| `save_crop()`   | `None`          | 将裁剪的预测保存到`save_dir/cls/file_name.jpg`。     |
+| `tojson()`      | `None`          | 将对象转换为JSON格式。                               |
 
 有关更多详细信息，请参阅`Results`类的[文档](/../reference/engine/results.md)。
 
@@ -469,10 +472,10 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
     from ultralytics import YOLO
 
     # 加载预训练的YOLOv8n模型
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # 在图片上运行推理
-    results = model('bus.jpg')
+    results = model("bus.jpg")
 
     # 查看结果
     for r in results:
@@ -481,17 +484,17 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 以下是`Boxes`类方法和属性的表格，包括它们的名称、类型和description:
 
-| 名称        | 类型                  | 描述                      |
-|-----------|---------------------|-------------------------|
-| `cpu()`   | 方法                  | 将对象移动到CPU内存。            |
-| `numpy()` | 方法                  | 将对象转换为numpy数组。          |
-| `cuda()`  | 方法                  | 将对象移动到CUDA内存。           |
-| `to()`    | 方法                  | 将对象移动到指定的设备。            |
-| `xyxy`    | 属性 (`torch.Tensor`) | 以xyxy格式返回边界框。           |
-| `conf`    | 属性 (`torch.Tensor`) | 返回边界框的置信度值。             |
-| `cls`     | 属性 (`torch.Tensor`) | 返回边界框的类别值。              |
-| `id`      | 属性 (`torch.Tensor`) | 返回边界框的跟踪ID（如果可用）。       |
-| `xywh`    | 属性 (`torch.Tensor`) | 以xywh格式返回边界框。           |
+| 名称      | 类型                  | 描述                                       |
+| --------- | --------------------- | ------------------------------------------ |
+| `cpu()`   | 方法                  | 将对象移动到CPU内存。                      |
+| `numpy()` | 方法                  | 将对象转换为numpy数组。                    |
+| `cuda()`  | 方法                  | 将对象移动到CUDA内存。                     |
+| `to()`    | 方法                  | 将对象移动到指定的设备。                   |
+| `xyxy`    | 属性 (`torch.Tensor`) | 以xyxy格式返回边界框。                     |
+| `conf`    | 属性 (`torch.Tensor`) | 返回边界框的置信度值。                     |
+| `cls`     | 属性 (`torch.Tensor`) | 返回边界框的类别值。                       |
+| `id`      | 属性 (`torch.Tensor`) | 返回边界框的跟踪ID（如果可用）。           |
+| `xywh`    | 属性 (`torch.Tensor`) | 以xywh格式返回边界框。                     |
 | `xyxyn`   | 属性 (`torch.Tensor`) | 以原始图像大小归一化的xyxy格式返回边界框。 |
 | `xywhn`   | 属性 (`torch.Tensor`) | 以原始图像大小归一化的xywh格式返回边界框。 |
 
@@ -507,10 +510,10 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
     from ultralytics import YOLO
 
     # 加载预训练的YOLOv8n-seg分割模型
-    model = YOLO('yolov8n-seg.pt')
+    model = YOLO("yolov8n-seg.pt")
 
     # 在图片上运行推理
-    results = model('bus.jpg')  # results列表
+    results = model("bus.jpg")  # results列表
 
     # 查看结果
     for r in results:
@@ -519,14 +522,14 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 以下是`Masks`类方法和属性的表格，包括它们的名称、类型和description:
 
-| 名称        | 类型                  | 描述                   |
-|-----------|---------------------|----------------------|
-| `cpu()`   | 方法                  | 将掩码张量返回到CPU内存。       |
-| `numpy()` | 方法                  | 将掩码张量转换为numpy数组。     |
-| `cuda()`  | 方法                  | 将掩码张量返回到GPU内存。       |
+| 名称      | 类型                  | 描述                                |
+| --------- | --------------------- | ----------------------------------- |
+| `cpu()`   | 方法                  | 将掩码张量返回到CPU内存。           |
+| `numpy()` | 方法                  | 将掩码张量转换为numpy数组。         |
+| `cuda()`  | 方法                  | 将掩码张量返回到GPU内存。           |
 | `to()`    | 方法                  | 将掩码张量带有指定设备和dtype返回。 |
 | `xyn`     | 属性 (`torch.Tensor`) | 以张量表示的归一化分段的列表。      |
-| `xy`      | 属性 (`torch.Tensor`) | 以像素坐标表示的分段的张量列表。     |
+| `xy`      | 属性 (`torch.Tensor`) | 以像素坐标表示的分段的张量列表。    |
 
 有关更多详细信息，请参阅`Masks`类的[文档](/../reference/engine/results.md)。
 
@@ -540,10 +543,10 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
     from ultralytics import YOLO
 
     # 加载预训练的YOLOv8n-pose 姿态模型
-    model = YOLO('yolov8n-pose.pt')
+    model = YOLO("yolov8n-pose.pt")
 
     # 在图像上运行推理
-    results = model('bus.jpg')  # 结果列表
+    results = model("bus.jpg")  # 结果列表
 
     # 查看结果
     for r in results:
@@ -552,14 +555,14 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 以下是`Keypoints`类方法和属性的表格，包括它们的名称、类型和description:
 
-| 名称        | 类型                 | 描述                        |
-|-----------|--------------------|---------------------------|
-| `cpu()`   | 方法                 | 返回CPU内存上的关键点张量。           |
-| `numpy()` | 方法                 | 返回作为numpy数组的关键点张量。        |
-| `cuda()`  | 方法                 | 返回GPU内存上的关键点张量。           |
-| `to()`    | 方法                 | 返回指定设备和dtype的关键点张量。       |
-| `xyn`     | 属性（`torch.Tensor`） | 规范化关键点的列表，表示为张量。          |
-| `xy`      | 属性（`torch.Tensor`） | 以像素坐标表示的关键点列表，表示为张量。      |
+| 名称      | 类型                   | 描述                                           |
+| --------- | ---------------------- | ---------------------------------------------- |
+| `cpu()`   | 方法                   | 返回CPU内存上的关键点张量。                    |
+| `numpy()` | 方法                   | 返回作为numpy数组的关键点张量。                |
+| `cuda()`  | 方法                   | 返回GPU内存上的关键点张量。                    |
+| `to()`    | 方法                   | 返回指定设备和dtype的关键点张量。              |
+| `xyn`     | 属性（`torch.Tensor`） | 规范化关键点的列表，表示为张量。               |
+| `xy`      | 属性（`torch.Tensor`） | 以像素坐标表示的关键点列表，表示为张量。       |
 | `conf`    | 属性（`torch.Tensor`） | 返回关键点的置信度值（如果有），否则返回None。 |
 
 有关更多详细信息，请参阅`Keypoints`类[文档](/../reference/engine/results.md)。
@@ -574,10 +577,10 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
     from ultralytics import YOLO
 
     # 加载预训练的YOLOv8n-cls 分类模型
-    model = YOLO('yolov8n-cls.pt')
+    model = YOLO("yolov8n-cls.pt")
 
     # 在图像上运行推理
-    results = model('bus.jpg')  # 结果列表
+    results = model("bus.jpg")  # 结果列表
 
     # 查看结果
     for r in results:
@@ -586,16 +589,16 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
 以下是`Probs`类的方法和属性的表格总结：
 
-| 名称         | 类型                 | 描述                      |
-|------------|--------------------|-------------------------|
-| `cpu()`    | 方法                 | 返回CPU内存上的概率张量的副本。       |
-| `numpy()`  | 方法                 | 返回概率张量的副本作为numpy数组。     |
-| `cuda()`   | 方法                 | 返回GPU内存上的概率张量的副本。       |
-| `to()`     | 方法                 | 返回带有指定设备和dtype的概率张量的副本。 |
-| `top1`     | 属性（`int`）          | 第1类的索引。                 |
-| `top5`     | 属性（`list[int]`）    | 前5类的索引。                 |
-| `top1conf` | 属性（`torch.Tensor`） | 第1类的置信度。                |
-| `top5conf` | 属性（`torch.Tensor`） | 前5类的置信度。                |
+| 名称       | 类型                   | 描述                                      |
+| ---------- | ---------------------- | ----------------------------------------- |
+| `cpu()`    | 方法                   | 返回CPU内存上的概率张量的副本。           |
+| `numpy()`  | 方法                   | 返回概率张量的副本作为numpy数组。         |
+| `cuda()`   | 方法                   | 返回GPU内存上的概率张量的副本。           |
+| `to()`     | 方法                   | 返回带有指定设备和dtype的概率张量的副本。 |
+| `top1`     | 属性（`int`）          | 第1类的索引。                             |
+| `top5`     | 属性（`list[int]`）    | 前5类的索引。                             |
+| `top1conf` | 属性（`torch.Tensor`） | 第1类的置信度。                           |
+| `top5conf` | 属性（`torch.Tensor`） | 前5类的置信度。                           |
 
 有关更多详细信息，请参阅`Probs`类[文档](/../reference/engine/results.md)。
 
@@ -607,20 +610,21 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
     ```python
     from PIL import Image
+
     from ultralytics import YOLO
 
     # 加载预训练的YOLOv8n模型
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # 在'bus.jpg'上运行推理
-    results = model('bus.jpg')  # 结果列表
+    results = model("bus.jpg")  # 结果列表
 
     # 展示结果
     for r in results:
         im_array = r.plot()  # 绘制包含预测结果的BGR numpy数组
         im = Image.fromarray(im_array[..., ::-1])  # RGB PIL图像
         im.show()  # 显示图像
-        im.save('results.jpg')  # 保存图像
+        im.save("results.jpg")  # 保存图像
     ```
 
     `plot()`方法支持以下参数：
@@ -651,14 +655,17 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
     在每个线程内实例化单个模型以实现线程安全的推理：
     ```python
-    from ultralytics import YOLO
     from threading import Thread
+
+    from ultralytics import YOLO
+
 
     def thread_safe_predict(image_path):
         # 在线程内实例化新模型
         local_model = YOLO("yolov8n.pt")
         results = local_model.predict(image_path)
         # 处理结果
+
 
     # 启动拥有各自模型实例的线程
     Thread(target=thread_safe_predict, args=("image1.jpg",)).start()
@@ -675,10 +682,11 @@ YOLOv8支持多种图像和视频格式，如[data/utils.py](https://github.com/
 
     ```python
     import cv2
+
     from ultralytics import YOLO
 
     # 加载YOLOv8模型
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # 打开视频文件
     video_path = "path/to/your/video/file.mp4"

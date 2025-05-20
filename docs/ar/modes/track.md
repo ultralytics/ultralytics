@@ -33,7 +33,7 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
 ## تطبيقات في العالم الحقيقي
 
 |               النقل                |          البيع بالتجزئة          |       الاستزراع المائي       |
-|:----------------------------------:|:--------------------------------:|:----------------------------:|
+| :--------------------------------: | :------------------------------: | :--------------------------: |
 | ![Vehicle Tracking][vehicle track] | ![People Tracking][people track] | ![Fish Tracking][fish track] |
 |           تتبع المركبات            |           تتبع الأشخاص           |         تتبع الأسماك         |
 
@@ -49,8 +49,8 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
 
 يدعم Ultralytics YOLO الخوارزميات التالية للتتبع. يمكن تمكينها عن طريق تمرير ملف تكوين YAML ذي الصلة مثل "tracker=tracker_type.yaml":
 
-* [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - استخدم `botsort.yaml` لتمكين هذا المتتبع.
-* [ByteTrack](https://github.com/ifzhang/ByteTrack) - استخدم `bytetrack.yaml` لتمكين هذا المتتبع.
+- [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - استخدم `botsort.yaml` لتمكين هذا المتتبع.
+- [ByteTrack](https://github.com/ifzhang/ByteTrack) - استخدم `bytetrack.yaml` لتمكين هذا المتتبع.
 
 المتتبع الافتراضي هو BoT-SORT.
 
@@ -66,24 +66,26 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
         from ultralytics import YOLO
 
         # قم بتحميل نموذج رسمي أو مخصص
-        model = YOLO('yolov8n.pt')  # قم بتحميل نموذج رسمي Detect
-        model = YOLO('yolov8n-seg.pt')  # قم بتحميل نموذج رسمي Segment
-        model = YOLO('yolov8n-pose.pt')  # قم بتحميل نموذج رسمي Pose
-        model = YOLO('path/to/best.pt')  # قم بتحميل نموذج مخصص مدرب
+        model = YOLO("yolov8n.pt")  # قم بتحميل نموذج رسمي Detect
+        model = YOLO("yolov8n-seg.pt")  # قم بتحميل نموذج رسمي Segment
+        model = YOLO("yolov8n-pose.pt")  # قم بتحميل نموذج رسمي Pose
+        model = YOLO("path/to/best.pt")  # قم بتحميل نموذج مخصص مدرب
 
         # قم بتنفيذ التتبع باستخدام النموذج
         results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)  # التتبع باستخدام المتتبع الافتراضي
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")  # التتبع باستخدام متتبع ByteTrack
+        results = model.track(
+            source="https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml"
+        )  # التتبع باستخدام متتبع ByteTrack
         ```
 
     === "CLI"
 
         ```bash
         # قم بتنفيذ التتبع باستخدام مختلف النماذج باستخدام واجهة سطر الأوامر
-        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4"  # نموذج Detect رسمي
+        yolo track model=yolov8n.pt source="https://youtu.be/LNwODJXcvt4"      # نموذج Detect رسمي
         yolo track model=yolov8n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # نموذج Segment رسمي
-        yolo track model=yolov8n-pose.pt source="https://youtu.be/LNwODJXcvt4"  # نموذج Pose رسمي
-        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4"  # تم تدريب نموذج مخصص
+        yolo track model=yolov8n-pose.pt source="https://youtu.be/LNwODJXcvt4" # نموذج Pose رسمي
+        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4" # تم تدريب نموذج مخصص
 
         # تتبع عن طريق ByteTrack متتبع
         yolo track model=path/to/best.pt tracker="bytetrack.yaml"
@@ -105,7 +107,7 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
         from ultralytics import YOLO
 
         # قم بتكوين معلمات التتبع وقم بتشغيل التتبع
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
         results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
         ```
 
@@ -128,8 +130,8 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
         from ultralytics import YOLO
 
         # قم بتحميل النموذج وتشغيل التتبع باستخدام ملف تكوين مخصص
-        model = YOLO('yolov8n.pt')
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker='custom_tracker.yaml')
+        model = YOLO("yolov8n.pt")
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker="custom_tracker.yaml")
         ```
 
     === "CLI"
@@ -151,10 +153,11 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
 
     ```python
     import cv2
+
     from ultralytics import YOLO
 
     # حمّل نموذج YOLOv8
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # افتح ملف الفيديو
     video_path = "path/to/video.mp4"
@@ -206,7 +209,7 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
     from ultralytics import YOLO
 
     # حمّل نموذج YOLOv8
-    model = YOLO('yolov8n.pt')
+    model = YOLO("yolov8n.pt")
 
     # افتح ملف الفيديو
     video_path = "path/to/video.mp4"
@@ -276,7 +279,9 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
 
     ```python
     import threading
+
     import cv2
+
     from ultralytics import YOLO
 
 
@@ -310,7 +315,7 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
             cv2.imshow(f"Tracking_Stream_{file_index}", res_plotted)
 
             key = cv2.waitKey(1)
-            if key == ord('q'):
+            if key == ord("q"):
                 break
 
         # إطلاق مصدري الفيديو
@@ -318,15 +323,15 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
 
 
     # حمّل النماذج
-    model1 = YOLO('yolov8n.pt')
-    model2 = YOLO('yolov8n-seg.pt')
+    model1 = YOLO("yolov8n.pt")
+    model2 = YOLO("yolov8n-seg.pt")
 
     # حدد ملفات الفيديو للمتابعين
     video_file1 = "path/to/video1.mp4"  # مسار ملف الفيديو ، 0 لكاميرا الويب
     video_file2 = 0  # مسار ملف الفيديو ، 0 لكاميرا الويب ، 1 لكاميرا خارجية
 
     # إنشاء خيوط المتابع
-    tracker_thread1 = threading.Thread(target=run_tracker_in_thread, args=(video_file1, model1 ,1), daemon=True)
+    tracker_thread1 = threading.Thread(target=run_tracker_in_thread, args=(video_file1, model1, 1), daemon=True)
     tracker_thread2 = threading.Thread(target=run_tracker_in_thread, args=(video_file2, model2, 2), daemon=True)
 
     # بدء خيوط المتابع
@@ -354,7 +359,5 @@ keywords: Ultralytics، YOLO، تتبع الكائنات، تدفقات الفي
 لنعزز معًا قدرات عملية التتبع لأجهزة Ultralytics YOLO 🙏!
 
 [vehicle track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab
-
-[people track]:  https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527
-
-[fish track]:    https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142
+[people track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527
+[fish track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142

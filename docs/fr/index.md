@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Découvrez un guide complet du modèle Ultralytics YOLOv8, un modèle de détection d'objets et de segmentation d'images à haute vitesse et haute précision. Tutoriels d'installation, de prédiction, d'entraînement et plus encore.
+description: Découvrez un guide complete du modèle Ultralytics YOLOv8, un modèle de détection d'objets et de segmentation d'images à haute vitesse et haute précision. Tutorials d'installation, de prédiction, d'entraînement et plus encore.
 keywords: Ultralytics, YOLOv8, détection d'objets, segmentation d'images, apprentissage automatique, apprentissage profond, vision par ordinateur, installation de YOLOv8, prédiction avec YOLOv8, entraînement de YOLOv8, histoire de YOLO, licences de YOLO
 ---
 
@@ -37,7 +37,7 @@ keywords: Ultralytics, YOLOv8, détection d'objets, segmentation d'images, appre
 
 Présentation d'[Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics), la dernière version du modèle réputé de détection d'objets en temps réel et de segmentation d'images. YOLOv8 est construit sur des avancées de pointe en apprentissage profond et vision par ordinateur, offrant des performances inégalées en termes de vitesse et de précision. Sa conception épurée le rend adapté à diverses applications et facilement adaptable à différentes plateformes matérielles, des appareils de bord aux API cloud.
 
-Explorez les Docs YOLOv8, une ressource complète conçue pour vous aider à comprendre et à utiliser ses fonctionnalités et capacités. Que vous soyez un praticien chevronné de l'apprentissage automatique ou nouveau dans le domaine, ce hub vise à maximiser le potentiel de YOLOv8 dans vos projets.
+Explorez les Docs YOLOv8, une resource complète conçue pour vous aider à comprendre et à utiliser ses fonctionnalités et capacités. Que vous soyez un praticien chevronné de l'apprentissage automatique ou nouveau dans le domaine, ce hub vice à maximiser le potential de YOLOv8 dans vos projects.
 
 !!! Note "Note"
 
@@ -67,7 +67,7 @@ Explorez les Docs YOLOv8, une ressource complète conçue pour vous aider à com
 
 - [YOLOv2](https://arxiv.org/abs/1612.08242), publié en 2016, a amélioré le modèle original en intégrant la normalisation par lots, les boîtes d'ancrage et les clusters de dimensions.
 - [YOLOv3](https://pjreddie.com/media/files/papers/YOLOv3.pdf), lancé en 2018, a davantage amélioré la performance du modèle en utilisant un réseau dorsal plus efficace, des ancres multiples et un pool pyramidal spatial.
-- [YOLOv4](https://arxiv.org/abs/2004.10934) a été publié en 2020, introduisant des innovations telles que l'augmentation de données Mosaic, une nouvelle tête de détection sans ancre et une nouvelle fonction de perte.
+- [YOLOv4](https://arxiv.org/abs/2004.10934) a été publié en 2020, introduisant des innovations telles que l'augmentation de données Mosaic, une nouvelle tête de détection sans ancre et une nouvelle function de perte.
 - [YOLOv5](https://github.com/ultralytics/yolov5) a encore amélioré la performance du modèle et a ajouté des fonctionnalités nouvelles telles que l'optimisation des hyperparamètres, le suivi intégré des expériences et l'export automatique vers des formats d'exportation populaires.
 - [YOLOv6](https://github.com/meituan/YOLOv6) a été rendu open-source par [Meituan](https://about.meituan.com/) en 2022 et est utilisé dans de nombreux robots de livraison autonomes de l'entreprise.
 - [YOLOv7](https://github.com/WongKinYiu/yolov7) a ajouté des tâches supplémentaires telles que l'estimation de pose sur le jeu de données de points clés COCO.
@@ -80,4 +80,4 @@ Ultralytics offre deux options de licence pour répondre aux différents cas d'u
 - **Licence AGPL-3.0** : Cette licence open source [approuvée par OSI](https://opensource.org/licenses/) est idéale pour les étudiants et les passionnés, favorisant la collaboration ouverte et le partage des connaissances. Voir le fichier [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) pour plus de détails.
 - **Licence Enterprise** : Conçue pour un usage commercial, cette licence permet l'intégration transparente des logiciels et modèles d'IA Ultralytics dans des biens et services commerciaux, en contournant les exigences open source de l'AGPL-3.0. Si votre scénario implique l'incorporation de nos solutions dans une offre commerciale, n'hésitez pas à contacter [Ultralytics Licensing](https://ultralytics.com/license).
 
-Notre stratégie de licence est conçue pour garantir que toute amélioration de nos projets open source soit restituée à la communauté. Nous tenons les principes de l'open source à cœur ❤️, et notre mission est de garantir que nos contributions puissent être utilisées et développées de manière bénéfique pour tous.
+Notre stratégie de licence est conçue pour garantir que toute amélioration de nos projects open source soit restituée à la communauté. Nous tenons les principes de l'open source à cœur ❤️, et notre mission est de garantir que nos contributions puissent être utilisées et développées de manière bénéfique pour tous.

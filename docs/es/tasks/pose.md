@@ -34,7 +34,7 @@ Aquí se muestran los modelos preentrenados de YOLOv8 Pose. Los modelos Detect, 
 Los [modelos](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) se descargan automáticamente desde el último lanzamiento de Ultralytics [release](https://github.com/ultralytics/assets/releases) en el primer uso.
 
 | Modelo                                                                                               | tamaño<br><sup>(píxeles) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | Velocidad<br><sup>CPU ONNX<br>(ms) | Velocidad<br><sup>A100 TensorRT<br>(ms) | parámetros<br><sup>(M) | FLOPs<br><sup>(B) |
-|------------------------------------------------------------------------------------------------------|--------------------------|-----------------------|--------------------|------------------------------------|-----------------------------------------|------------------------|-------------------|
+| ---------------------------------------------------------------------------------------------------- | ------------------------ | --------------------- | ------------------ | ---------------------------------- | --------------------------------------- | ---------------------- | ----------------- |
 | [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt)       | 640                      | 50.4                  | 80.1               | 131.8                              | 1.18                                    | 3.3                    | 9.2               |
 | [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-pose.pt)       | 640                      | 60.0                  | 86.2               | 233.2                              | 1.42                                    | 11.6                   | 30.2              |
 | [YOLOv8m-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-pose.pt)       | 640                      | 65.0                  | 88.8               | 456.3                              | 2.00                                    | 26.4                   | 81.0              |
@@ -59,12 +59,12 @@ Entrena un modelo YOLOv8-pose en el conjunto de datos COCO128-pose.
         from ultralytics import YOLO
 
         # Cargar un modelo
-        model = YOLO('yolov8n-pose.yaml')  # construir un nuevo modelo desde YAML
-        model = YOLO('yolov8n-pose.pt')  # cargar un modelo preentrenado (recomendado para entrenar)
-        model = YOLO('yolov8n-pose.yaml').load('yolov8n-pose.pt')  # construir desde YAML y transferir los pesos
+        model = YOLO("yolov8n-pose.yaml")  # construir un nuevo modelo desde YAML
+        model = YOLO("yolov8n-pose.pt")  # cargar un modelo preentrenado (recomendado para entrenar)
+        model = YOLO("yolov8n-pose.yaml").load("yolov8n-pose.pt")  # construir desde YAML y transferir los pesos
 
         # Entrenar el modelo
-        results = model.train(data='coco8-pose.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8-pose.yaml", epochs=100, imgsz=640)
         ```
     === "CLI"
 
@@ -85,7 +85,7 @@ El formato del conjunto de datos de pose de YOLO se puede encontrar en detalle e
 
 ## Validar
 
-Valida la precisión del modelo YOLOv8n-pose entrenado en el conjunto de datos COCO128-pose. No es necesario pasar ningún argumento ya que el `modelo` mantiene sus `datos` de entrenamiento y argumentos como atributos del modelo.
+Valida la precisión del modelo YOLOv8n-pose entrenado en el conjunto de datos COCO128-pose. No es necesario pasar ningún argumento ya que el `modelo` mantiene sus `datos` de entrenamiento y arguments como atributos del modelo.
 
 !!! Example "Ejemplo"
 
@@ -95,21 +95,21 @@ Valida la precisión del modelo YOLOv8n-pose entrenado en el conjunto de datos C
         from ultralytics import YOLO
 
         # Cargar un modelo
-        model = YOLO('yolov8n-pose.pt')  # cargar un modelo oficial
-        model = YOLO('path/to/best.pt')  # cargar un modelo personalizado
+        model = YOLO("yolov8n-pose.pt")  # cargar un modelo official
+        model = YOLO("path/to/best.pt")  # cargar un modelo personalizado
 
         # Validar el modelo
-        metrics = model.val()  # no se necesitan argumentos, el conjunto de datos y configuraciones se recuerdan
-        metrics.box.map    # map50-95
+        metrics = model.val()  # no se necesitan arguments, el conjunto de datos y configuraciones se recuerdan
+        metrics.box.map  # map50-95
         metrics.box.map50  # map50
         metrics.box.map75  # map75
-        metrics.box.maps   # una lista contiene map50-95 de cada categoría
+        metrics.box.maps  # una lista contiene map50-95 de cada categoría
         ```
     === "CLI"
 
         ```bash
-        yolo pose val model=yolov8n-pose.pt  # modelo oficial de val
-        yolo pose val model=path/to/best.pt  # modelo personalizado de val
+        yolo pose val model=yolov8n-pose.pt # modelo official de val
+        yolo pose val model=path/to/best.pt # modelo personalizado de val
         ```
 
 ## Predecir
@@ -124,17 +124,17 @@ Usa un modelo YOLOv8n-pose entrenado para realizar predicciones en imágenes.
         from ultralytics import YOLO
 
         # Cargar un modelo
-        model = YOLO('yolov8n-pose.pt')  # cargar un modelo oficial
-        model = YOLO('path/to/best.pt')  # cargar un modelo personalizado
+        model = YOLO("yolov8n-pose.pt")  # cargar un modelo official
+        model = YOLO("path/to/best.pt")  # cargar un modelo personalizado
 
         # Predecir con el modelo
-        results = model('https://ultralytics.com/images/bus.jpg')  # predecir en una imagen
+        results = model("https://ultralytics.com/images/bus.jpg")  # predecir en una imagen
         ```
     === "CLI"
 
         ```bash
-        yolo pose predict model=yolov8n-pose.pt source='https://ultralytics.com/images/bus.jpg'  # predecir con modelo oficial
-        yolo pose predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predecir con modelo personalizado
+        yolo pose predict model=yolov8n-pose.pt source='https://ultralytics.com/images/bus.jpg' # predecir con modelo official
+        yolo pose predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg' # predecir con modelo personalizado
         ```
 
 Consulta los detalles completos del modo `predict` en la página de [Predicción](https://docs.ultralytics.com/modes/predict/).
@@ -151,35 +151,35 @@ Exporta un modelo YOLOv8n Pose a un formato diferente como ONNX, CoreML, etc.
         from ultralytics import YOLO
 
         # Cargar un modelo
-        model = YOLO('yolov8n-pose.pt')  # cargar un modelo oficial
-        model = YOLO('path/to/best.pt')  # cargar un modelo entrenado personalizado
+        model = YOLO("yolov8n-pose.pt")  # cargar un modelo official
+        model = YOLO("path/to/best.pt")  # cargar un modelo entrenado personalizado
 
         # Exportar el modelo
-        model.export(format='onnx')
+        model.export(format="onnx")
         ```
     === "CLI"
 
         ```bash
-        yolo export model=yolov8n-pose.pt format=onnx  # exportar modelo oficial
-        yolo export model=path/to/best.pt format=onnx  # exportar modelo entrenado personalizado
+        yolo export model=yolov8n-pose.pt format=onnx # exportar modelo official
+        yolo export model=path/to/best.pt format=onnx # exportar modelo entrenado personalizado
         ```
 
 Los formatos de exportación de YOLOv8-pose disponibles se muestran en la tabla a continuación. Puedes predecir o validar directamente en modelos exportados, por ejemplo, `yolo predict model=yolov8n-pose.onnx`. Los ejemplos de uso se muestran para tu modelo después de que la exportación se completa.
 
-| Formato                                                            | Argumento `format` | Modelo                         | Metadatos | Argumentos                                                    |
-|--------------------------------------------------------------------|--------------------|--------------------------------|-----------|---------------------------------------------------------------|
-| [PyTorch](https://pytorch.org/)                                    | -                  | `yolov8n-pose.pt`              | ✅         | -                                                             |
-| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`      | `yolov8n-pose.torchscript`     | ✅         | `imgsz`, `optimize`                                           |
-| [ONNX](https://onnx.ai/)                                           | `onnx`             | `yolov8n-pose.onnx`            | ✅         | `imgsz`, `half`, `dinámico`, `simplify`, `opset`              |
-| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`         | `yolov8n-pose_openvino_model/` | ✅         | `imgsz`, `half`                                               |
-| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`           | `yolov8n-pose.engine`          | ✅         | `imgsz`, `half`, `dinámico`, `simplify`, `espacio de trabajo` |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`           | `yolov8n-pose.mlpackage`       | ✅         | `imgsz`, `half`, `int8`, `nms`                                |
-| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`      | `yolov8n-pose_saved_model/`    | ✅         | `imgsz`, `keras`                                              |
-| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`               | `yolov8n-pose.pb`              | ❌         | `imgsz`                                                       |
-| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`           | `yolov8n-pose.tflite`          | ✅         | `imgsz`, `half`, `int8`                                       |
-| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`          | `yolov8n-pose_edgetpu.tflite`  | ✅         | `imgsz`                                                       |
-| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`             | `yolov8n-pose_web_model/`      | ✅         | `imgsz`                                                       |
-| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`           | `yolov8n-pose_paddle_model/`   | ✅         | `imgsz`                                                       |
-| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`             | `yolov8n-pose_ncnn_model/`     | ✅         | `imgsz`, `half`                                               |
+| Formato                                                            | Argumento `format` | Modelo                         | Metadatos | Arguments                                                    |
+| ------------------------------------------------------------------ | ------------------ | ------------------------------ | --------- | ------------------------------------------------------------- |
+| [PyTorch](https://pytorch.org/)                                    | -                  | `yolov8n-pose.pt`              | ✅        | -                                                             |
+| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`      | `yolov8n-pose.torchscript`     | ✅        | `imgsz`, `optimize`                                           |
+| [ONNX](https://onnx.ai/)                                           | `onnx`             | `yolov8n-pose.onnx`            | ✅        | `imgsz`, `half`, `dinámico`, `simplify`, `opset`              |
+| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`         | `yolov8n-pose_openvino_model/` | ✅        | `imgsz`, `half`                                               |
+| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`           | `yolov8n-pose.engine`          | ✅        | `imgsz`, `half`, `dinámico`, `simplify`, `espacio de trabajo` |
+| [CoreML](https://github.com/apple/coremltools)                     | `coreml`           | `yolov8n-pose.mlpackage`       | ✅        | `imgsz`, `half`, `int8`, `nms`                                |
+| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`      | `yolov8n-pose_saved_model/`    | ✅        | `imgsz`, `keras`                                              |
+| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`               | `yolov8n-pose.pb`              | ❌        | `imgsz`                                                       |
+| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`           | `yolov8n-pose.tflite`          | ✅        | `imgsz`, `half`, `int8`                                       |
+| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`          | `yolov8n-pose_edgetpu.tflite`  | ✅        | `imgsz`                                                       |
+| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`             | `yolov8n-pose_web_model/`      | ✅        | `imgsz`                                                       |
+| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`           | `yolov8n-pose_paddle_model/`   | ✅        | `imgsz`                                                       |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`             | `yolov8n-pose_ncnn_model/`     | ✅        | `imgsz`, `half`                                               |
 
 Consulta los detalles completos del modo `export` en la página de [Exportación](https://docs.ultralytics.com/modes/export/).

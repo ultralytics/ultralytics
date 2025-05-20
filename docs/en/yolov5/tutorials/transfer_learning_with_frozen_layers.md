@@ -11,9 +11,9 @@ keywords: YOLOv5, freeze layers, transfer learning, model retraining, Ultralytic
 Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
-git clone https://github.com/ultralytics/yolov5  # clone
+git clone https://github.com/ultralytics/yolov5 # clone
 cd yolov5
-pip install -r requirements.txt  # install
+pip install -r requirements.txt # install
 ```
 
 ## Freeze Backbone
@@ -22,11 +22,11 @@ All layers that match the train.py `freeze` list in train.py will be frozen by s
 
 ```python
 # Freeze
-freeze = [f'model.{x}.' for x in range(freeze)]  # layers to freeze
+freeze = [f"model.{x}." for x in range(freeze)]  # layers to freeze
 for k, v in model.named_parameters():
     v.requires_grad = True  # train all layers
     if any(x in k for x in freeze):
-        print(f'freezing {k}')
+        print(f"freezing {k}")
         v.requires_grad = False
 ```
 
@@ -62,41 +62,42 @@ Looking at the model architecture we can see that the model backbone is layers 0
 ```yaml
 # YOLOv5 backbone
 backbone:
-  # [from, number, module, args]
-  [[-1, 1, Focus, [64, 3]],  # 0-P1/2
-   [-1, 1, Conv, [128, 3, 2]],  # 1-P2/4
-   [-1, 3, BottleneckCSP, [128]],
-   [-1, 1, Conv, [256, 3, 2]],  # 3-P3/8
-   [-1, 9, BottleneckCSP, [256]],
-   [-1, 1, Conv, [512, 3, 2]],  # 5-P4/16
-   [-1, 9, BottleneckCSP, [512]],
-   [-1, 1, Conv, [1024, 3, 2]],  # 7-P5/32
-   [-1, 1, SPP, [1024, [5, 9, 13]]],
-   [-1, 3, BottleneckCSP, [1024, False]],  # 9
-  ]
+    # [from, number, module, args]
+    [
+        [-1, 1, Focus, [64, 3]], # 0-P1/2
+        [-1, 1, Conv, [128, 3, 2]], # 1-P2/4
+        [-1, 3, BottleneckCSP, [128]],
+        [-1, 1, Conv, [256, 3, 2]], # 3-P3/8
+        [-1, 9, BottleneckCSP, [256]],
+        [-1, 1, Conv, [512, 3, 2]], # 5-P4/16
+        [-1, 9, BottleneckCSP, [512]],
+        [-1, 1, Conv, [1024, 3, 2]], # 7-P5/32
+        [-1, 1, SPP, [1024, [5, 9, 13]]],
+        [-1, 3, BottleneckCSP, [1024, False]], # 9
+    ]
 
 # YOLOv5 head
-head:
-  [[-1, 1, Conv, [512, 1, 1]],
-   [-1, 1, nn.Upsample, [None, 2, 'nearest']],
-   [[-1, 6], 1, Concat, [1]],  # cat backbone P4
-   [-1, 3, BottleneckCSP, [512, False]],  # 13
+head: [
+        [-1, 1, Conv, [512, 1, 1]],
+        [-1, 1, nn.Upsample, [None, 2, "nearest"]],
+        [[-1, 6], 1, Concat, [1]], # cat backbone P4
+        [-1, 3, BottleneckCSP, [512, False]], # 13
 
-   [-1, 1, Conv, [256, 1, 1]],
-   [-1, 1, nn.Upsample, [None, 2, 'nearest']],
-   [[-1, 4], 1, Concat, [1]],  # cat backbone P3
-   [-1, 3, BottleneckCSP, [256, False]],  # 17 (P3/8-small)
+        [-1, 1, Conv, [256, 1, 1]],
+        [-1, 1, nn.Upsample, [None, 2, "nearest"]],
+        [[-1, 4], 1, Concat, [1]], # cat backbone P3
+        [-1, 3, BottleneckCSP, [256, False]], # 17 (P3/8-small)
 
-   [-1, 1, Conv, [256, 3, 2]],
-   [[-1, 14], 1, Concat, [1]],  # cat head P4
-   [-1, 3, BottleneckCSP, [512, False]],  # 20 (P4/16-medium)
+        [-1, 1, Conv, [256, 3, 2]],
+        [[-1, 14], 1, Concat, [1]], # cat head P4
+        [-1, 3, BottleneckCSP, [512, False]], # 20 (P4/16-medium)
 
-   [-1, 1, Conv, [512, 3, 2]],
-   [[-1, 10], 1, Concat, [1]],  # cat head P5
-   [-1, 3, BottleneckCSP, [1024, False]],  # 23 (P5/32-large)
+        [-1, 1, Conv, [512, 3, 2]],
+        [[-1, 10], 1, Concat, [1]], # cat head P5
+        [-1, 3, BottleneckCSP, [1024, False]], # 23 (P5/32-large)
 
-   [[17, 20, 23], 1, Detect, [nc, anchors]],  # Detect(P3, P4, P5)
-  ]
+        [[17, 20, 23], 1, Detect, [nc, anchors]], # Detect(P3, P4, P5)
+    ]
 ```
 
 so we can define the freeze list to contain all modules with 'model.0.' - 'model.9.' in their names:

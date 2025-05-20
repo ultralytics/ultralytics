@@ -59,12 +59,12 @@ COCO128 데이터셋에서 YOLOv8n을 이미지 크기 640으로 100 에포크 �
         from ultralytics import YOLO
 
         # 모델을 로드하세요.
-        model = YOLO('yolov8n.yaml')  # YAML에서 새 모델 구축
-        model = YOLO('yolov8n.pt')  # 사전 훈련된 모델 로드 (훈련을 위해 권장됨)
-        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # YAML에서 구축 및 가중치 전달
+        model = YOLO("yolov8n.yaml")  # YAML에서 새 모델 구축
+        model = YOLO("yolov8n.pt")  # 사전 훈련된 모델 로드 (훈련을 위해 권장됨)
+        model = YOLO("yolov8n.yaml").load("yolov8n.pt")  # YAML에서 구축 및 가중치 전달
 
         # 모델을 훈련합니다.
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
@@ -94,10 +94,10 @@ COCO128 데이터셋에서 YOLOv8n을 이미지 크기 640으로 100 에포크 �
         from ultralytics import YOLO
 
         # 모델을 로드하세요.
-        model = YOLO('yolov8n.pt')  # 사전 훈련된 모델 로드 (훈련 추천됨)
+        model = YOLO("yolov8n.pt")  # 사전 훈련된 모델 로드 (훈련 추천됨)
 
         # 2개의 GPU로 모델을 훈련합니다.
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640, device=[0, 1])
         ```
 
     === "CLI"
@@ -121,10 +121,10 @@ Apple M1 및 M2 칩에서 훈련을 활성화하려면, 훈련 과정을 시작�
         from ultralytics import YOLO
 
         # 모델을 로드하세요.
-        model = YOLO('yolov8n.pt')  # 사전 훈련된 모델 로드 (훈련 추천됨)
+        model = YOLO("yolov8n.pt")  # 사전 훈련된 모델 로드 (훈련 추천됨)
 
         # 2개의 GPU로 모델을 훈련합니다.
-        results = model.train(data='coco128.yaml', epochs=100, imgsz=640, device='mps')
+        results = model.train(data="coco128.yaml", epochs=100, imgsz=640, device="mps")
         ```
 
     === "CLI"

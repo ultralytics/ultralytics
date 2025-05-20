@@ -22,21 +22,21 @@ Este documento presenta una descripción general de tres modelos de detección d
 
 - **YOLOv3:** Introdujo el uso de tres escalas diferentes para la detección, aprovechando tres tamaños diferentes de núcleos de detección: 13x13, 26x26 y 52x52. Esto mejoró significativamente la precisión de detección para objetos de diferentes tamaños. Además, YOLOv3 añadió características como predicciones con múltiples etiquetas para cada cuadro delimitador y una mejor red extractora de características.
 
-- **YOLOv3-Ultralytics:** La implementación de Ultralytics de YOLOv3 proporciona el mismo rendimiento que el modelo original, pero cuenta con soporte adicional para más modelos pre-entrenados, métodos de entrenamiento adicionales y opciones de personalización más fáciles. Esto lo hace más versátil y fácil de usar para aplicaciones prácticas.
+- **YOLOv3-Ultralytics:** La implementación de Ultralytics de YOLOv3 proporciona el mismo rendimiento que el modelo original, pero cuenta con soporte adicional para más modelos pre-entrenados, métodos de entrenamiento adicionales y opciones de personalización más fáciles. Esto lo have más versátil y fácil de usar para aplicaciones prácticas.
 
-- **YOLOv3u:** Este modelo actualizado incorpora la cabeza dividida sin anclaje y sin objeto de YOLOv8. Al eliminar la necesidad de cajas de anclaje predefinidas y puntuaciones de objeto, este diseño de cabeza de detección puede mejorar la capacidad del modelo para detectar objetos de diferentes tamaños y formas. Esto hace que YOLOv3u sea más robusto y preciso para tareas de detección de objetos.
+- **YOLOv3u:** Este modelo actualizado incorpora la cabeza dividida sin anclaje y sin objeto de YOLOv8. Al eliminar la necesidad de cajas de anclaje predefinidas y puntuaciones de objeto, este diseño de cabeza de detección puede mejorar la capacidad del modelo para detectar objetos de diferentes tamaños y formas. Esto have que YOLOv3u sea más robusto y preciso para tareas de detección de objetos.
 
 ## Tareas y modos admitidos
 
-La serie YOLOv3, que incluye YOLOv3, YOLOv3-Ultralytics y YOLOv3u, está diseñada específicamente para tareas de detección de objetos. Estos modelos son reconocidos por su eficacia en diversos escenarios del mundo real, equilibrando precisión y velocidad. Cada variante ofrece características y optimizaciones únicas, lo que los hace adecuados para una variedad de aplicaciones.
+La series YOLOv3, que incluye YOLOv3, YOLOv3-Ultralytics y YOLOv3u, está diseñada específicamente para tareas de detección de objetos. Estos modelos son reconocidos por su eficacia en diversos escenarios del mundo real, equilibrando precisión y velocidad. Cada variante ofrece características y optimizaciones únicas, lo que los have adecuados para una variedad de aplicaciones.
 
 Los tres modelos admiten un conjunto completo de modos, asegurando versatilidad en diversas etapas del despliegue y desarrollo del modelo. Estos modos incluyen [Inferencia](../modes/predict.md), [Validación](../modes/val.md), [Entrenamiento](../modes/train.md) y [Exportación](../modes/export.md), proporcionando a los usuarios un conjunto completo de herramientas para una detección de objetos efectiva.
 
 | Tipo de modelo     | Tareas admitidas                           | Inferencia | Validación | Entrenamiento | Exportación |
-|--------------------|--------------------------------------------|------------|------------|---------------|-------------|
-| YOLOv3             | [Detección de objetos](../tasks/detect.md) | ✅          | ✅          | ✅             | ✅           |
-| YOLOv3-Ultralytics | [Detección de objetos](../tasks/detect.md) | ✅          | ✅          | ✅             | ✅           |
-| YOLOv3u            | [Detección de objetos](../tasks/detect.md) | ✅          | ✅          | ✅             | ✅           |
+| ------------------ | ------------------------------------------ | ---------- | ---------- | ------------- | ----------- |
+| YOLOv3             | [Detección de objetos](../tasks/detect.md) | ✅         | ✅         | ✅            | ✅          |
+| YOLOv3-Ultralytics | [Detección de objetos](../tasks/detect.md) | ✅         | ✅         | ✅            | ✅          |
+| YOLOv3u            | [Detección de objetos](../tasks/detect.md) | ✅         | ✅         | ✅            | ✅          |
 
 Esta tabla proporciona una visión rápida de las capacidades de cada variante de YOLOv3, destacando su versatilidad y aptitud para diversas tareas y modos operativos en flujos de trabajo de detección de objetos.
 
@@ -54,21 +54,21 @@ Este ejemplo proporciona ejemplos sencillos de entrenamiento e inferencia de YOL
         from ultralytics import YOLO
 
         # Cargar un modelo YOLOv3n pre-entrenado en COCO
-        model = YOLO('yolov3n.pt')
+        model = YOLO("yolov3n.pt")
 
         # Mostrar información del modelo (opcional)
         model.info()
 
         # Entrenar el modelo en el conjunto de datos de ejemplo COCO8 durante 100 épocas
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Ejecutar inferencia con el modelo YOLOv3n en la imagen 'bus.jpg'
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
 
-        Hay comandos de CLI disponibles para ejecutar directamente los modelos:
+        Hay commandos de CLI disponibles para ejecutar directamente los modelos:
 
         ```bash
         # Cargar un modelo YOLOv3n pre-entrenado en COCO y entrenarlo en el conjunto de datos de ejemplo COCO8 durante 100 épocas

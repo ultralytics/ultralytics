@@ -55,16 +55,16 @@ keywords: Ultralytics, документация, YOLO, SAM, MobileSAM, FastSAM, 
         from ultralytics import YOLO
 
         # Загрузить предварительно обученную модель YOLOv8n для COCO
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Отобразить информацию о модели (необязательно)
         model.info()
 
         # Обучить модель на примерном наборе данных COCO8 в течение 100 эпох
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Запустить вывод с помощью модели YOLOv8n на изображении 'bus.jpg'
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

@@ -34,10 +34,10 @@ To train a CNN model on the ImageWoof dataset for 100 epochs with an image size 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='imagewoof', epochs=100, imgsz=224)
+        results = model.train(data="imagewoof", epochs=100, imgsz=224)
         ```
 
     === "CLI"
@@ -63,13 +63,13 @@ To use these variants in your training, simply replace 'imagewoof' in the datase
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
 
 # For medium-sized dataset
-model.train(data='imagewoof320', epochs=100, imgsz=224)
+model.train(data="imagewoof320", epochs=100, imgsz=224)
 
 # For small-sized dataset
-model.train(data='imagewoof160', epochs=100, imgsz=224)
+model.train(data="imagewoof160", epochs=100, imgsz=224)
 ```
 
 It's important to note that using smaller images will likely yield lower performance in terms of classification accuracy. However, it's an excellent way to iterate quickly in the early stages of model development and prototyping.

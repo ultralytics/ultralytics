@@ -47,16 +47,16 @@ YOLOv6还提供了适用于不同精度和移动平台的量化模型。
         from ultralytics import YOLO
 
         # 从头开始构建一个YOLOv6n模型
-        model = YOLO('yolov6n.yaml')
+        model = YOLO("yolov6n.yaml")
 
         # 显示模型信息（可选）
         model.info()
 
         # 使用COCO8示例数据集对模型进行100个epoch的训练
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # 使用YOLOv6n模型对'bus.jpg'图像进行推理
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -75,13 +75,13 @@ YOLOv6还提供了适用于不同精度和移动平台的量化模型。
 
 YOLOv6系列提供了一系列模型，每个模型都针对高性能[物体检测](../tasks/detect.md)进行了优化。这些模型适用于各种计算需求和准确性要求，使其在广泛的应用中具备多样性。
 
-| 模型类型      | 预训练权重          | 支持的任务                      | 推理 | 验证 | 训练 | 导出 |
-|-----------|----------------|----------------------------|----|----|----|----|
-| YOLOv6-N  | `yolov6-n.pt`  | [物体检测](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅  |
-| YOLOv6-S  | `yolov6-s.pt`  | [物体检测](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅  |
-| YOLOv6-M  | `yolov6-m.pt`  | [物体检测](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅  |
-| YOLOv6-L  | `yolov6-l.pt`  | [物体检测](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅  |
-| YOLOv6-L6 | `yolov6-l6.pt` | [物体检测](../tasks/detect.md) | ✅  | ✅  | ✅  | ✅  |
+| 模型类型  | 预训练权重     | 支持的任务                     | 推理 | 验证 | 训练 | 导出 |
+| --------- | -------------- | ------------------------------ | ---- | ---- | ---- | ---- |
+| YOLOv6-N  | `yolov6-n.pt`  | [物体检测](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅   |
+| YOLOv6-S  | `yolov6-s.pt`  | [物体检测](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅   |
+| YOLOv6-M  | `yolov6-m.pt`  | [物体检测](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅   |
+| YOLOv6-L  | `yolov6-l.pt`  | [物体检测](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅   |
+| YOLOv6-L6 | `yolov6-l6.pt` | [物体检测](../tasks/detect.md) | ✅   | ✅   | ✅   | ✅   |
 
 这个表格详细介绍了YOLOv6模型的各个变体，突出了它们在物体检测任务中的能力以及它们与各种操作模式（如[推理](../modes/predict.md)、[验证](../modes/val.md)、[训练](../modes/train.md)和[导出](../modes/export.md)）的兼容性。这种全面的支持确保用户可以在各种物体检测场景中充分利用YOLOv6模型的能力。
 

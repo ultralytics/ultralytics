@@ -622,8 +622,8 @@ names:
 download: |
   import warnings
 
-  from ultralytics.utils import LOGGER, SETTINGS, Path, get_ubuntu_version, is_ubuntu
-  from ultralytics.utils.checks import check_requirements, check_version
+  from ultralytics.utils import LOGGER, SETTINGS, Path
+  from ultralytics.utils.checks import check_requirements
 
   check_requirements("fiftyone")
 

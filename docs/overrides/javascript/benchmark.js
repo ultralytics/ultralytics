@@ -94,13 +94,6 @@ const data = {
     m: { speed: 6.43, mAP: 51.1 },
     l: { speed: 10.64, mAP: 53.3 },
   },
-  "D-FINE": {
-    n: { speed: 2.28, mAP: 42.8 },
-    s: { speed: 4.19, mAP: 48.5 },
-    m: { speed: 6.85, mAP: 52.3 },
-    l: { speed: 9.5, mAP: 54.0 },
-    x: { speed: 15.04, mAP: 55.8 },
-  },
   "YOLO-World": {
     s: { speed: 3.46, mAP: 46.1 },
     m: { speed: 7.26, mAP: 51.0 },
@@ -159,7 +152,6 @@ function updateChart(initialDatasets = []) {
     RTDETRv2: "#eccd22",
     EfficientDet: "#000000",
     "Gold-YOLO": "#ffcc00",
-    "D-FINE": "#ff007f",
     "YOLO-World": "#00a8ff",
     RTMDet: "#ff6600",
     "YOLO-NAS": "#8f00ff",

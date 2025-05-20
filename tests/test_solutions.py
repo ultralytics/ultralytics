@@ -212,7 +212,7 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search():
     """Test similarity search solution."""
-    safe_download(f"{ASSETS_URL}/4-imgs-similaritysearch.zip")
+    safe_download(f"{ASSETS_URL}/4-imgs-similaritysearch.zip", dir=TMP)
     searcher = solutions.VisualAISearch(data=str(TMP / "4-imgs-similaritysearch"))
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
 

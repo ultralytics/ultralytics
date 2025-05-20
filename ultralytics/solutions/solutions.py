@@ -145,7 +145,9 @@ class BaseSolution:
             >>> solution.extract_tracks(frame)
         """
         self.image_shape = im0.shape
-        self.tracks = self.model.track(source=im0, persist=True, classes=self.classes, verbose=True, **self.track_add_args)
+        self.tracks = self.model.track(
+            source=im0, persist=True, classes=self.classes, verbose=True, **self.track_add_args
+        )
         self.track_data = self.tracks[0].obb or self.tracks[0].boxes  # Extract tracks for OBB or object detection
 
         if self.track_data and self.track_data.id is not None:

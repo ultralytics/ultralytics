@@ -207,7 +207,7 @@ function updateChart(initialDatasets = []) {
       type: "line",
       data: { datasets },
       options: {
-        aspectRatio: 1.5, // higher is wider
+        aspectRatio: 2.5, // higher is wider
         plugins: {
           legend: {
             display: true,
@@ -254,7 +254,7 @@ function updateChart(initialDatasets = []) {
             title: { display: true, text: "COCO mAP 50-95", color: "#808080" },
             grid: { color: "#e0e0e0" },
             ticks: { color: "#808080" },
-            min: 28, // SSD model max value is 29.5, If min will be greater, SSD model line will not displayed
+            min: 36,
             max: 56,
           },
         },

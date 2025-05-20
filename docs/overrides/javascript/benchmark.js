@@ -123,10 +123,6 @@ const data = {
     R50: { speed: 15.18, mAP: 36.6 },
     R101: { speed: 18.91, mAP: 39.1 },
   },
-  SSD: {
-    300: { speed: 3.97, mAP: 25.5 },
-    512: { speed: 8.96, mAP: 29.5 },
-  },
 };
 
 let modelComparisonChart = null; // chart variable will hold the reference to the current chart instance.
@@ -168,7 +164,6 @@ function updateChart(initialDatasets = []) {
     RTMDet: "#ff6600",
     "YOLO-NAS": "#8f00ff",
     FCOS: "#00ff99",
-    SSD: "#0044ff",
   };
 
   // Always include all models in the dataset creation
@@ -207,7 +202,7 @@ function updateChart(initialDatasets = []) {
       type: "line",
       data: { datasets },
       options: {
-        // aspectRatio: 2.5, // higher is wider
+        aspectRatio: 1.5, // higher is wider
         plugins: {
           legend: {
             display: true,

@@ -194,7 +194,7 @@ function updateChart(initialDatasets = []) {
       type: "line",
       data: { datasets },
       options: {
-        aspectRatio: 1.5, // higher is wider
+        aspectRatio: 2.0, // higher is wider
         plugins: {
           legend: {
             display: true,

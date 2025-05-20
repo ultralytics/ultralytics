@@ -26,7 +26,6 @@ from ultralytics.utils import (
     IterableSimpleNamespace,
     __version__,
     checks,
-    closest_match,
     colorstr,
     deprecation_warn,
     vscode_msg,

@@ -473,13 +473,17 @@ def check_dict_alignment(base: Dict, custom: Dict, e=None):
         - Prints detailed error messages for each mismatched key to help users correct their configurations.
     """
     custom = _handle_deprecation(custom)
-    string = ""
-    for x in mismatched:
-        matches = closest_match(x, base_keys)  # key list
-        matches = [f"{k}={base[k]}" if base.get(k) is not None else k for k in matches]
-        match_str = f"Similar arguments are i.e. {matches}." if matches else ""
-        string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"
-    raise SyntaxError(string + CLI_HELP_MSG) from e
+    base_keys, custom_keys = (frozenset(x.keys()) for x in (base, custom))
+    if mismatched := [k for k in custom_keys if k not in base_keys]:
+        from difflib import get_close_matches
+
+        string = ""
+        for x in mismatched:
+            matches = get_close_matches(x, base_keys)  # key list
+            matches = [f"{k}={base[k]}" if base.get(k) is not None else k for k in matches]
+            match_str = f"Similar arguments are i.e. {matches}." if matches else ""
+            string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"
+        raise SyntaxError(string + CLI_HELP_MSG) from e
 
 
 def merge_equals_args(args: List[str]) -> List[str]:

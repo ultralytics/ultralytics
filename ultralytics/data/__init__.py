@@ -10,7 +10,8 @@ from .dataset import (
     YOLODataset,
     YOLOMultiModalDataset,
 )
-from .manitou_dataset import (ManitouDataset, )
+from .manitou_dataset import ManitouDataset
+from .manitou_video_dataset import ManitouVideoDataset
 from .manitou_api import ManitouAPI, get_manitou_dataset
 
 __all__ = (
@@ -27,6 +28,7 @@ __all__ = (
     "load_inference_source",
     "build_manitou_dataset",
     "ManitouDataset",
+    "ManitouVideoDataset",
     "ManitouAPI",
     "get_manitou_dataset",
 )

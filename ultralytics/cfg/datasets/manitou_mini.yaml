@@ -1,0 +1,23 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+path: /home/shu/Documents/PROTECH/ultralytics/datasets/manitou_mini # dataset root dir
+prefix: data # prefix for image files
+train: annotations/manitou_coco_train_remap.json  # training set annotations (coco format)
+val: annotations/manitou_coco_val_remap.json # validation set annotations (coco format)
+test: # test images (optional)
+
+# names:  
+#   Pedestrians
+#   Cyclists
+#   Car
+#   Trucks
+#   Machinery
+#   VAN
+#   Forklift
+#   golf cart
+
+names:
+  Pedestrians
+  Vehicles
+  Machinery
+  golf cart

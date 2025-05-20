@@ -146,14 +146,16 @@ class ManitouResizeCrop:
                 if instances.normalized:
                     instances.denormalize(w, h)
                     
-                cls = labels.pop("cls", None)
+                cls = labels.pop("cls", [])
                 segments = instances.segments
+                ins_ids = labels.pop("ins_ids", [])
                 
                 y_offset = new_h - crop_h
                 x_offset = 0
                 
                 new_bboxes_xyxy, new_segments, mask = self.apply_segments(segments, x_offset, y_offset)
                 new_cls = cls[mask]
+                new_ins_ids = ins_ids[mask]
                 
                 assert len(new_cls) == len(new_bboxes_xyxy) == len(new_segments), \
                     f"cls: {len(new_cls)}, bboxes: {len(new_bboxes_xyxy)}, segments: {len(new_segments)}"
@@ -161,6 +163,7 @@ class ManitouResizeCrop:
                 new_instances = Instances(new_bboxes_xyxy, new_segments, bbox_format="xyxy", normalized=False)
                 
                 labels["cls"] = new_cls
+                labels["ins_ids"] = new_ins_ids
                 labels["instances"] = new_instances
                 labels["img"] = img
                 labels["manitou_resize_crop"] = {"scale": self.scale, "target_size": self.target_size}
@@ -175,7 +178,7 @@ class ManitouResizeCrop:
         
         n, num = segments.shape[:2]
         if n == 0:
-            return [], segments, np.ones(n, dtype=bool)
+            return np.zeros((0, 4), dtype=np.float32), segments, np.ones(n, dtype=bool)
         
         segments = segments * self.scale
         # crop the segments
@@ -211,7 +214,7 @@ def v8_transformsV1(dataset, imgsz, hyp, pre_crop_cfg, stretch=False):
         scale=hyp.scale,
         shear=hyp.shear,
         perspective=hyp.perspective,
-        pre_transform=None if stretch else LetterBox(new_shape=imgsz),
+        pre_transform=None if stretch else resize_crop,
     )
 
     pre_transform = Compose([resize_crop, mosaic, affine])
@@ -259,17 +262,15 @@ class FormatManitou(Format):
         batch_idx=True,
         bgr=0.0,
     ):
-        super().__init__(
-            bbox_format=bbox_format,
-            normalize=normalize,
-            return_mask=return_mask,
-            return_keypoint=False,
-            return_obb=False,
-            mask_ratio=mask_ratio,
-            mask_overlap=mask_overlap,
-            batch_idx=batch_idx,
-            bgr=bgr,
-        )
+        self.bbox_format = bbox_format
+        self.normalize = normalize
+        self.return_mask = return_mask  # set False when training detection only
+        self.return_keypoint = False  # TODO: delete
+        self.return_obb = False  # TODO: delete
+        self.mask_ratio = mask_ratio
+        self.mask_overlap = mask_overlap
+        self.batch_idx = batch_idx  # keep the batch indexes
+        self.bgr = bgr
         
     def __call__(self, labels):
         labels.pop("prev", None)  # in case recursive call when using pin_memory=True

@@ -369,7 +369,7 @@ def _update_dataset_meta(data):
             raise FileNotFoundError(f"❌ Annotation file {ann_path} does not exist.")
         manitou = ManitouAPI(ann_path)
         data["cat_ids"] = manitou.get_cat_ids(data["names"])
-        data["cat2label"] = {cat_id: i for i, cat_id in enumerate(data["cat_ids"])}
+        data["cat2label"] = {cat_id: cat_id-1 for cat_id in data["cat_ids"]}  # from 1-based to 0-based
         data["names"] = {l: manitou.cats[c]["name"] for c, l in data["cat2label"].items()}
         data["nc"] = len(data["cat_ids"])
         

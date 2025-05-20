@@ -1,53 +1,40 @@
 """
-@Description: Manitou dataset class.
+@Description: Manitou video dataset class.
 @Author: Sijie Hu
-@Date: 2025-05-06
+@Date: 2025-05-19
 """
-import glob
-import os
 import math
-from typing import Optional, List, Dict, Tuple
 from copy import deepcopy
-from collections import defaultdict
-from itertools import repeat
-from multiprocessing.pool import ThreadPool
 from pathlib import Path
 
 import cv2
 import numpy as np
 import torch
-from PIL import Image
-from torch.utils.data import Dataset, ConcatDataset
 
 from ultralytics.utils.patches import imread
-from ultralytics.utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, colorstr
+from ultralytics.utils import LOGGER
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.ops import resample_segments
-from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS, check_file_speeds
-from ultralytics.utils.torch_utils import TORCHVISION_0_18
 
 from .converter import merge_multi_segment
 from .manitou_api import ManitouAPI
-from .augmentV1 import (
+from torch.utils.data import Dataset
+from .augmentV2 import (
     Compose,
-    FormatManitou,
-    LetterBox,
-    ManitouResizeCrop,
-    RandomLoadText,
-    classify_augmentations,
-    classify_transforms,
-    v8_transformsV1,
+    FormatManitou_MultiImg,
+    ManitouResizeCrop_MultiImg,
+    RandomHSV_MultiImg,
+    RandomFlip_MultiImg,
 )
-from .base import BaseDataset
 from .converter import merge_multi_segment
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for YOLOv8
 DATASET_CACHE_VERSION = "1.0.3"
 
 
-class ManitouDataset(Dataset):
+class ManitouVideoDataset(Dataset):
     """
-    Manitou Dataset class for loading and processing the Manitou dataset.
+    Manitou Video Dataset class for loading and processing the Manitou dataset.
 
     Attributes:
         use_segments (bool): Indicates if segmentation masks should be used.
@@ -57,7 +44,7 @@ class ManitouDataset(Dataset):
 
     """
     
-    def __init__(self, *args, data=None, use_segments=False, stride, imgsz, **kwargs):
+    def __init__(self, *args, data=None, use_segments=False, stride, imgsz, ref_img_sampler, **kwargs):
         """
         Initialize the ManitouDataset class.
 
@@ -67,11 +54,13 @@ class ManitouDataset(Dataset):
             use_segments (bool): Indicates if segmentation masks should be used.
             **kwargs: Additional keyword arguments.
         """
+        super().__init__()
         self.use_segments = use_segments
         self.use_keypoints = False  # to be compatible with the original code  TODO: delete
         self.use_obb = False  # to be compatible with the original code  TODO: delete
         self.data = data
         self.stride = stride
+        self.ref_img_sampler = ref_img_sampler
         self.imgsz = imgsz
         self.ori_imgsz = imgsz
         self.pre_crop_cfg = {"is_crop": False, "scale": 1, "target_size": imgsz, "original_size": imgsz}
@@ -131,7 +120,6 @@ class ManitouDataset(Dataset):
             fraction (float, optional): Fraction of dataset to utilize.
             channels (int, optional): Number of channels in the images (1 for grayscale, 3 for RGB).
         """
-        super().__init__()
         self.ann_path = ann_path
         self.augment = augment
         self.single_cls = single_cls
@@ -139,8 +127,9 @@ class ManitouDataset(Dataset):
         self.fraction = fraction
         self.channels = channels
         self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR
-        self.im_files, self.labels = self.get_img_files_labels(self.ann_path)
-        self.ni = len(self.labels)  # number of images
+        # img_files: list of image files, labels : list of annotations, id2idx: dict of video id and frame id to index
+        self.im_files, self.labels, self.id2idx = self.get_img_files_labels(self.ann_path)
+        self.ni = len(self.labels[1])  # number of images for one camera
         self.rect = rect
         self.batch_size = batch_size
         self.pad = pad
@@ -153,19 +142,14 @@ class ManitouDataset(Dataset):
         self.max_buffer_length = min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0
 
         # Cache images (options are cache = True, False, None, "ram", "disk")
-        self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
-        self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
-        self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
-        if self.cache == "ram" and self.check_cache_ram():
-            if hyp.deterministic:
-                LOGGER.warning(
-                    "cache='ram' may produce non-deterministic training results. "
-                    "Consider cache='disk' as a deterministic alternative if your disk space allows."
-                )
-            self.cache_images()
-        elif self.cache == "disk" and self.check_cache_disk():
-            self.cache_images()
-
+        self.ims = {}  # images in RAM
+        self.im_hw0 = {}  # original image size
+        self.im_hw = {}  # resized image size
+        for i in range(1, 5):
+            self.ims[i] = [None] * self.ni  
+            self.im_hw0[i] = [None] * self.ni  
+            self.im_hw[i] = [None] * self.ni  
+        
         # Transforms
         self.transforms = self.build_transforms(hyp=hyp)
                    
@@ -189,6 +173,10 @@ class ManitouDataset(Dataset):
         radar_frame_name = radar_info["frame_name"]
         is_start = img_info["is_start"]
         is_end = img_info["is_end"]
+        vid_id = img_info["video_id"]
+        bag_id = img_info["bag_id"]
+        video_length = img_info["video_length"]
+        cam_idx = img_info["cam_idx"]
         
         boxes = []
         segments = []
@@ -251,6 +239,10 @@ class ManitouDataset(Dataset):
             
         return {
             "im_file": img_path,
+            "vid_id": vid_id,
+            "bag_id": bag_id,
+            "video_length": video_length,
+            "cam_idx": cam_idx,
             "shape": img_shape,
             "img_timestamp": img_timestamp,
             "img_frame_id": img_frame_id,
@@ -289,38 +281,65 @@ class ManitouDataset(Dataset):
         manitou = ManitouAPI(ann_path)
         cat_ids = self.data["cat_ids"]
         
-        img_list = []
-        label_list = []
+        # Initialize lists to store image and label information for each camera
+        img_list = {
+            1: [],
+            2: [],
+            3: [],
+            4: []
+        }
+        label_list = {
+            1: [],
+            2: [],
+            3: [],
+            4: []
+        }
+        idx_dict = {}
         
-        ne = 0  # number of empty images
-        vid_ids = manitou.get_vid_ids()
-        for vid_id in vid_ids:
-            img_ids = manitou.get_img_ids_from_vid(vid_id)
-            for img_id in img_ids:
-                # load img info
-                raw_img_info = manitou.load_imgs([img_id])[0]
-                raw_img_info["img_id"] = img_id
-                raw_img_info["video_length"] = len(img_ids)
-                
-                raw_radar_info = manitou.load_radars([img_id])[0]
-                raw_radar_info["radar_id"] = img_id
-                
-                # load ann info
-                ann_ids = manitou.get_ann_ids(imgIds=[img_id], catIds=cat_ids)
-                raw_ann_info = manitou.load_anns(ann_ids)
-                # get label info
-                parsed_label_info = self.parse_label_info(
-                    dict(raw_img_info=raw_img_info, raw_radar_info=raw_radar_info, raw_ann_info=raw_ann_info))
-                
-                if parsed_label_info["bboxes"].shape[0] >0:
-                    label_list.append(parsed_label_info)
-                    img_list.append(parsed_label_info["im_file"])
-                else:
-                    ne += 1
+        bag_ids = manitou.get_bag_ids()
+        for bag_id in bag_ids:
+            vid_ids = manitou.get_vid_ids(bagIds=[bag_id])
+            assert len(vid_ids) == 4, f"Only 4 cameras are supported, but {len(vid_ids)} cameras found in bag {bag_id}. \n" \
+                f"\t {manitou.bags[bag_id]['cam_idx']}"
+            idx_dict[bag_id] = {1: {}, 2: {}, 3: {}, 4: {}}
+            
+            for vid_id in vid_ids:
+                img_ids = manitou.get_img_ids_from_vid(vid_id)
+                vid_name = manitou.vids[vid_id]["name"]
+                cam_idx = int(vid_name[-1])
+                         
+                for img_id in img_ids:
+                    # load img info
+                    raw_img_info = manitou.load_imgs([img_id])[0]
+                    raw_img_info["img_id"] = img_id
+                    raw_img_info["video_length"] = len(img_ids)
+                    raw_img_info["cam_idx"] = cam_idx
                     
+                    raw_radar_info = manitou.load_radars([img_id])[0]
+                    raw_radar_info["radar_id"] = img_id
+                    
+                    # load ann info
+                    ann_ids = manitou.get_ann_ids(imgIds=[img_id], catIds=cat_ids)
+                    raw_ann_info = manitou.load_anns(ann_ids)
+                    # get label info
+                    parsed_label_info = self.parse_label_info(
+                        dict(raw_img_info=raw_img_info, raw_radar_info=raw_radar_info, raw_ann_info=raw_ann_info))
+                    
+                    global_idx = len(img_list[cam_idx])
+                    img_frame_id = parsed_label_info["img_frame_id"]
+                    
+                    label_list[cam_idx].append(parsed_label_info)
+                    img_list[cam_idx].append(parsed_label_info["im_file"])
+                    idx_dict[bag_id][cam_idx][img_frame_id] = global_idx
+            
+        assert len(label_list[1]) == len(label_list[2]) == len(label_list[3]) == len(label_list[4]) == len(img_list[1]) == len(img_list[2]) == len(img_list[3]) == len(img_list[4]), \
+            f"Number of images and labels do not match. \n" \
+            f"\t number of labels (cam1, cam2, cam3, cam4): {len(label_list[1])}, {len(label_list[2])}, {len(label_list[3])}, {len(label_list[4])} \n" \
+            f"\t number of images (cam1, cam2, cam3, cam4): {len(img_list[1])}, {len(img_list[2])}, {len(img_list[3])}, {len(img_list[4])}"
+                                
         # label_list = update_labels(label_list)  # TODO: update labels with prev and next
     
-        return img_list, label_list
+        return img_list, label_list, idx_dict
 
     def build_transforms(self, hyp=None):
         """
@@ -333,19 +352,17 @@ class ManitouDataset(Dataset):
             (Compose): Composed transforms.
         """
         if self.augment:
-            hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
-            hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
-            hyp.cutmix = hyp.cutmix if self.augment and not self.rect else 0.0
-            transforms = v8_transformsV1(self, self.imgsz, hyp, self.pre_crop_cfg)
+            transforms = Compose([
+                ManitouResizeCrop_MultiImg(self.pre_crop_cfg["scale"], self.pre_crop_cfg["target_size"], 1.0 if self.pre_crop_cfg["is_crop"] else 0.0),
+                RandomHSV_MultiImg(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
+                RandomFlip_MultiImg(direction="horizontal", p=hyp.fliplr),
+            ])
             
         else:
-            transforms = Compose([ManitouResizeCrop(self.pre_crop_cfg["scale"],
-                                                   self.pre_crop_cfg["target_size"],
-                                                   1.0 if self.pre_crop_cfg["is_crop"] else 0.0),
-                                #   LetterBox(new_shape=self.imgsz, scaleup=False)  # no need to use LetterBox
-                                  ])
+            transforms = Compose([ManitouResizeCrop_MultiImg(self.pre_crop_cfg["scale"], self.pre_crop_cfg["target_size"], 1.0 if self.pre_crop_cfg["is_crop"] else 0.0)])
+            
         transforms.append(
-            FormatManitou(
+            FormatManitou_MultiImg(
                 bbox_format="xywh",
                 normalize=True,
                 return_mask=self.use_segments,
@@ -357,20 +374,7 @@ class ManitouDataset(Dataset):
         )
         return transforms
 
-    def close_mosaic(self, hyp):
-        """
-        Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their probabilities to 0.0.
-
-        Args:
-            hyp (dict): Hyperparameters for transforms.
-        """
-        hyp.mosaic = 0.0
-        hyp.copy_paste = 0.0
-        hyp.mixup = 0.0
-        hyp.cutmix = 0.0
-        self.transforms = self.build_transforms(hyp)
-
-    def update_labels_info(self, label):  # TODO: support tracking
+    def update_labels_info(self, label):
         """
         Custom your label format here.
 
@@ -413,43 +417,118 @@ class ManitouDataset(Dataset):
         Returns:
             (dict): Collated batch with stacked tensors.
         """
-        new_batch = {}
-        batch = [dict(sorted(b.items())) for b in batch]  # make sure the keys are in the same order
-        keys = batch[0].keys()
-        values = list(zip(*[list(b.values()) for b in batch]))
-        for i, k in enumerate(keys):
-            value = values[i]
-            if k in {"img", "text_feats"}:
-                value = torch.stack(value, 0)
-            elif k == "visuals":
-                value = torch.nn.utils.rnn.pad_sequence(value, batch_first=True)
-            if k in {"masks", "keypoints", "bboxes", "cls", "segments", "obb"}:
-                value = torch.cat(value, 0)
-            new_batch[k] = value
-        new_batch["batch_idx"] = list(new_batch["batch_idx"])
-        for i in range(len(new_batch["batch_idx"])):
-            new_batch["batch_idx"][i] += i  # add target image index for build_targets()
-        new_batch["batch_idx"] = torch.cat(new_batch["batch_idx"], 0)
-    
-        return new_batch
+        # collect key frames and reference frames            
+        def to_list(batch):
+            """Convert batch to a list of dictionaries."""
+            b_list = []
+            for b in batch:
+                if isinstance(b, list):
+                    b_list.extend(to_list(b))
+                elif isinstance(b, dict):
+                    b_list.extend([b])
+                else:
+                    raise TypeError(f"Unsupported collate type: {type(b)}")
+            return b_list         
+  
+        def _collate_cameras(cams):
+            batch = []
+            # to list
+            [batch.extend(to_list(c)) for c in cams.values()]  # len = batch per camera * 4
+            new_batch = {}
+            batch = [dict(sorted(b.items())) for b in batch]  # make sure the keys are in the same order
+            keys = batch[0].keys()
+            values = list(zip(*[list(b.values()) for b in batch]))
+            for i, k in enumerate(keys):
+                value = values[i]
+                if k in {"img", "text_feats"}:
+                    value = torch.stack(value, 0)
+                elif k == "visuals":
+                    value = torch.nn.utils.rnn.pad_sequence(value, batch_first=True)
+                if k in {"masks", "keypoints", "bboxes", "cls", "segments", "obb"}:
+                    value = torch.cat(value, 0)
+                new_batch[k] = value
+            new_batch["batch_idx"] = list(new_batch["batch_idx"])
+            for i in range(len(new_batch["batch_idx"])):
+                new_batch["batch_idx"][i] += i  # add target image index for build_targets()
+            new_batch["batch_idx"] = torch.cat(new_batch["batch_idx"], 0)
+        
+            return new_batch
+        
+        key_frames = {1: [], 2: [], 3: [], 4: []}
+        ref_frames = {1: [], 2: [], 3: [], 4: []}
+        for i, b in enumerate(batch):
+            key_cam1, key_cam2, key_cam3, key_cam4 = b[0], b[1], b[2], b[3]
+            ref_cam1 = key_cam1.pop("ref_labels", None)
+            ref_cam2 = key_cam2.pop("ref_labels", None)
+            ref_cam3 = key_cam3.pop("ref_labels", None)
+            ref_cam4 = key_cam4.pop("ref_labels", None)
+            
+            for j, (key, ref) in enumerate(zip([key_cam1, key_cam2, key_cam3, key_cam4], [ref_cam1, ref_cam2, ref_cam3, ref_cam4])):
+                key_frames[j + 1].append(key)     
+                ref_frames[j + 1].append(ref)
+                
+        # collate key frames
+        key_frames = _collate_cameras(key_frames)    
+        ref_frames = _collate_cameras(ref_frames) if ref_frames[1] is not None else None
+            
+        return {"key_frames": key_frames, "ref_frames": ref_frames}
     
     def __getitem__(self, index):
         """Return transformed label information for given index."""
-        return self.transforms(self.get_image_and_label(index))
+        return self.transforms(self.get_images_and_labels(index))
 
-    def get_image_and_label(self, index):
+    def ref_img_sampling(self, key_img_label, scope, num_ref_imgs=1, method="uniform"):
+        """
+        Sample reference images for the given key image label.
+
+        Return:
+            (list): List of reference image labels.
+        """
+        if method != "uniform":
+            raise NotImplementedError(f"Ref_img_sampler method {method} is not implemented.")
+        key_vid_id = key_img_label["vid_id"]
+        key_bag_id = key_img_label["bag_id"]
+        cam_idx = key_img_label["cam_idx"]
+        key_frame_id = key_img_label["img_frame_id"]
+        if scope == 0:
+            return [deepcopy(key_img_label) for _ in range(num_ref_imgs)]
+        else:
+            if method == "uniform":
+                # sample uniformly from the video
+                left = max(0, key_frame_id - scope)
+                right = min(key_frame_id + scope, key_img_label["video_length"] - 1)
+                # remove the key frame id
+                valid_ref_frame_ids = [i for i in range(left, right + 1) if i != key_frame_id]
+                if len(valid_ref_frame_ids) < num_ref_imgs:
+                    raise ValueError(
+                        f"Not enough reference frames in the video {key_vid_id} for frame {key_frame_id}. "
+                        f"Only {len(valid_ref_frame_ids)} available, but {num_ref_imgs} requested."
+                        f" Please check the scope and num_ref_imgs parameters."
+                    )
+                ref_frame_ids = np.random.choice(valid_ref_frame_ids, num_ref_imgs, replace=False)
+                if isinstance(ref_frame_ids, int):
+                    ref_frame_ids = [ref_frame_ids]
+                ref_frame_ids = sorted(ref_frame_ids)
+                # return the reference image labels
+                indexs = [self.id2idx[key_bag_id][cam_idx][int(i)] for i in ref_frame_ids]
+                ref_img_labels = [self.get_image_and_label(cam_idx, i) for i in indexs]
+                
+                return ref_img_labels
+             
+    def get_image_and_label(self, cam_idx, index):
         """
         Get and return label information from the dataset.
 
         Args:
+            cam_idx (int): Camera index (1-4).
             index (int): Index of the image to retrieve.
 
         Returns:
             (dict): Label dictionary with image and metadata.
         """
-        label = deepcopy(self.labels[index])  # requires deepcopy() https://github.com/ultralytics/ultralytics/pull/1948
+        label = deepcopy(self.labels[cam_idx][index])  # requires deepcopy() https://github.com/ultralytics/ultralytics/pull/1948
         label.pop("shape", None)  # shape is for rect, remove it
-        label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
+        label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(cam_idx, index)
         label["ratio_pad"] = (
             (label["resized_shape"][0] / label["ori_shape"][0], label["resized_shape"][1] / label["ori_shape"][1]),
             (0, 0),  # padding (to compatible with the evaluation, cause we don't use LetterBox data augmentation for Manitou)
@@ -457,18 +536,31 @@ class ManitouDataset(Dataset):
         if self.rect:
             label["rect_shape"] = self.batch_shapes[self.batch[index]]
         return self.update_labels_info(label)
+    
+    def get_images_and_labels(self, index):
+        """
+        Given an index, return the images from 4 cameras and their corresponding labels.
+        """
+        labels = [self.get_image_and_label(i, index) for i in range(1, 5)]
+        ref_labels = [self.ref_img_sampling(label, **self.ref_img_sampler) for label in labels]
+        
+        for l, ref_l in zip(labels, ref_labels):
+            l["ref_labels"] = ref_l
+        
+        return labels
+        
 
     def __len__(self):
-        """Return the length of the labels list for the dataset."""
-        return len(self.labels)
+        """Return the length of the labels list for the dataset. """
+        return len(self.labels[1])  # Note: each rosbag contains 4 cameras, we only need to return the number of images in one camera.
         
-    def load_image(self, i, rect_mode=True):
+    def load_image(self, cam_idx, i):
         """
-        Load an image from dataset index 'i'.
+        Load an image from camera index and dataset index.
 
         Args:
+            cam_idx (int): Camera index (1-4).
             i (int): Index of the image to load.
-            rect_mode (bool, optional): Whether to use rectangular resizing.
 
         Returns:
             (np.ndarray): Loaded image as a NumPy array.
@@ -478,17 +570,9 @@ class ManitouDataset(Dataset):
         Raises:
             FileNotFoundError: If the image file is not found.
         """
-        im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
+        im, f = self.ims[cam_idx][i], self.im_files[cam_idx][i]
         if im is None:  # not cached in RAM
-            if fn.exists():  # load npy
-                try:
-                    im = np.load(fn)
-                except Exception as e:
-                    LOGGER.warning(f"{self.prefix}Removing corrupt *.npy image file {fn} due to: {e}")
-                    Path(fn).unlink(missing_ok=True)
-                    im = imread(f, flags=self.cv2_flag)  # BGR
-            else:  # read image
-                im = imread(f, flags=self.cv2_flag)  # BGR
+            im = imread(f, flags=self.cv2_flag)  # BGR
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
 
@@ -499,14 +583,12 @@ class ManitouDataset(Dataset):
 
             # Add to buffer if training with augmentations
             if self.augment:
-                self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
+                self.ims[cam_idx][i], self.im_hw0[cam_idx][i], self.im_hw[cam_idx][i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
                 self.buffer.append(i)
                 if 1 < len(self.buffer) >= self.max_buffer_length:  # prevent empty buffer
                     j = self.buffer.pop(0)
-                    if self.cache != "ram":
-                        self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
+                    self.ims[cam_idx][j], self.im_hw0[cam_idx][j], self.im_hw[cam_idx][j] = None, None, None
 
             return im, (h0, w0), im.shape[:2]
 
-        return self.ims[i], self.im_hw0[i], self.im_hw[i]
-                
+        return self.ims[cam_idx][i], self.im_hw0[cam_idx][i], self.im_hw[cam_idx][i]

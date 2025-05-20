@@ -43,6 +43,11 @@ mask_ratio: 4 # (int) mask downsample ratio (segment train only)
 # Classification
 dropout: 0.0 # (float) use dropout regularization (classify train only)
 
+# Re-ID training settings
+ref_img_sampler: # (dict)
+  scope: 5  # (int) range of reference images to sample (cur_frame - scope, cur_frame + scope)
+  num_ref_imgs: 1  # (int) number of reference images to sample
+  method: "uniform"  # (str) sampling method
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 val: True # (bool) validate/test during training
 split: val # (str) dataset split to use for validation, i.e. 'val', 'test' or 'train'

@@ -105,7 +105,7 @@ class TaskAlignedAssigner(nn.Module):
             pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt
         )
 
-        target_gt_idx, fg_mask, mask_pos = self.select_highest_overlaps(mask_pos, overlaps, self.n_max_boxes)
+        target_gt_idx, fg_mask, mask_pos = self.select_highest_overlaps(mask_pos, overlaps, self.n_max_boxes, align_metric)
 
         # Assigned target
         target_labels, target_bboxes, target_scores = self.get_targets(gt_labels, gt_bboxes, target_gt_idx, fg_mask)
@@ -296,7 +296,7 @@ class TaskAlignedAssigner(nn.Module):
         return bbox_deltas.amin(3).gt_(eps)
 
     @staticmethod
-    def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
+    def select_highest_overlaps(mask_pos, overlaps, n_max_boxes, align_metric):
         """
         Select anchor boxes with highest IoU when assigned to multiple ground truths.
 
@@ -321,14 +321,14 @@ class TaskAlignedAssigner(nn.Module):
 
             mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos).float()  # (b, n_max_boxes, h*w)
             fg_mask = mask_pos.sum(-2)
-        #     overlaps = overlaps * mask_pos  # update overlaps
-        #
-        # max_overlaps_idx = overlaps.argmax(-1)  # (b, n_max_boxes)
-        # is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
-        # is_max_overlaps.scatter_(-1, max_overlaps_idx.unsqueeze(-1), 1.0)
-        # # mask_pos = torch.where(is_max_overlaps, mask_pos, 0.0).float()  # (b, n_max_boxes, h*w)
-        # mask_pos = is_max_overlaps
-        # fg_mask = mask_pos.sum(-2)
+            align_metric = align_metric * mask_pos  # update overlaps
+
+        max_overlaps_idx = align_metric.argmax(-1)  # (b, n_max_boxes)
+        is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
+        is_max_overlaps.scatter_(-1, max_overlaps_idx.unsqueeze(-1), 1.0)
+        # mask_pos = torch.where(is_max_overlaps, mask_pos, 0.0).float()  # (b, n_max_boxes, h*w)
+        mask_pos = is_max_overlaps
+        fg_mask = mask_pos.sum(-2)
         # Find each grid serve which gt(index)
         target_gt_idx = mask_pos.argmax(-2)  # (b, h*w)
         return target_gt_idx, fg_mask, mask_pos

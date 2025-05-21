@@ -15,8 +15,8 @@ from PIL import Image
 from tests import CFG, MODEL, SOURCE, SOURCES_LIST, TMP
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import MODELS, TASK2DATA, TASKS
-from ultralytics.data.utils import check_file_speeds
 from ultralytics.data.build import load_inference_source
+from ultralytics.data.utils import check_file_speeds
 from ultralytics.utils import (
     ARM64,
     ASSETS,

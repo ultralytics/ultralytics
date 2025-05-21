@@ -187,6 +187,7 @@ def test_track_stream():
     model = YOLO(MODEL)
     model.track(video_url, imgsz=160, tracker="bytetrack.yaml")
     model.track(video_url, imgsz=160, tracker="botsort.yaml", save_frames=True)  # test frame saving also
+    model.track(video_url, imgsz=160, tracker="botsort.yaml", save=True)  # test video saving also
 
     # Test Global Motion Compensation (GMC) methods and ReID
     for gmc, reidm in zip(["orb", "sift", "ecc"], ["auto", "auto", "yolo11n-cls.pt"]):
@@ -241,6 +242,7 @@ def test_workflow():
     model.train(data="coco8.yaml", epochs=1, imgsz=32, optimizer="SGD")
     model.val(imgsz=32)
     model.predict(SOURCE, imgsz=32)
+    model.predict(video_url, imgsz=160, save=True)
     model.export(format="torchscript")  # WARNING: Windows slow CI export bug
 
 

@@ -3,6 +3,7 @@
 import os
 import random
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import torch
@@ -23,7 +24,6 @@ from ultralytics.data.loaders import (
 from ultralytics.data.utils import IMG_FORMATS, PIN_MEMORY, VID_FORMATS
 from ultralytics.utils import RANK, colorstr
 from ultralytics.utils.checks import check_file
-from types import SimpleNamespace
 
 
 class InfiniteDataLoader(dataloader.DataLoader):

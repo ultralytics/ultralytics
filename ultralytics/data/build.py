@@ -23,6 +23,7 @@ from ultralytics.data.loaders import (
 from ultralytics.data.utils import IMG_FORMATS, PIN_MEMORY, VID_FORMATS
 from ultralytics.utils import RANK, colorstr
 from ultralytics.utils.checks import check_file
+from types import SimpleNamespace
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
@@ -111,7 +112,7 @@ def get_hyps_from_cfg(cfg):
         cfg (dict | SimpleNamespace): Configuration dictionary or namespace containing hyperparameters.
 
     Returns:
-        (dict): Dictionary of hyperparameters.
+        (SimpleNamespace): Namespace object containing hyperparameters.
     """
     hyp = {}
     # Handle both dict and SimpleNamespace objects
@@ -119,7 +120,7 @@ def get_hyps_from_cfg(cfg):
     for k, v in items:
         if isinstance(v, (int, float, bool, str)):
             hyp[k] = v
-    return hyp
+    return SimpleNamespace(**hyp)
 
 
 def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32, multi_modal=False):

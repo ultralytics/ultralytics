@@ -174,7 +174,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
 
         # Replace each -1 with a selected GPU or remove it
         parts = device.split(",")
-        selected = GPUInfo().select_idle_gpu(count=parts.count("-1"), min_memory_mb=2048)
+        selected = GPUInfo().select_idle_gpu(count=parts.count("-1"), min_memory_fraction=0.2)
         for i in range(len(parts)):
             if parts[i] == "-1":
                 parts[i] = str(selected.pop(0)) if selected else ""

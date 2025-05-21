@@ -6,7 +6,7 @@ import torch.nn as nn
 from . import LOGGER
 from .checks import check_version
 from .metrics import bbox_iou, probiou
-from .ops import xywhr2xyxyxyxy
+from .ops import xywhr2xyxyxyxy, xyxy2xywh
 
 TORCH_1_10 = check_version(torch.__version__, "1.10.0")
 
@@ -298,6 +298,9 @@ class TaskAlignedAssigner(nn.Module):
         if scale != 1.0:
             lt = lt - (scale - 1.0) * lt
             rb = rb + (scale - 1.0) * rb
+        # print(xy_centers)
+        # print(xyxy2xywh(gt_bboxes))
+        # print(gt_bboxes)
         bbox_deltas = torch.cat((xy_centers[None] - lt, rb - xy_centers[None]), dim=2).view(bs, n_boxes, n_anchors, -1)
         return bbox_deltas.amin(3).gt_(eps)
 
@@ -323,8 +326,9 @@ class TaskAlignedAssigner(nn.Module):
         #         continue
         #     x = mask_pos[0, i].sum()
         #     print(x)
-        #     if x == 0:
-        #         exit()
+        #     # if x == 0:
+        #     #     exit()
+        # exit()
         if fg_mask.max() > 1:  # one anchor is assigned to multiple gt_bboxes
             mask_multi_gts = (fg_mask.unsqueeze(1) > 1).expand(-1, n_max_boxes, -1)  # (b, n_max_boxes, h*w)
             max_overlaps_idx = align_metric.argmax(1)  # (b, h*w)

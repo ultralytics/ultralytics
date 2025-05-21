@@ -22,7 +22,7 @@ if CUDA_IS_AVAILABLE:
     else:
         gpu_info = GPUInfo()
         gpu_info.print_status()
-        idle_gpus = gpu_info.select_idle_gpu(count=2, min_memory_mb=2048)
+        idle_gpus = gpu_info.select_idle_gpu(count=2, min_memory_fraction=0.2)
         if idle_gpus:
             DEVICES = idle_gpus
 

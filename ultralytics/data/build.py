@@ -130,13 +130,15 @@ def get_hyps_from_cfg(cfg):
     Extract hyperparameters from configuration.
 
     Args:
-        cfg (dict): Configuration dictionary containing hyperparameters.
+        cfg (dict | SimpleNamespace): Configuration dictionary or namespace containing hyperparameters.
 
     Returns:
         (dict): Dictionary of hyperparameters.
     """
     hyp = {}
-    for k, v in cfg.items():
+    # Handle both dict and SimpleNamespace objects
+    items = cfg.items() if isinstance(cfg, dict) else vars(cfg).items()
+    for k, v in items:
         if isinstance(v, (int, float, bool, str)):
             hyp[k] = v
     return hyp

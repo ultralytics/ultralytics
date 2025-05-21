@@ -705,7 +705,7 @@ def test_multichannel():
 
 def test_check_file_speeds_with_dummy_files(tmp_path, caplog):
     """Test file speed method with dummy files."""
-    check_file_speeds()  # File speed check
+    check_file_speeds(files=None)  # File speed check
     dummy_files = []  # Create dummy files
     for i in range(2):
         file_path = tmp_path / f"dummy_{i}.txt"

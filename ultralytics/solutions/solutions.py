@@ -225,9 +225,10 @@ class BaseSolution:
             result = self.process(*args, **kwargs)  # Call the subclass-specific process method
         if self.CFG["verbose"]:  # extract verbose value to display the output logs if True
             LOGGER.info(
-                f"{self.profilers[0].dt * 1e3:.1f}ms track, "
+                f"{self.profilers[0].dt * 1e3:.1f}ms track, "  # Object tracking time
+                # Solution time = process - track - visualization
                 f"{((self.profilers[1].dt - self.profilers[0].dt) - self.profilers[2].dt) * 1e3:.1f}ms solution, "
-                f"{self.profilers[2].dt * 1e3:.1f}ms inference processing per image at shape "
+                f"{self.profilers[2].dt * 1e3:.1f}ms inference processing per image at shape "  # Visualization time
                 f"(1, {getattr(self.model, 'ch', 3)}, {self.h}, {self.w})",
             )
             LOGGER.info(f"{result}\n")

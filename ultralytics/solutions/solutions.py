@@ -89,8 +89,6 @@ class BaseSolution:
             self.show_conf = self.CFG["show_conf"]
             self.show_labels = self.CFG["show_labels"]
             self.device = self.CFG["device"]
-            self.h = None
-            self.w = None
 
             self.track_add_args = {  # Tracker additional arguments for advance configuration
                 k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker"]
@@ -144,7 +142,6 @@ class BaseSolution:
             >>> frame = cv2.imread("path/to/image.jpg")
             >>> solution.extract_tracks(frame)
         """
-        self.h, self.w = im0.shape[:2]
         with self.profilers[0]:
             self.tracks = self.model.track(
                 source=im0, persist=True, classes=self.classes, verbose=False, **self.track_add_args
@@ -225,10 +222,10 @@ class BaseSolution:
             result = self.process(*args, **kwargs)  # Call the subclass-specific process method
         if self.CFG["verbose"]:  # extract verbose value to display the output logs if True
             LOGGER.info(
-                f"{self.profilers[0].dt * 1e3:.1f}ms track, "  # Object tracking time
+                f"Speed: {self.profilers[0].dt * 1e3:.1f}ms track, "  # Object tracking time
                 # Solution time = process - track
-                f"{(self.profilers[1].dt - self.profilers[0].dt) * 1e3:.1f}ms solution, processing per image at shape "
-                f"(1, {getattr(self.model, 'ch', 3)}, {self.h}, {self.w})",
+                f"{(self.profilers[1].dt - self.profilers[0].dt) * 1e3:.1f}ms solution per image at shape "
+                f"(1, {getattr(self.model, 'ch', 3)}, {result.plot_im.shape[0]}, {result.plot_im.shape[1]})",
             )
             LOGGER.info(f"{result}\n")
         return result

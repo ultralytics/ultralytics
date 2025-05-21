@@ -244,9 +244,8 @@ def test_parking_json_none():
 def test_analytics_graph_not_supported():
     """Test that unsupported analytics type raises ModuleNotFoundError."""
     try:
-        im0 = np.zeros((640, 480, 3), dtype=np.uint8)
         analytics = solutions.Analytics(analytics_type="test")  # 'test' is unsupported
-        analytics.process(im0=im0, frame_number=0)
+        analytics.process(im0=np.zeros((640, 480, 3), dtype=np.uint8), frame_number=0)
         assert False, "Expected ModuleNotFoundError for unsupported chart type"
     except ModuleNotFoundError as e:
         assert "test chart is not supported" in str(e)

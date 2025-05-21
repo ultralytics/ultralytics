@@ -89,7 +89,8 @@ class BaseSolution:
             self.show_conf = self.CFG["show_conf"]
             self.show_labels = self.CFG["show_labels"]
             self.device = self.CFG["device"]
-            self.image_shape = None
+            self.h = None
+            self.w = None
 
             self.track_add_args = {  # Tracker additional arguments for advance configuration
                 k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker", "device"]
@@ -108,9 +109,9 @@ class BaseSolution:
             self.track_history = defaultdict(list)
 
             self.profilers = (
-                ops.Profile(device=self.device),  # object tracking
-                ops.Profile(device=self.device),  # each solution processing
-                ops.Profile(device=self.device),  # post-processing
+                ops.Profile(device=self.device),  # track
+                ops.Profile(device=self.device),  # solution
+                ops.Profile(device=self.device),  # visualization
             )
 
     def adjust_box_label(self, cls, conf, track_id=None):
@@ -144,10 +145,11 @@ class BaseSolution:
             >>> frame = cv2.imread("path/to/image.jpg")
             >>> solution.extract_tracks(frame)
         """
-        self.image_shape = im0.shape
-        self.tracks = self.model.track(
-            source=im0, persist=True, classes=self.classes, verbose=True, **self.track_add_args
-        )
+        self.h, self.w = im0.shape[:2]
+        with self.profilers[0]:
+            self.tracks = self.model.track(
+                source=im0, persist=True, classes=self.classes, verbose=False, **self.track_add_args
+            )
         self.track_data = self.tracks[0].obb or self.tracks[0].boxes  # Extract tracks for OBB or object detection
 
         if self.track_data and self.track_data.id is not None:
@@ -221,22 +223,14 @@ class BaseSolution:
     def __call__(self, *args, **kwargs):
         """Allow instances to be called like a function with flexible arguments."""
         result = self.process(*args, **kwargs)  # Call the subclass-specific process method
-        result.speed_dict = {
-            "track": self.profilers[0].dt * 1e3,
-            "solution": self.profilers[1].dt * 1e3,
-            "visualization": self.profilers[2].dt * 1e3,
-        }
-        # Profiling times in milliseconds
-        preprocess_time = self.profilers[0].dt * 1e3
-        inference_time = self.profilers[1].dt * 1e3
-        postprocess_time = self.profilers[2].dt * 1e3
         if self.CFG["verbose"]:  # extract verbose value to display the output logs if True
             LOGGER.info(
-                f"Speed: {preprocess_time:.1f}ms preprocess, {inference_time:.1f}ms inference, "
-                f"{postprocess_time:.1f}ms postprocess per image at shape "
-                f"(1, {getattr(self.model, 'ch', 3)}, {self.image_shape})"
+                f"{self.profilers[0].dt * 1e3:.1f}ms track, "
+                f"{self.profilers[1].dt * 1e3:.1f}ms solution, "
+                f"{self.profilers[2].dt * 1e3:.1f}ms inference processing per image at shape "
+                f"(1, {getattr(self.model, 'ch', 3)}, {self.h}, {self.w})",
             )
-            LOGGER.info(f"🚀 Results: {result}")
+            LOGGER.info(f"{result}\n")
         return result
 
 
@@ -746,4 +740,5 @@ class SolutionResults:
             for k, v in self.__dict__.items()
             if k != "plot_im" and v not in [None, {}, 0, 0.0, False]  # Exclude `plot_im` explicitly
         }
-        return f"SolutionResults({', '.join(f'{k}={v}' for k, v in attrs.items())})"
+        return ", ".join(f"{k}={v}" for k, v in attrs.items())
+        # return f"({', '.join(f'{k}={v}' for k, v in attrs.items())})"

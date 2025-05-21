@@ -160,7 +160,7 @@ class ObjectCounter(BaseSolution):
         self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
         is_obb = getattr(self.tracks[0], "obb", None) is not None  # True if OBB results exist
-        if is_obb:
+        if is_obb and self.track_data and self.track_data.id is not None:
             self.boxes = self.track_data.xyxyxyxy.reshape(-1, 4, 2).cpu()
 
         self.annotator.draw_region(

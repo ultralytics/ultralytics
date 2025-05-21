@@ -261,8 +261,9 @@ class ParkingManagement(BaseSolution):
 
         annotator.display_analytics(im0, self.pr_info, (104, 31, 17), (255, 255, 255), 10)
 
-        plot_im = annotator.result()
-        self.display_output(plot_im)  # display output with base class function
+        with self.profilers[2]:
+            plot_im = annotator.result()
+            self.display_output(plot_im)  # display output with base class function
 
         # Return SolutionResults
         return SolutionResults(

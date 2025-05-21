@@ -103,8 +103,10 @@ class AIGym(BaseSolution):
                         stage_text=state["stage"],  # stage position text
                         center_kpt=k[int(self.kpts[1])],  # center keypoint for display
                     )
-        plot_im = annotator.result()
-        self.display_output(plot_im)  # Display output image, if environment support display
+
+        with self.profilers[2]:
+            plot_im = annotator.result()
+            self.display_output(plot_im)  # Display output image, if environment support display
 
         # Return SolutionResults
         return SolutionResults(

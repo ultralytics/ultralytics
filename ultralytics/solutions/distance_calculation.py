@@ -116,9 +116,11 @@ class DistanceCalculation(BaseSolution):
             annotator.plot_distance_and_line(pixels_distance, self.centroids)
 
         self.centroids = []  # Reset centroids for next frame
-        plot_im = annotator.result()
-        self.display_output(plot_im)  # Display output with base class function
-        cv2.setMouseCallback("Ultralytics Solutions", self.mouse_event_for_distance)
+
+        with self.profilers[2]:
+            plot_im = annotator.result()
+            self.display_output(plot_im)  # Display output with base class function
+            cv2.setMouseCallback("Ultralytics Solutions", self.mouse_event_for_distance)
 
         # Return SolutionResults with processed image and calculated metrics
         return SolutionResults(plot_im=plot_im, pixels_distance=pixels_distance, total_tracks=len(self.track_ids))

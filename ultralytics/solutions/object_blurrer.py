@@ -83,8 +83,9 @@ class ObjectBlurrer(BaseSolution):
                 box, label=self.adjust_box_label(cls, conf), color=colors(cls, True)
             )  # Annotate bounding box
 
-        plot_im = annotator.result()
-        self.display_output(plot_im)  # Display the output using the base class function
+        with self.profilers[2]:
+            plot_im = annotator.result()
+            self.display_output(plot_im)  # Display the output using the base class function
 
         # Return a SolutionResults
         return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids))

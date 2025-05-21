@@ -86,8 +86,9 @@ class QueueManager(BaseSolution):
             region_color=self.rect_color,
             txt_color=(104, 31, 17),
         )
-        plot_im = annotator.result()
-        self.display_output(plot_im)  # Display output with base class function
+        with self.profilers[2]:
+            plot_im = annotator.result()
+            self.display_output(plot_im)  # Display output with base class function
 
         # Return a SolutionResults object with processed data
         return SolutionResults(plot_im=plot_im, queue_count=self.counts, total_tracks=len(self.track_ids))

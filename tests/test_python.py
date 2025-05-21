@@ -718,7 +718,6 @@ def test_check_file_speeds_with_dummy_files(tmp_path, caplog):
     assert "Test:" in logs
 
 
-
 def test_already_initialized_model():
     model = YOLO("yolo11n.pt")
     model = YOLO(model)

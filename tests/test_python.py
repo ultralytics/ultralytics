@@ -38,6 +38,7 @@ from ultralytics.utils.torch_utils import TORCH_1_9
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests start as TMP does not exist on tests/init
 video_url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov"
 
+
 def test_model_forward():
     """Test the forward pass of the YOLO model."""
     model = YOLO(CFG)

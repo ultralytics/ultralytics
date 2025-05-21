@@ -10,10 +10,10 @@ segmentation tasks.
 
 from collections import OrderedDict
 
+import cv2
 import numpy as np
 import torch
 import torch.nn.functional as F
-import cv2
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.engine.predictor import BasePredictor
@@ -1337,7 +1337,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             current_out["maskmem_features"] = maskmem_features.to(
                 dtype=torch.float16, device=self.device, non_blocking=True
             )
-        
+
         # Fill holes in the predicted masks if enabled
         if self.fill_hole_area > 0:
             pred_masks = current_out["pred_masks"].to(self.device, non_blocking=True)

@@ -911,7 +911,7 @@ def entrypoint(debug: str = "") -> None:
         mode = DEFAULT_CFG.mode or "predict"
         LOGGER.warning(f"'mode' argument is missing. Valid modes are {MODES}. Using default 'mode={mode}'.")
     elif mode not in MODES:
-        raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {{{', '.join(sorted(MODES))}}}\n{CLI_HELP_MSG}")
+        raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {{{', '.join(sorted(MODES))}}}.\n{CLI_HELP_MSG}")
 
     # Task
     task = overrides.pop("task", None)
@@ -924,7 +924,7 @@ def entrypoint(debug: str = "") -> None:
                 task, mode = "detect", "track"
             else:
                 raise ValueError(
-                    f"Invalid 'task={task}'. Valid tasks are {{{', '.join(sorted(TASKS))}}}\n{CLI_HELP_MSG}"
+                    f"Invalid 'task={task}'. Valid tasks are {{{', '.join(sorted(TASKS))}}}.\n{CLI_HELP_MSG}"
                 )
         if "model" not in overrides:
             overrides["model"] = TASK2MODEL[task]

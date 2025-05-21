@@ -108,8 +108,8 @@ CLI_HELP_MSG = f"""
 
         yolo TASK MODE ARGS
 
-        Where   TASK (optional) is one of {TASKS}
-                MODE (required) is one of {MODES}
+        Where   TASK (optional) is one of {list(TASKS)}
+                MODE (required) is one of {list(MODES)}
                 ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
                     See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
 
@@ -909,9 +909,9 @@ def entrypoint(debug: str = "") -> None:
     mode = overrides.get("mode")
     if mode is None:
         mode = DEFAULT_CFG.mode or "predict"
-        LOGGER.warning(f"'mode' argument is missing. Valid modes are {MODES}. Using default 'mode={mode}'.")
+        LOGGER.warning(f"'mode' argument is missing. Valid modes are {list(MODES)}. Using default 'mode={mode}'.")
     elif mode not in MODES:
-        raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {MODES}.\n{CLI_HELP_MSG}")
+        raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {list(MODES)}.\n{CLI_HELP_MSG}")
 
     # Task
     task = overrides.pop("task", None)
@@ -919,11 +919,11 @@ def entrypoint(debug: str = "") -> None:
         if task not in TASKS:
             if task == "track":
                 LOGGER.warning(
-                    f"invalid 'task=track', setting 'task=detect' and 'mode=track'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}."
+                    f"invalid 'task=track', setting 'task=detect' and 'mode=track'. Valid tasks are {list(TASKS)}.\n{CLI_HELP_MSG}."
                 )
                 task, mode = "detect", "track"
             else:
-                raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
+                raise ValueError(f"Invalid 'task={task}'. Valid tasks are {list(TASKS)}.\n{CLI_HELP_MSG}")
         if "model" not in overrides:
             overrides["model"] = TASK2MODEL[task]
 

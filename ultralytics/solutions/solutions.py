@@ -226,7 +226,8 @@ class BaseSolution:
         if self.CFG["verbose"]:  # extract verbose value to display the output logs if True
             LOGGER.info(
                 f"{self.profilers[0].dt * 1e3:.1f}ms track, "  # Object tracking time
-                f"{(self.profilers[1].dt - self.profilers[0].dt) * 1e3:.1f}ms solution, "  # sol time = process - track
+                # Solution time = process - track
+                f"{(self.profilers[1].dt - self.profilers[0].dt) * 1e3:.1f}ms solution, processing per image at shape "
                 f"(1, {getattr(self.model, 'ch', 3)}, {self.h}, {self.w})",
             )
             LOGGER.info(f"{result}\n")

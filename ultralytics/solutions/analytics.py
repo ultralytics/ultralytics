@@ -248,4 +248,5 @@ class Analytics(BaseSolution):
         im0 = np.array(self.canvas.renderer.buffer_rgba())
         im0 = cv2.cvtColor(im0[:, :, :3], cv2.COLOR_RGBA2BGR)
         self.display_output(im0)
+
         return im0  # Return the image

@@ -116,7 +116,6 @@ class DistanceCalculation(BaseSolution):
             annotator.plot_distance_and_line(pixels_distance, self.centroids)
 
         self.centroids = []  # Reset centroids for next frame
-
         plot_im = annotator.result()
         self.display_output(plot_im)  # Display output with base class function
         if self.CFG.get("show") and self.env_check:

@@ -77,6 +77,7 @@ class InstanceSegmentation(BaseSolution):
                 labels=self.show_labels,
                 color_mode="instance",
             )
+
         self.display_output(plot_im)  # Display the annotated output using the base class function
 
         # Return SolutionResults

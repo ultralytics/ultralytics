@@ -114,6 +114,7 @@ class Heatmap(ObjectCounter):
             normalized_heatmap = cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
             colored_heatmap = cv2.applyColorMap(normalized_heatmap, self.colormap)
             plot_im = cv2.addWeighted(plot_im, 0.5, colored_heatmap, 0.5, 0)
+
         self.display_output(plot_im)  # Display output with base class function
 
         # Return SolutionResults

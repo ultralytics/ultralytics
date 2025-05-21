@@ -116,7 +116,6 @@ class RegionCounter(BaseSolution):
             region["counts"] = 0  # Reset for next frame
 
         plot_im = annotator.result()
-        with self.profilers[2]:
-            self.display_output(plot_im)
+        self.display_output(plot_im)
 
         return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), region_counts=self.region_counts)

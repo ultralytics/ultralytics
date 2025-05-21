@@ -77,8 +77,7 @@ class InstanceSegmentation(BaseSolution):
                 labels=self.show_labels,
                 color_mode="instance",
             )
-        with self.profilers[2]:
-            self.display_output(plot_im)  # Display the annotated output using the base class function
+        self.display_output(plot_im)  # Display the annotated output using the base class function
 
         # Return SolutionResults
         return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids))

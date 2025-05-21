@@ -247,7 +247,5 @@ class Analytics(BaseSolution):
         self.canvas.draw()
         im0 = np.array(self.canvas.renderer.buffer_rgba())
         im0 = cv2.cvtColor(im0[:, :, :3], cv2.COLOR_RGBA2BGR)
-        with self.profilers[2]:
-            self.display_output(im0)
-
+        self.display_output(im0)
         return im0  # Return the image

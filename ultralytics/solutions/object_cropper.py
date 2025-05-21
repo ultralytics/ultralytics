@@ -85,7 +85,6 @@ class ObjectCropper(BaseSolution):
                 file=Path(self.crop_dir) / f"crop_{self.crop_idx}.jpg",
                 BGR=True,
             )
-        self.profilers[2].dt = 0  # Object crop class don't support visualization, visualization time 0.
 
         # Return SolutionResults
         return SolutionResults(plot_im=im0, total_crop_objects=self.crop_idx)

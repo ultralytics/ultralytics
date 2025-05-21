@@ -148,8 +148,7 @@ class SecurityAlarm(BaseSolution):
             self.email_sent = True
 
         plot_im = annotator.result()
-        with self.profilers[2]:
-            self.display_output(plot_im)  # Display output with base class function
+        self.display_output(plot_im)  # Display output with base class function
 
         # Return a SolutionResults
         return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), email_sent=self.email_sent)

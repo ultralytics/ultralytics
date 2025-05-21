@@ -111,7 +111,6 @@ class BaseSolution:
             self.profilers = (
                 ops.Profile(device=self.device),  # track
                 ops.Profile(device=self.device),  # solution
-                ops.Profile(device=self.device),  # visualization
             )
 
     def adjust_box_label(self, cls, conf, track_id=None):
@@ -227,9 +226,7 @@ class BaseSolution:
         if self.CFG["verbose"]:  # extract verbose value to display the output logs if True
             LOGGER.info(
                 f"{self.profilers[0].dt * 1e3:.1f}ms track, "  # Object tracking time
-                # Solution time = process - track - visualization
-                f"{((self.profilers[1].dt - self.profilers[0].dt) - self.profilers[2].dt) * 1e3:.1f}ms solution, "
-                f"{self.profilers[2].dt * 1e3:.1f}ms inference processing per image at shape "  # Visualization time
+                f"{(self.profilers[1].dt - self.profilers[0].dt) * 1e3:.1f}ms solution, "  # sol time = process - track
                 f"(1, {getattr(self.model, 'ch', 3)}, {self.h}, {self.w})",
             )
             LOGGER.info(f"{result}\n")

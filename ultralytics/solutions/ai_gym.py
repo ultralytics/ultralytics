@@ -105,8 +105,7 @@ class AIGym(BaseSolution):
                     )
 
         plot_im = annotator.result()
-        with self.profilers[2]:
-            self.display_output(plot_im)  # Display output image, if environment support display
+        self.display_output(plot_im)  # Display output image, if environment support display
 
         # Return SolutionResults
         return SolutionResults(

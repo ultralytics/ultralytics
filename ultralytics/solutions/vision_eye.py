@@ -62,8 +62,7 @@ class VisionEye(BaseSolution):
             annotator.visioneye(box, self.vision_point)
 
         plot_im = annotator.result()
-        with self.profilers[2]:
-            self.display_output(plot_im)  # Display the annotated output using the base class function
+        self.display_output(plot_im)  # Display the annotated output using the base class function
 
         # Return a SolutionResults object with the annotated image and tracking statistics
         return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids))

@@ -354,7 +354,6 @@ def test_data_annotator():
         ASSETS,
         det_model=WEIGHTS_DIR / "yolo11n.pt",
         sam_model=WEIGHTS_DIR / "mobile_sam.pt",
-        output_dir=TMP / "auto_annotate_labels",
     )
 
 
@@ -700,3 +699,4 @@ def test_multichannel():
     im = np.zeros((32, 32, 10), dtype=np.uint8)
     model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)
     model.export(format="onnx")
+

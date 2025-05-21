@@ -331,7 +331,8 @@ class TaskAlignedAssigner(nn.Module):
             sum_pos = mask_pos.sum(-1)  # (b, n_max_boxes)
             sum_pos.masked_fill_(sum_pos == 0, sum_pos.max())  # (b, n_max_boxes)
             min_idx = torch.argmin(sum_pos, dim=-1)  # (b, )
-            mask_pos_min = mask_pos[torch.arange(len(mask_pos)), min_idx].long()  # (b, h*w)
+            mask_pos_min = min_idx.unsqueeze(-1).expand(-1, mask_pos.shape[-1])  # (b, h*w)
+            # mask_pos_min = mask_pos[torch.arange(len(mask_pos)), min_idx].long()  # (b, h*w)
             is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
             is_max_overlaps.scatter_(1, mask_pos_min.unsqueeze(1), 1)
 

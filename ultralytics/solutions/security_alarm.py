@@ -147,8 +147,8 @@ class SecurityAlarm(BaseSolution):
             self.send_email(im0, total_det)
             self.email_sent = True
 
+        plot_im = annotator.result()
         with self.profilers[2]:
-            plot_im = annotator.result()
             self.display_output(plot_im)  # Display output with base class function
 
         # Return a SolutionResults

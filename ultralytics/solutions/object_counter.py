@@ -181,8 +181,8 @@ class ObjectCounter(BaseSolution):
                 prev_position = self.track_history[track_id][-2]
             self.count_objects(self.track_history[track_id][-1], track_id, prev_position, cls)  # object counting
 
+        plot_im = self.annotator.result()
         with self.profilers[2]:
-            plot_im = self.annotator.result()
             self.display_counts(plot_im)  # Display the counts on the frame
             self.display_output(plot_im)  # Display output with base class function
 

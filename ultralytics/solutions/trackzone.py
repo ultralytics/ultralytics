@@ -81,8 +81,8 @@ class TrackZone(BaseSolution):
                 box, label=self.adjust_box_label(cls, conf, track_id=track_id), color=colors(track_id, True)
             )
 
+        plot_im = annotator.result()
         with self.profilers[2]:
-            plot_im = annotator.result()
             self.display_output(plot_im)  # display output with base class function
 
         # Return a SolutionResults

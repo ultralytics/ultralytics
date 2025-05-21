@@ -119,8 +119,7 @@ class Analytics(BaseSolution):
                     self.clswise_count[self.names[int(cls)]] += 1
                 else:
                     self.clswise_count[self.names[int(cls)]] = 1
-            with self.profilers[2]:
-                plot_im = self.update_graph(frame_number=frame_number, count_dict=self.clswise_count, plot=self.type)
+            plot_im = self.update_graph(frame_number=frame_number, count_dict=self.clswise_count, plot=self.type)
         else:
             raise ModuleNotFoundError(f"{self.type} chart is not supported ❌")
 
@@ -248,6 +247,7 @@ class Analytics(BaseSolution):
         self.canvas.draw()
         im0 = np.array(self.canvas.renderer.buffer_rgba())
         im0 = cv2.cvtColor(im0[:, :, :3], cv2.COLOR_RGBA2BGR)
-        self.display_output(im0)
+        with self.profilers[2]:
+            self.display_output(im0)
 
         return im0  # Return the image

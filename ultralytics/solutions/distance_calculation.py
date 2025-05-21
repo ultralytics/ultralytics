@@ -117,8 +117,8 @@ class DistanceCalculation(BaseSolution):
 
         self.centroids = []  # Reset centroids for next frame
 
+        plot_im = annotator.result()
         with self.profilers[2]:
-            plot_im = annotator.result()
             self.display_output(plot_im)  # Display output with base class function
             cv2.setMouseCallback("Ultralytics Solutions", self.mouse_event_for_distance)
 

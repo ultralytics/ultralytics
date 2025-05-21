@@ -65,22 +65,21 @@ class InstanceSegmentation(BaseSolution):
         self.masks = getattr(self.tracks[0], "masks", None)
 
         # Iterate over detected classes, track IDs, and segmentation masks
+        if self.masks is None:
+            self.LOGGER.warning(
+                "No masks detected! Ensure you're using a supported Ultralytics segmentation model."
+            )
+            plot_im = im0
+        else:
+            results = Results(im0, path=None, names=self.names, boxes=self.track_data.data, masks=self.masks.data)
+            plot_im = results.plot(
+                line_width=self.line_width,
+                boxes=self.show_boxes,
+                conf=self.show_conf,
+                labels=self.show_labels,
+                color_mode="instance",
+            )
         with self.profilers[2]:
-            if self.masks is None:
-                self.LOGGER.warning(
-                    "No masks detected! Ensure you're using a supported Ultralytics segmentation model."
-                )
-                plot_im = im0
-            else:
-                results = Results(im0, path=None, names=self.names, boxes=self.track_data.data, masks=self.masks.data)
-                plot_im = results.plot(
-                    line_width=self.line_width,
-                    boxes=self.show_boxes,
-                    conf=self.show_conf,
-                    labels=self.show_labels,
-                    color_mode="instance",
-                )
-
             self.display_output(plot_im)  # Display the annotated output using the base class function
 
         # Return SolutionResults

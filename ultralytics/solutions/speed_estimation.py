@@ -103,8 +103,8 @@ class SpeedEstimator(BaseSolution):
                 speed_label = f"{self.spd[track_id]} km/h"
                 annotator.box_label(box, label=speed_label, color=colors(track_id, True))  # Draw bounding box
 
+        plot_im = annotator.result()
         with self.profilers[2]:
-            plot_im = annotator.result()
             self.display_output(plot_im)  # Display output with base class function
 
         # Return results with processed image and tracking summary

@@ -105,18 +105,17 @@ class Heatmap(ObjectCounter):
                     prev_position = self.track_history[track_id][-2]
                 self.count_objects(self.track_history[track_id][-1], track_id, prev_position, cls)  # object counting
 
+        plot_im = self.annotator.result()
+        if self.region is not None:
+            self.display_counts(plot_im)  # Display the counts on the frame
+
+        # Normalize, apply colormap to heatmap and combine with original image
+        if self.track_data.id is not None:
+            normalized_heatmap = cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+            colored_heatmap = cv2.applyColorMap(normalized_heatmap, self.colormap)
+            plot_im = cv2.addWeighted(plot_im, 0.5, colored_heatmap, 0.5, 0)
         with self.profilers[2]:
-            plot_im = self.annotator.result()
-            if self.region is not None:
-                self.display_counts(plot_im)  # Display the counts on the frame
-
-            # Normalize, apply colormap to heatmap and combine with original image
-            if self.track_data.id is not None:
-                normalized_heatmap = cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
-                colored_heatmap = cv2.applyColorMap(normalized_heatmap, self.colormap)
-                plot_im = cv2.addWeighted(plot_im, 0.5, colored_heatmap, 0.5, 0)
-
-                self.display_output(plot_im)  # Display output with base class function
+            self.display_output(plot_im)  # Display output with base class function
 
         # Return SolutionResults
         return SolutionResults(

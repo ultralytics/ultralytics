@@ -173,13 +173,12 @@ class ObjectCounter(BaseSolution):
             self.annotator.box_label(
                 box, label=self.adjust_box_label(cls, conf, track_id), color=colors(cls, True), rotated=is_obb
             )
-            with self.profilers[1]:
-                self.store_tracking_history(track_id, box, is_obb=is_obb)  # Store track history
-                # Store previous position of track for object counting
-                prev_position = None
-                if len(self.track_history[track_id]) > 1:
-                    prev_position = self.track_history[track_id][-2]
-                self.count_objects(self.track_history[track_id][-1], track_id, prev_position, cls)  # object counting
+            self.store_tracking_history(track_id, box, is_obb=is_obb)  # Store track history
+            # Store previous position of track for object counting
+            prev_position = None
+            if len(self.track_history[track_id]) > 1:
+                prev_position = self.track_history[track_id][-2]
+            self.count_objects(self.track_history[track_id][-1], track_id, prev_position, cls)  # object counting
 
         with self.profilers[2]:
             plot_im = self.annotator.result()

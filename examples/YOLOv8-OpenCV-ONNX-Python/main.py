@@ -6,7 +6,7 @@ import cv2.dnn
 import numpy as np
 
 from ultralytics.utils import ASSETS, YAML
-from ultralytics.utils.checks import check_yaml
+from ultralytics.utils.checks import check_imshow, check_yaml
 
 CLASSES = YAML.load(check_yaml("coco8.yaml"))["names"]
 colors = np.random.uniform(0, 255, size=(len(CLASSES), 3))
@@ -116,9 +116,10 @@ def main(onnx_model, input_image):
         )
 
     # Display the image with bounding boxes
-    cv2.imshow("image", original_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    if check_imshow(warn=True):
+        cv2.imshow("image", original_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
     return detections
 

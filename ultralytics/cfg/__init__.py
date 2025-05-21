@@ -923,7 +923,7 @@ def entrypoint(debug: str = "") -> None:
                 )
                 task, mode = "detect", "track"
             else:
-                raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
+                raise ValueError(f"Invalid 'task={task}'. Valid tasks are {{{', '.join(sorted(TASKS))}}}\n{CLI_HELP_MSG}")
         if "model" not in overrides:
             overrides["model"] = TASK2MODEL[task]
 

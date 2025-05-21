@@ -90,7 +90,7 @@ class YOLOEPESegTrainer(SegmentationTrainer):
             verbose=verbose and RANK == -1,
         )
 
-        del model.model[-1].savpe
+        del model.model[-1].shape
 
         assert weights is not None, "Pretrained weights must be provided for linear probing."
         if weights:

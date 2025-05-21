@@ -111,7 +111,7 @@ def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, str
         imgsz=cfg.imgsz,
         batch_size=batch,
         augment=mode == "train",  # augmentation
-        hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
+        hyp=get_hyps_from_cfg(cfg),  # hyperparameters
         rect=cfg.rect or rect,  # rectangular batches
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,
@@ -123,6 +123,23 @@ def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, str
         data=data,
         fraction=cfg.fraction if mode == "train" else 1.0,
     )
+
+
+def get_hyps_from_cfg(cfg):
+    """
+    Extract hyperparameters from configuration.
+
+    Args:
+        cfg (dict): Configuration dictionary containing hyperparameters.
+
+    Returns:
+        (dict): Dictionary of hyperparameters.
+    """
+    hyp = {}
+    for k, v in cfg.items():
+        if isinstance(v, (int, float, bool, str)):
+            hyp[k] = v
+    return hyp
 
 
 def build_grounding(cfg, img_path, json_file, batch, mode="train", rect=False, stride=32):

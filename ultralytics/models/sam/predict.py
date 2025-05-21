@@ -13,6 +13,7 @@ from collections import OrderedDict
 import numpy as np
 import torch
 import torch.nn.functional as F
+import cv2
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.engine.predictor import BasePredictor
@@ -1336,11 +1337,21 @@ class SAM2VideoPredictor(SAM2Predictor):
             current_out["maskmem_features"] = maskmem_features.to(
                 dtype=torch.float16, device=self.device, non_blocking=True
             )
-        # NOTE: Do not support the `fill_holes_in_mask_scores` function since it needs cuda extensions
-        # potentially fill holes in the predicted masks
-        # if self.fill_hole_area > 0:
-        #     pred_masks = current_out["pred_masks"].to(self.device, non_blocking=True)
-        #     pred_masks = fill_holes_in_mask_scores(pred_masks, self.fill_hole_area)
+        
+        # Fill holes in the predicted masks if enabled
+        if self.fill_hole_area > 0:
+            pred_masks = current_out["pred_masks"].to(self.device, non_blocking=True)
+            for i in range(len(pred_masks)):
+                mask = pred_masks[i].cpu().numpy()
+                # Find contours of the mask
+                contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                # Fill small holes
+                for contour in contours:
+                    area = cv2.contourArea(contour)
+                    if area < self.fill_hole_area:
+                        cv2.drawContours(mask, [contour], -1, 1, -1)
+                pred_masks[i] = torch.from_numpy(mask).to(self.device)
+            current_out["pred_masks"] = pred_masks
 
         # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
         current_out["maskmem_pos_enc"] = self._get_maskmem_pos_enc(current_out["maskmem_pos_enc"])

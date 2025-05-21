@@ -147,8 +147,9 @@ class BaseSolution:
         """
         self.h, self.w = im0.shape[:2]
         with self.profilers[0]:
-            self.tracks = self.model.track(source=im0, persist=True, classes=self.classes, verbose=False, **self.track_add_args
-)
+            self.tracks = self.model.track(
+                source=im0, persist=True, classes=self.classes, verbose=False, **self.track_add_args
+            )
         self.track_data = self.tracks[0].obb or self.tracks[0].boxes  # Extract tracks for OBB or object detection
 
         if self.track_data and self.track_data.id is not None:

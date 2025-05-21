@@ -15,6 +15,7 @@ from PIL import Image
 from tests import CFG, MODEL, SOURCE, SOURCES_LIST, TMP
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import MODELS, TASK2DATA, TASKS
+from ultralytics.data.utils import check_file_speeds
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import (
     ARM64,
@@ -37,7 +38,6 @@ from ultralytics.utils.torch_utils import TORCH_1_9
 
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests start as TMP does not exist on tests/init
 video_url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov"
-
 
 def test_model_forward():
     """Test the forward pass of the YOLO model."""
@@ -701,3 +701,16 @@ def test_multichannel():
     model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)
     model.export(format="onnx")
 
+
+
+def test_check_file_speeds_with_dummy_files(tmp_path, caplog):
+    """Test file speed method with dummy files."""
+    check_file_speeds()  # File speed check
+    dummy_files = []   # Create dummy files
+    for i in range(2):
+        file_path = tmp_path / f"dummy_{i}.txt"
+        file_path.write_bytes(os.urandom(128 * 10))
+        dummy_files.append(file_path)
+    check_file_speeds(dummy_files, threshold_ms=0.01, threshold_mb=0.01, prefix="Test: ")
+    logs = caplog.text
+    assert "Test:" in logs

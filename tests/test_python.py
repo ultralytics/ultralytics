@@ -39,6 +39,7 @@ from ultralytics.utils.torch_utils import TORCH_1_9
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests start as TMP does not exist on tests/init
 video_url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov"
 
+
 def test_model_forward():
     """Test the forward pass of the YOLO model."""
     model = YOLO(CFG)
@@ -702,11 +703,10 @@ def test_multichannel():
     model.export(format="onnx")
 
 
-
 def test_check_file_speeds_with_dummy_files(tmp_path, caplog):
     """Test file speed method with dummy files."""
     check_file_speeds()  # File speed check
-    dummy_files = []   # Create dummy files
+    dummy_files = []  # Create dummy files
     for i in range(2):
         file_path = tmp_path / f"dummy_{i}.txt"
         file_path.write_bytes(os.urandom(128 * 10))

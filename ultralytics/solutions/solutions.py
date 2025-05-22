@@ -75,6 +75,7 @@ class BaseSolution:
             self.track_line = None
             self.masks = None
             self.r_s = None
+            self.frame_no = -1  # Only for logging
 
             self.LOGGER.info(f"Ultralytics Solutions: ✅ {self.CFG}")
             self.region = self.CFG["region"]  # Store region data for other classes usage
@@ -220,14 +221,18 @@ class BaseSolution:
         """Allow instances to be called like a function with flexible arguments."""
         with self.profilers[1]:
             result = self.process(*args, **kwargs)  # Call the subclass-specific process method
-        if self.CFG["verbose"]:  # extract verbose value to display the output logs if True
+        track_or_predict = "predict" if type(self).__name__ == 'ObjectCropper' else 'track'
+        track_or_predict_speed = self.profilers[0].dt * 1e3
+        solution_speed = (self.profilers[1].dt - self.profilers[0].dt) * 1e3  # solution time = process - track
+        result.speed = {track_or_predict: track_or_predict_speed, "solution": solution_speed}
+        if self.CFG["verbose"]:
+            self.frame_no += 1
             LOGGER.info(
-                f"Speed: {self.profilers[0].dt * 1e3:.1f}ms track, "  # Object tracking time
-                # Solution time = process - track
-                f"{(self.profilers[1].dt - self.profilers[0].dt) * 1e3:.1f}ms solution per image at shape "
-                f"(1, {getattr(self.model, 'ch', 3)}, {result.plot_im.shape[0]}, {result.plot_im.shape[1]})",
+                f"{self.frame_no}: {result.plot_im.shape[0]}x{result.plot_im.shape[1]} {solution_speed:.1f}ms\n"
+                f"Speed: {track_or_predict_speed:.1f}ms {track_or_predict}, "
+                f"{solution_speed:.1f}ms solution per image at shape "
+                f"(1, {getattr(self.model, 'ch', 3)}, {result.plot_im.shape[0]}, {result.plot_im.shape[1]})\n"
             )
-            LOGGER.info(f"{result}\n")
         return result
 
 
@@ -719,8 +724,9 @@ class SolutionResults:
         self.email_sent = False
         self.total_tracks = 0
         self.region_counts = {}
-        self.speed_dict = {}
+        self.speed_dict = {}  # for speed estimation
         self.total_crop_objects = 0
+        self.speed = {}
 
         # Override with user-defined values
         self.__dict__.update(kwargs)

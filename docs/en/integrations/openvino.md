@@ -12,14 +12,14 @@ In this guide, we cover exporting YOLOv8 models to the [OpenVINO](https://docs.o
 
 OpenVINO, short for Open Visual Inference & [Neural Network](https://www.ultralytics.com/glossary/neural-network-nn) Optimization toolkit, is a comprehensive toolkit for optimizing and deploying AI inference models. Even though the name contains Visual, OpenVINO also supports various additional tasks including language, audio, time series, etc.
 
-
 <script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script defer src="../../javascript/openvino-benchmarks.js"></script>
+
 <label for="openvino-device" style="color: white;">Select device:</label>
 <select id="openvino-device">
-    <option value="intel:cpu">Intel CPU</option>
-    <option value="intel:gpu">Intel GPU</option>
-    <option value="intel:npu">Intel NPU</option>
+<option value="intel:cpu">Intel CPU</option>
+<option value="intel:gpu">Intel GPU</option>
+<option value="intel:npu">Intel NPU</option>
 </select>
 <canvas id="openvinoChart" width="1024" height="400"></canvas>
 

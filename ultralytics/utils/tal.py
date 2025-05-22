@@ -311,6 +311,7 @@ class TaskAlignedAssigner(nn.Module):
         n_anchors = xy_centers.shape[0]
         bs, n_boxes, _ = gt_bboxes.shape
         lt, rb = gt_bboxes.view(-1, 1, 4).chunk(2, 2)  # left-top, right-bottom
+        # TODO: Fix this
         if scale != 1.0:
             lt = lt - (scale - 1.0) * lt
             rb = rb + (scale - 1.0) * rb

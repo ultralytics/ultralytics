@@ -236,3 +236,153 @@ document$.subscribe(function () {
     }
   })();
 });
+
+// Export chart as PNG file
+document.getElementById("btn-download").addEventListener("click", () => {
+  const canvas = document.getElementById("modelComparisonChart");
+  const tempCanvas = document.createElement("canvas");
+  const ctx = tempCanvas.getContext("2d");
+
+  tempCanvas.width = canvas.width;
+  tempCanvas.height = canvas.height;
+
+  const bgColor = isDark ? "#121212" : "#ffffff";  // Use dark or light background based on current theme
+
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+  ctx.drawImage(canvas, 0, 0);
+
+  const link = document.createElement("a");
+  link.download = "chart.png";
+  link.href = tempCanvas.toDataURL("image/png");
+  link.click();
+});
+
+// Export Chart data as CSV file
+document.getElementById("btn-download-data").addEventListener("click", () => {
+  let csv = "Model,mAP50-95,Speed (ms/img)\n";
+
+  Object.entries(data).forEach(([model, versions]) => {
+    Object.entries(versions).forEach(([ver, point]) => {
+      csv += `${model}${ver},${point.mAP},${point.speed}\n`;
+    });
+  });
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "model_benchmark_data.csv";
+  link.click();
+});
+
+
+// Chart theme Default: light mode
+let isDark = false;
+document.getElementById("btn-toggle-theme").addEventListener("click", () => {
+  isDark = !isDark;
+  updateChartTheme();
+  document.getElementById("btn-toggle-theme").textContent = isDark ? "🌞" : "🌙";
+});
+
+function updateChartTheme() {
+  const options = modelComparisonChart.options;
+  const fg = isDark ? "#ffffff" : "#333333";
+  const bg = isDark ? "#121212" : "#ffffff";
+  const grid = isDark ? "#444444" : "#e0e0e0";
+
+  // Update global chart styles
+  options.scales.x.title.color = fg;
+  options.scales.y.title.color = fg;
+  options.scales.x.ticks.color = fg;
+  options.scales.y.ticks.color = fg;
+  options.scales.x.grid.color = grid;
+  options.scales.y.grid.color = grid;
+  options.plugins.legend.labels.color = fg;
+  options.plugins.tooltip.backgroundColor = isDark ? "#333" : "rgba(0,0,0,0.8)";
+  options.plugins.tooltip.titleColor = fg;
+  options.plugins.tooltip.bodyColor = fg;
+
+  modelComparisonChart.update();
+  document.getElementById("chart-container").style.background = bg;  // Optional: change container background
+}
+
+// Bar chart display
+let currentChartType = 'line';
+document.getElementById("btn-toggle-type").addEventListener("click", () => {
+  currentChartType = currentChartType === 'line' ? 'bar' : 'line';
+  updateChartType();
+});
+
+function updateChartType() {
+  if (!modelComparisonChart) return;
+
+  const newType = currentChartType;
+
+  const cleanData = {
+    datasets: modelComparisonChart.data.datasets.map((ds) => ({
+      label: ds.label,
+      data: ds.data.map(d => ({
+        x: d.x,  // Speed
+        y: d.y,  // mAP
+        version: d.version,
+      })),
+      backgroundColor: ds.borderColor,
+      borderColor: ds.borderColor,
+      borderWidth: 2,
+      barThickness: 10,  // You can adjust this
+    })),
+  };
+
+  modelComparisonChart.destroy();
+  modelComparisonChart = new Chart(
+    document.getElementById("modelComparisonChart").getContext("2d"),
+    {
+      type: newType,  // will be 'bar'
+      data: cleanData,
+      options: {
+        indexAxis: 'x', // keep vertical bars
+        plugins: {
+          legend: {
+            display: true,
+            position: "right",
+            labels: { color: isDark ? "#fff" : "#333" },
+          },
+          tooltip: {
+            callbacks: {
+              label: (tooltipItem) => {
+                const { raw } = tooltipItem;
+                return `${tooltipItem.dataset.label}${raw.version.toLowerCase()}: Speed = ${raw.x}ms/img, mAP50-95 = ${raw.y}`;
+              },
+            }
+          },
+        },
+        interaction: { mode: "nearest", axis: "x", intersect: false },
+        scales: {
+          x: {
+            type: 'linear',
+            title: {
+              display: true,
+              text: 'Latency T4 TensorRT10 FP16 (ms/img)',
+              color: isDark ? "#fff" : "#333",
+            },
+            grid: { color: isDark ? "#444" : "#ccc" },
+            ticks: { color: isDark ? "#fff" : "#333" },
+            min: 0,
+            max: 18
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'COCO mAP 50-95',
+              color: isDark ? "#fff" : "#333",
+            },
+            grid: { color: isDark ? "#444" : "#ccc" },
+            ticks: { color: isDark ? "#fff" : "#333" },
+            min: 36,
+            max: 56
+          }
+        }
+      }
+    }
+  );
+}

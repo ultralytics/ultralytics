@@ -219,3 +219,18 @@ div.highlight {
   filter: brightness(1.2);
 }
 /* Inkeep ----------------------------------------------------------------------------------------------------------- */
+
+/* Benchmark  widget area styling ----------------------------------------------------------------------------------- */
+.chart-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #333;
+  }
+
+  .chart-btn:hover {
+    transform: scale(1.1);
+    color: #000;
+  }
+/* Benchmark  widget area styling ----------------------------------------------------------------------------------- */

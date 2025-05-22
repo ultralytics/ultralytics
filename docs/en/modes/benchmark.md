@@ -17,7 +17,26 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
 <script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script defer src="../../javascript/benchmark.js"></script>
 
-<canvas id="modelComparisonChart" width="1024" height="400"></canvas>
+<div id="chart-container" style="width: 100%; max-width: 1024px; position: relative;">
+ <div id="chart-toolbar" style="
+  position: absolute;
+  top: -40px;
+  right: 0px;
+  display: flex;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  z-index: 10;
+">
+   <button title="Download PNG" id="btn-download" class="chart-btn">⬇️</button>
+   <button title="Download Data" id="btn-download-data" class="chart-btn">📋</button> 
+   <button title="Toggle Theme" id="btn-toggle-theme" class="chart-btn">🌙</button>
+   <button title="Switch to Bar Chart" id="btn-toggle-type" class="chart-btn">📊</button>
+</div>
+  <canvas id="modelComparisonChart" width="1024" height="400" style="margin-top: 60px;"></canvas>
+</div>
 
 ## Introduction
 

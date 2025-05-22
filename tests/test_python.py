@@ -722,7 +722,6 @@ def test_already_initialized_model():
     model = YOLO(model)
 
 
-
 # def test_show_linux_gui_enabled():
 #     from ultralytics.engine.predictor import BasePredictor
 #     with patch("platform.system", return_value="Linux"), \

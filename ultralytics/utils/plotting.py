@@ -278,7 +278,7 @@ class Annotator:
         else:
             return txt_color
 
-    def box_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False):
+    def box_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255)):
         """
         Draw a bounding box on an image with a given label.
 
@@ -287,7 +287,6 @@ class Annotator:
             label (str, optional): The text label to be displayed.
             color (tuple, optional): The background color of the rectangle (B, G, R).
             txt_color (tuple, optional): The color of the text (R, G, B).
-            rotated (bool, optional): Whether the task is oriented bounding box detection.
 
         Examples:
             >>> from ultralytics.utils.plotting import Annotator

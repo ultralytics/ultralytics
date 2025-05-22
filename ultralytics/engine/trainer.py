@@ -429,7 +429,7 @@ class BaseTrainer:
                 self.run_callbacks("on_train_batch_end")
             if self.args.end2end:
                 self.model.criterion.update()
-            print(self.model.criterion.assigner.zero_assigned)
+            # print(self.model.criterion.assigner.zero_assigned)
 
             self.lr = {f"lr/pg{ir}": x["lr"] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
             self.run_callbacks("on_train_epoch_end")

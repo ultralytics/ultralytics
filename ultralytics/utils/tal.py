@@ -37,7 +37,7 @@ class TaskAlignedAssigner(nn.Module):
         self.alpha = alpha
         self.beta = beta
         self.eps = eps
-        self.zero_assigned = 0
+        # self.zero_assigned = 0
 
     @torch.no_grad()
     def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
@@ -321,16 +321,16 @@ class TaskAlignedAssigner(nn.Module):
         """
         # Convert (b, n_max_boxes, h*w) -> (b, h*w)
         fg_mask = mask_pos.sum(-2)
-        # Debug code for batch=1
-        for b in range(len(mask_gt)):
-            for i, m in enumerate(mask_gt[b, :, 0]):
-                if not m:
-                    continue
-                x = mask_pos[b, i].sum()
-                # print(x)
-                if x == 0:
-                    self.zero_assigned += 1
-                    # exit()
+
+        # for b in range(len(mask_gt)):
+        #     for i, m in enumerate(mask_gt[b, :, 0]):
+        #         if not m:
+        #             continue
+        #         x = mask_pos[b, i].sum()
+        #         # print(x)
+        #         if x == 0:
+        #             self.zero_assigned += 1
+        #             # exit()
         if fg_mask.max() > 1:  # one anchor is assigned to multiple gt_bboxes
             mask_multi_gts = (fg_mask.unsqueeze(1) > 1).expand(-1, n_max_boxes, -1)  # (b, n_max_boxes, h*w)
             max_overlaps_idx = overlaps.argmax(1)  # (b, h*w)

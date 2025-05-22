@@ -215,6 +215,7 @@ class YOLODataset(BaseDataset):
             (Compose): Composed transforms.
         """
         if self.augment:
+            hyp = dict(hyp)
             hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
             hyp.cutmix = hyp.cutmix if self.augment and not self.rect else 0.0

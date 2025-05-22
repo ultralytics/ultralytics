@@ -12,17 +12,6 @@ In this guide, we cover exporting YOLOv8 models to the [OpenVINO](https://docs.o
 
 OpenVINO, short for Open Visual Inference & [Neural Network](https://www.ultralytics.com/glossary/neural-network-nn) Optimization toolkit, is a comprehensive toolkit for optimizing and deploying AI inference models. Even though the name contains Visual, OpenVINO also supports various additional tasks including language, audio, time series, etc.
 
-<p align="center">
-  <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/kONm9nE5_Fk?si=kzquuBrxjSbntHoU"
-    title="YouTube video player" frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen>
-  </iframe>
-  <br>
-  <strong>Watch:</strong> How To Export and Optimize an Ultralytics YOLOv8 Model for Inference with OpenVINO.
-</p>
-
 ## Usage Examples
 
 Export a YOLOv8n model to OpenVINO format and run inference with the exported model.
@@ -34,14 +23,14 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLOv8n PyTorch model
-        model = YOLO("yolov8n.pt")
+        # Load a YOLO11n PyTorch model
+        model = YOLO("yolo11n.pt")
 
         # Export the model
         model.export(format="openvino")  # creates 'yolov8n_openvino_model/'
 
         # Load the exported OpenVINO model
-        ov_model = YOLO("yolov8n_openvino_model/")
+        ov_model = YOLO("yolo11n_openvino_model/")
 
         # Run inference
         results = ov_model("https://ultralytics.com/images/bus.jpg")
@@ -53,14 +42,14 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to OpenVINO format
-        yolo export model=yolov8n.pt format=openvino # creates 'yolov8n_openvino_model/'
+        # Export a YOLO11n PyTorch model to OpenVINO format
+        yolo export model=yolo11n.pt format=openvino # creates 'yolo11n_openvino_model/'
 
         # Run inference with the exported model
-        yolo predict model=yolov8n_openvino_model source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo11n_openvino_model source='https://ultralytics.com/images/bus.jpg'
 
         # Run inference with specified device, available devices: ["intel:gpu", "intel:npu", "intel:cpu"]
-        yolo predict model=yolov8n_openvino_model source='https://ultralytics.com/images/bus.jpg' device="intel:gpu"
+        yolo predict model=yolo11n_openvino_model source='https://ultralytics.com/images/bus.jpg' device="intel:gpu"
         ```
 
 ## Export Arguments
@@ -79,6 +68,21 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
 | `device`   | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                                  |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
+
+!!! warning
+
+    OpenVINO™ is compatible with most Intel® processors but to ensure optimal performance:
+
+    1. Verify OpenVINO™ support
+        Check whether your Intel® chip is officially supported by OpenVINO™ using [Intel’s compatibility list](https://docs.openvino.ai/2025/about-openvino/release-notes-openvino/system-requirements.html).
+
+    2. Identify your accelerator
+        Determine if your processor includes an integrated NPU (Neural Processing Unit) or iGPU (integrated GPU) by consulting [Intel’s hardware guide](https://www.intel.com/content/www/us/en/support/articles/000097597/processors.html).
+
+    3. Install the correct drivers
+        If your chip supports an NPU or GPU but OpenVINO™ isn’t detecting it, you may need to install or update the associated drivers. Follow the [driver‑installation instructions](https://medium.com/openvino-toolkit/how-to-run-openvino-on-a-linux-ai-pc-52083ce14a98) to enable full acceleration.
+
+    By following these three steps, you can ensure OpenVINO™ runs optimally on your Intel® hardware.
 
 ## Benefits of OpenVINO
 
@@ -113,9 +117,9 @@ In your deployment application, you would typically do the following steps:
 
 For more detailed steps and code snippets, refer to the [OpenVINO documentation](https://docs.openvino.ai/) or [API tutorial](https://github.com/openvinotoolkit/openvino_notebooks/blob/latest/notebooks/openvino-api/openvino-api.ipynb).
 
-## OpenVINO YOLOv8 Benchmarks
+## OpenVINO YOLO11 Benchmarks
 
-YOLOv8 benchmarks below were run by the Ultralytics team on 4 different model formats measuring speed and accuracy: PyTorch, TorchScript, ONNX and OpenVINO. Benchmarks were run on Intel Flex and Arc GPUs, and on Intel Xeon CPUs at FP32 [precision](https://www.ultralytics.com/glossary/precision) (with the `half=False` argument).
+YOLO11 benchmarks below were run by the Ultralytics team on 4 different model formats measuring speed and accuracy: PyTorch, TorchScript, ONNX and OpenVINO. Benchmarks were run on Intel Flex and Arc GPUs, and on Intel Xeon CPUs at FP32 [precision](https://www.ultralytics.com/glossary/precision) (with the `half=False` argument).
 
 !!! note
 
@@ -123,118 +127,11 @@ YOLOv8 benchmarks below were run by the Ultralytics team on 4 different model fo
 
     All benchmarks run with `openvino` Python package version [2023.0.1](https://pypi.org/project/openvino/2023.0.1/).
 
-### Intel Flex GPU
-
-The Intel® Data Center GPU Flex Series is a versatile and robust solution designed for the intelligent visual cloud. This GPU supports a wide array of workloads including media streaming, cloud gaming, AI visual inference, and virtual desktop Infrastructure workloads. It stands out for its open architecture and built-in support for the AV1 encode, providing a standards-based software stack for high-performance, cross-architecture applications. The Flex Series GPU is optimized for density and quality, offering high reliability, availability, and scalability.
-
-Benchmarks below run on Intel® Data Center GPU Flex 170 at FP32 precision.
-
-<div align="center">
-<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/flex-gpu-benchmarks.avif" alt="Flex GPU benchmarks">
-</div>
-
-| Model   | Format                                                  | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
-| ------- | ------------------------------------------------------- | ------ | --------- | ----------- | ---------------------- |
-| YOLOv8n | [PyTorch](https://www.ultralytics.com/glossary/pytorch) | ✅     | 6.2       | 0.3709      | 21.79                  |
-| YOLOv8n | TorchScript                                             | ✅     | 12.4      | 0.3704      | 23.24                  |
-| YOLOv8n | ONNX                                                    | ✅     | 12.2      | 0.3704      | 37.22                  |
-| YOLOv8n | OpenVINO                                                | ✅     | 12.3      | 0.3703      | 3.29                   |
-| YOLOv8s | PyTorch                                                 | ✅     | 21.5      | 0.4471      | 31.89                  |
-| YOLOv8s | TorchScript                                             | ✅     | 42.9      | 0.4472      | 32.71                  |
-| YOLOv8s | ONNX                                                    | ✅     | 42.8      | 0.4472      | 43.42                  |
-| YOLOv8s | OpenVINO                                                | ✅     | 42.9      | 0.4470      | 3.92                   |
-| YOLOv8m | PyTorch                                                 | ✅     | 49.7      | 0.5013      | 50.75                  |
-| YOLOv8m | TorchScript                                             | ✅     | 99.2      | 0.4999      | 47.90                  |
-| YOLOv8m | ONNX                                                    | ✅     | 99.0      | 0.4999      | 63.16                  |
-| YOLOv8m | OpenVINO                                                | ✅     | 49.8      | 0.4997      | 7.11                   |
-| YOLOv8l | PyTorch                                                 | ✅     | 83.7      | 0.5293      | 77.45                  |
-| YOLOv8l | TorchScript                                             | ✅     | 167.2     | 0.5268      | 85.71                  |
-| YOLOv8l | ONNX                                                    | ✅     | 166.8     | 0.5268      | 88.94                  |
-| YOLOv8l | OpenVINO                                                | ✅     | 167.0     | 0.5264      | 9.37                   |
-| YOLOv8x | PyTorch                                                 | ✅     | 130.5     | 0.5404      | 100.09                 |
-| YOLOv8x | TorchScript                                             | ✅     | 260.7     | 0.5371      | 114.64                 |
-| YOLOv8x | ONNX                                                    | ✅     | 260.4     | 0.5371      | 110.32                 |
-| YOLOv8x | OpenVINO                                                | ✅     | 260.6     | 0.5367      | 15.02                  |
-
-This table represents the benchmark results for five different models (YOLOv8n, YOLOv8s, YOLOv8m, YOLOv8l, YOLOv8x) across four different formats (PyTorch, TorchScript, ONNX, OpenVINO), giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
-
-### Intel Arc GPU
-
-Intel® Arc™ represents Intel's foray into the dedicated GPU market. The Arc™ series, designed to compete with leading GPU manufacturers like AMD and NVIDIA, caters to both the laptop and desktop markets. The series includes mobile versions for compact devices like laptops, and larger, more powerful versions for desktop computers.
-
-The Arc™ series is divided into three categories: Arc™ 3, Arc™ 5, and Arc™ 7, with each number indicating the performance level. Each category includes several models, and the 'M' in the GPU model name signifies a mobile, integrated variant.
-
-Early reviews have praised the Arc™ series, particularly the integrated A770M GPU, for its impressive graphics performance. The availability of the Arc™ series varies by region, and additional models are expected to be released soon. Intel® Arc™ GPUs offer high-performance solutions for a range of computing needs, from gaming to content creation.
-
-Benchmarks below run on Intel® Arc 770 GPU at FP32 precision.
-
-<div align="center">
-<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/arc-gpu-benchmarks.avif" alt="Arc GPU benchmarks">
-</div>
-
-| Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
-| ------- | ----------- | ------ | --------- | ------------------- | ---------------------- |
-| YOLOv8n | PyTorch     | ✅     | 6.2       | 0.3709              | 88.79                  |
-| YOLOv8n | TorchScript | ✅     | 12.4      | 0.3704              | 102.66                 |
-| YOLOv8n | ONNX        | ✅     | 12.2      | 0.3704              | 57.98                  |
-| YOLOv8n | OpenVINO    | ✅     | 12.3      | 0.3703              | 8.52                   |
-| YOLOv8s | PyTorch     | ✅     | 21.5      | 0.4471              | 189.83                 |
-| YOLOv8s | TorchScript | ✅     | 42.9      | 0.4472              | 227.58                 |
-| YOLOv8s | ONNX        | ✅     | 42.7      | 0.4472              | 142.03                 |
-| YOLOv8s | OpenVINO    | ✅     | 42.9      | 0.4469              | 9.19                   |
-| YOLOv8m | PyTorch     | ✅     | 49.7      | 0.5013              | 411.64                 |
-| YOLOv8m | TorchScript | ✅     | 99.2      | 0.4999              | 517.12                 |
-| YOLOv8m | ONNX        | ✅     | 98.9      | 0.4999              | 298.68                 |
-| YOLOv8m | OpenVINO    | ✅     | 99.1      | 0.4996              | 12.55                  |
-| YOLOv8l | PyTorch     | ✅     | 83.7      | 0.5293              | 725.73                 |
-| YOLOv8l | TorchScript | ✅     | 167.1     | 0.5268              | 892.83                 |
-| YOLOv8l | ONNX        | ✅     | 166.8     | 0.5268              | 576.11                 |
-| YOLOv8l | OpenVINO    | ✅     | 167.0     | 0.5262              | 17.62                  |
-| YOLOv8x | PyTorch     | ✅     | 130.5     | 0.5404              | 988.92                 |
-| YOLOv8x | TorchScript | ✅     | 260.7     | 0.5371              | 1186.42                |
-| YOLOv8x | ONNX        | ✅     | 260.4     | 0.5371              | 768.90                 |
-| YOLOv8x | OpenVINO    | ✅     | 260.6     | 0.5367              | 19                     |
-
-### Intel Xeon CPU
-
-The Intel® Xeon® CPU is a high-performance, server-grade processor designed for complex and demanding workloads. From high-end [cloud computing](https://www.ultralytics.com/glossary/cloud-computing) and virtualization to [artificial intelligence](https://www.ultralytics.com/glossary/artificial-intelligence-ai) and machine learning applications, Xeon® CPUs provide the power, reliability, and flexibility required for today's data centers.
-
-Notably, Xeon® CPUs deliver high compute density and scalability, making them ideal for both small businesses and large enterprises. By choosing Intel® Xeon® CPUs, organizations can confidently handle their most demanding computing tasks and foster innovation while maintaining cost-effectiveness and operational efficiency.
-
-Benchmarks below run on 4th Gen Intel® Xeon® Scalable CPU at FP32 precision.
-
-<div align="center">
-<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/xeon-cpu-benchmarks.avif" alt="Xeon CPU benchmarks">
-</div>
-
-| Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
-| ------- | ----------- | ------ | --------- | ------------------- | ---------------------- |
-| YOLOv8n | PyTorch     | ✅     | 6.2       | 0.3709              | 24.36                  |
-| YOLOv8n | TorchScript | ✅     | 12.4      | 0.3704              | 23.93                  |
-| YOLOv8n | ONNX        | ✅     | 12.2      | 0.3704              | 39.86                  |
-| YOLOv8n | OpenVINO    | ✅     | 12.3      | 0.3704              | 11.34                  |
-| YOLOv8s | PyTorch     | ✅     | 21.5      | 0.4471              | 33.77                  |
-| YOLOv8s | TorchScript | ✅     | 42.9      | 0.4472              | 34.84                  |
-| YOLOv8s | ONNX        | ✅     | 42.8      | 0.4472              | 43.23                  |
-| YOLOv8s | OpenVINO    | ✅     | 42.9      | 0.4471              | 13.86                  |
-| YOLOv8m | PyTorch     | ✅     | 49.7      | 0.5013              | 53.91                  |
-| YOLOv8m | TorchScript | ✅     | 99.2      | 0.4999              | 53.51                  |
-| YOLOv8m | ONNX        | ✅     | 99.0      | 0.4999              | 64.16                  |
-| YOLOv8m | OpenVINO    | ✅     | 99.1      | 0.4996              | 28.79                  |
-| YOLOv8l | PyTorch     | ✅     | 83.7      | 0.5293              | 75.78                  |
-| YOLOv8l | TorchScript | ✅     | 167.2     | 0.5268              | 79.13                  |
-| YOLOv8l | ONNX        | ✅     | 166.8     | 0.5268              | 88.45                  |
-| YOLOv8l | OpenVINO    | ✅     | 167.0     | 0.5263              | 56.23                  |
-| YOLOv8x | PyTorch     | ✅     | 130.5     | 0.5404              | 96.60                  |
-| YOLOv8x | TorchScript | ✅     | 260.7     | 0.5371              | 114.28                 |
-| YOLOv8x | ONNX        | ✅     | 260.4     | 0.5371              | 111.02                 |
-| YOLOv8x | OpenVINO    | ✅     | 260.6     | 0.5371              | 83.28                  |
-
 ### Intel Core CPU
 
 The Intel® Core® series is a range of high-performance processors by Intel. The lineup includes Core i3 (entry-level), Core i5 (mid-range), Core i7 (high-end), and Core i9 (extreme performance). Each series caters to different computing needs and budgets, from everyday tasks to demanding professional workloads. With each new generation, improvements are made to performance, energy efficiency, and features.
 
-Benchmarks below run on 13th Gen Intel® Core® i7-13700H CPU at FP32 precision.
+Benchmarks below run on 12th Gen Intel® Core® i9-12900KS CPU at FP32 precision.
 
 <div align="center">
 <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/core-cpu-benchmarks.avif" alt="Core CPU benchmarks">
@@ -424,7 +321,7 @@ Using Intel's OpenVINO toolkit with YOLOv8 models offers several benefits:
 3. **Ease of Use**: Over 80 tutorial notebooks are available to help users get started, including ones for YOLOv8.
 4. **Heterogeneous Execution**: Deploy models on various Intel hardware with a unified API.
 
-For detailed performance comparisons, visit our [benchmarks section](#openvino-yolov8-benchmarks).
+For detailed performance comparisons, visit our [benchmarks section](#openvino-yolo11-benchmarks).
 
 ### How can I run inference using a YOLOv8 model exported to OpenVINO?
 
@@ -461,7 +358,7 @@ Ultralytics YOLOv8 is optimized for real-time object detection with high accurac
 - Seamless deployment on Intel GPUs and NPUs
 - Consistent and comparable accuracy across various export formats
 
-For in-depth performance analysis, check our detailed [YOLOv8 benchmarks](#openvino-yolov8-benchmarks) on different hardware.
+For in-depth performance analysis, check our detailed [YOLOv8 benchmarks](#openvino-yolo11-benchmarks) on different hardware.
 
 ### Can I benchmark YOLOv8 models on different formats such as PyTorch, ONNX, and OpenVINO?
 
@@ -488,4 +385,4 @@ Yes, you can benchmark YOLOv8 models in various formats including PyTorch, Torch
         yolo benchmark model=yolov8n.pt data=coco8.yaml
         ```
 
-For detailed benchmark results, refer to our [benchmarks section](#openvino-yolov8-benchmarks) and [export formats](../modes/export.md) documentation.
+For detailed benchmark results, refer to our [benchmarks section](#openvino-yolo11-benchmarks) and [export formats](../modes/export.md) documentation.

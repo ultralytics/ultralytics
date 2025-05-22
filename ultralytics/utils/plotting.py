@@ -300,7 +300,7 @@ class Annotator:
 
         multi_points = isinstance(box[0], list)  # multiple points with shape (n, 2)
         p1 = [int(b) for b in box[0]] if multi_points else (int(box[0]), int(box[1]))
-        if self.pil or not is_ascii(label):
+        if self.pil:
             self.draw.polygon(
                 [tuple(b) for b in box], width=self.lw, outline=color
             ) if multi_points else self.draw.rectangle(box, width=self.lw, outline=color)

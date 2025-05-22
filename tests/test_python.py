@@ -705,8 +705,6 @@ def test_multichannel():
 
 def test_check_file_speeds_with_dummy_files(tmp_path, caplog):
     """Test file speed method with dummy files."""
-    import os
-
     check_file_speeds(files=None)  # File speed check
     # dummy_files = []  # Create dummy files
     # for i in range(2):
@@ -719,6 +717,6 @@ def test_check_file_speeds_with_dummy_files(tmp_path, caplog):
 
 
 def test_already_initialized_model():
-    """Test already initialized model"""
+    """Test already initialized model."""
     model = YOLO("yolo11n.pt")
     model = YOLO(model)

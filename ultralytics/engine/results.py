@@ -563,7 +563,6 @@ class Results(SimpleClass, DataExportMixin):
                         else None,
                         True,
                     ),
-                    rotated=is_obb,
                 )
 
         # Plot Classify results

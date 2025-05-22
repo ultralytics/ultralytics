@@ -278,7 +278,7 @@ class Annotator:
         else:
             return txt_color
 
-    def box_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False):
+    def box_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255)):
         """
         Draw a bounding box on an image with a given label.
 
@@ -287,7 +287,6 @@ class Annotator:
             label (str, optional): The text label to be displayed.
             color (tuple, optional): The background color of the rectangle (B, G, R).
             txt_color (tuple, optional): The color of the text (R, G, B).
-            rotated (bool, optional): Whether the task is oriented bounding box detection.
 
         Examples:
             >>> from ultralytics.utils.plotting import Annotator
@@ -298,13 +297,13 @@ class Annotator:
         txt_color = self.get_txt_color(color, txt_color)
         if isinstance(box, torch.Tensor):
             box = box.tolist()
-        if self.pil or not is_ascii(label):
-            if rotated:
-                p1 = box[0]
-                self.draw.polygon([tuple(b) for b in box], width=self.lw, outline=color)  # PIL requires tuple box
-            else:
-                p1 = (box[0], box[1])
-                self.draw.rectangle(box, width=self.lw, outline=color)  # box
+
+        multi_points = isinstance(box[0], list)  # multiple points with shape (n, 2)
+        p1 = [int(b) for b in box[0]] if multi_points else (int(box[0]), int(box[1]))
+        if self.pil:
+            self.draw.polygon(
+                [tuple(b) for b in box], width=self.lw, outline=color
+            ) if multi_points else self.draw.rectangle(box, width=self.lw, outline=color)
             if label:
                 w, h = self.font.getsize(label)  # text width, height
                 outside = p1[1] >= h  # label fits outside box
@@ -317,12 +316,11 @@ class Annotator:
                 # self.draw.text([box[0], box[1]], label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
                 self.draw.text((p1[0], p1[1] - h if outside else p1[1]), label, fill=txt_color, font=self.font)
         else:  # cv2
-            if rotated:
-                p1 = [int(b) for b in box[0]]
-                cv2.polylines(self.im, [np.asarray(box, dtype=int)], True, color, self.lw)  # cv2 requires nparray box
-            else:
-                p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
-                cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
+            cv2.polylines(
+                self.im, [np.asarray(box, dtype=int)], True, color, self.lw
+            ) if multi_points else cv2.rectangle(
+                self.im, p1, (int(box[2]), int(box[3])), color, thickness=self.lw, lineType=cv2.LINE_AA
+            )
             if label:
                 w, h = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
                 h += 3  # add pixels to pad text
@@ -750,7 +748,7 @@ def plot_images(
                     c = names.get(c, c) if names else c
                     if labels or conf[j] > conf_thres:
                         label = f"{c}" if labels else f"{c} {conf[j]:.1f}"
-                        annotator.box_label(box, label, color=color, rotated=is_obb)
+                        annotator.box_label(box, label, color=color)
 
             elif len(classes):
                 for c in classes:

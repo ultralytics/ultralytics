@@ -720,3 +720,22 @@ def test_already_initialized_model():
     """Test already initialized model."""
     model = YOLO("yolo11n.pt")
     model = YOLO(model)
+
+
+
+# def test_show_linux_gui_enabled():
+#     from ultralytics.engine.predictor import BasePredictor
+#     with patch("platform.system", return_value="Linux"), \
+#          patch("cv2.namedWindow") as mock_named, \
+#          patch("cv2.resizeWindow") as mock_resize, \
+#          patch("cv2.imshow") as mock_imshow:
+#
+#         predictor = BasePredictor()
+#         predictor.windows = []
+#         predictor.plotted_img = np.zeros((60, 90, 3), dtype=np.uint8)
+#         predictor.show("test_window")
+#
+#         mock_named.assert_called_once()
+#         mock_resize.assert_called_once()
+#         mock_imshow.assert_called_once()
+#         assert "test_window" in predictor.windows

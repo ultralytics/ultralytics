@@ -748,7 +748,7 @@ def plot_images(
                     c = names.get(c, c) if names else c
                     if labels or conf[j] > conf_thres:
                         label = f"{c}" if labels else f"{c} {conf[j]:.1f}"
-                        annotator.box_label(box, label, color=color, rotated=is_obb)
+                        annotator.box_label(box, label, color=color)
 
             elif len(classes):
                 for c in classes:

@@ -17,6 +17,7 @@ OpenVINO, short for Open Visual Inference & [Neural Network](https://www.ultraly
 
 <label for="openvino-device" style="color: white;">Select device:</label>
 <select id="openvino-device">
+
 <option value="intel:cpu">Intel CPU</option>
 <option value="intel:gpu">Intel GPU</option>
 <option value="intel:npu">Intel NPU</option>

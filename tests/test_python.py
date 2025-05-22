@@ -706,14 +706,6 @@ def test_multichannel():
 def test_check_file_speeds_with_dummy_files(tmp_path, caplog):
     """Test file speed method with dummy files."""
     check_file_speeds(files=None)  # File speed check
-    # dummy_files = []  # Create dummy files
-    # for i in range(2):
-    #     file_path = tmp_path / f"dummy_{i}.txt"
-    #     file_path.write_bytes(os.urandom(128 * 10))
-    #     dummy_files.append(file_path)
-    # check_file_speeds(dummy_files, threshold_ms=0.01, threshold_mb=0.01)
-    # logs = caplog.text
-    # assert "Test:" in logs
 
 
 def test_already_initialized_model():
@@ -722,19 +714,12 @@ def test_already_initialized_model():
     model = YOLO(model)
 
 
-# def test_show_linux_gui_enabled():
-#     from ultralytics.engine.predictor import BasePredictor
-#     with patch("platform.system", return_value="Linux"), \
-#          patch("cv2.namedWindow") as mock_named, \
-#          patch("cv2.resizeWindow") as mock_resize, \
-#          patch("cv2.imshow") as mock_imshow:
-#
-#         predictor = BasePredictor()
-#         predictor.windows = []
-#         predictor.plotted_img = np.zeros((60, 90, 3), dtype=np.uint8)
-#         predictor.show("test_window")
-#
-#         mock_named.assert_called_once()
-#         mock_resize.assert_called_once()
-#         mock_imshow.assert_called_once()
-#         assert "test_window" in predictor.windows
+def test_image_length_for_write_results(tmp_path):
+    """Test image length for writing results."""
+    from ultralytics.engine.predictor import BasePredictor
+
+    predictor = BasePredictor()
+    predictor.plotted_img = np.zeros((60, 90, 3), dtype=np.uint8)
+    im = torch.zeros((3, 640, 640))
+    result_string = predictor.write_results(0, str(tmp/"test.jpg"), im, [""])
+    assert "640x640" in result_string

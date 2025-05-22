@@ -6,7 +6,7 @@ import torch.nn as nn
 from . import LOGGER
 from .checks import check_version
 from .metrics import bbox_iou, probiou
-from .ops import xywhr2xyxyxyxy, xyxy2xywh
+from .ops import xywhr2xyxyxyxy, xyxy2xywh, xywh2xyxy
 
 TORCH_1_10 = check_version(torch.__version__, "1.10.0")
 
@@ -140,7 +140,7 @@ class TaskAlignedAssigner(nn.Module):
             align_metric (torch.Tensor): Alignment metric with shape (bs, max_num_obj, h*w).
             overlaps (torch.Tensor): Overlaps between predicted and ground truth boxes with shape (bs, max_num_obj, h*w).
         """
-        mask_in_gts = self.select_candidates_in_gts(anc_points, gt_bboxes)
+        mask_in_gts = self.select_candidates_in_gts(anc_points, gt_bboxes, mask_gt)
         # Get anchor_align metric, (b, max_num_obj, h*w)
         align_metric, overlaps = self.get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt)
         # Get topk_metric mask, (b, max_num_obj, h*w)
@@ -277,7 +277,7 @@ class TaskAlignedAssigner(nn.Module):
         return target_labels, target_bboxes, target_scores
 
     @staticmethod
-    def select_candidates_in_gts(xy_centers, gt_bboxes, scale=1.0, eps=1e-9):
+    def select_candidates_in_gts(xy_centers, gt_bboxes, mask_gt, scale=1.0, eps=1e-9):
         """
         Select positive anchor centers within ground truth bounding boxes.
 
@@ -293,6 +293,14 @@ class TaskAlignedAssigner(nn.Module):
             b: batch size, n_boxes: number of ground truth boxes, h: height, w: width.
             Bounding box format: [x_min, y_min, x_max, y_max].
         """
+        # NOTE: this approach makes sure there's at least one anchor assigned to each gt
+        # but might be removed in next label assignment `mask_topk` as there's only a few of anchors
+        # gt_bboxes_xywh = xyxy2xywh(gt_bboxes)
+        # wh_mask = torch.zeros_like(gt_bboxes_xywh, dtype=torch.bool)
+        # wh_mask[..., 2:] = gt_bboxes_xywh[..., 2:] < 8
+        # gt_bboxes_xywh = torch.where((wh_mask * mask_gt).bool(), 8, gt_bboxes_xywh)
+        # gt_bboxes = xywh2xyxy(gt_bboxes_xywh)
+
         n_anchors = xy_centers.shape[0]
         bs, n_boxes, _ = gt_bboxes.shape
         lt, rb = gt_bboxes.view(-1, 1, 4).chunk(2, 2)  # left-top, right-bottom
@@ -302,8 +310,21 @@ class TaskAlignedAssigner(nn.Module):
         # print(xy_centers)
         # print(xyxy2xywh(gt_bboxes))
         # print(gt_bboxes)
+        # xywh = xyxy2xywh(gt_bboxes)
         bbox_deltas = torch.cat((xy_centers[None] - lt, rb - xy_centers[None]), dim=2).view(bs, n_boxes, n_anchors, -1)
-        return bbox_deltas.amin(3).gt_(eps)
+        bbox_deltas = bbox_deltas.amin(3).gt_(eps)
+        # for b in range(len(mask_gt)):
+        #     for i, m in enumerate(mask_gt[b, :, 0]):
+        #         if not m:
+        #             continue
+        #         x = bbox_deltas[b, i].sum()
+        #         print(x)
+        #         if x == 0:
+        #             # self.zero_assigned += 1
+        #             # print(xywh[b, i])
+        #             exit()
+
+        return bbox_deltas
 
     def select_highest_overlaps(self, mask_pos, overlaps, n_max_boxes, align_metric, mask_gt):
         """
@@ -327,10 +348,10 @@ class TaskAlignedAssigner(nn.Module):
         #         if not m:
         #             continue
         #         x = mask_pos[b, i].sum()
-        #         # print(x)
+        #         print(x)
         #         if x == 0:
-        #             self.zero_assigned += 1
-        #             # exit()
+        #             # self.zero_assigned += 1
+        #             exit()
         if fg_mask.max() > 1:  # one anchor is assigned to multiple gt_bboxes
             mask_multi_gts = (fg_mask.unsqueeze(1) > 1).expand(-1, n_max_boxes, -1)  # (b, n_max_boxes, h*w)
             max_overlaps_idx = overlaps.argmax(1)  # (b, h*w)

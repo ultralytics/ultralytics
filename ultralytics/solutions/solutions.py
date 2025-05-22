@@ -221,7 +221,7 @@ class BaseSolution:
         """Allow instances to be called like a function with flexible arguments."""
         with self.profilers[1]:
             result = self.process(*args, **kwargs)  # Call the subclass-specific process method
-        track_or_predict = "predict" if type(self).__name__ == 'ObjectCropper' else 'track'
+        track_or_predict = "predict" if type(self).__name__ == "ObjectCropper" else "track"
         track_or_predict_speed = self.profilers[0].dt * 1e3
         solution_speed = (self.profilers[1].dt - self.profilers[0].dt) * 1e3  # solution time = process - track
         result.speed = {track_or_predict: track_or_predict_speed, "solution": solution_speed}

@@ -74,13 +74,13 @@ For more details about the export process, visit the [Ultralytics documentation 
     OpenVINO™ is compatible with most Intel® processors but to ensure optimal performance:
 
     1. Verify OpenVINO™ support
-        Check whether your Intel® chip is officially supported by OpenVINO™ using [Intel’s compatibility list](https://docs.openvino.ai/2025/about-openvino/release-notes-openvino/system-requirements.html).
+        Check whether your Intel® chip is officially supported by OpenVINO™ using [Intel's compatibility list](https://docs.openvino.ai/2025/about-openvino/release-notes-openvino/system-requirements.html).
 
     2. Identify your accelerator
-        Determine if your processor includes an integrated NPU (Neural Processing Unit) or iGPU (integrated GPU) by consulting [Intel’s hardware guide](https://www.intel.com/content/www/us/en/support/articles/000097597/processors.html).
+        Determine if your processor includes an integrated NPU (Neural Processing Unit) or iGPU (integrated GPU) by consulting [Intel's hardware guide](https://www.intel.com/content/www/us/en/support/articles/000097597/processors.html).
 
     3. Install the correct drivers
-        If your chip supports an NPU or GPU but OpenVINO™ isn’t detecting it, you may need to install or update the associated drivers. Follow the [driver‑installation instructions](https://medium.com/openvino-toolkit/how-to-run-openvino-on-a-linux-ai-pc-52083ce14a98) to enable full acceleration.
+        If your chip supports an NPU or GPU but OpenVINO™ isn't detecting it, you may need to install or update the associated drivers. Follow the [driver‑installation instructions](https://medium.com/openvino-toolkit/how-to-run-openvino-on-a-linux-ai-pc-52083ce14a98) to enable full acceleration.
 
     By following these three steps, you can ensure OpenVINO™ runs optimally on your Intel® hardware.
 

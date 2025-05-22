@@ -67,9 +67,15 @@ class ObjectCropper(BaseSolution):
             >>> results = cropper.process(frame)
             >>> print(f"Total cropped objects: {results.total_crop_objects}")
         """
-        results = self.model.predict(
-            im0, classes=self.classes, conf=self.conf, iou=self.iou, device=self.CFG["device"]
-        )[0]
+        with self.profilers[0]:
+            results = self.model.predict(
+                im0,
+                classes=self.classes,
+                conf=self.conf,
+                iou=self.iou,
+                device=self.CFG["device"],
+                verbose=False,
+            )[0]
 
         for box in results.boxes:
             self.crop_idx += 1

@@ -8,7 +8,7 @@ import numpy as np
 
 from ultralytics import YOLO
 from ultralytics.solutions.config import SolutionConfig
-from ultralytics.utils import ASSETS_URL, LOGGER
+from ultralytics.utils import ASSETS_URL, LOGGER, ops
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
 
@@ -75,6 +75,7 @@ class BaseSolution:
             self.track_line = None
             self.masks = None
             self.r_s = None
+            self.frame_no = -1  # Only for logging
 
             self.LOGGER.info(f"Ultralytics Solutions: ✅ {self.CFG}")
             self.region = self.CFG["region"]  # Store region data for other classes usage
@@ -88,9 +89,10 @@ class BaseSolution:
             self.classes = self.CFG["classes"]
             self.show_conf = self.CFG["show_conf"]
             self.show_labels = self.CFG["show_labels"]
+            self.device = self.CFG["device"]
 
             self.track_add_args = {  # Tracker additional arguments for advance configuration
-                k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker", "device", "verbose"]
+                k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker"]
             }  # verbose must be passed to track method; setting it False in YOLO still logs the track information.
 
             if is_cli and self.CFG["source"] is None:
@@ -104,6 +106,11 @@ class BaseSolution:
             # Initialize environment and region setup
             self.env_check = check_imshow(warn=True)
             self.track_history = defaultdict(list)
+
+            self.profilers = (
+                ops.Profile(device=self.device),  # track
+                ops.Profile(device=self.device),  # solution
+            )
 
     def adjust_box_label(self, cls, conf, track_id=None):
         """
@@ -136,7 +143,10 @@ class BaseSolution:
             >>> frame = cv2.imread("path/to/image.jpg")
             >>> solution.extract_tracks(frame)
         """
-        self.tracks = self.model.track(source=im0, persist=True, classes=self.classes, **self.track_add_args)
+        with self.profilers[0]:
+            self.tracks = self.model.track(
+                source=im0, persist=True, classes=self.classes, verbose=False, **self.track_add_args
+            )
         self.track_data = self.tracks[0].obb or self.tracks[0].boxes  # Extract tracks for OBB or object detection
 
         if self.track_data and self.track_data.id is not None:
@@ -208,9 +218,20 @@ class BaseSolution:
 
     def __call__(self, *args, **kwargs):
         """Allow instances to be called like a function with flexible arguments."""
-        result = self.process(*args, **kwargs)  # Call the subclass-specific process method
-        if self.CFG["verbose"]:  # extract verbose value to display the output logs if True
-            LOGGER.info(f"🚀 Results: {result}")
+        with self.profilers[1]:
+            result = self.process(*args, **kwargs)  # Call the subclass-specific process method
+        track_or_predict = "predict" if type(self).__name__ == "ObjectCropper" else "track"
+        track_or_predict_speed = self.profilers[0].dt * 1e3
+        solution_speed = (self.profilers[1].dt - self.profilers[0].dt) * 1e3  # solution time = process - track
+        result.speed = {track_or_predict: track_or_predict_speed, "solution": solution_speed}
+        if self.CFG["verbose"]:
+            self.frame_no += 1
+            LOGGER.info(
+                f"{self.frame_no}: {result.plot_im.shape[0]}x{result.plot_im.shape[1]} {solution_speed:.1f}ms\n"
+                f"Speed: {track_or_predict_speed:.1f}ms {track_or_predict}, "
+                f"{solution_speed:.1f}ms solution per image at shape "
+                f"(1, {getattr(self.model, 'ch', 3)}, {result.plot_im.shape[0]}, {result.plot_im.shape[1]})\n"
+            )
         return result
 
 
@@ -702,8 +723,9 @@ class SolutionResults:
         self.email_sent = False
         self.total_tracks = 0
         self.region_counts = {}
-        self.speed_dict = {}
+        self.speed_dict = {}  # for speed estimation
         self.total_crop_objects = 0
+        self.speed = {}
 
         # Override with user-defined values
         self.__dict__.update(kwargs)
@@ -720,4 +742,4 @@ class SolutionResults:
             for k, v in self.__dict__.items()
             if k != "plot_im" and v not in [None, {}, 0, 0.0, False]  # Exclude `plot_im` explicitly
         }
-        return f"SolutionResults({', '.join(f'{k}={v}' for k, v in attrs.items())})"
+        return ", ".join(f"{k}={v}" for k, v in attrs.items())

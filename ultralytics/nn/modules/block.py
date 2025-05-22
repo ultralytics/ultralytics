@@ -74,6 +74,55 @@ class DFL(nn.Module):
         return self.conv(x.view(b, 4, self.c1, a).transpose(2, 1).softmax(1)).view(b, 4, a)
         # return self.conv(x.view(b, self.c1, 4, a).softmax(1)).view(b, 4, a)
 
+class PartialConv(nn.Module):
+    def __init__(self, c1, c2, kernel_size=3, stride=1, padding=None, ratio=0.25):
+        super().__init__()
+        self.c1 = c1
+        self.cp = int(c1 * ratio)  # subset channels
+        self.conv = nn.Conv2d(self.cp, c2, kernel_size, stride, autopad(kernel_size, padding))
+
+    def forward(self, x):
+        return self.conv(x[:, :self.cp, :, :])
+
+class FasterBlock(nn.Module):
+    def __init__(self, c1, c2):
+        super().__init__()
+        self.pconv = PartialConv(c1, c2, kernel_size=3)
+        self.conv1x1_1 = nn.Conv2d(c2, c2, kernel_size=1)
+        self.bn = nn.BatchNorm2d(c2)
+        self.act = nn.ReLU(inplace=True)
+        self.conv1x1_2 = nn.Conv2d(c2, c2, kernel_size=1)
+class ECAAttention(nn.Module):
+    def __init__(self, channels, k_size=3):
+        super().__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.conv = nn.Conv1d(1, 1, kernel_size=k_size, padding=k_size // 2, bias=False)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        b, c, _, _ = x.size()
+        y = self.avg_pool(x)  # [B, C, 1, 1]
+        y = self.conv(y.squeeze(-1).transpose(-1, -2))  # [B, 1, C] -> conv1d
+        y = self.sigmoid(y).transpose(-1, -2).unsqueeze(-1)  # [B, C, 1, 1]
+        return x * y.expand_as(x)
+    
+class C3K2_FE(nn.Module):
+    def __init__(self, c1, c2):
+        super().__init__()
+        self.conv1 = Conv(c1, c2, 3, 1)
+        self.split_ratio = 0.5
+        self.faster_block = FasterBlock(int(c2 * self.split_ratio), int(c2 * self.split_ratio))
+        self.concat_conv = Conv(c2, c2, 1, 1)
+        self.eca = ECAAttention(c2)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x1, x2 = torch.split(x, [int(x.size(1) * self.split_ratio), x.size(1) - int(x.size(1) * self.split_ratio)], dim=1)
+        x1 = self.faster_block(x1)
+        x = torch.cat((x1, x2), dim=1)
+        x = self.concat_conv(x)
+        return self.eca(x)
+
 
 class Proto(nn.Module):
     """Ultralytics YOLO models mask Proto module for segmentation models."""

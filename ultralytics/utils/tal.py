@@ -276,7 +276,7 @@ class TaskAlignedAssigner(nn.Module):
         return target_labels, target_bboxes, target_scores
 
     @staticmethod
-    def select_candidates_in_gts(xy_centers, gt_bboxes, scale=1.1, eps=1e-9):
+    def select_candidates_in_gts(xy_centers, gt_bboxes, scale=1.0, eps=1e-9):
         """
         Select positive anchor centers within ground truth bounding boxes.
 

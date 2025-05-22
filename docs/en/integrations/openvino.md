@@ -45,14 +45,14 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLOv8n PyTorch model
-        model = YOLO("yolov8n.pt")
+        # Load a YOLO11n PyTorch model
+        model = YOLO("yolo11n.pt")
 
         # Export the model
         model.export(format="openvino")  # creates 'yolov8n_openvino_model/'
 
         # Load the exported OpenVINO model
-        ov_model = YOLO("yolov8n_openvino_model/")
+        ov_model = YOLO("yolo11n_openvino_model/")
 
         # Run inference
         results = ov_model("https://ultralytics.com/images/bus.jpg")
@@ -64,14 +64,14 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
     === "CLI"
 
         ```bash
-        # Export a YOLOv8n PyTorch model to OpenVINO format
-        yolo export model=yolov8n.pt format=openvino # creates 'yolov8n_openvino_model/'
+        # Export a YOLO11n PyTorch model to OpenVINO format
+        yolo export model=yolo11n.pt format=openvino # creates 'yolo11n_openvino_model/'
 
         # Run inference with the exported model
-        yolo predict model=yolov8n_openvino_model source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo11n_openvino_model source='https://ultralytics.com/images/bus.jpg'
 
         # Run inference with specified device, available devices: ["intel:gpu", "intel:npu", "intel:cpu"]
-        yolo predict model=yolov8n_openvino_model source='https://ultralytics.com/images/bus.jpg' device="intel:gpu"
+        yolo predict model=yolo11n_openvino_model source='https://ultralytics.com/images/bus.jpg' device="intel:gpu"
         ```
 
 ## Export Arguments
@@ -90,6 +90,21 @@ Export a YOLOv8n model to OpenVINO format and run inference with the exported mo
 | `device`   | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                                  |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
+
+!!! warning
+
+    OpenVINO™ is compatible with most Intel® processors but to ensure optimal performance:
+
+    1. Verify OpenVINO™ support
+        Check whether your Intel® chip is officially supported by OpenVINO™ using [Intel’s compatibility list](https://docs.openvino.ai/2025/about-openvino/release-notes-openvino/system-requirements.html).
+
+    2. Identify your accelerator
+        Determine if your processor includes an integrated NPU (Neural Processing Unit) or iGPU (integrated GPU) by consulting [Intel’s hardware guide](https://www.intel.com/content/www/us/en/support/articles/000097597/processors.html).
+
+    3. Install the correct drivers
+        If your chip supports an NPU or GPU but OpenVINO™ isn’t detecting it, you may need to install or update the associated drivers. Follow the [driver‑installation instructions](https://medium.com/openvino-toolkit/how-to-run-openvino-on-a-linux-ai-pc-52083ce14a98) to enable full acceleration.
+
+    By following these three steps, you can ensure OpenVINO™ runs optimally on your Intel® hardware.
 
 ## Benefits of OpenVINO
 
@@ -124,9 +139,9 @@ In your deployment application, you would typically do the following steps:
 
 For more detailed steps and code snippets, refer to the [OpenVINO documentation](https://docs.openvino.ai/) or [API tutorial](https://github.com/openvinotoolkit/openvino_notebooks/blob/latest/notebooks/openvino-api/openvino-api.ipynb).
 
-## OpenVINO YOLOv8 Benchmarks
+## OpenVINO YOLO11 Benchmarks
 
-YOLOv8 benchmarks below were run by the Ultralytics team on 4 different model formats measuring speed and accuracy: PyTorch, TorchScript, ONNX and OpenVINO. Benchmarks were run on Intel Flex and Arc GPUs, and on Intel Xeon CPUs at FP32 [precision](https://www.ultralytics.com/glossary/precision) (with the `half=False` argument).
+YOLO11 benchmarks below were run by the Ultralytics team on 4 different model formats measuring speed and accuracy: PyTorch, TorchScript, ONNX and OpenVINO. Benchmarks were run on Intel Flex and Arc GPUs, and on Intel Xeon CPUs at FP32 [precision](https://www.ultralytics.com/glossary/precision) (with the `half=False` argument).
 
 !!! note
 
@@ -435,7 +450,7 @@ Using Intel's OpenVINO toolkit with YOLOv8 models offers several benefits:
 3. **Ease of Use**: Over 80 tutorial notebooks are available to help users get started, including ones for YOLOv8.
 4. **Heterogeneous Execution**: Deploy models on various Intel hardware with a unified API.
 
-For detailed performance comparisons, visit our [benchmarks section](#openvino-yolov8-benchmarks).
+For detailed performance comparisons, visit our [benchmarks section](#openvino-yolo11-benchmarks).
 
 ### How can I run inference using a YOLOv8 model exported to OpenVINO?
 
@@ -472,7 +487,7 @@ Ultralytics YOLOv8 is optimized for real-time object detection with high accurac
 - Seamless deployment on Intel GPUs and NPUs
 - Consistent and comparable accuracy across various export formats
 
-For in-depth performance analysis, check our detailed [YOLOv8 benchmarks](#openvino-yolov8-benchmarks) on different hardware.
+For in-depth performance analysis, check our detailed [YOLOv8 benchmarks](#openvino-yolo11-benchmarks) on different hardware.
 
 ### Can I benchmark YOLOv8 models on different formats such as PyTorch, ONNX, and OpenVINO?
 
@@ -499,4 +514,4 @@ Yes, you can benchmark YOLOv8 models in various formats including PyTorch, Torch
         yolo benchmark model=yolov8n.pt data=coco8.yaml
         ```
 
-For detailed benchmark results, refer to our [benchmarks section](#openvino-yolov8-benchmarks) and [export formats](../modes/export.md) documentation.
+For detailed benchmark results, refer to our [benchmarks section](#openvino-yolo11-benchmarks) and [export formats](../modes/export.md) documentation.

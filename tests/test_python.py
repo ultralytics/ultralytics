@@ -721,5 +721,5 @@ def test_image_length_for_write_results(tmp_path):
     predictor = BasePredictor()
     predictor.plotted_img = np.zeros((60, 90, 3), dtype=np.uint8)
     im = torch.zeros((3, 640, 640))
-    result_string = predictor.write_results(0, str(tmp / "test.jpg"), im, [""])
+    result_string = predictor.write_results(0, str(TMP / "test.jpg"), im, [""])
     assert "640x640" in result_string

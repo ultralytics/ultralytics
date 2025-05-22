@@ -296,10 +296,17 @@ class TaskAlignedAssigner(nn.Module):
         # NOTE: this approach makes sure there's at least one anchor assigned to each gt
         # but might be removed in next label assignment `mask_topk` as there's only a few of anchors
         # gt_bboxes_xywh = xyxy2xywh(gt_bboxes)
+        # gt_wh = gt_bboxes_xywh[..., 2:]
+        # wh_mask1 = (gt_wh < 8).any(-1)
+        # wh_mask1 = wh_mask1.unsqueeze(-1).repeat(1, 1, 4)
+        # wh_mask1[..., 0:2] = False
+        # print(gt_bboxes_xywh)
+        # gt_bboxes_xywh[wh_mask1] *= scale
         # wh_mask = torch.zeros_like(gt_bboxes_xywh, dtype=torch.bool)
         # wh_mask[..., 2:] = gt_bboxes_xywh[..., 2:] < 8
         # gt_bboxes_xywh = torch.where((wh_mask * mask_gt).bool(), 8, gt_bboxes_xywh)
         # gt_bboxes = xywh2xyxy(gt_bboxes_xywh)
+        # print(gt_bboxes_xywh)
 
         n_anchors = xy_centers.shape[0]
         bs, n_boxes, _ = gt_bboxes.shape
@@ -307,6 +314,7 @@ class TaskAlignedAssigner(nn.Module):
         if scale != 1.0:
             lt = lt - (scale - 1.0) * lt
             rb = rb + (scale - 1.0) * rb
+        # gt_bboxes = torch.cat((lt, rb), dim=2).view(bs, n_boxes, 4)
         # print(xy_centers)
         # print(xyxy2xywh(gt_bboxes))
         # print(gt_bboxes)
@@ -319,10 +327,11 @@ class TaskAlignedAssigner(nn.Module):
         #             continue
         #         x = bbox_deltas[b, i].sum()
         #         print(x)
-        #         if x == 0:
-        #             # self.zero_assigned += 1
-        #             # print(xywh[b, i])
-        #             exit()
+        #         # if x == 0:
+        #         #     self.zero_assigned += 1
+        #         #     print(xywh[b, i])
+        #         #     exit()
+        # exit()
 
         return bbox_deltas
 

@@ -58,7 +58,7 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
         package (str, optional): Python package to use instead of requirements.txt file.
 
     Returns:
-        requirements (List[SimpleNamespace]): List of parsed requirements as SimpleNamespace objects with `name` and 
+        requirements (List[SimpleNamespace]): List of parsed requirements as SimpleNamespace objects with `name` and
             `specifier` attributes.
 
     Examples:

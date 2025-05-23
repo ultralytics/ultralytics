@@ -51,14 +51,15 @@ class OBBPredictor(DetectionPredictor):
         Construct the result object from the prediction.
 
         Args:
-            pred (torch.Tensor): The predicted bounding boxes, scores, and rotation angles with shape (N, 6) where
+            pred (torch.Tensor): The predicted bounding boxes, scores, and rotation angles with shape (N, 7) where
                 the last dimension contains [x, y, w, h, confidence, class_id, angle].
             img (torch.Tensor): The image after preprocessing with shape (B, C, H, W).
             orig_img (np.ndarray): The original image before preprocessing.
             img_path (str): The path to the original image.
 
         Returns:
-            (Results): The result object containing the original image, image path, class names, and oriented bounding boxes.
+            (Results): The result object containing the original image, image path, class names, and oriented bounding
+                boxes.
         """
         rboxes = ops.regularize_rboxes(torch.cat([pred[:, :4], pred[:, -1:]], dim=-1))
         rboxes[:, :4] = ops.scale_boxes(img.shape[2:], rboxes[:, :4], orig_img.shape, xywh=True)

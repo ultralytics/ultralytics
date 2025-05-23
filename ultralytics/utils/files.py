@@ -39,16 +39,16 @@ class WorkingDirectory(contextlib.ContextDecorator):
     """
 
     def __init__(self, new_dir):
-        """Sets the working directory to 'new_dir' upon instantiation for use with context managers or decorators."""
+        """Initialize the WorkingDirectory context manager with the target directory."""
         self.dir = new_dir  # new dir
         self.cwd = Path.cwd().resolve()  # current dir
 
     def __enter__(self):
-        """Changes the current working directory to the specified directory upon entering the context."""
+        """Change the current working directory to the specified directory upon entering the context."""
         os.chdir(self.dir)
 
     def __exit__(self, exc_type, exc_val, exc_tb):  # noqa
-        """Restores the original working directory when exiting the context."""
+        """Restore the original working directory when exiting the context."""
         os.chdir(self.cwd)
 
 
@@ -64,7 +64,8 @@ def spaces_in_path(path):
         path (str | Path): The original path that may contain spaces.
 
     Yields:
-        (Path | str): Temporary path with spaces replaced by underscores if spaces were present, otherwise the original path.
+        (Path | str): Temporary path with spaces replaced by underscores if spaces were present, otherwise the
+            original path.
 
     Examples:
         >>> with spaces_in_path('/path/with spaces') as new_path:
@@ -114,9 +115,9 @@ def increment_path(path, exist_ok=False, sep="", mkdir=False):
 
     Args:
         path (str | Path): Path to increment.
-        exist_ok (bool): If True, the path will not be incremented and returned as-is.
-        sep (str): Separator to use between the path and the incrementation number.
-        mkdir (bool): Create a directory if it does not exist.
+        exist_ok (bool, optional): If True, the path will not be incremented and returned as-is.
+        sep (str, optional): Separator to use between the path and the incrementation number.
+        mkdir (bool, optional): Create a directory if it does not exist.
 
     Returns:
         (Path): Incremented path.
@@ -159,13 +160,13 @@ def file_age(path=__file__):
 
 
 def file_date(path=__file__):
-    """Returns the file modification date in 'YYYY-M-D' format."""
+    """Return the file modification date in 'YYYY-M-D' format."""
     t = datetime.fromtimestamp(Path(path).stat().st_mtime)
     return f"{t.year}-{t.month}-{t.day}"
 
 
 def file_size(path):
-    """Returns the size of a file or directory in megabytes (MB)."""
+    """Return the size of a file or directory in megabytes (MB)."""
     if isinstance(path, (str, Path)):
         mb = 1 << 20  # bytes to MiB (1024 ** 2)
         path = Path(path)
@@ -177,7 +178,7 @@ def file_size(path):
 
 
 def get_latest_run(search_dir="."):
-    """Returns the path to the most recent 'last.pt' file in the specified directory for resuming training."""
+    """Return the path to the most recent 'last.pt' file in the specified directory for resuming training."""
     last_list = glob.glob(f"{search_dir}/**/last*.pt", recursive=True)
     return max(last_list, key=os.path.getctime) if last_list else ""
 
@@ -187,9 +188,9 @@ def update_models(model_names=("yolo11n.pt",), source_dir=Path("."), update_name
     Update and re-save specified YOLO models in an 'updated_models' subdirectory.
 
     Args:
-        model_names (Tuple[str, ...]): Model filenames to update.
-        source_dir (Path): Directory containing models and target subdirectory.
-        update_names (bool): Update model names from a data YAML.
+        model_names (tuple, optional): Model filenames to update.
+        source_dir (Path, optional): Directory containing models and target subdirectory.
+        update_names (bool, optional): Update model names from a data YAML.
 
     Examples:
         Update specified YOLO models and save them in 'updated_models' subdirectory:

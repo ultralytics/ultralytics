@@ -18,7 +18,7 @@ def export_onnx(
     dynamic=False,
 ):
     """
-    Exports a PyTorch model to ONNX format.
+    Export a PyTorch model to ONNX format.
 
     Args:
         torch_model (torch.nn.Module): The PyTorch model to export.
@@ -27,10 +27,10 @@ def export_onnx(
         opset (int): ONNX opset version to use for export.
         input_names (list): List of input tensor names.
         output_names (list): List of output tensor names.
-        dynamic (bool | dict, optional): Whether to enable dynamic axes. Defaults to False.
+        dynamic (bool | dict, optional): Whether to enable dynamic axes.
 
     Notes:
-        - Setting `do_constant_folding=True` may cause issues with DNN inference for torch>=1.12.
+        Setting `do_constant_folding=True` may cause issues with DNN inference for torch>=1.12.
     """
     torch.onnx.export(
         torch_model,
@@ -60,30 +60,30 @@ def export_engine(
     prefix="",
 ):
     """
-    Exports a YOLO model to TensorRT engine format.
+    Export a YOLO model to TensorRT engine format.
 
     Args:
         onnx_file (str): Path to the ONNX file to be converted.
         engine_file (str, optional): Path to save the generated TensorRT engine file.
-        workspace (int, optional): Workspace size in GB for TensorRT. Defaults to None.
-        half (bool, optional): Enable FP16 precision. Defaults to False.
-        int8 (bool, optional): Enable INT8 precision. Defaults to False.
-        dynamic (bool, optional): Enable dynamic input shapes. Defaults to False.
-        shape (tuple, optional): Input shape (batch, channels, height, width). Defaults to (1, 3, 640, 640).
-        dla (int, optional): DLA core to use (Jetson devices only). Defaults to None.
-        dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration. Defaults to None.
-        metadata (dict, optional): Metadata to include in the engine file. Defaults to None.
-        verbose (bool, optional): Enable verbose logging. Defaults to False.
-        prefix (str, optional): Prefix for log messages. Defaults to "".
+        workspace (int, optional): Workspace size in GB for TensorRT.
+        half (bool, optional): Enable FP16 precision.
+        int8 (bool, optional): Enable INT8 precision.
+        dynamic (bool, optional): Enable dynamic input shapes.
+        shape (tuple, optional): Input shape (batch, channels, height, width).
+        dla (int, optional): DLA core to use (Jetson devices only).
+        dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration.
+        metadata (dict, optional): Metadata to include in the engine file.
+        verbose (bool, optional): Enable verbose logging.
+        prefix (str, optional): Prefix for log messages.
 
     Raises:
         ValueError: If DLA is enabled on non-Jetson devices or required precision is not set.
         RuntimeError: If the ONNX file cannot be parsed.
 
     Notes:
-        - TensorRT version compatibility is handled for workspace size and engine building.
-        - INT8 calibration requires a dataset and generates a calibration cache.
-        - Metadata is serialized and written to the engine file if provided.
+        TensorRT version compatibility is handled for workspace size and engine building.
+        INT8 calibration requires a dataset and generates a calibration cache.
+        Metadata is serialized and written to the engine file if provided.
     """
     import tensorrt as trt  # noqa
 
@@ -151,12 +151,24 @@ def export_engine(
 
         class EngineCalibrator(trt.IInt8Calibrator):
             """
-            Custom INT8 calibrator for TensorRT.
+            Custom INT8 calibrator for TensorRT engine optimization.
 
-            Args:
+            This calibrator provides the necessary interface for TensorRT to perform INT8 quantization calibration
+            using a dataset. It handles batch generation, caching, and calibration algorithm selection.
+
+            Attributes:
                 dataset (object): Dataset for calibration.
+                data_iter (Iterator): Iterator over the calibration dataset.
+                algo (trt.CalibrationAlgoType): Calibration algorithm type.
                 batch (int): Batch size for calibration.
-                cache (str, optional): Path to save the calibration cache. Defaults to "".
+                cache (Path): Path to save the calibration cache.
+
+            Methods:
+                get_algorithm: Get the calibration algorithm to use.
+                get_batch_size: Get the batch size to use for calibration.
+                get_batch: Get the next batch to use for calibration.
+                read_calibration_cache: Use existing cache instead of calibrating again.
+                write_calibration_cache: Write calibration cache to disk.
             """
 
             def __init__(
@@ -164,6 +176,7 @@ def export_engine(
                 dataset,  # ultralytics.data.build.InfiniteDataLoader
                 cache: str = "",
             ) -> None:
+                """Initialize the INT8 calibrator with dataset and cache path."""
                 trt.IInt8Calibrator.__init__(self)
                 self.dataset = dataset
                 self.data_iter = iter(dataset)

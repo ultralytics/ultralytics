@@ -234,6 +234,7 @@ class C3K2_FE(nn.Module):
             x = x + shortcut
             
         return x
+# ALISSA GCB YOLO11 MODIF
 
 class Proto(nn.Module):
     """Ultralytics YOLO models mask Proto module for segmentation models."""

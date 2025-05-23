@@ -17,15 +17,19 @@ class VarifocalLoss(nn.Module):
     """
     Varifocal loss by Zhang et al.
 
-    https://arxiv.org/abs/2008.13367.
+    Implements the Varifocal Loss function for addressing class imbalance in object detection by focusing on
+    hard-to-classify examples and balancing positive/negative samples.
 
-    Args:
+    Attributes:
         gamma (float): The focusing parameter that controls how much the loss focuses on hard-to-classify examples.
         alpha (float): The balancing factor used to address class imbalance.
+
+    References:
+        https://arxiv.org/abs/2008.13367
     """
 
     def __init__(self, gamma=2.0, alpha=0.75):
-        """Initialize the VarifocalLoss class."""
+        """Initialize the VarifocalLoss class with focusing and balancing parameters."""
         super().__init__()
         self.gamma = gamma
         self.alpha = alpha
@@ -46,13 +50,16 @@ class FocalLoss(nn.Module):
     """
     Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5).
 
-    Args:
+    Implements the Focal Loss function for addressing class imbalance by down-weighting easy examples and focusing
+    on hard negatives during training.
+
+    Attributes:
         gamma (float): The focusing parameter that controls how much the loss focuses on hard-to-classify examples.
-        alpha (float | list): The balancing factor used to address class imbalance.
+        alpha (torch.Tensor): The balancing factor used to address class imbalance.
     """
 
     def __init__(self, gamma=1.5, alpha=0.25):
-        """Initialize FocalLoss class with no parameters."""
+        """Initialize FocalLoss class with focusing and balancing parameters."""
         super().__init__()
         self.gamma = gamma
         self.alpha = torch.tensor(alpha)
@@ -125,7 +132,7 @@ class RotatedBboxLoss(BboxLoss):
     """Criterion class for computing training losses for rotated bounding boxes."""
 
     def __init__(self, reg_max):
-        """Initialize the BboxLoss module with regularization maximum and DFL settings."""
+        """Initialize the RotatedBboxLoss module with regularization maximum and DFL settings."""
         super().__init__(reg_max)
 
     def forward(self, pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask):
@@ -367,11 +374,11 @@ class v8SegmentationLoss(v8DetectionLoss):
         Compute the instance segmentation loss for a single image.
 
         Args:
-            gt_mask (torch.Tensor): Ground truth mask of shape (n, H, W), where n is the number of objects.
-            pred (torch.Tensor): Predicted mask coefficients of shape (n, 32).
+            gt_mask (torch.Tensor): Ground truth mask of shape (N, H, W), where N is the number of objects.
+            pred (torch.Tensor): Predicted mask coefficients of shape (N, 32).
             proto (torch.Tensor): Prototype masks of shape (32, H, W).
-            xyxy (torch.Tensor): Ground truth bounding boxes in xyxy format, normalized to [0, 1], of shape (n, 4).
-            area (torch.Tensor): Area of each ground truth bounding box of shape (n,).
+            xyxy (torch.Tensor): Ground truth bounding boxes in xyxy format, normalized to [0, 1], of shape (N, 4).
+            area (torch.Tensor): Area of each ground truth bounding box of shape (N,).
 
         Returns:
             (torch.Tensor): The calculated mask loss for a single image.

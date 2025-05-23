@@ -75,6 +75,7 @@ class DFL(nn.Module):
         return self.conv(x.view(b, 4, self.c1, a).transpose(2, 1).softmax(1)).view(b, 4, a)
         # return self.conv(x.view(b, self.c1, 4, a).softmax(1)).view(b, 4, a)
 
+
 class PartialConv(nn.Module):
     def __init__(self, c1, c2, kernel_size=3, stride=1, padding=None, ratio=0.25):
         super().__init__()
@@ -83,7 +84,8 @@ class PartialConv(nn.Module):
         self.conv = nn.Conv2d(self.cp, c2, kernel_size, stride, autopad(kernel_size, padding))
 
     def forward(self, x):
-        return self.conv(x[:, :self.cp, :, :])
+        return self.conv(x[:, : self.cp, :, :])
+
 
 class FasterBlock(nn.Module):
     def __init__(self, c1, c2):
@@ -93,6 +95,8 @@ class FasterBlock(nn.Module):
         self.bn = nn.BatchNorm2d(c2)
         self.act = nn.ReLU(inplace=True)
         self.conv1x1_2 = nn.Conv2d(c2, c2, kernel_size=1)
+
+
 class ECAAttention(nn.Module):
     def __init__(self, channels, k_size=3):
         super().__init__()
@@ -106,7 +110,8 @@ class ECAAttention(nn.Module):
         y = self.conv(y.squeeze(-1).transpose(-1, -2))  # [B, 1, C] -> conv1d
         y = self.sigmoid(y).transpose(-1, -2).unsqueeze(-1)  # [B, C, 1, 1]
         return x * y.expand_as(x)
-    
+
+
 class C3K2_FE(nn.Module):
     def __init__(self, c1, c2):
         super().__init__()
@@ -118,7 +123,9 @@ class C3K2_FE(nn.Module):
 
     def forward(self, x):
         x = self.conv1(x)
-        x1, x2 = torch.split(x, [int(x.size(1) * self.split_ratio), x.size(1) - int(x.size(1) * self.split_ratio)], dim=1)
+        x1, x2 = torch.split(
+            x, [int(x.size(1) * self.split_ratio), x.size(1) - int(x.size(1) * self.split_ratio)], dim=1
+        )
         x1 = self.faster_block(x1)
         x = torch.cat((x1, x2), dim=1)
         x = self.concat_conv(x)

@@ -249,7 +249,7 @@ def verify_image_label(args):
 
 def visualize_image_annotations(image_path, txt_path, label_map):
     """
-    Visualizes YOLO annotations (bounding boxes and class labels) on an image.
+    Visualize YOLO annotations (bounding boxes and class labels) on an image.
 
     This function reads an image and its corresponding annotation file in YOLO format, then
     draws bounding boxes around detected objects and labels them with their respective class names.
@@ -297,7 +297,7 @@ def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
 
     Args:
         imgsz (tuple): The size of the image as (height, width).
-        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where
                                      N is the number of polygons, and M is the number of points such that M % 2 = 0.
         color (int, optional): The color value to fill in the polygons on the mask.
         downsample_ratio (int, optional): Factor by which to downsample the mask.
@@ -320,7 +320,7 @@ def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
 
     Args:
         imgsz (tuple): The size of the image as (height, width).
-        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where
                                      N is the number of polygons, and M is the number of points such that M % 2 = 0.
         color (int): The color value to fill in the polygons on the masks.
         downsample_ratio (int, optional): Factor by which to downsample each mask.
@@ -471,7 +471,7 @@ def check_det_dataset(dataset, autodownload=True):
 
 def check_cls_dataset(dataset, split=""):
     """
-    Checks a classification dataset such as Imagenet.
+    Check a classification dataset such as Imagenet.
 
     This function accepts a `dataset` name and attempts to retrieve the corresponding dataset information.
     If the dataset is not found locally, it attempts to download the dataset from the internet and save it locally.
@@ -566,9 +566,20 @@ class HUBDatasetStats:
     A class for generating HUB dataset JSON and `-hub` dataset directory.
 
     Args:
-        path (str): Path to data.yaml or data.zip (with data.yaml inside data.zip). Default is 'coco8.yaml'.
-        task (str): Dataset task. Options are 'detect', 'segment', 'pose', 'classify'. Default is 'detect'.
-        autodownload (bool): Attempt to download dataset if not found locally. Default is False.
+        path (str): Path to data.yaml or data.zip (with data.yaml inside data.zip).
+        task (str): Dataset task. Options are 'detect', 'segment', 'pose', 'classify'.
+        autodownload (bool): Attempt to download dataset if not found locally.
+
+    Attributes:
+        task (str): Dataset task type.
+        hub_dir (Path): Directory path for HUB dataset files.
+        im_dir (Path): Directory path for compressed images.
+        stats (dict): Statistics dictionary containing dataset information.
+        data (dict): Dataset configuration data.
+
+    Methods:
+        get_json: Return dataset JSON for Ultralytics HUB.
+        process_images: Compress images for Ultralytics HUB.
 
     Note:
         Download *.zip files from https://github.com/ultralytics/hub/tree/main/example_datasets
@@ -719,7 +730,7 @@ class HUBDatasetStats:
 
 def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
     """
-    Compresses a single image file to reduced size while preserving its aspect ratio and quality using either the Python
+    Compress a single image file to reduced size while preserving its aspect ratio and quality using either the Python
     Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it will not be
     resized.
 

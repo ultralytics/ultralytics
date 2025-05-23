@@ -148,6 +148,21 @@ class TaskAlignedAssigner(nn.Module):
         # Merge all mask to a final mask, (b, max_num_obj, h*w)
         mask_pos = mask_topk * mask_in_gts * mask_gt
 
+        for b in range(len(mask_gt)):
+            for i, m in enumerate(mask_gt[b, :, 0]):
+                if not m:
+                    continue
+                # x = mask_in_gts[b, i].sum()
+                # x = mask_pos[b, i].sum()
+                x = mask_topk[b, i].sum()
+                print(x)
+                # if x == 0:
+                    # self.zero_assigned += 1
+                #     print(xywh[b, i])
+                #     exit()
+        exit()
+
+
         return mask_pos, align_metric, overlaps
 
     def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt):
@@ -329,12 +344,12 @@ class TaskAlignedAssigner(nn.Module):
         #         if not m:
         #             continue
         #         x = bbox_deltas[b, i].sum()
-        #         # print(x)
-        #         if x == 0:
-        #             self.zero_assigned += 1
+        #         print(x)
+        #         # if x == 0:
+        #             # self.zero_assigned += 1
         #         #     print(xywh[b, i])
         #         #     exit()
-        # # exit()
+        # exit()
 
         return bbox_deltas
 

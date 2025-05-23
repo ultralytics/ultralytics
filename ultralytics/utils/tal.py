@@ -386,10 +386,6 @@ class TaskAlignedAssigner(nn.Module):
                 #     exit()
         if fg_mask.max() > 1:  # one anchor is assigned to multiple gt_bboxes
             mask_multi_gts = (fg_mask.unsqueeze(1) > 1).expand(-1, n_max_boxes, -1)  # (b, n_max_boxes, h*w)
-            # max_overlaps_idx = overlaps.argmax(1)  # (b, h*w)
-            # is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
-            # is_max_overlaps.scatter_(1, max_overlaps_idx.unsqueeze(1), 1)
-
             # Debug code for batch=1, check the number of assigned boxes and the keeped boxes index
             # sum_pos = mask_pos.sum(-1)  # (b, n_max_boxes)
             # for i in max_overlaps_idx[0]:
@@ -399,15 +395,8 @@ class TaskAlignedAssigner(nn.Module):
             # exit()
 
             # sum_pos = (mask_pos * (1 - align_metric.clamp(0, 1))).sum(-1)  # (b, n_max_boxes)
-            # sum_pos = (mask_pos * (1 - overlaps.clamp(0, 1))).sum(-1)  # (b, n_max_boxes)
-            sum_pos = mask_pos.sum(-1)  # (b, n_max_boxes)
-            # values, indices = torch.sort(self.topk - sum_pos, dim=1)  # (b, n_max_boxes)
-            # values[values == sum_pos.max()] = 0
-            # print(values)
-            # selected = torch.multinomial(values, 1).squeeze(-1)
-            # print(selected, indices.shape)
-            # print(indices[torch.arange(len(indices)), selected].shape)
-
+            sum_pos = (mask_pos * (1 - overlaps.clamp(0, 1))).sum(-1)  # (b, n_max_boxes)
+            # sum_pos = mask_pos.sum(-1)  # (b, n_max_boxes)
             sum_pos = sum_pos.unsqueeze(-1).repeat(1, 1, mask_pos.shape[-1])  # (b, n_max_boxes, h*w)
             sum_pos[~(mask_pos.bool())] = sum_pos.max() + 1
             sum_pos.masked_fill_(sum_pos == 0, sum_pos.max() + 1)  # (b, n_max_boxes, h*w)
@@ -424,18 +413,27 @@ class TaskAlignedAssigner(nn.Module):
             # exit()
 
             mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos).float()  # (b, n_max_boxes, h*w)
+            # num_lost1 = ((mask_pos1.sum(-1, keepdim=True) == 0) * mask_gt).sum()
+            #
+            # max_overlaps_idx = overlaps.argmax(1)  # (b, h*w)
+            # is_max_overlaps_ = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
+            # is_max_overlaps_.scatter_(1, max_overlaps_idx.unsqueeze(1), 1)
+            # mask_pos2 = torch.where(mask_multi_gts, is_max_overlaps_, mask_pos).float()  # (b, n_max_boxes, h*w)
+            # num_lost2 = ((mask_pos2.sum(-1, keepdim=True) == 0) * mask_gt).sum()
+            # mask_pos = mask_pos1 if num_lost1 < num_lost2 else mask_pos2
+
             fg_mask = mask_pos.sum(-2)
+            # assert fg_mask.max() <= 1, f"fg_mask: {fg_mask.max()}"
             # Debug code
             # for b in range(len(mask_gt)):
             #     for i, m in enumerate(mask_gt[b, :, 0]):
             #         if not m:
             #             continue
             #         x = mask_pos[b, i].sum()
-            #         print("--", i, x)
+            #         # print("--", i, x)
             #         if x == 0:
-            #             exit()
-                        # self.zero_assigned += 1
-            exit()
+            #             # exit()
+            #             self.zero_assigned += 1
 
         if self.topk2 != self.topk:
             align_metric = align_metric * mask_pos  # update overlaps

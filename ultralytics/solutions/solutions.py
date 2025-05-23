@@ -445,7 +445,7 @@ class SolutionAnnotator(Annotator):
         Returns:
             (int): The height of the text.
         """
-        (text_width, text_height), _ = cv2.getTextSize(display_text, 0, self.sf, self.tf)
+        (text_width, text_height), _ = cv2.getTextSize(display_text, 0, fontScale=self.sf, thickness=self.tf)
 
         # Draw background rectangle
         cv2.rectangle(

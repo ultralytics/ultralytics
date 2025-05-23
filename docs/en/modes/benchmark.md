@@ -18,26 +18,14 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
 <script defer src="../../javascript/benchmark.js"></script>
 
 <div id="chart-container" style="width: 100%; max-width: 1024px; position: relative;">
- <div id="chart-toolbar" style="
-  position: absolute;
-  top: -40px;
-  right: 0px;
-  display: flex;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 1px 5px rgba(0,0,0,0.1);
-  gap: 6px;
-  padding: 6px 8px;
-  border-radius: 6px;
-  z-index: 10;
-">
-   <button title="Download PNG" id="btn-download" class="chart-btn">⬇️</button>
-   <button title="Download Data" id="btn-download-data" class="chart-btn">📋</button> 
-   <button title="Toggle Theme" id="btn-toggle-theme" class="chart-btn">🌙</button>
-   <button title="Switch to Bar Chart" id="btn-toggle-type" class="chart-btn">📊</button>
+<div id="chart-toolbar"> 
+  <button id="btn-download" class="chart-btn tooltip-btn" data-tooltip="Download PNG">⬇️</button>
+  <button id="btn-download-data" class="chart-btn tooltip-btn" data-tooltip="Download Data">📋</button> 
+  <button id="btn-toggle-theme" class="chart-btn tooltip-btn" data-tooltip="Toggle Theme">🌙</button>
+  <button id="btn-toggle-chart" class="chart-btn tooltip-btn" data-tooltip="Switch to Bar Chart">📊</button>
 </div>
   <canvas id="modelComparisonChart" width="1024" height="400" style="margin-top: 60px;"></canvas>
 </div>
-
 ## Introduction
 
 Once your model is trained and validated, the next logical step is to evaluate its performance in various real-world scenarios. Benchmark mode in Ultralytics YOLO11 serves this purpose by providing a robust framework for assessing the speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) of your model across a range of export formats.

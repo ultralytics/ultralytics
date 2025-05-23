@@ -220,17 +220,39 @@ div.highlight {
 }
 /* Inkeep ----------------------------------------------------------------------------------------------------------- */
 
-/* Benchmark  widget area styling ----------------------------------------------------------------------------------- */
-.chart-btn {
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-    color: #333;
-  }
+/* Benchmark widget area styling ------------------------------------------------------------------------------------ */
+#chart-toolbar {
+  position: absolute;
+  display: flex;
+  gap: 8px; /* gap between each widget button */
+  padding: 6px 8px; /* padding for complete widget x, y */
+  z-index: 10;
+  right: 0px;
+  top: -40px;
+}
 
-  .chart-btn:hover {
-    transform: scale(1.1);
-    color: #000;
-  }
+body.dark #chart-toolbar {  /* Apply dark background only in dark mode */
+  background: #121212;
+}
+
+.tooltip-btn::after {
+  content: attr(data-tooltip);  /* Tooltip text from data-tooltip */
+  position: absolute;
+  bottom: 100%; /* Position tooltip above the button */
+  transform: translateX(-50%);
+  background-color: #333;  /* Dark background */
+  color: #fff;  /* White text */
+  padding: 4px 8px;
+  font-size: 12px;
+  white-space: nowrap;  /* Prevent wrapping */
+  border-radius: 4px;
+  opacity: 0;  /* Hidden by default */
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+  z-index: 9999;
+}
+
+.tooltip-btn[data-tooltip]:hover::after {
+  opacity: 1;
+}
 /* Benchmark  widget area styling ----------------------------------------------------------------------------------- */

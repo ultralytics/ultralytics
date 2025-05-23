@@ -23,9 +23,9 @@ class TrackZone(BaseSolution):
         clss (List[int]): Class indices of tracked objects.
 
     Methods:
-        process: Processes each frame of the video, applying region-based tracking.
-        extract_tracks: Extracts tracking information from the input frame.
-        display_output: Displays the processed output.
+        process: Process each frame of the video, applying region-based tracking.
+        extract_tracks: Extract tracking information from the input frame.
+        display_output: Display the processed output.
 
     Examples:
         >>> tracker = TrackZone()

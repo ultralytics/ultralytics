@@ -73,8 +73,8 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         Get pose estimation model with specified configuration and weights.
 
         Args:
-            cfg (str | Path | dict | None): Model configuration file path or dictionary.
-            weights (str | Path | None): Path to the model weights file.
+            cfg (str | Path | dict, optional): Model configuration file path or dictionary.
+            weights (str | Path, optional): Path to the model weights file.
             verbose (bool): Whether to display model information.
 
         Returns:
@@ -89,12 +89,12 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         return model
 
     def set_model_attributes(self):
-        """Sets keypoints shape attribute of PoseModel."""
+        """Set keypoints shape attribute of PoseModel."""
         super().set_model_attributes()
         self.model.kpt_shape = self.data["kpt_shape"]
 
     def get_validator(self):
-        """Returns an instance of the PoseValidator class for validation."""
+        """Return an instance of the PoseValidator class for validation."""
         self.loss_names = "box_loss", "pose_loss", "kobj_loss", "cls_loss", "dfl_loss"
         return yolo.pose.PoseValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
@@ -135,12 +135,12 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         )
 
     def plot_metrics(self):
-        """Plots training/val metrics."""
+        """Plot training/validation metrics."""
         plot_results(file=self.csv, pose=True, on_plot=self.on_plot)  # save results.png
 
     def get_dataset(self):
         """
-        Retrieves the dataset and ensures it contains the required `kpt_shape` key.
+        Retrieve the dataset and ensure it contains the required `kpt_shape` key.
 
         Returns:
             (dict): A dictionary containing the training/validation/test dataset and category names.

@@ -111,8 +111,8 @@ class WorldTrainerFromScratch(WorldTrainer):
         handling both YOLO detection datasets and grounding datasets.
 
         Returns:
-            (str): Train dataset path.
-            (str): Validation dataset path.
+            train_path (str): Train dataset path.
+            val_path (str): Validation dataset path.
 
         Raises:
             AssertionError: If train or validation datasets are not found, or if validation has multiple datasets.

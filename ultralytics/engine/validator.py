@@ -138,7 +138,7 @@ class BaseValidator:
             model (nn.Module, optional): Model to validate if not using a trainer.
 
         Returns:
-            stats (dict): Dictionary containing validation statistics.
+            (dict): Dictionary containing validation statistics.
         """
         self.training = trainer is not None
         augment = self.args.augment and (not self.training)

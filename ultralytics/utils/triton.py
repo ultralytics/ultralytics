@@ -31,6 +31,7 @@ class TritonRemoteModel:
     Examples:
         Initialize a Triton client with HTTP
         >>> model = TritonRemoteModel(url="localhost:8000", endpoint="yolov8", scheme="http")
+
         Make inference with numpy arrays
         >>> outputs = model(np.random.rand(1, 3, 640, 640).astype(np.float32))
     """
@@ -44,8 +45,8 @@ class TritonRemoteModel:
 
         Args:
             url (str): The URL of the Triton server.
-            endpoint (str): The name of the model on the Triton server.
-            scheme (str): The communication scheme ('http' or 'grpc').
+            endpoint (str, optional): The name of the model on the Triton server.
+            scheme (str, optional): The communication scheme ('http' or 'grpc').
 
         Examples:
             >>> model = TritonRemoteModel(url="localhost:8000", endpoint="yolov8", scheme="http")

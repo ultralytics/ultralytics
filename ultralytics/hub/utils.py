@@ -36,7 +36,7 @@ PREFIX = colorstr("Ultralytics HUB: ")
 HELP_MSG = "If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance."
 
 
-def request_with_credentials(url: str) -> any:
+def request_with_credentials(url: str):
     """
     Make an AJAX request with cookies attached in a Google Colab environment.
 
@@ -125,7 +125,8 @@ def smart_request(method, url, retry=3, timeout=30, thread=True, code=-1, verbos
         **kwargs (Any): Keyword arguments to be passed to the requests function specified in method.
 
     Returns:
-        (requests.Response): The HTTP response object. If the request is executed in a separate thread, returns None.
+        (requests.Response | None): The HTTP response object. If the request is executed in a separate thread, returns
+            None.
     """
     retry_codes = (408, 500)  # retry only these codes
 
@@ -177,7 +178,9 @@ class Events:
 
     Attributes:
         url (str): The URL to send anonymous events.
+        events (list): List of collected events to be sent.
         rate_limit (float): The rate limit in seconds for sending events.
+        t (float): Rate limit timer in seconds.
         metadata (dict): A dictionary containing metadata about the environment.
         enabled (bool): A flag to enable or disable Events based on certain conditions.
     """
@@ -214,7 +217,7 @@ class Events:
 
         Args:
             cfg (IterableSimpleNamespace): The configuration object containing mode and task information.
-            device (torch.device | str): The device type (e.g., 'cpu', 'cuda').
+            device (torch.device | str, optional): The device type (e.g., 'cpu', 'cuda').
         """
         if not self.enabled:
             # Events disabled, do nothing

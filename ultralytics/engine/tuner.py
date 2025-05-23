@@ -43,8 +43,8 @@ class Tuner:
         prefix (str): Prefix string for logging messages.
 
     Methods:
-        _mutate: Mutates the given hyperparameters within the specified bounds.
-        __call__: Executes the hyperparameter evolution across multiple iterations.
+        _mutate: Mutate hyperparameters based on bounds and scaling factors.
+        __call__: Execute the hyperparameter evolution across multiple iterations.
 
     Examples:
         Tune hyperparameters for YOLO11n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
@@ -159,7 +159,7 @@ class Tuner:
         This method iterates through the number of iterations, performing the following steps in each iteration:
 
         1. Load the existing hyperparameters or initialize new ones.
-        2. Mutate the hyperparameters using the `mutate` method.
+        2. Mutate the hyperparameters using the `_mutate` method.
         3. Train a YOLO model with the mutated hyperparameters.
         4. Log the fitness score and mutated hyperparameters to a CSV file.
 

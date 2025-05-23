@@ -27,7 +27,7 @@ class TwoWayTransformer(nn.Module):
         norm_final_attn (nn.LayerNorm): Layer normalization applied to final queries.
 
     Methods:
-        forward: Processes image and point embeddings through the transformer.
+        forward: Process image and point embeddings through the transformer.
 
     Examples:
         >>> transformer = TwoWayTransformer(depth=6, embedding_dim=256, num_heads=8, mlp_dim=2048)
@@ -145,7 +145,7 @@ class TwoWayAttentionBlock(nn.Module):
         skip_first_layer_pe (bool): Whether to skip positional encoding in the first layer.
 
     Methods:
-        forward: Applies self-attention and cross-attention to queries and keys.
+        forward: Apply self-attention and cross-attention to queries and keys.
 
     Examples:
         >>> embedding_dim, num_heads = 256, 8
@@ -259,9 +259,9 @@ class Attention(nn.Module):
         out_proj (nn.Linear): Linear projection for output.
 
     Methods:
-        _separate_heads: Separates input tensor into attention heads.
-        _recombine_heads: Recombines separated attention heads.
-        forward: Computes attention output for given query, key, and value tensors.
+        _separate_heads: Separate input tensor into attention heads.
+        _recombine_heads: Recombine separated attention heads.
+        forward: Compute attention output for given query, key, and value tensors.
 
     Examples:
         >>> attn = Attention(embedding_dim=256, num_heads=8, downsample_rate=2)

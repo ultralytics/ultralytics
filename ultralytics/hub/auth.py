@@ -37,7 +37,7 @@ class Auth:
             verbose (bool): Enable verbose logging.
         """
         # Split the input API key in case it contains a combined key_model and keep only the API key part
-        api_key = api_key.split("_")[0]
+        api_key = api_key.split("_", 1)[0]
 
         # Set API key attribute as value passed or SETTINGS API key if none passed
         self.api_key = api_key or SETTINGS.get("api_key", "")
@@ -77,7 +77,7 @@ class Auth:
         for attempts in range(max_attempts):
             LOGGER.info(f"{PREFIX}Login. Attempt {attempts + 1} of {max_attempts}")
             input_key = getpass.getpass(f"Enter API key from {API_KEY_URL} ")
-            self.api_key = input_key.split("_")[0]  # remove model id if present
+            self.api_key = input_key.split("_", 1)[0]  # remove model id if present
             if self.authenticate():
                 return True
         raise ConnectionError(emojis(f"{PREFIX}Failed to authenticate ❌"))

@@ -198,7 +198,13 @@ def test_track_stream():
 
 def test_val():
     """Test the validation mode of the YOLO model."""
-    YOLO(MODEL).val(data="coco8.yaml", imgsz=32)
+    metrics = YOLO(MODEL).val(data="coco8.yaml", imgsz=32)
+    metrics.to_df()
+    metrics.to_csv()
+    metrics.to_xml()
+    metrics.to_html()
+    metrics.to_json()
+    metrics.to_sql()
 
 
 def test_train_scratch():
@@ -264,17 +270,20 @@ def test_predict_callback_and_setup():
 @pytest.mark.parametrize("model", MODELS)
 def test_results(model):
     """Test YOLO model results processing and output in various formats."""
-    results = YOLO(WEIGHTS_DIR / model)([SOURCE, SOURCE], imgsz=160)
+    temp_s = "https://ultralytics.com/images/boats.jpg" if model == "yolo11n-obb.pt" else SOURCE
+    results = YOLO(WEIGHTS_DIR / model)([temp_s, temp_s], imgsz=160)
     for r in results:
         r = r.cpu().numpy()
         print(r, len(r), r.path)  # print numpy attributes
         r = r.to(device="cpu", dtype=torch.float32)
         r.save_txt(txt_file=TMP / "runs/tests/label.txt", save_conf=True)
         r.save_crop(save_dir=TMP / "runs/tests/crops/")
-        r.to_json(normalize=True)
-        r.to_df(decimals=3)
+        r.to_df(decimals=3)  # Align to_ methods: https://docs.ultralytics.com/modes/predict/#working-with-results
         r.to_csv()
         r.to_xml()
+        r.to_html()
+        r.to_json(normalize=True)
+        r.to_sql()
         r.plot(pil=True, save=True, filename=TMP / "results_plot_save.jpg")
         r.plot(conf=True, boxes=True)
         print(r, len(r), r.path)  # print after methods

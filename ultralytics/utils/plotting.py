@@ -196,7 +196,9 @@ class Annotator:
             if check_version(pil_version, "9.2.0"):
                 self.font.getsize = lambda x: self.font.getbbox(x)[2:4]  # text width, height
         else:  # use cv2
-            if im.shape[2] > 3:  # multispectral
+            if im.shape[2] == 1:  # handle grayscale
+                im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
+            elif im.shape[2] > 3:  # multispectral
                 im = np.ascontiguousarray(im[..., :3])
             assert im.data.contiguous, "Image not contiguous. Apply np.ascontiguousarray(im) to Annotator input images."
             self.im = im if im.flags.writeable else im.copy()
@@ -276,7 +278,7 @@ class Annotator:
         else:
             return txt_color
 
-    def box_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False):
+    def box_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255)):
         """
         Draw a bounding box on an image with a given label.
 
@@ -285,7 +287,6 @@ class Annotator:
             label (str, optional): The text label to be displayed.
             color (tuple, optional): The background color of the rectangle (B, G, R).
             txt_color (tuple, optional): The color of the text (R, G, B).
-            rotated (bool, optional): Whether the task is oriented bounding box detection.
 
         Examples:
             >>> from ultralytics.utils.plotting import Annotator
@@ -296,13 +297,13 @@ class Annotator:
         txt_color = self.get_txt_color(color, txt_color)
         if isinstance(box, torch.Tensor):
             box = box.tolist()
-        if self.pil or not is_ascii(label):
-            if rotated:
-                p1 = box[0]
-                self.draw.polygon([tuple(b) for b in box], width=self.lw, outline=color)  # PIL requires tuple box
-            else:
-                p1 = (box[0], box[1])
-                self.draw.rectangle(box, width=self.lw, outline=color)  # box
+
+        multi_points = isinstance(box[0], list)  # multiple points with shape (n, 2)
+        p1 = [int(b) for b in box[0]] if multi_points else (int(box[0]), int(box[1]))
+        if self.pil:
+            self.draw.polygon(
+                [tuple(b) for b in box], width=self.lw, outline=color
+            ) if multi_points else self.draw.rectangle(box, width=self.lw, outline=color)
             if label:
                 w, h = self.font.getsize(label)  # text width, height
                 outside = p1[1] >= h  # label fits outside box
@@ -315,12 +316,11 @@ class Annotator:
                 # self.draw.text([box[0], box[1]], label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
                 self.draw.text((p1[0], p1[1] - h if outside else p1[1]), label, fill=txt_color, font=self.font)
         else:  # cv2
-            if rotated:
-                p1 = [int(b) for b in box[0]]
-                cv2.polylines(self.im, [np.asarray(box, dtype=int)], True, color, self.lw)  # cv2 requires nparray box
-            else:
-                p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
-                cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
+            cv2.polylines(
+                self.im, [np.asarray(box, dtype=int)], True, color, self.lw
+            ) if multi_points else cv2.rectangle(
+                self.im, p1, (int(box[2]), int(box[3])), color, thickness=self.lw, lineType=cv2.LINE_AA
+            )
             if label:
                 w, h = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
                 h += 3  # add pixels to pad text
@@ -535,9 +535,9 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
     import pandas
-    import seaborn
+    from matplotlib.colors import LinearSegmentedColormap
 
-    # Filter matplotlib>=3.7.2 warning and Seaborn use_inf and is_categorical FutureWarnings
+    # Filter matplotlib>=3.7.2 warning
     warnings.filterwarnings("ignore", category=UserWarning, message="The figure layout has changed to tight")
     warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -547,12 +547,17 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     boxes = boxes[:1000000]  # limit to 1M boxes
     x = pandas.DataFrame(boxes, columns=["x", "y", "width", "height"])
 
-    # Seaborn correlogram
-    seaborn.pairplot(x, corner=True, diag_kind="auto", kind="hist", diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
-    plt.savefig(save_dir / "labels_correlogram.jpg", dpi=200)
-    plt.close()
+    try:  # Seaborn correlogram
+        import seaborn
+
+        seaborn.pairplot(x, corner=True, diag_kind="auto", kind="hist", diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
+        plt.savefig(save_dir / "labels_correlogram.jpg", dpi=200)
+        plt.close()
+    except ImportError:
+        pass  # Skip if seaborn is not installed
 
     # Matplotlib labels
+    subplot_3_4_color = LinearSegmentedColormap.from_list("white_blue", ["white", "blue"])
     ax = plt.subplots(2, 2, figsize=(8, 8), tight_layout=True)[1].ravel()
     y = ax[0].hist(cls, bins=np.linspace(0, nc, nc + 1) - 0.5, rwidth=0.8)
     for i in range(nc):
@@ -563,18 +568,19 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
         ax[0].set_xticklabels(list(names.values()), rotation=90, fontsize=10)
     else:
         ax[0].set_xlabel("classes")
-    seaborn.histplot(x, x="x", y="y", ax=ax[2], bins=50, pmax=0.9)
-    seaborn.histplot(x, x="width", y="height", ax=ax[3], bins=50, pmax=0.9)
-
-    # Rectangles
-    boxes[:, 0:2] = 0.5  # center
-    boxes = ops.xywh2xyxy(boxes) * 1000
+    boxes = np.column_stack([0.5 - boxes[:, 2:4] / 2, 0.5 + boxes[:, 2:4] / 2]) * 1000
     img = Image.fromarray(np.ones((1000, 1000, 3), dtype=np.uint8) * 255)
     for cls, box in zip(cls[:500], boxes[:500]):
         ImageDraw.Draw(img).rectangle(box, width=1, outline=colors(cls))  # plot
     ax[1].imshow(img)
     ax[1].axis("off")
 
+    ax[2].hist2d(x["x"], x["y"], bins=50, cmap=subplot_3_4_color)
+    ax[2].set_xlabel("x")
+    ax[2].set_ylabel("y")
+    ax[3].hist2d(x["width"], x["height"], bins=50, cmap=subplot_3_4_color)
+    ax[3].set_xlabel("width")
+    ax[3].set_ylabel("height")
     for a in [0, 1, 2, 3]:
         for s in ["top", "right", "left", "bottom"]:
             ax[a].spines[s].set_visible(False)
@@ -742,7 +748,7 @@ def plot_images(
                     c = names.get(c, c) if names else c
                     if labels or conf[j] > conf_thres:
                         label = f"{c}" if labels else f"{c} {conf[j]:.1f}"
-                        annotator.box_label(box, label, color=color, rotated=is_obb)
+                        annotator.box_label(box, label, color=color)
 
             elif len(classes):
                 for c in classes:
@@ -992,7 +998,7 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detec
     if isinstance(x, torch.Tensor):
         _, channels, height, width = x.shape  # batch, channels, height, width
         if height > 1 and width > 1:
-            f = save_dir / f"stage{stage}_{module_type.split('.')[-1]}_features.png"  # filename
+            f = save_dir / f"stage{stage}_{module_type.rsplit('.', 1)[-1]}_features.png"  # filename
 
             blocks = torch.chunk(x[0].cpu(), channels, dim=0)  # select batch index 0, block by channels
             n = min(n, channels)  # number of plots

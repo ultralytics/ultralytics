@@ -12,7 +12,7 @@ import torch
 _imshow = cv2.imshow  # copy to avoid recursion errors
 
 
-def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
+def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray:
     """
     Read an image from a file with multilanguage filename support.
 

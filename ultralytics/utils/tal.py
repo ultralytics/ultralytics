@@ -401,19 +401,19 @@ class TaskAlignedAssigner(nn.Module):
             # sum_pos = (mask_pos * (1 - align_metric.clamp(0, 1))).sum(-1)  # (b, n_max_boxes)
             # sum_pos = (mask_pos * (1 - overlaps.clamp(0, 1))).sum(-1)  # (b, n_max_boxes)
             sum_pos = mask_pos.sum(-1)  # (b, n_max_boxes)
-            # sum_pos = sum_pos.unsqueeze(-1).repeat(1, 1, mask_pos.shape[-1])  # (b, n_max_boxes, h*w)
+            sum_pos = sum_pos.unsqueeze(-1).repeat(1, 1, mask_pos.shape[-1])  # (b, n_max_boxes, h*w)
+            sum_pos[~(mask_pos.bool())] = sum_pos.max() + 1
             sum_pos.masked_fill_(sum_pos == 0, sum_pos.max() + 1)  # (b, n_max_boxes)
-            min_idx = torch.argmin(sum_pos, dim=-1)  # (b, )
-            mask_pos_min = min_idx.unsqueeze(-1).expand(-1, mask_pos.shape[-1])  # (b, h*w)
+            mask_pos_min = torch.argmin(sum_pos, dim=1)  # (b, h*w)
             is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
             is_max_overlaps.scatter_(1, mask_pos_min.unsqueeze(1), 1)
 
             # Debug code for batch=1, check the number of assigned boxes and the keeped boxes index
-            for i in mask_pos_min[0]:
-                if i == 0:
-                    continue
-                print(i, sum_pos[0, i], sum_pos[0])
-                break
+            # for i in mask_pos_min[0]:
+            #     if i == 0:
+            #         continue
+            #     print(i, sum_pos[0, i], sum_pos[0])
+            #     break
             # exit()
 
             mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos).float()  # (b, n_max_boxes, h*w)
@@ -424,7 +424,7 @@ class TaskAlignedAssigner(nn.Module):
                     if not m:
                         continue
                     x = mask_pos[b, i].sum()
-                    print("--", i, x)
+                    # print("--", i, x)
                     if x == 0:
                         exit()
                         # self.zero_assigned += 1

@@ -21,13 +21,13 @@ def bbox_ioa(box1, box2, iou=False, eps=1e-7):
     Calculate the intersection over box2 area given box1 and box2. Boxes are in x1y1x2y2 format.
 
     Args:
-        box1 (np.ndarray): A numpy array of shape (n, 4) representing n bounding boxes.
-        box2 (np.ndarray): A numpy array of shape (m, 4) representing m bounding boxes.
+        box1 (np.ndarray): A numpy array of shape (N, 4) representing N bounding boxes.
+        box2 (np.ndarray): A numpy array of shape (M, 4) representing M bounding boxes.
         iou (bool): Calculate the standard IoU if True else return inter_area/box2_area.
         eps (float, optional): A small value to avoid division by zero.
 
     Returns:
-        (np.ndarray): A numpy array of shape (n, m) representing the intersection over box2 area.
+        (np.ndarray): A numpy array of shape (N, M) representing the intersection over box2 area.
     """
     # Get the coordinates of bounding boxes
     b1_x1, b1_y1, b1_x2, b1_y2 = box1.T
@@ -283,7 +283,8 @@ def smooth_bce(eps=0.1):
         eps (float, optional): The epsilon value for label smoothing.
 
     Returns:
-        (tuple): A tuple containing the positive and negative label smoothing BCE targets.
+        pos (float): Positive label smoothing BCE target.
+        neg (float): Negative label smoothing BCE target.
 
     References:
         https://github.com/ultralytics/yolov3/issues/238#issuecomment-598028441
@@ -398,7 +399,8 @@ class ConfusionMatrix:
         Return true positives and false positives.
 
         Returns:
-            (tuple): True positives and false positives.
+            tp (np.ndarray): True positives.
+            fp (np.ndarray): False positives.
         """
         tp = self.matrix.diagonal()  # true positives
         fp = self.matrix.sum(1) - tp  # false positives
@@ -579,9 +581,9 @@ def compute_ap(recall, precision):
         precision (list): The precision curve.
 
     Returns:
-        (float): Average precision.
-        (np.ndarray): Precision envelope curve.
-        (np.ndarray): Modified recall curve with sentinel values added at the beginning and end.
+        ap (float): Average precision.
+        mpre (np.ndarray): Precision envelope curve.
+        mrec (np.ndarray): Modified recall curve with sentinel values added at the beginning and end.
     """
     # Append sentinel values to beginning and end
     mrec = np.concatenate(([0.0], recall, [1.0]))
@@ -734,7 +736,7 @@ class Metric(SimpleClass):
         Return the Average Precision (AP) at an IoU threshold of 0.5 for all classes.
 
         Returns:
-            (np.ndarray, list): Array of shape (nc,) with AP50 values per class, or an empty list if not available.
+            (np.ndarray | list): Array of shape (nc,) with AP50 values per class, or an empty list if not available.
         """
         return self.all_ap[:, 0] if len(self.all_ap) else []
 
@@ -744,7 +746,7 @@ class Metric(SimpleClass):
         Return the Average Precision (AP) at an IoU threshold of 0.5-0.95 for all classes.
 
         Returns:
-            (np.ndarray, list): Array of shape (nc,) with AP50-95 values per class, or an empty list if not available.
+            (np.ndarray | list): Array of shape (nc,) with AP50-95 values per class, or an empty list if not available.
         """
         return self.all_ap.mean(1) if len(self.all_ap) else []
 

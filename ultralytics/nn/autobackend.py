@@ -39,7 +39,7 @@ def check_class_names(names):
 
 
 def default_class_names(data=None):
-    """Applies default class names to an input YAML file or returns numerical class names."""
+    """Apply default class names to an input YAML file or return numerical class names."""
     if data:
         try:
             return YAML.load(check_yaml(data))["names"]
@@ -50,7 +50,7 @@ def default_class_names(data=None):
 
 class AutoBackend(nn.Module):
     """
-    Handles dynamic backend selection for running inference using Ultralytics YOLO models.
+    Handle dynamic backend selection for running inference using Ultralytics YOLO models.
 
     The AutoBackend class is designed to provide an abstraction layer for various inference engines. It supports a wide
     range of formats, each with specific naming conventions as outlined below:
@@ -113,7 +113,7 @@ class AutoBackend(nn.Module):
             weights (str | List[str] | torch.nn.Module): Path to the model weights file or a module instance.
             device (torch.device): Device to run the model on.
             dnn (bool): Use OpenCV DNN module for ONNX inference.
-            data (str | Path | optional): Path to the additional data.yaml file containing class names.
+            data (str | Path, optional): Path to the additional data.yaml file containing class names.
             fp16 (bool): Enable half-precision inference. Supported only on specific backends.
             batch (int): Batch-size to assume for inference.
             fuse (bool): Fuse Conv2D + BatchNorm layers for optimization.
@@ -569,13 +569,13 @@ class AutoBackend(nn.Module):
 
     def forward(self, im, augment=False, visualize=False, embed=None, **kwargs):
         """
-        Runs inference on the YOLOv8 MultiBackend model.
+        Run inference on an AutoBackend model.
 
         Args:
             im (torch.Tensor): The image tensor to perform inference on.
             augment (bool): Whether to perform data augmentation during inference.
             visualize (bool): Whether to visualize the output predictions.
-            embed (list | None): A list of feature vectors/embeddings to return.
+            embed (list, optional): A list of feature vectors/embeddings to return.
             **kwargs (Any): Additional keyword arguments for model configuration.
 
         Returns:
@@ -632,7 +632,7 @@ class AutoBackend(nn.Module):
                 results = [None] * n  # preallocate list with None to match the number of images
 
                 def callback(request, userdata):
-                    """Places result in preallocated list using userdata index."""
+                    """Place result in preallocated list using userdata index."""
                     results[userdata] = request.results
 
                 # Create AsyncInferQueue, set the callback and start asynchronous inference for each input image
@@ -810,7 +810,7 @@ class AutoBackend(nn.Module):
     @staticmethod
     def _model_type(p="path/to/model.pt"):
         """
-        Takes a path to a model file and returns the model type.
+        Take a path to a model file and return the model type.
 
         Args:
             p (str): Path to the model file.

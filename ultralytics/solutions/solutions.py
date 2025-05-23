@@ -112,7 +112,7 @@ class BaseSolution:
                 ops.Profile(device=self.device),  # solution
             )
 
-    def adjust_box_label(self, cls: int, conf: float, track_id: int = None) -> str | None:
+    def adjust_box_label(self, cls: int, conf: float, track_id: int = None) -> str:
         """
         Generate a formatted label for a bounding box.
 

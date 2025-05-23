@@ -375,20 +375,20 @@ class TaskAlignedAssigner(nn.Module):
         # Convert (b, n_max_boxes, h*w) -> (b, h*w)
         fg_mask = mask_pos.sum(-2)
 
-        # for b in range(len(mask_gt)):
-        #     for i, m in enumerate(mask_gt[b, :, 0]):
-        #         if not m:
-        #             continue
-        #         x = mask_pos[b, i].sum()
-        #         # print(x)
-        #         if x == 0:
-        #             self.zero_assigned += 1
-                    # exit()
+        for b in range(len(mask_gt)):
+            for i, m in enumerate(mask_gt[b, :, 0]):
+                if not m:
+                    continue
+                x = mask_pos[b, i].sum()
+                print(i, x)
+                # if x == 0:
+                #     self.zero_assigned += 1
+                #     exit()
         if fg_mask.max() > 1:  # one anchor is assigned to multiple gt_bboxes
             mask_multi_gts = (fg_mask.unsqueeze(1) > 1).expand(-1, n_max_boxes, -1)  # (b, n_max_boxes, h*w)
-            max_overlaps_idx = overlaps.argmax(1)  # (b, h*w)
-            is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
-            is_max_overlaps.scatter_(1, max_overlaps_idx.unsqueeze(1), 1)
+            # max_overlaps_idx = overlaps.argmax(1)  # (b, h*w)
+            # is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
+            # is_max_overlaps.scatter_(1, max_overlaps_idx.unsqueeze(1), 1)
 
             # Debug code for batch=1, check the number of assigned boxes and the keeped boxes index
             # sum_pos = mask_pos.sum(-1)  # (b, n_max_boxes)
@@ -398,33 +398,37 @@ class TaskAlignedAssigner(nn.Module):
             #     print(i, sum_pos[0, i], sum_pos[0])
             # exit()
 
-            # sum_pos = mask_pos.sum(-1)  # (b, n_max_boxes)
             # sum_pos = (mask_pos * (1 - align_metric.clamp(0, 1))).sum(-1)  # (b, n_max_boxes)
             # sum_pos = (mask_pos * (1 - overlaps.clamp(0, 1))).sum(-1)  # (b, n_max_boxes)
-            # sum_pos.masked_fill_(sum_pos == 0, sum_pos.max())  # (b, n_max_boxes)
-            # min_idx = torch.argmin(sum_pos, dim=-1)  # (b, )
-            # mask_pos_min = min_idx.unsqueeze(-1).expand(-1, mask_pos.shape[-1])  # (b, h*w)
+            sum_pos = mask_pos.sum(-1)  # (b, n_max_boxes)
+            # sum_pos = sum_pos.unsqueeze(-1).repeat(1, 1, mask_pos.shape[-1])  # (b, n_max_boxes, h*w)
+            sum_pos.masked_fill_(sum_pos == 0, sum_pos.max() + 1)  # (b, n_max_boxes)
+            min_idx = torch.argmin(sum_pos, dim=-1)  # (b, )
+            mask_pos_min = min_idx.unsqueeze(-1).expand(-1, mask_pos.shape[-1])  # (b, h*w)
+            is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
+            is_max_overlaps.scatter_(1, mask_pos_min.unsqueeze(1), 1)
 
             # Debug code for batch=1, check the number of assigned boxes and the keeped boxes index
-            # for i in mask_pos_min[0]:
-            #     if i == 0:
-            #         continue
-            #     print(i, sum_pos[0, i], sum_pos[0], sum_pos_1[0])
+            for i in mask_pos_min[0]:
+                if i == 0:
+                    continue
+                print(i, sum_pos[0, i], sum_pos[0])
+                break
             # exit()
-
-            # is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
-            # is_max_overlaps.scatter_(1, mask_pos_min.unsqueeze(1), 1)
 
             mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos).float()  # (b, n_max_boxes, h*w)
             fg_mask = mask_pos.sum(-2)
-            # Debug code for batch=1
-            # for i, m in enumerate(mask_gt[0, :, 0]):
-            #     if not m:
-            #         continue
-            #     x = mask_pos[0, i].sum()
-            #     print("--", x)
-            #     if x == 0:
-            #         exit()
+            # Debug code
+            for b in range(len(mask_gt)):
+                for i, m in enumerate(mask_gt[b, :, 0]):
+                    if not m:
+                        continue
+                    x = mask_pos[b, i].sum()
+                    print("--", i, x)
+                    if x == 0:
+                        exit()
+                        # self.zero_assigned += 1
+            # exit()
 
         if self.topk2 != self.topk:
             align_metric = align_metric * mask_pos  # update overlaps

@@ -142,9 +142,7 @@ def _fetch_trainer_metadata(trainer) -> dict:
     return dict(curr_epoch=curr_epoch, curr_step=curr_step, save_assets=save_assets, final_epoch=final_epoch)
 
 
-def _scale_bounding_box_to_original_image_shape(
-    box, resized_image_shape, original_image_shape, ratio_pad
-) -> List[float]:
+def _scale_bounding_box_to_original_image_shape(box, resized_image_shape, original_image_shape, ratio_pad) -> List[float]:
     """
     Scale bounding box from resized image coordinates to original image coordinates.
 
@@ -152,10 +150,10 @@ def _scale_bounding_box_to_original_image_shape(
     This function rescales the bounding box labels to the original image shape.
 
     Args:
-        box: Bounding box in normalized xywh format.
-        resized_image_shape: Shape of the resized image (height, width).
-        original_image_shape: Shape of the original image (height, width).
-        ratio_pad: Ratio and padding information for scaling.
+        box (torch.Tensor): Bounding box in normalized xywh format.
+        resized_image_shape (tuple): Shape of the resized image (height, width).
+        original_image_shape (tuple): Shape of the original image (height, width).
+        ratio_pad (tuple): Ratio and padding information for scaling.
 
     Returns:
         (List[float]): Scaled bounding box coordinates in xywh format with top-left corner adjustment.

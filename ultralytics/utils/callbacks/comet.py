@@ -142,7 +142,9 @@ def _fetch_trainer_metadata(trainer) -> dict:
     return dict(curr_epoch=curr_epoch, curr_step=curr_step, save_assets=save_assets, final_epoch=final_epoch)
 
 
-def _scale_bounding_box_to_original_image_shape(box, resized_image_shape, original_image_shape, ratio_pad) -> List[float]:
+def _scale_bounding_box_to_original_image_shape(
+    box, resized_image_shape, original_image_shape, ratio_pad
+) -> List[float]:
     """
     Scale bounding box from resized image coordinates to original image coordinates.
 

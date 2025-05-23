@@ -249,7 +249,6 @@ Benchmarks below run on Intel® Ultra™ 7 155H at FP32 and INT8 precision.
         <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/intel-ultra-npu.avif" alt="Intel Core Ultra NPU benchmarks">
         </div>
 
-
 #### Intel® Core™ Ultra™ 7 155H
 
 !!! tip "Benchmarks"

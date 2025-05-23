@@ -293,8 +293,6 @@ class TaskAlignedAssigner(nn.Module):
             b: batch size, n_boxes: number of ground truth boxes, h: height, w: width.
             Bounding box format: [x_min, y_min, x_max, y_max].
         """
-        # NOTE: this approach makes sure there's at least one anchor assigned to each gt
-        # but might be removed in next label assignment `mask_topk` as there's only a few of anchors
         # scale = 1.0
         # gt_bboxes_xywh = xyxy2xywh(gt_bboxes)
         # gt_wh = gt_bboxes_xywh[..., 2:]
@@ -304,10 +302,11 @@ class TaskAlignedAssigner(nn.Module):
         # print(gt_bboxes_xywh)
         # gt_bboxes_xywh[wh_mask1] *= 1.5
 
+        # NOTE: this approach makes sure there's at least one anchor assigned to each gt
+        # but might be removed in next label assignment `mask_topk` as there's only a few of anchors
         gt_bboxes_xywh = xyxy2xywh(gt_bboxes)
-        wh_mask = torch.zeros_like(gt_bboxes_xywh, dtype=torch.bool)
-        wh_mask[..., 2:] = gt_bboxes_xywh[..., 2:] < 8
-        gt_bboxes_xywh = torch.where((wh_mask * mask_gt).bool(), 8, gt_bboxes_xywh)
+        wh_mask = gt_bboxes_xywh[..., 2:] < 8
+        gt_bboxes_xywh[..., 2:] = torch.where((wh_mask * mask_gt).bool(), 8, gt_bboxes_xywh[..., 2:])
         gt_bboxes = xywh2xyxy(gt_bboxes_xywh)
 
         n_anchors = xy_centers.shape[0]

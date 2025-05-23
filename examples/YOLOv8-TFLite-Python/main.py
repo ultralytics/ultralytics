@@ -21,7 +21,7 @@ class YOLOv8TFLite:
     """
     A YOLOv8 object detection class using TensorFlow Lite for efficient inference.
 
-    This class handles model loading, preprocessing, inference, and visualization of detection results for YOLOv8 
+    This class handles model loading, preprocessing, inference, and visualization of detection results for YOLOv8
     models converted to TensorFlow Lite format.
 
     Attributes:
@@ -49,9 +49,9 @@ class YOLOv8TFLite:
 
     Examples:
         Initialize detector and run inference
-        >>> detector = YOLOv8TFLite('yolov8n.tflite', conf=0.25, iou=0.45)
-        >>> result = detector.detect('image.jpg')
-        >>> cv2.imshow('Result', result)
+        >>> detector = YOLOv8TFLite("yolov8n.tflite", conf=0.25, iou=0.45)
+        >>> result = detector.detect("image.jpg")
+        >>> cv2.imshow("Result", result)
     """
 
     def __init__(self, model: str, conf: float = 0.25, iou: float = 0.45, metadata: Union[str, None] = None):

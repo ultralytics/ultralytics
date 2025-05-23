@@ -28,7 +28,7 @@ class SAHIInference:
     Examples:
         Initialize and run SAHI inference on a video
         >>> sahi_inference = SAHIInference()
-        >>> sahi_inference.inference(weights='yolo11n.pt', source='video.mp4', view_img=True)
+        >>> sahi_inference.inference(weights="yolo11n.pt", source="video.mp4", view_img=True)
     """
 
     def __init__(self):

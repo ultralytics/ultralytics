@@ -324,10 +324,10 @@ class TaskAlignedAssigner(nn.Module):
 
         # NOTE: this approach makes sure there's at least one anchor assigned to each gt
         # but might be removed in next label assignment `mask_topk` as there's only a few of anchors
-        gt_bboxes_xywh = xyxy2xywh(gt_bboxes)
-        wh_mask = gt_bboxes_xywh[..., 2:] < 8
-        gt_bboxes_xywh[..., 2:] = torch.where((wh_mask * mask_gt).bool(), 8, gt_bboxes_xywh[..., 2:])
-        gt_bboxes = xywh2xyxy(gt_bboxes_xywh)
+        # gt_bboxes_xywh = xyxy2xywh(gt_bboxes)
+        # wh_mask = gt_bboxes_xywh[..., 2:] < 8
+        # gt_bboxes_xywh[..., 2:] = torch.where((wh_mask * mask_gt).bool(), 8, gt_bboxes_xywh[..., 2:])
+        # gt_bboxes = xywh2xyxy(gt_bboxes_xywh)
 
         n_anchors = xy_centers.shape[0]
         bs, n_boxes, _ = gt_bboxes.shape

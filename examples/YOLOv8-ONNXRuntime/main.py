@@ -14,10 +14,10 @@ from ultralytics.utils.checks import check_requirements, check_yaml
 
 class YOLOv8:
     """
-    YOLOv8 object detection model class for handling inference and visualization.
+    YOLOv8 object detection model class for handling ONNX inference and visualization.
 
     This class provides functionality to load a YOLOv8 ONNX model, perform inference on images,
-    and visualize the detection results.
+    and visualize the detection results with bounding boxes and labels.
 
     Attributes:
         onnx_model (str): Path to the ONNX model file.
@@ -31,6 +31,11 @@ class YOLOv8:
         img (np.ndarray): The loaded input image.
         img_height (int): Height of the input image.
         img_width (int): Width of the input image.
+
+    Examples:
+        Initialize YOLOv8 detector and run inference
+        >>> detector = YOLOv8('yolov8n.onnx', 'image.jpg', 0.5, 0.5)
+        >>> output_image = detector.main()
     """
 
     def __init__(self, onnx_model: str, input_image: str, confidence_thres: float, iou_thres: float):
@@ -63,8 +68,8 @@ class YOLOv8:
             new_shape (Tuple[int, int]): Target shape (height, width) for the image.
 
         Returns:
-            (np.ndarray): Resized and padded image.
-            (Tuple[int, int]): Padding values (top, left) applied to the image.
+            img (np.ndarray): Resized and padded image.
+            pad (Tuple[int, int]): Padding values (top, left) applied to the image.
         """
         shape = img.shape[:2]  # current shape [height, width]
 
@@ -128,8 +133,8 @@ class YOLOv8:
         normalizes pixel values, and prepares the image data for model input.
 
         Returns:
-            (np.ndarray): Preprocessed image data ready for inference with shape (1, 3, height, width).
-            (Tuple[int, int]): Padding values (top, left) applied during letterboxing.
+            image_data (np.ndarray): Preprocessed image data ready for inference with shape (1, 3, height, width).
+            pad (Tuple[int, int]): Padding values (top, left) applied during letterboxing.
         """
         # Read the input image using OpenCV
         self.img = cv2.imread(self.input_image)
@@ -252,8 +257,8 @@ class YOLOv8:
         # Run inference using the preprocessed image data
         outputs = session.run(None, {model_inputs[0].name: img_data})
 
-        # Perform post-processing on the outputs to obtain output image.
-        return self.postprocess(self.img, outputs, pad)  # output image
+        # Perform post-processing on the outputs to obtain output image
+        return self.postprocess(self.img, outputs, pad)
 
 
 if __name__ == "__main__":

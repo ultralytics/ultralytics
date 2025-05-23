@@ -261,7 +261,7 @@ class Pose(Detect):
             return x, kpt
         pred_kpt = self.kpts_decode(bs, kpt)
         if self.export and self.format == "imx":
-            return (*x, pred_kpt) if self.export else ((x[0], pred_kpt), (x[1], kpt))
+            return (*x, pred_kpt)
         return torch.cat([x, pred_kpt], 1) if self.export else (torch.cat([x[0], pred_kpt], 1), (x[1], kpt))
 
     def kpts_decode(self, bs, kpts):

@@ -49,7 +49,7 @@ if WINDOWS and check_version(torch.__version__, "==2.4.0"):  # reject version 2.
 
 @contextmanager
 def torch_distributed_zero_first(local_rank: int):
-    """Ensures all processes in distributed training wait for the local master (rank 0) to complete a task first."""
+    """Ensure all processes in distributed training wait for the local master (rank 0) to complete a task first."""
     initialized = dist.is_available() and dist.is_initialized()
     use_ids = initialized and dist.get_backend() == "nccl"
 
@@ -61,10 +61,10 @@ def torch_distributed_zero_first(local_rank: int):
 
 
 def smart_inference_mode():
-    """Applies torch.inference_mode() decorator if torch>=1.9.0 else torch.no_grad() decorator."""
+    """Apply torch.inference_mode() decorator if torch>=1.9.0 else torch.no_grad() decorator."""
 
     def decorate(fn):
-        """Applies appropriate torch decorator for inference mode based on torch version."""
+        """Apply appropriate torch decorator for inference mode based on torch version."""
         if TORCH_1_9 and torch.is_inference_mode_enabled():
             return fn  # already in inference_mode, act as a pass-through
         else:
@@ -243,7 +243,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
 
 
 def time_sync():
-    """PyTorch-accurate time."""
+    """Return PyTorch-accurate time."""
     if torch.cuda.is_available():
         torch.cuda.synchronize()
     return time.time()
@@ -325,7 +325,10 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
         imgsz (int | List, optional): Input image size. Defaults to 640.
 
     Returns:
-        (Tuple[int, int, int, float]): Number of layers, parameters, gradients, and GFLOPs.
+        n_l (int): Number of layers.
+        n_p (int): Number of parameters.
+        n_g (int): Number of gradients.
+        flops (float): GFLOPs.
     """
     if not verbose:
         return
@@ -491,7 +494,7 @@ def initialize_weights(model):
 
 def scale_img(img, ratio=1.0, same_shape=False, gs=32):
     """
-    Scales and pads an image tensor, optionally maintaining aspect ratio and padding to gs multiple.
+    Scale and pad an image tensor, optionally maintaining aspect ratio and padding to gs multiple.
 
     Args:
         img (torch.Tensor): Input image tensor.
@@ -514,7 +517,7 @@ def scale_img(img, ratio=1.0, same_shape=False, gs=32):
 
 def copy_attr(a, b, include=(), exclude=()):
     """
-    Copies attributes from object 'b' to object 'a', with options to include/exclude certain attributes.
+    Copy attributes from object 'b' to object 'a', with options to include/exclude certain attributes.
 
     Args:
         a (object): Destination object to copy attributes to.
@@ -546,7 +549,7 @@ def get_latest_opset():
 
 def intersect_dicts(da, db, exclude=()):
     """
-    Returns a dictionary of intersecting keys with matching shapes, excluding 'exclude' keys, using da values.
+    Return a dictionary of intersecting keys with matching shapes, excluding 'exclude' keys, using da values.
 
     Args:
         da (dict): First dictionary.
@@ -561,7 +564,7 @@ def intersect_dicts(da, db, exclude=()):
 
 def is_parallel(model):
     """
-    Returns True if model is of type DP or DDP.
+    Return True if model is of type DP or DDP.
 
     Args:
         model (nn.Module): Model to check.
@@ -574,7 +577,7 @@ def is_parallel(model):
 
 def de_parallel(model):
     """
-    De-parallelize a model: returns single-GPU model if model is of type DP or DDP.
+    De-parallelize a model: return single-GPU model if model is of type DP or DDP.
 
     Args:
         model (nn.Module): Model to de-parallelize.
@@ -587,7 +590,7 @@ def de_parallel(model):
 
 def one_cycle(y1=0.0, y2=1.0, steps=100):
     """
-    Returns a lambda function for sinusoidal ramp from y1 to y2 https://arxiv.org/pdf/1812.01187.pdf.
+    Return a lambda function for sinusoidal ramp from y1 to y2 https://arxiv.org/pdf/1812.01187.pdf.
 
     Args:
         y1 (float, optional): Initial value. Defaults to 0.0.
@@ -627,7 +630,7 @@ def init_seeds(seed=0, deterministic=False):
 
 
 def unset_deterministic():
-    """Unsets all the configurations applied for deterministic training."""
+    """Unset all the configurations applied for deterministic training."""
     torch.use_deterministic_algorithms(False)
     torch.backends.cudnn.deterministic = False
     os.environ.pop("CUBLAS_WORKSPACE_CONFIG", None)
@@ -691,7 +694,7 @@ class ModelEMA:
 
     def update_attr(self, model, include=(), exclude=("process_group", "reducer")):
         """
-        Updates attributes and saves stripped model with optimizer removed.
+        Update attributes and save stripped model with optimizer removed.
 
         Args:
             model (nn.Module): Model to update attributes from.
@@ -764,7 +767,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
 
 def convert_optimizer_state_dict_to_fp16(state_dict):
     """
-    Converts the state_dict of a given optimizer to FP16, focusing on the 'state' key for tensor conversions.
+    Convert the state_dict of a given optimizer to FP16, focusing on the 'state' key for tensor conversions.
 
     Args:
         state_dict (dict): Optimizer state dictionary.

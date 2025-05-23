@@ -232,6 +232,8 @@ class C3K2_FE(nn.Module):
             x = x + shortcut
 
         return x
+
+
 # ALISSA GCB YOLO11 MODIF
 
 

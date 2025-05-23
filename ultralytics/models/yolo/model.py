@@ -19,7 +19,32 @@ from ultralytics.utils import ROOT, YAML
 
 
 class YOLO(Model):
-    """YOLO (You Only Look Once) object detection model."""
+    """
+    YOLO (You Only Look Once) object detection model.
+
+    This class provides a unified interface for YOLO models, automatically switching to specialized model types
+    (YOLOWorld or YOLOE) based on the model filename. It supports various computer vision tasks including object
+    detection, segmentation, classification, pose estimation, and oriented bounding box detection.
+
+    Attributes:
+        model: The loaded YOLO model instance.
+        task: The task type (detect, segment, classify, pose, obb).
+        overrides: Configuration overrides for the model.
+
+    Methods:
+        __init__: Initialize a YOLO model with automatic type detection.
+        task_map: Map tasks to their corresponding model, trainer, validator, and predictor classes.
+
+    Examples:
+        Load a pretrained YOLOv11n detection model
+        >>> model = YOLO("yolo11n.pt")
+
+        Load a pretrained YOLO11n segmentation model
+        >>> model = YOLO("yolo11n-seg.pt")
+
+        Initialize from a YAML configuration
+        >>> model = YOLO("yolo11n.yaml")
+    """
 
     def __init__(self, model="yolo11n.pt", task=None, verbose=False):
         """
@@ -30,7 +55,7 @@ class YOLO(Model):
 
         Args:
             model (str | Path): Model name or path to model file, i.e. 'yolo11n.pt', 'yolo11n.yaml'.
-            task (str | None): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'.
+            task (str, optional): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'.
                 Defaults to auto-detection based on model.
             verbose (bool): Display model info on load.
 
@@ -96,7 +121,30 @@ class YOLO(Model):
 
 
 class YOLOWorld(Model):
-    """YOLO-World object detection model."""
+    """
+    YOLO-World object detection model.
+
+    YOLO-World is an open-vocabulary object detection model that can detect objects based on text descriptions
+    without requiring training on specific classes. It extends the YOLO architecture to support real-time
+    open-vocabulary detection.
+
+    Attributes:
+        model: The loaded YOLO-World model instance.
+        task: Always set to 'detect' for object detection.
+        overrides: Configuration overrides for the model.
+
+    Methods:
+        __init__: Initialize YOLOv8-World model with a pre-trained model file.
+        task_map: Map tasks to their corresponding model, trainer, validator, and predictor classes.
+        set_classes: Set the model's class names for detection.
+
+    Examples:
+        Load a YOLOv8-World model
+        >>> model = YOLOWorld("yolov8s-world.pt")
+
+        Set custom classes for detection
+        >>> model.set_classes(["person", "car", "bicycle"])
+    """
 
     def __init__(self, model="yolov8s-world.pt", verbose=False) -> None:
         """
@@ -147,7 +195,39 @@ class YOLOWorld(Model):
 
 
 class YOLOE(Model):
-    """YOLOE object detection and segmentation model."""
+    """
+    YOLOE object detection and segmentation model.
+
+    YOLOE is an enhanced YOLO model that supports both object detection and instance segmentation tasks with
+    improved performance and additional features like visual and text positional embeddings.
+
+    Attributes:
+        model: The loaded YOLOE model instance.
+        task: The task type (detect or segment).
+        overrides: Configuration overrides for the model.
+
+    Methods:
+        __init__: Initialize YOLOE model with a pre-trained model file.
+        task_map: Map tasks to their corresponding model, trainer, validator, and predictor classes.
+        get_text_pe: Get text positional embeddings for the given texts.
+        get_visual_pe: Get visual positional embeddings for the given image and visual features.
+        set_vocab: Set vocabulary and class names for the YOLOE model.
+        get_vocab: Get vocabulary for the given class names.
+        set_classes: Set the model's class names and embeddings for detection.
+        val: Validate the model using text or visual prompts.
+        predict: Run prediction on images, videos, directories, streams, etc.
+
+    Examples:
+        Load a YOLOE detection model
+        >>> model = YOLOE("yoloe-11s-seg.pt")
+
+        Set vocabulary and class names
+        >>> model.set_vocab(["person", "car", "dog"], ["person", "car", "dog"])
+
+        Predict with visual prompts
+        >>> prompts = {"bboxes": [[10, 20, 100, 200]], "cls": ["person"]}
+        >>> results = model.predict("image.jpg", visual_prompts=prompts)
+    """
 
     def __init__(self, model="yoloe-11s-seg.pt", task=None, verbose=False) -> None:
         """

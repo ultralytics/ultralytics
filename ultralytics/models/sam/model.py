@@ -46,7 +46,7 @@ class SAM(Model):
         >>>     print(f"Detected {len(r.masks)} masks")
     """
 
-    def __init__(self, model="sam_b.pt") -> None:
+    def __init__(self, model: str = "sam_b.pt") -> None:
         """
         Initialize the SAM (Segment Anything Model) instance.
 
@@ -81,7 +81,7 @@ class SAM(Model):
 
         self.model = build_sam(weights)
 
-    def predict(self, source, stream=False, bboxes=None, points=None, labels=None, **kwargs):
+    def predict(self, source, stream: bool = False, bboxes=None, points=None, labels=None, **kwargs):
         """
         Perform segmentation prediction on the given image or video source.
 
@@ -108,7 +108,7 @@ class SAM(Model):
         prompts = dict(bboxes=bboxes, points=points, labels=labels)
         return super().predict(source, stream, prompts=prompts, **kwargs)
 
-    def __call__(self, source=None, stream=False, bboxes=None, points=None, labels=None, **kwargs):
+    def __call__(self, source=None, stream: bool = False, bboxes=None, points=None, labels=None, **kwargs):
         """
         Perform segmentation prediction on the given image or video source.
 
@@ -134,7 +134,7 @@ class SAM(Model):
         """
         return self.predict(source, stream, bboxes, points, labels, **kwargs)
 
-    def info(self, detailed=False, verbose=True):
+    def info(self, detailed: bool = False, verbose: bool = True):
         """
         Log information about the SAM model.
 

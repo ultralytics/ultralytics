@@ -34,6 +34,9 @@ class NAS(Model):
         predictor (NASPredictor): The predictor instance for making predictions.
         validator (NASValidator): The validator instance for model validation.
 
+    Methods:
+        info: Log model information and return model details.
+
     Examples:
         >>> from ultralytics import NAS
         >>> model = NAS("yolo_nas_s")

@@ -60,6 +60,9 @@ class BaseTrainer:
     """
     A base class for creating trainers.
 
+    This class provides the foundation for training YOLO models, handling the training loop, validation, checkpointing,
+    and various training utilities. It supports both single-GPU and multi-GPU distributed training.
+
     Attributes:
         args (SimpleNamespace): Configuration for the trainer.
         validator (BaseValidator): Validator instance.
@@ -89,6 +92,19 @@ class BaseTrainer:
         csv (Path): Path to results CSV file.
         metrics (dict): Dictionary of metrics.
         plots (dict): Dictionary of plots.
+
+    Methods:
+        train: Execute the training process.
+        validate: Run validation on the test set.
+        save_model: Save model training checkpoints.
+        get_dataset: Get train and validation datasets.
+        setup_model: Load, create, or download model.
+        build_optimizer: Construct an optimizer for the model.
+
+    Examples:
+        Initialize a trainer and start training
+        >>> trainer = BaseTrainer(cfg="config.yaml")
+        >>> trainer.train()
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -103,7 +119,7 @@ class BaseTrainer:
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
         self.device = select_device(self.args.device, self.args.batch)
-        # update "-1" devices so post-training val does not repeat search
+        # Update "-1" devices so post-training val does not repeat search
         self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device) else str(self.device)
         self.validator = None
         self.metrics = None
@@ -634,7 +650,8 @@ class BaseTrainer:
         Run validation on test set using self.validator.
 
         Returns:
-            (tuple): A tuple containing metrics dictionary and fitness score.
+            metrics (dict): Dictionary of validation metrics.
+            fitness (float): Fitness score for the validation.
         """
         metrics = self.validator(self)
         fitness = metrics.pop("fitness", -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
@@ -796,12 +813,12 @@ class BaseTrainer:
         Args:
             model (torch.nn.Module): The model for which to build an optimizer.
             name (str, optional): The name of the optimizer to use. If 'auto', the optimizer is selected
-                based on the number of iterations. Default: 'auto'.
-            lr (float, optional): The learning rate for the optimizer. Default: 0.001.
-            momentum (float, optional): The momentum factor for the optimizer. Default: 0.9.
-            decay (float, optional): The weight decay for the optimizer. Default: 1e-5.
+                based on the number of iterations.
+            lr (float, optional): The learning rate for the optimizer.
+            momentum (float, optional): The momentum factor for the optimizer.
+            decay (float, optional): The weight decay for the optimizer.
             iterations (float, optional): The number of iterations, which determines the optimizer if
-                name is 'auto'. Default: 1e5.
+                name is 'auto'.
 
         Returns:
             (torch.optim.Optimizer): The constructed optimizer.

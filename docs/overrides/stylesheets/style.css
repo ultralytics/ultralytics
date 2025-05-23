@@ -231,7 +231,7 @@ div.highlight {
 }
 
 .tooltip-btn {
-  position: relative; /* 👈 Key fix to anchor tooltip to each button */
+  position: relative; /* for anchor tooltip of each button */
 }
 
 .tooltip-btn[data-tooltip]::after {

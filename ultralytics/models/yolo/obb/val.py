@@ -65,27 +65,24 @@ class OBBValidator(DetectionValidator):
 
     def _process_batch(self, detections, gt_bboxes, gt_cls):
         """
-        Perform computation of the correct prediction matrix for a batch of detections and ground truth bounding boxes.
+        Compute the correct prediction matrix for a batch of detections and ground truth bounding boxes.
 
         Args:
-            detections (torch.Tensor): A tensor of shape (N, 7) representing the detected bounding boxes and associated
-                data. Each detection is represented as (x1, y1, x2, y2, conf, class, angle).
-            gt_bboxes (torch.Tensor): A tensor of shape (M, 5) representing the ground truth bounding boxes. Each box is
-                represented as (x1, y1, x2, y2, angle).
-            gt_cls (torch.Tensor): A tensor of shape (M,) representing class labels for the ground truth bounding boxes.
+            detections (torch.Tensor): Detected bounding boxes and associated data with shape (N, 7) where each
+                detection is represented as (x1, y1, x2, y2, conf, class, angle).
+            gt_bboxes (torch.Tensor): Ground truth bounding boxes with shape (M, 5) where each box is represented
+                as (x1, y1, x2, y2, angle).
+            gt_cls (torch.Tensor): Class labels for the ground truth bounding boxes with shape (M,).
 
         Returns:
-            (torch.Tensor): The correct prediction matrix with shape (N, 10), which includes 10 IoU (Intersection over
-                Union) levels for each detection, indicating the accuracy of predictions compared to the ground truth.
+            (torch.Tensor): The correct prediction matrix with shape (N, 10), which includes 10 IoU levels for each
+                detection, indicating the accuracy of predictions compared to the ground truth.
 
         Examples:
             >>> detections = torch.rand(100, 7)  # 100 sample detections
             >>> gt_bboxes = torch.rand(50, 5)  # 50 sample ground truth boxes
             >>> gt_cls = torch.randint(0, 5, (50,))  # 50 ground truth class labels
-            >>> correct_matrix = OBBValidator._process_batch(detections, gt_bboxes, gt_cls)
-
-        Note:
-            This method relies on `batch_probiou` to calculate IoU between detections and ground truth bounding boxes.
+            >>> correct_matrix = validator._process_batch(detections, gt_bboxes, gt_cls)
         """
         iou = batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:, -1:]], dim=-1))
         return self.match_predictions(detections[:, 5], gt_cls, iou)
@@ -196,7 +193,7 @@ class OBBValidator(DetectionValidator):
 
     def save_one_txt(self, predn, save_conf, shape, file):
         """
-        Save YOLO OBB (Oriented Bounding Box) detections to a text file in normalized coordinates.
+        Save YOLO OBB detections to a text file in normalized coordinates.
 
         Args:
             predn (torch.Tensor): Predicted detections with shape (N, 7) containing bounding boxes, confidence scores,

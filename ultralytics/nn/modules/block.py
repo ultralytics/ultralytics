@@ -75,6 +75,7 @@ class DFL(nn.Module):
         return self.conv(x.view(b, 4, self.c1, a).transpose(2, 1).softmax(1)).view(b, 4, a)
         # return self.conv(x.view(b, self.c1, 4, a).softmax(1)).view(b, 4, a)
 
+
 class PartialConv(nn.Module):
     """Partial Convolution implementation for efficient processing"""
     def __init__(self, c1, c2, kernel_size=3, stride=1, padding=None):
@@ -233,9 +234,6 @@ class C3K2_FE(nn.Module):
             x = x + shortcut
             
         return x
-    
-# Update Alissa GCB
-
 
 class Proto(nn.Module):
     """Ultralytics YOLO models mask Proto module for segmentation models."""

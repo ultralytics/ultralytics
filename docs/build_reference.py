@@ -132,7 +132,7 @@ def extract_document_paths(yaml_section):
 
 
 def update_mkdocs_file(reference_yaml: str) -> None:
-    """Updates the mkdocs.yaml file with the new reference section only if changes in document paths are detected."""
+    """Update the mkdocs.yaml file with the new reference section only if changes in document paths are detected."""
     mkdocs_content = MKDOCS_YAML.read_text()
 
     # Find the top-level Reference section

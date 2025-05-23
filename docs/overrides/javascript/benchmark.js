@@ -240,74 +240,60 @@ document$.subscribe(function () {
 // When "Download PNG" button is clicked
 document.getElementById("btn-download").addEventListener("click", () => {
   const canvas = document.getElementById("modelComparisonChart");
+  const { width, height } = canvas;
 
-  // Create a temporary canvas to apply background color before exporting
-  const tempCanvas = Object.assign(document.createElement("canvas"), {
-    width: canvas.width,
-    height: canvas.height,
-  });
-
+  // Create temp canvas with theme background and chart content
+  const tempCanvas = Object.assign(document.createElement("canvas"), { width, height });
   const ctx = tempCanvas.getContext("2d");
-  ctx.fillStyle = isDark ? "#121212" : "#ffffff"; // Match current theme
-  ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height); // Fill background
-  ctx.drawImage(canvas, 0, 0); // Draw the original chart onto it
+  ctx.fillStyle = isDark ? "#121212" : "#ffffff";
+  ctx.fillRect(0, 0, width, height);
+  ctx.drawImage(canvas, 0, 0);
 
-  // Create a download link and simulate click to start download
-  const link = Object.assign(document.createElement("a"), {
-    download: "chart.png",
-    href: tempCanvas.toDataURL("image/png"),
-  });
-  link.click();
+  // Trigger PNG download
+  Object.assign(document.createElement("a"), {download: "chart.png",href: tempCanvas.toDataURL("image/png")}).click();
 });
 
-/// When the "Download CSV" button is clicked
+// When the "Download CSV" button is clicked
 document.getElementById("btn-download-data").addEventListener("click", () => {
-  const csv = ["Model,Variant,mAP50-95,Speed (ms/img)"]; // Start the CSV content with the header row
+  const rows = ["Model,Variant,mAP50-95,Speed (ms/img)"];
 
-  // Loop through each dataset (model series) in the chart
+  // Append only visible datasets to CSV rows
   modelComparisonChart.data.datasets.forEach((ds, i) => {
     if (!modelComparisonChart.getDatasetMeta(i).hidden) {
-      ds.data.forEach((p) => {
-        csv.push(`${ds.label},${p.version},${p.y},${p.x}`);
-      });
+      ds.data.forEach(p => rows.push(`${ds.label},${p.version},${p.y},${p.x}`));
     }
   });
 
-  // Array of rows into a single string and automatically click the link to start the download
-  const blob = new Blob([csv.join("\n")], { type: "text/csv;charset=utf-8;" });
-  const link = Object.assign(document.createElement("a"), {
-    href: URL.createObjectURL(blob),
-    download: "model_benchmark_data.csv",
-  });
-  link.click();
+  // Trigger CSV download
+  Object.assign(document.createElement("a"), {
+    href: URL.createObjectURL(new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" })),
+    download: "model_benchmark_data.csv"
+  }).click();
 });
 
 // Toggle theme on button click
 let isDark = false;
 document.getElementById("btn-toggle-theme").addEventListener("click", () => {
-  isDark = !isDark; // Flip theme mode
-  fg = isDark ? "#ffffff" : "#333333"; // Text and grid label color
-  bg = isDark ? "#1e2129" : "#ffffff"; // Chart background
-  grid = isDark ? "#444444" : "#e0e0e0"; // Grid lines
-  tooltipText = "#ffffff"; // Tooltip text is always white
+  isDark = !isDark;
 
-  const opt = modelComparisonChart.options;
-  opt.scales.x.title.color = fg;
-  opt.scales.y.title.color = fg;
-  opt.scales.x.ticks.color = fg;
-  opt.scales.y.ticks.color = fg;
-  opt.scales.x.grid.color = grid;
-  opt.scales.y.grid.color = grid;
-  opt.plugins.legend.labels.color = fg;
-  opt.plugins.tooltip.backgroundColor = isDark ? "#333" : "rgba(0,0,0,0.8)";
-  opt.plugins.tooltip.titleColor = tooltipText;
-  opt.plugins.tooltip.bodyColor = tooltipText;
+  // Theme colors
+  const fg = isDark ? "#fff" : "#333", bg = isDark ? "#1e2129" : "#fff", grid = isDark ? "#444" : "#e0e0e0";
+  const tooltipBg = isDark ? "#333" : "rgba(0,0,0,0.8)", chart = modelComparisonChart.options;
 
-  document.getElementById("chart-container").style.background = bg; // Update page container background
-  document.getElementById("btn-toggle-theme").textContent = isDark
-    ? "🌞"
-    : "🌙"; // Update icon
-  modelComparisonChart.update(); // Refresh chart
+  // Apply updated theme to chart
+  Object.assign(chart.scales.x.title, { color: fg });
+  Object.assign(chart.scales.y.title, { color: fg });
+  Object.assign(chart.scales.x.ticks, { color: fg });
+  Object.assign(chart.scales.y.ticks, { color: fg });
+  Object.assign(chart.scales.x.grid, { color: grid });
+  Object.assign(chart.scales.y.grid, { color: grid });
+  Object.assign(chart.plugins.legend.labels, { color: fg });
+  Object.assign(chart.plugins.tooltip, {backgroundColor: tooltipBg, titleColor: "#fff", bodyColor: "#fff"});
+
+  document.getElementById("chart-container").style.background = bg;  // Apply background
+  document.getElementById("btn-toggle-theme").textContent = isDark ? "🌞" : "🌙";  // Apply icon
+
+  modelComparisonChart.update();
 });
 
 // Toggle between line and bar chart

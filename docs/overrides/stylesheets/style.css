@@ -222,34 +222,33 @@ div.highlight {
 
 /* Benchmark widget area styling ------------------------------------------------------------------------------------ */
 #chart-toolbar {
-  position: absolute;
   display: flex;
-  gap: 8px; /* gap between each widget button */
-  padding: 6px 8px; /* padding for complete widget x, y */
-  z-index: 10;
-  right: 0px;
-  top: -40px;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 6px 8px;
+  margin-bottom: 8px;
+  background: transparent;
 }
 
-body.dark #chart-toolbar {
-  /* Apply dark background only in dark mode */
-  background: #121212;
+.tooltip-btn {
+  position: relative; /* 👈 Key fix to anchor tooltip to each button */
 }
 
-.tooltip-btn::after {
-  content: attr(data-tooltip); /* Tooltip text from data-tooltip */
+.tooltip-btn[data-tooltip]::after {
+  content: attr(data-tooltip);
   position: absolute;
-  bottom: 100%; /* Position tooltip above the button */
+  bottom: 100%;
+  left: 50%;
   transform: translateX(-50%);
-  background-color: #333; /* Dark background */
-  color: #fff; /* White text */
+  background: #333;
+  color: #fff;
   padding: 4px 8px;
   font-size: 12px;
-  white-space: nowrap; /* Prevent wrapping */
   border-radius: 4px;
-  opacity: 0; /* Hidden by default */
-  pointer-events: none;
+  opacity: 0;
   transition: opacity 0.2s ease-in-out;
+  pointer-events: none;
+  white-space: nowrap;
   z-index: 9999;
 }
 

@@ -15,8 +15,7 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
     You may need to refresh the page to view the graphs correctly due to potential cookie issues.
 
 <script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script defer src="../../javascript/benchmark.js"></script>
-
+<script defer src="../../javascript/benchmark.js"></script> 
 <div id="chart-container" style="width: 100%; max-width: 1024px; position: relative;">
 <div id="chart-toolbar"> 
   <button id="btn-download" class="chart-btn tooltip-btn" data-tooltip="Download PNG">⬇️</button>
@@ -24,8 +23,9 @@ keywords: model benchmarking, YOLO11, Ultralytics, performance evaluation, expor
   <button id="btn-toggle-theme" class="chart-btn tooltip-btn" data-tooltip="Toggle Theme">🌙</button>
   <button id="btn-toggle-chart" class="chart-btn tooltip-btn" data-tooltip="Switch to Bar Chart">📊</button>
 </div>
-  <canvas id="modelComparisonChart" width="1024" height="400" style="margin-top: 60px;"></canvas>
+  <canvas id="modelComparisonChart" width="1024" height="400" style="margin-top: 10px;"></canvas>
 </div>
+
 ## Introduction
 
 Once your model is trained and validated, the next logical step is to evaluate its performance in various real-world scenarios. Benchmark mode in Ultralytics YOLO11 serves this purpose by providing a robust framework for assessing the speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) of your model across a range of export formats.

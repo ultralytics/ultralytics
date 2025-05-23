@@ -33,13 +33,13 @@ class DropPath(nn.Module):
         >>> output = drop_path(x)
     """
 
-    def __init__(self, drop_prob=0.0, scale_by_keep=True):
+    def __init__(self, drop_prob: float = 0.0, scale_by_keep: bool = True):
         """Initialize DropPath module for stochastic depth regularization during training."""
         super().__init__()
         self.drop_prob = drop_prob
         self.scale_by_keep = scale_by_keep
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         """Applies stochastic depth to input tensor during training, with optional scaling."""
         if self.drop_prob == 0.0 or not self.training:
             return x
@@ -76,12 +76,12 @@ class MaskDownSampler(nn.Module):
 
     def __init__(
         self,
-        embed_dim=256,
-        kernel_size=4,
-        stride=4,
-        padding=0,
-        total_stride=16,
-        activation=nn.GELU,
+        embed_dim: int = 256,
+        kernel_size: int = 4,
+        stride: int = 4,
+        padding: int = 0,
+        total_stride: int = 16,
+        activation: Type[nn.Module] = nn.GELU,
     ):
         """Initializes a mask downsampler module for progressive downsampling and channel expansion."""
         super().__init__()
@@ -106,7 +106,7 @@ class MaskDownSampler(nn.Module):
 
         self.encoder.append(nn.Conv2d(mask_out_chans, embed_dim, kernel_size=1))
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         """Downsamples and encodes input mask to embed_dim channels using convolutional layers and LayerNorm2d."""
         return self.encoder(x)
 
@@ -141,12 +141,12 @@ class CXBlock(nn.Module):
 
     def __init__(
         self,
-        dim,
-        kernel_size=7,
-        padding=3,
-        drop_path=0.0,
-        layer_scale_init_value=1e-6,
-        use_dwconv=True,
+        dim: int,
+        kernel_size: int = 7,
+        padding: int = 3,
+        drop_path: float = 0.0,
+        layer_scale_init_value: float = 1e-6,
+        use_dwconv: bool = True,
     ):
         """
         Initialize a ConvNeXt Block for efficient feature extraction in convolutional neural networks.
@@ -188,7 +188,7 @@ class CXBlock(nn.Module):
         )
         self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         """Applies ConvNeXt block operations to input tensor, including convolutions and residual connection."""
         input = x
         x = self.dwconv(x)
@@ -227,7 +227,7 @@ class Fuser(nn.Module):
         torch.Size([1, 256, 32, 32])
     """
 
-    def __init__(self, layer, num_layers, dim=None, input_projection=False):
+    def __init__(self, layer: nn.Module, num_layers: int, dim: Optional[int] = None, input_projection: bool = False):
         """
         Initializes the Fuser module for feature fusion through multiple layers.
 
@@ -253,7 +253,7 @@ class Fuser(nn.Module):
             assert dim is not None
             self.proj = nn.Conv2d(dim, dim, kernel_size=1)
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         """Applies a series of layers to the input tensor, optionally projecting it first."""
         x = self.proj(x)
         for layer in self.layers:
@@ -430,9 +430,9 @@ class RoPEAttention(Attention):
     def __init__(
         self,
         *args,
-        rope_theta=10000.0,
-        rope_k_repeat=False,
-        feat_sizes=(32, 32),  # [w, h] for stride 16 feats at 512 resolution
+        rope_theta: float = 10000.0,
+        rope_k_repeat: bool = False,
+        feat_sizes: Tuple[int, int] = (32, 32),  # [w, h] for stride 16 feats at 512 resolution
         **kwargs,
     ):
         """Initializes RoPEAttention with rotary position encoding for enhanced positional awareness."""
@@ -620,7 +620,7 @@ class MultiScaleBlock(nn.Module):
         drop_path: float = 0.0,
         norm_layer: Union[nn.Module, str] = "LayerNorm",
         q_stride: Tuple[int, int] = None,
-        act_layer: nn.Module = nn.GELU,
+        act_layer: Type[nn.Module] = nn.GELU,
         window_size: int = 0,
     ):
         """Initializes a multiscale attention block with window partitioning and optional query pooling."""
@@ -725,7 +725,7 @@ class PositionEmbeddingSine(nn.Module):
 
     def __init__(
         self,
-        num_pos_feats,
+        num_pos_feats: int,
         temperature: int = 10000,
         normalize: bool = True,
         scale: Optional[float] = None,
@@ -744,7 +744,7 @@ class PositionEmbeddingSine(nn.Module):
 
         self.cache = {}
 
-    def _encode_xy(self, x, y):
+    def _encode_xy(self, x: Tensor, y: Tensor) -> Tuple[Tensor, Tensor]:
         """Encodes 2D positions using sine/cosine functions for transformer positional embeddings."""
         assert len(x) == len(y) and x.ndim == y.ndim == 1
         x_embed = x * self.scale
@@ -760,7 +760,7 @@ class PositionEmbeddingSine(nn.Module):
         return pos_x, pos_y
 
     @torch.no_grad()
-    def encode_boxes(self, x, y, w, h):
+    def encode_boxes(self, x: Tensor, y: Tensor, w: Tensor, h: Tensor) -> Tensor:
         """Encodes box coordinates and dimensions into positional embeddings for detection."""
         pos_x, pos_y = self._encode_xy(x, y)
         return torch.cat((pos_y, pos_x, h[:, None], w[:, None]), dim=1)
@@ -768,7 +768,7 @@ class PositionEmbeddingSine(nn.Module):
     encode = encode_boxes  # Backwards compatibility
 
     @torch.no_grad()
-    def encode_points(self, x, y, labels):
+    def encode_points(self, x: Tensor, y: Tensor, labels: Tensor) -> Tensor:
         """Encodes 2D points with sinusoidal embeddings and appends labels."""
         (bx, nx), (by, ny), (bl, nl) = x.shape, y.shape, labels.shape
         assert bx == by and nx == ny and bx == bl and nx == nl
@@ -777,7 +777,7 @@ class PositionEmbeddingSine(nn.Module):
         return torch.cat((pos_y, pos_x, labels[:, :, None]), dim=2)
 
     @torch.no_grad()
-    def forward(self, x: torch.Tensor):
+    def forward(self, x: torch.Tensor) -> Tensor:
         """Generates sinusoidal position embeddings for 2D inputs like images."""
         cache_key = (x.shape[-2], x.shape[-1])
         if cache_key in self.cache:
@@ -976,34 +976,30 @@ class Block(nn.Module):
 
 class REAttention(nn.Module):
     """
-    Rotary Embedding Attention module for efficient self-attention in transformer architectures.
+    Relative Position Attention module for efficient self-attention in transformer architectures.
 
-    This class implements a multi-head attention mechanism with rotary positional embeddings, designed
+    This class implements a multi-head attention mechanism with relative positional embeddings, designed
     for use in vision transformer models. It supports optional query pooling and window partitioning
     for efficient processing of large inputs.
 
     Attributes:
-        compute_cis (Callable): Function to compute axial complex numbers for rotary encoding.
-        freqs_cis (Tensor): Precomputed frequency tensor for rotary encoding.
-        rope_k_repeat (bool): Flag to repeat query RoPE to match key length for cross-attention to memories.
-        q_proj (nn.Linear): Linear projection for query.
-        k_proj (nn.Linear): Linear projection for key.
-        v_proj (nn.Linear): Linear projection for value.
-        out_proj (nn.Linear): Output projection.
         num_heads (int): Number of attention heads.
-        internal_dim (int): Internal dimension for attention computation.
+        scale (float): Scaling factor for attention computation.
+        qkv (nn.Linear): Linear projection for query, key, and value.
+        proj (nn.Linear): Output projection layer.
+        use_rel_pos (bool): Whether to use relative positional embeddings.
+        rel_pos_h (nn.Parameter): Relative positional embeddings for height dimension.
+        rel_pos_w (nn.Parameter): Relative positional embeddings for width dimension.
 
     Methods:
-        forward: Applies rotary position encoding and computes attention between query, key, and value tensors.
+        forward: Applies multi-head attention with optional relative positional encoding to input tensor.
 
     Examples:
-        >>> rope_attn = REAttention(embedding_dim=256, num_heads=8, rope_theta=10000.0, feat_sizes=(32, 32))
-        >>> q = torch.randn(1, 1024, 256)
-        >>> k = torch.randn(1, 1024, 256)
-        >>> v = torch.randn(1, 1024, 256)
-        >>> output = rope_attn(q, k, v)
+        >>> attention = REAttention(dim=256, num_heads=8, input_size=(32, 32))
+        >>> x = torch.randn(1, 32, 32, 256)
+        >>> output = attention(x)
         >>> print(output.shape)
-        torch.Size([1, 1024, 256])
+        torch.Size([1, 32, 32, 256])
     """
 
     def __init__(

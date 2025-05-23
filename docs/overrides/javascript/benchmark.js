@@ -194,7 +194,11 @@ function updateChart(initialDatasets = []) {
           x: {
             type: "linear",
             position: "bottom",
-            title: { display: true, text: "Latency T4 TensorRT10 FP16 (ms/img)", color: "#808080" },
+            title: {
+              display: true,
+              text: "Latency T4 TensorRT10 FP16 (ms/img)",
+              color: "#808080",
+            },
             grid: { color: "#e0e0e0" },
             ticks: { color: "#808080" },
             min: 0,
@@ -238,7 +242,10 @@ document.getElementById("btn-download").addEventListener("click", () => {
   const canvas = document.getElementById("modelComparisonChart");
 
   // Create a temporary canvas to apply background color before exporting
-  const tempCanvas = Object.assign(document.createElement("canvas"), {width: canvas.width, height: canvas.height});
+  const tempCanvas = Object.assign(document.createElement("canvas"), {
+    width: canvas.width,
+    height: canvas.height,
+  });
 
   const ctx = tempCanvas.getContext("2d");
   ctx.fillStyle = isDark ? "#121212" : "#ffffff"; // Match current theme
@@ -248,19 +255,21 @@ document.getElementById("btn-download").addEventListener("click", () => {
   // Create a download link and simulate click to start download
   const link = Object.assign(document.createElement("a"), {
     download: "chart.png",
-    href: tempCanvas.toDataURL("image/png")
+    href: tempCanvas.toDataURL("image/png"),
   });
   link.click();
 });
 
 /// When the "Download CSV" button is clicked
 document.getElementById("btn-download-data").addEventListener("click", () => {
-  const csv = ["Model,Variant,mAP50-95,Speed (ms/img)"];  // Start the CSV content with the header row
+  const csv = ["Model,Variant,mAP50-95,Speed (ms/img)"]; // Start the CSV content with the header row
 
   // Loop through each dataset (model series) in the chart
   modelComparisonChart.data.datasets.forEach((ds, i) => {
     if (!modelComparisonChart.getDatasetMeta(i).hidden) {
-    ds.data.forEach(p => {csv.push(`${ds.label},${p.version},${p.y},${p.x}`);});
+      ds.data.forEach((p) => {
+        csv.push(`${ds.label},${p.version},${p.y},${p.x}`);
+      });
     }
   });
 
@@ -268,7 +277,7 @@ document.getElementById("btn-download-data").addEventListener("click", () => {
   const blob = new Blob([csv.join("\n")], { type: "text/csv;charset=utf-8;" });
   const link = Object.assign(document.createElement("a"), {
     href: URL.createObjectURL(blob),
-    download: "model_benchmark_data.csv"
+    download: "model_benchmark_data.csv",
   });
   link.click();
 });
@@ -276,11 +285,11 @@ document.getElementById("btn-download-data").addEventListener("click", () => {
 // Toggle theme on button click
 let isDark = false;
 document.getElementById("btn-toggle-theme").addEventListener("click", () => {
-  isDark = !isDark;              // Flip theme mode
-  fg = isDark ? "#ffffff" : "#333333";       // Text and grid label color
-  bg = isDark ? "#1e2129" : "#ffffff";       // Chart background
-  grid = isDark ? "#444444" : "#e0e0e0";     // Grid lines
-  tooltipText = "#ffffff";                   // Tooltip text is always white
+  isDark = !isDark; // Flip theme mode
+  fg = isDark ? "#ffffff" : "#333333"; // Text and grid label color
+  bg = isDark ? "#1e2129" : "#ffffff"; // Chart background
+  grid = isDark ? "#444444" : "#e0e0e0"; // Grid lines
+  tooltipText = "#ffffff"; // Tooltip text is always white
 
   const opt = modelComparisonChart.options;
   opt.scales.x.title.color = fg;
@@ -295,55 +304,57 @@ document.getElementById("btn-toggle-theme").addEventListener("click", () => {
   opt.plugins.tooltip.bodyColor = tooltipText;
 
   document.getElementById("chart-container").style.background = bg; // Update page container background
-  document.getElementById("btn-toggle-theme").textContent = isDark ? "🌞" : "🌙"; // Update icon
+  document.getElementById("btn-toggle-theme").textContent = isDark
+    ? "🌞"
+    : "🌙"; // Update icon
   modelComparisonChart.update(); // Refresh chart
 });
 
 // Toggle between line and bar chart
-let currentChartType = 'line';  // Tracks current chart mode
-let activeModels = [];  // Will store original active models for restore
+let currentChartType = "line"; // Tracks current chart mode
+let activeModels = []; // Will store original active models for restore
 
 // Chart toggle handler
 document.getElementById("btn-toggle-chart").addEventListener("click", () => {
   if (!modelComparisonChart) return;
 
-  const togglingToBar = currentChartType === 'line';  // Flip type
-  currentChartType = togglingToBar ? 'bar' : 'line';
+  const togglingToBar = currentChartType === "line"; // Flip type
+  currentChartType = togglingToBar ? "bar" : "line";
 
-  fg = isDark ? "#ffffff" : "#333333";       // Text and grid label color
-  bg = isDark ? "#1e2129" : "#ffffff";       // Chart background
-  grid = isDark ? "#444444" : "#e0e0e0";     // Grid lines
-  tooltipText = "#ffffff";                   // Tooltip text is always white
+  fg = isDark ? "#ffffff" : "#333333"; // Text and grid label color
+  bg = isDark ? "#1e2129" : "#ffffff"; // Chart background
+  grid = isDark ? "#444444" : "#e0e0e0"; // Grid lines
+  tooltipText = "#ffffff"; // Tooltip text is always white
 
   if (togglingToBar) {
     // Show only currently visible datasets in bar chart
     const barData = {
       datasets: modelComparisonChart.data.datasets
         .filter((ds, i) => !modelComparisonChart.getDatasetMeta(i).hidden)
-        .map(ds => ({
+        .map((ds) => ({
           label: ds.label,
-          data: ds.data.map(p => ({ x: p.x, y: p.y, version: p.version })),
+          data: ds.data.map((p) => ({ x: p.x, y: p.y, version: p.version })),
           backgroundColor: ds.borderColor,
           borderColor: ds.borderColor,
           borderWidth: 2,
-          barThickness: 10
-        }))
+          barThickness: 10,
+        })),
     };
 
     modelComparisonChart.destroy();
     modelComparisonChart = new Chart(
       document.getElementById("modelComparisonChart").getContext("2d"),
       {
-        type: 'bar',
+        type: "bar",
         data: barData,
         options: {
-          indexAxis: 'x',
+          indexAxis: "x",
           plugins: {
             legend: {
               display: true,
               position: "right",
               align: "start",
-              labels: { color: fg }
+              labels: { color: fg },
             },
             tooltip: {
               backgroundColor: isDark ? "#333" : "rgba(0,0,0,0.8)",
@@ -351,37 +362,42 @@ document.getElementById("btn-toggle-chart").addEventListener("click", () => {
               bodyColor: tooltipText,
               callbacks: {
                 label: ({ dataset, raw }) =>
-                  `${dataset.label}${raw.version.toLowerCase()}: Speed = ${raw.x}ms/img, mAP50-95 = ${raw.y}`
-              }
-            }
+                  `${dataset.label}${raw.version.toLowerCase()}: Speed = ${raw.x}ms/img, mAP50-95 = ${raw.y}`,
+              },
+            },
           },
           interaction: { mode: "nearest", axis: "x", intersect: false },
           scales: {
             x: {
-              type: 'linear',
-              title: { display: true, text: 'Latency T4 TensorRT10 FP16 (ms/img)', color: fg },
+              type: "linear",
+              title: {
+                display: true,
+                text: "Latency T4 TensorRT10 FP16 (ms/img)",
+                color: fg,
+              },
               grid: { color: grid },
               ticks: { color: fg },
               min: 0,
-              max: 18
+              max: 18,
             },
             y: {
-              title: { display: true, text: 'COCO mAP 50-95', color: fg },
+              title: { display: true, text: "COCO mAP 50-95", color: fg },
               grid: { color: grid },
               ticks: { color: fg },
               min: 36,
-              max: 56
-            }
-          }
-        }
-      }
+              max: 56,
+            },
+          },
+        },
+      },
     );
     document.getElementById("btn-toggle-chart").textContent = "🔄";
-    document.getElementById("btn-toggle-chart").removeAttribute("data-tooltip");  // prevents tooltip from showing
-  }
-  else {
+    document.getElementById("btn-toggle-chart").removeAttribute("data-tooltip"); // prevents tooltip from showing
+  } else {
     // Restore original line chart from config
-    const config = document.getElementById("modelComparisonChart").getAttribute("active-models");
+    const config = document
+      .getElementById("modelComparisonChart")
+      .getAttribute("active-models");
     activeModels = config ? JSON.parse(config) : [];
     initChart(activeModels);
     document.getElementById("btn-toggle-chart").textContent = "📊";

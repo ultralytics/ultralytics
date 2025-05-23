@@ -77,7 +77,7 @@ For more details about the export process, visit the [Ultralytics documentation 
         Check whether your Intel® chip is officially supported by OpenVINO™ using [Intel's compatibility list](https://docs.openvino.ai/2025/about-openvino/release-notes-openvino/system-requirements.html).
 
     2. Identify your accelerator
-        Determine if your processor includes an integrated NPU (Neural Processing Unit) or iGPU (integrated GPU) by consulting [Intel's hardware guide](https://www.intel.com/content/www/us/en/support/articles/000097597/processors.html).
+        Determine if your processor includes an integrated NPU (Neural Processing Unit) or GPU (integrated GPU) by consulting [Intel's hardware guide](https://www.intel.com/content/www/us/en/support/articles/000097597/processors.html).
 
     3. Install the correct drivers
         If your chip supports an NPU or GPU but OpenVINO™ isn't detecting it, you may need to install or update the associated drivers. Follow the [driver‑installation instructions](https://medium.com/openvino-toolkit/how-to-run-openvino-on-a-linux-ai-pc-52083ce14a98) to enable full acceleration.
@@ -160,17 +160,97 @@ Benchmarks below run on 12th Gen Intel® Core® i9-12900KS CPU at FP32 precision
 | YOLO11x | ONNX        | ✅     | 217.5     | 0.8308              | 205.75                 |
 | YOLO11x | OpenVINO    | ✅     | 217.8     | 0.8308              | 211.69                 |
 
-### Intel Ultra 7 155H Meteor Lake CPU
+### Intel® Core™ Ultra
 
-The Intel® Ultra™ 7 155H represents a new benchmark in high-performance computing, designed to cater to the most demanding users, from gamers to content creators. The Ultra™ 7 155H is not just a CPU; it integrates a powerful GPU and an advanced NPU (Neural Processing Unit) within a single chip, offering a comprehensive solution for diverse computing needs.
+The Intel® Core™ Ultra™ series represents a new benchmark in high-performance computing, engineered to meet the evolving demands of modern users—from gamers and creators to professionals leveraging AI. This next-generation lineup is more than a traditional CPU series; it combines powerful CPU cores, integrated high-performance GPU capabilities, and a dedicated Neural Processing Unit (NPU) within a single chip, offering a unified solution for diverse and intensive computing workloads.
 
-This hybrid architecture allows the Ultra™ 7 155H to excel in both traditional CPU tasks and GPU-accelerated workloads, while the NPU enhances AI-driven processes, enabling faster and more efficient [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) operations. This makes the Ultra™ 7 155H a versatile choice for applications requiring high-performance graphics, complex computations, and AI inference.
+At the heart of the Intel® Core Ultra™ architecture is a hybrid design that enables exceptional performance across traditional processing tasks, GPU-accelerated workloads, and AI-driven operations. The inclusion of the NPU enhances on-device AI inference, enabling faster, more efficient machine learning and data processing across a wide range of applications.
 
-The Ultra™ 7 series includes multiple models, each offering different levels of performance, with the 'H' designation indicating a high-power variant suitable for laptops and compact devices. Early benchmarks have highlighted the exceptional performance of the Ultra™ 7 155H, particularly in multitasking environments, where the combined power of the CPU, GPU, and NPU leads to remarkable efficiency and speed.
+The Core Ultra™ family includes various models tailored for different performance needs, with options ranging from energy-efficient designs to high-power variants marked by the "H" designation—ideal for laptops and compact form factors that demand serious computing power. Across the lineup, users benefit from the synergy of CPU, GPU, and NPU integration, delivering remarkable efficiency, responsiveness, and multitasking capabilities.
 
-As part of Intel's commitment to cutting-edge technology, the Ultra™ 7 155H is designed to meet the needs of future computing, with more models expected to be released. The availability of the Ultra™ 7 155H varies by region, and it continues to receive praise for its integration of three powerful processing units in a single chip, setting new standards in computing performance.
+As part of Intel’s ongoing innovation, the Core Ultra™ series sets a new standard for future-ready computing. With multiple models available and more on the horizon, this series underscores Intel’s commitment to delivering cutting-edge solutions for the next generation of intelligent, AI-enhanced devices.
 
 Benchmarks below run on Intel® Ultra™ 7 155H at FP32 and INT8 precision.
+
+#### Intel® Core™ Ultra™ 7 258V
+
+!!! tip "Benchmarks"
+
+    === "Integrated Intel® Arc™ GPU"
+
+        | Model   | Format   | Precision | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
+        | ------- | -------- | --------- | ------ | --------- | ------------------- | ---------------------- |
+        | YOLO11n | PyTorch  | FP32      | ✅     | 5.4       | 0.6316              | 39.52                  |
+        | YOLO11n | OpenVINO | FP32      | ✅     | 10.4      | 0.6112              | 19.59                  |
+        | YOLO11n | OpenVINO | INT8      | ✅     | 3.3       | 0.6219              | 14.43                  |
+        | YOLO11s | PyTorch  | FP32      | ✅     | 18.4      | 0.7469              | 104.09                 |
+        | YOLO11s | OpenVINO | FP32      | ✅     | 36.4      | 0.7414              | 16.274                 |
+        | YOLO11s | OpenVINO | INT8      | ✅     | 9.8       | 0.7086              | 19.436                 |
+        | YOLO11m | PyTorch  | FP32      | ✅     | 38.8      | 0.7642              | 286.281                |
+        | YOLO11m | OpenVINO | FP32      | ✅     | 77.1      | 0.7642              | 18.69                  |
+        | YOLO11m | OpenVINO | INT8      | ✅     | 20.2      | 0.7445              | 21.74                  |
+        | YOLO11l | PyTorch  | FP32      | ✅     | 49.0      | 0.7401              | 352.25                 |
+        | YOLO11l | OpenVINO | FP32      | ✅     | 97.3      | 0.7264              | 31.90                  |
+        | YOLO11l | OpenVINO | INT8      | ✅     | 25.7      | 0.7376              | 25.64                  |
+        | YOLO11x | PyTorch  | FP32      | ✅     | 109.3     | 0.8467              | 731.15                 |
+        | YOLO11x | OpenVINO | FP32      | ✅     | 217.8     | 0.8308              | 45.12                  |
+        | YOLO11x | OpenVINO | INT8      | ✅     | 55.9      | 0.8156              | 32.57                  |
+
+        #TODO: Done till here
+        <div align="center">
+        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/intel-ultra-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
+        </div>
+
+    === "Intel® Meteor Lake CPU"
+
+        | Model   | Format   | Precision | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
+        | ------- | -------- | --------- | ------ | --------- | ------------------- | ---------------------- |
+        | YOLO11n | PyTorch  | FP32      | ✅     | 5.4       | 0.6316              | 39.52                  |
+        | YOLO11n | OpenVINO | FP32      | ✅     | 10.4      | 0.6082              | 30.21                  |
+        | YOLO11n | OpenVINO | INT8      | ✅     | 3.3       | 0.6256              | 17.98                  |
+        | YOLO11s | PyTorch  | FP32      | ✅     | 18.4      | 0.7469              | 104.09                 |
+        | YOLO11s | OpenVINO | FP32      | ✅     | 36.4      | 0.7400              | 81.09                  |
+        | YOLO11s | OpenVINO | INT8      | ✅     | 9.8       | 0.7488              | 41.04                  |
+        | YOLO11m | PyTorch  | FP32      | ✅     | 38.8      | 0.7642              | 286.28                 |
+        | YOLO11m | OpenVINO | FP32      | ✅     | 77.1      | 0.7642              | 204.31                 |
+        | YOLO11m | OpenVINO | INT8      | ✅     | 20.2      | 0.7504              | 109.51                 |
+        | YOLO11l | PyTorch  | FP32      | ✅     | 49.0      | 0.7401              | 352.25                 |
+        | YOLO11l | OpenVINO | FP32      | ✅     | 97.3      | 0.7249              | 319.97                 |
+        | YOLO11l | OpenVINO | INT8      | ✅     | 25.7      | 0.7318              | 136.44                 |
+        | YOLO11x | PyTorch  | FP32      | ✅     | 109.3     | 0.8467              | 731.15                 |
+        | YOLO11x | OpenVINO | FP32      | ✅     | 217.8     | 0.8308              | 742.98                 |
+        | YOLO11x | OpenVINO | INT8      | ✅     | 55.9      | 0.819               | 288.02                 |
+
+        <div align="center">
+        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/intel-ultra-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
+        </div>
+
+    === "Integrated Intel® AI Boost NPU"
+
+        | Model   | Format   | Precision | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
+        | ------- | -------- | --------- | ------ | --------- | ------------------- | ---------------------- |
+        | YOLO11n | PyTorch  | FP32      | ✅     | 5.4       | 0.6316              | 39.52                  |
+        | YOLO11n | OpenVINO | FP32      | ✅     | 10.4      | 0.6096              | 11.58                  |
+        | YOLO11n | OpenVINO | INT8      | ✅     | 3.3       | 0.6380              | 12.60                  |
+        | YOLO11s | PyTorch  | FP32      | ✅     | 18.4      | 0.7469              | 104.09                 |
+        | YOLO11s | OpenVINO | FP32      | ✅     | 36.4      | 0.7430              | 15.15                  |
+        | YOLO11s | OpenVINO | INT8      | ✅     | 9.8       | 0.744               | 21.22                  |
+        | YOLO11m | PyTorch  | FP32      | ✅     | 38.8      | 0.7642              | 286.28                 |
+        | YOLO11m | OpenVINO | FP32      | ✅     | 77.1      | 0.7642              | 32.92                  |
+        | YOLO11m | OpenVINO | INT8      | ✅     | 20.2      | 0.7445              | 21.74                  |
+        | YOLO11l | PyTorch  | FP32      | ✅     | 49.0      | 0.7401              | 352.25                 |
+        | YOLO11l | OpenVINO | FP32      | ✅     | 97.3      | 0.7264              | 43.15                  |
+        | YOLO11l | OpenVINO | INT8      | ✅     | 25.7      | 0.7313              | 42.27                  |
+        | YOLO11x | PyTorch  | FP32      | ✅     | 109.3     | 0.8467              | 731.15                 |
+        | YOLO11x | OpenVINO | FP32      | ✅     | 217.8     | 0.8308              | 74.33                  |
+        | YOLO11x | OpenVINO | INT8      | ✅     | 55.9      | 0.8211              | 59.41                  |
+
+        <div align="center">
+        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/intel-ultra-npu.avif" alt="Intel Core Ultra NPU benchmarks">
+        </div>
+
+
+#### Intel® Core™ Ultra™ 7 155H
 
 !!! tip "Benchmarks"
 

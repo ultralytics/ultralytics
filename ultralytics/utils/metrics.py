@@ -964,7 +964,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         return self.box.curves_results
 
     def summary(self, **kwargs):
-        """Returns per-class detection metrics with shared scalar values included."""
+        """Return per-class detection metrics with shared scalar values included."""
         scalars = {
             "box-map": self.box.map,
             "box-map50": self.box.map50,
@@ -987,7 +987,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
 
 class SegmentMetrics(SimpleClass, DataExportMixin):
     """
-    Calculates and aggregates detection and segmentation metrics over a given set of classes.
+    Calculate and aggregate detection and segmentation metrics over a given set of classes.
 
     Attributes:
         save_dir (Path): Path to the directory where the output plots should be saved.
@@ -1121,7 +1121,7 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
         return self.box.curves_results + self.seg.curves_results
 
     def summary(self, **kwargs):
-        """Returns per-class segmentation metrics with shared scalar values included (box + mask)."""
+        """Return per-class segmentation metrics with shared scalar values included (box + mask)."""
         scalars = {
             "box-map": self.box.map,
             "box-map50": self.box.map50,
@@ -1146,7 +1146,7 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
 
 class PoseMetrics(SegmentMetrics):
     """
-    Calculates and aggregates detection and pose metrics over a given set of classes.
+    Calculate and aggregate detection and pose metrics over a given set of classes.
 
     Attributes:
         save_dir (Path): Path to the directory where the output plots should be saved.
@@ -1158,13 +1158,13 @@ class PoseMetrics(SegmentMetrics):
         task (str): The task type, set to 'pose'.
 
     Methods:
-        process(tp_m, tp_b, conf, pred_cls, target_cls): Processes metrics over the given set of predictions.
-        mean_results(): Returns the mean of the detection and segmentation metrics over all the classes.
-        class_result(i): Returns the detection and segmentation metrics of class `i`.
-        maps: Returns the mean Average Precision (mAP) scores for IoU thresholds ranging from 0.50 to 0.95.
-        fitness: Returns the fitness scores, which are a single weighted combination of metrics.
-        ap_class_index: Returns the list of indices of classes used to compute Average Precision (AP).
-        results_dict: Returns the dictionary containing all the detection and segmentation metrics and fitness score.
+        process(tp_m, tp_b, conf, pred_cls, target_cls): Process metrics over the given set of predictions.
+        mean_results(): Return the mean of the detection and segmentation metrics over all the classes.
+        class_result(i): Return the detection and segmentation metrics of class `i`.
+        maps: Return the mean Average Precision (mAP) scores for IoU thresholds ranging from 0.50 to 0.95.
+        fitness: Return the fitness scores, which are a single weighted combination of metrics.
+        ap_class_index: Return the list of indices of classes used to compute Average Precision (AP).
+        results_dict: Return the dictionary containing all the detection and segmentation metrics and fitness score.
     """
 
     def __init__(self, save_dir=Path("."), plot=False, names=()) -> None:
@@ -1276,7 +1276,7 @@ class PoseMetrics(SegmentMetrics):
         return self.box.curves_results + self.pose.curves_results
 
     def summary(self, **kwargs):
-        """Returns per-class pose metrics with shared scalar values included (box + pose)."""
+        """Return per-class pose metrics with shared scalar values included (box + pose)."""
         scalars = {
             "box-map": self.box.map,
             "box-map50": self.box.map50,
@@ -1356,7 +1356,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         return []
 
     def summary(self, **kwargs):
-        """Returns a single-row summary for classification metrics (top1/top5)."""
+        """Return a single-row summary for classification metrics (top1/top5)."""
         return [{"classify-top1": self.top1, "classify-top5": self.top5}]
 
 
@@ -1459,7 +1459,7 @@ class OBBMetrics(SimpleClass, DataExportMixin):
         return []
 
     def summary(self, **kwargs):
-        """Returns per-class detection metrics with shared scalar values included."""
+        """Return per-class detection metrics with shared scalar values included."""
         scalars = {
             "box-map": self.box.map,
             "box-map50": self.box.map50,

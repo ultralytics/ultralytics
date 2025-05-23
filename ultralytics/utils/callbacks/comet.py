@@ -123,7 +123,7 @@ def _fetch_trainer_metadata(trainer) -> dict:
     Return metadata for YOLO training including epoch and asset saving status.
 
     Args:
-        trainer: The YOLO trainer object containing training state and configuration.
+        trainer (ultralytics.engine.trainer.BaseTrainer): The YOLO trainer object containing training state and config.
 
     Returns:
         (dict): Dictionary containing current epoch, step, save assets flag, and final epoch flag.

@@ -49,7 +49,8 @@ def _log_tensorboard_graph(trainer) -> None:
     approach for models like RTDETR that may require special handling.
 
     Args:
-        trainer: The trainer object containing the model to visualize. Must have attributes model and args with imgsz.
+        trainer (ultralytics.engine.trainer.BaseTrainer): The trainer object containing the model to visualize.
+            Must have attributes model and args with imgsz.
 
     Notes:
         This function requires TensorBoard integration to be enabled and the global WRITER to be initialized.

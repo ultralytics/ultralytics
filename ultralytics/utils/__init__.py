@@ -139,7 +139,7 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
     A custom TQDM progress bar class that extends the original tqdm functionality.
 
     This class modifies the behavior of the original tqdm progress bar based on global settings and provides
-    additional customization options.
+    additional customization options for Ultralytics projects.
 
     Attributes:
         disable (bool): Whether to disable the progress bar. Determined by the global VERBOSE setting and
@@ -148,7 +148,8 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
             explicitly set.
 
     Methods:
-        __init__: Initializes the TQDM object with custom settings.
+        __init__: Initialize the TQDM object with custom settings.
+        __iter__: Return self as iterator to satisfy Iterable interface.
 
     Examples:
         >>> from ultralytics.utils import TQDM
@@ -159,7 +160,7 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
 
     def __init__(self, *args, **kwargs):
         """
-        Initializes a custom TQDM progress bar.
+        Initialize a custom TQDM progress bar.
 
         This class extends the original tqdm class to provide customized behavior for Ultralytics projects.
 
@@ -192,17 +193,17 @@ class DataExportMixin:
     Mixin class for exporting validation metrics or prediction results in various formats.
 
     This class provides utilities to export performance metrics (e.g., mAP, precision, recall) or prediction results
-    from classification, object detection, segmentation, or pose estimation tasks into various formats, Pandas DataFrame
-    CSV, XML, HTML, JSON and SQLite (SQL)
+    from classification, object detection, segmentation, or pose estimation tasks into various formats: Pandas
+    DataFrame, CSV, XML, HTML, JSON and SQLite (SQL).
 
     Methods:
-        to_df(): Convert summary to a Pandas DataFrame.
-        to_csv(): Export results as a CSV string.
-        to_xml(): Export results as an XML string (requires `lxml`).
-        to_html(): Export results as an HTML table.
-        to_json(): Export results as a JSON string.
-        tojson(): Deprecated alias for `to_json()`.
-        to_sql(): Export results to an SQLite database.
+        to_df: Convert summary to a Pandas DataFrame.
+        to_csv: Export results as a CSV string.
+        to_xml: Export results as an XML string (requires `lxml`).
+        to_html: Export results as an HTML table.
+        to_json: Export results as a JSON string.
+        tojson: Deprecated alias for `to_json()`.
+        to_sql: Export results to an SQLite database.
 
     Examples:
         >>> model = YOLO("yolov8n.pt")
@@ -348,9 +349,9 @@ class SimpleClass:
     showing all their non-callable attributes. It's useful for debugging and introspection of object states.
 
     Methods:
-        __str__: Returns a human-readable string representation of the object.
-        __repr__: Returns a machine-readable string representation of the object.
-        __getattr__: Provides a custom attribute access error message with helpful information.
+        __str__: Return a human-readable string representation of the object.
+        __repr__: Return a machine-readable string representation of the object.
+        __getattr__: Provide a custom attribute access error message with helpful information.
 
     Examples:
         >>> class MyClass(SimpleClass):
@@ -389,7 +390,7 @@ class SimpleClass:
         return self.__str__()
 
     def __getattr__(self, attr):
-        """Custom attribute access error message with helpful information."""
+        """Provide a custom attribute access error message with helpful information."""
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
@@ -403,10 +404,10 @@ class IterableSimpleNamespace(SimpleNamespace):
     configuration parameters.
 
     Methods:
-        __iter__: Returns an iterator of key-value pairs from the namespace's attributes.
-        __str__: Returns a human-readable string representation of the object.
-        __getattr__: Provides a custom attribute access error message with helpful information.
-        get: Retrieves the value of a specified key, or a default value if the key doesn't exist.
+        __iter__: Return an iterator of key-value pairs from the namespace's attributes.
+        __str__: Return a human-readable string representation of the object.
+        __getattr__: Provide a custom attribute access error message with helpful information.
+        get: Retrieve the value of a specified key, or a default value if the key doesn't exist.
 
     Examples:
         >>> cfg = IterableSimpleNamespace(a=1, b=2, c=3)
@@ -438,7 +439,7 @@ class IterableSimpleNamespace(SimpleNamespace):
         return "\n".join(f"{k}={v}" for k, v in vars(self).items())
 
     def __getattr__(self, attr):
-        """Custom attribute access error message with helpful information."""
+        """Provide a custom attribute access error message with helpful information."""
         name = self.__class__.__name__
         raise AttributeError(
             f"""
@@ -484,7 +485,7 @@ def plt_settings(rcparams=None, backend="Agg"):
         """Decorator to apply temporary rc parameters and backend to a function."""
 
         def wrapper(*args, **kwargs):
-            """Sets rc parameters and backend, calls the original function, and restores the settings."""
+            """Set rc parameters and backend, call the original function, and restore the settings."""
             import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
 
             original_backend = plt.get_backend()
@@ -510,7 +511,7 @@ def plt_settings(rcparams=None, backend="Agg"):
 
 def set_logging(name="LOGGING_NAME", verbose=True):
     """
-    Sets up logging with UTF-8 encoding and configurable verbosity.
+    Set up logging with UTF-8 encoding and configurable verbosity.
 
     This function configures logging for the Ultralytics library, setting the appropriate logging level and
     formatter based on the verbosity flag and the current process rank. It handles special cases for Windows
@@ -618,7 +619,7 @@ class ThreadingLocked:
 
         @wraps(f)
         def decorated(*args, **kwargs):
-            """Applies thread-safety to the decorated function or method."""
+            """Apply thread-safety to the decorated function or method."""
             with self.lock:
                 return f(*args, **kwargs)
 
@@ -887,7 +888,7 @@ def is_online() -> bool:
 
 def is_pip_package(filepath: str = __name__) -> bool:
     """
-    Determines if the file at the given filepath is part of a pip package.
+    Determine if the file at the given filepath is part of a pip package.
 
     Args:
         filepath (str): The filepath to check.
@@ -939,7 +940,7 @@ def is_github_action_running() -> bool:
 
 def get_git_dir():
     """
-    Determines whether the current file is part of a git repository and if so, returns the repository root directory.
+    Determine whether the current file is part of a git repository and if so, return the repository root directory.
 
     Returns:
         (Path | None): Git root directory if found or None if not found.
@@ -961,7 +962,7 @@ def is_git_dir():
 
 def get_git_origin_url():
     """
-    Retrieves the origin URL of a git repository.
+    Retrieve the origin URL of a git repository.
 
     Returns:
         (str | None): The origin URL of the git repository or None if not git directory.
@@ -976,7 +977,7 @@ def get_git_origin_url():
 
 def get_git_branch():
     """
-    Returns the current git branch name. If not in a git repository, returns None.
+    Return the current git branch name. If not in a git repository, return None.
 
     Returns:
         (str | None): The current git branch name or None if not a git directory.
@@ -991,7 +992,7 @@ def get_git_branch():
 
 def get_default_args(func):
     """
-    Returns a dictionary of default arguments for a function.
+    Return a dictionary of default arguments for a function.
 
     Args:
         func (callable): The function to inspect.
@@ -1069,7 +1070,7 @@ SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"
 
 def colorstr(*input):
     r"""
-    Colors a string based on the provided color and style arguments. Utilizes ANSI escape codes.
+    Color a string based on the provided color and style arguments. Utilizes ANSI escape codes.
     See https://en.wikipedia.org/wiki/ANSI_escape_code for more details.
 
     This function can be called in two ways:
@@ -1122,7 +1123,7 @@ def colorstr(*input):
 
 def remove_colorstr(input_string):
     """
-    Removes ANSI escape codes from a string, effectively un-coloring it.
+    Remove ANSI escape codes from a string, effectively un-coloring it.
 
     Args:
         input_string (str): The string to remove color and style from.
@@ -1161,11 +1162,11 @@ class TryExcept(contextlib.ContextDecorator):
         self.verbose = verbose
 
     def __enter__(self):
-        """Executes when entering TryExcept context, initializes instance."""
+        """Execute when entering TryExcept context, initialize instance."""
         pass
 
     def __exit__(self, exc_type, value, traceback):
-        """Defines behavior when exiting a 'with' block, prints error message if necessary."""
+        """Define behavior when exiting a 'with' block, print error message if necessary."""
         if self.verbose and value:
             LOGGER.warning(f"{self.msg}{': ' if self.msg else ''}{value}")
         return True
@@ -1196,7 +1197,7 @@ class Retry(contextlib.ContextDecorator):
         """Decorator implementation for Retry with exponential backoff."""
 
         def wrapped_func(*args, **kwargs):
-            """Applies retries to the decorated function or method."""
+            """Apply retries to the decorated function or method."""
             self._attempts = 0
             while self._attempts < self.times:
                 try:
@@ -1213,7 +1214,7 @@ class Retry(contextlib.ContextDecorator):
 
 def threaded(func):
     """
-    Multi-threads a target function by default and returns the thread or function result.
+    Multi-thread a target function by default and return the thread or function result.
 
     This decorator provides flexible execution of the target function, either in a separate thread or synchronously.
     By default, the function runs in a thread, but this can be controlled via the 'threaded=False' keyword argument
@@ -1235,7 +1236,7 @@ def threaded(func):
     """
 
     def wrapper(*args, **kwargs):
-        """Multi-threads a given function based on 'threaded' kwarg and returns the thread or function result."""
+        """Multi-thread a given function based on 'threaded' kwarg and return the thread or function result."""
         if kwargs.pop("threaded", True):  # run in thread
             thread = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=True)
             thread.start()
@@ -1328,12 +1329,12 @@ class JSONDict(dict):
         lock (threading.Lock): A lock object to ensure thread-safe operations.
 
     Methods:
-        _load: Loads the data from the JSON file into the dictionary.
-        _save: Saves the current state of the dictionary to the JSON file.
-        __setitem__: Stores a key-value pair and persists it to disk.
-        __delitem__: Removes an item and updates the persistent storage.
-        update: Updates the dictionary and persists changes.
-        clear: Clears all entries and updates the persistent storage.
+        _load: Load the data from the JSON file into the dictionary.
+        _save: Save the current state of the dictionary to the JSON file.
+        __setitem__: Store a key-value pair and persist it to disk.
+        __delitem__: Remove an item and update the persistent storage.
+        update: Update the dictionary and persist changes.
+        clear: Clear all entries and update the persistent storage.
 
     Examples:
         >>> json_dict = JSONDict("data.json")
@@ -1423,9 +1424,9 @@ class SettingsManager(JSONDict):
         help_msg (str): A help message for users on how to view and update settings.
 
     Methods:
-        _validate_settings: Validates the current settings and resets if necessary.
-        update: Updates settings, validating keys and types.
-        reset: Resets the settings to default and saves them.
+        _validate_settings: Validate the current settings and reset if necessary.
+        update: Update settings, validating keys and types.
+        reset: Reset the settings to default and save them.
 
     Examples:
         Initialize and update settings:
@@ -1436,7 +1437,7 @@ class SettingsManager(JSONDict):
     """
 
     def __init__(self, file=SETTINGS_FILE, version="0.0.6"):
-        """Initializes the SettingsManager with default settings and loads user settings."""
+        """Initialize the SettingsManager with default settings and load user settings."""
         import hashlib
         import uuid
 
@@ -1505,11 +1506,11 @@ class SettingsManager(JSONDict):
             )
 
     def __setitem__(self, key, value):
-        """Updates one key: value pair."""
+        """Update one key: value pair."""
         self.update({key: value})
 
     def update(self, *args, **kwargs):
-        """Updates settings, validating keys and types."""
+        """Update settings, validating keys and types."""
         for arg in args:
             if isinstance(arg, dict):
                 kwargs.update(arg)
@@ -1524,7 +1525,7 @@ class SettingsManager(JSONDict):
         super().update(*args, **kwargs)
 
     def reset(self):
-        """Resets the settings to default and saves them."""
+        """Reset the settings to default and save them."""
         self.clear()
         self.update(self.defaults)
 

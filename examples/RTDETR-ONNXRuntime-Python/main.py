@@ -16,7 +16,7 @@ class RTDETR:
     """
     RT-DETR (Real-Time Detection Transformer) object detection model for ONNX inference and visualization.
 
-    This class implements the RT-DETR model for object detection tasks, supporting ONNX model inference and 
+    This class implements the RT-DETR model for object detection tasks, supporting ONNX model inference and
     visualization of detection results with bounding boxes and class labels.
 
     Attributes:
@@ -43,9 +43,9 @@ class RTDETR:
 
     Examples:
         Initialize RT-DETR detector and run inference
-        >>> detector = RTDETR('rtdetr-l.onnx', 'image.jpg', conf_thres=0.5)
+        >>> detector = RTDETR("rtdetr-l.onnx", "image.jpg", conf_thres=0.5)
         >>> output_image = detector.main()
-        >>> cv2.imshow('Detections', output_image)
+        >>> cv2.imshow("Detections", output_image)
     """
 
     def __init__(self, model_path: str, img_path: str, conf_thres: float = 0.5, iou_thres: float = 0.5):
@@ -114,7 +114,7 @@ class RTDETR:
         """
         Preprocess the input image for model inference.
 
-        Loads the image, converts color space from BGR to RGB, resizes to model input dimensions, and normalizes 
+        Loads the image, converts color space from BGR to RGB, resizes to model input dimensions, and normalizes
         pixel values to [0, 1] range.
 
         Returns:
@@ -148,7 +148,7 @@ class RTDETR:
         Convert bounding boxes from center format to corner format.
 
         Args:
-            boxes (np.ndarray): Array of shape (N, 4) where each row represents a bounding box in 
+            boxes (np.ndarray): Array of shape (N, 4) where each row represents a bounding box in
                 (center_x, center_y, width, height) format.
 
         Returns:
@@ -171,7 +171,7 @@ class RTDETR:
         """
         Postprocess model output to extract and visualize detections.
 
-        Applies confidence thresholding, converts bounding box format, scales coordinates to original image 
+        Applies confidence thresholding, converts bounding box format, scales coordinates to original image
         dimensions, and draws detection annotations.
 
         Args:

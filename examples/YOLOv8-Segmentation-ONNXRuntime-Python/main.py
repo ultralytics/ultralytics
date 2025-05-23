@@ -43,7 +43,7 @@ class YOLOv8Seg:
             onnx_model (str): Path to the ONNX model file.
             conf (float, optional): Confidence threshold for filtering detections.
             iou (float, optional): IoU threshold for non-maximum suppression.
-            imgsz (int | tuple, optional): Input image size of the model. Can be an integer for square input or a 
+            imgsz (int | tuple, optional): Input image size of the model. Can be an integer for square input or a
                 tuple for rectangular input.
         """
         self.session = ort.InferenceSession(
@@ -110,7 +110,7 @@ class YOLOv8Seg:
             new_shape (tuple): The target shape for resizing as (height, width).
 
         Returns:
-            (np.ndarray): Preprocessed image ready for model inference, with shape (1, 3, height, width) and 
+            (np.ndarray): Preprocessed image ready for model inference, with shape (1, 3, height, width) and
                 normalized to [0, 1].
         """
         img = self.letterbox(img, new_shape)
@@ -148,7 +148,7 @@ class YOLOv8Seg:
 
         Args:
             protos (torch.Tensor): Prototype masks with shape (mask_dim, mask_h, mask_w).
-            masks_in (torch.Tensor): Predicted mask coefficients with shape (N, mask_dim), where N is number of 
+            masks_in (torch.Tensor): Predicted mask coefficients with shape (N, mask_dim), where N is number of
                 detections.
             bboxes (torch.Tensor): Bounding boxes with shape (N, 4), where N is number of detections.
             shape (tuple): The size of the input image as (height, width).

@@ -77,44 +77,43 @@ class DFL(nn.Module):
 
 
 class PartialConv(nn.Module):
-    """Partial Convolution implementation for efficient processing"""
+    """Partial Convolution implementation for efficient processing."""
+
     def __init__(self, c1, c2, kernel_size=3, stride=1, padding=None):
         super().__init__()
         if padding is None:
             padding = kernel_size // 2
-        
+
         # Split channels for partial convolution
         self.split_ratio = 0.5
         self.partial_channels = int(c1 * self.split_ratio)
         self.remaining_channels = c1 - self.partial_channels
-        
+
         # Convolution only applied to partial channels
         self.partial_conv = nn.Conv2d(
-            self.partial_channels, c2, 
-            kernel_size=kernel_size, 
-            stride=stride, 
-            padding=padding, 
-            bias=False
+            self.partial_channels, c2, kernel_size=kernel_size, stride=stride, padding=padding, bias=False
         )
         self.bn = nn.BatchNorm2d(c2)
         self.act = nn.SiLU(inplace=True)  # Using SiLU like other YOLO components
-        
+
     def forward(self, x):
         # Split input into partial and remaining channels
-        x_partial = x[:, :self.partial_channels, :, :]
-        x_remaining = x[:, self.partial_channels:, :, :]
-        
+        x_partial = x[:, : self.partial_channels, :, :]
+        x_remaining = x[:, self.partial_channels :, :, :]
+
         # Apply convolution to partial channels
         out_partial = self.act(self.bn(self.partial_conv(x_partial)))
-        
+
         # Concatenate processed and unchanged channels
         if x_remaining.size(1) > 0:
             return torch.cat([out_partial, x_remaining], dim=1)
         else:
             return out_partial
 
+
 class FasterBlock(nn.Module):
-    """Enhanced block using partial convolutions for efficiency"""
+    """Enhanced block using partial convolutions for efficiency."""
+
     def __init__(self, c1, c2):
         super().__init__()
         self.pconv = PartialConv(c1, c2, kernel_size=3)
@@ -122,119 +121,119 @@ class FasterBlock(nn.Module):
         self.bn = nn.BatchNorm2d(c2)
         self.act = nn.SiLU(inplace=True)  # Changed from ReLU to SiLU for consistency
         self.conv1x1_2 = nn.Conv2d(c2, c2, kernel_size=1, bias=False)
-        
+
     def forward(self, x):
         # Apply partial convolution
         x = self.pconv(x)
-        
+
         # Apply 1x1 convolutions with activation
         identity = x
         x = self.act(self.bn(self.conv1x1_1(x)))
         x = self.conv1x1_2(x)
-        
+
         # Add residual connection if dimensions match
         if identity.shape == x.shape:
             x = x + identity
-            
+
         return x
 
+
 class ECAAttention(nn.Module):
-    """Efficient Channel Attention mechanism"""
+    """Efficient Channel Attention mechanism."""
+
     def __init__(self, channels, k_size=3):
         super().__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.conv = nn.Conv1d(1, 1, kernel_size=k_size, padding=k_size // 2, bias=False)
         self.sigmoid = nn.Sigmoid()
-        
+
     def forward(self, x):
         b, c, _, _ = x.size()
-        
+
         # Global average pooling
         y = self.avg_pool(x)  # [B, C, 1, 1]
-        
+
         # 1D convolution along channel dimension
         y = self.conv(y.squeeze(-1).transpose(-1, -2))  # [B, 1, C]
-        
+
         # Apply sigmoid and reshape
         y = self.sigmoid(y).transpose(-1, -2).unsqueeze(-1)  # [B, C, 1, 1]
-        
+
         # Apply attention weights
         return x * y.expand_as(x)
 
+
 class C3K2_FE(nn.Module):
-    """
-    Enhanced C3K2 block with FasterBlock and ECA attention
-    Compatible with YOLO framework parameter expectations
-    """
+    """Enhanced C3K2 block with FasterBlock and ECA attention Compatible with YOLO framework parameter expectations."""
+
     def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
         """
-        Initialize C3K2_FE block
-        
+        Initialize C3K2_FE block.
+
         Args:
             c1: Input channels
-            c2: Output channels  
+            c2: Output channels
             n: Number of repeated blocks (usually 1 for C3K2)
             shortcut: Whether to use shortcut connections
             g: Group parameter (for grouped convolutions, typically 1)
             e: Expansion ratio (typically 0.5)
         """
         super().__init__()
-        
+
         # Store parameters for compatibility
         self.c1 = c1
         self.c2 = c2
         self.n = n
         self.shortcut = shortcut and c1 == c2  # Only shortcut if input/output dims match
-        
+
         # Calculate intermediate channels based on expansion ratio
         c_hidden = int(c2 * e)  # Hidden dimension
-        
+
         # Initial convolution to adjust channels
         self.conv1 = Conv(c1, c_hidden, 1, 1)  # 1x1 conv to hidden dims
-        
+
         # Create sequence of FasterBlocks
-        self.faster_blocks = nn.ModuleList([
-            FasterBlock(c_hidden, c_hidden) for _ in range(max(1, n))
-        ])
-        
+        self.faster_blocks = nn.ModuleList([FasterBlock(c_hidden, c_hidden) for _ in range(max(1, n))])
+
         # Final convolution to output channels
         self.conv2 = Conv(c_hidden, c2, 1, 1)  # 1x1 conv to output dims
-        
+
         # ECA attention mechanism
         self.eca = ECAAttention(c2)
-        
+
         # Shortcut connection handling
         if self.shortcut and c1 != c2:
             self.shortcut_conv = Conv(c1, c2, 1, 1)
         else:
             self.shortcut_conv = None
-    
+
     def forward(self, x):
-        """Forward pass through C3K2_FE block"""
+        """Forward pass through C3K2_FE block."""
         # Store input for potential shortcut
         shortcut = x
-        
+
         # Initial channel adjustment
         x = self.conv1(x)
-        
+
         # Apply FasterBlocks sequentially
         for faster_block in self.faster_blocks:
             x = faster_block(x)
-        
+
         # Final channel adjustment
         x = self.conv2(x)
-        
+
         # Apply ECA attention
         x = self.eca(x)
-        
+
         # Add shortcut connection if enabled
         if self.shortcut:
             if self.shortcut_conv is not None:
                 shortcut = self.shortcut_conv(shortcut)
             x = x + shortcut
-            
+
         return x
 # ALISSA GCB YOLO11 MODIF
+
 
 class Proto(nn.Module):
     """Ultralytics YOLO models mask Proto module for segmentation models."""

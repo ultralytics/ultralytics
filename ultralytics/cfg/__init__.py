@@ -7,14 +7,12 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Dict, List, Union
 
-import cv2
-
+from ultralytics import __version__
 from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG,
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_PATH,
-    DEFAULT_SOL_DICT,
     IS_VSCODE,
     LOGGER,
     RANK,
@@ -23,14 +21,12 @@ from ultralytics.utils import (
     SETTINGS,
     SETTINGS_FILE,
     TESTS_RUNNING,
+    YAML,
     IterableSimpleNamespace,
-    __version__,
     checks,
     colorstr,
     deprecation_warn,
     vscode_msg,
-    yaml_load,
-    yaml_print,
 )
 
 # Define valid solutions
@@ -112,8 +108,8 @@ CLI_HELP_MSG = f"""
 
         yolo TASK MODE ARGS
 
-        Where   TASK (optional) is one of {TASKS}
-                MODE (required) is one of {MODES}
+        Where   TASK (optional) is one of {list(TASKS)}
+                MODE (required) is one of {list(MODES)}
                 ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
                     See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
 
@@ -181,6 +177,7 @@ CFG_FRACTION_KEYS = frozenset(
         "bgr",
         "mosaic",
         "mixup",
+        "cutmix",
         "copy_paste",
         "conf",
         "iou",
@@ -214,7 +211,6 @@ CFG_BOOL_KEYS = frozenset(
         "overlap_mask",
         "val",
         "save_json",
-        "save_hybrid",
         "half",
         "dnn",
         "plots",
@@ -271,7 +267,7 @@ def cfg2dict(cfg: Union[str, Path, Dict, SimpleNamespace]) -> Dict:
         - If cfg is already a dictionary, it's returned unchanged.
     """
     if isinstance(cfg, (str, Path)):
-        cfg = yaml_load(cfg)  # load dict
+        cfg = YAML.load(cfg)  # load dict
     elif isinstance(cfg, SimpleNamespace):
         cfg = vars(cfg)  # convert to dict
     return cfg
@@ -315,8 +311,8 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
         if k in cfg and isinstance(cfg[k], (int, float)):
             cfg[k] = str(cfg[k])
     if cfg.get("name") == "model":  # assign model to 'name' arg
-        cfg["name"] = str(cfg.get("model", "")).split(".")[0]
-        LOGGER.warning(f"WARNING ⚠️ 'name=model' automatically updated to 'name={cfg['name']}'.")
+        cfg["name"] = str(cfg.get("model", "")).partition(".")[0]
+        LOGGER.warning(f"'name=model' automatically updated to 'name={cfg['name']}'.")
 
     # Type and Value checks
     check_cfg(cfg)
@@ -437,22 +433,25 @@ def _handle_deprecation(custom: Dict) -> Dict:
         equivalents. It also handles value conversions where necessary, such as inverting boolean values for
         'hide_labels' and 'hide_conf'.
     """
-    for key in custom.copy().keys():
-        if key == "boxes":
-            deprecation_warn(key, "show_boxes")
-            custom["show_boxes"] = custom.pop("boxes")
-        if key == "hide_labels":
-            deprecation_warn(key, "show_labels")
-            custom["show_labels"] = custom.pop("hide_labels") == "False"
-        if key == "hide_conf":
-            deprecation_warn(key, "show_conf")
-            custom["show_conf"] = custom.pop("hide_conf") == "False"
-        if key == "line_thickness":
-            deprecation_warn(key, "line_width")
-            custom["line_width"] = custom.pop("line_thickness")
-        if key == "label_smoothing":
-            deprecation_warn(key)
-            custom.pop("label_smoothing")
+    deprecated_mappings = {
+        "boxes": ("show_boxes", lambda v: v),
+        "hide_labels": ("show_labels", lambda v: not bool(v)),
+        "hide_conf": ("show_conf", lambda v: not bool(v)),
+        "line_thickness": ("line_width", lambda v: v),
+    }
+    removed_keys = {"label_smoothing", "save_hybrid", "crop_fraction"}
+
+    for old_key, (new_key, transform) in deprecated_mappings.items():
+        if old_key not in custom:
+            continue
+        deprecation_warn(old_key, new_key)
+        custom[new_key] = transform(custom.pop(old_key))
+
+    for key in removed_keys:
+        if key not in custom:
+            continue
+        deprecation_warn(key)
+        custom.pop(key)
 
     return custom
 
@@ -568,9 +567,7 @@ def handle_yolo_hub(args: List[str]) -> None:
             or 'logout'. For 'login', an optional second argument can be the API key.
 
     Examples:
-        ```bash
-        yolo login YOUR_API_KEY
-        ```
+        $ yolo login YOUR_API_KEY
 
     Notes:
         - The function imports the 'hub' module from ultralytics to perform login and logout operations.
@@ -623,10 +620,10 @@ def handle_yolo_settings(args: List[str]) -> None:
                 check_dict_alignment(SETTINGS, new)
                 SETTINGS.update(new)
 
-        print(SETTINGS)  # print the current settings
+        LOGGER.info(SETTINGS)  # print the current settings
         LOGGER.info(f"💡 Learn more about Ultralytics Settings at {url}")
     except Exception as e:
-        LOGGER.warning(f"WARNING ⚠️ settings error: '{e}'. Please see {url} for help.")
+        LOGGER.warning(f"settings error: '{e}'. Please see {url} for help.")
 
 
 def handle_yolo_solutions(args: List[str]) -> None:
@@ -649,7 +646,6 @@ def handle_yolo_solutions(args: List[str]) -> None:
         >>> handle_yolo_solutions(["inference", "model=yolo11n.pt"])
 
     Notes:
-        - Default configurations are merged from DEFAULT_SOL_DICT and DEFAULT_CFG_DICT
         - Arguments can be provided in the format 'key=value' or as boolean flags
         - Available solutions are defined in SOLUTION_MAP with their respective classes and methods
         - If an invalid solution is provided, defaults to 'count' solution
@@ -661,13 +657,9 @@ def handle_yolo_solutions(args: List[str]) -> None:
         - The inference solution will be launched using the 'streamlit run' command.
         - The Streamlit app file is located in the Ultralytics package directory.
     """
-    full_args_dict = {
-        **DEFAULT_SOL_DICT,
-        **DEFAULT_CFG_DICT,
-        "blur_ratio": 0.5,
-        "vision_point": (20, 20),
-        "crop_dir": "cropped-detections",
-    }  # arguments dictionary
+    from ultralytics.solutions.config import SolutionConfig
+
+    full_args_dict = vars(SolutionConfig())  # arguments dictionary
     overrides = {}
 
     # check dictionary alignment
@@ -685,7 +677,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
     # Get solution name
     if not args:
-        LOGGER.warning("⚠️ No solution name provided. i.e `yolo solutions count`. Defaulting to 'count'.")
+        LOGGER.warning("No solution name provided. i.e `yolo solutions count`. Defaulting to 'count'.")
         args = ["count"]
     if args[0] == "help":
         LOGGER.info(SOLUTIONS_HELP_MSG)
@@ -713,6 +705,8 @@ def handle_yolo_solutions(args: List[str]) -> None:
             ]
         )
     else:
+        import cv2  # Only needed for cap and vw functionality
+
         from ultralytics import solutions
 
         solution = getattr(solutions, SOLUTION_MAP[solution_name])(is_cli=True, **overrides)  # class i.e ObjectCounter
@@ -738,7 +732,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
                 results = solution(frame, f_n := f_n + 1) if solution_name == "analytics" else solution(frame)
                 if solution_name != "crop":
                     vw.write(results.plot_im)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
+                if solution.CFG["show"] and cv2.waitKey(1) & 0xFF == ord("q"):
                     break
         finally:
             cap.release()
@@ -858,7 +852,7 @@ def entrypoint(debug: str = "") -> None:
         "checks": checks.collect_system_info,
         "version": lambda: LOGGER.info(__version__),
         "settings": lambda: handle_yolo_settings(args[1:]),
-        "cfg": lambda: yaml_print(DEFAULT_CFG_PATH),
+        "cfg": lambda: YAML.print(DEFAULT_CFG_PATH),
         "hub": lambda: handle_yolo_hub(args[1:]),
         "login": lambda: handle_yolo_hub(args),
         "logout": lambda: handle_yolo_hub(args),
@@ -875,17 +869,17 @@ def entrypoint(debug: str = "") -> None:
     overrides = {}  # basic overrides, i.e. imgsz=320
     for a in merge_equals_args(args):  # merge spaces around '=' sign
         if a.startswith("--"):
-            LOGGER.warning(f"WARNING ⚠️ argument '{a}' does not require leading dashes '--', updating to '{a[2:]}'.")
+            LOGGER.warning(f"argument '{a}' does not require leading dashes '--', updating to '{a[2:]}'.")
             a = a[2:]
         if a.endswith(","):
-            LOGGER.warning(f"WARNING ⚠️ argument '{a}' does not require trailing comma ',', updating to '{a[:-1]}'.")
+            LOGGER.warning(f"argument '{a}' does not require trailing comma ',', updating to '{a[:-1]}'.")
             a = a[:-1]
         if "=" in a:
             try:
                 k, v = parse_key_value_pair(a)
                 if k == "cfg" and v is not None:  # custom.yaml passed
                     LOGGER.info(f"Overriding {DEFAULT_CFG_PATH} with {v}")
-                    overrides = {k: val for k, val in yaml_load(checks.check_yaml(v)).items() if k != "cfg"}
+                    overrides = {k: val for k, val in YAML.load(checks.check_yaml(v)).items() if k != "cfg"}
                 else:
                     overrides[k] = v
             except (NameError, SyntaxError, ValueError, AssertionError) as e:
@@ -915,9 +909,9 @@ def entrypoint(debug: str = "") -> None:
     mode = overrides.get("mode")
     if mode is None:
         mode = DEFAULT_CFG.mode or "predict"
-        LOGGER.warning(f"WARNING ⚠️ 'mode' argument is missing. Valid modes are {MODES}. Using default 'mode={mode}'.")
+        LOGGER.warning(f"'mode' argument is missing. Valid modes are {list(MODES)}. Using default 'mode={mode}'.")
     elif mode not in MODES:
-        raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {MODES}.\n{CLI_HELP_MSG}")
+        raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {list(MODES)}.\n{CLI_HELP_MSG}")
 
     # Task
     task = overrides.pop("task", None)
@@ -925,11 +919,11 @@ def entrypoint(debug: str = "") -> None:
         if task not in TASKS:
             if task == "track":
                 LOGGER.warning(
-                    "WARNING ⚠️ invalid 'task=track', setting 'task=detect' and 'mode=track'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}."
+                    f"invalid 'task=track', setting 'task=detect' and 'mode=track'. Valid tasks are {list(TASKS)}.\n{CLI_HELP_MSG}."
                 )
                 task, mode = "detect", "track"
             else:
-                raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
+                raise ValueError(f"Invalid 'task={task}'. Valid tasks are {list(TASKS)}.\n{CLI_HELP_MSG}")
         if "model" not in overrides:
             overrides["model"] = TASK2MODEL[task]
 
@@ -937,7 +931,7 @@ def entrypoint(debug: str = "") -> None:
     model = overrides.pop("model", DEFAULT_CFG.model)
     if model is None:
         model = "yolo11n.pt"
-        LOGGER.warning(f"WARNING ⚠️ 'model' argument is missing. Using default 'model={model}'.")
+        LOGGER.warning(f"'model' argument is missing. Using default 'model={model}'.")
     overrides["model"] = model
     stem = Path(model).stem.lower()
     if "rtdetr" in stem:  # guess architecture
@@ -963,7 +957,7 @@ def entrypoint(debug: str = "") -> None:
     if task != model.task:
         if task:
             LOGGER.warning(
-                f"WARNING ⚠️ conflicting 'task={task}' passed with 'task={model.task}' model. "
+                f"conflicting 'task={task}' passed with 'task={model.task}' model. "
                 f"Ignoring 'task={task}' and updating to 'task={model.task}' to match model."
             )
         task = model.task
@@ -973,15 +967,15 @@ def entrypoint(debug: str = "") -> None:
         overrides["source"] = (
             "https://ultralytics.com/images/boats.jpg" if task == "obb" else DEFAULT_CFG.source or ASSETS
         )
-        LOGGER.warning(f"WARNING ⚠️ 'source' argument is missing. Using default 'source={overrides['source']}'.")
+        LOGGER.warning(f"'source' argument is missing. Using default 'source={overrides['source']}'.")
     elif mode in {"train", "val"}:
         if "data" not in overrides and "resume" not in overrides:
             overrides["data"] = DEFAULT_CFG.data or TASK2DATA.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
-            LOGGER.warning(f"WARNING ⚠️ 'data' argument is missing. Using default 'data={overrides['data']}'.")
+            LOGGER.warning(f"'data' argument is missing. Using default 'data={overrides['data']}'.")
     elif mode == "export":
         if "format" not in overrides:
             overrides["format"] = DEFAULT_CFG.format or "torchscript"
-            LOGGER.warning(f"WARNING ⚠️ 'format' argument is missing. Using default 'format={overrides['format']}'.")
+            LOGGER.warning(f"'format' argument is missing. Using default 'format={overrides['format']}'.")
 
     # Run command in python
     getattr(model, mode)(**overrides)  # default args from model

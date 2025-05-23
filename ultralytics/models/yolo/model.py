@@ -15,15 +15,31 @@ from ultralytics.nn.tasks import (
     YOLOEModel,
     YOLOESegModel,
 )
-from ultralytics.utils import ROOT, yaml_load
+from ultralytics.utils import ROOT, YAML
 
 
 class YOLO(Model):
     """YOLO (You Only Look Once) object detection model."""
 
     def __init__(self, model="yolo11n.pt", task=None, verbose=False):
-        """Initialize YOLO model, switching to YOLOWorld/YOLOE if model filename contains '-world'/'yoloe'."""
-        path = Path(model)
+        """
+        Initialize a YOLO model.
+
+        This constructor initializes a YOLO model, automatically switching to specialized model types
+        (YOLOWorld or YOLOE) based on the model filename.
+
+        Args:
+            model (str | Path): Model name or path to model file, i.e. 'yolo11n.pt', 'yolo11n.yaml'.
+            task (str | None): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'.
+                Defaults to auto-detection based on model.
+            verbose (bool): Display model info on load.
+
+        Examples:
+            >>> from ultralytics import YOLO
+            >>> model = YOLO("yolo11n.pt")  # load a pretrained YOLOv11n detection model
+            >>> model = YOLO("yolo11n-seg.pt")  # load a pretrained YOLO11n segmentation model
+        """
+        path = Path(model if isinstance(model, (str, Path)) else "")
         if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
             new_instance = YOLOWorld(path, verbose=verbose)
             self.__class__ = type(new_instance)
@@ -35,6 +51,12 @@ class YOLO(Model):
         else:
             # Continue with default YOLO initialization
             super().__init__(model=model, task=task, verbose=verbose)
+            if hasattr(self.model, "model") and "RTDETR" in self.model.model[-1]._get_name():  # if RTDETR head
+                from ultralytics import RTDETR
+
+                new_instance = RTDETR(self)
+                self.__class__ = type(new_instance)
+                self.__dict__ = new_instance.__dict__
 
     @property
     def task_map(self):
@@ -91,7 +113,7 @@ class YOLOWorld(Model):
 
         # Assign default COCO class names when there are no custom names
         if not hasattr(self.model, "names"):
-            self.model.names = yaml_load(ROOT / "cfg/datasets/coco8.yaml").get("names")
+            self.model.names = YAML.load(ROOT / "cfg/datasets/coco8.yaml").get("names")
 
     @property
     def task_map(self):
@@ -127,7 +149,7 @@ class YOLOWorld(Model):
 class YOLOE(Model):
     """YOLOE object detection and segmentation model."""
 
-    def __init__(self, model="yoloe-v8s-seg.pt", task=None, verbose=False) -> None:
+    def __init__(self, model="yoloe-11s-seg.pt", task=None, verbose=False) -> None:
         """
         Initialize YOLOE model with a pre-trained model file.
 
@@ -140,7 +162,7 @@ class YOLOE(Model):
 
         # Assign default COCO class names when there are no custom names
         if not hasattr(self.model, "names"):
-            self.model.names = yaml_load(ROOT / "cfg/datasets/coco8.yaml").get("names")
+            self.model.names = YAML.load(ROOT / "cfg/datasets/coco8.yaml").get("names")
 
     @property
     def task_map(self):
@@ -166,12 +188,46 @@ class YOLOE(Model):
         return self.model.get_text_pe(texts)
 
     def get_visual_pe(self, img, visual):
-        """Get visual positional embeddings for the given image and visual features."""
+        """
+        Get visual positional embeddings for the given image and visual features.
+
+        This method extracts positional embeddings from visual features based on the input image. It requires
+        that the model is an instance of YOLOEModel.
+
+        Args:
+            img (torch.Tensor): Input image tensor.
+            visual (torch.Tensor): Visual features extracted from the image.
+
+        Returns:
+            (torch.Tensor): Visual positional embeddings.
+
+        Examples:
+            >>> model = YOLOE("yoloe-11s-seg.pt")
+            >>> img = torch.rand(1, 3, 640, 640)
+            >>> visual_features = model.model.backbone(img)
+            >>> pe = model.get_visual_pe(img, visual_features)
+        """
         assert isinstance(self.model, YOLOEModel)
         return self.model.get_visual_pe(img, visual)
 
     def set_vocab(self, vocab, names):
-        """Set vocabulary and class names for the model."""
+        """
+        Set vocabulary and class names for the YOLOE model.
+
+        This method configures the vocabulary and class names used by the model for text processing and
+        classification tasks. The model must be an instance of YOLOEModel.
+
+        Args:
+            vocab (list): Vocabulary list containing tokens or words used by the model for text processing.
+            names (list): List of class names that the model can detect or classify.
+
+        Raises:
+            AssertionError: If the model is not an instance of YOLOEModel.
+
+        Examples:
+            >>> model = YOLOE("yoloe-11s-seg.pt")
+            >>> model.set_vocab(["person", "car", "dog"], ["person", "car", "dog"])
+        """
         assert isinstance(self.model, YOLOEModel)
         self.model.set_vocab(vocab, names=names)
 
@@ -253,7 +309,7 @@ class YOLOE(Model):
             (List | generator): List of Results objects or generator of Results objects if stream=True.
 
         Examples:
-            >>> model = YOLOE("yoloe-v8s-seg.pt")
+            >>> model = YOLOE("yoloe-11s-seg.pt")
             >>> results = model.predict("path/to/image.jpg")
             >>> # With visual prompts
             >>> prompts = {"bboxes": [[10, 20, 100, 200]], "cls": ["person"]}
@@ -281,7 +337,7 @@ class YOLOE(Model):
         if len(visual_prompts):
             num_cls = (
                 max(len(set(c)) for c in visual_prompts["cls"])
-                if isinstance(source, list)  # means multiple images
+                if isinstance(source, list) and refer_image is None  # means multiple images
                 else len(set(visual_prompts["cls"]))
             )
             self.model.model[-1].nc = num_cls
@@ -290,7 +346,7 @@ class YOLOE(Model):
 
         self.predictor.setup_model(model=self.model)
 
-        if refer_image is None:
+        if refer_image is None and source is not None:
             dataset = load_inference_source(source)
             if dataset.mode in {"video", "stream"}:
                 # NOTE: set the first frame as refer image for videos/streams inference

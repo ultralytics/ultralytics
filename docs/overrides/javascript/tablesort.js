@@ -6,7 +6,9 @@
 
   function r(t) {
     t = t.match(filesizeRegex);
-    if (!t) return 0;
+    if (!t) {
+      return 0;
+    }
 
     const value = parseFloat(t[1].replace(/[^\-?0-9.]/g, ""));
     const unit = t[3].toLowerCase();

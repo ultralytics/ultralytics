@@ -10,7 +10,6 @@ import cv2
 import numpy as np
 import pytest
 import torch
-import yaml
 from PIL import Image
 
 from tests import CFG, MODEL, SOURCE, SOURCES_LIST, TMP
@@ -18,14 +17,17 @@ from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import MODELS, TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import (
+    ARM64,
     ASSETS,
     DEFAULT_CFG,
     DEFAULT_CFG_PATH,
+    LINUX,
     LOGGER,
     ONLINE,
     ROOT,
     WEIGHTS_DIR,
     WINDOWS,
+    YAML,
     checks,
     is_dir_writeable,
     is_github_action_running,
@@ -126,7 +128,7 @@ def test_predict_img(model_name):
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, 3), dtype=np.uint8),  # numpy
     ]
-    assert len(model(batch, imgsz=32)) == len(batch)  # multiple sources in a batch
+    assert len(model(batch, imgsz=32, classes=0)) == len(batch)  # multiple sources in a batch
 
 
 @pytest.mark.parametrize("model", MODELS)
@@ -170,7 +172,7 @@ def test_youtube():
         model.predict("https://youtu.be/G17sBkb38XQ", imgsz=96, save=True)
     # Handle internet connection errors and 'urllib.error.HTTPError: HTTP Error 429: Too Many Requests'
     except (urllib.error.HTTPError, ConnectionError) as e:
-        LOGGER.warning(f"WARNING: YouTube Test Error: {e}")
+        LOGGER.error(f"YouTube Test Error: {e}")
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
@@ -186,20 +188,23 @@ def test_track_stream():
     model.track(video_url, imgsz=160, tracker="bytetrack.yaml")
     model.track(video_url, imgsz=160, tracker="botsort.yaml", save_frames=True)  # test frame saving also
 
-    # Test Global Motion Compensation (GMC) methods
-    for gmc in "orb", "sift", "ecc":
-        with open(ROOT / "cfg/trackers/botsort.yaml", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-        tracker = TMP / f"botsort-{gmc}.yaml"
-        data["gmc_method"] = gmc
-        with open(tracker, "w", encoding="utf-8") as f:
-            yaml.safe_dump(data, f)
-        model.track(video_url, imgsz=160, tracker=tracker)
+    # Test Global Motion Compensation (GMC) methods and ReID
+    for gmc, reidm in zip(["orb", "sift", "ecc"], ["auto", "auto", "yolo11n-cls.pt"]):
+        default_args = YAML.load(ROOT / "cfg/trackers/botsort.yaml")
+        custom_yaml = TMP / f"botsort-{gmc}.yaml"
+        YAML.save(custom_yaml, {**default_args, "gmc_method": gmc, "with_reid": True, "model": reidm})
+        model.track(video_url, imgsz=160, tracker=custom_yaml)
 
 
 def test_val():
     """Test the validation mode of the YOLO model."""
-    YOLO(MODEL).val(data="coco8.yaml", imgsz=32, save_hybrid=True)
+    metrics = YOLO(MODEL).val(data="coco8.yaml", imgsz=32)
+    metrics.to_df()
+    metrics.to_csv()
+    metrics.to_xml()
+    metrics.to_html()
+    metrics.to_json()
+    metrics.to_sql()
 
 
 def test_train_scratch():
@@ -265,18 +270,21 @@ def test_predict_callback_and_setup():
 @pytest.mark.parametrize("model", MODELS)
 def test_results(model):
     """Test YOLO model results processing and output in various formats."""
-    results = YOLO(WEIGHTS_DIR / model)([SOURCE, SOURCE], imgsz=160)
+    temp_s = "https://ultralytics.com/images/boats.jpg" if model == "yolo11n-obb.pt" else SOURCE
+    results = YOLO(WEIGHTS_DIR / model)([temp_s, temp_s], imgsz=160)
     for r in results:
         r = r.cpu().numpy()
         print(r, len(r), r.path)  # print numpy attributes
         r = r.to(device="cpu", dtype=torch.float32)
         r.save_txt(txt_file=TMP / "runs/tests/label.txt", save_conf=True)
         r.save_crop(save_dir=TMP / "runs/tests/crops/")
-        r.to_json(normalize=True)
-        r.to_df(decimals=3)
+        r.to_df(decimals=3)  # Align to_ methods: https://docs.ultralytics.com/modes/predict/#working-with-results
         r.to_csv()
         r.to_xml()
-        r.plot(pil=True)
+        r.to_html()
+        r.to_json(normalize=True)
+        r.to_sql()
+        r.plot(pil=True, save=True, filename=TMP / "results_plot_save.jpg")
         r.plot(conf=True, boxes=True)
         print(r, len(r), r.path)  # print after methods
 
@@ -308,7 +316,8 @@ def test_labels_and_crops():
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_data_utils():
     """Test utility functions in ultralytics/data/utils.py, including dataset stats and auto-splitting."""
-    from ultralytics.data.utils import HUBDatasetStats, autosplit
+    from ultralytics.data.split import autosplit
+    from ultralytics.data.utils import HUBDatasetStats
     from ultralytics.utils.downloads import zip_directory
 
     # from ultralytics.utils.files import WorkingDirectory
@@ -396,18 +405,18 @@ def test_utils_benchmarks():
     """Benchmark model performance using 'ProfileModels' from 'ultralytics.utils.benchmarks'."""
     from ultralytics.utils.benchmarks import ProfileModels
 
-    ProfileModels(["yolo11n.yaml"], imgsz=32, min_time=1, num_timed_runs=3, num_warmup_runs=1).profile()
+    ProfileModels(["yolo11n.yaml"], imgsz=32, min_time=1, num_timed_runs=3, num_warmup_runs=1).run()
 
 
 def test_utils_torchutils():
     """Test Torch utility functions including profiling and FLOP calculations."""
     from ultralytics.nn.modules.conv import Conv
-    from ultralytics.utils.torch_utils import get_flops_with_torch_profiler, profile, time_sync
+    from ultralytics.utils.torch_utils import get_flops_with_torch_profiler, profile_ops, time_sync
 
     x = torch.randn(1, 64, 20, 20)
     m = Conv(64, 64, k=1, s=2)
 
-    profile(x, [m], n=3)
+    profile_ops(x, [m], n=3)
     get_flops_with_torch_profiler(m)
     time_sync()
 
@@ -577,6 +586,10 @@ def test_model_embeddings():
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOWorld with CLIP is not supported in Python 3.12")
+@pytest.mark.skipif(
+    checks.IS_PYTHON_3_8 and LINUX and ARM64,
+    reason="YOLOWorld with CLIP is not supported in Python 3.8 and aarch64 Linux",
+)
 def test_yolo_world():
     """Test YOLO world models with CLIP support."""
     model = YOLO(WEIGHTS_DIR / "yolov8s-world.pt")  # no YOLO11n-world model yet
@@ -609,6 +622,10 @@ def test_yolo_world():
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12 or not TORCH_1_9, reason="YOLOE with CLIP is not supported in Python 3.12")
+@pytest.mark.skipif(
+    checks.IS_PYTHON_3_8 and LINUX and ARM64,
+    reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux",
+)
 def test_yoloe():
     """Test YOLOE models with MobileClip support."""
     # Predict
@@ -672,3 +689,13 @@ def test_yolov10():
     model.val(data="coco8.yaml", imgsz=32)
     model.predict(imgsz=32, save_txt=True, save_crop=True, augment=True)
     model(SOURCE)
+
+
+def test_multichannel():
+    """Test YOLO model multi-channel training, validation, and prediction functionality."""
+    model = YOLO("yolo11n.pt")
+    model.train(data="coco8-multispectral.yaml", epochs=1, imgsz=32, close_mosaic=1, cache="disk")
+    model.val(data="coco8-multispectral.yaml")
+    im = np.zeros((32, 32, 10), dtype=np.uint8)
+    model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)
+    model.export(format="onnx")

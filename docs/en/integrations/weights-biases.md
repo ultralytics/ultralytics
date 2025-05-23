@@ -4,7 +4,7 @@ description: Learn how to enhance YOLO11 experiment tracking and visualization w
 keywords: YOLO11, Weights & Biases, model training, experiment tracking, Ultralytics, machine learning, computer vision, model visualization
 ---
 
-# Enhancing YOLO11 Experiment Tracking and Visualization with Weights & Biases
+# YOLO Experiment Tracking and Visualization with Weights & Biases
 
 [Object detection](https://www.ultralytics.com/glossary/object-detection) models like [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) have become integral to many [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications. However, training, evaluating, and deploying these complex models introduce several challenges. Tracking key training metrics, comparing model variants, analyzing model behavior, and detecting issues require significant instrumentation and experiment management.
 
@@ -151,7 +151,7 @@ After running the usage code snippet, you can access the Weights & Biases (W&B) 
 
 - **Model Artifacts Management**: Access and share model checkpoints, facilitating easy deployment and collaboration with team members on complex projects.
 
-- **Viewing Inference Results with Image Overlay**: Visualize the prediction results on images using interactive overlays in Weights & Biases, providing a clear and detailed view of model performance on real-world data. For more detailed information on Weights & Biases' image overlay capabilities, check out this [link](https://docs.wandb.ai/guides/track/log/media/#image-overlays). [See how Weights & Biases' image overlays helps visualize model inferences](https://imgur.com/a/UTSiufs).
+- **Viewing Inference Results with Image Overlay**: Visualize the prediction results on images using interactive overlays in Weights & Biases, providing a clear and detailed view of model performance on real-world data. For more detailed information see Weights & Biases' [image overlay capabilities](https://docs.wandb.ai/guides/track/log/media/#image-overlays).
 
 By using these features, you can effectively track, analyze, and optimize your YOLO11 model's training, ensuring the best possible performance and efficiency for your [object detection](https://www.ultralytics.com/glossary/object-detection) tasks.
 

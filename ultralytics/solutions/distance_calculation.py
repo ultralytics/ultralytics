@@ -95,8 +95,8 @@ class DistanceCalculation(BaseSolution):
 
         pixels_distance = 0
         # Iterate over bounding boxes, track ids and classes index
-        for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
-            annotator.box_label(box, color=colors(int(cls), True), label=self.names[int(cls)])
+        for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
+            annotator.box_label(box, color=colors(int(cls), True), label=self.adjust_box_label(cls, conf, track_id))
 
             # Update selected boxes if they're being tracked
             if len(self.selected_boxes) == 2:
@@ -118,7 +118,8 @@ class DistanceCalculation(BaseSolution):
         self.centroids = []  # Reset centroids for next frame
         plot_im = annotator.result()
         self.display_output(plot_im)  # Display output with base class function
-        cv2.setMouseCallback("Ultralytics Solutions", self.mouse_event_for_distance)
+        if self.CFG.get("show") and self.env_check:
+            cv2.setMouseCallback("Ultralytics Solutions", self.mouse_event_for_distance)
 
         # Return SolutionResults with processed image and calculated metrics
         return SolutionResults(plot_im=plot_im, pixels_distance=pixels_distance, total_tracks=len(self.track_ids))

@@ -187,13 +187,12 @@ def check_source(source):
         source (str | int | Path | List | Tuple | np.ndarray | PIL.Image | torch.Tensor): The input source to check.
 
     Returns:
-        (tuple): A tuple containing:
-            - source: The processed source.
-            - webcam (bool): Whether the source is a webcam.
-            - screenshot (bool): Whether the source is a screenshot.
-            - from_img (bool): Whether the source is an image or list of images.
-            - in_memory (bool): Whether the source is an in-memory object.
-            - tensor (bool): Whether the source is a torch.Tensor.
+        source (str | int | Path | List | Tuple | np.ndarray | PIL.Image | torch.Tensor): The processed source.
+        webcam (bool): Whether the source is a webcam.
+        screenshot (bool): Whether the source is a screenshot.
+        from_img (bool): Whether the source is an image or list of images.
+        in_memory (bool): Whether the source is an in-memory object.
+        tensor (bool): Whether the source is a torch.Tensor.
 
     Raises:
         TypeError: If the source type is unsupported.
@@ -201,10 +200,11 @@ def check_source(source):
     webcam, screenshot, from_img, in_memory, tensor = False, False, False, False, False
     if isinstance(source, (str, int, Path)):  # int for local usb camera
         source = str(source)
-        is_file = Path(source).suffix[1:] in (IMG_FORMATS | VID_FORMATS)
-        is_url = source.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://"))
+        source_lower = source.lower()
+        is_file = source_lower.rpartition(".")[-1] in (IMG_FORMATS | VID_FORMATS)
+        is_url = source_lower.startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://"))
         webcam = source.isnumeric() or source.endswith(".streams") or (is_url and not is_file)
-        screenshot = source.lower() == "screen"
+        screenshot = source_lower == "screen"
         if is_url and is_file:
             source = check_file(source)  # download
     elif isinstance(source, LOADERS):
@@ -222,7 +222,7 @@ def check_source(source):
     return source, webcam, screenshot, from_img, in_memory, tensor
 
 
-def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False):
+def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False, channels=3):
     """
     Load an inference source for object detection and apply necessary transformations.
 
@@ -231,6 +231,7 @@ def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False):
         batch (int, optional): Batch size for dataloaders.
         vid_stride (int, optional): The frame interval for video sources.
         buffer (bool, optional): Whether stream frames will be buffered.
+        channels (int): The number of input channels for the model.
 
     Returns:
         (Dataset): A dataset object for the specified input source with attached source_type attribute.
@@ -244,13 +245,13 @@ def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False):
     elif in_memory:
         dataset = source
     elif stream:
-        dataset = LoadStreams(source, vid_stride=vid_stride, buffer=buffer)
+        dataset = LoadStreams(source, vid_stride=vid_stride, buffer=buffer, channels=channels)
     elif screenshot:
-        dataset = LoadScreenshots(source)
+        dataset = LoadScreenshots(source, channels=channels)
     elif from_img:
-        dataset = LoadPilAndNumpy(source)
+        dataset = LoadPilAndNumpy(source, channels=channels)
     else:
-        dataset = LoadImagesAndVideos(source, batch=batch, vid_stride=vid_stride)
+        dataset = LoadImagesAndVideos(source, batch=batch, vid_stride=vid_stride, channels=channels)
 
     # Attach source types to the dataset
     setattr(dataset, "source_type", source_type)

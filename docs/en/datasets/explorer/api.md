@@ -256,7 +256,7 @@ When using large datasets, you can also create a dedicated vector index for fast
 table.create_index(num_partitions=..., num_sub_vectors=...)
 ```
 
-Find more details on the type vector indices available and parameters [here](https://lancedb.github.io/lancedb/ann_indexes/#types-of-index) In the future, we will add support for creating vector indices directly from Explorer API.
+Find more details on the available vector index types and configuration parameters in the [LanceDB indexing documentation](https://lancedb.github.io/lancedb/ann_indexes/#types-of-index). In the future, we plan to support creating vector indices directly through the Explorer API.
 
 ## 5. Embeddings Applications
 

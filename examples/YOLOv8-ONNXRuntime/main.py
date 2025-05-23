@@ -8,7 +8,7 @@ import numpy as np
 import onnxruntime as ort
 import torch
 
-from ultralytics.utils import ASSETS, yaml_load
+from ultralytics.utils import ASSETS, YAML
 from ultralytics.utils.checks import check_requirements, check_yaml
 
 
@@ -49,7 +49,7 @@ class YOLOv8:
         self.iou_thres = iou_thres
 
         # Load the class names from the COCO dataset
-        self.classes = yaml_load(check_yaml("coco8.yaml"))["names"]
+        self.classes = YAML.load(check_yaml("coco8.yaml"))["names"]
 
         # Generate a color palette for the classes
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
@@ -181,7 +181,7 @@ class YOLOv8:
         class_ids = []
 
         # Calculate the scaling factors for the bounding box coordinates
-        gain = min(self.input_height / self.img_height, self.input_width / self.img_height)
+        gain = min(self.input_height / self.img_height, self.input_width / self.img_width)
         outputs[:, 0] -= pad[1]
         outputs[:, 1] -= pad[0]
 

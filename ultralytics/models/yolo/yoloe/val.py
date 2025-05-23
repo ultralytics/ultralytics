@@ -9,9 +9,9 @@ from ultralytics.data import YOLOConcatDataset, build_dataloader, build_yolo_dat
 from ultralytics.data.augment import LoadVisualPrompt
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.models.yolo.model import YOLOEModel
 from ultralytics.models.yolo.segment import SegmentationValidator
 from ultralytics.nn.modules.head import YOLOEDetect
+from ultralytics.nn.tasks import YOLOEModel
 from ultralytics.utils import LOGGER, TQDM
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
 
@@ -47,7 +47,7 @@ class YOLOEDetectValidator(DetectionValidator):
             (torch.Tensor): Visual prompt embeddings with shape (1, num_classes, embed_dim).
         """
         assert isinstance(model, YOLOEModel)
-        names = [name.split("/")[0] for name in list(dataloader.dataset.data["names"].values())]
+        names = [name.split("/", 1)[0] for name in list(dataloader.dataset.data["names"].values())]
         visual_pe = torch.zeros(len(names), model.model[-1].embed, device=self.device)
         cls_visual_num = torch.zeros(len(names))
 
@@ -140,7 +140,7 @@ class YOLOEDetectValidator(DetectionValidator):
         if trainer is not None:
             self.device = trainer.device
             model = trainer.ema.ema
-            names = [name.split("/")[0] for name in list(self.dataloader.dataset.data["names"].values())]
+            names = [name.split("/", 1)[0] for name in list(self.dataloader.dataset.data["names"].values())]
 
             if load_vp:
                 LOGGER.info("Validate using the visual prompt.")
@@ -158,9 +158,13 @@ class YOLOEDetectValidator(DetectionValidator):
                 assert load_vp, "Refer data is only used for visual prompt validation."
             self.device = select_device(self.args.device)
 
+            if isinstance(model, str):
+                from ultralytics.nn.tasks import attempt_load_weights
+
+                model = attempt_load_weights(model, device=self.device, inplace=True)
             model.eval().to(self.device)
             data = check_det_dataset(refer_data or self.args.data)
-            names = [name.split("/")[0] for name in list(data["names"].values())]
+            names = [name.split("/", 1)[0] for name in list(data["names"].values())]
 
             if load_vp:
                 LOGGER.info("Validate using the visual prompt.")

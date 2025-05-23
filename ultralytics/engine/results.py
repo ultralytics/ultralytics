@@ -13,8 +13,7 @@ import numpy as np
 import torch
 
 from ultralytics.data.augment import LetterBox
-from ultralytics.utils import LOGGER, SimpleClass, ops
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, ops
 from ultralytics.utils.plotting import Annotator, colors, save_one_box
 from ultralytics.utils.torch_utils import smart_inference_mode
 
@@ -184,7 +183,7 @@ class BaseTensor(SimpleClass):
         return self.__class__(self.data[idx], self.orig_shape)
 
 
-class Results(SimpleClass):
+class Results(SimpleClass, DataExportMixin):
     """
     A class for storing and manipulating inference results.
 
@@ -299,8 +298,8 @@ class Results(SimpleClass):
         Return the number of detections in the Results object.
 
         Returns:
-            (int): The number of detections, determined by the length of the first non-empty attribute
-                (boxes, masks, probs, keypoints, or obb).
+            (int): The number of detections, determined by the length of the first non-empty
+                attribute in (masks, probs, keypoints, or obb).
 
         Examples:
             >>> results = Results(orig_img, path, names, boxes=torch.rand(5, 4))
@@ -570,14 +569,13 @@ class Results(SimpleClass):
                         else None,
                         True,
                     ),
-                    rotated=is_obb,
                 )
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
-            text = ",\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5)
+            text = "\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5)
             x = round(self.orig_shape[0] * 0.03)
-            annotator.text([x, x], text, txt_color=txt_color)
+            annotator.text([x, x], text, txt_color=txt_color, box_color=(64, 64, 64, 128))  # RGBA box
 
         # Plot Pose results
         if self.keypoints is not None:
@@ -596,7 +594,7 @@ class Results(SimpleClass):
 
         # Save results
         if save:
-            annotator.save(filename)
+            annotator.save(filename or f"results_{Path(self.path).name}")
 
         return annotator.im if pil else annotator.result()
 
@@ -668,17 +666,14 @@ class Results(SimpleClass):
             - For classification tasks, it returns the top 5 class probabilities and their corresponding class names.
             - The returned string is comma-separated and ends with a comma and a space.
         """
-        log_string = ""
         probs = self.probs
         if len(self) == 0:
-            return log_string if probs is not None else f"{log_string}(no detections), "
+            return "" if probs is not None else "(no detections), "
         if probs is not None:
-            log_string += f"{', '.join(f'{self.names[j]} {probs.data[j]:.2f}' for j in probs.top5)}, "
+            return f"{', '.join(f'{self.names[j]} {probs.data[j]:.2f}' for j in probs.top5)}, "
         if boxes := self.boxes:
-            for c in boxes.cls.unique():
-                n = (boxes.cls == c).sum()  # detections per class
-                log_string += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "
-        return log_string
+            counts = boxes.cls.int().bincount()
+            return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts) if n > 0)
 
     def save_txt(self, txt_file, save_conf=False):
         """
@@ -758,10 +753,10 @@ class Results(SimpleClass):
             >>>     result.save_crop(save_dir="path/to/crops", file_name="detection")
         """
         if self.probs is not None:
-            LOGGER.warning("WARNING ⚠️ Classify task do not support `save_crop`.")
+            LOGGER.warning("Classify task do not support `save_crop`.")
             return
         if self.obb is not None:
-            LOGGER.warning("WARNING ⚠️ OBB task do not support `save_crop`.")
+            LOGGER.warning("OBB task do not support `save_crop`.")
             return
         for d in self.boxes:
             save_one_box(
@@ -785,9 +780,9 @@ class Results(SimpleClass):
             decimals (int): Number of decimal places to round the output values to.
 
         Returns:
-            (List[Dict]): A list of dictionaries, each containing summarized information for a single
-                detection or classification result. The structure of each dictionary varies based on the
-                task type (classification or detection) and available information (boxes, masks, keypoints).
+            (List[Dict]): A list of dictionaries, each containing summarized information for a single detection
+                or classification result. The structure of each dictionary varies based on the task type
+                (classification or detection) and available information (boxes, masks, keypoints).
 
         Examples:
             >>> results = model("image.jpg")
@@ -836,212 +831,6 @@ class Results(SimpleClass):
             results.append(result)
 
         return results
-
-    def to_df(self, normalize=False, decimals=5):
-        """
-        Converts detection results to a Pandas Dataframe.
-
-        This method converts the detection results into Pandas Dataframe format. It includes information
-        about detected objects such as bounding boxes, class names, confidence scores, and optionally
-        segmentation masks and keypoints.
-
-        Args:
-            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
-                If True, coordinates will be returned as float values between 0 and 1.
-            decimals (int): Number of decimal places to round the output values to.
-
-        Returns:
-            (DataFrame): A Pandas Dataframe containing all the information in results in an organized way.
-
-        Examples:
-            >>> results = model("path/to/image.jpg")
-            >>> for result in results:
-            >>>     df_result = result.to_df()
-            >>>     print(df_result)
-        """
-        import pandas as pd  # scope for faster 'import ultralytics'
-
-        return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
-
-    def to_csv(self, normalize=False, decimals=5, *args, **kwargs):
-        """
-        Converts detection results to a CSV format.
-
-        This method serializes the detection results into a CSV format. It includes information
-        about detected objects such as bounding boxes, class names, confidence scores, and optionally
-        segmentation masks and keypoints.
-
-        Args:
-            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
-                If True, coordinates will be returned as float values between 0 and 1.
-            decimals (int): Number of decimal places to round the output values to.
-            *args (Any): Variable length argument list to be passed to pandas.DataFrame.to_csv().
-            **kwargs (Any): Arbitrary keyword arguments to be passed to pandas.DataFrame.to_csv().
-
-
-        Returns:
-            (str): CSV containing all the information in results in an organized way.
-
-        Examples:
-            >>> results = model("path/to/image.jpg")
-            >>> for result in results:
-            >>>     csv_result = result.to_csv()
-            >>>     print(csv_result)
-        """
-        return self.to_df(normalize=normalize, decimals=decimals).to_csv(*args, **kwargs)
-
-    def to_xml(self, normalize=False, decimals=5, *args, **kwargs):
-        """
-        Converts detection results to XML format.
-
-        This method serializes the detection results into an XML format. It includes information
-        about detected objects such as bounding boxes, class names, confidence scores, and optionally
-        segmentation masks and keypoints.
-
-        Args:
-            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
-                If True, coordinates will be returned as float values between 0 and 1.
-            decimals (int): Number of decimal places to round the output values to.
-            *args (Any): Variable length argument list to be passed to pandas.DataFrame.to_xml().
-            **kwargs (Any): Arbitrary keyword arguments to be passed to pandas.DataFrame.to_xml().
-
-        Returns:
-            (str): An XML string containing all the information in results in an organized way.
-
-        Examples:
-            >>> results = model("path/to/image.jpg")
-            >>> for result in results:
-            >>>     xml_result = result.to_xml()
-            >>>     print(xml_result)
-        """
-        check_requirements("lxml")
-        df = self.to_df(normalize=normalize, decimals=decimals)
-        return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>' if df.empty else df.to_xml(*args, **kwargs)
-
-    def to_html(self, normalize=False, decimals=5, index=False, *args, **kwargs):
-        """
-        Converts detection results to HTML format.
-
-        This method serializes the detection results into an HTML format. It includes information
-        about detected objects such as bounding boxes, class names, confidence scores, and optionally
-        segmentation masks and keypoints.
-
-        Args:
-            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
-                If True, coordinates will be returned as float values between 0 and 1.
-            decimals (int): Number of decimal places to round the output values to.
-            index (bool): Whether to include the DataFrame index in the HTML output.
-            *args (Any): Variable length argument list to be passed to pandas.DataFrame.to_html().
-            **kwargs (Any): Arbitrary keyword arguments to be passed to pandas.DataFrame.to_html().
-
-        Returns:
-            (str): An HTML string containing all the information in results in an organized way.
-
-        Examples:
-            >>> results = model("path/to/image.jpg")
-            >>> for result in results:
-            >>>     html_result = result.to_html()
-            >>>     print(html_result)
-        """
-        df = self.to_df(normalize=normalize, decimals=decimals)
-        return "<table></table>" if df.empty else df.to_html(index=index, *args, **kwargs)
-
-    def tojson(self, normalize=False, decimals=5):
-        """Deprecated version of to_json()."""
-        LOGGER.warning("WARNING ⚠️ 'result.tojson()' is deprecated, replace with 'result.to_json()'.")
-        return self.to_json(normalize, decimals)
-
-    def to_json(self, normalize=False, decimals=5):
-        """
-        Converts detection results to JSON format.
-
-        This method serializes the detection results into a JSON-compatible format. It includes information
-        about detected objects such as bounding boxes, class names, confidence scores, and optionally
-        segmentation masks and keypoints.
-
-        Args:
-            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
-                If True, coordinates will be returned as float values between 0 and 1.
-            decimals (int): Number of decimal places to round the output values to.
-
-        Returns:
-            (str): A JSON string containing the serialized detection results.
-
-        Examples:
-            >>> results = model("path/to/image.jpg")
-            >>> for result in results:
-            >>>     json_result = result.to_json()
-            >>>     print(json_result)
-
-        Notes:
-            - For classification tasks, the JSON will contain class probabilities instead of bounding boxes.
-            - For object detection tasks, the JSON will include bounding box coordinates, class names, and
-              confidence scores.
-            - If available, segmentation masks and keypoints will also be included in the JSON output.
-            - The method uses the `summary` method internally to generate the data structure before
-              converting it to JSON.
-        """
-        import json
-
-        return json.dumps(self.summary(normalize=normalize, decimals=decimals), indent=2)
-
-    def to_sql(self, table_name="results", normalize=False, decimals=5, db_path="results.db"):
-        """
-        Converts detection results to an SQL-compatible format.
-
-        This method serializes the detection results into a format compatible with SQL databases.
-        It includes information about detected objects such as bounding boxes, class names, confidence scores,
-        and optionally segmentation masks, keypoints or oriented bounding boxes.
-
-        Args:
-            table_name (str): Name of the SQL table where the data will be inserted.
-            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions.
-                If True, coordinates will be returned as float values between 0 and 1.
-            decimals (int): Number of decimal places to round the bounding boxes values to.
-            db_path (str): Path to the SQLite database file.
-
-        Examples:
-            >>> results = model("path/to/image.jpg")
-            >>> for result in results:
-            >>>     result.to_sql()
-        """
-        import json
-        import sqlite3
-
-        # Convert results to a list of dictionaries
-        data = self.summary(normalize=normalize, decimals=decimals)
-        if len(data) == 0:
-            LOGGER.warning("⚠️ No results to save to SQL. Results dict is empty")
-            return
-
-        # Connect to the SQLite database
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-
-        # Create table if it doesn't exist
-        columns = (
-            "id INTEGER PRIMARY KEY AUTOINCREMENT, class_name TEXT, confidence REAL, box TEXT, masks TEXT, kpts TEXT"
-        )
-        cursor.execute(f"CREATE TABLE IF NOT EXISTS {table_name} ({columns})")
-
-        # Insert data into the table
-        for item in data:
-            cursor.execute(
-                f"INSERT INTO {table_name} (class_name, confidence, box, masks, kpts) VALUES (?, ?, ?, ?, ?)",
-                (
-                    item.get("name"),
-                    item.get("confidence"),
-                    json.dumps(item.get("box", {})),
-                    json.dumps(item.get("segments", {})),
-                    json.dumps(item.get("keypoints", {})),
-                ),
-            )
-
-        # Commit and close the connection
-        conn.commit()
-        conn.close()
-
-        LOGGER.info(f"✅ Detection results successfully written to SQL table '{table_name}' in database '{db_path}'.")
 
 
 class Boxes(BaseTensor):

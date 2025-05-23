@@ -53,6 +53,7 @@ def test_detect():
         result = pred(source=ASSETS, model=MODEL)
         assert len(result), "predictor test failed"
 
+    # Test resume functionality
     overrides["resume"] = trainer.last
     trainer = detect.DetectionTrainer(overrides=overrides)
     try:
@@ -61,7 +62,7 @@ def test_detect():
         print(f"Expected exception caught: {e}")
         return
 
-    Exception("Resume test failed!")
+    raise Exception("Resume test failed!")
 
 
 def test_segment():
@@ -90,7 +91,7 @@ def test_segment():
     result = pred(source=ASSETS, model=WEIGHTS_DIR / "yolo11n-seg.pt")
     assert len(result), "predictor test failed"
 
-    # Test resume
+    # Test resume functionality
     overrides["resume"] = trainer.last
     trainer = segment.SegmentationTrainer(overrides=overrides)
     try:

@@ -183,7 +183,7 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled for testing due to --slow test errors after YOLOE PR.")
 @pytest.mark.parametrize("name, solution_class, needs_frame_count, video, kwargs", SOLUTIONS)
 def test_solution(name, solution_class, needs_frame_count, video, kwargs):
-    """Test individual Ultralytics solution."""
+    """Test individual Ultralytics solution with video processing and parameter validation."""
     if video:
         if name != "ObjectCounterVertical":
             safe_download(url=f"{ASSETS_URL}/{video}", dir=TMP)
@@ -208,7 +208,7 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
 @pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="Disabled due to unsupported CLIP dependencies.")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search():
-    """Test similarity search solution with sample images."""
+    """Test similarity search solution with sample images and text query."""
     safe_download(f"{ASSETS_URL}/4-imgs-similaritysearch.zip", dir=TMP)  # 4 dog images for testing in a zip file.
     searcher = solutions.VisualAISearch(data=str(TMP / "4-imgs-similaritysearch"))
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"

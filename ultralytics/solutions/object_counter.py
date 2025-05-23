@@ -21,11 +21,12 @@ class ObjectCounter(BaseSolution):
         region_initialized (bool): Flag indicating whether the counting region has been initialized.
         show_in (bool): Flag to control display of inward count.
         show_out (bool): Flag to control display of outward count.
+        margin (int): Margin for background rectangle size to display counts properly.
 
     Methods:
-        count_objects: Counts objects within a polygonal or linear region.
-        display_counts: Displays object counts on the frame.
-        process: Processes input data (frames or object tracks) and updates counts.
+        count_objects: Count objects within a polygonal or linear region based on their tracks.
+        display_counts: Display object counts on the frame.
+        process: Process input data (frames or object tracks) and update counts.
 
     Examples:
         >>> counter = ObjectCounter()
@@ -35,7 +36,7 @@ class ObjectCounter(BaseSolution):
     """
 
     def __init__(self, **kwargs):
-        """Initializes the ObjectCounter class for real-time object counting in video streams."""
+        """Initialize the ObjectCounter class for real-time object counting in video streams."""
         super().__init__(**kwargs)
 
         self.in_count = 0  # Counter for objects moving inward
@@ -50,7 +51,7 @@ class ObjectCounter(BaseSolution):
 
     def count_objects(self, current_centroid, track_id, prev_position, cls):
         """
-        Counts objects within a polygonal or linear region based on their tracks.
+        Count objects within a polygonal or linear region based on their tracks.
 
         Args:
             current_centroid (Tuple[float, float]): Current centroid coordinates (x, y) in the current frame.

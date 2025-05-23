@@ -168,7 +168,7 @@ At the heart of the Intel® Core Ultra™ architecture is a hybrid design that e
 
 The Core Ultra™ family includes various models tailored for different performance needs, with options ranging from energy-efficient designs to high-power variants marked by the "H" designation—ideal for laptops and compact form factors that demand serious computing power. Across the lineup, users benefit from the synergy of CPU, GPU, and NPU integration, delivering remarkable efficiency, responsiveness, and multitasking capabilities.
 
-As part of Intel’s ongoing innovation, the Core Ultra™ series sets a new standard for future-ready computing. With multiple models available and more on the horizon, this series underscores Intel’s commitment to delivering cutting-edge solutions for the next generation of intelligent, AI-enhanced devices.
+As part of Intel's ongoing innovation, the Core Ultra™ series sets a new standard for future-ready computing. With multiple models available and more on the horizon, this series underscores Intel's commitment to delivering cutting-edge solutions for the next generation of intelligent, AI-enhanced devices.
 
 Benchmarks below run on Intel® Ultra™ 7 155H at FP32 and INT8 precision.
 

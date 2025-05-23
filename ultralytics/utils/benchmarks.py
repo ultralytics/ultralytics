@@ -361,15 +361,15 @@ class ProfileModels:
         device (torch.device): Device used for profiling.
 
     Methods:
-        profile: Profiles the models and prints the result.
-        get_files: Gets all relevant model files.
-        get_onnx_model_info: Extracts metadata from an ONNX model.
-        iterative_sigma_clipping: Applies sigma clipping to remove outliers.
-        profile_tensorrt_model: Profiles a TensorRT model.
-        profile_onnx_model: Profiles an ONNX model.
-        generate_table_row: Generates a table row with model metrics.
-        generate_results_dict: Generates a dictionary of profiling results.
-        print_table: Prints a formatted table of results.
+        run: Profile YOLO models for speed and accuracy across various formats.
+        get_files: Get all relevant model files.
+        get_onnx_model_info: Extract metadata from an ONNX model.
+        iterative_sigma_clipping: Apply sigma clipping to remove outliers.
+        profile_tensorrt_model: Profile a TensorRT model.
+        profile_onnx_model: Profile an ONNX model.
+        generate_table_row: Generate a table row with model metrics.
+        generate_results_dict: Generate a dictionary of profiling results.
+        print_table: Print a formatted table of results.
 
     Examples:
         Profile models and print results
@@ -425,7 +425,7 @@ class ProfileModels:
         Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.
 
         Returns:
-            (List[Dict]): List of dictionaries containing profiling results for each model.
+            (List[dict]): List of dictionaries containing profiling results for each model.
 
         Examples:
             Profile models and print results
@@ -498,7 +498,7 @@ class ProfileModels:
 
     @staticmethod
     def get_onnx_model_info(onnx_file: str):
-        """Extracts metadata from an ONNX model file including parameters, GFLOPs, and input shape."""
+        """Extract metadata from an ONNX model file including parameters, GFLOPs, and input shape."""
         return 0.0, 0.0, 0.0, 0.0  # return (num_layers, num_params, num_gradients, num_flops)
 
     @staticmethod

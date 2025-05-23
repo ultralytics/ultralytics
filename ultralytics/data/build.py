@@ -27,10 +27,10 @@ from ultralytics.utils.checks import check_file
 
 class InfiniteDataLoader(dataloader.DataLoader):
     """
-    Dataloader that reuses workers.
+    Dataloader that reuses workers for infinite iteration.
 
     This dataloader extends the PyTorch DataLoader to provide infinite recycling of workers, which improves efficiency
-    for training loops that need to iterate through the dataset multiple times.
+    for training loops that need to iterate through the dataset multiple times without recreating workers.
 
     Attributes:
         batch_sampler (_RepeatSampler): A sampler that repeats indefinitely.
@@ -41,6 +41,13 @@ class InfiniteDataLoader(dataloader.DataLoader):
         __iter__: Creates a sampler that repeats indefinitely.
         __del__: Ensures workers are properly terminated.
         reset: Resets the iterator, useful when modifying dataset settings during training.
+
+    Examples:
+        Create an infinite dataloader for training
+        >>> dataset = YOLODataset(...)
+        >>> dataloader = InfiniteDataLoader(dataset, batch_size=16, shuffle=True)
+        >>> for batch in dataloader:  # Infinite iteration
+        >>>     train_step(batch)
     """
 
     def __init__(self, *args, **kwargs):
@@ -77,10 +84,10 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
 class _RepeatSampler:
     """
-    Sampler that repeats forever.
+    Sampler that repeats forever for infinite iteration.
 
     This sampler wraps another sampler and yields its contents indefinitely, allowing for infinite iteration
-    over a dataset.
+    over a dataset without recreating the sampler.
 
     Attributes:
         sampler (Dataset.sampler): The sampler to repeat.
@@ -154,11 +161,16 @@ def build_dataloader(dataset, batch, workers, shuffle=True, rank=-1):
         dataset (Dataset): Dataset to load data from.
         batch (int): Batch size for the dataloader.
         workers (int): Number of worker threads for loading data.
-        shuffle (bool): Whether to shuffle the dataset.
-        rank (int): Process rank in distributed training. -1 for single-GPU training.
+        shuffle (bool, optional): Whether to shuffle the dataset.
+        rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
 
     Returns:
         (InfiniteDataLoader): A dataloader that can be used for training or validation.
+
+    Examples:
+        Create a dataloader for training
+        >>> dataset = YOLODataset(...)
+        >>> dataloader = build_dataloader(dataset, batch=16, workers=4, shuffle=True)
     """
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
@@ -184,10 +196,10 @@ def check_source(source):
     Check the type of input source and return corresponding flag values.
 
     Args:
-        source (str | int | Path | List | Tuple | np.ndarray | PIL.Image | torch.Tensor): The input source to check.
+        source (str | int | Path | list | tuple | np.ndarray | PIL.Image | torch.Tensor): The input source to check.
 
     Returns:
-        source (str | int | Path | List | Tuple | np.ndarray | PIL.Image | torch.Tensor): The processed source.
+        source (str | int | Path | list | tuple | np.ndarray | PIL.Image | torch.Tensor): The processed source.
         webcam (bool): Whether the source is a webcam.
         screenshot (bool): Whether the source is a screenshot.
         from_img (bool): Whether the source is an image or list of images.
@@ -196,6 +208,13 @@ def check_source(source):
 
     Raises:
         TypeError: If the source type is unsupported.
+
+    Examples:
+        Check a file path source
+        >>> source, webcam, screenshot, from_img, in_memory, tensor = check_source("image.jpg")
+
+        Check a webcam source
+        >>> source, webcam, screenshot, from_img, in_memory, tensor = check_source(0)
     """
     webcam, screenshot, from_img, in_memory, tensor = False, False, False, False, False
     if isinstance(source, (str, int, Path)):  # int for local usb camera
@@ -231,10 +250,17 @@ def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False, chan
         batch (int, optional): Batch size for dataloaders.
         vid_stride (int, optional): The frame interval for video sources.
         buffer (bool, optional): Whether stream frames will be buffered.
-        channels (int): The number of input channels for the model.
+        channels (int, optional): The number of input channels for the model.
 
     Returns:
         (Dataset): A dataset object for the specified input source with attached source_type attribute.
+
+    Examples:
+        Load an image source for inference
+        >>> dataset = load_inference_source("image.jpg", batch=1)
+
+        Load a video stream source
+        >>> dataset = load_inference_source("rtsp://example.com/stream", vid_stride=2)
     """
     source, stream, screenshot, from_img, in_memory, tensor = check_source(source)
     source_type = source.source_type if in_memory else SourceTypes(stream, screenshot, from_img, tensor)

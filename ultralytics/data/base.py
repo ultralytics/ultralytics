@@ -32,6 +32,7 @@ class BaseDataset(Dataset):
         single_cls (bool): Whether to treat all objects as a single class.
         prefix (str): Prefix to print in log messages.
         fraction (float): Fraction of dataset to utilize.
+        channels (int): Number of channels in the images (1 for grayscale, 3 for RGB).
         cv2_flag (int): OpenCV flag for reading images.
         im_files (List[str]): List of image file paths.
         labels (List[Dict]): List of label data dictionaries.
@@ -48,6 +49,8 @@ class BaseDataset(Dataset):
         npy_files (List[Path]): List of numpy file paths.
         cache (str): Cache images to RAM or disk during training.
         transforms (callable): Image transformation function.
+        batch_shapes (np.ndarray): Batch shapes for rectangular training.
+        batch (np.ndarray): Batch index of each image.
 
     Methods:
         get_img_files: Read image files from the specified path.
@@ -86,19 +89,19 @@ class BaseDataset(Dataset):
 
         Args:
             img_path (str): Path to the folder containing images.
-            imgsz (int, optional): Image size for resizing.
-            cache (bool | str, optional): Cache images to RAM or disk during training.
-            augment (bool, optional): If True, data augmentation is applied.
-            hyp (dict, optional): Hyperparameters to apply data augmentation.
-            prefix (str, optional): Prefix to print in log messages.
-            rect (bool, optional): If True, rectangular training is used.
-            batch_size (int, optional): Size of batches.
-            stride (int, optional): Stride used in the model.
-            pad (float, optional): Padding value.
-            single_cls (bool, optional): If True, single class training is used.
+            imgsz (int): Image size for resizing.
+            cache (bool | str): Cache images to RAM or disk during training.
+            augment (bool): If True, data augmentation is applied.
+            hyp (dict): Hyperparameters to apply data augmentation.
+            prefix (str): Prefix to print in log messages.
+            rect (bool): If True, rectangular training is used.
+            batch_size (int): Size of batches.
+            stride (int): Stride used in the model.
+            pad (float): Padding value.
+            single_cls (bool): If True, single class training is used.
             classes (list, optional): List of included classes.
-            fraction (float, optional): Fraction of dataset to utilize.
-            channels (int, optional): Number of channels in the images (1 for grayscale, 3 for RGB).
+            fraction (float): Fraction of dataset to utilize.
+            channels (int): Number of channels in the images (1 for grayscale, 3 for RGB).
         """
         super().__init__()
         self.img_path = img_path
@@ -210,12 +213,12 @@ class BaseDataset(Dataset):
 
         Args:
             i (int): Index of the image to load.
-            rect_mode (bool, optional): Whether to use rectangular resizing.
+            rect_mode (bool): Whether to use rectangular resizing.
 
         Returns:
-            (np.ndarray): Loaded image as a NumPy array.
-            (Tuple[int, int]): Original image dimensions in (height, width) format.
-            (Tuple[int, int]): Resized image dimensions in (height, width) format.
+            im (np.ndarray): Loaded image as a NumPy array.
+            hw_original (tuple): Original image dimensions in (height, width) format.
+            hw_resized (tuple): Resized image dimensions in (height, width) format.
 
         Raises:
             FileNotFoundError: If the image file is not found.
@@ -285,7 +288,7 @@ class BaseDataset(Dataset):
         Check if there's enough disk space for caching images.
 
         Args:
-            safety_margin (float, optional): Safety margin factor for disk space calculation.
+            safety_margin (float): Safety margin factor for disk space calculation.
 
         Returns:
             (bool): True if there's enough disk space, False otherwise.
@@ -321,7 +324,7 @@ class BaseDataset(Dataset):
         Check if there's enough RAM for caching images.
 
         Args:
-            safety_margin (float, optional): Safety margin factor for RAM calculation.
+            safety_margin (float): Safety margin factor for RAM calculation.
 
         Returns:
             (bool): True if there's enough RAM, False otherwise.

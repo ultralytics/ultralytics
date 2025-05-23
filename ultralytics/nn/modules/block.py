@@ -182,7 +182,7 @@ class SPP(nn.Module):
         Args:
             c1 (int): Input channels.
             c2 (int): Output channels.
-            k (Tuple[int, int, int]): Kernel sizes for max pooling.
+            k (tuple): Kernel sizes for max pooling.
         """
         super().__init__()
         c_ = c1 // 2  # hidden channels
@@ -462,7 +462,7 @@ class Bottleneck(nn.Module):
             c2 (int): Output channels.
             shortcut (bool): Whether to use shortcut connection.
             g (int): Groups for convolutions.
-            k (Tuple[int, int]): Kernel sizes for convolutions.
+            k (tuple): Kernel sizes for convolutions.
             e (float): Expansion ratio.
         """
         super().__init__()
@@ -799,11 +799,7 @@ class BNContrastiveHead(nn.Module):
         self.forward = self.forward_fuse
 
     def forward_fuse(self, x, w):
-        """
-        Passes input out unchanged.
-
-        TODO: Update or remove?
-        """
+        """Passes input out unchanged."""
         return x
 
     def forward(self, x, w):
@@ -836,7 +832,7 @@ class RepBottleneck(Bottleneck):
             c2 (int): Output channels.
             shortcut (bool): Whether to use shortcut connection.
             g (int): Groups for convolutions.
-            k (Tuple[int, int]): Kernel sizes for convolutions.
+            k (tuple): Kernel sizes for convolutions.
             e (float): Expansion ratio.
         """
         super().__init__(c1, c2, shortcut, g, k, e)
@@ -1683,7 +1679,7 @@ class AAttn(nn.Module):
         Args:
             dim (int): Number of hidden channels.
             num_heads (int): Number of heads into which the attention mechanism is divided.
-            area (int): Number of areas the feature map is divided, default is 1.
+            area (int): Number of areas the feature map is divided.
         """
         super().__init__()
         self.area = area

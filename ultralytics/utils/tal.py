@@ -144,24 +144,27 @@ class TaskAlignedAssigner(nn.Module):
         # Get anchor_align metric, (b, max_num_obj, h*w)
         align_metric, overlaps = self.get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt)
         # Get topk_metric mask, (b, max_num_obj, h*w)
-        mask_topk = self.select_topk_candidates(align_metric, topk_mask=mask_gt.expand(-1, -1, self.topk).bool())
+        mask_topk = self.select_topk_candidates(align_metric, topk_mask=mask_gt.expand(-1, -1, self.topk).bool(), mask_in_gts=mask_in_gts)
         # Merge all mask to a final mask, (b, max_num_obj, h*w)
         mask_pos = mask_topk * mask_in_gts * mask_gt
 
-        for b in range(len(mask_gt)):
-            for i, m in enumerate(mask_gt[b, :, 0]):
-                if not m:
-                    continue
-                # x = mask_in_gts[b, i].sum()
-                # x = mask_pos[b, i].sum()
-                x = mask_topk[b, i].sum()
-                print(x)
-                # if x == 0:
-                    # self.zero_assigned += 1
-                #     print(xywh[b, i])
-                #     exit()
-        exit()
-
+        # for b in range(len(mask_gt)):
+        #     for i, m in enumerate(mask_gt[b, :, 0]):
+        #         if not m:
+        #             continue
+        #         # x = mask_in_gts[b, i].sum()
+        #         x = mask_pos[b, i].sum()
+        #         # x = mask_topk[b, i].sum()
+        #         print(x)
+        #         # if x < 5:
+        #         #     print(x)
+        #         #     print(align_metric[b, i, mask_in_gts[b, i].bool()], align_metric[b, i].max())
+        #             # print(overlaps[b, i, mask_in_gts[b, i].bool()])
+        #         # if x == 0:
+        #             # self.zero_assigned += 1
+        #         #     print(xywh[b, i])
+        #         #     exit()
+        # exit()
 
         return mask_pos, align_metric, overlaps
 
@@ -212,7 +215,7 @@ class TaskAlignedAssigner(nn.Module):
         """
         return bbox_iou(gt_bboxes, pd_bboxes, xywh=False, CIoU=True).squeeze(-1).clamp_(0)
 
-    def select_topk_candidates(self, metrics, largest=True, topk_mask=None):
+    def select_topk_candidates(self, metrics, mask_in_gts, largest=True, topk_mask=None):
         """
         Select the top-k candidates based on the given metrics.
 
@@ -228,6 +231,8 @@ class TaskAlignedAssigner(nn.Module):
         Returns:
             (torch.Tensor): A tensor of shape (b, max_num_obj, h*w) containing the selected top-k candidates.
         """
+        # NOTE: given a small value(0.1) for these zeros so torch.topk could get expected indexes
+        metrics = torch.where((mask_in_gts * (metrics == 0)).bool(), 0.1, metrics)
         # (b, max_num_obj, topk)
         topk_metrics, topk_idxs = torch.topk(metrics, self.topk, dim=-1, largest=largest)
         if topk_mask is None:

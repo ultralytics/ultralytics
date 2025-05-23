@@ -66,7 +66,7 @@ def get_1d_sine_pe(pos_inds, dim, temperature=10000):
     Args:
         pos_inds (torch.Tensor): Position indices for which to generate embeddings.
         dim (int): Dimension of the positional embeddings. Should be an even number.
-        temperature (float): Scaling factor for the frequency of the sinusoidal functions.
+        temperature (float, optional): Scaling factor for the frequency of the sinusoidal functions.
 
     Returns:
         (torch.Tensor): Sinusoidal positional embeddings with shape (pos_inds.shape, dim).
@@ -98,14 +98,11 @@ def init_t_xy(end_x: int, end_y: int):
         end_y (int): Height of the grid (number of rows).
 
     Returns:
-        t (torch.Tensor): Linear indices for each position in the grid, with shape (end_x * end_y).
         t_x (torch.Tensor): X-coordinates for each position, with shape (end_x * end_y).
         t_y (torch.Tensor): Y-coordinates for each position, with shape (end_x * end_y).
 
     Examples:
-        >>> t, t_x, t_y = init_t_xy(3, 2)
-        >>> print(t)
-        tensor([0., 1., 2., 3., 4., 5.])
+        >>> t_x, t_y = init_t_xy(3, 2)
         >>> print(t_x)
         tensor([0., 1., 2., 0., 1., 2.])
         >>> print(t_y)
@@ -131,18 +128,13 @@ def compute_axial_cis(dim: int, end_x: int, end_y: int, theta: float = 10000.0):
         theta (float, optional): Scaling factor for frequency computation.
 
     Returns:
-        freqs_cis_x (torch.Tensor): Complex exponential positional encodings for x-dimension with shape
-            (end_x*end_y, dim//4).
-        freqs_cis_y (torch.Tensor): Complex exponential positional encodings for y-dimension with shape
-            (end_x*end_y, dim//4).
+        (torch.Tensor): Complex exponential positional encodings with shape (end_x*end_y, dim//2).
 
     Examples:
         >>> dim, end_x, end_y = 128, 8, 8
-        >>> freqs_cis_x, freqs_cis_y = compute_axial_cis(dim, end_x, end_y)
-        >>> freqs_cis_x.shape
-        torch.Size([64, 32])
-        >>> freqs_cis_y.shape
-        torch.Size([64, 32])
+        >>> freqs_cis = compute_axial_cis(dim, end_x, end_y)
+        >>> freqs_cis.shape
+        torch.Size([64, 64])
     """
     freqs_x = 1.0 / (theta ** (torch.arange(0, dim, 4)[: (dim // 4)].float() / dim))
     freqs_y = 1.0 / (theta ** (torch.arange(0, dim, 4)[: (dim // 4)].float() / dim))

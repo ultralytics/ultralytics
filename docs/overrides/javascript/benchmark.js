@@ -243,14 +243,20 @@ document.getElementById("btn-download").addEventListener("click", () => {
   const { width, height } = canvas;
 
   // Create temp canvas with theme background and chart content
-  const tempCanvas = Object.assign(document.createElement("canvas"), { width, height });
+  const tempCanvas = Object.assign(document.createElement("canvas"), {
+    width,
+    height,
+  });
   const ctx = tempCanvas.getContext("2d");
   ctx.fillStyle = isDark ? "#121212" : "#ffffff";
   ctx.fillRect(0, 0, width, height);
   ctx.drawImage(canvas, 0, 0);
 
   // Trigger PNG download
-  Object.assign(document.createElement("a"), {download: "chart.png",href: tempCanvas.toDataURL("image/png")}).click();
+  Object.assign(document.createElement("a"), {
+    download: "chart.png",
+    href: tempCanvas.toDataURL("image/png"),
+  }).click();
 });
 
 // When the "Download CSV" button is clicked
@@ -260,14 +266,18 @@ document.getElementById("btn-download-data").addEventListener("click", () => {
   // Append only visible datasets to CSV rows
   modelComparisonChart.data.datasets.forEach((ds, i) => {
     if (!modelComparisonChart.getDatasetMeta(i).hidden) {
-      ds.data.forEach(p => rows.push(`${ds.label},${p.version},${p.y},${p.x}`));
+      ds.data.forEach((p) =>
+        rows.push(`${ds.label},${p.version},${p.y},${p.x}`),
+      );
     }
   });
 
   // Trigger CSV download
   Object.assign(document.createElement("a"), {
-    href: URL.createObjectURL(new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" })),
-    download: "model_benchmark_data.csv"
+    href: URL.createObjectURL(
+      new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" }),
+    ),
+    download: "model_benchmark_data.csv",
   }).click();
 });
 
@@ -277,8 +287,11 @@ document.getElementById("btn-toggle-theme").addEventListener("click", () => {
   isDark = !isDark;
 
   // Theme colors
-  const fg = isDark ? "#fff" : "#333", bg = isDark ? "#1e2129" : "#fff", grid = isDark ? "#444" : "#e0e0e0";
-  const tooltipBg = isDark ? "#333" : "rgba(0,0,0,0.8)", chart = modelComparisonChart.options;
+  const fg = isDark ? "#fff" : "#333",
+    bg = isDark ? "#1e2129" : "#fff",
+    grid = isDark ? "#444" : "#e0e0e0";
+  const tooltipBg = isDark ? "#333" : "rgba(0,0,0,0.8)",
+    chart = modelComparisonChart.options;
 
   // Apply updated theme to chart
   Object.assign(chart.scales.x.title, { color: fg });
@@ -288,10 +301,16 @@ document.getElementById("btn-toggle-theme").addEventListener("click", () => {
   Object.assign(chart.scales.x.grid, { color: grid });
   Object.assign(chart.scales.y.grid, { color: grid });
   Object.assign(chart.plugins.legend.labels, { color: fg });
-  Object.assign(chart.plugins.tooltip, {backgroundColor: tooltipBg, titleColor: "#fff", bodyColor: "#fff"});
+  Object.assign(chart.plugins.tooltip, {
+    backgroundColor: tooltipBg,
+    titleColor: "#fff",
+    bodyColor: "#fff",
+  });
 
-  document.getElementById("chart-container").style.background = bg;  // Apply background
-  document.getElementById("btn-toggle-theme").textContent = isDark ? "🌞" : "🌙";  // Apply icon
+  document.getElementById("chart-container").style.background = bg; // Apply background
+  document.getElementById("btn-toggle-theme").textContent = isDark
+    ? "🌞"
+    : "🌙"; // Apply icon
 
   modelComparisonChart.update();
 });

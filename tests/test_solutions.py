@@ -365,12 +365,10 @@ def test_display_output_method():
 def test_security_alarm_all(mock_smtp, mock_mime_image, mock_logger):
     """Test security alarm system solution."""
     dummy_frame = np.ones((100, 100, 3), dtype=np.uint8)  # Setup dummy frame
-
-    # Patch cv2.imencode globally with valid JPEG bytes
-    cv2.imencode = lambda ext, img: [True, Mock(tobytes=lambda: b"\xff\xd8\xff\xe0" + b"\x00" * 100)]
+    cv2.imencode = lambda ext, img: [True, Mock(tobytes=lambda: b"\xff\xd8\xff\xe0" + b"\x00" * 100)]  # Patch imencode
     mock_mime_image.return_value = Mock()
 
-    # -------- AUTHENTICATE TEST --------
+    # Authenticate test
     mock_server = mock_smtp.return_value
     alarm = solutions.SecurityAlarm()
     alarm.authenticate("sender@example.com", "12345", "receiver@example.com")
@@ -382,20 +380,20 @@ def test_security_alarm_all(mock_smtp, mock_mime_image, mock_logger):
     assert alarm.to_email == "receiver@example.com"
     assert alarm.server is mock_server
 
-    # -------- SEND EMAIL SUCCESS TEST --------
+    # Email success
     alarm.server = Mock()
     alarm.send_email(dummy_frame, records=5)
     assert alarm.server.send_message.called
     mock_mime_image.assert_called_once()
 
-    # -------- SEND EMAIL FAILURE TEST --------
+    # Email failure
     alarm.server = Mock()
     alarm.server.send_message.side_effect = Exception("SMTP Failure")
     alarm.send_email(dummy_frame, records=2)
     assert alarm.server.send_message.called
     assert mock_logger.called
 
-    # -------- PROCESS TEST --------
+    # Process
     alarm.email_sent = False
     alarm.records = 2
     alarm.boxes = [np.array([1, 1, 50, 50]), np.array([10, 10, 40, 40])]
@@ -407,7 +405,6 @@ def test_security_alarm_all(mock_smtp, mock_mime_image, mock_logger):
     solutions.SecurityAlarm.extract_tracks = lambda self, x: None
     solutions.SecurityAlarm.send_email = lambda self, im0, records: setattr(self, "email_sent", True)
     solutions.SecurityAlarm.display_output = lambda self, x: None
-
     result = alarm.process(dummy_frame)
     assert isinstance(result, SolutionResults)
     assert result.total_tracks == 2

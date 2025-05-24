@@ -151,7 +151,7 @@ class GPUInfo:
             gpu
             for gpu in self.gpu_stats
             if gpu.get("memory_free", 0) / gpu.get("memory_total", 1) >= min_memory_fraction
-            and (100 - gpu.get("utilization", 0)) >= min_util_fraction * 100
+            and (100 - gpu.get("utilization", 100)) >= min_util_fraction * 100
         ]
         eligible_gpus.sort(key=lambda x: (x.get("utilization", 101), -x.get("memory_free", 0)))
 

@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any, Dict, List, Optional
+
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
 
@@ -19,16 +21,16 @@ class GPUInfo:
         pynvml (module | None): The `pynvml` module if successfully imported and initialized, otherwise `None`.
         nvml_available (bool): Indicates if `pynvml` is ready for use. True if import and `nvmlInit()` succeeded,
             False otherwise.
-        gpu_stats (list[dict]): A list of dictionaries, each holding stats for one GPU. Populated on initialization
-            and by `refresh_stats()`. Keys include: 'index', 'name', 'utilization' (%), 'memory_used' (MiB),
-            'memory_total' (MiB), 'memory_free' (MiB), 'temperature' (C), 'power_draw' (W),
+        gpu_stats (List[Dict[str, Any]]): A list of dictionaries, each holding stats for one GPU. Populated on
+            initialization and by `refresh_stats()`. Keys include: 'index', 'name', 'utilization' (%),
+            'memory_used' (MiB), 'memory_total' (MiB), 'memory_free' (MiB), 'temperature' (C), 'power_draw' (W),
             'power_limit' (W or 'N/A'). Empty if NVML is unavailable or queries fail.
 
     Methods:
-        refresh_stats: Refreshes the internal gpu_stats list by querying NVML.
-        print_status: Prints GPU status in a compact table format using current stats.
-        select_idle_gpu: Selects the most idle GPUs based on utilization and free memory.
-        shutdown: Shuts down NVML if it was initialized.
+        refresh_stats: Refresh the internal gpu_stats list by querying NVML.
+        print_status: Print GPU status in a compact table format using current stats.
+        select_idle_gpu: Select the most idle GPUs based on utilization and free memory.
+        shutdown: Shut down NVML if it was initialized.
 
     Examples:
         Initialize GPUInfo and print status
@@ -42,9 +44,9 @@ class GPUInfo:
 
     def __init__(self):
         """Initialize GPUInfo, attempting to import and initialize pynvml."""
-        self.pynvml = None
-        self.nvml_available = False
-        self.gpu_stats = []
+        self.pynvml: Optional[Any] = None
+        self.nvml_available: bool = False
+        self.gpu_stats: List[Dict[str, Any]] = []
 
         try:
             check_requirements("pynvml>=12.0.0")
@@ -82,7 +84,7 @@ class GPUInfo:
             LOGGER.warning(f"Error during device query: {e}")
             self.gpu_stats = []
 
-    def _get_device_stats(self, index: int) -> dict:
+    def _get_device_stats(self, index: int) -> Dict[str, Any]:
         """Get stats for a single GPU device."""
         handle = self.pynvml.nvmlDeviceGetHandleByIndex(index)
         memory = self.pynvml.nvmlDeviceGetMemoryInfo(handle)
@@ -131,7 +133,7 @@ class GPUInfo:
 
         LOGGER.info(f"{'-' * len(hdr)}\n")
 
-    def select_idle_gpu(self, count: int = 1, min_memory_fraction: float = 0) -> list[int]:
+    def select_idle_gpu(self, count: int = 1, min_memory_fraction: float = 0) -> List[int]:
         """
         Select the most idle GPUs based on utilization and free memory.
 
@@ -140,7 +142,7 @@ class GPUInfo:
             min_memory_fraction (float): Minimum free memory required as a fraction of total memory.
 
         Returns:
-            (list[int]): Indices of the selected GPUs, sorted by idleness (lowest utilization first).
+            (List[int]): Indices of the selected GPUs, sorted by idleness (lowest utilization first).
 
         Notes:
              Returns fewer than 'count' if not enough qualify or exist.

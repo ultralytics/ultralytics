@@ -36,7 +36,7 @@ def _log_images(path: Path, prefix: str = "") -> None:
 
     Args:
         path (Path): Path to the image file to be logged.
-        prefix (str): Optional prefix to add to the image name when logging.
+        prefix (str, optional): Optional prefix to add to the image name when logging.
 
     Examples:
         >>> from pathlib import Path

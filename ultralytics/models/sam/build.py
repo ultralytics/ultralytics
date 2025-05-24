@@ -21,7 +21,7 @@ from .modules.transformer import TwoWayTransformer
 
 
 def build_sam_vit_h(checkpoint=None):
-    """Builds and returns a Segment Anything Model (SAM) h-size model with specified encoder parameters."""
+    """Build and return a Segment Anything Model (SAM) h-size model with specified encoder parameters."""
     return _build_sam(
         encoder_embed_dim=1280,
         encoder_depth=32,
@@ -32,7 +32,7 @@ def build_sam_vit_h(checkpoint=None):
 
 
 def build_sam_vit_l(checkpoint=None):
-    """Builds and returns a Segment Anything Model (SAM) l-size model with specified encoder parameters."""
+    """Build and return a Segment Anything Model (SAM) l-size model with specified encoder parameters."""
     return _build_sam(
         encoder_embed_dim=1024,
         encoder_depth=24,
@@ -43,7 +43,7 @@ def build_sam_vit_l(checkpoint=None):
 
 
 def build_sam_vit_b(checkpoint=None):
-    """Constructs and returns a Segment Anything Model (SAM) with b-size architecture and optional checkpoint."""
+    """Build and return a Segment Anything Model (SAM) b-size model with specified encoder parameters."""
     return _build_sam(
         encoder_embed_dim=768,
         encoder_depth=12,
@@ -54,7 +54,7 @@ def build_sam_vit_b(checkpoint=None):
 
 
 def build_mobile_sam(checkpoint=None):
-    """Builds and returns a Mobile Segment Anything Model (Mobile-SAM) for efficient image segmentation."""
+    """Build and return a Mobile Segment Anything Model (Mobile-SAM) for efficient image segmentation."""
     return _build_sam(
         encoder_embed_dim=[64, 128, 160, 320],
         encoder_depth=[2, 2, 6, 2],
@@ -66,7 +66,7 @@ def build_mobile_sam(checkpoint=None):
 
 
 def build_sam2_t(checkpoint=None):
-    """Builds and returns a Segment Anything Model 2 (SAM2) tiny-size model with specified architecture parameters."""
+    """Build and return a Segment Anything Model 2 (SAM2) tiny-size model with specified architecture parameters."""
     return _build_sam2(
         encoder_embed_dim=96,
         encoder_stages=[1, 2, 7, 2],
@@ -79,7 +79,7 @@ def build_sam2_t(checkpoint=None):
 
 
 def build_sam2_s(checkpoint=None):
-    """Builds and returns a small-size Segment Anything Model (SAM2) with specified architecture parameters."""
+    """Build and return a small-size Segment Anything Model 2 (SAM2) with specified architecture parameters."""
     return _build_sam2(
         encoder_embed_dim=96,
         encoder_stages=[1, 2, 11, 2],
@@ -92,7 +92,7 @@ def build_sam2_s(checkpoint=None):
 
 
 def build_sam2_b(checkpoint=None):
-    """Builds and returns a SAM2 base-size model with specified architecture parameters."""
+    """Build and return a Segment Anything Model 2 (SAM2) base-size model with specified architecture parameters."""
     return _build_sam2(
         encoder_embed_dim=112,
         encoder_stages=[2, 3, 16, 3],
@@ -106,7 +106,7 @@ def build_sam2_b(checkpoint=None):
 
 
 def build_sam2_l(checkpoint=None):
-    """Builds and returns a large-size Segment Anything Model (SAM2) with specified architecture parameters."""
+    """Build and return a large-size Segment Anything Model 2 (SAM2) with specified architecture parameters."""
     return _build_sam2(
         encoder_embed_dim=144,
         encoder_stages=[2, 6, 36, 4],
@@ -127,15 +127,15 @@ def _build_sam(
     mobile_sam=False,
 ):
     """
-    Builds a Segment Anything Model (SAM) with specified encoder parameters.
+    Build a Segment Anything Model (SAM) with specified encoder parameters.
 
     Args:
         encoder_embed_dim (int | List[int]): Embedding dimension for the encoder.
         encoder_depth (int | List[int]): Depth of the encoder.
         encoder_num_heads (int | List[int]): Number of attention heads in the encoder.
         encoder_global_attn_indexes (List[int] | None): Indexes for global attention in the encoder.
-        checkpoint (str | None): Path to the model checkpoint file.
-        mobile_sam (bool): Whether to build a Mobile-SAM model.
+        checkpoint (str | None, optional): Path to the model checkpoint file.
+        mobile_sam (bool, optional): Whether to build a Mobile-SAM model.
 
     Returns:
         (SAMModel): A Segment Anything Model instance with the specified architecture.
@@ -224,17 +224,17 @@ def _build_sam2(
     checkpoint=None,
 ):
     """
-    Builds and returns a Segment Anything Model 2 (SAM2) with specified architecture parameters.
+    Build and return a Segment Anything Model 2 (SAM2) with specified architecture parameters.
 
     Args:
-        encoder_embed_dim (int): Embedding dimension for the encoder.
-        encoder_stages (List[int]): Number of blocks in each stage of the encoder.
-        encoder_num_heads (int): Number of attention heads in the encoder.
-        encoder_global_att_blocks (List[int]): Indices of global attention blocks in the encoder.
-        encoder_backbone_channel_list (List[int]): Channel dimensions for each level of the encoder backbone.
-        encoder_window_spatial_size (List[int]): Spatial size of the window for position embeddings.
-        encoder_window_spec (List[int]): Window specifications for each stage of the encoder.
-        checkpoint (str | None): Path to the checkpoint file for loading pre-trained weights.
+        encoder_embed_dim (int, optional): Embedding dimension for the encoder.
+        encoder_stages (List[int], optional): Number of blocks in each stage of the encoder.
+        encoder_num_heads (int, optional): Number of attention heads in the encoder.
+        encoder_global_att_blocks (List[int], optional): Indices of global attention blocks in the encoder.
+        encoder_backbone_channel_list (List[int], optional): Channel dimensions for each level of the encoder backbone.
+        encoder_window_spatial_size (List[int], optional): Spatial size of the window for position embeddings.
+        encoder_window_spec (List[int], optional): Window specifications for each stage of the encoder.
+        checkpoint (str | None, optional): Path to the checkpoint file for loading pre-trained weights.
 
     Returns:
         (SAM2Model): A configured and initialized SAM2 model.
@@ -326,10 +326,10 @@ sam_model_map = {
 
 def build_sam(ckpt="sam_b.pt"):
     """
-    Builds and returns a Segment Anything Model (SAM) based on the provided checkpoint.
+    Build and return a Segment Anything Model (SAM) based on the provided checkpoint.
 
     Args:
-        ckpt (str | Path): Path to the checkpoint file or name of a pre-defined SAM model.
+        ckpt (str | Path, optional): Path to the checkpoint file or name of a pre-defined SAM model.
 
     Returns:
         (SAMModel | SAM2Model): A configured and initialized SAM or SAM2 model instance.

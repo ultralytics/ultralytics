@@ -37,7 +37,7 @@ except (ImportError, AssertionError):
 
 
 def _get_comet_mode() -> str:
-    """Returns the mode of comet set in the environment variables, defaults to 'online' if not set."""
+    """Return the Comet mode from environment variables, defaulting to 'online'."""
     comet_mode = os.getenv("COMET_MODE")
     if comet_mode is not None:
         LOGGER.warning(
@@ -52,7 +52,7 @@ def _get_comet_mode() -> str:
 
 
 def _get_comet_model_name() -> str:
-    """Returns the model name for Comet from the environment variable COMET_MODEL_NAME or defaults to 'Ultralytics'."""
+    """Return the Comet model name from environment variable or default to 'Ultralytics'."""
     return os.getenv("COMET_MODEL_NAME", "Ultralytics")
 
 
@@ -62,31 +62,34 @@ def _get_eval_batch_logging_interval() -> int:
 
 
 def _get_max_image_predictions_to_log() -> int:
-    """Get the maximum number of image predictions to log from the environment variables."""
+    """Get the maximum number of image predictions to log from environment variables."""
     return int(os.getenv("COMET_MAX_IMAGE_PREDICTIONS", 100))
 
 
 def _scale_confidence_score(score: float) -> float:
-    """Scales the given confidence score by a factor specified in an environment variable."""
+    """Scale the confidence score by a factor specified in environment variable."""
     scale = float(os.getenv("COMET_MAX_CONFIDENCE_SCORE", 100.0))
     return score * scale
 
 
 def _should_log_confusion_matrix() -> bool:
-    """Determines if the confusion matrix should be logged based on the environment variable settings."""
+    """Determine if the confusion matrix should be logged based on environment variable settings."""
     return os.getenv("COMET_EVAL_LOG_CONFUSION_MATRIX", "false").lower() == "true"
 
 
 def _should_log_image_predictions() -> bool:
-    """Determines whether to log image predictions based on a specified environment variable."""
+    """Determine whether to log image predictions based on environment variable."""
     return os.getenv("COMET_EVAL_LOG_IMAGE_PREDICTIONS", "true").lower() == "true"
 
 
 def _resume_or_create_experiment(args: SimpleNamespace) -> None:
     """
-    Resumes CometML experiment or creates a new experiment based on args.
+    Resume CometML experiment or create a new experiment based on args.
 
     Ensures that the experiment object is only created in a single process during distributed training.
+
+    Args:
+        args (SimpleNamespace): Training arguments containing project configuration and other parameters.
     """
     if RANK not in {-1, 0}:
         return
@@ -116,7 +119,15 @@ def _resume_or_create_experiment(args: SimpleNamespace) -> None:
 
 
 def _fetch_trainer_metadata(trainer) -> dict:
-    """Returns metadata for YOLO training including epoch and asset saving status."""
+    """
+    Return metadata for YOLO training including epoch and asset saving status.
+
+    Args:
+        trainer (ultralytics.engine.trainer.BaseTrainer): The YOLO trainer object containing training state and config.
+
+    Returns:
+        (dict): Dictionary containing current epoch, step, save assets flag, and final epoch flag.
+    """
     curr_epoch = trainer.epoch + 1
 
     train_num_steps_per_epoch = len(trainer.train_loader.dataset) // trainer.batch_size
@@ -135,9 +146,19 @@ def _scale_bounding_box_to_original_image_shape(
     box, resized_image_shape, original_image_shape, ratio_pad
 ) -> List[float]:
     """
-    YOLO resizes images during training and the label values are normalized based on this resized shape.
+    Scale bounding box from resized image coordinates to original image coordinates.
 
+    YOLO resizes images during training and the label values are normalized based on this resized shape.
     This function rescales the bounding box labels to the original image shape.
+
+    Args:
+        box (torch.Tensor): Bounding box in normalized xywh format.
+        resized_image_shape (tuple): Shape of the resized image (height, width).
+        original_image_shape (tuple): Shape of the original image (height, width).
+        ratio_pad (tuple): Ratio and padding information for scaling.
+
+    Returns:
+        (List[float]): Scaled bounding box coordinates in xywh format with top-left corner adjustment.
     """
     resized_image_height, resized_image_width = resized_image_shape
 
@@ -172,14 +193,14 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
             - 'ori_shape': Original image shapes
             - 'resized_shape': Resized image shapes
             - 'ratio_pad': Ratio and padding information
-        class_name_map (dict | None, optional): Mapping from class indices to class names.
+        class_name_map (dict, optional): Mapping from class indices to class names.
 
     Returns:
         (dict | None): Formatted ground truth annotations with the following structure:
             - 'boxes': List of box coordinates [x, y, width, height]
             - 'label': Label string with format "gt_{class_name}"
             - 'score': Confidence score (always 1.0, scaled by _scale_confidence_score)
-            Returns None if no bounding boxes are found for the image.
+        Returns None if no bounding boxes are found for the image.
     """
     indices = batch["batch_idx"] == img_idx
     bboxes = batch["bboxes"][indices]
@@ -210,7 +231,18 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
 
 
 def _format_prediction_annotations(image_path, metadata, class_label_map=None, class_map=None) -> Optional[dict]:
-    """Format YOLO predictions for object detection visualization."""
+    """
+    Format YOLO predictions for object detection visualization.
+
+    Args:
+        image_path (Path): Path to the image file.
+        metadata (dict): Prediction metadata containing bounding boxes and class information.
+        class_label_map (dict, optional): Mapping from class indices to class names.
+        class_map (dict, optional): Additional class mapping for label conversion.
+
+    Returns:
+        (dict | None): Formatted prediction annotations or None if no predictions exist.
+    """
     stem = image_path.stem
     image_id = int(stem) if stem.isnumeric() else stem
 
@@ -253,14 +285,14 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
 
 def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) -> Optional[List[List[Any]]]:
     """
-    Extracts segmentation annotation from compressed segmentations as list of polygons.
+    Extract segmentation annotation from compressed segmentations as list of polygons.
 
     Args:
-        segmentation_raw: Raw segmentation data in compressed format.
-        decode: Function to decode the compressed segmentation data.
+        segmentation_raw (str): Raw segmentation data in compressed format.
+        decode (Callable): Function to decode the compressed segmentation data.
 
     Returns:
-        (Optional[List[List[Any]]]): List of polygon points or None if extraction fails.
+        (List[List[Any]] | None): List of polygon points or None if extraction fails.
     """
     try:
         mask = decode(segmentation_raw)
@@ -275,7 +307,20 @@ def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) ->
 def _fetch_annotations(
     img_idx, image_path, batch, prediction_metadata_map, class_label_map, class_map
 ) -> Optional[List]:
-    """Join the ground truth and prediction annotations if they exist."""
+    """
+    Join the ground truth and prediction annotations if they exist.
+
+    Args:
+        img_idx (int): Index of the image in the batch.
+        image_path (Path): Path to the image file.
+        batch (dict): Batch data containing ground truth annotations.
+        prediction_metadata_map (dict): Map of prediction metadata by image ID.
+        class_label_map (dict): Mapping from class indices to class names.
+        class_map (dict): Additional class mapping for label conversion.
+
+    Returns:
+        (List | None): List of annotation dictionaries or None if no annotations exist.
+    """
     ground_truth_annotations = _format_ground_truth_annotations_for_detection(
         img_idx, image_path, batch, class_label_map
     )
@@ -290,7 +335,7 @@ def _fetch_annotations(
 
 
 def _create_prediction_metadata_map(model_predictions) -> dict:
-    """Create metadata map for model predictions by groupings them based on image ID."""
+    """Create metadata map for model predictions by grouping them based on image ID."""
     pred_metadata_map = {}
     for prediction in model_predictions:
         pred_metadata_map.setdefault(prediction["image_id"], [])
@@ -319,11 +364,8 @@ def _log_images(experiment, image_paths, curr_step, annotations=None) -> None:
         experiment (comet_ml.Experiment): The Comet ML experiment to log images to.
         image_paths (List[Path]): List of paths to images that will be logged.
         curr_step (int): Current training step/iteration for tracking in the experiment timeline.
-        annotations (List[List[dict]], optional): Nested list of annotation dictionaries for each image. Each annotation
-            contains visualization data like bounding boxes, labels, and confidence scores.
-
-    Returns:
-        None
+        annotations (List[List[dict]], optional): Nested list of annotation dictionaries for each image. Each
+            annotation contains visualization data like bounding boxes, labels, and confidence scores.
     """
     if annotations:
         for image_path, annotation in zip(image_paths, annotations):
@@ -448,13 +490,13 @@ def _log_model(experiment, trainer) -> None:
 
 
 def _log_image_batches(experiment, trainer, curr_step: int) -> None:
-    """Log samples of images batches for train, validation, and test."""
+    """Log samples of image batches for train, validation, and test."""
     _log_images(experiment, trainer.save_dir.glob("train_batch*.jpg"), curr_step)
     _log_images(experiment, trainer.save_dir.glob("val_batch*.jpg"), curr_step)
 
 
 def on_pretrain_routine_start(trainer) -> None:
-    """Creates or resumes a CometML experiment at the start of a YOLO pre-training routine."""
+    """Create or resume a CometML experiment at the start of a YOLO pre-training routine."""
     _resume_or_create_experiment(trainer.args)
 
 

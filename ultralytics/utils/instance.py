@@ -11,7 +11,7 @@ from .ops import ltwh2xywh, ltwh2xyxy, resample_segments, xywh2ltwh, xywh2xyxy, 
 
 
 def _ntuple(n):
-    """From PyTorch internals."""
+    """Create a function that converts input to n-tuple by repeating singleton values."""
 
     def parse(x):
         """Parse input to return n-tuple by repeating singleton values n times."""
@@ -33,16 +33,29 @@ __all__ = ("Bboxes", "Instances")  # tuple or list
 
 class Bboxes:
     """
-    A class for handling bounding boxes.
+    A class for handling bounding boxes in multiple formats.
 
-    The class supports various bounding box formats like 'xyxy', 'xywh', and 'ltwh'.
-    Bounding box data should be provided in numpy arrays.
+    The class supports various bounding box formats like 'xyxy', 'xywh', and 'ltwh' and provides methods for format
+    conversion, scaling, and area calculation. Bounding box data should be provided as numpy arrays.
 
     Attributes:
         bboxes (np.ndarray): The bounding boxes stored in a 2D numpy array with shape (N, 4).
         format (str): The format of the bounding boxes ('xyxy', 'xywh', or 'ltwh').
 
-    Note:
+    Methods:
+        convert: Convert bounding box format from one type to another.
+        areas: Calculate the area of bounding boxes.
+        mul: Multiply bounding box coordinates by scale factor(s).
+        add: Add offset to bounding box coordinates.
+        concatenate: Concatenate multiple Bboxes objects.
+
+    Examples:
+        Create bounding boxes in YOLO format
+        >>> bboxes = Bboxes(np.array([[100, 50, 150, 100]]), format="xywh")
+        >>> bboxes.convert("xyxy")
+        >>> print(bboxes.areas())
+
+    Notes:
         This class does not handle normalization or denormalization of bounding boxes.
     """
 
@@ -60,7 +73,6 @@ class Bboxes:
         assert bboxes.shape[1] == 4
         self.bboxes = bboxes
         self.format = format
-        # self.normalized = normalized
 
     def convert(self, format):
         """
@@ -82,36 +94,20 @@ class Bboxes:
         self.format = format
 
     def areas(self):
-        """Return box areas."""
+        """Calculate the area of bounding boxes."""
         return (
             (self.bboxes[:, 2] - self.bboxes[:, 0]) * (self.bboxes[:, 3] - self.bboxes[:, 1])  # format xyxy
             if self.format == "xyxy"
             else self.bboxes[:, 3] * self.bboxes[:, 2]  # format xywh or ltwh
         )
 
-    # def denormalize(self, w, h):
-    #    if not self.normalized:
-    #         return
-    #     assert (self.bboxes <= 1.0).all()
-    #     self.bboxes[:, 0::2] *= w
-    #     self.bboxes[:, 1::2] *= h
-    #     self.normalized = False
-    #
-    # def normalize(self, w, h):
-    #     if self.normalized:
-    #         return
-    #     assert (self.bboxes > 1.0).any()
-    #     self.bboxes[:, 0::2] /= w
-    #     self.bboxes[:, 1::2] /= h
-    #     self.normalized = True
-
     def mul(self, scale):
         """
         Multiply bounding box coordinates by scale factor(s).
 
         Args:
-            scale (int | tuple | list): Scale factor(s) for four coordinates.
-                If int, the same scale is applied to all coordinates.
+            scale (int | tuple | list): Scale factor(s) for four coordinates. If int, the same scale is applied to
+                all coordinates.
         """
         if isinstance(scale, Number):
             scale = to_4tuple(scale)
@@ -127,8 +123,8 @@ class Bboxes:
         Add offset to bounding box coordinates.
 
         Args:
-            offset (int | tuple | list): Offset(s) for four coordinates.
-                If int, the same offset is applied to all coordinates.
+            offset (int | tuple | list): Offset(s) for four coordinates. If int, the same offset is applied to
+                all coordinates.
         """
         if isinstance(offset, Number):
             offset = to_4tuple(offset)
@@ -140,7 +136,7 @@ class Bboxes:
         self.bboxes[:, 3] += offset[3]
 
     def __len__(self):
-        """Return the number of boxes."""
+        """Return the number of bounding boxes."""
         return len(self.bboxes)
 
     @classmethod
@@ -155,7 +151,7 @@ class Bboxes:
         Returns:
             (Bboxes): A new Bboxes object containing the concatenated bounding boxes.
 
-        Note:
+        Notes:
             The input should be a list or tuple of Bboxes objects.
         """
         assert isinstance(boxes_list, (list, tuple))
@@ -172,18 +168,14 @@ class Bboxes:
         Retrieve a specific bounding box or a set of bounding boxes using indexing.
 
         Args:
-            index (int | slice | np.ndarray): The index, slice, or boolean array to select
-                                              the desired bounding boxes.
+            index (int | slice | np.ndarray): The index, slice, or boolean array to select the desired bounding boxes.
 
         Returns:
             (Bboxes): A new Bboxes object containing the selected bounding boxes.
 
-        Raises:
-            AssertionError: If the indexed bounding boxes do not form a 2-dimensional matrix.
-
-        Note:
-            When using boolean indexing, make sure to provide a boolean array with the same
-            length as the number of bounding boxes.
+        Notes:
+            When using boolean indexing, make sure to provide a boolean array with the same length as the number of
+            bounding boxes.
         """
         if isinstance(index, int):
             return Bboxes(self.bboxes[index].reshape(1, -1))
@@ -195,6 +187,10 @@ class Bboxes:
 class Instances:
     """
     Container for bounding boxes, segments, and keypoints of detected objects in an image.
+
+    This class provides a unified interface for handling different types of object annotations including bounding
+    boxes, segmentation masks, and keypoints. It supports various operations like scaling, normalization, clipping,
+    and format conversion.
 
     Attributes:
         _bboxes (Bboxes): Internal object for handling bounding box operations.
@@ -216,6 +212,7 @@ class Instances:
         concatenate: Concatenate multiple Instances objects.
 
     Examples:
+        Create instances with bounding boxes and segments
         >>> instances = Instances(
         ...     bboxes=np.array([[10, 10, 30, 30], [20, 20, 40, 40]]),
         ...     segments=[np.array([[5, 5], [10, 10]]), np.array([[15, 15], [20, 20]])],
@@ -225,14 +222,14 @@ class Instances:
 
     def __init__(self, bboxes, segments=None, keypoints=None, bbox_format="xywh", normalized=True) -> None:
         """
-        Initialize the object with bounding boxes, segments, and keypoints.
+        Initialize the Instances object with bounding boxes, segments, and keypoints.
 
         Args:
-            bboxes (np.ndarray): Bounding boxes, shape (N, 4).
+            bboxes (np.ndarray): Bounding boxes with shape (N, 4).
             segments (List | np.ndarray, optional): Segmentation masks.
-            keypoints (np.ndarray, optional): Keypoints, shape (N, 17, 3) in format (x, y, visible).
-            bbox_format (str, optional): Format of bboxes.
-            normalized (bool, optional): Whether the coordinates are normalized.
+            keypoints (np.ndarray, optional): Keypoints with shape (N, 17, 3) in format (x, y, visible).
+            bbox_format (str): Format of bboxes.
+            normalized (bool): Whether the coordinates are normalized.
         """
         self._bboxes = Bboxes(bboxes=bboxes, format=bbox_format)
         self.keypoints = keypoints
@@ -333,9 +330,9 @@ class Instances:
         Returns:
             (Instances): A new Instances object containing the selected boxes, segments, and keypoints if present.
 
-        Note:
-            When using boolean indexing, make sure to provide a boolean array with the same
-            length as the number of instances.
+        Notes:
+            When using boolean indexing, make sure to provide a boolean array with the same length as the number of
+            instances.
         """
         segments = self.segments[index] if len(self.segments) else self.segments
         keypoints = self.keypoints[index] if self.keypoints is not None else None
@@ -442,7 +439,7 @@ class Instances:
             self.keypoints = keypoints
 
     def __len__(self):
-        """Return the length of the instance list."""
+        """Return the number of instances."""
         return len(self.bboxes)
 
     @classmethod
@@ -455,13 +452,12 @@ class Instances:
             axis (int, optional): The axis along which the arrays will be concatenated.
 
         Returns:
-            (Instances): A new Instances object containing the concatenated bounding boxes,
-                       segments, and keypoints if present.
+            (Instances): A new Instances object containing the concatenated bounding boxes, segments, and keypoints
+                if present.
 
-        Note:
-            The `Instances` objects in the list should have the same properties, such as
-            the format of the bounding boxes, whether keypoints are present, and if the
-            coordinates are normalized.
+        Notes:
+            The `Instances` objects in the list should have the same properties, such as the format of the bounding
+            boxes, whether keypoints are present, and if the coordinates are normalized.
         """
         assert isinstance(instances_list, (list, tuple))
         if not instances_list:

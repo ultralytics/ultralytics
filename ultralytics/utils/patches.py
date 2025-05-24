@@ -3,6 +3,7 @@
 
 import time
 from pathlib import Path
+from typing import List, Optional
 
 import cv2
 import numpy as np
@@ -12,16 +13,16 @@ import torch
 _imshow = cv2.imshow  # copy to avoid recursion errors
 
 
-def imread(filename: str, flags: int = cv2.IMREAD_COLOR):
+def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> Optional[np.ndarray]:
     """
-    Read an image from a file.
+    Read an image from a file with multilanguage filename support.
 
     Args:
         filename (str): Path to the file to read.
-        flags (int): Flag that can take values of cv2.IMREAD_*. Controls how the image is read.
+        flags (int, optional): Flag that can take values of cv2.IMREAD_*. Controls how the image is read.
 
     Returns:
-        (np.ndarray): The read image.
+        (np.ndarray | None): The read image array, or None if reading fails.
 
     Examples:
         >>> img = imread("path/to/image.jpg")
@@ -31,17 +32,17 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR):
     if filename.endswith((".tiff", ".tif")):
         success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
         if success:
-            # handle RGB images in tif/tiff format
+            # Handle RGB images in tif/tiff format
             return frames[0] if len(frames) == 1 and frames[0].ndim == 3 else np.stack(frames, axis=2)
         return None
     else:
         im = cv2.imdecode(file_bytes, flags)
-        return im[..., None] if im.ndim == 2 else im  # always make sure there's 3 dimensions
+        return im[..., None] if im.ndim == 2 else im  # Always ensure 3 dimensions
 
 
-def imwrite(filename: str, img: np.ndarray, params=None):
+def imwrite(filename: str, img: np.ndarray, params: Optional[List[int]] = None) -> bool:
     """
-    Write an image to a file.
+    Write an image to a file with multilanguage filename support.
 
     Args:
         filename (str): Path to the file to write.
@@ -65,12 +66,12 @@ def imwrite(filename: str, img: np.ndarray, params=None):
         return False
 
 
-def imshow(winname: str, mat: np.ndarray):
+def imshow(winname: str, mat: np.ndarray) -> None:
     """
-    Display an image in the specified window.
+    Display an image in the specified window with multilanguage window name support.
 
-    This function is a wrapper around OpenCV's imshow function that displays an image in a named window. It is
-    particularly useful for visualizing images during development and debugging.
+    This function is a wrapper around OpenCV's imshow function that displays an image in a named window. It handles
+    multilanguage window names by encoding them properly for OpenCV compatibility.
 
     Args:
         winname (str): Name of the window where the image will be displayed. If a window with this name already
@@ -127,9 +128,6 @@ def torch_save(*args, **kwargs):
         *args (Any): Positional arguments to pass to torch.save.
         **kwargs (Any): Keyword arguments to pass to torch.save.
 
-    Returns:
-        (Any): Result of torch.save operation if successful, None otherwise.
-
     Examples:
         >>> model = torch.nn.Linear(10, 1)
         >>> torch_save(model.state_dict(), "model.pt")
@@ -137,7 +135,7 @@ def torch_save(*args, **kwargs):
     for i in range(4):  # 3 retries
         try:
             return _torch_save(*args, **kwargs)
-        except RuntimeError as e:  # unable to save, possibly waiting for device to flush or antivirus scan
+        except RuntimeError as e:  # Unable to save, possibly waiting for device to flush or antivirus scan
             if i == 3:
                 raise e
-            time.sleep((2**i) / 2)  # exponential standoff: 0.5s, 1.0s, 2.0s
+            time.sleep((2**i) / 2)  # Exponential backoff: 0.5s, 1.0s, 2.0s

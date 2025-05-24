@@ -7,7 +7,7 @@ import random
 from copy import deepcopy
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import cv2
 import numpy as np
@@ -32,6 +32,7 @@ class BaseDataset(Dataset):
         single_cls (bool): Whether to treat all objects as a single class.
         prefix (str): Prefix to print in log messages.
         fraction (float): Fraction of dataset to utilize.
+        channels (int): Number of channels in the images (1 for grayscale, 3 for RGB).
         cv2_flag (int): OpenCV flag for reading images.
         im_files (List[str]): List of image file paths.
         labels (List[Dict]): List of label data dictionaries.
@@ -48,6 +49,8 @@ class BaseDataset(Dataset):
         npy_files (List[Path]): List of numpy file paths.
         cache (str): Cache images to RAM or disk during training.
         transforms (callable): Image transformation function.
+        batch_shapes (np.ndarray): Batch shapes for rectangular training.
+        batch (np.ndarray): Batch index of each image.
 
     Methods:
         get_img_files: Read image files from the specified path.
@@ -66,39 +69,39 @@ class BaseDataset(Dataset):
 
     def __init__(
         self,
-        img_path,
-        imgsz=640,
-        cache=False,
-        augment=True,
-        hyp=DEFAULT_CFG,
-        prefix="",
-        rect=False,
-        batch_size=16,
-        stride=32,
-        pad=0.5,
-        single_cls=False,
-        classes=None,
-        fraction=1.0,
-        channels=3,
+        img_path: Union[str, List[str]],
+        imgsz: int = 640,
+        cache: Union[bool, str] = False,
+        augment: bool = True,
+        hyp: Dict[str, Any] = DEFAULT_CFG,
+        prefix: str = "",
+        rect: bool = False,
+        batch_size: int = 16,
+        stride: int = 32,
+        pad: float = 0.5,
+        single_cls: bool = False,
+        classes: Optional[List[int]] = None,
+        fraction: float = 1.0,
+        channels: int = 3,
     ):
         """
         Initialize BaseDataset with given configuration and options.
 
         Args:
-            img_path (str): Path to the folder containing images.
-            imgsz (int, optional): Image size for resizing.
-            cache (bool | str, optional): Cache images to RAM or disk during training.
-            augment (bool, optional): If True, data augmentation is applied.
-            hyp (dict, optional): Hyperparameters to apply data augmentation.
-            prefix (str, optional): Prefix to print in log messages.
-            rect (bool, optional): If True, rectangular training is used.
-            batch_size (int, optional): Size of batches.
-            stride (int, optional): Stride used in the model.
-            pad (float, optional): Padding value.
-            single_cls (bool, optional): If True, single class training is used.
-            classes (list, optional): List of included classes.
-            fraction (float, optional): Fraction of dataset to utilize.
-            channels (int, optional): Number of channels in the images (1 for grayscale, 3 for RGB).
+            img_path (str | List[str]): Path to the folder containing images or list of image paths.
+            imgsz (int): Image size for resizing.
+            cache (bool | str): Cache images to RAM or disk during training.
+            augment (bool): If True, data augmentation is applied.
+            hyp (Dict[str, Any]): Hyperparameters to apply data augmentation.
+            prefix (str): Prefix to print in log messages.
+            rect (bool): If True, rectangular training is used.
+            batch_size (int): Size of batches.
+            stride (int): Stride used in the model.
+            pad (float): Padding value.
+            single_cls (bool): If True, single class training is used.
+            classes (List[int], optional): List of included classes.
+            fraction (float): Fraction of dataset to utilize.
+            channels (int): Number of channels in the images (1 for grayscale, 3 for RGB).
         """
         super().__init__()
         self.img_path = img_path
@@ -142,7 +145,7 @@ class BaseDataset(Dataset):
         # Transforms
         self.transforms = self.build_transforms(hyp=hyp)
 
-    def get_img_files(self, img_path):
+    def get_img_files(self, img_path: Union[str, List[str]]) -> List[str]:
         """
         Read image files from the specified path.
 
@@ -180,12 +183,12 @@ class BaseDataset(Dataset):
         check_file_speeds(im_files, prefix=self.prefix)  # check image read speeds
         return im_files
 
-    def update_labels(self, include_class: Optional[list]):
+    def update_labels(self, include_class: Optional[List[int]]) -> None:
         """
         Update labels to include only specified classes.
 
         Args:
-            include_class (list, optional): List of classes to include. If None, all classes are included.
+            include_class (List[int], optional): List of classes to include. If None, all classes are included.
         """
         include_class_array = np.array(include_class).reshape(1, -1)
         for i in range(len(self.labels)):
@@ -204,18 +207,18 @@ class BaseDataset(Dataset):
             if self.single_cls:
                 self.labels[i]["cls"][:, 0] = 0
 
-    def load_image(self, i, rect_mode=True):
+    def load_image(self, i: int, rect_mode: bool = True) -> Tuple[np.ndarray, Tuple[int, int], Tuple[int, int]]:
         """
         Load an image from dataset index 'i'.
 
         Args:
             i (int): Index of the image to load.
-            rect_mode (bool, optional): Whether to use rectangular resizing.
+            rect_mode (bool): Whether to use rectangular resizing.
 
         Returns:
-            (np.ndarray): Loaded image as a NumPy array.
-            (Tuple[int, int]): Original image dimensions in (height, width) format.
-            (Tuple[int, int]): Resized image dimensions in (height, width) format.
+            im (np.ndarray): Loaded image as a NumPy array.
+            hw_original (Tuple[int, int]): Original image dimensions in (height, width) format.
+            hw_resized (Tuple[int, int]): Resized image dimensions in (height, width) format.
 
         Raises:
             FileNotFoundError: If the image file is not found.
@@ -258,7 +261,7 @@ class BaseDataset(Dataset):
 
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
 
-    def cache_images(self):
+    def cache_images(self) -> None:
         """Cache images to memory or disk for faster training."""
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
         fcn, storage = (self.cache_images_to_disk, "Disk") if self.cache == "disk" else (self.load_image, "RAM")
@@ -274,18 +277,18 @@ class BaseDataset(Dataset):
                 pbar.desc = f"{self.prefix}Caching images ({b / gb:.1f}GB {storage})"
             pbar.close()
 
-    def cache_images_to_disk(self, i):
+    def cache_images_to_disk(self, i: int) -> None:
         """Save an image as an *.npy file for faster loading."""
         f = self.npy_files[i]
         if not f.exists():
             np.save(f.as_posix(), imread(self.im_files[i]), allow_pickle=False)
 
-    def check_cache_disk(self, safety_margin=0.5):
+    def check_cache_disk(self, safety_margin: float = 0.5) -> bool:
         """
         Check if there's enough disk space for caching images.
 
         Args:
-            safety_margin (float, optional): Safety margin factor for disk space calculation.
+            safety_margin (float): Safety margin factor for disk space calculation.
 
         Returns:
             (bool): True if there's enough disk space, False otherwise.
@@ -316,12 +319,12 @@ class BaseDataset(Dataset):
             return False
         return True
 
-    def check_cache_ram(self, safety_margin=0.5):
+    def check_cache_ram(self, safety_margin: float = 0.5) -> bool:
         """
         Check if there's enough RAM for caching images.
 
         Args:
-            safety_margin (float, optional): Safety margin factor for RAM calculation.
+            safety_margin (float): Safety margin factor for RAM calculation.
 
         Returns:
             (bool): True if there's enough RAM, False otherwise.
@@ -346,7 +349,7 @@ class BaseDataset(Dataset):
             return False
         return True
 
-    def set_rectangle(self):
+    def set_rectangle(self) -> None:
         """Set the shape of bounding boxes for YOLO detections as rectangles."""
         bi = np.floor(np.arange(self.ni) / self.batch_size).astype(int)  # batch index
         nb = bi[-1] + 1  # number of batches
@@ -371,11 +374,11 @@ class BaseDataset(Dataset):
         self.batch_shapes = np.ceil(np.array(shapes) * self.imgsz / self.stride + self.pad).astype(int) * self.stride
         self.batch = bi  # batch index of image
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> Dict[str, Any]:
         """Return transformed label information for given index."""
         return self.transforms(self.get_image_and_label(index))
 
-    def get_image_and_label(self, index):
+    def get_image_and_label(self, index: int) -> Dict[str, Any]:
         """
         Get and return label information from the dataset.
 
@@ -383,7 +386,7 @@ class BaseDataset(Dataset):
             index (int): Index of the image to retrieve.
 
         Returns:
-            (dict): Label dictionary with image and metadata.
+            (Dict[str, Any]): Label dictionary with image and metadata.
         """
         label = deepcopy(self.labels[index])  # requires deepcopy() https://github.com/ultralytics/ultralytics/pull/1948
         label.pop("shape", None)  # shape is for rect, remove it
@@ -396,15 +399,15 @@ class BaseDataset(Dataset):
             label["rect_shape"] = self.batch_shapes[self.batch[index]]
         return self.update_labels_info(label)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the length of the labels list for the dataset."""
         return len(self.labels)
 
-    def update_labels_info(self, label):
+    def update_labels_info(self, label: Dict[str, Any]) -> Dict[str, Any]:
         """Custom your label format here."""
         return label
 
-    def build_transforms(self, hyp=None):
+    def build_transforms(self, hyp: Optional[Dict[str, Any]] = None):
         """
         Users can customize augmentations here.
 
@@ -418,7 +421,7 @@ class BaseDataset(Dataset):
         """
         raise NotImplementedError
 
-    def get_labels(self):
+    def get_labels(self) -> List[Dict[str, Any]]:
         """
         Users can customize their own format here.
 

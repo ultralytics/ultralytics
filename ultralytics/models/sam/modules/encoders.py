@@ -35,7 +35,7 @@ class ImageEncoderViT(nn.Module):
         neck (nn.Sequential): Neck module to further process the output.
 
     Methods:
-        forward: Processes input through patch embedding, positional embedding, blocks, and neck.
+        forward: Process input through patch embedding, positional embedding, blocks, and neck.
 
     Examples:
         >>> import torch
@@ -157,7 +157,7 @@ class ImageEncoderViT(nn.Module):
 
 class PromptEncoder(nn.Module):
     """
-    Encodes different types of prompts for input to SAM's mask decoder, producing sparse and dense embeddings.
+    Encode different types of prompts for input to SAM's mask decoder, producing sparse and dense embeddings.
 
     Attributes:
         embed_dim (int): Dimension of the embeddings.
@@ -172,8 +172,8 @@ class PromptEncoder(nn.Module):
         no_mask_embed (nn.Embedding): Embedding for cases where no mask is provided.
 
     Methods:
-        get_dense_pe: Returns the positional encoding used to encode point prompts.
-        forward: Embeds different types of prompts, returning both sparse and dense embeddings.
+        get_dense_pe: Return the positional encoding used to encode point prompts.
+        forward: Embed different types of prompts, returning both sparse and dense embeddings.
 
     Examples:
         >>> prompt_encoder = PromptEncoder(256, (64, 64), (1024, 1024), 16)
@@ -419,7 +419,7 @@ class MemoryEncoder(nn.Module):
         pix_feat: torch.Tensor,
         masks: torch.Tensor,
         skip_mask_sigmoid: bool = False,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> dict:
         """Process pixel features and masks to generate encoded memory representations for segmentation."""
         if not skip_mask_sigmoid:
             masks = F.sigmoid(masks)

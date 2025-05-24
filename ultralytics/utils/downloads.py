@@ -6,6 +6,7 @@ import subprocess
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
+from typing import List, Tuple
 from urllib import parse, request
 
 import torch
@@ -41,7 +42,7 @@ GITHUB_ASSETS_NAMES = frozenset(
 GITHUB_ASSETS_STEMS = frozenset(k.rpartition(".")[0] for k in GITHUB_ASSETS_NAMES)
 
 
-def is_url(url, check=False):
+def is_url(url, check: bool = False) -> bool:
     """
     Validate if the given string is a URL and optionally check if the URL exists online.
 
@@ -91,7 +92,7 @@ def delete_dsstore(path, files_to_delete=(".DS_Store", "__MACOSX")):
             f.unlink()
 
 
-def zip_directory(directory, compress=True, exclude=(".DS_Store", "__MACOSX"), progress=True):
+def zip_directory(directory, compress: bool = True, exclude=(".DS_Store", "__MACOSX"), progress: bool = True) -> Path:
     """
     Zip the contents of a directory, excluding specified files.
 
@@ -128,7 +129,9 @@ def zip_directory(directory, compress=True, exclude=(".DS_Store", "__MACOSX"), p
     return zip_file  # return path to zip file
 
 
-def unzip_file(file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok=False, progress=True):
+def unzip_file(
+    file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok: bool = False, progress: bool = True,
+) -> Path:
     """
     Unzip a *.zip file to the specified path, excluding specified files.
 
@@ -191,7 +194,9 @@ def unzip_file(file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok=Fals
     return path  # return unzip dir
 
 
-def check_disk_space(url="https://ultralytics.com/assets/coco8.zip", path=Path.cwd(), sf=1.5, hard=True):
+def check_disk_space(
+    url: str = "https://ultralytics.com/assets/coco8.zip", path=Path.cwd(), sf: float = 1.5, hard: bool = True,
+) -> bool:
     """
     Check if there is sufficient disk space to download and store a file.
 
@@ -231,7 +236,7 @@ def check_disk_space(url="https://ultralytics.com/assets/coco8.zip", path=Path.c
     return False
 
 
-def get_google_drive_file_info(link):
+def get_google_drive_file_info(link: str) -> Tuple[str, str]:
     """
     Retrieve the direct download link and filename for a shareable Google Drive file link.
 
@@ -275,13 +280,13 @@ def safe_download(
     url,
     file=None,
     dir=None,
-    unzip=True,
-    delete=False,
-    curl=False,
-    retry=3,
-    min_bytes=1e0,
-    exist_ok=False,
-    progress=True,
+    unzip: bool = True,
+    delete: bool = False,
+    curl: bool = False,
+    retry: int = 3,
+    min_bytes: float = 1e0,
+    exist_ok: bool = False,
+    progress: bool = True,
 ):
     """
     Download files from a URL with options for retrying, unzipping, and deleting the downloaded file.
@@ -376,7 +381,9 @@ def safe_download(
     return f
 
 
-def get_github_assets(repo="ultralytics/assets", version="latest", retry=False):
+def get_github_assets(
+    repo: str = "ultralytics/assets", version: str = "latest", retry: bool = False,
+) -> Tuple[str, List[str]]:
     """
     Retrieve the specified version's tag and assets from a GitHub repository.
 
@@ -409,7 +416,7 @@ def get_github_assets(repo="ultralytics/assets", version="latest", retry=False):
     return data["tag_name"], [x["name"] for x in data["assets"]]  # tag, assets i.e. ['yolo11n.pt', 'yolov8s.pt', ...]
 
 
-def attempt_download_asset(file, repo="ultralytics/assets", release="v8.3.0", **kwargs):
+def attempt_download_asset(file, repo: str = "ultralytics/assets", release: str = "v8.3.0", **kwargs) -> str:
     """
     Attempt to download a file from GitHub release assets if it is not found locally.
 
@@ -460,7 +467,16 @@ def attempt_download_asset(file, repo="ultralytics/assets", release="v8.3.0", **
         return str(file)
 
 
-def download(url, dir=Path.cwd(), unzip=True, delete=False, curl=False, threads=1, retry=3, exist_ok=False):
+def download(
+    url,
+    dir=Path.cwd(),
+    unzip: bool = True,
+    delete: bool = False,
+    curl: bool = False,
+    threads: int = 1,
+    retry: int = 3,
+    exist_ok: bool = False,
+):
     """
     Download files from specified URLs to a given directory.
 

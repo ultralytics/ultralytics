@@ -12,7 +12,7 @@ import pytest
 
 from tests import MODEL, TMP
 from ultralytics import solutions
-from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, LINUX, checks
+from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, checks
 from ultralytics.utils.downloads import safe_download
 
 # Pre-defined arguments values
@@ -180,10 +180,7 @@ def process_video(solution, video_path, needs_frame_count=False):
     cap.release()
 
 
-@pytest.mark.skipif(
-    (LINUX and checks.IS_PYTHON_3_11) or IS_RASPBERRYPI,
-    reason="Disabled for testing due to --slow test errors after YOLOE PR.",
-)
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled for testing due to --slow test errors after YOLOE PR.")
 @pytest.mark.parametrize("name, solution_class, needs_frame_count, video, kwargs", SOLUTIONS)
 def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     """Test individual Ultralytics solution."""
@@ -208,12 +205,12 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     )
 
 
-@pytest.mark.slow
 @pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="Disabled due to unsupported CLIP dependencies.")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search():
     """Test similarity search solution."""
-    searcher = solutions.VisualAISearch()
+    safe_download(f"{ASSETS_URL}/4-imgs-similaritysearch.zip", dir=TMP)  # 4 dog images for testing in a zip file.
+    searcher = solutions.VisualAISearch(data=str(TMP / "4-imgs-similaritysearch"))
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
 
 
@@ -248,7 +245,7 @@ def test_analytics_graph_not_supported():
     """Test that unsupported analytics type raises ModuleNotFoundError."""
     try:
         analytics = solutions.Analytics(analytics_type="test")  # 'test' is unsupported
-        analytics.process(im0=None, frame_number=0)
+        analytics.process(im0=np.zeros((640, 480, 3), dtype=np.uint8), frame_number=0)
         assert False, "Expected ModuleNotFoundError for unsupported chart type"
     except ModuleNotFoundError as e:
         assert "test chart is not supported" in str(e)
@@ -300,6 +297,7 @@ def test_streamlit_handle_video_upload_creates_file():
     os.remove("ultralytics.mp4")
 
 
+@pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="Disabled due to unsupported CLIP dependencies.")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search_app_init():
     """Test SearchApp initializes with required attributes."""

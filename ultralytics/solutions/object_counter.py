@@ -160,7 +160,7 @@ class ObjectCounter(BaseSolution):
         self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
         is_obb = getattr(self.tracks[0], "obb", None) is not None  # True if OBB results exist
-        if is_obb:
+        if is_obb and self.track_data and self.track_data.id is not None:
             self.boxes = self.track_data.xyxyxyxy.reshape(-1, 4, 2).cpu()
 
         self.annotator.draw_region(
@@ -170,10 +170,8 @@ class ObjectCounter(BaseSolution):
         # Iterate over bounding boxes, track ids and classes index
         for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
             # Draw bounding box and counting region
-            self.annotator.box_label(
-                box, label=self.adjust_box_label(cls, conf, track_id), color=colors(cls, True), rotated=is_obb
-            )
-            self.store_tracking_history(track_id, box, is_obb=is_obb)  # Store track history
+            self.annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(cls, True))
+            self.store_tracking_history(track_id, box)  # Store track history
 
             # Store previous position of track for object counting
             prev_position = None

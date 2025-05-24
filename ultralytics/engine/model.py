@@ -79,7 +79,7 @@ class Model(torch.nn.Module):
 
     def __init__(
         self,
-        model: Union[str, Path] = "yolo11n.pt",
+        model: Union[str, Path, "Model"] = "yolo11n.pt",
         task: str = None,
         verbose: bool = False,
     ) -> None:
@@ -92,8 +92,8 @@ class Model(torch.nn.Module):
         prediction, or export.
 
         Args:
-            model (str | Path): Path or name of the model to load or create. Can be a local file path, a
-                model name from Ultralytics HUB, or a Triton Server model.
+            model (str | Path | Model): Path or name of the model to load or create. Can be a local file path, a
+                model name from Ultralytics HUB, a Triton Server model, or an already initialized Model instance.
             task (str | None): The task type associated with the YOLO model, specifying its application domain.
             verbose (bool): If True, enables verbose output during the model's initialization and subsequent
                 operations.
@@ -108,6 +108,9 @@ class Model(torch.nn.Module):
             >>> model = Model("path/to/model.yaml", task="detect")
             >>> model = Model("hub_model", verbose=True)
         """
+        if isinstance(model, Model):
+            self.__dict__ = model.__dict__  # accepts an already initialized Model
+            return
         super().__init__()
         self.callbacks = callbacks.get_default_callbacks()
         self.predictor = None  # reuse predictor

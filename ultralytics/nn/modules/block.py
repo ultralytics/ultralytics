@@ -2164,11 +2164,12 @@ class BiFPNBlock(nn.Module):
         # Weighted fusion
         w = self.w_relu(self.w)
         w /= torch.sum(w, dim=0) + self.epsilon
-        
+
         # Fuse features
         x2_resized = F.interpolate(x2, size=x1.shape[2:], mode="nearest")
         fused = w[0] * x1 + w[1] * x2_resized
         return self.conv(fused)
+
 
 class BiFPN(nn.Module):
     def __init__(self, channels, feature_size=256, num_blocks=1):
@@ -2180,11 +2181,9 @@ class BiFPN(nn.Module):
         # Proyeksi input ke feature_size
         self.proj_x1 = nn.Conv2d(channels[0], feature_size, 1)
         self.proj_x2 = nn.Conv2d(channels[1], feature_size, 1)
-        
+
         # BiFPN blocks
-        self.blocks = nn.ModuleList([
-            BiFPNBlock(feature_size) for _ in range(num_blocks)
-        ])
+        self.blocks = nn.ModuleList([BiFPNBlock(feature_size) for _ in range(num_blocks)])
 
     def forward(self, inputs):
         # Proses dua input

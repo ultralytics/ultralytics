@@ -8,6 +8,7 @@ import urllib
 from dataclasses import dataclass
 from pathlib import Path
 from threading import Thread
+from typing import Any, List, Optional, Tuple, Union
 
 import cv2
 import numpy as np
@@ -90,7 +91,7 @@ class LoadStreams:
         - The class implements a buffer system to manage frame storage and retrieval.
     """
 
-    def __init__(self, sources="file.streams", vid_stride=1, buffer=False, channels=3):
+    def __init__(self, sources: str = "file.streams", vid_stride: int = 1, buffer: bool = False, channels: int = 3):
         """
         Initialize stream loader for multiple video sources, supporting various stream types.
 
@@ -151,7 +152,7 @@ class LoadStreams:
             self.threads[i].start()
         LOGGER.info("")  # newline
 
-    def update(self, i, cap, stream):
+    def update(self, i: int, cap: cv2.VideoCapture, stream: str):
         """Read stream frames in daemon thread and update image buffer."""
         n, f = 0, self.frames[i]  # frame number, frame array
         while self.running and cap.isOpened() and n < (f - 1):
@@ -192,7 +193,7 @@ class LoadStreams:
         self.count = -1
         return self
 
-    def __next__(self):
+    def __next__(self) -> Tuple[List[str], List[np.ndarray], List[str]]:
         """Return the next batch of frames from multiple video streams for processing."""
         self.count += 1
 
@@ -219,7 +220,7 @@ class LoadStreams:
 
         return self.sources, images, [""] * self.bs
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the number of video streams in the LoadStreams object."""
         return self.bs  # 1E12 frames = 32 streams at 30 FPS for 30 years
 
@@ -256,7 +257,7 @@ class LoadScreenshots:
         ...     print(f"Captured frame: {im.shape}")
     """
 
-    def __init__(self, source, channels=3):
+    def __init__(self, source: str, channels: int = 3):
         """
         Initialize screenshot capture with specified screen and region parameters.
 
@@ -294,7 +295,7 @@ class LoadScreenshots:
         """Yield the next screenshot image from the specified screen or region for processing."""
         return self
 
-    def __next__(self):
+    def __next__(self) -> Tuple[List[str], List[np.ndarray], List[str]]:
         """Capture and return the next screenshot as a numpy array using the mss library."""
         im0 = np.asarray(self.sct.grab(self.monitor))[:, :, :3]  # BGRA to BGR
         im0 = cv2.cvtColor(im0, cv2.COLOR_BGR2GRAY)[..., None] if self.cv2_flag == cv2.IMREAD_GRAYSCALE else im0
@@ -344,7 +345,7 @@ class LoadImagesAndVideos:
         - Can read from a text file containing paths to images and videos.
     """
 
-    def __init__(self, path, batch=1, vid_stride=1, channels=3):
+    def __init__(self, path: Union[str, Path, List], batch: int = 1, vid_stride: int = 1, channels: int = 3):
         """
         Initialize dataloader for images and videos, supporting various input formats.
 
@@ -402,7 +403,7 @@ class LoadImagesAndVideos:
         self.count = 0
         return self
 
-    def __next__(self):
+    def __next__(self) -> Tuple[List[str], List[np.ndarray], List[str]]:
         """Return the next batch of images or video frames with their paths and metadata."""
         paths, imgs, info = [], [], []
         while len(imgs) < self.bs:
@@ -472,7 +473,7 @@ class LoadImagesAndVideos:
 
         return paths, imgs, info
 
-    def _new_video(self, path):
+    def _new_video(self, path: str):
         """Create a new video capture object for the given path and initialize video-related attributes."""
         self.frame = 0
         self.cap = cv2.VideoCapture(path)
@@ -481,7 +482,7 @@ class LoadImagesAndVideos:
             raise FileNotFoundError(f"Failed to open video {path}")
         self.frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT) / self.vid_stride)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the number of files (images and videos) in the dataset."""
         return math.ceil(self.nf / self.bs)  # number of batches
 
@@ -513,7 +514,7 @@ class LoadPilAndNumpy:
         Loaded 2 images
     """
 
-    def __init__(self, im0, channels=3):
+    def __init__(self, im0: Union[Image.Image, np.ndarray, List], channels: int = 3):
         """
         Initialize a loader for PIL and Numpy images, converting inputs to a standardized format.
 
@@ -531,7 +532,7 @@ class LoadPilAndNumpy:
         self.bs = len(self.im0)
 
     @staticmethod
-    def _single_check(im, flag="RGB"):
+    def _single_check(im: Union[Image.Image, np.ndarray], flag: str = "RGB") -> np.ndarray:
         """Validate and format an image to numpy array, ensuring RGB order and contiguous memory."""
         assert isinstance(im, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(im)}"
         if isinstance(im, Image.Image):
@@ -543,11 +544,11 @@ class LoadPilAndNumpy:
             im = im[..., None]
         return im
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the length of the 'im0' attribute, representing the number of loaded images."""
         return len(self.im0)
 
-    def __next__(self):
+    def __next__(self) -> Tuple[List[str], List[np.ndarray], List[str]]:
         """Return the next batch of images, paths, and metadata for processing."""
         if self.count == 1:  # loop only once as it's batch inference
             raise StopIteration
@@ -584,7 +585,7 @@ class LoadTensor:
         >>> print(f"Processed {len(images)} images")
     """
 
-    def __init__(self, im0) -> None:
+    def __init__(self, im0: torch.Tensor) -> None:
         """
         Initialize LoadTensor object for processing torch.Tensor image data.
 
@@ -597,7 +598,7 @@ class LoadTensor:
         self.paths = [getattr(im, "filename", f"image{i}.jpg") for i, im in enumerate(im0)]
 
     @staticmethod
-    def _single_check(im, stride=32):
+    def _single_check(im: torch.Tensor, stride: int = 32) -> torch.Tensor:
         """Validate and format a single image tensor, ensuring correct shape and normalization."""
         s = (
             f"torch.Tensor inputs should be BCHW i.e. shape(1, 3, 640, 640) "
@@ -623,19 +624,19 @@ class LoadTensor:
         self.count = 0
         return self
 
-    def __next__(self):
+    def __next__(self) -> Tuple[List[str], torch.Tensor, List[str]]:
         """Yield the next batch of tensor images and metadata for processing."""
         if self.count == 1:
             raise StopIteration
         self.count += 1
         return self.paths, self.im0, [""] * self.bs
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the batch size of the tensor input."""
         return self.bs
 
 
-def autocast_list(source):
+def autocast_list(source: List[Any]) -> List[Union[Image.Image, np.ndarray]]:
     """Merge a list of sources into a list of numpy arrays or PIL images for Ultralytics prediction."""
     files = []
     for im in source:
@@ -652,7 +653,7 @@ def autocast_list(source):
     return files
 
 
-def get_best_youtube_url(url, method="pytube"):
+def get_best_youtube_url(url: str, method: str = "pytube") -> Optional[str]:
     """
     Retrieve the URL of the best quality MP4 video stream from a given YouTube video.
 

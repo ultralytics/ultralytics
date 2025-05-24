@@ -90,7 +90,7 @@ class SAHIInference:
 
         # Load model
         self.load_model(weights, device)
-        idx = 0  # index for image frame writing
+        idx = 0  # Index for image frame writing
         while cap.isOpened():
             success, frame = cap.read()
             if not success:

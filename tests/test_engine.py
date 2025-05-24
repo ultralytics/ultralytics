@@ -100,7 +100,7 @@ def test_segment():
         print(f"Expected exception caught: {e}")
         return
 
-    Exception("Resume test failed!")
+    raise Exception("Resume test failed!")
 
 
 def test_classify():

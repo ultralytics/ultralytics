@@ -135,7 +135,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
         half=half,
         batch=batch,
     )
-    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference at batch=3
+    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     shutil.rmtree(file)  # cleanup
 
 
@@ -160,7 +160,7 @@ def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms):
     file = YOLO(TASK2MODEL[task]).export(
         format="tflite", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms
     )
-    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference at batch=3
+    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     Path(file).unlink()  # cleanup
 
 

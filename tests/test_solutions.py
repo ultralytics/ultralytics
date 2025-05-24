@@ -156,14 +156,14 @@ SOLUTIONS = [
         "StreamlitInference",
         solutions.Inference,
         False,
-        None,  # streamlit application don't require video file
-        {},  # streamlit application don't accept arguments
+        None,  # streamlit application doesn't require video file
+        {},  # streamlit application doesn't accept arguments
     ),
 ]
 
 
 def process_video(solution, video_path: str, needs_frame_count: bool = False):
-    """Process video with solution, feeding frames and optional frame count."""
+    """Process video with solution, feeding frames and optional frame count to the solution instance."""
     cap = cv2.VideoCapture(video_path)
     assert cap.isOpened(), f"Error reading video file {video_path}"
 
@@ -209,7 +209,7 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search():
     """Test similarity search solution with sample images and text query."""
-    safe_download(f"{ASSETS_URL}/4-imgs-similaritysearch.zip", dir=TMP)  # 4 dog images for testing in a zip file.
+    safe_download(f"{ASSETS_URL}/4-imgs-similaritysearch.zip", dir=TMP)  # 4 dog images for testing in a zip file
     searcher = solutions.VisualAISearch(data=str(TMP / "4-imgs-similaritysearch"))
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
 

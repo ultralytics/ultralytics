@@ -48,25 +48,25 @@ class Model(torch.nn.Module):
 
     Methods:
         __call__: Alias for the predict method, enabling the model instance to be callable.
-        _new: Initializes a new model based on a configuration file.
-        _load: Loads a model from a checkpoint file.
-        _check_is_pytorch_model: Ensures that the model is a PyTorch model.
-        reset_weights: Resets the model's weights to their initial state.
-        load: Loads model weights from a specified file.
-        save: Saves the current state of the model to a file.
-        info: Logs or returns information about the model.
-        fuse: Fuses Conv2d and BatchNorm2d layers for optimized inference.
-        predict: Performs object detection predictions.
-        track: Performs object tracking.
-        val: Validates the model on a dataset.
-        benchmark: Benchmarks the model on various export formats.
-        export: Exports the model to different formats.
-        train: Trains the model on a dataset.
-        tune: Performs hyperparameter tuning.
-        _apply: Applies a function to the model's tensors.
-        add_callback: Adds a callback function for an event.
-        clear_callback: Clears all callbacks for an event.
-        reset_callbacks: Resets all callbacks to their default functions.
+        _new: Initialize a new model based on a configuration file.
+        _load: Load a model from a checkpoint file.
+        _check_is_pytorch_model: Ensure that the model is a PyTorch model.
+        reset_weights: Reset the model's weights to their initial state.
+        load: Load model weights from a specified file.
+        save: Save the current state of the model to a file.
+        info: Log or return information about the model.
+        fuse: Fuse Conv2d and BatchNorm2d layers for optimized inference.
+        predict: Perform object detection predictions.
+        track: Perform object tracking.
+        val: Validate the model on a dataset.
+        benchmark: Benchmark the model on various export formats.
+        export: Export the model to different formats.
+        train: Train the model on a dataset.
+        tune: Perform hyperparameter tuning.
+        _apply: Apply a function to the model's tensors.
+        add_callback: Add a callback function for an event.
+        clear_callback: Clear all callbacks for an event.
+        reset_callbacks: Reset all callbacks to their default functions.
 
     Examples:
         >>> from ultralytics import YOLO
@@ -94,7 +94,7 @@ class Model(torch.nn.Module):
         Args:
             model (str | Path | Model): Path or name of the model to load or create. Can be a local file path, a
                 model name from Ultralytics HUB, a Triton Server model, or an already initialized Model instance.
-            task (str | None): The task type associated with the YOLO model, specifying its application domain.
+            task (str, optional): The specific task for the model. If None, it will be inferred from the config.
             verbose (bool): If True, enables verbose output during the model's initialization and subsequent
                 operations.
 
@@ -242,9 +242,9 @@ class Model(torch.nn.Module):
 
         Args:
             cfg (str): Path to the model configuration file in YAML format.
-            task (str | None): The specific task for the model. If None, it will be inferred from the config.
-            model (torch.nn.Module | None): A custom model instance. If provided, it will be used instead of creating
-                a new one.
+            task (str, optional): The specific task for the model. If None, it will be inferred from the config.
+            model (torch.nn.Module, optional): A custom model instance. If provided, it will be used instead of
+                creating a new one.
             verbose (bool): If True, displays model information during loading.
 
         Raises:
@@ -276,7 +276,7 @@ class Model(torch.nn.Module):
 
         Args:
             weights (str): Path to the model weights file to be loaded.
-            task (str | None): The task associated with the model. If None, it will be inferred from the model.
+            task (str, optional): The task associated with the model. If None, it will be inferred from the model.
 
         Raises:
             FileNotFoundError: If the specified weights file does not exist or is inaccessible.
@@ -367,7 +367,7 @@ class Model(torch.nn.Module):
         name and shape and transfers them to the model.
 
         Args:
-            weights (Union[str, Path]): Path to the weights file or a weights object.
+            weights (str | Path): Path to the weights file or a weights object.
 
         Returns:
             (Model): The instance of the class with loaded weights.
@@ -501,7 +501,7 @@ class Model(torch.nn.Module):
         **kwargs: Any,
     ) -> List[Results]:
         """
-        Performs predictions on the given image source using the YOLO model.
+        Perform predictions on the given image source using the YOLO model.
 
         This method facilitates the prediction process, allowing various configurations through keyword arguments.
         It supports predictions with custom predictors or the default predictor method. The method handles different
@@ -512,7 +512,7 @@ class Model(torch.nn.Module):
                 of the image(s) to make predictions on. Accepts various types including file paths, URLs, PIL
                 images, numpy arrays, and torch tensors.
             stream (bool): If True, treats the input source as a continuous stream for predictions.
-            predictor (BasePredictor | None): An instance of a custom predictor class for making predictions.
+            predictor (BasePredictor, optional): An instance of a custom predictor class for making predictions.
                 If None, the method uses a default predictor.
             **kwargs (Any): Additional keyword arguments for configuring the prediction process.
 
@@ -562,14 +562,14 @@ class Model(torch.nn.Module):
         **kwargs: Any,
     ) -> List[Results]:
         """
-        Conducts object tracking on the specified input source using the registered trackers.
+        Conduct object tracking on the specified input source using the registered trackers.
 
         This method performs object tracking using the model's predictors and optionally registered trackers. It handles
         various input sources such as file paths or video streams, and supports customization through keyword arguments.
         The method registers trackers if not already present and can persist them between calls.
 
         Args:
-            source (Union[str, Path, int, List, Tuple, np.ndarray, torch.Tensor], optional): Input source for object
+            source (str | Path | int | List | Tuple | np.ndarray | torch.Tensor, optional): Input source for object
                 tracking. Can be a file path, URL, or video stream.
             stream (bool): If True, treats the input source as a continuous video stream.
             persist (bool): If True, persists trackers between different calls to this method.
@@ -611,8 +611,8 @@ class Model(torch.nn.Module):
         configurations, method-specific defaults, and user-provided arguments to configure the validation process.
 
         Args:
-            validator (ultralytics.engine.validator.BaseValidator | None): An instance of a custom validator class for
-                validating the model.
+            validator (ultralytics.engine.validator.BaseValidator, optional): An instance of a custom validator class
+                for validating the model.
             **kwargs (Any): Arbitrary keyword arguments for customizing the validation process.
 
         Returns:
@@ -738,7 +738,7 @@ class Model(torch.nn.Module):
         **kwargs: Any,
     ):
         """
-        Trains the model using the specified dataset and training configuration.
+        Train the model using the specified dataset and training configuration.
 
         This method facilitates model training with a range of customizable settings. It supports training with a
         custom trainer or the default training approach. The method handles scenarios such as resuming training
@@ -749,7 +749,7 @@ class Model(torch.nn.Module):
         configurations, method-specific defaults, and user-provided arguments to configure the training process.
 
         Args:
-            trainer (BaseTrainer | None): Custom trainer instance for model training. If None, uses default.
+            trainer (BaseTrainer, optional): Custom trainer instance for model training. If None, uses default.
             **kwargs (Any): Arbitrary keyword arguments for training configuration. Common options include:
                 data (str): Path to dataset configuration file.
                 epochs (int): Number of training epochs.
@@ -810,7 +810,7 @@ class Model(torch.nn.Module):
         **kwargs: Any,
     ):
         """
-        Conducts hyperparameter tuning for the model, with an option to use Ray Tune.
+        Conduct hyperparameter tuning for the model, with an option to use Ray Tune.
 
         This method supports two modes of hyperparameter tuning: using Ray Tune or a custom tuning method.
         When Ray Tune is enabled, it leverages the 'run_ray_tune' function from the ultralytics.utils.tuner module.
@@ -881,7 +881,7 @@ class Model(torch.nn.Module):
     @property
     def names(self) -> Dict[int, str]:
         """
-        Retrieves the class names associated with the loaded model.
+        Retrieve the class names associated with the loaded model.
 
         This property returns the class names if they are defined in the model. It checks the class names for validity
         using the 'check_class_names' function from the ultralytics.nn.autobackend module. If the predictor is not
@@ -935,7 +935,7 @@ class Model(torch.nn.Module):
     @property
     def transforms(self):
         """
-        Retrieves the transformations applied to the input data of the loaded model.
+        Retrieve the transformations applied to the input data of the loaded model.
 
         This property returns the transformations if they are defined in the model. The transforms
         typically include preprocessing steps like resizing, normalization, and data augmentation
@@ -982,7 +982,7 @@ class Model(torch.nn.Module):
 
     def clear_callback(self, event: str) -> None:
         """
-        Clears all callback functions registered for a specified event.
+        Clear all callback functions registered for a specified event.
 
         This method removes all custom and default callback functions associated with the given event.
         It resets the callback list for the specified event to an empty list, effectively removing all
@@ -1062,7 +1062,7 @@ class Model(torch.nn.Module):
 
     def _smart_load(self, key: str):
         """
-        Intelligently loads the appropriate module based on the model task.
+        Intelligently load the appropriate module based on the model task.
 
         This method dynamically selects and returns the correct module (model, trainer, validator, or predictor)
         based on the current task of the model and the provided key. It uses the task_map dictionary to determine
@@ -1092,7 +1092,7 @@ class Model(torch.nn.Module):
     @property
     def task_map(self) -> dict:
         """
-        Provides a mapping from model tasks to corresponding classes for different modes.
+        Provide a mapping from model tasks to corresponding classes for different modes.
 
         This property method returns a dictionary that maps each supported task (e.g., detect, segment, classify)
         to a nested dictionary. The nested dictionary contains mappings for different operational modes

@@ -22,12 +22,19 @@ class RegionCounter(BaseSolution):
         region_counts (dict): Dictionary storing the count of objects for each named region.
 
     Methods:
-        add_region: Adds a new counting region with specified attributes.
-        process: Processes video frames to count objects in each region.
+        add_region: Add a new counting region with specified attributes.
+        process: Process video frames to count objects in each region.
+
+    Examples:
+        Initialize a RegionCounter and add a counting region
+        >>> counter = RegionCounter()
+        >>> counter.add_region("Zone1", [(100, 100), (200, 100), (200, 200), (100, 200)], (255, 0, 0), (255, 255, 255))
+        >>> results = counter.process(frame)
+        >>> print(f"Total tracks: {results.total_tracks}")
     """
 
     def __init__(self, **kwargs):
-        """Initializes the RegionCounter class for real-time counting in different regions of video streams."""
+        """Initialize the RegionCounter for real-time object counting in user-defined regions."""
         super().__init__(**kwargs)
         self.region_template = {
             "name": "Default Region",

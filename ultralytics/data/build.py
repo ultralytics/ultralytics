@@ -3,6 +3,7 @@
 import os
 import random
 from pathlib import Path
+from typing import Any, Iterator
 
 import numpy as np
 import torch
@@ -37,10 +38,10 @@ class InfiniteDataLoader(dataloader.DataLoader):
         iterator (Iterator): The iterator from the parent DataLoader.
 
     Methods:
-        __len__: Returns the length of the batch sampler's sampler.
-        __iter__: Creates a sampler that repeats indefinitely.
-        __del__: Ensures workers are properly terminated.
-        reset: Resets the iterator, useful when modifying dataset settings during training.
+        __len__: Return the length of the batch sampler's sampler.
+        __iter__: Create a sampler that repeats indefinitely.
+        __del__: Ensure workers are properly terminated.
+        reset: Reset the iterator, useful when modifying dataset settings during training.
 
     Examples:
         Create an infinite dataloader for training
@@ -50,17 +51,17 @@ class InfiniteDataLoader(dataloader.DataLoader):
         >>>     train_step(batch)
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the InfiniteDataLoader with the same arguments as DataLoader."""
         super().__init__(*args, **kwargs)
         object.__setattr__(self, "batch_sampler", _RepeatSampler(self.batch_sampler))
         self.iterator = super().__iter__()
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the length of the batch sampler's sampler."""
         return len(self.batch_sampler.sampler)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """Create an iterator that yields indefinitely from the underlying iterator."""
         for _ in range(len(self)):
             yield next(self.iterator)
@@ -93,17 +94,17 @@ class _RepeatSampler:
         sampler (Dataset.sampler): The sampler to repeat.
     """
 
-    def __init__(self, sampler):
+    def __init__(self, sampler: Any):
         """Initialize the _RepeatSampler with a sampler to repeat indefinitely."""
         self.sampler = sampler
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """Iterate over the sampler indefinitely, yielding its contents."""
         while True:
             yield from iter(self.sampler)
 
 
-def seed_worker(worker_id):  # noqa
+def seed_worker(worker_id: int):  # noqa
     """Set dataloader worker seed for reproducibility across worker processes."""
     worker_seed = torch.initial_seed() % 2**32
     np.random.seed(worker_seed)
@@ -153,7 +154,7 @@ def build_grounding(cfg, img_path, json_file, batch, mode="train", rect=False, s
     )
 
 
-def build_dataloader(dataset, batch, workers, shuffle=True, rank=-1):
+def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, rank: int = -1):
     """
     Create and return an InfiniteDataLoader or DataLoader for training or validation.
 
@@ -206,9 +207,6 @@ def check_source(source):
         in_memory (bool): Whether the source is an in-memory object.
         tensor (bool): Whether the source is a torch.Tensor.
 
-    Raises:
-        TypeError: If the source type is unsupported.
-
     Examples:
         Check a file path source
         >>> source, webcam, screenshot, from_img, in_memory, tensor = check_source("image.jpg")
@@ -241,7 +239,7 @@ def check_source(source):
     return source, webcam, screenshot, from_img, in_memory, tensor
 
 
-def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False, channels=3):
+def load_inference_source(source=None, batch: int = 1, vid_stride: int = 1, buffer: bool = False, channels: int = 3):
     """
     Load an inference source for object detection and apply necessary transformations.
 

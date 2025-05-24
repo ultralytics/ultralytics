@@ -970,7 +970,7 @@ class CutMix(BaseMixTransform):
 
     def _rand_bbox(self, width, height):
         """
-        Generates random bounding box coordinates for the cut region.
+        Generate random bounding box coordinates for the cut region.
 
         Args:
             width (int): Width of the image.
@@ -1022,7 +1022,7 @@ class CutMix(BaseMixTransform):
             return labels
 
         labels2 = labels.pop("mix_labels")[0]
-        area = cut_areas[np.random.choice(idx)]  # randomle select one
+        area = cut_areas[np.random.choice(idx)]  # randomly select one
         ioa2 = bbox_ioa(area[None], labels2["instances"].bboxes).squeeze(0)
         indexes2 = np.nonzero(ioa2 >= (0.01 if len(labels["instances"].segments) else 0.1))[0]
         if len(indexes2) == 0:

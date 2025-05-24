@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from copy import deepcopy
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 import torch
 from torch.nn import functional as F
@@ -141,7 +141,7 @@ class YOLOEDetectValidator(DetectionValidator):
     def __call__(
         self,
         trainer: Optional[Any] = None,
-        model: Optional[YOLOEModel | str] = None,
+        model: Optional[Union[YOLOEModel, str]] = None,
         refer_data: Optional[str] = None,
         load_vp: bool = False,
     ) -> Dict[str, Any]:

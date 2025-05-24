@@ -360,7 +360,7 @@ class Mlp(nn.Module):
     Examples:
         >>> import torch
         >>> from torch import nn
-        >>> mlp = Mlp(in_features=256, hidden_features=512, out_features=256, act_layer=nn.GELU, drop=0.1)
+        >>> mlp = Mlp(in_features=256, hidden_features=512, out_features=256, activation=nn.GELU, drop=0.1)
         >>> x = torch.randn(32, 100, 256)
         >>> output = mlp(x)
         >>> print(output.shape)
@@ -372,7 +372,7 @@ class Mlp(nn.Module):
         in_features: int,
         hidden_features: Optional[int] = None,
         out_features: Optional[int] = None,
-        act_layer=nn.GELU,
+        activation=nn.GELU,
         drop: float = 0.0,
     ):
         """
@@ -382,7 +382,7 @@ class Mlp(nn.Module):
             in_features (int): Number of input features.
             hidden_features (Optional[int], optional): Number of hidden features.
             out_features (Optional[int], optional): Number of output features.
-            act_layer: Activation layer class.
+            act (nn.Module): Activation function applied after the first fully-connected layer.
             drop (float, optional): Dropout probability.
         """
         super().__init__()
@@ -391,7 +391,7 @@ class Mlp(nn.Module):
         self.norm = nn.LayerNorm(in_features)
         self.fc1 = nn.Linear(in_features, hidden_features)
         self.fc2 = nn.Linear(hidden_features, out_features)
-        self.act = act_layer()
+        self.act = activation()
         self.drop = nn.Dropout(drop)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

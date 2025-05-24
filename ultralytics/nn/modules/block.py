@@ -2152,40 +2152,51 @@ class SAVPE(nn.Module):
 
 
 class BiFPNBlock(nn.Module):
-    """Bi-directional Feature Pyramid Network for two inputs."""
-    def __init__(self, feature_size=64, epsilon=0.0001):
+    """BiFPN Block untuk dua input dengan weighted fusion."""
+    def __init__(self, feature_size=256, epsilon=1e-4):
         super().__init__()
         self.epsilon = epsilon
-        self.conv1 = DWConv(feature_size, feature_size)
-        self.conv2 = DWConv(feature_size, feature_size)
-        self.w1 = nn.Parameter(torch.Tensor(2, 1))
-        self.w1_relu = nn.ReLU()
+        self.conv = DWConv(feature_size, feature_size)
         
-    def forward(self, inputs):
-        p4_x, p5_x = inputs  # Two inputs: from current and backbone
+        # Weight untuk fusion
+        self.w = nn.Parameter(torch.Tensor(2, 1))  # [num_inputs, num_levels]
+        self.w_relu = nn.ReLU()
+
+    def forward(self, x1, x2):
         # Weighted fusion
-        w1 = self.w1_relu(self.w1)
-        w1 /= torch.sum(w1, dim=0) + self.epsilon
+        w = self.w_relu(self.w)
+        w /= torch.sum(w, dim=0) + self.epsilon
         
-        # Top-down pathway
-        p5_td = self.conv1(w1[0] * p5_x + w1[1] * F.interpolate(p5_x, scale_factor=2))
-        # Bottom-up pathway
-        p4_out = self.conv2(w1[0] * p4_x + w1[1] * F.max_pool2d(p5_td, kernel_size=2))
-        return p4_out, p5_td
+        # Fuse features
+        fused = w[0] * x1 + w[1] * F.interpolate(x2, size=x1.shape[2:], mode='nearest')
+        return self.conv(fused)
 
 class BiFPN(nn.Module):
-    def __init__(self, feature_size=256, num_layers=1):
+    def __init__(self, channels, feature_size=256, num_blocks=1):
         super().__init__()
-        self.feature_size = feature_size
-        self.proj = nn.ModuleList()
-        self.bifpn = nn.Sequential(*[BiFPNBlock(feature_size) for _ in range(num_layers)])
+        # channels: list input channels, e.g., [1024, 512]
         
+        # Proyeksi input ke feature_size
+        self.proj_x1 = nn.Conv2d(channels[0], feature_size, 1)
+        self.proj_x2 = nn.Conv2d(channels[1], feature_size, 1)
+        
+        # BiFPN blocks
+        self.blocks = nn.ModuleList([
+            BiFPNBlock(feature_size) for _ in range(num_blocks)
+        ])
+
     def forward(self, inputs):
-        # Project input features to feature_size
-        x = [conv(inp) for conv, inp in zip(self.proj, inputs)]
-        # Process through BiFPN blocks
-        for layer in self.bifpn:
-            x = layer(x)
-        return x
+        # inputs: list dari dua feature map
+        x1, x2 = inputs
+        
+        # Proyeksi ke dimensi yang sama
+        x1 = self.proj_x1(x1)
+        x2 = self.proj_x2(x2)
+        
+        # Process melalui BiFPN blocks
+        for block in self.blocks:
+            x1 = block(x1, x2)
+        
+        return [x1, x2]  # Output dua feature map yang sudah difuse
     
-    # //UPDATE BiFPN
+    # //UPDATE BiFPN1

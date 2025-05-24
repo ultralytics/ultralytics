@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import math
+from typing import Any, Dict, List
 
 import cv2
 
@@ -32,16 +33,16 @@ class DistanceCalculation(BaseSolution):
         >>> cv2.waitKey(0)
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         """Initialize the DistanceCalculation class for measuring object distances in video streams."""
         super().__init__(**kwargs)
 
         # Mouse event information
         self.left_mouse_count = 0
-        self.selected_boxes = {}
-        self.centroids = []  # Store centroids of selected objects
+        self.selected_boxes: Dict[int, List[float]] = {}
+        self.centroids: List[List[int]] = []  # Store centroids of selected objects
 
-    def mouse_event_for_distance(self, event, x, y, flags, param):
+    def mouse_event_for_distance(self, event: int, x: int, y: int, flags: int, param: Any) -> None:
         """
         Handle mouse events to select regions in a real-time video stream for distance calculation.
 
@@ -67,7 +68,7 @@ class DistanceCalculation(BaseSolution):
             self.selected_boxes = {}
             self.left_mouse_count = 0
 
-    def process(self, im0):
+    def process(self, im0) -> SolutionResults:
         """
         Process a video frame and calculate the distance between two selected bounding boxes.
 

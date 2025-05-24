@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import time
-from typing import Any, Tuple
+from typing import Tuple
 
 import cv2
 

@@ -15,11 +15,14 @@ class ChartWidget {
 
     this.toolbar = document.createElement("div");
     this.toolbar.innerHTML = this.getHTML();
-    this.toolbar.style.cssText = this.getCSS(canvas);
     container.appendChild(this.toolbar);
 
-    this.attachEvents();
-    this.setupHover(canvas);
+    // Wait for chart to settle before positioning
+    requestAnimationFrame(() => {
+      this.toolbar.style.cssText = this.getCSS(canvas);
+      this.attachEvents();
+      this.setupHover(canvas);
+    });
   }
 
   getHTML() {

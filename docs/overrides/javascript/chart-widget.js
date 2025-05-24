@@ -27,7 +27,7 @@ class ChartWidget {
       <button data-action="png" data-tip="Download chart as PNG image">📷</button>
       <button data-action="csv" data-tip="Download chart data as CSV file">📊</button>
       <button data-action="ultralytics" data-tip="Made with Chart.js and Ultralytics">
-        <img src="https://github.com/ultralytics/assets/raw/main/logo/Ultralytics-logomark-color.png" width="16" height="16">
+        <img src="https://github.com/ultralytics/assets/raw/main/logo/Ultralytics-logomark-color.png" width="18" height="18">
       </button>
       <div class="tip" style="position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:CanvasText;color:Canvas;padding:4px 8px;border-radius:3px;font-size:11px;white-space:nowrap;display:none;margin-bottom:5px;z-index:1001;pointer-events:none;"></div>
     `;
@@ -68,7 +68,7 @@ class ChartWidget {
         padding: "8px",
         cursor: "pointer",
         borderRadius: "4px",
-        fontSize: "16px",
+        fontSize: "18px",
         minWidth: "32px",
         minHeight: "32px",
         display: "flex",

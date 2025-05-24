@@ -2152,49 +2152,70 @@ class SAVPE(nn.Module):
 
 
 class BiFPNBlock(nn.Module):
-    """BiFPN Block untuk dua input."""
     def __init__(self, feature_size=256, epsilon=1e-4):
         super().__init__()
         self.epsilon = epsilon
-        self.conv = DWConv(feature_size, feature_size)
-        self.w = nn.Parameter(torch.Tensor(2, 1))  # Weight untuk dua input
-        self.w_relu = nn.ReLU()
+        
+        # Weight untuk top-down pathway (Contoh: P5_id)
+        self.w_td = nn.Parameter(torch.Tensor(2, 1))  # 2 input weights
+        self.w_td_relu = nn.ReLU()
+        
+        # Weight untuk bottom-up pathway (Contoh: P5_out)
+        self.w_bu = nn.Parameter(torch.Tensor(3, 1))  # 3 input weights
+        self.w_bu_relu = nn.ReLU()
+        
+        # Convolution layers
+        self.conv_td = nn.Conv2d(feature_size, feature_size, 3, padding=1)
+        self.conv_bu = nn.Conv2d(feature_size, feature_size, 3, padding=1)
 
-    def forward(self, x1, x2):
-        # Weighted fusion
-        w = self.w_relu(self.w)
-        w /= torch.sum(w, dim=0) + self.epsilon
+    def forward(self, p4, p5, p6):
+        # Top-Down Pathway (P5_id)
+        w_td = self.w_td_relu(self.w_td)
+        w_td /= torch.sum(w_td, dim=0) + self.epsilon
+        
+        p6_resized = F.interpolate(p6, scale_factor=2, mode='nearest')
+        p5_td = self.conv_td(w_td[0] * p5 + w_td[1] * p6_resized)
 
-        # Fuse features
-        x2_resized = F.interpolate(x2, size=x1.shape[2:], mode="nearest")
-        fused = w[0] * x1 + w[1] * x2_resized
-        return self.conv(fused)
+        # Bottom-Up Pathway (P5_out)
+        w_bu = self.w_bu_relu(self.w_bu)
+        w_bu /= torch.sum(w_bu, dim=0) + self.epsilon
+        
+        p4_resized = F.max_pool2d(p4, kernel_size=2)
+        p5_out = self.conv_bu(w_bu[0] * p5 + w_bu[1] * p5_td + w_bu[2] * p4_resized)
+
+        return p5_out
 
 
 class BiFPN(nn.Module):
-    def __init__(self, channels, feature_size=256, num_blocks=1):
+    def __init__(self, channels=[512, 256, 128], feature_size=256):
         super().__init__()
-        # Validasi input channels
-        if len(channels) != 2:
-            raise ValueError(f"BiFPN butuh 2 input channels, diberikan {len(channels)}")
         
-        # Proyeksi input ke feature_size
-        self.proj_x1 = nn.Conv2d(channels[0], feature_size, 1)
-        self.proj_x2 = nn.Conv2d(channels[1], feature_size, 1)
-
-        # BiFPN blocks
-        self.blocks = nn.ModuleList([BiFPNBlock(feature_size) for _ in range(num_blocks)])
+        # Projection layers untuk menyamakan channel
+        self.proj_p4 = nn.Conv2d(channels[0], feature_size, 1)
+        self.proj_p5 = nn.Conv2d(channels[1], feature_size, 1)
+        self.proj_p6 = nn.Conv2d(channels[2], feature_size, 1)
+        
+        # BiFPN Blocks (2 lapisan cross-connection)
+        self.bifpn1 = BiFPNBlock(feature_size)
+        self.bifpn2 = BiFPNBlock(feature_size)
+        
+        # Output convolution
+        self.out_conv = nn.Conv2d(feature_size, feature_size, 3, padding=1)
 
     def forward(self, inputs):
-        # Proses dua input
-        x1, x2 = inputs
-        x1 = self.proj_x1(x1)
-        x2 = self.proj_x2(x2)
+        # Input: [P4, P5, P6] dari backbone
+        p4, p5, p6 = inputs
         
-        # Lakukan fusion melalui semua blocks
-        for block in self.blocks:
-            x1 = block(x1, x2)
+        # Step 1: Proyeksi ke feature size
+        p4 = self.proj_p4(p4)
+        p5 = self.proj_p5(p5)
+        p6 = self.proj_p6(p6)
         
-        return [x1, x2]  # Output dua feature map
+        # Step 2: BiFPN processing
+        p5_out = self.bifpn1(p4, p5, p6)
+        p5_final = self.bifpn2(p4, p5_out, p6)
+        
+        # Step 3: Output processing
+        return self.out_conv(p5_final)
     
-    # //UPDATE BiFPN2
+    # //UPDATE BiFPN3

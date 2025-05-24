@@ -1,5 +1,20 @@
 // Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+// Auto-load chart-widget.js if not already loaded
+const loadChartWidget = () =>
+  new Promise((resolve) => {
+    if (window.ChartWidget) return resolve();
+    const s = document.createElement("script");
+    const base =
+      (
+        document.currentScript ||
+        document.querySelector('script[src*="benchmark.js"]')
+      )?.src.replace(/[^/]*$/, "") || "./";
+    s.src = base + "chart-widget.js";
+    s.onload = s.onerror = resolve;
+    document.head.appendChild(s);
+  });
+
 // YOLO models chart ---------------------------------------------------------------------------------------------------
 const data = {
   //  YOLO12: {
@@ -107,6 +122,7 @@ const colorOverrides = {
 };
 
 let chart = null;
+let chartWidget = null;
 
 const lighten = (hex, amt = 0.6) => {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
@@ -189,15 +205,24 @@ const chartConfig = {
   },
 };
 
-const updateChart = (activeModels = []) => {
+const updateChart = async (activeModels = []) => {
   chart?.destroy();
+  chartWidget?.destroy();
+
   chartConfig.data.datasets = Object.keys(data).map((algo, i) =>
     createDataset(algo, i, activeModels),
   );
+
   chart = new Chart(
     document.getElementById("modelComparisonChart").getContext("2d"),
     chartConfig,
   );
+
+  // Load widget and add to chart
+  await loadChartWidget();
+  if (window.ChartWidget) {
+    chartWidget = new ChartWidget(chart, { position: "top-right" });
+  }
 };
 
 // Get active models from page config or use default

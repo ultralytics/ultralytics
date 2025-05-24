@@ -717,6 +717,7 @@ def test_already_initialized_model():
 def additional_cfg_tests():
     """Additional tests to improve CFG."""
     import yaml
+
     config = {
         "boxes": True,
         "show_labels": False,

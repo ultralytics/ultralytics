@@ -204,9 +204,9 @@ def run(
 
         if view_img:
             if vid_frame_count == 1:
-                cv2.namedWindow("Ultralytics YOLOv8 Region Counter Movable")
-                cv2.setMouseCallback("Ultralytics YOLOv8 Region Counter Movable", mouse_callback)
-            cv2.imshow("Ultralytics YOLOv8 Region Counter Movable", frame)
+                cv2.namedWindow("Ultralytics YOLO Region Counter Movable")
+                cv2.setMouseCallback("Ultralytics YOLO Region Counter Movable", mouse_callback)
+            cv2.imshow("Ultralytics YOLO Region Counter Movable", frame)
 
         if save_img:
             video_writer.write(frame)

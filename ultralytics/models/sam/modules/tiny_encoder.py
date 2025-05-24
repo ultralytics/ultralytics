@@ -103,7 +103,7 @@ class PatchEmbed(nn.Module):
             in_chans (int): Number of input channels.
             embed_dim (int): Dimension of the embedding.
             resolution (int): Input image resolution.
-            activation: Activation function to use between convolutions.
+            activation (nn.Module): Activation function to use between convolutions.
         """
         super().__init__()
         img_size: Tuple[int, int] = to_2tuple(resolution)
@@ -159,7 +159,7 @@ class MBConv(nn.Module):
             in_chans (int): Number of input channels.
             out_chans (int): Number of output channels.
             expand_ratio (float): Channel expansion ratio for the hidden layer.
-            activation: Activation function to use.
+            activation (nn.Module): Activation function to use.
             drop_path (float): Drop path rate for stochastic depth.
         """
         super().__init__()
@@ -227,7 +227,7 @@ class PatchMerging(nn.Module):
             input_resolution (Tuple[int, int]): The input resolution (height, width) of the feature map.
             dim (int): The input dimension of the feature map.
             out_dim (int): The output dimension after merging and projection.
-            activation: The activation function used between convolutions.
+            activation (nn.Module): The activation function used between convolutions.
         """
         super().__init__()
 
@@ -302,7 +302,7 @@ class ConvLayer(nn.Module):
             dim (int): The dimensionality of the input and output.
             input_resolution (Tuple[int, int]): The resolution of the input image.
             depth (int): The number of MBConv layers in the block.
-            activation: Activation function applied after each convolution.
+            activation (nn.Module): Activation function applied after each convolution.
             drop_path (float | List[float], optional): Drop path rate. Single float or a list of floats for each MBConv.
             downsample (Optional[nn.Module], optional): Function for downsampling the output. None to skip downsampling.
             use_checkpoint (bool, optional): Whether to use gradient checkpointing to save memory.
@@ -573,7 +573,7 @@ class TinyViTBlock(nn.Module):
             drop (float, optional): Dropout rate.
             drop_path (float, optional): Stochastic depth rate.
             local_conv_size (int, optional): Kernel size of the local convolution.
-            activation: Activation function for MLP.
+            activation (nn.Module): Activation function for MLP.
         """
         super().__init__()
         self.dim = dim
@@ -721,7 +721,7 @@ class BasicLayer(nn.Module):
             downsample (nn.Module | None, optional): Downsampling layer at the end of the layer. None to skip downsampling.
             use_checkpoint (bool, optional): Whether to use gradient checkpointing to save memory.
             local_conv_size (int, optional): Kernel size for the local convolution in each TinyViT block.
-            activation: Activation function used in the MLP.
+            activation (nn.Module): Activation function used in the MLP.
             out_dim (int | None, optional): Output dimension after downsampling. None means it will be the same as `dim`.
         """
         super().__init__()

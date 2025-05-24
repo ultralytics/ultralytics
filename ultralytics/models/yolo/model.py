@@ -325,7 +325,7 @@ class YOLOE(Model):
 
         Args:
             classes (List[str]): A list of categories i.e. ["person"].
-            embeddings: Embeddings corresponding to the classes.
+            embeddings (torch.Tensor): Embeddings corresponding to the classes.
         """
         assert isinstance(self.model, YOLOEModel)
         self.model.set_classes(classes, embeddings)

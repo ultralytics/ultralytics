@@ -713,6 +713,7 @@ def test_already_initialized_model():
     model = YOLO("yolo11n.pt")
     model = YOLO(model)
 
+
 def additional_cfg_tests():
     """Additional tests to improve CFG."""
     import yaml

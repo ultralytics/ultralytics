@@ -2192,12 +2192,10 @@ class BiFPN(nn.Module):
         # Pastikan channels adalah list integers (bukan list of lists)
         if isinstance(channels[0], list):
             raise ValueError("BiFPN channels harus list integer, contoh: [256, 512]")
-        
+
         # Proyeksi input ke feature_size
-        self.proj_layers = nn.ModuleList([
-            nn.Conv2d(ch, feature_size, 1) for ch in channels
-        ])
-        
+        self.proj_layers = nn.ModuleList([nn.Conv2d(ch, feature_size, 1) for ch in channels])
+
         # Weight untuk fusion (Contoh: 2 input)
         self.w = nn.Parameter(torch.Tensor(2, 1))
         self.w_relu = nn.ReLU()
@@ -2207,16 +2205,16 @@ class BiFPN(nn.Module):
         # Pastikan inputs adalah list dari 2 feature map
         if len(inputs) != 2:
             raise ValueError(f"BiFPN butuh 2 input, diberikan {len(inputs)}")
-        
+
         # Proyeksi dan resize
         x1 = self.proj_layers[0](inputs[0])
         x2 = F.interpolate(self.proj_layers[1](inputs[1]), scale_factor=2, mode="nearest")
-        
+
         # Weighted fusion
         w = self.w_relu(self.w)
         w /= torch.sum(w, dim=0) + self.epsilon
         fused = w[0] * x1 + w[1] * x2
-        
+
         return fused
 
     # //UPDATE BiFPN4

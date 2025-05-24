@@ -52,9 +52,6 @@ class ClassificationValidator(BaseValidator):
         """
         Initialize ClassificationValidator with dataloader, save directory, and other parameters.
 
-        This validator handles the validation process for classification models, including metrics calculation,
-        confusion matrix generation, and visualization of results.
-
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to use for validation.
             save_dir (str | Path, optional): Directory to save results.
@@ -101,8 +98,9 @@ class ClassificationValidator(BaseValidator):
             preds (torch.Tensor): Model predictions, typically logits or probabilities for each class.
             batch (dict): Batch data containing images and class labels.
 
-        This method appends the top-N predictions (sorted by confidence in descending order) to the
-        prediction list for later evaluation. N is limited to the minimum of 5 and the number of classes.
+        Notes:
+            This method appends the top-N predictions (sorted by confidence in descending order) to the
+            prediction list for later evaluation. N is limited to the minimum of 5 and the number of classes.
         """
         n5 = min(len(self.names), 5)
         self.pred.append(preds.argsort(1, descending=True)[:, :n5].type(torch.int32).cpu())
@@ -112,12 +110,13 @@ class ClassificationValidator(BaseValidator):
         """
         Finalize metrics including confusion matrix and processing speed.
 
-        This method processes the accumulated predictions and targets to generate the confusion matrix,
-        optionally plots it, and updates the metrics object with speed information.
-
         Args:
             *args (Any): Variable length argument list.
             **kwargs (Any): Arbitrary keyword arguments.
+
+        Notes:
+            This method processes the accumulated predictions and targets to generate the confusion matrix,
+            optionally plots it, and updates the metrics object with speed information.
 
         Examples:
             >>> validator = ClassificationValidator()

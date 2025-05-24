@@ -28,14 +28,14 @@ else:
 MKDOCS_YAML = PACKAGE_DIR.parent / "mkdocs.yml"
 
 
-def extract_classes_and_functions(filepath: Path) -> tuple:
-    """Extracts class and function names from a given Python file."""
+def extract_classes_and_functions(filepath: Path) -> tuple[list[str], list[str]]:
+    """Extract class and function names from a given Python file."""
     content = filepath.read_text()
     return (re.findall(r"(?:^|\n)class\s(\w+)(?:\(|:)", content), re.findall(r"(?:^|\n)def\s(\w+)\(", content))
 
 
-def create_markdown(py_filepath: Path, module_path: str, classes: list, functions: list) -> Path:
-    """Creates a Markdown file containing the API reference for the given Python module."""
+def create_markdown(py_filepath: Path, module_path: str, classes: list[str], functions: list[str]) -> Path:
+    """Create a Markdown file containing the API reference for the given Python module."""
     md_filepath = py_filepath.with_suffix(".md")
     exists = md_filepath.exists()
 
@@ -81,17 +81,17 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
 
 
 def nested_dict():
-    """Creates and returns a nested defaultdict."""
+    """Create and return a nested defaultdict."""
     return defaultdict(nested_dict)
 
 
 def sort_nested_dict(d: dict) -> dict:
-    """Sorts a nested dictionary recursively."""
+    """Sort a nested dictionary recursively."""
     return {k: sort_nested_dict(v) if isinstance(v, dict) else v for k, v in sorted(d.items())}
 
 
-def create_nav_menu_yaml(nav_items: list) -> str:
-    """Creates and returns a YAML string for the navigation menu."""
+def create_nav_menu_yaml(nav_items: list[str]) -> str:
+    """Create and return a YAML string for the navigation menu."""
     nav_tree = nested_dict()
 
     for item_str in nav_items:
@@ -103,7 +103,7 @@ def create_nav_menu_yaml(nav_items: list) -> str:
         current_level[parts[-1].replace(".md", "")] = item
 
     def _dict_to_yaml(d, level=0):
-        """Converts a nested dictionary to a YAML-formatted string with indentation."""
+        """Convert a nested dictionary to a YAML-formatted string with indentation."""
         yaml_str = ""
         indent = "  " * level
         for k, v in sorted(d.items()):
@@ -118,8 +118,8 @@ def create_nav_menu_yaml(nav_items: list) -> str:
     return reference_yaml
 
 
-def extract_document_paths(yaml_section):
-    """Extract just the document paths from a yaml section, ignoring formatting and structure."""
+def extract_document_paths(yaml_section: str) -> list[str]:
+    """Extract document paths from a YAML section, ignoring formatting and structure."""
     paths = []
     # Match all paths that appear after a colon in the YAML
     path_matches = re.findall(r":\s*([^\s][^:\n]*?)(?:\n|$)", yaml_section)
@@ -132,7 +132,7 @@ def extract_document_paths(yaml_section):
 
 
 def update_mkdocs_file(reference_yaml: str) -> None:
-    """Updates the mkdocs.yaml file with the new reference section only if changes in document paths are detected."""
+    """Update the mkdocs.yaml file with the new reference section only if changes in document paths are detected."""
     mkdocs_content = MKDOCS_YAML.read_text()
 
     # Find the top-level Reference section

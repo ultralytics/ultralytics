@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from collections import defaultdict
+from typing import Optional, Tuple
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
@@ -26,7 +27,7 @@ class ObjectCounter(BaseSolution):
     Methods:
         count_objects: Count objects within a polygonal or linear region based on their tracks.
         display_counts: Display object counts on the frame.
-        process: Process input data (frames or object tracks) and update counts.
+        process: Process input data and update counts.
 
     Examples:
         >>> counter = ObjectCounter()
@@ -49,14 +50,20 @@ class ObjectCounter(BaseSolution):
         self.show_out = self.CFG["show_out"]
         self.margin = self.line_width * 2  # Scales the background rectangle size to display counts properly
 
-    def count_objects(self, current_centroid, track_id, prev_position, cls):
+    def count_objects(
+        self,
+        current_centroid: Tuple[float, float],
+        track_id: int,
+        prev_position: Optional[Tuple[float, float]],
+        cls: int,
+    ):
         """
         Count objects within a polygonal or linear region based on their tracks.
 
         Args:
             current_centroid (Tuple[float, float]): Current centroid coordinates (x, y) in the current frame.
             track_id (int): Unique identifier for the tracked object.
-            prev_position (Tuple[float, float]): Last frame position coordinates (x, y) of the track.
+            prev_position (Tuple[float, float], optional): Last frame position coordinates (x, y) of the track.
             cls (int): Class index for classwise count updates.
 
         Examples:

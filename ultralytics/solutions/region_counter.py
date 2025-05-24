@@ -34,7 +34,7 @@ class RegionCounter(BaseSolution):
     """
 
     def __init__(self, **kwargs):
-        """Initialize the RegionCounter class for real-time counting in different regions of video streams."""
+        """Initialize the RegionCounter for real-time object counting in user-defined regions."""
         super().__init__(**kwargs)
         self.region_template = {
             "name": "Default Region",

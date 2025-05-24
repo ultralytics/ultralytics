@@ -16,20 +16,20 @@ class SolutionConfig:
     It leverages Python `dataclass` for clear, type-safe, and maintainable parameter definitions.
 
     Attributes:
-        source (Optional[str]): Path to the input source (video, RTSP, etc.). Only usable with Solutions CLI.
-        model (Optional[str]): Path to the Ultralytics YOLO model to be used for inference.
-        classes (Optional[List[int]]): List of class indices to filter detections.
+        source (str, optional): Path to the input source (video, RTSP, etc.). Only usable with Solutions CLI.
+        model (str, optional): Path to the Ultralytics YOLO model to be used for inference.
+        classes (List[int], optional): List of class indices to filter detections.
         show_conf (bool): Whether to show confidence scores on the visual output.
         show_labels (bool): Whether to display class labels on visual output.
-        region (Optional[List[Tuple[int, int]]]): Polygonal region or line for object counting.
-        colormap (Optional[int]): OpenCV colormap constant for visual overlays (e.g., cv2.COLORMAP_JET).
+        region (List[Tuple[int, int]], optional): Polygonal region or line for object counting.
+        colormap (int, optional): OpenCV colormap constant for visual overlays (e.g., cv2.COLORMAP_JET).
         show_in (bool): Whether to display count number for objects entering the region.
         show_out (bool): Whether to display count number for objects leaving the region.
         up_angle (float): Upper angle threshold used in pose-based workouts monitoring.
         down_angle (int): Lower angle threshold used in pose-based workouts monitoring.
         kpts (List[int]): Keypoint indices to monitor, e.g., for pose analytics.
         analytics_type (str): Type of analytics to perform ("line", "area", "bar", "pie", etc.).
-        figsize (Optional[Tuple[int, int]]): Size of the matplotlib figure used for analytical plots (width, height).
+        figsize (Tuple[int, int], optional): Size of the matplotlib figure used for analytical plots (width, height).
         blur_ratio (float): Ratio used to blur objects in the video frames (0.0 to 1.0).
         vision_point (Tuple[int, int]): Reference point for directional tracking or perspective drawing.
         crop_dir (str): Directory path to save cropped detection images.
@@ -43,7 +43,7 @@ class SolutionConfig:
         show (bool): Whether to display the visual output on screen.
         iou (float): Intersection-over-Union threshold for detection filtering.
         conf (float): Confidence threshold for keeping predictions.
-        device (Optional[str]): Device to run inference on (e.g., 'cpu', '0' for CUDA GPU).
+        device (str, optional): Device to run inference on (e.g., 'cpu', '0' for CUDA GPU).
         max_det (int): Maximum number of detections allowed per video frame.
         half (bool): Whether to use FP16 precision (requires a supported CUDA device).
         tracker (str): Path to tracking configuration YAML file (e.g., 'botsort.yaml').
@@ -100,7 +100,7 @@ class SolutionConfig:
             if hasattr(self, key):
                 setattr(self, key, value)
             else:
-                raise ValueError(
-                    f"❌ {key} is not a valid solution argument, available arguments here: https://docs.ultralytics.com/solutions/#solutions-arguments"
-                )
+                url = "https://docs.ultralytics.com/solutions/#solutions-arguments"
+                raise ValueError(f"{key} is not a valid solution argument, see {url}")
+
         return self

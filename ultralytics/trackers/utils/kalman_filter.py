@@ -20,12 +20,12 @@ class KalmanFilterXYAH:
         _std_weight_velocity (float): Standard deviation weight for velocity.
 
     Methods:
-        initiate: Creates a track from an unassociated measurement.
-        predict: Runs the Kalman filter prediction step.
-        project: Projects the state distribution to measurement space.
-        multi_predict: Runs the Kalman filter prediction step (vectorized version).
-        update: Runs the Kalman filter correction step.
-        gating_distance: Computes the gating distance between state distribution and measurements.
+        initiate: Create a track from an unassociated measurement.
+        predict: Run the Kalman filter prediction step.
+        project: Project the state distribution to measurement space.
+        multi_predict: Run the Kalman filter prediction step (vectorized version).
+        update: Run the Kalman filter correction step.
+        gating_distance: Compute the gating distance between state distribution and measurements.
 
     Examples:
         Initialize the Kalman filter and create a track from a measurement
@@ -70,8 +70,8 @@ class KalmanFilterXYAH:
                 and height h.
 
         Returns:
-            (np.ndarray): Mean vector (8-dimensional) of the new track. Unobserved velocities are initialized to 0 mean.
-            (np.ndarray): Covariance matrix (8x8 dimensional) of the new track.
+            mean (np.ndarray): Mean vector (8-dimensional) of the new track. Unobserved velocities are initialized to 0 mean.
+            covariance (np.ndarray): Covariance matrix (8x8 dimensional) of the new track.
 
         Examples:
             >>> kf = KalmanFilterXYAH()
@@ -104,8 +104,8 @@ class KalmanFilterXYAH:
             covariance (np.ndarray): The 8x8-dimensional covariance matrix of the object state at the previous time step.
 
         Returns:
-            (np.ndarray): Mean vector of the predicted state. Unobserved velocities are initialized to 0 mean.
-            (np.ndarray): Covariance matrix of the predicted state.
+            mean (np.ndarray): Mean vector of the predicted state. Unobserved velocities are initialized to 0 mean.
+            covariance (np.ndarray): Covariance matrix of the predicted state.
 
         Examples:
             >>> kf = KalmanFilterXYAH()
@@ -141,8 +141,8 @@ class KalmanFilterXYAH:
             covariance (np.ndarray): The state's covariance matrix (8x8 dimensional).
 
         Returns:
-            (np.ndarray): Projected mean of the given state estimate.
-            (np.ndarray): Projected covariance matrix of the given state estimate.
+            mean (np.ndarray): Projected mean of the given state estimate.
+            covariance (np.ndarray): Projected covariance matrix of the given state estimate.
 
         Examples:
             >>> kf = KalmanFilterXYAH()
@@ -171,8 +171,8 @@ class KalmanFilterXYAH:
             covariance (np.ndarray): The Nx8x8 covariance matrix of the object states at the previous time step.
 
         Returns:
-            (np.ndarray): Mean matrix of the predicted states with shape (N, 8).
-            (np.ndarray): Covariance matrix of the predicted states with shape (N, 8, 8).
+            mean (np.ndarray): Mean matrix of the predicted states with shape (N, 8).
+            covariance (np.ndarray): Covariance matrix of the predicted states with shape (N, 8, 8).
 
         Examples:
             >>> mean = np.random.rand(10, 8)  # 10 object states
@@ -213,8 +213,8 @@ class KalmanFilterXYAH:
                 position, a the aspect ratio, and h the height of the bounding box.
 
         Returns:
-            (np.ndarray): Measurement-corrected state mean.
-            (np.ndarray): Measurement-corrected state covariance.
+            new_mean (np.ndarray): Measurement-corrected state mean.
+            new_covariance (np.ndarray): Measurement-corrected state covariance.
 
         Examples:
             >>> kf = KalmanFilterXYAH()
@@ -254,8 +254,8 @@ class KalmanFilterXYAH:
             covariance (np.ndarray): Covariance of the state distribution (8x8 dimensional).
             measurements (np.ndarray): An (N, 4) matrix of N measurements, each in format (x, y, a, h) where (x, y) is the
                 bounding box center position, a the aspect ratio, and h the height.
-            only_position (bool): If True, distance computation is done with respect to box center position only.
-            metric (str): The metric to use for calculating the distance. Options are 'gaussian' for the squared
+            only_position (bool, optional): If True, distance computation is done with respect to box center position only.
+            metric (str, optional): The metric to use for calculating the distance. Options are 'gaussian' for the squared
                 Euclidean distance and 'maha' for the squared Mahalanobis distance.
 
         Returns:
@@ -302,11 +302,11 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         _std_weight_velocity (float): Standard deviation weight for velocity.
 
     Methods:
-        initiate: Creates a track from an unassociated measurement.
-        predict: Runs the Kalman filter prediction step.
-        project: Projects the state distribution to measurement space.
-        multi_predict: Runs the Kalman filter prediction step in a vectorized manner.
-        update: Runs the Kalman filter correction step.
+        initiate: Create a track from an unassociated measurement.
+        predict: Run the Kalman filter prediction step.
+        project: Project the state distribution to measurement space.
+        multi_predict: Run the Kalman filter prediction step in a vectorized manner.
+        update: Run the Kalman filter correction step.
 
     Examples:
         Create a Kalman filter and initialize a track
@@ -325,8 +325,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             measurement (np.ndarray): Bounding box coordinates (x, y, w, h) with center position (x, y), width, and height.
 
         Returns:
-            (np.ndarray): Mean vector (8 dimensional) of the new track. Unobserved velocities are initialized to 0 mean.
-            (np.ndarray): Covariance matrix (8x8 dimensional) of the new track.
+            mean (np.ndarray): Mean vector (8 dimensional) of the new track. Unobserved velocities are initialized to 0 mean.
+            covariance (np.ndarray): Covariance matrix (8x8 dimensional) of the new track.
 
         Examples:
             >>> kf = KalmanFilterXYWH()
@@ -361,7 +361,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         covariance = np.diag(np.square(std))
         return mean, covariance
 
-    def predict(self, mean, covariance):
+    def predict(self, mean: np.ndarray, covariance: np.ndarray):
         """
         Run Kalman filter prediction step.
 
@@ -370,8 +370,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             covariance (np.ndarray): The 8x8-dimensional covariance matrix of the object state at the previous time step.
 
         Returns:
-            (np.ndarray): Mean vector of the predicted state. Unobserved velocities are initialized to 0 mean.
-            (np.ndarray): Covariance matrix of the predicted state.
+            mean (np.ndarray): Mean vector of the predicted state. Unobserved velocities are initialized to 0 mean.
+            covariance (np.ndarray): Covariance matrix of the predicted state.
 
         Examples:
             >>> kf = KalmanFilterXYWH()
@@ -398,7 +398,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
 
         return mean, covariance
 
-    def project(self, mean, covariance):
+    def project(self, mean: np.ndarray, covariance: np.ndarray):
         """
         Project state distribution to measurement space.
 
@@ -407,8 +407,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             covariance (np.ndarray): The state's covariance matrix (8x8 dimensional).
 
         Returns:
-            (np.ndarray): Projected mean of the given state estimate.
-            (np.ndarray): Projected covariance matrix of the given state estimate.
+            mean (np.ndarray): Projected mean of the given state estimate.
+            covariance (np.ndarray): Projected covariance matrix of the given state estimate.
 
         Examples:
             >>> kf = KalmanFilterXYWH()
@@ -428,7 +428,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         covariance = np.linalg.multi_dot((self._update_mat, covariance, self._update_mat.T))
         return mean, covariance + innovation_cov
 
-    def multi_predict(self, mean, covariance):
+    def multi_predict(self, mean: np.ndarray, covariance: np.ndarray):
         """
         Run Kalman filter prediction step (Vectorized version).
 
@@ -437,8 +437,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
             covariance (np.ndarray): The Nx8x8 covariance matrix of the object states at the previous time step.
 
         Returns:
-            (np.ndarray): Mean matrix of the predicted states with shape (N, 8).
-            (np.ndarray): Covariance matrix of the predicted states with shape (N, 8, 8).
+            mean (np.ndarray): Mean matrix of the predicted states with shape (N, 8).
+            covariance (np.ndarray): Covariance matrix of the predicted states with shape (N, 8, 8).
 
         Examples:
             >>> mean = np.random.rand(5, 8)  # 5 objects with 8-dimensional state vectors
@@ -469,7 +469,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
 
         return mean, covariance
 
-    def update(self, mean, covariance, measurement):
+    def update(self, mean: np.ndarray, covariance: np.ndarray, measurement: np.ndarray):
         """
         Run Kalman filter correction step.
 
@@ -480,8 +480,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
                 position, w the width, and h the height of the bounding box.
 
         Returns:
-            (np.ndarray): Measurement-corrected state mean.
-            (np.ndarray): Measurement-corrected state covariance.
+            new_mean (np.ndarray): Measurement-corrected state mean.
+            new_covariance (np.ndarray): Measurement-corrected state covariance.
 
         Examples:
             >>> kf = KalmanFilterXYWH()

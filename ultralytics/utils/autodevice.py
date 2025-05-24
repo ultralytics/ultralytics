@@ -133,7 +133,9 @@ class GPUInfo:
 
         LOGGER.info(f"{'-' * len(hdr)}\n")
 
-    def select_idle_gpu(self, count: int = 1, min_memory_fraction: float = 0, min_util_fraction: float=0) -> List[int]:
+    def select_idle_gpu(
+        self, count: int = 1, min_memory_fraction: float = 0, min_util_fraction: float = 0
+    ) -> List[int]:
         """
         Select the most idle GPUs based on utilization and free memory.
 

@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from itertools import cycle
+from typing import Dict, Optional
 
 import cv2
 import numpy as np
@@ -86,7 +87,7 @@ class Analytics(BaseSolution):
             if self.type == "pie":  # Ensure pie chart is circular
                 self.ax.axis("equal")
 
-    def process(self, im0, frame_number):
+    def process(self, im0: np.ndarray, frame_number: int) -> SolutionResults:
         """
         Process image data and run object tracking to update analytics charts.
 
@@ -126,14 +127,16 @@ class Analytics(BaseSolution):
         # return output dictionary with summary for more usage
         return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), classwise_count=self.clswise_count)
 
-    def update_graph(self, frame_number, count_dict=None, plot="line"):
+    def update_graph(
+        self, frame_number: int, count_dict: Optional[Dict[str, int]] = None, plot: str = "line"
+    ) -> np.ndarray:
         """
         Update the graph with new data for single or multiple classes.
 
         Args:
             frame_number (int): The current frame number.
-            count_dict (Dict[str, int] | None): Dictionary with class names as keys and counts as values for multiple
-                classes. If None, updates a single line graph.
+            count_dict (Dict[str, int], optional): Dictionary with class names as keys and counts as values for
+                multiple classes. If None, updates a single line graph.
             plot (str): Type of the plot. Options are 'line', 'bar', 'pie', or 'area'.
 
         Returns:

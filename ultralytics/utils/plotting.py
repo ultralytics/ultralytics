@@ -18,20 +18,21 @@ from ultralytics.utils.files import increment_path
 
 class Colors:
     """
-    Ultralytics color palette https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Colors.
+    Ultralytics color palette for visualization and plotting.
 
     This class provides methods to work with the Ultralytics color palette, including converting hex color codes to
-    RGB values.
+    RGB values and accessing predefined color schemes for object detection and pose estimation.
 
     Attributes:
-        palette (List[Tuple]): List of RGB color values.
+        palette (List[tuple]): List of RGB color tuples for general use.
         n (int): The number of colors in the palette.
         pose_palette (np.ndarray): A specific color palette array for pose estimation with dtype np.uint8.
 
     Examples:
         >>> from ultralytics.utils.plotting import Colors
         >>> colors = Colors()
-        >>> colors(5, True)  # ff6fdd or (255, 111, 221)
+        >>> colors(5, True)  # Returns BGR format: (221, 111, 255)
+        >>> colors(5, False)  # Returns RGB format: (255, 111, 221)
 
     ## Ultralytics Color Palette
 
@@ -85,7 +86,8 @@ class Colors:
 
     !!! note "Ultralytics Brand Colors"
 
-        For Ultralytics brand colors see [https://www.ultralytics.com/brand](https://www.ultralytics.com/brand). Please use the official Ultralytics colors for all marketing materials.
+        For Ultralytics brand colors see [https://www.ultralytics.com/brand](https://www.ultralytics.com/brand).
+        Please use the official Ultralytics colors for all marketing materials.
     """
 
     def __init__(self):
@@ -140,13 +142,22 @@ class Colors:
             dtype=np.uint8,
         )
 
-    def __call__(self, i, bgr=False):
-        """Convert hex color codes to RGB values."""
+    def __call__(self, i: int, bgr: bool = False) -> tuple:
+        """
+        Convert hex color codes to RGB values.
+
+        Args:
+            i (int): Color index.
+            bgr (bool, optional): Whether to return BGR format instead of RGB.
+
+        Returns:
+            (tuple): RGB or BGR color tuple.
+        """
         c = self.palette[int(i) % self.n]
         return (c[2], c[1], c[0]) if bgr else c
 
     @staticmethod
-    def hex2rgb(h):
+    def hex2rgb(h: str) -> tuple:
         """Convert hex color codes to RGB values (i.e. default PIL order)."""
         return tuple(int(h[1 + i : 1 + i + 2], 16) for i in (0, 2, 4))
 
@@ -159,9 +170,9 @@ class Annotator:
     Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
 
     Attributes:
-        im (Image.Image or np.ndarray): The image to annotate.
+        im (Image.Image | np.ndarray): The image to annotate.
         pil (bool): Whether to use PIL or cv2 for drawing annotations.
-        font (ImageFont.truetype or ImageFont.load_default): Font used for text annotations.
+        font (ImageFont.truetype | ImageFont.load_default): Font used for text annotations.
         lw (float): Line width for drawing.
         skeleton (List[List[int]]): Skeleton structure for keypoints.
         limb_color (List[int]): Color palette for limbs.
@@ -173,9 +184,18 @@ class Annotator:
         >>> from ultralytics.utils.plotting import Annotator
         >>> im0 = cv2.imread("test.png")
         >>> annotator = Annotator(im0, line_width=10)
+        >>> annotator.box_label([10, 10, 100, 100], "person", (255, 0, 0))
     """
 
-    def __init__(self, im, line_width=None, font_size=None, font="Arial.ttf", pil=False, example="abc"):
+    def __init__(
+        self,
+        im,
+        line_width: Optional[int] = None,
+        font_size: Optional[int] = None,
+        font: str = "Arial.ttf",
+        pil: bool = False,
+        example: str = "abc",
+    ):
         """Initialize the Annotator class with image and line width along with color palette for keypoints and limbs."""
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         input_is_pil = isinstance(im, Image.Image)
@@ -254,7 +274,7 @@ class Annotator:
             (104, 31, 17),
         }
 
-    def get_txt_color(self, color=(128, 128, 128), txt_color=(255, 255, 255)):
+    def get_txt_color(self, color: tuple = (128, 128, 128), txt_color: tuple = (255, 255, 255)) -> tuple:
         """
         Assign text color based on background color.
 
@@ -278,7 +298,7 @@ class Annotator:
         else:
             return txt_color
 
-    def box_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255)):
+    def box_label(self, box, label: str = "", color: tuple = (128, 128, 128), txt_color: tuple = (255, 255, 255)):
         """
         Draw a bounding box on an image with a given label.
 
@@ -340,7 +360,7 @@ class Annotator:
                     lineType=cv2.LINE_AA,
                 )
 
-    def masks(self, masks, colors, im_gpu, alpha=0.5, retina_masks=False):
+    def masks(self, masks, colors, im_gpu, alpha: float = 0.5, retina_masks: bool = False):
         """
         Plot masks on image.
 
@@ -376,7 +396,15 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
-    def kpts(self, kpts, shape=(640, 640), radius=None, kpt_line=True, conf_thres=0.25, kpt_color=None):
+    def kpts(
+        self,
+        kpts,
+        shape: tuple = (640, 640),
+        radius: Optional[int] = None,
+        kpt_line: bool = True,
+        conf_thres: float = 0.25,
+        kpt_color: Optional[tuple] = None,
+    ):
         """
         Plot keypoints on the image.
 
@@ -436,11 +464,11 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
-    def rectangle(self, xy, fill=None, outline=None, width=1):
+    def rectangle(self, xy, fill=None, outline=None, width: int = 1):
         """Add rectangle to image (PIL-only)."""
         self.draw.rectangle(xy, fill, outline, width)
 
-    def text(self, xy, text, txt_color=(255, 255, 255), anchor="top", box_color=()):
+    def text(self, xy, text: str, txt_color: tuple = (255, 255, 255), anchor: str = "top", box_color: tuple = ()):
         """
         Add text to an image using PIL or cv2.
 
@@ -480,7 +508,7 @@ class Annotator:
         """Return annotated image as array."""
         return np.asarray(self.im)
 
-    def show(self, title=None):
+    def show(self, title: Optional[str] = None):
         """Show the annotated image."""
         im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert numpy array to PIL Image with RGB to BGR
         if IS_COLAB or IS_KAGGLE:  # can not use IS_JUPYTER as will run for all ipython environments
@@ -491,12 +519,12 @@ class Annotator:
         else:
             im.show(title=title)
 
-    def save(self, filename="image.jpg"):
+    def save(self, filename: str = "image.jpg"):
         """Save the annotated image to 'filename'."""
         cv2.imwrite(filename, np.asarray(self.im))
 
     @staticmethod
-    def get_bbox_dimension(bbox=None):
+    def get_bbox_dimension(bbox: Optional[tuple] = None):
         """
         Calculate the dimensions and area of a bounding box.
 
@@ -592,7 +620,16 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
         on_plot(fname)
 
 
-def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False, BGR=False, save=True):
+def save_one_box(
+    xyxy,
+    im,
+    file: Path = Path("im.jpg"),
+    gain: float = 1.02,
+    pad: int = 10,
+    square: bool = False,
+    BGR: bool = False,
+    save: bool = True,
+):
     """
     Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
 
@@ -808,7 +845,14 @@ def plot_images(
 
 
 @plt_settings()
-def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, classify=False, on_plot=None):
+def plot_results(
+    file: str = "path/to/results.csv",
+    dir: str = "",
+    segment: bool = False,
+    pose: bool = False,
+    classify: bool = False,
+    on_plot: Optional[Callable] = None,
+):
     """
     Plot training results from a results CSV file. The function supports various types of data including segmentation,
     pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
@@ -868,7 +912,7 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
         on_plot(fname)
 
 
-def plt_color_scatter(v, f, bins=20, cmap="viridis", alpha=0.8, edgecolors="none"):
+def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float = 0.8, edgecolors: str = "none"):
     """
     Plot a scatter plot with points colored based on a 2D histogram.
 
@@ -901,7 +945,7 @@ def plt_color_scatter(v, f, bins=20, cmap="viridis", alpha=0.8, edgecolors="none
     plt.scatter(v, f, c=colors, cmap=cmap, alpha=alpha, edgecolors=edgecolors)
 
 
-def plot_tune_results(csv_file="tune_results.csv"):
+def plot_tune_results(csv_file: str = "tune_results.csv"):
     """
     Plot the evolution results stored in a 'tune_results.csv' file. The function generates a scatter plot for each key
     in the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on the plots.
@@ -957,7 +1001,7 @@ def plot_tune_results(csv_file="tune_results.csv"):
     _save_one_file(csv_file.with_name("tune_fitness.png"))
 
 
-def output_to_target(output, max_det=300):
+def output_to_target(output, max_det: int = 300):
     """Convert model output to target format [batch_id, class_id, x, y, w, h, conf] for plotting."""
     targets = []
     for i, o in enumerate(output):
@@ -968,7 +1012,7 @@ def output_to_target(output, max_det=300):
     return targets[:, 0], targets[:, 1], targets[:, 2:-1], targets[:, -1]
 
 
-def output_to_rotated_target(output, max_det=300):
+def output_to_rotated_target(output, max_det: int = 300):
     """Convert model output to target format [batch_id, class_id, x, y, w, h, conf] for plotting."""
     targets = []
     for i, o in enumerate(output):
@@ -979,7 +1023,7 @@ def output_to_rotated_target(output, max_det=300):
     return targets[:, 0], targets[:, 1], targets[:, 2:-1], targets[:, -1]
 
 
-def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detect/exp")):
+def feature_visualization(x, module_type: str, stage: int, n: int = 32, save_dir: Path = Path("runs/detect/exp")):
     """
     Visualize feature maps of a given model module during inference.
 

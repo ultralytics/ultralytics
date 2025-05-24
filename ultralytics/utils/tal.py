@@ -26,8 +26,17 @@ class TaskAlignedAssigner(nn.Module):
         eps (float): A small value to prevent division by zero.
     """
 
-    def __init__(self, topk=13, num_classes=80, alpha=1.0, beta=6.0, eps=1e-9):
-        """Initialize a TaskAlignedAssigner object with customizable hyperparameters."""
+    def __init__(self, topk: int = 13, num_classes: int = 80, alpha: float = 1.0, beta: float = 6.0, eps: float = 1e-9):
+        """
+        Initialize a TaskAlignedAssigner object with customizable hyperparameters.
+
+        Args:
+            topk (int, optional): The number of top candidates to consider.
+            num_classes (int, optional): The number of object classes.
+            alpha (float, optional): The alpha parameter for the classification component of the task-aligned metric.
+            beta (float, optional): The beta parameter for the localization component of the task-aligned metric.
+            eps (float, optional): A small value to prevent division by zero.
+        """
         super().__init__()
         self.topk = topk
         self.num_classes = num_classes
@@ -196,12 +205,11 @@ class TaskAlignedAssigner(nn.Module):
         Select the top-k candidates based on the given metrics.
 
         Args:
-            metrics (torch.Tensor): A tensor of shape (b, max_num_obj, h*w), where b is the batch size,
-                              max_num_obj is the maximum number of objects, and h*w represents the
-                              total number of anchor points.
-            topk_mask (torch.Tensor): An optional boolean tensor of shape (b, max_num_obj, topk), where
-                                topk is the number of top candidates to consider. If not provided,
-                                the top-k values are automatically computed based on the given metrics.
+            metrics (torch.Tensor): A tensor of shape (b, max_num_obj, h*w), where b is the batch size, max_num_obj is
+                the maximum number of objects, and h*w represents the total number of anchor points.
+            topk_mask (torch.Tensor, optional): An optional boolean tensor of shape (b, max_num_obj, topk), where
+                topk is the number of top candidates to consider. If not provided, the top-k values are automatically
+                computed based on the given metrics.
 
         Returns:
             (torch.Tensor): A tensor of shape (b, max_num_obj, h*w) containing the selected top-k candidates.
@@ -239,11 +247,9 @@ class TaskAlignedAssigner(nn.Module):
                               (foreground) anchor points.
 
         Returns:
-            target_labels (torch.Tensor): Shape (b, h*w), containing the target labels for positive anchor points.
-            target_bboxes (torch.Tensor): Shape (b, h*w, 4), containing the target bounding boxes for positive
-                                          anchor points.
-            target_scores (torch.Tensor): Shape (b, h*w, num_classes), containing the target scores for positive
-                                          anchor points.
+            target_labels (torch.Tensor): Target labels for positive anchor points with shape (b, h*w).
+            target_bboxes (torch.Tensor): Target bounding boxes for positive anchor points with shape (b, h*w, 4).
+            target_scores (torch.Tensor): Target scores for positive anchor points with shape (b, h*w, num_classes).
         """
         # Assigned target labels, (b, 1)
         batch_ind = torch.arange(end=self.bs, dtype=torch.int64, device=gt_labels.device)[..., None]
@@ -277,7 +283,7 @@ class TaskAlignedAssigner(nn.Module):
         Args:
             xy_centers (torch.Tensor): Anchor center coordinates, shape (h*w, 2).
             gt_bboxes (torch.Tensor): Ground truth bounding boxes, shape (b, n_boxes, 4).
-            eps (float, optional): Small value for numerical stability. Defaults to 1e-9.
+            eps (float, optional): Small value for numerical stability.
 
         Returns:
             (torch.Tensor): Boolean mask of positive anchors, shape (b, n_boxes, h*w).
@@ -399,7 +405,7 @@ def dist2rbox(pred_dist, pred_angle, anchor_points, dim=-1):
         pred_dist (torch.Tensor): Predicted rotated distance with shape (bs, h*w, 4).
         pred_angle (torch.Tensor): Predicted angle with shape (bs, h*w, 1).
         anchor_points (torch.Tensor): Anchor points with shape (h*w, 2).
-        dim (int, optional): Dimension along which to split. Defaults to -1.
+        dim (int, optional): Dimension along which to split.
 
     Returns:
         (torch.Tensor): Predicted rotated bounding boxes with shape (bs, h*w, 4).

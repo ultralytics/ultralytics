@@ -117,7 +117,7 @@ def test_train():
     if not IS_JETSON:
         visible = eval(os.environ["CUDA_VISIBLE_DEVICES"])
         assert visible == device, f"Passed GPUs '{device}', but used GPUs '{visible}'"
-        assert results is (None if len(DEVICES) > 1 else not None)  # DDP returns None, single-GPU returns metrics
+        assert (results is None) if len(DEVICES) > 1 else (results is not None)  # DDP returns None, single-GPU returns metrics
 
 
 @pytest.mark.slow

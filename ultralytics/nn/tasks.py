@@ -28,6 +28,7 @@ from ultralytics.nn.modules import (
     A2C2f,
     AConv,
     ADown,
+    BiFPN,
     Bottleneck,
     BottleneckCSP,
     C2f,
@@ -1355,89 +1356,100 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     # Return model and ckpt
     return model, ckpt
 
-def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
+def parse_model(d, ch, verbose=True):  # model_dict, input_channels
     """
     Parse a YOLO model.yaml dictionary into a PyTorch model.
 
-    Args:
-        d (dict): Model dictionary.
-        ch (int): Input channels.
-        verbose (bool): Whether to print model details.
-
     Returns:
-        (tuple): Tuple containing the PyTorch model and sorted list of output layers.
+      (nn.Sequential model, list of layer indices to save)
     """
     import ast
     import contextlib
     import torch
-    import torch.nn.functional as F
+    from torch.nn import functional as F
+    from torchvision.ops import nms  # if you use any torchvision ops
+    from ultralytics.utils import LOGGER, colorstr
+    from ultralytics.nn.tasks import make_divisible
+    # import all of your modules here:
     from ultralytics.nn.modules import (
         Classify, Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck,
         SPP, SPPF, C2fPSA, C2PSA, DWConv, Focus, BottleneckCSP, C1, C2,
         C2f, C3k2, C3K2_FE, RepNCSPELAN4, ELAN1, ADown, AConv, SPPELAN,
         C2fAttn, C3, C3TR, C3Ghost, Conv as ConvLayer, DWConvTranspose2d,
-        C3x, RepC3, PSA, SCDown, C2fCIB, A2C2f, Concat, Detect, WorldDetect,
-        YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect
+        C3x, RepC3, PSA, SCDown, C2fCIB, A2C2f, Concat,
+        Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment,
+        Pose, OBB, ImagePoolingAttn, v10Detect
     )
-    from ultralytics.nn.tasks import make_divisible
-    from ultralytics.utils import LOGGER, colorstr
 
-    # backward compatibility and scaling
+    # ——— Setup scaling & activation ———
     legacy = True
     max_channels = float("inf")
     nc, act, scales = (d.get(x) for x in ("nc", "activation", "scales"))
-    depth, width, _ = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
+    depth_mul, width_mul, _ = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
+
     if scales:
         scale = d.get("scale") or tuple(scales.keys())[0]
-        depth, width, max_channels = scales[scale]
+        depth_mul, width_mul, max_channels = scales[scale]
         if not d.get("scale"):
             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
+    else:
+        scale = None
+
     if act:
         Conv.default_act = eval(act)
         if verbose:
             LOGGER.info(f"{colorstr('activation:')} {act}")
 
     if verbose:
-        LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
+        LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  "
+                    f"{'module':<45}{'arguments':<30}")
 
-    ch = [ch]  # channel list
-    layers, save, c2 = [], [], ch[-1]
+    # ——— Initialize holders ———
+    ch = [ch]            # channel list (will grow)
+    layers, save = [], []  # modules and indices to save
 
-    # define which modules to treat as base / repeatable
-    base_modules = frozenset({Classify, Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck,
-                              SPP, SPPF, C2fPSA, C2PSA, DWConv, Focus, BottleneckCSP, C1, C2,
-                              C2f, C3k2, C3K2_FE, RepNCSPELAN4, ELAN1, ADown, AConv, SPPELAN,
-                              C2fAttn, C3, C3TR, C3Ghost, ConvLayer, DWConvTranspose2d, C3x,
-                              RepC3, PSA, SCDown, C2fCIB, A2C2f})
-    repeat_modules = frozenset({BottleneckCSP, C1, C2, C2f, C3k2, C3K2_FE, C2fAttn,
-                                C3, C3TR, C3Ghost, C3x, RepC3, C2fPSA, C2fCIB, C2PSA, A2C2f})
+    # classify which modules have special handling
+    base_modules = frozenset({
+        Classify, Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck,
+        SPP, SPPF, C2fPSA, C2PSA, DWConv, Focus, BottleneckCSP, C1, C2,
+        C2f, C3k2, C3K2_FE, RepNCSPELAN4, ELAN1, ADown, AConv, SPPELAN,
+        C2fAttn, C3, C3TR, C3Ghost, ConvLayer, DWConvTranspose2d, C3x,
+        RepC3, PSA, SCDown, C2fCIB, A2C2f
+    })
+    repeat_modules = frozenset({
+        BottleneckCSP, C1, C2, C2f, C3k2, C3K2_FE, C2fAttn, C3, C3TR,
+        C3Ghost, C3x, RepC3, C2fPSA, C2fCIB, C2PSA, A2C2f
+    })
 
-    # iterate both backbone and head
+    # ——— Build each layer from backbone + head lists ———
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):
-        # resolve module class
-        if isinstance(m, str) and "nn." in m:
-            m = getattr(torch.nn, m.split("nn.")[1])
-        elif isinstance(m, str) and "torchvision.ops." in m:
-            m = getattr(__import__("torchvision").ops, m.split("torchvision.ops.")[1])
-        else:
-            m = globals().get(m, m)
+        # resolve class if given as string
+        if isinstance(m, str):
+            if "nn." in m:
+                m = getattr(torch.nn, m.split("nn.")[1])
+            elif "torchvision.ops." in m:
+                m = getattr(__import__("torchvision").ops, m.split("torchvision.ops.")[1])
+            else:
+                m = globals().get(m, m)
 
-        # resolve string args to literals or variables
+        # turn any string args into Python values
         for j, a in enumerate(args):
             if isinstance(a, str):
                 with contextlib.suppress(ValueError):
                     args[j] = locals().get(a, ast.literal_eval(a))
 
         # depth gain
-        n = n_ = max(round(n * depth), 1) if n > 1 else n
+        n = n_ = max(round(n * depth_mul), 1) if n > 1 else n
 
+        # — Handle base modules with input/output channel scaling ——
         if m in base_modules:
-            # 1) input channels c1 from f (int or list)
+            # 1) compute input channels c1 from f (int or list)
             if isinstance(f, (list, tuple)):
                 c1 = sum(ch[x] for x in f)
             else:
                 c1 = ch[f]
-            # 2) raw output channels from args[0] (int or list)
+
+            # 2) compute raw output channels c2 from args[0] (int or list)
             raw_c2 = args[0]
             if isinstance(raw_c2, (list, tuple)):
                 if len(raw_c2) == 1 and isinstance(raw_c2[0], int):
@@ -1446,65 +1458,76 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                     c2 = sum(raw_c2)
             else:
                 c2 = raw_c2
-            # 3) apply width & divisibility
+
+            # 3) apply width/divisible unless it's a head-classifier
             if c2 != nc:
-                c2 = make_divisible(min(c2, max_channels) * width, 8)
+                c2 = make_divisible(min(c2, max_channels) * width_mul, 8)
 
-            # special C2fAttn adjustments
+            # special tweaks for C2fAttn
             if m is C2fAttn:
-                args[1] = make_divisible(min(args[1], max_channels // 2) * width, 8)
-                args[2] = int(max(round(min(args[2], max_channels // 2 // 32)) * width, 1)
-                              if args[2] > 1 else args[2])
+                args[1] = make_divisible(min(args[1], max_channels//2) * width_mul, 8)
+                args[2] = int(
+                    max(round(min(args[2], max_channels//2//32) * width_mul), 1)
+                    if args[2] > 1 else args[2]
+                )
 
-            # rebuild args list
+            # rebuild args list: [c1, c2, ...rest...]
             args = [c1, c2, *args[1:]]
-            # insert repeat count if needed
+
+            # handle repeatable modules
             if m in repeat_modules:
                 args.insert(2, n)
                 n = 1
 
-            # legacy flags for special modules
+            # legacy flags for certain modules
             if m is C3k2:
                 legacy = False
                 if scale in "mlx":
-                    args[3] = True
+                    # safe set index 3
+                    if len(args) > 3:
+                        args[3] = True
+                    else:
+                        args.insert(3, True)
             if m is A2C2f:
                 legacy = False
                 if scale in "lx":
-                    args.extend((True, 1.2))
+                    args.extend([True, 1.2])
             if m is C2fCIB:
                 legacy = False
 
+        # ——— Concat sums its inputs ———
         elif m is Concat:
-            # Concat sums input channels
             c2 = sum(ch[x] for x in f)
 
+        # ——— Detection & segmentation heads take all inputs ———
         elif m in {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect}:
-            # multi-input detection/segment heads
             args.append([ch[x] for x in f])
+            # patch segment-classifier width
             if m in {Segment, YOLOESegment}:
-                args[2] = make_divisible(min(args[2], max_channels) * width, 8)
+                args[2] = make_divisible(min(args[2], max_channels) * width_mul, 8)
             if m in {Detect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB}:
                 m.legacy = legacy
 
-        # build the actual module (with repeats)
-        m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)
-        m_.np = sum(p.numel() for p in m_.parameters())
-        m_.i, m_.f, m_.type = i, f, m_.__name__ if hasattr(m, "__name__") else str(m)
+        # ——— Build the PyTorch module (with repeats) ———
+        module = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)
+        module.np = sum(p.numel() for p in module.parameters())
+        module.i, module.f, module.type = i, f, m.__name__ if hasattr(m, "__name__") else str(m)
 
-        # print layer info
+        # logging
         if verbose:
-            LOGGER.info(f"{i:>3}{str(f):>20}{n_:>3}{m_.np:10.0f}  "
-                        f"{m_.type:<45}{str(args):<30}")
+            LOGGER.info(f"{i:>3}{str(f):>20}{n_:>3}{module.np:10.0f}  "
+                        f"{module.type:<45}{str(args):<30}")
 
-        # track saving
+        # track layers whose outputs we need to save
         save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)
-        layers.append(m_)
+        layers.append(module)
+
+        # append this layer’s c2 for future layers
         if i == 0:
             ch = []
         ch.append(c2)
 
-    # return assembled model and list of saved layer indices
+    # assemble and return
     return torch.nn.Sequential(*layers), sorted(save)
 
 # def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)

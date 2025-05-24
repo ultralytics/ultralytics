@@ -67,6 +67,8 @@ class BaseValidator:
         save_dir (Path): Directory to save results.
         plots (dict): Dictionary to store plots for visualization.
         callbacks (dict): Dictionary to store various callback functions.
+        stride (int): Model stride for padding calculations.
+        loss (torch.Tensor): Accumulated loss during training validation.
 
     Methods:
         __call__: Execute validation process, running inference on dataloader and computing performance metrics.
@@ -84,7 +86,7 @@ class BaseValidator:
         check_stats: Check statistics.
         print_results: Print the results of the model's predictions.
         get_desc: Get description of the YOLO model.
-        on_plot: Register plots (e.g. to be consumed in callbacks).
+        on_plot: Register plots for visualization.
         plot_val_samples: Plot validation samples during training.
         plot_predictions: Plot YOLO model predictions on batch images.
         pred_to_json: Convert predictions to JSON format.
@@ -138,7 +140,7 @@ class BaseValidator:
             model (nn.Module, optional): Model to validate if not using a trainer.
 
         Returns:
-            stats (dict): Dictionary containing validation statistics.
+            (dict): Dictionary containing validation statistics.
         """
         self.training = trainer is not None
         augment = self.args.augment and (not self.training)
@@ -149,7 +151,6 @@ class BaseValidator:
             self.args.half = self.device.type != "cpu" and trainer.amp
             model = trainer.ema.ema or trainer.model
             model = model.half() if self.args.half else model.float()
-            # self.model = model
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
@@ -164,7 +165,6 @@ class BaseValidator:
                 data=self.args.data,
                 fp16=self.args.half,
             )
-            # self.model = model
             self.device = model.device  # update device
             self.args.half = model.fp16  # update half
             stride, pt, jit, engine = model.stride, model.pt, model.jit, model.engine
@@ -263,7 +263,7 @@ class BaseValidator:
             pred_classes (torch.Tensor): Predicted class indices of shape (N,).
             true_classes (torch.Tensor): Target class indices of shape (M,).
             iou (torch.Tensor): An NxM tensor containing the pairwise IoU values for predictions and ground truth.
-            use_scipy (bool): Whether to use scipy for matching (more precise).
+            use_scipy (bool, optional): Whether to use scipy for matching (more precise).
 
         Returns:
             (torch.Tensor): Correct tensor of shape (N, 10) for 10 IoU thresholds.
@@ -292,7 +292,6 @@ class BaseValidator:
                     if matches.shape[0] > 1:
                         matches = matches[iou[matches[:, 0], matches[:, 1]].argsort()[::-1]]
                         matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
-                        # matches = matches[matches[:, 2].argsort()[::-1]]
                         matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
                     correct[matches[:, 1].astype(int), i] = True
         return torch.tensor(correct, dtype=torch.bool, device=pred_classes.device)
@@ -356,10 +355,9 @@ class BaseValidator:
         return []
 
     def on_plot(self, name, data=None):
-        """Register plots (e.g. to be consumed in callbacks)."""
+        """Register plots for visualization."""
         self.plots[Path(name)] = {"data": data, "timestamp": time.time()}
 
-    # TODO: may need to put these following functions into callback
     def plot_val_samples(self, batch, ni):
         """Plot validation samples during training."""
         pass

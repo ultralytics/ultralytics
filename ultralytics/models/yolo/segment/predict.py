@@ -18,9 +18,9 @@ class SegmentationPredictor(DetectionPredictor):
         batch (list): Current batch of images being processed.
 
     Methods:
-        postprocess: Applies non-max suppression and processes detections.
-        construct_results: Constructs a list of result objects from predictions.
-        construct_result: Constructs a single result object from a prediction.
+        postprocess: Apply non-max suppression and process segmentation detections.
+        construct_results: Construct a list of result objects from predictions.
+        construct_result: Construct a single result object from a prediction.
 
     Examples:
         >>> from ultralytics.utils import ASSETS
@@ -38,7 +38,7 @@ class SegmentationPredictor(DetectionPredictor):
         prediction results.
 
         Args:
-            cfg (dict): Configuration for the predictor. Defaults to Ultralytics DEFAULT_CFG.
+            cfg (dict): Configuration for the predictor.
             overrides (dict, optional): Configuration overrides that take precedence over cfg.
             _callbacks (list, optional): List of callback functions to be invoked during prediction.
         """
@@ -56,7 +56,7 @@ class SegmentationPredictor(DetectionPredictor):
 
         Returns:
             (list): List of Results objects containing the segmentation predictions for each image in the batch.
-                   Each Results object includes both bounding boxes and segmentation masks.
+                Each Results object includes both bounding boxes and segmentation masks.
 
         Examples:
             >>> predictor = SegmentationPredictor(overrides=dict(model="yolo11n-seg.pt"))

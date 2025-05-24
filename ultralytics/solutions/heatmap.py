@@ -72,7 +72,7 @@ class Heatmap(ObjectCounter):
 
     def process(self, im0):
         """
-        Generate heatmap for each frame using Ultralytics.
+        Generate heatmap for each frame using Ultralytics tracking.
 
         Args:
             im0 (np.ndarray): Input image array for processing.

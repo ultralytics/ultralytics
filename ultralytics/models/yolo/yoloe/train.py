@@ -2,6 +2,8 @@
 
 import itertools
 from copy import copy, deepcopy
+from pathlib import Path
+from typing import Dict, List, Optional, Union
 
 import torch
 
@@ -17,9 +19,22 @@ from .val import YOLOEDetectValidator
 
 
 class YOLOETrainer(DetectionTrainer):
-    """A base trainer for YOLOE training."""
+    """
+    A trainer class for YOLOE object detection models.
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    This class extends DetectionTrainer to provide specialized training functionality for YOLOE models,
+    including custom model initialization, validation, and dataset building with multi-modal support.
+
+    Attributes:
+        loss_names (tuple): Names of loss components used during training.
+
+    Methods:
+        get_model: Initialize and return a YOLOEModel with specified configuration.
+        get_validator: Return a YOLOEDetectValidator for model validation.
+        build_dataset: Build YOLO dataset with multi-modal support for training.
+    """
+
+    def __init__(self, cfg=DEFAULT_CFG, overrides: Optional[Dict] = None, _callbacks=None):
         """
         Initialize the YOLOE Trainer with specified configurations.
 
@@ -36,14 +51,14 @@ class YOLOETrainer(DetectionTrainer):
         overrides["overlap_mask"] = False
         super().__init__(cfg, overrides, _callbacks)
 
-    def get_model(self, cfg=None, weights=None, verbose=True):
+    def get_model(self, cfg=None, weights=None, verbose: bool = True):
         """
         Return a YOLOEModel initialized with the specified configuration and weights.
 
         Args:
-            cfg (dict | str | None): Model configuration. Can be a dictionary containing a 'yaml_file' key,
+            cfg (dict | str, optional): Model configuration. Can be a dictionary containing a 'yaml_file' key,
                 a direct path to a YAML file, or None to use default configuration.
-            weights (str | Path | None): Path to pretrained weights file to load into the model.
+            weights (str | Path, optional): Path to pretrained weights file to load into the model.
             verbose (bool): Whether to display model information during initialization.
 
         Returns:
@@ -68,20 +83,20 @@ class YOLOETrainer(DetectionTrainer):
         return model
 
     def get_validator(self):
-        """Returns a DetectionValidator for YOLO model validation."""
+        """Return a YOLOEDetectValidator for YOLOE model validation."""
         self.loss_names = "box", "cls", "dfl"
         return YOLOEDetectValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
 
-    def build_dataset(self, img_path, mode="train", batch=None):
+    def build_dataset(self, img_path: str, mode: str = "train", batch: Optional[int] = None):
         """
         Build YOLO Dataset.
 
         Args:
             img_path (str): Path to the folder containing images.
-            mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
-            batch (int, optional): Size of batches, this is for `rect`.
+            mode (str): 'train' mode or 'val' mode, users are able to customize different augmentations for each mode.
+            batch (int, optional): Size of batches, this is for rectangular training.
 
         Returns:
             (Dataset): YOLO dataset configured for training or validation.
@@ -93,9 +108,17 @@ class YOLOETrainer(DetectionTrainer):
 
 
 class YOLOEPETrainer(DetectionTrainer):
-    """Fine-tune YOLOE model in linear probing way."""
+    """
+    Fine-tune YOLOE model using linear probing approach.
 
-    def get_model(self, cfg=None, weights=None, verbose=True):
+    This trainer freezes most model layers and only trains specific projection layers for efficient
+    fine-tuning on new datasets while preserving pretrained features.
+
+    Methods:
+        get_model: Initialize YOLOEModel with frozen layers except projection layers.
+    """
+
+    def get_model(self, cfg=None, weights=None, verbose: bool = True):
         """
         Return YOLOEModel initialized with specified config and weights.
 
@@ -139,9 +162,19 @@ class YOLOEPETrainer(DetectionTrainer):
 
 
 class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
-    """Train YOLOE models from scratch."""
+    """
+    Train YOLOE models from scratch with text embedding support.
 
-    def build_dataset(self, img_path, mode="train", batch=None):
+    This trainer combines YOLOE training capabilities with world training features, enabling
+    training from scratch with text embeddings and grounding datasets.
+
+    Methods:
+        build_dataset: Build datasets for training with grounding support.
+        preprocess_batch: Process batches with text features.
+        generate_text_embeddings: Generate and cache text embeddings for training.
+    """
+
+    def build_dataset(self, img_path: Union[List[str], str], mode: str = "train", batch: Optional[int] = None):
         """
         Build YOLO Dataset for training or validation.
 
@@ -168,7 +201,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         batch["txt_feats"] = txt_feats
         return batch
 
-    def generate_text_embeddings(self, texts, batch, cache_dir):
+    def generate_text_embeddings(self, texts: List[str], batch: int, cache_dir: Path):
         """
         Generate text embeddings for a list of text samples.
 
@@ -196,21 +229,31 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
 
 
 class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
-    """Train prompt-free YOLOE model."""
+    """
+    Train prompt-free YOLOE model.
+
+    This trainer combines linear probing capabilities with from-scratch training for prompt-free
+    YOLOE models that don't require text prompts during inference.
+
+    Methods:
+        get_validator: Return standard DetectionValidator for validation.
+        preprocess_batch: Preprocess batches without text features.
+        set_text_embeddings: Set text embeddings for datasets (no-op for prompt-free).
+    """
 
     def get_validator(self):
-        """Returns a DetectionValidator for YOLO model validation."""
+        """Return a DetectionValidator for YOLO model validation."""
         self.loss_names = "box", "cls", "dfl"
         return DetectionValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
 
     def preprocess_batch(self, batch):
-        """Preprocesses a batch of images for YOLOE training, adjusting formatting and dimensions as needed."""
+        """Preprocess a batch of images for YOLOE training, adjusting formatting and dimensions as needed."""
         batch = DetectionTrainer.preprocess_batch(self, batch)
         return batch
 
-    def set_text_embeddings(self, datasets, batch):
+    def set_text_embeddings(self, datasets, batch: int):
         """
         Set text embeddings for datasets to accelerate training by caching category names.
 
@@ -231,9 +274,18 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
 
 
 class YOLOEVPTrainer(YOLOETrainerFromScratch):
-    """Train YOLOE model with visual prompts."""
+    """
+    Train YOLOE model with visual prompts.
 
-    def build_dataset(self, img_path, mode="train", batch=None):
+    This trainer extends YOLOETrainerFromScratch to support visual prompt-based training,
+    where visual cues are provided alongside images to guide the detection process.
+
+    Methods:
+        build_dataset: Build dataset with visual prompt loading transforms.
+        preprocess_batch: Preprocess batches with visual prompts.
+    """
+
+    def build_dataset(self, img_path: Union[List[str], str], mode: str = "train", batch: Optional[int] = None):
         """
         Build YOLO Dataset for training or validation with visual prompts.
 
@@ -263,7 +315,7 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
             self.train_loader.dataset.transforms.append(LoadVisualPrompt())
 
     def preprocess_batch(self, batch):
-        """Preprocesses a batch of images for YOLOE training, moving visual prompts to the appropriate device."""
+        """Preprocess a batch of images for YOLOE training, moving visual prompts to the appropriate device."""
         batch = super().preprocess_batch(batch)
         batch["visuals"] = batch["visuals"].to(self.device)
         return batch

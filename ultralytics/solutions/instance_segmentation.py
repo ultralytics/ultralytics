@@ -18,6 +18,9 @@ class InstanceSegmentation(BaseSolution):
         clss (List[int]): List of detected class indices.
         track_ids (List[int]): List of track IDs for detected instances.
         masks (List[numpy.ndarray]): List of segmentation masks for detected instances.
+        show_conf (bool): Whether to display confidence scores.
+        show_labels (bool): Whether to display class labels.
+        show_boxes (bool): Whether to display bounding boxes.
 
     Methods:
         process: Process the input image to perform instance segmentation and annotate results.
@@ -26,8 +29,8 @@ class InstanceSegmentation(BaseSolution):
     Examples:
         >>> segmenter = InstanceSegmentation()
         >>> frame = cv2.imread("frame.jpg")
-        >>> results = segmenter.segment(frame)
-        >>> print(f"Total segmented instances: {results['total_tracks']}")
+        >>> results = segmenter.process(frame)
+        >>> print(f"Total segmented instances: {results.total_tracks}")
     """
 
     def __init__(self, **kwargs):
@@ -58,7 +61,7 @@ class InstanceSegmentation(BaseSolution):
         Examples:
             >>> segmenter = InstanceSegmentation()
             >>> frame = cv2.imread("image.jpg")
-            >>> summary = segmenter.segment(frame)
+            >>> summary = segmenter.process(frame)
             >>> print(summary)
         """
         self.extract_tracks(im0)  # Extract tracks (bounding boxes, classes, and masks)

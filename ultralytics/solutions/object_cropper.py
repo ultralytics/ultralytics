@@ -21,7 +21,7 @@ class ObjectCropper(BaseSolution):
         conf (float): Confidence threshold for filtering detections.
 
     Methods:
-        process: Crops detected objects from the input image and saves them to the output directory.
+        process: Crop detected objects from the input image and save them to the output directory.
 
     Examples:
         >>> cropper = ObjectCropper()
@@ -59,7 +59,8 @@ class ObjectCropper(BaseSolution):
             im0 (numpy.ndarray): The input image containing detected objects.
 
         Returns:
-            (SolutionResults): A SolutionResults object containing the total number of cropped objects and processed image.
+            (SolutionResults): A SolutionResults object containing the total number of cropped objects and processed
+                image.
 
         Examples:
             >>> cropper = ObjectCropper()

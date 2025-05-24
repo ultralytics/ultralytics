@@ -23,7 +23,7 @@ def _log_scalars(scalars: dict, step: int = 0) -> None:
 
     Args:
         scalars (dict): Dictionary of scalar values to log to NeptuneAI.
-        step (int): The current step or iteration number for logging.
+        step (int, optional): The current step or iteration number for logging.
 
     Examples:
         >>> metrics = {"mAP": 0.85, "loss": 0.32}
@@ -55,13 +55,7 @@ def _log_images(imgs_dict: dict, group: str = "") -> None:
 
 
 def _log_plot(title: str, plot_path: str) -> None:
-    """
-    Log plots to the NeptuneAI experiment logger.
-
-    Args:
-        title (str): Title of the plot.
-        plot_path (str): Path to the saved image file.
-    """
+    """Log plots to the NeptuneAI experiment logger."""
     import matplotlib.image as mpimg
     import matplotlib.pyplot as plt
 
@@ -73,7 +67,7 @@ def _log_plot(title: str, plot_path: str) -> None:
 
 
 def on_pretrain_routine_start(trainer) -> None:
-    """Callback function called before the training routine starts."""
+    """Initialize NeptuneAI run and log hyperparameters before training starts."""
     try:
         global run
         run = neptune.init_run(
@@ -87,7 +81,7 @@ def on_pretrain_routine_start(trainer) -> None:
 
 
 def on_train_epoch_end(trainer) -> None:
-    """Callback function called at end of each training epoch."""
+    """Log training metrics and learning rate at the end of each training epoch."""
     _log_scalars(trainer.label_loss_items(trainer.tloss, prefix="train"), trainer.epoch + 1)
     _log_scalars(trainer.lr, trainer.epoch + 1)
     if trainer.epoch == 1:
@@ -95,7 +89,7 @@ def on_train_epoch_end(trainer) -> None:
 
 
 def on_fit_epoch_end(trainer) -> None:
-    """Callback function called at end of each fit (train+val) epoch."""
+    """Log model info and validation metrics at the end of each fit epoch."""
     if run and trainer.epoch == 0:
         from ultralytics.utils.torch_utils import model_info_for_loggers
 
@@ -104,14 +98,14 @@ def on_fit_epoch_end(trainer) -> None:
 
 
 def on_val_end(validator) -> None:
-    """Callback function called at end of each validation."""
+    """Log validation images at the end of validation."""
     if run:
         # Log val_labels and val_pred
         _log_images({f.stem: str(f) for f in validator.save_dir.glob("val*.jpg")}, "Validation")
 
 
 def on_train_end(trainer) -> None:
-    """Callback function called at end of training."""
+    """Log final results, plots, and model weights at the end of training."""
     if run:
         # Log final results, CM matrix + PR plots
         files = [

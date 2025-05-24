@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from copy import deepcopy
+from typing import Any, Dict, Optional, Union
 
 import torch
 from torch.nn import functional as F
@@ -18,26 +19,40 @@ from ultralytics.utils.torch_utils import select_device, smart_inference_mode
 
 class YOLOEDetectValidator(DetectionValidator):
     """
-    A mixin class for YOLOE model validation that handles both text and visual prompt embeddings.
+    A validator class for YOLOE detection models that handles both text and visual prompt embeddings.
 
-    This mixin provides functionality to validate YOLOE models using either text or visual prompt embeddings.
-    It includes methods for extracting visual prompt embeddings from samples, preprocessing batches, and
-    running validation with different prompt types.
+    This class extends DetectionValidator to provide specialized validation functionality for YOLOE models.
+    It supports validation using either text prompts or visual prompt embeddings extracted from training samples,
+    enabling flexible evaluation strategies for prompt-based object detection.
 
     Attributes:
         device (torch.device): The device on which validation is performed.
         args (namespace): Configuration arguments for validation.
         dataloader (DataLoader): DataLoader for validation data.
+
+    Methods:
+        get_visual_pe: Extract visual prompt embeddings from training samples.
+        preprocess: Preprocess batch data ensuring visuals are on the same device as images.
+        get_vpe_dataloader: Create a dataloader for LVIS training visual prompt samples.
+        __call__: Run validation using either text or visual prompt embeddings.
+
+    Examples:
+        Validate with text prompts
+        >>> validator = YOLOEDetectValidator()
+        >>> stats = validator(model=model, load_vp=False)
+
+        Validate with visual prompts
+        >>> stats = validator(model=model, refer_data="path/to/data.yaml", load_vp=True)
     """
 
     @smart_inference_mode()
-    def get_visual_pe(self, dataloader, model):
+    def get_visual_pe(self, dataloader: torch.utils.data.DataLoader, model: YOLOEModel) -> torch.Tensor:
         """
         Extract visual prompt embeddings from training samples.
 
-        This function processes a dataloader to compute visual prompt embeddings for each class
-        using a YOLOE model. It normalizes the embeddings and handles cases where no samples
-        exist for a class.
+        This method processes a dataloader to compute visual prompt embeddings for each class using a YOLOE model.
+        It normalizes the embeddings and handles cases where no samples exist for a class by setting their
+        embeddings to zero.
 
         Args:
             dataloader (torch.utils.data.DataLoader): The dataloader providing training samples.
@@ -53,6 +68,7 @@ class YOLOEDetectValidator(DetectionValidator):
 
         desc = "Get visual prompt embeddings from samples"
 
+        # Count samples per class
         for batch in dataloader:
             cls = batch["cls"].squeeze(-1).to(torch.int).unique()
             count = torch.bincount(cls, minlength=len(names))
@@ -60,6 +76,7 @@ class YOLOEDetectValidator(DetectionValidator):
 
         cls_visual_num = cls_visual_num.to(self.device)
 
+        # Extract visual prompt embeddings
         pbar = TQDM(dataloader, total=len(dataloader), desc=desc)
         for batch in pbar:
             batch = self.preprocess(batch)
@@ -73,30 +90,31 @@ class YOLOEDetectValidator(DetectionValidator):
                 for c in cls:
                     visual_pe[c] += preds[i][pad_cls == c].sum(0) / cls_visual_num[c]
 
+        # Normalize embeddings for classes with samples, set others to zero
         visual_pe[cls_visual_num != 0] = F.normalize(visual_pe[cls_visual_num != 0], dim=-1, p=2)
         visual_pe[cls_visual_num == 0] = 0
         return visual_pe.unsqueeze(0)
 
-    def preprocess(self, batch):
+    def preprocess(self, batch: Dict[str, Any]) -> Dict[str, Any]:
         """Preprocess batch data, ensuring visuals are on the same device as images."""
         batch = super().preprocess(batch)
         if "visuals" in batch:
             batch["visuals"] = batch["visuals"].to(batch["img"].device)
         return batch
 
-    def get_vpe_dataloader(self, data):
+    def get_vpe_dataloader(self, data: Dict[str, Any]) -> torch.utils.data.DataLoader:
         """
         Create a dataloader for LVIS training visual prompt samples.
 
-        This function prepares a dataloader for visual prompt embeddings (VPE) using the LVIS dataset.
-        It applies necessary transformations and configurations to the dataset and returns a dataloader
+        This method prepares a dataloader for visual prompt embeddings (VPE) using the specified dataset.
+        It applies necessary transformations including LoadVisualPrompt and configurations to the dataset
         for validation purposes.
 
         Args:
             data (dict): Dataset configuration dictionary containing paths and settings.
 
         Returns:
-            (torch.utils.data.DataLoader): The dataLoader for visual prompt samples.
+            (torch.utils.data.DataLoader): The dataloader for visual prompt samples.
         """
         dataset = build_yolo_dataset(
             self.args,
@@ -120,17 +138,23 @@ class YOLOEDetectValidator(DetectionValidator):
         )
 
     @smart_inference_mode()
-    def __call__(self, trainer=None, model=None, refer_data=None, load_vp=False):
+    def __call__(
+        self,
+        trainer: Optional[Any] = None,
+        model: Optional[Union[YOLOEModel, str]] = None,
+        refer_data: Optional[str] = None,
+        load_vp: bool = False,
+    ) -> Dict[str, Any]:
         """
         Run validation on the model using either text or visual prompt embeddings.
 
-        This method validates the model using either text prompts or visual prompts, depending
-        on the `load_vp` flag. It supports validation during training (using a trainer object)
-        or standalone validation with a provided model.
+        This method validates the model using either text prompts or visual prompts, depending on the load_vp flag.
+        It supports validation during training (using a trainer object) or standalone validation with a provided
+        model. For visual prompts, reference data can be specified to extract embeddings from a different dataset.
 
         Args:
             trainer (object, optional): Trainer object containing the model and device.
-            model (YOLOEModel, optional): Model to validate. Required if `trainer` is not provided.
+            model (YOLOEModel | str, optional): Model to validate. Required if trainer is not provided.
             refer_data (str, optional): Path to reference data for visual prompts.
             load_vp (bool): Whether to load visual prompts. If False, text prompts are used.
 

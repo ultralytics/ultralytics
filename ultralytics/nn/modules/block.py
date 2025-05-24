@@ -2185,14 +2185,14 @@ class BiFPNBlock(nn.Module):
 
         return p5_out
 
-
 class BiFPN(nn.Module):
-    def __init__(self, channels=[512, 256, 128], feature_size=256):
+    def __init__(self, channels, feature_size=256):  # channels akan diterima sebagai list
         super().__init__()
+        if len(channels) != 2:
+            raise ValueError(f"BiFPN need 2 channels, got {len(channels)}")
         
-        # Projection layers untuk menyamakan channel
         self.proj_p4 = nn.Conv2d(channels[0], feature_size, 1)
-        self.proj_p5 = nn.Conv2d(channels[1], feature_size, 1)
+        self.proj_p5 = nn.Conv2d(channels[1], feature_size, 1)   
         self.proj_p6 = nn.Conv2d(channels[2], feature_size, 1)
         
         # BiFPN Blocks (2 lapisan cross-connection)

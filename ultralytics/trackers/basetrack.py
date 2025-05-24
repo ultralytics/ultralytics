@@ -89,7 +89,7 @@ class BaseTrack:
 
     @property
     def end_frame(self):
-        """Returns the ID of the most recent frame where the object was tracked."""
+        """Return the ID of the most recent frame where the object was tracked."""
         return self.frame_id
 
     @staticmethod
@@ -99,23 +99,23 @@ class BaseTrack:
         return BaseTrack._count
 
     def activate(self, *args):
-        """Activates the track with provided arguments, initializing necessary attributes for tracking."""
+        """Activate the track with provided arguments, initializing necessary attributes for tracking."""
         raise NotImplementedError
 
     def predict(self):
-        """Predicts the next state of the track based on the current state and tracking model."""
+        """Predict the next state of the track based on the current state and tracking model."""
         raise NotImplementedError
 
     def update(self, *args, **kwargs):
-        """Updates the track with new observations and data, modifying its state and attributes accordingly."""
+        """Update the track with new observations and data, modifying its state and attributes accordingly."""
         raise NotImplementedError
 
     def mark_lost(self):
-        """Marks the track as lost by updating its state to TrackState.Lost."""
+        """Mark the track as lost by updating its state to TrackState.Lost."""
         self.state = TrackState.Lost
 
     def mark_removed(self):
-        """Marks the track as removed by setting its state to TrackState.Removed."""
+        """Mark the track as removed by setting its state to TrackState.Removed."""
         self.state = TrackState.Removed
 
     @staticmethod

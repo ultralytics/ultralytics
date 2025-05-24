@@ -111,8 +111,8 @@ class BasePredictor:
 
         Args:
             cfg (str | dict): Path to a configuration file or a configuration dictionary.
-            overrides (dict | None): Configuration overrides.
-            _callbacks (dict | None): Dictionary of callback functions.
+            overrides (dict, optional): Configuration overrides.
+            _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
         self.save_dir = get_save_dir(self.args)
@@ -143,10 +143,13 @@ class BasePredictor:
 
     def preprocess(self, im):
         """
-        Prepares input image before inference.
+        Prepare input image before inference.
 
         Args:
-            im (torch.Tensor | List(np.ndarray)): Images of shape (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
+            im (torch.Tensor | List[np.ndarray]): Images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for list.
+
+        Returns:
+            (torch.Tensor): Preprocessed image tensor of shape (N, 3, H, W).
         """
         not_tensor = not isinstance(im, torch.Tensor)
         if not_tensor:
@@ -177,10 +180,10 @@ class BasePredictor:
         Pre-transform input image before inference.
 
         Args:
-            im (List[np.ndarray]): Images of shape (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
+            im (List[np.ndarray]): List of images with shape [(H, W, 3) x N].
 
         Returns:
-            (List[np.ndarray]): A list of transformed images.
+            (List[np.ndarray]): List of transformed images.
         """
         same_shapes = len({x.shape for x in im}) == 1
         letterbox = LetterBox(
@@ -201,9 +204,9 @@ class BasePredictor:
         Perform inference on an image or stream.
 
         Args:
-            source (str | Path | List[str] | List[Path] | List[np.ndarray] | np.ndarray | torch.Tensor | None):
+            source (str | Path | List[str] | List[Path] | List[np.ndarray] | np.ndarray | torch.Tensor, optional):
                 Source for inference.
-            model (str | Path | torch.nn.Module | None): Model for inference.
+            model (str | Path | torch.nn.Module, optional): Model for inference.
             stream (bool): Whether to stream the inference results. If True, returns a generator.
             *args (Any): Additional arguments for the inference method.
             **kwargs (Any): Additional keyword arguments for the inference method.
@@ -226,9 +229,9 @@ class BasePredictor:
         generator without storing results.
 
         Args:
-            source (str | Path | List[str] | List[Path] | List[np.ndarray] | np.ndarray | torch.Tensor | None):
+            source (str | Path | List[str] | List[Path] | List[np.ndarray] | np.ndarray | torch.Tensor, optional):
                 Source for inference.
-            model (str | Path | torch.nn.Module | None): Model for inference.
+            model (str | Path | torch.nn.Module, optional): Model for inference.
 
         Note:
             Do not modify this function or remove the generator. The generator ensures that no outputs are
@@ -270,9 +273,9 @@ class BasePredictor:
         Stream real-time inference on camera feed and save results to file.
 
         Args:
-            source (str | Path | List[str] | List[Path] | List[np.ndarray] | np.ndarray | torch.Tensor | None):
+            source (str | Path | List[str] | List[Path] | List[np.ndarray] | np.ndarray | torch.Tensor, optional):
                 Source for inference.
-            model (str | Path | torch.nn.Module | None): Model for inference.
+            model (str | Path | torch.nn.Module, optional): Model for inference.
             *args (Any): Additional arguments for the inference method.
             **kwargs (Any): Additional keyword arguments for the inference method.
 
@@ -370,7 +373,7 @@ class BasePredictor:
         Initialize YOLO model with given parameters and set it to evaluation mode.
 
         Args:
-            model (str | Path | torch.nn.Module | None): Model to load or use.
+            model (str | Path | torch.nn.Module, optional): Model to load or use.
             verbose (bool): Whether to print verbose output.
         """
         self.model = AutoBackend(

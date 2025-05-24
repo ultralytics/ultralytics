@@ -27,7 +27,10 @@ __all__ = (
 
 class TransformerEncoderLayer(nn.Module):
     """
-    Defines a single layer of the transformer encoder.
+    A single layer of the transformer encoder.
+
+    This class implements a standard transformer encoder layer with multi-head attention and feedforward network,
+    supporting both pre-normalization and post-normalization configurations.
 
     Attributes:
         ma (nn.MultiheadAttention): Multi-head attention module.
@@ -124,7 +127,7 @@ class TransformerEncoderLayer(nn.Module):
 
     def forward(self, src, src_mask=None, src_key_padding_mask=None, pos=None):
         """
-        Forward propagates the input through the encoder module.
+        Forward propagate the input through the encoder module.
 
         Args:
             src (torch.Tensor): Input tensor.
@@ -142,9 +145,10 @@ class TransformerEncoderLayer(nn.Module):
 
 class AIFI(TransformerEncoderLayer):
     """
-    Defines the AIFI transformer layer.
+    AIFI transformer layer for 2D data with positional embeddings.
 
-    This class extends TransformerEncoderLayer to work with 2D data by adding positional embeddings.
+    This class extends TransformerEncoderLayer to work with 2D feature maps by adding 2D sine-cosine positional
+    embeddings and handling the spatial dimensions appropriately.
     """
 
     def __init__(self, c1, cm=2048, num_heads=8, dropout=0, act=nn.GELU(), normalize_before=False):
@@ -240,7 +244,10 @@ class TransformerLayer(nn.Module):
 
 class TransformerBlock(nn.Module):
     """
-    Vision Transformer https://arxiv.org/abs/2010.11929.
+    Vision Transformer block based on https://arxiv.org/abs/2010.11929.
+
+    This class implements a complete transformer block with optional convolution layer for channel adjustment,
+    learnable position embedding, and multiple transformer layers.
 
     Attributes:
         conv (Conv, optional): Convolution layer if input and output channels differ.
@@ -269,7 +276,7 @@ class TransformerBlock(nn.Module):
 
     def forward(self, x):
         """
-        Forward propagates the input through the bottleneck module.
+        Forward propagate the input through the transformer block.
 
         Args:
             x (torch.Tensor): Input tensor with shape [b, c1, w, h].
@@ -285,7 +292,7 @@ class TransformerBlock(nn.Module):
 
 
 class MLPBlock(nn.Module):
-    """Implements a single block of a multi-layer perceptron."""
+    """A single block of a multi-layer perceptron."""
 
     def __init__(self, embedding_dim, mlp_dim, act=nn.GELU):
         """
@@ -316,7 +323,10 @@ class MLPBlock(nn.Module):
 
 class MLP(nn.Module):
     """
-    Implements a simple multi-layer perceptron (also called FFN).
+    A simple multi-layer perceptron (also called FFN).
+
+    This class implements a configurable MLP with multiple linear layers, activation functions, and optional
+    sigmoid output activation.
 
     Attributes:
         num_layers (int): Number of layers in the MLP.
@@ -363,15 +373,17 @@ class LayerNorm2d(nn.Module):
     """
     2D Layer Normalization module inspired by Detectron2 and ConvNeXt implementations.
 
-    Original implementations in
-    https://github.com/facebookresearch/detectron2/blob/main/detectron2/layers/batch_norm.py
-    and
-    https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py.
+    This class implements layer normalization for 2D feature maps, normalizing across the channel dimension
+    while preserving spatial dimensions.
 
     Attributes:
         weight (nn.Parameter): Learnable scale parameter.
         bias (nn.Parameter): Learnable bias parameter.
         eps (float): Small constant for numerical stability.
+
+    References:
+        https://github.com/facebookresearch/detectron2/blob/main/detectron2/layers/batch_norm.py
+        https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py
     """
 
     def __init__(self, num_channels, eps=1e-6):
@@ -407,7 +419,8 @@ class MSDeformAttn(nn.Module):
     """
     Multiscale Deformable Attention Module based on Deformable-DETR and PaddleDetection implementations.
 
-    https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/ops/modules/ms_deform_attn.py
+    This module implements multiscale deformable attention that can attend to features at multiple scales
+    with learnable sampling locations and attention weights.
 
     Attributes:
         im2col_step (int): Step size for im2col operations.
@@ -419,6 +432,9 @@ class MSDeformAttn(nn.Module):
         attention_weights (nn.Linear): Linear layer for generating attention weights.
         value_proj (nn.Linear): Linear layer for projecting values.
         output_proj (nn.Linear): Linear layer for projecting output.
+
+    References:
+        https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/ops/modules/ms_deform_attn.py
     """
 
     def __init__(self, d_model=256, n_levels=4, n_heads=8, n_points=4):
@@ -477,19 +493,20 @@ class MSDeformAttn(nn.Module):
         """
         Perform forward pass for multiscale deformable attention.
 
-        https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
-
         Args:
-            query (torch.Tensor): Tensor with shape [bs, query_length, C].
-            refer_bbox (torch.Tensor): Tensor with shape [bs, query_length, n_levels, 2], range in [0, 1],
-                top-left (0,0), bottom-right (1, 1), including padding area.
-            value (torch.Tensor): Tensor with shape [bs, value_length, C].
+            query (torch.Tensor): Query tensor with shape [bs, query_length, C].
+            refer_bbox (torch.Tensor): Reference bounding boxes with shape [bs, query_length, n_levels, 2],
+                range in [0, 1], top-left (0,0), bottom-right (1, 1), including padding area.
+            value (torch.Tensor): Value tensor with shape [bs, value_length, C].
             value_shapes (list): List with shape [n_levels, 2], [(H_0, W_0), (H_1, W_1), ..., (H_{L-1}, W_{L-1})].
-            value_mask (torch.Tensor, optional): Tensor with shape [bs, value_length], True for non-padding elements,
-                False for padding elements.
+            value_mask (torch.Tensor, optional): Mask tensor with shape [bs, value_length], True for non-padding
+                elements, False for padding elements.
 
         Returns:
             (torch.Tensor): Output tensor with shape [bs, Length_{query}, C].
+
+        References:
+            https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
         """
         bs, len_q = query.shape[:2]
         len_v = value.shape[1]
@@ -521,8 +538,8 @@ class DeformableTransformerDecoderLayer(nn.Module):
     """
     Deformable Transformer Decoder Layer inspired by PaddleDetection and Deformable-DETR implementations.
 
-    https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
-    https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/deformable_transformer.py
+    This class implements a single decoder layer with self-attention, cross-attention using multiscale deformable
+    attention, and a feedforward network.
 
     Attributes:
         self_attn (nn.MultiheadAttention): Self-attention module.
@@ -537,6 +554,10 @@ class DeformableTransformerDecoderLayer(nn.Module):
         linear2 (nn.Linear): Second linear layer in the feedforward network.
         dropout4 (nn.Dropout): Dropout after the feedforward network.
         norm3 (nn.LayerNorm): Layer normalization after the feedforward network.
+
+    References:
+        https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
+        https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/deformable_transformer.py
     """
 
     def __init__(self, d_model=256, n_heads=8, d_ffn=1024, dropout=0.0, act=nn.ReLU(), n_levels=4, n_points=4):
@@ -628,15 +649,19 @@ class DeformableTransformerDecoderLayer(nn.Module):
 
 class DeformableTransformerDecoder(nn.Module):
     """
-    Implementation of Deformable Transformer Decoder based on PaddleDetection.
+    Deformable Transformer Decoder based on PaddleDetection implementation.
 
-    https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
+    This class implements a complete deformable transformer decoder with multiple decoder layers and prediction
+    heads for bounding box regression and classification.
 
     Attributes:
         layers (nn.ModuleList): List of decoder layers.
         num_layers (int): Number of decoder layers.
         hidden_dim (int): Hidden dimension.
         eval_idx (int): Index of the layer to use during evaluation.
+
+    References:
+        https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
     """
 
     def __init__(self, hidden_dim, decoder_layer, num_layers, eval_idx=-1):

@@ -21,13 +21,13 @@ def bbox_ioa(box1, box2, iou=False, eps=1e-7):
     Calculate the intersection over box2 area given box1 and box2. Boxes are in x1y1x2y2 format.
 
     Args:
-        box1 (np.ndarray): A numpy array of shape (n, 4) representing n bounding boxes.
-        box2 (np.ndarray): A numpy array of shape (m, 4) representing m bounding boxes.
+        box1 (np.ndarray): A numpy array of shape (N, 4) representing N bounding boxes.
+        box2 (np.ndarray): A numpy array of shape (M, 4) representing M bounding boxes.
         iou (bool): Calculate the standard IoU if True else return inter_area/box2_area.
         eps (float, optional): A small value to avoid division by zero.
 
     Returns:
-        (np.ndarray): A numpy array of shape (n, m) representing the intersection over box2 area.
+        (np.ndarray): A numpy array of shape (N, M) representing the intersection over box2 area.
     """
     # Get the coordinates of bounding boxes
     b1_x1, b1_y1, b1_x2, b1_y2 = box1.T
@@ -283,7 +283,8 @@ def smooth_bce(eps=0.1):
         eps (float, optional): The epsilon value for label smoothing.
 
     Returns:
-        (tuple): A tuple containing the positive and negative label smoothing BCE targets.
+        pos (float): Positive label smoothing BCE target.
+        neg (float): Negative label smoothing BCE target.
 
     References:
         https://github.com/ultralytics/yolov3/issues/238#issuecomment-598028441
@@ -398,7 +399,8 @@ class ConfusionMatrix:
         Return true positives and false positives.
 
         Returns:
-            (tuple): True positives and false positives.
+            tp (np.ndarray): True positives.
+            fp (np.ndarray): False positives.
         """
         tp = self.matrix.diagonal()  # true positives
         fp = self.matrix.sum(1) - tp  # false positives
@@ -579,9 +581,9 @@ def compute_ap(recall, precision):
         precision (list): The precision curve.
 
     Returns:
-        (float): Average precision.
-        (np.ndarray): Precision envelope curve.
-        (np.ndarray): Modified recall curve with sentinel values added at the beginning and end.
+        ap (float): Average precision.
+        mpre (np.ndarray): Precision envelope curve.
+        mrec (np.ndarray): Modified recall curve with sentinel values added at the beginning and end.
     """
     # Append sentinel values to beginning and end
     mrec = np.concatenate(([0.0], recall, [1.0]))
@@ -734,7 +736,7 @@ class Metric(SimpleClass):
         Return the Average Precision (AP) at an IoU threshold of 0.5 for all classes.
 
         Returns:
-            (np.ndarray, list): Array of shape (nc,) with AP50 values per class, or an empty list if not available.
+            (np.ndarray | list): Array of shape (nc,) with AP50 values per class, or an empty list if not available.
         """
         return self.all_ap[:, 0] if len(self.all_ap) else []
 
@@ -744,7 +746,7 @@ class Metric(SimpleClass):
         Return the Average Precision (AP) at an IoU threshold of 0.5-0.95 for all classes.
 
         Returns:
-            (np.ndarray, list): Array of shape (nc,) with AP50-95 values per class, or an empty list if not available.
+            (np.ndarray | list): Array of shape (nc,) with AP50-95 values per class, or an empty list if not available.
         """
         return self.all_ap.mean(1) if len(self.all_ap) else []
 
@@ -962,7 +964,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         return self.box.curves_results
 
     def summary(self, **kwargs):
-        """Returns per-class detection metrics with shared scalar values included."""
+        """Return per-class detection metrics with shared scalar values included."""
         scalars = {
             "box-map": self.box.map,
             "box-map50": self.box.map50,
@@ -985,7 +987,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
 
 class SegmentMetrics(SimpleClass, DataExportMixin):
     """
-    Calculates and aggregates detection and segmentation metrics over a given set of classes.
+    Calculate and aggregate detection and segmentation metrics over a given set of classes.
 
     Attributes:
         save_dir (Path): Path to the directory where the output plots should be saved.
@@ -1119,7 +1121,7 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
         return self.box.curves_results + self.seg.curves_results
 
     def summary(self, **kwargs):
-        """Returns per-class segmentation metrics with shared scalar values included (box + mask)."""
+        """Return per-class segmentation metrics with shared scalar values included (box + mask)."""
         scalars = {
             "box-map": self.box.map,
             "box-map50": self.box.map50,
@@ -1144,7 +1146,7 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
 
 class PoseMetrics(SegmentMetrics):
     """
-    Calculates and aggregates detection and pose metrics over a given set of classes.
+    Calculate and aggregate detection and pose metrics over a given set of classes.
 
     Attributes:
         save_dir (Path): Path to the directory where the output plots should be saved.
@@ -1156,13 +1158,13 @@ class PoseMetrics(SegmentMetrics):
         task (str): The task type, set to 'pose'.
 
     Methods:
-        process(tp_m, tp_b, conf, pred_cls, target_cls): Processes metrics over the given set of predictions.
-        mean_results(): Returns the mean of the detection and segmentation metrics over all the classes.
-        class_result(i): Returns the detection and segmentation metrics of class `i`.
-        maps: Returns the mean Average Precision (mAP) scores for IoU thresholds ranging from 0.50 to 0.95.
-        fitness: Returns the fitness scores, which are a single weighted combination of metrics.
-        ap_class_index: Returns the list of indices of classes used to compute Average Precision (AP).
-        results_dict: Returns the dictionary containing all the detection and segmentation metrics and fitness score.
+        process(tp_m, tp_b, conf, pred_cls, target_cls): Process metrics over the given set of predictions.
+        mean_results(): Return the mean of the detection and segmentation metrics over all the classes.
+        class_result(i): Return the detection and segmentation metrics of class `i`.
+        maps: Return the mean Average Precision (mAP) scores for IoU thresholds ranging from 0.50 to 0.95.
+        fitness: Return the fitness scores, which are a single weighted combination of metrics.
+        ap_class_index: Return the list of indices of classes used to compute Average Precision (AP).
+        results_dict: Return the dictionary containing all the detection and segmentation metrics and fitness score.
     """
 
     def __init__(self, save_dir=Path("."), plot=False, names=()) -> None:
@@ -1274,7 +1276,7 @@ class PoseMetrics(SegmentMetrics):
         return self.box.curves_results + self.pose.curves_results
 
     def summary(self, **kwargs):
-        """Returns per-class pose metrics with shared scalar values included (box + pose)."""
+        """Return per-class pose metrics with shared scalar values included (box + pose)."""
         scalars = {
             "box-map": self.box.map,
             "box-map50": self.box.map50,
@@ -1354,7 +1356,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         return []
 
     def summary(self, **kwargs):
-        """Returns a single-row summary for classification metrics (top1/top5)."""
+        """Return a single-row summary for classification metrics (top1/top5)."""
         return [{"classify-top1": self.top1, "classify-top5": self.top5}]
 
 
@@ -1457,7 +1459,7 @@ class OBBMetrics(SimpleClass, DataExportMixin):
         return []
 
     def summary(self, **kwargs):
-        """Returns per-class detection metrics with shared scalar values included."""
+        """Return per-class detection metrics with shared scalar values included."""
         scalars = {
             "box-map": self.box.map,
             "box-map50": self.box.map50,

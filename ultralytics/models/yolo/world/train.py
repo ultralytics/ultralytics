@@ -13,7 +13,7 @@ from ultralytics.utils.torch_utils import de_parallel
 
 
 def on_pretrain_routine_end(trainer):
-    """Callback to set up model classes and text encoder at the end of the pretrain routine."""
+    """Set up model classes and text encoder at the end of the pretrain routine."""
     if RANK in {-1, 0}:
         # Set class names for evaluation
         names = [name.split("/", 1)[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
@@ -22,20 +22,21 @@ def on_pretrain_routine_end(trainer):
 
 class WorldTrainer(DetectionTrainer):
     """
-    A class to fine-tune a world model on a close-set dataset.
+    A trainer class for fine-tuning YOLO World models on close-set datasets.
 
-    This trainer extends the DetectionTrainer to support training YOLO World models, which combine
-    visual and textual features for improved object detection and understanding.
+    This trainer extends the DetectionTrainer to support training YOLO World models, which combine visual and textual
+    features for improved object detection and understanding. It handles text embedding generation and caching to
+    accelerate training with multi-modal data.
 
     Attributes:
-        clip (module): The CLIP module for text-image understanding.
-        text_model (module): The text encoder model from CLIP.
+        text_embeddings (dict | None): Cached text embeddings for category names to accelerate training.
         model (WorldModel): The YOLO World model being trained.
         data (dict): Dataset configuration containing class information.
         args (dict): Training arguments and configuration.
 
     Examples:
-        >>> from ultralytics.models.yolo.world import WorldModel
+        Initialize and train a YOLO World model
+        >>> from ultralytics.models.yolo.world import WorldTrainer
         >>> args = dict(model="yolov8s-world.pt", data="coco8.yaml", epochs=3)
         >>> trainer = WorldTrainer(overrides=args)
         >>> trainer.train()
@@ -60,7 +61,7 @@ class WorldTrainer(DetectionTrainer):
         Return WorldModel initialized with specified config and weights.
 
         Args:
-            cfg (Dict | str, optional): Model configuration.
+            cfg (dict | str, optional): Model configuration.
             weights (str, optional): Path to pretrained weights.
             verbose (bool): Whether to display model info.
 

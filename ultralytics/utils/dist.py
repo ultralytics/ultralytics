@@ -76,7 +76,7 @@ if __name__ == "__main__":
     return file.name
 
 
-def generate_ddp_command(world_size, trainer):
+def generate_ddp_command(world_size: int, trainer):
     """
     Generate command for distributed training.
 

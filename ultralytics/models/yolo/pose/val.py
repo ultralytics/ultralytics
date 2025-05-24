@@ -26,18 +26,20 @@ class PoseValidator(DetectionValidator):
         metrics (PoseMetrics): Metrics object for pose evaluation.
 
     Methods:
-        preprocess: Preprocesses batch data for pose validation.
-        get_desc: Returns description of evaluation metrics.
-        init_metrics: Initializes pose metrics for the model.
-        _prepare_batch: Prepares a batch for processing.
-        _prepare_pred: Prepares and scales predictions for evaluation.
-        update_metrics: Updates metrics with new predictions.
-        _process_batch: Processes batch to compute IoU between detections and ground truth.
-        plot_val_samples: Plots validation samples with ground truth annotations.
-        plot_predictions: Plots model predictions.
-        save_one_txt: Saves detections to a text file.
-        pred_to_json: Converts predictions to COCO JSON format.
-        eval_json: Evaluates model using COCO JSON format.
+        preprocess: Preprocess batch by converting keypoints data to float and moving it to the device.
+        get_desc: Return description of evaluation metrics in string format.
+        init_metrics: Initialize pose estimation metrics for YOLO model.
+        _prepare_batch: Prepare a batch for processing by converting keypoints to float and scaling to original
+            dimensions.
+        _prepare_pred: Prepare and scale keypoints in predictions for pose processing.
+        update_metrics: Update metrics with new predictions and ground truth data.
+        _process_batch: Return correct prediction matrix by computing Intersection over Union (IoU) between
+            detections and ground truth.
+        plot_val_samples: Plot and save validation set samples with ground truth bounding boxes and keypoints.
+        plot_predictions: Plot and save model predictions with bounding boxes and keypoints.
+        save_one_txt: Save YOLO pose detections to a text file in normalized coordinates.
+        pred_to_json: Convert YOLO predictions to COCO JSON format.
+        eval_json: Evaluate object detection model using COCO JSON format.
 
     Examples:
         >>> from ultralytics.models.yolo.pose import PoseValidator
@@ -155,6 +157,7 @@ class PoseValidator(DetectionValidator):
 
         Returns:
             predn (torch.Tensor): Processed prediction boxes scaled to original image dimensions.
+            pred_kpts (torch.Tensor): Predicted keypoints scaled to original image dimensions.
         """
         predn = super()._prepare_pred(pred, pbatch)
         nk = pbatch["kpts"].shape[1]
@@ -234,9 +237,9 @@ class PoseValidator(DetectionValidator):
             gt_bboxes (torch.Tensor): Tensor with shape (M, 4) representing ground truth bounding boxes, where each
                 box is of the format (x1, y1, x2, y2).
             gt_cls (torch.Tensor): Tensor with shape (M,) representing ground truth class indices.
-            pred_kpts (torch.Tensor | None): Optional tensor with shape (N, 51) representing predicted keypoints, where
+            pred_kpts (torch.Tensor, optional): Tensor with shape (N, 51) representing predicted keypoints, where
                 51 corresponds to 17 keypoints each having 3 values.
-            gt_kpts (torch.Tensor | None): Optional tensor with shape (N, 51) representing ground truth keypoints.
+            gt_kpts (torch.Tensor, optional): Tensor with shape (N, 51) representing ground truth keypoints.
 
         Returns:
             (torch.Tensor): A tensor with shape (N, 10) representing the correct prediction matrix for 10 IoU levels,

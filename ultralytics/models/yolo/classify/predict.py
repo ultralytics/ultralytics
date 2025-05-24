@@ -44,7 +44,7 @@ class ClassificationPredictor(BasePredictor):
         tasks. It ensures the task is set to 'classify' regardless of input configuration.
 
         Args:
-            cfg (dict): Default configuration dictionary containing prediction settings. Defaults to DEFAULT_CFG.
+            cfg (dict): Default configuration dictionary containing prediction settings.
             overrides (dict, optional): Configuration overrides that take precedence over cfg.
             _callbacks (list, optional): List of callback functions to be executed during prediction.
         """
@@ -53,7 +53,7 @@ class ClassificationPredictor(BasePredictor):
         self._legacy_transform_name = "ultralytics.yolo.data.augment.ToTensor"
 
     def setup_source(self, source):
-        """Sets up source and inference mode and classify transforms."""
+        """Set up source and inference mode and classify transforms."""
         super().setup_source(source)
         updated = (
             self.model.model.transforms.transforms[0].size != max(self.imgsz)

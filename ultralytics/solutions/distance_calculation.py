@@ -21,8 +21,8 @@ class DistanceCalculation(BaseSolution):
         centroids (List[List[int]]): List to store centroids of selected bounding boxes.
 
     Methods:
-        mouse_event_for_distance: Handles mouse events for selecting objects in the video stream.
-        process: Processes video frames and calculates the distance between selected objects.
+        mouse_event_for_distance: Handle mouse events for selecting objects in the video stream.
+        process: Process video frames and calculate the distance between selected objects.
 
     Examples:
         >>> distance_calc = DistanceCalculation()
@@ -33,7 +33,7 @@ class DistanceCalculation(BaseSolution):
     """
 
     def __init__(self, **kwargs):
-        """Initializes the DistanceCalculation class for measuring object distances in video streams."""
+        """Initialize the DistanceCalculation class for measuring object distances in video streams."""
         super().__init__(**kwargs)
 
         # Mouse event information
@@ -43,7 +43,7 @@ class DistanceCalculation(BaseSolution):
 
     def mouse_event_for_distance(self, event, x, y, flags, param):
         """
-        Handles mouse events to select regions in a real-time video stream for distance calculation.
+        Handle mouse events to select regions in a real-time video stream for distance calculation.
 
         Args:
             event (int): Type of mouse event (e.g., cv2.EVENT_MOUSEMOVE, cv2.EVENT_LBUTTONDOWN).
@@ -69,7 +69,7 @@ class DistanceCalculation(BaseSolution):
 
     def process(self, im0):
         """
-        Processes a video frame and calculates the distance between two selected bounding boxes.
+        Process a video frame and calculate the distance between two selected bounding boxes.
 
         This method extracts tracks from the input frame, annotates bounding boxes, and calculates the distance
         between two user-selected objects if they have been chosen.

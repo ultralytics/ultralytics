@@ -46,12 +46,12 @@ class BaseSolution:
         >>> solution.display_output(image)
     """
 
-    def __init__(self, is_cli=False, **kwargs):
+    def __init__(self, is_cli: bool = False, **kwargs):
         """
-        Initializes the BaseSolution class with configuration settings and the YOLO model.
+        Initialize the BaseSolution class with configuration settings and the YOLO model.
 
         Args:
-            is_cli (bool): Enables CLI mode if set to True.
+            is_cli (bool): Enable CLI mode if set to True.
             **kwargs (Any): Additional configuration parameters that override defaults.
         """
         self.CFG = vars(SolutionConfig().update(**kwargs))
@@ -112,9 +112,9 @@ class BaseSolution:
                 ops.Profile(device=self.device),  # solution
             )
 
-    def adjust_box_label(self, cls, conf, track_id=None):
+    def adjust_box_label(self, cls: int, conf: float, track_id: int = None) -> str:
         """
-        Generates a formatted label for a bounding box.
+        Generate a formatted label for a bounding box.
 
         This method constructs a label string for a bounding box using the class index and confidence score.
         Optionally includes the track ID if provided. The label format adapts based on the display settings
@@ -123,17 +123,17 @@ class BaseSolution:
         Args:
             cls (int): The class index of the detected object.
             conf (float): The confidence score of the detection.
-            track_id (int, optional): The unique identifier for the tracked object. Defaults to None.
+            track_id (int, optional): The unique identifier for the tracked object.
 
         Returns:
-            (str or None): The formatted label string if `self.show_labels` is True; otherwise, None.
+            (str | None): The formatted label string if `self.show_labels` is True; otherwise, None.
         """
         name = ("" if track_id is None else f"{track_id} ") + self.names[cls]
         return (f"{name} {conf:.2f}" if self.show_conf else name) if self.show_labels else None
 
-    def extract_tracks(self, im0):
+    def extract_tracks(self, im0: np.ndarray):
         """
-        Applies object tracking and extracts tracks from an input image or frame.
+        Apply object tracking and extract tracks from an input image or frame.
 
         Args:
             im0 (np.ndarray): The input image or frame.
@@ -158,9 +158,9 @@ class BaseSolution:
             self.LOGGER.warning("no tracks found!")
             self.boxes, self.clss, self.track_ids, self.confs = [], [], [], []
 
-    def store_tracking_history(self, track_id, box):
+    def store_tracking_history(self, track_id: int, box):
         """
-        Stores the tracking history of an object.
+        Store the tracking history of an object.
 
         This method updates the tracking history for a given object by appending the center point of its
         bounding box to the track line. It maintains a maximum of 30 points in the tracking history.
@@ -187,7 +187,7 @@ class BaseSolution:
             self.Polygon(self.region) if len(self.region) >= 3 else self.LineString(self.region)
         )  # region or line
 
-    def display_output(self, plot_im):
+    def display_output(self, plot_im: np.ndarray):
         """
         Display the results of the processing, which could involve showing frames, printing counts, or saving results.
 
@@ -195,7 +195,7 @@ class BaseSolution:
         the processed frame with annotations, and allows for user interaction to close the display.
 
         Args:
-            plot_im (numpy.ndarray): The image or frame that has been processed and annotated.
+            plot_im (np.ndarray): The image or frame that has been processed and annotated.
 
         Examples:
             >>> solution = BaseSolution()
@@ -241,7 +241,6 @@ class SolutionAnnotator(Annotator):
 
     This class extends the base Annotator class, providing additional methods for drawing regions, centroids, tracking
     trails, and visual annotations for Ultralytics Solutions: https://docs.ultralytics.com/solutions/.
-    and parking management.
 
     Attributes:
         im (np.ndarray): The image being annotated.
@@ -252,19 +251,19 @@ class SolutionAnnotator(Annotator):
         example (str): An example attribute for demonstration purposes.
 
     Methods:
-        draw_region: Draws a region using specified points, colors, and thickness.
-        queue_counts_display: Displays queue counts in the specified region.
-        display_analytics: Displays overall statistics for parking lot management.
-        estimate_pose_angle: Calculates the angle between three points in an object pose.
-        draw_specific_points: Draws specific keypoints on the image.
-        plot_workout_information: Draws a labeled text box on the image.
-        plot_angle_and_count_and_stage: Visualizes angle, step count, and stage for workout monitoring.
-        plot_distance_and_line: Displays the distance between centroids and connects them with a line.
-        display_objects_labels: Annotates bounding boxes with object class labels.
-        sweep_annotator: Visualizes a vertical sweep line and optional label.
-        visioneye: Maps and connects object centroids to a visual "eye" point.
-        circle_label: Draws a circular label within a bounding box.
-        text_label: Draws a rectangular label within a bounding box.
+        draw_region: Draw a region using specified points, colors, and thickness.
+        queue_counts_display: Display queue counts in the specified region.
+        display_analytics: Display overall statistics for parking lot management.
+        estimate_pose_angle: Calculate the angle between three points in an object pose.
+        draw_specific_points: Draw specific keypoints on the image.
+        plot_workout_information: Draw a labeled text box on the image.
+        plot_angle_and_count_and_stage: Visualize angle, step count, and stage for workout monitoring.
+        plot_distance_and_line: Display the distance between centroids and connect them with a line.
+        display_objects_labels: Annotate bounding boxes with object class labels.
+        sweep_annotator: Visualize a vertical sweep line and optional label.
+        visioneye: Map and connect object centroids to a visual "eye" point.
+        circle_label: Draw a circular label within a bounding box.
+        text_label: Draw a rectangular label within a bounding box.
 
     Examples:
         >>> annotator = SolutionAnnotator(image)
@@ -274,9 +273,17 @@ class SolutionAnnotator(Annotator):
         ... )
     """
 
-    def __init__(self, im, line_width=None, font_size=None, font="Arial.ttf", pil=False, example="abc"):
+    def __init__(
+        self,
+        im: np.ndarray,
+        line_width: int = None,
+        font_size: int = None,
+        font: str = "Arial.ttf",
+        pil: bool = False,
+        example: str = "abc",
+    ):
         """
-        Initializes the SolutionAnnotator class with an image for annotation.
+        Initialize the SolutionAnnotator class with an image for annotation.
 
         Args:
             im (np.ndarray): The image to be annotated.
@@ -288,7 +295,7 @@ class SolutionAnnotator(Annotator):
         """
         super().__init__(im, line_width, font_size, font, pil, example)
 
-    def draw_region(self, reg_pts=None, color=(0, 255, 0), thickness=5):
+    def draw_region(self, reg_pts: list = None, color: tuple = (0, 255, 0), thickness: int = 5):
         """
         Draw a region or line on the image.
 
@@ -303,9 +310,11 @@ class SolutionAnnotator(Annotator):
         for point in reg_pts:
             cv2.circle(self.im, (point[0], point[1]), thickness * 2, color, -1)  # -1 fills the circle
 
-    def queue_counts_display(self, label, points=None, region_color=(255, 255, 255), txt_color=(0, 0, 0)):
+    def queue_counts_display(
+        self, label: str, points: list = None, region_color: tuple = (255, 255, 255), txt_color: tuple = (0, 0, 0)
+    ):
         """
-        Displays queue counts on an image centered at the points with customizable font size and colors.
+        Display queue counts on an image centered at the points with customizable font size and colors.
 
         Args:
             label (str): Queue counts label.
@@ -343,7 +352,7 @@ class SolutionAnnotator(Annotator):
             lineType=cv2.LINE_AA,
         )
 
-    def display_analytics(self, im0, text, txt_color, bg_color, margin):
+    def display_analytics(self, im0: np.ndarray, text: dict, txt_color: tuple, bg_color: tuple, margin: int):
         """
         Display the overall statistics for parking lots, object counter etc.
 
@@ -373,7 +382,7 @@ class SolutionAnnotator(Annotator):
             text_y_offset = rect_y2
 
     @staticmethod
-    def estimate_pose_angle(a, b, c):
+    def estimate_pose_angle(a: list, b: list, c: list) -> float:
         """
         Calculate the angle between three points for workout monitoring.
 
@@ -389,7 +398,9 @@ class SolutionAnnotator(Annotator):
         angle = abs(radians * 180.0 / math.pi)
         return angle if angle <= 180.0 else (360 - angle)
 
-    def draw_specific_kpts(self, keypoints, indices=None, radius=2, conf_thresh=0.25):
+    def draw_specific_kpts(
+        self, keypoints: list, indices: list = None, radius: int = 2, conf_thresh: float = 0.25
+    ) -> np.ndarray:
         """
         Draw specific keypoints for gym steps counting.
 
@@ -419,7 +430,9 @@ class SolutionAnnotator(Annotator):
 
         return self.im
 
-    def plot_workout_information(self, display_text, position, color=(104, 31, 17), txt_color=(255, 255, 255)):
+    def plot_workout_information(
+        self, display_text: str, position: tuple, color: tuple = (104, 31, 17), txt_color: tuple = (255, 255, 255)
+    ) -> int:
         """
         Draw workout text with a background on the image.
 
@@ -432,7 +445,7 @@ class SolutionAnnotator(Annotator):
         Returns:
             (int): The height of the text.
         """
-        (text_width, text_height), _ = cv2.getTextSize(display_text, 0, self.sf, self.tf)
+        (text_width, text_height), _ = cv2.getTextSize(display_text, 0, fontScale=self.sf, thickness=self.tf)
 
         # Draw background rectangle
         cv2.rectangle(
@@ -448,7 +461,13 @@ class SolutionAnnotator(Annotator):
         return text_height
 
     def plot_angle_and_count_and_stage(
-        self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17), txt_color=(255, 255, 255)
+        self,
+        angle_text: str,
+        count_text: str,
+        stage_text: str,
+        center_kpt: list,
+        color: tuple = (104, 31, 17),
+        txt_color: tuple = (255, 255, 255),
     ):
         """
         Plot the pose angle, count value, and step stage for workout monitoring.
@@ -476,7 +495,11 @@ class SolutionAnnotator(Annotator):
         )
 
     def plot_distance_and_line(
-        self, pixels_distance, centroids, line_color=(104, 31, 17), centroid_color=(255, 0, 255)
+        self,
+        pixels_distance: float,
+        centroids: list,
+        line_color: tuple = (104, 31, 17),
+        centroid_color: tuple = (255, 0, 255),
     ):
         """
         Plot the distance and line between two centroids on the frame.
@@ -511,7 +534,16 @@ class SolutionAnnotator(Annotator):
         cv2.circle(self.im, centroids[0], 6, centroid_color, -1)
         cv2.circle(self.im, centroids[1], 6, centroid_color, -1)
 
-    def display_objects_labels(self, im0, text, txt_color, bg_color, x_center, y_center, margin):
+    def display_objects_labels(
+        self,
+        im0: np.ndarray,
+        text: str,
+        txt_color: tuple,
+        bg_color: tuple,
+        x_center: float,
+        y_center: float,
+        margin: int,
+    ):
         """
         Display the bounding boxes labels in parking management app.
 
@@ -551,7 +583,14 @@ class SolutionAnnotator(Annotator):
             lineType=cv2.LINE_AA,
         )
 
-    def sweep_annotator(self, line_x=0, line_y=0, label=None, color=(221, 0, 186), txt_color=(255, 255, 255)):
+    def sweep_annotator(
+        self,
+        line_x: int = 0,
+        line_y: int = 0,
+        label: str = None,
+        color: tuple = (221, 0, 186),
+        txt_color: tuple = (255, 255, 255),
+    ):
         """
         Draw a sweep annotation line and an optional label.
 
@@ -585,7 +624,9 @@ class SolutionAnnotator(Annotator):
                 self.tf,
             )
 
-    def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255)):
+    def visioneye(
+        self, box: list, center_point: tuple, color: tuple = (235, 219, 11), pin_color: tuple = (255, 0, 255)
+    ):
         """
         Perform pinpoint human-vision eye mapping and plotting.
 
@@ -600,7 +641,14 @@ class SolutionAnnotator(Annotator):
         cv2.circle(self.im, center_bbox, self.tf * 2, color, -1)
         cv2.line(self.im, center_point, center_bbox, color, self.tf)
 
-    def circle_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), margin=2):
+    def circle_label(
+        self,
+        box: tuple,
+        label: str = "",
+        color: tuple = (128, 128, 128),
+        txt_color: tuple = (255, 255, 255),
+        margin: int = 2,
+    ):
         """
         Draw a label with a background circle centered within a given bounding box.
 
@@ -638,7 +686,14 @@ class SolutionAnnotator(Annotator):
             lineType=cv2.LINE_AA,
         )
 
-    def text_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), margin=5):
+    def text_label(
+        self,
+        box: tuple,
+        label: str = "",
+        color: tuple = (128, 128, 128),
+        txt_color: tuple = (255, 255, 255),
+        margin: int = 5,
+    ):
         """
         Draw a label with a background rectangle centered within a given bounding box.
 
@@ -730,7 +785,7 @@ class SolutionResults:
         # Override with user-defined values
         self.__dict__.update(kwargs)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Return a formatted string representation of the SolutionResults object.
 

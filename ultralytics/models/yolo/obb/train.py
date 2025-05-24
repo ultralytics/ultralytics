@@ -11,8 +11,12 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
     """
     A class extending the DetectionTrainer class for training based on an Oriented Bounding Box (OBB) model.
 
+    This trainer specializes in training YOLO models that detect oriented bounding boxes, which are useful for
+    detecting objects at arbitrary angles rather than just axis-aligned rectangles.
+
     Attributes:
-        loss_names (Tuple[str]): Names of the loss components used during training.
+        loss_names (Tuple[str]): Names of the loss components used during training including box_loss, cls_loss,
+            and dfl_loss.
 
     Methods:
         get_model: Return OBBModel initialized with specified config and weights.
@@ -55,9 +59,9 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
         Return OBBModel initialized with specified config and weights.
 
         Args:
-            cfg (str | dict | None): Model configuration. Can be a path to a YAML config file, a dictionary
+            cfg (str | dict, optional): Model configuration. Can be a path to a YAML config file, a dictionary
                 containing configuration parameters, or None to use default configuration.
-            weights (str | Path | None): Path to pretrained weights file. If None, random initialization is used.
+            weights (str | Path, optional): Path to pretrained weights file. If None, random initialization is used.
             verbose (bool): Whether to display model information during initialization.
 
         Returns:

@@ -49,7 +49,7 @@ class DetectionTrainer(BaseTrainer):
         >>> trainer.train()
     """
 
-    def build_dataset(self, img_path, mode="train", batch=None):
+    def build_dataset(self, img_path: str, mode: str = "train", batch: int = None):
         """
         Build YOLO Dataset for training or validation.
 
@@ -64,7 +64,7 @@ class DetectionTrainer(BaseTrainer):
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
 
-    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
+    def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):
         """
         Construct and return dataloader for the specified mode.
 
@@ -87,7 +87,7 @@ class DetectionTrainer(BaseTrainer):
         workers = self.args.workers if mode == "train" else self.args.workers * 2
         return build_dataloader(dataset, batch_size, workers, shuffle, rank)  # return dataloader
 
-    def preprocess_batch(self, batch):
+    def preprocess_batch(self, batch: dict) -> dict:
         """
         Preprocess a batch of images by scaling and converting to float.
 
@@ -125,7 +125,7 @@ class DetectionTrainer(BaseTrainer):
         self.model.args = self.args  # attach hyperparameters to model
         # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
 
-    def get_model(self, cfg=None, weights=None, verbose=True):
+    def get_model(self, cfg: str = None, weights: str = None, verbose: bool = True):
         """
         Return a YOLO detection model.
 
@@ -149,7 +149,7 @@ class DetectionTrainer(BaseTrainer):
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
 
-    def label_loss_items(self, loss_items=None, prefix="train"):
+    def label_loss_items(self, loss_items: list[float] = None, prefix: str = "train"):
         """
         Return a loss dict with labeled training loss items tensor.
 
@@ -158,7 +158,7 @@ class DetectionTrainer(BaseTrainer):
             prefix (str): Prefix for keys in the returned dictionary.
 
         Returns:
-            (Dict | List): Dictionary of labeled loss items if loss_items is provided, otherwise list of keys.
+            (dict | list): Dictionary of labeled loss items if loss_items is provided, otherwise list of keys.
         """
         keys = [f"{prefix}/{x}" for x in self.loss_names]
         if loss_items is not None:
@@ -177,7 +177,7 @@ class DetectionTrainer(BaseTrainer):
             "Size",
         )
 
-    def plot_training_samples(self, batch, ni):
+    def plot_training_samples(self, batch: dict, ni: int):
         """
         Plot training samples with their annotations.
 

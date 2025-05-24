@@ -27,9 +27,9 @@ def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall
         x (list): Values for the x-axis; expected to have length N.
         y (list): Corresponding values for the y-axis; also expected to have length N.
         classes (list): Labels identifying the class of each point; length N.
-        title (str): Title for the plot; defaults to 'Precision Recall Curve'.
-        x_title (str): Label for the x-axis; defaults to 'Recall'.
-        y_title (str): Label for the y-axis; defaults to 'Precision'.
+        title (str, optional): Title for the plot.
+        x_title (str, optional): Label for the x-axis.
+        y_title (str, optional): Label for the y-axis.
 
     Returns:
         (wandb.Object): A wandb object suitable for logging, showcasing the crafted metric visualization.
@@ -64,13 +64,13 @@ def _plot_curve(
     Args:
         x (np.ndarray): Data points for the x-axis with length N.
         y (np.ndarray): Corresponding data points for the y-axis with shape (C, N), where C is the number of classes.
-        names (list): Names of the classes corresponding to the y-axis data; length C.
-        id (str): Unique identifier for the logged data in wandb.
-        title (str): Title for the visualization plot.
-        x_title (str): Label for the x-axis.
-        y_title (str): Label for the y-axis.
-        num_x (int): Number of interpolated data points for visualization.
-        only_mean (bool): Flag to indicate if only the mean curve should be plotted.
+        names (list, optional): Names of the classes corresponding to the y-axis data; length C.
+        id (str, optional): Unique identifier for the logged data in wandb.
+        title (str, optional): Title for the visualization plot.
+        x_title (str, optional): Label for the x-axis.
+        y_title (str, optional): Label for the y-axis.
+        num_x (int, optional): Number of interpolated data points for visualization.
+        only_mean (bool, optional): Flag to indicate if only the mean curve should be plotted.
 
     Notes:
         The function leverages the '_custom_table' function to generate the actual visualization.

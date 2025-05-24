@@ -19,7 +19,7 @@ AGENT_NAME = f"python-{__version__}-colab" if IS_COLAB else f"python-{__version_
 
 class HUBTrainingSession:
     """
-    HUB training session for Ultralytics HUB YOLO models. Handles model initialization, heartbeats, and checkpointing.
+    HUB training session for Ultralytics HUB YOLO models.
 
     This class encapsulates the functionality for interacting with Ultralytics HUB during model training, including
     model creation, metrics tracking, and checkpoint uploading.
@@ -27,7 +27,7 @@ class HUBTrainingSession:
     Attributes:
         model_id (str): Identifier for the YOLO model being trained.
         model_url (str): URL for the model in Ultralytics HUB.
-        rate_limits (dict): Rate limits for different API calls (in seconds).
+        rate_limits (dict): Rate limits for different API calls in seconds.
         timers (dict): Timers for rate limiting.
         metrics_queue (dict): Queue for the model's metrics.
         metrics_upload_failed_queue (dict): Queue for metrics that failed to upload.
@@ -38,6 +38,7 @@ class HUBTrainingSession:
         filename (str): Filename of the model.
 
     Examples:
+        Create a training session with a model URL
         >>> session = HUBTrainingSession("https://hub.ultralytics.com/models/example-model")
         >>> session.upload_metrics()
     """
@@ -47,8 +48,8 @@ class HUBTrainingSession:
         Initialize the HUBTrainingSession with the provided model identifier.
 
         Args:
-            identifier (str): Model identifier used to initialize the HUB training session.
-                It can be a URL string or a model key with specific format.
+            identifier (str): Model identifier used to initialize the HUB training session. It can be a URL string
+                or a model key with specific format.
 
         Raises:
             ValueError: If the provided model identifier is invalid.
@@ -99,7 +100,7 @@ class HUBTrainingSession:
             args (dict, optional): Arguments for creating a new model if identifier is not a HUB model URL.
 
         Returns:
-            (HUBTrainingSession | None): An authenticated session or None if creation fails.
+            session (HUBTrainingSession | None): An authenticated session or None if creation fails.
         """
         try:
             session = cls(identifier)
@@ -195,7 +196,9 @@ class HUBTrainingSession:
             identifier (str): The identifier string to be parsed.
 
         Returns:
-            (tuple): A tuple containing the API key, model ID, and filename as applicable.
+            api_key (str | None): Extracted API key if present.
+            model_id (str | None): Extracted model ID if present.
+            filename (str | None): Extracted filename if present.
 
         Raises:
             HUBModelError: If the identifier format is not recognized.
@@ -257,7 +260,7 @@ class HUBTrainingSession:
         **kwargs,
     ):
         """
-        Attempt to execute `request_func` with retries, timeout handling, optional threading, and progress tracking.
+        Execute request_func with retries, timeout handling, optional threading, and progress tracking.
 
         Args:
             request_func (callable): The function to execute.
@@ -275,7 +278,7 @@ class HUBTrainingSession:
         """
 
         def retry_request():
-            """Attempt to call `request_func` with retries, timeout, and optional threading."""
+            """Attempt to call request_func with retries, timeout, and optional threading."""
             t0 = time.time()  # Record the start time for the timeout
             response = None
             for i in range(retry + 1):
@@ -328,15 +331,7 @@ class HUBTrainingSession:
 
     @staticmethod
     def _should_retry(status_code):
-        """
-        Determine if a request should be retried based on the HTTP status code.
-
-        Args:
-            status_code (int): The HTTP status code from the response.
-
-        Returns:
-            (bool): True if the request should be retried, False otherwise.
-        """
+        """Determine if a request should be retried based on the HTTP status code."""
         retry_codes = {
             HTTPStatus.REQUEST_TIMEOUT,
             HTTPStatus.BAD_GATEWAY,
@@ -423,24 +418,13 @@ class HUBTrainingSession:
 
     @staticmethod
     def _show_upload_progress(content_length: int, response: requests.Response) -> None:
-        """
-        Display a progress bar to track the upload progress of a file download.
-
-        Args:
-            content_length (int): The total size of the content to be downloaded in bytes.
-            response (requests.Response): The response object from the file download request.
-        """
+        """Display a progress bar to track the upload progress of a file download."""
         with TQDM(total=content_length, unit="B", unit_scale=True, unit_divisor=1024) as pbar:
             for data in response.iter_content(chunk_size=1024):
                 pbar.update(len(data))
 
     @staticmethod
     def _iterate_content(response: requests.Response) -> None:
-        """
-        Process the streamed HTTP response data.
-
-        Args:
-            response (requests.Response): The response object from the file download request.
-        """
+        """Process the streamed HTTP response data."""
         for _ in response.iter_content(chunk_size=1024):
             pass  # Do nothing with data chunks

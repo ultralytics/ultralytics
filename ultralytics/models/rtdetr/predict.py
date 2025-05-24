@@ -37,10 +37,10 @@ class RTDETRPredictor(BasePredictor):
         model predictions to Results objects containing properly scaled bounding boxes.
 
         Args:
-            preds (List | Tuple): List of [predictions, extra] from the model, where predictions contain
+            preds (list | tuple): List of [predictions, extra] from the model, where predictions contain
                 bounding boxes and scores.
             img (torch.Tensor): Processed input images with shape (N, 3, H, W).
-            orig_imgs (List | torch.Tensor): Original, unprocessed images.
+            orig_imgs (list | torch.Tensor): Original, unprocessed images.
 
         Returns:
             (List[Results]): A list of Results objects containing the post-processed bounding boxes, confidence scores,
@@ -71,11 +71,14 @@ class RTDETRPredictor(BasePredictor):
 
     def pre_transform(self, im):
         """
-        Pre-transforms the input images before feeding them into the model for inference. The input images are
-        letterboxed to ensure a square aspect ratio and scale-filled. The size must be square(640) and scale_filled.
+        Pre-transform input images before feeding them into the model for inference.
+
+        The input images are letterboxed to ensure a square aspect ratio and scale-filled. The size must be square
+        (640) and scale_filled.
 
         Args:
-            im (list[np.ndarray] |torch.Tensor): Input images of shape (N,3,h,w) for tensor, [(h,w,3) x N] for list.
+            im (list[np.ndarray] | torch.Tensor): Input images of shape (N, 3, H, W) for tensor,
+                [(H, W, 3) x N] for list.
 
         Returns:
             (list): List of pre-transformed images ready for model inference.

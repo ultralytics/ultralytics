@@ -40,6 +40,7 @@ class SAMModel(nn.Module):
 
     Methods:
         __init__: Initializes the SAMModel with encoders, decoder, and normalization parameters.
+        set_imgsz: Set image size to make model compatible with different image sizes.
 
     Examples:
         >>> image_encoder = ImageEncoderViT(...)
@@ -90,12 +91,7 @@ class SAMModel(nn.Module):
         self.register_buffer("pixel_std", torch.Tensor(pixel_std).view(-1, 1, 1), False)
 
     def set_imgsz(self, imgsz):
-        """
-        Set image size to make model compatible with different image sizes.
-
-        Args:
-            imgsz (Tuple[int, int]): The size of the input image.
-        """
+        """Set image size to make model compatible with different image sizes."""
         if hasattr(self.image_encoder, "set_imgsz"):
             self.image_encoder.set_imgsz(imgsz)
         self.prompt_encoder.input_image_size = imgsz
@@ -126,8 +122,10 @@ class SAM2Model(torch.nn.Module):
         obj_ptr_tpos_proj (nn.Module): Projection for temporal positional encoding in object pointers.
 
     Methods:
-        forward_image: Processes image batch through encoder to extract multi-level features.
-        track_step: Performs a single tracking step, updating object masks and memory features.
+        forward_image: Process image batch through encoder to extract multi-level features.
+        track_step: Perform a single tracking step, updating object masks and memory features.
+        set_binarize: Set binarize for VideoPredictor.
+        set_imgsz: Set image size to make model compatible with different image sizes.
 
     Examples:
         >>> model = SAM2Model(image_encoder, memory_attention, memory_encoder)
@@ -183,7 +181,7 @@ class SAM2Model(torch.nn.Module):
             image_encoder (nn.Module): Visual encoder for extracting image features.
             memory_attention (nn.Module): Module for attending to memory features.
             memory_encoder (nn.Module): Encoder for generating memory representations.
-            num_maskmem (int): Number of accessible memory frames. Default is 7 (1 input frame + 6 previous frames).
+            num_maskmem (int): Number of accessible memory frames.
             image_size (int): Size of input images.
             backbone_stride (int): Stride of the image backbone output.
             sigmoid_scale_for_mem_enc (float): Scale factor for mask sigmoid probability.
@@ -193,7 +191,6 @@ class SAM2Model(torch.nn.Module):
             use_mask_input_as_output_without_sam (bool): Whether to directly output the input mask without using SAM
                 prompt encoder and mask decoder on frames with mask input.
             max_cond_frames_in_attn (int): Maximum number of conditioning frames to participate in memory attention.
-                -1 means no limit.
             directly_add_no_mem_embed (bool): Whether to directly add no-memory embedding to image feature on the
                 first frame.
             use_high_res_features_in_sam (bool): Whether to use high-resolution feature maps in the SAM mask decoder.
@@ -225,7 +222,7 @@ class SAM2Model(torch.nn.Module):
             soft_no_obj_ptr (bool): Whether to mix in no-object pointer softly for easier recovery and error mitigation.
             use_mlp_for_obj_ptr_proj (bool): Whether to use MLP for object pointer projection.
             no_obj_embed_spatial (bool): Whether add no obj embedding to spatial frames.
-            sam_mask_decoder_extra_args (Dict | None): Extra arguments for constructing the SAM mask decoder.
+            sam_mask_decoder_extra_args (dict | None): Extra arguments for constructing the SAM mask decoder.
             compile_image_encoder (bool): Whether to compile the image encoder for faster inference.
 
         Examples:
@@ -419,15 +416,13 @@ class SAM2Model(torch.nn.Module):
                 output only 1 mask and its IoU estimate.
 
         Returns:
-            (Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]):
-                low_res_multimasks: Tensor of shape (B, M, H*4, W*4) with SAM output mask logits.
-                high_res_multimasks: Tensor of shape (B, M, H*16, W*16) with upsampled mask logits.
-                ious: Tensor of shape (B, M) with estimated IoU for each output mask.
-                low_res_masks: Tensor of shape (B, 1, H*4, W*4) with the best low-resolution mask.
-                high_res_masks: Tensor of shape (B, 1, H*16, W*16) with the best high-resolution mask.
-                obj_ptr: Tensor of shape (B, C) with object pointer vector for the output mask.
-                object_score_logits: Tensor of shape (B) with object score logits.
-                Where M is 3 if multimask_output=True, and 1 if multimask_output=False.
+            low_res_multimasks (torch.Tensor): Tensor of shape (B, M, H*4, W*4) with SAM output mask logits.
+            high_res_multimasks (torch.Tensor): Tensor of shape (B, M, H*16, W*16) with upsampled mask logits.
+            ious (torch.Tensor): Tensor of shape (B, M) with estimated IoU for each output mask.
+            low_res_masks (torch.Tensor): Tensor of shape (B, 1, H*4, W*4) with the best low-resolution mask.
+            high_res_masks (torch.Tensor): Tensor of shape (B, 1, H*16, W*16) with the best high-resolution mask.
+            obj_ptr (torch.Tensor): Tensor of shape (B, C) with object pointer vector for the output mask.
+            object_score_logits (torch.Tensor): Tensor of shape (B) with object score logits.
 
         Examples:
             >>> backbone_features = torch.rand(1, 256, 32, 32)

@@ -51,7 +51,7 @@ class DETRLoss(nn.Module):
 
         Args:
             nc (int): Number of classes.
-            loss_gain (dict): Coefficients for different loss components.
+            loss_gain (dict, optional): Coefficients for different loss components.
             aux_loss (bool): Whether to use auxiliary losses from each decoder layer.
             use_fl (bool): Whether to use FocalLoss.
             use_vfl (bool): Whether to use VarifocalLoss.
@@ -87,7 +87,7 @@ class DETRLoss(nn.Module):
             postfix (str, optional): String to append to the loss name for identification in multi-loss scenarios.
 
         Returns:
-            loss_cls (torch.Tensor): Classification loss value.
+            loss_cls (dict): Dictionary containing classification loss value.
 
         Notes:
             The function supports different classification loss types:
@@ -123,7 +123,7 @@ class DETRLoss(nn.Module):
             pred_bboxes (torch.Tensor): Predicted bounding boxes with shape (batch_size, num_queries, 4).
             gt_bboxes (torch.Tensor): Ground truth bounding boxes with shape (N, 4), where N is the total
                 number of ground truth boxes.
-            postfix (str): String to append to the loss names for identification in multi-loss scenarios.
+            postfix (str, optional): String to append to the loss names for identification in multi-loss scenarios.
 
         Returns:
             loss (dict): Dictionary containing:
@@ -204,7 +204,7 @@ class DETRLoss(nn.Module):
             gt_cls (torch.Tensor): Ground truth classes.
             gt_groups (List[int]): Number of ground truths per image.
             match_indices (List[tuple], optional): Pre-computed matching indices.
-            postfix (str): String to append to loss names.
+            postfix (str, optional): String to append to loss names.
             masks (torch.Tensor, optional): Predicted masks if using segmentation.
             gt_mask (torch.Tensor, optional): Ground truth masks if using segmentation.
 
@@ -263,7 +263,8 @@ class DETRLoss(nn.Module):
             match_indices (List[tuple]): List of tuples containing matched indices.
 
         Returns:
-            (tuple): Tuple containing (batch_idx, src_idx) and dst_idx.
+            batch_idx (tuple): Tuple containing (batch_idx, src_idx).
+            dst_idx (torch.Tensor): Destination indices.
         """
         batch_idx = torch.cat([torch.full_like(src, i) for i, (src, _) in enumerate(match_indices)])
         src_idx = torch.cat([src for (src, _) in match_indices])
@@ -280,7 +281,8 @@ class DETRLoss(nn.Module):
             match_indices (List[tuple]): List of tuples containing matched indices.
 
         Returns:
-            (tuple): Tuple containing assigned predictions and ground truths.
+            pred_assigned (torch.Tensor): Assigned predicted bounding boxes.
+            gt_assigned (torch.Tensor): Assigned ground truth bounding boxes.
         """
         pred_assigned = torch.cat(
             [
@@ -319,7 +321,7 @@ class DETRLoss(nn.Module):
             gt_groups (List[int]): Number of ground truths per image.
             masks (torch.Tensor, optional): Predicted masks if using segmentation.
             gt_mask (torch.Tensor, optional): Ground truth masks if using segmentation.
-            postfix (str): String to append to loss names.
+            postfix (str, optional): String to append to loss names.
             match_indices (List[tuple], optional): Pre-computed matching indices.
 
         Returns:
@@ -358,7 +360,7 @@ class DETRLoss(nn.Module):
                 cls (torch.Tensor): Ground truth classes, shape [num_gts].
                 bboxes (torch.Tensor): Ground truth bounding boxes, shape [num_gts, 4].
                 gt_groups (List[int]): Number of ground truths for each image in the batch.
-            postfix (str): Postfix for loss names.
+            postfix (str, optional): Postfix for loss names.
             **kwargs (Any): Additional arguments, may include 'match_indices'.
 
         Returns:
@@ -447,8 +449,9 @@ class RTDETRDetectionLoss(DETRLoss):
             if num_gt > 0:
                 gt_idx = torch.arange(end=num_gt, dtype=torch.long) + idx_groups[i]
                 gt_idx = gt_idx.repeat(dn_num_group)
-                assert len(dn_pos_idx[i]) == len(gt_idx), "Expected the same length, "
-                f"but got {len(dn_pos_idx[i])} and {len(gt_idx)} respectively."
+                assert len(dn_pos_idx[i]) == len(gt_idx), (
+                    f"Expected the same length, but got {len(dn_pos_idx[i])} and {len(gt_idx)} respectively."
+                )
                 dn_match_indices.append((dn_pos_idx[i], gt_idx))
             else:
                 dn_match_indices.append((torch.zeros([0], dtype=torch.long), torch.zeros([0], dtype=torch.long)))

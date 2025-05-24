@@ -15,10 +15,10 @@ from ultralytics.utils.torch_utils import is_parallel, strip_optimizer, torch_di
 
 class ClassificationTrainer(BaseTrainer):
     """
-    A class extending the BaseTrainer class for training based on a classification model.
+    A trainer class extending BaseTrainer for training image classification models.
 
     This trainer handles the training process for image classification tasks, supporting both YOLO classification models
-    and torchvision models.
+    and torchvision models with comprehensive dataset handling and validation.
 
     Attributes:
         model (ClassificationModel): The classification model to be trained.
@@ -41,6 +41,7 @@ class ClassificationTrainer(BaseTrainer):
         plot_training_samples: Plot training samples with their annotations.
 
     Examples:
+        Initialize and train a classification model
         >>> from ultralytics.models.yolo.classify import ClassificationTrainer
         >>> args = dict(model="yolo11n-cls.pt", data="imagenet10", epochs=3)
         >>> trainer = ClassificationTrainer(overrides=args)
@@ -60,6 +61,7 @@ class ClassificationTrainer(BaseTrainer):
             _callbacks (list, optional): List of callback functions to be executed during training.
 
         Examples:
+            Create a trainer with custom configuration
             >>> from ultralytics.models.yolo.classify import ClassificationTrainer
             >>> args = dict(model="yolo11n-cls.pt", data="imagenet10", epochs=3)
             >>> trainer = ClassificationTrainer(overrides=args)
@@ -78,7 +80,7 @@ class ClassificationTrainer(BaseTrainer):
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """
-        Return a modified PyTorch model configured for training YOLO.
+        Return a modified PyTorch model configured for training YOLO classification.
 
         Args:
             cfg (Any): Model configuration.
@@ -160,13 +162,13 @@ class ClassificationTrainer(BaseTrainer):
         return loader
 
     def preprocess_batch(self, batch):
-        """Preprocesses a batch of images and classes."""
+        """Preprocess a batch of images and classes."""
         batch["img"] = batch["img"].to(self.device)
         batch["cls"] = batch["cls"].to(self.device)
         return batch
 
     def progress_string(self):
-        """Returns a formatted string showing training progress."""
+        """Return a formatted string showing training progress."""
         return ("\n" + "%11s" * (4 + len(self.loss_names))) % (
             "Epoch",
             "GPU_mem",
@@ -176,7 +178,7 @@ class ClassificationTrainer(BaseTrainer):
         )
 
     def get_validator(self):
-        """Returns an instance of ClassificationValidator for validation."""
+        """Return an instance of ClassificationValidator for validation."""
         self.loss_names = ["loss"]
         return yolo.classify.ClassificationValidator(
             self.test_loader, self.save_dir, args=copy(self.args), _callbacks=self.callbacks
@@ -191,7 +193,8 @@ class ClassificationTrainer(BaseTrainer):
             prefix (str): Prefix to prepend to loss names.
 
         Returns:
-            (Dict[str, float] | List[str]): Dictionary of loss items or list of loss keys if loss_items is None.
+            keys (List[str]): List of loss keys if loss_items is None.
+            loss_dict (dict): Dictionary of loss items if loss_items is provided.
         """
         keys = [f"{prefix}/{x}" for x in self.loss_names]
         if loss_items is None:
@@ -221,7 +224,7 @@ class ClassificationTrainer(BaseTrainer):
         Plot training samples with their annotations.
 
         Args:
-            batch (Dict[str, torch.Tensor]): Batch containing images and class labels.
+            batch (dict): Batch containing images and class labels.
             ni (int): Number of iterations.
         """
         plot_images(

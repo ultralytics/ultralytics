@@ -33,7 +33,7 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         functionality. It sets the task to 'segment' and prepares the trainer for training segmentation models.
 
         Args:
-            cfg (dict): Configuration dictionary with default training settings. Defaults to DEFAULT_CFG.
+            cfg (dict): Configuration dictionary with default training settings.
             overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
             _callbacks (list, optional): List of callback functions to be executed during training.
 
@@ -53,8 +53,8 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         Initialize and return a SegmentationModel with specified configuration and weights.
 
         Args:
-            cfg (dict | str | None): Model configuration. Can be a dictionary, a path to a YAML file, or None.
-            weights (str | Path | None): Path to pretrained weights file.
+            cfg (dict | str, optional): Model configuration. Can be a dictionary, a path to a YAML file, or None.
+            weights (str | Path, optional): Path to pretrained weights file.
             verbose (bool): Whether to display model information during initialization.
 
         Returns:
@@ -119,5 +119,5 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         )
 
     def plot_metrics(self):
-        """Plots training/val metrics."""
+        """Plot training/validation metrics."""
         plot_results(file=self.csv, segment=True, on_plot=self.on_plot)  # save results.png

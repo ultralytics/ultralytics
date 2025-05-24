@@ -59,7 +59,7 @@ class BOTrack(STrack):
             tlwh (np.ndarray): Bounding box coordinates in tlwh format (top left x, top left y, width, height).
             score (float): Confidence score of the detection.
             cls (int): Class ID of the detected object.
-            feat (np.ndarray | None): Feature vector associated with the detection.
+            feat (np.ndarray, optional): Feature vector associated with the detection.
             feat_history (int): Maximum length of the feature history deque.
 
         Examples:

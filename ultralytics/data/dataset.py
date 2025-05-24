@@ -156,7 +156,7 @@ class YOLODataset(BaseDataset):
 
     def get_labels(self):
         """
-        Returns dictionary of labels for YOLO training.
+        Return dictionary of labels for YOLO training.
 
         This method loads labels from disk or cache, verifies their integrity, and prepares them for training.
 
@@ -206,7 +206,7 @@ class YOLODataset(BaseDataset):
 
     def build_transforms(self, hyp=None):
         """
-        Builds and appends transforms to the list.
+        Build and append transforms to the list.
 
         Args:
             hyp (dict, optional): Hyperparameters for transforms.
@@ -251,7 +251,7 @@ class YOLODataset(BaseDataset):
 
     def update_labels_info(self, label):
         """
-        Custom your label format here.
+        Update label format for different tasks.
 
         Args:
             label (dict): Label dictionary containing bboxes, segments, keypoints, etc.
@@ -285,7 +285,7 @@ class YOLODataset(BaseDataset):
     @staticmethod
     def collate_fn(batch):
         """
-        Collates data samples into batches.
+        Collate data samples into batches.
 
         Args:
             batch (List[dict]): List of dictionaries containing sample data.
@@ -344,7 +344,7 @@ class YOLOMultiModalDataset(YOLODataset):
 
     def update_labels_info(self, label):
         """
-        Add texts information for multi-modal model training.
+        Add text information for multi-modal model training.
 
         Args:
             label (dict): Label dictionary containing bboxes, segments, keypoints, etc.
@@ -361,7 +361,7 @@ class YOLOMultiModalDataset(YOLODataset):
 
     def build_transforms(self, hyp=None):
         """
-        Enhances data transformations with optional text augmentation for multi-modal training.
+        Enhance data transformations with optional text augmentation for multi-modal training.
 
         Args:
             hyp (dict, optional): Hyperparameters for transforms.
@@ -415,7 +415,7 @@ class YOLOMultiModalDataset(YOLODataset):
 
 class GroundingDataset(YOLODataset):
     """
-    Handles object detection tasks by loading annotations from a specified JSON file, supporting YOLO format.
+    Dataset class for object detection tasks using annotations from a JSON file in grounding format.
 
     This dataset is designed for grounding tasks where annotations are provided in a JSON file rather than
     the standard YOLO format text files.
@@ -475,7 +475,7 @@ class GroundingDataset(YOLODataset):
 
     def cache_labels(self, path=Path("./labels.cache")):
         """
-        Loads annotations from a JSON file, filters, and normalizes bounding boxes for each image.
+        Load annotations from a JSON file, filter, and normalize bounding boxes for each image.
 
         Args:
             path (Path): Path where to save the cache file.
@@ -588,7 +588,7 @@ class GroundingDataset(YOLODataset):
 
     def build_transforms(self, hyp=None):
         """
-        Configures augmentations for training with optional text loading.
+        Configure augmentations for training with optional text loading.
 
         Args:
             hyp (dict, optional): Hyperparameters for transforms.
@@ -685,7 +685,7 @@ class SemanticDataset(BaseDataset):
 
 class ClassificationDataset:
     """
-    Extends torchvision ImageFolder to support YOLO classification tasks.
+    Dataset class for image classification tasks extending torchvision ImageFolder functionality.
 
     This class offers functionalities like image augmentation, caching, and verification. It's designed to efficiently
     handle large datasets for training deep learning models, with optional image transformations and caching mechanisms
@@ -708,7 +708,7 @@ class ClassificationDataset:
 
     def __init__(self, root, args, augment=False, prefix=""):
         """
-        Initialize YOLO object with root, image size, augmentations, and cache settings.
+        Initialize YOLO classification dataset with root directory, arguments, augmentations, and cache settings.
 
         Args:
             root (str): Path to the dataset directory where images are stored in a class-specific folder structure.
@@ -760,7 +760,7 @@ class ClassificationDataset:
 
     def __getitem__(self, i):
         """
-        Returns subset of data and targets corresponding to given indices.
+        Return subset of data and targets corresponding to given indices.
 
         Args:
             i (int): Index of the sample to retrieve.

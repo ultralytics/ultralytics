@@ -116,13 +116,14 @@ class GPUInfo:
 
         LOGGER.info(f"{'-' * len(hdr)}\n")
 
-    def select_idle_gpu(self, count=1, min_memory_fraction=0):
+    def select_idle_gpu(self, count=1, min_memory_fraction=0, min_util_fraction=0):
         """
         Selects the 'count' most idle GPUs based on utilization and free memory.
 
         Args:
             count (int): The number of idle GPUs to select. Defaults to 1.
             min_memory_fraction (float): Minimum free memory required (fraction). Defaults to 0.
+            min_util_fraction (float): Minimum free utilization required (fraction). Defaults to 0.
 
         Returns:
             (list[int]): Indices of the selected GPUs, sorted by idleness.
@@ -132,7 +133,10 @@ class GPUInfo:
              Returns basic CUDA indices if NVML fails. Empty list if no GPUs found.
         """
         assert min_memory_fraction <= 1.0, f"min_memory_fraction must be <= 1.0, got {min_memory_fraction}"
-        LOGGER.info(f"Searching for {count} idle GPUs with >= {min_memory_fraction * 100:.1f}% free memory...")
+        assert min_util_fraction <= 1.0, f"min_util_fraction must be <= 1.0, got {min_util_fraction}"
+        LOGGER.info(
+            f"Searching for {count} idle GPUs with free memory >= {min_memory_fraction * 100:.1f}% and free utilization >= {min_util_fraction * 100:.1f}%..."
+        )
 
         if count <= 0:
             return []
@@ -147,7 +151,7 @@ class GPUInfo:
             gpu
             for gpu in self.gpu_stats
             if gpu.get("memory_free", 0) / gpu.get("memory_total", 1) >= min_memory_fraction
-            and gpu.get("utilization", -1) != -1
+            and (100 - gpu.get("utilization", 100)) >= min_util_fraction * 100
         ]
         eligible_gpus.sort(key=lambda x: (x.get("utilization", 101), -x.get("memory_free", 0)))
 
@@ -157,19 +161,26 @@ class GPUInfo:
         if selected:
             LOGGER.info(f"Selected idle CUDA devices {selected}")
         else:
-            LOGGER.warning(f"No GPUs met criteria (Util != -1, Free Mem >= {min_memory_fraction * 100:.1f}%).")
+            LOGGER.warning(
+                f"No GPUs met criteria (Free Mem >= {min_memory_fraction * 100:.1f}% and Free Util >= {min_util_fraction * 100:.1f}%)."
+            )
 
         return selected
 
 
 if __name__ == "__main__":
     required_free_mem_fraction = 0.2  # Require 20% free VRAM
+    required_free_util_fraction = 0.2  # Require 20% free utilization
     num_gpus_to_select = 1
 
     gpu_info = GPUInfo()
     gpu_info.print_status()
 
-    selected = gpu_info.select_idle_gpu(count=num_gpus_to_select, min_memory_fraction=required_free_mem_fraction)
+    selected = gpu_info.select_idle_gpu(
+        count=num_gpus_to_select,
+        min_memory_fraction=required_free_mem_fraction,
+        min_util_fraction=required_free_util_fraction,
+    )
     if selected:
         print(f"\n==> Using selected GPU indices: {selected}")
         devices = [f"cuda:{idx}" for idx in selected]

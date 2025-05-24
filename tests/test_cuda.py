@@ -22,7 +22,10 @@ if CUDA_IS_AVAILABLE:
     else:
         gpu_info = GPUInfo()
         gpu_info.print_status()
-        idle_gpus = gpu_info.select_idle_gpu(count=2, min_memory_fraction=0.2)
+        autodevice_fraction = __import__("os").environ.get("YOLO_AUTODEVICE_FRACTION_FREE", 0.3)
+        idle_gpus = gpu_info.select_idle_gpu(
+            count=2, min_memory_fraction=autodevice_fraction, min_util_fraction=autodevice_fraction
+        )
         if idle_gpus:
             DEVICES = idle_gpus
 
@@ -114,7 +117,9 @@ def test_train():
     if not IS_JETSON:
         visible = eval(os.environ["CUDA_VISIBLE_DEVICES"])
         assert visible == device, f"Passed GPUs '{device}', but used GPUs '{visible}'"
-        assert results is (None if len(DEVICES) > 1 else not None)  # DDP returns None, single-GPU returns metrics
+        assert (
+            (results is None) if len(DEVICES) > 1 else (results is not None)
+        )  # DDP returns None, single-GPU returns metrics
 
 
 @pytest.mark.slow

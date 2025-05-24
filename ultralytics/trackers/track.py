@@ -20,7 +20,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     Initialize trackers for object tracking during prediction.
 
     Args:
-        predictor (object): The predictor object to initialize trackers for.
+        predictor (ultralytics.engine.predictor.BasePredictor): The predictor object to initialize trackers for.
         persist (bool, optional): Whether to persist the trackers if they already exist.
 
     Examples:

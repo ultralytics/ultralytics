@@ -510,8 +510,7 @@ class Results(SimpleClass, DataExportMixin):
             img = (self.orig_img[0].detach().permute(1, 2, 0).contiguous() * 255).to(torch.uint8).cpu().numpy()
 
         names = self.names
-        is_obb = self.obb is not None
-        pred_boxes, show_boxes = self.obb if is_obb else self.boxes, boxes
+        pred_boxes, show_boxes = self.obb or self.boxes, boxes
         pred_masks, show_masks = self.masks, masks
         pred_probs, show_probs = self.probs, probs
         annotator = Annotator(
@@ -549,7 +548,7 @@ class Results(SimpleClass, DataExportMixin):
                 c, d_conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
                 name = ("" if id is None else f"id:{id} ") + names[c]
                 label = (f"{name} {d_conf:.2f}" if conf else name) if labels else None
-                box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
+                box = getattr(d, "xyxyxyxy", d.xyxy).squeeze()
                 annotator.box_label(
                     box,
                     label,
@@ -696,8 +695,7 @@ class Results(SimpleClass, DataExportMixin):
             - If save_conf is False, the confidence scores will be excluded from the output.
             - Existing contents of the file will not be overwritten; new results will be appended.
         """
-        is_obb = self.obb is not None
-        boxes = self.obb if is_obb else self.boxes
+        boxes = self.obb or self.boxes
         masks = self.masks
         probs = self.probs
         kpts = self.keypoints
@@ -709,7 +707,7 @@ class Results(SimpleClass, DataExportMixin):
             # Detect/segment/pose
             for j, d in enumerate(boxes):
                 c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
-                line = (c, *(d.xyxyxyxyn.view(-1) if is_obb else d.xywhn.view(-1)))
+                line = (c, *(getattr(d, "xyxyxyxyn", d.xyxyn).view(-1)))
                 if masks:
                     seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
                     line = (c, *seg)
@@ -797,12 +795,11 @@ class Results(SimpleClass, DataExportMixin):
             )
             return results
 
-        is_obb = self.obb is not None
-        data = self.obb if is_obb else self.boxes
+        data = self.obb or self.boxes
         h, w = self.orig_shape if normalize else (1, 1)
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
             class_id, conf = int(row.cls), round(row.conf.item(), decimals)
-            box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()
+            box = (getattr(row, "xyxyxyxy", row.xyxy)).squeeze().reshape(-1, 2).tolist()
             xy = {}
             for j, b in enumerate(box):
                 xy[f"x{j + 1}"] = round(b[0] / w, decimals)

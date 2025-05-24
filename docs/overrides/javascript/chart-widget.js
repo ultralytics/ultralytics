@@ -1,23 +1,21 @@
-// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
-// Reusable Chart.js toolbar widget with download functionality
+//Reusable Chart.js toolbar widget with download functionality
 class ChartWidget {
   constructor(chart, options = {}) {
     this.chart = chart;
-    this.options = { position: "top-right", ...options };
+    this.options = { position: 'top-right', ...options };
     this.init();
   }
 
   init() {
     const canvas = this.chart.canvas;
     const container = canvas.parentElement;
-    container.style.position = "relative";
+    container.style.position = 'relative';
 
-    this.toolbar = document.createElement("div");
+    this.toolbar = document.createElement('div');
     this.toolbar.innerHTML = this.getHTML();
     this.toolbar.style.cssText = this.getCSS(canvas);
     container.appendChild(this.toolbar);
-
+    
     this.attachEvents();
     this.setupHover(canvas);
   }
@@ -38,7 +36,7 @@ class ChartWidget {
     const containerRect = canvas.parentElement.getBoundingClientRect();
     const top = rect.top - containerRect.top - 50;
     const left = rect.right - containerRect.left - 110;
-
+    
     return `
       position: absolute; top: ${top}px; left: ${left}px;
       background: Canvas; border: 1px solid rgba(128,128,128,0.3);
@@ -51,23 +49,33 @@ class ChartWidget {
   }
 
   attachEvents() {
-    const tip = this.toolbar.querySelector(".tip");
-
-    this.toolbar.addEventListener("click", (e) => {
-      const action = e.target.closest("button").dataset.action;
-      if (action === "png") this.downloadPNG();
-      if (action === "csv") this.downloadCSV();
-      if (action === "ultralytics")
-        window.open("https://ultralytics.com", "_blank");
+    const tip = this.toolbar.querySelector('.tip');
+    
+    this.toolbar.addEventListener('click', e => {
+      const action = e.target.closest('button').dataset.action;
+      if (action === 'png') this.downloadPNG();
+      if (action === 'csv') this.downloadCSV();
+      if (action === 'ultralytics') window.open('https://ultralytics.com', '_blank');
     });
 
-    this.toolbar.querySelectorAll("button").forEach((btn) => {
+    this.toolbar.querySelectorAll('button').forEach(btn => {
+      Object.assign(btn.style, {
+        border: 'none', background: 'none', padding: '8px', cursor: 'pointer',
+        borderRadius: '4px', fontSize: '16px', minWidth: '32px', minHeight: '32px',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        transition: 'all 0.15s ease', position: 'relative'
+      });
+      
       btn.onmouseenter = () => {
+        btn.style.background = 'ButtonFace';
+        btn.style.transform = 'scale(1.20)';
         tip.textContent = btn.dataset.tip;
-        tip.style.display = "block";
+        tip.style.display = 'block';
       };
       btn.onmouseleave = () => {
-        tip.style.display = "none";
+        btn.style.background = 'none';
+        btn.style.transform = 'scale(1)';
+        tip.style.display = 'none';
       };
     });
   }
@@ -77,57 +85,52 @@ class ChartWidget {
     const show = () => {
       clearTimeout(timeout);
       Object.assign(this.toolbar.style, {
-        opacity: "1",
-        pointerEvents: "auto",
-        transform: "translateY(0) scale(1)",
+        opacity: '1', pointerEvents: 'auto', transform: 'translateY(0) scale(1)'
       });
     };
     const hide = () => {
       clearTimeout(timeout);
       timeout = setTimeout(() => {
         Object.assign(this.toolbar.style, {
-          opacity: "0",
-          pointerEvents: "none",
-          transform: "translateY(-5px) scale(0.95)",
+          opacity: '0', pointerEvents: 'none', transform: 'translateY(-5px) scale(0.95)'
         });
       }, 1000);
     };
 
-    canvas.addEventListener("mouseenter", show);
-    canvas.addEventListener("mouseleave", hide);
-    this.toolbar.addEventListener("mouseenter", show);
-    this.toolbar.addEventListener("mouseleave", hide);
+    canvas.addEventListener('mouseenter', show);
+    canvas.addEventListener('mouseleave', hide);
+    this.toolbar.addEventListener('mouseenter', show);
+    this.toolbar.addEventListener('mouseleave', hide);
   }
 
   downloadPNG() {
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.download = `chart-${Date.now()}.png`;
-    a.href = this.chart.toBase64Image("image/png", 1);
+    a.href = this.chart.toBase64Image('image/png', 1);
     a.click();
   }
 
   downloadCSV() {
-    const xTitle = this.chart.options?.scales?.x?.title?.text || "x";
-    const yTitle = this.chart.options?.scales?.y?.title?.text || "y";
+    const xTitle = this.chart.options?.scales?.x?.title?.text || 'x';
+    const yTitle = this.chart.options?.scales?.y?.title?.text || 'y';
 
-    const data = this.chart.data.datasets.flatMap((dataset) =>
-      dataset.data.map((point) => ({
+    const data = this.chart.data.datasets.flatMap(dataset =>
+      dataset.data.map(point => ({
         dataset: dataset.label,
-        version: point.version || "",
+        version: point.version || '',
         [xTitle]: point.x,
-        [yTitle]: point.y,
-      })),
+        [yTitle]: point.y
+      }))
     );
 
     const headers = Object.keys(data[0]);
-    const csv = [
-      headers.join(","),
-      ...data.map((row) => headers.map((h) => `"${row[h] || ""}"`).join(",")),
-    ].join("\n");
+    const csv = [headers.join(','), ...data.map(row =>
+      headers.map(h => `"${row[h] || ''}"`).join(',')
+    )].join('\n');
 
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.download = `chart-data-${Date.now()}.csv`;
-    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
     a.click();
   }
 

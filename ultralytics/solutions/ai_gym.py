@@ -19,7 +19,7 @@ class AIGym(BaseSolution):
         kpts (List[int]): Indices of keypoints used for angle calculation.
 
     Methods:
-        process: Processes a frame to detect poses, calculate angles, and count repetitions.
+        process: Process a frame to detect poses, calculate angles, and count repetitions.
 
     Examples:
         >>> gym = AIGym(model="yolo11n-pose.pt")

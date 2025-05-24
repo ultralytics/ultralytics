@@ -34,8 +34,8 @@ def generate_ddp_file(trainer):
     The file contains the necessary configuration to initialize the trainer in a distributed environment.
 
     Args:
-        trainer (object): The trainer object containing training configuration and arguments.
-                         Must have args attribute and be a class instance.
+        trainer (ultralytics.engine.trainer.BaseTrainer): The trainer containing training configuration and arguments.
+            Must have args attribute and be a class instance.
 
     Returns:
         (str): Path to the generated temporary DDP file.
@@ -76,13 +76,13 @@ if __name__ == "__main__":
     return file.name
 
 
-def generate_ddp_command(world_size, trainer):
+def generate_ddp_command(world_size: int, trainer):
     """
     Generate command for distributed training.
 
     Args:
         world_size (int): Number of processes to spawn for distributed training.
-        trainer (object): The trainer object containing configuration for distributed training.
+        trainer (ultralytics.engine.trainer.BaseTrainer): The trainer containing configuration for distributed training.
 
     Returns:
         cmd (List[str]): The command to execute for distributed training.
@@ -107,7 +107,7 @@ def ddp_cleanup(trainer, file):
     as a temporary file for DDP training, and deletes it if so.
 
     Args:
-        trainer (object): The trainer object used for distributed training.
+        trainer (ultralytics.engine.trainer.BaseTrainer): The trainer used for distributed training.
         file (str): Path to the file that might need to be deleted.
 
     Examples:

@@ -69,7 +69,7 @@ class SegmentationValidator(DetectionValidator):
         self.plot_masks = []
         if self.args.save_json:
             check_requirements("pycocotools>=2.0.6")
-        # more accurate vs faster
+        # More accurate vs faster
         self.process = ops.process_mask_native if self.args.save_json or self.args.save_txt else ops.process_mask
         self.stats = dict(tp_m=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
@@ -247,7 +247,7 @@ class SegmentationValidator(DetectionValidator):
         Returns:
             (torch.Tensor): A correct prediction matrix of shape (N, 10), where 10 represents different IoU levels.
 
-        Note:
+        Notes:
             - If `masks` is True, the function computes IoU between predicted and ground truth masks.
             - If `overlap` is True and `masks` is True, overlapping masks are taken into account when computing IoU.
 

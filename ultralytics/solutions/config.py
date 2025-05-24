@@ -100,7 +100,7 @@ class SolutionConfig:
             if hasattr(self, key):
                 setattr(self, key, value)
             else:
-                raise ValueError(
-                    f"❌ {key} is not a valid solution argument, available arguments here: https://docs.ultralytics.com/solutions/#solutions-arguments"
-                )
+                url = "https://docs.ultralytics.com/solutions/#solutions-arguments"
+                raise ValueError(f"{key} is not a valid solution argument, see {url}")
+
         return self

@@ -715,7 +715,24 @@ def test_already_initialized_model():
 
 def additional_cfg_tests():
     """Additional tests to improve CFG."""
-    _ = cfg2dict("config.yaml")
-    config = {"epochs": 50, "lr0": 0.01, "momentum": 1.2, "save": "true1"}
+    import yaml
+    config = {
+        "boxes": True,
+        "show_labels": False,
+        "line_width": 2,
+        "crop_fraction": 0.5,
+    }
+    with open("config.yaml", "w") as f:
+        yaml.dump(config, f)
+    config_dict = cfg2dict("config.yaml")
+
+    result = _handle_deprecation(config_dict)
+
+    assert "show_boxes" in result
+    assert "show_labels" in result
+    assert "line_width" in result
+    assert "crop_fraction" not in result
+
+    config_dict_incorrect = {"epochs": 50, "lr0": 0.01, "momentum": 1.2, "save": "true1"}
     with pytest.raises(TypeError, match="save=.*invalid type"):
-        check_cfg(config, hard=True)
+        check_cfg(config_dict_incorrect, hard=True)

@@ -2155,15 +2155,15 @@ class BiFPNBlock(nn.Module):
     def __init__(self, feature_size=256, epsilon=1e-4):
         super().__init__()
         self.epsilon = epsilon
-        
+
         # Weight untuk top-down pathway (Contoh: P5_id)
         self.w_td = nn.Parameter(torch.Tensor(2, 1))  # 2 input weights
         self.w_td_relu = nn.ReLU()
-        
+
         # Weight untuk bottom-up pathway (Contoh: P5_out)
         self.w_bu = nn.Parameter(torch.Tensor(3, 1))  # 3 input weights
         self.w_bu_relu = nn.ReLU()
-        
+
         # Convolution layers
         self.conv_td = nn.Conv2d(feature_size, feature_size, 3, padding=1)
         self.conv_bu = nn.Conv2d(feature_size, feature_size, 3, padding=1)
@@ -2172,14 +2172,14 @@ class BiFPNBlock(nn.Module):
         # Top-Down Pathway (P5_id)
         w_td = self.w_td_relu(self.w_td)
         w_td /= torch.sum(w_td, dim=0) + self.epsilon
-        
-        p6_resized = F.interpolate(p6, scale_factor=2, mode='nearest')
+
+        p6_resized = F.interpolate(p6, scale_factor=2, mode="nearest")
         p5_td = self.conv_td(w_td[0] * p5 + w_td[1] * p6_resized)
 
         # Bottom-Up Pathway (P5_out)
         w_bu = self.w_bu_relu(self.w_bu)
         w_bu /= torch.sum(w_bu, dim=0) + self.epsilon
-        
+
         p4_resized = F.max_pool2d(p4, kernel_size=2)
         p5_out = self.conv_bu(w_bu[0] * p5 + w_bu[1] * p5_td + w_bu[2] * p4_resized)
 
@@ -2189,33 +2189,33 @@ class BiFPNBlock(nn.Module):
 class BiFPN(nn.Module):
     def __init__(self, channels=[512, 256, 128], feature_size=256):
         super().__init__()
-        
+
         # Projection layers untuk menyamakan channel
         self.proj_p4 = nn.Conv2d(channels[0], feature_size, 1)
         self.proj_p5 = nn.Conv2d(channels[1], feature_size, 1)
         self.proj_p6 = nn.Conv2d(channels[2], feature_size, 1)
-        
+
         # BiFPN Blocks (2 lapisan cross-connection)
         self.bifpn1 = BiFPNBlock(feature_size)
         self.bifpn2 = BiFPNBlock(feature_size)
-        
+
         # Output convolution
         self.out_conv = nn.Conv2d(feature_size, feature_size, 3, padding=1)
 
     def forward(self, inputs):
         # Input: [P4, P5, P6] dari backbone
         p4, p5, p6 = inputs
-        
+
         # Step 1: Proyeksi ke feature size
         p4 = self.proj_p4(p4)
         p5 = self.proj_p5(p5)
         p6 = self.proj_p6(p6)
-        
+
         # Step 2: BiFPN processing
         p5_out = self.bifpn1(p4, p5, p6)
         p5_final = self.bifpn2(p4, p5_out, p6)
-        
+
         # Step 3: Output processing
         return self.out_conv(p5_final)
-    
+
     # //UPDATE BiFPN3

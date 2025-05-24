@@ -382,7 +382,7 @@ class MLP(nn.Module):
             in_features (int): Number of input features.
             hidden_features (Optional[int], optional): Number of hidden features.
             out_features (Optional[int], optional): Number of output features.
-            act (nn.Module): Activation function applied after the first fully-connected layer.
+            activation (nn.Module): Activation function applied after the first fully-connected layer.
             drop (float, optional): Dropout probability.
         """
         super().__init__()

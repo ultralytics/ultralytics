@@ -111,9 +111,9 @@ def _log_plots(plots, step):
         step (int): The step/epoch at which to log the plots in the WandB run.
 
     Notes:
-        - The function uses a shallow copy of the plots dictionary to prevent modification during iteration
-        - Plots are identified by their stem name (filename without extension)
-        - Each plot is logged as a WandB Image object
+        The function uses a shallow copy of the plots dictionary to prevent modification during iteration.
+        Plots are identified by their stem name (filename without extension).
+        Each plot is logged as a WandB Image object.
     """
     for name, params in plots.copy().items():  # shallow copy to prevent plots dict changing during iteration
         timestamp = params["timestamp"]
@@ -123,7 +123,7 @@ def _log_plots(plots, step):
 
 
 def on_pretrain_routine_start(trainer):
-    """Initiate and start wandb project if module is present."""
+    """Initialize and start wandb project if module is present."""
     if not wb.run:
         wb.init(
             project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics",

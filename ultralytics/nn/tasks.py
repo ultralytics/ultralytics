@@ -12,7 +12,6 @@ import torch.nn as nn
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
-    AIFI,
     C1,
     C2,
     C2PSA,
@@ -37,8 +36,6 @@ from ultralytics.nn.modules import (
     C3Ghost,
     C3k2,
     C3x,
-    CBFuse,
-    CBLinear,
     Classify,
     Concat,
     Conv,
@@ -50,21 +47,15 @@ from ultralytics.nn.modules import (
     Focus,
     GhostBottleneck,
     GhostConv,
-    HGBlock,
-    HGStem,
     ImagePoolingAttn,
-    Index,
     LRPCHead,
     Pose,
     RepC3,
     RepConv,
     RepNCSPELAN4,
     RepVGGDW,
-    ResNetLayer,
-    RTDETRDecoder,
     SCDown,
     Segment,
-    TorchVision,
     WorldDetect,
     YOLOEDetect,
     YOLOESegment,
@@ -80,7 +71,6 @@ from ultralytics.utils.loss import (
     v8PoseLoss,
     v8SegmentationLoss,
 )
-from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (
     fuse_conv_and_bn,
@@ -1355,6 +1345,7 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     # Return model and ckpt
     return model, ckpt
 
+
 def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     """
     Parse a YOLO model.yaml dictionary into a PyTorch model.
@@ -1369,18 +1360,30 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     """
     import ast
     import contextlib
+
     import torch
-    import torch.nn.functional as F
+
     from ultralytics.nn.modules import (
-        Classify, Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck,
-        SPP, SPPF, C2fPSA, C2PSA, DWConv, Focus, BottleneckCSP, C1, C2,
-        C2f, C3k2, C3K2_FE, RepNCSPELAN4, ELAN1, ADown, AConv, SPPELAN,
-        C2fAttn, C3, C3TR, C3Ghost, Conv as ConvLayer, DWConvTranspose2d,
-        C3x, RepC3, PSA, SCDown, C2fCIB, A2C2f, Concat, Detect, WorldDetect,
-        YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect
+        OBB,
+        C2fAttn,
+        Classify,
+        Conv,
+        ConvTranspose,
+        Detect,
+        DWConv,
+        ImagePoolingAttn,
+        Pose,
+        Segment,
+        WorldDetect,
+        YOLOEDetect,
+        YOLOESegment,
+        v10Detect,
+    )
+    from ultralytics.nn.modules import (
+        Conv as ConvLayer,
     )
     from ultralytics.nn.tasks import make_divisible
-    from ultralytics.utils import LOGGER, colorstr
+    from ultralytics.utils import LOGGER
 
     # backward compatibility and scaling
     legacy = True
@@ -1404,13 +1407,65 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     layers, save, c2 = [], [], ch[-1]
 
     # define which modules to treat as base / repeatable
-    base_modules = frozenset({Classify, Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck,
-                              SPP, SPPF, C2fPSA, C2PSA, DWConv, Focus, BottleneckCSP, C1, C2,
-                              C2f, C3k2, C3K2_FE, RepNCSPELAN4, ELAN1, ADown, AConv, SPPELAN,
-                              C2fAttn, C3, C3TR, C3Ghost, ConvLayer, DWConvTranspose2d, C3x,
-                              RepC3, PSA, SCDown, C2fCIB, A2C2f})
-    repeat_modules = frozenset({BottleneckCSP, C1, C2, C2f, C3k2, C3K2_FE, C2fAttn,
-                                C3, C3TR, C3Ghost, C3x, RepC3, C2fPSA, C2fCIB, C2PSA, A2C2f})
+    base_modules = frozenset(
+        {
+            Classify,
+            Conv,
+            ConvTranspose,
+            GhostConv,
+            Bottleneck,
+            GhostBottleneck,
+            SPP,
+            SPPF,
+            C2fPSA,
+            C2PSA,
+            DWConv,
+            Focus,
+            BottleneckCSP,
+            C1,
+            C2,
+            C2f,
+            C3k2,
+            C3K2_FE,
+            RepNCSPELAN4,
+            ELAN1,
+            ADown,
+            AConv,
+            SPPELAN,
+            C2fAttn,
+            C3,
+            C3TR,
+            C3Ghost,
+            ConvLayer,
+            DWConvTranspose2d,
+            C3x,
+            RepC3,
+            PSA,
+            SCDown,
+            C2fCIB,
+            A2C2f,
+        }
+    )
+    repeat_modules = frozenset(
+        {
+            BottleneckCSP,
+            C1,
+            C2,
+            C2f,
+            C3k2,
+            C3K2_FE,
+            C2fAttn,
+            C3,
+            C3TR,
+            C3Ghost,
+            C3x,
+            RepC3,
+            C2fPSA,
+            C2fCIB,
+            C2PSA,
+            A2C2f,
+        }
+    )
 
     # iterate both backbone and head
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):
@@ -1453,8 +1508,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             # special C2fAttn adjustments
             if m is C2fAttn:
                 args[1] = make_divisible(min(args[1], max_channels // 2) * width, 8)
-                args[2] = int(max(round(min(args[2], max_channels // 2 // 32)) * width, 1)
-                              if args[2] > 1 else args[2])
+                args[2] = int(max(round(min(args[2], max_channels // 2 // 32)) * width, 1) if args[2] > 1 else args[2])
 
             # rebuild args list
             args = [c1, c2, *args[1:]]
@@ -1494,8 +1548,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 
         # print layer info
         if verbose:
-            LOGGER.info(f"{i:>3}{str(f):>20}{n_:>3}{m_.np:10.0f}  "
-                        f"{m_.type:<45}{str(args):<30}")
+            LOGGER.info(f"{i:>3}{str(f):>20}{n_:>3}{m_.np:10.0f}  {m_.type:<45}{str(args):<30}")
 
         # track saving
         save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)
@@ -1506,6 +1559,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 
     # return assembled model and list of saved layer indices
     return torch.nn.Sequential(*layers), sorted(save)
+
 
 # def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 #     """

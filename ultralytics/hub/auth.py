@@ -155,4 +155,3 @@ class Auth:
             return {"authorization": f"Bearer {self.id_token}"}
         elif self.api_key:
             return {"x-api-key": self.api_key}
-        # else returns None

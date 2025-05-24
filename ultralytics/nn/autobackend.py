@@ -6,7 +6,7 @@ import platform
 import zipfile
 from collections import OrderedDict, namedtuple
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import cv2
 import numpy as np
@@ -19,8 +19,19 @@ from ultralytics.utils.checks import check_requirements, check_suffix, check_ver
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 
 
-def check_class_names(names):
-    """Check class names and convert to dict format if needed."""
+def check_class_names(names: Union[List, Dict]) -> Dict[int, str]:
+    """
+    Check class names and convert to dict format if needed.
+
+    Args:
+        names (list | dict): Class names as list or dict format.
+
+    Returns:
+        (dict): Class names in dict format with integer keys and string values.
+
+    Raises:
+        KeyError: If class indices are invalid for the dataset size.
+    """
     if isinstance(names, list):  # names is a list
         names = dict(enumerate(names))  # convert to dict
     if isinstance(names, dict):
@@ -38,8 +49,16 @@ def check_class_names(names):
     return names
 
 
-def default_class_names(data=None):
-    """Apply default class names to an input YAML file or return numerical class names."""
+def default_class_names(data: Optional[Union[str, Path]] = None) -> Dict[int, str]:
+    """
+    Apply default class names to an input YAML file or return numerical class names.
+
+    Args:
+        data (str | Path, optional): Path to YAML file containing class names.
+
+    Returns:
+        (dict): Dictionary mapping class indices to class names.
+    """
     if data:
         try:
             return YAML.load(check_yaml(data))["names"]
@@ -82,6 +101,24 @@ class AutoBackend(nn.Module):
         names (dict): A dictionary of class names that the model can detect.
         stride (int): The model stride, typically 32 for YOLO models.
         fp16 (bool): Whether the model uses half-precision (FP16) inference.
+        nhwc (bool): Whether the model expects NHWC input format instead of NCHW.
+        pt (bool): Whether the model is a PyTorch model.
+        jit (bool): Whether the model is a TorchScript model.
+        onnx (bool): Whether the model is an ONNX model.
+        xml (bool): Whether the model is an OpenVINO model.
+        engine (bool): Whether the model is a TensorRT engine.
+        coreml (bool): Whether the model is a CoreML model.
+        saved_model (bool): Whether the model is a TensorFlow SavedModel.
+        pb (bool): Whether the model is a TensorFlow GraphDef.
+        tflite (bool): Whether the model is a TensorFlow Lite model.
+        edgetpu (bool): Whether the model is a TensorFlow Edge TPU model.
+        tfjs (bool): Whether the model is a TensorFlow.js model.
+        paddle (bool): Whether the model is a PaddlePaddle model.
+        mnn (bool): Whether the model is an MNN model.
+        ncnn (bool): Whether the model is an NCNN model.
+        imx (bool): Whether the model is an IMX model.
+        rknn (bool): Whether the model is an RKNN model.
+        triton (bool): Whether the model is a Triton Inference Server model.
 
     Methods:
         forward: Run inference on an input image.
@@ -567,7 +604,14 @@ class AutoBackend(nn.Module):
 
         self.__dict__.update(locals())  # assign all variables to self
 
-    def forward(self, im, augment=False, visualize=False, embed=None, **kwargs):
+    def forward(
+        self,
+        im: torch.Tensor,
+        augment: bool = False,
+        visualize: bool = False,
+        embed: Optional[List] = None,
+        **kwargs: Any,
+    ) -> Union[torch.Tensor, List[torch.Tensor]]:
         """
         Run inference on an AutoBackend model.
 
@@ -780,7 +824,7 @@ class AutoBackend(nn.Module):
         else:
             return self.from_numpy(y)
 
-    def from_numpy(self, x):
+    def from_numpy(self, x: np.ndarray) -> torch.Tensor:
         """
         Convert a numpy array to a tensor.
 
@@ -792,7 +836,7 @@ class AutoBackend(nn.Module):
         """
         return torch.tensor(x).to(self.device) if isinstance(x, np.ndarray) else x
 
-    def warmup(self, imgsz=(1, 3, 640, 640)):
+    def warmup(self, imgsz: Tuple[int, int, int, int] = (1, 3, 640, 640)) -> None:
         """
         Warm up the model by running one forward pass with a dummy input.
 
@@ -808,7 +852,7 @@ class AutoBackend(nn.Module):
                 self.forward(im)  # warmup
 
     @staticmethod
-    def _model_type(p="path/to/model.pt"):
+    def _model_type(p: str = "path/to/model.pt") -> List[bool]:
         """
         Take a path to a model file and return the model type.
 

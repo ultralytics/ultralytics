@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import argparse
+from typing import Any, Dict, List
 
 import cv2.dnn
 import numpy as np
@@ -12,7 +13,9 @@ CLASSES = YAML.load(check_yaml("coco8.yaml"))["names"]
 colors = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 
 
-def draw_bounding_box(img: np.ndarray, class_id: int, confidence: float, x: int, y: int, x_plus_w: int, y_plus_h: int):
+def draw_bounding_box(
+    img: np.ndarray, class_id: int, confidence: float, x: int, y: int, x_plus_w: int, y_plus_h: int
+) -> None:
     """
     Draw bounding boxes on the input image based on the provided arguments.
 
@@ -31,7 +34,7 @@ def draw_bounding_box(img: np.ndarray, class_id: int, confidence: float, x: int,
     cv2.putText(img, label, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
 
-def main(onnx_model: str, input_image: str):
+def main(onnx_model: str, input_image: str) -> List[Dict[str, Any]]:
     """
     Load ONNX model, perform inference, draw bounding boxes, and display the output image.
 
@@ -40,7 +43,7 @@ def main(onnx_model: str, input_image: str):
         input_image (str): Path to the input image.
 
     Returns:
-        detections (list[dict]): List of dictionaries containing detection information such as class_id, class_name,
+        (List[Dict[str, Any]]): List of dictionaries containing detection information such as class_id, class_name,
             confidence, box coordinates, and scale factor.
     """
     # Load the ONNX model

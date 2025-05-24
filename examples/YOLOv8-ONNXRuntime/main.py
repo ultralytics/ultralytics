@@ -32,6 +32,13 @@ class YOLOv8:
         img_height (int): Height of the input image.
         img_width (int): Width of the input image.
 
+    Methods:
+        letterbox: Resize and reshape images while maintaining aspect ratio by adding padding.
+        draw_detections: Draw bounding boxes and labels on the input image based on detected objects.
+        preprocess: Preprocess the input image before performing inference.
+        postprocess: Perform post-processing on the model's output to extract and visualize detections.
+        main: Perform inference using an ONNX model and return the output image with drawn detections.
+
     Examples:
         Initialize YOLOv8 detector and run inference
         >>> detector = YOLOv8("yolov8n.onnx", "image.jpg", 0.5, 0.5)
@@ -89,15 +96,7 @@ class YOLOv8:
         return img, (top, left)
 
     def draw_detections(self, img: np.ndarray, box: List[float], score: float, class_id: int) -> None:
-        """
-        Draw bounding boxes and labels on the input image based on the detected objects.
-
-        Args:
-            img (np.ndarray): The input image to draw detections on.
-            box (List[float]): Detected bounding box coordinates [x, y, width, height].
-            score (float): Confidence score of the detection.
-            class_id (int): Class ID for the detected object.
-        """
+        """Draw bounding boxes and labels on the input image based on the detected objects."""
         # Extract the coordinates of the bounding box
         x1, y1, w, h = box
 

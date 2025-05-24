@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import time
+from typing import Any, Tuple
 
 import cv2
 
@@ -52,7 +53,7 @@ selected_bbox = None
 selected_center = None
 
 
-def get_center(x1: int, y1: int, x2: int, y2: int) -> tuple[int, int]:
+def get_center(x1: int, y1: int, x2: int, y2: int) -> Tuple[int, int]:
     """
     Calculate the center point of a bounding box.
 
@@ -69,7 +70,7 @@ def get_center(x1: int, y1: int, x2: int, y2: int) -> tuple[int, int]:
     return (x1 + x2) // 2, (y1 + y2) // 2
 
 
-def extend_line_from_edge(mid_x: int, mid_y: int, direction: str, img_shape: tuple) -> tuple[int, int]:
+def extend_line_from_edge(mid_x: int, mid_y: int, direction: str, img_shape: Tuple[int, int, int]) -> Tuple[int, int]:
     """
     Calculate the endpoint to extend a line from the center toward an image edge.
 
@@ -77,7 +78,7 @@ def extend_line_from_edge(mid_x: int, mid_y: int, direction: str, img_shape: tup
         mid_x (int): X-coordinate of the midpoint.
         mid_y (int): Y-coordinate of the midpoint.
         direction (str): Direction to extend ('left', 'right', 'up', 'down').
-        img_shape (tuple): Image shape in (height, width, channels).
+        img_shape (Tuple[int, int, int]): Image shape in (height, width, channels).
 
     Returns:
         end_x (int): X-coordinate of the endpoint.

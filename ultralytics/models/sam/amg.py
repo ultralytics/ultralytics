@@ -11,7 +11,24 @@ import torch
 def is_box_near_crop_edge(
     boxes: torch.Tensor, crop_box: List[int], orig_box: List[int], atol: float = 20.0
 ) -> torch.Tensor:
-    """Determines if bounding boxes are near the edge of a cropped image region using a specified tolerance."""
+    """
+    Determine if bounding boxes are near the edge of a cropped image region using a specified tolerance.
+
+    Args:
+        boxes (torch.Tensor): Bounding boxes in XYXY format.
+        crop_box (List[int]): Crop box coordinates in [x0, y0, x1, y1] format.
+        orig_box (List[int]): Original image box coordinates in [x0, y0, x1, y1] format.
+        atol (float, optional): Absolute tolerance for edge proximity detection.
+
+    Returns:
+        (torch.Tensor): Boolean tensor indicating which boxes are near crop edges.
+
+    Examples:
+        >>> boxes = torch.tensor([[10, 10, 50, 50], [100, 100, 150, 150]])
+        >>> crop_box = [0, 0, 200, 200]
+        >>> orig_box = [0, 0, 300, 300]
+        >>> near_edge = is_box_near_crop_edge(boxes, crop_box, orig_box, atol=20.0)
+    """
     crop_box_torch = torch.as_tensor(crop_box, dtype=torch.float, device=boxes.device)
     orig_box_torch = torch.as_tensor(orig_box, dtype=torch.float, device=boxes.device)
     boxes = uncrop_boxes_xyxy(boxes, crop_box).float()
@@ -52,7 +69,7 @@ def batch_iterator(batch_size: int, *args) -> Generator[List[Any], None, None]:
 
 def calculate_stability_score(masks: torch.Tensor, mask_threshold: float, threshold_offset: float) -> torch.Tensor:
     """
-    Computes the stability score for a batch of masks.
+    Compute the stability score for a batch of masks.
 
     The stability score is the IoU between binary masks obtained by thresholding the predicted mask logits at
     high and low values.
@@ -90,7 +107,7 @@ def build_point_grid(n_per_side: int) -> np.ndarray:
 
 
 def build_all_layer_point_grids(n_per_side: int, n_layers: int, scale_per_layer: int) -> List[np.ndarray]:
-    """Generates point grids for multiple crop layers with varying scales and densities."""
+    """Generate point grids for multiple crop layers with varying scales and densities."""
     return [build_point_grid(int(n_per_side / (scale_per_layer**i))) for i in range(n_layers + 1)]
 
 
@@ -98,7 +115,7 @@ def generate_crop_boxes(
     im_size: Tuple[int, ...], n_layers: int, overlap_ratio: float
 ) -> Tuple[List[List[int]], List[int]]:
     """
-    Generates crop boxes of varying sizes for multiscale image processing, with layered overlapping regions.
+    Generate crop boxes of varying sizes for multiscale image processing, with layered overlapping regions.
 
     Args:
         im_size (Tuple[int, ...]): Height and width of the input image.
@@ -106,8 +123,8 @@ def generate_crop_boxes(
         overlap_ratio (float): Ratio of overlap between adjacent crop boxes.
 
     Returns:
-        (List[List[int]]): List of crop boxes in [x0, y0, x1, y1] format.
-        (List[int]): List of layer indices corresponding to each crop box.
+        crop_boxes (List[List[int]]): List of crop boxes in [x0, y0, x1, y1] format.
+        layer_idxs (List[int]): List of layer indices corresponding to each crop box.
 
     Examples:
         >>> im_size = (800, 1200)  # Height, width
@@ -124,7 +141,7 @@ def generate_crop_boxes(
     layer_idxs.append(0)
 
     def crop_len(orig_len, n_crops, overlap):
-        """Calculates the length of each crop given the original length, number of crops, and overlap."""
+        """Calculate the length of each crop given the original length, number of crops, and overlap."""
         return int(math.ceil((overlap * (n_crops - 1) + orig_len) / n_crops))
 
     for i_layer in range(n_layers):
@@ -179,16 +196,17 @@ def uncrop_masks(masks: torch.Tensor, crop_box: List[int], orig_h: int, orig_w: 
 
 def remove_small_regions(mask: np.ndarray, area_thresh: float, mode: str) -> Tuple[np.ndarray, bool]:
     """
-    Removes small disconnected regions or holes in a mask based on area threshold and mode.
+    Remove small disconnected regions or holes in a mask based on area threshold and mode.
 
     Args:
         mask (np.ndarray): Binary mask to process.
         area_thresh (float): Area threshold below which regions will be removed.
-        mode (str): Processing mode, either 'holes' to fill small holes or 'islands' to remove small disconnected regions.
+        mode (str): Processing mode, either 'holes' to fill small holes or 'islands' to remove small disconnected
+            regions.
 
     Returns:
-        (np.ndarray): Processed binary mask with small regions removed.
-        (bool): Whether any regions were modified.
+        processed_mask (np.ndarray): Processed binary mask with small regions removed.
+        modified (bool): Whether any regions were modified.
 
     Examples:
         >>> mask = np.zeros((100, 100), dtype=np.bool_)
@@ -216,7 +234,7 @@ def remove_small_regions(mask: np.ndarray, area_thresh: float, mode: str) -> Tup
 
 def batched_mask_to_box(masks: torch.Tensor) -> torch.Tensor:
     """
-    Calculates bounding boxes in XYXY format around binary masks.
+    Calculate bounding boxes in XYXY format around binary masks.
 
     Args:
         masks (torch.Tensor): Binary masks with shape (B, H, W) or (B, C, H, W).

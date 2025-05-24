@@ -2,6 +2,7 @@
 
 import itertools
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 import torch
 
@@ -12,8 +13,8 @@ from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.torch_utils import de_parallel
 
 
-def on_pretrain_routine_end(trainer):
-    """Callback to set up model classes and text encoder at the end of the pretrain routine."""
+def on_pretrain_routine_end(trainer) -> None:
+    """Set up model classes and text encoder at the end of the pretrain routine."""
     if RANK in {-1, 0}:
         # Set class names for evaluation
         names = [name.split("/", 1)[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
@@ -22,45 +23,54 @@ def on_pretrain_routine_end(trainer):
 
 class WorldTrainer(DetectionTrainer):
     """
-    A class to fine-tune a world model on a close-set dataset.
+    A trainer class for fine-tuning YOLO World models on close-set datasets.
 
-    This trainer extends the DetectionTrainer to support training YOLO World models, which combine
-    visual and textual features for improved object detection and understanding.
+    This trainer extends the DetectionTrainer to support training YOLO World models, which combine visual and textual
+    features for improved object detection and understanding. It handles text embedding generation and caching to
+    accelerate training with multi-modal data.
 
     Attributes:
-        clip (module): The CLIP module for text-image understanding.
-        text_model (module): The text encoder model from CLIP.
+        text_embeddings (Dict[str, torch.Tensor] | None): Cached text embeddings for category names to accelerate
+            training.
         model (WorldModel): The YOLO World model being trained.
-        data (dict): Dataset configuration containing class information.
-        args (dict): Training arguments and configuration.
+        data (Dict[str, Any]): Dataset configuration containing class information.
+        args (Any): Training arguments and configuration.
+
+    Methods:
+        get_model: Return WorldModel initialized with specified config and weights.
+        build_dataset: Build YOLO Dataset for training or validation.
+        set_text_embeddings: Set text embeddings for datasets to accelerate training.
+        generate_text_embeddings: Generate text embeddings for a list of text samples.
+        preprocess_batch: Preprocess a batch of images and text for YOLOWorld training.
 
     Examples:
-        >>> from ultralytics.models.yolo.world import WorldModel
+        Initialize and train a YOLO World model
+        >>> from ultralytics.models.yolo.world import WorldTrainer
         >>> args = dict(model="yolov8s-world.pt", data="coco8.yaml", epochs=3)
         >>> trainer = WorldTrainer(overrides=args)
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: Optional[Dict[str, Any]] = None, _callbacks=None):
         """
         Initialize a WorldTrainer object with given arguments.
 
         Args:
-            cfg (dict): Configuration for the trainer.
-            overrides (dict, optional): Configuration overrides.
-            _callbacks (list, optional): List of callback functions.
+            cfg (Dict[str, Any]): Configuration for the trainer.
+            overrides (Dict[str, Any], optional): Configuration overrides.
+            _callbacks (List[Any], optional): List of callback functions.
         """
         if overrides is None:
             overrides = {}
         super().__init__(cfg, overrides, _callbacks)
         self.text_embeddings = None
 
-    def get_model(self, cfg=None, weights=None, verbose=True):
+    def get_model(self, cfg=None, weights: Optional[str] = None, verbose: bool = True) -> WorldModel:
         """
         Return WorldModel initialized with specified config and weights.
 
         Args:
-            cfg (Dict | str, optional): Model configuration.
+            cfg (Dict[str, Any] | str, optional): Model configuration.
             weights (str, optional): Path to pretrained weights.
             verbose (bool): Whether to display model info.
 
@@ -81,7 +91,7 @@ class WorldTrainer(DetectionTrainer):
 
         return model
 
-    def build_dataset(self, img_path, mode="train", batch=None):
+    def build_dataset(self, img_path: str, mode: str = "train", batch: Optional[int] = None):
         """
         Build YOLO Dataset for training or validation.
 
@@ -91,7 +101,7 @@ class WorldTrainer(DetectionTrainer):
             batch (int, optional): Size of batches, this is for `rect`.
 
         Returns:
-            (Dataset): YOLO dataset configured for training or validation.
+            (Any): YOLO dataset configured for training or validation.
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         dataset = build_yolo_dataset(
@@ -101,7 +111,7 @@ class WorldTrainer(DetectionTrainer):
             self.set_text_embeddings([dataset], batch)  # cache text embeddings to accelerate training
         return dataset
 
-    def set_text_embeddings(self, datasets, batch):
+    def set_text_embeddings(self, datasets: List[Any], batch: Optional[int]) -> None:
         """
         Set text embeddings for datasets to accelerate training by caching category names.
 
@@ -109,7 +119,7 @@ class WorldTrainer(DetectionTrainer):
         for these categories to improve training efficiency.
 
         Args:
-            datasets (List[Dataset]): List of datasets from which to extract category names.
+            datasets (List[Any]): List of datasets from which to extract category names.
             batch (int | None): Batch size used for processing.
 
         Notes:
@@ -127,7 +137,7 @@ class WorldTrainer(DetectionTrainer):
             )
         self.text_embeddings = text_embeddings
 
-    def generate_text_embeddings(self, texts, batch, cache_dir):
+    def generate_text_embeddings(self, texts: List[str], batch: int, cache_dir: Path) -> Dict[str, torch.Tensor]:
         """
         Generate text embeddings for a list of text samples.
 
@@ -137,7 +147,7 @@ class WorldTrainer(DetectionTrainer):
             cache_dir (Path): Directory to save/load cached embeddings.
 
         Returns:
-            (dict): Dictionary mapping text samples to their embeddings.
+            (Dict[str, torch.Tensor]): Dictionary mapping text samples to their embeddings.
         """
         model = "clip:ViT-B/32"
         cache_path = cache_dir / f"text_embeddings_{model.replace(':', '_').replace('/', '_')}.pt"
@@ -153,7 +163,7 @@ class WorldTrainer(DetectionTrainer):
         torch.save(txt_map, cache_path)
         return txt_map
 
-    def preprocess_batch(self, batch):
+    def preprocess_batch(self, batch: Dict[str, Any]) -> Dict[str, Any]:
         """Preprocess a batch of images and text for YOLOWorld training."""
         batch = DetectionTrainer.preprocess_batch(self, batch)
 

@@ -144,7 +144,19 @@ class MemoryAttentionLayer(nn.Module):
         query_pos: Optional[Tensor] = None,
         num_k_exclude_rope: int = 0,
     ) -> torch.Tensor:
-        """Process input tensors through self-attention, cross-attention, and feedforward network layers."""
+        """
+        Process input tensors through self-attention, cross-attention, and feedforward network layers.
+
+        Args:
+            tgt (Tensor): Target tensor for self-attention with shape (N, L, D).
+            memory (Tensor): Memory tensor for cross-attention with shape (N, S, D).
+            pos (Optional[Tensor]): Positional encoding for memory tensor.
+            query_pos (Optional[Tensor]): Positional encoding for target tensor.
+            num_k_exclude_rope (int): Number of keys to exclude from rotary position embedding.
+
+        Returns:
+            (torch.Tensor): Processed tensor after attention and feedforward layers with shape (N, L, D).
+        """
         tgt = self._forward_sa(tgt, query_pos)
         tgt = self._forward_ca(tgt, memory, query_pos, pos, num_k_exclude_rope)
         # MLP

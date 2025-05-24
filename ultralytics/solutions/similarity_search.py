@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+from typing import List
 
 import numpy as np
 import torch
@@ -17,17 +18,38 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some sys
 
 class VisualAISearch(BaseSolution):
     """
-    VisualAISearch leverages OpenCLIP to generate high-quality image and text embeddings, aligning them in a shared
-    semantic space. It then uses FAISS to perform fast and scalable similarity-based retrieval, allowing users to search
-    large collections of images using natural language queries with high accuracy and speed.
+    A semantic image search system that leverages OpenCLIP for generating high-quality image and text embeddings and
+    FAISS for fast similarity-based retrieval.
+
+    This class aligns image and text embeddings in a shared semantic space, enabling users to search large collections
+    of images using natural language queries with high accuracy and speed.
 
     Attributes:
         data (str): Directory containing images.
         device (str): Computation device, e.g., 'cpu' or 'cuda'.
+        faiss_index (str): Path to the FAISS index file.
+        data_path_npy (str): Path to the numpy file storing image paths.
+        model_name (str): Name of the CLIP model to use.
+        data_dir (Path): Path object for the data directory.
+        model: Loaded CLIP model.
+        preprocess: CLIP preprocessing function.
+        index: FAISS index for similarity search.
+        image_paths (List[str]): List of image file paths.
+
+    Methods:
+        extract_image_feature: Extract CLIP embedding from an image.
+        extract_text_feature: Extract CLIP embedding from text.
+        load_or_build_index: Load existing FAISS index or build new one.
+        search: Perform semantic search for similar images.
+
+    Examples:
+        Initialize and search for images
+        >>> searcher = VisualAISearch(data="path/to/images", device="cuda")
+        >>> results = searcher.search("a cat sitting on a chair", k=10)
     """
 
     def __init__(self, **kwargs):
-        """Initializes the VisualAISearch class with the FAISS index file and CLIP model."""
+        """Initialize the VisualAISearch class with FAISS index and CLIP model."""
         super().__init__(**kwargs)
         check_requirements(["git+https://github.com/ultralytics/CLIP.git", "faiss-cpu"])
 
@@ -55,21 +77,27 @@ class VisualAISearch(BaseSolution):
 
         self.load_or_build_index()
 
-    def extract_image_feature(self, path):
-        """Extract CLIP image embedding."""
+    def extract_image_feature(self, path: Path) -> np.ndarray:
+        """Extract CLIP image embedding from the given image path."""
         image = Image.open(path)
         tensor = self.preprocess(image).unsqueeze(0).to(self.device)
         with torch.no_grad():
             return self.model.encode_image(tensor).cpu().numpy()
 
-    def extract_text_feature(self, text):
-        """Extract CLIP text embedding."""
+    def extract_text_feature(self, text: str) -> np.ndarray:
+        """Extract CLIP text embedding from the given text query."""
         tokens = self.clip.tokenize([text]).to(self.device)
         with torch.no_grad():
             return self.model.encode_text(tokens).cpu().numpy()
 
     def load_or_build_index(self):
-        """Loads FAISS index or builds a new one from image features."""
+        """
+        Load existing FAISS index or build a new one from image features.
+
+        Checks if FAISS index and image paths exist on disk. If found, loads them directly. Otherwise, builds a new
+        index by extracting features from all images in the data directory, normalizes the features, and saves both the
+        index and image paths for future use.
+        """
         # Check if the FAISS index and corresponding image paths already exist
         if Path(self.faiss_index).exists() and Path(self.data_path_npy).exists():
             self.LOGGER.info("Loading existing FAISS index...")
@@ -107,8 +135,23 @@ class VisualAISearch(BaseSolution):
 
         self.LOGGER.info(f"Indexed {len(self.image_paths)} images.")
 
-    def search(self, query, k=30, similarity_thresh=0.1):
-        """Returns top-k semantically similar images to the given query."""
+    def search(self, query: str, k: int = 30, similarity_thresh: float = 0.1) -> List[str]:
+        """
+        Return top-k semantically similar images to the given query.
+
+        Args:
+            query (str): Natural language text query to search for.
+            k (int, optional): Maximum number of results to return.
+            similarity_thresh (float, optional): Minimum similarity threshold for filtering results.
+
+        Returns:
+            (List[str]): List of image filenames ranked by similarity score.
+
+        Examples:
+            Search for images matching a query
+            >>> searcher = VisualAISearch(data="images")
+            >>> results = searcher.search("red car", k=5, similarity_thresh=0.2)
+        """
         text_feat = self.extract_text_feature(query).astype("float32")
         self.faiss.normalize_L2(text_feat)
 
@@ -124,24 +167,42 @@ class VisualAISearch(BaseSolution):
 
         return [r[0] for r in results]
 
-    def __call__(self, query):
-        """Direct call for search function."""
+    def __call__(self, query: str) -> List[str]:
+        """Direct call interface for the search function."""
         return self.search(query)
 
 
 class SearchApp:
     """
-    A Flask-based web interface powers the semantic image search experience, enabling users to input natural language
-    queries and instantly view the most relevant images retrieved from the indexed database—all through a clean,
-    responsive, and easily customizable frontend.
+    A Flask-based web interface for semantic image search with natural language queries.
 
-    Args:
-        data (str): Path to images to index and search.
-        device (str): Device to run inference on (e.g. 'cpu', 'cuda').
+    This class provides a clean, responsive frontend that enables users to input natural language queries and
+    instantly view the most relevant images retrieved from the indexed database.
+
+    Attributes:
+        render_template: Flask template rendering function.
+        request: Flask request object.
+        searcher (VisualAISearch): Instance of the VisualAISearch class.
+        app (Flask): Flask application instance.
+
+    Methods:
+        index: Process user queries and display search results.
+        run: Start the Flask web application.
+
+    Examples:
+        Start a search application
+        >>> app = SearchApp(data="path/to/images", device="cuda")
+        >>> app.run(debug=True)
     """
 
-    def __init__(self, data="images", device=None):
-        """Initialization of the VisualAISearch class for performing semantic image search."""
+    def __init__(self, data: str = "images", device: str = None):
+        """
+        Initialize the SearchApp with VisualAISearch backend.
+
+        Args:
+            data (str, optional): Path to directory containing images to index and search.
+            device (str, optional): Device to run inference on (e.g. 'cpu', 'cuda').
+        """
         check_requirements("flask")
         from flask import Flask, render_template, request
 
@@ -157,13 +218,13 @@ class SearchApp:
         self.app.add_url_rule("/", view_func=self.index, methods=["GET", "POST"])
 
     def index(self):
-        """Function to process the user query and display output."""
+        """Process user query and display search results in the web interface."""
         results = []
         if self.request.method == "POST":
             query = self.request.form.get("query", "").strip()
             results = self.searcher(query)
         return self.render_template("similarity-search.html", results=results)
 
-    def run(self, debug=False):
-        """Runs the Flask web app."""
+    def run(self, debug: bool = False):
+        """Start the Flask web application server."""
         self.app.run(debug=debug)

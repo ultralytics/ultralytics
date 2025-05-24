@@ -21,6 +21,19 @@ class Auth:
         id_token (str | bool): Token used for identity verification, initialized as False.
         api_key (str | bool): API key for authentication, initialized as False.
         model_key (bool): Placeholder for model key, initialized as False.
+
+    Methods:
+        authenticate: Attempt to authenticate with the server using either id_token or API key.
+        auth_with_cookies: Attempt to fetch authentication via cookies and set id_token.
+        get_auth_header: Get the authentication header for making API requests.
+        request_api_key: Prompt the user to input their API key.
+
+    Examples:
+        Initialize Auth with an API key
+        >>> auth = Auth(api_key="your_api_key_here")
+
+        Initialize Auth without API key (will prompt for input)
+        >>> auth = Auth()
     """
 
     id_token = api_key = model_key = False
@@ -71,7 +84,15 @@ class Auth:
             LOGGER.info(f"{PREFIX}Get API key from {API_KEY_URL} and then run 'yolo login API_KEY'")
 
     def request_api_key(self, max_attempts: int = 3) -> bool:
-        """Prompt the user to input their API key."""
+        """
+        Prompt the user to input their API key.
+
+        Args:
+            max_attempts (int): Maximum number of authentication attempts.
+
+        Returns:
+            (bool): True if authentication is successful, False otherwise.
+        """
         import getpass
 
         for attempts in range(max_attempts):
@@ -134,4 +155,3 @@ class Auth:
             return {"authorization": f"Bearer {self.id_token}"}
         elif self.api_key:
             return {"x-api-key": self.api_key}
-        # else returns None

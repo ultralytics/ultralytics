@@ -37,8 +37,8 @@ def pytest_sessionstart(session):
     from ultralytics.utils.torch_utils import init_seeds
 
     init_seeds()
-    shutil.rmtree(TMP, ignore_errors=True)  # delete any existing tests/tmp directory
-    TMP.mkdir(parents=True, exist_ok=True)  # create a new empty directory
+    shutil.rmtree(TMP, ignore_errors=True)  # Delete any existing tests/tmp directory
+    TMP.mkdir(parents=True, exist_ok=True)  # Create a new empty directory
 
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):

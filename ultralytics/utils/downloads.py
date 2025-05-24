@@ -130,7 +130,11 @@ def zip_directory(directory, compress: bool = True, exclude=(".DS_Store", "__MAC
 
 
 def unzip_file(
-    file, path=None, exclude=(".DS_Store", "__MACOSX"), exist_ok: bool = False, progress: bool = True,
+    file,
+    path=None,
+    exclude=(".DS_Store", "__MACOSX"),
+    exist_ok: bool = False,
+    progress: bool = True,
 ) -> Path:
     """
     Unzip a *.zip file to the specified path, excluding specified files.
@@ -195,7 +199,10 @@ def unzip_file(
 
 
 def check_disk_space(
-    url: str = "https://ultralytics.com/assets/coco8.zip", path=Path.cwd(), sf: float = 1.5, hard: bool = True,
+    url: str = "https://ultralytics.com/assets/coco8.zip",
+    path=Path.cwd(),
+    sf: float = 1.5,
+    hard: bool = True,
 ) -> bool:
     """
     Check if there is sufficient disk space to download and store a file.
@@ -382,7 +389,9 @@ def safe_download(
 
 
 def get_github_assets(
-    repo: str = "ultralytics/assets", version: str = "latest", retry: bool = False,
+    repo: str = "ultralytics/assets",
+    version: str = "latest",
+    retry: bool = False,
 ) -> Tuple[str, List[str]]:
     """
     Retrieve the specified version's tag and assets from a GitHub repository.

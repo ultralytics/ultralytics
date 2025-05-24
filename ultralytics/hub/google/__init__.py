@@ -16,7 +16,7 @@ class GCPRegions:
     geographical location, tier classification, and network latency.
 
     Attributes:
-        regions (dict): A dictionary of GCP regions with their tier, city, and country.
+        regions (Dict[str, Tuple[int, str, str]]): A dictionary of GCP regions with their tier, city, and country.
 
     Methods:
         tier1: Returns a list of tier 1 GCP regions.
@@ -88,7 +88,7 @@ class GCPRegions:
 
         Args:
             region (str): The GCP region identifier to ping (e.g., 'us-central1').
-            attempts (int): Number of ping attempts to make for calculating statistics.
+            attempts (int, optional): Number of ping attempts to make for calculating statistics.
 
         Returns:
             region (str): The GCP region identifier that was pinged.
@@ -129,10 +129,10 @@ class GCPRegions:
         Determine the GCP regions with the lowest latency based on ping tests.
 
         Args:
-            top (int): Number of top regions to return.
-            verbose (bool): If True, prints detailed latency information for all tested regions.
-            tier (int | None): Filter regions by tier (1 or 2). If None, all regions are tested.
-            attempts (int): Number of ping attempts per region.
+            top (int, optional): Number of top regions to return.
+            verbose (bool, optional): If True, prints detailed latency information for all tested regions.
+            tier (int | None, optional): Filter regions by tier (1 or 2). If None, all regions are tested.
+            attempts (int, optional): Number of ping attempts per region.
 
         Returns:
             (List[Tuple[str, float, float, float, float]]): List of tuples containing region information and

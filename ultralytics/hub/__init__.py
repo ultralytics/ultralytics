@@ -68,13 +68,7 @@ def login(api_key: str = None, save: bool = True) -> bool:
 
 
 def logout():
-    """
-    Log out of Ultralytics HUB by removing the API key from the settings file.
-
-    Examples:
-        >>> from ultralytics import hub
-        >>> hub.logout()
-    """
+    """Log out of Ultralytics HUB by removing the API key from the settings file."""
     SETTINGS["api_key"] = ""
     LOGGER.info(f"{PREFIX}logged out ✅. To log in again, use 'yolo login'.")
 

@@ -139,7 +139,8 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
     A custom TQDM progress bar class that extends the original tqdm functionality.
 
     This class modifies the behavior of the original tqdm progress bar based on global settings and provides
-    additional customization options for Ultralytics projects.
+    additional customization options for Ultralytics projects. The progress bar is automatically disabled when
+    VERBOSE is False or when explicitly disabled.
 
     Attributes:
         disable (bool): Whether to disable the progress bar. Determined by the global VERBOSE setting and
@@ -160,9 +161,7 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
 
     def __init__(self, *args, **kwargs):
         """
-        Initialize a custom TQDM progress bar.
-
-        This class extends the original tqdm class to provide customized behavior for Ultralytics projects.
+        Initialize a custom TQDM progress bar with Ultralytics-specific settings.
 
         Args:
             *args (Any): Variable length argument list to be passed to the original tqdm constructor.
@@ -219,8 +218,8 @@ class DataExportMixin:
         Create a pandas DataFrame from the prediction results summary or validation metrics.
 
         Args:
-            normalize (bool, optional): Normalize numerical values for easier comparison. Defaults to False.
-            decimals (int, optional): Decimal places to round floats. Defaults to 5.
+            normalize (bool, optional): Normalize numerical values for easier comparison.
+            decimals (int, optional): Decimal places to round floats.
 
         Returns:
             (DataFrame): DataFrame containing the summary data.
@@ -234,8 +233,8 @@ class DataExportMixin:
         Export results to CSV string format.
 
         Args:
-           normalize (bool, optional): Normalize numeric values. Defaults to False.
-           decimals (int, optional): Decimal precision. Defaults to 5.
+           normalize (bool, optional): Normalize numeric values.
+           decimals (int, optional): Decimal precision.
 
         Returns:
            (str): CSV content as string.
@@ -247,13 +246,13 @@ class DataExportMixin:
         Export results to XML format.
 
         Args:
-            normalize (bool, optional): Normalize numeric values. Defaults to False.
-            decimals (int, optional): Decimal precision. Defaults to 5.
+            normalize (bool, optional): Normalize numeric values.
+            decimals (int, optional): Decimal precision.
 
         Returns:
             (str): XML string.
 
-        Note:
+        Notes:
             Requires `lxml` package to be installed.
         """
         from ultralytics.utils.checks import check_requirements
@@ -267,9 +266,9 @@ class DataExportMixin:
         Export results to HTML table format.
 
         Args:
-            normalize (bool, optional): Normalize numeric values. Defaults to False.
-            decimals (int, optional): Decimal precision. Defaults to 5.
-            index (bool, optional): Whether to include index column in the HTML table. Defaults to False.
+            normalize (bool, optional): Normalize numeric values.
+            decimals (int, optional): Decimal precision.
+            index (bool, optional): Whether to include index column in the HTML table.
 
         Returns:
             (str): HTML representation of the results.
@@ -287,8 +286,8 @@ class DataExportMixin:
         Export results to JSON format.
 
         Args:
-            normalize (bool, optional): Normalize numeric values. Defaults to False.
-            decimals (int, optional): Decimal precision. Defaults to 5.
+            normalize (bool, optional): Normalize numeric values.
+            decimals (int, optional): Decimal precision.
 
         Returns:
             (str): JSON-formatted string of the results.
@@ -300,10 +299,10 @@ class DataExportMixin:
         Save results to an SQLite database.
 
         Args:
-            normalize (bool, optional): Normalize numeric values. Defaults to False.
-            decimals (int, optional): Decimal precision. Defaults to 5.
-            table_name (str, optional): Name of the SQL table. Defaults to "results".
-            db_path (str, optional): SQLite database file path. Defaults to "results.db".
+            normalize (bool, optional): Normalize numeric values.
+            decimals (int, optional): Decimal precision.
+            table_name (str, optional): Name of the SQL table.
+            db_path (str, optional): SQLite database file path.
         """
         df = self.to_df(normalize, decimals)
         if df.empty or df.columns.empty:  # Exit if df is None or has no columns (i.e., no schema)
@@ -461,7 +460,7 @@ def plt_settings(rcparams=None, backend="Agg"):
 
     Args:
         rcparams (dict, optional): Dictionary of rc parameters to set.
-        backend (str, optional): Name of the backend to use. Defaults to 'Agg'.
+        backend (str, optional): Name of the backend to use.
 
     Returns:
         (Callable): Decorated function with temporarily set rc parameters and backend.
@@ -518,8 +517,8 @@ def set_logging(name="LOGGING_NAME", verbose=True):
     environments where UTF-8 encoding might not be the default.
 
     Args:
-        name (str): Name of the logger. Defaults to "LOGGING_NAME".
-        verbose (bool): Flag to set logging level to INFO if True, ERROR otherwise. Defaults to True.
+        name (str): Name of the logger.
+        verbose (bool): Flag to set logging level to INFO if True, ERROR otherwise.
 
     Returns:
         (logging.Logger): Configured logger object.
@@ -768,7 +767,7 @@ DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
 def read_device_model() -> str:
     """
-    Reads the device model information from the system and caches it for quick access.
+    Read the device model information from the system and cache it for quick access.
 
     Returns:
         (str): Kernel release information.
@@ -817,7 +816,7 @@ def is_jupyter():
     Returns:
         (bool): True if running inside a Jupyter Notebook, False otherwise.
 
-    Note:
+    Notes:
         - Only works on Colab and Kaggle, other environments like Jupyterlab and Paperspace are not reliably detectable.
         - "get_ipython" in globals() method suffers false positives when IPython package installed manually.
     """
@@ -850,7 +849,7 @@ def is_docker() -> bool:
 
 def is_raspberrypi() -> bool:
     """
-    Determines if the Python environment is running on a Raspberry Pi.
+    Determine if the Python environment is running on a Raspberry Pi.
 
     Returns:
         (bool): True if running on a Raspberry Pi, False otherwise.
@@ -860,7 +859,7 @@ def is_raspberrypi() -> bool:
 
 def is_jetson() -> bool:
     """
-    Determines if the Python environment is running on an NVIDIA Jetson device.
+    Determine if the Python environment is running on an NVIDIA Jetson device.
 
     Returns:
         (bool): True if running on an NVIDIA Jetson device, False otherwise.
@@ -920,7 +919,7 @@ def is_dir_writeable(dir_path: Union[str, Path]) -> bool:
 
 def is_pytest_running():
     """
-    Determines whether pytest is currently running or not.
+    Determine whether pytest is currently running or not.
 
     Returns:
         (bool): True if pytest is running, False otherwise.
@@ -952,7 +951,7 @@ def get_git_dir():
 
 def is_git_dir():
     """
-    Determines whether the current file is part of a git repository.
+    Determine whether the current file is part of a git repository.
 
     Returns:
         (bool): True if current file is part of a git repository.
@@ -1070,8 +1069,7 @@ SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"
 
 def colorstr(*input):
     r"""
-    Color a string based on the provided color and style arguments. Utilizes ANSI escape codes.
-    See https://en.wikipedia.org/wiki/ANSI_escape_code for more details.
+    Color a string based on the provided color and style arguments using ANSI escape codes.
 
     This function can be called in two ways:
         - colorstr('color', 'style', 'your string')
@@ -1083,18 +1081,22 @@ def colorstr(*input):
         *input (str | Path): A sequence of strings where the first n-1 strings are color and style arguments,
                       and the last string is the one to be colored.
 
-    Supported Colors and Styles:
-        Basic Colors: 'black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'
-        Bright Colors: 'bright_black', 'bright_red', 'bright_green', 'bright_yellow',
-                       'bright_blue', 'bright_magenta', 'bright_cyan', 'bright_white'
-        Misc: 'end', 'bold', 'underline'
-
     Returns:
         (str): The input string wrapped with ANSI escape codes for the specified color and style.
+
+    Notes:
+        Supported Colors and Styles:
+        - Basic Colors: 'black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'
+        - Bright Colors: 'bright_black', 'bright_red', 'bright_green', 'bright_yellow',
+                       'bright_blue', 'bright_magenta', 'bright_cyan', 'bright_white'
+        - Misc: 'end', 'bold', 'underline'
 
     Examples:
         >>> colorstr("blue", "bold", "hello world")
         >>> "\033[34m\033[1mhello world\033[0m"
+
+    References:
+        https://en.wikipedia.org/wiki/ANSI_escape_code
     """
     *args, string = input if len(input) > 1 else ("blue", "bold", input[0])  # color arguments, string
     colors = {
@@ -1141,7 +1143,14 @@ def remove_colorstr(input_string):
 
 class TryExcept(contextlib.ContextDecorator):
     """
-    Ultralytics TryExcept class. Use as @TryExcept() decorator or 'with TryExcept():' context manager.
+    Ultralytics TryExcept class for handling exceptions gracefully.
+
+    This class can be used as a decorator or context manager to catch exceptions and optionally print warning messages.
+    It allows code to continue execution even when exceptions occur, which is useful for non-critical operations.
+
+    Attributes:
+        msg (str): Optional message to display when an exception occurs.
+        verbose (bool): Whether to print the exception message.
 
     Examples:
         As a decorator:
@@ -1176,8 +1185,13 @@ class Retry(contextlib.ContextDecorator):
     """
     Retry class for function execution with exponential backoff.
 
-    Can be used as a decorator to retry a function on exceptions, up to a specified number of times with an
-    exponentially increasing delay between retries.
+    This decorator can be used to retry a function on exceptions, up to a specified number of times with an
+    exponentially increasing delay between retries. It's useful for handling transient failures in network
+    operations or other unreliable processes.
+
+    Attributes:
+        times (int): Maximum number of retry attempts.
+        delay (int): Initial delay between retries in seconds.
 
     Examples:
         Example usage as a decorator:
@@ -1289,7 +1303,7 @@ def set_sentry():
             hint (dict): A dictionary containing additional information about the error.
 
         Returns:
-            dict: The modified event or None if the event should not be sent to Sentry.
+            (dict | None): The modified event or None if the event should not be sent to Sentry.
         """
         if "exc_info" in hint:
             exc_type, exc_value, _ = hint["exc_info"]
@@ -1322,7 +1336,7 @@ class JSONDict(dict):
     A dictionary-like class that provides JSON persistence for its contents.
 
     This class extends the built-in dictionary to automatically save its contents to a JSON file whenever they are
-    modified. It ensures thread-safe operations using a lock.
+    modified. It ensures thread-safe operations using a lock and handles JSON serialization of Path objects.
 
     Attributes:
         file_path (Path): The path to the JSON file used for persistence.
@@ -1415,7 +1429,8 @@ class SettingsManager(JSONDict):
     SettingsManager class for managing and persisting Ultralytics settings.
 
     This class extends JSONDict to provide JSON persistence for settings, ensuring thread-safe operations and default
-    values. It validates settings on initialization and provides methods to update or reset settings.
+    values. It validates settings on initialization and provides methods to update or reset settings. The settings
+    include directories for datasets, weights, and runs, as well as various integration flags.
 
     Attributes:
         file (Path): The path to the JSON file used for persistence.

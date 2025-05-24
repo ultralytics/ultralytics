@@ -14,8 +14,9 @@ from PIL import Image
 
 from tests import CFG, MODEL, SOURCE, SOURCES_LIST, TMP
 from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import MODELS, TASK2DATA, TASKS
+from ultralytics.cfg import MODELS, TASK2DATA, TASKS, cfg2dict, check_cfg, _handle_deprecation
 from ultralytics.data.build import load_inference_source
+from ultralytics.data.utils import check_file_speeds
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -36,6 +37,7 @@ from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests start as TMP does not exist on tests/init
+video_url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov"
 
 
 def test_model_forward():
@@ -183,10 +185,10 @@ def test_track_stream():
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
-    video_url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov"
     model = YOLO(MODEL)
     model.track(video_url, imgsz=160, tracker="bytetrack.yaml")
     model.track(video_url, imgsz=160, tracker="botsort.yaml", save_frames=True)  # test frame saving also
+    model.track(video_url, imgsz=160, tracker="botsort.yaml", save=True)  # test video saving also
 
     # Test Global Motion Compensation (GMC) methods and ReID
     for gmc, reidm in zip(["orb", "sift", "ecc"], ["auto", "auto", "yolo11n-cls.pt"]):
@@ -241,6 +243,7 @@ def test_workflow():
     model.train(data="coco8.yaml", epochs=1, imgsz=32, optimizer="SGD")
     model.val(imgsz=32)
     model.predict(SOURCE, imgsz=32)
+    model.predict(video_url, imgsz=160, save=True)
     model.export(format="torchscript")  # WARNING: Windows slow CI export bug
 
 
@@ -271,7 +274,7 @@ def test_predict_callback_and_setup():
 def test_results(model):
     """Test YOLO model results processing and output in various formats."""
     temp_s = "https://ultralytics.com/images/boats.jpg" if model == "yolo11n-obb.pt" else SOURCE
-    results = YOLO(WEIGHTS_DIR / model)([temp_s, temp_s], imgsz=160)
+    results = YOLO(WEIGHTS_DIR / model)([temp_s, temp_s], imgsz=160, show=True)
     for r in results:
         r = r.cpu().numpy()
         print(r, len(r), r.path)  # print numpy attributes
@@ -353,7 +356,6 @@ def test_data_annotator():
         ASSETS,
         det_model=WEIGHTS_DIR / "yolo11n.pt",
         sam_model=WEIGHTS_DIR / "mobile_sam.pt",
-        output_dir=TMP / "auto_annotate_labels",
     )
 
 
@@ -699,3 +701,40 @@ def test_multichannel():
     im = np.zeros((32, 32, 10), dtype=np.uint8)
     model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)
     model.export(format="onnx")
+
+
+def test_check_file_speeds_with_dummy_files(tmp_path, caplog):
+    """Test file speed method with dummy files."""
+    check_file_speeds(files=None)  # File speed check
+
+
+def test_already_initialized_model():
+    """Test already initialized model."""
+    model = YOLO("yolo11n.pt")
+    model = YOLO(model)
+
+
+def additional_cfg_tests():
+    """Additional tests to improve CFG."""
+    import yaml
+
+    config = {
+        "boxes": True,
+        "show_labels": False,
+        "line_width": 2,
+        "crop_fraction": 0.5,
+    }
+    with open("config.yaml", "w") as f:
+        yaml.dump(config, f)
+    config_dict = cfg2dict("config.yaml")
+
+    result = _handle_deprecation(config_dict)
+
+    assert "show_boxes" in result
+    assert "show_labels" in result
+    assert "line_width" in result
+    assert "crop_fraction" not in result
+
+    config_dict_incorrect = {"epochs": 50, "lr0": 0.01, "momentum": 1.2, "save": "true1"}
+    with pytest.raises(TypeError, match="save=.*invalid type"):
+        check_cfg(config_dict_incorrect, hard=True)

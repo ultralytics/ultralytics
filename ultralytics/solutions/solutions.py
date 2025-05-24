@@ -146,11 +146,11 @@ class BaseSolution:
         with self.profilers[0]:
             self.tracks = self.model.track(
                 source=im0, persist=True, classes=self.classes, verbose=False, **self.track_add_args
-            )
-        self.track_data = self.tracks[0].obb or self.tracks[0].boxes  # Extract tracks for OBB or object detection
+            )[0]
+        self.track_data = self.tracks.obb or self.tracks.boxes  # Extract tracks for OBB or object detection
 
         if self.track_data and self.track_data.id is not None:
-            self.boxes = self.track_data.xyxy.cpu()
+            self.boxes = getattr(self.track_data, "xyxyxyxy", self.track_data.xyxy).cpu()
             self.clss = self.track_data.cls.cpu().tolist()
             self.track_ids = self.track_data.id.int().cpu().tolist()
             self.confs = self.track_data.conf.cpu().tolist()

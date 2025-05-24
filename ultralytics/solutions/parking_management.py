@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import json
+from typing import Any, List, Tuple
 
 import cv2
 import numpy as np
@@ -138,7 +139,7 @@ class ParkingPtsSelection:
             self.draw_box(self.current_box)
             self.current_box.clear()
 
-    def draw_box(self, box):
+    def draw_box(self, box: List[Tuple[int, int]]):
         """Draw a bounding box on the canvas using the provided coordinates."""
         for i in range(4):
             self.canvas.create_line(box[i], box[(i + 1) % 4], fill="blue", width=2)
@@ -197,7 +198,7 @@ class ParkingManagement(BaseSolution):
         >>> print(f"Available spaces: {parking_manager.pr_info['Available']}")
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         """Initialize the parking management system with a YOLO model and visualization settings."""
         super().__init__(**kwargs)
 
@@ -215,7 +216,7 @@ class ParkingManagement(BaseSolution):
         self.occ = (0, 255, 0)  # Occupied region color
         self.dc = (255, 0, 189)  # Centroid color for each box
 
-    def process(self, im0):
+    def process(self, im0: np.ndarray) -> SolutionResults:
         """
         Process the input image for parking lot management and visualization.
 

@@ -4,6 +4,7 @@ import contextlib
 import math
 import re
 import time
+from typing import Optional
 
 import cv2
 import numpy as np
@@ -38,7 +39,7 @@ class Profile(contextlib.ContextDecorator):
         ...     time.sleep(0.1)
     """
 
-    def __init__(self, t: float = 0.0, device: torch.device = None):
+    def __init__(self, t: float = 0.0, device: Optional[torch.device] = None):
         """
         Initialize the Profile class.
 
@@ -862,7 +863,7 @@ def convert_torch2numpy_batch(batch: torch.Tensor) -> np.ndarray:
 
 def clean_str(s):
     """
-    Cleans a string by replacing special characters with '_' character.
+    Clean a string by replacing special characters with '_' character.
 
     Args:
         s (str): A string needing special characters replaced.

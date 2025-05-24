@@ -17,7 +17,6 @@ from ultralytics.nn.modules import (
     C2,
     C2PSA,
     C3,
-    C3K2_FE,
     C3TR,
     ELAN1,
     OBB,
@@ -36,6 +35,7 @@ from ultralytics.nn.modules import (
     C2fPSA,
     C3Ghost,
     C3k2,
+    C3K2_FE,
     C3x,
     CBFuse,
     CBLinear,
@@ -95,7 +95,30 @@ from ultralytics.utils.torch_utils import (
 
 
 class BaseModel(torch.nn.Module):
-    """The BaseModel class serves as a base class for all the models in the Ultralytics YOLO family."""
+    """
+    Base class for all YOLO models in the Ultralytics family.
+
+    This class provides common functionality for YOLO models including forward pass handling, model fusion,
+    information display, and weight loading capabilities.
+
+    Attributes:
+        model (torch.nn.Module): The neural network model.
+        save (list): List of layer indices to save outputs from.
+        stride (torch.Tensor): Model stride values.
+
+    Methods:
+        forward: Perform forward pass for training or inference.
+        predict: Perform inference on input tensor.
+        fuse: Fuse Conv2d and BatchNorm2d layers for optimization.
+        info: Print model information.
+        load: Load weights into the model.
+        loss: Compute loss for training.
+
+    Examples:
+        Create a BaseModel instance
+        >>> model = BaseModel()
+        >>> model.info()  # Display model information
+    """
 
     def forward(self, x, *args, **kwargs):
         """
@@ -320,7 +343,33 @@ class BaseModel(torch.nn.Module):
 
 
 class DetectionModel(BaseModel):
-    """YOLO detection model."""
+    """
+    YOLO detection model.
+
+    This class implements the YOLO detection architecture, handling model initialization, forward pass,
+    augmented inference, and loss computation for object detection tasks.
+
+    Attributes:
+        yaml (dict): Model configuration dictionary.
+        model (torch.nn.Sequential): The neural network model.
+        save (list): List of layer indices to save outputs from.
+        names (dict): Class names dictionary.
+        inplace (bool): Whether to use inplace operations.
+        end2end (bool): Whether the model uses end-to-end detection.
+        stride (torch.Tensor): Model stride values.
+
+    Methods:
+        __init__: Initialize the YOLO detection model.
+        _predict_augment: Perform augmented inference.
+        _descale_pred: De-scale predictions following augmented inference.
+        _clip_augmented: Clip YOLO augmented inference tails.
+        init_criterion: Initialize the loss criterion.
+
+    Examples:
+        Initialize a detection model
+        >>> model = DetectionModel("yolo11n.yaml", ch=3, nc=80)
+        >>> results = model.predict(image_tensor)
+    """
 
     def __init__(self, cfg="yolo11n.yaml", ch=3, nc=None, verbose=True):
         """
@@ -448,7 +497,21 @@ class DetectionModel(BaseModel):
 
 
 class OBBModel(DetectionModel):
-    """YOLO Oriented Bounding Box (OBB) model."""
+    """
+    YOLO Oriented Bounding Box (OBB) model.
+
+    This class extends DetectionModel to handle oriented bounding box detection tasks, providing specialized
+    loss computation for rotated object detection.
+
+    Methods:
+        __init__: Initialize YOLO OBB model.
+        init_criterion: Initialize the loss criterion for OBB detection.
+
+    Examples:
+        Initialize an OBB model
+        >>> model = OBBModel("yolo11n-obb.yaml", ch=3, nc=80)
+        >>> results = model.predict(image_tensor)
+    """
 
     def __init__(self, cfg="yolo11n-obb.yaml", ch=3, nc=None, verbose=True):
         """
@@ -468,7 +531,21 @@ class OBBModel(DetectionModel):
 
 
 class SegmentationModel(DetectionModel):
-    """YOLO segmentation model."""
+    """
+    YOLO segmentation model.
+
+    This class extends DetectionModel to handle instance segmentation tasks, providing specialized
+    loss computation for pixel-level object detection and segmentation.
+
+    Methods:
+        __init__: Initialize YOLO segmentation model.
+        init_criterion: Initialize the loss criterion for segmentation.
+
+    Examples:
+        Initialize a segmentation model
+        >>> model = SegmentationModel("yolo11n-seg.yaml", ch=3, nc=80)
+        >>> results = model.predict(image_tensor)
+    """
 
     def __init__(self, cfg="yolo11n-seg.yaml", ch=3, nc=None, verbose=True):
         """
@@ -488,7 +565,24 @@ class SegmentationModel(DetectionModel):
 
 
 class PoseModel(DetectionModel):
-    """YOLO pose model."""
+    """
+    YOLO pose model.
+
+    This class extends DetectionModel to handle human pose estimation tasks, providing specialized
+    loss computation for keypoint detection and pose estimation.
+
+    Attributes:
+        kpt_shape (tuple): Shape of keypoints data (num_keypoints, num_dimensions).
+
+    Methods:
+        __init__: Initialize YOLO pose model.
+        init_criterion: Initialize the loss criterion for pose estimation.
+
+    Examples:
+        Initialize a pose model
+        >>> model = PoseModel("yolo11n-pose.yaml", ch=3, nc=1, data_kpt_shape=(17, 3))
+        >>> results = model.predict(image_tensor)
+    """
 
     def __init__(self, cfg="yolo11n-pose.yaml", ch=3, nc=None, data_kpt_shape=(None, None), verbose=True):
         """
@@ -514,7 +608,29 @@ class PoseModel(DetectionModel):
 
 
 class ClassificationModel(BaseModel):
-    """YOLO classification model."""
+    """
+    YOLO classification model.
+
+    This class implements the YOLO classification architecture for image classification tasks,
+    providing model initialization, configuration, and output reshaping capabilities.
+
+    Attributes:
+        yaml (dict): Model configuration dictionary.
+        model (torch.nn.Sequential): The neural network model.
+        stride (torch.Tensor): Model stride values.
+        names (dict): Class names dictionary.
+
+    Methods:
+        __init__: Initialize ClassificationModel.
+        _from_yaml: Set model configurations and define architecture.
+        reshape_outputs: Update model to specified class count.
+        init_criterion: Initialize the loss criterion.
+
+    Examples:
+        Initialize a classification model
+        >>> model = ClassificationModel("yolo11n-cls.yaml", ch=3, nc=1000)
+        >>> results = model.predict(image_tensor)
+    """
 
     def __init__(self, cfg="yolo11n-cls.yaml", ch=3, nc=None, verbose=True):
         """
@@ -595,10 +711,20 @@ class RTDETRDetectionModel(DetectionModel):
     the training and inference processes. RTDETR is an object detection and tracking model that extends from the
     DetectionModel base class.
 
+    Attributes:
+        nc (int): Number of classes for detection.
+        criterion (RTDETRDetectionLoss): Loss function for training.
+
     Methods:
-        init_criterion: Initializes the criterion used for loss calculation.
-        loss: Computes and returns the loss during training.
-        predict: Performs a forward pass through the network and returns the output.
+        __init__: Initialize the RTDETRDetectionModel.
+        init_criterion: Initialize the loss criterion.
+        loss: Compute loss for training.
+        predict: Perform forward pass through the model.
+
+    Examples:
+        Initialize an RTDETR model
+        >>> model = RTDETRDetectionModel("rtdetr-l.yaml", ch=3, nc=80)
+        >>> results = model.predict(image_tensor)
     """
 
     def __init__(self, cfg="rtdetr-l.yaml", ch=3, nc=None, verbose=True):
@@ -628,7 +754,8 @@ class RTDETRDetectionModel(DetectionModel):
             preds (torch.Tensor, optional): Precomputed model predictions.
 
         Returns:
-            (tuple): A tuple containing the total loss and main three losses in a tensor.
+            loss_sum (torch.Tensor): Total loss value.
+            loss_items (torch.Tensor): Main three losses in a tensor.
         """
         if not hasattr(self, "criterion"):
             self.criterion = self.init_criterion()
@@ -701,7 +828,29 @@ class RTDETRDetectionModel(DetectionModel):
 
 
 class WorldModel(DetectionModel):
-    """YOLOv8 World Model."""
+    """
+    YOLOv8 World Model.
+
+    This class implements the YOLOv8 World model for open-vocabulary object detection, supporting text-based
+    class specification and CLIP model integration for zero-shot detection capabilities.
+
+    Attributes:
+        txt_feats (torch.Tensor): Text feature embeddings for classes.
+        clip_model (torch.nn.Module): CLIP model for text encoding.
+
+    Methods:
+        __init__: Initialize YOLOv8 world model.
+        set_classes: Set classes for offline inference.
+        get_text_pe: Get text positional embeddings.
+        predict: Perform forward pass with text features.
+        loss: Compute loss with text features.
+
+    Examples:
+        Initialize a world model
+        >>> model = WorldModel("yolov8s-world.yaml", ch=3, nc=80)
+        >>> model.set_classes(["person", "car", "bicycle"])
+        >>> results = model.predict(image_tensor)
+    """
 
     def __init__(self, cfg="yolov8s-world.yaml", ch=3, nc=None, verbose=True):
         """
@@ -816,7 +965,32 @@ class WorldModel(DetectionModel):
 
 
 class YOLOEModel(DetectionModel):
-    """YOLOE detection model."""
+    """
+    YOLOE detection model.
+
+    This class implements the YOLOE architecture for efficient object detection with text and visual prompts,
+    supporting both prompt-based and prompt-free inference modes.
+
+    Attributes:
+        pe (torch.Tensor): Prompt embeddings for classes.
+        clip_model (torch.nn.Module): CLIP model for text encoding.
+
+    Methods:
+        __init__: Initialize YOLOE model.
+        get_text_pe: Get text positional embeddings.
+        get_visual_pe: Get visual embeddings.
+        set_vocab: Set vocabulary for prompt-free model.
+        get_vocab: Get fused vocabulary layer.
+        set_classes: Set classes for offline inference.
+        get_cls_pe: Get class positional embeddings.
+        predict: Perform forward pass with prompts.
+        loss: Compute loss with prompts.
+
+    Examples:
+        Initialize a YOLOE model
+        >>> model = YOLOEModel("yoloe-v8s.yaml", ch=3, nc=80)
+        >>> results = model.predict(image_tensor, tpe=text_embeddings)
+    """
 
     def __init__(self, cfg="yoloe-v8s.yaml", ch=3, nc=None, verbose=True):
         """
@@ -862,7 +1036,7 @@ class YOLOEModel(DetectionModel):
         assert not self.training
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
-        return head.get_tpe(txt_feats)  # run axuiliary text head
+        return head.get_tpe(txt_feats)  # run auxiliary text head
 
     @smart_inference_mode()
     def get_visual_pe(self, img, visual):
@@ -1041,7 +1215,21 @@ class YOLOEModel(DetectionModel):
 
 
 class YOLOESegModel(YOLOEModel, SegmentationModel):
-    """YOLOE segmentation model."""
+    """
+    YOLOE segmentation model.
+
+    This class extends YOLOEModel to handle instance segmentation tasks with text and visual prompts,
+    providing specialized loss computation for pixel-level object detection and segmentation.
+
+    Methods:
+        __init__: Initialize YOLOE segmentation model.
+        loss: Compute loss with prompts for segmentation.
+
+    Examples:
+        Initialize a YOLOE segmentation model
+        >>> model = YOLOESegModel("yoloe-v8s-seg.yaml", ch=3, nc=80)
+        >>> results = model.predict(image_tensor, tpe=text_embeddings)
+    """
 
     def __init__(self, cfg="yoloe-v8s-seg.yaml", ch=3, nc=None, verbose=True):
         """
@@ -1075,7 +1263,23 @@ class YOLOESegModel(YOLOEModel, SegmentationModel):
 
 
 class Ensemble(torch.nn.ModuleList):
-    """Ensemble of models."""
+    """
+    Ensemble of models.
+
+    This class allows combining multiple YOLO models into an ensemble for improved performance through
+    model averaging or other ensemble techniques.
+
+    Methods:
+        __init__: Initialize an ensemble of models.
+        forward: Generate predictions from all models in the ensemble.
+
+    Examples:
+        Create an ensemble of models
+        >>> ensemble = Ensemble()
+        >>> ensemble.append(model1)
+        >>> ensemble.append(model2)
+        >>> results = ensemble(image_tensor)
+    """
 
     def __init__(self):
         """Initialize an ensemble of models."""
@@ -1092,7 +1296,8 @@ class Ensemble(torch.nn.ModuleList):
             visualize (bool): Whether to visualize the features.
 
         Returns:
-            (tuple): Tuple containing the concatenated predictions and None.
+            y (torch.Tensor): Concatenated predictions from all models.
+            train_out (None): Always None for ensemble inference.
         """
         y = [module(x, augment, profile, visualize)[0] for module in self]
         # y = torch.stack(y).max(0)[0]  # max ensemble
@@ -1196,7 +1401,7 @@ class SafeUnpickler(pickle.Unpickler):
 
 def torch_safe_load(weight, safe_only=False):
     """
-    Attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised, it catches the
+    Attempt to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised, it catches the
     error, logs a warning message, and attempts to install the missing module via the check_requirements() function.
     After installation, the function again attempts to load the model using torch.load().
 
@@ -1330,7 +1535,8 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
         fuse (bool): Whether to fuse model.
 
     Returns:
-        (tuple): Tuple containing the model and checkpoint.
+        model (torch.nn.Module): Loaded model.
+        ckpt (dict): Model checkpoint dictionary.
     """
     ckpt, weight = torch_safe_load(weight)  # load ckpt
     args = {**DEFAULT_CFG_DICT, **(ckpt.get("train_args", {}))}  # combine model and default args, preferring model args
@@ -1356,68 +1562,42 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     return model, ckpt
 
 
-def parse_model(d, ch, verbose=True):  # model_dict, input_channels
+def parse_model(d, ch, verbose=True):
     """
     Parse a YOLO model.yaml dictionary into a PyTorch model.
 
+    Args:
+        d (dict): Model dictionary.
+        ch (int): Input channels.
+        verbose (bool): Whether to print model details.
+
     Returns:
-      (nn.Sequential model, list of layer indices to save)
+        model (torch.nn.Sequential): PyTorch model.
+        save (list): Sorted list of output layers.
     """
     import ast
-    import contextlib
 
-    import torch
-
-    # import all of your modules here:
-    from ultralytics.nn.modules import (
-        OBB,
-        C2fAttn,
-        Classify,
-        Conv,
-        ConvTranspose,
-        Detect,
-        DWConv,
-        ImagePoolingAttn,
-        Pose,
-        Segment,
-        WorldDetect,
-        YOLOEDetect,
-        YOLOESegment,
-        v10Detect,
-    )
-    from ultralytics.nn.modules import (
-        Conv as ConvLayer,
-    )
-    from ultralytics.nn.tasks import make_divisible
-    from ultralytics.utils import LOGGER
-
-    # ——— Setup scaling & activation ———
-    legacy = True
+    # Args
+    legacy = True  # backward compatibility for v3/v5/v8/v9 models
     max_channels = float("inf")
     nc, act, scales = (d.get(x) for x in ("nc", "activation", "scales"))
-    depth_mul, width_mul, _ = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
-
+    depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
     if scales:
-        scale = d.get("scale") or tuple(scales.keys())[0]
-        depth_mul, width_mul, max_channels = scales[scale]
-        if not d.get("scale"):
+        scale = d.get("scale")
+        if not scale:
+            scale = tuple(scales.keys())[0]
             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
-    else:
-        scale = None
+        depth, width, max_channels = scales[scale]
 
     if act:
-        Conv.default_act = eval(act)
+        Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU()
         if verbose:
-            LOGGER.info(f"{colorstr('activation:')} {act}")
+            LOGGER.info(f"{colorstr('activation:')} {act}")  # print
 
     if verbose:
         LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
-
-    # ——— Initialize holders ———
-    ch = [ch]  # channel list (will grow)
-    layers, save = [], []  # modules and indices to save
-
-    # classify which modules have special handling
+    ch = [ch]
+    layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
     base_modules = frozenset(
         {
             Classify,
@@ -1437,7 +1617,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels
             C2,
             C2f,
             C3k2,
-            C3K2_FE,
             RepNCSPELAN4,
             ELAN1,
             ADown,
@@ -1447,7 +1626,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels
             C3,
             C3TR,
             C3Ghost,
-            ConvLayer,
+            torch.nn.ConvTranspose2d,
             DWConvTranspose2d,
             C3x,
             RepC3,
@@ -1457,14 +1636,13 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels
             A2C2f,
         }
     )
-    repeat_modules = frozenset(
+    repeat_modules = frozenset(  # modules with 'repeat' arguments
         {
             BottleneckCSP,
             C1,
             C2,
             C2f,
             C3k2,
-            C3K2_FE,
             C2fAttn,
             C3,
             C3TR,
@@ -1477,293 +1655,90 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels
             A2C2f,
         }
     )
-
-    # ——— Build each layer from backbone + head lists ———
-    for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):
-        # resolve class if given as string
-        if isinstance(m, str):
-            if "nn." in m:
-                m = getattr(torch.nn, m.split("nn.")[1])
-            elif "torchvision.ops." in m:
-                m = getattr(__import__("torchvision").ops, m.split("torchvision.ops.")[1])
-            else:
-                m = globals().get(m, m)
-
-        # turn any string args into Python values
+    for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
+        m = (
+            getattr(torch.nn, m[3:])
+            if "nn." in m
+            else getattr(__import__("torchvision").ops, m[16:])
+            if "torchvision.ops." in m
+            else globals()[m]
+        )  # get module
         for j, a in enumerate(args):
             if isinstance(a, str):
                 with contextlib.suppress(ValueError):
-                    args[j] = locals().get(a, ast.literal_eval(a))
-
-        # depth gain
-        n = n_ = max(round(n * depth_mul), 1) if n > 1 else n
-
-        # — Handle base modules with input/output channel scaling ——
+                    args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
+        n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in base_modules:
-            # 1) compute input channels c1 from f (int or list)
-            if isinstance(f, (list, tuple)):
-                c1 = sum(ch[x] for x in f)
-            else:
-                c1 = ch[f]
+            c1, c2 = ch[f], args[0]
+            if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
+                c2 = make_divisible(min(c2, max_channels) * width, 8)
+            if m is C2fAttn:  # set 1) embed channels and 2) num heads
+                args[1] = make_divisible(min(args[1], max_channels // 2) * width, 8)
+                args[2] = int(max(round(min(args[2], max_channels // 2 // 32)) * width, 1) if args[2] > 1 else args[2])
 
-            # 2) compute raw output channels c2 from args[0] (int or list)
-            raw_c2 = args[0]
-            if isinstance(raw_c2, (list, tuple)):
-                if len(raw_c2) == 1 and isinstance(raw_c2[0], int):
-                    c2 = raw_c2[0]
-                else:
-                    c2 = sum(raw_c2)
-            else:
-                c2 = raw_c2
-
-            # 3) apply width/divisible unless it's a head-classifier
-            if c2 != nc:
-                c2 = make_divisible(min(c2, max_channels) * width_mul, 8)
-
-            # special tweaks for C2fAttn
-            if m is C2fAttn:
-                args[1] = make_divisible(min(args[1], max_channels // 2) * width_mul, 8)
-                args[2] = int(
-                    max(round(min(args[2], max_channels // 2 // 32) * width_mul), 1) if args[2] > 1 else args[2]
-                )
-
-            # rebuild args list: [c1, c2, ...rest...]
             args = [c1, c2, *args[1:]]
-
-            # handle repeatable modules
             if m in repeat_modules:
-                args.insert(2, n)
+                args.insert(2, n)  # number of repeats
                 n = 1
-
-            # legacy flags for certain modules
-            if m is C3k2:
+            if m is C3k2:  # for M/L/X sizes
                 legacy = False
                 if scale in "mlx":
-                    # safe set index 3
-                    if len(args) > 3:
-                        args[3] = True
-                    else:
-                        args.insert(3, True)
+                    args[3] = True
             if m is A2C2f:
                 legacy = False
-                if scale in "lx":
-                    args.extend([True, 1.2])
+                if scale in "lx":  # for L/X sizes
+                    args.extend((True, 1.2))
             if m is C2fCIB:
                 legacy = False
-
-        # ——— Concat sums its inputs ———
+        elif m is AIFI:
+            args = [ch[f], *args]
+        elif m in frozenset({HGStem, HGBlock}):
+            c1, cm, c2 = ch[f], args[0], args[1]
+            args = [c1, cm, c2, *args[2:]]
+            if m is HGBlock:
+                args.insert(4, n)  # number of repeats
+                n = 1
+        elif m is ResNetLayer:
+            c2 = args[1] if args[3] else args[1] * 4
+        elif m is torch.nn.BatchNorm2d:
+            args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-
-        # ——— Detection & segmentation heads take all inputs ———
-        elif m in {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect}:
+        elif m in frozenset(
+            {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect}
+        ):
             args.append([ch[x] for x in f])
-            # patch segment-classifier width
-            if m in {Segment, YOLOESegment}:
-                args[2] = make_divisible(min(args[2], max_channels) * width_mul, 8)
+            if m is Segment or m is YOLOESegment:
+                args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {Detect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB}:
                 m.legacy = legacy
+        elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
+            args.insert(1, [ch[x] for x in f])
+        elif m is CBLinear:
+            c2 = args[0]
+            c1 = ch[f]
+            args = [c1, c2, *args[1:]]
+        elif m is CBFuse:
+            c2 = ch[f[-1]]
+        elif m in frozenset({TorchVision, Index}):
+            c2 = args[0]
+            c1 = ch[f]
+            args = [*args[1:]]
+        else:
+            c2 = ch[f]
 
-        # ——— Build the PyTorch module (with repeats) ———
-        module = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)
-        module.np = sum(p.numel() for p in module.parameters())
-        module.i, module.f, module.type = i, f, m.__name__ if hasattr(m, "__name__") else str(m)
-
-        # logging
+        m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
+        t = str(m)[8:-2].replace("__main__.", "")  # module type
+        m_.np = sum(x.numel() for x in m_.parameters())  # number params
+        m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
         if verbose:
-            LOGGER.info(f"{i:>3}{str(f):>20}{n_:>3}{module.np:10.0f}  {module.type:<45}{str(args):<30}")
-
-        # track layers whose outputs we need to save
-        save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)
-        layers.append(module)
-
-        # append this layer’s c2 for future layers
+            LOGGER.info(f"{i:>3}{str(f):>20}{n_:>3}{m_.np:10.0f}  {t:<45}{str(args):<30}")  # print
+        save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
+        layers.append(m_)
         if i == 0:
             ch = []
         ch.append(c2)
-
-    # assemble and return
     return torch.nn.Sequential(*layers), sorted(save)
-#ve1
-
-# def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
-#     """
-#     Parse a YOLO model.yaml dictionary into a PyTorch model.
-
-#     Args:
-#         d (dict): Model dictionary.
-#         ch (int): Input channels.
-#         verbose (bool): Whether to print model details.
-
-#     Returns:
-#         (tuple): Tuple containing the PyTorch model and sorted list of output layers.
-#     """
-#     import ast
-
-#     # Args
-#     legacy = True  # backward compatibility for v3/v5/v8/v9 models
-#     max_channels = float("inf")
-#     nc, act, scales = (d.get(x) for x in ("nc", "activation", "scales"))
-#     depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
-#     if scales:
-#         scale = d.get("scale")
-#         if not scale:
-#             scale = tuple(scales.keys())[0]
-#             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
-#         depth, width, max_channels = scales[scale]
-
-#     if act:
-#         Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU()
-#         if verbose:
-#             LOGGER.info(f"{colorstr('activation:')} {act}")  # print
-
-#     if verbose:
-#         LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
-#     ch = [ch]
-#     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
-#     base_modules = frozenset(
-#         {
-#             Classify,
-#             Conv,
-#             ConvTranspose,
-#             GhostConv,
-#             Bottleneck,
-#             GhostBottleneck,
-#             SPP,
-#             SPPF,
-#             C2fPSA,
-#             C2PSA,
-#             DWConv,
-#             Focus,
-#             BottleneckCSP,
-#             C1,
-#             C2,
-#             C2f,
-#             C3k2,
-#             C3K2_FE,
-#             RepNCSPELAN4,
-#             ELAN1,
-#             ADown,
-#             AConv,
-#             SPPELAN,
-#             C2fAttn,
-#             C3,
-#             C3TR,
-#             C3Ghost,
-#             torch.nn.ConvTranspose2d,
-#             DWConvTranspose2d,
-#             C3x,
-#             RepC3,
-#             PSA,
-#             SCDown,
-#             C2fCIB,
-#             A2C2f,
-#         }
-#     )
-#     repeat_modules = frozenset(  # modules with 'repeat' arguments
-#         {
-#             BottleneckCSP,
-#             C1,
-#             C2,
-#             C2f,
-#             C3k2,
-#             C3K2_FE,
-#             C2fAttn,
-#             C3,
-#             C3TR,
-#             C3Ghost,
-#             C3x,
-#             RepC3,
-#             C2fPSA,
-#             C2fCIB,
-#             C2PSA,
-#             A2C2f,
-#         }
-#     )
-#     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
-#         m = (
-#             getattr(torch.nn, m[3:])
-#             if "nn." in m
-#             else getattr(__import__("torchvision").ops, m[16:])
-#             if "torchvision.ops." in m
-#             else globals()[m]
-#         )  # get module
-#         for j, a in enumerate(args):
-#             if isinstance(a, str):
-#                 with contextlib.suppress(ValueError):
-#                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
-#         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
-#         if m in base_modules:
-#             c1, c2 = ch[f], args[0]
-#             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
-#                 c2 = make_divisible(min(c2, max_channels) * width, 8)
-#             if m is C2fAttn:  # set 1) embed channels and 2) num heads
-#                 args[1] = make_divisible(min(args[1], max_channels // 2) * width, 8)
-#                 args[2] = int(max(round(min(args[2], max_channels // 2 // 32)) * width, 1) if args[2] > 1 else args[2])
-
-#             args = [c1, c2, *args[1:]]
-#             if m in repeat_modules:
-#                 args.insert(2, n)  # number of repeats
-#                 n = 1
-#             if m is C3k2:  # for M/L/X sizes
-#                 legacy = False
-#                 if scale in "mlx":
-#                     args[3] = True
-#             if m is A2C2f:
-#                 legacy = False
-#                 if scale in "lx":  # for L/X sizes
-#                     args.extend((True, 1.2))
-#             if m is C2fCIB:
-#                 legacy = False
-#         elif m is AIFI:
-#             args = [ch[f], *args]
-#         elif m in frozenset({HGStem, HGBlock}):
-#             c1, cm, c2 = ch[f], args[0], args[1]
-#             args = [c1, cm, c2, *args[2:]]
-#             if m is HGBlock:
-#                 args.insert(4, n)  # number of repeats
-#                 n = 1
-#         elif m is ResNetLayer:
-#             c2 = args[1] if args[3] else args[1] * 4
-#         elif m is torch.nn.BatchNorm2d:
-#             args = [ch[f]]
-#         elif m is Concat:
-#             c2 = sum(ch[x] for x in f)
-#         elif m in frozenset(
-#             {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect}
-#         ):
-#             args.append([ch[x] for x in f])
-#             if m is Segment or m is YOLOESegment:
-#                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-#             if m in {Detect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB}:
-#                 m.legacy = legacy
-#         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
-#             args.insert(1, [ch[x] for x in f])
-#         elif m is CBLinear:
-#             c2 = args[0]
-#             c1 = ch[f]
-#             args = [c1, c2, *args[1:]]
-#         elif m is CBFuse:
-#             c2 = ch[f[-1]]
-#         elif m in frozenset({TorchVision, Index}):
-#             c2 = args[0]
-#             c1 = ch[f]
-#             args = [*args[1:]]
-#         else:
-#             c2 = ch[f]
-
-#         m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
-#         t = str(m)[8:-2].replace("__main__.", "")  # module type
-#         m_.np = sum(x.numel() for x in m_.parameters())  # number params
-#         m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
-#         if verbose:
-#             LOGGER.info(f"{i:>3}{str(f):>20}{n_:>3}{m_.np:10.0f}  {t:<45}{str(args):<30}")  # print
-#         save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
-#         layers.append(m_)
-#         if i == 0:
-#             ch = []
-#         ch.append(c2)
-#     return torch.nn.Sequential(*layers), sorted(save)
 
 
 def yaml_model_load(path):

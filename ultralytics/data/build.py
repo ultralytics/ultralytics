@@ -3,6 +3,7 @@
 import os
 import random
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import torch
@@ -103,6 +104,25 @@ def seed_worker(worker_id):  # noqa
     random.seed(worker_seed)
 
 
+def get_hyps_from_cfg(cfg):
+    """
+    Extract hyperparameters from configuration.
+
+    Args:
+        cfg (dict | SimpleNamespace): Configuration dictionary or namespace containing hyperparameters.
+
+    Returns:
+        (SimpleNamespace): Namespace object containing hyperparameters.
+    """
+    hyp = {}
+    # Handle both dict and SimpleNamespace objects
+    items = cfg.items() if isinstance(cfg, dict) else vars(cfg).items()
+    for k, v in items:
+        if isinstance(v, (int, float, bool, str)):
+            hyp[k] = v
+    return SimpleNamespace(**hyp)
+
+
 def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32, multi_modal=False):
     """Build and return a YOLO dataset based on configuration parameters."""
     dataset = YOLOMultiModalDataset if multi_modal else YOLODataset
@@ -111,7 +131,7 @@ def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, str
         imgsz=cfg.imgsz,
         batch_size=batch,
         augment=mode == "train",  # augmentation
-        hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
+        hyp=get_hyps_from_cfg(cfg),  # hyperparameters
         rect=cfg.rect or rect,  # rectangular batches
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,

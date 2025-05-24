@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from collections import defaultdict
+from typing import Optional, Tuple
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
@@ -21,11 +22,12 @@ class ObjectCounter(BaseSolution):
         region_initialized (bool): Flag indicating whether the counting region has been initialized.
         show_in (bool): Flag to control display of inward count.
         show_out (bool): Flag to control display of outward count.
+        margin (int): Margin for background rectangle size to display counts properly.
 
     Methods:
-        count_objects: Counts objects within a polygonal or linear region.
-        display_counts: Displays object counts on the frame.
-        process: Processes input data (frames or object tracks) and updates counts.
+        count_objects: Count objects within a polygonal or linear region based on their tracks.
+        display_counts: Display object counts on the frame.
+        process: Process input data and update counts.
 
     Examples:
         >>> counter = ObjectCounter()
@@ -35,7 +37,7 @@ class ObjectCounter(BaseSolution):
     """
 
     def __init__(self, **kwargs):
-        """Initializes the ObjectCounter class for real-time object counting in video streams."""
+        """Initialize the ObjectCounter class for real-time object counting in video streams."""
         super().__init__(**kwargs)
 
         self.in_count = 0  # Counter for objects moving inward
@@ -48,14 +50,20 @@ class ObjectCounter(BaseSolution):
         self.show_out = self.CFG["show_out"]
         self.margin = self.line_width * 2  # Scales the background rectangle size to display counts properly
 
-    def count_objects(self, current_centroid, track_id, prev_position, cls):
+    def count_objects(
+        self,
+        current_centroid: Tuple[float, float],
+        track_id: int,
+        prev_position: Optional[Tuple[float, float]],
+        cls: int,
+    ):
         """
-        Counts objects within a polygonal or linear region based on their tracks.
+        Count objects within a polygonal or linear region based on their tracks.
 
         Args:
             current_centroid (Tuple[float, float]): Current centroid coordinates (x, y) in the current frame.
             track_id (int): Unique identifier for the tracked object.
-            prev_position (Tuple[float, float]): Last frame position coordinates (x, y) of the track.
+            prev_position (Tuple[float, float], optional): Last frame position coordinates (x, y) of the track.
             cls (int): Class index for classwise count updates.
 
         Examples:
@@ -160,7 +168,7 @@ class ObjectCounter(BaseSolution):
         self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
         is_obb = getattr(self.tracks[0], "obb", None) is not None  # True if OBB results exist
-        if is_obb:
+        if is_obb and self.track_data and self.track_data.id is not None:
             self.boxes = self.track_data.xyxyxyxy.reshape(-1, 4, 2).cpu()
 
         self.annotator.draw_region(
@@ -170,10 +178,8 @@ class ObjectCounter(BaseSolution):
         # Iterate over bounding boxes, track ids and classes index
         for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
             # Draw bounding box and counting region
-            self.annotator.box_label(
-                box, label=self.adjust_box_label(cls, conf, track_id), color=colors(cls, True), rotated=is_obb
-            )
-            self.store_tracking_history(track_id, box, is_obb=is_obb)  # Store track history
+            self.annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(cls, True))
+            self.store_tracking_history(track_id, box)  # Store track history
 
             # Store previous position of track for object counting
             prev_position = None

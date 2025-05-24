@@ -740,8 +740,7 @@ def plot_images(
                         boxes[..., :4] *= scale
                 boxes[..., 0] += x
                 boxes[..., 1] += y
-                is_obb = boxes.shape[-1] == 5  # xywhr
-                boxes = ops.xywhr2xyxyxyxy(boxes) if is_obb else ops.xywh2xyxy(boxes)
+                boxes = ops.xywhr2xyxyxyxy(boxes) if boxes.shape[-1] == 5 else ops.xywh2xyxy(boxes)  # xywhr
                 for j, box in enumerate(boxes.astype(np.int64).tolist()):
                     c = classes[j]
                     color = colors(c)

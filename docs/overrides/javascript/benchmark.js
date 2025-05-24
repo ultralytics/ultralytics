@@ -1,5 +1,16 @@
 // Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+// Auto-load chart-widget.js if not already loaded
+const loadChartWidget = () => new Promise(resolve => {
+  if (window.ChartWidget) return resolve();
+  const s = document.createElement('script');
+  const base = (document.currentScript || document.querySelector('script[src*="benchmark.js"]'))?.src.replace(/[^/]*$/, '') || './';
+  s.src = base + 'chart-widget.js';
+  s.onload = s.onerror = resolve;
+  document.head.appendChild(s);
+});
+
+
 // YOLO models chart ---------------------------------------------------------------------------------------------------
 const data = {
   //  YOLO12: {
@@ -107,6 +118,7 @@ const colorOverrides = {
 };
 
 let chart = null;
+let chartWidget = null;
 
 const lighten = (hex, amt = 0.6) => {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
@@ -189,15 +201,24 @@ const chartConfig = {
   },
 };
 
-const updateChart = (activeModels = []) => {
+const updateChart = async (activeModels = []) => {
   chart?.destroy();
+  chartWidget?.destroy();
+
   chartConfig.data.datasets = Object.keys(data).map((algo, i) =>
     createDataset(algo, i, activeModels),
   );
+
   chart = new Chart(
     document.getElementById("modelComparisonChart").getContext("2d"),
     chartConfig,
   );
+
+  // Load widget and add to chart
+  await loadChartWidget();
+  if (window.ChartWidget) {
+    chartWidget = new ChartWidget(chart, { position: 'top-right' });
+  }
 };
 
 // Get active models from page config or use default
@@ -215,176 +236,4 @@ document$.subscribe(() => {
   const init = () =>
     typeof Chart !== "undefined" ? initChart() : setTimeout(init, 50);
   init();
-});
-
-// When "Download PNG" button is clicked
-document.getElementById("btn-download").addEventListener("click", () => {
-  const canvas = document.getElementById("modelComparisonChart");
-  const { width, height } = canvas;
-
-  // Create temp canvas with theme background and chart content
-  const tempCanvas = Object.assign(document.createElement("canvas"), {
-    width,
-    height,
-  });
-  const ctx = tempCanvas.getContext("2d");
-  ctx.fillStyle = isDark ? "#121212" : "#ffffff";
-  ctx.fillRect(0, 0, width, height);
-  ctx.drawImage(canvas, 0, 0);
-
-  // Trigger PNG download
-  Object.assign(document.createElement("a"), {
-    download: "chart.png",
-    href: tempCanvas.toDataURL("image/png"),
-  }).click();
-});
-
-// When the "Download CSV" button is clicked
-document.getElementById("btn-download-data").addEventListener("click", () => {
-  const rows = ["Model,Variant,mAP50-95,Speed (ms/img)"];
-
-  // Append only visible datasets to CSV rows
-  modelComparisonChart.data.datasets.forEach((ds, i) => {
-    if (!modelComparisonChart.getDatasetMeta(i).hidden) {
-      ds.data.forEach((p) =>
-        rows.push(`${ds.label},${p.version},${p.y},${p.x}`),
-      );
-    }
-  });
-
-  // Trigger CSV download
-  Object.assign(document.createElement("a"), {
-    href: URL.createObjectURL(
-      new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" }),
-    ),
-    download: "model_benchmark_data.csv",
-  }).click();
-});
-
-// Toggle theme on button click
-let isDark = false;
-document.getElementById("btn-toggle-theme").addEventListener("click", () => {
-  isDark = !isDark;
-
-  // Theme colors
-  const fg = isDark ? "#fff" : "#333",
-    bg = isDark ? "#1e2129" : "#fff",
-    grid = isDark ? "#444" : "#e0e0e0";
-  const tooltipBg = isDark ? "#333" : "rgba(0,0,0,0.8)",
-    chart = modelComparisonChart.options;
-
-  // Apply updated theme to chart
-  Object.assign(chart.scales.x.title, { color: fg });
-  Object.assign(chart.scales.y.title, { color: fg });
-  Object.assign(chart.scales.x.ticks, { color: fg });
-  Object.assign(chart.scales.y.ticks, { color: fg });
-  Object.assign(chart.scales.x.grid, { color: grid });
-  Object.assign(chart.scales.y.grid, { color: grid });
-  Object.assign(chart.plugins.legend.labels, { color: fg });
-  Object.assign(chart.plugins.tooltip, {
-    backgroundColor: tooltipBg,
-    titleColor: "#fff",
-    bodyColor: "#fff",
-  });
-
-  document.getElementById("chart-container").style.background = bg; // Apply background
-  document.getElementById("btn-toggle-theme").textContent = isDark
-    ? "🌞"
-    : "🌙"; // Apply icon
-
-  modelComparisonChart.update();
-});
-
-// Toggle between line and bar chart
-let currentChartType = "line"; // Tracks current chart mode
-let activeModels = []; // Will store original active models for restore
-
-// Chart toggle handler
-document.getElementById("btn-toggle-chart").addEventListener("click", () => {
-  if (!modelComparisonChart) return;
-
-  const togglingToBar = currentChartType === "line"; // Flip type
-  currentChartType = togglingToBar ? "bar" : "line";
-
-  fg = isDark ? "#ffffff" : "#333333"; // Text and grid label color
-  bg = isDark ? "#1e2129" : "#ffffff"; // Chart background
-  grid = isDark ? "#444444" : "#e0e0e0"; // Grid lines
-  tooltipText = "#ffffff"; // Tooltip text is always white
-
-  if (togglingToBar) {
-    // Show only currently visible datasets in bar chart
-    const barData = {
-      datasets: modelComparisonChart.data.datasets
-        .filter((ds, i) => !modelComparisonChart.getDatasetMeta(i).hidden)
-        .map((ds) => ({
-          label: ds.label,
-          data: ds.data.map((p) => ({ x: p.x, y: p.y, version: p.version })),
-          backgroundColor: ds.borderColor,
-          borderColor: ds.borderColor,
-          borderWidth: 2,
-          barThickness: 10,
-        })),
-    };
-
-    modelComparisonChart.destroy();
-    modelComparisonChart = new Chart(
-      document.getElementById("modelComparisonChart").getContext("2d"),
-      {
-        type: "bar",
-        data: barData,
-        options: {
-          indexAxis: "x",
-          plugins: {
-            legend: {
-              display: true,
-              position: "right",
-              align: "start",
-              labels: { color: fg },
-            },
-            tooltip: {
-              backgroundColor: isDark ? "#333" : "rgba(0,0,0,0.8)",
-              titleColor: tooltipText,
-              bodyColor: tooltipText,
-              callbacks: {
-                label: ({ dataset, raw }) =>
-                  `${dataset.label}${raw.version.toLowerCase()}: Speed = ${raw.x}ms/img, mAP50-95 = ${raw.y}`,
-              },
-            },
-          },
-          interaction: { mode: "nearest", axis: "x", intersect: false },
-          scales: {
-            x: {
-              type: "linear",
-              title: {
-                display: true,
-                text: "Latency T4 TensorRT10 FP16 (ms/img)",
-                color: fg,
-              },
-              grid: { color: grid },
-              ticks: { color: fg },
-              min: 0,
-              max: 18,
-            },
-            y: {
-              title: { display: true, text: "COCO mAP 50-95", color: fg },
-              grid: { color: grid },
-              ticks: { color: fg },
-              min: 36,
-              max: 56,
-            },
-          },
-        },
-      },
-    );
-    document.getElementById("btn-toggle-chart").textContent = "🔄";
-    document.getElementById("btn-toggle-chart").removeAttribute("data-tooltip"); // prevents tooltip from showing
-  } else {
-    // Restore original line chart from config
-    const config = document
-      .getElementById("modelComparisonChart")
-      .getAttribute("active-models");
-    activeModels = config ? JSON.parse(config) : [];
-    initChart(activeModels);
-    document.getElementById("btn-toggle-chart").textContent = "📊";
-  }
 });

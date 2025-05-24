@@ -2153,6 +2153,7 @@ class SAVPE(nn.Module):
 
 class BiFPNBlock(nn.Module):
     """Bi-directional Feature Pyramid Network for two inputs."""
+
     def __init__(self, feature_size=64, epsilon=0.0001):
         super().__init__()
         self.epsilon = epsilon
@@ -2160,18 +2161,19 @@ class BiFPNBlock(nn.Module):
         self.conv2 = DWConv(feature_size, feature_size)
         self.w1 = nn.Parameter(torch.Tensor(2, 1))
         self.w1_relu = nn.ReLU()
-        
+
     def forward(self, inputs):
         p4_x, p5_x = inputs  # Two inputs: from current and backbone
         # Weighted fusion
         w1 = self.w1_relu(self.w1)
         w1 /= torch.sum(w1, dim=0) + self.epsilon
-        
+
         # Top-down pathway
         p5_td = self.conv1(w1[0] * p5_x + w1[1] * F.interpolate(p5_x, scale_factor=2))
         # Bottom-up pathway
         p4_out = self.conv2(w1[0] * p4_x + w1[1] * F.max_pool2d(p5_td, kernel_size=2))
         return p4_out, p5_td
+
 
 class BiFPN(nn.Module):
     def __init__(self, feature_size=256, num_layers=1):
@@ -2179,7 +2181,7 @@ class BiFPN(nn.Module):
         self.feature_size = feature_size
         self.proj = nn.ModuleList()
         self.bifpn = nn.Sequential(*[BiFPNBlock(feature_size) for _ in range(num_layers)])
-        
+
     def forward(self, inputs):
         # Project input features to feature_size
         x = [conv(inp) for conv, inp in zip(self.proj, inputs)]
@@ -2187,5 +2189,5 @@ class BiFPN(nn.Module):
         for layer in self.bifpn:
             x = layer(x)
         return x
-    
+
     # //UPDATE BiFPN

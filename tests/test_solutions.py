@@ -4,7 +4,7 @@
 # including every solution excluding DistanceCalculation and Security Alarm System.
 
 import os
-from unittest.mock import patch, MagicMock, Mock
+from unittest.mock import Mock, patch
 
 import cv2
 import numpy as np
@@ -324,7 +324,6 @@ def test_similarity_search_complete(tmp_path):
 
 def test_distance_calculation_process_method():
     """Test DistanceCalculation.process() computes distance between selected boxes."""
-
     dc = solutions.DistanceCalculation()
     dc.boxes, dc.track_ids, dc.clss, dc.confs = (
         [[100, 100, 200, 200], [300, 300, 400, 400]],

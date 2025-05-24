@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any, List, Optional, Tuple
+
 import numpy as np
 
 from ..utils import LOGGER
@@ -32,14 +34,14 @@ class STrack(BaseTrack):
         angle (float | None): Optional angle information for oriented bounding boxes.
 
     Methods:
-        predict(): Predict the next state of the object using Kalman filter.
-        multi_predict(stracks): Predict the next states for multiple tracks.
-        multi_gmc(stracks, H): Update multiple track states using a homography matrix.
-        activate(kalman_filter, frame_id): Activate a new tracklet.
-        re_activate(new_track, frame_id, new_id): Reactivate a previously lost tracklet.
-        update(new_track, frame_id): Update the state of a matched track.
-        convert_coords(tlwh): Convert bounding box to x-y-aspect-height format.
-        tlwh_to_xyah(tlwh): Convert tlwh bounding box to xyah format.
+        predict: Predict the next state of the object using Kalman filter.
+        multi_predict: Predict the next states for multiple tracks.
+        multi_gmc: Update multiple track states using a homography matrix.
+        activate: Activate a new tracklet.
+        re_activate: Reactivate a previously lost tracklet.
+        update: Update the state of a matched track.
+        convert_coords: Convert bounding box to x-y-aspect-height format.
+        tlwh_to_xyah: Convert tlwh bounding box to xyah format.
 
     Examples:
         Initialize and activate a new track
@@ -49,7 +51,7 @@ class STrack(BaseTrack):
 
     shared_kalman = KalmanFilterXYAH()
 
-    def __init__(self, xywh, score, cls):
+    def __init__(self, xywh: List[float], score: float, cls: Any):
         """
         Initialize a new STrack instance.
 
@@ -87,7 +89,7 @@ class STrack(BaseTrack):
         self.mean, self.covariance = self.kalman_filter.predict(mean_state, self.covariance)
 
     @staticmethod
-    def multi_predict(stracks):
+    def multi_predict(stracks: List["STrack"]):
         """Perform multi-object predictive tracking using Kalman filter for the provided list of STrack instances."""
         if len(stracks) <= 0:
             return
@@ -102,7 +104,7 @@ class STrack(BaseTrack):
             stracks[i].covariance = cov
 
     @staticmethod
-    def multi_gmc(stracks, H=np.eye(2, 3)):
+    def multi_gmc(stracks: List["STrack"], H: np.ndarray = np.eye(2, 3)):
         """Update state tracks positions and covariances using a homography matrix for multiple tracks."""
         if len(stracks) > 0:
             multi_mean = np.asarray([st.mean.copy() for st in stracks])
@@ -120,7 +122,7 @@ class STrack(BaseTrack):
                 stracks[i].mean = mean
                 stracks[i].covariance = cov
 
-    def activate(self, kalman_filter, frame_id):
+    def activate(self, kalman_filter: KalmanFilterXYAH, frame_id: int):
         """Activate a new tracklet using the provided Kalman filter and initialize its state and covariance."""
         self.kalman_filter = kalman_filter
         self.track_id = self.next_id()
@@ -133,7 +135,7 @@ class STrack(BaseTrack):
         self.frame_id = frame_id
         self.start_frame = frame_id
 
-    def re_activate(self, new_track, frame_id, new_id=False):
+    def re_activate(self, new_track: "STrack", frame_id: int, new_id: bool = False):
         """Reactivate a previously lost track using new detection data and update its state and attributes."""
         self.mean, self.covariance = self.kalman_filter.update(
             self.mean, self.covariance, self.convert_coords(new_track.tlwh)
@@ -149,7 +151,7 @@ class STrack(BaseTrack):
         self.angle = new_track.angle
         self.idx = new_track.idx
 
-    def update(self, new_track, frame_id):
+    def update(self, new_track: "STrack", frame_id: int):
         """
         Update the state of a matched track.
 
@@ -178,12 +180,12 @@ class STrack(BaseTrack):
         self.angle = new_track.angle
         self.idx = new_track.idx
 
-    def convert_coords(self, tlwh):
+    def convert_coords(self, tlwh: np.ndarray) -> np.ndarray:
         """Convert a bounding box's top-left-width-height format to its x-y-aspect-height equivalent."""
         return self.tlwh_to_xyah(tlwh)
 
     @property
-    def tlwh(self):
+    def tlwh(self) -> np.ndarray:
         """Get the bounding box in top-left-width-height format from the current state estimate."""
         if self.mean is None:
             return self._tlwh.copy()
@@ -193,14 +195,14 @@ class STrack(BaseTrack):
         return ret
 
     @property
-    def xyxy(self):
+    def xyxy(self) -> np.ndarray:
         """Convert bounding box from (top left x, top left y, width, height) to (min x, min y, max x, max y) format."""
         ret = self.tlwh.copy()
         ret[2:] += ret[:2]
         return ret
 
     @staticmethod
-    def tlwh_to_xyah(tlwh):
+    def tlwh_to_xyah(tlwh: np.ndarray) -> np.ndarray:
         """Convert bounding box from tlwh format to center-x-center-y-aspect-height (xyah) format."""
         ret = np.asarray(tlwh).copy()
         ret[:2] += ret[2:] / 2
@@ -208,14 +210,14 @@ class STrack(BaseTrack):
         return ret
 
     @property
-    def xywh(self):
+    def xywh(self) -> np.ndarray:
         """Get the current position of the bounding box in (center x, center y, width, height) format."""
         ret = np.asarray(self.tlwh).copy()
         ret[:2] += ret[2:] / 2
         return ret
 
     @property
-    def xywha(self):
+    def xywha(self) -> np.ndarray:
         """Get position in (center x, center y, width, height, angle) format, warning if angle is missing."""
         if self.angle is None:
             LOGGER.warning("`angle` attr not found, returning `xywh` instead.")
@@ -223,12 +225,12 @@ class STrack(BaseTrack):
         return np.concatenate([self.xywh, self.angle[None]])
 
     @property
-    def result(self):
+    def result(self) -> List[float]:
         """Get the current tracking results in the appropriate bounding box format."""
         coords = self.xyxy if self.angle is None else self.xywha
         return coords.tolist() + [self.track_id, self.score, self.cls, self.idx]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Return a string representation of the STrack object including start frame, end frame, and track ID."""
         return f"OT_{self.track_id}_({self.start_frame}-{self.end_frame})"
 
@@ -251,16 +253,16 @@ class BYTETracker:
         kalman_filter (KalmanFilterXYAH): Kalman Filter object.
 
     Methods:
-        update(results, img, feats): Update object tracker with new detections.
-        get_kalmanfilter(): Return a Kalman filter object for tracking bounding boxes.
-        init_track(dets, scores, cls, img): Initialize object tracking with detections.
-        get_dists(tracks, detections): Calculate the distance between tracks and detections.
-        multi_predict(tracks): Predict the location of tracks.
-        reset_id(): Reset the ID counter of STrack.
-        reset(): Reset the tracker by clearing all tracks.
-        joint_stracks(tlista, tlistb): Combine two lists of stracks.
-        sub_stracks(tlista, tlistb): Filter out the stracks present in the second list from the first list.
-        remove_duplicate_stracks(stracksa, stracksb): Remove duplicate stracks based on IoU.
+        update: Update object tracker with new detections.
+        get_kalmanfilter: Return a Kalman filter object for tracking bounding boxes.
+        init_track: Initialize object tracking with detections.
+        get_dists: Calculate the distance between tracks and detections.
+        multi_predict: Predict the location of tracks.
+        reset_id: Reset the ID counter of STrack.
+        reset: Reset the tracker by clearing all tracks.
+        joint_stracks: Combine two lists of stracks.
+        sub_stracks: Filter out the stracks present in the second list from the first list.
+        remove_duplicate_stracks: Remove duplicate stracks based on IoU.
 
     Examples:
         Initialize BYTETracker and update with detection results
@@ -269,7 +271,7 @@ class BYTETracker:
         >>> tracked_objects = tracker.update(results)
     """
 
-    def __init__(self, args, frame_rate=30):
+    def __init__(self, args, frame_rate: int = 30):
         """
         Initialize a BYTETracker instance for object tracking.
 
@@ -282,9 +284,9 @@ class BYTETracker:
             >>> args = Namespace(track_buffer=30)
             >>> tracker = BYTETracker(args, frame_rate=30)
         """
-        self.tracked_stracks = []  # type: list[STrack]
-        self.lost_stracks = []  # type: list[STrack]
-        self.removed_stracks = []  # type: list[STrack]
+        self.tracked_stracks = []  # type: List[STrack]
+        self.lost_stracks = []  # type: List[STrack]
+        self.removed_stracks = []  # type: List[STrack]
 
         self.frame_id = 0
         self.args = args
@@ -292,7 +294,7 @@ class BYTETracker:
         self.kalman_filter = self.get_kalmanfilter()
         self.reset_id()
 
-    def update(self, results, img=None, feats=None):
+    def update(self, results, img: Optional[np.ndarray] = None, feats: Optional[np.ndarray] = None) -> np.ndarray:
         """Update the tracker with new detections and return the current list of tracked objects."""
         self.frame_id += 1
         activated_stracks = []
@@ -321,7 +323,7 @@ class BYTETracker:
         detections = self.init_track(dets, scores_keep, cls_keep, img if feats is None else feats)
         # Add newly detected tracklets to tracked_stracks
         unconfirmed = []
-        tracked_stracks = []  # type: list[STrack]
+        tracked_stracks = []  # type: List[STrack]
         for track in self.tracked_stracks:
             if not track.is_activated:
                 unconfirmed.append(track)
@@ -410,22 +412,24 @@ class BYTETracker:
 
         return np.asarray([x.result for x in self.tracked_stracks if x.is_activated], dtype=np.float32)
 
-    def get_kalmanfilter(self):
+    def get_kalmanfilter(self) -> KalmanFilterXYAH:
         """Return a Kalman filter object for tracking bounding boxes using KalmanFilterXYAH."""
         return KalmanFilterXYAH()
 
-    def init_track(self, dets, scores, cls, img=None):
+    def init_track(
+        self, dets: np.ndarray, scores: np.ndarray, cls: np.ndarray, img: Optional[np.ndarray] = None
+    ) -> List[STrack]:
         """Initialize object tracking with given detections, scores, and class labels using the STrack algorithm."""
         return [STrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)] if len(dets) else []  # detections
 
-    def get_dists(self, tracks, detections):
+    def get_dists(self, tracks: List[STrack], detections: List[STrack]) -> np.ndarray:
         """Calculate the distance between tracks and detections using IoU and optionally fuse scores."""
         dists = matching.iou_distance(tracks, detections)
         if self.args.fuse_score:
             dists = matching.fuse_score(dists, detections)
         return dists
 
-    def multi_predict(self, tracks):
+    def multi_predict(self, tracks: List[STrack]):
         """Predict the next states for multiple tracks using Kalman filter."""
         STrack.multi_predict(tracks)
 
@@ -436,15 +440,15 @@ class BYTETracker:
 
     def reset(self):
         """Reset the tracker by clearing all tracked, lost, and removed tracks and reinitializing the Kalman filter."""
-        self.tracked_stracks = []  # type: list[STrack]
-        self.lost_stracks = []  # type: list[STrack]
-        self.removed_stracks = []  # type: list[STrack]
+        self.tracked_stracks = []  # type: List[STrack]
+        self.lost_stracks = []  # type: List[STrack]
+        self.removed_stracks = []  # type: List[STrack]
         self.frame_id = 0
         self.kalman_filter = self.get_kalmanfilter()
         self.reset_id()
 
     @staticmethod
-    def joint_stracks(tlista, tlistb):
+    def joint_stracks(tlista: List[STrack], tlistb: List[STrack]) -> List[STrack]:
         """Combine two lists of STrack objects into a single list, ensuring no duplicates based on track IDs."""
         exists = {}
         res = []
@@ -459,13 +463,13 @@ class BYTETracker:
         return res
 
     @staticmethod
-    def sub_stracks(tlista, tlistb):
+    def sub_stracks(tlista: List[STrack], tlistb: List[STrack]) -> List[STrack]:
         """Filter out the stracks present in the second list from the first list."""
         track_ids_b = {t.track_id for t in tlistb}
         return [t for t in tlista if t.track_id not in track_ids_b]
 
     @staticmethod
-    def remove_duplicate_stracks(stracksa, stracksb):
+    def remove_duplicate_stracks(stracksa: List[STrack], stracksb: List[STrack]) -> Tuple[List[STrack], List[STrack]]:
         """Remove duplicate stracks from two lists based on Intersection over Union (IoU) distance."""
         pdist = matching.iou_distance(stracksa, stracksb)
         pairs = np.where(pdist < 0.15)

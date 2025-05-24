@@ -43,7 +43,7 @@ def build_sam_vit_l(checkpoint=None):
 
 
 def build_sam_vit_b(checkpoint=None):
-    """Construct and return a Segment Anything Model (SAM) with b-size architecture and optional checkpoint."""
+    """Build and return a Segment Anything Model (SAM) b-size model with specified encoder parameters."""
     return _build_sam(
         encoder_embed_dim=768,
         encoder_depth=12,
@@ -79,7 +79,7 @@ def build_sam2_t(checkpoint=None):
 
 
 def build_sam2_s(checkpoint=None):
-    """Build and return a small-size Segment Anything Model (SAM2) with specified architecture parameters."""
+    """Build and return a small-size Segment Anything Model 2 (SAM2) with specified architecture parameters."""
     return _build_sam2(
         encoder_embed_dim=96,
         encoder_stages=[1, 2, 11, 2],
@@ -92,7 +92,7 @@ def build_sam2_s(checkpoint=None):
 
 
 def build_sam2_b(checkpoint=None):
-    """Build and return a SAM2 base-size model with specified architecture parameters."""
+    """Build and return a Segment Anything Model 2 (SAM2) base-size model with specified architecture parameters."""
     return _build_sam2(
         encoder_embed_dim=112,
         encoder_stages=[2, 3, 16, 3],
@@ -106,7 +106,7 @@ def build_sam2_b(checkpoint=None):
 
 
 def build_sam2_l(checkpoint=None):
-    """Build and return a large-size Segment Anything Model (SAM2) with specified architecture parameters."""
+    """Build and return a large-size Segment Anything Model 2 (SAM2) with specified architecture parameters."""
     return _build_sam2(
         encoder_embed_dim=144,
         encoder_stages=[2, 6, 36, 4],

@@ -94,7 +94,7 @@ class Model(torch.nn.Module):
         Args:
             model (str | Path | Model): Path or name of the model to load or create. Can be a local file path, a
                 model name from Ultralytics HUB, a Triton Server model, or an already initialized Model instance.
-            task (str, optional): The task type associated with the YOLO model, specifying its application domain.
+            task (str, optional): The specific task for the model. If None, it will be inferred from the config.
             verbose (bool): If True, enables verbose output during the model's initialization and subsequent
                 operations.
 

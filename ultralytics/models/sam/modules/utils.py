@@ -1,12 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from typing import Tuple
+from typing import Any, Dict, Tuple
 
 import torch
 import torch.nn.functional as F
 
 
-def select_closest_cond_frames(frame_idx, cond_frame_outputs, max_cond_frame_num):
+def select_closest_cond_frames(frame_idx: int, cond_frame_outputs: Dict[int, Any], max_cond_frame_num: int):
     """
     Select the closest conditioning frames to a given frame index.
 
@@ -59,7 +59,7 @@ def select_closest_cond_frames(frame_idx, cond_frame_outputs, max_cond_frame_num
     return selected_outputs, unselected_outputs
 
 
-def get_1d_sine_pe(pos_inds, dim, temperature=10000):
+def get_1d_sine_pe(pos_inds: torch.Tensor, dim: int, temperature: float = 10000):
     """
     Generate 1D sinusoidal positional embeddings for given positions and dimensions.
 
@@ -217,7 +217,7 @@ def apply_rotary_enc(
     return xq_out.type_as(xq).to(xq.device), xk_out.type_as(xk).to(xk.device)
 
 
-def window_partition(x, window_size):
+def window_partition(x: torch.Tensor, window_size: int):
     """
     Partition input tensor into non-overlapping windows with padding if needed.
 
@@ -248,7 +248,7 @@ def window_partition(x, window_size):
     return windows, (Hp, Wp)
 
 
-def window_unpartition(windows, window_size, pad_hw, hw):
+def window_unpartition(windows: torch.Tensor, window_size: int, pad_hw: Tuple[int, int], hw: Tuple[int, int]):
     """
     Unpartition windowed sequences into original sequences and remove padding.
 

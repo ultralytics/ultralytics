@@ -1,6 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from copy import copy
+from pathlib import Path
+from typing import Any, List, Optional, Union
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import OBBModel
@@ -15,7 +17,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
     detecting objects at arbitrary angles rather than just axis-aligned rectangles.
 
     Attributes:
-        loss_names (Tuple[str]): Names of the loss components used during training including box_loss, cls_loss,
+        loss_names (tuple): Names of the loss components used during training including box_loss, cls_loss,
             and dfl_loss.
 
     Methods:
@@ -29,7 +31,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: Optional[dict] = None, _callbacks: Optional[List[Any]] = None):
         """
         Initialize an OBBTrainer object for training Oriented Bounding Box (OBB) models.
 
@@ -41,7 +43,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
                 model configuration.
             overrides (dict, optional): Dictionary of parameter overrides for the configuration. Any values here
                 will take precedence over those in cfg.
-            _callbacks (list, optional): List of callback functions to be invoked during training.
+            _callbacks (List[Any], optional): List of callback functions to be invoked during training.
 
         Examples:
             >>> from ultralytics.models.yolo.obb import OBBTrainer
@@ -54,7 +56,9 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
         overrides["task"] = "obb"
         super().__init__(cfg, overrides, _callbacks)
 
-    def get_model(self, cfg=None, weights=None, verbose=True):
+    def get_model(
+        self, cfg: Optional[Union[str, dict]] = None, weights: Optional[Union[str, Path]] = None, verbose: bool = True
+    ) -> OBBModel:
         """
         Return OBBModel initialized with specified config and weights.
 

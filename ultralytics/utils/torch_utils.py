@@ -82,7 +82,7 @@ def autocast(enabled: bool, device: str = "cuda"):
 
     Args:
         enabled (bool): Whether to enable automatic mixed precision.
-        device (str, optional): The device to use for autocast. Defaults to 'cuda'.
+        device (str, optional): The device to use for autocast.
 
     Returns:
         (torch.amp.autocast): The appropriate autocast context manager.
@@ -136,9 +136,8 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     exception if the requested device(s) are not available.
 
     Args:
-        device (str | torch.device, optional): Device string or torch.device object.
-            Options are 'None', 'cpu', or 'cuda', or '0' or '0,1,2,3'. Defaults to an empty string, which auto-selects
-            the first available GPU, or CPU if no GPU is available.
+        device (str | torch.device, optional): Device string or torch.device object. Options are 'None', 'cpu', or
+            'cuda', or '0' or '0,1,2,3'. Auto-selects the first available GPU, or CPU if no GPU is available.
         batch (int, optional): Batch size being used in your model.
         newline (bool, optional): If True, adds a newline at the end of the log string.
         verbose (bool, optional): If True, logs the device information.
@@ -157,7 +156,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         >>> select_device("cpu")
         device(type='cpu')
 
-    Note:
+    Notes:
         Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
     """
     if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel")):
@@ -320,9 +319,9 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
 
     Args:
         model (nn.Module): Model to analyze.
-        detailed (bool, optional): Whether to print detailed layer information. Defaults to False.
-        verbose (bool, optional): Whether to print model information. Defaults to True.
-        imgsz (int | List, optional): Input image size. Defaults to 640.
+        detailed (bool, optional): Whether to print detailed layer information.
+        verbose (bool, optional): Whether to print model information.
+        imgsz (int | list, optional): Input image size.
 
     Returns:
         n_l (int): Number of layers.
@@ -413,7 +412,7 @@ def get_flops(model, imgsz=640):
 
     Args:
         model (nn.Module): The model to calculate FLOPs for.
-        imgsz (int | List[int], optional): Input image size. Defaults to 640.
+        imgsz (int | list, optional): Input image size.
 
     Returns:
         (float): The model FLOPs in billions.
@@ -451,7 +450,7 @@ def get_flops_with_torch_profiler(model, imgsz=640):
 
     Args:
         model (nn.Module): The model to calculate FLOPs for.
-        imgsz (int | List[int], optional): Input image size. Defaults to 640.
+        imgsz (int | list, optional): Input image size.
 
     Returns:
         (float): The model's FLOPs in billions.
@@ -498,9 +497,9 @@ def scale_img(img, ratio=1.0, same_shape=False, gs=32):
 
     Args:
         img (torch.Tensor): Input image tensor.
-        ratio (float, optional): Scaling ratio. Defaults to 1.0.
-        same_shape (bool, optional): Whether to maintain the same shape. Defaults to False.
-        gs (int, optional): Grid size for padding. Defaults to 32.
+        ratio (float, optional): Scaling ratio.
+        same_shape (bool, optional): Whether to maintain the same shape.
+        gs (int, optional): Grid size for padding.
 
     Returns:
         (torch.Tensor): Scaled and padded image tensor.
@@ -520,10 +519,10 @@ def copy_attr(a, b, include=(), exclude=()):
     Copy attributes from object 'b' to object 'a', with options to include/exclude certain attributes.
 
     Args:
-        a (object): Destination object to copy attributes to.
-        b (object): Source object to copy attributes from.
-        include (tuple, optional): Attributes to include. If empty, all attributes are included. Defaults to ().
-        exclude (tuple, optional): Attributes to exclude. Defaults to ().
+        a (Any): Destination object to copy attributes to.
+        b (Any): Source object to copy attributes from.
+        include (tuple, optional): Attributes to include. If empty, all attributes are included.
+        exclude (tuple, optional): Attributes to exclude.
     """
     for k, v in b.__dict__.items():
         if (len(include) and k not in include) or k.startswith("_") or k in exclude:
@@ -554,7 +553,7 @@ def intersect_dicts(da, db, exclude=()):
     Args:
         da (dict): First dictionary.
         db (dict): Second dictionary.
-        exclude (tuple, optional): Keys to exclude. Defaults to ().
+        exclude (tuple, optional): Keys to exclude.
 
     Returns:
         (dict): Dictionary of intersecting keys with matching shapes.
@@ -593,9 +592,9 @@ def one_cycle(y1=0.0, y2=1.0, steps=100):
     Return a lambda function for sinusoidal ramp from y1 to y2 https://arxiv.org/pdf/1812.01187.pdf.
 
     Args:
-        y1 (float, optional): Initial value. Defaults to 0.0.
-        y2 (float, optional): Final value. Defaults to 1.0.
-        steps (int, optional): Number of steps. Defaults to 100.
+        y1 (float, optional): Initial value.
+        y2 (float, optional): Final value.
+        steps (int, optional): Number of steps.
 
     Returns:
         (function): Lambda function for computing the sinusoidal ramp.
@@ -608,8 +607,8 @@ def init_seeds(seed=0, deterministic=False):
     Initialize random number generator (RNG) seeds https://pytorch.org/docs/stable/notes/randomness.html.
 
     Args:
-        seed (int, optional): Random seed. Defaults to 0.
-        deterministic (bool, optional): Whether to set deterministic algorithms. Defaults to False.
+        seed (int, optional): Random seed.
+        deterministic (bool, optional): Whether to set deterministic algorithms.
     """
     random.seed(seed)
     np.random.seed(seed)
@@ -663,9 +662,9 @@ class ModelEMA:
 
         Args:
             model (nn.Module): Model to create EMA for.
-            decay (float, optional): Maximum EMA decay rate. Defaults to 0.9999.
-            tau (int, optional): EMA decay time constant. Defaults to 2000.
-            updates (int, optional): Initial number of updates. Defaults to 0.
+            decay (float, optional): Maximum EMA decay rate.
+            tau (int, optional): EMA decay time constant.
+            updates (int, optional): Initial number of updates.
         """
         self.ema = deepcopy(de_parallel(model)).eval()  # FP32 EMA
         self.updates = updates  # number of EMA updates
@@ -698,8 +697,8 @@ class ModelEMA:
 
         Args:
             model (nn.Module): Model to update attributes from.
-            include (tuple, optional): Attributes to include. Defaults to ().
-            exclude (tuple, optional): Attributes to exclude. Defaults to ("process_group", "reducer").
+            include (tuple, optional): Attributes to include.
+            exclude (tuple, optional): Attributes to exclude.
         """
         if self.enabled:
             copy_attr(self.ema, model, include, exclude)
@@ -710,8 +709,9 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
     Strip optimizer from 'f' to finalize training, optionally save as 's'.
 
     Args:
-        f (str | Path): File path to model to strip the optimizer from. Defaults to 'best.pt'.
-        s (str, optional): File path to save the model with stripped optimizer to. If not provided, 'f' will be overwritten.
+        f (str | Path): File path to model to strip the optimizer from.
+        s (str, optional): File path to save the model with stripped optimizer to. If not provided, 'f' will be
+            overwritten.
         updates (dict, optional): A dictionary of updates to overlay onto the checkpoint before saving.
 
     Returns:
@@ -793,7 +793,7 @@ def cuda_memory_usage(device=None):
     Finally, it updates the dictionary with the amount of memory reserved by CUDA on the specified device.
 
     Args:
-        device (torch.device, optional): The CUDA device to query memory usage for. Defaults to None.
+        device (torch.device, optional): The CUDA device to query memory usage for.
 
     Yields:
         (dict): A dictionary with a key 'memory' initialized to 0, which will be updated with the reserved memory.
@@ -814,11 +814,11 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
     Ultralytics speed, memory and FLOPs profiler.
 
     Args:
-        input (torch.Tensor | List[torch.Tensor]): Input tensor(s) to profile.
-        ops (nn.Module | List[nn.Module]): Model or list of operations to profile.
-        n (int, optional): Number of iterations to average. Defaults to 10.
-        device (str | torch.device, optional): Device to profile on. Defaults to None.
-        max_num_obj (int, optional): Maximum number of objects for simulation. Defaults to 0.
+        input (torch.Tensor | list): Input tensor(s) to profile.
+        ops (nn.Module | list): Model or list of operations to profile.
+        n (int, optional): Number of iterations to average.
+        device (str | torch.device, optional): Device to profile on.
+        max_num_obj (int, optional): Maximum number of objects for simulation.
 
     Returns:
         (list): Profile results for each operation.

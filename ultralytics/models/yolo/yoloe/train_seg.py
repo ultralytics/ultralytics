@@ -28,7 +28,7 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
         Return YOLOESegModel initialized with specified config and weights.
 
         Args:
-            cfg (dict | str): Model configuration dictionary or YAML file path.
+            cfg (dict | str, optional): Model configuration dictionary or YAML file path.
             weights (str, optional): Path to pretrained weights file.
             verbose (bool): Whether to display model information.
 
@@ -77,7 +77,7 @@ class YOLOEPESegTrainer(SegmentationTrainer):
         Return YOLOESegModel initialized with specified config and weights for linear probing.
 
         Args:
-            cfg (dict | str): Model configuration dictionary or YAML file path.
+            cfg (dict | str, optional): Model configuration dictionary or YAML file path.
             weights (str, optional): Path to pretrained weights file.
             verbose (bool): Whether to display model information.
 

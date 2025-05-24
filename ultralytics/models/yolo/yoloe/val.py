@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from copy import deepcopy
+from typing import Any, Dict, Optional
 
 import torch
 from torch.nn import functional as F
@@ -45,7 +46,7 @@ class YOLOEDetectValidator(DetectionValidator):
     """
 
     @smart_inference_mode()
-    def get_visual_pe(self, dataloader, model):
+    def get_visual_pe(self, dataloader: torch.utils.data.DataLoader, model: YOLOEModel) -> torch.Tensor:
         """
         Extract visual prompt embeddings from training samples.
 
@@ -94,14 +95,14 @@ class YOLOEDetectValidator(DetectionValidator):
         visual_pe[cls_visual_num == 0] = 0
         return visual_pe.unsqueeze(0)
 
-    def preprocess(self, batch):
+    def preprocess(self, batch: Dict[str, Any]) -> Dict[str, Any]:
         """Preprocess batch data, ensuring visuals are on the same device as images."""
         batch = super().preprocess(batch)
         if "visuals" in batch:
             batch["visuals"] = batch["visuals"].to(batch["img"].device)
         return batch
 
-    def get_vpe_dataloader(self, data):
+    def get_vpe_dataloader(self, data: Dict[str, Any]) -> torch.utils.data.DataLoader:
         """
         Create a dataloader for LVIS training visual prompt samples.
 
@@ -137,7 +138,13 @@ class YOLOEDetectValidator(DetectionValidator):
         )
 
     @smart_inference_mode()
-    def __call__(self, trainer=None, model=None, refer_data=None, load_vp=False):
+    def __call__(
+        self,
+        trainer: Optional[Any] = None,
+        model: Optional[YOLOEModel | str] = None,
+        refer_data: Optional[str] = None,
+        load_vp: bool = False,
+    ) -> Dict[str, Any]:
         """
         Run validation on the model using either text or visual prompt embeddings.
 
@@ -147,7 +154,7 @@ class YOLOEDetectValidator(DetectionValidator):
 
         Args:
             trainer (object, optional): Trainer object containing the model and device.
-            model (YOLOEModel, optional): Model to validate. Required if trainer is not provided.
+            model (YOLOEModel | str, optional): Model to validate. Required if trainer is not provided.
             refer_data (str, optional): Path to reference data for visual prompts.
             load_vp (bool): Whether to load visual prompts. If False, text prompts are used.
 

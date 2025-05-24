@@ -5,6 +5,7 @@ import random
 import threading
 import time
 from pathlib import Path
+from typing import Any, Optional
 
 import requests
 
@@ -36,7 +37,7 @@ PREFIX = colorstr("Ultralytics HUB: ")
 HELP_MSG = "If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance."
 
 
-def request_with_credentials(url: str):
+def request_with_credentials(url: str) -> Any:
     """
     Make an AJAX request with cookies attached in a Google Colab environment.
 
@@ -77,7 +78,7 @@ def request_with_credentials(url: str):
     return output.eval_js("_hub_tmp")
 
 
-def requests_with_progress(method, url, **kwargs):
+def requests_with_progress(method: str, url: str, **kwargs) -> requests.Response:
     """
     Make an HTTP request using the specified method and URL, with an optional progress bar.
 
@@ -109,7 +110,17 @@ def requests_with_progress(method, url, **kwargs):
     return response
 
 
-def smart_request(method, url, retry=3, timeout=30, thread=True, code=-1, verbose=True, progress=False, **kwargs):
+def smart_request(
+    method: str,
+    url: str,
+    retry: int = 3,
+    timeout: int = 30,
+    thread: bool = True,
+    code: int = -1,
+    verbose: bool = True,
+    progress: bool = False,
+    **kwargs,
+) -> Optional[requests.Response]:
     """
     Make an HTTP request using the 'requests' library, with exponential backoff retries up to a specified timeout.
 

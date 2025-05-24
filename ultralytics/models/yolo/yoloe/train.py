@@ -2,6 +2,8 @@
 
 import itertools
 from copy import copy, deepcopy
+from pathlib import Path
+from typing import Dict, List, Optional, Union
 
 import torch
 
@@ -32,7 +34,7 @@ class YOLOETrainer(DetectionTrainer):
         build_dataset: Build YOLO dataset with multi-modal support for training.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: Optional[Dict] = None, _callbacks=None):
         """
         Initialize the YOLOE Trainer with specified configurations.
 
@@ -49,14 +51,14 @@ class YOLOETrainer(DetectionTrainer):
         overrides["overlap_mask"] = False
         super().__init__(cfg, overrides, _callbacks)
 
-    def get_model(self, cfg=None, weights=None, verbose=True):
+    def get_model(self, cfg=None, weights=None, verbose: bool = True):
         """
         Return a YOLOEModel initialized with the specified configuration and weights.
 
         Args:
-            cfg (dict | str | None): Model configuration. Can be a dictionary containing a 'yaml_file' key,
+            cfg (dict | str, optional): Model configuration. Can be a dictionary containing a 'yaml_file' key,
                 a direct path to a YAML file, or None to use default configuration.
-            weights (str | Path | None): Path to pretrained weights file to load into the model.
+            weights (str | Path, optional): Path to pretrained weights file to load into the model.
             verbose (bool): Whether to display model information during initialization.
 
         Returns:
@@ -87,14 +89,14 @@ class YOLOETrainer(DetectionTrainer):
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
 
-    def build_dataset(self, img_path, mode="train", batch=None):
+    def build_dataset(self, img_path: str, mode: str = "train", batch: Optional[int] = None):
         """
         Build YOLO Dataset.
 
         Args:
             img_path (str): Path to the folder containing images.
-            mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
-            batch (int, optional): Size of batches, this is for `rect`.
+            mode (str): 'train' mode or 'val' mode, users are able to customize different augmentations for each mode.
+            batch (int, optional): Size of batches, this is for rectangular training.
 
         Returns:
             (Dataset): YOLO dataset configured for training or validation.
@@ -116,7 +118,7 @@ class YOLOEPETrainer(DetectionTrainer):
         get_model: Initialize YOLOEModel with frozen layers except projection layers.
     """
 
-    def get_model(self, cfg=None, weights=None, verbose=True):
+    def get_model(self, cfg=None, weights=None, verbose: bool = True):
         """
         Return YOLOEModel initialized with specified config and weights.
 
@@ -172,7 +174,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         generate_text_embeddings: Generate and cache text embeddings for training.
     """
 
-    def build_dataset(self, img_path, mode="train", batch=None):
+    def build_dataset(self, img_path: Union[List[str], str], mode: str = "train", batch: Optional[int] = None):
         """
         Build YOLO Dataset for training or validation.
 
@@ -199,7 +201,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         batch["txt_feats"] = txt_feats
         return batch
 
-    def generate_text_embeddings(self, texts, batch, cache_dir):
+    def generate_text_embeddings(self, texts: List[str], batch: int, cache_dir: Path):
         """
         Generate text embeddings for a list of text samples.
 
@@ -251,7 +253,7 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
         batch = DetectionTrainer.preprocess_batch(self, batch)
         return batch
 
-    def set_text_embeddings(self, datasets, batch):
+    def set_text_embeddings(self, datasets, batch: int):
         """
         Set text embeddings for datasets to accelerate training by caching category names.
 
@@ -283,7 +285,7 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
         preprocess_batch: Preprocess batches with visual prompts.
     """
 
-    def build_dataset(self, img_path, mode="train", batch=None):
+    def build_dataset(self, img_path: Union[List[str], str], mode: str = "train", batch: Optional[int] = None):
         """
         Build YOLO Dataset for training or validation with visual prompts.
 

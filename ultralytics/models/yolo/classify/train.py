@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from copy import copy
+from typing import Any, Dict, Optional
 
 import torch
 
@@ -22,7 +23,7 @@ class ClassificationTrainer(BaseTrainer):
 
     Attributes:
         model (ClassificationModel): The classification model to be trained.
-        data (dict): Dictionary containing dataset information including class names and number of classes.
+        data (Dict[str, Any]): Dictionary containing dataset information including class names and number of classes.
         loss_names (List[str]): Names of the loss functions used during training.
         validator (ClassificationValidator): Validator instance for model evaluation.
 
@@ -48,7 +49,7 @@ class ClassificationTrainer(BaseTrainer):
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: Optional[Dict[str, Any]] = None, _callbacks=None):
         """
         Initialize a ClassificationTrainer object.
 
@@ -56,9 +57,9 @@ class ClassificationTrainer(BaseTrainer):
         image size if not specified.
 
         Args:
-            cfg (dict, optional): Default configuration dictionary containing training parameters.
-            overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
-            _callbacks (list, optional): List of callback functions to be executed during training.
+            cfg (Dict[str, Any], optional): Default configuration dictionary containing training parameters.
+            overrides (Dict[str, Any], optional): Dictionary of parameter overrides for the default configuration.
+            _callbacks (List[Any], optional): List of callback functions to be executed during training.
 
         Examples:
             Create a trainer with custom configuration
@@ -78,14 +79,14 @@ class ClassificationTrainer(BaseTrainer):
         """Set the YOLO model's class names from the loaded dataset."""
         self.model.names = self.data["names"]
 
-    def get_model(self, cfg=None, weights=None, verbose=True):
+    def get_model(self, cfg=None, weights=None, verbose: bool = True):
         """
         Return a modified PyTorch model configured for training YOLO classification.
 
         Args:
-            cfg (Any): Model configuration.
-            weights (Any): Pre-trained model weights.
-            verbose (bool): Whether to display model information.
+            cfg (Any, optional): Model configuration.
+            weights (Any, optional): Pre-trained model weights.
+            verbose (bool, optional): Whether to display model information.
 
         Returns:
             (ClassificationModel): Configured PyTorch model for classification.
@@ -122,29 +123,29 @@ class ClassificationTrainer(BaseTrainer):
         ClassificationModel.reshape_outputs(self.model, self.data["nc"])
         return ckpt
 
-    def build_dataset(self, img_path, mode="train", batch=None):
+    def build_dataset(self, img_path: str, mode: str = "train", batch=None):
         """
         Create a ClassificationDataset instance given an image path and mode.
 
         Args:
             img_path (str): Path to the dataset images.
-            mode (str): Dataset mode ('train', 'val', or 'test').
-            batch (Any): Batch information (unused in this implementation).
+            mode (str, optional): Dataset mode ('train', 'val', or 'test').
+            batch (Any, optional): Batch information (unused in this implementation).
 
         Returns:
             (ClassificationDataset): Dataset for the specified mode.
         """
         return ClassificationDataset(root=img_path, args=self.args, augment=mode == "train", prefix=mode)
 
-    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
+    def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):
         """
         Return PyTorch DataLoader with transforms to preprocess images.
 
         Args:
             dataset_path (str): Path to the dataset.
-            batch_size (int): Number of images per batch.
-            rank (int): Process rank for distributed training.
-            mode (str): 'train', 'val', or 'test' mode.
+            batch_size (int, optional): Number of images per batch.
+            rank (int, optional): Process rank for distributed training.
+            mode (str, optional): 'train', 'val', or 'test' mode.
 
         Returns:
             (torch.utils.data.DataLoader): DataLoader for the specified dataset and mode.
@@ -161,13 +162,13 @@ class ClassificationTrainer(BaseTrainer):
                 self.model.transforms = loader.dataset.torch_transforms
         return loader
 
-    def preprocess_batch(self, batch):
+    def preprocess_batch(self, batch: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         """Preprocess a batch of images and classes."""
         batch["img"] = batch["img"].to(self.device)
         batch["cls"] = batch["cls"].to(self.device)
         return batch
 
-    def progress_string(self):
+    def progress_string(self) -> str:
         """Return a formatted string showing training progress."""
         return ("\n" + "%11s" * (4 + len(self.loss_names))) % (
             "Epoch",
@@ -184,17 +185,17 @@ class ClassificationTrainer(BaseTrainer):
             self.test_loader, self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
 
-    def label_loss_items(self, loss_items=None, prefix="train"):
+    def label_loss_items(self, loss_items: Optional[torch.Tensor] = None, prefix: str = "train"):
         """
         Return a loss dict with labelled training loss items tensor.
 
         Args:
             loss_items (torch.Tensor, optional): Loss tensor items.
-            prefix (str): Prefix to prepend to loss names.
+            prefix (str, optional): Prefix to prepend to loss names.
 
         Returns:
             keys (List[str]): List of loss keys if loss_items is None.
-            loss_dict (dict): Dictionary of loss items if loss_items is provided.
+            loss_dict (Dict[str, float]): Dictionary of loss items if loss_items is provided.
         """
         keys = [f"{prefix}/{x}" for x in self.loss_names]
         if loss_items is None:
@@ -219,12 +220,12 @@ class ClassificationTrainer(BaseTrainer):
                     self.metrics.pop("fitness", None)
                     self.run_callbacks("on_fit_epoch_end")
 
-    def plot_training_samples(self, batch, ni):
+    def plot_training_samples(self, batch: Dict[str, torch.Tensor], ni: int):
         """
         Plot training samples with their annotations.
 
         Args:
-            batch (dict): Batch containing images and class labels.
+            batch (Dict[str, torch.Tensor]): Batch containing images and class labels.
             ni (int): Number of iterations.
         """
         plot_images(

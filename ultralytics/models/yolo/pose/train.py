@@ -1,6 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from copy import copy
+from pathlib import Path
+from typing import Any, Dict, Optional, Union
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import PoseModel
@@ -19,14 +21,15 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         args (dict): Configuration arguments for training.
         model (PoseModel): The pose estimation model being trained.
         data (dict): Dataset configuration including keypoint shape information.
-        loss_names (Tuple[str]): Names of the loss components used in training.
+        loss_names (tuple): Names of the loss components used in training.
 
     Methods:
-        get_model: Retrieves a pose estimation model with specified configuration.
-        set_model_attributes: Sets keypoints shape attribute on the model.
-        get_validator: Creates a validator instance for model evaluation.
-        plot_training_samples: Visualizes training samples with keypoints.
-        plot_metrics: Generates and saves training/validation metric plots.
+        get_model: Retrieve a pose estimation model with specified configuration.
+        set_model_attributes: Set keypoints shape attribute on the model.
+        get_validator: Create a validator instance for model evaluation.
+        plot_training_samples: Visualize training samples with keypoints.
+        plot_metrics: Generate and save training/validation metric plots.
+        get_dataset: Retrieve the dataset and ensure it contains required kpt_shape key.
 
     Examples:
         >>> from ultralytics.models.yolo.pose import PoseTrainer
@@ -35,7 +38,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: Optional[Dict[str, Any]] = None, _callbacks=None):
         """
         Initialize a PoseTrainer object for training YOLO pose estimation models.
 
@@ -68,7 +71,12 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
                 "See https://github.com/ultralytics/ultralytics/issues/4031."
             )
 
-    def get_model(self, cfg=None, weights=None, verbose=True):
+    def get_model(
+        self,
+        cfg: Optional[Union[str, Path, Dict[str, Any]]] = None,
+        weights: Optional[Union[str, Path]] = None,
+        verbose: bool = True,
+    ) -> PoseModel:
         """
         Get pose estimation model with specified configuration and weights.
 
@@ -100,7 +108,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
 
-    def plot_training_samples(self, batch, ni):
+    def plot_training_samples(self, batch: Dict[str, Any], ni: int):
         """
         Plot a batch of training samples with annotated class labels, bounding boxes, and keypoints.
 
@@ -138,7 +146,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         """Plot training/validation metrics."""
         plot_results(file=self.csv, pose=True, on_plot=self.on_plot)  # save results.png
 
-    def get_dataset(self):
+    def get_dataset(self) -> Dict[str, Any]:
         """
         Retrieve the dataset and ensure it contains the required `kpt_shape` key.
 

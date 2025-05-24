@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+from typing import List
 
 import numpy as np
 import torch
@@ -17,9 +18,11 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some sys
 
 class VisualAISearch(BaseSolution):
     """
-    VisualAISearch leverages OpenCLIP to generate high-quality image and text embeddings, aligning them in a shared
-    semantic space. It then uses FAISS to perform fast and scalable similarity-based retrieval, allowing users to search
-    large collections of images using natural language queries with high accuracy and speed.
+    A semantic image search system that leverages OpenCLIP for generating high-quality image and text embeddings and
+    FAISS for fast similarity-based retrieval.
+
+    This class aligns image and text embeddings in a shared semantic space, enabling users to search large collections
+    of images using natural language queries with high accuracy and speed.
 
     Attributes:
         data (str): Directory containing images.
@@ -31,7 +34,7 @@ class VisualAISearch(BaseSolution):
         model: Loaded CLIP model.
         preprocess: CLIP preprocessing function.
         index: FAISS index for similarity search.
-        image_paths (list): List of image file paths.
+        image_paths (List[str]): List of image file paths.
 
     Methods:
         extract_image_feature: Extract CLIP embedding from an image.
@@ -74,14 +77,14 @@ class VisualAISearch(BaseSolution):
 
         self.load_or_build_index()
 
-    def extract_image_feature(self, path):
+    def extract_image_feature(self, path: Path) -> np.ndarray:
         """Extract CLIP image embedding from the given image path."""
         image = Image.open(path)
         tensor = self.preprocess(image).unsqueeze(0).to(self.device)
         with torch.no_grad():
             return self.model.encode_image(tensor).cpu().numpy()
 
-    def extract_text_feature(self, text):
+    def extract_text_feature(self, text: str) -> np.ndarray:
         """Extract CLIP text embedding from the given text query."""
         tokens = self.clip.tokenize([text]).to(self.device)
         with torch.no_grad():
@@ -132,17 +135,17 @@ class VisualAISearch(BaseSolution):
 
         self.LOGGER.info(f"Indexed {len(self.image_paths)} images.")
 
-    def search(self, query, k=30, similarity_thresh=0.1):
+    def search(self, query: str, k: int = 30, similarity_thresh: float = 0.1) -> List[str]:
         """
         Return top-k semantically similar images to the given query.
 
         Args:
             query (str): Natural language text query to search for.
-            k (int): Maximum number of results to return.
-            similarity_thresh (float): Minimum similarity threshold for filtering results.
+            k (int, optional): Maximum number of results to return.
+            similarity_thresh (float, optional): Minimum similarity threshold for filtering results.
 
         Returns:
-            (list): List of image filenames ranked by similarity score.
+            (List[str]): List of image filenames ranked by similarity score.
 
         Examples:
             Search for images matching a query
@@ -164,16 +167,17 @@ class VisualAISearch(BaseSolution):
 
         return [r[0] for r in results]
 
-    def __call__(self, query):
+    def __call__(self, query: str) -> List[str]:
         """Direct call interface for the search function."""
         return self.search(query)
 
 
 class SearchApp:
     """
-    A Flask-based web interface that powers the semantic image search experience, enabling users to input natural
-    language queries and instantly view the most relevant images retrieved from the indexed database through a clean,
-    responsive, and easily customizable frontend.
+    A Flask-based web interface for semantic image search with natural language queries.
+
+    This class provides a clean, responsive frontend that enables users to input natural language queries and
+    instantly view the most relevant images retrieved from the indexed database.
 
     Attributes:
         render_template: Flask template rendering function.
@@ -191,12 +195,12 @@ class SearchApp:
         >>> app.run(debug=True)
     """
 
-    def __init__(self, data="images", device=None):
+    def __init__(self, data: str = "images", device: str = None):
         """
         Initialize the SearchApp with VisualAISearch backend.
 
         Args:
-            data (str): Path to directory containing images to index and search.
+            data (str, optional): Path to directory containing images to index and search.
             device (str, optional): Device to run inference on (e.g. 'cpu', 'cuda').
         """
         check_requirements("flask")
@@ -221,6 +225,6 @@ class SearchApp:
             results = self.searcher(query)
         return self.render_template("similarity-search.html", results=results)
 
-    def run(self, debug=False):
+    def run(self, debug: bool = False):
         """Start the Flask web application server."""
         self.app.run(debug=debug)

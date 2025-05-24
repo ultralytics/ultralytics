@@ -82,7 +82,7 @@ class TrackZone(BaseSolution):
             )
 
         plot_im = annotator.result()
-        self.display_output(plot_im)  # display output with base class function
+        self.display_output(plot_im)  # Display output with base class function
 
         # Return a SolutionResults
         return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids))

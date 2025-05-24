@@ -37,9 +37,10 @@ class SAMModel(nn.Module):
         image_encoder (ImageEncoderViT): Backbone for encoding images into embeddings.
         prompt_encoder (PromptEncoder): Encoder for various types of input prompts.
         mask_decoder (MaskDecoder): Predicts object masks from image and prompt embeddings.
+        pixel_mean (torch.Tensor): Mean values for normalizing pixels in the input image.
+        pixel_std (torch.Tensor): Standard deviation values for normalizing pixels in the input image.
 
     Methods:
-        __init__: Initializes the SAMModel with encoders, decoder, and normalization parameters.
         set_imgsz: Set image size to make model compatible with different image sizes.
 
     Examples:
@@ -71,7 +72,7 @@ class SAMModel(nn.Module):
             prompt_encoder (PromptEncoder): Encodes various types of input prompts.
             mask_decoder (MaskDecoder): Predicts masks from the image embeddings and encoded prompts.
             pixel_mean (List[float]): Mean values for normalizing pixels in the input image.
-            pixel_std (List[float]): Std values for normalizing pixels in the input image.
+            pixel_std (List[float]): Standard deviation values for normalizing pixels in the input image.
 
         Examples:
             >>> image_encoder = ImageEncoderViT(...)
@@ -120,6 +121,42 @@ class SAM2Model(torch.nn.Module):
         sam_mask_decoder (SAM2MaskDecoder): Decoder for generating object masks.
         obj_ptr_proj (nn.Module): Projection layer for object pointers.
         obj_ptr_tpos_proj (nn.Module): Projection for temporal positional encoding in object pointers.
+        hidden_dim (int): Hidden dimension of the model.
+        mem_dim (int): Memory dimension for encoding features.
+        use_high_res_features_in_sam (bool): Whether to use high-resolution feature maps in the SAM mask decoder.
+        use_obj_ptrs_in_encoder (bool): Whether to cross-attend to object pointers from other frames in the encoder.
+        max_obj_ptrs_in_encoder (int): Maximum number of object pointers from other frames in encoder cross-attention.
+        add_tpos_enc_to_obj_ptrs (bool): Whether to add temporal positional encoding to object pointers.
+        proj_tpos_enc_in_obj_ptrs (bool): Whether to add an extra linear projection layer for temporal positional
+            encoding in object pointers.
+        use_signed_tpos_enc_to_obj_ptrs (bool): Whether to use signed distance in temporal positional encoding.
+        only_obj_ptrs_in_the_past_for_eval (bool): Whether to only attend to object pointers in the past during
+            evaluation.
+        pred_obj_scores (bool): Whether to predict if there is an object in the frame.
+        pred_obj_scores_mlp (bool): Whether to use an MLP to predict object scores.
+        fixed_no_obj_ptr (bool): Whether to have a fixed no-object pointer when there is no object present.
+        soft_no_obj_ptr (bool): Whether to mix in no-object pointer softly for easier recovery and error mitigation.
+        use_mlp_for_obj_ptr_proj (bool): Whether to use MLP for object pointer projection.
+        no_obj_embed_spatial (torch.Tensor | None): No-object embedding for spatial frames.
+        max_cond_frames_in_attn (int): Maximum number of conditioning frames to participate in memory attention.
+        directly_add_no_mem_embed (bool): Whether to directly add no-memory embedding to image feature on the
+            first frame.
+        multimask_output_in_sam (bool): Whether to output multiple masks for the first click on initial
+            conditioning frames.
+        multimask_min_pt_num (int): Minimum number of clicks to use multimask output in SAM.
+        multimask_max_pt_num (int): Maximum number of clicks to use multimask output in SAM.
+        multimask_output_for_tracking (bool): Whether to use multimask output for tracking.
+        use_multimask_token_for_obj_ptr (bool): Whether to use multimask tokens for object pointers.
+        iou_prediction_use_sigmoid (bool): Whether to use sigmoid to restrict IoU prediction to [0-1].
+        memory_temporal_stride_for_eval (int): Memory bank's temporal stride during evaluation.
+        non_overlap_masks_for_mem_enc (bool): Whether to apply non-overlapping constraints on object masks in
+            memory encoder during evaluation.
+        sigmoid_scale_for_mem_enc (float): Scale factor for mask sigmoid probability.
+        sigmoid_bias_for_mem_enc (float): Bias factor for mask sigmoid probability.
+        binarize_mask_from_pts_for_mem_enc (bool): Whether to binarize sigmoid mask logits on interacted frames
+            with clicks during evaluation.
+        use_mask_input_as_output_without_sam (bool): Whether to directly output the input mask without using SAM
+            prompt encoder and mask decoder on frames with mask input.
 
     Methods:
         forward_image: Process image batch through encoder to extract multi-level features.
@@ -194,7 +231,7 @@ class SAM2Model(torch.nn.Module):
             directly_add_no_mem_embed (bool): Whether to directly add no-memory embedding to image feature on the
                 first frame.
             use_high_res_features_in_sam (bool): Whether to use high-resolution feature maps in the SAM mask decoder.
-            multimask_output_in_sam (bool): Whether to output multiple (3) masks for the first click on initial
+            multimask_output_in_sam (bool): Whether to output multiple masks for the first click on initial
                 conditioning frames.
             multimask_min_pt_num (int): Minimum number of clicks to use multimask output in SAM.
             multimask_max_pt_num (int): Maximum number of clicks to use multimask output in SAM.
@@ -211,9 +248,8 @@ class SAM2Model(torch.nn.Module):
                 the encoder.
             proj_tpos_enc_in_obj_ptrs (bool): Whether to add an extra linear projection layer for temporal positional
                 encoding in object pointers.
-            use_signed_tpos_enc_to_obj_ptrs (bool): Whether to use signed distance (instead of unsigned absolute distance)
-                in the temporal positional encoding in the object pointers, only relevant when both
-                `use_obj_ptrs_in_encoder=True` and `add_tpos_enc_to_obj_ptrs=True`.
+            use_signed_tpos_enc_to_obj_ptrs (bool): Whether to use signed distance in the temporal positional encoding
+                in the object pointers.
             only_obj_ptrs_in_the_past_for_eval (bool): Whether to only attend to object pointers in the past
                 during evaluation.
             pred_obj_scores (bool): Whether to predict if there is an object in the frame.

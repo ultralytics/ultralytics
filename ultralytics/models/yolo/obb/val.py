@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from pathlib import Path
+from typing import Dict, List, Tuple, Union
 
 import torch
 
@@ -63,7 +64,7 @@ class OBBValidator(DetectionValidator):
         val = self.data.get(self.args.split, "")  # validation path
         self.is_dota = isinstance(val, str) and "DOTA" in val  # check if dataset is DOTA format
 
-    def _process_batch(self, detections, gt_bboxes, gt_cls):
+    def _process_batch(self, detections: torch.Tensor, gt_bboxes: torch.Tensor, gt_cls: torch.Tensor) -> torch.Tensor:
         """
         Compute the correct prediction matrix for a batch of detections and ground truth bounding boxes.
 
@@ -87,7 +88,7 @@ class OBBValidator(DetectionValidator):
         iou = batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:, -1:]], dim=-1))
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
-    def _prepare_batch(self, si, batch):
+    def _prepare_batch(self, si: int, batch: Dict) -> Dict:
         """
         Prepare batch data for OBB validation with proper scaling and formatting.
 
@@ -101,8 +102,8 @@ class OBBValidator(DetectionValidator):
                 - img: Batch of images
                 - ratio_pad: Ratio and padding information
 
-        This method filters the batch data for a specific batch index, extracts class labels and bounding boxes,
-        and scales the bounding boxes to the original image dimensions.
+        Returns:
+            (dict): Prepared batch data with scaled bounding boxes and metadata.
         """
         idx = batch["batch_idx"] == si
         cls = batch["cls"][idx].squeeze(-1)
@@ -115,7 +116,7 @@ class OBBValidator(DetectionValidator):
             ops.scale_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad, xywh=True)  # native-space labels
         return {"cls": cls, "bbox": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
 
-    def _prepare_pred(self, pred, pbatch):
+    def _prepare_pred(self, pred: torch.Tensor, pbatch: Dict) -> torch.Tensor:
         """
         Prepare predictions by scaling bounding boxes to original image dimensions.
 
@@ -138,7 +139,7 @@ class OBBValidator(DetectionValidator):
         )  # native-space pred
         return predn
 
-    def plot_predictions(self, batch, preds, ni):
+    def plot_predictions(self, batch: Dict, preds: List[torch.Tensor], ni: int):
         """
         Plot predicted bounding boxes on input images and save the result.
 
@@ -162,7 +163,7 @@ class OBBValidator(DetectionValidator):
             on_plot=self.on_plot,
         )  # pred
 
-    def pred_to_json(self, predn, filename):
+    def pred_to_json(self, predn: torch.Tensor, filename: Union[str, Path]):
         """
         Convert YOLO predictions to COCO JSON format with rotated bounding box information.
 
@@ -191,7 +192,7 @@ class OBBValidator(DetectionValidator):
                 }
             )
 
-    def save_one_txt(self, predn, save_conf, shape, file):
+    def save_one_txt(self, predn: torch.Tensor, save_conf: bool, shape: Tuple[int, int], file: Union[Path, str]):
         """
         Save YOLO OBB detections to a text file in normalized coordinates.
 
@@ -221,8 +222,16 @@ class OBBValidator(DetectionValidator):
             obb=obb,
         ).save_txt(file, save_conf=save_conf)
 
-    def eval_json(self, stats):
-        """Evaluate YOLO output in JSON format and save predictions in DOTA format."""
+    def eval_json(self, stats: Dict) -> Dict:
+        """
+        Evaluate YOLO output in JSON format and save predictions in DOTA format.
+
+        Args:
+            stats (dict): Performance statistics dictionary.
+
+        Returns:
+            (dict): Updated performance statistics.
+        """
         if self.args.save_json and self.is_dota and len(self.jdict):
             import json
             import re

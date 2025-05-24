@@ -10,7 +10,7 @@
 # --------------------------------------------------------
 
 import itertools
-from typing import Tuple
+from typing import List, Optional, Tuple, Union
 
 import torch
 import torch.nn as nn
@@ -24,32 +24,46 @@ class Conv2d_BN(torch.nn.Sequential):
     """
     A sequential container that performs 2D convolution followed by batch normalization.
 
+    This module combines a 2D convolution layer with batch normalization, providing a common building block
+    for convolutional neural networks. The batch normalization weights and biases are initialized to specific
+    values for optimal training performance.
+
     Attributes:
         c (torch.nn.Conv2d): 2D convolution layer.
         bn (torch.nn.BatchNorm2d): Batch normalization layer.
-
-    Methods:
-        __init__: Initializes the Conv2d_BN with specified parameters.
-
-    Args:
-        a (int): Number of input channels.
-        b (int): Number of output channels.
-        ks (int): Kernel size for the convolution.
-        stride (int): Stride for the convolution.
-        pad (int): Padding for the convolution.
-        dilation (int): Dilation factor for the convolution.
-        groups (int): Number of groups for the convolution.
-        bn_weight_init (float): Initial value for batch normalization weight.
 
     Examples:
         >>> conv_bn = Conv2d_BN(3, 64, ks=3, stride=1, pad=1)
         >>> input_tensor = torch.randn(1, 3, 224, 224)
         >>> output = conv_bn(input_tensor)
         >>> print(output.shape)
+        torch.Size([1, 64, 224, 224])
     """
 
-    def __init__(self, a, b, ks=1, stride=1, pad=0, dilation=1, groups=1, bn_weight_init=1):
-        """Initialize a sequential container with 2D convolution followed by batch normalization."""
+    def __init__(
+        self,
+        a: int,
+        b: int,
+        ks: int = 1,
+        stride: int = 1,
+        pad: int = 0,
+        dilation: int = 1,
+        groups: int = 1,
+        bn_weight_init: float = 1,
+    ):
+        """
+        Initialize a sequential container with 2D convolution followed by batch normalization.
+
+        Args:
+            a (int): Number of input channels.
+            b (int): Number of output channels.
+            ks (int, optional): Kernel size for the convolution.
+            stride (int, optional): Stride for the convolution.
+            pad (int, optional): Padding for the convolution.
+            dilation (int, optional): Dilation factor for the convolution.
+            groups (int, optional): Number of groups for the convolution.
+            bn_weight_init (float, optional): Initial value for batch normalization weight.
+        """
         super().__init__()
         self.add_module("c", torch.nn.Conv2d(a, b, ks, stride, pad, dilation, groups, bias=False))
         bn = torch.nn.BatchNorm2d(b)
@@ -62,6 +76,9 @@ class PatchEmbed(nn.Module):
     """
     Embed images into patches and project them into a specified embedding dimension.
 
+    This module converts input images into patch embeddings using a sequence of convolutional layers,
+    effectively downsampling the spatial dimensions while increasing the channel dimension.
+
     Attributes:
         patches_resolution (Tuple[int, int]): Resolution of the patches after embedding.
         num_patches (int): Total number of patches.
@@ -69,19 +86,25 @@ class PatchEmbed(nn.Module):
         embed_dim (int): Dimension of the embedding.
         seq (nn.Sequential): Sequence of convolutional and activation layers for patch embedding.
 
-    Methods:
-        forward: Process the input tensor through the patch embedding sequence.
-
     Examples:
         >>> import torch
         >>> patch_embed = PatchEmbed(in_chans=3, embed_dim=96, resolution=224, activation=nn.GELU)
         >>> x = torch.randn(1, 3, 224, 224)
         >>> output = patch_embed(x)
         >>> print(output.shape)
+        torch.Size([1, 96, 56, 56])
     """
 
-    def __init__(self, in_chans, embed_dim, resolution, activation):
-        """Initialize patch embedding with convolutional layers for image-to-patch conversion and projection."""
+    def __init__(self, in_chans: int, embed_dim: int, resolution: int, activation):
+        """
+        Initialize patch embedding with convolutional layers for image-to-patch conversion and projection.
+
+        Args:
+            in_chans (int): Number of input channels.
+            embed_dim (int): Dimension of the embedding.
+            resolution (int): Input image resolution.
+            activation: Activation function to use between convolutions.
+        """
         super().__init__()
         img_size: Tuple[int, int] = to_2tuple(resolution)
         self.patches_resolution = (img_size[0] // 4, img_size[1] // 4)
@@ -95,7 +118,7 @@ class PatchEmbed(nn.Module):
             Conv2d_BN(n // 2, n, 3, 2, 1),
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Process input tensor through patch embedding sequence, converting images to patch embeddings."""
         return self.seq(x)
 
@@ -104,20 +127,20 @@ class MBConv(nn.Module):
     """
     Mobile Inverted Bottleneck Conv (MBConv) layer, part of the EfficientNet architecture.
 
+    This module implements the mobile inverted bottleneck convolution with expansion, depthwise convolution,
+    and projection phases, along with residual connections for improved gradient flow.
+
     Attributes:
         in_chans (int): Number of input channels.
-        hidden_chans (int): Number of hidden channels.
+        hidden_chans (int): Number of hidden channels after expansion.
         out_chans (int): Number of output channels.
-        conv1 (Conv2d_BN): First convolutional layer.
+        conv1 (Conv2d_BN): First convolutional layer for channel expansion.
         act1 (nn.Module): First activation function.
         conv2 (Conv2d_BN): Depthwise convolutional layer.
         act2 (nn.Module): Second activation function.
-        conv3 (Conv2d_BN): Final convolutional layer.
+        conv3 (Conv2d_BN): Final convolutional layer for projection.
         act3 (nn.Module): Third activation function.
         drop_path (nn.Module): Drop path layer (Identity for inference).
-
-    Methods:
-        forward: Perform the forward pass through the MBConv layer.
 
     Examples:
         >>> in_chans, out_chans = 32, 64
@@ -128,8 +151,17 @@ class MBConv(nn.Module):
         torch.Size([1, 64, 56, 56])
     """
 
-    def __init__(self, in_chans, out_chans, expand_ratio, activation, drop_path):
-        """Initialize the MBConv layer with specified input/output channels, expansion ratio, and activation."""
+    def __init__(self, in_chans: int, out_chans: int, expand_ratio: float, activation, drop_path: float):
+        """
+        Initialize the MBConv layer with specified input/output channels, expansion ratio, and activation.
+
+        Args:
+            in_chans (int): Number of input channels.
+            out_chans (int): Number of output channels.
+            expand_ratio (float): Channel expansion ratio for the hidden layer.
+            activation: Activation function to use.
+            drop_path (float): Drop path rate for stochastic depth.
+        """
         super().__init__()
         self.in_chans = in_chans
         self.hidden_chans = int(in_chans * expand_ratio)
@@ -148,7 +180,7 @@ class MBConv(nn.Module):
         # self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
         self.drop_path = nn.Identity()
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Implement the forward pass of MBConv, applying convolutions and skip connection."""
         shortcut = x
         x = self.conv1(x)
@@ -166,7 +198,8 @@ class PatchMerging(nn.Module):
     Merge neighboring patches in the feature map and project to a new dimension.
 
     This class implements a patch merging operation that combines spatial information and adjusts the feature
-    dimension. It uses a series of convolutional layers with batch normalization to achieve this.
+    dimension using a series of convolutional layers with batch normalization. It effectively reduces spatial
+    resolution while potentially increasing channel dimensions.
 
     Attributes:
         input_resolution (Tuple[int, int]): The input resolution (height, width) of the feature map.
@@ -177,19 +210,25 @@ class PatchMerging(nn.Module):
         conv2 (Conv2d_BN): The second convolutional layer for spatial merging.
         conv3 (Conv2d_BN): The third convolutional layer for final projection.
 
-    Methods:
-        forward: Apply the patch merging operation to the input tensor.
-
     Examples:
         >>> input_resolution = (56, 56)
         >>> patch_merging = PatchMerging(input_resolution, dim=64, out_dim=128, activation=nn.ReLU)
         >>> x = torch.randn(4, 64, 56, 56)
         >>> output = patch_merging(x)
         >>> print(output.shape)
+        torch.Size([4, 3136, 128])
     """
 
-    def __init__(self, input_resolution, dim, out_dim, activation):
-        """Initialize the PatchMerging module for merging and projecting neighboring patches in feature maps."""
+    def __init__(self, input_resolution: Tuple[int, int], dim: int, out_dim: int, activation):
+        """
+        Initialize the PatchMerging module for merging and projecting neighboring patches in feature maps.
+
+        Args:
+            input_resolution (Tuple[int, int]): The input resolution (height, width) of the feature map.
+            dim (int): The input dimension of the feature map.
+            out_dim (int): The output dimension after merging and projection.
+            activation: The activation function used between convolutions.
+        """
         super().__init__()
 
         self.input_resolution = input_resolution
@@ -201,7 +240,7 @@ class PatchMerging(nn.Module):
         self.conv2 = Conv2d_BN(out_dim, out_dim, 3, stride_c, 1, groups=out_dim)
         self.conv3 = Conv2d_BN(out_dim, out_dim, 1, 1, 0)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Apply patch merging and dimension projection to the input feature map."""
         if x.ndim == 3:
             H, W = self.input_resolution
@@ -222,7 +261,8 @@ class ConvLayer(nn.Module):
     """
     Convolutional Layer featuring multiple MobileNetV3-style inverted bottleneck convolutions (MBConv).
 
-    This layer optionally applies downsample operations to the output and supports gradient checkpointing.
+    This layer optionally applies downsample operations to the output and supports gradient checkpointing
+    for memory efficiency during training.
 
     Attributes:
         dim (int): Dimensionality of the input and output.
@@ -230,29 +270,27 @@ class ConvLayer(nn.Module):
         depth (int): Number of MBConv layers in the block.
         use_checkpoint (bool): Whether to use gradient checkpointing to save memory.
         blocks (nn.ModuleList): List of MBConv layers.
-        downsample (Optional[Callable]): Function for downsampling the output.
-
-    Methods:
-        forward: Process the input through the convolutional layers.
+        downsample (Optional[nn.Module]): Function for downsampling the output.
 
     Examples:
         >>> input_tensor = torch.randn(1, 64, 56, 56)
         >>> conv_layer = ConvLayer(64, (56, 56), depth=3, activation=nn.ReLU)
         >>> output = conv_layer(input_tensor)
         >>> print(output.shape)
+        torch.Size([1, 3136, 128])
     """
 
     def __init__(
         self,
-        dim,
-        input_resolution,
-        depth,
+        dim: int,
+        input_resolution: Tuple[int, int],
+        depth: int,
         activation,
-        drop_path=0.0,
-        downsample=None,
-        use_checkpoint=False,
-        out_dim=None,
-        conv_expand_ratio=4.0,
+        drop_path: Union[float, List[float]] = 0.0,
+        downsample: Optional[nn.Module] = None,
+        use_checkpoint: bool = False,
+        out_dim: Optional[int] = None,
+        conv_expand_ratio: float = 4.0,
     ):
         """
         Initialize the ConvLayer with the given dimensions and settings.
@@ -264,18 +302,12 @@ class ConvLayer(nn.Module):
             dim (int): The dimensionality of the input and output.
             input_resolution (Tuple[int, int]): The resolution of the input image.
             depth (int): The number of MBConv layers in the block.
-            activation (nn.Module): Activation function applied after each convolution.
-            drop_path (float | List[float]): Drop path rate. Single float or a list of floats for each MBConv.
-            downsample (Optional[nn.Module]): Function for downsampling the output. None to skip downsampling.
-            use_checkpoint (bool): Whether to use gradient checkpointing to save memory.
-            out_dim (Optional[int]): The dimensionality of the output. None means it will be the same as `dim`.
-            conv_expand_ratio (float): Expansion ratio for the MBConv layers.
-
-        Examples:
-            >>> input_tensor = torch.randn(1, 64, 56, 56)
-            >>> conv_layer = ConvLayer(64, (56, 56), depth=3, activation=nn.ReLU)
-            >>> output = conv_layer(input_tensor)
-            >>> print(output.shape)
+            activation: Activation function applied after each convolution.
+            drop_path (float | List[float], optional): Drop path rate. Single float or a list of floats for each MBConv.
+            downsample (Optional[nn.Module], optional): Function for downsampling the output. None to skip downsampling.
+            use_checkpoint (bool, optional): Whether to use gradient checkpointing to save memory.
+            out_dim (Optional[int], optional): The dimensionality of the output. None means it will be the same as `dim`.
+            conv_expand_ratio (float, optional): Expansion ratio for the MBConv layers.
         """
         super().__init__()
         self.dim = dim
@@ -304,7 +336,7 @@ class ConvLayer(nn.Module):
             else downsample(input_resolution, dim=dim, out_dim=out_dim, activation=activation)
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Process input through convolutional layers, applying MBConv blocks and optional downsampling."""
         for blk in self.blocks:
             x = torch.utils.checkpoint(blk, x) if self.use_checkpoint else blk(x)  # warn: checkpoint is slow import
@@ -316,7 +348,7 @@ class Mlp(nn.Module):
     Multi-layer Perceptron (MLP) module for transformer architectures.
 
     This module applies layer normalization, two fully-connected layers with an activation function in between,
-    and dropout. It is commonly used in transformer-based architectures.
+    and dropout. It is commonly used in transformer-based architectures for processing token embeddings.
 
     Attributes:
         norm (nn.LayerNorm): Layer normalization applied to the input.
@@ -324,9 +356,6 @@ class Mlp(nn.Module):
         fc2 (nn.Linear): Second fully-connected layer.
         act (nn.Module): Activation function applied after the first fully-connected layer.
         drop (nn.Dropout): Dropout layer applied after the activation function.
-
-    Methods:
-        forward: Apply the MLP operations on the input tensor.
 
     Examples:
         >>> import torch
@@ -338,8 +367,24 @@ class Mlp(nn.Module):
         torch.Size([32, 100, 256])
     """
 
-    def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.0):
-        """Initialize a multi-layer perceptron with configurable input, hidden, and output dimensions."""
+    def __init__(
+        self,
+        in_features: int,
+        hidden_features: Optional[int] = None,
+        out_features: Optional[int] = None,
+        act_layer=nn.GELU,
+        drop: float = 0.0,
+    ):
+        """
+        Initialize a multi-layer perceptron with configurable input, hidden, and output dimensions.
+
+        Args:
+            in_features (int): Number of input features.
+            hidden_features (Optional[int], optional): Number of hidden features.
+            out_features (Optional[int], optional): Number of output features.
+            act_layer: Activation layer class.
+            drop (float, optional): Dropout probability.
+        """
         super().__init__()
         out_features = out_features or in_features
         hidden_features = hidden_features or in_features
@@ -349,7 +394,7 @@ class Mlp(nn.Module):
         self.act = act_layer()
         self.drop = nn.Dropout(drop)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Apply MLP operations: layer norm, FC layers, activation, and dropout to the input tensor."""
         x = self.norm(x)
         x = self.fc1(x)
@@ -379,12 +424,8 @@ class Attention(torch.nn.Module):
         qkv (nn.Linear): Linear layer for computing query, key, and value projections.
         proj (nn.Linear): Linear layer for final projection.
         attention_biases (nn.Parameter): Learnable attention biases.
-        attention_bias_idxs (Tensor): Indices for attention biases.
-        ab (Tensor): Cached attention biases for inference, deleted during training.
-
-    Methods:
-        train: Set the module in training mode and handle the 'ab' attribute.
-        forward: Perform the forward pass of the attention mechanism.
+        attention_bias_idxs (torch.Tensor): Indices for attention biases.
+        ab (torch.Tensor): Cached attention biases for inference, deleted during training.
 
     Examples:
         >>> attn = Attention(dim=256, key_dim=64, num_heads=8, resolution=(14, 14))
@@ -396,11 +437,11 @@ class Attention(torch.nn.Module):
 
     def __init__(
         self,
-        dim,
-        key_dim,
-        num_heads=8,
-        attn_ratio=4,
-        resolution=(14, 14),
+        dim: int,
+        key_dim: int,
+        num_heads: int = 8,
+        attn_ratio: float = 4,
+        resolution: Tuple[int, int] = (14, 14),
     ):
         """
         Initialize the Attention module for multi-head attention with spatial awareness.
@@ -412,16 +453,9 @@ class Attention(torch.nn.Module):
         Args:
             dim (int): The dimensionality of the input and output.
             key_dim (int): The dimensionality of the keys and queries.
-            num_heads (int): Number of attention heads.
-            attn_ratio (float): Attention ratio, affecting the dimensions of the value vectors.
-            resolution (Tuple[int, int]): Spatial resolution of the input feature map.
-
-        Examples:
-            >>> attn = Attention(dim=256, key_dim=64, num_heads=8, resolution=(14, 14))
-            >>> x = torch.randn(1, 196, 256)
-            >>> output = attn(x)
-            >>> print(output.shape)
-            torch.Size([1, 196, 256])
+            num_heads (int, optional): Number of attention heads.
+            attn_ratio (float, optional): Attention ratio, affecting the dimensions of the value vectors.
+            resolution (Tuple[int, int], optional): Spatial resolution of the input feature map.
         """
         super().__init__()
 
@@ -453,7 +487,7 @@ class Attention(torch.nn.Module):
         self.register_buffer("attention_bias_idxs", torch.LongTensor(idxs).view(N, N), persistent=False)
 
     @torch.no_grad()
-    def train(self, mode=True):
+    def train(self, mode: bool = True):
         """Set the module in training mode and handle the 'ab' attribute for cached attention biases."""
         super().train(mode)
         if mode and hasattr(self, "ab"):
@@ -461,7 +495,7 @@ class Attention(torch.nn.Module):
         else:
             self.ab = self.attention_biases[:, self.attention_bias_idxs]
 
-    def forward(self, x):  # x
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Apply multi-head attention with spatial awareness and trainable attention biases."""
         B, N, _ = x.shape  # B, N, C
 
@@ -490,7 +524,8 @@ class TinyViTBlock(nn.Module):
     TinyViT Block that applies self-attention and a local convolution to the input.
 
     This block is a key component of the TinyViT architecture, combining self-attention mechanisms with
-    local convolutions to process input features efficiently.
+    local convolutions to process input features efficiently. It supports windowed attention for
+    computational efficiency and includes residual connections.
 
     Attributes:
         dim (int): The dimensionality of the input and output.
@@ -503,10 +538,6 @@ class TinyViTBlock(nn.Module):
         mlp (Mlp): Multi-layer perceptron module.
         local_conv (Conv2d_BN): Depth-wise local convolution layer.
 
-    Methods:
-        forward: Process the input through the TinyViT block.
-        extra_repr: Return a string with extra information about the block's parameters.
-
     Examples:
         >>> input_tensor = torch.randn(1, 196, 192)
         >>> block = TinyViTBlock(dim=192, input_resolution=(14, 14), num_heads=3)
@@ -517,14 +548,14 @@ class TinyViTBlock(nn.Module):
 
     def __init__(
         self,
-        dim,
-        input_resolution,
-        num_heads,
-        window_size=7,
-        mlp_ratio=4.0,
-        drop=0.0,
-        drop_path=0.0,
-        local_conv_size=3,
+        dim: int,
+        input_resolution: Tuple[int, int],
+        num_heads: int,
+        window_size: int = 7,
+        mlp_ratio: float = 4.0,
+        drop: float = 0.0,
+        drop_path: float = 0.0,
+        local_conv_size: int = 3,
         activation=nn.GELU,
     ):
         """
@@ -537,23 +568,12 @@ class TinyViTBlock(nn.Module):
             dim (int): Dimensionality of the input and output features.
             input_resolution (Tuple[int, int]): Spatial resolution of the input feature map (height, width).
             num_heads (int): Number of attention heads.
-            window_size (int): Size of the attention window. Must be greater than 0.
-            mlp_ratio (float): Ratio of MLP hidden dimension to embedding dimension.
-            drop (float): Dropout rate.
-            drop_path (float): Stochastic depth rate.
-            local_conv_size (int): Kernel size of the local convolution.
-            activation (torch.nn.Module): Activation function for MLP.
-
-        Raises:
-            AssertionError: If window_size is not greater than 0.
-            AssertionError: If dim is not divisible by num_heads.
-
-        Examples:
-            >>> block = TinyViTBlock(dim=192, input_resolution=(14, 14), num_heads=3)
-            >>> input_tensor = torch.randn(1, 196, 192)
-            >>> output = block(input_tensor)
-            >>> print(output.shape)
-            torch.Size([1, 196, 192])
+            window_size (int, optional): Size of the attention window. Must be greater than 0.
+            mlp_ratio (float, optional): Ratio of MLP hidden dimension to embedding dimension.
+            drop (float, optional): Dropout rate.
+            drop_path (float, optional): Stochastic depth rate.
+            local_conv_size (int, optional): Kernel size of the local convolution.
+            activation: Activation function for MLP.
         """
         super().__init__()
         self.dim = dim
@@ -580,7 +600,7 @@ class TinyViTBlock(nn.Module):
         pad = local_conv_size // 2
         self.local_conv = Conv2d_BN(dim, dim, ks=local_conv_size, stride=1, pad=pad, groups=dim)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Apply self-attention, local convolution, and MLP operations to the input tensor."""
         h, w = self.input_resolution
         b, hw, c = x.shape  # batch, height*width, channels
@@ -648,7 +668,8 @@ class BasicLayer(nn.Module):
     A basic TinyViT layer for one stage in a TinyViT architecture.
 
     This class represents a single layer in the TinyViT model, consisting of multiple TinyViT blocks
-    and an optional downsampling operation.
+    and an optional downsampling operation. It processes features at a specific resolution and
+    dimensionality within the overall architecture.
 
     Attributes:
         dim (int): The dimensionality of the input and output features.
@@ -657,10 +678,6 @@ class BasicLayer(nn.Module):
         use_checkpoint (bool): Whether to use gradient checkpointing to save memory.
         blocks (nn.ModuleList): List of TinyViT blocks that make up this layer.
         downsample (nn.Module | None): Downsample layer at the end of the layer, if specified.
-
-    Methods:
-        forward: Process the input through the layer's blocks and optional downsampling.
-        extra_repr: Return a string with the layer's parameters for printing.
 
     Examples:
         >>> input_tensor = torch.randn(1, 3136, 192)
@@ -672,19 +689,19 @@ class BasicLayer(nn.Module):
 
     def __init__(
         self,
-        dim,
-        input_resolution,
-        depth,
-        num_heads,
-        window_size,
-        mlp_ratio=4.0,
-        drop=0.0,
-        drop_path=0.0,
-        downsample=None,
-        use_checkpoint=False,
-        local_conv_size=3,
+        dim: int,
+        input_resolution: Tuple[int, int],
+        depth: int,
+        num_heads: int,
+        window_size: int,
+        mlp_ratio: float = 4.0,
+        drop: float = 0.0,
+        drop_path: Union[float, List[float]] = 0.0,
+        downsample: Optional[nn.Module] = None,
+        use_checkpoint: bool = False,
+        local_conv_size: int = 3,
         activation=nn.GELU,
-        out_dim=None,
+        out_dim: Optional[int] = None,
     ):
         """
         Initialize a BasicLayer in the TinyViT architecture.
@@ -698,23 +715,14 @@ class BasicLayer(nn.Module):
             depth (int): Number of TinyViT blocks in this layer.
             num_heads (int): Number of attention heads in each TinyViT block.
             window_size (int): Size of the local window for attention computation.
-            mlp_ratio (float): Ratio of MLP hidden dimension to embedding dimension.
-            drop (float): Dropout rate.
-            drop_path (float | List[float]): Stochastic depth rate. Can be a float or a list of floats for each block.
-            downsample (nn.Module | None): Downsampling layer at the end of the layer. None to skip downsampling.
-            use_checkpoint (bool): Whether to use gradient checkpointing to save memory.
-            local_conv_size (int): Kernel size for the local convolution in each TinyViT block.
-            activation (nn.Module): Activation function used in the MLP.
-            out_dim (int | None): Output dimension after downsampling. None means it will be the same as `dim`.
-
-        Raises:
-            ValueError: If `drop_path` is a list and its length doesn't match `depth`.
-
-        Examples:
-            >>> layer = BasicLayer(dim=96, input_resolution=(56, 56), depth=2, num_heads=3, window_size=7)
-            >>> x = torch.randn(1, 56 * 56, 96)
-            >>> output = layer(x)
-            >>> print(output.shape)
+            mlp_ratio (float, optional): Ratio of MLP hidden dimension to embedding dimension.
+            drop (float, optional): Dropout rate.
+            drop_path (float | List[float], optional): Stochastic depth rate. Can be a float or a list of floats for each block.
+            downsample (nn.Module | None, optional): Downsampling layer at the end of the layer. None to skip downsampling.
+            use_checkpoint (bool, optional): Whether to use gradient checkpointing to save memory.
+            local_conv_size (int, optional): Kernel size for the local convolution in each TinyViT block.
+            activation: Activation function used in the MLP.
+            out_dim (int | None, optional): Output dimension after downsampling. None means it will be the same as `dim`.
         """
         super().__init__()
         self.dim = dim
@@ -747,7 +755,7 @@ class BasicLayer(nn.Module):
             else downsample(input_resolution, dim=dim, out_dim=out_dim, activation=activation)
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Process input through TinyViT blocks and optional downsampling."""
         for blk in self.blocks:
             x = torch.utils.checkpoint(blk, x) if self.use_checkpoint else blk(x)  # warn: checkpoint is slow import
@@ -763,12 +771,13 @@ class TinyViT(nn.Module):
     TinyViT: A compact vision transformer architecture for efficient image classification and feature extraction.
 
     This class implements the TinyViT model, which combines elements of vision transformers and convolutional
-    neural networks for improved efficiency and performance on vision tasks.
+    neural networks for improved efficiency and performance on vision tasks. It features hierarchical processing
+    with patch embedding, multiple stages of attention and convolution blocks, and a feature refinement neck.
 
     Attributes:
         img_size (int): Input image size.
         num_classes (int): Number of classification classes.
-        depths (List[int]): Number of blocks in each stage.
+        depths (Tuple[int, int, int, int]): Number of blocks in each stage.
         num_layers (int): Total number of layers in the network.
         mlp_ratio (float): Ratio of MLP hidden dimension to embedding dimension.
         patch_embed (PatchEmbed): Module for patch embedding.
@@ -778,37 +787,30 @@ class TinyViT(nn.Module):
         head (nn.Linear): Linear layer for final classification.
         neck (nn.Sequential): Neck module for feature refinement.
 
-    Methods:
-        set_layer_lr_decay: Set layer-wise learning rate decay.
-        _init_weights: Initialize weights for linear and normalization layers.
-        no_weight_decay_keywords: Return keywords for parameters that should not use weight decay.
-        forward_features: Process input through the feature extraction layers.
-        forward: Perform a forward pass through the entire network.
-
     Examples:
         >>> model = TinyViT(img_size=224, num_classes=1000)
         >>> x = torch.randn(1, 3, 224, 224)
         >>> features = model.forward_features(x)
         >>> print(features.shape)
-        torch.Size([1, 256, 64, 64])
+        torch.Size([1, 256, 56, 56])
     """
 
     def __init__(
         self,
-        img_size=224,
-        in_chans=3,
-        num_classes=1000,
-        embed_dims=(96, 192, 384, 768),
-        depths=(2, 2, 6, 2),
-        num_heads=(3, 6, 12, 24),
-        window_sizes=(7, 7, 14, 7),
-        mlp_ratio=4.0,
-        drop_rate=0.0,
-        drop_path_rate=0.1,
-        use_checkpoint=False,
-        mbconv_expand_ratio=4.0,
-        local_conv_size=3,
-        layer_lr_decay=1.0,
+        img_size: int = 224,
+        in_chans: int = 3,
+        num_classes: int = 1000,
+        embed_dims: Tuple[int, int, int, int] = (96, 192, 384, 768),
+        depths: Tuple[int, int, int, int] = (2, 2, 6, 2),
+        num_heads: Tuple[int, int, int, int] = (3, 6, 12, 24),
+        window_sizes: Tuple[int, int, int, int] = (7, 7, 14, 7),
+        mlp_ratio: float = 4.0,
+        drop_rate: float = 0.0,
+        drop_path_rate: float = 0.1,
+        use_checkpoint: bool = False,
+        mbconv_expand_ratio: float = 4.0,
+        local_conv_size: int = 3,
+        layer_lr_decay: float = 1.0,
     ):
         """
         Initialize the TinyViT model.
@@ -817,27 +819,20 @@ class TinyViT(nn.Module):
         attention and convolution blocks, and a classification head.
 
         Args:
-            img_size (int): Size of the input image.
-            in_chans (int): Number of input channels.
-            num_classes (int): Number of classes for classification.
-            embed_dims (Tuple[int, int, int, int]): Embedding dimensions for each stage.
-            depths (Tuple[int, int, int, int]): Number of blocks in each stage.
-            num_heads (Tuple[int, int, int, int]): Number of attention heads in each stage.
-            window_sizes (Tuple[int, int, int, int]): Window sizes for each stage.
-            mlp_ratio (float): Ratio of MLP hidden dim to embedding dim.
-            drop_rate (float): Dropout rate.
-            drop_path_rate (float): Stochastic depth rate.
-            use_checkpoint (bool): Whether to use checkpointing to save memory.
-            mbconv_expand_ratio (float): Expansion ratio for MBConv layer.
-            local_conv_size (int): Kernel size for local convolutions.
-            layer_lr_decay (float): Layer-wise learning rate decay factor.
-
-        Examples:
-            >>> model = TinyViT(img_size=224, num_classes=1000)
-            >>> x = torch.randn(1, 3, 224, 224)
-            >>> output = model(x)
-            >>> print(output.shape)
-            torch.Size([1, 1000])
+            img_size (int, optional): Size of the input image.
+            in_chans (int, optional): Number of input channels.
+            num_classes (int, optional): Number of classes for classification.
+            embed_dims (Tuple[int, int, int, int], optional): Embedding dimensions for each stage.
+            depths (Tuple[int, int, int, int], optional): Number of blocks in each stage.
+            num_heads (Tuple[int, int, int, int], optional): Number of attention heads in each stage.
+            window_sizes (Tuple[int, int, int, int], optional): Window sizes for each stage.
+            mlp_ratio (float, optional): Ratio of MLP hidden dim to embedding dim.
+            drop_rate (float, optional): Dropout rate.
+            drop_path_rate (float, optional): Stochastic depth rate.
+            use_checkpoint (bool, optional): Whether to use checkpointing to save memory.
+            mbconv_expand_ratio (float, optional): Expansion ratio for MBConv layer.
+            local_conv_size (int, optional): Kernel size for local convolutions.
+            layer_lr_decay (float, optional): Layer-wise learning rate decay factor.
         """
         super().__init__()
         self.img_size = img_size
@@ -914,7 +909,7 @@ class TinyViT(nn.Module):
             LayerNorm2d(256),
         )
 
-    def set_layer_lr_decay(self, layer_lr_decay):
+    def set_layer_lr_decay(self, layer_lr_decay: float):
         """Set layer-wise learning rate decay for the TinyViT model based on depth."""
         decay_rate = layer_lr_decay
 
@@ -966,7 +961,7 @@ class TinyViT(nn.Module):
         """Return a set of keywords for parameters that should not use weight decay."""
         return {"attention_biases"}
 
-    def forward_features(self, x):
+    def forward_features(self, x: torch.Tensor) -> torch.Tensor:
         """Process input through feature extraction layers, returning spatial features."""
         x = self.patch_embed(x)  # x input is (N, C, H, W)
 
@@ -981,11 +976,11 @@ class TinyViT(nn.Module):
         x = x.permute(0, 3, 1, 2)
         return self.neck(x)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Perform the forward pass through the TinyViT model, extracting features from the input image."""
         return self.forward_features(x)
 
-    def set_imgsz(self, imgsz=[1024, 1024]):
+    def set_imgsz(self, imgsz: List[int] = [1024, 1024]):
         """Set image size to make model compatible with different image sizes."""
         imgsz = [s // 4 for s in imgsz]
         self.patches_resolution = imgsz

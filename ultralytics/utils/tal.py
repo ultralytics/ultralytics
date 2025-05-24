@@ -27,7 +27,16 @@ class TaskAlignedAssigner(nn.Module):
     """
 
     def __init__(self, topk: int = 13, num_classes: int = 80, alpha: float = 1.0, beta: float = 6.0, eps: float = 1e-9):
-        """Initialize a TaskAlignedAssigner object with customizable hyperparameters."""
+        """
+        Initialize a TaskAlignedAssigner object with customizable hyperparameters.
+
+        Args:
+            topk (int, optional): The number of top candidates to consider.
+            num_classes (int, optional): The number of object classes.
+            alpha (float, optional): The alpha parameter for the classification component of the task-aligned metric.
+            beta (float, optional): The beta parameter for the localization component of the task-aligned metric.
+            eps (float, optional): A small value to prevent division by zero.
+        """
         super().__init__()
         self.topk = topk
         self.num_classes = num_classes
@@ -238,11 +247,9 @@ class TaskAlignedAssigner(nn.Module):
                               (foreground) anchor points.
 
         Returns:
-            target_labels (torch.Tensor): Shape (b, h*w), containing the target labels for positive anchor points.
-            target_bboxes (torch.Tensor): Shape (b, h*w, 4), containing the target bounding boxes for positive
-                                          anchor points.
-            target_scores (torch.Tensor): Shape (b, h*w, num_classes), containing the target scores for positive
-                                          anchor points.
+            target_labels (torch.Tensor): Target labels for positive anchor points with shape (b, h*w).
+            target_bboxes (torch.Tensor): Target bounding boxes for positive anchor points with shape (b, h*w, 4).
+            target_scores (torch.Tensor): Target scores for positive anchor points with shape (b, h*w, num_classes).
         """
         # Assigned target labels, (b, 1)
         batch_ind = torch.arange(end=self.bs, dtype=torch.int64, device=gt_labels.device)[..., None]

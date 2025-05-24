@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import io
-from typing import Any
+from typing import Any, List
 
 import cv2
 
@@ -67,7 +67,7 @@ class Inference:
         self.org_frame = None  # Container for the original frame display
         self.ann_frame = None  # Container for the annotated frame display
         self.vid_file_name = None  # Video file name or webcam index
-        self.selected_ind = []  # List of selected class indices for detection
+        self.selected_ind: List[int] = []  # List of selected class indices for detection
         self.model = None  # YOLO model instance
 
         self.temp_dict = {"model": None, **kwargs}

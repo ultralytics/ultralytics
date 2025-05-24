@@ -18,6 +18,7 @@ import random
 import shutil
 import subprocess
 import time
+from typing import Dict, List, Optional
 
 import numpy as np
 import torch
@@ -35,7 +36,7 @@ class Tuner:
     search space and retraining the model to evaluate their performance.
 
     Attributes:
-        space (dict): Hyperparameter search space containing bounds and scaling factors for mutation.
+        space (Dict[str, tuple]): Hyperparameter search space containing bounds and scaling factors for mutation.
         tune_dir (Path): Directory where evolution logs and results will be saved.
         tune_csv (Path): Path to the CSV file where evolution logs are saved.
         args (dict): Configuration arguments for the tuning process.
@@ -58,13 +59,13 @@ class Tuner:
         >>> model.tune(space={key1: val1, key2: val2})  # custom search space dictionary
     """
 
-    def __init__(self, args=DEFAULT_CFG, _callbacks=None):
+    def __init__(self, args=DEFAULT_CFG, _callbacks: Optional[List] = None):
         """
         Initialize the Tuner with configurations.
 
         Args:
             args (dict): Configuration for hyperparameter evolution.
-            _callbacks (list, optional): Callback functions to be executed during tuning.
+            _callbacks (List, optional): Callback functions to be executed during tuning.
         """
         self.space = args.pop("space", None) or {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
@@ -106,7 +107,9 @@ class Tuner:
             f"{self.prefix}💡 Learn about tuning at https://docs.ultralytics.com/guides/hyperparameter-tuning"
         )
 
-    def _mutate(self, parent="single", n=5, mutation=0.8, sigma=0.2):
+    def _mutate(
+        self, parent: str = "single", n: int = 5, mutation: float = 0.8, sigma: float = 0.2
+    ) -> Dict[str, float]:
         """
         Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.
 
@@ -117,7 +120,7 @@ class Tuner:
             sigma (float): Standard deviation for Gaussian random number generator.
 
         Returns:
-            (dict): A dictionary containing mutated hyperparameters.
+            (Dict[str, float]): A dictionary containing mutated hyperparameters.
         """
         if self.tune_csv.exists():  # if CSV file exists: select best hyps and mutate
             # Select parent(s)
@@ -152,7 +155,7 @@ class Tuner:
 
         return hyp
 
-    def __call__(self, model=None, iterations=10, cleanup=True):
+    def __call__(self, model=None, iterations: int = 10, cleanup: bool = True):
         """
         Execute the hyperparameter evolution process when the Tuner instance is called.
 

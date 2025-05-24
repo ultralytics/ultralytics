@@ -95,7 +95,7 @@ from ultralytics.utils.torch_utils import (
 
 class BaseModel(torch.nn.Module):
     """
-    The BaseModel class serves as a base class for all the models in the Ultralytics YOLO family.
+    Base class for all YOLO models in the Ultralytics family.
 
     This class provides common functionality for YOLO models including forward pass handling, model fusion,
     information display, and weight loading capabilities.
@@ -1035,7 +1035,7 @@ class YOLOEModel(DetectionModel):
         assert not self.training
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
-        return head.get_tpe(txt_feats)  # run axuiliary text head
+        return head.get_tpe(txt_feats)  # run auxiliary text head
 
     @smart_inference_mode()
     def get_visual_pe(self, img, visual):
@@ -1400,7 +1400,7 @@ class SafeUnpickler(pickle.Unpickler):
 
 def torch_safe_load(weight, safe_only=False):
     """
-    Attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised, it catches the
+    Attempt to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised, it catches the
     error, logs a warning message, and attempts to install the missing module via the check_requirements() function.
     After installation, the function again attempts to load the model using torch.load().
 

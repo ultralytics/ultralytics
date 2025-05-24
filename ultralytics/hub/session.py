@@ -5,6 +5,7 @@ import threading
 import time
 from http import HTTPStatus
 from pathlib import Path
+from typing import Any, Dict, Optional
 from urllib.parse import parse_qs, urlparse
 
 import requests
@@ -27,14 +28,14 @@ class HUBTrainingSession:
     Attributes:
         model_id (str): Identifier for the YOLO model being trained.
         model_url (str): URL for the model in Ultralytics HUB.
-        rate_limits (dict): Rate limits for different API calls in seconds.
-        timers (dict): Timers for rate limiting.
-        metrics_queue (dict): Queue for the model's metrics.
-        metrics_upload_failed_queue (dict): Queue for metrics that failed to upload.
-        model (dict): Model data fetched from Ultralytics HUB.
+        rate_limits (Dict[str, int]): Rate limits for different API calls in seconds.
+        timers (Dict[str, Any]): Timers for rate limiting.
+        metrics_queue (Dict[str, Any]): Queue for the model's metrics.
+        metrics_upload_failed_queue (Dict[str, Any]): Queue for metrics that failed to upload.
+        model (Any): Model data fetched from Ultralytics HUB.
         model_file (str): Path to the model file.
-        train_args (dict): Arguments for training the model.
-        client (HUBClient): Client for interacting with Ultralytics HUB.
+        train_args (Dict[str, Any]): Arguments for training the model.
+        client (Any): Client for interacting with Ultralytics HUB.
         filename (str): Filename of the model.
 
     Examples:
@@ -43,7 +44,7 @@ class HUBTrainingSession:
         >>> session.upload_metrics()
     """
 
-    def __init__(self, identifier):
+    def __init__(self, identifier: str):
         """
         Initialize the HUBTrainingSession with the provided model identifier.
 
@@ -91,13 +92,13 @@ class HUBTrainingSession:
                 )
 
     @classmethod
-    def create_session(cls, identifier, args=None):
+    def create_session(cls, identifier: str, args: Optional[Dict[str, Any]] = None):
         """
         Create an authenticated HUBTrainingSession or return None.
 
         Args:
             identifier (str): Model identifier used to initialize the HUB training session.
-            args (dict, optional): Arguments for creating a new model if identifier is not a HUB model URL.
+            args (Dict[str, Any], optional): Arguments for creating a new model if identifier is not a HUB model URL.
 
         Returns:
             session (HUBTrainingSession | None): An authenticated session or None if creation fails.
@@ -112,7 +113,7 @@ class HUBTrainingSession:
         except (PermissionError, ModuleNotFoundError, AssertionError):
             return None
 
-    def load_model(self, model_id):
+    def load_model(self, model_id: str):
         """
         Load an existing model from Ultralytics HUB using the provided model identifier.
 
@@ -138,12 +139,13 @@ class HUBTrainingSession:
         self.model.start_heartbeat(self.rate_limits["heartbeat"])
         LOGGER.info(f"{PREFIX}View model at {self.model_url} 🚀")
 
-    def create_model(self, model_args):
+    def create_model(self, model_args: Dict[str, Any]):
         """
         Initialize a HUB training session with the specified model arguments.
 
         Args:
-            model_args (dict): Arguments for creating the model, including batch size, epochs, image size, etc.
+            model_args (Dict[str, Any]): Arguments for creating the model, including batch size, epochs, image size,
+                etc.
 
         Returns:
             (None): If the model could not be created.
@@ -183,7 +185,7 @@ class HUBTrainingSession:
         LOGGER.info(f"{PREFIX}View model at {self.model_url} 🚀")
 
     @staticmethod
-    def _parse_identifier(identifier):
+    def _parse_identifier(identifier: str):
         """
         Parse the given identifier to determine the type and extract relevant components.
 
@@ -250,12 +252,12 @@ class HUBTrainingSession:
     def request_queue(
         self,
         request_func,
-        retry=3,
-        timeout=30,
-        thread=True,
-        verbose=True,
-        progress_total=None,
-        stream_response=None,
+        retry: int = 3,
+        timeout: int = 30,
+        thread: bool = True,
+        verbose: bool = True,
+        progress_total: Optional[int] = None,
+        stream_response: Optional[bool] = None,
         *args,
         **kwargs,
     ):
@@ -330,7 +332,7 @@ class HUBTrainingSession:
             return retry_request()
 
     @staticmethod
-    def _should_retry(status_code):
+    def _should_retry(status_code: int) -> bool:
         """Determine if a request should be retried based on the HTTP status code."""
         retry_codes = {
             HTTPStatus.REQUEST_TIMEOUT,
@@ -339,7 +341,7 @@ class HUBTrainingSession:
         }
         return status_code in retry_codes
 
-    def _get_failure_message(self, response: requests.Response, retry: int, timeout: int):
+    def _get_failure_message(self, response: requests.Response, retry: int, timeout: int) -> str:
         """
         Generate a retry message based on the response status code.
 

@@ -247,7 +247,7 @@ class SegmentationValidator(DetectionValidator):
         Returns:
             (torch.Tensor): A correct prediction matrix of shape (N, 10), where 10 represents different IoU levels.
 
-        Note:
+        Notes:
             - If `masks` is True, the function computes IoU between predicted and ground truth masks.
             - If `overlap` is True and `masks` is True, overlapping masks are taken into account when computing IoU.
 

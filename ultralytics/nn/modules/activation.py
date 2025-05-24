@@ -10,7 +10,7 @@ class AGLU(nn.Module):
     Unified activation function module from AGLU.
 
     This class implements a parameterized activation function with learnable parameters lambda and kappa, based on the
-    AGLU (Adaptive Gated Linear Unit) approach (https://github.com/kostas1515/AGLU).
+    AGLU (Adaptive Gated Linear Unit) approach.
 
     Attributes:
         act (nn.Softplus): Softplus activation function with negative beta.
@@ -27,6 +27,9 @@ class AGLU(nn.Module):
         >>> output = m(input)
         >>> print(output.shape)
         torch.Size([2])
+
+    References:
+        https://github.com/kostas1515/AGLU
     """
 
     def __init__(self, device=None, dtype=None) -> None:

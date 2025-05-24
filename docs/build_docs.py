@@ -257,7 +257,15 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
     """
     Remove comments and empty lines from a string of code, preserving newlines and URLs.
 
-    Typical reductions for Ultralytics Docs are:
+    Args:
+        content (str): Code content to process.
+        file_type (str): Type of file ('html', 'css', or 'js').
+
+    Returns:
+        (str): Cleaned content with comments and empty lines removed.
+
+    Notes:
+        Typical reductions for Ultralytics Docs are:
         - Total HTML reduction: 2.83% (1301.56 KB saved)
         - Total CSS reduction: 1.75% (2.61 KB saved)
         - Total JS reduction: 13.51% (99.31 KB saved)

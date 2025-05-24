@@ -232,7 +232,8 @@ class TaskAlignedAssigner(nn.Module):
             (torch.Tensor): A tensor of shape (b, max_num_obj, h*w) containing the selected top-k candidates.
         """
         # NOTE: given a small value(self.eps) for these zeros so torch.topk could get expected indexes
-        metrics = torch.where((mask_in_gts * (metrics == 0)).bool(), self.eps, metrics)
+        # value = torch.topk((metrics * mask_in_gts).view(-1), 1, largest=False)[1]
+        # metrics = torch.where((mask_in_gts * (metrics == 0)).bool(), self.eps, metrics)
         # (b, max_num_obj, topk)
         topk_metrics, topk_idxs = torch.topk(metrics, self.topk, dim=-1, largest=largest)
         if topk_mask is None:

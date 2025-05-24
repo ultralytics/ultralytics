@@ -65,7 +65,7 @@ class InstanceSegmentation(BaseSolution):
             >>> print(summary)
         """
         self.extract_tracks(im0)  # Extract tracks (bounding boxes, classes, and masks)
-        self.masks = getattr(self.tracks[0], "masks", None)
+        self.masks = getattr(self.tracks, "masks", None)
 
         # Iterate over detected classes, track IDs, and segmentation masks
         if self.masks is None:

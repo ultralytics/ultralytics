@@ -12,7 +12,6 @@ import torch.nn as nn
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
-    AIFI,
     C1,
     C2,
     C2PSA,
@@ -37,8 +36,6 @@ from ultralytics.nn.modules import (
     C3Ghost,
     C3k2,
     C3x,
-    CBFuse,
-    CBLinear,
     Classify,
     Concat,
     Conv,
@@ -50,21 +47,15 @@ from ultralytics.nn.modules import (
     Focus,
     GhostBottleneck,
     GhostConv,
-    HGBlock,
-    HGStem,
     ImagePoolingAttn,
-    Index,
     LRPCHead,
     Pose,
     RepC3,
     RepConv,
     RepNCSPELAN4,
     RepVGGDW,
-    ResNetLayer,
-    RTDETRDecoder,
     SCDown,
     Segment,
-    TorchVision,
     WorldDetect,
     YOLOEDetect,
     YOLOESegment,
@@ -80,7 +71,6 @@ from ultralytics.utils.loss import (
     v8PoseLoss,
     v8SegmentationLoss,
 )
-from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (
     fuse_conv_and_bn,
@@ -1584,7 +1574,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels
 
     # assemble and return
     return torch.nn.Sequential(*layers), sorted(save)
-#ve1
+
+
+# ve1
 
 # def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 #     """

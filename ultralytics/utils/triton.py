@@ -11,7 +11,7 @@ class TritonRemoteModel:
     Client for interacting with a remote Triton Inference Server model.
 
     This class provides a convenient interface for sending inference requests to a Triton Inference Server
-    and processing the responses.
+    and processing the responses. Supports both HTTP and gRPC communication protocols.
 
     Attributes:
         endpoint (str): The name of the model on the Triton server.
@@ -88,7 +88,7 @@ class TritonRemoteModel:
 
     def __call__(self, *inputs: np.ndarray) -> List[np.ndarray]:
         """
-        Call the model with the given inputs.
+        Call the model with the given inputs and return inference results.
 
         Args:
             *inputs (np.ndarray): Input data to the model. Each array should match the expected shape and type

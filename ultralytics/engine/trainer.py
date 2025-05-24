@@ -112,9 +112,9 @@ class BaseTrainer:
         Initialize the BaseTrainer class.
 
         Args:
-            cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
-            overrides (dict, optional): Configuration overrides. Defaults to None.
-            _callbacks (list, optional): List of callback functions. Defaults to None.
+            cfg (str, optional): Path to a configuration file.
+            overrides (dict, optional): Configuration overrides.
+            _callbacks (list, optional): List of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
@@ -642,7 +642,7 @@ class BaseTrainer:
             self.ema.update(self.model)
 
     def preprocess_batch(self, batch):
-        """Allows custom preprocessing model inputs and ground truths depending on task type."""
+        """Allow custom preprocessing model inputs and ground truths depending on task type."""
         return batch
 
     def validate(self):
@@ -664,11 +664,11 @@ class BaseTrainer:
         raise NotImplementedError("This task trainer doesn't support loading cfg files")
 
     def get_validator(self):
-        """Returns a NotImplementedError when the get_validator function is called."""
+        """Return a NotImplementedError when the get_validator function is called."""
         raise NotImplementedError("get_validator function not implemented in trainer")
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
-        """Returns dataloader derived from torch.data.Dataloader."""
+        """Return dataloader derived from torch.data.Dataloader."""
         raise NotImplementedError("get_dataloader function not implemented in trainer")
 
     def build_dataset(self, img_path, mode="train", batch=None):
@@ -677,7 +677,7 @@ class BaseTrainer:
 
     def label_loss_items(self, loss_items=None, prefix="train"):
         """
-        Returns a loss dict with labelled training loss items tensor.
+        Return a loss dict with labelled training loss items tensor.
 
         Note:
             This is not needed for classification but necessary for segmentation & detection
@@ -689,20 +689,20 @@ class BaseTrainer:
         self.model.names = self.data["names"]
 
     def build_targets(self, preds, targets):
-        """Builds target tensors for training YOLO model."""
+        """Build target tensors for training YOLO model."""
         pass
 
     def progress_string(self):
-        """Returns a string describing training progress."""
+        """Return a string describing training progress."""
         return ""
 
     # TODO: may need to put these following functions into callback
     def plot_training_samples(self, batch, ni):
-        """Plots training samples during YOLO training."""
+        """Plot training samples during YOLO training."""
         pass
 
     def plot_training_labels(self):
-        """Plots training labels for YOLO model."""
+        """Plot training labels for YOLO model."""
         pass
 
     def save_metrics(self, metrics):
@@ -719,7 +719,7 @@ class BaseTrainer:
         pass
 
     def on_plot(self, name, data=None):
-        """Registers plots (e.g. to be consumed in callbacks)."""
+        """Register plots (e.g. to be consumed in callbacks)."""
         path = Path(name)
         self.plots[path] = {"data": data, "timestamp": time.time()}
 

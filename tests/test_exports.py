@@ -230,6 +230,7 @@ def test_export_imx():
     file = model.export(format="imx", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)
 
+
 @pytest.mark.slow
 @pytest.mark.skipif(not LINUX or ARM64, reason="RKNN export only supported on non-aarch64 Linux")
 def test_export_rknn():

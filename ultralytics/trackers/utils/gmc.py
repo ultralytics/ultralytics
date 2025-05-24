@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import copy
+from typing import List, Optional
 
 import cv2
 import numpy as np
@@ -19,7 +20,7 @@ class GMC:
         method (str): The tracking method to use. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', 'none'.
         downscale (int): Factor by which to downscale the frames for processing.
         prevFrame (np.ndarray): Previous frame for tracking.
-        prevKeyPoints (list): Keypoints from the previous frame.
+        prevKeyPoints (List): Keypoints from the previous frame.
         prevDescriptors (np.ndarray): Descriptors from the previous frame.
         initializedFirstFrame (bool): Flag indicating if the first frame has been processed.
 
@@ -88,13 +89,13 @@ class GMC:
         self.prevDescriptors = None
         self.initializedFirstFrame = False
 
-    def apply(self, raw_frame: np.ndarray, detections: list = None) -> np.ndarray:
+    def apply(self, raw_frame: np.ndarray, detections: Optional[List] = None) -> np.ndarray:
         """
         Apply object detection on a raw frame using the specified method.
 
         Args:
             raw_frame (np.ndarray): The raw frame to be processed, with shape (H, W, C).
-            detections (list, optional): List of detections to be used in the processing.
+            detections (List, optional): List of detections to be used in the processing.
 
         Returns:
             (np.ndarray): Transformation matrix with shape (2, 3).
@@ -136,22 +137,18 @@ class GMC:
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY) if c == 3 else raw_frame
         H = np.eye(2, 3, dtype=np.float32)
 
-        # Downscale image
+        # Downscale image for computational efficiency
         if self.downscale > 1.0:
             frame = cv2.GaussianBlur(frame, (3, 3), 1.5)
             frame = cv2.resize(frame, (width // self.downscale, height // self.downscale))
 
-        # Handle first frame
+        # Handle first frame initialization
         if not self.initializedFirstFrame:
-            # Initialize data
             self.prevFrame = frame.copy()
-
-            # Initialization done
             self.initializedFirstFrame = True
-
             return H
 
-        # Run the ECC algorithm. The results are stored in warp_matrix.
+        # Run the ECC algorithm to find transformation matrix
         try:
             (_, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria, None, 1)
         except Exception as e:
@@ -159,13 +156,13 @@ class GMC:
 
         return H
 
-    def apply_features(self, raw_frame: np.ndarray, detections: list = None) -> np.ndarray:
+    def apply_features(self, raw_frame: np.ndarray, detections: Optional[List] = None) -> np.ndarray:
         """
         Apply feature-based methods like ORB or SIFT to a raw frame.
 
         Args:
             raw_frame (np.ndarray): The raw frame to be processed, with shape (H, W, C).
-            detections (list, optional): List of detections to be used in the processing.
+            detections (List, optional): List of detections to be used in the processing.
 
         Returns:
             (np.ndarray): Transformation matrix with shape (2, 3).
@@ -181,55 +178,50 @@ class GMC:
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY) if c == 3 else raw_frame
         H = np.eye(2, 3)
 
-        # Downscale image
+        # Downscale image for computational efficiency
         if self.downscale > 1.0:
             frame = cv2.resize(frame, (width // self.downscale, height // self.downscale))
             width = width // self.downscale
             height = height // self.downscale
 
-        # Find the keypoints
+        # Create mask for keypoint detection, excluding border regions
         mask = np.zeros_like(frame)
         mask[int(0.02 * height) : int(0.98 * height), int(0.02 * width) : int(0.98 * width)] = 255
+
+        # Exclude detection regions from mask to avoid tracking detected objects
         if detections is not None:
             for det in detections:
                 tlbr = (det[:4] / self.downscale).astype(np.int_)
                 mask[tlbr[1] : tlbr[3], tlbr[0] : tlbr[2]] = 0
 
+        # Find keypoints and compute descriptors
         keypoints = self.detector.detect(frame, mask)
-
-        # Compute the descriptors
         keypoints, descriptors = self.extractor.compute(frame, keypoints)
 
-        # Handle first frame
+        # Handle first frame initialization
         if not self.initializedFirstFrame:
-            # Initialize data
             self.prevFrame = frame.copy()
             self.prevKeyPoints = copy.copy(keypoints)
             self.prevDescriptors = copy.copy(descriptors)
-
-            # Initialization done
             self.initializedFirstFrame = True
-
             return H
 
-        # Match descriptors
+        # Match descriptors between previous and current frame
         knnMatches = self.matcher.knnMatch(self.prevDescriptors, descriptors, 2)
 
-        # Filter matches based on smallest spatial distance
+        # Filter matches based on spatial distance constraints
         matches = []
         spatialDistances = []
-
         maxSpatialDistance = 0.25 * np.array([width, height])
 
         # Handle empty matches case
         if len(knnMatches) == 0:
-            # Store to next iteration
             self.prevFrame = frame.copy()
             self.prevKeyPoints = copy.copy(keypoints)
             self.prevDescriptors = copy.copy(descriptors)
-
             return H
 
+        # Apply Lowe's ratio test and spatial distance filtering
         for m, n in knnMatches:
             if m.distance < 0.9 * n.distance:
                 prevKeyPointLocation = self.prevKeyPoints[m.queryIdx].pt
@@ -246,11 +238,12 @@ class GMC:
                     spatialDistances.append(spatialDistance)
                     matches.append(m)
 
+        # Filter outliers using statistical analysis
         meanSpatialDistances = np.mean(spatialDistances, 0)
         stdSpatialDistances = np.std(spatialDistances, 0)
-
         inliers = (spatialDistances - meanSpatialDistances) < 2.5 * stdSpatialDistances
 
+        # Extract good matches and corresponding points
         goodMatches = []
         prevPoints = []
         currPoints = []
@@ -263,18 +256,18 @@ class GMC:
         prevPoints = np.array(prevPoints)
         currPoints = np.array(currPoints)
 
-        # Find rigid matrix
+        # Estimate transformation matrix using RANSAC
         if prevPoints.shape[0] > 4:
             H, inliers = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)
 
-            # Handle downscale
+            # Scale translation components back to original resolution
             if self.downscale > 1.0:
                 H[0, 2] *= self.downscale
                 H[1, 2] *= self.downscale
         else:
             LOGGER.warning("not enough matching points")
 
-        # Store to next iteration
+        # Store current frame data for next iteration
         self.prevFrame = frame.copy()
         self.prevKeyPoints = copy.copy(keypoints)
         self.prevDescriptors = copy.copy(descriptors)
@@ -302,24 +295,24 @@ class GMC:
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY) if c == 3 else raw_frame
         H = np.eye(2, 3)
 
-        # Downscale image
+        # Downscale image for computational efficiency
         if self.downscale > 1.0:
             frame = cv2.resize(frame, (width // self.downscale, height // self.downscale))
 
-        # Find the keypoints
+        # Find good features to track
         keypoints = cv2.goodFeaturesToTrack(frame, mask=None, **self.feature_params)
 
-        # Handle first frame
+        # Handle first frame initialization
         if not self.initializedFirstFrame or self.prevKeyPoints is None:
             self.prevFrame = frame.copy()
             self.prevKeyPoints = copy.copy(keypoints)
             self.initializedFirstFrame = True
             return H
 
-        # Find correspondences
+        # Calculate optical flow using Lucas-Kanade method
         matchedKeypoints, status, _ = cv2.calcOpticalFlowPyrLK(self.prevFrame, frame, self.prevKeyPoints, None)
 
-        # Leave good correspondences only
+        # Extract successfully tracked points
         prevPoints = []
         currPoints = []
 
@@ -331,16 +324,18 @@ class GMC:
         prevPoints = np.array(prevPoints)
         currPoints = np.array(currPoints)
 
-        # Find rigid matrix
+        # Estimate transformation matrix using RANSAC
         if (prevPoints.shape[0] > 4) and (prevPoints.shape[0] == currPoints.shape[0]):
             H, _ = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)
 
+            # Scale translation components back to original resolution
             if self.downscale > 1.0:
                 H[0, 2] *= self.downscale
                 H[1, 2] *= self.downscale
         else:
             LOGGER.warning("not enough matching points")
 
+        # Store current frame data for next iteration
         self.prevFrame = frame.copy()
         self.prevKeyPoints = copy.copy(keypoints)
 

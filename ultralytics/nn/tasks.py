@@ -28,6 +28,7 @@ from ultralytics.nn.modules import (
     A2C2f,
     AConv,
     ADown,
+    BiFPN,
     Bottleneck,
     BottleneckCSP,
     C2f,

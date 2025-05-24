@@ -31,7 +31,7 @@ keywords: Ultralytics, TinyViT, Conv2d_BN, PatchEmbed, MBConv, Attention, PyTorc
 
 <br><br><hr><br>
 
-## ::: ultralytics.models.sam.modules.tiny_encoder.Mlp
+## ::: ultralytics.models.sam.modules.tiny_encoder.MLP
 
 <br><br><hr><br>
 

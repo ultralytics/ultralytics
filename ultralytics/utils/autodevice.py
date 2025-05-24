@@ -123,6 +123,7 @@ class GPUInfo:
         Args:
             count (int): The number of idle GPUs to select. Defaults to 1.
             min_memory_fraction (float): Minimum free memory required (fraction). Defaults to 0.
+            min_util_fraction (float): Minimum free utilization required (fraction). Defaults to 0.
 
         Returns:
             (list[int]): Indices of the selected GPUs, sorted by idleness.
@@ -134,7 +135,7 @@ class GPUInfo:
         assert min_memory_fraction <= 1.0, f"min_memory_fraction must be <= 1.0, got {min_memory_fraction}"
         assert min_util_fraction <= 1.0, f"min_util_fraction must be <= 1.0, got {min_util_fraction}"
         LOGGER.info(
-            f"Searching for {count} idle GPUs with >= {min_memory_fraction * 100:.1f}% free memory and {min_util_fraction * 100:.1f}% free utilization..."
+            f"Searching for {count} idle GPUs with free memory >= {min_memory_fraction * 100:.1f}% and free utilization >= {min_util_fraction * 100:.1f}%..."
         )
 
         if count <= 0:
@@ -161,7 +162,7 @@ class GPUInfo:
             LOGGER.info(f"Selected idle CUDA devices {selected}")
         else:
             LOGGER.warning(
-                f"No GPUs met criteria (Free Mem >= {min_memory_fraction * 100:.1f}%) and Free Util >= {min_util_fraction * 100:.1f}%."
+                f"No GPUs met criteria (Free Mem >= {min_memory_fraction * 100:.1f}% and Free Util >= {min_util_fraction * 100:.1f}%)."
             )
 
         return selected

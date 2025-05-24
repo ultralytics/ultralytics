@@ -2225,7 +2225,11 @@ class BiFPN(nn.Module):
         self.bifpn = nn.Sequential(*bifpns)
 
     def forward(self, inputs):
-        c3, c4, c5 = inputs
+        # Handle both single input and multiple inputs
+        if isinstance(inputs, (list, tuple)):
+            c3, c4, c5 = inputs
+        else:
+            c3 = c4 = c5 = inputs
 
         # Calculate the input column of BiFPN
         p3_x = self.p3(c3)

@@ -160,10 +160,10 @@ class TaskAlignedAssigner(nn.Module):
         #         #     print(x)
         #         #     print(align_metric[b, i, mask_in_gts[b, i].bool()], align_metric[b, i].max())
         #             # print(overlaps[b, i, mask_in_gts[b, i].bool()])
-        #         # if x == 0:
-        #             # self.zero_assigned += 1
-        #         #     print(xywh[b, i])
-        #         #     exit()
+        #         if x == 0:
+        #             self.zero_assigned += 1
+        #             # print(xywh[b, i])
+        #             exit()
         # exit()
 
         return mask_pos, align_metric, overlaps
@@ -232,7 +232,7 @@ class TaskAlignedAssigner(nn.Module):
             (torch.Tensor): A tensor of shape (b, max_num_obj, h*w) containing the selected top-k candidates.
         """
         # NOTE: given a small value(self.eps) for these zeros so torch.topk could get expected indexes
-        # metrics = torch.where((mask_in_gts * (metrics == 0)).bool(), self.eps, metrics)
+        metrics = torch.where((mask_in_gts * (metrics == 0)).bool(), self.eps, metrics)
         # (b, max_num_obj, topk)
         topk_metrics, topk_idxs = torch.topk(metrics, self.topk, dim=-1, largest=largest)
         if topk_mask is None:
@@ -386,10 +386,10 @@ class TaskAlignedAssigner(nn.Module):
                 #     exit()
         if fg_mask.max() > 1:  # one anchor is assigned to multiple gt_bboxes
             mask_multi_gts = (fg_mask.unsqueeze(1) > 1).expand(-1, n_max_boxes, -1)  # (b, n_max_boxes, h*w)
-            # max_overlaps_idx = overlaps.argmax(1)  # (b, h*w)
-            # is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
-            # is_max_overlaps.scatter_(1, max_overlaps_idx.unsqueeze(1), 1)
-            # mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos).float()  # (b, n_max_boxes, h*w)
+            max_overlaps_idx = overlaps.argmax(1)  # (b, h*w)
+            is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
+            is_max_overlaps.scatter_(1, max_overlaps_idx.unsqueeze(1), 1)
+            mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos).float()  # (b, n_max_boxes, h*w)
 
             # Debug code for batch=1, check the number of assigned boxes and the keeped boxes index
             # sum_pos = mask_pos.sum(-1)  # (b, n_max_boxes)
@@ -399,16 +399,16 @@ class TaskAlignedAssigner(nn.Module):
             #     print(i, sum_pos[0, i], sum_pos[0])
             # exit()
 
-            sum_pos = (mask_pos * (1 - align_metric.clamp(0, 1))).sum(-1)  # (b, n_max_boxes)
+            # sum_pos = (mask_pos * (1 - align_metric.clamp(0, 1))).sum(-1)  # (b, n_max_boxes)
             # sum_pos = (mask_pos * (1 - overlaps.clamp(0, 1))).sum(-1)  # (b, n_max_boxes)
             # sum_pos = mask_pos.sum(-1)  # (b, n_max_boxes)
-            sum_pos = sum_pos.unsqueeze(-1).repeat(1, 1, mask_pos.shape[-1])  # (b, n_max_boxes, h*w)
-            sum_pos[~(mask_pos.bool())] = sum_pos.max() + 1
-            sum_pos.masked_fill_(sum_pos == 0, sum_pos.max() + 1)  # (b, n_max_boxes, h*w)
-            mask_pos_min = torch.argmin(sum_pos, dim=1)  # (b, h*w)
-            is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
-            is_max_overlaps.scatter_(1, mask_pos_min.unsqueeze(1), 1)
-            mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos).float()  # (b, n_max_boxes, h*w)
+            # sum_pos = sum_pos.unsqueeze(-1).repeat(1, 1, mask_pos.shape[-1])  # (b, n_max_boxes, h*w)
+            # sum_pos[~(mask_pos.bool())] = sum_pos.max() + 1
+            # sum_pos.masked_fill_(sum_pos == 0, sum_pos.max() + 1)  # (b, n_max_boxes, h*w)
+            # mask_pos_min = torch.argmin(sum_pos, dim=1)  # (b, h*w)
+            # is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
+            # is_max_overlaps.scatter_(1, mask_pos_min.unsqueeze(1), 1)
+            # mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos).float()  # (b, n_max_boxes, h*w)
             # num_lost1 = ((mask_pos1.sum(-1, keepdim=True) == 0) * mask_gt).sum()
 
             # Debug code for batch=1, check the number of assigned boxes and the keeped boxes index

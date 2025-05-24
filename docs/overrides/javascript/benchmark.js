@@ -1,15 +1,19 @@
 // Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 // Auto-load chart-widget.js if not already loaded
-const loadChartWidget = () => new Promise(resolve => {
-  if (window.ChartWidget) return resolve();
-  const s = document.createElement('script');
-  const base = (document.currentScript || document.querySelector('script[src*="benchmark.js"]'))?.src.replace(/[^/]*$/, '') || './';
-  s.src = base + 'chart-widget.js';
-  s.onload = s.onerror = resolve;
-  document.head.appendChild(s);
-});
-
+const loadChartWidget = () =>
+  new Promise((resolve) => {
+    if (window.ChartWidget) return resolve();
+    const s = document.createElement("script");
+    const base =
+      (
+        document.currentScript ||
+        document.querySelector('script[src*="benchmark.js"]')
+      )?.src.replace(/[^/]*$/, "") || "./";
+    s.src = base + "chart-widget.js";
+    s.onload = s.onerror = resolve;
+    document.head.appendChild(s);
+  });
 
 // YOLO models chart ---------------------------------------------------------------------------------------------------
 const data = {
@@ -217,7 +221,7 @@ const updateChart = async (activeModels = []) => {
   // Load widget and add to chart
   await loadChartWidget();
   if (window.ChartWidget) {
-    chartWidget = new ChartWidget(chart, { position: 'top-right' });
+    chartWidget = new ChartWidget(chart, { position: "top-right" });
   }
 };
 

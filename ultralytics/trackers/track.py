@@ -20,15 +20,11 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     Initialize trackers for object tracking during prediction.
 
     Args:
-        predictor (object): The predictor object to initialize trackers for.
-        persist (bool): Whether to persist the trackers if they already exist.
-
-    Raises:
-        AssertionError: If the tracker_type is not 'bytetrack' or 'botsort'.
-        ValueError: If the task is 'classify' as classification doesn't support tracking.
+        predictor (ultralytics.engine.predictor.BasePredictor): The predictor object to initialize trackers for.
+        persist (bool, optional): Whether to persist the trackers if they already exist.
 
     Examples:
-        Initialize trackers for a predictor object:
+        Initialize trackers for a predictor object
         >>> predictor = SomePredictorClass()
         >>> on_predict_start(predictor, persist=True)
     """
@@ -79,7 +75,7 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
 
     Args:
         predictor (object): The predictor object containing the predictions.
-        persist (bool): Whether to persist the trackers if they already exist.
+        persist (bool, optional): Whether to persist the trackers if they already exist.
 
     Examples:
         Postprocess predictions and update with tracking

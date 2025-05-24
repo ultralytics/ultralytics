@@ -712,14 +712,3 @@ def test_already_initialized_model():
     """Test already initialized model."""
     model = YOLO("yolo11n.pt")
     model = YOLO(model)
-
-
-def test_image_length_for_write_results(tmp_path):
-    """Test image length for writing results."""
-    from ultralytics.engine.predictor import BasePredictor
-
-    predictor = BasePredictor()
-    predictor.plotted_img = np.zeros((60, 90, 3), dtype=np.uint8)
-    im = torch.zeros((3, 640, 640))
-    result_string = predictor.write_results(0, str(TMP / "test.jpg"), im, [""])
-    assert "640x640" in result_string

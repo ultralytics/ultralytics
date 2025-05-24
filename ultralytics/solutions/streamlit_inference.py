@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import io
-from typing import Any
+from typing import Any, List
 
 import cv2
 
@@ -24,7 +24,7 @@ class Inference:
         model_path (str): Path to the loaded model.
         model (YOLO): The YOLO model instance.
         source (str): Selected video source (webcam or video file).
-        enable_trk (str): Enable tracking option ("Yes" or "No").
+        enable_trk (bool): Enable tracking option.
         conf (float): Confidence threshold for detection.
         iou (float): IoU threshold for non-maximum suppression.
         org_frame (Any): Container for the original frame to be displayed.
@@ -33,14 +33,19 @@ class Inference:
         selected_ind (List[int]): List of selected class indices for detection.
 
     Methods:
-        web_ui: Sets up the Streamlit web interface with custom HTML elements.
-        sidebar: Configures the Streamlit sidebar for model and inference settings.
-        source_upload: Handles video file uploads through the Streamlit interface.
-        configure: Configures the model and loads selected classes for inference.
-        inference: Performs real-time object detection inference.
+        web_ui: Set up the Streamlit web interface with custom HTML elements.
+        sidebar: Configure the Streamlit sidebar for model and inference settings.
+        source_upload: Handle video file uploads through the Streamlit interface.
+        configure: Configure the model and load selected classes for inference.
+        inference: Perform real-time object detection inference.
 
     Examples:
-        >>> inf = Inference(model="path/to/model.pt")  # Model is an optional argument
+        Create an Inference instance with a custom model
+        >>> inf = Inference(model="path/to/model.pt")
+        >>> inf.inference()
+
+        Create an Inference instance with default settings
+        >>> inf = Inference()
         >>> inf.inference()
     """
 
@@ -62,7 +67,7 @@ class Inference:
         self.org_frame = None  # Container for the original frame display
         self.ann_frame = None  # Container for the annotated frame display
         self.vid_file_name = None  # Video file name or webcam index
-        self.selected_ind = []  # List of selected class indices for detection
+        self.selected_ind: List[int] = []  # List of selected class indices for detection
         self.model = None  # YOLO model instance
 
         self.temp_dict = {"model": None, **kwargs}
@@ -73,7 +78,7 @@ class Inference:
         LOGGER.info(f"Ultralytics Solutions: ✅ {self.temp_dict}")
 
     def web_ui(self):
-        """Sets up the Streamlit web interface with custom HTML elements."""
+        """Set up the Streamlit web interface with custom HTML elements."""
         menu_style_cfg = """<style>MainMenu {visibility: hidden;}</style>"""  # Hide main menu style
 
         # Main title of streamlit application
@@ -102,7 +107,7 @@ class Inference:
             "Video",
             ("webcam", "video"),
         )  # Add source selection dropdown
-        self.enable_trk = self.st.sidebar.radio("Enable Tracking", ("Yes", "No"))  # Enable object tracking
+        self.enable_trk = self.st.sidebar.radio("Enable Tracking", ("Yes", "No")) == "Yes"  # Enable object tracking
         self.conf = float(
             self.st.sidebar.slider("Confidence Threshold", 0.0, 1.0, self.conf, 0.01)
         )  # Slider for confidence
@@ -166,7 +171,7 @@ class Inference:
                     break
 
                 # Process frame with model
-                if self.enable_trk == "Yes":
+                if self.enable_trk:
                     results = self.model.track(
                         frame, conf=self.conf, iou=self.iou, classes=self.selected_ind, persist=True
                     )

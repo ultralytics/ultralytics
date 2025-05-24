@@ -88,6 +88,34 @@ const data = {
     // d7: { speed: 128.07, mAP: 53.7 },
     // d8: { speed: 157.57, mAP: 55.1 }
   },
+  "Gold-YOLO": {
+    n: { speed: 1.66, mAP: 39.9 },
+    s: { speed: 3.43, mAP: 46.4 },
+    m: { speed: 6.43, mAP: 51.1 },
+    l: { speed: 10.64, mAP: 53.3 },
+  },
+  "YOLO-World": {
+    s: { speed: 3.46, mAP: 46.1 },
+    m: { speed: 7.26, mAP: 51.0 },
+    l: { speed: 11.0, mAP: 53.9 },
+    x: { speed: 17.24, mAP: 54.7 },
+  },
+  RTMDet: {
+    t: { speed: 2.54, mAP: 41.1 },
+    s: { speed: 3.18, mAP: 44.6 },
+    m: { speed: 6.82, mAP: 49.4 },
+    l: { speed: 11.06, mAP: 51.5 },
+    x: { speed: 19.66, mAP: 52.8 },
+  },
+  "YOLO-NAS": {
+    s: { speed: 3.09, mAP: 47.5 },
+    m: { speed: 6.07, mAP: 51.6 },
+    l: { speed: 7.84, mAP: 52.2 },
+  },
+  FCOS: {
+    R50: { speed: 15.18, mAP: 36.6 },
+    R101: { speed: 18.91, mAP: 39.1 },
+  },
 };
 
 let modelComparisonChart = null; // chart variable will hold the reference to the current chart instance.
@@ -123,6 +151,11 @@ function updateChart(initialDatasets = []) {
     YOLOX: "#17becf",
     RTDETRv2: "#eccd22",
     EfficientDet: "#000000",
+    "Gold-YOLO": "#ffcc00",
+    "YOLO-World": "#00a8ff",
+    RTMDet: "#ff6600",
+    "YOLO-NAS": "#8f00ff",
+    FCOS: "#00ff99",
   };
 
   // Always include all models in the dataset creation
@@ -161,7 +194,7 @@ function updateChart(initialDatasets = []) {
       type: "line",
       data: { datasets },
       options: {
-        //aspectRatio: 2.5,  // higher is wider
+        aspectRatio: 2.0, // higher is wider
         plugins: {
           legend: {
             display: true,

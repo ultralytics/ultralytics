@@ -2153,6 +2153,7 @@ class SAVPE(nn.Module):
 
 class BiFPNBlock(nn.Module):
     """BiFPN Block untuk dua input."""
+
     def __init__(self, feature_size=256, epsilon=1e-4):
         super().__init__()
         self.epsilon = epsilon
@@ -2177,7 +2178,7 @@ class BiFPN(nn.Module):
         # Validasi input channels
         if len(channels) != 2:
             raise ValueError(f"BiFPN butuh 2 input channels, diberikan {len(channels)}")
-        
+
         # Proyeksi input ke feature_size
         self.proj_x1 = nn.Conv2d(channels[0], feature_size, 1)
         self.proj_x2 = nn.Conv2d(channels[1], feature_size, 1)
@@ -2190,11 +2191,11 @@ class BiFPN(nn.Module):
         x1, x2 = inputs
         x1 = self.proj_x1(x1)
         x2 = self.proj_x2(x2)
-        
+
         # Lakukan fusion melalui semua blocks
         for block in self.blocks:
             x1 = block(x1, x2)
-        
+
         return [x1, x2]  # Output dua feature map
-    
+
     # //UPDATE BiFPN2

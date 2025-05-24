@@ -23,6 +23,7 @@ from .block import (
     C2PSA,
     C3,
     C3K2_FE,
+    BiFPN,
     C3TR,
     CIB,
     DFL,
@@ -132,6 +133,7 @@ __all__ = (
     "C2f",
     "C3k2",
     "C3K2_FE",
+    "BiFPN"
     "SCDown",
     "C2fPSA",
     "C2PSA",

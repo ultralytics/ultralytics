@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+
 import torch
 from PIL import Image
 
@@ -28,7 +29,6 @@ class FastSAMPredictor(SegmentationPredictor):
     Methods:
         postprocess: Apply postprocessing to FastSAM predictions and handle prompts.
         prompt: Perform image segmentation inference based on various prompt types.
-        _clip_inference: Perform CLIP inference to calculate similarity between images and text prompts.
         set_prompts: Set prompts to be used during inference.
     """
 

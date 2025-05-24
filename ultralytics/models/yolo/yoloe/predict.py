@@ -18,7 +18,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
     Attributes:
         model (torch.nn.Module): The YOLO model for inference.
         device (torch.device): Device to run the model on (CPU or CUDA).
-        prompts (dict): Visual prompts containing class indices and bounding boxes or masks.
+        prompts (dict | torch.Tensor): Visual prompts containing class indices and bounding boxes or masks.
 
     Methods:
         setup_model: Initialize the YOLO model and set it to evaluation mode.
@@ -28,7 +28,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         get_vpe: Process source to get visual prompt embeddings.
     """
 
-    def setup_model(self, model, verbose=True):
+    def setup_model(self, model, verbose: bool = True):
         """
         Set up the model for prediction.
 
@@ -164,6 +164,6 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
 
 
 class YOLOEVPSegPredictor(YOLOEVPDetectPredictor, SegmentationPredictor):
-    """Predictor for YOLO-EVP segmentation tasks."""
+    """Predictor for YOLO-EVP segmentation tasks combining detection and segmentation capabilities."""
 
     pass

@@ -28,10 +28,10 @@ class PosePredictor(DetectionPredictor):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
-        Initialize PosePredictor, a specialized predictor for pose estimation tasks.
+        Initialize PosePredictor for pose estimation tasks.
 
-        This initializer sets up a PosePredictor instance, configuring it for pose detection tasks and handling
-        device-specific warnings for Apple MPS.
+        Sets up a PosePredictor instance, configuring it for pose detection tasks and handling device-specific
+        warnings for Apple MPS.
 
         Args:
             cfg (Any): Configuration for the predictor.
@@ -57,8 +57,8 @@ class PosePredictor(DetectionPredictor):
         """
         Construct the result object from the prediction, including keypoints.
 
-        This method extends the parent class implementation by extracting keypoint data from predictions
-        and adding them to the result object.
+        Extends the parent class implementation by extracting keypoint data from predictions and adding them to the
+        result object.
 
         Args:
             pred (torch.Tensor): The predicted bounding boxes, scores, and keypoints with shape (N, 6+K*D) where N is

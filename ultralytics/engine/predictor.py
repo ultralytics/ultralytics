@@ -36,6 +36,7 @@ import platform
 import re
 import threading
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 import cv2
 import numpy as np
@@ -78,15 +79,15 @@ class BasePredictor:
         data (dict): Data configuration.
         device (torch.device): Device used for prediction.
         dataset (Dataset): Dataset used for prediction.
-        vid_writer (dict): Dictionary of {save_path: video_writer} for saving video output.
-        plotted_img (numpy.ndarray): Last plotted image.
+        vid_writer (Dict[str, cv2.VideoWriter]): Dictionary of {save_path: video_writer} for saving video output.
+        plotted_img (np.ndarray): Last plotted image.
         source_type (SimpleNamespace): Type of input source.
         seen (int): Number of images processed.
-        windows (list): List of window names for visualization.
+        windows (List[str]): List of window names for visualization.
         batch (tuple): Current batch data.
-        results (list): Current batch results.
+        results (List[Any]): Current batch results.
         transforms (callable): Image transforms for classification.
-        callbacks (dict): Callback functions for different events.
+        callbacks (Dict[str, List[callable]]): Callback functions for different events.
         txt_path (Path): Path to save text results.
         _lock (threading.Lock): Lock for thread-safe inference.
 
@@ -105,7 +106,12 @@ class BasePredictor:
         add_callback: Register a new callback function.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(
+        self,
+        cfg=DEFAULT_CFG,
+        overrides: Optional[Dict[str, Any]] = None,
+        _callbacks: Optional[Dict[str, List[callable]]] = None,
+    ):
         """
         Initialize the BasePredictor class.
 
@@ -141,7 +147,7 @@ class BasePredictor:
         self._lock = threading.Lock()  # for automatic thread-safe inference
         callbacks.add_integration_callbacks(self)
 
-    def preprocess(self, im):
+    def preprocess(self, im: Union[torch.Tensor, List[np.ndarray]]) -> torch.Tensor:
         """
         Prepare input image before inference.
 
@@ -166,7 +172,7 @@ class BasePredictor:
             im /= 255  # 0 - 255 to 0.0 - 1.0
         return im
 
-    def inference(self, im, *args, **kwargs):
+    def inference(self, im: torch.Tensor, *args, **kwargs):
         """Run inference on a given image using the specified model and arguments."""
         visualize = (
             increment_path(self.save_dir / Path(self.batch[0][0]).stem, mkdir=True)
@@ -175,7 +181,7 @@ class BasePredictor:
         )
         return self.model(im, augment=self.args.augment, visualize=visualize, embed=self.args.embed, *args, **kwargs)
 
-    def pre_transform(self, im):
+    def pre_transform(self, im: List[np.ndarray]) -> List[np.ndarray]:
         """
         Pre-transform input image before inference.
 
@@ -199,7 +205,7 @@ class BasePredictor:
         """Post-process predictions for an image and return them."""
         return preds
 
-    def __call__(self, source=None, model=None, stream=False, *args, **kwargs):
+    def __call__(self, source=None, model=None, stream: bool = False, *args, **kwargs):
         """
         Perform inference on an image or stream.
 
@@ -368,7 +374,7 @@ class BasePredictor:
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
         self.run_callbacks("on_predict_end")
 
-    def setup_model(self, model, verbose=True):
+    def setup_model(self, model, verbose: bool = True):
         """
         Initialize YOLO model with given parameters and set it to evaluation mode.
 
@@ -393,7 +399,7 @@ class BasePredictor:
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()
 
-    def write_results(self, i, p, im, s):
+    def write_results(self, i: int, p: Path, im: torch.Tensor, s: List[str]) -> str:
         """
         Write inference results to a file or directory.
 
@@ -444,7 +450,7 @@ class BasePredictor:
 
         return string
 
-    def save_predicted_images(self, save_path="", frame=0):
+    def save_predicted_images(self, save_path: str = "", frame: int = 0):
         """
         Save video predictions as mp4 or images as jpg at specified path.
 
@@ -478,7 +484,7 @@ class BasePredictor:
         else:
             cv2.imwrite(str(Path(save_path).with_suffix(".jpg")), im)  # save to JPG for best support
 
-    def show(self, p=""):
+    def show(self, p: str = ""):
         """Display an image in a window."""
         im = self.plotted_img
         if platform.system() == "Linux" and p not in self.windows:
@@ -493,6 +499,6 @@ class BasePredictor:
         for callback in self.callbacks.get(event, []):
             callback(self)
 
-    def add_callback(self, event: str, func):
+    def add_callback(self, event: str, func: callable):
         """Add a callback function for a specific event."""
         self.callbacks[event].append(func)

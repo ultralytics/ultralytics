@@ -30,8 +30,6 @@ class OBBPredictor(DetectionPredictor):
         """
         Initialize OBBPredictor with optional model and data configuration overrides.
 
-        This constructor sets up an OBBPredictor instance for oriented bounding box detection tasks.
-
         Args:
             cfg (dict, optional): Default configuration for the predictor.
             overrides (dict, optional): Configuration overrides that take precedence over the default config.

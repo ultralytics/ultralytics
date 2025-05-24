@@ -3,6 +3,7 @@
 
 import time
 from pathlib import Path
+from typing import List, Optional
 
 import cv2
 import numpy as np
@@ -12,13 +13,13 @@ import torch
 _imshow = cv2.imshow  # copy to avoid recursion errors
 
 
-def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray:
+def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> Optional[np.ndarray]:
     """
     Read an image from a file with multilanguage filename support.
 
     Args:
         filename (str): Path to the file to read.
-        flags (int): Flag that can take values of cv2.IMREAD_*. Controls how the image is read.
+        flags (int, optional): Flag that can take values of cv2.IMREAD_*. Controls how the image is read.
 
     Returns:
         (np.ndarray | None): The read image array, or None if reading fails.
@@ -39,7 +40,7 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray:
         return im[..., None] if im.ndim == 2 else im  # Always ensure 3 dimensions
 
 
-def imwrite(filename: str, img: np.ndarray, params=None) -> bool:
+def imwrite(filename: str, img: np.ndarray, params: Optional[List[int]] = None) -> bool:
     """
     Write an image to a file with multilanguage filename support.
 
@@ -126,9 +127,6 @@ def torch_save(*args, **kwargs):
     Args:
         *args (Any): Positional arguments to pass to torch.save.
         **kwargs (Any): Keyword arguments to pass to torch.save.
-
-    Returns:
-        (Any): Result of torch.save operation if successful, None otherwise.
 
     Examples:
         >>> model = torch.nn.Linear(10, 1)

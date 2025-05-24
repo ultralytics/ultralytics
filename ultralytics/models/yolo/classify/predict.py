@@ -68,14 +68,14 @@ class ClassificationPredictor(BasePredictor):
             is_legacy_transform = any(
                 self._legacy_transform_name in str(transform) for transform in self.transforms.transforms
             )
-            if is_legacy_transform:  # to handle legacy transforms
+            if is_legacy_transform:  # Handle legacy transforms
                 img = torch.stack([self.transforms(im) for im in img], dim=0)
             else:
                 img = torch.stack(
                     [self.transforms(Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))) for im in img], dim=0
                 )
         img = (img if isinstance(img, torch.Tensor) else torch.from_numpy(img)).to(self.model.device)
-        return img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
+        return img.half() if self.model.fp16 else img.float()  # Convert uint8 to fp16/32
 
     def postprocess(self, preds, img, orig_imgs):
         """
@@ -89,7 +89,7 @@ class ClassificationPredictor(BasePredictor):
         Returns:
             (List[Results]): List of Results objects containing classification results for each image.
         """
-        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
+        if not isinstance(orig_imgs, list):  # Input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
         preds = preds[0] if isinstance(preds, (list, tuple)) else preds

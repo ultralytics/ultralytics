@@ -17,14 +17,14 @@ def run_ray_tune(
 
     Args:
         model (YOLO): Model to run the tuner on.
-        space (dict, optional): The hyperparameter search space.
+        space (dict, optional): The hyperparameter search space. If not provided, uses default space.
         grace_period (int, optional): The grace period in epochs of the ASHA scheduler.
         gpu_per_trial (int, optional): The number of GPUs to allocate per trial.
         max_samples (int, optional): The maximum number of trials to run.
         **train_args (Any): Additional arguments to pass to the `train()` method.
 
     Returns:
-        (dict): A dictionary containing the results of the hyperparameter search.
+        (ray.tune.ResultGrid): A ResultGrid containing the results of the hyperparameter search.
 
     Examples:
         >>> from ultralytics import YOLO
@@ -88,7 +88,7 @@ def run_ray_tune(
     model_in_store = ray.put(model)
 
     def _tune(config):
-        """Train the YOLO model with the specified hyperparameters."""
+        """Train the YOLO model with the specified hyperparameters and return results."""
         model_to_train = ray.get(model_in_store)  # get the model from ray store for tuning
         model_to_train.reset_callbacks()
         config.update(train_args)
@@ -98,13 +98,13 @@ def run_ray_tune(
     # Get search space
     if not space and not train_args.get("resume"):
         space = default_space
-        LOGGER.warning("search space not provided, using default search space.")
+        LOGGER.warning("Search space not provided, using default search space.")
 
     # Get dataset
     data = train_args.get("data", TASK2DATA[task])
     space["data"] = data
     if "data" not in train_args:
-        LOGGER.warning(f'data not provided, using default "data={data}".')
+        LOGGER.warning(f'Data not provided, using default "data={data}".')
 
     # Define the trainable function with allocated resources
     trainable_with_resources = tune.with_resources(_tune, {"cpu": NUM_THREADS, "gpu": gpu_per_trial or 0})

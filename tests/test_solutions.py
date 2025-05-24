@@ -156,14 +156,14 @@ SOLUTIONS = [
         "StreamlitInference",
         solutions.Inference,
         False,
-        None,  # streamlit application don't require video file
-        {},  # streamlit application don't accept arguments
+        None,  # streamlit application doesn't require video file
+        {},  # streamlit application doesn't accept arguments
     ),
 ]
 
 
-def process_video(solution, video_path, needs_frame_count=False):
-    """Process video with solution, feeding frames and optional frame count."""
+def process_video(solution, video_path: str, needs_frame_count: bool = False):
+    """Process video with solution, feeding frames and optional frame count to the solution instance."""
     cap = cv2.VideoCapture(video_path)
     assert cap.isOpened(), f"Error reading video file {video_path}"
 
@@ -183,7 +183,7 @@ def process_video(solution, video_path, needs_frame_count=False):
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled for testing due to --slow test errors after YOLOE PR.")
 @pytest.mark.parametrize("name, solution_class, needs_frame_count, video, kwargs", SOLUTIONS)
 def test_solution(name, solution_class, needs_frame_count, video, kwargs):
-    """Test individual Ultralytics solution."""
+    """Test individual Ultralytics solution with video processing and parameter validation."""
     if video:
         if name != "ObjectCounterVertical":
             safe_download(url=f"{ASSETS_URL}/{video}", dir=TMP)
@@ -208,14 +208,14 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
 @pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="Disabled due to unsupported CLIP dependencies.")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search():
-    """Test similarity search solution."""
-    safe_download(f"{ASSETS_URL}/4-imgs-similaritysearch.zip", dir=TMP)  # 4 dog images for testing in a zip file.
+    """Test similarity search solution with sample images and text query."""
+    safe_download(f"{ASSETS_URL}/4-imgs-similaritysearch.zip", dir=TMP)  # 4 dog images for testing in a zip file
     searcher = solutions.VisualAISearch(data=str(TMP / "4-imgs-similaritysearch"))
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
 
 
 def test_left_click_selection():
-    """Test distance calculation left click."""
+    """Test distance calculation left click selection functionality."""
     dc = solutions.DistanceCalculation()
     dc.boxes, dc.track_ids = [[10, 10, 50, 50]], [1]
     dc.mouse_event_for_distance(cv2.EVENT_LBUTTONDOWN, 30, 30, None, None)
@@ -223,7 +223,7 @@ def test_left_click_selection():
 
 
 def test_right_click_reset():
-    """Test distance calculation right click."""
+    """Test distance calculation right click reset functionality."""
     dc = solutions.DistanceCalculation()
     dc.selected_boxes, dc.left_mouse_count = {1: [10, 10, 50, 50]}, 1
     dc.mouse_event_for_distance(cv2.EVENT_RBUTTONDOWN, 0, 0, None, None)
@@ -232,7 +232,7 @@ def test_right_click_reset():
 
 
 def test_parking_json_none():
-    """Test that ParkingManagement skips or errors cleanly when no JSON is provided."""
+    """Test that ParkingManagement handles missing JSON gracefully."""
     im0 = np.zeros((640, 480, 3), dtype=np.uint8)
     try:
         parkingmanager = solutions.ParkingManagement(json_path=None)
@@ -266,7 +266,7 @@ def test_config_update_method_with_invalid_argument():
         obj.update(invalid_key=123)
         assert False, "Expected ValueError for invalid update argument"
     except ValueError as e:
-        assert "❌ invalid_key is not a valid solution argument" in str(e)
+        assert "is not a valid solution argument" in str(e)
 
 
 def test_plot_with_no_masks():

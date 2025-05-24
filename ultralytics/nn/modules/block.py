@@ -2187,36 +2187,36 @@ class BiFPNBlock(nn.Module):
 
 
 class BiFPN(nn.Module):
-    def __init__(self, channels, feature_size=256):  # channels akan diterima sebagai list
+    def __init__(self, channels, feature_size=256):
         super().__init__()
-        if len(channels) != 2:
-            raise ValueError(f"BiFPN need 2 channels, got {len(channels)}")
-
-        self.proj_p4 = nn.Conv2d(channels[0], feature_size, 1)
-        self.proj_p5 = nn.Conv2d(channels[1], feature_size, 1)
-        self.proj_p6 = nn.Conv2d(channels[2], feature_size, 1)
-
-        # BiFPN Blocks (2 lapisan cross-connection)
-        self.bifpn1 = BiFPNBlock(feature_size)
-        self.bifpn2 = BiFPNBlock(feature_size)
-
-        # Output convolution
-        self.out_conv = nn.Conv2d(feature_size, feature_size, 3, padding=1)
+        # Pastikan channels adalah list integers (bukan list of lists)
+        if isinstance(channels[0], list):
+            raise ValueError("BiFPN channels harus list integer, contoh: [256, 512]")
+        
+        # Proyeksi input ke feature_size
+        self.proj_layers = nn.ModuleList([
+            nn.Conv2d(ch, feature_size, 1) for ch in channels
+        ])
+        
+        # Weight untuk fusion (Contoh: 2 input)
+        self.w = nn.Parameter(torch.Tensor(2, 1))
+        self.w_relu = nn.ReLU()
+        self.epsilon = 1e-4
 
     def forward(self, inputs):
-        # Input: [P4, P5, P6] dari backbone
-        p4, p5, p6 = inputs
+        # Pastikan inputs adalah list dari 2 feature map
+        if len(inputs) != 2:
+            raise ValueError(f"BiFPN butuh 2 input, diberikan {len(inputs)}")
+        
+        # Proyeksi dan resize
+        x1 = self.proj_layers[0](inputs[0])
+        x2 = F.interpolate(self.proj_layers[1](inputs[1]), scale_factor=2, mode="nearest")
+        
+        # Weighted fusion
+        w = self.w_relu(self.w)
+        w /= torch.sum(w, dim=0) + self.epsilon
+        fused = w[0] * x1 + w[1] * x2
+        
+        return fused
 
-        # Step 1: Proyeksi ke feature size
-        p4 = self.proj_p4(p4)
-        p5 = self.proj_p5(p5)
-        p6 = self.proj_p6(p6)
-
-        # Step 2: BiFPN processing
-        p5_out = self.bifpn1(p4, p5, p6)
-        p5_final = self.bifpn2(p4, p5_out, p6)
-
-        # Step 3: Output processing
-        return self.out_conv(p5_final)
-
-    # //UPDATE BiFPN3
+    # //UPDATE BiFPN4

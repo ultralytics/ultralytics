@@ -20,12 +20,12 @@ class KalmanFilterXYAH:
         _std_weight_velocity (float): Standard deviation weight for velocity.
 
     Methods:
-        initiate: Creates a track from an unassociated measurement.
-        predict: Runs the Kalman filter prediction step.
-        project: Projects the state distribution to measurement space.
-        multi_predict: Runs the Kalman filter prediction step (vectorized version).
-        update: Runs the Kalman filter correction step.
-        gating_distance: Computes the gating distance between state distribution and measurements.
+        initiate: Create a track from an unassociated measurement.
+        predict: Run the Kalman filter prediction step.
+        project: Project the state distribution to measurement space.
+        multi_predict: Run the Kalman filter prediction step (vectorized version).
+        update: Run the Kalman filter correction step.
+        gating_distance: Compute the gating distance between state distribution and measurements.
 
     Examples:
         Initialize the Kalman filter and create a track from a measurement
@@ -302,11 +302,11 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         _std_weight_velocity (float): Standard deviation weight for velocity.
 
     Methods:
-        initiate: Creates a track from an unassociated measurement.
-        predict: Runs the Kalman filter prediction step.
-        project: Projects the state distribution to measurement space.
-        multi_predict: Runs the Kalman filter prediction step in a vectorized manner.
-        update: Runs the Kalman filter correction step.
+        initiate: Create a track from an unassociated measurement.
+        predict: Run the Kalman filter prediction step.
+        project: Project the state distribution to measurement space.
+        multi_predict: Run the Kalman filter prediction step in a vectorized manner.
+        update: Run the Kalman filter correction step.
 
     Examples:
         Create a Kalman filter and initialize a track

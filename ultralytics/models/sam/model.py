@@ -15,6 +15,7 @@ Key Features:
 """
 
 from pathlib import Path
+from typing import Dict, Type
 
 from ultralytics.engine.model import Model
 from ultralytics.utils.torch_utils import model_info
@@ -36,8 +37,8 @@ class SAM(Model):
         task (str): The task type, set to "segment" for SAM models.
 
     Methods:
-        predict: Performs segmentation prediction on the given image or video source.
-        info: Logs information about the SAM model.
+        predict: Perform segmentation prediction on the given image or video source.
+        info: Log information about the SAM model.
 
     Examples:
         >>> sam = SAM("sam_b.pt")
@@ -153,13 +154,13 @@ class SAM(Model):
         return model_info(self.model, detailed=detailed, verbose=verbose)
 
     @property
-    def task_map(self):
+    def task_map(self) -> Dict[str, Dict[str, Type[Predictor]]]:
         """
         Provide a mapping from the 'segment' task to its corresponding 'Predictor'.
 
         Returns:
-            (Dict[str, Dict[str, Type[Predictor]]]): A dictionary mapping the 'segment' task to its corresponding Predictor
-                class. For SAM2 models, it maps to SAM2Predictor, otherwise to the standard Predictor.
+            (Dict[str, Dict[str, Type[Predictor]]]): A dictionary mapping the 'segment' task to its corresponding
+                Predictor class. For SAM2 models, it maps to SAM2Predictor, otherwise to the standard Predictor.
 
         Examples:
             >>> sam = SAM("sam_b.pt")

@@ -28,7 +28,7 @@ class RTDETR(Model):
         model (str): Path to the pre-trained model.
 
     Methods:
-        task_map: Returns a task map for RT-DETR, associating tasks with corresponding Ultralytics classes.
+        task_map: Return a task map for RT-DETR, associating tasks with corresponding Ultralytics classes.
 
     Examples:
         Initialize RT-DETR with a pre-trained model
@@ -43,9 +43,6 @@ class RTDETR(Model):
 
         Args:
             model (str): Path to the pre-trained model. Supports .pt, .yaml, and .yml formats.
-
-        Raises:
-            NotImplementedError: If the model file extension is not 'pt', 'yaml', or 'yml'.
         """
         super().__init__(model=model, task="detect")
 

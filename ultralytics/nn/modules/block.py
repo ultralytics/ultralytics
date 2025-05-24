@@ -2223,12 +2223,16 @@ class BiFPN(nn.Module):
             bifpns.append(BiFPNBlock(c2, c2, epsilon))
         self.bifpn = nn.Sequential(*bifpns)
 
-    def forward(self, inputs):
-        # Handle both single input and multiple inputs
-        if isinstance(inputs, (list, tuple)):
-            c3, c4, c5 = inputs
-        else:
-            c3 = c4 = c5 = inputs
+    def forward(self, x):
+        # For single input, we'll use the same input for all levels
+        if not isinstance(x, (list, tuple)):
+            x = [x, x, x]  # Use same input for all three levels
+        
+        # Ensure we have exactly 3 inputs
+        if len(x) != 3:
+            raise ValueError(f"BiFPN expects 3 inputs, got {len(x)}")
+            
+        c3, c4, c5 = x
 
         # Calculate the input column of BiFPN
         p3_x = self.p3(c3)
@@ -2239,5 +2243,4 @@ class BiFPN(nn.Module):
 
         features = [p3_x, p4_x, p5_x, p6_x, p7_x]
         return self.bifpn(features)
-
     # //UPDATE BiFPN5

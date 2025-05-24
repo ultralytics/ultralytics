@@ -2152,23 +2152,22 @@ class SAVPE(nn.Module):
 
 
 class BiFPNBlock(nn.Module):
-    """
-    Bi-directional Feature Pyramid Network
-    """
+    """Bi-directional Feature Pyramid Network."""
+
     def __init__(self, c1, c2, epsilon=0.0001):
-        super(BiFPNBlock, self).__init__()
+        super().__init__()
         self.epsilon = epsilon
-        
+
         self.p3_td = DWConv(c2, c2)
         self.p4_td = DWConv(c2, c2)
         self.p5_td = DWConv(c2, c2)
         self.p6_td = DWConv(c2, c2)
-        
+
         self.p4_out = DWConv(c2, c2)
         self.p5_out = DWConv(c2, c2)
         self.p6_out = DWConv(c2, c2)
         self.p7_out = DWConv(c2, c2)
-        
+
         # Initialize weights
         self.w1 = nn.Parameter(torch.ones(2, 4))
         self.w1_relu = nn.ReLU()
@@ -2202,20 +2201,20 @@ class BiFPNBlock(nn.Module):
 
 class BiFPN(nn.Module):
     def __init__(self, c1, c2, n=2, epsilon=0.0001):
-        super(BiFPN, self).__init__()
+        super().__init__()
         # Handle both list and int inputs for c1
         if isinstance(c1, (list, tuple)):
             c3, c4, c5 = c1
         else:
             c3 = c4 = c5 = c1
-            
+
         self.p3 = Conv(c3, c2, 1)
         self.p4 = Conv(c4, c2, 1)
         self.p5 = Conv(c5, c2, 1)
-        
+
         # p6 is obtained via a 3x3 stride-2 conv on C5
         self.p6 = Conv(c5, c2, 3, 2)
-        
+
         # p7 is computed by applying ReLU followed by a 3x3 stride-2 conv on p6
         self.p7 = Conv(c2, c2, 3, 2)
 
@@ -2242,4 +2241,3 @@ class BiFPN(nn.Module):
         return self.bifpn(features)
 
     # //UPDATE BiFPN5
-

@@ -14,7 +14,7 @@ from PIL import Image
 
 from tests import CFG, MODEL, SOURCE, SOURCES_LIST, TMP
 from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import MODELS, TASK2DATA, TASKS
+from ultralytics.cfg import MODELS, TASK2DATA, TASKS, cfg2dict, check_cfg
 from ultralytics.data.build import load_inference_source
 from ultralytics.data.utils import check_file_speeds
 from ultralytics.utils import (
@@ -712,3 +712,10 @@ def test_already_initialized_model():
     """Test already initialized model."""
     model = YOLO("yolo11n.pt")
     model = YOLO(model)
+
+def additional_cfg_tests():
+    """Additional tests to improve CFG."""
+    _ = cfg2dict("config.yaml")
+    config = {"epochs": 50, "lr0": 0.01, "momentum": 1.2, "save": "true1"}
+    with pytest.raises(TypeError, match="save=.*invalid type"):
+        check_cfg(config, hard=True)

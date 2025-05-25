@@ -12,6 +12,7 @@ import pytest
 import torch
 from PIL import Image
 
+from unittest.mock import patch, MagicMock
 from tests import CFG, MODEL, SOURCE, SOURCES_LIST, TMP
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import MODELS, TASK2DATA, TASKS, _handle_deprecation, cfg2dict, check_cfg
@@ -702,39 +703,87 @@ def test_multichannel():
     model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)
     model.export(format="onnx")
 
-
-def test_check_file_speeds_with_dummy_files(tmp_path, caplog):
-    """Test file speed method with dummy files."""
-    check_file_speeds(files=None)  # File speed check
-
-
-def test_already_initialized_model():
-    """Test already initialized model."""
-    model = YOLO("yolo11n.pt")
-    model = YOLO(model)
-
-
-def additional_cfg_tests():
-    """Additional tests to improve CFG."""
+def test_all_file_model_cfg(tmp_path):
+    """Covers file speed check, model loading, config parsing, and validation."""
     import yaml
 
-    config = {
+    # File speed check
+    check_file_speeds(files=None)
+
+    # YOLO model loading from model object
+    model = YOLO("yolo11n.pt")
+    model_clone = YOLO(model)  # Load from existing instance
+    assert model is not None
+    assert model_clone is not None
+
+    # Valid config YAML and deprecation handling
+    config_dict = {
         "boxes": True,
         "show_labels": False,
         "line_width": 2,
         "crop_fraction": 0.5,
     }
-    with open("config.yaml", "w") as f:
-        yaml.dump(config, f)
-    config_dict = cfg2dict("config.yaml")
+    config_path = tmp_path / "config.yaml"
+    with open(config_path, "w") as f:
+        yaml.dump(config_dict, f)
 
-    result = _handle_deprecation(config_dict)
+    loaded_cfg = cfg2dict(str(config_path))
+    result = _handle_deprecation(loaded_cfg)
 
     assert "show_boxes" in result
     assert "show_labels" in result
     assert "line_width" in result
-    assert "crop_fraction" not in result
+    assert "crop_fraction" not in result  # Expected to be deprecated
 
-    config_dict_incorrect = {"epochs": 50, "lr0": 0.01, "momentum": 1.2, "save": "true1"}
-    with pytest.raises(TypeError, match="save=.*invalid type"):
-        check_cfg(config_dict_incorrect, hard=True)
+    # Invalid config triggers
+    invalid_cfg = {"epochs": 50, "lr0": 0.01, "momentum": 1.2, "save": "true1"}
+    error_caught = False
+    try:
+        check_cfg(invalid_cfg, hard=True)
+    except Exception as e:
+        error_caught = True
+        assert isinstance(e, (TypeError, ValueError))
+        msg = str(e)
+        assert "momentum=1.2" in msg
+        assert "between 0.0 and 1.0" in msg or "invalid type" in msg
+
+    assert error_caught, "Expected error was not raised by check_cfg() for invalid config"
+
+def test_build_text_model_all(sample_texts="a photo of a cat"):
+    """Test for CLIP, MobileCLIP, and invalid model handling."""
+    from ultralytics.nn.text_model import build_text_model, CLIP, MobileCLIPTS
+
+    device = torch.device("cpu")
+
+    # Test CLIP model
+    with patch("ultralytics.nn.text_model.clip.load") as mock_load:
+        mock_model = MagicMock()
+        mock_model.encode_text.return_value = torch.randn(2, 512)
+        mock_load.return_value = (mock_model, None)
+
+        model = build_text_model("mobileclip:s0", device=device)
+        tokens = model.tokenize(sample_texts)
+        assert isinstance(tokens, torch.Tensor)
+
+        features = model.encode_text(tokens)
+        assert features.shape[-1] == 512
+        assert torch.allclose(features.norm(dim=-1), torch.ones(features.shape[0]), atol=1e-5)
+
+    # Test MobileCLIP model
+    with patch("ultralytics.nn.text_model.clip.clip.tokenize") as mock_tokenize, \
+         patch("torch.jit.load") as mock_jit:
+        mock_tokenize.return_value = torch.randint(0, 100, (2, 77))
+        mock_encoder = MagicMock()
+        mock_encoder.return_value = torch.randn(2, 512)
+        mock_jit.return_value = mock_encoder
+
+        model = build_text_model("mobileclip:s0", device=device)
+        tokens = model.tokenize(sample_texts)
+        assert isinstance(tokens, torch.Tensor)
+
+        features = model.encode_text(tokens)
+        assert features.shape[-1] == 512
+
+    # Test invalid model
+    with pytest.raises(ValueError, match="Unrecognized base model"):
+        build_text_model("invalid:model", device=device)

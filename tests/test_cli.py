@@ -28,6 +28,7 @@ def test_special_modes() -> None:
     run("yolo version")
     run("yolo settings reset")
     run("yolo cfg")
+    run("yolo solutions")  # cover the "No solution name provided. i.e `yolo solutions count`. Defaulting to 'count'."
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)

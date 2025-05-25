@@ -558,7 +558,7 @@ class Results(SimpleClass, DataExportMixin):
                 )
             idx = (
                 pred_boxes.id
-                if pred_boxes.id is not None and color_mode == "instance"
+                if pred_boxes.is_track and color_mode == "instance"
                 else pred_boxes.cls
                 if pred_boxes and color_mode == "class"
                 else reversed(range(len(pred_masks)))
@@ -568,7 +568,7 @@ class Results(SimpleClass, DataExportMixin):
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
             for i, d in enumerate(reversed(pred_boxes)):
-                c, d_conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
+                c, d_conf, id = int(d.cls), float(d.conf) if conf else None, int(d.id.item()) if d.is_track else None
                 name = ("" if id is None else f"id:{id} ") + names[c]
                 label = (f"{name} {d_conf:.2f}" if conf else name) if labels else None
                 box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
@@ -733,7 +733,7 @@ class Results(SimpleClass, DataExportMixin):
         elif boxes:
             # Detect/segment/pose
             for j, d in enumerate(boxes):
-                c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
+                c, conf, id = int(d.cls), float(d.conf), int(d.id.item()) if d.is_track else None
                 line = (c, *(d.xyxyxyxyn.view(-1) if is_obb else d.xywhn.view(-1)))
                 if masks:
                     seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)

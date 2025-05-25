@@ -823,6 +823,7 @@ class Results(SimpleClass, DataExportMixin):
                 }
             )
             return results
+
         is_obb = self.obb is not None
         data = self.obb if is_obb else self.boxes
         h, w = self.orig_shape if normalize else (1, 1)

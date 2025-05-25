@@ -2151,15 +2151,29 @@ class SAVPE(nn.Module):
         return F.normalize(aggregated.transpose(-2, -3).reshape(B, Q, -1), dim=-1, p=2)
 
 
+# ultralytics/nn/modules/block.py (atau conv.py)
+# Pastikan Conv dan C3 sudah terimpor. Sesuaikan import path jika perlu.
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from ultralytics.nn.modules.conv import Conv
+from ultralytics.nn.modules.block import C3 # Pastikan C3 ada di file ini atau diimpor dengan benar
+from ultralytics.utils.torch_utils import make_divisible
+
 class BiFPN_Add(nn.Module):
-    # Ini adalah cara sederhana untuk mengilustrasikan fusi berbobot di BiFPN
-    # BiFPN yang sebenarnya menggunakan struktur top-down dan bottom-up yang lebih kompleks
-    # dan mekanisme bobot yang lebih canggih.
-    def __init__(self, channels, num_inputs):
+    """
+    Node fusi berbobot BiFPN sederhana.
+    Melakukan penjumlahan berbobot dari input, diikuti oleh konvolusi.
+    """
+    def __init__(self, channels, num_inputs, act=nn.SiLU()):
         super().__init__()
         self.w = nn.Parameter(torch.ones(num_inputs, dtype=torch.float32), requires_grad=True)
-        self.epsilon = 1e-4  # Untuk stabilitas numerik
-        self.relu = nn.ReLU()  # Untuk memastikan bobot non-negatif
+        self.epsilon = 1e-4
+        self.relu = nn.ReLU()
+
+        # Konvolusi setelah fusi
+        # Input dan output channelnya sama dengan 'channels'
+        self.conv = Conv(channels, channels, 3, 1, act=act)
 
     def forward(self, inputs):
         # Normalisasi bobot
@@ -2170,74 +2184,78 @@ class BiFPN_Add(nn.Module):
         x = inputs[0] * w[0]
         for i in range(1, len(inputs)):
             x += inputs[i] * w[i]
-        return x
+        
+        return self.conv(x) # Aplikasikan conv setelah fusi
 
 
 class BiFPN(nn.Module):
-    # Representasi SANGAT SEDERHANA dari BiFPN untuk tujuan integrasi
-    # Implementasi BiFPN yang lebih detail akan melibatkan banyak jalur
-    # dan fusi berbobot di setiap node.
-    def __init__(self, c1, c2, c3, c4=None, num_layers=1, sync_bn=False):
+    """
+    Satu blok BiFPN multi-level.
+    Menerima 3 input (P3, P4, P5 dari backbone) dan mengembalikan 3 output (P3_out, P4_out, P5_out).
+    Menggunakan BiFPN_Add untuk fusi berbobot dan C3 untuk pemrosesan pasca-fusi.
+    """
+    def __init__(self, c1, c2, c3, c4=None, num_layers=1, sync_bn=False): # c1,c2,c3 adalah channel P3,P4,P5 input
         super().__init__()
-        # c1, c2, c3, c4 adalah channel input dari P3, P4, P5, P6 (jika ada)
-        # out_channels akan menjadi channel output untuk setiap level
-        self.num_layers = num_layers  # Jumlah iterasi BiFPN
-        out_channels = c2  # Asumsi output channels sama dengan P4
-        inter_channels = make_divisible(c1 / 2, 8)  # Saluran tengah, bisa disesuaikan
+        # c1, c2, c3 adalah channel input dari P3, P4, P5
+        # c4 adalah channel input dari P6 (jika digunakan, saat ini tidak)
 
-        # Misalnya, untuk satu iterasi BiFPN (mengambil P3, P4, P5)
-        # Node top-down
-        self.td_conv_p5 = Conv(c3, inter_channels, 1, 1)
-        self.td_conv_p4 = Conv(c2, inter_channels, 1, 1)
-        self.td_conv_p3 = Conv(c1, inter_channels, 1, 1)
+        # Output channel dasar untuk BiFPN (misalnya, channel P4)
+        self.base_out_channels = c2 
+        # Channel internal untuk TD/BU paths
+        self.inter_channels = make_divisible(c1 / 2, 8) # Misalnya, P3 (c1) dibagi 2
+
+        # Initial 1x1 Convs untuk menyelaraskan channel dari input backbone ke inter_channels
+        self.td_conv_p5 = Conv(c3, self.inter_channels, 1, 1) # P5: c3 -> inter_channels
+        self.td_conv_p4 = Conv(c2, self.inter_channels, 1, 1) # P4: c2 -> inter_channels
+        self.td_conv_p3 = Conv(c1, self.inter_channels, 1, 1) # P3: c1 -> inter_channels
 
         self.upsample = nn.Upsample(scale_factor=2, mode="nearest")
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        # Top-down paths (example for P4_td and P3_td)
+        # Top-down paths (fusi dan C3)
+        # BiFPN_Add(channels=inter_channels, num_inputs)
         self.p4_td = nn.Sequential(
-            BiFPN_Add(inter_channels, 2),  # p4_in + p5_upsampled
-            C3(inter_channels, inter_channels, n=3, shortcut=False),
+            # Input: dari td_conv_p4 (P4_in) dan upsampled td_conv_p5 (P5_upsampled)
+            BiFPN_Add(self.inter_channels, 2), 
+            C3(self.inter_channels, self.inter_channels, n=3, shortcut=False), # Mempertahankan inter_channels
         )
         self.p3_td = nn.Sequential(
-            BiFPN_Add(inter_channels, 2),  # p3_in + p4_td_upsampled
-            C3(inter_channels, inter_channels, n=3, shortcut=False),
+            # Input: dari td_conv_p3 (P3_in) dan upsampled p4_td (P4_td_upsampled)
+            BiFPN_Add(self.inter_channels, 2),
+            C3(self.inter_channels, self.inter_channels, n=3, shortcut=False),
         )
 
-        # Bottom-up paths (example for P4_out and P5_out)
+        # Bottom-up paths
         self.p4_out = nn.Sequential(
-            BiFPN_Add(inter_channels, 3),  # p4_in + p4_td + p3_bu_downsampled (kalau ada)
-            C3(inter_channels, out_channels, n=3, shortcut=False),
+            # Input: dari td_conv_p4 (P4_in), p4_td (setelah C3), dan downsampled p3_td (setelah C3)
+            BiFPN_Add(self.inter_channels, 3), # Menggabungkan 3 input
+            C3(self.inter_channels, self.base_out_channels, n=3, shortcut=False), # Output ke base_out_channels
         )
         self.p5_out = nn.Sequential(
-            BiFPN_Add(inter_channels, 2),  # p5_in + p4_out_downsampled
-            C3(inter_channels, out_channels, n=3, shortcut=False),
+            # Input: dari td_conv_p5 (P5_in), dan downsampled p4_out (setelah C3)
+            BiFPN_Add(self.inter_channels, 2),
+            C3(self.inter_channels, self.base_out_channels, n=3, shortcut=False),
         )
 
-        # Note: Implementasi ini adalah kerangka. Anda perlu merujuk pada
-        # paper atau kode BiFPN yang sebenarnya untuk detail koneksi dan bobot.
-
     def forward(self, inputs):
-        # inputs: [P3, P4, P5]
+        # inputs: [P3, P4, P5] dari backbone
         assert len(inputs) == 3, "BiFPN expects 3 inputs (P3, P4, P5)"
         p3_in, p4_in, p5_in = inputs
 
-        # Apply 1x1 conv if needed to align channels (BiFPN original uses 1x1 convs)
+        # Apply 1x1 convs untuk menyelaraskan channel (Top-down pass: P5 -> P4 -> P3)
         p5_in = self.td_conv_p5(p5_in)
         p4_in = self.td_conv_p4(p4_in)
         p3_in = self.td_conv_p3(p3_in)
 
         # Top-down pathway
-        p4_td_fused = self.p4_td([p4_in, self.upsample(p5_in)])  # p4_in + p5_upsampled
-        p3_td_fused = self.p3_td([p3_in, self.upsample(p4_td_fused)])  # p3_in + p4_td_upsampled
+        p4_td_fused = self.p4_td([p4_in, self.upsample(p5_in)])
+        p3_td_fused = self.p3_td([p3_in, self.upsample(p4_td_fused)])
 
-        # Bottom-up pathway (cross-scale connections)
-        # p4_out gets input from p4_in, p4_td, and downsampled p3_td_fused
+        # Bottom-up pathway (P3 -> P4 -> P5, dengan koneksi silang)
         p4_out_fused = self.p4_out([p4_in, p4_td_fused, self.pool(p3_td_fused)])
-
-        # p5_out gets input from p5_in and downsampled p4_out_fused
         p5_out_fused = self.p5_out([p5_in, self.pool(p4_out_fused)])
 
-        return [p3_td_fused, p4_out_fused, p5_out_fused]  # Urutan P3, P4, P5
-
-    # //UPDATE BiFPN6
+        # BiFPN block ini mengembalikan LIST dari tensor
+        # [P3_final, P4_final, P5_final]
+        return [p3_td_fused, p4_out_fused, p5_out_fused]
+    # //UPDATE BiFPN7

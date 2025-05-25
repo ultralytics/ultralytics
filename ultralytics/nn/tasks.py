@@ -1412,7 +1412,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C2f,
             C3k2,
             C3K2_FE,
-            BiFPN,
+            BiFPN, # Pastikan BiFPN ada di sini
             RepNCSPELAN4,
             ELAN1,
             ADown,
@@ -1440,7 +1440,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C2f,
             C3k2,
             C3K2_FE,
-            BiFPN,
+            BiFPN, # Pastikan BiFPN ada di sini
             C2fAttn,
             C3,
             C3TR,
@@ -1466,7 +1466,25 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 with contextlib.suppress(ValueError):
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
-        if m in base_modules:
+
+        # --- Modifikasi untuk BiFPN (HARUS di atas 'elif m in base_modules:') ---
+        if m is BiFPN:
+            # f adalah list of input indices (misalnya [6, 11])
+            # args dari YAML adalah: [[input_channels_list], out_channels]
+            
+            # Ekstrak input_channels_list dan out_channels dari args YAML
+            # Contoh: args = [[512, 1024], 512]
+            input_channels_list_for_bifpn = args[0] # Ini akan menjadi [512, 1024]
+            c2 = args[1] # Ini akan menjadi 512 (out_channels untuk node BiFPN ini)
+            
+            # Susun ulang args yang akan diteruskan ke BiFPN.__init__
+            # BiFPN.__init__ mengharapkan (input_channels_list, out_channels)
+            args = [input_channels_list_for_bifpn, c2]
+            # Karena BiFPN ini adalah node tunggal, n=1 sudah benar.
+            # Jadi, kita tidak perlu memodifikasi n_ di sini.
+
+        # --- Logika asli parse_model ---
+        elif m in base_modules: # KESALAHAN SINTAKS 'elif if' telah diperbaiki di sini
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
@@ -1522,8 +1540,13 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             c2 = args[0]
             c1 = ch[f]
             args = [*args[1:]]
-        else:
-            c2 = ch[f]
+        else: # Untuk modul lain yang lebih umum (single input, single output)
+            # Pastikan c2 selalu terdefinisi
+            c1 = ch[f]
+            if args:
+                c2 = args[0] # Asumsi args[0] adalah output channel untuk modul generik
+            else:
+                c2 = c1 # Asumsi passthrough jika tidak ada args yang spesifik untuk output channel
 
         m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
         t = str(m)[8:-2].replace("__main__.", "")  # module type
@@ -1533,12 +1556,10 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             LOGGER.info(f"{i:>3}{str(f):>20}{n_:>3}{m_.np:10.0f}  {t:<45}{str(args):<30}")  # print
         save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
         layers.append(m_)
-        # if i == 0:
+        # if i == 0: # Baris ini harus TIDAK ADA atau dikomentari
         #     ch = []
         ch.append(c2)
     return torch.nn.Sequential(*layers), sorted(save)
-
-
 def yaml_model_load(path):
     """
     Load a YOLOv8 model from a YAML file.

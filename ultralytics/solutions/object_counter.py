@@ -167,10 +167,6 @@ class ObjectCounter(BaseSolution):
         self.extract_tracks(im0)  # Extract tracks
         self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
-        is_obb = getattr(self.tracks[0], "obb", None) is not None  # True if OBB results exist
-        if is_obb and self.track_data and self.track_data.is_track:
-            self.boxes = self.track_data.xyxyxyxy.reshape(-1, 4, 2).cpu()
-
         self.annotator.draw_region(
             reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2
         )  # Draw region

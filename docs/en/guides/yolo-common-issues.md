@@ -190,7 +190,7 @@ y2 = y2 / 640
 
 **Solution**: To detect specific classes use the classes argument to specify the classes you want to include in the output. For instance, to detect only cars (assuming 'cars' have class index 2):
 
-```shell
+```bash
 yolo task=detect mode=segment model=yolo11n-seg.pt source='path/to/car.mp4' show=True classes=2
 ```
 

@@ -172,7 +172,7 @@ class BaseSolution:
             )
         self.track_data = self.tracks[0].obb or self.tracks[0].boxes  # Extract tracks for OBB or object detection
 
-        if self.track_data and self.track_data.id is not None:
+        if self.track_data and self.track_data.is_track:
             self.boxes = self.track_data.xyxy.cpu()
             self.clss = self.track_data.cls.cpu().tolist()
             self.track_ids = self.track_data.id.int().cpu().tolist()

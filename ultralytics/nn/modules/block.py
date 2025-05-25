@@ -2158,8 +2158,8 @@ class BiFPN_Add(nn.Module):
     def __init__(self, channels, num_inputs):
         super().__init__()
         self.w = nn.Parameter(torch.ones(num_inputs, dtype=torch.float32), requires_grad=True)
-        self.epsilon = 1e-4 # Untuk stabilitas numerik
-        self.relu = nn.ReLU() # Untuk memastikan bobot non-negatif
+        self.epsilon = 1e-4  # Untuk stabilitas numerik
+        self.relu = nn.ReLU()  # Untuk memastikan bobot non-negatif
 
     def forward(self, inputs):
         # Normalisasi bobot
@@ -2172,6 +2172,7 @@ class BiFPN_Add(nn.Module):
             x += inputs[i] * w[i]
         return x
 
+
 class BiFPN(nn.Module):
     # Representasi SANGAT SEDERHANA dari BiFPN untuk tujuan integrasi
     # Implementasi BiFPN yang lebih detail akan melibatkan banyak jalur
@@ -2180,9 +2181,9 @@ class BiFPN(nn.Module):
         super().__init__()
         # c1, c2, c3, c4 adalah channel input dari P3, P4, P5, P6 (jika ada)
         # out_channels akan menjadi channel output untuk setiap level
-        self.num_layers = num_layers # Jumlah iterasi BiFPN
-        out_channels = c2 # Asumsi output channels sama dengan P4
-        inter_channels = make_divisible(c1 / 2, 8) # Saluran tengah, bisa disesuaikan
+        self.num_layers = num_layers  # Jumlah iterasi BiFPN
+        out_channels = c2  # Asumsi output channels sama dengan P4
+        inter_channels = make_divisible(c1 / 2, 8)  # Saluran tengah, bisa disesuaikan
 
         # Misalnya, untuk satu iterasi BiFPN (mengambil P3, P4, P5)
         # Node top-down
@@ -2190,27 +2191,27 @@ class BiFPN(nn.Module):
         self.td_conv_p4 = Conv(c2, inter_channels, 1, 1)
         self.td_conv_p3 = Conv(c1, inter_channels, 1, 1)
 
-        self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
+        self.upsample = nn.Upsample(scale_factor=2, mode="nearest")
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
         # Top-down paths (example for P4_td and P3_td)
         self.p4_td = nn.Sequential(
-            BiFPN_Add(inter_channels, 2), # p4_in + p5_upsampled
-            C3(inter_channels, inter_channels, n=3, shortcut=False)
+            BiFPN_Add(inter_channels, 2),  # p4_in + p5_upsampled
+            C3(inter_channels, inter_channels, n=3, shortcut=False),
         )
         self.p3_td = nn.Sequential(
-            BiFPN_Add(inter_channels, 2), # p3_in + p4_td_upsampled
-            C3(inter_channels, inter_channels, n=3, shortcut=False)
+            BiFPN_Add(inter_channels, 2),  # p3_in + p4_td_upsampled
+            C3(inter_channels, inter_channels, n=3, shortcut=False),
         )
 
         # Bottom-up paths (example for P4_out and P5_out)
         self.p4_out = nn.Sequential(
-            BiFPN_Add(inter_channels, 3), # p4_in + p4_td + p3_bu_downsampled (kalau ada)
-            C3(inter_channels, out_channels, n=3, shortcut=False)
+            BiFPN_Add(inter_channels, 3),  # p4_in + p4_td + p3_bu_downsampled (kalau ada)
+            C3(inter_channels, out_channels, n=3, shortcut=False),
         )
         self.p5_out = nn.Sequential(
-            BiFPN_Add(inter_channels, 2), # p5_in + p4_out_downsampled
-            C3(inter_channels, out_channels, n=3, shortcut=False)
+            BiFPN_Add(inter_channels, 2),  # p5_in + p4_out_downsampled
+            C3(inter_channels, out_channels, n=3, shortcut=False),
         )
 
         # Note: Implementasi ini adalah kerangka. Anda perlu merujuk pada
@@ -2227,8 +2228,8 @@ class BiFPN(nn.Module):
         p3_in = self.td_conv_p3(p3_in)
 
         # Top-down pathway
-        p4_td_fused = self.p4_td([p4_in, self.upsample(p5_in)]) # p4_in + p5_upsampled
-        p3_td_fused = self.p3_td([p3_in, self.upsample(p4_td_fused)]) # p3_in + p4_td_upsampled
+        p4_td_fused = self.p4_td([p4_in, self.upsample(p5_in)])  # p4_in + p5_upsampled
+        p3_td_fused = self.p3_td([p3_in, self.upsample(p4_td_fused)])  # p3_in + p4_td_upsampled
 
         # Bottom-up pathway (cross-scale connections)
         # p4_out gets input from p4_in, p4_td, and downsampled p3_td_fused
@@ -2237,5 +2238,6 @@ class BiFPN(nn.Module):
         # p5_out gets input from p5_in and downsampled p4_out_fused
         p5_out_fused = self.p5_out([p5_in, self.pool(p4_out_fused)])
 
-        return [p3_td_fused, p4_out_fused, p5_out_fused] # Urutan P3, P4, P5
+        return [p3_td_fused, p4_out_fused, p5_out_fused]  # Urutan P3, P4, P5
+
     # //UPDATE BiFPN6

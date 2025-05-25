@@ -5,6 +5,7 @@ import csv
 import urllib
 from copy import copy
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import cv2
 import numpy as np
@@ -12,7 +13,6 @@ import pytest
 import torch
 from PIL import Image
 
-from unittest.mock import patch, MagicMock
 from tests import CFG, MODEL, SOURCE, SOURCES_LIST, TMP
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import MODELS, TASK2DATA, TASKS, _handle_deprecation, cfg2dict, check_cfg
@@ -751,7 +751,7 @@ def test_all_file_model_cfg(tmp_path):
 
 def test_build_text_model_all(sample_texts="a photo of a cat"):
     """Test for CLIP, MobileCLIP, and invalid model handling."""
-    from ultralytics.nn.text_model import build_text_model, CLIP, MobileCLIPTS
+    from ultralytics.nn.text_model import build_text_model
 
     device = torch.device("cpu")
 

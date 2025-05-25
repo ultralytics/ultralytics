@@ -703,6 +703,7 @@ def test_multichannel():
     model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)
     model.export(format="onnx")
 
+
 def test_all_file_model_cfg(tmp_path):
     """Covers file speed check, model loading, config parsing, and validation."""
     import yaml
@@ -749,6 +750,7 @@ def test_all_file_model_cfg(tmp_path):
 
     assert error_caught, "Expected error was not raised by check_cfg() for invalid config"
 
+
 def test_build_text_model_all(sample_texts="a photo of a cat"):
     """Test for CLIP, MobileCLIP, and invalid model handling."""
     from ultralytics.nn.text_model import build_text_model
@@ -770,8 +772,7 @@ def test_build_text_model_all(sample_texts="a photo of a cat"):
         assert torch.allclose(features.norm(dim=-1), torch.ones(features.shape[0]), atol=1e-5)
 
     # Test MobileCLIP model
-    with patch("ultralytics.nn.text_model.clip.clip.tokenize") as mock_tokenize, \
-         patch("torch.jit.load") as mock_jit:
+    with patch("ultralytics.nn.text_model.clip.clip.tokenize") as mock_tokenize, patch("torch.jit.load") as mock_jit:
         mock_tokenize.return_value = torch.randint(0, 100, (2, 77))
         mock_encoder = MagicMock()
         mock_encoder.return_value = torch.randn(2, 512)

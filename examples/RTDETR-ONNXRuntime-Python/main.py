@@ -14,10 +14,10 @@ from ultralytics.utils.checks import check_requirements, check_yaml
 
 class RTDETR:
     """
-    RTDETR object detection model class for handling inference and visualization.
+    RT-DETR (Real-Time Detection Transformer) object detection model for ONNX inference and visualization.
 
-    This class implements the RT-DETR (Real-Time Detection Transformer) model for object detection tasks,
-    supporting ONNX model inference and visualization of detection results.
+    This class implements the RT-DETR model for object detection tasks, supporting ONNX model inference and
+    visualization of detection results with bounding boxes and class labels.
 
     Attributes:
         model_path (str): Path to the ONNX model file.
@@ -33,17 +33,30 @@ class RTDETR:
         img (np.ndarray): Loaded input image.
         img_height (int): Height of the input image.
         img_width (int): Width of the input image.
+
+    Methods:
+        draw_detections: Draw bounding boxes and labels on the input image.
+        preprocess: Preprocess the input image for model inference.
+        bbox_cxcywh_to_xyxy: Convert bounding boxes from center format to corner format.
+        postprocess: Postprocess model output to extract and visualize detections.
+        main: Execute the complete object detection pipeline.
+
+    Examples:
+        Initialize RT-DETR detector and run inference
+        >>> detector = RTDETR("rtdetr-l.onnx", "image.jpg", conf_thres=0.5)
+        >>> output_image = detector.main()
+        >>> cv2.imshow("Detections", output_image)
     """
 
     def __init__(self, model_path: str, img_path: str, conf_thres: float = 0.5, iou_thres: float = 0.5):
         """
-        Initialize the RTDETR object detection model.
+        Initialize the RT-DETR object detection model.
 
         Args:
             model_path (str): Path to the ONNX model file.
             img_path (str): Path to the input image.
-            conf_thres (float): Confidence threshold for filtering detections.
-            iou_thres (float): IoU threshold for non-maximum suppression.
+            conf_thres (float, optional): Confidence threshold for filtering detections.
+            iou_thres (float, optional): IoU threshold for non-maximum suppression.
         """
         self.model_path = model_path
         self.img_path = img_path
@@ -63,14 +76,7 @@ class RTDETR:
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
 
     def draw_detections(self, box: np.ndarray, score: float, class_id: int) -> None:
-        """
-        Draw bounding boxes and labels on the input image for detected objects.
-
-        Args:
-            box (np.ndarray): Detected bounding box coordinates [x1, y1, x2, y2].
-            score (float): Confidence score of the detection.
-            class_id (int): Class ID for the detected object.
-        """
+        """Draw bounding box and label on the input image for a detected object."""
         # Extract the coordinates of the bounding box
         x1, y1, x2, y2 = box
 
@@ -108,7 +114,8 @@ class RTDETR:
         """
         Preprocess the input image for model inference.
 
-        Loads the image, converts color space, resizes to model input dimensions, and normalizes pixel values.
+        Loads the image, converts color space from BGR to RGB, resizes to model input dimensions, and normalizes
+        pixel values to [0, 1] range.
 
         Returns:
             (np.ndarray): Preprocessed image data with shape (1, 3, H, W) ready for inference.
@@ -138,10 +145,11 @@ class RTDETR:
 
     def bbox_cxcywh_to_xyxy(self, boxes: np.ndarray) -> np.ndarray:
         """
-        Convert bounding boxes from (cx, cy, w, h) format to (x_min, y_min, x_max, y_max) format.
+        Convert bounding boxes from center format to corner format.
 
         Args:
-            boxes (np.ndarray): Array of shape (N, 4) where each row represents a bounding box in (cx, cy, w, h) format.
+            boxes (np.ndarray): Array of shape (N, 4) where each row represents a bounding box in
+                (center_x, center_y, width, height) format.
 
         Returns:
             (np.ndarray): Array of shape (N, 4) with bounding boxes in (x_min, y_min, x_max, y_max) format.
@@ -162,6 +170,9 @@ class RTDETR:
     def postprocess(self, model_output: List[np.ndarray]) -> np.ndarray:
         """
         Postprocess model output to extract and visualize detections.
+
+        Applies confidence thresholding, converts bounding box format, scales coordinates to original image
+        dimensions, and draws detection annotations.
 
         Args:
             model_output (List[np.ndarray]): Output tensors from the model inference.
@@ -199,12 +210,12 @@ class RTDETR:
 
     def main(self) -> np.ndarray:
         """
-        Execute object detection on the input image using the ONNX model.
+        Execute the complete object detection pipeline on the input image.
 
-        Performs the complete detection pipeline: preprocessing, inference, and postprocessing.
+        Performs preprocessing, ONNX model inference, and postprocessing to generate annotated detection results.
 
         Returns:
-            (np.ndarray): Output image with detection annotations.
+            (np.ndarray): Output image with detection annotations including bounding boxes and class labels.
         """
         # Preprocess the image for model input
         image_data = self.preprocess()

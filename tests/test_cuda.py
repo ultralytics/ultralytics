@@ -22,7 +22,10 @@ if CUDA_IS_AVAILABLE:
     else:
         gpu_info = GPUInfo()
         gpu_info.print_status()
-        idle_gpus = gpu_info.select_idle_gpu(count=2, min_memory_mb=2048)
+        autodevice_fraction = __import__("os").environ.get("YOLO_AUTODEVICE_FRACTION_FREE", 0.3)
+        idle_gpus = gpu_info.select_idle_gpu(
+            count=2, min_memory_fraction=autodevice_fraction, min_util_fraction=autodevice_fraction
+        )
         if idle_gpus:
             DEVICES = idle_gpus
 
@@ -41,7 +44,6 @@ def test_amp():
 
 
 @pytest.mark.slow
-# @pytest.mark.skipif(IS_JETSON, reason="Temporary disable ONNX for Jetson")
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, simplify, nms",
@@ -51,10 +53,7 @@ def test_amp():
             TASKS, [True, False], [False], [False], [1, 2], [True, False], [True, False]
         )
         if not (
-            (int8 and half)
-            or (task == "classify" and nms)
-            or (task == "obb" and nms and (not TORCH_1_13 or IS_JETSON))  # obb nms fails on NVIDIA Jetson
-            or (simplify and dynamic)  # onnxslim is slow when dynamic=True
+            (int8 and half) or (task == "classify" and nms) or (task == "obb" and nms and (not TORCH_1_13 or IS_JETSON))
         )
     ],
 )
@@ -118,7 +117,9 @@ def test_train():
     if not IS_JETSON:
         visible = eval(os.environ["CUDA_VISIBLE_DEVICES"])
         assert visible == device, f"Passed GPUs '{device}', but used GPUs '{visible}'"
-        assert results is (None if len(DEVICES) > 1 else not None)  # DDP returns None, single-GPU returns metrics
+        assert (
+            (results is None) if len(DEVICES) > 1 else (results is not None)
+        )  # DDP returns None, single-GPU returns metrics
 
 
 @pytest.mark.slow

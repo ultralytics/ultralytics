@@ -18,6 +18,14 @@ class WorldTrainerFromScratch(WorldTrainer):
         cfg (dict): Configuration dictionary with default parameters for model training.
         overrides (dict): Dictionary of parameter overrides to customize the configuration.
         _callbacks (list): List of callback functions to be executed during different stages of training.
+        data (dict): Final processed data configuration containing train/val paths and metadata.
+        training_data (dict): Dictionary mapping training dataset paths to their configurations.
+
+    Methods:
+        build_dataset: Build YOLO Dataset for training or validation with mixed dataset support.
+        get_dataset: Get train and validation paths from data dictionary.
+        plot_training_labels: Skip label plotting for YOLO-World training.
+        final_eval: Perform final evaluation and validation for the YOLO-World model.
 
     Examples:
         >>> from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
@@ -100,6 +108,7 @@ class WorldTrainerFromScratch(WorldTrainer):
             else build_grounding(self.args, im_path["img_path"], im_path["json_file"], batch, stride=gs)
             for im_path in img_path
         ]
+        self.set_text_embeddings(datasets, batch)  # cache text embeddings to accelerate training
         return YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
 
     def get_dataset(self):
@@ -110,8 +119,8 @@ class WorldTrainerFromScratch(WorldTrainer):
         handling both YOLO detection datasets and grounding datasets.
 
         Returns:
-            (str): Train dataset path.
-            (str): Validation dataset path.
+            train_path (str): Train dataset path.
+            val_path (str): Validation dataset path.
 
         Raises:
             AssertionError: If train or validation datasets are not found, or if validation has multiple datasets.
@@ -158,7 +167,7 @@ class WorldTrainerFromScratch(WorldTrainer):
         return final_data
 
     def plot_training_labels(self):
-        """Do not plot labels for YOLO-World training."""
+        """Skip label plotting for YOLO-World training."""
         pass
 
     def final_eval(self):

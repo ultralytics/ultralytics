@@ -156,7 +156,7 @@ def run(
         # Extract the results
         results = model.track(frame, persist=True, classes=classes)
 
-        if results[0].boxes.id is not None:
+        if results[0].boxes.is_track:
             boxes = results[0].boxes.xyxy.cpu()
             track_ids = results[0].boxes.id.int().cpu().tolist()
             clss = results[0].boxes.cls.cpu().tolist()

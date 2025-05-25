@@ -409,7 +409,7 @@ def run(
         # Run YOLO tracking
         results = yolo_model.track(frame, persist=True, classes=[0])  # Track only person class
 
-        if results[0].boxes.id is not None:
+        if results[0].boxes.is_track:
             boxes = results[0].boxes.xyxy.cpu().numpy()
             track_ids = results[0].boxes.id.cpu().numpy()
 

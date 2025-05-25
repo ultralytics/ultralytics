@@ -436,7 +436,7 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
                 cv2.namedWindow(window_name)
                 cv2.setMouseCallback(window_name, drag_line)
 
-            if results.boxes.id is not None:
+            if results.boxes.is_track:
                 if results.masks is not None:
                     masks = results.masks
                 boxes = results.boxes

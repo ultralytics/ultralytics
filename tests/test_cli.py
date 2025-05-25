@@ -23,10 +23,12 @@ def run(cmd: str) -> None:
 def test_special_modes() -> None:
     """Test various special command-line modes for YOLO functionality."""
     run("yolo help")
+    run("yolo")
     run("yolo checks")
     run("yolo version")
     run("yolo settings reset")
     run("yolo cfg")
+    run("yolo solutions")  # cover the "No solution name provided. i.e `yolo solutions count`. Defaulting to 'count'."
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)

@@ -2227,11 +2227,11 @@ class BiFPN(nn.Module):
         # For single input, we'll use the same input for all levels
         if not isinstance(x, (list, tuple)):
             x = [x, x, x]  # Use same input for all three levels
-        
+
         # Ensure we have exactly 3 inputs
         if len(x) != 3:
             raise ValueError(f"BiFPN expects 3 inputs, got {len(x)}")
-            
+
         c3, c4, c5 = x
 
         # Calculate the input column of BiFPN
@@ -2243,4 +2243,5 @@ class BiFPN(nn.Module):
 
         features = [p3_x, p4_x, p5_x, p6_x, p7_x]
         return self.bifpn(features)
+
     # //UPDATE BiFPN5

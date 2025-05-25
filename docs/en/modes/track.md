@@ -289,7 +289,7 @@ In the following example, we demonstrate how to utilize YOLO11's tracking capabi
             result = model.track(frame, persist=True)[0]
 
             # Get the boxes and track IDs
-            if result.boxes and result.boxes.id is not None:
+            if result.boxes and result.boxes.is_track:
                 boxes = result.boxes.xywh.cpu()
                 track_ids = result.boxes.id.int().cpu().tolist()
 

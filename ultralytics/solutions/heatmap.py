@@ -110,7 +110,7 @@ class Heatmap(ObjectCounter):
             self.display_counts(plot_im)  # Display the counts on the frame
 
         # Normalize, apply colormap to heatmap and combine with original image
-        if self.track_data.id is not None:
+        if self.track_data.is_track:
             normalized_heatmap = cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
             colored_heatmap = cv2.applyColorMap(normalized_heatmap, self.colormap)
             plot_im = cv2.addWeighted(plot_im, 0.5, colored_heatmap, 0.5, 0)

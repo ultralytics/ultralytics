@@ -1343,8 +1343,10 @@ class SAM2VideoPredictor(SAM2Predictor):
             pred_masks = current_out["pred_masks"].to(self.device, non_blocking=True)
             for i in range(len(pred_masks)):
                 mask = pred_masks[i].cpu().numpy()
+                # Binarize the mask first
+                mask = (mask > 0).astype(np.uint8)
                 # Find contours of the mask
-                contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
                 # Fill small holes
                 for contour in contours:
                     area = cv2.contourArea(contour)

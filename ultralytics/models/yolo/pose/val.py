@@ -156,7 +156,7 @@ class PoseValidator(DetectionValidator):
 
         Args:
             pred (torch.Tensor): Raw prediction tensor from the model.
-            pbatch (dict): Processed batch dictionary containing image information including:
+            pbatch (Dict[str, Any]): Processed batch dictionary containing image information including:
                 - imgsz: Image size used for inference
                 - ori_shape: Original image shape
                 - ratio_pad: Ratio and padding information for coordinate scaling
@@ -171,7 +171,7 @@ class PoseValidator(DetectionValidator):
         ops.scale_coords(pbatch["imgsz"], pred_kpts, pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
         return predn, pred_kpts
 
-    def update_metrics(self, preds: List[torch.Tensor], batch: Dict[str, Any]):
+    def update_metrics(self, preds: List[torch.Tensor], batch: Dict[str, Any]) -> None:
         """
         Update metrics with new predictions and ground truth data.
 
@@ -180,7 +180,7 @@ class PoseValidator(DetectionValidator):
 
         Args:
             preds (List[torch.Tensor]): List of prediction tensors from the model.
-            batch (dict): Batch data containing images and ground truth annotations.
+            batch (Dict[str, Any]): Batch data containing images and ground truth annotations.
         """
         for si, pred in enumerate(preds):
             self.seen += 1
@@ -271,12 +271,12 @@ class PoseValidator(DetectionValidator):
 
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
-    def plot_val_samples(self, batch: Dict[str, Any], ni: int):
+    def plot_val_samples(self, batch: Dict[str, Any], ni: int) -> None:
         """
         Plot and save validation set samples with ground truth bounding boxes and keypoints.
 
         Args:
-            batch (dict): Dictionary containing batch data with keys:
+            batch (Dict[str, Any]): Dictionary containing batch data with keys:
                 - img (torch.Tensor): Batch of images
                 - batch_idx (torch.Tensor): Batch indices for each image
                 - cls (torch.Tensor): Class labels
@@ -302,7 +302,7 @@ class PoseValidator(DetectionValidator):
         Plot and save model predictions with bounding boxes and keypoints.
 
         Args:
-            batch (dict): Dictionary containing batch data including images, file paths, and other metadata.
+            batch (Dict[str, Any]): Dictionary containing batch data including images, file paths, and other metadata.
             preds (List[torch.Tensor]): List of prediction tensors from the model, each containing bounding boxes,
                 confidence scores, class predictions, and keypoints.
             ni (int): Batch index used for naming the output file.
@@ -328,7 +328,7 @@ class PoseValidator(DetectionValidator):
         save_conf: bool,
         shape: Tuple[int, int],
         file: Path,
-    ):
+    ) -> None:
         """
         Save YOLO pose detections to a text file in normalized coordinates.
 
@@ -354,7 +354,7 @@ class PoseValidator(DetectionValidator):
             keypoints=pred_kpts,
         ).save_txt(file, save_conf=save_conf)
 
-    def pred_to_json(self, predn: torch.Tensor, filename: str):
+    def pred_to_json(self, predn: torch.Tensor, filename: str) -> None:
         """
         Convert YOLO predictions to COCO JSON format.
 

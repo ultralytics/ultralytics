@@ -409,23 +409,28 @@ jobs:
           git checkout tags/v$VERSION
           pytest tests
 
-  # simualte a failed job        
+  # simulate a failed job        
   FailTest:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
     if: github.run_attempt == 1
     steps:
-      - uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 10
-          max_attempts: 2
-          shell: pwsh
-          command: dir
       - name: Simulate a failing step
         run: |
           echo "This job fails intentionally on the first attempt"
           exit 1
+
+  Rerun-on-failure:
+    needs: FailTest 
+    if: failure() && fromJSON(github.run_attempt) < 3
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          GH_DEBUG: api
+        run: gh workflow run rerun.yml -F run_id=${{ github.run_id }}
 
   Summary:
     runs-on: ubuntu-latest

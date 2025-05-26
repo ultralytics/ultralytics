@@ -4,7 +4,7 @@
 import math
 import warnings
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, Optional
 
 import numpy as np
 import torch
@@ -519,8 +519,8 @@ def plot_pr_curve(
     px: np.ndarray,
     py: np.ndarray,
     ap: np.ndarray,
-    save_dir: Path = Path("pr_curve.png"),
-    names: dict = {},
+    save_dir: Optional[Path] = Path("pr_curve.png"),
+    names: Optional[Dict[int, str]] = {},
     on_plot=None,
 ):
     """
@@ -531,7 +531,7 @@ def plot_pr_curve(
         py (np.ndarray): Y values for the PR curve.
         ap (np.ndarray): Average precision values.
         save_dir (Path, optional): Path to save the plot.
-        names (dict, optional): Dictionary mapping class indices to class names.
+        names (Dict[int, str], optional): Dictionary mapping class indices to class names.
         on_plot (callable, optional): Function to call after plot is saved.
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
@@ -660,7 +660,7 @@ def ap_per_class(
         plot (bool, optional): Whether to plot PR curves or not.
         on_plot (callable, optional): A callback to pass plots path and data when they are rendered.
         save_dir (Path, optional): Directory to save the PR curves.
-        names (dict, optional): Dict of class names to plot PR curves.
+        names (Dict[int, str], optional): Dictionary of class names to plot PR curves.
         eps (float, optional): A small value to avoid division by zero.
         prefix (str, optional): A prefix string for saving the plot files.
 
@@ -914,8 +914,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
     Attributes:
         save_dir (Path): A path to the directory where the output plots will be saved.
         plot (bool): A flag that indicates whether to plot precision-recall curves for each class.
-        names (dict): A dictionary of class names.
-        box (Metric): An instance of the Metric class for storing detection results.
+        names (Dict[int, str]): A dictionary of class names.
         speed (dict): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'detect'.
     """
@@ -1032,8 +1031,7 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
     Attributes:
         save_dir (Path): Path to the directory where the output plots should be saved.
         plot (bool): Whether to save the detection and segmentation plots.
-        names (dict): Dictionary of class names.
-        box (Metric): An instance of the Metric class to calculate box detection metrics.
+        names (Dict[int, str]): Dictionary of class names.
         seg (Metric): An instance of the Metric class to calculate mask segmentation metrics.
         speed (dict): Dictionary to store the time taken in different phases of inference.
         task (str): The task type, set to 'segment'.
@@ -1195,8 +1193,7 @@ class PoseMetrics(SegmentMetrics):
     Attributes:
         save_dir (Path): Path to the directory where the output plots should be saved.
         plot (bool): Whether to save the detection and pose plots.
-        names (dict): Dictionary of class names.
-        box (Metric): An instance of the Metric class to calculate box detection metrics.
+        names (Dict[int, str]): Dictionary of class names.
         pose (Metric): An instance of the Metric class to calculate pose metrics.
         speed (dict): Dictionary to store the time taken in different phases of inference.
         task (str): The task type, set to 'pose'.
@@ -1419,9 +1416,8 @@ class OBBMetrics(SimpleClass, DataExportMixin):
     Attributes:
         save_dir (Path): Path to the directory where the output plots should be saved.
         plot (bool): Whether to save the detection plots.
-        names (dict): Dictionary of class names.
-        box (Metric): An instance of the Metric class for storing detection results.
-        speed (dict): A dictionary for storing execution times of different parts of the detection process.
+        names (Dict[int, str]): Dictionary of class names.
+        speed (Dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'obb'.
 
     References:

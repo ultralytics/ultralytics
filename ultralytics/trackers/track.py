@@ -43,7 +43,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     predictor._feats = None  # reset in case used earlier
     if hasattr(predictor, "_hook"):
         predictor._hook.remove()
-    if cfg.tracker_type == "botsort" and cfg.with_reid and cfg.model == "auto":
+    if cfg.tracker_type == "botsort" and predictor.args.with_reid is True and cfg.model == "auto":
         from ultralytics.nn.modules.head import Detect
 
         if not (

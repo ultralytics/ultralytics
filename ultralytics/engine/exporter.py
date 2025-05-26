@@ -140,9 +140,9 @@ def export_formats():
         ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "half", "int8", "nms"]],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
+        ["RKNN", "rknn", "_rknn_model", True, True, ["batch", "name"]],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction"]],
-        ["RKNN", "rknn", "_rknn_model", True, True, ["batch", "name"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 

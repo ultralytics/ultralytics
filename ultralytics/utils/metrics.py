@@ -915,6 +915,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         save_dir (Path): A path to the directory where the output plots will be saved.
         plot (bool): A flag that indicates whether to plot precision-recall curves for each class.
         names (Dict[int, str]): A dictionary of class names.
+        box (Metric): An instance of the Metric class for storing detection results.
         speed (Dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'detect'.
     """
@@ -1032,6 +1033,7 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
         save_dir (Path): Path to the directory where the output plots should be saved.
         plot (bool): Whether to save the detection and segmentation plots.
         names (Dict[int, str]): Dictionary of class names.
+        box (Metric): An instance of the Metric class for storing detection results.
         seg (Metric): An instance of the Metric class to calculate mask segmentation metrics.
         speed (Dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'segment'.
@@ -1195,6 +1197,7 @@ class PoseMetrics(SegmentMetrics):
         plot (bool): Whether to save the detection and pose plots.
         names (Dict[int, str]): Dictionary of class names.
         pose (Metric): An instance of the Metric class to calculate pose metrics.
+        box (Metric): An instance of the Metric class for storing detection results.
         speed (Dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'pose'.
 
@@ -1417,6 +1420,7 @@ class OBBMetrics(SimpleClass, DataExportMixin):
         save_dir (Path): Path to the directory where the output plots should be saved.
         plot (bool): Whether to save the detection plots.
         names (Dict[int, str]): Dictionary of class names.
+        box (Metric): An instance of the Metric class for storing detection results.
         speed (Dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'obb'.
 

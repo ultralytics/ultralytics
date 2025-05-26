@@ -424,6 +424,7 @@ jobs:
     needs: [HUB, Benchmarks, Tests, GPU, RaspberryPi, Conda, FailTest]
     if: failure() && github.run_attempt == 1
     steps:
+      - uses: actions/checkout@v4
       - name: Install GitHub CLI
         run: sudo apt-get install gh -y
       - name: Rerun failed jobs in the current workflow

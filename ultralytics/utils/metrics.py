@@ -1424,7 +1424,7 @@ class OBBMetrics(SimpleClass, DataExportMixin):
         https://arxiv.org/pdf/2106.06072.pdf
     """
 
-    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: tuple = ()) -> None:
+    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: Dict[int, str] = {}) -> None:
         """
         Initialize an OBBMetrics instance with directory, plotting, and class names.
 

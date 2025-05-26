@@ -430,7 +430,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
           GH_DEBUG: api
-        run: gh workflow run rerun.yml -F run_id=${{ github.run_id }}
+        run: gh workflow run rerun.yml -r ${{ github.head_ref || github.ref_name }} -F run_id=${{ github.run_id }}
 
   Summary:
     runs-on: ubuntu-latest

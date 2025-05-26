@@ -227,7 +227,7 @@ class DetectionValidator(BaseValidator):
                     self.save_dir / "labels" / f"{Path(batch['im_file'][si]).stem}.txt",
                 )
 
-    def finalize_metrics(self, *args: Any, **kwargs: Any) -> None:
+    def finalize_metrics(self) -> None:
         """
         Set final values for metrics speed and confusion matrix.
 
@@ -235,6 +235,11 @@ class DetectionValidator(BaseValidator):
             *args (Any): Variable length argument list.
             **kwargs (Any): Arbitrary keyword arguments.
         """
+        if self.args.plots:
+            for normalize in True, False:
+                self.confusion_matrix.plot(
+                    save_dir=self.save_dir, names=self.names.values(), normalize=normalize, on_plot=self.on_plot
+                )
         self.metrics.speed = self.speed
         self.metrics.confusion_matrix = self.confusion_matrix
 
@@ -265,12 +270,6 @@ class DetectionValidator(BaseValidator):
             for i, c in enumerate(self.metrics.ap_class_index):
                 LOGGER.info(
                     pf % (self.names[c], self.nt_per_image[c], self.nt_per_class[c], *self.metrics.class_result(i))
-                )
-
-        if self.args.plots:
-            for normalize in True, False:
-                self.confusion_matrix.plot(
-                    save_dir=self.save_dir, names=self.names.values(), normalize=normalize, on_plot=self.on_plot
                 )
 
     def _process_batch(self, detections: torch.Tensor, gt_bboxes: torch.Tensor, gt_cls: torch.Tensor) -> torch.Tensor:

@@ -42,8 +42,15 @@ import torch.cuda
 from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
-from ultralytics.utils import ARM64, ASSETS, IS_JETSON, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR, YAML
-from ultralytics.utils.checks import IS_PYTHON_3_13, check_imgsz, check_requirements, check_yolo, is_rockchip
+from ultralytics.utils import ARM64, ASSETS, IS_JETSON, LINUX, LOGGER, MACOS, TORCH_VERSION, TQDM, WEIGHTS_DIR, YAML
+from ultralytics.utils.checks import (
+    IS_PYTHON_3_13,
+    check_imgsz,
+    check_requirements,
+    check_version,
+    check_yolo,
+    is_rockchip,
+)
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import get_cpu_info, select_device
@@ -143,8 +150,10 @@ def benchmark(
             if i == 15:  # RKNN
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 RKNN exports not supported yet"
                 assert not is_end2end, "End-to-end models not supported by RKNN yet"
-                assert LINUX, "RKNN only supported on Linux"
-                assert not is_rockchip(), "RKNN Inference only supported on Rockchip devices"
+                assert LINUX and not ARM64, "RKNN export only supported on non-aarch64 Linux"
+                # assert check_version(TORCH_VERSION, "<=2.4.0"), (
+                #     "RKNN export requires torch<=2.4.0"
+                # )  # TODO: https://github.com/airockchip/rknn-toolkit2/issues/362
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:
@@ -168,6 +177,7 @@ def benchmark(
             assert i != 5 or platform.system() == "Darwin", "inference only supported on macOS>=10.13"  # CoreML
             if i in {13}:
                 assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
+            assert i != 15 or is_rockchip(), "inference only supported on Rockchip devices"  # RKNN
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, verbose=False)
 
             # Validate

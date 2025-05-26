@@ -121,7 +121,7 @@ ov_model = YOLO("yolo11n_openvino_model/")  # the path of your exported OpenVINO
 ov_model.predict(device="intel:gpu")  # specify the device you want to run inference on
 ```
 
-This approach is ideal for fast prototyping or deployment when you don’t need full control over the inference pipeline.
+This approach is ideal for fast prototyping or deployment when you don't need full control over the inference pipeline.
 
 ### Inference with OpenVINO Runtime
 

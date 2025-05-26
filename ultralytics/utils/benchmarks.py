@@ -151,9 +151,9 @@ def benchmark(
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 RKNN exports not supported yet"
                 assert not is_end2end, "End-to-end models not supported by RKNN yet"
                 assert LINUX and not ARM64, "RKNN export only supported on non-aarch64 Linux"
-                assert check_version(TORCH_VERSION, "<=2.4.0"), (
-                    "RKNN export requires torch<=2.4.0"
-                )  # TODO: https://github.com/airockchip/rknn-toolkit2/issues/362
+                # assert check_version(TORCH_VERSION, "<=2.4.0"), (
+                #     "RKNN export requires torch<=2.4.0"
+                # )  # TODO: https://github.com/airockchip/rknn-toolkit2/issues/362
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:

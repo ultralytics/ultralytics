@@ -227,7 +227,7 @@ class DetectionValidator(BaseValidator):
                     self.save_dir / "labels" / f"{Path(batch['im_file'][si]).stem}.txt",
                 )
 
-    def finalize_metrics(self, *args: Any, **kwargs: Any) -> None:
+    def finalize_metrics(self) -> None:
         """
         Set final values for metrics speed and confusion matrix.
 

@@ -106,7 +106,7 @@ class ClassificationValidator(BaseValidator):
         self.pred.append(preds.argsort(1, descending=True)[:, :n5].type(torch.int32).cpu())
         self.targets.append(batch["cls"].type(torch.int32).cpu())
 
-    def finalize_metrics(self, *args, **kwargs):
+    def finalize_metrics(self):
         """
         Finalize metrics including confusion matrix and processing speed.
 

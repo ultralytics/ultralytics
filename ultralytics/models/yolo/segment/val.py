@@ -225,7 +225,7 @@ class SegmentationValidator(DetectionValidator):
                     self.save_dir / "labels" / f"{Path(batch['im_file'][si]).stem}.txt",
                 )
 
-    def finalize_metrics(self, *args, **kwargs):
+    def finalize_metrics(self) -> None:
         """
         Finalize evaluation metrics by setting the speed attribute in the metrics object.
 

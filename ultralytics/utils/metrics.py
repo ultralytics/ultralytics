@@ -1033,18 +1033,18 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
         plot (bool): Whether to save the detection and segmentation plots.
         names (Dict[int, str]): Dictionary of class names.
         seg (Metric): An instance of the Metric class to calculate mask segmentation metrics.
-        speed (dict): Dictionary to store the time taken in different phases of inference.
+        speed (Dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'segment'.
     """
 
-    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: tuple = ()) -> None:
+    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: Dict[int, str] = {}) -> None:
         """
         Initialize a SegmentMetrics instance with a save directory, plot flag, and class names.
 
         Args:
             save_dir (Path, optional): Directory to save plots.
             plot (bool, optional): Whether to plot precision-recall curves.
-            names (tuple, optional): Tuple mapping class indices to names.
+            names (Dict[int, str], optional): Dictionary of class names.
         """
         self.save_dir = save_dir
         self.plot = plot
@@ -1195,7 +1195,7 @@ class PoseMetrics(SegmentMetrics):
         plot (bool): Whether to save the detection and pose plots.
         names (Dict[int, str]): Dictionary of class names.
         pose (Metric): An instance of the Metric class to calculate pose metrics.
-        speed (dict): Dictionary to store the time taken in different phases of inference.
+        speed (Dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'pose'.
 
     Methods:
@@ -1208,14 +1208,14 @@ class PoseMetrics(SegmentMetrics):
         results_dict: Return the dictionary containing all the detection and segmentation metrics and fitness score.
     """
 
-    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: tuple = ()) -> None:
+    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: Dict[int, str] = {}) -> None:
         """
         Initialize the PoseMetrics class with directory path, class names, and plotting options.
 
         Args:
             save_dir (Path, optional): Directory to save plots.
             plot (bool, optional): Whether to plot precision-recall curves.
-            names (tuple, optional): Tuple mapping class indices to names.
+            names (Dict[int, str], optional): Dictionary of class names.
         """
         super().__init__(save_dir, plot, names)
         self.save_dir = save_dir

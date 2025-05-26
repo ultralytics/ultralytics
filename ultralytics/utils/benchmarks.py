@@ -34,6 +34,7 @@ import re
 import shutil
 import time
 from pathlib import Path
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import torch.cuda
@@ -58,6 +59,7 @@ def benchmark(
     verbose=False,
     eps=1e-3,
     format="",
+    **kwargs,
 ):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
@@ -72,6 +74,7 @@ def benchmark(
         verbose (bool | float): If True or a float, assert benchmarks pass with given metric.
         eps (float): Epsilon value for divide by zero prevention.
         format (str): Export format for benchmarking. If not supplied all formats are benchmarked.
+        **kwargs (Any): Additional keyword arguments for exporter.
 
     Returns:
         (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size, metric,
@@ -153,7 +156,7 @@ def benchmark(
                 exported_model = model  # PyTorch format
             else:
                 filename = model.export(
-                    imgsz=imgsz, format=format, half=half, int8=int8, data=data, device=device, verbose=False
+                    imgsz=imgsz, format=format, half=half, int8=int8, data=data, device=device, verbose=False, **kwargs
                 )
                 exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"
@@ -226,7 +229,7 @@ class RF100Benchmark:
         self.rf = None
         self.val_metrics = ["class", "images", "targets", "precision", "recall", "map50", "map95"]
 
-    def set_key(self, api_key):
+    def set_key(self, api_key: str):
         """
         Set Roboflow API key for processing.
 
@@ -243,7 +246,7 @@ class RF100Benchmark:
 
         self.rf = Roboflow(api_key=api_key)
 
-    def parse_dataset(self, ds_link_txt="datasets_links.txt"):
+    def parse_dataset(self, ds_link_txt: str = "datasets_links.txt"):
         """
         Parse dataset links and download datasets.
 
@@ -281,14 +284,14 @@ class RF100Benchmark:
         return self.ds_names, self.ds_cfg_list
 
     @staticmethod
-    def fix_yaml(path):
+    def fix_yaml(path: Path):
         """Fix the train and validation paths in a given YAML file."""
         yaml_data = YAML.load(path)
         yaml_data["train"] = "train/images"
         yaml_data["val"] = "valid/images"
         YAML.dump(yaml_data, path)
 
-    def evaluate(self, yaml_path, val_log_file, eval_log_file, list_ind):
+    def evaluate(self, yaml_path: str, val_log_file: str, eval_log_file: str, list_ind: int):
         """
         Evaluate model performance on validation results.
 
@@ -343,6 +346,8 @@ class RF100Benchmark:
         with open(eval_log_file, "a", encoding="utf-8") as f:
             f.write(f"{self.ds_names[list_ind]}: {map_val}\n")
 
+        return float(map_val)
+
 
 class ProfileModels:
     """
@@ -361,15 +366,15 @@ class ProfileModels:
         device (torch.device): Device used for profiling.
 
     Methods:
-        profile: Profiles the models and prints the result.
-        get_files: Gets all relevant model files.
-        get_onnx_model_info: Extracts metadata from an ONNX model.
-        iterative_sigma_clipping: Applies sigma clipping to remove outliers.
-        profile_tensorrt_model: Profiles a TensorRT model.
-        profile_onnx_model: Profiles an ONNX model.
-        generate_table_row: Generates a table row with model metrics.
-        generate_results_dict: Generates a dictionary of profiling results.
-        print_table: Prints a formatted table of results.
+        run: Profile YOLO models for speed and accuracy across various formats.
+        get_files: Get all relevant model files.
+        get_onnx_model_info: Extract metadata from an ONNX model.
+        iterative_sigma_clipping: Apply sigma clipping to remove outliers.
+        profile_tensorrt_model: Profile a TensorRT model.
+        profile_onnx_model: Profile an ONNX model.
+        generate_table_row: Generate a table row with model metrics.
+        generate_results_dict: Generate a dictionary of profiling results.
+        print_table: Print a formatted table of results.
 
     Examples:
         Profile models and print results
@@ -380,14 +385,14 @@ class ProfileModels:
 
     def __init__(
         self,
-        paths: list,
-        num_timed_runs=100,
-        num_warmup_runs=10,
-        min_time=60,
-        imgsz=640,
-        half=True,
-        trt=True,
-        device=None,
+        paths: List[str],
+        num_timed_runs: int = 100,
+        num_warmup_runs: int = 10,
+        min_time: float = 60,
+        imgsz: int = 640,
+        half: bool = True,
+        trt: bool = True,
+        device: Optional[Union[torch.device, str]] = None,
     ):
         """
         Initialize the ProfileModels class for profiling models.
@@ -425,7 +430,7 @@ class ProfileModels:
         Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.
 
         Returns:
-            (List[Dict]): List of dictionaries containing profiling results for each model.
+            (List[dict]): List of dictionaries containing profiling results for each model.
 
         Examples:
             Profile models and print results
@@ -437,7 +442,7 @@ class ProfileModels:
 
         if not files:
             LOGGER.warning("No matching *.pt or *.onnx files found.")
-            return
+            return []
 
         table_rows = []
         output = []
@@ -498,11 +503,11 @@ class ProfileModels:
 
     @staticmethod
     def get_onnx_model_info(onnx_file: str):
-        """Extracts metadata from an ONNX model file including parameters, GFLOPs, and input shape."""
+        """Extract metadata from an ONNX model file including parameters, GFLOPs, and input shape."""
         return 0.0, 0.0, 0.0, 0.0  # return (num_layers, num_params, num_gradients, num_flops)
 
     @staticmethod
-    def iterative_sigma_clipping(data, sigma=2, max_iters=3):
+    def iterative_sigma_clipping(data: np.ndarray, sigma: float = 2, max_iters: int = 3):
         """
         Apply iterative sigma clipping to data to remove outliers.
 
@@ -627,7 +632,13 @@ class ProfileModels:
         run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=5)  # sigma clipping
         return np.mean(run_times), np.std(run_times)
 
-    def generate_table_row(self, model_name, t_onnx, t_engine, model_info):
+    def generate_table_row(
+        self,
+        model_name: str,
+        t_onnx: Tuple[float, float],
+        t_engine: Tuple[float, float],
+        model_info: Tuple[float, float, float, float],
+    ):
         """
         Generate a table row string with model performance metrics.
 
@@ -647,7 +658,12 @@ class ProfileModels:
         )
 
     @staticmethod
-    def generate_results_dict(model_name, t_onnx, t_engine, model_info):
+    def generate_results_dict(
+        model_name: str,
+        t_onnx: Tuple[float, float],
+        t_engine: Tuple[float, float],
+        model_info: Tuple[float, float, float, float],
+    ):
         """
         Generate a dictionary of profiling results.
 
@@ -670,7 +686,7 @@ class ProfileModels:
         }
 
     @staticmethod
-    def print_table(table_rows):
+    def print_table(table_rows: List[str]):
         """
         Print a formatted table of model profiling results.
 

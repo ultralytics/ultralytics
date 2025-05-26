@@ -179,6 +179,7 @@ class BasePredictor:
             if self.args.visualize and (not self.source_type.tensor)
             else False
         )
+        kwargs.pop("with_reid", None)  # Remove this, as it's dynamic argument created to support re-id with track.
         return self.model(im, augment=self.args.augment, visualize=visualize, embed=self.args.embed, *args, **kwargs)
 
     def pre_transform(self, im: List[np.ndarray]) -> List[np.ndarray]:
@@ -316,6 +317,7 @@ class BasePredictor:
                 ops.Profile(device=self.device),
                 ops.Profile(device=self.device),
             )
+            self.args.with_reid = kwargs.get("with_reid", False)
             self.run_callbacks("on_predict_start")
             for self.batch in self.dataset:
                 self.run_callbacks("on_predict_batch_start")

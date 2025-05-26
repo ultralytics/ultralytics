@@ -175,7 +175,23 @@ The following table provides a description of each parameter:
 
 ### Enabling Re-Identification (ReID)
 
-By default, ReID is turned off to minimize performance overhead. Enabling it is simple—just set `with_reid: True` in the [tracker configuration](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers/botsort.yaml). You can also customize the `model` used for ReID, allowing you to trade off accuracy and speed depending on your use case:
+By default, ReID is turned off to minimize performance overhead. Enabling it is simple—just set `with_reid: True` in the [tracker configuration](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers/botsort.yaml) or you can use mentioned code to enable it.
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load the model
+        model = YOLO("yolo11n.pt")
+
+        # Enable re-identification with reid=True
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", with_reid=True)
+        ```
+
+You can also customize the `model` used for ReID, allowing you to trade off accuracy and speed depending on your use case:
 
 - **Native features (`model: auto`)**: This leverages features directly from the YOLO detector for ReID, adding minimal overhead. It's ideal when you need some level of ReID without significantly impacting performance. If the detector doesn't support native features, it automatically falls back to using `yolo11n-cls.pt`.
 - **YOLO classification models**: You can explicitly set a classification model (e.g. `yolo11n-cls.pt`) for ReID feature extraction. This provides more discriminative embeddings, but introduces additional latency due to the extra inference step.

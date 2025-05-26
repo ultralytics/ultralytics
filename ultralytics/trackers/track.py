@@ -36,6 +36,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
 
     tracker = check_yaml(predictor.args.tracker)
     cfg = IterableSimpleNamespace(**YAML.load(tracker))
+    cfg.with_reid = predictor.args.with_reid
 
     if cfg.tracker_type not in {"bytetrack", "botsort"}:
         raise AssertionError(f"Only 'bytetrack' and 'botsort' are supported for now, but got '{cfg.tracker_type}'")

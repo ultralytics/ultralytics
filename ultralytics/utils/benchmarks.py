@@ -106,7 +106,7 @@ def benchmark(
     if format_arg:
         formats = frozenset(export_formats()["Argument"])
         assert format in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
-    for (name, format, suffix, cpu, gpu, _) in zip(*export_formats().values()):
+    for name, format, suffix, cpu, gpu, _ in zip(*export_formats().values()):
         emoji, filename = "❌", None  # export defaults
         try:
             if format_arg and format_arg != format:
@@ -121,7 +121,7 @@ def benchmark(
                 assert MACOS or (LINUX and not ARM64), (
                     "CoreML and TF.js export only supported on macOS and non-aarch64 Linux"
                 )
-            if format == "coreml": 
+            if format == "coreml":
                 assert not IS_PYTHON_3_13, "CoreML not supported on Python 3.13"
             if format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}:
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"

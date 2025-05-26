@@ -148,12 +148,12 @@ class SegmentationValidator(DetectionValidator):
         pred_masks = self.process(proto, pred[:, 6:], pred[:, :4], shape=pbatch["imgsz"])
         return predn, pred_masks
 
-    def update_metrics(self, preds: List[torch.Tensor], batch: Dict[str, Any]) -> None:
+    def update_metrics(self, preds: Tuple[List[torch.Tensor], torch.Tensor], batch: Dict[str, Any]) -> None:
         """
         Update metrics with the current batch predictions and targets.
 
         Args:
-            preds (List[torch.Tensor]): List of predictions from the model.
+            preds (Tuple[List[torch.Tensor], torch.Tensor]): List of predictions from the model.
             batch (Dict[str, Any]): Batch data containing ground truth.
         """
         for si, (pred, proto) in enumerate(zip(preds[0], preds[1])):

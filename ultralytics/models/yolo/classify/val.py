@@ -110,10 +110,6 @@ class ClassificationValidator(BaseValidator):
         """
         Finalize metrics including confusion matrix and processing speed.
 
-        Args:
-            *args (Any): Variable length argument list.
-            **kwargs (Any): Arbitrary keyword arguments.
-
         Notes:
             This method processes the accumulated predictions and targets to generate the confusion matrix,
             optionally plots it, and updates the metrics object with speed information.

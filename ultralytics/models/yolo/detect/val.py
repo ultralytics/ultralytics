@@ -228,13 +228,7 @@ class DetectionValidator(BaseValidator):
                 )
 
     def finalize_metrics(self) -> None:
-        """
-        Set final values for metrics speed and confusion matrix.
-
-        Args:
-            *args (Any): Variable length argument list.
-            **kwargs (Any): Arbitrary keyword arguments.
-        """
+        """Set final values for metrics speed and confusion matrix."""
         if self.args.plots:
             for normalize in True, False:
                 self.confusion_matrix.plot(

@@ -14,8 +14,8 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
     """
     Trainer class for YOLOE segmentation models.
 
-    This class combines YOLOETrainer and SegmentationTrainer to provide training functionality specifically for YOLOE
-    segmentation models, enabling both object detection and instance segmentation capabilities.
+    This class combines YOLOETrainer and SegmentationTrainer to provide training functionality
+    specifically for YOLOE segmentation models.
 
     Attributes:
         cfg (dict): Configuration dictionary with training parameters.
@@ -28,7 +28,7 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
         Return YOLOESegModel initialized with specified config and weights.
 
         Args:
-            cfg (dict | str, optional): Model configuration dictionary or YAML file path.
+            cfg (dict | str): Model configuration dictionary or YAML file path.
             weights (str, optional): Path to pretrained weights file.
             verbose (bool): Whether to display model information.
 
@@ -66,10 +66,7 @@ class YOLOEPESegTrainer(SegmentationTrainer):
     Fine-tune YOLOESeg model in linear probing way.
 
     This trainer specializes in fine-tuning YOLOESeg models using a linear probing approach, which involves freezing
-    most of the model and only training specific layers for efficient adaptation to new tasks.
-
-    Attributes:
-        data (dict): Dataset configuration containing channels, class names, and number of classes.
+    most of the model and only training specific layers.
     """
 
     def get_model(self, cfg=None, weights=None, verbose=True):
@@ -77,7 +74,7 @@ class YOLOEPESegTrainer(SegmentationTrainer):
         Return YOLOESegModel initialized with specified config and weights for linear probing.
 
         Args:
-            cfg (dict | str, optional): Model configuration dictionary or YAML file path.
+            cfg (dict | str): Model configuration dictionary or YAML file path.
             weights (str, optional): Path to pretrained weights file.
             verbose (bool): Whether to display model information.
 
@@ -116,12 +113,12 @@ class YOLOEPESegTrainer(SegmentationTrainer):
 
 
 class YOLOESegTrainerFromScratch(YOLOETrainerFromScratch, YOLOESegTrainer):
-    """Trainer for YOLOE segmentation models trained from scratch without pretrained weights."""
+    """Trainer for YOLOE segmentation from scratch."""
 
     pass
 
 
 class YOLOESegVPTrainer(YOLOEVPTrainer, YOLOESegTrainerFromScratch):
-    """Trainer for YOLOE segmentation models with Vision Prompt (VP) capabilities."""
+    """Trainer for YOLOE segmentation with VP."""
 
     pass

@@ -4,7 +4,6 @@ import os
 import random
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any, Iterator
 
 import numpy as np
 import torch
@@ -29,40 +28,35 @@ from ultralytics.utils.checks import check_file
 
 class InfiniteDataLoader(dataloader.DataLoader):
     """
-    Dataloader that reuses workers for infinite iteration.
+    Dataloader that reuses workers.
 
     This dataloader extends the PyTorch DataLoader to provide infinite recycling of workers, which improves efficiency
-    for training loops that need to iterate through the dataset multiple times without recreating workers.
+    for training loops that need to iterate through the dataset multiple times.
 
     Attributes:
         batch_sampler (_RepeatSampler): A sampler that repeats indefinitely.
         iterator (Iterator): The iterator from the parent DataLoader.
 
     Methods:
-        __len__: Return the length of the batch sampler's sampler.
-        __iter__: Create a sampler that repeats indefinitely.
-        __del__: Ensure workers are properly terminated.
-        reset: Reset the iterator, useful when modifying dataset settings during training.
-
-    Examples:
-        Create an infinite dataloader for training
-        >>> dataset = YOLODataset(...)
-        >>> dataloader = InfiniteDataLoader(dataset, batch_size=16, shuffle=True)
-        >>> for batch in dataloader:  # Infinite iteration
-        >>>     train_step(batch)
+        __len__: Returns the length of the batch sampler's sampler.
+        __iter__: Creates a sampler that repeats indefinitely.
+        __del__: Ensures workers are properly terminated.
+        reset: Resets the iterator, useful when modifying dataset settings during training.
     """
 
-    def __init__(self, *args: Any, **kwargs: Any):
+    def __init__(self, *args, **kwargs):
         """Initialize the InfiniteDataLoader with the same arguments as DataLoader."""
         super().__init__(*args, **kwargs)
-        object.__setattr__(self, "batch_sampler", _RepeatSampler(self.batch_sampler))
+        object.__setattr__(
+            self, "batch_sampler", _RepeatSampler(
+                self.batch_sampler))
         self.iterator = super().__iter__()
 
-    def __len__(self) -> int:
+    def __len__(self):
         """Return the length of the batch sampler's sampler."""
         return len(self.batch_sampler.sampler)
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self):
         """Create an iterator that yields indefinitely from the underlying iterator."""
         for _ in range(len(self)):
             yield next(self.iterator)
@@ -86,26 +80,26 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
 class _RepeatSampler:
     """
-    Sampler that repeats forever for infinite iteration.
+    Sampler that repeats forever.
 
     This sampler wraps another sampler and yields its contents indefinitely, allowing for infinite iteration
-    over a dataset without recreating the sampler.
+    over a dataset.
 
     Attributes:
         sampler (Dataset.sampler): The sampler to repeat.
     """
 
-    def __init__(self, sampler: Any):
+    def __init__(self, sampler):
         """Initialize the _RepeatSampler with a sampler to repeat indefinitely."""
         self.sampler = sampler
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self):
         """Iterate over the sampler indefinitely, yielding its contents."""
         while True:
             yield from iter(self.sampler)
 
 
-def seed_worker(worker_id: int):  # noqa
+def seed_worker(worker_id):  # noqa
     """Set dataloader worker seed for reproducibility across worker processes."""
     worker_seed = torch.initial_seed() % 2**32
     np.random.seed(worker_seed)
@@ -131,7 +125,15 @@ def get_hyps_from_cfg(cfg):
     return SimpleNamespace(**hyp)
 
 
-def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32, multi_modal=False):
+def build_yolo_dataset(
+        cfg,
+        img_path,
+        batch,
+        data,
+        mode="train",
+        rect=False,
+        stride=32,
+        multi_modal=False):
     """Build and return a YOLO dataset based on configuration parameters."""
     dataset = YOLOMultiModalDataset if multi_modal else YOLODataset
     return dataset(
@@ -153,7 +155,14 @@ def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, str
     )
 
 
-def build_grounding(cfg, img_path, json_file, batch, mode="train", rect=False, stride=32):
+def build_grounding(
+        cfg,
+        img_path,
+        json_file,
+        batch,
+        mode="train",
+        rect=False,
+        stride=32):
     """Build and return a GroundingDataset based on configuration parameters."""
     return GroundingDataset(
         img_path=img_path,
@@ -174,7 +183,7 @@ def build_grounding(cfg, img_path, json_file, batch, mode="train", rect=False, s
     )
 
 
-def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, rank: int = -1):
+def build_dataloader(dataset, batch, workers, shuffle=True, rank=-1):
     """
     Create and return an InfiniteDataLoader or DataLoader for training or validation.
 
@@ -182,21 +191,17 @@ def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, ra
         dataset (Dataset): Dataset to load data from.
         batch (int): Batch size for the dataloader.
         workers (int): Number of worker threads for loading data.
-        shuffle (bool, optional): Whether to shuffle the dataset.
-        rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
+        shuffle (bool): Whether to shuffle the dataset.
+        rank (int): Process rank in distributed training. -1 for single-GPU training.
 
     Returns:
         (InfiniteDataLoader): A dataloader that can be used for training or validation.
-
-    Examples:
-        Create a dataloader for training
-        >>> dataset = YOLODataset(...)
-        >>> dataloader = build_dataloader(dataset, batch=16, workers=4, shuffle=True)
     """
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
     nw = min(os.cpu_count() // max(nd, 1), workers)  # number of workers
-    sampler = None if rank == -1 else distributed.DistributedSampler(dataset, shuffle=shuffle)
+    sampler = None if rank == - \
+        1 else distributed.DistributedSampler(dataset, shuffle=shuffle)
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)
     return InfiniteDataLoader(
@@ -217,49 +222,55 @@ def check_source(source):
     Check the type of input source and return corresponding flag values.
 
     Args:
-        source (str | int | Path | list | tuple | np.ndarray | PIL.Image | torch.Tensor): The input source to check.
+        source (str | int | Path | List | Tuple | np.ndarray | PIL.Image | torch.Tensor): The input source to check.
 
     Returns:
-        source (str | int | Path | list | tuple | np.ndarray | PIL.Image | torch.Tensor): The processed source.
+        source (str | int | Path | List | Tuple | np.ndarray | PIL.Image | torch.Tensor): The processed source.
         webcam (bool): Whether the source is a webcam.
         screenshot (bool): Whether the source is a screenshot.
         from_img (bool): Whether the source is an image or list of images.
         in_memory (bool): Whether the source is an in-memory object.
         tensor (bool): Whether the source is a torch.Tensor.
 
-    Examples:
-        Check a file path source
-        >>> source, webcam, screenshot, from_img, in_memory, tensor = check_source("image.jpg")
-
-        Check a webcam source
-        >>> source, webcam, screenshot, from_img, in_memory, tensor = check_source(0)
+    Raises:
+        TypeError: If the source type is unsupported.
     """
     webcam, screenshot, from_img, in_memory, tensor = False, False, False, False, False
     if isinstance(source, (str, int, Path)):  # int for local usb camera
         source = str(source)
         source_lower = source.lower()
-        is_file = source_lower.rpartition(".")[-1] in (IMG_FORMATS | VID_FORMATS)
-        is_url = source_lower.startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://"))
-        webcam = source.isnumeric() or source.endswith(".streams") or (is_url and not is_file)
+        is_file = source_lower.rpartition(
+            ".")[-1] in (IMG_FORMATS | VID_FORMATS)
+        is_url = source_lower.startswith(
+            ("https://", "http://", "rtsp://", "rtmp://", "tcp://"))
+        webcam = source.isnumeric() or source.endswith(
+            ".streams") or (is_url and not is_file)
         screenshot = source_lower == "screen"
         if is_url and is_file:
             source = check_file(source)  # download
     elif isinstance(source, LOADERS):
         in_memory = True
     elif isinstance(source, (list, tuple)):
-        source = autocast_list(source)  # convert all list elements to PIL or np arrays
+        # convert all list elements to PIL or np arrays
+        source = autocast_list(source)
         from_img = True
     elif isinstance(source, (Image.Image, np.ndarray)):
         from_img = True
     elif isinstance(source, torch.Tensor):
         tensor = True
     else:
-        raise TypeError("Unsupported image type. For supported types see https://docs.ultralytics.com/modes/predict")
+        raise TypeError(
+            "Unsupported image type. For supported types see https://docs.ultralytics.com/modes/predict")
 
     return source, webcam, screenshot, from_img, in_memory, tensor
 
 
-def load_inference_source(source=None, batch: int = 1, vid_stride: int = 1, buffer: bool = False, channels: int = 3):
+def load_inference_source(
+        source=None,
+        batch=1,
+        vid_stride=1,
+        buffer=False,
+        channels=3):
     """
     Load an inference source for object detection and apply necessary transformations.
 
@@ -268,20 +279,15 @@ def load_inference_source(source=None, batch: int = 1, vid_stride: int = 1, buff
         batch (int, optional): Batch size for dataloaders.
         vid_stride (int, optional): The frame interval for video sources.
         buffer (bool, optional): Whether stream frames will be buffered.
-        channels (int, optional): The number of input channels for the model.
+        channels (int): The number of input channels for the model.
 
     Returns:
         (Dataset): A dataset object for the specified input source with attached source_type attribute.
-
-    Examples:
-        Load an image source for inference
-        >>> dataset = load_inference_source("image.jpg", batch=1)
-
-        Load a video stream source
-        >>> dataset = load_inference_source("rtsp://example.com/stream", vid_stride=2)
     """
-    source, stream, screenshot, from_img, in_memory, tensor = check_source(source)
-    source_type = source.source_type if in_memory else SourceTypes(stream, screenshot, from_img, tensor)
+    source, stream, screenshot, from_img, in_memory, tensor = check_source(
+        source)
+    source_type = source.source_type if in_memory else SourceTypes(
+        stream, screenshot, from_img, tensor)
 
     # Dataloader
     if tensor:
@@ -289,13 +295,21 @@ def load_inference_source(source=None, batch: int = 1, vid_stride: int = 1, buff
     elif in_memory:
         dataset = source
     elif stream:
-        dataset = LoadStreams(source, vid_stride=vid_stride, buffer=buffer, channels=channels)
+        dataset = LoadStreams(
+            source,
+            vid_stride=vid_stride,
+            buffer=buffer,
+            channels=channels)
     elif screenshot:
         dataset = LoadScreenshots(source, channels=channels)
     elif from_img:
         dataset = LoadPilAndNumpy(source, channels=channels)
     else:
-        dataset = LoadImagesAndVideos(source, batch=batch, vid_stride=vid_stride, channels=channels)
+        dataset = LoadImagesAndVideos(
+            source,
+            batch=batch,
+            vid_stride=vid_stride,
+            channels=channels)
 
     # Attach source types to the dataset
     setattr(dataset, "source_type", source_type)

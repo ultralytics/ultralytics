@@ -298,8 +298,7 @@ class Annotator:
         else:
             return txt_color
 
-def box_label(self, box, label: str = "", color: tuple = (128, 128, 128), txt_color: tuple = (255, 255, 255)):
-
+    def box_label(self, box, label: str = "", color: tuple = (128, 128, 128), txt_color: tuple = (255, 255, 255)):
         """
         Draw a bounding box on an image with a given label.
 

@@ -9,7 +9,6 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-
 import pytest
 import torch
 from PIL import Image
@@ -18,8 +17,6 @@ from tests import CFG, MODEL, SOURCE, SOURCES_LIST, TMP
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import MODELS, TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
-from tests import MODEL, TMP
-from ultralytics import YOLO
 from ultralytics.utils import (
     ARM64,
     ASSETS,

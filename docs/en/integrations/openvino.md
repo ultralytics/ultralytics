@@ -134,7 +134,7 @@ The Intel® Core® series is a range of high-performance processors by Intel. Th
 Benchmarks below run on 12th Gen Intel® Core® i9-12900KS CPU at FP32 precision.
 
 <div align="center">
-<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/core-cpu-benchmarks.avif" alt="Core CPU benchmarks">
+<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-core-cpu.avif" alt="Core CPU benchmarks">
 </div>
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
@@ -196,9 +196,8 @@ Benchmarks below run on Intel® Ultra™ 7 155H at FP32 and INT8 precision.
         | YOLO11x | OpenVINO | FP32      | ✅     | 217.8     | 0.8308              | 45.12                  |
         | YOLO11x | OpenVINO | INT8      | ✅     | 55.9      | 0.8156              | 32.57                  |
 
-        #TODO: Done till here
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/intel-ultra-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
+        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
         </div>
 
     === "Intel® Meteor Lake CPU"
@@ -222,7 +221,7 @@ Benchmarks below run on Intel® Ultra™ 7 155H at FP32 and INT8 precision.
         | YOLO11x | OpenVINO | INT8      | ✅     | 55.9      | 0.819               | 288.02                 |
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/intel-ultra-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
+        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
         </div>
 
     === "Integrated Intel® AI Boost NPU"
@@ -246,83 +245,7 @@ Benchmarks below run on Intel® Ultra™ 7 155H at FP32 and INT8 precision.
         | YOLO11x | OpenVINO | INT8      | ✅     | 55.9      | 0.8211              | 59.41                  |
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/intel-ultra-npu.avif" alt="Intel Core Ultra NPU benchmarks">
-        </div>
-
-#### Intel® Core™ Ultra™ 7 155H
-
-!!! tip "Benchmarks"
-
-    === "Integrated Intel® Arc™ GPU"
-
-        | Model   | Format   | Precision | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
-        | ------- | -------- | --------- | ------ | --------- | ------------------- | ---------------------- |
-        | YOLOv8n | PyTorch  | FP32      | ✅     | 6.2       | 0.6381              | 35.95                  |
-        | YOLOv8n | OpenVINO | FP32      | ✅     | 12.3      | 0.6117              | 8.32                   |
-        | YOLOv8n | OpenVINO | INT8      | ✅     | 3.6       | 0.5791              | 9.88                   |
-        | YOLOv8s | PyTorch  | FP32      | ✅     | 21.5      | 0.6967              | 79.72                  |
-        | YOLOv8s | OpenVINO | FP32      | ✅     | 42.9      | 0.7136              | 13.37                  |
-        | YOLOv8s | OpenVINO | INT8      | ✅     | 11.2      | 0.7086              | 9.96                   |
-        | YOLOv8m | PyTorch  | FP32      | ✅     | 49.7      | 0.737               | 202.05                 |
-        | YOLOv8m | OpenVINO | FP32      | ✅     | 99.1      | 0.7331              | 28.07                  |
-        | YOLOv8m | OpenVINO | INT8      | ✅     | 25.5      | 0.7259              | 21.11                  |
-        | YOLOv8l | PyTorch  | FP32      | ✅     | 83.7      | 0.7769              | 393.37                 |
-        | YOLOv8l | OpenVINO | FP32      | ✅     | 167.0     | 0.0                 | 52.73                  |
-        | YOLOv8l | OpenVINO | INT8      | ✅     | 42.6      | 0.7861              | 28.11                  |
-        | YOLOv8x | PyTorch  | FP32      | ✅     | 130.5     | 0.7759              | 610.71                 |
-        | YOLOv8x | OpenVINO | FP32      | ✅     | 260.6     | 0.748               | 73.51                  |
-        | YOLOv8x | OpenVINO | INT8      | ✅     | 66.0      | 0.8085              | 51.71                  |
-
-        <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/intel-ultra-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
-        </div>
-
-    === "Intel® Meteor Lake CPU"
-
-        | Model   | Format   | Precision | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
-        | ------- | -------- | --------- | ------ | --------- | ------------------- | ---------------------- |
-        | YOLOv8n | PyTorch  | FP32      | ✅     | 6.2       | 0.6381              | 34.69                  |
-        | YOLOv8n | OpenVINO | FP32      | ✅     | 12.3      | 0.6092              | 39.06                  |
-        | YOLOv8n | OpenVINO | INT8      | ✅     | 3.6       | 0.5968              | 18.37                  |
-        | YOLOv8s | PyTorch  | FP32      | ✅     | 21.5      | 0.6967              | 79.9                   |
-        | YOLOv8s | OpenVINO | FP32      | ✅     | 42.9      | 0.7136              | 82.6                   |
-        | YOLOv8s | OpenVINO | INT8      | ✅     | 11.2      | 0.7083              | 29.51                  |
-        | YOLOv8m | PyTorch  | FP32      | ✅     | 49.7      | 0.737               | 202.43                 |
-        | YOLOv8m | OpenVINO | FP32      | ✅     | 99.1      | 0.728               | 181.27                 |
-        | YOLOv8m | OpenVINO | INT8      | ✅     | 25.5      | 0.7285              | 51.25                  |
-        | YOLOv8l | PyTorch  | FP32      | ✅     | 83.7      | 0.7769              | 385.87                 |
-        | YOLOv8l | OpenVINO | FP32      | ✅     | 167.0     | 0.7551              | 347.75                 |
-        | YOLOv8l | OpenVINO | INT8      | ✅     | 42.6      | 0.7675              | 91.66                  |
-        | YOLOv8x | PyTorch  | FP32      | ✅     | 130.5     | 0.7759              | 603.63                 |
-        | YOLOv8x | OpenVINO | FP32      | ✅     | 260.6     | 0.7479              | 516.39                 |
-        | YOLOv8x | OpenVINO | INT8      | ✅     | 66.0      | 0.8119              | 142.42                 |
-
-        <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/intel-ultra-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
-        </div>
-
-    === "Integrated Intel® AI Boost NPU"
-
-        | Model   | Format   | Precision | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
-        | ------- | -------- | --------- | ------ | --------- | ------------------- | ---------------------- |
-        | YOLOv8n | PyTorch  | FP32      | ✅     | 6.2       | 0.6381              | 36.98                  |
-        | YOLOv8n | OpenVINO | FP32      | ✅     | 12.3      | 0.6103              | 16.68                  |
-        | YOLOv8n | OpenVINO | INT8      | ✅     | 3.6       | 0.5941              | 14.6                   |
-        | YOLOv8s | PyTorch  | FP32      | ✅     | 21.5      | 0.6967              | 79.76                  |
-        | YOLOv8s | OpenVINO | FP32      | ✅     | 42.9      | 0.7144              | 32.89                  |
-        | YOLOv8s | OpenVINO | INT8      | ✅     | 11.2      | 0.7062              | 26.13                  |
-        | YOLOv8m | PyTorch  | FP32      | ✅     | 49.7      | 0.737               | 201.44                 |
-        | YOLOv8m | OpenVINO | FP32      | ✅     | 99.1      | 0.7284              | 54.4                   |
-        | YOLOv8m | OpenVINO | INT8      | ✅     | 25.5      | 0.7268              | 30.76                  |
-        | YOLOv8l | PyTorch  | FP32      | ✅     | 83.7      | 0.7769              | 385.46                 |
-        | YOLOv8l | OpenVINO | FP32      | ✅     | 167.0     | 0.7539              | 80.1                   |
-        | YOLOv8l | OpenVINO | INT8      | ✅     | 42.6      | 0.7508              | 52.25                  |
-        | YOLOv8x | PyTorch  | FP32      | ✅     | 130.5     | 0.7759              | 609.4                  |
-        | YOLOv8x | OpenVINO | FP32      | ✅     | 260.6     | 0.7637              | 104.79                 |
-        | YOLOv8x | OpenVINO | INT8      | ✅     | 66.0      | 0.8077              | 64.96                  |
-
-        <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/intel-ultra-npu.avif" alt="Intel Core Ultra NPU benchmarks">
+        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra-npu.avif" alt="Intel Core Ultra NPU benchmarks">
         </div>
 
 ## Reproduce Our Results

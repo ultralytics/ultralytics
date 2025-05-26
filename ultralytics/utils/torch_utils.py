@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-from typing import Union, Dict, Any
+from typing import Any, Dict, Union
 
 import numpy as np
 import torch

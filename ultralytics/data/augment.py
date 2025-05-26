@@ -3,7 +3,7 @@
 import math
 import random
 from copy import deepcopy
-from typing import List, Tuple, Union, Dict, Any
+from typing import Any, Dict, List, Tuple, Union
 
 import cv2
 import numpy as np

@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from multiprocessing.pool import ThreadPool
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Optional
 from pathlib import Path
 
 import numpy as np
@@ -225,7 +225,16 @@ class SegmentationValidator(DetectionValidator):
                     self.save_dir / "labels" / f"{Path(batch['im_file'][si]).stem}.txt",
                 )
 
-    def _process_batch(self, detections, gt_bboxes, gt_cls, pred_masks=None, gt_masks=None, overlap=False, masks=False):
+    def _process_batch(
+        self,
+        detections: torch.Tensor,
+        gt_bboxes: torch.Tensor,
+        gt_cls: torch.Tensor,
+        pred_masks: Optional[torch.Tensor] = None,
+        gt_masks: Optional[torch.Tensor] = None,
+        overlap: Optional[bool] = False,
+        masks: Optional[bool] = False,
+    ) -> torch.Tensor:
         """
         Compute correct prediction matrix for a batch based on bounding boxes and optional masks.
 
@@ -238,8 +247,8 @@ class SegmentationValidator(DetectionValidator):
             pred_masks (torch.Tensor, optional): Tensor representing predicted masks, if available. The shape should
                 match the ground truth masks.
             gt_masks (torch.Tensor, optional): Tensor of shape (M, H, W) representing ground truth masks, if available.
-            overlap (bool): Flag indicating if overlapping masks should be considered.
-            masks (bool): Flag indicating if the batch contains mask data.
+            overlap (bool, optional): Flag indicating if overlapping masks should be considered.
+            masks (bool, optional): Flag indicating if the batch contains mask data.
 
         Returns:
             (torch.Tensor): A correct prediction matrix of shape (N, 10), where 10 represents different IoU levels.

@@ -21,6 +21,19 @@ class Auth:
         id_token (str | bool): Token used for identity verification, initialized as False.
         api_key (str | bool): API key for authentication, initialized as False.
         model_key (bool): Placeholder for model key, initialized as False.
+
+    Methods:
+        authenticate: Attempt to authenticate with the server using either id_token or API key.
+        auth_with_cookies: Attempt to fetch authentication via cookies and set id_token.
+        get_auth_header: Get the authentication header for making API requests.
+        request_api_key: Prompt the user to input their API key.
+
+    Examples:
+        Initialize Auth with an API key
+        >>> auth = Auth(api_key="your_api_key_here")
+
+        Initialize Auth without API key (will prompt for input)
+        >>> auth = Auth()
     """
 
     id_token = api_key = model_key = False
@@ -37,7 +50,7 @@ class Auth:
             verbose (bool): Enable verbose logging.
         """
         # Split the input API key in case it contains a combined key_model and keep only the API key part
-        api_key = api_key.split("_")[0]
+        api_key = api_key.split("_", 1)[0]
 
         # Set API key attribute as value passed or SETTINGS API key if none passed
         self.api_key = api_key or SETTINGS.get("api_key", "")
@@ -71,13 +84,21 @@ class Auth:
             LOGGER.info(f"{PREFIX}Get API key from {API_KEY_URL} and then run 'yolo login API_KEY'")
 
     def request_api_key(self, max_attempts: int = 3) -> bool:
-        """Prompt the user to input their API key."""
+        """
+        Prompt the user to input their API key.
+
+        Args:
+            max_attempts (int): Maximum number of authentication attempts.
+
+        Returns:
+            (bool): True if authentication is successful, False otherwise.
+        """
         import getpass
 
         for attempts in range(max_attempts):
             LOGGER.info(f"{PREFIX}Login. Attempt {attempts + 1} of {max_attempts}")
             input_key = getpass.getpass(f"Enter API key from {API_KEY_URL} ")
-            self.api_key = input_key.split("_")[0]  # remove model id if present
+            self.api_key = input_key.split("_", 1)[0]  # remove model id if present
             if self.authenticate():
                 return True
         raise ConnectionError(emojis(f"{PREFIX}Failed to authenticate ❌"))
@@ -134,4 +155,3 @@ class Auth:
             return {"authorization": f"Bearer {self.id_token}"}
         elif self.api_key:
             return {"x-api-key": self.api_key}
-        # else returns None

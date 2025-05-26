@@ -184,7 +184,7 @@ By default, ReID is turned off to minimize performance overhead. Enabling it is 
         ```python
         from ultralytics import YOLO
         
-        # Load the model and run the tracker with a custom configuration file
+        # Load the model
         model = YOLO("yolo11n.pt")
         
         # Enable re-identification with reid=True

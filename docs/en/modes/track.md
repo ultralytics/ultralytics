@@ -183,12 +183,12 @@ By default, ReID is turned off to minimize performance overhead. Enabling it is 
 
         ```python
         from ultralytics import YOLO
-        
+
         # Load the model
         model = YOLO("yolo11n.pt")
-        
+
         # Enable re-identification with reid=True
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", with_reid=True)  
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", with_reid=True)
         ```
 
 You can also customize the `model` used for ReID, allowing you to trade off accuracy and speed depending on your use case:

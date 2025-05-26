@@ -278,12 +278,12 @@ class SegmentationValidator(DetectionValidator):
 
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
-    def plot_val_samples(self, batch, ni):
+    def plot_val_samples(self, batch: Dict[str, Any], ni: int) -> None:
         """
         Plot validation samples with bounding box labels and masks.
 
         Args:
-            batch (dict): Batch data containing images and targets.
+            batch (Dict[str, Any]): Batch containing images and annotations.
             ni (int): Batch index.
         """
         plot_images(
@@ -298,13 +298,13 @@ class SegmentationValidator(DetectionValidator):
             on_plot=self.on_plot,
         )
 
-    def plot_predictions(self, batch, preds, ni):
+    def plot_predictions(self, batch: Dict[str, Any], preds: List[torch.Tensor], ni: int) -> None:
         """
         Plot batch predictions with masks and bounding boxes.
 
         Args:
-            batch (dict): Batch data containing images.
-            preds (list): Predictions from the model.
+            batch (Dict[str, Any]): Batch containing images and annotations.
+            preds (List[torch.Tensor]): List of predictions from the model.
             ni (int): Batch index.
         """
         plot_images(
@@ -318,15 +318,17 @@ class SegmentationValidator(DetectionValidator):
         )  # pred
         self.plot_masks.clear()
 
-    def save_one_txt(self, predn, pred_masks, save_conf, shape, file):
+    def save_one_txt(
+        self, predn: torch.Tensor, pred_masks: torch.Tensor, save_conf: bool, shape: Tuple[int, int], file: Path
+    ) -> None:
         """
         Save YOLO detections to a txt file in normalized coordinates in a specific format.
 
         Args:
-            predn (torch.Tensor): Predictions in the format [x1, y1, x2, y2, conf, cls].
+            predn (torch.Tensor): Predictions in the format (x1, y1, x2, y2, conf, class).
             pred_masks (torch.Tensor): Predicted masks.
             save_conf (bool): Whether to save confidence scores.
-            shape (tuple): Original image shape.
+            shape (Tuple[int, int]): Shape of the original image.
             file (Path): File path to save the detections.
         """
         from ultralytics.engine.results import Results

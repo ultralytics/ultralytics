@@ -36,7 +36,7 @@ class SegmentationValidator(DetectionValidator):
         >>> validator()
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None) -> None:
         """
         Initialize SegmentationValidator and set task to 'segment', metrics to SegmentMetrics.
 

@@ -27,6 +27,7 @@ pip install "lightly-train[ultralytics]" "supervision==0.25.1"
 ```
 
 ## Pretraining YOLO with Lightly**Train**
+
 ### Getting our Unlabeled Data
 
 Let's start by downloading a subset of COCO (25k images) that we'll use for pretraining:
@@ -74,7 +75,9 @@ Now for the exciting part - pretraining! With Lightly**Train**, it's as simple a
     ```
 
 ## Fine-tuning YOLO for Object Detection
+
 ### Getting the Labeled VOC Dataset
+
 Now let's get our labeled dataset for fine-tuning:
 
 ```python
@@ -96,6 +99,7 @@ import random
 import matplotlib.pyplot as plt
 import supervision as sv
 import yaml
+
 from ultralytics import settings
 from ultralytics.data.utils import check_det_dataset
 
@@ -107,7 +111,7 @@ detections = sv.DetectionDataset.from_yolo(
     annotations_directory_path=f"{settings['datasets_dir']}/VOC/labels/train2012",
 )
 
-with open(dataset["yaml_file"], "r") as f:
+with open(dataset["yaml_file"]) as f:
     data = yaml.safe_load(f)
 
 names = data["names"]
@@ -133,9 +137,10 @@ for i, (path, image, annotation) in enumerate(detections):
 fig.tight_layout()
 fig.show()
 ```
+
 ![VOC Samples](https://raw.githubusercontent.com/lightly-ai/lightly-train/refs/heads/main/docs/source/tutorials/yolo/samples_VOC_train2012.png)
 
-### Fine-tuning for Object Detection 
+### Fine-tuning for Object Detection
 
 Time to transform our pretrained model into an object detector! We'll fine-tune two models on the VOC dataset, one from random weights and one from our pretrained model:
 

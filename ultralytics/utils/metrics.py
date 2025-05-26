@@ -563,7 +563,7 @@ def plot_mc_curve(
     px: np.ndarray,
     py: np.ndarray,
     save_dir: Path = Path("mc_curve.png"),
-    names: dict = {},
+    names: Dict[int, str] = {},
     xlabel: str = "Confidence",
     ylabel: str = "Metric",
     on_plot=None,
@@ -575,7 +575,7 @@ def plot_mc_curve(
         px (np.ndarray): X values for the metric-confidence curve.
         py (np.ndarray): Y values for the metric-confidence curve.
         save_dir (Path, optional): Path to save the plot.
-        names (dict, optional): Dictionary mapping class indices to class names.
+        names (Dict[int, str], optional): Dictionary mapping class indices to class names.
         xlabel (str, optional): X-axis label.
         ylabel (str, optional): Y-axis label.
         on_plot (callable, optional): Function to call after plot is saved.

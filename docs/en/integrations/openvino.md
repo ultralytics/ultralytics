@@ -114,8 +114,9 @@ The ultralytics package allows you to easily run inference using the exported Op
 
 ```python
 from ultralytics import YOLO
+
 # Load the exported OpenVINO model
-ov_model = YOLO("yolo11n_openvino_model/") # the path of your exported OpenVINO model
+ov_model = YOLO("yolo11n_openvino_model/")  # the path of your exported OpenVINO model
 # Run inference with the exported model
 ov_model.predict(device="intel:gpu")  # specify the device you want to run inference on
 ```
@@ -124,7 +125,7 @@ This approach is ideal for fast prototyping or deployment when you don’t need 
 
 ### Inference with OpenVINO Runtime
 
-The openvino Runtime  provides a unified API to inference across all supported Intel hardware. It also provides advanced capabilities like load balancing across Intel hardware and asynchronous execution. For more information on running the inference, refer to the [Inference with OpenVINO Runtime Guide](https://docs.openvino.ai/2024/openvino-workflow/running-inference.html).
+The openvino Runtime provides a unified API to inference across all supported Intel hardware. It also provides advanced capabilities like load balancing across Intel hardware and asynchronous execution. For more information on running the inference, refer to the [Inference with OpenVINO Runtime Guide](https://docs.openvino.ai/2024/openvino-workflow/running-inference.html).
 
 Remember, you'll need the XML and BIN files as well as any application-specific settings like input size, scale factor for normalization, etc., to correctly set up and use the model with the Runtime.
 

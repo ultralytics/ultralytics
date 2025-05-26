@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-
 from copy import copy, deepcopy
 
 from ultralytics.models.yolo.segment import SegmentationTrainer

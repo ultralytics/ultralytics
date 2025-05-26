@@ -9,6 +9,7 @@ keywords: LightlyTrain, YOLO11, Ultralytics, machine learning, model training, d
 Ever wondered what to do with all those unlabeled images in your dataset? Great news! [Lightly**Train**](https://github.com/lightly-ai/lightly-train) helps you make the most of every single image - labeled or not. ⚡️
 
 In this step-by-step guide, we'll show you how to:
+
 1. Pretrain a YOLO model on unlabeled COCO images using Lightly**Train**'s distillation techniques
 2. Fine-tune it for object detection on PASCAL VOC using Ultralytics
 
@@ -40,6 +41,7 @@ rm -rf coco_minitrain_25k/labels
 ## Step 2: Pretrain Your Model
 
 Now for the exciting part - pretraining! With Lightly**Train**, it's as simple as specifying:
+
 - Where to save outputs (`out`)
 - Which model to train (`model`)
 - Where your images are (`data`)
@@ -54,10 +56,10 @@ Now for the exciting part - pretraining! With Lightly**Train**, it's as simple a
         # Pre-train with LightlyTrain.
         lightly_train.train(
             out="out/coco_minitrain_pretrain",  # Output directory.
-            model="ultralytics/yolo11s.yaml",   # Pass the YOLO model (use .yaml ending to start with random weights).
-            data="coco_minitrain_25k/images",   # Path to a directory with training images.
-            epochs=100,                         # Adjust epochs for shorter training.
-            batch_size=128,                     # Adjust batch size based on hardware.
+            model="ultralytics/yolo11s.yaml",  # Pass the YOLO model (use .yaml ending to start with random weights).
+            data="coco_minitrain_25k/images",  # Path to a directory with training images.
+            epochs=100,  # Adjust epochs for shorter training.
+            batch_size=128,  # Adjust batch size based on hardware.
         )
     ```
 
@@ -72,8 +74,8 @@ Now for the exciting part - pretraining! With Lightly**Train**, it's as simple a
 Now let's get our labeled dataset for fine-tuning:
 
 ```python
-from ultralytics.data.utils import check_det_dataset
 from ultralytics import settings
+from ultralytics.data.utils import check_det_dataset
 
 # Download VOC
 dataset = check_det_dataset("VOC.yaml")
@@ -82,7 +84,7 @@ dataset = check_det_dataset("VOC.yaml")
 print(settings["datasets_dir"])
 ```
 
-## Step 4: Fine-tune for Object Detection 
+## Step 4: Fine-tune for Object Detection
 
 Time to transform our pretrained model into an object detector! We'll train two models to show the power of pretraining:
 
@@ -128,9 +130,7 @@ ax.set_xlabel("Epoch")
 ax.set_ylabel("mAP50-95")
 max_pretrained = res_finetune["metrics/mAP50-95(B)"].max()
 max_scratch = res_scratch["metrics/mAP50-95(B)"].max()
-ax.set_title(
-    f"Pretraining is {(max_pretrained - max_scratch) / max_scratch * 100:.2f}% better than scratch"
-)
+ax.set_title(f"Pretraining is {(max_pretrained - max_scratch) / max_scratch * 100:.2f}% better than scratch")
 ax.legend()
 plt.show()
 ```

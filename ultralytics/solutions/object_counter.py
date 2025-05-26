@@ -84,14 +84,9 @@ class ObjectCounter(BaseSolution):
         if len(self.region) == 2:  # Linear region (defined as a line segment)
             # Check if the line intersects the trajectory of the object
             line = self.LineString(self.region)
-            if line.intersects(self.LineString(
-                    [prev_position, current_centroid])):
+            if line.intersects(self.LineString([prev_position, current_centroid])):
                 # Determine orientation of the region (vertical or horizontal)
-                if abs(
-                        self.region[0][0] -
-                        self.region[1][0]) < abs(
-                        self.region[0][1] -
-                        self.region[1][1]):
+                if abs(self.region[0][0] - self.region[1][0]) < abs(self.region[0][1] - self.region[1][1]):
                     # Vertical region: Compare x-coordinates to determine
                     # direction
                     if current_centroid[0] > prev_position[0]:  # Moving right
@@ -115,10 +110,8 @@ class ObjectCounter(BaseSolution):
             if polygon.contains(self.Point(current_centroid)):
                 # Determine motion direction for vertical or horizontal
                 # polygons
-                region_width = max(p[0] for p in self.region) - \
-                    min(p[0] for p in self.region)
-                region_height = max(p[1] for p in self.region) - \
-                    min(p[1] for p in self.region)
+                region_width = max(p[0] for p in self.region) - min(p[0] for p in self.region)
+                region_height = max(p[1] for p in self.region) - min(p[1] for p in self.region)
 
                 if (
                     region_width < region_height
@@ -152,8 +145,7 @@ class ObjectCounter(BaseSolution):
             if value["IN"] != 0 or value["OUT"] != 0
         }
         if labels_dict:
-            self.annotator.display_analytics(
-                plot_im, labels_dict, (104, 31, 17), (255, 255, 255), self.margin)
+            self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), self.margin)
 
     def process(self, im0):
         """
@@ -180,8 +172,7 @@ class ObjectCounter(BaseSolution):
             self.region_initialized = True
 
         self.extract_tracks(im0)  # Extract tracks
-        self.annotator = SolutionAnnotator(
-            im0, line_width=self.line_width)  # Initialize annotator
+        self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
         # True if OBB results exist
         is_obb = getattr(self.tracks[0], "obb", None) is not None
@@ -189,32 +180,21 @@ class ObjectCounter(BaseSolution):
             self.boxes = self.track_data.xyxyxyxy.reshape(-1, 4, 2).cpu()
 
         self.annotator.draw_region(
-            reg_pts=self.region,
-            color=(
-                104,
-                0,
-                123),
-            thickness=self.line_width *
-            2)  # Draw region
+            reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2
+        )  # Draw region
 
         # Iterate over bounding boxes, track ids and classes index
-        for box, track_id, cls, conf in zip(
-                self.boxes, self.track_ids, self.clss, self.confs):
+        for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
             # Draw bounding box and counting region
-            self.annotator.box_label(
-                box, label=self.adjust_box_label(
-                    cls, conf, track_id), color=colors(
-                    cls, True))
-            self.store_tracking_history(
-                track_id, box, is_obb=is_obb)  # Store track history
+            self.annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(cls, True))
+            self.store_tracking_history(track_id, box, is_obb=is_obb)  # Store track history
 
             # Store previous position of track for object counting
             prev_position = None
             if len(self.track_history[track_id]) > 1:
                 prev_position = self.track_history[track_id][-2]
             # object counting
-            self.count_objects(
-                self.track_history[track_id][-1], track_id, prev_position, cls)
+            self.count_objects(self.track_history[track_id][-1], track_id, prev_position, cls)
 
         plot_im = self.annotator.result()
         self.display_counts(plot_im)  # Display the counts on the frame

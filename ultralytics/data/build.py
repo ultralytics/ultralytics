@@ -47,9 +47,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
     def __init__(self, *args, **kwargs):
         """Initialize the InfiniteDataLoader with the same arguments as DataLoader."""
         super().__init__(*args, **kwargs)
-        object.__setattr__(
-            self, "batch_sampler", _RepeatSampler(
-                self.batch_sampler))
+        object.__setattr__(self, "batch_sampler", _RepeatSampler(self.batch_sampler))
         self.iterator = super().__iter__()
 
     def __len__(self):
@@ -125,15 +123,7 @@ def get_hyps_from_cfg(cfg):
     return SimpleNamespace(**hyp)
 
 
-def build_yolo_dataset(
-        cfg,
-        img_path,
-        batch,
-        data,
-        mode="train",
-        rect=False,
-        stride=32,
-        multi_modal=False):
+def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32, multi_modal=False):
     """Build and return a YOLO dataset based on configuration parameters."""
     dataset = YOLOMultiModalDataset if multi_modal else YOLODataset
     return dataset(
@@ -155,14 +145,7 @@ def build_yolo_dataset(
     )
 
 
-def build_grounding(
-        cfg,
-        img_path,
-        json_file,
-        batch,
-        mode="train",
-        rect=False,
-        stride=32):
+def build_grounding(cfg, img_path, json_file, batch, mode="train", rect=False, stride=32):
     """Build and return a GroundingDataset based on configuration parameters."""
     return GroundingDataset(
         img_path=img_path,
@@ -200,8 +183,7 @@ def build_dataloader(dataset, batch, workers, shuffle=True, rank=-1):
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
     nw = min(os.cpu_count() // max(nd, 1), workers)  # number of workers
-    sampler = None if rank == - \
-        1 else distributed.DistributedSampler(dataset, shuffle=shuffle)
+    sampler = None if rank == -1 else distributed.DistributedSampler(dataset, shuffle=shuffle)
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)
     return InfiniteDataLoader(
@@ -239,12 +221,9 @@ def check_source(source):
     if isinstance(source, (str, int, Path)):  # int for local usb camera
         source = str(source)
         source_lower = source.lower()
-        is_file = source_lower.rpartition(
-            ".")[-1] in (IMG_FORMATS | VID_FORMATS)
-        is_url = source_lower.startswith(
-            ("https://", "http://", "rtsp://", "rtmp://", "tcp://"))
-        webcam = source.isnumeric() or source.endswith(
-            ".streams") or (is_url and not is_file)
+        is_file = source_lower.rpartition(".")[-1] in (IMG_FORMATS | VID_FORMATS)
+        is_url = source_lower.startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://"))
+        webcam = source.isnumeric() or source.endswith(".streams") or (is_url and not is_file)
         screenshot = source_lower == "screen"
         if is_url and is_file:
             source = check_file(source)  # download
@@ -259,18 +238,12 @@ def check_source(source):
     elif isinstance(source, torch.Tensor):
         tensor = True
     else:
-        raise TypeError(
-            "Unsupported image type. For supported types see https://docs.ultralytics.com/modes/predict")
+        raise TypeError("Unsupported image type. For supported types see https://docs.ultralytics.com/modes/predict")
 
     return source, webcam, screenshot, from_img, in_memory, tensor
 
 
-def load_inference_source(
-        source=None,
-        batch=1,
-        vid_stride=1,
-        buffer=False,
-        channels=3):
+def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False, channels=3):
     """
     Load an inference source for object detection and apply necessary transformations.
 
@@ -284,10 +257,8 @@ def load_inference_source(
     Returns:
         (Dataset): A dataset object for the specified input source with attached source_type attribute.
     """
-    source, stream, screenshot, from_img, in_memory, tensor = check_source(
-        source)
-    source_type = source.source_type if in_memory else SourceTypes(
-        stream, screenshot, from_img, tensor)
+    source, stream, screenshot, from_img, in_memory, tensor = check_source(source)
+    source_type = source.source_type if in_memory else SourceTypes(stream, screenshot, from_img, tensor)
 
     # Dataloader
     if tensor:
@@ -295,21 +266,13 @@ def load_inference_source(
     elif in_memory:
         dataset = source
     elif stream:
-        dataset = LoadStreams(
-            source,
-            vid_stride=vid_stride,
-            buffer=buffer,
-            channels=channels)
+        dataset = LoadStreams(source, vid_stride=vid_stride, buffer=buffer, channels=channels)
     elif screenshot:
         dataset = LoadScreenshots(source, channels=channels)
     elif from_img:
         dataset = LoadPilAndNumpy(source, channels=channels)
     else:
-        dataset = LoadImagesAndVideos(
-            source,
-            batch=batch,
-            vid_stride=vid_stride,
-            channels=channels)
+        dataset = LoadImagesAndVideos(source, batch=batch, vid_stride=vid_stride, channels=channels)
 
     # Attach source types to the dataset
     setattr(dataset, "source_type", source_type)

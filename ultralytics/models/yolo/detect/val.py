@@ -42,7 +42,7 @@ class DetectionValidator(BaseValidator):
         >>> validator()
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None) -> None:
         """
         Initialize detection validator with necessary variables and settings.
 
@@ -289,7 +289,7 @@ class DetectionValidator(BaseValidator):
         iou = box_iou(gt_bboxes, detections[:, :4])
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
-    def build_dataset(self, img_path: str, mode: str = "val", batch: Optional[int] = None):
+    def build_dataset(self, img_path: str, mode: str = "val", batch: Optional[int] = None) -> torch.utils.data.Dataset:
         """
         Build YOLO Dataset.
 

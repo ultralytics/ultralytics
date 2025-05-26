@@ -1431,7 +1431,7 @@ class OBBMetrics(SimpleClass, DataExportMixin):
         Args:
             save_dir (Path, optional): Directory to save plots.
             plot (bool, optional): Whether to plot precision-recall curves.
-            names (tuple, optional): Tuple mapping class indices to names.
+            names (Dict[int, str], optional): Dictionary of class names.
         """
         self.save_dir = save_dir
         self.plot = plot

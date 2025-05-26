@@ -1033,7 +1033,7 @@ class Model(torch.nn.Module):
             self.callbacks[event] = [callbacks.default_callbacks[event][0]]
 
     @staticmethod
-    def _reset_ckpt_args(args: dict) -> dict:
+    def _reset_ckpt_args(args: Dict[str, Any]) -> Dict[str, Any]:
         """
         Reset specific arguments when loading a PyTorch model checkpoint.
 

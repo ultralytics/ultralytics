@@ -133,14 +133,19 @@ class ChartWidget {
     const xTitle = this.chart.options?.scales?.x?.title?.text || "x";
     const yTitle = this.chart.options?.scales?.y?.title?.text || "y";
 
-    const data = this.chart.data.datasets.flatMap((dataset) =>
-      dataset.data.map((point) => ({
-        dataset: dataset.label,
-        version: point.version || "",
-        [xTitle]: point.x,
-        [yTitle]: point.y,
-      })),
-    );
+    const data = [];
+    this.chart.data.datasets.forEach((dataset, i) => {
+      if (this.chart.getDatasetMeta(i).hidden) return; // Skip unselected models
+
+      dataset.data.forEach((point) => {
+        data.push({
+          model: dataset.label,
+          version: point.version || "",
+          [xTitle]: point.x,
+          [yTitle]: point.y,
+        });
+      });
+    });
 
     const headers = Object.keys(data[0]);
     const csv = [

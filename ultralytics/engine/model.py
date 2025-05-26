@@ -555,8 +555,9 @@ class Model(torch.nn.Module):
         return (
             self.predictor.predict_cli(source=source)
             if is_cli
-            else self.predictor(source=source, stream=stream,
-                                **({"with_reid": True} if kwargs.get("mode") == "track" else {}))  # for botsort reid
+            else self.predictor(
+                source=source, stream=stream, **({"with_reid": True} if kwargs.get("mode") == "track" else {})
+            )  # for botsort reid
         )
 
     def track(

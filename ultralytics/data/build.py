@@ -6,7 +6,6 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Iterator
 
-
 import numpy as np
 import torch
 from PIL import Image

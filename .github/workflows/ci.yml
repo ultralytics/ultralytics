@@ -221,9 +221,6 @@ jobs:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
     timeout-minutes: 360
     runs-on: gpu-latest
-    strategy:
-      fail-fast: false
-      max-attempts: 2
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6

@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from multiprocessing.pool import ThreadPool
+from typing import Any, Dict, List
 from pathlib import Path
 
 import numpy as np
@@ -52,8 +53,16 @@ class SegmentationValidator(DetectionValidator):
         self.args.task = "segment"
         self.metrics = SegmentMetrics(save_dir=self.save_dir)
 
-    def preprocess(self, batch):
-        """Preprocess batch by converting masks to float and sending to device."""
+    def preprocess(self, batch: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Preprocess batch of images for YOLO segmentation validation.
+
+        Args:
+            batch (Dict[str, Any]): Batch containing images and annotations.
+
+        Returns:
+            (Dict[str, Any]): Preprocessed batch.
+        """
         batch = super().preprocess(batch)
         batch["masks"] = batch["masks"].to(self.device).float()
         return batch
@@ -137,13 +146,13 @@ class SegmentationValidator(DetectionValidator):
         pred_masks = self.process(proto, pred[:, 6:], pred[:, :4], shape=pbatch["imgsz"])
         return predn, pred_masks
 
-    def update_metrics(self, preds, batch):
+    def update_metrics(self, preds: List[torch.Tensor], batch: Dict[str, Any]) -> None:
         """
         Update metrics with the current batch predictions and targets.
 
         Args:
-            preds (list): Predictions from the model.
-            batch (dict): Batch data containing images and targets.
+            preds (List[torch.Tensor]): List of predictions from the model.
+            batch (Dict[str, Any]): Batch data containing ground truth.
         """
         for si, (pred, proto) in enumerate(zip(preds[0], preds[1])):
             self.seen += 1

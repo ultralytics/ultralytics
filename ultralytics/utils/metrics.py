@@ -520,7 +520,7 @@ def plot_pr_curve(
     py: np.ndarray,
     ap: np.ndarray,
     save_dir: Path = Path("pr_curve.png"),
-    names: dict = {},
+    names: Dict[int, str] = {},
     on_plot=None,
 ):
     """
@@ -531,7 +531,7 @@ def plot_pr_curve(
         py (np.ndarray): Y values for the PR curve.
         ap (np.ndarray): Average precision values.
         save_dir (Path, optional): Path to save the plot.
-        names (dict, optional): Dictionary mapping class indices to class names.
+        names (Dict[int, str], optional): Dictionary mapping class indices to class names.
         on_plot (callable, optional): Function to call after plot is saved.
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
@@ -563,7 +563,7 @@ def plot_mc_curve(
     px: np.ndarray,
     py: np.ndarray,
     save_dir: Path = Path("mc_curve.png"),
-    names: dict = {},
+    names: Dict[int, str] = {},
     xlabel: str = "Confidence",
     ylabel: str = "Metric",
     on_plot=None,
@@ -575,7 +575,7 @@ def plot_mc_curve(
         px (np.ndarray): X values for the metric-confidence curve.
         py (np.ndarray): Y values for the metric-confidence curve.
         save_dir (Path, optional): Path to save the plot.
-        names (dict, optional): Dictionary mapping class indices to class names.
+        names (Dict[int, str], optional): Dictionary mapping class indices to class names.
         xlabel (str, optional): X-axis label.
         ylabel (str, optional): Y-axis label.
         on_plot (callable, optional): Function to call after plot is saved.
@@ -645,7 +645,7 @@ def ap_per_class(
     plot: bool = False,
     on_plot=None,
     save_dir: Path = Path(),
-    names: dict = {},
+    names: Dict[int, str] = {},
     eps: float = 1e-16,
     prefix: str = "",
 ) -> Tuple:
@@ -660,7 +660,7 @@ def ap_per_class(
         plot (bool, optional): Whether to plot PR curves or not.
         on_plot (callable, optional): A callback to pass plots path and data when they are rendered.
         save_dir (Path, optional): Directory to save the PR curves.
-        names (dict, optional): Dict of class names to plot PR curves.
+        names (Dict[int, str], optional): Dictionary of class names to plot PR curves.
         eps (float, optional): A small value to avoid division by zero.
         prefix (str, optional): A prefix string for saving the plot files.
 
@@ -720,8 +720,7 @@ def ap_per_class(
 
     # Compute F1 (harmonic mean of precision and recall)
     f1_curve = 2 * p_curve * r_curve / (p_curve + r_curve + eps)
-    names = [v for k, v in names.items() if k in unique_classes]  # list: only classes that have data
-    names = dict(enumerate(names))  # to dict
+    names = {i: names[k] for i, k in enumerate(unique_classes) if k in names}  # dict: only classes that have data
     if plot:
         plot_pr_curve(x, prec_values, ap, save_dir / f"{prefix}PR_curve.png", names, on_plot=on_plot)
         plot_mc_curve(x, f1_curve, save_dir / f"{prefix}F1_curve.png", names, ylabel="F1", on_plot=on_plot)
@@ -915,20 +914,20 @@ class DetMetrics(SimpleClass, DataExportMixin):
     Attributes:
         save_dir (Path): A path to the directory where the output plots will be saved.
         plot (bool): A flag that indicates whether to plot precision-recall curves for each class.
-        names (dict): A dictionary of class names.
+        names (Dict[int, str]): A dictionary of class names.
         box (Metric): An instance of the Metric class for storing detection results.
-        speed (dict): A dictionary for storing execution times of different parts of the detection process.
+        speed (Dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'detect'.
     """
 
-    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: dict = {}) -> None:
+    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: Dict[int, str] = {}) -> None:
         """
         Initialize a DetMetrics instance with a save directory, plot flag, and class names.
 
         Args:
             save_dir (Path, optional): Directory to save plots.
             plot (bool, optional): Whether to plot precision-recall curves.
-            names (dict, optional): Dictionary mapping class indices to names.
+            names (Dict[int, str], optional): Dictionary of class names.
         """
         self.save_dir = save_dir
         self.plot = plot
@@ -1033,21 +1032,21 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
     Attributes:
         save_dir (Path): Path to the directory where the output plots should be saved.
         plot (bool): Whether to save the detection and segmentation plots.
-        names (dict): Dictionary of class names.
-        box (Metric): An instance of the Metric class to calculate box detection metrics.
+        names (Dict[int, str]): Dictionary of class names.
+        box (Metric): An instance of the Metric class for storing detection results.
         seg (Metric): An instance of the Metric class to calculate mask segmentation metrics.
-        speed (dict): Dictionary to store the time taken in different phases of inference.
+        speed (Dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'segment'.
     """
 
-    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: tuple = ()) -> None:
+    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: Dict[int, str] = {}) -> None:
         """
         Initialize a SegmentMetrics instance with a save directory, plot flag, and class names.
 
         Args:
             save_dir (Path, optional): Directory to save plots.
             plot (bool, optional): Whether to plot precision-recall curves.
-            names (tuple, optional): Tuple mapping class indices to names.
+            names (Dict[int, str], optional): Dictionary of class names.
         """
         self.save_dir = save_dir
         self.plot = plot
@@ -1196,10 +1195,10 @@ class PoseMetrics(SegmentMetrics):
     Attributes:
         save_dir (Path): Path to the directory where the output plots should be saved.
         plot (bool): Whether to save the detection and pose plots.
-        names (dict): Dictionary of class names.
-        box (Metric): An instance of the Metric class to calculate box detection metrics.
+        names (Dict[int, str]): Dictionary of class names.
         pose (Metric): An instance of the Metric class to calculate pose metrics.
-        speed (dict): Dictionary to store the time taken in different phases of inference.
+        box (Metric): An instance of the Metric class for storing detection results.
+        speed (Dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'pose'.
 
     Methods:
@@ -1212,14 +1211,14 @@ class PoseMetrics(SegmentMetrics):
         results_dict: Return the dictionary containing all the detection and segmentation metrics and fitness score.
     """
 
-    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: tuple = ()) -> None:
+    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: Dict[int, str] = {}) -> None:
         """
         Initialize the PoseMetrics class with directory path, class names, and plotting options.
 
         Args:
             save_dir (Path, optional): Directory to save plots.
             plot (bool, optional): Whether to plot precision-recall curves.
-            names (tuple, optional): Tuple mapping class indices to names.
+            names (Dict[int, str], optional): Dictionary of class names.
         """
         super().__init__(save_dir, plot, names)
         self.save_dir = save_dir
@@ -1420,23 +1419,23 @@ class OBBMetrics(SimpleClass, DataExportMixin):
     Attributes:
         save_dir (Path): Path to the directory where the output plots should be saved.
         plot (bool): Whether to save the detection plots.
-        names (dict): Dictionary of class names.
+        names (Dict[int, str]): Dictionary of class names.
         box (Metric): An instance of the Metric class for storing detection results.
-        speed (dict): A dictionary for storing execution times of different parts of the detection process.
+        speed (Dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'obb'.
 
     References:
         https://arxiv.org/pdf/2106.06072.pdf
     """
 
-    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: tuple = ()) -> None:
+    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: Dict[int, str] = {}) -> None:
         """
         Initialize an OBBMetrics instance with directory, plotting, and class names.
 
         Args:
             save_dir (Path, optional): Directory to save plots.
             plot (bool, optional): Whether to plot precision-recall curves.
-            names (tuple, optional): Tuple mapping class indices to names.
+            names (Dict[int, str], optional): Dictionary of class names.
         """
         self.save_dir = save_dir
         self.plot = plot

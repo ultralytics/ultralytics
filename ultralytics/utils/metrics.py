@@ -645,7 +645,7 @@ def ap_per_class(
     plot: bool = False,
     on_plot=None,
     save_dir: Path = Path(),
-    names: dict = {},
+    names: Dict[int, str] = {},
     eps: float = 1e-16,
     prefix: str = "",
 ) -> Tuple:

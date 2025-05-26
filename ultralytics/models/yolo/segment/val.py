@@ -225,20 +225,6 @@ class SegmentationValidator(DetectionValidator):
                     self.save_dir / "labels" / f"{Path(batch['im_file'][si]).stem}.txt",
                 )
 
-    def finalize_metrics(self) -> None:
-        """
-        Finalize evaluation metrics by setting the speed attribute in the metrics object.
-
-        This method is called at the end of validation to set the processing speed for the metrics calculations.
-        It transfers the validator's speed measurement to the metrics object for reporting.
-
-        Args:
-            *args (Any): Variable length argument list.
-            **kwargs (Any): Arbitrary keyword arguments.
-        """
-        self.metrics.speed = self.speed
-        self.metrics.confusion_matrix = self.confusion_matrix
-
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """
         Compute correct prediction matrix for a batch based on bounding boxes and optional masks.

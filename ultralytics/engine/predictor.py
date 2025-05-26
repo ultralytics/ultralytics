@@ -317,7 +317,7 @@ class BasePredictor:
                 ops.Profile(device=self.device),
                 ops.Profile(device=self.device),
             )
-            self.args.with_reid = kwargs["with_reid"]
+            self.args.with_reid = kwargs["with_reid"]  # Call it before on_predict_start callback for usage in track.py
             self.run_callbacks("on_predict_start")
             for self.batch in self.dataset:
                 self.run_callbacks("on_predict_batch_start")

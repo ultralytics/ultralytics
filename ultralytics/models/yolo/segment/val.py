@@ -113,16 +113,16 @@ class SegmentationValidator(DetectionValidator):
         proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         return p, proto
 
-    def _prepare_batch(self, si, batch):
+    def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
         """
         Prepare a batch for training or inference by processing images and targets.
 
         Args:
             si (int): Batch index.
-            batch (dict): Batch data containing images and targets.
+            batch (Dict[str, Any]): Batch data containing images and annotations.
 
         Returns:
-            (dict): Prepared batch with processed images and targets.
+            (Dict[str, Any]): Prepared batch with processed annotations.
         """
         prepared_batch = super()._prepare_batch(si, batch)
         midx = [si] if self.args.overlap_mask else batch["batch_idx"] == si

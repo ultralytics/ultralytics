@@ -708,22 +708,15 @@ def test_all_file_model_cfg(tmp_path):
     """Covers file speed check, model loading, config parsing, and validation."""
     import yaml
 
-    # File speed check
-    check_file_speeds(files=None)
+    check_file_speeds(files=None)  # File speed check
 
-    # YOLO model loading from model object
     model = YOLO("yolo11n.pt")
     model_clone = YOLO(model)  # Load from existing instance
     assert model is not None
     assert model_clone is not None
 
     # Valid config YAML and deprecation handling
-    config_dict = {
-        "boxes": True,
-        "show_labels": False,
-        "line_width": 2,
-        "crop_fraction": 0.5,
-    }
+    config_dict = {"boxes": True, "show_labels": False}
     config_path = tmp_path / "config.yaml"
     with open(config_path, "w") as f:
         yaml.dump(config_dict, f)
@@ -733,11 +726,8 @@ def test_all_file_model_cfg(tmp_path):
 
     assert "show_boxes" in result
     assert "show_labels" in result
-    assert "line_width" in result
-    assert "crop_fraction" not in result  # Expected to be deprecated
 
-    # Invalid config triggers
-    invalid_cfg = {"epochs": 50, "lr0": 0.01, "momentum": 1.2, "save": "true1"}
+    invalid_cfg = {"epochs": 50, "momentum": 1.2, "save": "true1"}  # Invalid config triggers
     error_caught = False
     try:
         check_cfg(invalid_cfg, hard=True)

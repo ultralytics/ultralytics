@@ -303,6 +303,15 @@ class ManitouVideoDataset(Dataset):
                 f"\t {manitou.bags[bag_id]['cam_idx']}"
             idx_dict[bag_id] = {1: {}, 2: {}, 3: {}, 4: {}}
             
+            # To address the length mismatch issue, we make the length 
+            # of each camera's label and image lists to the smallest length of the four cameras.
+            cam_len = [len(manitou.get_img_ids_from_vid(vid_id)) for vid_id in vid_ids]
+            min_length = min(cam_len)
+            if np.any(np.array(cam_len) != min_length):
+                LOGGER.warning(f"Camera lengths are not equal in bag {bag_id}, name: {manitou.bags[bag_id]['name']}. \n" \
+                               f"\t Camera lengths: {cam_len}. \n" \
+                               f"\t The minimum length is {min_length}, the other cameras will be truncated to this length.")
+                    
             for vid_id in vid_ids:
                 img_ids = manitou.get_img_ids_from_vid(vid_id)
                 vid_name = manitou.vids[vid_id]["name"]
@@ -312,7 +321,7 @@ class ManitouVideoDataset(Dataset):
                     # load img info
                     raw_img_info = manitou.load_imgs([img_id])[0]
                     raw_img_info["img_id"] = img_id
-                    raw_img_info["video_length"] = len(img_ids)
+                    raw_img_info["video_length"] = min_length
                     raw_img_info["cam_idx"] = cam_idx
                     
                     raw_radar_info = manitou.load_radars([img_id])[0]
@@ -328,10 +337,14 @@ class ManitouVideoDataset(Dataset):
                     global_idx = len(img_list[cam_idx])
                     img_frame_id = parsed_label_info["img_frame_id"]
                     
+                    if img_frame_id >= min_length:
+                        LOGGER.warning(f"Image frame id {img_frame_id} is greater than the minimum length {min_length} for bag {bag_id}, cam {cam_idx}. \n" \
+                                       f"\t This image will be skipped.")
+                        continue
                     label_list[cam_idx].append(parsed_label_info)
                     img_list[cam_idx].append(parsed_label_info["im_file"])
                     idx_dict[bag_id][cam_idx][img_frame_id] = global_idx
-            
+                
         assert len(label_list[1]) == len(label_list[2]) == len(label_list[3]) == len(label_list[4]) == len(img_list[1]) == len(img_list[2]) == len(img_list[3]) == len(img_list[4]), \
             f"Number of images and labels do not match. \n" \
             f"\t number of labels (cam1, cam2, cam3, cam4): {len(label_list[1])}, {len(label_list[2])}, {len(label_list[3])}, {len(label_list[4])} \n" \

@@ -197,7 +197,9 @@ class OBBValidator(DetectionValidator):
                 }
             )
 
-    def save_one_txt(self, predn: torch.Tensor, save_conf: bool, shape: Tuple[int, int], file: Union[Path, str]) -> None:
+    def save_one_txt(
+        self, predn: torch.Tensor, save_conf: bool, shape: Tuple[int, int], file: Union[Path, str]
+    ) -> None:
         """
         Save YOLO OBB detections to a text file in normalized coordinates.
 

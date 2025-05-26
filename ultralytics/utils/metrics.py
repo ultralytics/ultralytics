@@ -915,18 +915,18 @@ class DetMetrics(SimpleClass, DataExportMixin):
         save_dir (Path): A path to the directory where the output plots will be saved.
         plot (bool): A flag that indicates whether to plot precision-recall curves for each class.
         names (Dict[int, str]): A dictionary of class names.
-        speed (dict): A dictionary for storing execution times of different parts of the detection process.
+        speed (Dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'detect'.
     """
 
-    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: dict = {}) -> None:
+    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: Dict[int, str] = {}) -> None:
         """
         Initialize a DetMetrics instance with a save directory, plot flag, and class names.
 
         Args:
             save_dir (Path, optional): Directory to save plots.
             plot (bool, optional): Whether to plot precision-recall curves.
-            names (dict, optional): Dictionary mapping class indices to names.
+            names (Dict[int, str], optional): Dictionary of class names.
         """
         self.save_dir = save_dir
         self.plot = plot

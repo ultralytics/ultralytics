@@ -341,7 +341,7 @@ class SegmentationValidator(DetectionValidator):
             masks=pred_masks,
         ).save_txt(file, save_conf=save_conf)
 
-    def pred_to_json(self, predn, filename, pred_masks):
+    def pred_to_json(self, predn: torch.Tensor, filename: str, pred_masks: torch.Tensor) -> None:
         """
         Save one JSON result for COCO evaluation.
 
@@ -379,8 +379,8 @@ class SegmentationValidator(DetectionValidator):
                 }
             )
 
-    def eval_json(self, stats):
-        """Return COCO-style object detection evaluation metrics."""
+    def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
+        """Return COCO-style instance segmentation evaluation metrics."""
         if self.args.save_json and (self.is_lvis or self.is_coco) and len(self.jdict):
             pred_json = self.save_dir / "predictions.json"  # predictions
 

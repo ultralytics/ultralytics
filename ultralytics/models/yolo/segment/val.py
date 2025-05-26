@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from multiprocessing.pool import ThreadPool
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 from pathlib import Path
 
 import numpy as np
@@ -67,7 +67,7 @@ class SegmentationValidator(DetectionValidator):
         batch["masks"] = batch["masks"].to(self.device).float()
         return batch
 
-    def init_metrics(self, model):
+    def init_metrics(self, model: torch.nn.Module) -> None:
         """
         Initialize metrics and select mask processing function based on save_json flag.
 
@@ -82,7 +82,7 @@ class SegmentationValidator(DetectionValidator):
         self.process = ops.process_mask_native if self.args.save_json or self.args.save_txt else ops.process_mask
         self.stats = dict(tp_m=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
-    def get_desc(self):
+    def get_desc(self) -> str:
         """Return a formatted description of evaluation metrics."""
         return ("%22s" + "%11s" * 10) % (
             "Class",
@@ -98,15 +98,15 @@ class SegmentationValidator(DetectionValidator):
             "mAP50-95)",
         )
 
-    def postprocess(self, preds):
+    def postprocess(self, preds: List[torch.Tensor]) -> Tuple[List[torch.Tensor], torch.Tensor]:
         """
         Post-process YOLO predictions and return output detections with proto.
 
         Args:
-            preds (list): Raw predictions from the model.
+            preds (List[torch.Tensor]): Raw predictions from the model.
 
         Returns:
-            p (torch.Tensor): Processed detection predictions.
+            p (List[torch.Tensor]): Processed detection predictions.
             proto (torch.Tensor): Prototype masks for segmentation.
         """
         p = super().postprocess(preds[0])

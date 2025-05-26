@@ -418,7 +418,10 @@ jobs:
     steps:
       - uses: nick-fields/retry@v3
         with:
+          timeout_minutes: 10
           max_attempts: 2
+          shell: pwsh
+          command: dir
       - name: Simulate a failing step
         run: |
           echo "This job fails intentionally on the first attempt"

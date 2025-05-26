@@ -4,7 +4,7 @@
 import math
 import warnings
 from pathlib import Path
-from typing import Dict, List, Tuple, Union, Optional
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import torch
@@ -519,8 +519,8 @@ def plot_pr_curve(
     px: np.ndarray,
     py: np.ndarray,
     ap: np.ndarray,
-    save_dir: Optional[Path] = Path("pr_curve.png"),
-    names: Optional[Dict[int, str]] = {},
+    save_dir: Path = Path("pr_curve.png"),
+    names: Dict[int, str] = {},
     on_plot=None,
 ):
     """

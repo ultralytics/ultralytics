@@ -1,5 +1,9 @@
 name: Rerun workflow
 
+permissions:
+  contents: read
+  actions: write
+
 on:
   workflow_dispatch:
     inputs:

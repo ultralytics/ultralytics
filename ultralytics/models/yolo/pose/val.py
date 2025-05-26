@@ -107,8 +107,13 @@ class PoseValidator(DetectionValidator):
             "mAP50-95)",
         )
 
-    def init_metrics(self, model):
-        """Initialize pose estimation metrics for YOLO model."""
+    def init_metrics(self, model: torch.nn.Module) -> None:
+        """
+        Initialize evaluation metrics for YOLO pose validation.
+
+        Args:
+            model (torch.nn.Module): Model to validate.
+        """
         super().init_metrics(model)
         self.kpt_shape = self.data["kpt_shape"]
         is_pose = self.kpt_shape == [17, 3]

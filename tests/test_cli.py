@@ -27,7 +27,7 @@ def test_special_modes() -> None:
     run("yolo version")
     run("yolo settings reset")
     run("yolo cfg")
-    run("yolo benchmark model=yolo11n.pt data=coco8.yaml format=onnx")  # For functioonality check only benchmark onnx.
+    run("yolo benchmark model=yolo11n.pt data=coco8.yaml format=onnx")  # For functionality check only benchmark onnx.
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)

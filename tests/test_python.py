@@ -751,9 +751,7 @@ def test_all_file_model_cfg(tmp_path):
     assert error_caught, "Expected error was not raised by check_cfg() for invalid config"
 
 
-@pytest.mark.skipif(
-    checks.IS_PYTHON_3_8 and LINUX and ARM64, reason="CLIP is not supported in Python 3.8 and aarch64 Linux"
-)
+@pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="CLIP is not supported in Python 3.8 and aarch64 Linux")
 def test_build_text_model_all(sample_texts="a photo of a cat"):
     """Test for CLIP, MobileCLIP, and invalid model handling."""
     from ultralytics.nn.text_model import build_text_model

@@ -415,8 +415,10 @@ jobs:
     strategy:
       fail-fast: false
     if: github.run_attempt == 1
-    max-attempts: 2
     steps:
+      - uses: nick-fields/retry@v3
+        with:
+          max_attempts: 2
       - name: Simulate a failing step
         run: |
           echo "This job fails intentionally on the first attempt"

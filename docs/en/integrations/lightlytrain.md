@@ -6,176 +6,141 @@ keywords: LightlyTrain, YOLO11, Ultralytics, machine learning, model training, d
 
 # Unlock the Power of Unlabeled Data with Lightly**Train** and YOLO
 
-Ever wondered what to do with all those unlabeled images in your dataset? Great news! [Lightly**Train**](https://github.com/lightly-ai/lightly-train) helps you make the most of every single image - labeled or not.⚡️
+Ever wondered what to do with all those unlabeled images in your dataset? Great news! [Lightly**Train**](https://github.com/lightly-ai/lightly-train) helps you make the most of every single image - labeled or not. ⚡️
 
-In this hands-on tutorial, we'll show you how to supercharge your object detector by combining Lightly**Train**'s pretraining capabilities with Ultralytics' YOLO. We'll work with the classic [PASCAL VOC dataset](http://host.robots.ox.ac.uk/pascal/VOC/) to demonstrate both pretraining (without labels) and fine-tuning (with labels).
+In this step-by-step guide, we'll show you how to:
+1. Pretrain a YOLO model on unlabeled COCO images using Lightly**Train**'s distillation techniques
+2. Fine-tune it for object detection on PASCAL VOC using Ultralytics
 
-You can also run this tutorial in [Google Colab](https://colab.research.google.com/github/lightly-ai/lightly-train/blob/main/examples/notebooks/ultralytics_yolo.ipynb) directly.
+You can run this tutorial in [Google Colab](https://colab.research.google.com/github/lightly-ai/lightly-train/blob/main/examples/notebooks/ultralytics_yolo.ipynb) directly.
 
 ## Install Dependencies
 
-Let's install the required dependencies:
-
-- `lightly-train` for pretraining, with support for `ultralytics`' YOLO models
-- [`supervision`](https://github.com/roboflow/supervision) to visualize some of the annotated pictures
+Let's get everything ready! Install these packages:
 
 ```bash
 pip install "lightly-train[ultralytics]" "supervision==0.25.1"
 ```
 
-## Download the Dataset
+## Step 1: Get the Unlabeled Data Ready
 
-We can download the dataset directly using Ultralytics' API with the `check_det_dataset` function:
-
-```python
-from ultralytics.data.utils import check_det_dataset
-
-dataset = check_det_dataset("VOC.yaml")
-```
-
-Ultralytics always downloads your datasets to a fixed location, which you can fetch via their `settings` module:
-
-```python
-from ultralytics import settings
-
-print(settings["datasets_dir"])
-```
-
-Inside that directory (`<DATASET-DIR>`), you will now have the following structure of images and labels:
+First, let's download a subset of COCO (25k images) that we'll use for pretraining:
 
 ```bash
-tree -d <DATASET-DIR>/VOC -I VOCdevkit
+# Download COCO-minitrain
+wget https://huggingface.co/datasets/bryanbocao/coco_minitrain/resolve/main/coco_minitrain_25k.zip
 
->    datasets/VOC
->    ├── images
->    │   ├── test2007
->    │   ├── train2007
->    │   ├── train2012
->    │   └── val2007
->    │   └── val2012
->    └── labels
->        ├── test2007
->        ├── train2007
->        ├── train2012
->        ├── val2007
->        └── val2012
+# Unzip it
+unzip coco_minitrain_25k.zip
+
+# Remove labels (we don't need them for pretraining!)
+rm -rf coco_minitrain_25k/labels
 ```
 
-!!! note
+## Step 2: Pretrain Your Model
 
-    The labels are not required for pre-training. We will use the labels only for fine-tuning.
-
-## Get to Know Your Data
-
-Let's take a peek at what we're working with! We'll use `supervision` to visualize some samples from our dataset:
-
-```python
-import random
-
-import matplotlib.pyplot as plt
-import supervision as sv
-import yaml
-from ultralytics import settings
-from ultralytics.data.utils import check_det_dataset
-
-dataset = check_det_dataset("VOC.yaml")
-
-detections = sv.DetectionDataset.from_yolo(
-    data_yaml_path=dataset["yaml_file"],
-    images_directory_path=f"{settings['datasets_dir']}/VOC/images/train2012",
-    annotations_directory_path=f"{settings['datasets_dir']}/VOC/labels/train2012",
-)
-
-with open(dataset["yaml_file"], "r") as f:
-    data = yaml.safe_load(f)
-
-names = data["names"]
-
-box_annotator = sv.BoxAnnotator()
-label_annotator = sv.LabelAnnotator()
-
-fig, ax = plt.subplots(2, 2, figsize=(10, 10))
-ax = ax.flatten()
-
-detections = [detections[random.randint(0, len(detections))] for _ in range(4)]
-
-for i, (path, image, annotation) in enumerate(detections):
-    annotated_image = box_annotator.annotate(scene=image, detections=annotation)
-    annotated_image = label_annotator.annotate(
-        scene=annotated_image,
-        detections=annotation,
-        labels=[names[elem] for elem in annotation.class_id],
-    )
-    ax[i].imshow(annotated_image[..., ::-1])
-    ax[i].axis("off")
-
-fig.tight_layout()
-fig.show()
-```
-
-![VOC2012 Training Samples](https://github.com/lightly-ai/lightly-train/blob/main/docs/source/tutorials/yolo/samples_VOC_train2012.png)
-
-## Pre-training and Fine-tuning
-
-Now comes the exciting part! We'll take a randomly initialized YOLO11 model and transform it into a powerful object detector through:
-1. Smart pretraining with unlabeled data using Lightly**Train**'s distillation techniques
-2. Focused fine-tuning to object detection, using labeled data together with Ultralytics
-
-Here's how to work this magic:
+Now for the exciting part - pretraining! With Lightly**Train**, it's as simple as specifying:
+- Where to save outputs (`out`)
+- Which model to train (`model`)
+- Where your images are (`data`)
 
 === "Python"
 
     ```python
     # pretrain_yolo.py
     import lightly_train
-    from ultralytics import settings
-
-    data_path = f"{settings['datasets_dir']}/VOC/images/train2012"
 
     if __name__ == "__main__":
-        # Pre-train with lightly-train.
+        # Pre-train with LightlyTrain.
         lightly_train.train(
-            out="out/my_experiment",            # Output directory.
-            model="ultralytics/yolo11s.yaml",   # Pass the YOLO model.
-            data=data_path,                     # Path to a directory with training images.
-            epochs=100,                         # Adjust epochs for faster training.
-            batch_size=64,                      # Adjust batch size based on hardware.
+            out="out/coco_minitrain_pretrain",  # Output directory.
+            model="ultralytics/yolo11s.yaml",   # Pass the YOLO model (use .yaml ending to start with random weights).
+            data="coco_minitrain_25k/images",   # Path to a directory with training images.
+            epochs=100,                         # Adjust epochs for shorter training.
+            batch_size=128,                     # Adjust batch size based on hardware.
         )
-    ```
-
-    ```python
-    # finetune_yolo.py
-
-    from ultralytics import YOLO
-
-    if __name__ == "__main__":
-        # Load the exported model.
-        model = YOLO("out/my_experiment/exported_models/exported_last.pt")
-
-        # Fine-tune with ultralytics.
-        model.train(data="VOC.yaml", epochs=100)
     ```
 
 === "Command Line"
 
     ```bash
-    lightly-train train out="out/my_experiment" data="<DATASET-DIR>/VOC/images/train2012" model="ultralytics/yolo11s.yaml" epochs=100 batch_size=64
+    lightly-train train out="out/coco_minitrain_pretrain" model="ultralytics/yolo11s.yaml" data="coco_minitrain_25k/images" epochs=100 batch_size=128
     ```
 
-    ```bash
-    yolo detect train model="out/my_experiment/exported_models/exported_last.pt" data="VOC.yaml" epochs=100
+## Step 3: Download PASCAL VOC
+
+Now let's get our labeled dataset for fine-tuning:
+
+```python
+from ultralytics.data.utils import check_det_dataset
+from ultralytics import settings
+
+# Download VOC
+dataset = check_det_dataset("VOC.yaml")
+
+# Check where it was saved
+print(settings["datasets_dir"])
+```
+
+## Step 4: Fine-tune for Object Detection 
+
+Time to transform our pretrained model into an object detector! We'll train two models to show the power of pretraining:
+
+=== "From Pretrained"
+
+    ```python
+    from ultralytics import YOLO
+
+    # Load our pretrained model
+    model = YOLO("out/coco_minitrain_pretrain/exported_models/exported_last.pt")
+
+    # Fine-tune on VOC
+    model.train(data="VOC.yaml", epochs=30, project="logs/voc_yolo11s", name="from_pretrained")
     ```
 
-Congratulations!🥳 You have successfully pre-trained a model using `lightly-train` and fine-tuned it for object detection using `ultralytics`.
+=== "From Scratch (for comparison)"
 
-For more advanced options, explore Lightly**Train**'s [Python API](https://docs.lightly.ai/train/stable/python_api/index.html) and [Ultralytics documentation](https://docs.ultralytics.com).
+    ```python
+    from ultralytics import YOLO
 
-## Ready for More?
+    # Start with random weights
+    model = YOLO("yolo11s.yaml")
 
-Now that you've got the basics down, here are some cool ways to level up your model:
+    # Train on VOC
+    model.train(data="VOC.yaml", epochs=30, project="logs/voc_yolo11s", name="from_scratch")
+    ```
 
-- Dive into the world of self-supervised learning with [DINO and SimCLR in `lightly-train`](https://docs.lightly.ai/train/stable/methods/index.html)
-- Experiment with different YOLO flavors (`YOLOv5`, `YOLOv6`, `YOLOv8`)
-- Take your pre-trained model for a spin with [image embeddings and similarity search](https://docs.lightly.ai/train/stable/embed.html)
+## Compare the Results
 
-Happy experimenting! 🚀
+Want to see the magic of pretraining? Let's plot the results:
+
+```python
+import matplotlib.pyplot as plt
+import pandas as pd
+
+res_scratch = pd.read_csv("logs/voc_yolo11s/from_scratch/results.csv")
+res_finetune = pd.read_csv("logs/voc_yolo11s/from_pretrained/results.csv")
+
+fig, ax = plt.subplots()
+ax.plot(res_scratch["epoch"], res_scratch["metrics/mAP50-95(B)"], label="scratch")
+ax.plot(res_finetune["epoch"], res_finetune["metrics/mAP50-95(B)"], label="finetune")
+ax.set_xlabel("Epoch")
+ax.set_ylabel("mAP50-95")
+max_pretrained = res_finetune["metrics/mAP50-95(B)"].max()
+max_scratch = res_scratch["metrics/mAP50-95(B)"].max()
+ax.set_title(
+    f"Pretraining is {(max_pretrained - max_scratch) / max_scratch * 100:.2f}% better than scratch"
+)
+ax.legend()
+plt.show()
+```
+
+## Ready to Level Up? 🚀
+
+Now that you've seen the power of pretraining, here's what to try next:
+
+- Explore different pretraining methods like [DINO and SimCLR](https://docs.lightly.ai/train/stable/methods/index.html)
+- Try other YOLO flavors (`YOLOv5`, `YOLOv6`, `YOLOv8`)
+- Use your pretrained model for [image embeddings](https://docs.lightly.ai/train/stable/embed.html)
+
+Happy training! ⚡️

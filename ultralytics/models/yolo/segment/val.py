@@ -129,13 +129,15 @@ class SegmentationValidator(DetectionValidator):
         prepared_batch["masks"] = batch["masks"][midx]
         return prepared_batch
 
-    def _prepare_pred(self, pred, pbatch, proto):
+    def _prepare_pred(
+        self, pred: torch.Tensor, pbatch: Dict[str, Any], proto: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Prepare predictions for evaluation by processing bounding boxes and masks.
 
         Args:
             pred (torch.Tensor): Raw predictions from the model.
-            pbatch (dict): Prepared batch data.
+            pbatch (Dict[str, Any]): Prepared batch information.
             proto (torch.Tensor): Prototype masks for segmentation.
 
         Returns:

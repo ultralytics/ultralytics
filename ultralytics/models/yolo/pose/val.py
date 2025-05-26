@@ -127,10 +127,10 @@ class PoseValidator(DetectionValidator):
 
         Args:
             si (int): Batch index.
-            batch (dict): Dictionary containing batch data with keys like 'keypoints', 'batch_idx', etc.
+            batch (Dict[str, Any]): Dictionary containing batch data with keys like 'keypoints', 'batch_idx', etc.
 
         Returns:
-            (dict): Prepared batch with keypoints scaled to original image dimensions.
+            (Dict[str, Any]): Prepared batch with keypoints scaled to original image dimensions.
 
         Notes:
             This method extends the parent class's _prepare_batch method by adding keypoint processing.

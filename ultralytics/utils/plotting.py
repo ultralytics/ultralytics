@@ -207,7 +207,7 @@ class Annotator:
             elif im.shape[2] > 3:  # multispectral
                 im = np.ascontiguousarray(im[..., :3])
         if self.pil:  # use PIL
-            self.im = im if input_is_pil else Image.fromarray(im)  # eliminate
+            self.im = im if input_is_pil else Image.fromarray(im)
             if self.im.mode not in {"RGB", "RGBA"}:  # multispectral
                 self.im = self.im.convert("RGB")
             self.draw = ImageDraw.Draw(self.im, "RGBA")

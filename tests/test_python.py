@@ -117,7 +117,7 @@ def test_predict_img(model_name):
     model = YOLO(WEIGHTS_DIR / model_name)
     im = cv2.imread(str(SOURCE))  # uint8 numpy array
     assert len(model(source=Image.open(SOURCE), save=True, verbose=True, imgsz=32)) == 1  # PIL
-    assert len(model(source=im, save=True, save_txt=True, imgsz=32)) == 1  # ndarray
+    assert len(model(source=im, save=True, save_txt=True, save_json=True, imgsz=32)) == 1  # ndarray
     assert len(model(torch.rand((2, 3, 32, 32)), imgsz=32)) == 2  # batch-size 2 Tensor, FP32 0.0-1.0 RGB order
     assert len(model(source=[im, im], save=True, save_txt=True, imgsz=32)) == 2  # batch
     assert len(list(model(source=[im, im], save=True, stream=True, imgsz=32))) == 2  # stream
@@ -243,7 +243,7 @@ def test_workflow():
     model.train(data="coco8.yaml", epochs=1, imgsz=32, optimizer="SGD")
     model.val(imgsz=32)
     model.predict(SOURCE, imgsz=32)
-    model.predict(video_url, imgsz=160, save=True, save_json=True)
+    model.predict(video_url, imgsz=160, save=True)
     model.export(format="torchs", nms=True)  # WARNING: Windows slow CI export bug, test closest match format and nms.
 
 

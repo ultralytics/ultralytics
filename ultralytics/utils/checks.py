@@ -24,6 +24,7 @@ from ultralytics.utils import (
     ASSETS,
     AUTOINSTALL,
     IS_COLAB,
+    IS_DOCKER,
     IS_GIT_DIR,
     IS_JETSON,
     IS_KAGGLE,
@@ -402,7 +403,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         """Attempt package installation with uv if available, falling back to pip."""
         if use_uv:
             # Note requires --break-system-packages on ARM64 dockerfile
-            cmd = f"uv pip install --system --no-cache-dir {packages} {commands} --index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
+            cmd = f"uv pip install {'--system ' if IS_DOCKER else ''}--no-cache-dir {packages} {commands} --index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
         else:
             cmd = f"pip install --no-cache-dir {packages} {commands}"
         return subprocess.check_output(cmd, shell=True).decode()

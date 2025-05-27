@@ -26,6 +26,8 @@ def test_special_modes() -> None:
     run("yolo solutions help")
     run("yolo checks")
     run("yolo version")
+    run("yolo detect epochs=1")
+    run("yolo detect track")
     run("yolo settings reset")
     run(f"yolo settings runs_dir={TMP}")
     run("yolo cfg")

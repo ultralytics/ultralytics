@@ -1,12 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# COCO8 dataset (first 8 images from COCO train2017) by Ultralytics
-# Documentation: https://docs.ultralytics.com/datasets/detect/coco8/
-# Example usage: yolo train data=coco8.yaml
+# COCO8-Grayscale dataset (first 8 images from COCO train2017) by Ultralytics
+# Documentation: https://docs.ultralytics.com/datasets/detect/coco8-grayscale/
+# Example usage: yolo train data=coco8-grayscale.yaml
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── coco8  ← downloads here (1 MB)
+#     └── coco8-grayscale  ← downloads here (1 MB)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
 path: ../datasets/coco8-grayscale # dataset root dir
@@ -100,4 +100,4 @@ names:
   79: toothbrush
 
 # Download script/URL (optional)
-download: https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8.zip
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-grayscale.zip

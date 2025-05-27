@@ -507,18 +507,24 @@ class ConfusionMatrix(DataExportMixin):
             LOGGER.info(" ".join(map(str, self.matrix[i])))
 
     def summary(self, **kwargs):
-        """Returns summary of the confusion matrix for export in different formats CSV, XML, HTML. Each row represents predicted class and columns represent actual class."""
+        """
+        Returns summary of the confusion matrix for export in different formats CSV, XML, HTML.
+
+        Each row represents predicted class and columns represent actual class.
+        """
         import re
+
         names = self.names if self.task == "classify" else self.names + ["background"]  # background class for 'detect'
 
         # Sanitize names to be valid XML tags. Otherwise, confusion_matrix.to_xml() will throw error.
-        names = [re.sub(r'[^a-zA-Z0-9_]', '_', name) for name in names]
+        names = [re.sub(r"[^a-zA-Z0-9_]", "_", name) for name in names]
 
         # Return a list of dicts: one per row (predicted class)
         return [
             dict({"Predicted": names[i]}, **{names[j]: self.matrix[i, j] for j in range(len(names))})
             for i in range(len(names))
         ]
+
 
 def smooth(y: np.ndarray, f: float = 0.05) -> np.ndarray:
     """Box filter of fraction f."""

@@ -176,7 +176,7 @@ def benchmark(
             assert format != "coreml" or platform.system() == "Darwin", "inference only supported on macOS>=10.13"
             if format == "ncnn":
                 assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
-            assert i != 15 or is_rockchip(), "inference only supported on Rockchip devices"  # RKNN
+            assert format == "rknn" or is_rockchip(), "inference only supported on Rockchip devices"  # RKNN
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, verbose=False)
 
             # Validate

@@ -107,15 +107,29 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
         yolo val model=yolo11n.pt data=coco8.yaml imgsz=640 batch=16 conf=0.25 iou=0.6 device=0
         ```
 
-The `metrics` object provides the following methods for exporting validation results:
+!!! tip "Exporting ConfusionMatrix"
+
+    You can also export the [`ConfusionMatrix`](../../reference/utils/metrics/#ultralytics.utils.metrics.ConfusionMatrix) results in various formats. Here's a code snippet:
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO('yolo11n.pt')
+
+    if __name__ == '__main__':
+        results = model.val(data="coco8.yaml")
+        print(results.confusion_matrix.to_df())
+    ```
 
 | Method      | Return Type | Description                                                                      |
-| ----------- | ----------- | -------------------------------------------------------------------------------- |
+|-------------| ----------- |----------------------------------------------------------------------------------|
 | `to_df()`   | `DataFrame` | Returns the validation results as a structured Pandas DataFrame.                 |
 | `to_csv()`  | `str`       | Exports the validation results in CSV format and returns the CSV string.         |
 | `to_xml()`  | `str`       | Exports the validation results in XML format and returns the XML string.         |
 | `to_html()` | `str`       | Exports the validation results in HTML table format and returns the HTML string. |
 | `to_json()` | `str`       | Exports the validation results in JSON format and returns the JSON string.       |
+| `to_sql()`  | `str`       | Exports the validation results in SQl database.                                  |
+
 
 For more details see the [`DataExportMixin` class documentation](../reference/utils/__init__.md/#ultralytics.utils.DataExportMixin).
 

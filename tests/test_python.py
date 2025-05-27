@@ -114,7 +114,7 @@ def test_predict_img(model_name):
     """Test YOLO model predictions on various image input types and sources, including online images."""
     channels = 1 if model_name == "yolo11n-gray.pt" else 3
     model = YOLO(WEIGHTS_DIR / model_name)
-    im = cv2.imread(str(SOURCE))  # uint8 numpy array
+    im = cv2.imread(str(SOURCE), flags=cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR)  # uint8 numpy array
     assert len(model(source=Image.open(SOURCE), save=True, verbose=True, imgsz=32)) == 1  # PIL
     assert len(model(source=im, save=True, save_txt=True, imgsz=32)) == 1  # ndarray
     assert len(model(torch.rand((2, channels, 32, 32)), imgsz=32)) == 2  # batch-size 2 Tensor, FP32 0.0-1.0 RGB order
@@ -185,6 +185,8 @@ def test_track_stream(model):
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
+    if model == "yolo11n-cls.pt":  # classification model not supported for tracking
+        return
     video_url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov"
     model = YOLO(model)
     model.track(video_url, imgsz=160, tracker="bytetrack.yaml")

@@ -243,7 +243,7 @@ def test_workflow():
     model.train(data="coco8.yaml", epochs=1, imgsz=32, optimizer="SGD")
     model.val(imgsz=32)
     model.predict(SOURCE, imgsz=32)
-    model.predict(video_url, imgsz=160, save=True)
+    model.predict(video_url, imgsz=160, save=True, save_json=True)
     model.export(format="torchs", nms=True)  # WARNING: Windows slow CI export bug, test closest match format and nms.
 
 

@@ -12,7 +12,7 @@ TMP = (ROOT / "../tests/tmp").resolve()  # temp directory for test files
 CUDA_IS_AVAILABLE = checks.cuda_is_available()
 CUDA_DEVICE_COUNT = checks.cuda_device_count()
 TASK_MODEL_DATA = [(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for task in TASKS]
-MODELS = frozenset([TASK2MODEL[task] for task in TASKS] + ["yolo11n-gray.pt"])
+MODELS = frozenset(list(TASK2MODEL.values()) + ["yolo11n-gray.pt"])
 
 __all__ = (
     "MODEL",

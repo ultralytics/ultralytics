@@ -125,7 +125,7 @@ def test_predict_img(model_name):
         str(SOURCE),  # filename
         Path(SOURCE),  # Path
         "https://github.com/ultralytics/assets/releases/download/v0.0.0/zidane.jpg" if ONLINE else SOURCE,  # URI
-        cv2.imread(str(SOURCE)),  # OpenCV
+        im,  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, channels), dtype=np.uint8),  # numpy
     ]

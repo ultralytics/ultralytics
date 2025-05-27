@@ -711,6 +711,10 @@ def test_grayscale(task: str, model: str, data: str) -> None:
     data = YAML.load(checks.check_file(data))
     data["channels"] = 1  # add additional channels key for grayscale
     YAML.save(grayscale_data, data)
+    # remove npy files in train/val splits if exists, might be created by previous tests
+    for split in {"train", "val"}:
+        for npy_file in (Path(data["path"]) / data[split]).glob("*.npy"):
+            npy_file.unlink()
 
     model = YOLO(model)
     model.train(data=grayscale_data, epochs=1, imgsz=32, close_mosaic=1)

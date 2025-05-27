@@ -400,19 +400,15 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     @Retry(times=2, delay=1)
     def attempt_install(packages, commands, use_uv):
         """Attempt package installation with uv if available, falling back to pip."""
-
-        def run_cmd(cmd):
-            return subprocess.check_output(cmd, shell=True).decode()
-
         if use_uv:
             base = f"uv pip install --no-cache-dir {packages} {commands} --index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
             try:
-                return run_cmd(base)
+                return subprocess.check_output(base, shell=True, stderr=subprocess.PIPE).decode()
             except subprocess.CalledProcessError as e:
                 if e.stderr and "No virtual environment found" in e.stderr.decode():
-                    return run_cmd(base.replace("uv pip install", "uv pip install --system"))
-                raise  # reraise non "--system" errors
-        return run_cmd(f"pip install --no-cache-dir {packages} {commands}")
+                    return subprocess.check_output(base.replace("uv pip install", "uv pip install --system"), shell=True).decode()
+                raise
+        return subprocess.check_output(f"pip install --no-cache-dir {packages} {commands}", shell=True).decode()
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:

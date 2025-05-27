@@ -12,7 +12,7 @@ import pytest
 import torch
 from PIL import Image
 
-from tests import CFG, MODEL, SOURCE, SOURCES_LIST, TMP, TASK_MODEL_DATA, MODELS
+from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA, TMP
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source

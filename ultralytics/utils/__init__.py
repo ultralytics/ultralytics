@@ -841,7 +841,7 @@ def is_docker() -> bool:
         (bool): True if the script is running inside a Docker container, False otherwise.
     """
     try:
-        return Path("/.dockerenv").exists()
+        return os.path.exists("/.dockerenv")
     except Exception:
         return False
 

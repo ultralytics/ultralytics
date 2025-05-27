@@ -68,7 +68,7 @@ class Analytics(BaseSolution):
 
         self.total_counts = 0  # count variable for storing total counts i.e. for line
         self.clswise_count = {}  # dictionary for class-wise counts
-        self.update_every = 25  # Only update graph every 25 frames update_every = 25
+        self.update_every = kwargs.get("update_every", 25)  # Only update graph every x frames by default 25
         self.last_plot_im = None  # Cache of the last rendered chart
 
         # Ensure line and area chart
@@ -243,7 +243,7 @@ class Analytics(BaseSolution):
 
         # Common plot settings
         self.ax.set_facecolor("#f0f0f0")  # Set to light gray or any other color you like
-        self.ax.grid(True, linestyle="--", linewidth=0.5, alpha=0.5)
+        self.ax.grid(True, linestyle="--", linewidth=0.5, alpha=0.5)  # Display grid for more data insights
         self.ax.set_title(self.title, color=self.fg_color, fontsize=self.fontsize)
         self.ax.set_xlabel(self.x_label, color=self.fg_color, fontsize=self.fontsize - 3)
         self.ax.set_ylabel(self.y_label, color=self.fg_color, fontsize=self.fontsize - 3)

@@ -24,7 +24,6 @@ from ultralytics.utils import (
     ASSETS,
     AUTOINSTALL,
     IS_COLAB,
-    IS_DOCKER,
     IS_GIT_DIR,
     IS_JETSON,
     IS_KAGGLE,

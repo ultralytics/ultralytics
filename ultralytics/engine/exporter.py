@@ -527,7 +527,6 @@ class Exporter:
             f[13], _ = self.export_ncnn()
         if imx:
             f[14], _ = self.export_imx()
-        
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None

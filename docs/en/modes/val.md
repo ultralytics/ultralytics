@@ -109,7 +109,7 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
 
 !!! tip "Exporting ConfusionMatrix"
 
-    You can also export the [`ConfusionMatrix`](../reference/utils/metrics/#ultralytics.utils.metrics.ConfusionMatrix) results in various formats. Here's a code snippet:
+    You can also save the ConfusionMatrix results in different formats using the provided code.
 
     ```python
     from ultralytics import YOLO

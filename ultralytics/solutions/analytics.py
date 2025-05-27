@@ -131,7 +131,6 @@ class Analytics(BaseSolution):
             plot_im = self.last_plot_im
         else:
             raise ModuleNotFoundError(f"{self.type} chart is not supported ❌")
-        print(plot_im)
         # return output dictionary with summary for more usage
         return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), classwise_count=self.clswise_count)
 

@@ -644,7 +644,7 @@ def save_one_box(
         gain (float, optional): A multiplicative factor to increase the size of the bounding box.
         pad (int, optional): The number of pixels to add to the width and height of the bounding box.
         square (bool, optional): If True, the bounding box will be transformed into a square.
-        BGR (bool, optional): If True, the image will be saved in BGR format, otherwise in RGB.
+        BGR (bool, optional): If True, the image will be returned in BGR format, otherwise in RGB.
         save (bool, optional): If True, the cropped image will be saved to disk.
 
     Returns:
@@ -664,12 +664,14 @@ def save_one_box(
     b[:, 2:] = b[:, 2:] * gain + pad  # box wh * gain + pad
     xyxy = ops.xywh2xyxy(b).long()
     xyxy = ops.clip_boxes(xyxy, im.shape)
-    crop = im[int(xyxy[0, 1]) : int(xyxy[0, 3]), int(xyxy[0, 0]) : int(xyxy[0, 2]), :: (1 if BGR else -1)]
+    grayscale = im.shape[2] == 1  # grayscale image
+    crop = im[int(xyxy[0, 1]) : int(xyxy[0, 3]), int(xyxy[0, 0]) : int(xyxy[0, 2]), :: (1 if BGR or grayscale else -1)]
     if save:
         file.parent.mkdir(parents=True, exist_ok=True)  # make directory
         f = str(increment_path(file).with_suffix(".jpg"))
         # cv2.imwrite(f, crop)  # save BGR, https://github.com/ultralytics/yolov5/issues/7007 chroma subsampling issue
-        Image.fromarray(crop[..., ::-1]).save(f, quality=95, subsampling=0)  # save RGB
+        crop = crop.squeeze(-1) if grayscale else crop[..., ::-1] if BGR else crop
+        Image.fromarray(crop).save(f, quality=95, subsampling=0)  # save RGB
     return crop
 
 

@@ -309,7 +309,7 @@ def smooth_bce(eps: float = 0.1) -> Tuple[float, float]:
     return 1.0 - 0.5 * eps, 0.5 * eps
 
 
-class ConfusionMatrix:
+class ConfusionMatrix(DataExportMixin):
     """
     A class for calculating and updating a confusion matrix for object detection and classification tasks.
 
@@ -334,6 +334,7 @@ class ConfusionMatrix:
         self.task = task
         self.matrix = np.zeros((nc + 1, nc + 1)) if self.task == "detect" else np.zeros((nc, nc))
         self.nc = nc  # number of classes
+        self.names = None  # name of classes
         self.conf = 0.25 if conf in {None, 0.001} else conf  # apply 0.25 if default val conf is passed
         self.iou_thres = iou_thres
 
@@ -441,18 +442,18 @@ class ConfusionMatrix:
         array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)  # normalize columns
         array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
 
-        names = list(names)
+        self.names = list(names)
         fig, ax = plt.subplots(1, 1, figsize=(12, 9))
         if self.nc >= 100:  # downsample for large class count
             k = max(2, self.nc // 60)  # step size for downsampling, always > 1
             keep_idx = slice(None, None, k)  # create slice instead of array
-            names = names[keep_idx]  # slice class names
+            self.names = self.names[keep_idx]  # slice class names
             array = array[keep_idx, :][:, keep_idx]  # slice matrix rows and cols
             n = (self.nc + k - 1) // k  # number of retained classes
             nc = nn = n if self.task == "classify" else n + 1  # adjust for background if needed
         else:
             nc = nn = self.nc if self.task == "classify" else self.nc + 1
-        ticklabels = (names + ["background"]) if (0 < nn < 99) and (nn == nc) else "auto"
+        ticklabels = (self.names + ["background"]) if (0 < nn < 99) and (nn == nc) else "auto"
         xy_ticks = np.arange(len(ticklabels))
         tick_fontsize = max(6, 15 - 0.1 * nc)  # Minimum size is 6
         label_fontsize = max(6, 12 - 0.1 * nc)
@@ -505,6 +506,19 @@ class ConfusionMatrix:
         for i in range(self.matrix.shape[0]):
             LOGGER.info(" ".join(map(str, self.matrix[i])))
 
+    def summary(self, **kwargs):
+        """Returns summary of the confusion matrix for export in different formats CSV, XML, HTML. Each row represents predicted class and columns represent actual class."""
+        import re
+        names = self.names if self.task == "classify" else self.names + ["background"]  # background class for 'detect'
+
+        # Sanitize names to be valid XML tags. Otherwise, confusion_matrix.to_xml() will throw error.
+        names = [re.sub(r'[^a-zA-Z0-9_]', '_', name) for name in names]
+
+        # Return a list of dicts: one per row (predicted class)
+        return [
+            dict({"Predicted": names[i]}, **{names[j]: self.matrix[i, j] for j in range(len(names))})
+            for i in range(len(names))
+        ]
 
 def smooth(y: np.ndarray, f: float = 0.05) -> np.ndarray:
     """Box filter of fraction f."""

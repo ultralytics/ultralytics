@@ -205,7 +205,12 @@ def test_val():
     metrics.to_html()
     metrics.to_json()
     metrics.to_sql()
-
+    metrics.confusion_matrix.to_df()  # Tests for confusion matrix export
+    metrics.confusion_matrix.to_csv()
+    metrics.confusion_matrix.to_xml()
+    metrics.confusion_matrix.to_html()
+    metrics.confusion_matrix.to_json()
+    metrics.confusion_matrix.to_sql()
 
 def test_train_scratch():
     """Test training the YOLO model from scratch using the provided configuration."""

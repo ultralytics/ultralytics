@@ -321,7 +321,7 @@ class ConfusionMatrix(DataExportMixin):
         iou_thres (float): The Intersection over Union threshold.
     """
 
-    def __init__(self, nc: int, conf: float = 0.25, iou_thres: float = 0.45, task: str = "detect"):
+    def __init__(self, nc: int, conf: float = 0.25, iou_thres: float = 0.45, names: tuple = (), task: str = "detect"):
         """
         Initialize a ConfusionMatrix instance.
 
@@ -329,12 +329,13 @@ class ConfusionMatrix(DataExportMixin):
             nc (int): Number of classes.
             conf (float, optional): Confidence threshold for detections.
             iou_thres (float, optional): IoU threshold for matching detections to ground truth.
+            names (tuple, optional): Names of classes, used as labels on the plot.
             task (str, optional): Type of task, either 'detect' or 'classify'.
         """
         self.task = task
         self.matrix = np.zeros((nc + 1, nc + 1)) if self.task == "detect" else np.zeros((nc, nc))
         self.nc = nc  # number of classes
-        self.names = None  # name of classes
+        self.names = list(names)  # name of classes
         self.conf = 0.25 if conf in {None, 0.001} else conf  # apply 0.25 if default val conf is passed
         self.iou_thres = iou_thres
 
@@ -427,14 +428,13 @@ class ConfusionMatrix(DataExportMixin):
 
     @TryExcept(msg="ConfusionMatrix plot failure")
     @plt_settings()
-    def plot(self, normalize: bool = True, save_dir: str = "", names: tuple = (), on_plot=None):
+    def plot(self, normalize: bool = True, save_dir: str = "", on_plot=None):
         """
         Plot the confusion matrix using matplotlib and save it to a file.
 
         Args:
             normalize (bool, optional): Whether to normalize the confusion matrix.
             save_dir (str, optional): Directory where the plot will be saved.
-            names (tuple, optional): Names of classes, used as labels on the plot.
             on_plot (callable, optional): An optional callback to pass plots path and data when they are rendered.
         """
         import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
@@ -442,7 +442,6 @@ class ConfusionMatrix(DataExportMixin):
         array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)  # normalize columns
         array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
 
-        self.names = list(names)
         fig, ax = plt.subplots(1, 1, figsize=(12, 9))
         if self.nc >= 100:  # downsample for large class count
             k = max(2, self.nc // 60)  # step size for downsampling, always > 1

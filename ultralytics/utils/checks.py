@@ -402,11 +402,15 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     def attempt_install(packages, commands, use_uv):
         """Attempt package installation with uv if available, falling back to pip."""
         if use_uv:
-            # Note requires --break-system-packages on ARM64 dockerfile
-            cmd = f"uv pip install {'--system ' if IS_DOCKER or is_github_action_running() else ''}--no-cache-dir {packages} {commands} --index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
+            base_cmd = f"uv pip install --no-cache-dir {packages} {commands} --index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
+            try:
+                return subprocess.check_output(base_cmd, shell=True).decode()
+            except subprocess.CalledProcessError:
+                cmd = f"{base_cmd.replace('uv pip install', 'uv pip install --system')}"
+                return subprocess.check_output(cmd, shell=True).decode()
         else:
             cmd = f"pip install --no-cache-dir {packages} {commands}"
-        return subprocess.check_output(cmd, shell=True).decode()
+            return subprocess.check_output(cmd, shell=True).decode()
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:

@@ -699,3 +699,7 @@ def test_multichannel():
     im = np.zeros((32, 32, 10), dtype=np.uint8)
     model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)
     model.export(format="onnx")
+
+
+def test_grayscale():
+    pass

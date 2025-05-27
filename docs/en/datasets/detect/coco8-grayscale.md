@@ -16,6 +16,10 @@ COCO8-Grayscale is fully compatible with [Ultralytics HUB](https://hub.ultralyti
 
 The COCO8-Grayscale dataset configuration is defined in a YAML (Yet Another Markup Language) file, which specifies dataset paths, class names, and other essential metadata. You can review the official `coco8-grayscale.yaml` file in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-grayscale.yaml).
 
+!!! note
+
+    To train your RGB images in grayscale, you could simply add `channels: 1` to your dataset YAML file. This converts all images to grayscale during training, enabling you to utilize grayscale benefits without requiring a separate dataset.
+
 !!! example "ultralytics/cfg/datasets/coco8-grayscale.yaml"
 
     ```yaml

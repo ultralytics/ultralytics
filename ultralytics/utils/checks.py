@@ -400,16 +400,17 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     @Retry(times=2, delay=1)
     def attempt_install(packages, commands, use_uv):
         """Attempt package installation with uv if available, falling back to pip."""
+        def run_cmd(cmd): return subprocess.check_output(cmd, shell=True).decode()
+        
         if use_uv:
-            base_cmd = f"uv pip install --no-cache-dir {packages} {commands} --index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
+            base = f"uv pip install --no-cache-dir {packages} {commands} --index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
             try:
-                return subprocess.check_output(base_cmd, shell=True).decode()
-            except subprocess.CalledProcessError:
-                cmd = f"{base_cmd.replace('uv pip install', 'uv pip install --system')}"
-                return subprocess.check_output(cmd, shell=True).decode()
-        else:
-            cmd = f"pip install --no-cache-dir {packages} {commands}"
-            return subprocess.check_output(cmd, shell=True).decode()
+                return run_cmd(base)
+            except subprocess.CalledProcessError as e:
+                if e.stderr and "No virtual environment found" in e.stderr.decode():
+                    return run_cmd(base.replace("uv pip install", "uv pip install --system"))
+                raise  # reraise non "--system" errors
+        return run_cmd(f"pip install --no-cache-dir {packages} {commands}")
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:

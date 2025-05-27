@@ -5,7 +5,7 @@ import subprocess
 import pytest
 from PIL import Image
 
-from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE
+from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, TMP
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ARM64, ASSETS, LINUX, WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import TORCH_1_9
@@ -27,9 +27,10 @@ def test_special_modes() -> None:
     run("yolo checks")
     run("yolo version")
     run("yolo settings reset")
+    run(f"yolo settings runs_dir={TMP}")
     run("yolo cfg")
-    run("yolo solutions")  # cover the "No solution name provided. i.e `yolo solutions count`. Defaulting to 'count'."
-
+    run("yolo solutions help")
+    run("yolo solutions wrong")  # cover the "No solution name provided. i.e `yolo solutions count`. and wrong sol name.
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_train(task: str, model: str, data: str) -> None:

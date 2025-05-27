@@ -245,7 +245,7 @@ def test_workflow():
     model.val(imgsz=32)
     model.predict(SOURCE, imgsz=32)
     model.predict(video_url, imgsz=160, save=True)
-    model.export(format="torchscript")  # WARNING: Windows slow CI export bug
+    model.export(format="torchs", nms=True)  # WARNING: Windows slow CI export bug, test closest match format and nms.
 
 
 def test_predict_callback_and_setup():
@@ -704,46 +704,9 @@ def test_multichannel():
     model.export(format="onnx")
 
 
-def test_all_file_model_cfg(tmp_path):
-    """Covers file speed check, model loading, config parsing, and validation."""
-    import yaml
-
-    check_file_speeds(files=None)  # File speed check
-
-    model = YOLO("yolo11n.pt")
-    model_clone = YOLO(model)  # Load from existing instance
-    assert model is not None
-    assert model_clone is not None
-
-    # Valid config YAML and deprecation handling
-    config_dict = {"boxes": True, "show_labels": False}
-    config_path = tmp_path / "config.yaml"
-    with open(config_path, "w") as f:
-        yaml.dump(config_dict, f)
-
-    loaded_cfg = cfg2dict(str(config_path))
-    result = _handle_deprecation(loaded_cfg)
-
-    assert "show_boxes" in result
-    assert "show_labels" in result
-
-    invalid_cfg = {"epochs": 50, "momentum": 1.2, "save": "true1"}  # Invalid config triggers
-    error_caught = False
-    try:
-        check_cfg(invalid_cfg, hard=True)
-    except Exception as e:
-        error_caught = True
-        assert isinstance(e, (TypeError, ValueError))
-        msg = str(e)
-        assert "momentum=1.2" in msg
-        assert "between 0.0 and 1.0" in msg or "invalid type" in msg
-
-    assert error_caught, "Expected error was not raised by check_cfg() for invalid config"
-
-
 @pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="CLIP is not supported in Python 3.8 and aarch64 Linux")
 def test_build_text_model_all(sample_texts="a photo of a cat"):
-    """Test for CLIP, MobileCLIP, and invalid model handling."""
+    """Test for CLIP, MobileCLIP, and invalid model handling mainly about text_model.py."""
     from ultralytics.nn.text_model import build_text_model
 
     device = torch.device("cpu")

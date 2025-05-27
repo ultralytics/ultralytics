@@ -68,7 +68,7 @@ class Analytics(BaseSolution):
 
         self.total_counts = 0  # count variable for storing total counts i.e. for line
         self.clswise_count = {}  # dictionary for class-wise counts
-        self.update_every = kwargs.get("update_every", 25)  # Only update graph every x frames by default 25
+        self.update_every = kwargs.get("update_every", 30)  # Only update graph every 30 frames by default
         self.last_plot_im = None  # Cache of the last rendered chart
 
         # Ensure line and area chart

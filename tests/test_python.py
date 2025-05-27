@@ -198,9 +198,10 @@ def test_track_stream(model):
         model.track(video_url, imgsz=160, tracker=custom_yaml)
 
 
-def test_val():
+@pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
+def test_val(task: str, model: str, data: str) -> None:
     """Test the validation mode of the YOLO model."""
-    metrics = YOLO(MODEL).val(data="coco8.yaml", imgsz=32)
+    metrics = YOLO(model).val(data=data, imgsz=32)
     metrics.to_df()
     metrics.to_csv()
     metrics.to_xml()
@@ -270,7 +271,7 @@ def test_predict_callback_and_setup():
 
 
 @pytest.mark.parametrize("model", MODELS)
-def test_results(model):
+def test_results(model: str):
     """Test YOLO model results processing and output in various formats."""
     temp_s = "https://ultralytics.com/images/boats.jpg" if model == "yolo11n-obb.pt" else SOURCE
     results = YOLO(WEIGHTS_DIR / model)([temp_s, temp_s], imgsz=160)

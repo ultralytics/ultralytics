@@ -673,8 +673,8 @@ class Model(torch.nn.Module):
         custom = {"verbose": False}  # method defaults
         args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, "mode": "benchmark"}
         fmts = export_formats()
-        export_args = set(dict(zip(fmts["Argument"], fmts["Arguments"])).get(format, []))
-        export_kwargs = {k: v for k, v in args.items() if k in export_args - set(["batch"])}
+        export_args = set(dict(zip(fmts["Argument"], fmts["Arguments"])).get(format, [])) - {"batch"}
+        export_kwargs = {k: v for k, v in args.items() if k in export_args}
         return benchmark(
             model=self,
             data=data,  # if no 'data' argument passed set data=None for default datasets
@@ -1033,7 +1033,7 @@ class Model(torch.nn.Module):
             self.callbacks[event] = [callbacks.default_callbacks[event][0]]
 
     @staticmethod
-    def _reset_ckpt_args(args: dict) -> dict:
+    def _reset_ckpt_args(args: Dict[str, Any]) -> Dict[str, Any]:
         """
         Reset specific arguments when loading a PyTorch model checkpoint.
 

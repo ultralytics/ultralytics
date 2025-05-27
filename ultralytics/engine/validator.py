@@ -329,7 +329,7 @@ class BaseValidator:
         """Update metrics based on predictions and batch."""
         pass
 
-    def finalize_metrics(self, *args, **kwargs):
+    def finalize_metrics(self):
         """Finalize and return all metrics."""
         pass
 

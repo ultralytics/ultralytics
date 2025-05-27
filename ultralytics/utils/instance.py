@@ -377,8 +377,14 @@ class Instances:
             #print(pointsInImage.dtype)
             #print(pointsInImage[:, 0:2])
             pointsInImage = np.ascontiguousarray(pointsInImage[:, 0:2])
+            CenterPoint = np.average(pointsInImage, axis=0)
             # get the OBB data
-            (cx, cy), (w, h), angle = cv2.minAreaRect(pointsInImage)
+            #(cx, cy), (w, h), angle = cv2.minAreaRect(pointsInImage)
+            cx = CenterPoint[0]
+            cy = CenterPoint[1]
+            w = xmax-xmin
+            h = ymax-ymin
+            angle = obb_box_data[4]
             boxes.append([cx, cy, w, h, angle / 180 * np.pi])
             #boxes.append([cx, cy, w, h, angle])
         #print(self.obbData)
@@ -410,15 +416,7 @@ class Instances:
             angle = box[4]
             angle = angle % 180
             if (angle > 90):
-                w,h = box[2], box[3]
-                box[2] = h
-                box[3] = w
-                box[4] = angle % 90
-            if (angle == 0.0):
-                w,h = box[2], box[3]
-                box[2] = h
-                box[3] = w
-                box[4] = 90
+                box[4] = angle -180
 
             
 
@@ -490,14 +488,14 @@ class Instances:
             return
         self.obbData[:, 1] = h-self.obbData[:, 1]
         for box in self.obbData:
-            if box[4] == 90:
+            if box[4] == 0 or box[4] == 90 or box[4] == -90:
                 continue
             # change angle
-            box[4] = 90 - box[4]
-            # flip wh
-            boxw, boxh = box[2], box[3]
-            box[2] = boxh
-            box[3] = boxw
+            angle = -box[4]
+            angle = angle % 180
+            if angle > 90:
+                angle = angle-180
+            box[4] = angle
 
 
 
@@ -527,15 +525,14 @@ class Instances:
             return
         self.obbData[:, 0] = w-self.obbData[:, 1]
         for box in self.obbData:
-            if box[4] == 90:
+            if box[4] == 0 or box[4] == 90 or box[4] == -90:
                 continue
             # change angle
-            box[4] = 90 - box[4]
-            # flip wh
-            boxw, boxh = box[2], box[3]
-            box[2] = boxh
-            box[3] = boxw
-
+            angle = -box[4]
+            angle = angle % 180
+            if angle > 90:
+                angle = angle-180
+            box[4] = angle
 
 
     def clip(self, w, h):

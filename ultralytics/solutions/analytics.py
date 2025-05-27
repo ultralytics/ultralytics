@@ -113,20 +113,19 @@ class Analytics(BaseSolution):
         if self.type == "line":
             for _ in self.boxes:
                 self.total_counts += 1
-            update_required = (frame_number % self.update_every == 0 or self.last_plot_im is None)
+            update_required = frame_number % self.update_every == 0 or self.last_plot_im is None
             if update_required:
                 self.last_plot_im = self.update_graph(frame_number=frame_number)
             plot_im = self.last_plot_im
             self.total_counts = 0
         elif self.type in {"pie", "bar", "area"}:
             from collections import Counter
+
             self.clswise_count = Counter(self.names[int(cls)] for cls in self.clss)
-            update_required = (frame_number % self.update_every == 0 or self.last_plot_im is None)
+            update_required = frame_number % self.update_every == 0 or self.last_plot_im is None
             if update_required:
                 self.last_plot_im = self.update_graph(
-                    frame_number=frame_number,
-                    count_dict=self.clswise_count,
-                    plot=self.type
+                    frame_number=frame_number, count_dict=self.clswise_count, plot=self.type
                 )
             plot_im = self.last_plot_im
         else:

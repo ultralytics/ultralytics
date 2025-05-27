@@ -110,7 +110,7 @@ Once your model is successfully exported to the OpenVINO format, you have two pr
 
 ### Inference with Ultralytics
 
-The ultralytics package allows you to easily run inference using the exported OpenVINO model via the predict method. You can also specify the target device (e.g., intel:gpu, intel:npu, intel:cpu) using the device argument.
+The ultralytics package allows you to easily run inference using the exported OpenVINO model via the predict method. You can also specify the target device (e.g., `intel:gpu`, `intel:npu`, `intel:cpu`) using the device argument.
 
 ```python
 from ultralytics import YOLO

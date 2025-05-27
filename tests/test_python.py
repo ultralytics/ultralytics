@@ -12,7 +12,7 @@ import pytest
 import torch
 from PIL import Image
 
-from tests import CFG, MODEL, SOURCE, SOURCES_LIST, TMP
+from tests import CFG, MODEL, SOURCE, SOURCES_LIST, TMP, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import MODELS, TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
@@ -701,5 +701,19 @@ def test_multichannel():
     model.export(format="onnx")
 
 
-def test_grayscale():
-    pass
+@pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
+def test_grayscale(task: str, model: str, data: str) -> None:
+    grayscale_data = Path(TMP) / f"{Path(data).stem}-grayscale.yaml"
+    data = YAML.load(checks.check_file(data))
+    data["channels"] = 1  # add additional channels key for grayscale
+    YAML.save(grayscale_data, data)
+
+    model = YOLO(model)
+    model.train(data=grayscale_data, epochs=1, imgsz=32, close_mosaic=1)
+    model.val(data=grayscale_data)
+    im = np.zeros((32, 32, 1), dtype=np.uint8)
+    model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)
+    export_model = model.export(format="onnx")
+
+    model = YOLO(export_model, task=task)
+    model.predict(source=im, imgsz=32)

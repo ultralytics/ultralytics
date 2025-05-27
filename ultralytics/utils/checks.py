@@ -400,8 +400,10 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     @Retry(times=2, delay=1)
     def attempt_install(packages, commands, use_uv):
         """Attempt package installation with uv if available, falling back to pip."""
-        def run_cmd(cmd): return subprocess.check_output(cmd, shell=True).decode()
-        
+
+        def run_cmd(cmd):
+            return subprocess.check_output(cmd, shell=True).decode()
+
         if use_uv:
             base = f"uv pip install --no-cache-dir {packages} {commands} --index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
             try:

@@ -515,13 +515,17 @@ class ConfusionMatrix(DataExportMixin):
 
         names = self.names if self.task == "classify" else self.names + ["background"]  # background class for 'detect'
 
-        # Sanitize names to be valid XML tags. Otherwise, confusion_matrix.to_xml() will throw error.
-        names = [re.sub(r"[^a-zA-Z0-9_]", "_", name) for name in names]
+        clean_names = []
+        for name in names:  # Clean names for valid XML and SQL usage
+            name = re.sub(r"[^a-zA-Z0-9_]", "_", name)
+            if name == "cardigan":  # Handle imagenet10 dataset conflict between 'cardigan' and 'Cardigan' for to_sql().
+                name = "cardigan_1"
+            clean_names.append(name)
 
         # Return a list of dicts: one per row (predicted class)
         return [
-            dict({"Predicted": names[i]}, **{names[j]: self.matrix[i, j] for j in range(len(names))})
-            for i in range(len(names))
+            dict({"Predicted": clean_names[i]}, **{clean_names[j]: self.matrix[i, j] for j in range(len(clean_names))})
+            for i in range(len(clean_names))
         ]
 
 

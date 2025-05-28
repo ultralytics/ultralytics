@@ -5,6 +5,7 @@ import csv
 import urllib
 from copy import copy
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import cv2
 import numpy as np
@@ -36,6 +37,7 @@ from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests start as TMP does not exist on tests/init
+video_url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov"
 
 
 def test_model_forward():
@@ -191,6 +193,7 @@ def test_track_stream(model):
     model = YOLO(model)
     model.track(video_url, imgsz=160, tracker="bytetrack.yaml")
     model.track(video_url, imgsz=160, tracker="botsort.yaml", save_frames=True)  # test frame saving also
+    model.track(video_url, imgsz=160, tracker="botsort.yaml", save=True)  # test video saving also
 
     # Test Global Motion Compensation (GMC) methods and ReID
     for gmc, reidm in zip(["orb", "sift", "ecc"], ["auto", "auto", "yolo11n-cls.pt"]):
@@ -246,7 +249,8 @@ def test_workflow():
     model.train(data="coco8.yaml", epochs=1, imgsz=32, optimizer="SGD")
     model.val(imgsz=32)
     model.predict(SOURCE, imgsz=32)
-    model.export(format="torchscript")  # WARNING: Windows slow CI export bug
+    model.predict(video_url, imgsz=160, save=True)
+    model.export(format="torchs", nms=True)  # WARNING: Windows slow CI export bug, test closest match format and nms.
 
 
 def test_predict_callback_and_setup():
@@ -276,7 +280,7 @@ def test_predict_callback_and_setup():
 def test_results(model: str):
     """Test YOLO model results processing and output in various formats."""
     temp_s = "https://ultralytics.com/images/boats.jpg" if model == "yolo11n-obb.pt" else SOURCE
-    results = YOLO(WEIGHTS_DIR / model)([temp_s, temp_s], imgsz=160)
+    results = YOLO(WEIGHTS_DIR / model)([temp_s, temp_s], imgsz=160, show=True)
     for r in results:
         r = r.cpu().numpy()
         print(r, len(r), r.path)  # print numpy attributes
@@ -358,7 +362,6 @@ def test_data_annotator():
         ASSETS,
         det_model=WEIGHTS_DIR / "yolo11n.pt",
         sam_model=WEIGHTS_DIR / "mobile_sam.pt",
-        output_dir=TMP / "auto_annotate_labels",
     )
 
 

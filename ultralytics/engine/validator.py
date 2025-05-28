@@ -164,6 +164,7 @@ class BaseValidator:
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.half,
+                fuse=self.args.get("fuse", True),
             )
             self.device = model.device  # update device
             self.args.half = model.fp16  # update half

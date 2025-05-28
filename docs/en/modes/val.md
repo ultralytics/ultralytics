@@ -116,7 +116,7 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
 
     model = YOLO("yolo11n.pt")
 
-    results = model.val(data="coco8.yaml")
+    results = model.val(data="coco8.yaml", plots=True)
     print(results.confusion_matrix.to_df())
     ```
 

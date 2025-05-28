@@ -16,13 +16,13 @@ from ultralytics.utils import (
     ASSETS,
     DEFAULT_CFG_DICT,
     LOGGER,
+    MACOS,
     RANK,
     SETTINGS,
+    WINDOWS,
     YAML,
     callbacks,
     checks,
-    MACOS,
-    WINDOWS
 )
 
 
@@ -649,8 +649,9 @@ class Model(torch.nn.Module):
                 results.append(result)
                 if save:
                     if vid_writer is None:
-                        import cv2  # scope import for fast speed
                         from types import SimpleNamespace  # scope import for fast speed
+
+                        import cv2  # scope import for fast speed
                         suffix, fourcc = (".mp4", "avc1") if MACOS else (".avi", "WMV2") if WINDOWS else (".avi", "MJPG")
                         save_dir = get_save_dir(SimpleNamespace(project="runs/solutions", name="exp", exist_ok=False))
                         save_dir.mkdir(parents=True)

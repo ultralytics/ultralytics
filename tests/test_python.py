@@ -185,6 +185,9 @@ def test_track_stream():
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
+    if model == "yolo11n-cls.pt":  # classification model not supported for tracking
+        return
+    video_url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov"
     model = YOLO(MODEL)
     model.track(video_url, imgsz=160, tracker="bytetrack.yaml")
     model.track(video_url, imgsz=160, tracker="botsort.yaml", save_frames=True)  # test frame saving also

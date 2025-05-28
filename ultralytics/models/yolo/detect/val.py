@@ -232,7 +232,7 @@ class DetectionValidator(BaseValidator):
         if self.args.plots:
             for normalize in True, False:
                 self.confusion_matrix.plot(
-                    save_dir=self.save_dir, names=self.names.values(), normalize=normalize, on_plot=self.on_plot
+                    save_dir=self.save_dir, normalize=normalize, on_plot=self.on_plot
                 )
         self.metrics.speed = self.speed
         self.metrics.confusion_matrix = self.confusion_matrix

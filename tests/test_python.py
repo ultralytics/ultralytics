@@ -203,7 +203,7 @@ def test_track_stream(model):
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_val(task: str, model: str, data: str) -> None:
     """Test the validation mode of the YOLO model."""
-    for plots in [True, False]:  # Test both bases i.e plots=True and plots=False
+    for plots in [True, False]:  # Test both cases i.e plots=True and plots=False
         metrics = YOLO(model).val(data=data, imgsz=32, plots=plots)
         metrics.to_df()
         metrics.to_csv()

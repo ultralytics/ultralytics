@@ -318,6 +318,7 @@ nav:
           - Argoverse: datasets/detect/argoverse.md
           - COCO: datasets/detect/coco.md
           - COCO8: datasets/detect/coco8.md
+          - COCO8-Grayscale: datasets/detect/coco8-grayscale.md
           - COCO8-Multispectral: datasets/detect/coco8-multispectral.md
           - COCO128: datasets/detect/coco128.md
           - LVIS: datasets/detect/lvis.md

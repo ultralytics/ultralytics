@@ -224,7 +224,6 @@ class DataExportMixin:
         Returns:
             (DataFrame): DataFrame containing the summary data.
         """
-        print(self.summary())
         import pandas as pd  # scope for faster 'import ultralytics'
 
         return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))

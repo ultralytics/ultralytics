@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Union
 import numpy as np
 import torch
 from PIL import Image
-from line_profiler_pycharm import profile
 
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
@@ -600,7 +599,6 @@ class Model(torch.nn.Module):
         kwargs["mode"] = "track"
         return self.predict(source=source, stream=stream, **kwargs)
 
-    @profile
     def count(
             self,
             source: Union[str, Path, int, list, tuple, np.ndarray, torch.Tensor] = None,
@@ -611,12 +609,11 @@ class Model(torch.nn.Module):
         Perform object counting on the specified input source using the ObjectCounter solution.
 
         This method applies real-time object counting using the ObjectCounter class, which supports various input sources
-        such as video files, or image streams. It initializes the appropriate predictor and object counter,
+        such as video files, or streams. It initializes the appropriate predictor and object counter,
         processes each frame in the input source, and returns a list of results for each processed frame.
 
         Args:
-            source (str | Path | int | List | Tuple | np.ndarray | torch.Tensor, optional): Input source for object
-                counting. Can be a file path, URL, camera index, or image/frame array.
+            source (str | Path , optional): Input source for object counting. Can be a file path or stream URL.
             save (bool): Save the processed video in the directory.
             **kwargs (Any): Additional keyword arguments to configure the ObjectCounter solution.
 
@@ -631,8 +628,7 @@ class Model(torch.nn.Module):
 
         Notes:
             - Automatically defaults to "solutions_ci_demo.mp4" if no source is provided.
-            - Uses the ObjectCounter solution from `ultralytics.solutions`.
-            - `region_points` for counting can be passed via kwargs to define counting regions.
+            - `region` for counting can be passed via kwargs to define counting region.
         """
         self.predictor = (self._smart_load("predictor"))()
         self.predictor.setup_model(model=self.model, verbose=False)

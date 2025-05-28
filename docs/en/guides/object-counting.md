@@ -58,13 +58,13 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
         # Load an official or custom model
         model = YOLO("yolo11n.pt")  # Load an official Detect model
-        
+
         results = model.count(source="Path/to/video.mp4")
-        
+
         for result in results:
             print(result.out_count)
         ```
-    
+
     === "With video processing pipeline"
 
         ```python

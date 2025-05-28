@@ -199,6 +199,7 @@ def test_track_stream(model):
         YAML.save(custom_yaml, {**default_args, "gmc_method": gmc, "with_reid": True, "model": reidm})
         model.track(video_url, imgsz=160, tracker=custom_yaml)
 
+
 def test_count_stream():
     _ = YOLO("yolo11n.pt").count()
 

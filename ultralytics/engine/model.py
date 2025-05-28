@@ -601,10 +601,10 @@ class Model(torch.nn.Module):
         return self.predict(source=source, stream=stream, **kwargs)
 
     def count(
-            self,
-            source: Union[str, Path, int, list, tuple, np.ndarray, torch.Tensor] = None,
-            save=True,
-            **kwargs: Any,
+        self,
+        source: Union[str, Path, int, list, tuple, np.ndarray, torch.Tensor] = None,
+        save=True,
+        **kwargs: Any,
     ) -> List[dict]:
         """
         Perform object counting on the specified input source using the ObjectCounter solution.
@@ -652,10 +652,18 @@ class Model(torch.nn.Module):
                         from types import SimpleNamespace  # scope import for fast speed
 
                         import cv2  # scope import for fast speed
-                        suffix, fourcc = (".mp4", "avc1") if MACOS else (".avi", "WMV2") if WINDOWS else (".avi", "MJPG")
+
+                        suffix, fourcc = (
+                            (".mp4", "avc1") if MACOS else (".avi", "WMV2") if WINDOWS else (".avi", "MJPG")
+                        )
                         save_dir = get_save_dir(SimpleNamespace(project="runs/solutions", name="exp", exist_ok=False))
                         save_dir.mkdir(parents=True)
-                        vid_writer = cv2.VideoWriter(str(Path(save_dir/"output").with_suffix(suffix)), cv2.VideoWriter_fourcc(*fourcc), 30, im.shape[:2])
+                        vid_writer = cv2.VideoWriter(
+                            str(Path(save_dir / "output").with_suffix(suffix)),
+                            cv2.VideoWriter_fourcc(*fourcc),
+                            30,
+                            im.shape[:2],
+                        )
                     vid_writer.write(result.plot_im)
         return results
 

@@ -652,7 +652,7 @@ class Model(torch.nn.Module):
                         from types import SimpleNamespace  # scope import for fast speed
 
                         import cv2  # scope import for fast speed
-
+                        h, w = im.shape[:2]
                         suffix, fourcc = (
                             (".mp4", "avc1") if MACOS else (".avi", "WMV2") if WINDOWS else (".avi", "MJPG")
                         )
@@ -662,7 +662,7 @@ class Model(torch.nn.Module):
                             str(Path(save_dir / "output").with_suffix(suffix)),
                             cv2.VideoWriter_fourcc(*fourcc),
                             30,
-                            im.shape[:2],
+                            (w, h),
                         )
                     vid_writer.write(result.plot_im)
         return results

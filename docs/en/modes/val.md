@@ -107,7 +107,7 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
         yolo val model=yolo11n.pt data=coco8.yaml imgsz=640 batch=16 conf=0.25 iou=0.6 device=0
         ```
 
-!!! tip "Exporting ConfusionMatrix"
+!!! tip "Export ConfusionMatrix"
 
     You can also save the ConfusionMatrix results in different formats using the provided code.
 

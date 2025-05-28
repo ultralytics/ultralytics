@@ -731,6 +731,7 @@ def test_grayscale(task: str, model: str, data: str) -> None:
     model = YOLO(export_model, task=task)
     model.predict(source=im, imgsz=32)
 
+
 @pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="CLIP is not supported in Python 3.8 and aarch64 Linux")
 def test_build_text_model_all(sample_texts="a photo of a cat"):
     """Test for CLIP, MobileCLIP, and invalid model handling mainly about text_model.py."""

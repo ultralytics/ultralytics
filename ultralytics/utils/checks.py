@@ -401,11 +401,16 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     def attempt_install(packages, commands, use_uv):
         """Attempt package installation with uv if available, falling back to pip."""
         if use_uv:
-            # Note requires --break-system-packages on ARM64 dockerfile
-            cmd = f"uv pip install --system --no-cache-dir {packages} {commands} --index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
-        else:
-            cmd = f"pip install --no-cache-dir {packages} {commands}"
-        return subprocess.check_output(cmd, shell=True).decode()
+            base = f"uv pip install --no-cache-dir {packages} {commands} --index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
+            try:
+                return subprocess.check_output(base, shell=True, stderr=subprocess.PIPE).decode()
+            except subprocess.CalledProcessError as e:
+                if e.stderr and "No virtual environment found" in e.stderr.decode():
+                    return subprocess.check_output(
+                        base.replace("uv pip install", "uv pip install --system"), shell=True
+                    ).decode()
+                raise
+        return subprocess.check_output(f"pip install --no-cache-dir {packages} {commands}", shell=True).decode()
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:

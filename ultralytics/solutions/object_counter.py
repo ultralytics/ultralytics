@@ -82,12 +82,10 @@ class ObjectCounter(BaseSolution):
             return
 
         if len(self.region) == 2:  # Linear region (defined as a line segment)
-
             # Check if the line intersects the trajectory of the object
-            line = self.LineString(self.region)
-         
-            if self.r_s.intersects(self.LineString([prev_position, current_centroid])):
+            self.LineString(self.region)
 
+            if self.r_s.intersects(self.LineString([prev_position, current_centroid])):
                 # Determine orientation of the region (vertical or horizontal)
                 if abs(self.region[0][0] - self.region[1][0]) < abs(self.region[0][1] - self.region[1][1]):
                     # Vertical region: Compare x-coordinates to determine
@@ -109,7 +107,6 @@ class ObjectCounter(BaseSolution):
                 self.counted_ids.append(track_id)
 
         elif len(self.region) > 2:  # Polygonal region
-
             if self.r_s.contains(self.Point(current_centroid)):
                 # Determine motion direction for vertical or horizontal polygons
 

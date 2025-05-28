@@ -54,6 +54,20 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
     === "Python"
 
         ```python
+        from ultralytics import YOLO
+
+        # Load an official or custom model
+        model = YOLO("yolo11n.pt")  # Load an official Detect model
+        
+        results = model.count(source="Path/to/video.mp4")
+        
+        for result in results:
+            print(result.out_count)
+        ```
+    
+    === "With video processing pipeline"
+
+        ```python
         import cv2
 
         from ultralytics import solutions

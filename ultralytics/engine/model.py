@@ -21,6 +21,8 @@ from ultralytics.utils import (
     YAML,
     callbacks,
     checks,
+    MACOS,
+    WINDOWS
 )
 
 
@@ -597,6 +599,64 @@ class Model(torch.nn.Module):
         kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
         kwargs["mode"] = "track"
         return self.predict(source=source, stream=stream, **kwargs)
+
+    def count(
+            self,
+            source: Union[str, Path, int, list, tuple, np.ndarray, torch.Tensor] = None,
+            save=True,
+            **kwargs: Any,
+    ) -> List[dict]:
+        """
+        Perform object counting on the specified input source using the ObjectCounter solution.
+
+        This method applies real-time object counting using the ObjectCounter class, which supports various input sources
+        such as video files, or streams. It initializes the appropriate predictor and object counter,
+        processes each frame in the input source, and returns a list of results for each processed frame.
+
+        Args:
+            source (str | Path , optional): Input source for object counting. Can be a file path or stream URL.
+            save (bool): Save the processed video in the directory.
+            **kwargs (Any): Additional keyword arguments to configure the ObjectCounter solution.
+
+        Returns:
+            (List[dict]): A list of dictionaries containing object counting results for each frame.
+
+        Examples:
+            >>> model = YOLO("yolo11n.pt")
+            >>> results = model.count(source="path/to/video.mp4")
+            >>> for r in results:
+            ...     print(r.in_count)  # print in counts for video stream at specific video frame.
+
+        Notes:
+            - Automatically defaults to "solutions_ci_demo.mp4" if no source is provided.
+            - `region` for counting can be passed via kwargs to define counting region.
+        """
+        self.predictor = (self._smart_load("predictor"))()
+        self.predictor.setup_model(model=self.model, verbose=False)
+
+        from ultralytics import solutions
+
+        counter = solutions.ObjectCounter(is_cli=True, source=source, **kwargs)
+
+        self.predictor.setup_source(source or "solutions_ci_demo.mp4")
+
+        vid_writer = None  # For video writing
+        results = []  # For results storage
+
+        for self.batch in self.predictor.dataset:
+            for im in self.batch[1]:
+                result = counter(im)
+                results.append(result)
+                if save:
+                    if vid_writer is None:
+                        import cv2  # scope import for fast speed
+                        from types import SimpleNamespace  # scope import for fast speed
+                        suffix, fourcc = (".mp4", "avc1") if MACOS else (".avi", "WMV2") if WINDOWS else (".avi", "MJPG")
+                        save_dir = get_save_dir(SimpleNamespace(project="runs/solutions", name="exp", exist_ok=False))
+                        save_dir.mkdir(parents=True)
+                        vid_writer = cv2.VideoWriter(str(Path(save_dir/"output").with_suffix(suffix)), cv2.VideoWriter_fourcc(*fourcc), 30, im.shape[:2])
+                    vid_writer.write(result.plot_im)
+        return results
 
     def val(
         self,

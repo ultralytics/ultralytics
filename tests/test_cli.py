@@ -5,8 +5,7 @@ import subprocess
 import pytest
 from PIL import Image
 
-from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, TMP
-from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
+from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
 from ultralytics.utils import ARM64, ASSETS, LINUX, WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import TORCH_1_9
 

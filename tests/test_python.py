@@ -732,3 +732,42 @@ def test_grayscale(task: str, model: str, data: str) -> None:
 
     model = YOLO(export_model, task=task)
     model.predict(source=im, imgsz=32)
+
+@pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="CLIP is not supported in Python 3.8 and aarch64 Linux")
+def test_build_text_model_all(sample_texts="a photo of a cat"):
+    """Test for CLIP, MobileCLIP, and invalid model handling mainly about text_model.py."""
+    from ultralytics.nn.text_model import build_text_model
+
+    device = torch.device("cpu")
+
+    # Test CLIP model
+    with patch("ultralytics.nn.text_model.clip.load") as mock_load:
+        mock_model = MagicMock()
+        mock_model.encode_text.return_value = torch.randn(2, 512)
+        mock_load.return_value = (mock_model, None)
+
+        model = build_text_model("mobileclip:s0", device=device)
+        tokens = model.tokenize(sample_texts)
+        assert isinstance(tokens, torch.Tensor)
+
+        features = model.encode_text(tokens)
+        assert features.shape[-1] == 512
+        assert torch.allclose(features.norm(dim=-1), torch.ones(features.shape[0]), atol=1e-5)
+
+    # Test MobileCLIP model
+    with patch("ultralytics.nn.text_model.clip.clip.tokenize") as mock_tokenize, patch("torch.jit.load") as mock_jit:
+        mock_tokenize.return_value = torch.randint(0, 100, (2, 77))
+        mock_encoder = MagicMock()
+        mock_encoder.return_value = torch.randn(2, 512)
+        mock_jit.return_value = mock_encoder
+
+        model = build_text_model("mobileclip:s0", device=device)
+        tokens = model.tokenize(sample_texts)
+        assert isinstance(tokens, torch.Tensor)
+
+        features = model.encode_text(tokens)
+        assert features.shape[-1] == 512
+
+    # Test invalid model
+    with pytest.raises(ValueError, match="Unrecognized base model"):
+        build_text_model("invalid:model", device=device)

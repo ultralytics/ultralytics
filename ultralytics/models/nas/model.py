@@ -1,12 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""
-YOLO-NAS model interface.
-
-Examples:
-    >>> from ultralytics import NAS
-    >>> model = NAS("yolo_nas_s")
-    >>> results = model.predict("ultralytics/assets/bus.jpg")
-"""
 
 from pathlib import Path
 from typing import Any, Dict

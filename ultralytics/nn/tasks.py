@@ -29,9 +29,6 @@ from ultralytics.nn.modules import (
     AConv,
     ADown,
     BiFPN,
-    BiFPN_Add,
-    BiFPN_Add3,
-    BiFPN_Concat,
     Bottleneck,
     BottleneckCSP,
     C2f,
@@ -1415,10 +1412,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C2f,
             C3k2,
             C3K2_FE,
-            BiFPN,
-            BiFPN_Add,
-            BiFPN_Add3,
-            BiFPN_Concat,
             RepNCSPELAN4,
             ELAN1,
             ADown,
@@ -1446,10 +1439,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C2f,
             C3k2,
             C3K2_FE,
-            BiFPN,
-            BiFPN_Add,
-            BiFPN_Add3,
-            BiFPN_Concat,
             C2fAttn,
             C3,
             C3TR,
@@ -1475,76 +1464,10 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 with contextlib.suppress(ValueError):
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
-
-        # --- Bagian yang Diperbaiki untuk module BiFPN Anda ---
-        if m in {BiFPN_Add, BiFPN_Add3}:
-            # Untuk BiFPN_Add(channels) dan BiFPN_Add3(channels)
-            # args di YAML seharusnya hanya [channels]
-
-            # c1: input channel dari layer sebelumnya (untuk BiFPN_Add/Add3, ini adalah channel dari fitur x_top dan x_bottom/x_mid).
-            # Karena BiFPN_Add/Add3 menggabungkan fitur dengan channel yang sama,
-            # kita ambil saja channel dari input 'f' pertama.
-            if isinstance(f, list):  # Jika inputnya dari multiple layer, kita asumsikan channelnya sama
-                c1 = ch[f[0]]  # Ambil channel dari input pertama
-            else:
-                c1 = ch[f]  # Jika inputnya tunggal
-
-            c2 = args[0]  # Ini adalah 'channels' yang akan diteruskan ke BiFPN_Add/Add3 (juga channel outputnya)
-
-            # Argument yang akan diteruskan ke konstruktor module BiFPN_Add/Add3
-            args = [c2]  # Hanya satu argument 'channels'
-
-            # Karena BiFPN_Add/Add3 bukan module pengulang biasa, n harus 1
-            n = 1
-
-        elif m is BiFPN_Concat:
-            # Untuk BiFPN_Concat(in_channels_list, out_channels)
-            # args di YAML seharusnya [out_channels]
-
-            # `f` adalah list dari indeks layer input, misal: [10, 14]
-            input_channels_list = [ch[x] for x in f]  # Ini adalah channel dari setiap input BiFPN_Concat
-
-            # c1 untuk parse_model adalah total input channels
-            c1 = sum(input_channels_list)  # Total channel yang akan di-concat
-
-            c2 = args[0]  # out_channels adalah argument pertama di YAML untuk BiFPN_Concat
-
-            # Argument yang akan diteruskan ke konstruktor BiFPN_Concat
-            args = [input_channels_list, c2]  # Teruskan list channel input dan output channel
-
-            # Karena BiFPN_Concat bukan module pengulang, n harus 1
-            n = 1
-            
-        elif m is BiFPN:
-            # YAML: args = [input_channels_list, output_channels, (optional) num_blocks]
-            input_channels = args[0]                    # list[int]
-            output_channels = int(args[1])              # ensure int
-            num_blocks = int(args[2]) if len(args) > 2 else 1
-
-            # rebuild args for constructor + downstream Conv2d
-            args = [input_channels, output_channels, num_blocks]
-            c2 = output_channels                         # pass only int forward
-            n = 1   
-
-        # --- Lanjutkan dengan kondisi `elif m in base_modules:` yang sudah ada ---
-        elif m in base_modules:
-            # Di sini, `f` bisa berupa int atau list, tapi `ch[f]` akan mengambil element dari list `ch`.
-            # Jika `f` adalah list (misalnya untuk `Concat`), make `ch[f]` akan menjadi `[ch[x] for x in f]`.
-            # c1, c2 = ch[f], args[0] # <<--- ini akan bermasalah jika ch[f] adalah list of channels dan args[0] adalah single int
-
-            # Perbaiki pengambilan c1 dari list `ch` jika `f` adalah list of indices
-            if isinstance(f, list):
-                c1 = (
-                    sum(ch[x] for x in f) if m is Concat else ch[f[0]]
-                )  # Jika concat, total channel, jika tidak, channel input pertama
-            else:
-                c1 = ch[f]
-
-            c2 = args[0]  # Ini adalah output channel yang diinginkan dari module
-
+        if m in base_modules:
+            c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
-
             if m is C2fAttn:  # set 1) embed channels and 2) num heads
                 args[1] = make_divisible(min(args[1], max_channels // 2) * width, 8)
                 args[2] = int(max(round(min(args[2], max_channels // 2 // 32)) * width, 1) if args[2] > 1 else args[2])
@@ -1601,7 +1524,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             c2 = ch[f]
 
         m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
-
         t = str(m)[8:-2].replace("__main__.", "")  # module type
         m_.np = sum(x.numel() for x in m_.parameters())  # number params
         m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type

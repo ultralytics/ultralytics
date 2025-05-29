@@ -16,8 +16,7 @@ Examples:
     >>> torch.onnx.export(m, x, f)
     >>> os.system(f"onnxslim {f} {f} && open {f}")  # pip install onnxslim
 """
-
-from .bifpn import BiFPN, BiFPN_Add, BiFPN_Add3, BiFPN_Concat, BiFPNBlock
+from .bifpn import BiFPN
 from .block import (
     C1,
     C2,
@@ -181,9 +180,5 @@ __all__ = (
     "TorchVision",
     "Index",
     "A2C2f",
-    "BiFPN_Add",
-    "BiFPN_Add3",
-    "BiFPN_Concat",
     "BiFPN",
-    "BiFPNBlock",
 )

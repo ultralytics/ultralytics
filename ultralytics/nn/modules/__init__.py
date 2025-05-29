@@ -17,14 +17,11 @@ Examples:
     >>> os.system(f"onnxslim {f} {f} && open {f}")  # pip install onnxslim
 """
 
-from .ema import EMA
-from .bifpn import BiFPN
 from .block import (
     C1,
     C2,
     C2PSA,
     C3,
-    C3K2_FE,
     C3TR,
     CIB,
     DFL,
@@ -46,6 +43,7 @@ from .block import (
     C2fPSA,
     C3Ghost,
     C3k2,
+    C3K2_FE,
     C3x,
     CBFuse,
     CBLinear,
@@ -54,7 +52,6 @@ from .block import (
     HGBlock,
     HGStem,
     ImagePoolingAttn,
-    MaxSigmoidAttnBlock,
     Proto,
     RepC3,
     RepNCSPELAN4,
@@ -79,19 +76,7 @@ from .conv import (
     RepConv,
     SpatialAttention,
 )
-from .head import (
-    OBB,
-    Classify,
-    Detect,
-    LRPCHead,
-    Pose,
-    RTDETRDecoder,
-    Segment,
-    WorldDetect,
-    YOLOEDetect,
-    YOLOESegment,
-    v10Detect,
-)
+from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment, WorldDetect, v10Detect
 from .transformer import (
     AIFI,
     MLP,
@@ -134,6 +119,7 @@ __all__ = (
     "C2f",
     "C3k2",
     "C3K2_FE",
+    "SCDown",
     "C2fPSA",
     "C2PSA",
     "C2fAttn",
@@ -159,12 +145,8 @@ __all__ = (
     "ResNetLayer",
     "OBB",
     "WorldDetect",
-    "YOLOEDetect",
-    "YOLOESegment",
     "v10Detect",
-    "LRPCHead",
     "ImagePoolingAttn",
-    "MaxSigmoidAttnBlock",
     "ContrastiveHead",
     "BNContrastiveHead",
     "RepNCSPELAN4",
@@ -183,3 +165,6 @@ __all__ = (
     "Index",
     "A2C2f",
 )
+
+from .ema import EMA
+from .bifpn import BiFPN

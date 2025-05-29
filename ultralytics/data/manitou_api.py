@@ -4,6 +4,7 @@ from pathlib import Path
 from collections import defaultdict
 import itertools
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 from pycocotools.coco import COCO, _isArrayLike
 from ultralytics.utils import yaml_load, LOGGER
 

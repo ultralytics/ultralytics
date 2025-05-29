@@ -37,13 +37,12 @@ def test_img2label_paths_default():
 
 def test_img2label_paths_custom():
     """Test the img2label_paths function with a custom labels directory."""
-    img_paths = ["data/images/sample1.jpg", "data/images/sample2.jpg", "data/images/sample3.jpg"]
-    label_paths = img2label_paths(img_paths, labels_dirname="labels-custom")
+    label_paths = img2label_paths(IMAGE_PATHS, labels_dirname="labels-custom")
     assert label_paths == LABELS_PATHS_CUSTOM, "Label paths with custom directory do not match expected output"
 
     label_paths_nested = img2label_paths(
-        img_paths,
-        labels_dirname="labels/version3",
+        IMAGE_PATHS,
+        labels_dirname=os.path.join("labels", "version3"),
     )
     assert label_paths_nested == LABELS_PATHS_NESTED, (
         "Label paths with complex custom directory do not match expected output"

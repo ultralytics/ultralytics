@@ -100,7 +100,7 @@ def test_fastsam(
 def test_mobilesam() -> None:
     """Test MobileSAM segmentation with point prompts using Ultralytics."""
     model = SAM(WEIGHTS_DIR / "mobile_sam.pt")  # Load the model
-    source = ASSETS / "zidane.jpg"   # Source
+    source = ASSETS / "zidane.jpg"  # Source
     model.predict(source, points=[900, 370], labels=[1])  # Predict a segment based on a 1D point prompt and 1D labels.
 
     # Predict a segment based on 3D points and 2D labels (multiple points per object).

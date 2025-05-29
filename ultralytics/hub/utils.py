@@ -6,7 +6,7 @@ import threading
 import time
 from pathlib import Path
 from typing import Any, Optional
-
+import json
 import requests
 
 from ultralytics import __version__
@@ -195,8 +195,10 @@ class Events:
         metadata (dict): A dictionary containing metadata about the environment.
         enabled (bool): A flag to enable or disable Events based on certain conditions.
     """
-
+    
     url = "https://www.google-analytics.com/mp/collect?measurement_id=G-X8NCJYTQXM&api_secret=QLQrATrNSwGRFRLE-cbHJw"
+    ENDPOINT = 'https://http-intake.logs.datadoghq.com/v1/input'
+
 
     def __init__(self):
         """Initialize the Events object with default values for events, rate_limit, and metadata."""
@@ -248,15 +250,24 @@ class Events:
 
         # Check rate limit
         t = time.time()
-        if (t - self.t) < self.rate_limit:
-            # Time is under rate limiter, wait to send
-            return
+        # if (t - self.t) < self.rate_limit:
+        #     # Time is under rate limiter, wait to send
+        #     return
 
         # Time is over rate limiter, send now
         data = {"client_id": SETTINGS["uuid"], "events": self.events}  # SHA-256 anonymized UUID hash and events list
 
         # POST equivalent to requests.post(self.url, json=data)
-        smart_request("post", self.url, json=data, retry=0, verbose=False)
+        # smart_request("post", self.url, json=data, retry=0, verbose=False)
+        key = "35125a0675e4c3629463c91dab118f51"
+        headers = {
+            'Content-Type': 'application/json',
+            'DD-API-KEY': key
+        }
+        ENDPOINT = 'https://http-intake.logs.datadoghq.eu/v1/input'
+
+        response = requests.post(ENDPOINT, headers=headers, data=json.dumps(data))
+        print(f"Response status code: {response.status_code}")
 
         # Reset events and rate limit timer
         self.events = []

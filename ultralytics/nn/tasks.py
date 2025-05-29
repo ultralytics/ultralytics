@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from ultralytics.nn.modules import BiFPN
+
 import contextlib
 import pickle
 import re
@@ -1411,7 +1413,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C2f,
             C3k2,
             C3K2_FE,
-            BiFPN,
             RepNCSPELAN4,
             ELAN1,
             ADown,
@@ -1439,7 +1440,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C2f,
             C3k2,
             C3K2_FE,
-            BiFPN,
             C2fAttn,
             C3,
             C3TR,

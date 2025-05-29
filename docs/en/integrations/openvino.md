@@ -89,7 +89,7 @@ For more details about the export process, visit the [Ultralytics documentation 
     2. Identify your accelerator
         Determine if your processor includes an integrated NPU (Neural Processing Unit) or GPU (integrated GPU) by consulting [Intel's hardware guide](https://www.intel.com/content/www/us/en/support/articles/000097597/processors.html).
 
-    3. Install the correct drivers
+    3. Install the latest drivers
         If your chip supports an NPU or GPU but OpenVINO™ isn't detecting it, you may need to install or update the associated drivers. Follow the [driver‑installation instructions](https://medium.com/openvino-toolkit/how-to-run-openvino-on-a-linux-ai-pc-52083ce14a98) to enable full acceleration.
 
     By following these three steps, you can ensure OpenVINO™ runs optimally on your Intel® hardware.

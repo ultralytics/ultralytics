@@ -169,18 +169,20 @@ class BiFPNBlock(nn.Module):
 
 # --- Kelas BiFPN (Wrapper utama) ---
 class BiFPN(nn.Module):
-    """Bi-directional Feature Pyramid Network wrapper."""
-
-    def __init__(self, c1, c2, n=1, epsilon=0.0001):  # c1 bisa int atau list [c3_in, c4_in, c5_in]
+    def __init__(self, c1, c2, n=1, epsilon=0.0001):
         super().__init__()
-
+        
         if isinstance(c1, (list, tuple)):
-            # c1 adalah list dari channel input P3, P4, P5 dari backbone
-            c3_in, c4_in, c5_in = c1
+            if len(c1) == 3:  # Handle 3 inputs (P3,P4,P5)
+                c3_in, c4_in, c5_in = c1
+            elif len(c1) == 2:  # Handle 2 inputs
+                c3_in, c4_in = c1
+                c5_in = c4_in  # Duplicate P4 sebagai P5
+            else:
+                raise ValueError("BiFPN hanya support 2 atau 3 input channels")
         else:
-            # Jika c1 hanya satu int, asumsikan semua input channel sama
             c3_in = c4_in = c5_in = c1
-
+            
         # Konvolusi 1x1 untuk menyesuaikan channel dari input backbone ke channel BiFPN (c2)
         self.p3_conv = Conv(c3_in, c2, 1)
         self.p4_conv = Conv(c4_in, c2, 1)

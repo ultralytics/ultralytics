@@ -11,20 +11,15 @@ from ultralytics.nn.modules.conv import Conv  # <--- PENTING: Tambahkan baris in
 
 
 class ConvNormAct(nn.Module):
-    """Convolutional layer with optional Normalization and Activation."""
-
-    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True, norm=True):
+    def __init__(self, c1: int, c2: int, k=1, s=1, p=None, g=1, act=True, norm=True):
         super().__init__()
-        # Gunakan autopad jika tersedia, atau hitung padding manual
-        if p is None:
-            p = k // 2  # Hitung padding secara otomatis untuk k=3, p=1
-        self.conv = nn.Conv2d(c1, c2, k, s, p, groups=g, bias=False)  # Bias False karena ada BatchNorm
-        self.norm = nn.BatchNorm2d(c2) if norm else nn.Identity()
+        p = k // 2 if p is None else p
+        self.conv = nn.Conv2d(int(c1), int(c2), k, s, p, groups=g, bias=False)
+        self.norm = nn.BatchNorm2d(int(c2)) if norm else nn.Identity()
         self.act = nn.SiLU() if act is True else (act if isinstance(act, nn.Module) else nn.Identity())
 
     def forward(self, x):
         return self.act(self.norm(self.conv(x)))
-
 
 class BiFPN_Add(nn.Module):
     """
@@ -169,60 +164,30 @@ class BiFPNBlock(nn.Module):
 
 # --- Kelas BiFPN (Wrapper utama) ---
 class BiFPN(nn.Module):
-    def __init__(self, c1, c2, n=1, epsilon=0.0001):
+    def __init__(self, c1, c2: int, n=1, epsilon=0.0001):
         super().__init__()
-        
+        # unpack c1 list for channel counts
         if isinstance(c1, (list, tuple)):
-            if len(c1) == 3:  # Handle 3 inputs (P3,P4,P5)
-                c3_in, c4_in, c5_in = c1
-            elif len(c1) == 2:  # Handle 2 inputs
-                c3_in, c4_in = c1
-                c5_in = c4_in  # Duplicate P4 sebagai P5
-            else:
-                raise ValueError("BiFPN hanya support 2 atau 3 input channels")
+            c3_in, c4_in, c5_in = map(int, c1)
         else:
-            c3_in = c4_in = c5_in = c1
-            
-        # Konvolusi 1x1 untuk menyesuaikan channel dari input backbone ke channel BiFPN (c2)
+            c3_in = c4_in = c5_in = int(c1)
+
+        c2 = int(c2)  # ensure output channel is int
+
+        # align channels with 1×1 Conv
         self.p3_conv = Conv(c3_in, c2, 1)
         self.p4_conv = Conv(c4_in, c2, 1)
         self.p5_conv = Conv(c5_in, c2, 1)
-
-        # p6_in didapatkan dari downsampling P5_in
         self.p6_in_conv = Conv(c5_in, c2, 3, 2)
-
-        # p7_in didapatkan dari downsampling P6_in
         self.p7_in_conv = Conv(c2, c2, 3, 2)
 
-        bifpns = []
-        for _ in range(n):  # n adalah jumlah pengulangan BiFPNBlock
-            bifpns.append(BiFPNBlock(c2, epsilon))
-        self.bifpn_blocks = nn.Sequential(*bifpns)  # Ganti nama variable agar tidak ambigu
+        # stack BiFPNBlock(s)
+        self.bifpns = nn.Sequential(*[BiFPNBlock(c2, epsilon) for _ in range(n)])
 
     def forward(self, x):
-        # Input x diharapkan berupa list/tuple dari 3 fitur: [P3_backbone, P4_backbone, P5_backbone]
-        if not isinstance(x, (list, tuple)):
-            raise ValueError("BiFPN expects a list or tuple of 3 input feature maps (P3, P4, P5).")
-        if len(x) != 3:
-            raise ValueError(f"BiFPN expects exactly 3 inputs (P3, P4, P5), got {len(x)}")
-
-        c3_feat, c4_feat, c5_feat = x
-
-        # Sesuaikan channel input dari backbone ke channel BiFPN (c2)
-        p3_in = self.p3_conv(c3_feat)
-        p4_in = self.p4_conv(c4_feat)
-        p5_in = self.p5_conv(c5_feat)
-
-        # Hitung P6_in dan P7_in dari P5_in dan P6_in
-        p6_in = self.p6_in_conv(c5_feat)  # P6 dari P5 backbone
-        p7_in = self.p7_in_conv(p6_in)  # P7 dari P6 yang baru dihitung
-
-        # Kumpulkan semua fitur untuk BiFPNBlock
-        features_for_bifpn_block = [p3_in, p4_in, p5_in, p6_in, p7_in]
-
-        # Jalankan BiFPN blocks
-        # Output dari self.bifpn_blocks akan berupa list dari 5 tensor: [p3_out, p4_out, p5_out, p6_out, p7_out]
-        fused_features = self.bifpn_blocks(features_for_bifpn_block)
-
-        # Mengembalikan hanya P3_out, P4_out, P5_out sebagai tuple untuk Detect head
-        return fused_features[0], fused_features[1], fused_features[2]  # P3_out, P4_out, P5_out
+        p3, p4, p5 = x
+        p3_in, p4_in, p5_in = self.p3_conv(p3), self.p4_conv(p4), self.p5_conv(p5)
+        p6_in = self.p6_in_conv(p5)
+        p7_in = self.p7_in_conv(p6_in)
+        fused = self.bifpns([p3_in, p4_in, p5_in, p6_in, p7_in])
+        return fused[0], fused[1], fused[2]

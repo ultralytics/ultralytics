@@ -1514,30 +1514,17 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 
             # Karena BiFPN_Concat bukan module pengulang, n harus 1
             n = 1
-
+            
         elif m is BiFPN:
-            # Sesuai implementasi BiFPN Anda, ia menerima c1 (list of input channels) dan c2 (output channel per level).
-            # args di YAML: [output_channels_per_level, num_bifpn_blocks (opsional), epsilon (opsional)]
-            # `f` akan menjadi list dari indeks layer fitur (misal: [3, 5, 9])
+            # YAML: args = [input_channels_list, output_channels, (optional) num_blocks]
+            input_channels = args[0]                    # list[int]
+            output_channels = int(args[1])              # ensure int
+            num_blocks = int(args[2]) if len(args) > 2 else 1
 
-            input_channels_list = [ch[x] for x in f]  # Ini adalah channel dari P3, P4, P5 (misal: [256, 512, 1024])
-
-            # c1 untuk parse_model bisa dianggap channel dari input pertama (P3), atau bisa diabaikan karena
-            # BiFPN secara eksplisit menangani `input_channels_list`
-            c1 = input_channels_list[0]  # Ambil channel dari input pertama untuk kebutuhan `c1` parser ini.
-
-            output_channels = args[0]  # ini adalah `c2` (output_channels_per_level) untuk BiFPN
-            num_bifpn_blocks = args[1] if len(args) > 1 else 1  # Default n=1 (jika Anda ingin 2, sesuaikan)
-            epsilon = args[2] if len(args) > 2 else 0.0001  # default epsilon
-
-            # Argument yang akan diteruskan ke konstruktor BiFPN
-            args = [input_channels_list, output_channels, num_bifpn_blocks, epsilon]
-
-            # Output channel dari BiFPN untuk parse_model adalah `output_channels` (yaitu c2_val)
-            # Karena BiFPN mengembalikan tuple (P3_out, P4_out, P5_out) yang semuanya memiliki channel yang sama (`c2`),
-            # make `c2` ini yang kita gunakan.
-            c2 = output_channels
-            n = 1  # Karena BiFPN sendiri adalah satu module
+            # rebuild args for constructor + downstream Conv2d
+            args = [input_channels, output_channels, num_blocks]
+            c2 = output_channels                         # pass only int forward
+            n = 1   
 
         # --- Lanjutkan dengan kondisi `elif m in base_modules:` yang sudah ada ---
         elif m in base_modules:

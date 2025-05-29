@@ -10,6 +10,9 @@ from pathlib import Path
 
 import torch
 
+from ultralytics.nn.modules import BiFPN
+from ultralytics.nn.modules import EMA
+
 from ultralytics.nn.modules import (
     AIFI,
     C1,

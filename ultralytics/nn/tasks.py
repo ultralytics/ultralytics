@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from ultralytics.nn.modules import BiFPN
+
 import contextlib
 import pickle
 import re
@@ -11,7 +13,6 @@ import torch
 import torch.nn as nn
 
 
-from ultralytics.nn.modules import BiFPN
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
     AIFI,

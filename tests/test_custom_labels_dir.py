@@ -34,15 +34,10 @@ def test_img2label_paths_default():
     assert label_paths == LABELS_PATHS_DEFAULT, "Label paths do not match expected output"
     return
 
+
 def test_img2label_paths_custom():
-    """
-    Test the img2label_paths function with a custom labels directory.
-    """
-    img_paths = [
-        "data/images/sample1.jpg",
-        "data/images/sample2.jpg",
-        "data/images/sample3.jpg"
-    ]
+    """Test the img2label_paths function with a custom labels directory."""
+    img_paths = ["data/images/sample1.jpg", "data/images/sample2.jpg", "data/images/sample3.jpg"]
     label_paths = img2label_paths(img_paths, labels_dirname="labels-custom")
     assert label_paths == LABELS_PATHS_CUSTOM, "Label paths with custom directory do not match expected output"
 

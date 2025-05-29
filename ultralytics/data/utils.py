@@ -41,9 +41,10 @@ PIN_MEMORY = str(os.getenv("PIN_MEMORY", not MACOS)).lower() == "true"  # global
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
 
 
-def img2label_paths(img_paths: List[str], labels_dirname : str = "labels") -> List[str]:
+def img2label_paths(img_paths: List[str], labels_dirname: str = "labels") -> List[str]:
     """
-    Convert image paths to label paths by replacing 'images' with the given labels directory and the extension with '.txt'.
+    Convert image paths to label paths by replacing 'images' with the given labels directory and the extension with
+    '.txt'.
 
     Args:
         img_paths (List[str]): List of image file paths.

@@ -1439,6 +1439,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C2,
             C2f,
             C3k2,
+            C3K2_FE,
             C2fAttn,
             C3,
             C3TR,

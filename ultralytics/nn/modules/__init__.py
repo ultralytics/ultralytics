@@ -183,4 +183,3 @@ __all__ = (
 )
 
 from .bifpn import BiFPN
-from .ema import EMA

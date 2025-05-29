@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+
 from ultralytics.solutions.solutions import BaseSolution, SolutionResults
 from ultralytics.utils.plotting import save_one_box
 

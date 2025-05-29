@@ -50,7 +50,6 @@ class ObjectCropper(BaseSolution):
         self.iou = self.CFG["iou"]
         self.conf = self.CFG["conf"]
 
-
     def process(self, im0):
         """
         Crop detected objects from the input image and save them as separate images.

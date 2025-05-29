@@ -171,7 +171,7 @@ class BiFPNBlock(nn.Module):
 class BiFPN(nn.Module):
     def __init__(self, c1, c2, n=1, epsilon=0.0001):
         super().__init__()
-        
+
         if isinstance(c1, (list, tuple)):
             if len(c1) == 3:  # Handle 3 inputs (P3,P4,P5)
                 c3_in, c4_in, c5_in = c1
@@ -182,7 +182,7 @@ class BiFPN(nn.Module):
                 raise ValueError("BiFPN hanya support 2 atau 3 input channels")
         else:
             c3_in = c4_in = c5_in = c1
-            
+
         # Konvolusi 1x1 untuk menyesuaikan channel dari input backbone ke channel BiFPN (c2)
         self.p3_conv = Conv(c3_in, c2, 1)
         self.p4_conv = Conv(c4_in, c2, 1)

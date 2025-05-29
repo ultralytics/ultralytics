@@ -85,7 +85,7 @@ class ObjectCropper(BaseSolution):
                 im0,
                 file=Path(self.crop_dir) / f"crop_{self.crop_idx}.jpg",
                 BGR=True,
-                create=True if self.crop_idx == 1 else False,  # Create output directory on first frame
+                create=True if self.crop_idx == 1 else False,  # Create output directory on first frame of stream.
             )
 
         # Return SolutionResults

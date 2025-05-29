@@ -17,7 +17,6 @@ Examples:
     >>> os.system(f"onnxslim {f} {f} && open {f}")  # pip install onnxslim
 """
 
-from .ema import EMA
 from .bifpn import BiFPN
 from .block import (
     C1,
@@ -79,6 +78,7 @@ from .conv import (
     RepConv,
     SpatialAttention,
 )
+from .ema import EMA
 from .head import (
     OBB,
     Classify,

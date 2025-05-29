@@ -1,9 +1,10 @@
 import torch
 from torch import nn
 
+
 class EMA(nn.Module):
     def __init__(self, channels, c2=None, factor=32):
-        super(EMA, self).__init__()
+        super().__init__()
         self.groups = factor
         assert channels // self.groups > 0
         self.softmax = nn.Softmax(-1)

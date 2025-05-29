@@ -1,7 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.nn.modules import BiFPN
-from ultralytics.nn.modules import EMA
 
 import contextlib
 import pickle
@@ -36,7 +34,6 @@ from ultralytics.nn.modules import (
     C2fPSA,
     C3Ghost,
     C3k2,
-    C3K2_FE,
     C3x,
     CBFuse,
     CBLinear,

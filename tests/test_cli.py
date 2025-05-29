@@ -96,27 +96,27 @@ def test_fastsam(
         sam_model(source, bboxes=[439, 437, 524, 709], points=[[200, 200]], labels=[1], texts="a photo of a dog")
 
 
-def test_mobilesam() -> None:
-    """Test MobileSAM segmentation with point prompts using Ultralytics."""
+def test_sam_models() -> None:
+    """Test MobileSAM, SAM, SAM2 and SAM2.1 segmentation with point prompts using Ultralytics."""
     from ultralytics import SAM
 
+    source = ASSETS / "zidane.jpg"  # Source
+
     # Load the model
-    model = SAM(WEIGHTS_DIR / "mobile_sam.pt")
+    for file in ["mobile_sam.pt", "sam_b.pt", "sam2_t.pt", "sam2.1_t.pt", ]:
+        model = SAM(WEIGHTS_DIR / file)
 
-    # Source
-    source = ASSETS / "zidane.jpg"
+        # Predict a segment based on a 1D point prompt and 1D labels.
+        model.predict(source, points=[900, 370], labels=[1])
 
-    # Predict a segment based on a 1D point prompt and 1D labels.
-    model.predict(source, points=[900, 370], labels=[1])
+        # Predict a segment based on 3D points and 2D labels (multiple points per object).
+        model.predict(source, points=[[[900, 370], [1000, 100]]], labels=[[1, 1]])
 
-    # Predict a segment based on 3D points and 2D labels (multiple points per object).
-    model.predict(source, points=[[[900, 370], [1000, 100]]], labels=[[1, 1]])
+        # Predict a segment based on a box prompt
+        model.predict(source, bboxes=[439, 437, 524, 709], save=True)
 
-    # Predict a segment based on a box prompt
-    model.predict(source, bboxes=[439, 437, 524, 709], save=True)
-
-    # Predict all
-    # model(source)
+        # Predict all
+        # model(source)
 
 
 # Slow Tests -----------------------------------------------------------------------------------------------------------

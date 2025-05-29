@@ -2,7 +2,6 @@
 
 import os
 from pathlib import Path
-
 from ultralytics.solutions.solutions import BaseSolution, SolutionResults
 from ultralytics.utils.plotting import save_one_box
 
@@ -51,6 +50,7 @@ class ObjectCropper(BaseSolution):
         self.iou = self.CFG["iou"]
         self.conf = self.CFG["conf"]
 
+
     def process(self, im0):
         """
         Crop detected objects from the input image and save them as separate images.
@@ -85,6 +85,7 @@ class ObjectCropper(BaseSolution):
                 im0,
                 file=Path(self.crop_dir) / f"crop_{self.crop_idx}.jpg",
                 BGR=True,
+                create=True if self.crop_idx==1 else False,  # Create output directory on first frame
             )
 
         # Return SolutionResults

@@ -4,7 +4,6 @@ import math
 import warnings
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Union
-
 import cv2
 import numpy as np
 import torch
@@ -630,6 +629,7 @@ def save_one_box(
     square: bool = False,
     BGR: bool = False,
     save: bool = True,
+    create: bool = True,
 ):
     """
     Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
@@ -647,6 +647,7 @@ def save_one_box(
         square (bool, optional): If True, the bounding box will be transformed into a square.
         BGR (bool, optional): If True, the image will be returned in BGR format, otherwise in RGB.
         save (bool, optional): If True, the cropped image will be saved to disk.
+        create (bool, optional): If True, output directory will be created, required for object_cropper.py.
 
     Returns:
         (np.ndarray): The cropped image.
@@ -668,7 +669,8 @@ def save_one_box(
     grayscale = im.shape[2] == 1  # grayscale image
     crop = im[int(xyxy[0, 1]) : int(xyxy[0, 3]), int(xyxy[0, 0]) : int(xyxy[0, 2]), :: (1 if BGR or grayscale else -1)]
     if save:
-        file.parent.mkdir(parents=True, exist_ok=True)  # make directory
+        if create:  # Ensure directory is created only once across multiple save_one_box() calls.
+            file.parent.mkdir(parents=True, exist_ok=True)  # make directory
         f = str(increment_path(file).with_suffix(".jpg"))
         # cv2.imwrite(f, crop)  # save BGR, https://github.com/ultralytics/yolov5/issues/7007 chroma subsampling issue
         crop = crop.squeeze(-1) if grayscale else crop[..., ::-1] if BGR else crop

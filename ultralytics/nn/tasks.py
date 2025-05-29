@@ -1462,7 +1462,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             A2C2f,
         }
     )
-    for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]): # from, number, module, args
+    for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
         m = (
             getattr(torch.nn, m[3:])
             if "nn." in m
@@ -1476,43 +1476,43 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
 
-        # --- Bagian yang Diperbaiki untuk modul BiFPN Anda ---
+        # --- Bagian yang Diperbaiki untuk module BiFPN Anda ---
         if m in {BiFPN_Add, BiFPN_Add3}:
             # Untuk BiFPN_Add(channels) dan BiFPN_Add3(channels)
             # args di YAML seharusnya hanya [channels]
-            
+
             # c1: input channel dari layer sebelumnya (untuk BiFPN_Add/Add3, ini adalah channel dari fitur x_top dan x_bottom/x_mid).
             # Karena BiFPN_Add/Add3 menggabungkan fitur dengan channel yang sama,
             # kita ambil saja channel dari input 'f' pertama.
-            if isinstance(f, list): # Jika inputnya dari multiple layer, kita asumsikan channelnya sama
-                c1 = ch[f[0]] # Ambil channel dari input pertama
+            if isinstance(f, list):  # Jika inputnya dari multiple layer, kita asumsikan channelnya sama
+                c1 = ch[f[0]]  # Ambil channel dari input pertama
             else:
-                c1 = ch[f] # Jika inputnya tunggal
-            
+                c1 = ch[f]  # Jika inputnya tunggal
+
             c2 = args[0]  # Ini adalah 'channels' yang akan diteruskan ke BiFPN_Add/Add3 (juga channel outputnya)
 
-            # Argumen yang akan diteruskan ke konstruktor modul BiFPN_Add/Add3
-            args = [c2]  # Hanya satu argumen 'channels'
+            # Argument yang akan diteruskan ke konstruktor module BiFPN_Add/Add3
+            args = [c2]  # Hanya satu argument 'channels'
 
-            # Karena BiFPN_Add/Add3 bukan modul pengulang biasa, n harus 1
+            # Karena BiFPN_Add/Add3 bukan module pengulang biasa, n harus 1
             n = 1
 
         elif m is BiFPN_Concat:
             # Untuk BiFPN_Concat(in_channels_list, out_channels)
             # args di YAML seharusnya [out_channels]
-            
-            # `f` adalah list dari indeks layer input, misal: [10, 14]
-            input_channels_list = [ch[x] for x in f] # Ini adalah channel dari setiap input BiFPN_Concat
-            
-            # c1 untuk parse_model adalah total input channels
-            c1 = sum(input_channels_list) # Total channel yang akan di-concat
-            
-            c2 = args[0]  # out_channels adalah argumen pertama di YAML untuk BiFPN_Concat
 
-            # Argumen yang akan diteruskan ke konstruktor BiFPN_Concat
+            # `f` adalah list dari indeks layer input, misal: [10, 14]
+            input_channels_list = [ch[x] for x in f]  # Ini adalah channel dari setiap input BiFPN_Concat
+
+            # c1 untuk parse_model adalah total input channels
+            c1 = sum(input_channels_list)  # Total channel yang akan di-concat
+
+            c2 = args[0]  # out_channels adalah argument pertama di YAML untuk BiFPN_Concat
+
+            # Argument yang akan diteruskan ke konstruktor BiFPN_Concat
             args = [input_channels_list, c2]  # Teruskan list channel input dan output channel
 
-            # Karena BiFPN_Concat bukan modul pengulang, n harus 1
+            # Karena BiFPN_Concat bukan module pengulang, n harus 1
             n = 1
 
         elif m is BiFPN:
@@ -1521,41 +1521,43 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             # `f` akan menjadi list dari indeks layer fitur (misal: [3, 5, 9])
 
             input_channels_list = [ch[x] for x in f]  # Ini adalah channel dari P3, P4, P5 (misal: [256, 512, 1024])
-            
+
             # c1 untuk parse_model bisa dianggap channel dari input pertama (P3), atau bisa diabaikan karena
             # BiFPN secara eksplisit menangani `input_channels_list`
-            c1 = input_channels_list[0] # Ambil channel dari input pertama untuk kebutuhan `c1` parser ini.
+            c1 = input_channels_list[0]  # Ambil channel dari input pertama untuk kebutuhan `c1` parser ini.
 
             output_channels = args[0]  # ini adalah `c2` (output_channels_per_level) untuk BiFPN
             num_bifpn_blocks = args[1] if len(args) > 1 else 1  # Default n=1 (jika Anda ingin 2, sesuaikan)
             epsilon = args[2] if len(args) > 2 else 0.0001  # default epsilon
 
-            # Argumen yang akan diteruskan ke konstruktor BiFPN
+            # Argument yang akan diteruskan ke konstruktor BiFPN
             args = [input_channels_list, output_channels, num_bifpn_blocks, epsilon]
 
             # Output channel dari BiFPN untuk parse_model adalah `output_channels` (yaitu c2_val)
             # Karena BiFPN mengembalikan tuple (P3_out, P4_out, P5_out) yang semuanya memiliki channel yang sama (`c2`),
-            # maka `c2` ini yang kita gunakan.
+            # make `c2` ini yang kita gunakan.
             c2 = output_channels
-            n = 1  # Karena BiFPN sendiri adalah satu modul
+            n = 1  # Karena BiFPN sendiri adalah satu module
 
         # --- Lanjutkan dengan kondisi `elif m in base_modules:` yang sudah ada ---
         elif m in base_modules:
-            # Di sini, `f` bisa berupa int atau list, tapi `ch[f]` akan mengambil elemen dari list `ch`.
-            # Jika `f` adalah list (misalnya untuk `Concat`), maka `ch[f]` akan menjadi `[ch[x] for x in f]`.
+            # Di sini, `f` bisa berupa int atau list, tapi `ch[f]` akan mengambil element dari list `ch`.
+            # Jika `f` adalah list (misalnya untuk `Concat`), make `ch[f]` akan menjadi `[ch[x] for x in f]`.
             # c1, c2 = ch[f], args[0] # <<--- ini akan bermasalah jika ch[f] adalah list of channels dan args[0] adalah single int
-            
+
             # Perbaiki pengambilan c1 dari list `ch` jika `f` adalah list of indices
             if isinstance(f, list):
-                c1 = sum(ch[x] for x in f) if m is Concat else ch[f[0]] # Jika concat, total channel, jika tidak, channel input pertama
+                c1 = (
+                    sum(ch[x] for x in f) if m is Concat else ch[f[0]]
+                )  # Jika concat, total channel, jika tidak, channel input pertama
             else:
                 c1 = ch[f]
-            
-            c2 = args[0] # Ini adalah output channel yang diinginkan dari modul
+
+            c2 = args[0]  # Ini adalah output channel yang diinginkan dari module
 
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
-            
+
             if m is C2fAttn:  # set 1) embed channels and 2) num heads
                 args[1] = make_divisible(min(args[1], max_channels // 2) * width, 8)
                 args[2] = int(max(round(min(args[2], max_channels // 2 // 32)) * width, 1) if args[2] > 1 else args[2])

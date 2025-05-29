@@ -32,6 +32,7 @@ from ultralytics.nn.modules import (
     BiFPN_Add, 
     BiFPN_Add3, 
     BiFPN_Concat,
+    BiFPNBlock,
     Bottleneck,
     BottleneckCSP,
     C2f,

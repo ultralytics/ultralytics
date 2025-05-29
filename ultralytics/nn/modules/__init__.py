@@ -35,7 +35,6 @@ from .block import (
     AConv,
     ADown,
     Attention,
-    BiFPN,
     BNContrastiveHead,
     Bottleneck,
     BottleneckCSP,
@@ -62,6 +61,7 @@ from .block import (
     SCDown,
     TorchVision,
 )
+
 from .conv import (
     CBAM,
     ChannelAttention,
@@ -103,6 +103,9 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
+from .bifpn import (
+    BiFPN_Add, BiFPN_Add3, BiFPN_Concat, BiFPN, BiFPNBlock
+)
 
 __all__ = (
     "Conv",
@@ -133,7 +136,6 @@ __all__ = (
     "C2f",
     "C3k2",
     "C3K2_FE",
-    "BiFPN",
     "C2fPSA",
     "C2PSA",
     "C2fAttn",
@@ -185,4 +187,6 @@ __all__ = (
     "BiFPN_Add",
     "BiFPN_Add3",
     "BiFPN_Concat",
+    "BiFPN", 
+    "BiFPNBlock"
 )

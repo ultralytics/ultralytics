@@ -51,7 +51,6 @@ __all__ = (
     "PSA",
     "SCDown",
     "TorchVision",
-    "BiFPN",
 )
 
 
@@ -2151,97 +2150,97 @@ class SAVPE(nn.Module):
         return F.normalize(aggregated.transpose(-2, -3).reshape(B, Q, -1), dim=-1, p=2)
 
 
-class BiFPNBlock(nn.Module):
-    """Bi-directional Feature Pyramid Network."""
+# class BiFPNBlock(nn.Module):
+#     """Bi-directional Feature Pyramid Network."""
 
-    def __init__(self, c1, c2, epsilon=0.0001):
-        super().__init__()
-        self.epsilon = epsilon
+#     def __init__(self, c1, c2, epsilon=0.0001):
+#         super().__init__()
+#         self.epsilon = epsilon
 
-        self.p3_td = DWConv(c2, c2)
-        self.p4_td = DWConv(c2, c2)
-        self.p5_td = DWConv(c2, c2)
-        self.p6_td = DWConv(c2, c2)
+#         self.p3_td = DWConv(c2, c2)
+#         self.p4_td = DWConv(c2, c2)
+#         self.p5_td = DWConv(c2, c2)
+#         self.p6_td = DWConv(c2, c2)
 
-        self.p4_out = DWConv(c2, c2)
-        self.p5_out = DWConv(c2, c2)
-        self.p6_out = DWConv(c2, c2)
-        self.p7_out = DWConv(c2, c2)
+#         self.p4_out = DWConv(c2, c2)
+#         self.p5_out = DWConv(c2, c2)
+#         self.p6_out = DWConv(c2, c2)
+#         self.p7_out = DWConv(c2, c2)
 
-        # Initialize weights
-        self.w1 = nn.Parameter(torch.ones(2, 4))
-        self.w1_relu = nn.ReLU()
-        self.w2 = nn.Parameter(torch.ones(3, 4))
-        self.w2_relu = nn.ReLU()
+#         # Initialize weights
+#         self.w1 = nn.Parameter(torch.ones(2, 4))
+#         self.w1_relu = nn.ReLU()
+#         self.w2 = nn.Parameter(torch.ones(3, 4))
+#         self.w2_relu = nn.ReLU()
 
-    def forward(self, inputs):
-        p3_x, p4_x, p5_x, p6_x, p7_x = inputs
+#     def forward(self, inputs):
+#         p3_x, p4_x, p5_x, p6_x, p7_x = inputs
 
-        # Calculate Top-Down Pathway
-        w1 = self.w1_relu(self.w1)
-        w1 /= torch.sum(w1, dim=0) + self.epsilon
-        w2 = self.w2_relu(self.w2)
-        w2 /= torch.sum(w2, dim=0) + self.epsilon
+#         # Calculate Top-Down Pathway
+#         w1 = self.w1_relu(self.w1)
+#         w1 /= torch.sum(w1, dim=0) + self.epsilon
+#         w2 = self.w2_relu(self.w2)
+#         w2 /= torch.sum(w2, dim=0) + self.epsilon
 
-        p7_td = p7_x
-        p6_td = self.p6_td(w1[0, 0] * p6_x + w1[1, 0] * F.interpolate(p7_td, scale_factor=2))
-        p5_td = self.p5_td(w1[0, 1] * p5_x + w1[1, 1] * F.interpolate(p6_td, scale_factor=2))
-        p4_td = self.p4_td(w1[0, 2] * p4_x + w1[1, 2] * F.interpolate(p5_td, scale_factor=2))
-        p3_td = self.p3_td(w1[0, 3] * p3_x + w1[1, 3] * F.interpolate(p4_td, scale_factor=2))
+#         p7_td = p7_x
+#         p6_td = self.p6_td(w1[0, 0] * p6_x + w1[1, 0] * F.interpolate(p7_td, scale_factor=2))
+#         p5_td = self.p5_td(w1[0, 1] * p5_x + w1[1, 1] * F.interpolate(p6_td, scale_factor=2))
+#         p4_td = self.p4_td(w1[0, 2] * p4_x + w1[1, 2] * F.interpolate(p5_td, scale_factor=2))
+#         p3_td = self.p3_td(w1[0, 3] * p3_x + w1[1, 3] * F.interpolate(p4_td, scale_factor=2))
 
-        # Calculate Bottom-Up Pathway
-        p3_out = p3_td
-        p4_out = self.p4_out(w2[0, 0] * p4_x + w2[1, 0] * p4_td + w2[2, 0] * F.interpolate(p3_out, scale_factor=0.5))
-        p5_out = self.p5_out(w2[0, 1] * p5_x + w2[1, 1] * p5_td + w2[2, 1] * F.interpolate(p4_out, scale_factor=0.5))
-        p6_out = self.p6_out(w2[0, 2] * p6_x + w2[1, 2] * p6_td + w2[2, 2] * F.interpolate(p5_out, scale_factor=0.5))
-        p7_out = self.p7_out(w2[0, 3] * p7_x + w2[1, 3] * p7_td + w2[2, 3] * F.interpolate(p6_out, scale_factor=0.5))
+#         # Calculate Bottom-Up Pathway
+#         p3_out = p3_td
+#         p4_out = self.p4_out(w2[0, 0] * p4_x + w2[1, 0] * p4_td + w2[2, 0] * F.interpolate(p3_out, scale_factor=0.5))
+#         p5_out = self.p5_out(w2[0, 1] * p5_x + w2[1, 1] * p5_td + w2[2, 1] * F.interpolate(p4_out, scale_factor=0.5))
+#         p6_out = self.p6_out(w2[0, 2] * p6_x + w2[1, 2] * p6_td + w2[2, 2] * F.interpolate(p5_out, scale_factor=0.5))
+#         p7_out = self.p7_out(w2[0, 3] * p7_x + w2[1, 3] * p7_td + w2[2, 3] * F.interpolate(p6_out, scale_factor=0.5))
 
-        return [p3_out, p4_out, p5_out, p6_out, p7_out]
+#         return [p3_out, p4_out, p5_out, p6_out, p7_out]
 
 
-class BiFPN(nn.Module):
-    def __init__(self, c1, c2, n=2, epsilon=0.0001):
-        super().__init__()
-        # Handle both list and int inputs for c1
-        if isinstance(c1, (list, tuple)):
-            c3, c4, c5 = c1
-        else:
-            c3 = c4 = c5 = c1
+# class BiFPN(nn.Module):
+#     def __init__(self, c1, c2, n=2, epsilon=0.0001):
+#         super().__init__()
+#         # Handle both list and int inputs for c1
+#         if isinstance(c1, (list, tuple)):
+#             c3, c4, c5 = c1
+#         else:
+#             c3 = c4 = c5 = c1
 
-        self.p3 = Conv(c3, c2, 1)
-        self.p4 = Conv(c4, c2, 1)
-        self.p5 = Conv(c5, c2, 1)
+#         self.p3 = Conv(c3, c2, 1)
+#         self.p4 = Conv(c4, c2, 1)
+#         self.p5 = Conv(c5, c2, 1)
 
-        # p6 is obtained via a 3x3 stride-2 conv on C5
-        self.p6 = Conv(c5, c2, 3, 2)
+#         # p6 is obtained via a 3x3 stride-2 conv on C5
+#         self.p6 = Conv(c5, c2, 3, 2)
 
-        # p7 is computed by applying ReLU followed by a 3x3 stride-2 conv on p6
-        self.p7 = Conv(c2, c2, 3, 2)
+#         # p7 is computed by applying ReLU followed by a 3x3 stride-2 conv on p6
+#         self.p7 = Conv(c2, c2, 3, 2)
 
-        bifpns = []
-        for _ in range(n):
-            bifpns.append(BiFPNBlock(c2, c2, epsilon))
-        self.bifpn = nn.Sequential(*bifpns)
+#         bifpns = []
+#         for _ in range(n):
+#             bifpns.append(BiFPNBlock(c2, c2, epsilon))
+#         self.bifpn = nn.Sequential(*bifpns)
 
-    def forward(self, x):
-        # For single input, we'll use the same input for all levels
-        if not isinstance(x, (list, tuple)):
-            x = [x, x, x]  # Use same input for all three levels
+#     def forward(self, x):
+#         # For single input, we'll use the same input for all levels
+#         if not isinstance(x, (list, tuple)):
+#             x = [x, x, x]  # Use same input for all three levels
 
-        # Ensure we have exactly 3 inputs
-        if len(x) != 3:
-            raise ValueError(f"BiFPN expects 3 inputs, got {len(x)}")
+#         # Ensure we have exactly 3 inputs
+#         if len(x) != 3:
+#             raise ValueError(f"BiFPN expects 3 inputs, got {len(x)}")
 
-        c3, c4, c5 = x
+#         c3, c4, c5 = x
 
-        # Calculate the input column of BiFPN
-        p3_x = self.p3(c3)
-        p4_x = self.p4(c4)
-        p5_x = self.p5(c5)
-        p6_x = self.p6(c5)
-        p7_x = self.p7(p6_x)
+#         # Calculate the input column of BiFPN
+#         p3_x = self.p3(c3)
+#         p4_x = self.p4(c4)
+#         p5_x = self.p5(c5)
+#         p6_x = self.p6(c5)
+#         p7_x = self.p7(p6_x)
 
-        features = [p3_x, p4_x, p5_x, p6_x, p7_x]
-        return self.bifpn(features)
+#         features = [p3_x, p4_x, p5_x, p6_x, p7_x]
+#         return self.bifpn(features)
 
-    # //UPDATE BiFPN5
+#     # //UPDATE BiFPN5

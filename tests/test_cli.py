@@ -103,7 +103,12 @@ def test_sam_models() -> None:
     source = ASSETS / "zidane.jpg"  # Source
 
     # Load the model
-    for file in ["mobile_sam.pt", "sam_b.pt", "sam2_t.pt", "sam2.1_t.pt", ]:
+    for file in [
+        "mobile_sam.pt",
+        "sam_b.pt",
+        "sam2_t.pt",
+        "sam2.1_t.pt",
+    ]:
         model = SAM(WEIGHTS_DIR / file)
 
         # Predict a segment based on a 1D point prompt and 1D labels.

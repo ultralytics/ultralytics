@@ -182,5 +182,5 @@ __all__ = (
     "A2C2f",
 )
 
-from .ema import EMA
 from .bifpn import BiFPN
+from .ema import EMA

@@ -1,4 +1,5 @@
 import os
+
 from ultralytics.data.utils import img2label_paths
 
 IMAGE_PATHS = [
@@ -25,10 +26,9 @@ LABELS_PATHS_NESTED = [
     os.path.join("data", "labels", "version3", "sample3.txt"),
 ]
 
+
 def test_img2label_paths_default():
-    """
-    Test the img2label_paths with default labels directory.
-    """
+    """Test the img2label_paths with default labels directory."""
     label_paths = img2label_paths(IMAGE_PATHS)
 
     assert label_paths == LABELS_PATHS_DEFAULT, "Label paths do not match expected output"
@@ -45,5 +45,7 @@ def test_img2label_paths_custom():
         img_paths,
         labels_dirname="labels/version3",
     )
-    assert label_paths_nested == LABELS_PATHS_NESTED, "Label paths with complex custom directory do not match expected output"
+    assert label_paths_nested == LABELS_PATHS_NESTED, (
+        "Label paths with complex custom directory do not match expected output"
+    )
     return

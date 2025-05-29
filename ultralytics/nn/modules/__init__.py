@@ -17,6 +17,7 @@ Examples:
     >>> os.system(f"onnxslim {f} {f} && open {f}")  # pip install onnxslim
 """
 
+from .bifpn import BiFPN, BiFPN_Add, BiFPN_Add3, BiFPN_Concat, BiFPNBlock
 from .block import (
     C1,
     C2,
@@ -61,7 +62,6 @@ from .block import (
     SCDown,
     TorchVision,
 )
-
 from .conv import (
     CBAM,
     ChannelAttention,
@@ -102,9 +102,6 @@ from .transformer import (
     TransformerBlock,
     TransformerEncoderLayer,
     TransformerLayer,
-)
-from .bifpn import (
-    BiFPN_Add, BiFPN_Add3, BiFPN_Concat, BiFPN, BiFPNBlock
 )
 
 __all__ = (
@@ -187,6 +184,6 @@ __all__ = (
     "BiFPN_Add",
     "BiFPN_Add3",
     "BiFPN_Concat",
-    "BiFPN", 
-    "BiFPNBlock"
+    "BiFPN",
+    "BiFPNBlock",
 )

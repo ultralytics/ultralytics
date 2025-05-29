@@ -117,8 +117,8 @@ class PoseValidator(DetectionValidator):
         super().init_metrics(model)
         self.kpt_shape = self.data["kpt_shape"]
         OKS_SIGMA = self.args.OKS_SIGMA
-        is_pose = len(OKS_SIGMA) == nkpt
-        self.sigma = np.array(OKS_SIGMA) if is_pose else np.ones(nkpt) / nkpt
+        is_pose = len(OKS_SIGMA) == self.kpt_shape[0]
+        self.sigma = np.array(OKS_SIGMA) if is_pose else np.ones(self.kpt_shape[0]) / self.kpt_shape[0]
         self.stats = dict(tp_p=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
     def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:

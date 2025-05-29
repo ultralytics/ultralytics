@@ -9,7 +9,7 @@ import torch
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.metrics import OKS_SIGMA, PoseMetrics, box_iou, kpt_iou
+from ultralytics.utils.metrics import PoseMetrics, box_iou, kpt_iou
 from ultralytics.utils.plotting import output_to_target, plot_images
 
 
@@ -116,9 +116,9 @@ class PoseValidator(DetectionValidator):
         """
         super().init_metrics(model)
         self.kpt_shape = self.data["kpt_shape"]
-        is_pose = self.kpt_shape == [17, 3]
-        nkpt = self.kpt_shape[0]
-        self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
+        OKS_SIGMA = self.args.OKS_SIGMA
+        is_pose = len(OKS_SIGMA) == nkpt
+        self.sigma = np.array(OKS_SIGMA) if is_pose else np.ones(nkpt) / nkpt
         self.stats = dict(tp_p=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
     def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:

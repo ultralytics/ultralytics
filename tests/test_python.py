@@ -5,6 +5,7 @@ import csv
 import urllib
 from copy import copy
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import cv2
 import numpy as np
@@ -36,6 +37,7 @@ from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests start as TMP does not exist on tests/init
+video_url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov"
 
 
 def test_model_forward():
@@ -191,6 +193,7 @@ def test_track_stream(model):
     model = YOLO(model)
     model.track(video_url, imgsz=160, tracker="bytetrack.yaml")
     model.track(video_url, imgsz=160, tracker="botsort.yaml", save_frames=True)  # test frame saving also
+    model.track(video_url, imgsz=160, tracker="botsort.yaml", save=True)  # test video saving also
 
     # Test Global Motion Compensation (GMC) methods and ReID
     for gmc, reidm in zip(["orb", "sift", "ecc"], ["auto", "auto", "yolo11n-cls.pt"]):
@@ -246,7 +249,8 @@ def test_workflow():
     model.train(data="coco8.yaml", epochs=1, imgsz=32, optimizer="SGD")
     model.val(imgsz=32)
     model.predict(SOURCE, imgsz=32)
-    model.export(format="torchscript")  # WARNING: Windows slow CI export bug
+    model.predict(video_url, imgsz=160, save=True)
+    model.export(format="torchs", nms=True)  # WARNING: Windows slow CI export bug, test closest match format and nms.
 
 
 def test_predict_callback_and_setup():
@@ -276,7 +280,7 @@ def test_predict_callback_and_setup():
 def test_results(model: str):
     """Test YOLO model results processing and output in various formats."""
     temp_s = "https://ultralytics.com/images/boats.jpg" if model == "yolo11n-obb.pt" else SOURCE
-    results = YOLO(WEIGHTS_DIR / model)([temp_s, temp_s], imgsz=160)
+    results = YOLO(WEIGHTS_DIR / model)([temp_s, temp_s], imgsz=160, show=True)
     for r in results:
         r = r.cpu().numpy()
         print(r, len(r), r.path)  # print numpy attributes
@@ -358,7 +362,6 @@ def test_data_annotator():
         ASSETS,
         det_model=WEIGHTS_DIR / "yolo11n.pt",
         sam_model=WEIGHTS_DIR / "mobile_sam.pt",
-        output_dir=TMP / "auto_annotate_labels",
     )
 
 
@@ -472,8 +475,6 @@ def test_utils_files():
 @pytest.mark.slow
 def test_utils_patches_torch_save():
     """Test torch_save backoff when _torch_save raises RuntimeError."""
-    from unittest.mock import MagicMock, patch
-
     from ultralytics.utils.patches import torch_save
 
     mock = MagicMock(side_effect=RuntimeError)
@@ -729,3 +730,43 @@ def test_grayscale(task: str, model: str, data: str) -> None:
 
     model = YOLO(export_model, task=task)
     model.predict(source=im, imgsz=32)
+
+
+@pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="CLIP is not supported in Python 3.8 and aarch64 Linux")
+def test_build_text_model_all(sample_texts="a photo of a cat"):
+    """Test for CLIP, MobileCLIP, and invalid model handling mainly about text_model.py."""
+    from ultralytics.nn.text_model import build_text_model
+
+    device = torch.device("cpu")
+
+    # Test CLIP model
+    with patch("ultralytics.nn.text_model.clip.load") as mock_load:
+        mock_model = MagicMock()
+        mock_model.encode_text.return_value = torch.randn(2, 512)
+        mock_load.return_value = (mock_model, None)
+
+        model = build_text_model("mobileclip:s0", device=device)
+        tokens = model.tokenize(sample_texts)
+        assert isinstance(tokens, torch.Tensor)
+
+        features = model.encode_text(tokens)
+        assert features.shape[-1] == 512
+        assert torch.allclose(features.norm(dim=-1), torch.ones(features.shape[0]), atol=1e-5)
+
+    # Test MobileCLIP model
+    with patch("ultralytics.nn.text_model.clip.clip.tokenize") as mock_tokenize, patch("torch.jit.load") as mock_jit:
+        mock_tokenize.return_value = torch.randint(0, 100, (2, 77))
+        mock_encoder = MagicMock()
+        mock_encoder.return_value = torch.randn(2, 512)
+        mock_jit.return_value = mock_encoder
+
+        model = build_text_model("mobileclip:s0", device=device)
+        tokens = model.tokenize(sample_texts)
+        assert isinstance(tokens, torch.Tensor)
+
+        features = model.encode_text(tokens)
+        assert features.shape[-1] == 512
+
+    # Test invalid model
+    with pytest.raises(ValueError, match="Unrecognized base model"):
+        build_text_model("invalid:model", device=device)

@@ -5,9 +5,10 @@ import subprocess
 import pytest
 from PIL import Image
 
-from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
+from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA, TMP
 from ultralytics.utils import ARM64, ASSETS, LINUX, WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import TORCH_1_9
+from ultralytics import SAM
 
 
 def run(cmd: str) -> None:
@@ -18,10 +19,16 @@ def run(cmd: str) -> None:
 def test_special_modes() -> None:
     """Test various special command-line modes for YOLO functionality."""
     run("yolo help")
+    run("yolo solutions help")
     run("yolo checks")
     run("yolo version")
+    run("yolo detect epochs=1")
+    run("yolo detect track")
     run("yolo settings reset")
+    run(f"yolo settings runs_dir={TMP}")
     run("yolo cfg")
+    run("yolo solutions help")
+    run("yolo solutions wrong")  # cover the "No solution name provided. i.e `yolo solutions count`. and wrong sol name.
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
@@ -92,16 +99,9 @@ def test_fastsam(
 
 def test_mobilesam() -> None:
     """Test MobileSAM segmentation with point prompts using Ultralytics."""
-    from ultralytics import SAM
-
-    # Load the model
-    model = SAM(WEIGHTS_DIR / "mobile_sam.pt")
-
-    # Source
-    source = ASSETS / "zidane.jpg"
-
-    # Predict a segment based on a 1D point prompt and 1D labels.
-    model.predict(source, points=[900, 370], labels=[1])
+    model = SAM(WEIGHTS_DIR / "mobile_sam.pt")  # Load the model
+    source = ASSETS / "zidane.jpg"   # Source
+    model.predict(source, points=[900, 370], labels=[1])  # Predict a segment based on a 1D point prompt and 1D labels.
 
     # Predict a segment based on 3D points and 2D labels (multiple points per object).
     model.predict(source, points=[[[900, 370], [1000, 100]]], labels=[[1, 1]])
@@ -111,6 +111,24 @@ def test_mobilesam() -> None:
 
     # Predict all
     # model(source)
+
+
+@pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="Disabled due to Sequential object has no attribute append error.")
+def test_sam_models() -> None:
+    """Test SAM, SAM2 and SAM2.1 segmentation with point prompts using Ultralytics."""
+    source = ASSETS / "zidane.jpg"  # Source
+
+    # Load the model
+    for file in ["sam_b.pt", "sam2_t.pt", "sam2.1_t.pt"]:
+        model = SAM(WEIGHTS_DIR / file)
+        model.predict(source, points=[900, 370], labels=[1])  # Predict segment based on 1D point prompt and 1D labels.
+        # Predict a segment based on 3D points and 2D labels (multiple points per object).
+        model.predict(source, points=[[[900, 370], [1000, 100]]], labels=[[1, 1]])
+        # Predict a segment based on a box prompt
+        model.predict(source, bboxes=[439, 437, 524, 709], save=True)
+
+        # Predict all
+        # model(source)
 
 
 # Slow Tests -----------------------------------------------------------------------------------------------------------

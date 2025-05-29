@@ -1514,17 +1514,17 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 
             # Karena BiFPN_Concat bukan module pengulang, n harus 1
             n = 1
-            
+
         elif m is BiFPN:
             # YAML: args = [input_channels_list, output_channels, (optional) num_blocks]
-            input_channels = args[0]                    # list[int]
-            output_channels = int(args[1])              # ensure int
+            input_channels = args[0]  # list[int]
+            output_channels = int(args[1])  # ensure int
             num_blocks = int(args[2]) if len(args) > 2 else 1
 
             # rebuild args for constructor + downstream Conv2d
             args = [input_channels, output_channels, num_blocks]
-            c2 = output_channels                         # pass only int forward
-            n = 1   
+            c2 = output_channels  # pass only int forward
+            n = 1
 
         # --- Lanjutkan dengan kondisi `elif m in base_modules:` yang sudah ada ---
         elif m in base_modules:

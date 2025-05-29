@@ -21,6 +21,7 @@ class ConvNormAct(nn.Module):
     def forward(self, x):
         return self.act(self.norm(self.conv(x)))
 
+
 class BiFPN_Add(nn.Module):
     """
     BiFPN weighted addition module.

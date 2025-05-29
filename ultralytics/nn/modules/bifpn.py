@@ -7,7 +7,7 @@ import torch.nn.functional as F
 # Contoh: from ultralytics.nn.modules.conv import Conv, DWConv
 # Atau definisikan ulang Conv dan DWConv jika Anda tidak ingin impor eksternal di dalam modul ini.
 # Untuk kesederhanaan, saya akan asumsikan Conv dan DWConv bisa diimpor.
-from ultralytics.nn.modules.conv import Conv, DWConv     # <--- PENTING: Tambahkan baris ini
+from ultralytics.nn.modules.conv import Conv, DWConv # <--- PENTING: Tambahkan baris ini
 
 
 class ConvNormAct(nn.Module):

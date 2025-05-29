@@ -1382,7 +1382,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         scale = d.get("scale")
         if not scale:
             scale = tuple(scales.keys())[0]
-            LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
+            LOGGER.warning(f"WARNING ⚠️ no model scale passed. Assuming scale='{scale}'.")
         depth, width, max_channels = scales[scale]
 
     if act:
@@ -1413,7 +1413,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C2,
             C2f,
             C3k2,
-            C3K2_FE,
             RepNCSPELAN4,
             ELAN1,
             ADown,
@@ -1440,7 +1439,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C2,
             C2f,
             C3k2,
-            C3K2_FE,
             C2fAttn,
             C3,
             C3TR,
@@ -1466,23 +1464,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 with contextlib.suppress(ValueError):
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
-
-        # --- Bagian yang Diperbaiki untuk module BiFPN Anda ---
         if m in base_modules:
-            # Di sini, `f` bisa berupa int atau list, tapi `ch[f]` akan mengambil element dari list `ch`.
-            # Jika `f` adalah list (misalnya untuk `Concat`), make `ch[f]` akan menjadi `[ch[x] for x in f]`.
-            # c1, c2 = ch[f], args[0] # <<--- ini akan bermasalah jika ch[f] adalah list of channels dan args[0] adalah single int
-
-            # Perbaiki pengambilan c1 dari list `ch` jika `f` adalah list of indices
-            if isinstance(f, list):
-                c1 = (
-                    sum(ch[x] for x in f) if m is Concat else ch[f[0]]
-                )  # Jika concat, total channel, jika tidak, channel input pertama
-            else:
-                c1 = ch[f]
-
-            c2 = args[0]  # Ini adalah output channel yang diinginkan dari module
-
+            c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
             if m is C2fAttn:  # set 1) embed channels and 2) num heads
@@ -1501,8 +1484,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 legacy = False
                 if scale in "lx":  # for L/X sizes
                     args.extend((True, 1.2))
-            if m is C2fCIB:
-                legacy = False
         elif m is AIFI:
             args = [ch[f], *args]
         elif m in frozenset({HGStem, HGBlock}):
@@ -1517,13 +1498,11 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in frozenset(
-            {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect}
-        ):
+        elif m in frozenset({Detect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn, v10Detect}):
             args.append([ch[x] for x in f])
-            if m is Segment or m is YOLOESegment:
+            if m is Segment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB}:
+            if m in {Detect, Segment, Pose, OBB}:
                 m.legacy = legacy
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])

@@ -1,4 +1,5 @@
 import os
+import json
 from pathlib import Path
 from collections import defaultdict
 import itertools
@@ -374,8 +375,93 @@ def _update_dataset_meta(data):
         data["nc"] = len(data["cat_ids"])
         
         return data
-        
+    
 
+def get_manitou_calibrations(data):
+    # Get the extrinsic parameters of the camera
+    def get_cam_extrinsics(path, invert=False):
+        try:
+            with open(path, 'r') as f:
+                data = json.load(f)
+            T = np.eye(4)
+            T[:3, :3] = np.array(data['R']['data']).reshape(3, 3)
+            T[:3, 3] = np.array(data['T']['data']).reshape(3)
+            if invert:
+                T = np.linalg.inv(T)  # camera to ego
+            return T
+        except Exception as e:
+            print(f'❌ Error reading calibration file: {path}')
+            
+    # Get the intrinsic parameters of the camera and extrinsic parameters of the radar
+    def get_radar_params(path, to_meter=True):
+        try:
+            with open(path, 'r') as f:
+                data = json.load(f)
+            matrix_K = np.array(data['camera_matrix']).reshape(3, 3)
+            dist = np.array(data['distortion']).reshape(4, )
+            rvec = np.array(data['cam_radar_rvecs']).reshape(3, )
+            tvec = np.array(data['cam_radar_tvecs']).reshape(3, )
+            if to_meter:
+                tvec = tvec / 100  # convert to meter
+            Tcam_radar = np.eye(4)
+            Tcam_radar[:3, :3] = R.from_rotvec(rvec).as_matrix()
+            Tcam_radar[:3, 3] = tvec
+            return matrix_K, dist, Tcam_radar    
+        except Exception as e:
+            print(f'❌ Error reading calibration file: {path}')
+        
+    data_root = Path(data["path"]).resolve()
+    calib_path = data_root / data["calib_prefix"]
+    
+    if not calib_path.exists():
+        raise FileNotFoundError(f"❌ Calibration file {calib_path} does not exist.")
+    
+    # hardcode camera and radar calibration files, maybe change in the future
+    radar1_path = calib_path / 'calibration_params_radar1.json'
+    radar2_path = calib_path / 'calibration_params_radar2.json'
+    radar3_path = calib_path / 'calibration_params_radar3.json'
+    radar4_path = calib_path / 'calibration_params_radar4.json'
+    cam1_path = calib_path / 'cam1.json'
+    cam2_path = calib_path / 'cam2.json'
+    cam3_path = calib_path / 'cam3.json'
+    cam4_path = calib_path / 'cam4.json'
+    
+    k1, dist1, Tcam1_radar1 = get_radar_params(radar1_path)
+    k2, dist2, Tcam2_radar2 = get_radar_params(radar2_path)
+    k3, dist3, Tcam3_radar3 = get_radar_params(radar3_path)
+    k4, dist4, Tcam4_radar4 = get_radar_params(radar4_path)
+    
+    Tego_cam1 = get_cam_extrinsics(cam1_path, invert=True)
+    Tego_cam2 = get_cam_extrinsics(cam2_path, invert=True)
+    Tego_cam3 = get_cam_extrinsics(cam3_path, invert=True)
+    Tego_cam4 = get_cam_extrinsics(cam4_path, invert=True)
+    
+    Tego_radar1 = Tego_cam1 @ Tcam1_radar1
+    Tego_radar2 = Tego_cam2 @ Tcam2_radar2
+    Tego_radar3 = Tego_cam3 @ Tcam3_radar3
+    Tego_radar4 = Tego_cam4 @ Tcam4_radar4
+    
+    calib_params = {
+        'camera1_K': k1,
+        'camera1_D': dist1,
+        'camera2_K': k2,
+        'camera2_D': dist2,
+        'camera3_K': k3,
+        'camera3_D': dist3,
+        'camera4_K': k4,
+        'camera4_D': dist4,
+        'eCamera1': Tego_cam1,
+        'eCamera2': Tego_cam2,
+        'eCamera3': Tego_cam3,
+        'eCamera4': Tego_cam4,
+        'eRadar1': Tego_radar1,
+        'eRadar2': Tego_radar2,
+        'eRadar3': Tego_radar3,
+        'eRadar4': Tego_radar4
+    }
+    
+    return calib_params
+    
 def get_manitou_dataset(cfg_path):
     """
     Get the annotation path from the yaml file.
@@ -390,7 +476,9 @@ def get_manitou_dataset(cfg_path):
         raise
     
     data["channels"] = data.get("channels", 3)
-    data["prefix"] = data.get("prefix", "")
+    data["calib_prefix"] = data.get("calib_prefix", "")
+    data["img_prefix"] = data.get("img_prefix", "")
+    data["radar_prefix"] = data.get("radar_prefix", "")
     data["names"] = data.get("names", None)
     if data["names"] is None:
         raise ValueError("❌ Class names are not provided in the data configuration file.")
@@ -412,7 +500,7 @@ if __name__ == '__main__':
     import os
     # Example usage
     data_root = '/home/shu/Documents/PROTECH/ultralytics/datasets/manitou'
-    radar_dir = 'radar_data'
+    radar_dir = 'key_radars'
     cam_dir = 'key_frames'
 
     annotations_path = os.path.join(data_root, 'annotations', 'manitou_coco_train.json')

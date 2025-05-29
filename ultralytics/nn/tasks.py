@@ -29,6 +29,9 @@ from ultralytics.nn.modules import (
     AConv,
     ADown,
     BiFPN,
+    BiFPN_Add, 
+    BiFPN_Add3, 
+    BiFPN_Concat,
     Bottleneck,
     BottleneckCSP,
     C2f,
@@ -1413,6 +1416,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C3k2,
             C3K2_FE,
             BiFPN,
+            BiFPN_Add, 
+            BiFPN_Add3, 
+            BiFPN_Concat,
             RepNCSPELAN4,
             ELAN1,
             ADown,
@@ -1441,6 +1447,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C3k2,
             C3K2_FE,
             BiFPN,
+            BiFPN_Add, 
+            BiFPN_Add3, 
+            BiFPN_Concat,
             C2fAttn,
             C3,
             C3TR,
@@ -1466,7 +1475,62 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 with contextlib.suppress(ValueError):
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
-        if m in base_modules:
+        
+        # --- Tambahkan kondisi khusus untuk BiFPN_Add, BiFPN_Add3, BiFPN_Concat di sini ---
+        if m in {BiFPN_Add, BiFPN_Add3}:
+            # Untuk BiFPN_Add(channels) dan BiFPN_Add3(channels)
+            # args di YAML seharusnya hanya [channels]
+            c1 = ch[f] # Input channel dari layer sebelumnya (akan diabaikan oleh BiFPN_Add/Add3, tapi perlu untuk parse_model)
+            c2 = args[0] # Ini adalah 'channels' yang akan diteruskan ke BiFPN_Add/Add3
+            
+            # Argumen yang akan diteruskan ke konstruktor modul BiFPN_Add/Add3
+            args = [c2] # Hanya satu argumen 'channels'
+            
+            # Karena BiFPN_Add/Add3 bukan modul pengulang biasa, n harus 1
+            n = 1 
+
+        elif m is BiFPN_Concat:
+            # Untuk BiFPN_Concat(in_channels_list, out_channels)
+            # args di YAML seharusnya [in_channels_list_atau_total, out_channels]
+            # Misalnya, di YAML: [[ch_P3, ch_P4, ch_P5], 256] atau [total_ch, 256]
+            
+            # Jika f adalah list (multiple inputs), maka in_channels_list harus dihitung dari ch[x]
+            input_channels_list = [ch[x] for x in f] if isinstance(f, list) else [ch[f]]
+            
+            # Jika args[0] adalah list, itu adalah in_channels_list. Jika tidak, itu adalah total_in_channels.
+            # Kita bisa biarkan BiFPN_Concat menangani list in_channels_list.
+            # c2 akan menjadi out_channels
+            c2 = args[-1] # out_channels adalah argumen terakhir di YAML
+            
+            # Argumen yang akan diteruskan ke konstruktor BiFPN_Concat
+            # Contoh: [ [256, 512, 1024], 256 ]
+            args = [input_channels_list, c2] # Teruskan list channel input dan output channel
+            
+            # Karena BiFPN_Concat bukan modul pengulang, n harus 1
+            n = 1
+            
+        elif m is BiFPN:
+            # Sesuai implementasi BiFPN Anda, ia menerima c1 (int atau list) dan c2 (int).
+            # args di YAML seharusnya [c1_val, c2_val, n_blocks, epsilon]
+            # `f` akan menjadi list dari indeks layer fitur (misal: [4, 6, 9])
+            
+            input_channels_list = [ch[x] for x in f] # Ini adalah channel dari P3, P4, P5
+            output_channels = args[0] # ini adalah `c2` untuk BiFPN
+            num_bifpn_blocks = args[1] if len(args) > 1 else 2 # default n=2 jika tidak ada di YAML
+            epsilon = args[2] if len(args) > 2 else 0.0001 # default epsilon jika tidak ada di YAML
+
+            # Argumen yang akan diteruskan ke konstruktor BiFPN
+            args = [input_channels_list, output_channels, num_bifpn_blocks, epsilon]
+            
+            # Output channel BiFPN adalah `output_channels` (yaitu c2_val)
+            c2 = output_channels
+            n = 1 # Karena BiFPN sendiri adalah satu modul
+
+        # --- Lanjutkan dengan kondisi `if m in base_modules:` yang sudah ada,
+        #     pastikan BiFPN_Add, BiFPN_Add3, BiFPN_Concat sudah di-handle di atas.
+        #     Jika sudah di-handle di atas, mereka tidak akan masuk ke blok `if m in base_modules:` lagi.
+        
+        elif m in base_modules:
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
@@ -1526,6 +1590,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             c2 = ch[f]
 
         m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
+        
         t = str(m)[8:-2].replace("__main__.", "")  # module type
         m_.np = sum(x.numel() for x in m_.parameters())  # number params
         m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type

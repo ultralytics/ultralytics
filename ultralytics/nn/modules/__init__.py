@@ -133,7 +133,7 @@ __all__ = (
     "C2f",
     "C3k2",
     "C3K2_FE",
-    "BiFPNSCDown",
+    "BiFPN",
     "C2fPSA",
     "C2PSA",
     "C2fAttn",
@@ -182,4 +182,7 @@ __all__ = (
     "TorchVision",
     "Index",
     "A2C2f",
+    "BiFPN_Add",
+    "BiFPN_Add3",
+    "BiFPN_Concat",
 )

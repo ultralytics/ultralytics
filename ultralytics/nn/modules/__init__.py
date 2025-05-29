@@ -22,6 +22,7 @@ from .block import (
     C2,
     C2PSA,
     C3,
+    C3K2_FE,
     C3TR,
     CIB,
     DFL,
@@ -43,7 +44,6 @@ from .block import (
     C2fPSA,
     C3Ghost,
     C3k2,
-    C3K2_FE,
     C3x,
     CBFuse,
     CBLinear,
@@ -166,5 +166,5 @@ __all__ = (
     "A2C2f",
 )
 
-from .ema import EMA
 from .bifpn import BiFPN
+from .ema import EMA

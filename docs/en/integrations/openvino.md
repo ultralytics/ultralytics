@@ -203,7 +203,7 @@ The Core Ultra™ family includes various models tailored for different performa
 
 As part of Intel's ongoing innovation, the Core Ultra™ series sets a new standard for future-ready computing. With multiple models available and more on the horizon, this series underscores Intel's commitment to delivering cutting-edge solutions for the next generation of intelligent, AI-enhanced devices.
 
-Benchmarks below run on Intel® Ultra™ 7 155H at FP32 and INT8 precision.
+Benchmarks below run on Intel® Core™ Ultra™ 7 258V at FP32 and INT8 precision.
 
 #### Intel® Core™ Ultra™ 7 258V
 

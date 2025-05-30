@@ -5,14 +5,9 @@ import subprocess
 import pytest
 from PIL import Image
 
-from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE
-from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
+from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
 from ultralytics.utils import ARM64, ASSETS, LINUX, WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import TORCH_1_9
-
-# Constants
-TASK_MODEL_DATA = [(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for task in TASKS]
-MODELS = [WEIGHTS_DIR / TASK2MODEL[task] for task in TASKS]
 
 
 def run(cmd: str) -> None:
@@ -44,7 +39,7 @@ def test_val(task: str, model: str, data: str) -> None:
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_predict(task: str, model: str, data: str) -> None:
     """Test YOLO prediction on provided sample assets for specified task and model."""
-    run(f"yolo predict model={model} source={ASSETS} imgsz=32 save save_crop save_txt")
+    run(f"yolo {task} predict model={model} source={ASSETS} imgsz=32 save save_crop save_txt")
 
 
 @pytest.mark.parametrize("model", MODELS)

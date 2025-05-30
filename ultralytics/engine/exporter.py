@@ -114,9 +114,9 @@ def export_formats():
     """Return a dictionary of Ultralytics YOLO export formats."""
     x = [
         ["PyTorch", "-", ".pt", True, True, []],
-        ["RKNN", "rknn", "_rknn_model", True, True, ["batch", "name"]],
         ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize", "half", "nms"]],
         ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"]],
+        ["RKNN", "rknn", "_rknn_model", True, True, ["batch", "name"]],
         [
             "OpenVINO",
             "openvino",
@@ -306,7 +306,7 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        (jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, mnn, ncnn, imx, rknn) = (
+        (jit, onnx, rknn, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, mnn, ncnn, imx) = (
             flags  # export booleans
         )
 

@@ -7,8 +7,6 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Dict, List, Union
 
-import cv2
-
 from ultralytics import __version__
 from ultralytics.utils import (
     ASSETS,
@@ -72,7 +70,6 @@ TASK2METRIC = {
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
 }
-MODELS = frozenset({TASK2MODEL[task] for task in TASKS})
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 SOLUTIONS_HELP_MSG = f"""
@@ -110,8 +107,8 @@ CLI_HELP_MSG = f"""
 
         yolo TASK MODE ARGS
 
-        Where   TASK (optional) is one of {TASKS}
-                MODE (required) is one of {MODES}
+        Where   TASK (optional) is one of {list(TASKS)}
+                MODE (required) is one of {list(MODES)}
                 ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
                     See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
 
@@ -242,7 +239,7 @@ CFG_BOOL_KEYS = frozenset(
 
 def cfg2dict(cfg: Union[str, Path, Dict, SimpleNamespace]) -> Dict:
     """
-    Converts a configuration object to a dictionary.
+    Convert a configuration object to a dictionary.
 
     Args:
         cfg (str | Path | Dict | SimpleNamespace): Configuration object to be converted. Can be a file path,
@@ -313,7 +310,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
         if k in cfg and isinstance(cfg[k], (int, float)):
             cfg[k] = str(cfg[k])
     if cfg.get("name") == "model":  # assign model to 'name' arg
-        cfg["name"] = str(cfg.get("model", "")).split(".")[0]
+        cfg["name"] = str(cfg.get("model", "")).partition(".")[0]
         LOGGER.warning(f"'name=model' automatically updated to 'name={cfg['name']}'.")
 
     # Type and Value checks
@@ -325,7 +322,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
 
 def check_cfg(cfg: Dict, hard: bool = True) -> None:
     """
-    Checks configuration argument types and values for the Ultralytics library.
+    Check configuration argument types and values for the Ultralytics library.
 
     This function validates the types and values of configuration arguments, ensuring correctness and converting
     them if necessary. It checks for specific key types defined in global variables such as `CFG_FLOAT_KEYS`,
@@ -387,7 +384,7 @@ def check_cfg(cfg: Dict, hard: bool = True) -> None:
 
 def get_save_dir(args: SimpleNamespace, name: str = None) -> Path:
     """
-    Returns the directory path for saving outputs, derived from arguments or default settings.
+    Return the directory path for saving outputs, derived from arguments or default settings.
 
     Args:
         args (SimpleNamespace): Namespace object containing configurations such as 'project', 'name', 'task',
@@ -419,10 +416,13 @@ def get_save_dir(args: SimpleNamespace, name: str = None) -> Path:
 
 def _handle_deprecation(custom: Dict) -> Dict:
     """
-    Handles deprecated configuration keys by mapping them to current equivalents with deprecation warnings.
+    Handle deprecated configuration keys by mapping them to current equivalents with deprecation warnings.
 
     Args:
         custom (dict): Configuration dictionary potentially containing deprecated keys.
+
+    Returns:
+        (dict): Updated configuration dictionary with deprecated keys replaced.
 
     Examples:
         >>> custom_config = {"boxes": True, "hide_labels": "False", "line_thickness": 2}
@@ -460,7 +460,7 @@ def _handle_deprecation(custom: Dict) -> Dict:
 
 def check_dict_alignment(base: Dict, custom: Dict, e: Exception = None) -> None:
     """
-    Checks alignment between custom and base configuration dictionaries, handling deprecated keys and providing error
+    Check alignment between custom and base configuration dictionaries, handling deprecated keys and providing error
     messages for mismatched keys.
 
     Args:
@@ -500,7 +500,7 @@ def check_dict_alignment(base: Dict, custom: Dict, e: Exception = None) -> None:
 
 def merge_equals_args(args: List[str]) -> List[str]:
     """
-    Merges arguments around isolated '=' in a list of strings and joins fragments with brackets.
+    Merge arguments around isolated '=' in a list of strings and join fragments with brackets.
 
     This function handles the following cases:
         1. ['arg', '=', 'val'] becomes ['arg=val']
@@ -559,7 +559,7 @@ def merge_equals_args(args: List[str]) -> List[str]:
 
 def handle_yolo_hub(args: List[str]) -> None:
     """
-    Handles Ultralytics HUB command-line interface (CLI) commands for authentication.
+    Handle Ultralytics HUB command-line interface (CLI) commands for authentication.
 
     This function processes Ultralytics HUB CLI commands such as login and logout. It should be called when executing a
     script with arguments related to HUB authentication.
@@ -589,7 +589,7 @@ def handle_yolo_hub(args: List[str]) -> None:
 
 def handle_yolo_settings(args: List[str]) -> None:
     """
-    Handles YOLO settings command-line interface (CLI) commands.
+    Handle YOLO settings command-line interface (CLI) commands.
 
     This function processes YOLO settings CLI commands such as reset and updating individual settings. It should be
     called when executing a script with arguments related to YOLO settings management.
@@ -630,7 +630,7 @@ def handle_yolo_settings(args: List[str]) -> None:
 
 def handle_yolo_solutions(args: List[str]) -> None:
     """
-    Processes YOLO solutions arguments and runs the specified computer vision solutions pipeline.
+    Process YOLO solutions arguments and run the specified computer vision solutions pipeline.
 
     Args:
         args (List[str]): Command-line arguments for configuring and running the Ultralytics YOLO
@@ -707,6 +707,8 @@ def handle_yolo_solutions(args: List[str]) -> None:
             ]
         )
     else:
+        import cv2  # Only needed for cap and vw functionality
+
         from ultralytics import solutions
 
         solution = getattr(solutions, SOLUTION_MAP[solution_name])(is_cli=True, **overrides)  # class i.e ObjectCounter
@@ -732,7 +734,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
                 results = solution(frame, f_n := f_n + 1) if solution_name == "analytics" else solution(frame)
                 if solution_name != "crop":
                     vw.write(results.plot_im)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
+                if solution.CFG["show"] and cv2.waitKey(1) & 0xFF == ord("q"):
                     break
         finally:
             cap.release()
@@ -740,7 +742,7 @@ def handle_yolo_solutions(args: List[str]) -> None:
 
 def parse_key_value_pair(pair: str = "key=value") -> tuple:
     """
-    Parses a key-value pair string into separate key and value components.
+    Parse a key-value pair string into separate key and value components.
 
     Args:
         pair (str): A string containing a key-value pair in the format "key=value".
@@ -774,7 +776,7 @@ def parse_key_value_pair(pair: str = "key=value") -> tuple:
 
 def smart_value(v: str) -> Any:
     """
-    Converts a string representation of a value to its appropriate Python type.
+    Convert a string representation of a value to its appropriate Python type.
 
     This function attempts to convert a given string into a Python object of the most appropriate type. It handles
     conversions to None, bool, int, float, and other types that can be evaluated safely.
@@ -909,9 +911,9 @@ def entrypoint(debug: str = "") -> None:
     mode = overrides.get("mode")
     if mode is None:
         mode = DEFAULT_CFG.mode or "predict"
-        LOGGER.warning(f"'mode' argument is missing. Valid modes are {MODES}. Using default 'mode={mode}'.")
+        LOGGER.warning(f"'mode' argument is missing. Valid modes are {list(MODES)}. Using default 'mode={mode}'.")
     elif mode not in MODES:
-        raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {MODES}.\n{CLI_HELP_MSG}")
+        raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {list(MODES)}.\n{CLI_HELP_MSG}")
 
     # Task
     task = overrides.pop("task", None)
@@ -919,11 +921,11 @@ def entrypoint(debug: str = "") -> None:
         if task not in TASKS:
             if task == "track":
                 LOGGER.warning(
-                    "invalid 'task=track', setting 'task=detect' and 'mode=track'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}."
+                    f"invalid 'task=track', setting 'task=detect' and 'mode=track'. Valid tasks are {list(TASKS)}.\n{CLI_HELP_MSG}."
                 )
                 task, mode = "detect", "track"
             else:
-                raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
+                raise ValueError(f"Invalid 'task={task}'. Valid tasks are {list(TASKS)}.\n{CLI_HELP_MSG}")
         if "model" not in overrides:
             overrides["model"] = TASK2MODEL[task]
 
@@ -991,7 +993,7 @@ def entrypoint(debug: str = "") -> None:
 # Special modes --------------------------------------------------------------------------------------------------------
 def copy_default_cfg() -> None:
     """
-    Copies the default configuration file and creates a new one with '_copy' appended to its name.
+    Copy the default configuration file and create a new one with '_copy' appended to its name.
 
     This function duplicates the existing default configuration file (DEFAULT_CFG_PATH) and saves it
     with '_copy' appended to its name in the current working directory. It provides a convenient way

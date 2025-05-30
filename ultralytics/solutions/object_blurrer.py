@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-
 import cv2
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
@@ -21,9 +20,9 @@ class ObjectBlurrer(BaseSolution):
         conf (float): Confidence threshold for object detection.
 
     Methods:
-        process: Applies a blurring effect to detected objects in the input image.
-        extract_tracks: Extracts tracking information from detected objects.
-        display_output: Displays the processed output image.
+        process: Apply a blurring effect to detected objects in the input image.
+        extract_tracks: Extract tracking information from detected objects.
+        display_output: Display the processed output image.
 
     Examples:
         >>> blurrer = ObjectBlurrer()

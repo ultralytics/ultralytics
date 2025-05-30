@@ -281,6 +281,82 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V at FP32 and INT8 precisi
         <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra-npu.avif" alt="Intel Core Ultra NPU benchmarks">
         </div>
 
+#### Intel® Core™ Ultra™ 7 265K
+
+!!! tip "Benchmarks"
+
+    === "Integrated Intel® Arc™ GPU"
+
+        | Model   | Format   | Precision | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
+        | ------- | -------- | --------- | ------ | --------- | ------------------- | ---------------------- |
+        | YOLO11n | PyTorch  | FP32      | ✅     | 5.4       | 0.6316              | 39.52                  |
+        | YOLO11n | OpenVINO | FP32      | ✅     | 10.4      | 0.6107              | 19.35                  |
+        | YOLO11n | OpenVINO | INT8      | ✅     | 3.3       | 0.6300              | 10.22                  |
+        | YOLO11s | PyTorch  | FP32      | ✅     | 18.4      | 0.7469              | 104.09                 |
+        | YOLO11s | OpenVINO | FP32      | ✅     | 36.4      | 0.7422              | 26.17                  |
+        | YOLO11s | OpenVINO | INT8      | ✅     | 9.8       | 0.7442              | 17.97                  |
+        | YOLO11m | PyTorch  | FP32      | ✅     | 38.8      | 0.7642              | 286.281                |
+        | YOLO11m | OpenVINO | FP32      | ✅     | 77.1      | 0.7643              | 44.31                  |
+        | YOLO11m | OpenVINO | INT8      | ✅     | 20.2      | 0.7510              | 30.87                  |
+        | YOLO11l | PyTorch  | FP32      | ✅     | 49.0      | 0.7401              | 352.25                 |
+        | YOLO11l | OpenVINO | FP32      | ✅     | 97.3      | 0.7256              | 54.14                  |
+        | YOLO11l | OpenVINO | INT8      | ✅     | 25.7      | 0.7259              | 30.34                  |
+        | YOLO11x | PyTorch  | FP32      | ✅     | 109.3     | 0.8467              | 731.15                 |
+        | YOLO11x | OpenVINO | FP32      | ✅     | 217.8     | 0.8259              | 112.52                 |
+        | YOLO11x | OpenVINO | INT8      | ✅     | 55.9      | 0.8186              | 54.27                  |
+
+        <div align="center">
+        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra-256k-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
+        </div>
+
+    === "Intel® Arrow Lake CPU"
+
+        | Model   | Format   | Precision | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
+        | ------- | -------- | --------- | ------ | --------- | ------------------- | ---------------------- |
+        | YOLO11n | PyTorch  | FP32      | ✅     | 5.4       | 0.6316              | 39.52                  |
+        | YOLO11n | OpenVINO | FP32      | ✅     | 10.4      | 0.6082              | 51.99                  |
+        | YOLO11n | OpenVINO | INT8      | ✅     | 3.3       | 0.6256              | 32.29                  |
+        | YOLO11s | PyTorch  | FP32      | ✅     | 18.4      | 0.7469              | 104.09                 |
+        | YOLO11s | OpenVINO | FP32      | ✅     | 36.4      | 0.7400              | 136.54                 |
+        | YOLO11s | OpenVINO | INT8      | ✅     | 9.8       | 0.7488              | 89.59                  |
+        | YOLO11m | PyTorch  | FP32      | ✅     | 38.8      | 0.7642              | 286.28                 |
+        | YOLO11m | OpenVINO | FP32      | ✅     | 77.1      | 0.7642              | 128.12                 |
+        | YOLO11m | OpenVINO | INT8      | ✅     | 20.2      | 0.7504              | 181.31                 |
+        | YOLO11l | PyTorch  | FP32      | ✅     | 49.0      | 0.7401              | 352.25                 |
+        | YOLO11l | OpenVINO | FP32      | ✅     | 97.3      | 0.7249              | 143.76                 |
+        | YOLO11l | OpenVINO | INT8      | ✅     | 25.7      | 0.7318              | 239.66                 |
+        | YOLO11x | PyTorch  | FP32      | ✅     | 109.3     | 0.8467              | 731.15                 |
+        | YOLO11x | OpenVINO | FP32      | ✅     | 217.8     | 0.8308              | 214.97                 |
+        | YOLO11x | OpenVINO | INT8      | ✅     | 55.9      | 0.819               | 399.89                 |
+
+        <div align="center">
+        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra-256k-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
+        </div>
+
+    === "Integrated Intel® AI Boost NPU"
+
+        | Model   | Format   | Precision | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
+        | ------- | -------- | --------- | ------ | --------- | ------------------- | ---------------------- |
+        | YOLO11n | PyTorch  | FP32      | ✅     | 5.4       | 0.6316              | 39.52                  |
+        | YOLO11n | OpenVINO | FP32      | ✅     | 10.4      | 0.6095              | 33.59                  |
+        | YOLO11n | OpenVINO | INT8      | ✅     | 3.3       | 0.3961              | 19.42                  |
+        | YOLO11s | PyTorch  | FP32      | ✅     | 18.4      | 0.7469              | 104.09                 |
+        | YOLO11s | OpenVINO | FP32      | ✅     | 36.4      | 0.7425              | 27.52                  |
+        | YOLO11s | OpenVINO | INT8      | ✅     | 9.8       | 0.7386              | 27.37                  |
+        | YOLO11m | PyTorch  | FP32      | ✅     | 38.8      | 0.7642              | 286.28                 |
+        | YOLO11m | OpenVINO | FP32      | ✅     | 77.1      | 0.7642              | 48.25                  |
+        | YOLO11m | OpenVINO | INT8      | ✅     | 20.2      | 0.7534              | 45.06                  |
+        | YOLO11l | PyTorch  | FP32      | ✅     | 49.0      | 0.7401              | 352.25                 |
+        | YOLO11l | OpenVINO | FP32      | ✅     | 97.3      | 0.7264              | 56.52                  |
+        | YOLO11l | OpenVINO | INT8      | ✅     | 25.7      | 0.7215              | 49.36                  |
+        | YOLO11x | PyTorch  | FP32      | ✅     | 109.3     | 0.8467              | 731.15                 |
+        | YOLO11x | OpenVINO | FP32      | ✅     | 217.8     | 0.8308              | 89.33                  |
+        | YOLO11x | OpenVINO | INT8      | ✅     | 55.9      | 0.7996              | 69.30                  |
+
+        <div align="center">
+        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra-256k-npu.avif" alt="Intel Core Ultra NPU benchmarks">
+        </div>
+
 ## Reproduce Our Results
 
 To reproduce the Ultralytics benchmarks above on all export [formats](../modes/export.md) run this code:

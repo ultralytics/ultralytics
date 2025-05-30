@@ -19,15 +19,16 @@ except ImportError:
 
 class YOLOv8TFLite:
     """
-    A class for performing object detection using the YOLOv8 model with TensorFlow Lite.
+    A YOLOv8 object detection class using TensorFlow Lite for efficient inference.
 
-    This class handles model loading, preprocessing, inference, and visualization of detection results.
+    This class handles model loading, preprocessing, inference, and visualization of detection results for YOLOv8
+    models converted to TensorFlow Lite format.
 
     Attributes:
         model (Interpreter): TensorFlow Lite interpreter for the YOLOv8 model.
         conf (float): Confidence threshold for filtering detections.
         iou (float): Intersection over Union threshold for non-maximum suppression.
-        classes (Dict[int, str]): Dictionary mapping class IDs to class names.
+        classes (dict): Dictionary mapping class IDs to class names.
         color_palette (np.ndarray): Random color palette for visualization with shape (num_classes, 3).
         in_width (int): Input width required by the model.
         in_height (int): Input height required by the model.
@@ -40,16 +41,22 @@ class YOLOv8TFLite:
         out_zero_point (int): Output quantization zero point.
 
     Methods:
-        letterbox: Resizes and pads image while maintaining aspect ratio.
-        draw_detections: Draws bounding boxes and labels on the input image.
-        preprocess: Preprocesses the input image before inference.
-        postprocess: Processes model outputs to extract and visualize detections.
-        detect: Performs object detection on an input image.
+        letterbox: Resize and pad image while maintaining aspect ratio.
+        draw_detections: Draw bounding boxes and labels on the input image.
+        preprocess: Preprocess the input image before inference.
+        postprocess: Process model outputs to extract and visualize detections.
+        detect: Perform object detection on an input image.
+
+    Examples:
+        Initialize detector and run inference
+        >>> detector = YOLOv8TFLite("yolov8n.tflite", conf=0.25, iou=0.45)
+        >>> result = detector.detect("image.jpg")
+        >>> cv2.imshow("Result", result)
     """
 
     def __init__(self, model: str, conf: float = 0.25, iou: float = 0.45, metadata: Union[str, None] = None):
         """
-        Initialize an instance of the YOLOv8TFLite class.
+        Initialize the YOLOv8TFLite detector.
 
         Args:
             model (str): Path to the TFLite model file.
@@ -116,7 +123,7 @@ class YOLOv8TFLite:
 
     def draw_detections(self, img: np.ndarray, box: np.ndarray, score: np.float32, class_id: int) -> None:
         """
-        Draw bounding boxes and labels on the input image based on the detected objects.
+        Draw bounding boxes and labels on the input image based on detected objects.
 
         Args:
             img (np.ndarray): The input image to draw detections on.

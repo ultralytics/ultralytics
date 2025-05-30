@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import time
+from typing import Tuple
 
 import cv2
 
@@ -18,7 +19,7 @@ video_output_path = "interactive_tracker_output.avi"  # Output video file name
 
 conf = 0.3  # Min confidence for object detection (lower = more detections, possibly more false positives)
 iou = 0.3  # IoU threshold for NMS (higher = less overlap allowed)
-max_det = 20  # Maximum objects per im (increase for crowded scenes)
+max_det = 20  # Maximum objects per image (increase for crowded scenes)
 
 tracker = "bytetrack.yaml"  # Tracker config: 'bytetrack.yaml', 'botsort.yaml', etc.
 track_args = {
@@ -37,7 +38,7 @@ else:
     LOGGER.info("Using CPU...")
     model = YOLO(model_file, task="detect")
 
-classes = model.names  # Store model classes names
+classes = model.names  # Store model class names
 
 cap = cv2.VideoCapture(0)  # Replace with video path if needed
 
@@ -52,9 +53,9 @@ selected_bbox = None
 selected_center = None
 
 
-def get_center(x1, y1, x2, y2):
+def get_center(x1: int, y1: int, x2: int, y2: int) -> Tuple[int, int]:
     """
-    Calculates the center point of a bounding box.
+    Calculate the center point of a bounding box.
 
     Args:
         x1 (int): Top-left X coordinate.
@@ -63,23 +64,25 @@ def get_center(x1, y1, x2, y2):
         y2 (int): Bottom-right Y coordinate.
 
     Returns:
-        (int, int): Center point (x, y) of the bounding box.
+        center_x (int): X-coordinate of the center point.
+        center_y (int): Y-coordinate of the center point.
     """
     return (x1 + x2) // 2, (y1 + y2) // 2
 
 
-def extend_line_from_edge(mid_x, mid_y, direction, img_shape):
+def extend_line_from_edge(mid_x: int, mid_y: int, direction: str, img_shape: Tuple[int, int, int]) -> Tuple[int, int]:
     """
-    Calculates the endpoint to extend a line from the center toward an image edge.
+    Calculate the endpoint to extend a line from the center toward an image edge.
 
     Args:
         mid_x (int): X-coordinate of the midpoint.
         mid_y (int): Y-coordinate of the midpoint.
         direction (str): Direction to extend ('left', 'right', 'up', 'down').
-        img_shape (tuple): Image shape in (height, width, channels).
+        img_shape (Tuple[int, int, int]): Image shape in (height, width, channels).
 
     Returns:
-        (int, int): Endpoint coordinate of the extended line.
+        end_x (int): X-coordinate of the endpoint.
+        end_y (int): Y-coordinate of the endpoint.
     """
     h, w = img_shape[:2]
     if direction == "left":
@@ -93,9 +96,9 @@ def extend_line_from_edge(mid_x, mid_y, direction, img_shape):
     return mid_x, mid_y
 
 
-def draw_tracking_scope(im, bbox, color):
+def draw_tracking_scope(im, bbox: tuple, color: tuple) -> None:
     """
-    Draws tracking scope lines extending from the bounding box to image edges.
+    Draw tracking scope lines extending from the bounding box to image edges.
 
     Args:
         im (ndarray): Image array to draw on.
@@ -113,16 +116,16 @@ def draw_tracking_scope(im, bbox, color):
     cv2.line(im, mid_right, extend_line_from_edge(*mid_right, "right", im.shape), color, 2)
 
 
-def click_event(event, x, y, flags, param):
+def click_event(event: int, x: int, y: int, flags: int, param) -> None:
     """
-    Handles mouse click events to select an object for focused tracking.
+    Handle mouse click events to select an object for focused tracking.
 
     Args:
         event (int): OpenCV mouse event type.
         x (int): X-coordinate of the mouse event.
         y (int): Y-coordinate of the mouse event.
         flags (int): Any relevant flags passed by OpenCV.
-        param (any): Additional parameters (not used).
+        param (Any): Additional parameters (not used).
     """
     global selected_object_id
     if event == cv2.EVENT_LBUTTONDOWN:

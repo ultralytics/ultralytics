@@ -16,7 +16,7 @@ class PosePredictor(DetectionPredictor):
         model (torch.nn.Module): The loaded YOLO pose model with keypoint detection capabilities.
 
     Methods:
-        construct_result: Constructs the result object from the prediction, including keypoints.
+        construct_result: Construct the result object from the prediction, including keypoints.
 
     Examples:
         >>> from ultralytics.utils import ASSETS
@@ -28,13 +28,13 @@ class PosePredictor(DetectionPredictor):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
-        Initialize PosePredictor, a specialized predictor for pose estimation tasks.
+        Initialize PosePredictor for pose estimation tasks.
 
-        This initializer sets up a PosePredictor instance, configuring it for pose detection tasks and handling
-        device-specific warnings for Apple MPS.
+        Sets up a PosePredictor instance, configuring it for pose detection tasks and handling device-specific
+        warnings for Apple MPS.
 
         Args:
-            cfg (Any): Configuration for the predictor. Default is DEFAULT_CFG.
+            cfg (Any): Configuration for the predictor.
             overrides (dict, optional): Configuration overrides that take precedence over cfg.
             _callbacks (list, optional): List of callback functions to be invoked during prediction.
 
@@ -57,8 +57,8 @@ class PosePredictor(DetectionPredictor):
         """
         Construct the result object from the prediction, including keypoints.
 
-        This method extends the parent class implementation by extracting keypoint data from predictions
-        and adding them to the result object.
+        Extends the parent class implementation by extracting keypoint data from predictions and adding them to the
+        result object.
 
         Args:
             pred (torch.Tensor): The predicted bounding boxes, scores, and keypoints with shape (N, 6+K*D) where N is
@@ -68,7 +68,8 @@ class PosePredictor(DetectionPredictor):
             img_path (str): The path to the original image file.
 
         Returns:
-            (Results): The result object containing the original image, image path, class names, bounding boxes, and keypoints.
+            (Results): The result object containing the original image, image path, class names, bounding boxes, and
+                keypoints.
         """
         result = super().construct_result(pred, img, orig_img, img_path)
         # Extract keypoints from prediction and reshape according to model's keypoint shape

@@ -36,7 +36,7 @@ def _log_images(path: Path, prefix: str = "") -> None:
 
     Args:
         path (Path): Path to the image file to be logged.
-        prefix (str): Optional prefix to add to the image name when logging.
+        prefix (str, optional): Optional prefix to add to the image name when logging.
 
     Examples:
         >>> from pathlib import Path
@@ -77,11 +77,8 @@ def _log_confusion_matrix(validator) -> None:
     the matrix into lists of target and prediction labels.
 
     Args:
-        validator (BaseValidator): The validator object containing the confusion matrix and class names.
-            Must have attributes: confusion_matrix.matrix, confusion_matrix.task, and names.
-
-    Returns:
-        None
+        validator (BaseValidator): The validator object containing the confusion matrix and class names. Must have
+            attributes: confusion_matrix.matrix, confusion_matrix.task, and names.
     """
     targets = []
     preds = []
@@ -99,7 +96,7 @@ def _log_confusion_matrix(validator) -> None:
 
 
 def on_pretrain_routine_start(trainer) -> None:
-    """Initializes DVCLive logger for training metadata during pre-training routine."""
+    """Initialize DVCLive logger for training metadata during pre-training routine."""
     try:
         global live
         live = dvclive.Live(save_dvc_exp=True, cache_images=True)
@@ -109,18 +106,18 @@ def on_pretrain_routine_start(trainer) -> None:
 
 
 def on_pretrain_routine_end(trainer) -> None:
-    """Logs plots related to the training process at the end of the pretraining routine."""
+    """Log plots related to the training process at the end of the pretraining routine."""
     _log_plots(trainer.plots, "train")
 
 
 def on_train_start(trainer) -> None:
-    """Logs the training parameters if DVCLive logging is active."""
+    """Log the training parameters if DVCLive logging is active."""
     if live:
         live.log_params(trainer.args)
 
 
 def on_train_epoch_start(trainer) -> None:
-    """Sets the global variable _training_epoch value to True at the start of training each epoch."""
+    """Set the global variable _training_epoch value to True at the start of training each epoch."""
     global _training_epoch
     _training_epoch = True
 

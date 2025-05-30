@@ -116,7 +116,6 @@ def export_formats():
         ["PyTorch", "-", ".pt", True, True, []],
         ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize", "half", "nms"]],
         ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"]],
-        ["RKNN", "rknn", "_rknn_model", True, True, ["batch", "name"]],
         [
             "OpenVINO",
             "openvino",
@@ -141,6 +140,7 @@ def export_formats():
         ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "half", "int8", "nms"]],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
+        ["RKNN", "rknn", "_rknn_model", True, True, ["batch", "name"]],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction"]],
     ]
@@ -306,7 +306,7 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        (jit, onnx, rknn, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, mnn, ncnn, imx) = (
+        (jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, mnn, rknn, ncnn, imx) = (
             flags  # export booleans
         )
 
@@ -521,12 +521,12 @@ class Exporter:
             f[10], _ = self.export_paddle()
         if mnn:  # MNN
             f[11], _ = self.export_mnn()
+        if rknn:  # RKNN
+            f[12], _ = self.export_rknn()
         if ncnn:  # NCNN
-            f[12], _ = self.export_ncnn()
+            f[13], _ = self.export_ncnn()
         if imx:
-            f[13], _ = self.export_imx()
-        if rknn:
-            f[14], _ = self.export_rknn()
+            f[14], _ = self.export_imx()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None

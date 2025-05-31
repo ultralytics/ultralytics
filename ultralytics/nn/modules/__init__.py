@@ -22,6 +22,7 @@ from .block import (
     C2,
     C2PSA,
     C3,
+    C3K2_FE,
     C3TR,
     CIB,
     DFL,
@@ -130,7 +131,7 @@ __all__ = (
     "C3",
     "C2f",
     "C3k2",
-    "SCDown",
+    "C3K2_FE",
     "C2fPSA",
     "C2PSA",
     "C2fAttn",
@@ -180,3 +181,5 @@ __all__ = (
     "Index",
     "A2C2f",
 )
+
+from .bifpn import BiFPN

@@ -3,7 +3,7 @@
 {%set tip3 = ':material-information-outline:{ title="Only works on CPU. If you are running export on a GPU, set os.environ[CUDA_VISIBLE_DEVICES] = -1 before the export call" }' %}
 
 | Format                                            | `format` Argument | Model                                           | Metadata | Arguments                                                                                                           |
-|---------------------------------------------------| ----------------- |-------------------------------------------------| -------- | ------------------------------------------------------------------------------------------------------------------- |
+| ------------------------------------------------- | ----------------- | ----------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                   | -                 | `{{ model_name or "yolo11n" }}.pt`              | ✅       | -                                                                                                                   |
 | [TorchScript](../integrations/torchscript.md)     | `torchscript`     | `{{ model_name or "yolo11n" }}.torchscript`     | ✅       | `imgsz`, `half`, `optimize`, `nms`{{ tip1 }}, `batch`, `device`                                                     |
 | [ONNX](../integrations/onnx.md)                   | `onnx`            | `{{ model_name or "yolo11n" }}.onnx`            | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `nms`{{ tip1 }}, `batch`, `device`                                 |

@@ -205,7 +205,7 @@ class DataExportMixin:
         to_sql: Export results to an SQLite database.
 
     Examples:
-        >>> model = YOLO("yolov8n.pt")
+        >>> model = YOLO("yolo11n.pt")
         >>> results = model("image.jpg")
         >>> df = results.to_df()
         >>> print(df)

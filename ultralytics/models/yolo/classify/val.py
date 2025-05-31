@@ -79,7 +79,9 @@ class ClassificationValidator(BaseValidator):
         """Initialize confusion matrix, class names, and tracking containers for predictions and targets."""
         self.names = model.names
         self.nc = len(model.names)
-        self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf, task="classify")
+        self.confusion_matrix = ConfusionMatrix(
+            nc=self.nc, conf=self.args.conf, names=self.names.values(), task="classify"
+        )
         self.pred = []
         self.targets = []
 
@@ -124,9 +126,7 @@ class ClassificationValidator(BaseValidator):
         self.confusion_matrix.process_cls_preds(self.pred, self.targets)
         if self.args.plots:
             for normalize in True, False:
-                self.confusion_matrix.plot(
-                    save_dir=self.save_dir, names=self.names.values(), normalize=normalize, on_plot=self.on_plot
-                )
+                self.confusion_matrix.plot(save_dir=self.save_dir, normalize=normalize, on_plot=self.on_plot)
         self.metrics.speed = self.speed
         self.metrics.confusion_matrix = self.confusion_matrix
         self.metrics.save_dir = self.save_dir

@@ -200,6 +200,11 @@ def test_track_stream(model):
         model.track(video_url, imgsz=160, tracker=custom_yaml)
 
 
+def test_count_stream():
+    """Test for object counting."""
+    _ = YOLO("yolo11n.pt").count()
+
+
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_val(task: str, model: str, data: str) -> None:
     """Test the validation mode of the YOLO model."""

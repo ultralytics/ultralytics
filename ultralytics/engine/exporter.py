@@ -140,7 +140,7 @@ def export_formats():
         ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "half", "int8", "nms"]],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
-        ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
+        ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half", "int8"]],
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
     ]
@@ -833,6 +833,55 @@ class Exporter:
         pnnx_files = [x.rsplit("=", 1)[-1] for x in pnnx_args]
         for f_debug in ("debug.bin", "debug.param", "debug2.bin", "debug2.param", *pnnx_files):
             Path(f_debug).unlink(missing_ok=True)
+
+        if self.args.int8:
+            from ultralytics.utils import get_ubuntu_version as guv
+
+            system = f"ubuntu-{str(guv()).replace('.', '')}" if LINUX else "windows-vs2022" if WINDOWS else system
+            try:
+                release, assets = get_github_assets(repo="Tencent/ncnn")
+                asset = [x for x in assets if f"{system}.zip" in x][0]
+                LOGGER.info(f"{prefix} found NCNN asset {asset}")
+            except Exception as e:
+                release = "20240820"
+                asset = f"ncnn-{release}-{system}.zip"
+                LOGGER.warning(f"{prefix} NCNN assets not found: {e}, using default {asset}")
+            unzip_dir = safe_download(
+                f"https://github.com/Tencent/ncnn/releases/download/{release}/{asset}", delete=True
+            )
+            bin_dir = unzip_dir / "bin"
+            for file in bin_dir.iterdir():
+                file.chmod(0o777)
+
+            self.args.batch = 1
+            data, calib_dir = self.get_int8_calibration_dataloader(), f / "calibration"
+            calib_dir.mkdir(exist_ok=True)
+            fns = [str((calib_dir / str(i)).with_suffix(".npy")) for i, batch in enumerate(data)]
+            for fn, batch in zip(fns, data):
+                np.save(fn, batch["img"][0] / 255.0)
+            with open(calib_dir / "ims.txt", "w") as txt:
+                txt.writelines([fn + "\n" for fn in fns])
+
+            opt_files = [f / "model-opt.ncnn.param", f / "model-opt.ncnn.bin"]
+            model_files = [f / "model.ncnn.param", f / "model.ncnn.bin"]
+            subprocess.run([bin_dir / "ncnnoptimize", *model_files, *opt_files, "0"], check=True)
+            subprocess.run(
+                [
+                    *[bin_dir / "ncnn2table", *model_files, calib_dir / "ims.txt", calib_dir / "cal.tbl"],
+                    *[
+                        f"shape={[*batch['img'].shape[-2:], batch['img'].shape[1]]}",
+                        "threads=8",
+                        "method=aciq",
+                        "type=1",
+                    ],
+                ],
+                check=True,
+            )
+            subprocess.run([bin_dir / "ncnn2int8", *opt_files, *model_files, calib_dir / "cal.tbl"], check=True)
+            for of in opt_files:
+                of.unlink(missing_ok=True)
+            shutil.rmtree(calib_dir)
+            shutil.rmtree(unzip_dir)
 
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
         return str(f), None

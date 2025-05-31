@@ -173,8 +173,8 @@ class AutoBackend(nn.Module):
             tfjs,
             paddle,
             mnn,
-            ncnn,
             rknn,
+            ncnn,
             imx,
             triton,
         ) = self._model_type(w)

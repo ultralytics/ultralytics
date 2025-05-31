@@ -841,8 +841,7 @@ def is_docker() -> bool:
         (bool): True if the script is running inside a Docker container, False otherwise.
     """
     try:
-        with open("/proc/self/cgroup") as f:
-            return "docker" in f.read()
+        return os.path.exists("/.dockerenv")
     except Exception:
         return False
 

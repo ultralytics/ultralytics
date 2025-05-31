@@ -3,7 +3,7 @@
 import math
 import random
 from copy import deepcopy
-from typing import List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import cv2
 import numpy as np
@@ -2416,7 +2416,7 @@ class RandomLoadText:
         self.padding = padding
         self.padding_value = padding_value
 
-    def __call__(self, labels: dict) -> dict:
+    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Randomly sample positive and negative texts and update class indices accordingly.
 

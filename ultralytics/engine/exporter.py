@@ -116,7 +116,6 @@ def export_formats():
         ["PyTorch", "-", ".pt", True, True, []],
         ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize", "half", "nms"]],
         ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"]],
-        ["RKNN", "rknn", "_rknn_model", True, True, ["batch", "name"]],
         [
             "OpenVINO",
             "openvino",
@@ -143,6 +142,7 @@ def export_formats():
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction"]],
+        ["RKNN", "rknn", "_rknn_model", True, True, ["batch", "name"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -306,7 +306,7 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        (jit, onnx, rknn, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, mnn, ncnn, imx) = (
+        (jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, mnn, ncnn, imx, rknn) = (
             flags  # export booleans
         )
 
@@ -502,31 +502,31 @@ class Exporter:
             f[1], _ = self.export_engine(dla=dla)
         if onnx:  # ONNX
             f[2], _ = self.export_onnx()
-        if rknn:  # RKNN
-            f[3], _ = self.export_rknn()
         if xml:  # OpenVINO
-            f[4], _ = self.export_openvino()
+            f[3], _ = self.export_openvino()
         if coreml:  # CoreML
-            f[5], _ = self.export_coreml()
+            f[4], _ = self.export_coreml()
         if is_tf_format:  # TensorFlow formats
             self.args.int8 |= edgetpu
-            f[6], keras_model = self.export_saved_model()
+            f[5], keras_model = self.export_saved_model()
             if pb or tfjs:  # pb prerequisite to tfjs
-                f[7], _ = self.export_pb(keras_model=keras_model)
+                f[6], _ = self.export_pb(keras_model=keras_model)
             if tflite:
-                f[8], _ = self.export_tflite()
+                f[7], _ = self.export_tflite()
             if edgetpu:
-                f[9], _ = self.export_edgetpu(tflite_model=Path(f[5]) / f"{self.file.stem}_full_integer_quant.tflite")
+                f[8], _ = self.export_edgetpu(tflite_model=Path(f[5]) / f"{self.file.stem}_full_integer_quant.tflite")
             if tfjs:
-                f[10], _ = self.export_tfjs()
+                f[9], _ = self.export_tfjs()
         if paddle:  # PaddlePaddle
-            f[11], _ = self.export_paddle()
+            f[10], _ = self.export_paddle()
         if mnn:  # MNN
-            f[12], _ = self.export_mnn()
+            f[11], _ = self.export_mnn()
         if ncnn:  # NCNN
-            f[13], _ = self.export_ncnn()
+            f[12], _ = self.export_ncnn()
         if imx:
-            f[14], _ = self.export_imx()
+            f[13], _ = self.export_imx()
+        if rknn:  # RKNN
+            f[14], _ = self.export_rknn()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None

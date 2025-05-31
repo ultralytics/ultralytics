@@ -92,10 +92,6 @@ For detailed instructions and best practices related to the installation process
         yolo export model=yolo11n.pt format=rknn name=rk3588 # creates '/yolo11n_rknn_model'
         ```
 
-!!! warning
-
-    Ultralytics package installs additional export dependencies at runtime due to `rknn-toolkit2`. The first time you run the export command, it may fail and you may need to re-run the export to ensure it works correctly.
-
 ### Export Arguments
 
 | Argument | Type             | Default    | Description                                                                                                                             |

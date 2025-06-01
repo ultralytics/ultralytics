@@ -199,11 +199,11 @@ class LovaszHingeLoss(nn.Module):
 
     def __call__(self, logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
         labels = labels.float()
-        errors = 1. - logits * (2. * labels - 1.)
+        errors = 1.0 - logits * (2.0 * labels - 1.0)
         errors_sorted, perm = torch.sort(errors, descending=True)
         labels_sorted = labels[perm]
         gts = labels_sorted.sum()
-        jaccard = 1. - (gts - labels_sorted.cumsum(0)) / (gts + (1 - labels_sorted).cumsum(0))
+        jaccard = 1.0 - (gts - labels_sorted.cumsum(0)) / (gts + (1 - labels_sorted).cumsum(0))
         jaccard = torch.cat([jaccard[:1], jaccard[1:] - jaccard[:-1]])
         return torch.dot(F.relu(errors_sorted), jaccard)
 
@@ -392,7 +392,16 @@ class v8SegmentationLoss(v8DetectionLoss):
                 masks = F.interpolate(masks[None], (mask_h, mask_w), mode="nearest")[0]
 
             loss[1] = self.calculate_segmentation_loss(
-                fg_mask, masks, target_gt_idx, target_bboxes, batch_idx, proto, pred_masks, imgsz, self.overlap, self.hyp.lovasz_weight
+                fg_mask,
+                masks,
+                target_gt_idx,
+                target_bboxes,
+                batch_idx,
+                proto,
+                pred_masks,
+                imgsz,
+                self.overlap,
+                self.hyp.lovasz_weight,
             )
 
         # WARNING: lines below prevent Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
@@ -408,7 +417,13 @@ class v8SegmentationLoss(v8DetectionLoss):
 
     @staticmethod
     def single_mask_loss(
-        gt_mask: torch.Tensor, pred: torch.Tensor, proto: torch.Tensor, xyxy: torch.Tensor, area: torch.Tensor, lovasz_loss: LovaszHingeLoss, lovasz_weight: float
+        gt_mask: torch.Tensor,
+        pred: torch.Tensor,
+        proto: torch.Tensor,
+        xyxy: torch.Tensor,
+        area: torch.Tensor,
+        lovasz_loss: LovaszHingeLoss,
+        lovasz_weight: float,
     ) -> torch.Tensor:
         """
         Compute the instance segmentation loss for a single image.
@@ -421,6 +436,7 @@ class v8SegmentationLoss(v8DetectionLoss):
             area (torch.Tensor): Area of each ground truth bounding box of shape (N,).
             lovasz_loss (LovaszHingeLoss): instance of LovaszHingeLoss class.
             lovasz_weight (float):  Weighting factor for combining Lovasz hinge loss with binary cross-entropy in the total basic segmentation loss.
+
         Returns:
             (torch.Tensor): The calculated mask loss for a single image.
 
@@ -429,8 +445,9 @@ class v8SegmentationLoss(v8DetectionLoss):
             predicted masks from the prototype masks and predicted mask coefficients.
         """
         pred_mask = torch.einsum("in,nhw->ihw", pred, proto)  # (n, 32) @ (32, 80, 80) -> (n, 80, 80)
-        loss = (F.binary_cross_entropy_with_logits(pred_mask, gt_mask, reduction="none") +
-                lovasz_weight * (lovasz_loss(pred_mask.view(-1), gt_mask.view(-1)) if lovasz_weight > 0 else 0))
+        loss = F.binary_cross_entropy_with_logits(pred_mask, gt_mask, reduction="none") + lovasz_weight * (
+            lovasz_loss(pred_mask.view(-1), gt_mask.view(-1)) if lovasz_weight > 0 else 0
+        )
         return (crop_mask(loss, xyxy).mean(dim=(1, 2)) / area).sum()
 
     def calculate_segmentation_loss(
@@ -460,6 +477,7 @@ class v8SegmentationLoss(v8DetectionLoss):
             imgsz (torch.Tensor): Size of the input image as a tensor of shape (2), i.e., (H, W).
             overlap (bool): Whether the masks in `masks` tensor overlap.
             lovasz_weight (float): Weighting factor for combining Lovasz hinge loss with binary cross-entropy in the total basic segmentation loss.
+
         Returns:
             (torch.Tensor): The calculated loss for instance segmentation.
 
@@ -491,7 +509,13 @@ class v8SegmentationLoss(v8DetectionLoss):
                     gt_mask = masks[batch_idx.view(-1) == i][mask_idx]
 
                 loss += self.single_mask_loss(
-                    gt_mask, pred_masks_i[fg_mask_i], proto_i, mxyxy_i[fg_mask_i], marea_i[fg_mask_i], self.lovaszhingeloss, lovasz_weight
+                    gt_mask,
+                    pred_masks_i[fg_mask_i],
+                    proto_i,
+                    mxyxy_i[fg_mask_i],
+                    marea_i[fg_mask_i],
+                    self.lovaszhingeloss,
+                    lovasz_weight,
                 )
 
             # WARNING: lines below prevents Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove

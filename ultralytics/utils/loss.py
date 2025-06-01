@@ -192,12 +192,27 @@ class KeypointLoss(nn.Module):
 
 
 class LovaszHingeLoss(nn.Module):
-    """Lovasz hinge loss for binary segmentation."""
+    """Lovasz hinge loss for binary segmentation.
+
+    This loss function is a convex surrogate for the IoU (Jaccard index), useful
+    especially for unbalanced class distributions in segmentation tasks.
+    """
 
     def __init__(self):
+        """Initialize the LovaszHingeLoss module."""
         super().__init__()
 
     def __call__(self, logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
+        """
+        Compute the Lovasz hinge loss.
+
+        Args:
+            logits (torch.Tensor): The raw output logits from the model. Shape (N,) or (B, N).
+            labels (torch.Tensor): Ground truth binary labels (0 or 1). Same shape as logits.
+
+        Returns:
+            torch.Tensor: The scalar Lovasz hinge loss value.
+        """
         labels = labels.float()
         errors = 1.0 - logits * (2.0 * labels - 1.0)
         errors_sorted, perm = torch.sort(errors, descending=True)

@@ -191,6 +191,23 @@ class KeypointLoss(nn.Module):
         return (kpt_loss_factor.view(-1, 1) * ((1 - torch.exp(-e)) * kpt_mask)).mean()
 
 
+class LovaszHingeLoss(nn.Module):
+    """Lovasz hinge loss for binary segmentation."""
+
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
+        labels = labels.float()
+        errors = 1. - logits * (2. * labels - 1.)
+        errors_sorted, perm = torch.sort(errors, descending=True)
+        labels_sorted = labels[perm]
+        gts = labels_sorted.sum()
+        jaccard = 1. - (gts - labels_sorted.cumsum(0)) / (gts + (1 - labels_sorted).cumsum(0))
+        jaccard = torch.cat([jaccard[:1], jaccard[1:] - jaccard[:-1]])
+        return torch.dot(F.relu(errors_sorted), jaccard)
+
+
 class v8DetectionLoss:
     """Criterion class for computing training losses for YOLOv8 object detection."""
 
@@ -304,6 +321,7 @@ class v8SegmentationLoss(v8DetectionLoss):
         """Initialize the v8SegmentationLoss class with model parameters and mask overlap setting."""
         super().__init__(model)
         self.overlap = model.args.overlap_mask
+        self.lovaszhingeloss = LovaszHingeLoss() if self.hyp.lovasz_weight > 0 else None
 
     def __call__(self, preds: Any, batch: Dict[str, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
         """Calculate and return the combined loss for detection and segmentation."""
@@ -374,7 +392,7 @@ class v8SegmentationLoss(v8DetectionLoss):
                 masks = F.interpolate(masks[None], (mask_h, mask_w), mode="nearest")[0]
 
             loss[1] = self.calculate_segmentation_loss(
-                fg_mask, masks, target_gt_idx, target_bboxes, batch_idx, proto, pred_masks, imgsz, self.overlap
+                fg_mask, masks, target_gt_idx, target_bboxes, batch_idx, proto, pred_masks, imgsz, self.overlap, self.hyp.lovasz_weight
             )
 
         # WARNING: lines below prevent Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
@@ -390,7 +408,7 @@ class v8SegmentationLoss(v8DetectionLoss):
 
     @staticmethod
     def single_mask_loss(
-        gt_mask: torch.Tensor, pred: torch.Tensor, proto: torch.Tensor, xyxy: torch.Tensor, area: torch.Tensor
+        gt_mask: torch.Tensor, pred: torch.Tensor, proto: torch.Tensor, xyxy: torch.Tensor, area: torch.Tensor, lovasz_loss: LovaszHingeLoss, lovasz_weight: float
     ) -> torch.Tensor:
         """
         Compute the instance segmentation loss for a single image.
@@ -401,7 +419,8 @@ class v8SegmentationLoss(v8DetectionLoss):
             proto (torch.Tensor): Prototype masks of shape (32, H, W).
             xyxy (torch.Tensor): Ground truth bounding boxes in xyxy format, normalized to [0, 1], of shape (N, 4).
             area (torch.Tensor): Area of each ground truth bounding box of shape (N,).
-
+            lovasz_loss (LovaszHingeLoss): instance of LovaszHingeLoss class.
+            lovasz_weight (float):  Weighting factor for combining Lovasz hinge loss with binary cross-entropy in the total basic segmentation loss.
         Returns:
             (torch.Tensor): The calculated mask loss for a single image.
 
@@ -410,7 +429,8 @@ class v8SegmentationLoss(v8DetectionLoss):
             predicted masks from the prototype masks and predicted mask coefficients.
         """
         pred_mask = torch.einsum("in,nhw->ihw", pred, proto)  # (n, 32) @ (32, 80, 80) -> (n, 80, 80)
-        loss = F.binary_cross_entropy_with_logits(pred_mask, gt_mask, reduction="none")
+        loss = (F.binary_cross_entropy_with_logits(pred_mask, gt_mask, reduction="none") +
+                lovasz_weight * (lovasz_loss(pred_mask.view(-1), gt_mask.view(-1)) if lovasz_weight > 0 else 0))
         return (crop_mask(loss, xyxy).mean(dim=(1, 2)) / area).sum()
 
     def calculate_segmentation_loss(
@@ -424,6 +444,7 @@ class v8SegmentationLoss(v8DetectionLoss):
         pred_masks: torch.Tensor,
         imgsz: torch.Tensor,
         overlap: bool,
+        lovasz_weight: float,
     ) -> torch.Tensor:
         """
         Calculate the loss for instance segmentation.
@@ -438,7 +459,7 @@ class v8SegmentationLoss(v8DetectionLoss):
             pred_masks (torch.Tensor): Predicted masks for each anchor of shape (BS, N_anchors, 32).
             imgsz (torch.Tensor): Size of the input image as a tensor of shape (2), i.e., (H, W).
             overlap (bool): Whether the masks in `masks` tensor overlap.
-
+            lovasz_weight (float): Weighting factor for combining Lovasz hinge loss with binary cross-entropy in the total basic segmentation loss.
         Returns:
             (torch.Tensor): The calculated loss for instance segmentation.
 
@@ -470,7 +491,7 @@ class v8SegmentationLoss(v8DetectionLoss):
                     gt_mask = masks[batch_idx.view(-1) == i][mask_idx]
 
                 loss += self.single_mask_loss(
-                    gt_mask, pred_masks_i[fg_mask_i], proto_i, mxyxy_i[fg_mask_i], marea_i[fg_mask_i]
+                    gt_mask, pred_masks_i[fg_mask_i], proto_i, mxyxy_i[fg_mask_i], marea_i[fg_mask_i], self.lovaszhingeloss, lovasz_weight
                 )
 
             # WARNING: lines below prevents Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove

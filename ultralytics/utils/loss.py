@@ -192,10 +192,11 @@ class KeypointLoss(nn.Module):
 
 
 class LovaszHingeLoss(nn.Module):
-    """Lovasz hinge loss for binary segmentation.
+    """
+    Lovasz hinge loss for binary segmentation.
 
-    This loss function is a convex surrogate for the IoU (Jaccard index), useful
-    especially for unbalanced class distributions in segmentation tasks.
+    This loss function is a convex surrogate for the IoU (Jaccard index), useful especially for unbalanced class
+    distributions in segmentation tasks.
     """
 
     def __init__(self):

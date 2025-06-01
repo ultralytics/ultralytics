@@ -102,6 +102,7 @@ from ultralytics.utils.checks import (
     check_requirements,
     check_version,
     is_sudo_available,
+    IS_PYTHON_3_8,
 )
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.export import export_engine, export_onnx
@@ -598,7 +599,7 @@ class Exporter:
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.12.0,<1.18.0"]
         if self.args.simplify:
-            requirements += ["onnxslim>=0.1.53", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
+            requirements += ["onnxslim>=0.1.53,<0.1.55" if IS_PYTHON_3_8 else "onnxslim>=0.1.53", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -969,7 +970,7 @@ class Exporter:
                 "ai-edge-litert>=1.2.0",  # required by 'onnx2tf' package
                 "onnx>=1.12.0,<1.18.0",
                 "onnx2tf>=1.26.3",
-                "onnxslim>=0.1.53",
+                "onnxslim>=0.1.53,<0.1.55" if IS_PYTHON_3_8 else "onnxslim>=0.1.53",
                 "onnxruntime-gpu" if cuda else "onnxruntime",
                 "protobuf>=5",
             ),

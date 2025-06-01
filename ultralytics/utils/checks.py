@@ -58,7 +58,8 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
         package (str, optional): Python package to use instead of requirements.txt file.
 
     Returns:
-        (List[SimpleNamespace]): List of parsed requirements as SimpleNamespace objects with `name` and `specifier` attributes.
+        requirements (List[SimpleNamespace]): List of parsed requirements as SimpleNamespace objects with `name` and
+            `specifier` attributes.
 
     Examples:
         >>> from ultralytics.utils.checks import parse_requirements
@@ -89,7 +90,7 @@ def parse_version(version="0.0.0") -> tuple:
         version (str): Version string, i.e. '2.0.1+cpu'
 
     Returns:
-        (Tuple[int, int, int]): Tuple of integers representing the numeric part of the version, i.e. (2, 0, 1)
+        (tuple): Tuple of integers representing the numeric part of the version, i.e. (2, 0, 1)
     """
     try:
         return tuple(map(int, re.findall(r"\d+", version)[:3]))  # '2.0.1+cpu' -> (2, 0, 1)
@@ -167,7 +168,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
 
 @functools.lru_cache
 def check_uv():
-    """Check if uv is installed and can run successfully."""
+    """Check if uv package manager is installed and can run successfully."""
     try:
         return subprocess.run(["uv", "-V"], capture_output=True).returncode == 0
     except FileNotFoundError:
@@ -265,7 +266,7 @@ def check_version(
 
 def check_latest_pypi_version(package_name="ultralytics"):
     """
-    Returns the latest version of a PyPI package without downloading or installing it.
+    Return the latest version of a PyPI package without downloading or installing it.
 
     Args:
         package_name (str): The name of the package to find the latest version for.
@@ -286,7 +287,7 @@ def check_latest_pypi_version(package_name="ultralytics"):
 
 def check_pip_update_available():
     """
-    Checks if a new version of the ultralytics package is available on PyPI.
+    Check if a new version of the ultralytics package is available on PyPI.
 
     Returns:
         (bool): True if an update is available, False otherwise.
@@ -360,9 +361,9 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.
 
     Args:
-        requirements (Union[Path, str, List[str]]): Path to a requirements.txt file, a single package requirement as a
+        requirements (Path | str | List[str]): Path to a requirements.txt file, a single package requirement as a
             string, or a list of package requirements as strings.
-        exclude (Tuple[str]): Tuple of package names to exclude from checking.
+        exclude (tuple): Tuple of package names to exclude from checking.
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
         cmds (str): Additional commands to pass to the pip install command when auto-updating.
 
@@ -400,11 +401,16 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     def attempt_install(packages, commands, use_uv):
         """Attempt package installation with uv if available, falling back to pip."""
         if use_uv:
-            # Note requires --break-system-packages on ARM64 dockerfile
-            cmd = f"uv pip install --system --no-cache-dir {packages} {commands} --index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
-        else:
-            cmd = f"pip install --no-cache-dir {packages} {commands}"
-        return subprocess.check_output(cmd, shell=True).decode()
+            base = f"uv pip install --no-cache-dir {packages} {commands} --index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
+            try:
+                return subprocess.check_output(base, shell=True, stderr=subprocess.PIPE).decode()
+            except subprocess.CalledProcessError as e:
+                if e.stderr and "No virtual environment found" in e.stderr.decode():
+                    return subprocess.check_output(
+                        base.replace("uv pip install", "uv pip install --system"), shell=True
+                    ).decode()
+                raise
+        return subprocess.check_output(f"pip install --no-cache-dir {packages} {commands}", shell=True).decode()
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:
@@ -432,7 +438,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
 def check_torchvision():
     """
-    Checks the installed versions of PyTorch and Torchvision to ensure they're compatible.
+    Check the installed versions of PyTorch and Torchvision to ensure they're compatible.
 
     This function checks the installed versions of PyTorch and Torchvision, and warns if they're incompatible according
     to the compatibility table based on: https://github.com/pytorch/vision#installation.
@@ -470,7 +476,7 @@ def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
 
     Args:
         file (str | List[str]): File or list of files to check.
-        suffix (str | Tuple[str]): Acceptable suffix or tuple of suffixes.
+        suffix (str | tuple): Acceptable suffix or tuple of suffixes.
         msg (str): Additional message to display in case of error.
     """
     if file and suffix:
@@ -531,7 +537,7 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
 
     Args:
         file (str): File name or path.
-        suffix (str | Tuple[str]): Acceptable suffix or tuple of suffixes to validate against the file.
+        suffix (str | tuple): Acceptable suffix or tuple of suffixes to validate against the file.
         download (bool): Whether to download the file if it doesn't exist locally.
         download_dir (str): Directory to download the file to.
         hard (bool): Whether to raise an error if the file is not found.
@@ -571,7 +577,7 @@ def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
 
     Args:
         file (str | Path): File name or path.
-        suffix (Tuple[str]): Tuple of acceptable YAML file suffixes.
+        suffix (tuple): Tuple of acceptable YAML file suffixes.
         hard (bool): Whether to raise an error if the file is not found or multiple files are found.
 
     Returns:
@@ -720,13 +726,13 @@ def collect_system_info():
 
 def check_amp(model):
     """
-    Checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLO11 model.
+    Check the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLO model.
 
     If the checks fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP
     results, so AMP will be disabled during training.
 
     Args:
-        model (nn.Module): A YOLO11 model instance.
+        model (torch.nn.Module): A YOLO model instance.
 
     Returns:
         (bool): Returns True if the AMP functionality works correctly with YOLO11 model, else False.

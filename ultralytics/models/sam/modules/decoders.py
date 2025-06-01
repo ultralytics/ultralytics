@@ -27,7 +27,7 @@ class MaskDecoder(nn.Module):
         iou_prediction_head (nn.Module): MLP for predicting mask quality.
 
     Methods:
-        forward: Predicts masks given image and prompt embeddings.
+        forward: Predict masks given image and prompt embeddings.
         predict_masks: Internal method for mask prediction.
 
     Examples:
@@ -129,7 +129,6 @@ class MaskDecoder(nn.Module):
         masks = masks[:, mask_slice, :, :]
         iou_pred = iou_pred[:, mask_slice]
 
-        # Prepare output
         return masks, iou_pred
 
     def predict_masks(
@@ -201,10 +200,10 @@ class SAM2MaskDecoder(nn.Module):
         dynamic_multimask_stability_thresh (float): Threshold for dynamic multimask stability.
 
     Methods:
-        forward: Predicts masks given image and prompt embeddings.
-        predict_masks: Predicts instance segmentation masks from image and prompt embeddings.
-        _get_stability_scores: Computes mask stability scores based on IoU between thresholds.
-        _dynamic_multimask_via_stability: Dynamically selects the most stable mask output.
+        forward: Predict masks given image and prompt embeddings.
+        predict_masks: Predict instance segmentation masks from image and prompt embeddings.
+        _get_stability_scores: Compute mask stability scores based on IoU between thresholds.
+        _dynamic_multimask_via_stability: Dynamically select the most stable mask output.
 
     Examples:
         >>> image_embeddings = torch.rand(1, 256, 64, 64)
@@ -330,7 +329,7 @@ class SAM2MaskDecoder(nn.Module):
             dense_prompt_embeddings (torch.Tensor): Embeddings of the mask inputs with shape (B, C, H, W).
             multimask_output (bool): Whether to return multiple masks or a single mask.
             repeat_image (bool): Flag to repeat the image embeddings.
-            high_res_features (List[torch.Tensor] | None): Optional high-resolution features.
+            high_res_features (List[torch.Tensor] | None, optional): Optional high-resolution features.
 
         Returns:
             masks (torch.Tensor): Batched predicted masks with shape (B, N, H, W).
@@ -377,7 +376,6 @@ class SAM2MaskDecoder(nn.Module):
             # are always the single mask token (and we'll let it be the object-memory token).
             sam_tokens_out = mask_tokens_out[:, 0:1]  # [b, 1, c] shape
 
-        # Prepare output
         return masks, iou_pred, sam_tokens_out, object_score_logits
 
     def predict_masks(

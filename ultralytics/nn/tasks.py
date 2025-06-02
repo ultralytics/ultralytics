@@ -1458,7 +1458,11 @@ def torch_safe_load(weight, safe_only=False):
                 )
             ) from e
         elif e.name == "numpy._core":
-            raise ModuleNotFoundError(emojis(f"ERROR ❌️ {weight} requires numpy>=1.26.1, however numpy=={__import__("numpy").__version__} is installed.")) from e
+            raise ModuleNotFoundError(
+                emojis(
+                    f"ERROR ❌️ {weight} requires numpy>=1.26.1, however numpy=={__import__('numpy').__version__} is installed."
+                )
+            ) from e
         LOGGER.warning(
             f"{weight} appears to require '{e.name}', which is not in Ultralytics requirements."
             f"\nAutoInstall will run now for '{e.name}' but this feature will be removed in the future."

@@ -378,7 +378,7 @@ def _update_dataset_meta(data):
         return data
     
 
-def get_manitou_calibrations(data):
+def get_manitou_calibrations(data_cfg):
     # Get the extrinsic parameters of the camera
     def get_cam_extrinsics(path, invert=False):
         try:
@@ -410,12 +410,17 @@ def get_manitou_calibrations(data):
             return matrix_K, dist, Tcam_radar    
         except Exception as e:
             print(f'❌ Error reading calibration file: {path}')
-        
-    data_root = Path(data["path"]).resolve()
-    calib_path = data_root / data["calib_prefix"]
+    
+    if isinstance(data_cfg, str):
+        calib_path = Path(data_cfg).resolve()
+    elif isinstance(data_cfg, dict):
+        data_root = Path(data_cfg["path"]).resolve()
+        calib_path = data_root / data_cfg["calib_prefix"]
+    else:
+        raise ValueError("❌ Invalid calibration path configuration. It should be a string or a dictionary.")
     
     if not calib_path.exists():
-        raise FileNotFoundError(f"❌ Calibration file {calib_path} does not exist.")
+            raise FileNotFoundError(f"❌ Calibration file path: {calib_path} does not exist.")
     
     # hardcode camera and radar calibration files, maybe change in the future
     radar1_path = calib_path / 'calibration_params_radar1.json'
@@ -480,6 +485,7 @@ def get_manitou_dataset(cfg_path):
     data["calib_prefix"] = data.get("calib_prefix", "")
     data["img_prefix"] = data.get("img_prefix", "")
     data["radar_prefix"] = data.get("radar_prefix", "")
+    data["accumulation"] = data.get("accumulation", 1)
     data["names"] = data.get("names", None)
     if data["names"] is None:
         raise ValueError("❌ Class names are not provided in the data configuration file.")
@@ -501,7 +507,7 @@ if __name__ == '__main__':
     import os
     # Example usage
     data_root = '/home/shu/Documents/PROTECH/ultralytics/datasets/manitou'
-    radar_dir = 'key_radars'
+    radar_dir = 'radars'
     cam_dir = 'key_frames'
 
     annotations_path = os.path.join(data_root, 'annotations', 'manitou_coco_train.json')

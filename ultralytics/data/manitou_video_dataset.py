@@ -17,7 +17,7 @@ from ultralytics.utils.instance import Instances
 from ultralytics.utils.ops import resample_segments
 
 from .converter import merge_multi_segment
-from .manitou_api import ManitouAPI
+from .manitou_api import ManitouAPI, get_manitou_calibrations
 from torch.utils.data import Dataset
 from .augmentV2 import (
     Compose,
@@ -25,6 +25,7 @@ from .augmentV2 import (
     ManitouResizeCrop_MultiImg,
     RandomHSV_MultiImg,
     RandomFlip_MultiImg,
+    Debug_Radar,
 )
 from .converter import merge_multi_segment
 
@@ -44,7 +45,8 @@ class ManitouVideoDataset(Dataset):
 
     """
     
-    def __init__(self, *args, data=None, use_segments=False, stride, imgsz, ref_img_sampler, **kwargs):
+    def __init__(self, *args, data=None, use_segments=False, use_radar=False,
+                 stride, imgsz, ref_img_sampler, **kwargs):
         """
         Initialize the ManitouDataset class.
 
@@ -84,8 +86,14 @@ class ManitouVideoDataset(Dataset):
         # In Manitou dataset, the image size is fixed, so rect is not needed.
         kwargs.pop("rect", False)
         kwargs.pop("pad", 0.0)  # for rect, not used in Manitou dataset
-        self.full_init(*args, channels=data["channels"], rect=False, pad=0.0, **kwargs)
         
+        self.use_radar = use_radar  # if True, prepare radar data
+        if self.use_radar:
+            self.calib_params = get_manitou_calibrations(self.data)
+            self.accumulation = self.data.get("accumulation", 1)  # accumulation for radar data
+            
+        self.full_init(*args, channels=data["channels"], rect=False, pad=0.0, **kwargs)
+                    
     def full_init(
         self,
         ann_path,
@@ -128,7 +136,7 @@ class ManitouVideoDataset(Dataset):
         self.channels = channels
         self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR
         # img_files: list of image files, labels : list of annotations, id2idx: dict of video id and frame id to index
-        self.im_files, self.labels, self.id2idx = self.get_img_files_labels(self.ann_path)
+        self.im_files, self.radar_files, self.labels, self.id2idx = self.get_img_files_labels(self.ann_path)
         self.ni = len(self.labels[1])  # number of images for one camera
         self.rect = rect
         self.batch_size = batch_size
@@ -161,10 +169,10 @@ class ManitouVideoDataset(Dataset):
         radar_info = raw_label_info["raw_radar_info"]
         ann_info = raw_label_info["raw_ann_info"]
         
-        img_path = str(Path(self.data["path"]) / self.data["prefix"] / img_info["file_name"])
+        img_path = str(Path(self.data["path"]) / self.data["img_prefix"] / img_info["file_name"])
         img_shape = (img_info["height"], img_info["width"])  # (h, w)
         img_timestamp = img_info["time_stamp"]
-        radar_path = str(Path(self.data["path"]) / self.data["prefix"] / radar_info["file_name"])
+        radar_path = str(Path(self.data["path"]) / self.data["radar_prefix"] / radar_info["file_name"])
         radar_timestamp = radar_info["time_stamp"]
         _prev = None  # will be updated in the 'label_update' function
         _next = None
@@ -294,6 +302,12 @@ class ManitouVideoDataset(Dataset):
             3: [],
             4: []
         }
+        radar_list = {
+            1: [],
+            2: [],
+            3: [],
+            4: []
+        }
         idx_dict = {}
         
         bag_ids = manitou.get_bag_ids()
@@ -343,16 +357,20 @@ class ManitouVideoDataset(Dataset):
                         continue
                     label_list[cam_idx].append(parsed_label_info)
                     img_list[cam_idx].append(parsed_label_info["im_file"])
+                    radar_list[cam_idx].append(parsed_label_info["radar_file"])
                     idx_dict[bag_id][cam_idx][img_frame_id] = global_idx
                 
-        assert len(label_list[1]) == len(label_list[2]) == len(label_list[3]) == len(label_list[4]) == len(img_list[1]) == len(img_list[2]) == len(img_list[3]) == len(img_list[4]), \
+        assert len(label_list[1]) == len(label_list[2]) == len(label_list[3]) == len(label_list[4]) \
+                    == len(img_list[1]) == len(img_list[2]) == len(img_list[3]) == len(img_list[4]) \
+                    == len(radar_list[1]) == len(radar_list[2]) == len(radar_list[3]) == len(radar_list[4]), \
             f"Number of images and labels do not match. \n" \
             f"\t number of labels (cam1, cam2, cam3, cam4): {len(label_list[1])}, {len(label_list[2])}, {len(label_list[3])}, {len(label_list[4])} \n" \
-            f"\t number of images (cam1, cam2, cam3, cam4): {len(img_list[1])}, {len(img_list[2])}, {len(img_list[3])}, {len(img_list[4])}"
+            f"\t number of images (cam1, cam2, cam3, cam4): {len(img_list[1])}, {len(img_list[2])}, {len(img_list[3])}, {len(img_list[4])} \n" \
+            f"\t number of radars (radar1, radar2, radar3, radar4): {len(radar_list[1])}, {len(radar_list[2])}, {len(radar_list[3])}, {len(radar_list[4])} \n" \
                                 
         # label_list = update_labels(label_list)  # TODO: update labels with prev and next
     
-        return img_list, label_list, idx_dict
+        return img_list, radar_list, label_list, idx_dict
 
     def build_transforms(self, hyp=None):
         """
@@ -366,14 +384,15 @@ class ManitouVideoDataset(Dataset):
         """
         if self.augment:
             transforms = Compose([
-                ManitouResizeCrop_MultiImg(self.pre_crop_cfg["scale"], self.pre_crop_cfg["target_size"], 1.0 if self.pre_crop_cfg["is_crop"] else 0.0),
+                ManitouResizeCrop_MultiImg(self.pre_crop_cfg["scale"], self.pre_crop_cfg["target_size"], self.pre_crop_cfg["original_size"], 1.0 if self.pre_crop_cfg["is_crop"] else 0.0),
                 RandomHSV_MultiImg(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
                 RandomFlip_MultiImg(direction="horizontal", p=hyp.fliplr),
             ])
             
         else:
-            transforms = Compose([ManitouResizeCrop_MultiImg(self.pre_crop_cfg["scale"], self.pre_crop_cfg["target_size"], 1.0 if self.pre_crop_cfg["is_crop"] else 0.0)])
-            
+            transforms = Compose([ManitouResizeCrop_MultiImg(self.pre_crop_cfg["scale"], self.pre_crop_cfg["target_size"], self.pre_crop_cfg["original_size"], 1.0 if self.pre_crop_cfg["is_crop"] else 0.0)])
+        
+        transforms.append(Debug_Radar(deepcopy(self.calib_params)))
         transforms.append(
             FormatManitou_MultiImg(
                 bbox_format="xywh",
@@ -467,8 +486,13 @@ class ManitouVideoDataset(Dataset):
         
             return new_batch
         
+        def _collate_radars(radars):  # TODO: refactor this function
+            return radars
+                
         key_frames = {1: [], 2: [], 3: [], 4: []}
         ref_frames = {1: [], 2: [], 3: [], 4: []}
+        key_radars = {1: [], 2: [], 3: [], 4: []}
+        ref_radars = {1: [], 2: [], 3: [], 4: []}
         for i, b in enumerate(batch):
             key_cam1, key_cam2, key_cam3, key_cam4 = b[0], b[1], b[2], b[3]
             ref_cam1 = key_cam1.pop("ref_labels", None)
@@ -476,15 +500,28 @@ class ManitouVideoDataset(Dataset):
             ref_cam3 = key_cam3.pop("ref_labels", None)
             ref_cam4 = key_cam4.pop("ref_labels", None)
             
+            key_radars[1].append(key_cam1.pop("radar", None))
+            key_radars[2].append(key_cam2.pop("radar", None))
+            key_radars[3].append(key_cam3.pop("radar", None))
+            key_radars[4].append(key_cam4.pop("radar", None))
+            
+            if ref_cam1 is not None:
+                ref_radars[1].append([rc1.pop("radar", None) for rc1 in ref_cam1])
+                ref_radars[2].append([rc2.pop("radar", None) for rc2 in ref_cam2])
+                ref_radars[3].append([rc3.pop("radar", None) for rc3 in ref_cam3])
+                ref_radars[4].append([rc4.pop("radar", None) for rc4 in ref_cam4])
+                
             for j, (key, ref) in enumerate(zip([key_cam1, key_cam2, key_cam3, key_cam4], [ref_cam1, ref_cam2, ref_cam3, ref_cam4])):
                 key_frames[j + 1].append(key)     
                 ref_frames[j + 1].append(ref)
                 
         # collate key frames
-        key_frames = _collate_cameras(key_frames)    
-        ref_frames = _collate_cameras(ref_frames) if ref_frames[1] is not None else None
+        key_frames = _collate_cameras(key_frames)
+        ref_frames = _collate_cameras(ref_frames) if len(ref_frames[1]) > 0 and ref_frames[1][0] is not None else None
+        key_radars = _collate_radars(key_radars)
+        ref_radars = _collate_radars(ref_radars) if len(ref_radars[1]) > 0 and ref_radars[1][0] is not None else None
             
-        return {"key_frames": key_frames, "ref_frames": ref_frames}
+        return {"key_frames": key_frames, "ref_frames": ref_frames, "key_radars": key_radars, "ref_radars": ref_radars}
     
     def __getitem__(self, index):
         """Return transformed label information for given index."""
@@ -542,12 +579,16 @@ class ManitouVideoDataset(Dataset):
         label = deepcopy(self.labels[cam_idx][index])  # requires deepcopy() https://github.com/ultralytics/ultralytics/pull/1948
         label.pop("shape", None)  # shape is for rect, remove it
         label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(cam_idx, index)
+        label["radar"] = self.load_radar(cam_idx, index) if self.use_radar else None
         label["ratio_pad"] = (
             (label["resized_shape"][0] / label["ori_shape"][0], label["resized_shape"][1] / label["ori_shape"][1]),
             (0, 0),  # padding (to compatible with the evaluation, cause we don't use LetterBox data augmentation for Manitou)
             ) # for evaluation
         if self.rect:
             label["rect_shape"] = self.batch_shapes[self.batch[index]]
+        # update label with intrinsic camera matrix if available
+        if self.use_radar:
+            label["intrinsic_K"] = deepcopy(self.calib_params[f"camera{cam_idx}_K"])
         return self.update_labels_info(label)
     
     def get_images_and_labels(self, index):
@@ -555,11 +596,13 @@ class ManitouVideoDataset(Dataset):
         Given an index, return the images from 4 cameras and their corresponding labels.
         """
         labels = [self.get_image_and_label(i, index) for i in range(1, 5)]
-        ref_labels = [self.ref_img_sampling(label, **self.ref_img_sampler) for label in labels]
         
-        for l, ref_l in zip(labels, ref_labels):
-            l["ref_labels"] = ref_l
-        
+        if self.ref_img_sampler is not None:
+            ref_labels = [self.ref_img_sampling(label, **self.ref_img_sampler) for label in labels]
+            
+            for l, ref_l in zip(labels, ref_labels):
+                l["ref_labels"] = ref_l
+          
         return labels
         
 
@@ -605,3 +648,27 @@ class ManitouVideoDataset(Dataset):
             return im, (h0, w0), im.shape[:2]
 
         return self.ims[cam_idx][i], self.im_hw0[cam_idx][i], self.im_hw[cam_idx][i]
+    
+    def load_radar(self, radar_idx, index):
+        path = self.radar_files[radar_idx][index]
+        radar_pc = self._load_radar(path)
+        if self.accumulation > 1:
+            for _ in range(self.accumulation - 1):
+                frame_name = int(self.labels[radar_idx][index]["radar_frame_name"])
+                if frame_name - 1 < 0:
+                    break
+                prev_name = f"{frame_name - 1:06d}.{path.split('.')[-1]}"
+                path = str(Path(path).parent / f"{prev_name}")
+                radar_pc = np.concatenate((radar_pc, self._load_radar(path)), axis=0)
+                
+        return radar_pc
+        
+        
+        
+    def _load_radar(self, path):
+        if path.endswith(".txt"):    
+            return np.loadtxt(path, delimiter=' ', dtype=np.float32)
+        elif path.endswith(".npy"):
+            return np.load(path, allow_pickle=True)
+        else:
+            raise ValueError(f"❌ Unsupported radar file format: {path}. Supported formats are .txt and .npy.")

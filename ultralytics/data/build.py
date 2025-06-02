@@ -133,6 +133,8 @@ def build_manitou_dataset(cfg, ann_path, batch, data, mode="train", rect=False, 
             ann_path=ann_path,
             imgsz=cfg.imgsz,
             batch_size=batch,
+            use_segments=cfg.task == "segment",
+            use_radar=cfg.use_radar,
             augment=mode == "train",  # augmentation
             hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
             rect=cfg.rect or rect,  # rectangular batches
@@ -144,13 +146,14 @@ def build_manitou_dataset(cfg, ann_path, batch, data, mode="train", rect=False, 
             classes=cfg.classes,
             data=data,
             fraction=cfg.fraction if mode == "train" else 1.0,
-            ref_img_sampler=cfg.ref_img_sampler,
+            ref_img_sampler=cfg.ref_img_sampler if mode == "train" else None,
         )
     else:    
         return ManitouDataset(
             ann_path=ann_path,
             imgsz=cfg.imgsz,
             batch_size=batch,
+            use_segments=cfg.task == "segment",
             augment=mode == "train",  # augmentation
             hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
             rect=cfg.rect or rect,  # rectangular batches

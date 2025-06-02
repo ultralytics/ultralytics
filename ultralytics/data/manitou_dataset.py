@@ -177,10 +177,10 @@ class ManitouDataset(Dataset):
         radar_info = raw_label_info["raw_radar_info"]
         ann_info = raw_label_info["raw_ann_info"]
         
-        img_path = str(Path(self.data["path"]) / self.data["prefix"] / img_info["file_name"])
+        img_path = str(Path(self.data["path"]) / self.data["img_prefix"] / img_info["file_name"])
         img_shape = (img_info["height"], img_info["width"])  # (h, w)
         img_timestamp = img_info["time_stamp"]
-        radar_path = str(Path(self.data["path"]) / self.data["prefix"] / radar_info["file_name"])
+        radar_path = str(Path(self.data["path"]) / self.data["radar_prefix"] / radar_info["file_name"])
         radar_timestamp = radar_info["time_stamp"]
         _prev = None  # will be updated in the 'label_update' function
         _next = None
@@ -341,6 +341,7 @@ class ManitouDataset(Dataset):
         else:
             transforms = Compose([ManitouResizeCrop(self.pre_crop_cfg["scale"],
                                                    self.pre_crop_cfg["target_size"],
+                                                   self.pre_crop_cfg["original_size"],
                                                    1.0 if self.pre_crop_cfg["is_crop"] else 0.0),
                                 #   LetterBox(new_shape=self.imgsz, scaleup=False)  # no need to use LetterBox
                                   ])

@@ -12,7 +12,7 @@ from .dataset import (
 )
 from .manitou_dataset import ManitouDataset
 from .manitou_video_dataset import ManitouVideoDataset
-from .manitou_api import ManitouAPI, get_manitou_dataset
+from .manitou_api import ManitouAPI, get_manitou_dataset, get_manitou_calibrations
 
 __all__ = (
     "BaseDataset",
@@ -31,4 +31,5 @@ __all__ = (
     "ManitouVideoDataset",
     "ManitouAPI",
     "get_manitou_dataset",
+    "get_manitou_calibrations"
 )

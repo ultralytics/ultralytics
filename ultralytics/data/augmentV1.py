@@ -115,10 +115,15 @@ class ManitouResizeCrop:
         Step 2: Crop the image to the specified height
         In this way, the image only loses the upper part, which is less important for the model.
     """
-    def __init__(self, scale, target_size, p):
+    def __init__(self, scale, target_size, original_size, p):
         self.scale = scale
         self.target_size = target_size
+        self.original_size = original_size
         self.p = p
+        
+        self.rescaled_size = (int(original_size[0] * scale), int(original_size[1] * scale))
+        self.y_offset = self.rescaled_size[0] - target_size[0]  # y offset for cropping
+        self.x_offset = 0  # x offset for cropping, always 0 in this case
 
     def __call__(self, labels=None, image=None):
         """
@@ -168,6 +173,11 @@ class ManitouResizeCrop:
                 labels["img"] = img
                 labels["manitou_resize_crop"] = {"scale": self.scale, "target_size": self.target_size}
                 labels["resized_shape"] = self.target_size
+                
+            # update the camera intrinsics if available
+            intrinsic_K = labels.get("intrinsic_K", None)
+            if intrinsic_K is not None:
+                labels["intrinsic_K"] = self.update_camera_intrinsics(intrinsic_K)
             
         if len(labels) > 0:
             return labels
@@ -194,6 +204,15 @@ class ManitouResizeCrop:
         bboxes_xyxy = bboxes_xyxy[mask]
         
         return bboxes_xyxy, segments, mask  
+    
+    def update_camera_intrinsics(self, intrinsic):
+        """Update the camera intrinsics"""
+        M = np.array([
+                [self.scale, 0,            0],
+                [0,          self.scale,  -self.y_offset],
+                [0,          0,            1]
+            ], dtype=intrinsic.dtype)
+        return M @ intrinsic
                 
         
 def v8_transformsV1(dataset, imgsz, hyp, pre_crop_cfg, stretch=False):
@@ -206,6 +225,7 @@ def v8_transformsV1(dataset, imgsz, hyp, pre_crop_cfg, stretch=False):
     
     resize_crop = ManitouResizeCrop(pre_crop_cfg["scale"],
                                     pre_crop_cfg["target_size"],
+                                    pre_crop_cfg["original_size"],
                                     1.0 if pre_crop_cfg["is_crop"] else 0.0)
     mosaic = MosaicV1(dataset, imgsz=imgsz, p=hyp.mosaic, pre_transform=Compose([resize_crop]))
     affine = RandomPerspective(

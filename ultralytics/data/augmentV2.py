@@ -1,7 +1,9 @@
 import cv2
 import numpy as np
 import functools
+from copy import deepcopy
 import random
+from ultralytics.utils.radar_data import ManitouRadarPC
 from .augmentV1 import *
     
 
@@ -9,8 +11,8 @@ class ManitouResizeCrop_MultiImg(ManitouResizeCrop):
     """
         Applies resize and crop to multiple images.
     """
-    def __init__(self, scale, target_size, p):
-        super().__init__(scale, target_size, p)
+    def __init__(self, scale, target_size, original_size, p):
+        super().__init__(scale, target_size, original_size, p)
 
     def __call__(self, labels=None, images=None):
         """
@@ -102,18 +104,26 @@ class RandomFlip_MultiImg(RandomFlip):
         if self.direction == "vertical" and run_flip:
             img = np.flipud(img)
             instances.flipud(h)
+            if label.get("intrinsic_K", None) is not None:
+                _h = img.shape[0]  # don't use the normalized height
+                cvt_mat = np.array([[1, 0, 0], [0, -1, _h-1], [0, 0, 1]], dtype=label["intrinsic_K"].dtype)
+                label["intrinsic_K"] = cvt_mat @ label["intrinsic_K"]
         if self.direction == "horizontal" and run_flip:
             img = np.fliplr(img)
             instances.fliplr(w)
+            if label.get("intrinsic_K", None) is not None:
+                _w = img.shape[1]  # don't use the normalized width
+                cvt_mat = np.array([[-1, 0, _w-1], [0, 1, 0], [0, 0, 1]], dtype=label["intrinsic_K"].dtype)
+                label["intrinsic_K"] = cvt_mat @ label["intrinsic_K"]
+                
             # For keypoints
             if self.flip_idx is not None and instances.keypoints is not None:
                 instances.keypoints = np.ascontiguousarray(instances.keypoints[:, self.flip_idx, :])
         label["img"] = np.ascontiguousarray(img)
         label["instances"] = instances
         return label
-        
+  
     
-
 class FormatManitou_MultiImg(Format):
     def __init__(
         self,
@@ -188,3 +198,58 @@ class FormatManitou_MultiImg(Format):
             labels["batch_idx"] = torch.zeros(nl)
         return labels
     
+
+class Debug_Radar:
+    
+    def __init__(self, calib_params, filter_cfg={}):
+        self.calib_params = calib_params
+        self.filter_cfg = filter_cfg
+    
+    def __call__(self, labels):
+        radar1 = labels[0]["radar"]
+        radar2 = labels[1]["radar"]
+        radar3 = labels[2]["radar"]
+        radar4 = labels[3]["radar"]
+        
+        camera1_K = labels[0]["intrinsic_K"]
+        camera2_K = labels[1]["intrinsic_K"]
+        camera3_K = labels[2]["intrinsic_K"]
+        camera4_K = labels[3]["intrinsic_K"]
+        
+        new_params = {
+            "camera1_K": camera1_K,
+            "camera2_K": camera2_K,
+            "camera3_K": camera3_K,
+            "camera4_K": camera4_K,
+        }
+        calib_params = self.calib_params
+        calib_params.update(new_params)
+        
+        radar_pc = ManitouRadarPC(
+            radar1=radar1,
+            radar2=radar2,
+            radar3=radar3,
+            radar4=radar4,
+            calib_params=calib_params,
+            filter_cfg=self.filter_cfg
+        )
+        
+        # save projected image
+        img1 = labels[0]["img"].copy()
+        img1 = radar_pc.get_overlay_image(cam_idx=1, img=img1)
+        img2 = labels[1]["img"].copy()
+        img2 = radar_pc.get_overlay_image(cam_idx=2, img=img2)
+        img3 = labels[2]["img"].copy()
+        img3 = radar_pc.get_overlay_image(cam_idx=3, img=img3)
+        img4 = labels[3]["img"].copy()
+        img4 = radar_pc.get_overlay_image(cam_idx=4, img=img4)
+        
+        import cv2
+        rosbag = labels[0]["im_file"].split("/")[6]
+        cv2.imwrite(f"/home/shu/Documents/{rosbag}_camera1_overlay.jpg", img1)
+        cv2.imwrite(f"/home/shu/Documents/{rosbag}_camera2_overlay.jpg", img2)
+        cv2.imwrite(f"/home/shu/Documents/{rosbag}_camera3_overlay.jpg", img3)
+        cv2.imwrite(f"/home/shu/Documents/{rosbag}_camera4_overlay.jpg", img4)
+        
+        return labels
+        

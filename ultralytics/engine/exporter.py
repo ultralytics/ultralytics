@@ -289,15 +289,21 @@ class Exporter:
         dependencies = {
             "onnx": [
                 "onnx>=1.12.0,<1.18.0",
-                *(["onnxslim>=0.1.53", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
-                    if self.args.simplify else []
+                *(
+                    ["onnxslim>=0.1.53", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
+                    if self.args.simplify
+                    else []
                 ),
             ],
             "openvino": [
                 "openvino>=2024.0.0",
                 *(
-                    ["packaging>=23.2", "nncf>=2.14.0",]  # packaging must be installed first to build nncf wheel
-                    if self.args.int8 else []  # INT8 requires nncf, nncf requires packaging>=23.2 https://github.com/openvinotoolkit/nncf/issues/3463
+                    [
+                        "packaging>=23.2",
+                        "nncf>=2.14.0",
+                    ]  # packaging must be installed first to build nncf wheel
+                    if self.args.int8
+                    else []  # INT8 requires nncf, nncf requires packaging>=23.2 https://github.com/openvinotoolkit/nncf/issues/3463
                 ),
             ],
             "paddle": ["paddlepaddle-gpu" if torch.cuda.is_available() else "paddlepaddle>=3.0.0", "x2paddle"],
@@ -1000,11 +1006,13 @@ class Exporter:
     @try_export
     def export_saved_model(self, prefix=colorstr("TensorFlow SavedModel:")):
         """Export YOLO model to TensorFlow SavedModel format."""
-        check_requirements(self.dependencies("saved_model"),
+        check_requirements(
+            self.dependencies("saved_model"),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
         )
 
         import tensorflow as tf  # noqa
+
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
         check_version(
             tf.__version__,

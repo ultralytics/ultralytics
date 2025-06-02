@@ -506,23 +506,18 @@ class ConfusionMatrix(DataExportMixin):
             LOGGER.info(" ".join(map(str, self.matrix[i])))
 
     def summary(self, **kwargs):
-        """
-        Returns summary of the confusion matrix for export in different formats CSV, XML, HTML.
-
-        Each row represents predicted class and columns represent actual class.
-        """
+        """Returns summary of the confusion matrix for export in different formats CSV, XML, HTML."""
         import re
-
-        names = self.names if self.task == "classify" else self.names + ["background"]  # background class for 'detect'
-
-        clean_names = []
-        for name in names:  # Clean names for valid XML and SQL usage
-            name = re.sub(r"[^a-zA-Z0-9_]", "_", name)
-            if name == "cardigan":  # Handle imagenet10 dataset conflict between 'cardigan' and 'Cardigan' for to_sql().
-                name = "cardigan_1"
-            clean_names.append(name)
-
-        # Return a list of dicts: one per row (predicted class)
+        names = self.names if self.task == "classify" else self.names + ["background"]
+        clean_names, seen = [], {}
+        for name in names:
+            clean_name = re.sub(r"[^a-zA-Z0-9_]", "_", name)
+            if clean_name in seen:
+                seen[clean_name] += 1
+                clean_name = f"{clean_name}_{seen[clean_name]}"
+            else:
+                seen[clean_name] = 0
+            clean_names.append(clean_name)
         return [
             dict({"Predicted": clean_names[i]}, **{clean_names[j]: self.matrix[i, j] for j in range(len(clean_names))})
             for i in range(len(clean_names))

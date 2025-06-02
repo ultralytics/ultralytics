@@ -286,11 +286,10 @@ class Exporter:
 
     def dependencies(self, format):
         """Return a list of Python packages required for export formats."""
-        cuda = torch.cuda.is_available()
         dependencies = {
             "onnx": [
                 "onnx>=1.12.0,<1.18.0",
-                *(["onnxslim>=0.1.53", "onnxruntime" + ("-gpu" if cuda else "")] if self.args.simplify else []),
+                *(["onnxslim>=0.1.53", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")] if self.args.simplify else []),
             ],
             "openvino": [
                 "openvino>=2024.0.0",
@@ -303,7 +302,7 @@ class Exporter:
                     else []  # INT8 requires nncf, nncf requires packaging>=23.2 https://github.com/openvinotoolkit/nncf/issues/3463
                 ),
             ],
-            "paddle": ["paddlepaddle-gpu" if cuda else "paddlepaddle>=3.0.0", "x2paddle"],
+            "paddle": ["paddlepaddle-gpu" if torch.cuda.is_available() else "paddlepaddle>=3.0.0", "x2paddle"],
             "mnn": ["MNN>=2.9.6"],
             "ncnn": ["ncnn"],
             "coreml": ["coremltools>=8.0"],
@@ -317,7 +316,7 @@ class Exporter:
                 "onnx>=1.12.0,<1.18.0",
                 "onnx2tf>=1.26.3",
                 "onnxslim>=0.1.53",
-                "onnxruntime-gpu" if cuda else "onnxruntime",
+                "onnxruntime-gpu" if torch.cuda.is_available() else "onnxruntime",
                 "protobuf>=5",
             ],
             "tfjs": ["tensorflowjs"],  # TensorFlow.js converter
@@ -329,12 +328,6 @@ class Exporter:
                 "imx500-converter[pt]>=3.16.1",  # Separate requirements for imx500-converter
             ],
         }
-
-        if format is None:
-            all_reqs = set()
-            for reqs in dependencies.values():
-                all_reqs.update(reqs)
-            return sorted(all_reqs)
 
         return dependencies.get(format.lower(), [])
 

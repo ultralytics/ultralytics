@@ -97,7 +97,6 @@ from ultralytics.utils import (
     get_default_args,
 )
 from ultralytics.utils.checks import (
-    IS_PYTHON_3_8,
     check_imgsz,
     check_is_path_safe,
     check_requirements,
@@ -600,9 +599,8 @@ class Exporter:
         requirements = ["onnx>=1.12.0,<1.18.0"]
         if self.args.simplify:
             requirements += [
-                "onnxslim>=0.1.53,<0.1.55" if IS_PYTHON_3_8 else "onnxslim>=0.1.53",
-                "onnxruntime" + ("-gpu" if torch.cuda.is_available() else ""),
-            ]
+                "onnxslim>=0.1.53,!=0.1.55", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else ""),
+            ]  # onnxslim 0.1.55 Python3.8 CI error: https://github.com/ultralytics/ultralytics/actions/runs/15372734607/job/43255339189 
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -973,7 +971,7 @@ class Exporter:
                 "ai-edge-litert>=1.2.0",  # required by 'onnx2tf' package
                 "onnx>=1.12.0,<1.18.0",
                 "onnx2tf>=1.26.3",
-                "onnxslim>=0.1.53,<0.1.55" if IS_PYTHON_3_8 else "onnxslim>=0.1.53",
+                "onnxslim>=0.1.53,!=0.1.55",  # onnxslim 0.1.55 Python3.8 CI error: https://github.com/ultralytics/ultralytics/actions/runs/15372734607/job/43255339189
                 "onnxruntime-gpu" if cuda else "onnxruntime",
                 "protobuf>=5",
             ),

@@ -736,3 +736,31 @@ def test_grayscale(task: str, model: str, data: str) -> None:
 
     model = YOLO(export_model, task=task)
     model.predict(source=im, imgsz=32)
+
+
+def test_cache_optimization_auto_batch():
+    """Test that auto-batch doesn't cause double caching with cache='ram'."""
+    from unittest.mock import patch
+    from ultralytics.data.base import BaseDataset
+    
+    cache_call_count = 0
+    
+    def mock_cache_images(self):
+        nonlocal cache_call_count
+        cache_call_count += 1
+        return
+    
+    original_cache_images = BaseDataset.cache_images
+    
+    try:
+        BaseDataset.cache_images = mock_cache_images
+        
+        # Test auto-batch with cache (the original bug scenario)
+        model = YOLO(MODEL)
+        model.train(data="coco8.yaml", batch=-1, cache="ram", epochs=1, imgsz=32, verbose=False)
+        
+        # Should cache exactly 2 times (train + val, not 3 times)
+        assert cache_call_count == 2, f"Cache called {cache_call_count} times, expected 2 (train + val)"
+        
+    finally:
+        BaseDataset.cache_images = original_cache_images

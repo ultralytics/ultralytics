@@ -1000,15 +1000,11 @@ class Exporter:
     @try_export
     def export_saved_model(self, prefix=colorstr("TensorFlow SavedModel:")):
         """Export YOLO model to TensorFlow SavedModel format."""
-        try:
-            import tensorflow as tf  # noqa
-        except ImportError:
-            check_requirements("tensorflow>=2.0.0")
-            import tensorflow as tf  # noqa
         check_requirements(self.dependencies("saved_model"),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
         )
 
+        import tensorflow as tf  # noqa
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
         check_version(
             tf.__version__,

@@ -102,7 +102,6 @@ from ultralytics.utils.checks import (
     check_requirements,
     check_version,
     is_sudo_available,
-    IS_PYTHON_3_8,
 )
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.export import export_engine, export_onnx

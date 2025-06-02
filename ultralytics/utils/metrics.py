@@ -508,6 +508,7 @@ class ConfusionMatrix(DataExportMixin):
     def summary(self, **kwargs):
         """Returns summary of the confusion matrix for export in different formats CSV, XML, HTML."""
         import re
+
         names = self.names if self.task == "classify" else self.names + ["background"]
         clean_names, seen = [], {}
         for name in names:

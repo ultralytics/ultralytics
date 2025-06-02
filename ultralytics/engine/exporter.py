@@ -102,6 +102,7 @@ from ultralytics.utils.checks import (
     check_requirements,
     check_version,
     is_sudo_available,
+    IS_PYTHON_3_8,
 )
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.export import export_engine, export_onnx
@@ -283,6 +284,57 @@ class Exporter:
         self.args = get_cfg(cfg, overrides)
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
+
+    def dependencies(self, format=None):
+        """Return a list of Python packages required for export formats."""
+        dependencies = {
+            "onnx": [
+                "onnx>=1.12.0,<1.18.0",
+                *(["onnxslim>=0.1.53", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
+                    if self.args.simplify else []
+                ),
+            ],
+            "openvino": [
+                "openvino>=2024.0.0",
+                *(
+                    ["packaging>=23.2", "nncf>=2.14.0",]  # packaging must be installed first to build nncf wheel
+                    if self.args.int8 else []  # INT8 requires nncf, nncf requires packaging>=23.2 https://github.com/openvinotoolkit/nncf/issues/3463
+                ),
+            ],
+            "paddle": ["paddlepaddle-gpu" if torch.cuda.is_available() else "paddlepaddle>=3.0.0", "x2paddle"],
+            "mnn": ["MNN>=2.9.6"],
+            "ncnn": ["ncnn"],
+            "coreml": ["coremltools>=8.0"],
+            "engine": ["tensorrt>7.0.0,!=10.1.0"],
+            "saved_model": [
+                "tensorflow>=2.0.0",
+                "tf_keras",  # required by 'onnx2tf'
+                "sng4onnx>=1.0.1",  # required by 'onnx2tf'
+                "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf'
+                "ai-edge-litert>=1.2.0",  # required by 'onnx2tf'
+                "onnx>=1.12.0,<1.18.0",
+                "onnx2tf>=1.26.3",
+                "onnxslim>=0.1.53",
+                "onnxruntime-gpu" if torch.cuda.is_available() else "onnxruntime",
+                "protobuf>=5",
+            ],
+            "tfjs": ["tensorflowjs"],  # TensorFlow.js converter
+            "rknn": ["rknn-toolkit2"],
+            "imx": [
+                "model-compression-toolkit>=2.3.0",
+                "sony-custom-layers>=0.3.0",
+                "edge-mdt-tpc>=1.1.0",
+                "imx500-converter[pt]>=3.16.1",  # Separate requirements for imx500-converter
+            ],
+        }
+
+        if format is None:
+            all_reqs = set()
+            for key in dependencies:
+                all_reqs.update(export_requirements(format=key, int8=int8))
+            return sorted(all_reqs)
+
+        return dependencies.get(format.lower(), [])
 
     def __call__(self, model=None) -> str:
         """Return list of exported files/dirs after running callbacks."""
@@ -596,10 +648,7 @@ class Exporter:
     @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """Export YOLO model to ONNX format."""
-        requirements = ["onnx>=1.12.0,<1.18.0"]
-        if self.args.simplify:
-            requirements += ["onnxslim>=0.1.53", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
-        check_requirements(requirements)
+        check_requirements(self.dependencies("onnx"))
         import onnx  # noqa
 
         opset_version = self.args.opset or get_latest_opset()
@@ -658,7 +707,7 @@ class Exporter:
         if MACOS:
             msg = "OpenVINO error in macOS>=15.4 https://github.com/openvinotoolkit/openvino/issues/30023"
             check_version(MACOS_VERSION, "<15.4", name="macOS ", hard=True, msg=msg)
-        check_requirements("openvino>=2024.0.0")
+        check_requirements(self.dependencies("openvino"))
         import openvino as ov
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
@@ -686,9 +735,6 @@ class Exporter:
         if self.args.int8:
             fq = str(self.file).replace(self.file.suffix, f"_int8_openvino_model{os.sep}")
             fq_ov = str(Path(fq) / self.file.with_suffix(".xml").name)
-            # INT8 requires nncf, nncf requires packaging>=23.2 https://github.com/openvinotoolkit/nncf/issues/3463
-            check_requirements("packaging>=23.2")  # must be installed first to build nncf wheel
-            check_requirements("nncf>=2.14.0")
             import nncf
 
             def transform_fn(data_item) -> np.ndarray:
@@ -733,7 +779,7 @@ class Exporter:
     def export_paddle(self, prefix=colorstr("PaddlePaddle:")):
         """Export YOLO model to PaddlePaddle format."""
         assert not IS_JETSON, "Jetson Paddle exports not supported yet"
-        check_requirements(("paddlepaddle-gpu" if torch.cuda.is_available() else "paddlepaddle>=3.0.0", "x2paddle"))
+        check_requirements(self.dependencies("paddle"))
         import x2paddle  # noqa
         from x2paddle.convert import pytorch2paddle  # noqa
 
@@ -749,7 +795,7 @@ class Exporter:
         """Export YOLO model to MNN format using MNN https://github.com/alibaba/MNN."""
         f_onnx, _ = self.export_onnx()  # get onnx model first
 
-        check_requirements("MNN>=2.9.6")
+        check_requirements(self.dependencies("mnn"))
         import MNN  # noqa
         from MNN.tools import mnnconvert
 
@@ -772,7 +818,7 @@ class Exporter:
     @try_export
     def export_ncnn(self, prefix=colorstr("NCNN:")):
         """Export YOLO model to NCNN format using PNNX https://github.com/pnnx/pnnx."""
-        check_requirements("ncnn")
+        check_requirements(self.dependencies("ncnn"))
         import ncnn  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with NCNN {ncnn.__version__}...")
@@ -841,7 +887,7 @@ class Exporter:
     def export_coreml(self, prefix=colorstr("CoreML:")):
         """Export YOLO model to CoreML format."""
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
-        check_requirements("coremltools>=8.0")
+        check_requirements(self.dependencies("coreml"))
         import coremltools as ct  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
@@ -926,7 +972,7 @@ class Exporter:
             import tensorrt as trt  # noqa
         except ImportError:
             if LINUX:
-                check_requirements("tensorrt>7.0.0,!=10.1.0")
+                check_requirements(self.dependencies("engine"))
             import tensorrt as trt  # noqa
         check_version(trt.__version__, ">=7.0.0", hard=True)
         check_version(trt.__version__, "!=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
@@ -955,24 +1001,12 @@ class Exporter:
     @try_export
     def export_saved_model(self, prefix=colorstr("TensorFlow SavedModel:")):
         """Export YOLO model to TensorFlow SavedModel format."""
-        cuda = torch.cuda.is_available()
         try:
             import tensorflow as tf  # noqa
         except ImportError:
             check_requirements("tensorflow>=2.0.0")
             import tensorflow as tf  # noqa
-        check_requirements(
-            (
-                "tf_keras",  # required by 'onnx2tf' package
-                "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
-                "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
-                "ai-edge-litert>=1.2.0",  # required by 'onnx2tf' package
-                "onnx>=1.12.0,<1.18.0",
-                "onnx2tf>=1.26.3",
-                "onnxslim>=0.1.53",
-                "onnxruntime-gpu" if cuda else "onnxruntime",
-                "protobuf>=5",
-            ),
+        check_requirements(self.dependencies("saved_model"),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
         )
 
@@ -1112,7 +1146,7 @@ class Exporter:
     @try_export
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
         """Export YOLO model to TensorFlow.js format."""
-        check_requirements("tensorflowjs")
+        check_requirements(self.dependencies("tfjs"))
         import tensorflow as tf
         import tensorflowjs as tfjs  # noqa
 
@@ -1147,7 +1181,7 @@ class Exporter:
         """Export YOLO model to RKNN format."""
         LOGGER.info(f"\n{prefix} starting export with rknn-toolkit2...")
 
-        check_requirements("rknn-toolkit2")
+        check_requirements(self.dependencies("rknn"))
         if IS_COLAB:
             # Prevent 'exit' from closing the notebook https://github.com/airockchip/rknn-toolkit2/issues/259
             import builtins
@@ -1179,8 +1213,7 @@ class Exporter:
         )
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")
-        check_requirements(("model-compression-toolkit>=2.3.0", "sony-custom-layers>=0.3.0", "edge-mdt-tpc>=1.1.0"))
-        check_requirements("imx500-converter[pt]>=3.16.1")  # Separate requirements for imx500-converter
+        check_requirements(self.dependencies("imx"))
 
         import model_compression_toolkit as mct
         import onnx

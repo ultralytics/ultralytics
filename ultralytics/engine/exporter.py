@@ -289,7 +289,11 @@ class Exporter:
         dependencies = {
             "onnx": [
                 "onnx>=1.12.0,<1.18.0",
-                *(["onnxslim>=0.1.53", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")] if self.args.simplify else []),
+                *(
+                    ["onnxslim>=0.1.53", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
+                    if self.args.simplify
+                    else []
+                ),
             ],
             "openvino": [
                 "openvino>=2024.0.0",

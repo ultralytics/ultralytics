@@ -107,7 +107,7 @@ export-tensorflow = [# tensorflow export on Windows and darwin is pretty broken,
     "tf_keras",  # required by 'onnx2tf' package
     "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
     "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
-    "ai-edge-litert>=1.2.0",  # required by 'onnx2tf' package
+    "ai-edge-litert>=1.2.0; python_version >='3.9' and platform_system != 'Windows'",  # required by 'onnx2tf' package, only available for python >= 3.9
     "onnx2tf>=1.26.3; python_version >='3.10'", # below 3.10 onnx2tf may not be resolvable on windows,
     # it will try to resolve this on runtime
     "onnxslim>=0.1.53",

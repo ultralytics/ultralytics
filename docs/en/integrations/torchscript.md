@@ -73,7 +73,7 @@ For detailed instructions and best practices related to the installation process
 
 ### Usage
 
-Before diving into the usage instructions, it's important to note that while all [Ultralytics YOLO11 models](../models/index.md) are available for exporting, you can ensure that the model you select supports export functionality [here](../modes/export.md).
+All [Ultralytics YOLO11 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
 !!! example "Usage"
 
@@ -99,11 +99,22 @@ Before diving into the usage instructions, it's important to note that while all
 
         ```bash
         # Export a YOLO11n PyTorch model to TorchScript format
-        yolo export model=yolo11n.pt format=torchscript  # creates 'yolo11n.torchscript'
+        yolo export model=yolo11n.pt format=torchscript # creates 'yolo11n.torchscript'
 
         # Run inference with the exported model
         yolo predict model=yolo11n.torchscript source='https://ultralytics.com/images/bus.jpg'
         ```
+
+### Export Arguments
+
+| Argument   | Type             | Default         | Description                                                                                                                             |
+| ---------- | ---------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'torchscript'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
+| `imgsz`    | `int` or `tuple` | `640`           | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
+| `optimize` | `bool`           | `False`         | Applies optimization for mobile devices, potentially reducing model size and improving performance.                                     |
+| `nms`      | `bool`           | `False`         | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                     |
+| `batch`    | `int`            | `1`             | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `device`   | `str`            | `None`          | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -159,7 +170,7 @@ To export a YOLO11 model to TorchScript, you can use the following example code:
 
         ```bash
         # Export a YOLO11n PyTorch model to TorchScript format
-        yolo export model=yolo11n.pt format=torchscript  # creates 'yolo11n.torchscript'
+        yolo export model=yolo11n.pt format=torchscript # creates 'yolo11n.torchscript'
 
         # Run inference with the exported model
         yolo predict model=yolo11n.torchscript source='https://ultralytics.com/images/bus.jpg'

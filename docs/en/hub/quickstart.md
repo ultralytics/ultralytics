@@ -9,18 +9,18 @@ keywords: Ultralytics HUB, Quickstart, YOLO models, dataset upload, project mana
 [Ultralytics HUB](https://www.ultralytics.com/hub) is designed to be user-friendly and intuitive, allowing users to quickly upload their datasets and train new YOLO models. It also offers a range of pre-trained models to choose from, making it extremely easy for users to get started. Once a model is trained, it can be effortlessly previewed in the [Ultralytics HUB App](app/index.md) before being deployed for real-time classification, [object detection](https://www.ultralytics.com/glossary/object-detection), and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) tasks.
 
 <p align="center">
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/lveF9iCMIzc?si=_Q4WB5kMB5qNe7q6"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/qE-dfbB5Sis"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Train Your Custom YOLO Models In A Few Clicks with Ultralytics HUB
+  <strong>Watch:</strong> How to train Ultralytics YOLO11 on Custom Dataset using Ultralytics HUB | HUB Datasets 🚀
 </p>
 
 ## Get Started
 
-[Ultralytics HUB](https://www.ultralytics.com/hub) offers a variety easy of signup options. You can register and log in using your Google, Apple, or GitHub accounts, or simply with your email address.
+[Ultralytics HUB](https://www.ultralytics.com/hub) offers a variety of easy signup options. You can register and log in using your Google, Apple, or GitHub accounts, or simply with your email address.
 
 ![Ultralytics HUB screenshot of the Signup page](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-signup-page.avif)
 
@@ -50,31 +50,31 @@ You can easily search globally or directly access your last updated [Datasets](h
 
 ### Upload Dataset
 
-You can upload a dataset directly from the [Home](https://hub.ultralytics.com/home) page.
+You can upload a dataset directly from the [Home](https://hub.ultralytics.com/home) page. Ultralytics HUB supports various dataset formats and makes it easy to prepare your data for [training custom YOLO models](https://www.ultralytics.com/blog/how-to-train-and-deploy-yolo11-using-ultralytics-hub).
 
 ![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Upload Dataset card](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-upload-dataset-card.avif)
 
-Read more about [datasets](https://docs.ultralytics.com/hub/datasets/).
+Read more about [datasets](datasets.md) and how to prepare them for optimal training results.
 
 ### Create Project
 
-You can create a project directly from the [Home](https://hub.ultralytics.com/home) page.
+You can create a project directly from the [Home](https://hub.ultralytics.com/home) page. Projects help you organize related models and experiments in one place, making it easier to track progress and compare results.
 
 ![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Create Project card](https://github.com/ultralytics/docs/releases/download/0/hub-create-project-card.avif)
 
-Read more about [projects](https://docs.ultralytics.com/hub/projects/).
+Read more about [projects](projects.md) and how they can streamline your workflow.
 
 ### Train Model
 
-You can train a model directly from the [Home](https://hub.ultralytics.com/home) page.
+You can train a model directly from the [Home](https://hub.ultralytics.com/home) page. Ultralytics HUB offers multiple training options including [cloud training](cloud-training.md), Google Colab integration, or using your own hardware.
 
 ![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Train Model card](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-train-model-card.avif)
 
-Read more about [models](https://docs.ultralytics.com/hub/models/).
+Read more about [models](models.md) and the various architectures available for your computer vision tasks.
 
 ## Feedback
 
-We value your feedback! Feel free to leave a review at any time.
+We value your feedback! Feel free to leave a review at any time to help us improve the platform.
 
 ![Ultralytics HUB screenshot of the Home page with an arrow pointing to the Feedback button](https://github.com/ultralytics/docs/releases/download/0/hub-feedback-button.avif)
 
@@ -88,7 +88,7 @@ We value your feedback! Feel free to leave a review at any time.
 
 If you encounter any issues or have questions, we're here to assist you.
 
-You can report a bug, request a feature, or ask a question on <a href="https://github.com/ultralytics/hub/issues/new/choose">GitHub</a>.
+You can report a bug, request a feature, or ask a question on [GitHub](https://github.com/ultralytics/hub/issues/new/choose).
 
 !!! note
 
@@ -98,4 +98,4 @@ You can report a bug, request a feature, or ask a question on <a href="https://g
 
 ??? tip
 
-    You can join our <a href="https://discord.com/invite/ultralytics">Discord</a> community for questions and discussions!
+    You can join our [Discord](https://discord.com/invite/ultralytics) community for questions and discussions!

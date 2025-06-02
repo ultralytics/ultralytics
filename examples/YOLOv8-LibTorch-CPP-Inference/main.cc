@@ -50,7 +50,7 @@ float letterbox(cv::Mat &input_image, cv::Mat &output_image, const std::vector<i
                0, 0, cv::INTER_AREA);
 
     cv::copyMakeBorder(output_image, output_image, top, bottom, left, right,
-                       cv::BORDER_CONSTANT, cv::Scalar(114.));
+                       cv::BORDER_CONSTANT, cv::Scalar(114., 114., 114));
     return resize_scale;
 }
 
@@ -218,7 +218,7 @@ int main() {
         // Load the model (e.g. yolov8s.torchscript)
         std::string model_path = "/path/to/yolov8s.torchscript";
         torch::jit::script::Module yolo_model;
-        yolo_model = torch::jit::load(model_path);
+        yolo_model = torch::jit::load(model_path, device);
         yolo_model.eval();
         yolo_model.to(device, torch::kFloat32);
 

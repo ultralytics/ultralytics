@@ -1,10 +1,10 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import contextlib
 import importlib.metadata
 import inspect
 import json
-import logging.config
+import logging
 import os
 import platform
 import re
@@ -12,21 +12,20 @@ import subprocess
 import sys
 import threading
 import time
-import urllib
-import uuid
+import warnings
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
 from typing import Union
+from urllib.parse import unquote
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import yaml
-from tqdm import tqdm as tqdm_original
+import tqdm
 
 from ultralytics import __version__
+from ultralytics.utils.patches import imread, imshow, imwrite, torch_load, torch_save  # for patches
 
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv("RANK", -1))
@@ -39,18 +38,32 @@ ROOT = FILE.parents[1]  # YOLO
 ASSETS = ROOT / "assets"  # default images
 ASSETS_URL = "https://github.com/ultralytics/assets/releases/download/v0.0.0"  # assets GitHub URL
 DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
-DEFAULT_SOL_CFG_PATH = ROOT / "cfg/solutions/default.yaml"  # Ultralytics solutions yaml path
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
 AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
 VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
 TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None  # tqdm bar format
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
+MACOS_VERSION = platform.mac_ver()[0] if MACOS else None
 ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = torch.__version__
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
 IS_VSCODE = os.environ.get("TERM_PROGRAM", False) == "vscode"
+RKNN_CHIPS = frozenset(
+    {
+        "rk3588",
+        "rk3576",
+        "rk3566",
+        "rk3568",
+        "rk3562",
+        "rv1103",
+        "rv1106",
+        "rv1103b",
+        "rv1106b",
+        "rk2118",
+    }
+)  # Rockchip processors available for export
 HELP_MSG = """
     Examples for running Ultralytics:
 
@@ -110,21 +123,24 @@ HELP_MSG = """
 
 # Settings and Environment Variables
 torch.set_printoptions(linewidth=320, precision=4, profile="default")
-np.set_printoptions(linewidth=320, formatter={"float_kind": "{:11.5g}".format})  # format short g, %precision=5
+np.set_printoptions(linewidth=320, formatter=dict(float_kind="{:11.5g}".format))  # format short g, %precision=5
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
-os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # for deterministic training to avoid CUDA warning
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warnings in Colab
 os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
 
+if TQDM_RICH := str(os.getenv("YOLO_TQDM_RICH", False)).lower() == "true":
+    from tqdm import rich
 
-class TQDM(tqdm_original):
+
+class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
     """
     A custom TQDM progress bar class that extends the original tqdm functionality.
 
     This class modifies the behavior of the original tqdm progress bar based on global settings and provides
-    additional customization options.
+    additional customization options for Ultralytics projects. The progress bar is automatically disabled when
+    VERBOSE is False or when explicitly disabled.
 
     Attributes:
         disable (bool): Whether to disable the progress bar. Determined by the global VERBOSE setting and
@@ -133,7 +149,8 @@ class TQDM(tqdm_original):
             explicitly set.
 
     Methods:
-        __init__: Initializes the TQDM object with custom settings.
+        __init__: Initialize the TQDM object with custom settings.
+        __iter__: Return self as iterator to satisfy Iterable interface.
 
     Examples:
         >>> from ultralytics.utils import TQDM
@@ -144,9 +161,7 @@ class TQDM(tqdm_original):
 
     def __init__(self, *args, **kwargs):
         """
-        Initializes a custom TQDM progress bar.
-
-        This class extends the original tqdm class to provide customized behavior for Ultralytics projects.
+        Initialize a custom TQDM progress bar with Ultralytics-specific settings.
 
         Args:
             *args (Any): Variable length argument list to be passed to the original tqdm constructor.
@@ -162,9 +177,167 @@ class TQDM(tqdm_original):
             ...     # Your code here
             ...     pass
         """
-        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)  # logical 'and' with default value if passed
+        warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
+        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)
+
+    def __iter__(self):
+        """Return self as iterator to satisfy Iterable interface."""
+        return super().__iter__()
+
+
+class DataExportMixin:
+    """
+    Mixin class for exporting validation metrics or prediction results in various formats.
+
+    This class provides utilities to export performance metrics (e.g., mAP, precision, recall) or prediction results
+    from classification, object detection, segmentation, or pose estimation tasks into various formats: Pandas
+    DataFrame, CSV, XML, HTML, JSON and SQLite (SQL).
+
+    Methods:
+        to_df: Convert summary to a Pandas DataFrame.
+        to_csv: Export results as a CSV string.
+        to_xml: Export results as an XML string (requires `lxml`).
+        to_html: Export results as an HTML table.
+        to_json: Export results as a JSON string.
+        tojson: Deprecated alias for `to_json()`.
+        to_sql: Export results to an SQLite database.
+
+    Examples:
+        >>> model = YOLO("yolo11n.pt")
+        >>> results = model("image.jpg")
+        >>> df = results.to_df()
+        >>> print(df)
+        >>> csv_data = results.to_csv()
+        >>> results.to_sql(table_name="yolo_results")
+    """
+
+    def to_df(self, normalize=False, decimals=5):
+        """
+        Create a pandas DataFrame from the prediction results summary or validation metrics.
+
+        Args:
+            normalize (bool, optional): Normalize numerical values for easier comparison.
+            decimals (int, optional): Decimal places to round floats.
+
+        Returns:
+            (DataFrame): DataFrame containing the summary data.
+        """
+        import pandas as pd  # scope for faster 'import ultralytics'
+
+        return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
+
+    def to_csv(self, normalize=False, decimals=5):
+        """
+        Export results to CSV string format.
+
+        Args:
+           normalize (bool, optional): Normalize numeric values.
+           decimals (int, optional): Decimal precision.
+
+        Returns:
+           (str): CSV content as string.
+        """
+        return self.to_df(normalize=normalize, decimals=decimals).to_csv()
+
+    def to_xml(self, normalize=False, decimals=5):
+        """
+        Export results to XML format.
+
+        Args:
+            normalize (bool, optional): Normalize numeric values.
+            decimals (int, optional): Decimal precision.
+
+        Returns:
+            (str): XML string.
+
+        Notes:
+            Requires `lxml` package to be installed.
+        """
+        from ultralytics.utils.checks import check_requirements
+
+        check_requirements("lxml")
+        df = self.to_df(normalize=normalize, decimals=decimals)
+        return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>' if df.empty else df.to_xml()
+
+    def to_html(self, normalize=False, decimals=5, index=False):
+        """
+        Export results to HTML table format.
+
+        Args:
+            normalize (bool, optional): Normalize numeric values.
+            decimals (int, optional): Decimal precision.
+            index (bool, optional): Whether to include index column in the HTML table.
+
+        Returns:
+            (str): HTML representation of the results.
+        """
+        df = self.to_df(normalize=normalize, decimals=decimals)
+        return "<table></table>" if df.empty else df.to_html(index=index)
+
+    def tojson(self, normalize=False, decimals=5):
+        """Deprecated version of to_json()."""
+        LOGGER.warning("'result.tojson()' is deprecated, replace with 'result.to_json()'.")
+        return self.to_json(normalize, decimals)
+
+    def to_json(self, normalize=False, decimals=5):
+        """
+        Export results to JSON format.
+
+        Args:
+            normalize (bool, optional): Normalize numeric values.
+            decimals (int, optional): Decimal precision.
+
+        Returns:
+            (str): JSON-formatted string of the results.
+        """
+        return self.to_df(normalize=normalize, decimals=decimals).to_json(orient="records", indent=2)
+
+    def to_sql(self, normalize=False, decimals=5, table_name="results", db_path="results.db"):
+        """
+        Save results to an SQLite database.
+
+        Args:
+            normalize (bool, optional): Normalize numeric values.
+            decimals (int, optional): Decimal precision.
+            table_name (str, optional): Name of the SQL table.
+            db_path (str, optional): SQLite database file path.
+        """
+        df = self.to_df(normalize, decimals)
+        if df.empty or df.columns.empty:  # Exit if df is None or has no columns (i.e., no schema)
+            return
+
+        import sqlite3
+
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        # Dynamically create table schema based on summary to support prediction and validation results export
+        columns = []
+        for col in df.columns:
+            sample_val = df[col].dropna().iloc[0] if not df[col].dropna().empty else ""
+            if isinstance(sample_val, dict):
+                col_type = "TEXT"
+            elif isinstance(sample_val, (float, int)):
+                col_type = "REAL"
+            else:
+                col_type = "TEXT"
+            columns.append(f'"{col}" {col_type}')  # Quote column names to handle special characters like hyphens
+
+        # Create table (Drop table from db if it's already exist)
+        cursor.execute(f'DROP TABLE IF EXISTS "{table_name}"')
+        cursor.execute(f'CREATE TABLE "{table_name}" (id INTEGER PRIMARY KEY AUTOINCREMENT, {", ".join(columns)})')
+
+        for _, row in df.iterrows():
+            values = [json.dumps(v) if isinstance(v, dict) else v for v in row]
+            column_names = ", ".join(f'"{col}"' for col in df.columns)
+            placeholders = ", ".join("?" for _ in df.columns)
+            cursor.execute(f'INSERT INTO "{table_name}" ({column_names}) VALUES ({placeholders})', values)
+
+        conn.commit()
+        conn.close()
+        LOGGER.info(f"Results saved to SQL table '{table_name}' in '{db_path}'.")
 
 
 class SimpleClass:
@@ -175,9 +348,9 @@ class SimpleClass:
     showing all their non-callable attributes. It's useful for debugging and introspection of object states.
 
     Methods:
-        __str__: Returns a human-readable string representation of the object.
-        __repr__: Returns a machine-readable string representation of the object.
-        __getattr__: Provides a custom attribute access error message with helpful information.
+        __str__: Return a human-readable string representation of the object.
+        __repr__: Return a machine-readable string representation of the object.
+        __getattr__: Provide a custom attribute access error message with helpful information.
 
     Examples:
         >>> class MyClass(SimpleClass):
@@ -216,7 +389,7 @@ class SimpleClass:
         return self.__str__()
 
     def __getattr__(self, attr):
-        """Custom attribute access error message with helpful information."""
+        """Provide a custom attribute access error message with helpful information."""
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
@@ -230,10 +403,10 @@ class IterableSimpleNamespace(SimpleNamespace):
     configuration parameters.
 
     Methods:
-        __iter__: Returns an iterator of key-value pairs from the namespace's attributes.
-        __str__: Returns a human-readable string representation of the object.
-        __getattr__: Provides a custom attribute access error message with helpful information.
-        get: Retrieves the value of a specified key, or a default value if the key doesn't exist.
+        __iter__: Return an iterator of key-value pairs from the namespace's attributes.
+        __str__: Return a human-readable string representation of the object.
+        __getattr__: Provide a custom attribute access error message with helpful information.
+        get: Retrieve the value of a specified key, or a default value if the key doesn't exist.
 
     Examples:
         >>> cfg = IterableSimpleNamespace(a=1, b=2, c=3)
@@ -265,7 +438,7 @@ class IterableSimpleNamespace(SimpleNamespace):
         return "\n".join(f"{k}={v}" for k, v in vars(self).items())
 
     def __getattr__(self, attr):
-        """Custom attribute access error message with helpful information."""
+        """Provide a custom attribute access error message with helpful information."""
         name = self.__class__.__name__
         raise AttributeError(
             f"""
@@ -285,17 +458,24 @@ def plt_settings(rcparams=None, backend="Agg"):
     """
     Decorator to temporarily set rc parameters and the backend for a plotting function.
 
-    Example:
-        decorator: @plt_settings({"font.size": 12})
-        context manager: with plt_settings({"font.size": 12}):
-
     Args:
-        rcparams (dict): Dictionary of rc parameters to set.
-        backend (str, optional): Name of the backend to use. Defaults to 'Agg'.
+        rcparams (dict, optional): Dictionary of rc parameters to set.
+        backend (str, optional): Name of the backend to use.
 
     Returns:
-        (Callable): Decorated function with temporarily set rc parameters and backend. This decorator can be
-            applied to any function that needs to have specific matplotlib rc parameters and backend for its execution.
+        (Callable): Decorated function with temporarily set rc parameters and backend.
+
+    Examples:
+        >>> @plt_settings({"font.size": 12})
+        >>> def plot_function():
+        ...     plt.figure()
+        ...     plt.plot([1, 2, 3])
+        ...     plt.show()
+
+        >>> with plt_settings({"font.size": 12}):
+        ...     plt.figure()
+        ...     plt.plot([1, 2, 3])
+        ...     plt.show()
     """
     if rcparams is None:
         rcparams = {"font.size": 11}
@@ -304,7 +484,9 @@ def plt_settings(rcparams=None, backend="Agg"):
         """Decorator to apply temporary rc parameters and backend to a function."""
 
         def wrapper(*args, **kwargs):
-            """Sets rc parameters and backend, calls the original function, and restores the settings."""
+            """Set rc parameters and backend, call the original function, and restore the settings."""
+            import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+
             original_backend = plt.get_backend()
             switch = backend.lower() != original_backend.lower()
             if switch:
@@ -328,15 +510,18 @@ def plt_settings(rcparams=None, backend="Agg"):
 
 def set_logging(name="LOGGING_NAME", verbose=True):
     """
-    Sets up logging with UTF-8 encoding and configurable verbosity.
+    Set up logging with UTF-8 encoding and configurable verbosity.
 
     This function configures logging for the Ultralytics library, setting the appropriate logging level and
     formatter based on the verbosity flag and the current process rank. It handles special cases for Windows
     environments where UTF-8 encoding might not be the default.
 
     Args:
-        name (str): Name of the logger. Defaults to "LOGGING_NAME".
-        verbose (bool): Flag to set logging level to INFO if True, ERROR otherwise. Defaults to True.
+        name (str): Name of the logger.
+        verbose (bool): Flag to set logging level to INFO if True, ERROR otherwise.
+
+    Returns:
+        (logging.Logger): Configured logger object.
 
     Examples:
         >>> set_logging(name="ultralytics", verbose=True)
@@ -351,15 +536,25 @@ def set_logging(name="LOGGING_NAME", verbose=True):
     """
     level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
 
-    # Configure the console (stdout) encoding to UTF-8, with checks for compatibility
-    formatter = logging.Formatter("%(message)s")  # Default formatter
+    class PrefixFormatter(logging.Formatter):
+        def format(self, record):
+            """Format log records with prefixes based on level."""
+            # Apply prefixes based on log level
+            if record.levelno == logging.WARNING:
+                prefix = "WARNING ⚠️" if not WINDOWS else "WARNING"
+                record.msg = f"{prefix} {record.msg}"
+            elif record.levelno == logging.ERROR:
+                prefix = "ERROR ❌" if not WINDOWS else "ERROR"
+                record.msg = f"{prefix} {record.msg}"
+
+            # Handle emojis in message based on platform
+            formatted_message = super().format(record)
+            return emojis(formatted_message)
+
+    formatter = PrefixFormatter("%(message)s")
+
+    # Handle Windows UTF-8 encoding issues
     if WINDOWS and hasattr(sys.stdout, "encoding") and sys.stdout.encoding != "utf-8":
-
-        class CustomFormatter(logging.Formatter):
-            def format(self, record):
-                """Sets up logging with UTF-8 encoding and configurable verbosity."""
-                return emojis(super().format(record))
-
         try:
             # Attempt to reconfigure stdout to use UTF-8 encoding if possible
             if hasattr(sys.stdout, "reconfigure"):
@@ -369,11 +564,8 @@ def set_logging(name="LOGGING_NAME", verbose=True):
                 import io
 
                 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
-            else:
-                formatter = CustomFormatter("%(message)s")
-        except Exception as e:
-            print(f"Creating custom formatter for non UTF-8 environments due to {e}")
-            formatter = CustomFormatter("%(message)s")
+        except Exception:
+            pass
 
     # Create and configure the StreamHandler with the appropriate formatter and level
     stream_handler = logging.StreamHandler(sys.stdout)
@@ -401,25 +593,23 @@ def emojis(string=""):
 
 class ThreadingLocked:
     """
-    A decorator class for ensuring thread-safe execution of a function or method. This class can be used as a decorator
-    to make sure that if the decorated function is called from multiple threads, only one thread at a time will be able
-    to execute the function.
+    A decorator class for ensuring thread-safe execution of a function or method.
+
+    This class can be used as a decorator to make sure that if the decorated function is called from multiple threads,
+    only one thread at a time will be able to execute the function.
 
     Attributes:
         lock (threading.Lock): A lock object used to manage access to the decorated function.
 
-    Example:
-        ```python
-        from ultralytics.utils import ThreadingLocked
-
-        @ThreadingLocked()
-        def my_function():
-            # Your code here
-        ```
+    Examples:
+        >>> from ultralytics.utils import ThreadingLocked
+        >>> @ThreadingLocked()
+        >>> def my_function():
+        ...    # Your code here
     """
 
     def __init__(self):
-        """Initializes the decorator class for thread-safe execution of a function or method."""
+        """Initialize the decorator class with a threading lock."""
         self.lock = threading.Lock()
 
     def __call__(self, f):
@@ -428,109 +618,161 @@ class ThreadingLocked:
 
         @wraps(f)
         def decorated(*args, **kwargs):
-            """Applies thread-safety to the decorated function or method."""
+            """Apply thread-safety to the decorated function or method."""
             with self.lock:
                 return f(*args, **kwargs)
 
         return decorated
 
 
-def yaml_save(file="data.yaml", data=None, header=""):
+class YAML:
     """
-    Save YAML data to a file.
+    YAML utility class for efficient file operations with automatic C-implementation detection.
 
-    Args:
-        file (str, optional): File name. Default is 'data.yaml'.
-        data (dict): Data to save in YAML format.
-        header (str, optional): YAML header to add.
+    This class provides optimized YAML loading and saving operations using PyYAML's fastest available implementation
+    (C-based when possible). It implements a singleton pattern with lazy initialization, allowing direct class method
+    usage without explicit instantiation. The class handles file path creation, validation, and character encoding
+    issues automatically.
 
-    Returns:
-        (None): Data is saved to the specified file.
+    The implementation prioritizes performance through:
+        - Automatic C-based loader/dumper selection when available
+        - Singleton pattern to reuse the same instance
+        - Lazy initialization to defer import costs until needed
+        - Fallback mechanisms for handling problematic YAML content
+
+    Attributes:
+        _instance: Internal singleton instance storage.
+        yaml: Reference to the PyYAML module.
+        SafeLoader: Best available YAML loader (CSafeLoader if available).
+        SafeDumper: Best available YAML dumper (CSafeDumper if available).
+
+    Examples:
+        >>> data = YAML.load("config.yaml")
+        >>> data["new_value"] = 123
+        >>> YAML.save("updated_config.yaml", data)
+        >>> YAML.print(data)
     """
-    if data is None:
-        data = {}
-    file = Path(file)
-    if not file.parent.exists():
-        # Create parent directories if they don't exist
+
+    _instance = None
+
+    @classmethod
+    def _get_instance(cls):
+        """Initialize singleton instance on first use."""
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+    def __init__(self):
+        """Initialize with optimal YAML implementation (C-based when available)."""
+        import yaml
+
+        self.yaml = yaml
+        # Use C-based implementation if available for better performance
+        try:
+            self.SafeLoader = yaml.CSafeLoader
+            self.SafeDumper = yaml.CSafeDumper
+        except (AttributeError, ImportError):
+            self.SafeLoader = yaml.SafeLoader
+            self.SafeDumper = yaml.SafeDumper
+
+    @classmethod
+    def save(cls, file="data.yaml", data=None, header=""):
+        """
+        Save Python object as YAML file.
+
+        Args:
+            file (str | Path): Path to save YAML file.
+            data (dict | None): Dict or compatible object to save.
+            header (str): Optional string to add at file beginning.
+        """
+        instance = cls._get_instance()
+        if data is None:
+            data = {}
+
+        # Create parent directories if needed
+        file = Path(file)
         file.parent.mkdir(parents=True, exist_ok=True)
 
-    # Convert Path objects to strings
-    valid_types = int, float, str, bool, list, tuple, dict, type(None)
-    for k, v in data.items():
-        if not isinstance(v, valid_types):
-            data[k] = str(v)
+        # Convert non-serializable objects to strings
+        valid_types = int, float, str, bool, list, tuple, dict, type(None)
+        for k, v in data.items():
+            if not isinstance(v, valid_types):
+                data[k] = str(v)
 
-    # Dump data to file in YAML format
-    with open(file, "w", errors="ignore", encoding="utf-8") as f:
-        if header:
-            f.write(header)
-        yaml.safe_dump(data, f, sort_keys=False, allow_unicode=True)
+        # Write YAML file
+        with open(file, "w", errors="ignore", encoding="utf-8") as f:
+            if header:
+                f.write(header)
+            instance.yaml.dump(data, f, sort_keys=False, allow_unicode=True, Dumper=instance.SafeDumper)
 
+    @classmethod
+    def load(cls, file="data.yaml", append_filename=False):
+        """
+        Load YAML file to Python object with robust error handling.
 
-def yaml_load(file="data.yaml", append_filename=False):
-    """
-    Load YAML data from a file.
+        Args:
+            file (str | Path): Path to YAML file.
+            append_filename (bool): Whether to add filename to returned dict.
 
-    Args:
-        file (str, optional): File name. Default is 'data.yaml'.
-        append_filename (bool): Add the YAML filename to the YAML dictionary. Default is False.
+        Returns:
+            (dict): Loaded YAML content.
+        """
+        instance = cls._get_instance()
+        assert str(file).endswith((".yaml", ".yml")), f"Not a YAML file: {file}"
 
-    Returns:
-        (dict): YAML data and file name.
-    """
-    assert Path(file).suffix in {".yaml", ".yml"}, f"Attempting to load non-YAML file {file} with yaml_load()"
-    with open(file, errors="ignore", encoding="utf-8") as f:
-        s = f.read()  # string
+        # Read file content
+        with open(file, errors="ignore", encoding="utf-8") as f:
+            s = f.read()
 
-        # Remove special characters
-        if not s.isprintable():
+        # Try loading YAML with fallback for problematic characters
+        try:
+            data = instance.yaml.load(s, Loader=instance.SafeLoader) or {}
+        except Exception:
+            # Remove problematic characters and retry
             s = re.sub(r"[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+", "", s)
+            data = instance.yaml.load(s, Loader=instance.SafeLoader) or {}
 
-        # Add YAML filename to dict and return
-        data = yaml.safe_load(s) or {}  # always return a dict (yaml.safe_load() may return None for empty files)
+        # Check for accidental user-error None strings (should be 'null' in YAML)
+        if "None" in data.values():
+            data = {k: None if v == "None" else v for k, v in data.items()}
+
         if append_filename:
             data["yaml_file"] = str(file)
         return data
 
+    @classmethod
+    def print(cls, yaml_file):
+        """
+        Pretty print YAML file or object to console.
 
-def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
-    """
-    Pretty prints a YAML file or a YAML-formatted dictionary.
+        Args:
+            yaml_file (str | Path | dict): Path to YAML file or dict to print.
+        """
+        instance = cls._get_instance()
 
-    Args:
-        yaml_file: The file path of the YAML file or a YAML-formatted dictionary.
+        # Load file if path provided
+        yaml_dict = cls.load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
 
-    Returns:
-        (None)
-    """
-    yaml_dict = yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
-    dump = yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=float("inf"))
-    LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
+        # Use -1 for unlimited width in C implementation
+        dump = instance.yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=-1, Dumper=instance.SafeDumper)
+
+        LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
 
 
 # Default configuration
-DEFAULT_CFG_DICT = yaml_load(DEFAULT_CFG_PATH)
-DEFAULT_SOL_DICT = yaml_load(DEFAULT_SOL_CFG_PATH)  # Ultralytics solutions configuration
-for k, v in DEFAULT_CFG_DICT.items():
-    if isinstance(v, str) and v.lower() == "none":
-        DEFAULT_CFG_DICT[k] = None
+DEFAULT_CFG_DICT = YAML.load(DEFAULT_CFG_PATH)
 DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
 DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
 
 def read_device_model() -> str:
     """
-    Reads the device model information from the system and caches it for quick access. Used by is_jetson() and
-    is_raspberrypi().
+    Read the device model information from the system and cache it for quick access.
 
     Returns:
-        (str): Model file contents if read successfully or empty string otherwise.
+        (str): Kernel release information.
     """
-    try:
-        with open("/proc/device-tree/model") as f:
-            return f.read()
-    except Exception:
-        return ""
+    return platform.release().lower()
 
 
 def is_ubuntu() -> bool:
@@ -574,11 +816,21 @@ def is_jupyter():
     Returns:
         (bool): True if running inside a Jupyter Notebook, False otherwise.
 
-    Note:
+    Notes:
         - Only works on Colab and Kaggle, other environments like Jupyterlab and Paperspace are not reliably detectable.
         - "get_ipython" in globals() method suffers false positives when IPython package installed manually.
     """
     return IS_COLAB or IS_KAGGLE
+
+
+def is_runpod():
+    """
+    Check if the current script is running inside a RunPod container.
+
+    Returns:
+        (bool): True if running in RunPod, False otherwise.
+    """
+    return "RUNPOD_POD_ID" in os.environ
 
 
 def is_docker() -> bool:
@@ -589,30 +841,29 @@ def is_docker() -> bool:
         (bool): True if the script is running inside a Docker container, False otherwise.
     """
     try:
-        with open("/proc/self/cgroup") as f:
-            return "docker" in f.read()
+        return os.path.exists("/.dockerenv")
     except Exception:
         return False
 
 
 def is_raspberrypi() -> bool:
     """
-    Determines if the Python environment is running on a Raspberry Pi by checking the device model information.
+    Determine if the Python environment is running on a Raspberry Pi.
 
     Returns:
         (bool): True if running on a Raspberry Pi, False otherwise.
     """
-    return "Raspberry Pi" in PROC_DEVICE_MODEL
+    return "rpi" in DEVICE_MODEL
 
 
 def is_jetson() -> bool:
     """
-    Determines if the Python environment is running on an NVIDIA Jetson device by checking the device model information.
+    Determine if the Python environment is running on an NVIDIA Jetson device.
 
     Returns:
         (bool): True if running on an NVIDIA Jetson device, False otherwise.
     """
-    return any(keyword in PROC_DEVICE_MODEL.lower() for keyword in ("nvidia", "jetson"))
+    return "tegra" in DEVICE_MODEL
 
 
 def is_online() -> bool:
@@ -635,7 +886,7 @@ def is_online() -> bool:
 
 def is_pip_package(filepath: str = __name__) -> bool:
     """
-    Determines if the file at the given filepath is part of a pip package.
+    Determine if the file at the given filepath is part of a pip package.
 
     Args:
         filepath (str): The filepath to check.
@@ -667,7 +918,7 @@ def is_dir_writeable(dir_path: Union[str, Path]) -> bool:
 
 def is_pytest_running():
     """
-    Determines whether pytest is currently running or not.
+    Determine whether pytest is currently running or not.
 
     Returns:
         (bool): True if pytest is running, False otherwise.
@@ -687,8 +938,7 @@ def is_github_action_running() -> bool:
 
 def get_git_dir():
     """
-    Determines whether the current file is part of a git repository and if so, returns the repository root directory. If
-    the current file is not part of a git repository, returns None.
+    Determine whether the current file is part of a git repository and if so, return the repository root directory.
 
     Returns:
         (Path | None): Git root directory if found or None if not found.
@@ -700,8 +950,7 @@ def get_git_dir():
 
 def is_git_dir():
     """
-    Determines whether the current file is part of a git repository. If the current file is not part of a git
-    repository, returns None.
+    Determine whether the current file is part of a git repository.
 
     Returns:
         (bool): True if current file is part of a git repository.
@@ -711,7 +960,7 @@ def is_git_dir():
 
 def get_git_origin_url():
     """
-    Retrieves the origin URL of a git repository.
+    Retrieve the origin URL of a git repository.
 
     Returns:
         (str | None): The origin URL of the git repository or None if not git directory.
@@ -726,7 +975,7 @@ def get_git_origin_url():
 
 def get_git_branch():
     """
-    Returns the current git branch name. If not in a git repository, returns None.
+    Return the current git branch name. If not in a git repository, return None.
 
     Returns:
         (str | None): The current git branch name or None if not a git directory.
@@ -741,7 +990,7 @@ def get_git_branch():
 
 def get_default_args(func):
     """
-    Returns a dictionary of default arguments for a function.
+    Return a dictionary of default arguments for a function.
 
     Args:
         func (callable): The function to inspect.
@@ -790,7 +1039,7 @@ def get_user_config_dir(sub_dir="Ultralytics"):
     # GCP and AWS lambda fix, only /tmp is writeable
     if not is_dir_writeable(path.parent):
         LOGGER.warning(
-            f"WARNING ⚠️ user config directory '{path}' is not writeable, defaulting to '/tmp' or CWD."
+            f"user config directory '{path}' is not writeable, defaulting to '/tmp' or CWD."
             "Alternatively you can define a YOLO_CONFIG_DIR environment variable for this path."
         )
         path = Path("/tmp") / sub_dir if is_dir_writeable("/tmp") else Path().cwd() / sub_dir
@@ -802,7 +1051,7 @@ def get_user_config_dir(sub_dir="Ultralytics"):
 
 
 # Define constants (required below)
-PROC_DEVICE_MODEL = read_device_model()  # is_jetson() and is_raspberrypi() depend on this constant
+DEVICE_MODEL = read_device_model()  # is_jetson() and is_raspberrypi() depend on this constant
 ONLINE = is_online()
 IS_COLAB = is_colab()
 IS_KAGGLE = is_kaggle()
@@ -819,8 +1068,7 @@ SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"
 
 def colorstr(*input):
     r"""
-    Colors a string based on the provided color and style arguments. Utilizes ANSI escape codes.
-    See https://en.wikipedia.org/wiki/ANSI_escape_code for more details.
+    Color a string based on the provided color and style arguments using ANSI escape codes.
 
     This function can be called in two ways:
         - colorstr('color', 'style', 'your string')
@@ -832,18 +1080,22 @@ def colorstr(*input):
         *input (str | Path): A sequence of strings where the first n-1 strings are color and style arguments,
                       and the last string is the one to be colored.
 
-    Supported Colors and Styles:
-        Basic Colors: 'black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'
-        Bright Colors: 'bright_black', 'bright_red', 'bright_green', 'bright_yellow',
-                       'bright_blue', 'bright_magenta', 'bright_cyan', 'bright_white'
-        Misc: 'end', 'bold', 'underline'
-
     Returns:
         (str): The input string wrapped with ANSI escape codes for the specified color and style.
+
+    Notes:
+        Supported Colors and Styles:
+        - Basic Colors: 'black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'
+        - Bright Colors: 'bright_black', 'bright_red', 'bright_green', 'bright_yellow',
+                       'bright_blue', 'bright_magenta', 'bright_cyan', 'bright_white'
+        - Misc: 'end', 'bold', 'underline'
 
     Examples:
         >>> colorstr("blue", "bold", "hello world")
         >>> "\033[34m\033[1mhello world\033[0m"
+
+    References:
+        https://en.wikipedia.org/wiki/ANSI_escape_code
     """
     *args, string = input if len(input) > 1 else ("blue", "bold", input[0])  # color arguments, string
     colors = {
@@ -872,7 +1124,7 @@ def colorstr(*input):
 
 def remove_colorstr(input_string):
     """
-    Removes ANSI escape codes from a string, effectively un-coloring it.
+    Remove ANSI escape codes from a string, effectively un-coloring it.
 
     Args:
         input_string (str): The string to remove color and style from.
@@ -890,7 +1142,14 @@ def remove_colorstr(input_string):
 
 class TryExcept(contextlib.ContextDecorator):
     """
-    Ultralytics TryExcept class. Use as @TryExcept() decorator or 'with TryExcept():' context manager.
+    Ultralytics TryExcept class for handling exceptions gracefully.
+
+    This class can be used as a decorator or context manager to catch exceptions and optionally print warning messages.
+    It allows code to continue execution even when exceptions occur, which is useful for non-critical operations.
+
+    Attributes:
+        msg (str): Optional message to display when an exception occurs.
+        verbose (bool): Whether to print the exception message.
 
     Examples:
         As a decorator:
@@ -911,13 +1170,13 @@ class TryExcept(contextlib.ContextDecorator):
         self.verbose = verbose
 
     def __enter__(self):
-        """Executes when entering TryExcept context, initializes instance."""
+        """Execute when entering TryExcept context, initialize instance."""
         pass
 
     def __exit__(self, exc_type, value, traceback):
-        """Defines behavior when exiting a 'with' block, prints error message if necessary."""
+        """Define behavior when exiting a 'with' block, print error message if necessary."""
         if self.verbose and value:
-            print(emojis(f"{self.msg}{': ' if self.msg else ''}{value}"))
+            LOGGER.warning(f"{self.msg}{': ' if self.msg else ''}{value}")
         return True
 
 
@@ -925,8 +1184,13 @@ class Retry(contextlib.ContextDecorator):
     """
     Retry class for function execution with exponential backoff.
 
-    Can be used as a decorator to retry a function on exceptions, up to a specified number of times with an
-    exponentially increasing delay between retries.
+    This decorator can be used to retry a function on exceptions, up to a specified number of times with an
+    exponentially increasing delay between retries. It's useful for handling transient failures in network
+    operations or other unreliable processes.
+
+    Attributes:
+        times (int): Maximum number of retry attempts.
+        delay (int): Initial delay between retries in seconds.
 
     Examples:
         Example usage as a decorator:
@@ -946,14 +1210,14 @@ class Retry(contextlib.ContextDecorator):
         """Decorator implementation for Retry with exponential backoff."""
 
         def wrapped_func(*args, **kwargs):
-            """Applies retries to the decorated function or method."""
+            """Apply retries to the decorated function or method."""
             self._attempts = 0
             while self._attempts < self.times:
                 try:
                     return func(*args, **kwargs)
                 except Exception as e:
                     self._attempts += 1
-                    print(f"Retry {self._attempts}/{self.times} failed: {e}")
+                    LOGGER.warning(f"Retry {self._attempts}/{self.times} failed: {e}")
                     if self._attempts >= self.times:
                         raise e
                     time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
@@ -963,13 +1227,29 @@ class Retry(contextlib.ContextDecorator):
 
 def threaded(func):
     """
-    Multi-threads a target function by default and returns the thread or function result.
+    Multi-thread a target function by default and return the thread or function result.
 
-    Use as @threaded decorator. The function runs in a separate thread unless 'threaded=False' is passed.
+    This decorator provides flexible execution of the target function, either in a separate thread or synchronously.
+    By default, the function runs in a thread, but this can be controlled via the 'threaded=False' keyword argument
+    which is removed from kwargs before calling the function.
+
+    Args:
+        func (callable): The function to be potentially executed in a separate thread.
+
+    Returns:
+        (callable): A wrapper function that either returns a daemon thread or the direct function result.
+
+    Examples:
+        >>> @threaded
+        ... def process_data(data):
+        ...     return data
+        >>>
+        >>> thread = process_data(my_data)  # Runs in background thread
+        >>> result = process_data(my_data, threaded=False)  # Runs synchronously, returns function result
     """
 
     def wrapper(*args, **kwargs):
-        """Multi-threads a given function based on 'threaded' kwarg and returns the thread or function result."""
+        """Multi-thread a given function based on 'threaded' kwarg and return the thread or function result."""
         if kwargs.pop("threaded", True):  # run in thread
             thread = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=True)
             thread.start()
@@ -982,8 +1262,10 @@ def threaded(func):
 
 def set_sentry():
     """
-    Initialize the Sentry SDK for error tracking and reporting. Only used if sentry_sdk package is installed and
-    sync=True in settings. Run 'yolo settings' to see and update settings.
+    Initialize the Sentry SDK for error tracking and reporting.
+
+    Only used if sentry_sdk package is installed and sync=True in settings. Run 'yolo settings' to see and update
+    settings.
 
     Conditions required to send errors (ALL conditions must be met or no errors will be reported):
         - sentry_sdk package is installed
@@ -994,11 +1276,6 @@ def set_sentry():
         - running with rank -1 or 0
         - online environment
         - CLI used to run package (checked with 'yolo' as the name of the main CLI command)
-
-    The function also configures Sentry SDK to ignore KeyboardInterrupt and FileNotFoundError exceptions and to exclude
-    events with 'out of memory' in their exception message.
-
-    Additionally, the function sets custom tags and user information for Sentry events.
     """
     if (
         not SETTINGS["sync"]
@@ -1025,7 +1302,7 @@ def set_sentry():
             hint (dict): A dictionary containing additional information about the error.
 
         Returns:
-            dict: The modified event or None if the event should not be sent to Sentry.
+            (dict | None): The modified event or None if the event should not be sent to Sentry.
         """
         if "exc_info" in hint:
             exc_type, exc_value, _ = hint["exc_info"]
@@ -1046,7 +1323,7 @@ def set_sentry():
         auto_enabling_integrations=False,
         traces_sample_rate=1.0,
         release=__version__,
-        environment="production",  # 'dev' or 'production'
+        environment="runpod" if is_runpod() else "production",
         before_send=before_send,
         ignore_errors=[KeyboardInterrupt, FileNotFoundError],
     )
@@ -1058,19 +1335,19 @@ class JSONDict(dict):
     A dictionary-like class that provides JSON persistence for its contents.
 
     This class extends the built-in dictionary to automatically save its contents to a JSON file whenever they are
-    modified. It ensures thread-safe operations using a lock.
+    modified. It ensures thread-safe operations using a lock and handles JSON serialization of Path objects.
 
     Attributes:
         file_path (Path): The path to the JSON file used for persistence.
         lock (threading.Lock): A lock object to ensure thread-safe operations.
 
     Methods:
-        _load: Loads the data from the JSON file into the dictionary.
-        _save: Saves the current state of the dictionary to the JSON file.
-        __setitem__: Stores a key-value pair and persists it to disk.
-        __delitem__: Removes an item and updates the persistent storage.
-        update: Updates the dictionary and persists changes.
-        clear: Clears all entries and updates the persistent storage.
+        _load: Load the data from the JSON file into the dictionary.
+        _save: Save the current state of the dictionary to the JSON file.
+        __setitem__: Store a key-value pair and persist it to disk.
+        __delitem__: Remove an item and update the persistent storage.
+        update: Update the dictionary and persist changes.
+        clear: Clear all entries and update the persistent storage.
 
     Examples:
         >>> json_dict = JSONDict("data.json")
@@ -1096,18 +1373,18 @@ class JSONDict(dict):
                 with open(self.file_path) as f:
                     self.update(json.load(f))
         except json.JSONDecodeError:
-            print(f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary.")
+            LOGGER.warning(f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary.")
         except Exception as e:
-            print(f"Error reading from {self.file_path}: {e}")
+            LOGGER.error(f"Error reading from {self.file_path}: {e}")
 
     def _save(self):
         """Save the current state of the dictionary to the JSON file."""
         try:
             self.file_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.file_path, "w") as f:
+            with open(self.file_path, "w", encoding="utf-8") as f:
                 json.dump(dict(self), f, indent=2, default=self._json_default)
         except Exception as e:
-            print(f"Error writing to {self.file_path}: {e}")
+            LOGGER.error(f"Error writing to {self.file_path}: {e}")
 
     @staticmethod
     def _json_default(obj):
@@ -1130,7 +1407,8 @@ class JSONDict(dict):
 
     def __str__(self):
         """Return a pretty-printed JSON string representation of the dictionary."""
-        return f'JSONDict("{self.file_path}"):\n{json.dumps(dict(self), indent=2, ensure_ascii=False, default=self._json_default)}'
+        contents = json.dumps(dict(self), indent=2, ensure_ascii=False, default=self._json_default)
+        return f'JSONDict("{self.file_path}"):\n{contents}'
 
     def update(self, *args, **kwargs):
         """Update the dictionary and persist changes."""
@@ -1150,18 +1428,19 @@ class SettingsManager(JSONDict):
     SettingsManager class for managing and persisting Ultralytics settings.
 
     This class extends JSONDict to provide JSON persistence for settings, ensuring thread-safe operations and default
-    values. It validates settings on initialization and provides methods to update or reset settings.
+    values. It validates settings on initialization and provides methods to update or reset settings. The settings
+    include directories for datasets, weights, and runs, as well as various integration flags.
 
     Attributes:
         file (Path): The path to the JSON file used for persistence.
         version (str): The version of the settings schema.
-        defaults (Dict): A dictionary containing default settings.
+        defaults (dict): A dictionary containing default settings.
         help_msg (str): A help message for users on how to view and update settings.
 
     Methods:
-        _validate_settings: Validates the current settings and resets if necessary.
-        update: Updates settings, validating keys and types.
-        reset: Resets the settings to default and saves them.
+        _validate_settings: Validate the current settings and reset if necessary.
+        update: Update settings, validating keys and types.
+        reset: Reset the settings to default and save them.
 
     Examples:
         Initialize and update settings:
@@ -1172,8 +1451,9 @@ class SettingsManager(JSONDict):
     """
 
     def __init__(self, file=SETTINGS_FILE, version="0.0.6"):
-        """Initializes the SettingsManager with default settings and loads user settings."""
+        """Initialize the SettingsManager with default settings and load user settings."""
         import hashlib
+        import uuid
 
         from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
@@ -1198,9 +1478,10 @@ class SettingsManager(JSONDict):
             "mlflow": True,  # MLflow integration
             "neptune": True,  # Neptune integration
             "raytune": True,  # Ray Tune integration
-            "tensorboard": True,  # TensorBoard logging
+            "tensorboard": False,  # TensorBoard logging
             "wandb": False,  # Weights & Biases logging
-            "vscode_msg": True,  # VSCode messaging
+            "vscode_msg": True,  # VSCode message
+            "openvino_msg": True,  # OpenVINO export on Intel CPU message
         }
 
         self.help_msg = (
@@ -1209,7 +1490,7 @@ class SettingsManager(JSONDict):
             "For help see https://docs.ultralytics.com/quickstart/#ultralytics-settings."
         )
 
-        with torch_distributed_zero_first(RANK):
+        with torch_distributed_zero_first(LOCAL_RANK):
             super().__init__(self.file)
 
             if not self.file.exists() or not self:  # Check if file doesn't exist or is empty
@@ -1220,43 +1501,52 @@ class SettingsManager(JSONDict):
 
     def _validate_settings(self):
         """Validate the current settings and reset if necessary."""
-        correct_keys = set(self.keys()) == set(self.defaults.keys())
+        correct_keys = frozenset(self.keys()) == frozenset(self.defaults.keys())
         correct_types = all(isinstance(self.get(k), type(v)) for k, v in self.defaults.items())
         correct_version = self.get("settings_version", "") == self.version
 
         if not (correct_keys and correct_types and correct_version):
             LOGGER.warning(
-                "WARNING ⚠️ Ultralytics settings reset to default values. This may be due to a possible problem "
+                "Ultralytics settings reset to default values. This may be due to a possible problem "
                 f"with your settings or a recent ultralytics package update. {self.help_msg}"
             )
             self.reset()
 
         if self.get("datasets_dir") == self.get("runs_dir"):
             LOGGER.warning(
-                f"WARNING ⚠️ Ultralytics setting 'datasets_dir: {self.get('datasets_dir')}' "
+                f"Ultralytics setting 'datasets_dir: {self.get('datasets_dir')}' "
                 f"must be different than 'runs_dir: {self.get('runs_dir')}'. "
                 f"Please change one to avoid possible issues during training. {self.help_msg}"
             )
 
+    def __setitem__(self, key, value):
+        """Update one key: value pair."""
+        self.update({key: value})
+
     def update(self, *args, **kwargs):
-        """Updates settings, validating keys and types."""
+        """Update settings, validating keys and types."""
+        for arg in args:
+            if isinstance(arg, dict):
+                kwargs.update(arg)
         for k, v in kwargs.items():
             if k not in self.defaults:
                 raise KeyError(f"No Ultralytics setting '{k}'. {self.help_msg}")
             t = type(self.defaults[k])
             if not isinstance(v, t):
-                raise TypeError(f"Ultralytics setting '{k}' must be of type '{t}', not '{type(v)}'. {self.help_msg}")
+                raise TypeError(
+                    f"Ultralytics setting '{k}' must be '{t.__name__}' type, not '{type(v).__name__}'. {self.help_msg}"
+                )
         super().update(*args, **kwargs)
 
     def reset(self):
-        """Resets the settings to default and saves them."""
+        """Reset the settings to default and save them."""
         self.clear()
         self.update(self.defaults)
 
 
 def deprecation_warn(arg, new_arg=None):
     """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
-    msg = f"WARNING ⚠️ '{arg}' is deprecated and will be removed in in the future."
+    msg = f"'{arg}' is deprecated and will be removed in in the future."
     if new_arg is not None:
         msg += f" Use '{new_arg}' instead."
     LOGGER.warning(msg)
@@ -1265,7 +1555,7 @@ def deprecation_warn(arg, new_arg=None):
 def clean_url(url):
     """Strip auth from URL, i.e. https://url.com/file.txt?auth -> https://url.com/file.txt."""
     url = Path(url).as_posix().replace(":/", "://")  # Pathlib turns :// -> :/, as_posix() for Windows
-    return urllib.parse.unquote(url).split("?")[0]  # '%2F' to '/', split https://url.com/file.txt?auth
+    return unquote(url).split("?", 1)[0]  # '%2F' to '/', split https://url.com/file.txt?auth
 
 
 def url2file(url):
@@ -1306,8 +1596,6 @@ TESTS_RUNNING = is_pytest_running() or is_github_action_running()
 set_sentry()
 
 # Apply monkey patches
-from ultralytics.utils.patches import imread, imshow, imwrite, torch_load, torch_save
-
 torch.load = torch_load
 torch.save = torch_save
 if WINDOWS:

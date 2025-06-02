@@ -866,6 +866,7 @@ def cuda_device_count() -> int:
             return 0
 
 
+
 def cuda_is_available() -> bool:
     """
     Check if CUDA is available in the environment.

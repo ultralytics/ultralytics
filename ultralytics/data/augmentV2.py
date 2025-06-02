@@ -17,20 +17,19 @@ class ManitouResizeCrop_MultiImg(ManitouResizeCrop):
     def __call__(self, labels=None, images=None):
         """
         Args:
-            labels (Dict, None): Dictionary containing image data and associated labels, or enpty Dict if None.
-            image (np.ndarray, None): The input image as a numpy array. If None, the image is taken from `labels`.
+            labels (Dict, None): Dictionary containing key "labels" with a list of label dictionaries and "ref_labels" for reference labels.
+            image (list, ndarray): List of images to be resized and cropped. 
         Returns:
             (Dict | np.ndarray): If `labels` is provided, returns an updated dictionary with the resized and cropped image,
-                updated labels, and additional metadata. If `labels` is empty, returns a tuple containing the resized 
+                updated labels, and additional metadata. If `labels` is empty, returns a list containing the resized 
                 and cropped image.
         """
         if labels is not None:
             # If labels are provided, apply resize and crop to the image in the labels dictionary
-            
-            for i, label in enumerate(labels):
-                if label.get("ref_labels", None) is not None:
-                    label["ref_labels"] = [self.apply_one_label(rl, None) for rl in label["ref_labels"]]
-                labels[i] = self.apply_one_label(label, None)
+            for i, (k_l, r_l) in enumerate(zip(labels["labels"], labels["ref_labels"])):
+                labels["labels"][i] = self.apply_one_label(k_l, None)
+                if r_l is not None:
+                    labels["ref_labels"][i] = self.apply_one_label(r_l, None)
             return labels
         
         return [self.apply_one_label(None, img) for img in images]
@@ -50,12 +49,12 @@ class RandomHSV_MultiImg(RandomHSV):
     def __call__(self, labels):
         
         if self.hgain or self.sgain or self.vgain:
-            dtype = labels[0]["img"].dtype  # uint8
+            dtype = labels["labels"][0]["img"].dtype  # uint8
             lut_hue, lut_sat, lut_val = self.get_params(dtype=dtype)
-            for i, label in enumerate(labels):
-                if label.get("ref_labels", None) is not None:
-                    label["ref_labels"] = [self.apply_one_label(rl, lut_hue, lut_sat, lut_val) for rl in label["ref_labels"]]
-                labels[i] = self.apply_one_label(label, lut_hue, lut_sat, lut_val)
+            for i, (k_l, r_l) in enumerate(zip(labels["labels"], labels["ref_labels"])):
+                labels["labels"][i] = self.apply_one_label(k_l, lut_hue, lut_sat, lut_val)
+                if r_l is not None:
+                    labels["ref_labels"][i] = self.apply_one_label(r_l, lut_hue, lut_sat, lut_val)
             
         return labels
     
@@ -85,11 +84,11 @@ class RandomFlip_MultiImg(RandomFlip):
         Applies random flip augmentation to multiple images.
     """
     def __call__(self, labels):
-        for i, label in enumerate(labels):
+        for i, (k_l, r_l) in enumerate(zip(labels["labels"], labels["ref_labels"])):
             run_flip = random.random() < self.p
-            if label.get("ref_labels", None) is not None:
-                label["ref_labels"] = [self.apply_one_label(rf, run_flip) for rf in label["ref_labels"]]
-            labels[i] = self.apply_one_label(label, run_flip)
+            labels["labels"][i] = self.apply_one_label(k_l, run_flip)
+            if r_l is not None:
+                labels["ref_labels"][i] = self.apply_one_label(r_l, run_flip)
         return labels
     
     def apply_one_label(self, label, run_flip):        
@@ -148,10 +147,10 @@ class FormatManitou_MultiImg(Format):
         )
         
     def __call__(self, labels):
-        for i, label in enumerate(labels):
-            if label.get("ref_labels", None) is not None:
-                label["ref_labels"] = [self.apply_one_label(rl) for rl in label["ref_labels"]]
-            labels[i] = self.apply_one_label(label)
+        for i, (k_l, r_l) in enumerate(zip(labels["labels"], labels["ref_labels"])):
+            labels["labels"][i] = self.apply_one_label(k_l)
+            if r_l is not None:
+                labels["ref_labels"][i] = self.apply_one_label(r_l)
         return labels      
         
     def apply_one_label(self, labels):

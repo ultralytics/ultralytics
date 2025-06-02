@@ -392,7 +392,6 @@ class ManitouVideoDataset(Dataset):
         else:
             transforms = Compose([ManitouResizeCrop_MultiImg(self.pre_crop_cfg["scale"], self.pre_crop_cfg["target_size"], self.pre_crop_cfg["original_size"], 1.0 if self.pre_crop_cfg["is_crop"] else 0.0)])
         
-        transforms.append(Debug_Radar(deepcopy(self.calib_params)))
         transforms.append(
             FormatManitou_MultiImg(
                 bbox_format="xywh",
@@ -449,6 +448,7 @@ class ManitouVideoDataset(Dataset):
         Returns:
             (dict): Collated batch with stacked tensors.
         """
+
         # collect key frames and reference frames            
         def to_list(batch):
             """Convert batch to a list of dictionaries."""
@@ -494,11 +494,10 @@ class ManitouVideoDataset(Dataset):
         key_radars = {1: [], 2: [], 3: [], 4: []}
         ref_radars = {1: [], 2: [], 3: [], 4: []}
         for i, b in enumerate(batch):
-            key_cam1, key_cam2, key_cam3, key_cam4 = b[0], b[1], b[2], b[3]
-            ref_cam1 = key_cam1.pop("ref_labels", None)
-            ref_cam2 = key_cam2.pop("ref_labels", None)
-            ref_cam3 = key_cam3.pop("ref_labels", None)
-            ref_cam4 = key_cam4.pop("ref_labels", None)
+            key_labels = b["labels"]
+            ref_labels = b["ref_labels"]
+            key_cam1, key_cam2, key_cam3, key_cam4 = key_labels[0], key_labels[1], key_labels[2], key_labels[3]
+            ref_cam1, ref_cam2, ref_cam3, ref_cam4 = ref_labels[0], ref_labels[1], ref_labels[2], ref_labels[3]
             
             key_radars[1].append(key_cam1.pop("radar", None))
             key_radars[2].append(key_cam2.pop("radar", None))
@@ -523,9 +522,32 @@ class ManitouVideoDataset(Dataset):
             
         return {"key_frames": key_frames, "ref_frames": ref_frames, "key_radars": key_radars, "ref_radars": ref_radars}
     
+    def check_name(self, labels):
+        """
+        Check if the labels have the same name.
+        """
+        frame_names = [label["im_frame_name"] for label in labels]
+        if not len(set(frame_names)) == 1:
+            LOGGER.error(f"Frame names of different cameras are not the same: {frame_names}.")
+            raise ValueError(f"Frame names of different cameras are not the same: {frame_names}.")
+    
     def __getitem__(self, index):
         """Return transformed label information for given index."""
-        return self.transforms(self.get_images_and_labels(index))
+        labels = [self.get_image_and_label(i, index) for i in range(1, 5)]
+        
+        # check name
+        self.check_name(labels)
+        
+        if self.ref_img_sampler is not None and self.ref_img_sampler.get("num_ref_imgs", 0) > 0:
+            ref_labels = [self.ref_img_sampling(label, **self.ref_img_sampler) for label in labels]
+        else:
+            ref_labels = [None] * 4
+        
+        new_labels = {"labels": labels, "ref_labels": ref_labels}
+        
+        new_labels = self.transforms(new_labels)
+        
+        return new_labels
 
     def ref_img_sampling(self, key_img_label, scope, num_ref_imgs=1, method="uniform"):
         """
@@ -534,36 +556,38 @@ class ManitouVideoDataset(Dataset):
         Return:
             (list): List of reference image labels.
         """
+        if num_ref_imgs <= 0 or scope <= 0:
+            return None
+        
         if method != "uniform":
             raise NotImplementedError(f"Ref_img_sampler method {method} is not implemented.")
+        
         key_vid_id = key_img_label["vid_id"]
         key_bag_id = key_img_label["bag_id"]
         cam_idx = key_img_label["cam_idx"]
         key_frame_id = key_img_label["img_frame_id"]
-        if scope == 0:
-            return [deepcopy(key_img_label) for _ in range(num_ref_imgs)]
-        else:
-            if method == "uniform":
-                # sample uniformly from the video
-                left = max(0, key_frame_id - scope)
-                right = min(key_frame_id + scope, key_img_label["video_length"] - 1)
-                # remove the key frame id
-                valid_ref_frame_ids = [i for i in range(left, right + 1) if i != key_frame_id]
-                if len(valid_ref_frame_ids) < num_ref_imgs:
-                    raise ValueError(
-                        f"Not enough reference frames in the video {key_vid_id} for frame {key_frame_id}. "
-                        f"Only {len(valid_ref_frame_ids)} available, but {num_ref_imgs} requested."
-                        f" Please check the scope and num_ref_imgs parameters."
-                    )
-                ref_frame_ids = np.random.choice(valid_ref_frame_ids, num_ref_imgs, replace=False)
-                if isinstance(ref_frame_ids, int):
-                    ref_frame_ids = [ref_frame_ids]
-                ref_frame_ids = sorted(ref_frame_ids)
-                # return the reference image labels
-                indexs = [self.id2idx[key_bag_id][cam_idx][int(i)] for i in ref_frame_ids]
-                ref_img_labels = [self.get_image_and_label(cam_idx, i) for i in indexs]
-                
-                return ref_img_labels
+
+        if method == "uniform":
+            # sample uniformly from the video
+            left = max(0, key_frame_id - scope)
+            right = min(key_frame_id + scope, key_img_label["video_length"] - 1)
+            # remove the key frame id
+            valid_ref_frame_ids = [i for i in range(left, right + 1) if i != key_frame_id]
+            if len(valid_ref_frame_ids) < num_ref_imgs:
+                raise ValueError(
+                    f"Not enough reference frames in the video {key_vid_id} for frame {key_frame_id}. "
+                    f"Only {len(valid_ref_frame_ids)} available, but {num_ref_imgs} requested."
+                    f" Please check the scope and num_ref_imgs parameters."
+                )
+            ref_frame_ids = np.random.choice(valid_ref_frame_ids, num_ref_imgs, replace=False)
+            if isinstance(ref_frame_ids, int):
+                ref_frame_ids = [ref_frame_ids]
+            ref_frame_ids = sorted(ref_frame_ids)
+            # return the reference image labels
+            indexs = [self.id2idx[key_bag_id][cam_idx][int(i)] for i in ref_frame_ids]
+            ref_img_labels = [self.get_image_and_label(cam_idx, i) for i in indexs]
+            
+            return ref_img_labels
              
     def get_image_and_label(self, cam_idx, index):
         """

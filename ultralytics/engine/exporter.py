@@ -599,9 +599,9 @@ class Exporter:
         requirements = ["onnx>=1.12.0,<1.18.0"]
         if self.args.simplify:
             requirements += [
-                "onnxslim>=0.1.53,!=0.1.55",
+                "onnxslim>=0.1.53,!=0.1.55",  # onnxslim 0.1.55 Python3.8 CI error: https://github.com/ultralytics/ultralytics/actions/runs/15372734607/job/43255339189
                 "onnxruntime" + ("-gpu" if torch.cuda.is_available() else ""),
-            ]  # onnxslim 0.1.55 Python3.8 CI error: https://github.com/ultralytics/ultralytics/actions/runs/15372734607/job/43255339189
+            ]
         check_requirements(requirements)
         import onnx  # noqa
 

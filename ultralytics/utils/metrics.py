@@ -505,10 +505,10 @@ class ConfusionMatrix(DataExportMixin):
         for i in range(self.matrix.shape[0]):
             LOGGER.info(" ".join(map(str, self.matrix[i])))
 
-
     def summary(self, **kwargs):
         """Returns summary of the confusion matrix for export in different formats CSV, XML, HTML."""
         import re
+
         names = self.names if self.task == "classify" else self.names + ["background"]
         clean_names, seen = [], set()
         for name in names:

@@ -462,65 +462,58 @@ class ManitouVideoDataset(Dataset):
                     raise TypeError(f"Unsupported collate type: {type(b)}")
             return b_list         
   
-        def _collate_cameras(cams):
-            batch = []
+        def _collate_cameras(batch):
             # to list
-            [batch.extend(to_list(c)) for c in cams.values()]  # len = batch per camera * 4
             new_batch = {}
             batch = [dict(sorted(b.items())) for b in batch]  # make sure the keys are in the same order
             keys = batch[0].keys()
             values = list(zip(*[list(b.values()) for b in batch]))
             for i, k in enumerate(keys):
                 value = values[i]
-                if k in {"img", "text_feats"}:
-                    value = torch.stack(value, 0)
+                if k in {"img",}:  # image shape is (N, C, H, W) N is the number of cameras
+                    value = torch.cat(value, 0)  # b (N, C, H, W) -> (b * N, C, H, W)
                 elif k == "visuals":
                     value = torch.nn.utils.rnn.pad_sequence(value, batch_first=True)
                 if k in {"masks", "keypoints", "bboxes", "cls", "segments", "obb"}:
                     value = torch.cat(value, 0)
+                
+                # if k not in {"batch_idx", "visuals", "masks", "keypoints", "bboxes", "cls", "segments", "obb", "radar"}:
+                if isinstance(value, (list, tuple)):
+                    if isinstance(value[0], (list, tuple)):
+                        # if value is a list of lists, we need to extend it into a single list
+                        _value = []
+                        for v in value:
+                            _value.extend(v)
+                        value = _value                        
+                    
                 new_batch[k] = value
             new_batch["batch_idx"] = list(new_batch["batch_idx"])
             for i in range(len(new_batch["batch_idx"])):
-                new_batch["batch_idx"][i] += i  # add target image index for build_targets()
+                if len(new_batch["batch_idx"][i]) == 0:
+                    continue
+                # get the maximum index of the batch_idx for each batch
+                offset = max(new_batch["batch_idx"][i]) + 1
+                if offset > 4:
+                    LOGGER.warning(f"Batch index {new_batch['batch_idx'][i]} exceeds 3, which is not expected. "
+                                   f"Please check the batch size and the number of cameras.")
+                new_batch["batch_idx"][i] += (i * offset)  # add target image index for build_targets()
             new_batch["batch_idx"] = torch.cat(new_batch["batch_idx"], 0)
         
             return new_batch
         
-        def _collate_radars(radars):  # TODO: refactor this function
-            return radars
-                
-        key_frames = {1: [], 2: [], 3: [], 4: []}
-        ref_frames = {1: [], 2: [], 3: [], 4: []}
-        key_radars = {1: [], 2: [], 3: [], 4: []}
-        ref_radars = {1: [], 2: [], 3: [], 4: []}
+        key_batch = []
+        ref_batch = []
         for i, b in enumerate(batch):
-            key_labels = b["labels"]
-            ref_labels = b["ref_labels"]
-            key_cam1, key_cam2, key_cam3, key_cam4 = key_labels[0], key_labels[1], key_labels[2], key_labels[3]
-            ref_cam1, ref_cam2, ref_cam3, ref_cam4 = ref_labels[0], ref_labels[1], ref_labels[2], ref_labels[3]
-            
-            key_radars[1].append(key_cam1.pop("radar", None))
-            key_radars[2].append(key_cam2.pop("radar", None))
-            key_radars[3].append(key_cam3.pop("radar", None))
-            key_radars[4].append(key_cam4.pop("radar", None))
-            
-            if ref_cam1 is not None:
-                ref_radars[1].append([rc1.pop("radar", None) for rc1 in ref_cam1])
-                ref_radars[2].append([rc2.pop("radar", None) for rc2 in ref_cam2])
-                ref_radars[3].append([rc3.pop("radar", None) for rc3 in ref_cam3])
-                ref_radars[4].append([rc4.pop("radar", None) for rc4 in ref_cam4])
-                
-            for j, (key, ref) in enumerate(zip([key_cam1, key_cam2, key_cam3, key_cam4], [ref_cam1, ref_cam2, ref_cam3, ref_cam4])):
-                key_frames[j + 1].append(key)     
-                ref_frames[j + 1].append(ref)
+            key_batch.append(b["labels"])
+            ref_batch.append(b["ref_labels"])            
                 
         # collate key frames
-        key_frames = _collate_cameras(key_frames)
-        ref_frames = _collate_cameras(ref_frames) if len(ref_frames[1]) > 0 and ref_frames[1][0] is not None else None
-        key_radars = _collate_radars(key_radars)
-        ref_radars = _collate_radars(ref_radars) if len(ref_radars[1]) > 0 and ref_radars[1][0] is not None else None
+        key_batch = _collate_cameras(key_batch)
+        ref_batch = _collate_cameras(ref_batch) if ref_batch[0] is not None else None
+        # key_radars = _collate_radars(key_radars)
+        # ref_radars = _collate_radars(ref_radars) if len(ref_radars[1]) > 0 and ref_radars[1][0] is not None else None
             
-        return {"key_frames": key_frames, "ref_frames": ref_frames, "key_radars": key_radars, "ref_radars": ref_radars}
+        return {"key_frames": key_batch, "ref_frames": ref_batch, "key_radars": None, "ref_radars": None}
     
     def check_name(self, labels):
         """
@@ -539,7 +532,8 @@ class ManitouVideoDataset(Dataset):
         self.check_name(labels)
         
         if self.ref_img_sampler is not None and self.ref_img_sampler.get("num_ref_imgs", 0) > 0:
-            ref_labels = [self.ref_img_sampling(label, **self.ref_img_sampler) for label in labels]
+            # ref_labels = [self.ref_img_sampling(label, **self.ref_img_sampler) for label in labels]
+            ref_labels = self.ref_img_sampling_4cam(labels[0], **self.ref_img_sampler)
         else:
             ref_labels = [None] * 4
         
@@ -548,6 +542,48 @@ class ManitouVideoDataset(Dataset):
         new_labels = self.transforms(new_labels)
         
         return new_labels
+    
+    def ref_img_sampling_4cam(self, key_img_label, scope, num_ref_imgs=1, method="uniform"):
+        """
+        Sample reference images for the given key image label across 4 cameras.
+        Note: To avoid memory increase, we sample the same reference images for all cameras. This will decrease the diversity of reference images.
+        Return:
+            (list): List of reference image labels for each camera.
+        """
+        if num_ref_imgs <= 0 or scope <= 0:
+            return [None] * 4
+        
+        if method != "uniform":
+            raise NotImplementedError(f"Ref_img_sampler method {method} is not implemented.")
+        
+        key_vid_id = key_img_label["vid_id"]
+        key_bag_id = key_img_label["bag_id"]
+        cam_idx = key_img_label["cam_idx"]
+        key_frame_id = key_img_label["img_frame_id"]
+
+        if method == "uniform":
+            # sample uniformly from the video
+            left = max(0, key_frame_id - scope)
+            right = min(key_frame_id + scope, key_img_label["video_length"] - 1)
+            # remove the key frame id
+            valid_ref_frame_ids = [i for i in range(left, right + 1) if i != key_frame_id]
+            if len(valid_ref_frame_ids) < num_ref_imgs:
+                raise ValueError(
+                    f"Not enough reference frames in the video {key_vid_id} for frame {key_frame_id}. "
+                    f"Only {len(valid_ref_frame_ids)} available, but {num_ref_imgs} requested."
+                    f" Please check the scope and num_ref_imgs parameters."
+                )
+            ref_frame_ids = np.random.choice(valid_ref_frame_ids, num_ref_imgs, replace=False)
+            if isinstance(ref_frame_ids, int):
+                ref_frame_ids = [ref_frame_ids]
+            ref_frame_ids = sorted(ref_frame_ids)
+            # return the reference image labels
+            indexs = [self.id2idx[key_bag_id][cam_idx][int(i)] for i in ref_frame_ids]
+            ref_img_labels = []
+            for j in range(1, 5):    
+                ref_img_labels.append([self.get_image_and_label(j, i) for i in indexs])
+            
+            return ref_img_labels
 
     def ref_img_sampling(self, key_img_label, scope, num_ref_imgs=1, method="uniform"):
         """
@@ -613,22 +649,7 @@ class ManitouVideoDataset(Dataset):
         # update label with intrinsic camera matrix if available
         if self.use_radar:
             label["intrinsic_K"] = deepcopy(self.calib_params[f"camera{cam_idx}_K"])
-        return self.update_labels_info(label)
-    
-    def get_images_and_labels(self, index):
-        """
-        Given an index, return the images from 4 cameras and their corresponding labels.
-        """
-        labels = [self.get_image_and_label(i, index) for i in range(1, 5)]
-        
-        if self.ref_img_sampler is not None:
-            ref_labels = [self.ref_img_sampling(label, **self.ref_img_sampler) for label in labels]
-            
-            for l, ref_l in zip(labels, ref_labels):
-                l["ref_labels"] = ref_l
-          
-        return labels
-        
+        return self.update_labels_info(label)        
 
     def __len__(self):
         """Return the length of the labels list for the dataset. """

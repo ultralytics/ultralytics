@@ -26,10 +26,10 @@ class ManitouResizeCrop_MultiImg(ManitouResizeCrop):
         """
         if labels is not None:
             # If labels are provided, apply resize and crop to the image in the labels dictionary
-            for i, (k_l, r_l) in enumerate(zip(labels["labels"], labels["ref_labels"])):
+            for i, (k_l, r_ls) in enumerate(zip(labels["labels"], labels["ref_labels"])):
                 labels["labels"][i] = self.apply_one_label(k_l, None)
-                if r_l is not None:
-                    labels["ref_labels"][i] = self.apply_one_label(r_l, None)
+                if r_ls is not None:
+                    labels["ref_labels"][i] = [self.apply_one_label(r_l, None) for r_l in r_ls]
             return labels
         
         return [self.apply_one_label(None, img) for img in images]
@@ -51,10 +51,10 @@ class RandomHSV_MultiImg(RandomHSV):
         if self.hgain or self.sgain or self.vgain:
             dtype = labels["labels"][0]["img"].dtype  # uint8
             lut_hue, lut_sat, lut_val = self.get_params(dtype=dtype)
-            for i, (k_l, r_l) in enumerate(zip(labels["labels"], labels["ref_labels"])):
+            for i, (k_l, r_ls) in enumerate(zip(labels["labels"], labels["ref_labels"])):
                 labels["labels"][i] = self.apply_one_label(k_l, lut_hue, lut_sat, lut_val)
-                if r_l is not None:
-                    labels["ref_labels"][i] = self.apply_one_label(r_l, lut_hue, lut_sat, lut_val)
+                if r_ls is not None:
+                    labels["ref_labels"][i] = [self.apply_one_label(r_l, lut_hue, lut_sat, lut_val) for r_l in r_ls]
             
         return labels
     
@@ -84,11 +84,11 @@ class RandomFlip_MultiImg(RandomFlip):
         Applies random flip augmentation to multiple images.
     """
     def __call__(self, labels):
-        for i, (k_l, r_l) in enumerate(zip(labels["labels"], labels["ref_labels"])):
+        for i, (k_l, r_ls) in enumerate(zip(labels["labels"], labels["ref_labels"])):
             run_flip = random.random() < self.p
             labels["labels"][i] = self.apply_one_label(k_l, run_flip)
-            if r_l is not None:
-                labels["ref_labels"][i] = self.apply_one_label(r_l, run_flip)
+            if r_ls is not None:
+                labels["ref_labels"][i] = [self.apply_one_label(r_l, run_flip) for r_l in r_ls]
         return labels
     
     def apply_one_label(self, label, run_flip):        
@@ -147,11 +147,16 @@ class FormatManitou_MultiImg(Format):
         )
         
     def __call__(self, labels):
-        for i, (k_l, r_l) in enumerate(zip(labels["labels"], labels["ref_labels"])):
+        for i, (k_l, r_ls) in enumerate(zip(labels["labels"], labels["ref_labels"])):
             labels["labels"][i] = self.apply_one_label(k_l)
-            if r_l is not None:
-                labels["ref_labels"][i] = self.apply_one_label(r_l)
-        return labels      
+            if r_ls is not None:
+                labels["ref_labels"][i] = [self.apply_one_label(r_l) for r_l in r_ls]
+                
+        # collect labels from 4 cameras to a mini-batch
+        labels["labels"] = self.collect_4camera_labels(labels["labels"])
+        labels["ref_labels"] = self.collect_4camera_labels(labels["ref_labels"]) if labels["ref_labels"][0] is not None else None
+            
+        return labels              
         
     def apply_one_label(self, labels):
         labels.pop("prev", None)  # in case recursive call when using pin_memory=True
@@ -197,6 +202,44 @@ class FormatManitou_MultiImg(Format):
             labels["batch_idx"] = torch.zeros(nl)
         return labels
     
+    def collect_4camera_labels(self, labels):
+        """
+        collect labels from 4 cameras to a mini-batch.
+        """
+        _labels = []
+        for label in labels:
+            if isinstance(label, dict):
+                _labels.append(label)
+            elif isinstance(label, list):
+                _labels.extend(label)
+            else:
+                raise TypeError(f"Unsupported label type: {type(label)}")
+
+        mb = [dict(sorted(cam_dict.items())) for cam_dict in _labels]
+        keys = list(mb[0].keys())
+        
+        values = list(zip(*[[b[k] for k in keys] for b in mb]))
+        
+        nb = {}
+        for idx_key, k in enumerate(keys):
+            v = values[idx_key]
+            
+            if k in {"img",}:
+                v = torch.stack(v, dim=0)  # stack images
+            elif k == "visuals":
+                v = torch.nn.utils.rnn.pad_sequence(v, batch_first=True)
+            if k in {"masks", "keypoints", "bboxes", "cls", "segments", "obb"}:
+                v = torch.cat(v, 0)
+        
+            nb[k] = v
+        
+        nb["batch_idx"] = list(nb["batch_idx"])
+        for i in range(len(nb["batch_idx"])):
+            nb["batch_idx"][i] += i
+        nb["batch_idx"] = torch.cat(nb["batch_idx"], 0)
+        
+        # TODO: process radar data if needed
+        return nb
 
 class Debug_Radar:
     

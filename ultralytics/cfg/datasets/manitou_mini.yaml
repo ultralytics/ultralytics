@@ -1,9 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-path: /home/shu/Documents/PROTECH/ultralytics/datasets/manitou_mini # dataset root dir
-prefix: data # prefix for image files
-train: annotations/manitou_coco_train_remap.json  # training set annotations (coco format)
-val: annotations/manitou_coco_val_remap.json # validation set annotations (coco format)
+path: /home/shu/Documents/PROTECH/ultralytics/datasets/manitou # dataset root dir
+img_prefix: key_frames # prefix for image files
+train: annotations_multi_view_mini/manitou_coco_train_remap.json  # training set annotations (coco format)
+val: annotations_multi_view_mini/manitou_coco_val_remap.json # validation set annotations (coco format)
 test: # test images (optional)
 
 # names:  
@@ -21,3 +21,18 @@ names:
   Vehicles
   Machinery
   golf cart
+
+# Optional:
+radar_prefix: radars
+calib_prefix: calibration  # prefix to access calibration files
+radar_filter:
+  range: [0, 25, -15, 15, -1, 6]  # [x_min, x_max, y_min, y_max, z_min, z_max] meters
+  rcs: -15
+  snr: 10
+  vel: 
+  dist_var: 0.4
+  azimuth_var: 0.4
+  elevation_var: 0.4
+  elevation_angle: [-1, 12]  # [min, max] in degrees
+  measurement_status: 30
+accumulation: 1  # number of frames to accumulate for radar data

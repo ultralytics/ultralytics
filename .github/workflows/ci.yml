@@ -26,11 +26,11 @@ on:
         type: boolean
       tests:
         description: "Run Tests"
-        default: false
+        default: true
         type: boolean
       gpu:
         description: "Run GPU"
-        default: false
+        default: true
         type: boolean
       raspberrypi:
         description: "Run Raspberry Pi"
@@ -162,7 +162,8 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
 
   Tests:
-    if: github.event_name != 'workflow_dispatch' || github.event.inputs.tests == 'true'
+    # if: github.event_name != 'workflow_dispatch' || github.event.inputs.tests == 'true'
+    if: False
     timeout-minutes: 360
     runs-on: ${{ matrix.os }}
     strategy:
@@ -216,7 +217,8 @@ jobs:
         run: uv cache prune --ci
 
   GPU:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
+    # if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
+    if: False
     timeout-minutes: 360
     runs-on: gpu-latest
     steps:

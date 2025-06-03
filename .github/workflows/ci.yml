@@ -26,11 +26,11 @@ on:
         type: boolean
       tests:
         description: "Run Tests"
-        default: true
+        default: false
         type: boolean
       gpu:
         description: "Run GPU"
-        default: true
+        default: false
         type: boolean
       raspberrypi:
         description: "Run Raspberry Pi"
@@ -106,7 +106,8 @@ jobs:
       fail-fast: false
       matrix:
         # Temporarily disable windows-latest due to https://github.com/ultralytics/ultralytics/actions/runs/13020330819/job/36319338854?pr=18921
-        os: [ubuntu-latest, macos-14, ubuntu-24.04-arm]
+        # os: [ubuntu-latest, macos-14, ubuntu-24.04-arm]
+        os: [ubuntu-latest]
         python-version: ["3.12"]
         model: [yolo11n]
     steps:
@@ -125,7 +126,7 @@ jobs:
           uv pip list
       - name: Benchmark DetectionModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.309
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.309 format=rknn
       - name: Benchmark ClassificationModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.249

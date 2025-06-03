@@ -462,7 +462,7 @@ class ConfusionMatrix(DataExportMixin):
             warnings.simplefilter("ignore")  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
             im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation="none")
             ax.xaxis.set_label_position("bottom")
-            if nc < 120:  # Add score for each cell of confusion matrix
+            if nc < 30:  # Add score for each cell of confusion matrix
                 for i, row in enumerate(array[:nc]):
                     for j, val in enumerate(row[:nc]):
                         val = array[i, j]

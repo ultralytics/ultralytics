@@ -71,12 +71,6 @@ For detailed instructions and best practices related to the installation process
 
 All [Ultralytics YOLO11 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
-??? warning "TFLite Export Compatibility"
-
-    - ✅ TFLite export uses **ONNX → TensorFlow → TFLite** conversion.
-    - ✅ It only works reliably on CPU systems.
-    - ✅ On GPU systems, set `os.environ["CUDA_VISIBLE_DEVICES"] = "-1"` before exporting to force CPU mode.
-
 !!! example "Usage"
 
     === "Python"

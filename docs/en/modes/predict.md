@@ -738,7 +738,7 @@ The `plot()` method in `Results` objects facilitates visualization of prediction
 The `plot()` method supports various arguments to customize the output:
 
 | Argument     | Type                   | Description                                                                | Default           |
-| ------------ | ---------------        | -------------------------------------------------------------------------- | -------------     |
+| ------------ | ---------------------- | -------------------------------------------------------------------------- | ----------------- |
 | `conf`       | `bool`                 | Include detection confidence scores.                                       | `True`            |
 | `line_width` | `float`                | Line width of bounding boxes. Scales with image size if `None`.            | `None`            |
 | `font_size`  | `float`                | Text font size. Scales with image size if `None`.                          | `None`            |

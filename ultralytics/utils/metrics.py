@@ -518,7 +518,7 @@ class ConfusionMatrix(DataExportMixin):
             List[Dict]: A list of dictionaries, each representing one predicted class with corresponding values for all actual classes.
 
         Examples:
-            >>> results = model.val(data="coco.yaml", plots=True)
+            >>> results = model.val(data="coco8.yaml", plots=True)
             >>> cm_dict = results.confusion_matrix.summary(normalize=True, decimals=5)
             >>> print(cm_dict)
         """

@@ -507,8 +507,8 @@ class ConfusionMatrix(DataExportMixin):
 
     def summary(self, normalize: bool = False, decimals: int = 5) -> List[Dict[str, float]]:
         """
-        Generate a summarized representation of the confusion matrix as a list of dictionaries, with optional normalization.
-        This is useful for exporting the matrix to various formats such as CSV, XML, HTML, JSON, or SQL.
+        Generate a summarized representation of the confusion matrix as a list of dictionaries, with optional
+        normalization. This is useful for exporting the matrix to various formats such as CSV, XML, HTML, JSON, or SQL.
 
         Args:
             normalize (bool): Whether to normalize the confusion matrix values.

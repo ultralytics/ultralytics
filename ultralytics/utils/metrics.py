@@ -515,7 +515,7 @@ class ConfusionMatrix(DataExportMixin):
             decimals (int): Number of decimal places to round the output values to.
 
         Returns:
-            List[Dict]: A list of dictionaries, each representing one predicted class with corresponding values for all actual classes.
+            List[Dict[str, float]]: A list of dictionaries, each representing one predicted class with corresponding values for all actual classes.
 
         Examples:
             >>> results = model.val(data="coco8.yaml", plots=True)

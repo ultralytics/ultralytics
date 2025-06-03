@@ -462,7 +462,7 @@ class ConfusionMatrix(DataExportMixin):
             warnings.simplefilter("ignore")  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
             im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation="none")
             ax.xaxis.set_label_position("bottom")
-            if nc < 30:  # Add score for each cell of confusion matrix
+            if nc < 120:  # Add score for each cell of confusion matrix
                 for i, row in enumerate(array[:nc]):
                     for j, val in enumerate(row[:nc]):
                         val = array[i, j]
@@ -505,10 +505,9 @@ class ConfusionMatrix(DataExportMixin):
         for i in range(self.matrix.shape[0]):
             LOGGER.info(" ".join(map(str, self.matrix[i])))
 
-    def summary(self, normalize: bool = False, decimals: int = 2) -> List[Dict[str, Any]]:
+    def summary(self, normalize: bool = False, decimals: int = 2) -> List[Dict[str, float]]:
         """
         Generate a summarized representation of the confusion matrix as a list of dictionaries, with optional normalization.
-
         This is useful for exporting the matrix to various formats such as CSV, XML, HTML, JSON, or SQL.
 
         Args:
@@ -516,8 +515,7 @@ class ConfusionMatrix(DataExportMixin):
             decimals (int): Number of decimal places to round the output values to.
 
         Returns:
-            List[Dict[str, Any]]: A list of dictionaries, each representing one predicted class with corresponding values
-            for all actual classes.
+            List[Dict]: A list of dictionaries, each representing one predicted class with corresponding values for all actual classes.
 
         Examples:
             >>> results = model.val(data="coco.yaml", plots=True)

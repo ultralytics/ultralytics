@@ -535,8 +535,7 @@ class ConfusionMatrix(DataExportMixin):
                 counter += 1
             seen.add(clean_name.lower())
             clean_names.append(clean_name)
-        if normalize:
-            self.matrix = (self.matrix / (self.matrix.sum(0).reshape(1, -1) + 1e-9)).round(decimals)
+        self.matrix = (self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)).round(decimals)
         return [
             dict({"Predicted": clean_names[i]}, **{clean_names[j]: self.matrix[i, j] for j in range(len(clean_names))})
             for i in range(len(clean_names))

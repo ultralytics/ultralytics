@@ -324,7 +324,7 @@ class Exporter:
         if imx and self.args.device is None and torch.cuda.is_available():
             LOGGER.warning("Exporting on CPU while CUDA is available, setting device=0 for faster export on GPU.")
             self.args.device = "0"  # update device to "0"
-        if fmt == "tflite" and self.args.device in {"0", "cuda"}:
+        if fmt == "tflite" and self.args.device in {0, "cuda"}:
             LOGGER.warning("Exporting on GPU is not supported, setting device='cpu'.")
             self.args.device = "cpu"  # update device to "cpu"
         self.device = select_device("cpu" if self.args.device is None else self.args.device)

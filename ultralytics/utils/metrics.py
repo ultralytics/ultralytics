@@ -309,7 +309,7 @@ def smooth_bce(eps: float = 0.1) -> Tuple[float, float]:
     return 1.0 - 0.5 * eps, 0.5 * eps
 
 
-class ConfusionMatrix:
+class ConfusionMatrix(DataExportMixin):
     """
     A class for calculating and updating a confusion matrix for object detection and classification tasks.
 
@@ -321,7 +321,7 @@ class ConfusionMatrix:
         iou_thres (float): The Intersection over Union threshold.
     """
 
-    def __init__(self, nc: int, conf: float = 0.25, iou_thres: float = 0.45, task: str = "detect"):
+    def __init__(self, nc: int, conf: float = 0.25, iou_thres: float = 0.45, names: tuple = (), task: str = "detect"):
         """
         Initialize a ConfusionMatrix instance.
 
@@ -329,11 +329,13 @@ class ConfusionMatrix:
             nc (int): Number of classes.
             conf (float, optional): Confidence threshold for detections.
             iou_thres (float, optional): IoU threshold for matching detections to ground truth.
+            names (tuple, optional): Names of classes, used as labels on the plot.
             task (str, optional): Type of task, either 'detect' or 'classify'.
         """
         self.task = task
         self.matrix = np.zeros((nc + 1, nc + 1)) if self.task == "detect" else np.zeros((nc, nc))
         self.nc = nc  # number of classes
+        self.names = list(names)  # name of classes
         self.conf = 0.25 if conf in {None, 0.001} else conf  # apply 0.25 if default val conf is passed
         self.iou_thres = iou_thres
 
@@ -426,14 +428,13 @@ class ConfusionMatrix:
 
     @TryExcept(msg="ConfusionMatrix plot failure")
     @plt_settings()
-    def plot(self, normalize: bool = True, save_dir: str = "", names: tuple = (), on_plot=None):
+    def plot(self, normalize: bool = True, save_dir: str = "", on_plot=None):
         """
         Plot the confusion matrix using matplotlib and save it to a file.
 
         Args:
             normalize (bool, optional): Whether to normalize the confusion matrix.
             save_dir (str, optional): Directory where the plot will be saved.
-            names (tuple, optional): Names of classes, used as labels on the plot.
             on_plot (callable, optional): An optional callback to pass plots path and data when they are rendered.
         """
         import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
@@ -441,18 +442,17 @@ class ConfusionMatrix:
         array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)  # normalize columns
         array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
 
-        names = list(names)
         fig, ax = plt.subplots(1, 1, figsize=(12, 9))
         if self.nc >= 100:  # downsample for large class count
             k = max(2, self.nc // 60)  # step size for downsampling, always > 1
             keep_idx = slice(None, None, k)  # create slice instead of array
-            names = names[keep_idx]  # slice class names
+            self.names = self.names[keep_idx]  # slice class names
             array = array[keep_idx, :][:, keep_idx]  # slice matrix rows and cols
             n = (self.nc + k - 1) // k  # number of retained classes
             nc = nn = n if self.task == "classify" else n + 1  # adjust for background if needed
         else:
             nc = nn = self.nc if self.task == "classify" else self.nc + 1
-        ticklabels = (names + ["background"]) if (0 < nn < 99) and (nn == nc) else "auto"
+        ticklabels = (self.names + ["background"]) if (0 < nn < 99) and (nn == nc) else "auto"
         xy_ticks = np.arange(len(ticklabels))
         tick_fontsize = max(6, 15 - 0.1 * nc)  # Minimum size is 6
         label_fontsize = max(6, 12 - 0.1 * nc)
@@ -504,6 +504,26 @@ class ConfusionMatrix:
         """Print the confusion matrix to the console."""
         for i in range(self.matrix.shape[0]):
             LOGGER.info(" ".join(map(str, self.matrix[i])))
+
+    def summary(self, **kwargs):
+        """Returns summary of the confusion matrix for export in different formats CSV, XML, HTML."""
+        import re
+
+        names = self.names if self.task == "classify" else self.names + ["background"]
+        clean_names, seen = [], set()
+        for name in names:
+            clean_name = re.sub(r"[^a-zA-Z0-9_]", "_", name)
+            original_clean = clean_name
+            counter = 1
+            while clean_name.lower() in seen:
+                clean_name = f"{original_clean}_{counter}"
+                counter += 1
+            seen.add(clean_name.lower())
+            clean_names.append(clean_name)
+        return [
+            dict({"Predicted": clean_names[i]}, **{clean_names[j]: self.matrix[i, j] for j in range(len(clean_names))})
+            for i in range(len(clean_names))
+        ]
 
 
 def smooth(y: np.ndarray, f: float = 0.05) -> np.ndarray:

@@ -361,6 +361,9 @@ class BasePredictor:
             if isinstance(v, cv2.VideoWriter):
                 v.release()
 
+        if self.args.show:
+            cv2.destroyAllWindows()
+
         # Print final results
         if self.args.verbose and self.seen:
             t = tuple(x.t / self.seen * 1e3 for x in profilers)  # speeds per image
@@ -492,7 +495,8 @@ class BasePredictor:
             cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
             cv2.resizeWindow(p, im.shape[1], im.shape[0])  # (width, height)
         cv2.imshow(p, im)
-        cv2.waitKey(300 if self.dataset.mode == "image" else 1)  # 1 millisecond
+        if cv2.waitKey(300 if self.dataset.mode == "image" else 1) & 0xFF == ord("q"):  # 1 millisecond
+            raise StopIteration
 
     def run_callbacks(self, event: str):
         """Run all registered callbacks for a specific event."""

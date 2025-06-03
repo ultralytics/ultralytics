@@ -519,8 +519,8 @@ class ConfusionMatrix(DataExportMixin):
 
         Examples:
             >>> results = model.val(data="coco.yaml", plots=True)
-            >>> cm_dicts = results.confusion_matrix.summary(normalize=True, decimals=5)
-            >>> print(cm_dicts)
+            >>> cm_dict = results.confusion_matrix.summary(normalize=True, decimals=5)
+            >>> print(cm_dict)
         """
         import re
 

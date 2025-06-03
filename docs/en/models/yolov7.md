@@ -332,37 +332,9 @@ To use YOLOv7 ONNX model with Ultralytics:
 3. Run the following script to convert the modified ONNX model to TensorRT engine:
 
     ```python
-    # Based off of https://github.com/NVIDIA/TensorRT/blob/release/10.7/samples/python/introductory_parser_samples/onnx_resnet50.py
+    from ultralytics.utils.export import export_engine
 
-    import tensorrt as trt
-
-    TRT_LOGGER = trt.Logger(trt.Logger.WARNING)
-
-
-    def GiB(val):
-        return val * 1 << 30
-
-
-    def build_engine_onnx(model_file):
-        builder = trt.Builder(TRT_LOGGER)
-        network = builder.create_network(0)
-        config = builder.create_builder_config()
-        parser = trt.OnnxParser(network, TRT_LOGGER)
-
-        config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, GiB(4))
-        with open(model_file, "rb") as model:
-            if not parser.parse(model.read()):
-                print("ERROR: Failed to parse the ONNX file.")
-                for error in range(parser.num_errors):
-                    print(parser.get_error(error))
-                return None
-        config.set_flag(trt.BuilderFlag.FP16)
-        engine_bytes = builder.build_serialized_network(network, config)
-        with open(model_file.replace("onnx", "engine"), "wb") as f:
-            f.write(engine_bytes)
-
-
-    build_engine_onnx("yolov7-ultralytics.onnx")  # path to the modified ONNX file
+    export_engine("yolov7-ultralytics.onnx", half=True)
     ```
 
 4. Load and run the model in Ultralytics:

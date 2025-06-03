@@ -132,7 +132,7 @@ def export_formats():
             True,
             ["batch", "dynamic", "half", "int8", "simplify", "nms", "fraction"],
         ],
-        ["CoreML", "coreml", ".mlpackage", False, False, ["batch", "half", "int8", "nms"]],
+        ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "half", "int8", "nms"]],
         ["TensorFlow SavedModel", "saved_model", "_saved_model", False, False, ["batch", "int8", "keras", "nms"]],
         ["TensorFlow GraphDef", "pb", ".pb", False, False, ["batch"]],
         ["TensorFlow Lite", "tflite", ".tflite", False, False, ["batch", "half", "int8", "nms", "fraction"]],

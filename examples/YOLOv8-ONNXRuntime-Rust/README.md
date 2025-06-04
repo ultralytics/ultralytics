@@ -29,7 +29,7 @@ Please follow the official Rust installation guide: [https://www.rust-lang.org/t
 - #### For Linux or macOS Users:
   - Download the ONNX Runtime package from the [Releases page](https://github.com/microsoft/onnxruntime/releases).
   - Set up the library path by exporting the `ORT_DYLIB_PATH` environment variable:
-    ```shell
+    ```bash
     export ORT_DYLIB_PATH=/path/to/onnxruntime/lib/libonnxruntime.so.1.19.0 # Adjust version/path as needed
     ```
 

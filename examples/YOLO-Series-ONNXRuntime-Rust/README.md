@@ -31,14 +31,14 @@ This repository provides a [Rust](https://www.rust-lang.org/) demo showcasing ke
   - **Linux or macOS**:
     1. Download the appropriate ONNX Runtime package from the official [Releases page](https://github.com/microsoft/onnxruntime/releases).
     2. Set up the library path by exporting the `ORT_DYLIB_PATH` environment variable, pointing to the downloaded library file:
-       ```shell
+       ```bash
        # Example path, replace with your actual path
        export ORT_DYLIB_PATH=/path/to/onnxruntime/lib/libonnxruntime.so.1.19.0
        ```
 
 - **Option 2: Automatic Download**
   - Use the `--features auto` flag with Cargo to let the build script handle downloading the library automatically:
-    ```shell
+    ```bash
     cargo run -r --example yolo --features auto
     ```
 
@@ -58,7 +58,7 @@ To enable viewing video frames and saving video inferences, install the `rust-ff
 
 Run the examples using Cargo. The `--` separates Cargo arguments from the example's arguments.
 
-```Shell
+```bash
 # Run a custom model (e.g., YOLOv8 detection)
 cargo run -r -- --task detect --ver v8 --nc 6 --model path/to/your/model.onnx
 

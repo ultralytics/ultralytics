@@ -55,7 +55,6 @@ class ClassificationValidator(BaseValidator):
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to use for validation.
             save_dir (str | Path, optional): Directory to save results.
-            pbar (bool, optional): Display a progress bar.
             args (dict, optional): Arguments containing model and validation configuration.
             _callbacks (list, optional): List of callback functions to be called during validation.
 

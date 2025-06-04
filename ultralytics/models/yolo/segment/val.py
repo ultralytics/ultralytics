@@ -43,7 +43,6 @@ class SegmentationValidator(DetectionValidator):
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to use for validation.
             save_dir (Path, optional): Directory to save results.
-            pbar (Any, optional): Progress bar for displaying progress.
             args (namespace, optional): Arguments for the validator.
             _callbacks (list, optional): List of callback functions.
         """

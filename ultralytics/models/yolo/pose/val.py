@@ -59,7 +59,6 @@ class PoseValidator(DetectionValidator):
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
             save_dir (Path | str, optional): Directory to save results.
-            pbar (Any, optional): Progress bar for displaying progress.
             args (dict, optional): Arguments for the validator including task set to "pose".
             _callbacks (list, optional): List of callback functions to be executed during validation.
 

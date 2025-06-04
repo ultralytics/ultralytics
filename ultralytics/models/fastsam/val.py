@@ -15,7 +15,6 @@ class FastSAMValidator(SegmentationValidator):
     Attributes:
         dataloader (torch.utils.data.DataLoader): The data loader object used for validation.
         save_dir (Path): The directory where validation results will be saved.
-        pbar (tqdm.tqdm): A progress bar object for displaying validation progress.
         args (SimpleNamespace): Additional arguments for customization of the validation process.
         _callbacks (list): List of callback functions to be invoked during validation.
         metrics (SegmentMetrics): Segmentation metrics calculator for evaluation.
@@ -31,7 +30,6 @@ class FastSAMValidator(SegmentationValidator):
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
             save_dir (Path, optional): Directory to save results.
-            pbar (tqdm.tqdm, optional): Progress bar for displaying progress.
             args (SimpleNamespace, optional): Configuration for the validator.
             _callbacks (list, optional): List of callback functions to be invoked during validation.
 

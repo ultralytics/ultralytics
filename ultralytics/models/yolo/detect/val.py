@@ -49,7 +49,6 @@ class DetectionValidator(BaseValidator):
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to use for validation.
             save_dir (Path, optional): Directory to save results.
-            pbar (Any, optional): Progress bar for displaying progress.
             args (Dict[str, Any], optional): Arguments for the validator.
             _callbacks (List[Any], optional): List of callback functions.
         """

@@ -50,7 +50,6 @@ class OBBValidator(DetectionValidator):
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
             save_dir (str | Path, optional): Directory to save results.
-            pbar (bool, optional): Display progress bar during validation.
             args (dict | SimpleNamespace, optional): Arguments containing validation parameters.
             _callbacks (list, optional): List of callback functions to be called during validation.
         """

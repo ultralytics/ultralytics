@@ -341,19 +341,19 @@ There are a couple of best practices to follow in order to enable maximum perfor
 
     a. Upgrade the software
 
-    ```sh
+    ```bash
     sudo apt update && sudo apt dist-upgrade
     ```
 
     b. Open to edit the configuration file
 
-    ```sh
+    ```bash
     sudo nano /boot/firmware/config.txt
     ```
 
     c. Add the following lines at the bottom
 
-    ```sh
+    ```bash
     arm_freq=3000
     gpu_freq=1000
     force_turbo=1

@@ -367,7 +367,7 @@ Below are code examples for using each source type:
 
         Example `.streams` text file:
 
-        ```txt
+        ```text
         rtsp://example.com/media1.mp4
         rtsp://example.com/media2.mp4
         rtmp://example2.com/live

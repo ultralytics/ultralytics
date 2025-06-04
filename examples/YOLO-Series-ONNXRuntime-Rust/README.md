@@ -68,23 +68,23 @@ cargo run -r -- --task classify --ver v8 --scale n --width 224 --height 224 --nc
 cargo run -r -- --task classify --ver v11 --scale n --width 224 --height 224 --nc 1000 # YOLO11 Classification
 
 # Detect examples
-cargo run -r -- --task detect --ver v5 --scale n  # YOLOv5 Detection
-cargo run -r -- --task detect --ver v6 --scale n  # YOLOv6 Detection
-cargo run -r -- --task detect --ver v7 --scale t  # YOLOv7 Detection
-cargo run -r -- --task detect --ver v8 --scale n  # YOLOv8 Detection
-cargo run -r -- --task detect --ver v9 --scale t  # YOLOv9 Detection
-cargo run -r -- --task detect --ver v10 --scale n # YOLOv10 Detection
-cargo run -r -- --task detect --ver v11 --scale n # YOLO11 Detection
+cargo run -r -- --task detect --ver v5 --scale n     # YOLOv5 Detection
+cargo run -r -- --task detect --ver v6 --scale n     # YOLOv6 Detection
+cargo run -r -- --task detect --ver v7 --scale t     # YOLOv7 Detection
+cargo run -r -- --task detect --ver v8 --scale n     # YOLOv8 Detection
+cargo run -r -- --task detect --ver v9 --scale t     # YOLOv9 Detection
+cargo run -r -- --task detect --ver v10 --scale n    # YOLOv10 Detection
+cargo run -r -- --task detect --ver v11 --scale n    # YOLO11 Detection
 cargo run -r -- --task detect --ver rtdetr --scale l # RT-DETR Detection
 
 # Pose examples
-cargo run -r -- --task pose --ver v8 --scale n   # YOLOv8-Pose Estimation
-cargo run -r -- --task pose --ver v11 --scale n  # YOLO11-Pose Estimation
+cargo run -r -- --task pose --ver v8 --scale n  # YOLOv8-Pose Estimation
+cargo run -r -- --task pose --ver v11 --scale n # YOLO11-Pose Estimation
 
 # Segment examples
-cargo run -r -- --task segment --ver v5 --scale n  # YOLOv5-Segment
-cargo run -r -- --task segment --ver v8 --scale n  # YOLOv8-Segment
-cargo run -r -- --task segment --ver v11 --scale n # YOLO11-Segment
+cargo run -r -- --task segment --ver v5 --scale n                              # YOLOv5-Segment
+cargo run -r -- --task segment --ver v8 --scale n                              # YOLOv8-Segment
+cargo run -r -- --task segment --ver v11 --scale n                             # YOLO11-Segment
 cargo run -r -- --task segment --ver v8 --model path/to/FastSAM-s-dyn-f16.onnx # FastSAM Segmentation
 
 # OBB (Oriented Bounding Box) examples

@@ -113,6 +113,7 @@ class ParkingPtsSelection:
         if not file:
             LOGGER.info("No image selected.")
             return
+
         self.image = Image.open(file)
         self.imgw, self.imgh = self.image.size
         aspect_ratio = self.imgw / self.imgh

@@ -70,7 +70,7 @@ class TrackZone(BaseSolution):
             self.mask = np.zeros_like(im0[:, :, 0])
             cv2.fillPoly(self.mask, [self.region], 255)
         masked_frame = cv2.bitwise_and(im0, im0, mask=self.mask)
-        self.extract_tracks(masked_frame)  # extract tracks from the masked image
+        self.extract_tracks(masked_frame)
 
         # Draw the region boundary
         cv2.polylines(im0, [self.region], isClosed=True, color=(255, 255, 255), thickness=self.line_width * 2)

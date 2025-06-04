@@ -54,7 +54,7 @@ class OBBValidator(DetectionValidator):
             args (dict | SimpleNamespace, optional): Arguments containing validation parameters.
             _callbacks (list, optional): List of callback functions to be called during validation.
         """
-        super().__init__(dataloader, save_dir, pbar, args, _callbacks)
+        super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "obb"
         self.metrics = OBBMetrics(save_dir=self.save_dir, plot=True)
 

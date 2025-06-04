@@ -53,7 +53,7 @@ class DetectionValidator(BaseValidator):
             args (Dict[str, Any], optional): Arguments for the validator.
             _callbacks (List[Any], optional): List of callback functions.
         """
-        super().__init__(dataloader, save_dir, pbar, args, _callbacks)
+        super().__init__(dataloader, save_dir, args, _callbacks)
         self.nt_per_class = None
         self.nt_per_image = None
         self.is_coco = False

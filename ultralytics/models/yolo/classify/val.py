@@ -65,7 +65,7 @@ class ClassificationValidator(BaseValidator):
             >>> validator = ClassificationValidator(args=args)
             >>> validator()
         """
-        super().__init__(dataloader, save_dir, pbar, args, _callbacks)
+        super().__init__(dataloader, save_dir, args, _callbacks)
         self.targets = None
         self.pred = None
         self.args.task = "classify"

@@ -47,7 +47,7 @@ class SegmentationValidator(DetectionValidator):
             args (namespace, optional): Arguments for the validator.
             _callbacks (list, optional): List of callback functions.
         """
-        super().__init__(dataloader, save_dir, pbar, args, _callbacks)
+        super().__init__(dataloader, save_dir, args, _callbacks)
         self.plot_masks = None
         self.process = None
         self.args.task = "segment"

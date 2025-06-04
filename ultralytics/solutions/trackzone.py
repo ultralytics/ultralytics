@@ -66,6 +66,7 @@ class TrackZone(BaseSolution):
             >>> results = tracker.process(frame)
         """
         annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
+
         if self.mask is None:  # Create a mask for the region
             self.mask = np.zeros_like(im0[:, :, 0])
             cv2.fillPoly(self.mask, [self.region], 255)

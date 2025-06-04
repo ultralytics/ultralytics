@@ -42,7 +42,7 @@ class DetectionValidator(BaseValidator):
         >>> validator()
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None) -> None:
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
         """
         Initialize detection validator with necessary variables and settings.
 

@@ -40,7 +40,7 @@ class OBBValidator(DetectionValidator):
         >>> validator(model=args["model"])
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None) -> None:
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
         """
         Initialize OBBValidator and set task to 'obb', metrics to OBBMetrics.
 

@@ -49,7 +49,7 @@ class PoseValidator(DetectionValidator):
         >>> validator()
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None) -> None:
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
         """
         Initialize a PoseValidator object for pose estimation validation.
 

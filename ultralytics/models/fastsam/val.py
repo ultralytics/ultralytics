@@ -24,7 +24,7 @@ class FastSAMValidator(SegmentationValidator):
         __init__: Initialize the FastSAMValidator with custom settings for Fast SAM.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
         """
         Initialize the FastSAMValidator class, setting the task to 'segment' and metrics to SegmentMetrics.
 

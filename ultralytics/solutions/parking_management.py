@@ -43,7 +43,8 @@ class ParkingPtsSelection:
         save_to_json: Save the selected parking zone points to a JSON file with scaled coordinates.
 
     Examples:
-        >>> parking_selector = ParkingPtsSelection()  # Use GUI to upload an image, select parking zones and save data
+        >>> parking_selector = ParkingPtsSelection()
+        >>> # Use the GUI to upload an image, select parking zones, and save the data
     """
 
     def __init__(self):

@@ -4,7 +4,7 @@ from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS, ROOT, WEIGHTS_DIR, checks
 
 # Constants used in tests
-MODEL = WEIGHTS_DIR / "yolo11n.pt"  # test spaces in path
+MODEL = WEIGHTS_DIR / "path with spaces" / "yolo11n.pt"  # test spaces in path
 CFG = "yolo11n.yaml"
 SOURCE = ASSETS / "bus.jpg"
 SOURCES_LIST = [ASSETS / "bus.jpg", ASSETS, ASSETS / "*", ASSETS / "**/*.jpg"]

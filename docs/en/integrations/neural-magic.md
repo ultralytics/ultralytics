@@ -10,6 +10,10 @@ When deploying [object detection](https://www.ultralytics.com/glossary/object-de
 
 This guide shows you how to deploy YOLO11 using Neural Magic's DeepSparse, how to run inferences, and also how to benchmark performance to ensure it is optimized.
 
+!!! danger "SparseML EOL"
+
+    Neural Magic was [acquired by Red Hat in January 2025](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud), and is deprecating the community versions of their `deepsparse`, `sparseml`, `sparsezoo`, and `sparsify` libraries. For additional information, see the notice posted [in the Readme on the `sparseml` GitHub repository](https://github.com/neuralmagic/sparsify/blob/5eb26a4e21b497ce573d10024e318a5ce48a7f9c/README.md#-2025-end-of-life-announcement-deepsparse-sparseml-sparsezoo-and-sparsify).
+
 ## Neural Magic's DeepSparse
 
 <p align="center">

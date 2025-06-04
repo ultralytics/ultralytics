@@ -52,9 +52,6 @@ class ClassificationValidator(BaseValidator):
         """
         Initialize ClassificationValidator with dataloader, save directory, and other parameters.
 
-        This validator handles the validation process for classification models, including metrics calculation,
-        confusion matrix generation, and visualization of results.
-
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to use for validation.
             save_dir (str | Path, optional): Directory to save results.
@@ -82,7 +79,9 @@ class ClassificationValidator(BaseValidator):
         """Initialize confusion matrix, class names, and tracking containers for predictions and targets."""
         self.names = model.names
         self.nc = len(model.names)
-        self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf, task="classify")
+        self.confusion_matrix = ConfusionMatrix(
+            nc=self.nc, conf=self.args.conf, names=self.names.values(), task="classify"
+        )
         self.pred = []
         self.targets = []
 
@@ -101,23 +100,21 @@ class ClassificationValidator(BaseValidator):
             preds (torch.Tensor): Model predictions, typically logits or probabilities for each class.
             batch (dict): Batch data containing images and class labels.
 
-        This method appends the top-N predictions (sorted by confidence in descending order) to the
-        prediction list for later evaluation. N is limited to the minimum of 5 and the number of classes.
+        Notes:
+            This method appends the top-N predictions (sorted by confidence in descending order) to the
+            prediction list for later evaluation. N is limited to the minimum of 5 and the number of classes.
         """
         n5 = min(len(self.names), 5)
         self.pred.append(preds.argsort(1, descending=True)[:, :n5].type(torch.int32).cpu())
         self.targets.append(batch["cls"].type(torch.int32).cpu())
 
-    def finalize_metrics(self, *args, **kwargs):
+    def finalize_metrics(self) -> None:
         """
         Finalize metrics including confusion matrix and processing speed.
 
-        This method processes the accumulated predictions and targets to generate the confusion matrix,
-        optionally plots it, and updates the metrics object with speed information.
-
-        Args:
-            *args (Any): Variable length argument list.
-            **kwargs (Any): Arbitrary keyword arguments.
+        Notes:
+            This method processes the accumulated predictions and targets to generate the confusion matrix,
+            optionally plots it, and updates the metrics object with speed information.
 
         Examples:
             >>> validator = ClassificationValidator()
@@ -129,9 +126,7 @@ class ClassificationValidator(BaseValidator):
         self.confusion_matrix.process_cls_preds(self.pred, self.targets)
         if self.args.plots:
             for normalize in True, False:
-                self.confusion_matrix.plot(
-                    save_dir=self.save_dir, names=self.names.values(), normalize=normalize, on_plot=self.on_plot
-                )
+                self.confusion_matrix.plot(save_dir=self.save_dir, normalize=normalize, on_plot=self.on_plot)
         self.metrics.speed = self.speed
         self.metrics.confusion_matrix = self.confusion_matrix
         self.metrics.save_dir = self.save_dir

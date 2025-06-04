@@ -48,14 +48,13 @@ class ClassificationValidator(BaseValidator):
         Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
         """
         Initialize ClassificationValidator with dataloader, save directory, and other parameters.
 
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to use for validation.
             save_dir (str | Path, optional): Directory to save results.
-            pbar (bool, optional): Display a progress bar.
             args (dict, optional): Arguments containing model and validation configuration.
             _callbacks (list, optional): List of callback functions to be called during validation.
 
@@ -65,7 +64,7 @@ class ClassificationValidator(BaseValidator):
             >>> validator = ClassificationValidator(args=args)
             >>> validator()
         """
-        super().__init__(dataloader, save_dir, pbar, args, _callbacks)
+        super().__init__(dataloader, save_dir, args, _callbacks)
         self.targets = None
         self.pred = None
         self.args.task = "classify"

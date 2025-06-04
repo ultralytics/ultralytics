@@ -2,6 +2,7 @@
 
 import cv2
 import numpy as np
+
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
 

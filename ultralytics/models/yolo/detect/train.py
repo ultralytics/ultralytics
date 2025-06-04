@@ -218,10 +218,13 @@ class DetectionTrainer(BaseTrainer):
         
         # Create temporary config with caching disabled
         temp_args = copy(self.args)
-        temp_args.cache = False  # Disable caching during auto-batch estimation
+        temp_args.cache = False  
         
         # Build dataset for estimation only (no caching)
         train_dataset = build_yolo_dataset(temp_args, self.data["train"], batch=16, data=self.data, mode="train", stride=gs)
         max_num_obj = max(len(label["cls"]) for label in train_dataset.labels) * 4
+        
+        # Delete dataset immediately after getting max_num_obj to free memory
+        del train_dataset
         
         return super().auto_batch(max_num_obj)

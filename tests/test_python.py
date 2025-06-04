@@ -5,7 +5,8 @@ import csv
 import urllib
 from copy import copy
 from pathlib import Path
-
+from unittest.mock import patch
+from ultralytics.data.base import BaseDataset
 import cv2
 import numpy as np
 import pytest
@@ -740,8 +741,6 @@ def test_grayscale(task: str, model: str, data: str) -> None:
 
 def test_cache_optimization_auto_batch():
     """Test that auto-batch doesn't cause double caching with cache='ram'."""
-    from unittest.mock import patch
-    from ultralytics.data.base import BaseDataset
     
     cache_call_count = 0
     

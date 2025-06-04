@@ -1148,8 +1148,6 @@ class Exporter:
     def export_rknn(self, prefix=colorstr("RKNN:")):
         """Export YOLO model to RKNN format."""
         LOGGER.info(f"\n{prefix} starting export with rknn-toolkit2...")
-        check_requirements("tensorflowjs")
-        import tensorflowjs as tfjs  # noqa
 
         # prevent 'rknn-toolkit2' from installing additional dependencies
         check_requirements("rknn-toolkit2", cmds="--no-deps")

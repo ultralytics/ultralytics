@@ -505,8 +505,23 @@ class ConfusionMatrix(DataExportMixin):
         for i in range(self.matrix.shape[0]):
             LOGGER.info(" ".join(map(str, self.matrix[i])))
 
-    def summary(self, **kwargs):
-        """Returns summary of the confusion matrix for export in different formats CSV, XML, HTML."""
+    def summary(self, normalize: bool = False, decimals: int = 5) -> List[Dict[str, float]]:
+        """
+        Generate a summarized representation of the confusion matrix as a list of dictionaries, with optional
+        normalization. This is useful for exporting the matrix to various formats such as CSV, XML, HTML, JSON, or SQL.
+
+        Args:
+            normalize (bool): Whether to normalize the confusion matrix values.
+            decimals (int): Number of decimal places to round the output values to.
+
+        Returns:
+            List[Dict[str, float]]: A list of dictionaries, each representing one predicted class with corresponding values for all actual classes.
+
+        Examples:
+            >>> results = model.val(data="coco8.yaml", plots=True)
+            >>> cm_dict = results.confusion_matrix.summary(normalize=True, decimals=5)
+            >>> print(cm_dict)
+        """
         import re
 
         names = self.names if self.task == "classify" else self.names + ["background"]
@@ -520,8 +535,9 @@ class ConfusionMatrix(DataExportMixin):
                 counter += 1
             seen.add(clean_name.lower())
             clean_names.append(clean_name)
+        array = (self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)).round(decimals)
         return [
-            dict({"Predicted": clean_names[i]}, **{clean_names[j]: self.matrix[i, j] for j in range(len(clean_names))})
+            dict({"Predicted": clean_names[i]}, **{clean_names[j]: array[i, j] for j in range(len(clean_names))})
             for i in range(len(clean_names))
         ]
 

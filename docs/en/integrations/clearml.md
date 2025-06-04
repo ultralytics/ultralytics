@@ -192,10 +192,10 @@ To prepare your dataset for ClearML, follow these steps:
 2. Copy the corresponding YAML file to the root of your dataset folder
 3. Upload your dataset using the ClearML Data tool:
 
-```bash
-cd your_dataset_folder
-clearml-data sync --project YOLOv11 --name your_dataset_name --folder .
-```
+    ```bash
+    cd your_dataset_folder
+    clearml-data sync --project YOLOv11 --name your_dataset_name --folder .
+    ```
 
 This command will create a versioned dataset in ClearML that can be referenced in your training scripts, ensuring reproducibility and easy access to your data.
 

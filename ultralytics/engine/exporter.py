@@ -137,7 +137,7 @@ def export_formats():
         ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"]],
         ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "half", "int8", "nms", "fraction"]],
         ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, []],
-        ["TensorFlow.js", "tfjs", "_web_model", False, False, ["batch", "half", "int8", "nms"]],
+        ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "half", "int8", "nms"]],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
@@ -1151,9 +1151,8 @@ class Exporter:
         check_requirements("tensorflowjs")
         import tensorflowjs as tfjs  # noqa
 
-        check_requirements(
-            "rknn-toolkit2", cmds="--no-deps"
-        )  # prevent 'rknn-toolkit2' from installing additional dependencies
+        # prevent 'rknn-toolkit2' from installing additional dependencies
+        check_requirements("rknn-toolkit2", cmds="--no-deps")
         if IS_COLAB:
             # Prevent 'exit' from closing the notebook https://github.com/airockchip/rknn-toolkit2/issues/259
             import builtins

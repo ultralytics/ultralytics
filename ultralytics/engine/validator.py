@@ -124,7 +124,7 @@ class BaseValidator:
         self.save_dir = save_dir or get_save_dir(self.args)
         (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
         if self.args.conf is None:
-            self.args.conf = 0.001  # default conf=0.001
+            self.args.conf = 0.01 if self.args.task == "obb" else 0.001  # default conf=0.001
         self.args.imgsz = check_imgsz(self.args.imgsz, max_dim=1)
 
         self.plots = {}

@@ -121,9 +121,9 @@ Training will not start until **all** `N` machines are connected. Output will on
 - GPU 0 will take slightly more memory than the other GPUs as it maintains EMA and is responsible for checkpointing etc.
 - If you get `RuntimeError: Address already in use`, it could be because you are running multiple trainings at a time. To fix this, simply use a different port number by adding `--master_port` like below:
 
-```bash
-python -m torch.distributed.run --master_port 1234 --nproc_per_node 2 ...
-```
+    ```bash
+    python -m torch.distributed.run --master_port 1234 --nproc_per_node 2 ...
+    ```
 
 ## Results
 

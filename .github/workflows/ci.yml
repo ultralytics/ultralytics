@@ -374,7 +374,7 @@ jobs:
           conda config --set solver libmamba
       - name: Install Ultralytics package from conda-forge
         run: |
-          conda install -c pytorch -c conda-forge pytorch torchvision ultralytics openvino
+          conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics openvino
       - name: Install pip packages
         run: |
           pip install pytest

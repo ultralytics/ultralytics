@@ -96,10 +96,10 @@ To train YOLOv5 on your custom dataset within GCP, follow these general steps:
 3.  Create a dataset configuration YAML file (`custom_dataset.yaml`) that specifies the paths to your training and validation data, the number of classes, and class names.
 4.  Begin the [training process](../../modes/train.md) using your custom dataset YAML and potentially starting from pre-trained weights:
 
-```bash
-# Example: Train YOLOv5s on a custom dataset for 100 epochs
-python train.py --img 640 --batch 16 --epochs 100 --data custom_dataset.yaml --weights yolov5s.pt
-```
+    ```bash
+    # Example: Train YOLOv5s on a custom dataset for 100 epochs
+    python train.py --img 640 --batch 16 --epochs 100 --data custom_dataset.yaml --weights yolov5s.pt
+    ```
 
 For comprehensive instructions on preparing data and training with custom datasets, consult the [Ultralytics YOLOv5 Train documentation](../../modes/train.md).
 

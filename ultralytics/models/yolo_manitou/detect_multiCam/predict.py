@@ -11,7 +11,7 @@ from ultralytics.utils import LOGGER, DEFAULT_CFG, ops, colorstr
 from ultralytics.data.manitou_loaders import LoadManitouImagesAndRadar
 from ultralytics.utils.torch_utils import smart_inference_mode
 from ultralytics.data.augmentV2 import ManitouResizeCrop_MultiImg
-from ultralytics.ultralytics.models.yolo_manitou.utils import invert_manitou_resize_crop_xyxy
+from ultralytics.models.yolo_manitou.utils import invert_manitou_resize_crop_xyxy
 
 
 class ManitouPredictor_MultiCam(ManitouPredictor):

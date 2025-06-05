@@ -14,7 +14,7 @@ from ultralytics.data.augmentV1 import (
     ManitouResizeCrop,
     LetterBox,
 )
-from ultralytics.ultralytics.models.yolo_manitou.utils import invert_manitou_resize_crop_xyxy
+from ultralytics.models.yolo_manitou.utils import invert_manitou_resize_crop_xyxy
 
 
 class ManitouPredictor(DetectionPredictor):

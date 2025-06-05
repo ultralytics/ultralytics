@@ -28,10 +28,10 @@ from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
 from ultralytics.utils import (
     DEFAULT_CFG,
     LOCAL_RANK,
-    WORLD_SIZE,
     LOGGER,
     RANK,
     TQDM,
+    WORLD_SIZE,
     YAML,
     callbacks,
     clean_url,
@@ -294,7 +294,9 @@ class BaseTrainer:
             torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
         )
         if world_size > 1:
-            self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[LOCAL_RANK], find_unused_parameters=True)
+            self.model = nn.parallel.DistributedDataParallel(
+                self.model, device_ids=[LOCAL_RANK], find_unused_parameters=True
+            )
 
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)

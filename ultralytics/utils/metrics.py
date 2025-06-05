@@ -1049,7 +1049,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
            decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
-           (List[Dict]): A list of dictionaries, each representing one class with corresponding metric values.
+           (List[Dict[str, Union[str, float]]]): A list of dictionaries, each representing one class with corresponding metric values.
 
         Examples:
            >>> results = model.val(data="coco8.yaml")
@@ -1221,7 +1221,7 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
             decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
-            (List[Dict]): A list of dictionaries, each representing one class with corresponding metric values.
+            (List[Dict[str, Union[str, float]]]): A list of dictionaries, each representing one class with corresponding metric values.
 
         Examples:
             >>> results = model.val(data="coco8-seg.yaml")
@@ -1399,7 +1399,7 @@ class PoseMetrics(SegmentMetrics):
             decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
-            (List[Dict]): A list of dictionaries, each representing one class with corresponding metric values.
+            (List[Dict[str, Union[str, float]]]): A list of dictionaries, each representing one class with corresponding metric values.
 
         Examples:
             >>> results = model.val(data="coco8-pose.yaml")
@@ -1493,7 +1493,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
             decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
-            (List[Dict]): A list with one dictionary containing Top-1 and Top-5 classification accuracy.
+            (List[Dict[str, float]]): A list with one dictionary containing Top-1 and Top-5 classification accuracy.
 
         Examples:
             >>> results = model.val(data="imagenet10")
@@ -1612,7 +1612,7 @@ class OBBMetrics(SimpleClass, DataExportMixin):
             decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
-            (List[Dict]): A list of dictionaries, each representing one class with detection metrics.
+            (List[Dict[str, Union[str, float]]]): A list of dictionaries, each representing one class with detection metrics.
 
         Examples:
             >>> results = model.val(data="dota8.yaml")

@@ -7,15 +7,7 @@ from tests import TMP
 
 
 def pytest_addoption(parser):
-    """
-    Add custom command-line options to pytest.
-
-    Args:
-        parser (pytest.config.Parser): The pytest parser object for adding custom command-line options.
-
-    Returns:
-        (None)
-    """
+    """Add custom command-line options to pytest."""
     parser.addoption("--slow", action="store_true", default=False, help="Run slow tests")
 
 
@@ -24,11 +16,8 @@ def pytest_collection_modifyitems(config, items):
     Modify the list of test items to exclude tests marked as slow if the --slow option is not specified.
 
     Args:
-        config (pytest.config.Config): The pytest configuration object that provides access to command-line options.
+        config: The pytest configuration object that provides access to command-line options.
         items (list): The list of collected pytest item objects to be modified based on the presence of --slow option.
-
-    Returns:
-        (None): The function modifies the 'items' list in place.
     """
     if not config.getoption("--slow"):
         # Remove the item entirely from the list of test items if it's marked as 'slow'
@@ -43,16 +32,13 @@ def pytest_sessionstart(session):
     test collection. It sets the initial seeds and prepares the temporary directory for the test session.
 
     Args:
-        session (pytest.Session): The pytest session object.
-
-    Returns:
-        (None)
+        session: The pytest session object.
     """
     from ultralytics.utils.torch_utils import init_seeds
 
     init_seeds()
-    shutil.rmtree(TMP, ignore_errors=True)  # delete any existing tests/tmp directory
-    TMP.mkdir(parents=True, exist_ok=True)  # create a new empty directory
+    shutil.rmtree(TMP, ignore_errors=True)  # Delete any existing tests/tmp directory
+    TMP.mkdir(parents=True, exist_ok=True)  # Create a new empty directory
 
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
@@ -63,12 +49,9 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     and directories used during testing.
 
     Args:
-        terminalreporter (pytest.terminal.TerminalReporter): The terminal reporter object used for terminal output.
+        terminalreporter: The terminal reporter object used for terminal output.
         exitstatus (int): The exit status of the test run.
-        config (pytest.config.Config): The pytest config object.
-
-    Returns:
-        (None)
+        config: The pytest config object.
     """
     from ultralytics.utils import WEIGHTS_DIR
 

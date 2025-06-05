@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from collections import deque
+from typing import Any, List, Optional
 
 import numpy as np
 import torch
@@ -51,7 +52,9 @@ class BOTrack(STrack):
 
     shared_kalman = KalmanFilterXYWH()
 
-    def __init__(self, tlwh, score, cls, feat=None, feat_history=50):
+    def __init__(
+        self, tlwh: np.ndarray, score: float, cls: int, feat: Optional[np.ndarray] = None, feat_history: int = 50
+    ):
         """
         Initialize a BOTrack object with temporal parameters, such as feature history, alpha, and current features.
 
@@ -59,7 +62,7 @@ class BOTrack(STrack):
             tlwh (np.ndarray): Bounding box coordinates in tlwh format (top left x, top left y, width, height).
             score (float): Confidence score of the detection.
             cls (int): Class ID of the detected object.
-            feat (np.ndarray | None): Feature vector associated with the detection.
+            feat (np.ndarray, optional): Feature vector associated with the detection.
             feat_history (int): Maximum length of the feature history deque.
 
         Examples:
@@ -79,7 +82,7 @@ class BOTrack(STrack):
         self.features = deque([], maxlen=feat_history)
         self.alpha = 0.9
 
-    def update_features(self, feat):
+    def update_features(self, feat: np.ndarray) -> None:
         """Update the feature vector and apply exponential moving average smoothing."""
         feat /= np.linalg.norm(feat)
         self.curr_feat = feat
@@ -90,7 +93,7 @@ class BOTrack(STrack):
         self.features.append(feat)
         self.smooth_feat /= np.linalg.norm(self.smooth_feat)
 
-    def predict(self):
+    def predict(self) -> None:
         """Predict the object's future state using the Kalman filter to update its mean and covariance."""
         mean_state = self.mean.copy()
         if self.state != TrackState.Tracked:
@@ -99,20 +102,20 @@ class BOTrack(STrack):
 
         self.mean, self.covariance = self.kalman_filter.predict(mean_state, self.covariance)
 
-    def re_activate(self, new_track, frame_id, new_id=False):
+    def re_activate(self, new_track: "BOTrack", frame_id: int, new_id: bool = False) -> None:
         """Reactivate a track with updated features and optionally assign a new ID."""
         if new_track.curr_feat is not None:
             self.update_features(new_track.curr_feat)
         super().re_activate(new_track, frame_id, new_id)
 
-    def update(self, new_track, frame_id):
+    def update(self, new_track: "BOTrack", frame_id: int) -> None:
         """Update the track with new detection information and the current frame ID."""
         if new_track.curr_feat is not None:
             self.update_features(new_track.curr_feat)
         super().update(new_track, frame_id)
 
     @property
-    def tlwh(self):
+    def tlwh(self) -> np.ndarray:
         """Return the current bounding box position in `(top left x, top left y, width, height)` format."""
         if self.mean is None:
             return self._tlwh.copy()
@@ -121,7 +124,7 @@ class BOTrack(STrack):
         return ret
 
     @staticmethod
-    def multi_predict(stracks):
+    def multi_predict(stracks: List["BOTrack"]) -> None:
         """Predict the mean and covariance for multiple object tracks using a shared Kalman filter."""
         if len(stracks) <= 0:
             return
@@ -136,12 +139,12 @@ class BOTrack(STrack):
             stracks[i].mean = mean
             stracks[i].covariance = cov
 
-    def convert_coords(self, tlwh):
+    def convert_coords(self, tlwh: np.ndarray) -> np.ndarray:
         """Convert tlwh bounding box coordinates to xywh format."""
         return self.tlwh_to_xywh(tlwh)
 
     @staticmethod
-    def tlwh_to_xywh(tlwh):
+    def tlwh_to_xywh(tlwh: np.ndarray) -> np.ndarray:
         """Convert bounding box from tlwh (top-left-width-height) to xywh (center-x-center-y-width-height) format."""
         ret = np.asarray(tlwh).copy()
         ret[:2] += ret[2:] / 2
@@ -176,12 +179,12 @@ class BOTSORT(BYTETracker):
         The class is designed to work with a YOLO object detection model and supports ReID only if enabled via args.
     """
 
-    def __init__(self, args, frame_rate=30):
+    def __init__(self, args: Any, frame_rate: int = 30):
         """
         Initialize BOTSORT object with ReID module and GMC algorithm.
 
         Args:
-            args (object): Parsed command-line arguments containing tracking parameters.
+            args (Any): Parsed command-line arguments containing tracking parameters.
             frame_rate (int): Frame rate of the video being processed.
 
         Examples:
@@ -203,11 +206,13 @@ class BOTSORT(BYTETracker):
             else None
         )
 
-    def get_kalmanfilter(self):
+    def get_kalmanfilter(self) -> KalmanFilterXYWH:
         """Return an instance of KalmanFilterXYWH for predicting and updating object states in the tracking process."""
         return KalmanFilterXYWH()
 
-    def init_track(self, dets, scores, cls, img=None):
+    def init_track(
+        self, dets: np.ndarray, scores: np.ndarray, cls: np.ndarray, img: Optional[np.ndarray] = None
+    ) -> List[BOTrack]:
         """Initialize object tracks using detection bounding boxes, scores, class labels, and optional ReID features."""
         if len(dets) == 0:
             return []
@@ -217,7 +222,7 @@ class BOTSORT(BYTETracker):
         else:
             return [BOTrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)]  # detections
 
-    def get_dists(self, tracks, detections):
+    def get_dists(self, tracks: List[BOTrack], detections: List[BOTrack]) -> np.ndarray:
         """Calculate distances between tracks and detections using IoU and optionally ReID embeddings."""
         dists = matching.iou_distance(tracks, detections)
         dists_mask = dists > (1 - self.proximity_thresh)
@@ -232,11 +237,11 @@ class BOTSORT(BYTETracker):
             dists = np.minimum(dists, emb_dists)
         return dists
 
-    def multi_predict(self, tracks):
+    def multi_predict(self, tracks: List[BOTrack]) -> None:
         """Predict the mean and covariance of multiple object tracks using a shared Kalman filter."""
         BOTrack.multi_predict(tracks)
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset the BOTSORT tracker to its initial state, clearing all tracked objects and internal states."""
         super().reset()
         self.gmc.reset_params()
@@ -245,16 +250,23 @@ class BOTSORT(BYTETracker):
 class ReID:
     """YOLO model as encoder for re-identification."""
 
-    def __init__(self, model):
-        """Initialize encoder for re-identification."""
+    def __init__(self, model: str):
+        """
+        Initialize encoder for re-identification.
+
+        Args:
+            model (str): Path to the YOLO model for re-identification.
+        """
         from ultralytics import YOLO
 
         self.model = YOLO(model)
-        self.model(embed=[len(self.model.model.model) - 2 if ".pt" in model else -1], verbose=False)  # initialize
+        self.model(embed=[len(self.model.model.model) - 2 if ".pt" in model else -1], verbose=False, save=False)  # init
 
-    def __call__(self, img, dets):
+    def __call__(self, img: np.ndarray, dets: np.ndarray) -> List[np.ndarray]:
         """Extract embeddings for detected objects."""
-        feats = self.model([save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))])
+        feats = self.model.predictor(
+            [save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))]
+        )
         if len(feats) != dets.shape[0] and feats[0].shape[0] == dets.shape[0]:
             feats = feats[0]  # batched prediction with non-PyTorch backend
         return [f.cpu().numpy() for f in feats]

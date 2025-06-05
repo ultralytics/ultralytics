@@ -6,6 +6,8 @@ keywords: HomeObjects-3K, indoor dataset, household items, object detection, com
 
 # HomeObjects-3K Dataset
 
+<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-homeobjects-dataset.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="HomeObjects-3K Dataset In Colab"></a>
+
 The HomeObjects-3K dataset is a curated collection of common household object images, designed for training, testing, and [benchmarking](../../modes/benchmark.md) [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models. Featuring ~3,000 images and 12 distinct object classes, this dataset is ideal for research and applications in indoor scene understanding, smart home devices, [robotics](https://www.ultralytics.com/glossary/robotics), and augmented reality.
 
 ## Dataset Structure

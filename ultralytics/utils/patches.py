@@ -2,10 +2,10 @@
 """Monkey patches to update/extend functionality of existing functions."""
 
 import time
-from pathlib import Path
-from copy import copy
 from contextlib import contextmanager
-from typing import List, Optional, Dict, Any
+from copy import copy
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 import cv2
 import numpy as np

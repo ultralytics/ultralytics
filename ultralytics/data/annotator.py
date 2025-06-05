@@ -360,7 +360,7 @@ class Florence2:
             trust_remote_code=True,
         )
 
-        LOGGER.info(f"🚀 Loaded Florence2-{self.variant} model successfully.")
+        LOGGER.info(f"Loaded Florence2-{self.variant} model successfully.")
 
     def process(self, im0, w, h):
         """

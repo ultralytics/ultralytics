@@ -1,7 +1,6 @@
 import os
 
 from ultralytics import YOLO
-from ultralytics.utils import LOCAL_RANK
 
 os.environ["NCCL_DEBUG"] = "INFO"
 os.environ["NCCL_SOCKET_NTHREADS"] = "2"
@@ -16,7 +15,7 @@ if __name__ == "__main__":
         imgsz=640,
         batch=24,
         mosaic=0,
-        device=[LOCAL_RANK],
+        device=[0, 1],
         amp=False,
         translate=0.12431,
         scale=0.07643,

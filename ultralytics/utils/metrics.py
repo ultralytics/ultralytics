@@ -1222,7 +1222,7 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
         Includes both box and mask scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
 
         Args:
-            normalize (bool): For detection metrics, everything is normalized  by default [0-1].
+            normalize (bool): For segmentation metrics, everything is normalized  by default [0-1].
             decimals (int): Number of decimal places to round the output values to.
 
         Returns:
@@ -1397,15 +1397,30 @@ class PoseMetrics(SegmentMetrics):
         """Return dictionary of computed performance metrics and statistics."""
         return self.box.curves_results + self.pose.curves_results
 
-    def summary(self, **kwargs) -> List[Dict[str, Union[str, float]]]:
-        """Return per-class pose metrics with shared scalar values included (box + pose)."""
+    def summary(self, normalize: bool = False, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
+        """
+        Generate a summarized representation of per-class pose metrics as a list of dictionaries.
+        Includes both box and pose scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
+
+        Args:
+            normalize (bool): For pose metrics, everything is normalized  by default [0-1].
+            decimals (int): Number of decimal places to round the output values to.
+
+        Returns:
+            List[Dict]: A list of dictionaries, each representing one class with corresponding metric values.
+
+        Examples:
+            >>> results = model.val(data="coco8-pose.yaml")
+            >>> pose_summary = results.box.summary(decimals=4)
+            >>> print(pose_summary)
+        """
         scalars = {
-            "box-map": self.box.map,
-            "box-map50": self.box.map50,
-            "box-map75": self.box.map75,
-            "pose-map": self.pose.map,
-            "pose-map50": self.pose.map50,
-            "pose-map75": self.pose.map75,
+            "box-map": round(self.box.map, decimals),
+            "box-map50": round(self.box.map50, decimals),
+            "box-map75": round(self.box.map75, decimals),
+            "pose-map": round(self.pose.map, decimals),
+            "pose-map50": round(self.pose.map50, decimals),
+            "pose-map75": round(self.pose.map75, decimals),
         }
         per_class = {
             "box-p": self.box.p,
@@ -1416,7 +1431,11 @@ class PoseMetrics(SegmentMetrics):
             "pose-f1": self.pose.f1,
         }
         return [
-            {"class_name": self.names[i], **{k: v[i] for k, v in per_class.items()}, **scalars}
+            {
+                "class_name": self.names[i] if hasattr(self, "names") and i in self.names else str(i),
+                **{k: round(v[i], decimals) for k, v in per_class.items()},
+                **scalars,
+            }
             for i in range(len(next(iter(per_class.values()), [])))
         ]
 

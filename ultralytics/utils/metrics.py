@@ -1041,13 +1041,12 @@ class DetMetrics(SimpleClass, DataExportMixin):
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
         """
-        Generate a summarized representation of per-class detection metrics as a list of dictionaries.
-        Includes shared scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
-        This format is useful for exporting evaluation metrics to formats such as CSV, JSON, or HTML.
+        Generate a summarized representation of per-class detection metrics as a list of dictionaries. Includes
+        shared scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
 
         Args:
            normalize (bool): For Detect metrics, everything is normalized  by default [0-1].
-           decimals (int): Number of decimal places to round the output values to.
+           decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
            List[Dict]: A list of dictionaries, each representing one class with corresponding metric values.
@@ -1218,12 +1217,12 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
         """
-        Generate a summarized representation of per-class segmentation metrics as a list of dictionaries.
-        Includes both box and mask scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
+        Generate a summarized representation of per-class segmentation metrics as a list of dictionaries. Includes both
+        box and mask scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
 
         Args:
             normalize (bool): For Segment metrics, everything is normalized  by default [0-1].
-            decimals (int): Number of decimal places to round the output values to.
+            decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
             List[Dict]: A list of dictionaries, each representing one class with corresponding metric values.
@@ -1399,12 +1398,12 @@ class PoseMetrics(SegmentMetrics):
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
         """
-        Generate a summarized representation of per-class pose metrics as a list of dictionaries.
-        Includes both box and pose scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
+        Generate a summarized representation of per-class pose metrics as a list of dictionaries. Includes both box
+        and pose scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
 
         Args:
             normalize (bool): For Pose metrics, everything is normalized  by default [0-1].
-            decimals (int): Number of decimal places to round the output values to.
+            decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
             List[Dict]: A list of dictionaries, each representing one class with corresponding metric values.
@@ -1499,11 +1498,10 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
     def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, float]]:
         """
         Generate a single-row summary of classification metrics (Top-1 and Top-5 accuracy).
-        This format is useful for reporting or exporting classification results.
 
         Args:
             normalize (bool): For Classify metrics, everything is normalized  by default [0-1].
-            decimals (int): Number of decimal places to round the output values to.
+            decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
             List[Dict]: A list with one dictionary containing Top-1 and Top-5 classification accuracy.
@@ -1513,10 +1511,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
             >>> classify_summary = results.classify.summary(decimals=4)
             >>> print(classify_summary)
         """
-        return [{
-            "classify-top1": round(self.top1, decimals),
-            "classify-top5": round(self.top5, decimals)
-        }]
+        return [{"classify-top1": round(self.top1, decimals), "classify-top5": round(self.top5, decimals)}]
 
 
 class OBBMetrics(SimpleClass, DataExportMixin):
@@ -1620,15 +1615,15 @@ class OBBMetrics(SimpleClass, DataExportMixin):
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
         """
-        Generate a summarized representation of per-class detection metrics as a list of dictionaries.
-        Includes shared scalar metrics (mAP, mAP50, mAP75) along with precision, recall, and F1-score for each class.
+        Generate a summarized representation of per-class detection metrics as a list of dictionaries. Includes shared
+        scalar metrics (mAP, mAP50, mAP75) along with precision, recall, and F1-score for each class.
 
         Args:
             normalize (bool): For OBB metrics, everything is normalized  by default [0-1].
-            decimals (int): Number of decimal places to round the output values to.
+            decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
-            List[Dict[str, float]]: A list of dictionaries, each representing one class with detection metrics.
+            List[Dict]: A list of dictionaries, each representing one class with detection metrics.
 
         Examples:
             >>> results = model.val(data="coco8.yaml")

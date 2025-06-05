@@ -103,6 +103,7 @@ from ultralytics.utils.checks import (
     check_version,
     is_sudo_available,
 )
+from ultralytics.utils.patches import arange_patch
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.export import export_engine, export_onnx
 from ultralytics.utils.files import file_size, spaces_in_path
@@ -197,27 +198,6 @@ def try_export(inner_func):
             raise e
 
     return outer_func
-
-
-@contextmanager
-def arange_patch(args):
-    """
-    Workaround for ONNX torch.arange incompatibility with FP16.
-
-    https://github.com/pytorch/pytorch/issues/148041.
-    """
-    if args.dynamic and args.half and args.format == "onnx":
-        func = torch.arange
-
-        def arange(*args, dtype=None, **kwargs):
-            """Return a 1-D tensor of size with values from the interval and common difference."""
-            return func(*args, **kwargs).to(dtype)  # cast to dtype instead of passing dtype
-
-        torch.arange = arange  # patch
-        yield
-        torch.arange = func  # unpatch
-    else:
-        yield
 
 
 class Exporter:

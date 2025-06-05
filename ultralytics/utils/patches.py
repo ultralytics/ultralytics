@@ -144,6 +144,27 @@ def torch_save(*args, **kwargs):
 
 
 @contextmanager
+def arange_patch(args):
+    """
+    Workaround for ONNX torch.arange incompatibility with FP16.
+
+    https://github.com/pytorch/pytorch/issues/148041.
+    """
+    if args.dynamic and args.half and args.format == "onnx":
+        func = torch.arange
+
+        def arange(*args, dtype=None, **kwargs):
+            """Return a 1-D tensor of size with values from the interval and common difference."""
+            return func(*args, **kwargs).to(dtype)  # cast to dtype instead of passing dtype
+
+        torch.arange = arange  # patch
+        yield
+        torch.arange = func  # unpatch
+    else:
+        yield
+
+
+@contextmanager
 def override_configs(args, overrides: Optional[Dict[str, Any]] = None):
     """
     Context manager to temporarily override configurations in args.

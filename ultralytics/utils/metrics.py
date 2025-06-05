@@ -1496,9 +1496,27 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         """Return a list of curves for accessing specific metrics curves."""
         return []
 
-    def summary(self, **kwargs) -> List[Dict[str, float]]:
-        """Return a single-row summary for classification metrics (top1/top5)."""
-        return [{"classify-top1": self.top1, "classify-top5": self.top5}]
+    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, float]]:
+        """
+        Generate a single-row summary of classification metrics (Top-1 and Top-5 accuracy).
+        This format is useful for reporting or exporting classification results.
+
+        Args:
+            normalize (bool): For classification metrics, everything is normalized  by default [0-1].
+            decimals (int): Number of decimal places to round the output values to.
+
+        Returns:
+            List[Dict]: A list with one dictionary containing Top-1 and Top-5 classification accuracy.
+
+        Examples:
+            >>> results = model.val(data="imagenet.yaml")
+            >>> classify_summary = results.classify.summary(decimals=4)
+            >>> print(classify_summary)
+        """
+        return [{
+            "classify-top1": round(self.top1, decimals),
+            "classify-top5": round(self.top5, decimals)
+        }]
 
 
 class OBBMetrics(SimpleClass, DataExportMixin):

@@ -16,7 +16,7 @@ In addition to GCP, explore other accessible quickstart options for YOLOv5, like
 
 Let's begin by creating a virtual machine optimized for [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl):
 
-1.  Navigate to the [GCP marketplace](https://console.cloud.google.com/marketplace/details/click-to-deploy-images/deeplearning) and select the **Deep Learning VM**.
+1.  Navigate to the [GCP marketplace](https://cloud.google.com/marketplace) and select the **Deep Learning VM**.
 2.  Choose an **n1-standard-8** instance; it offers a balance of 8 vCPUs and 30 GB of memory, suitable for many ML tasks.
 3.  Select a [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit). The choice depends on your workload; even a basic T4 GPU will significantly accelerate model training.
 4.  Check the box for 'Install NVIDIA GPU driver automatically on first startup?' for a seamless setup.

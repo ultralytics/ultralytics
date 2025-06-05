@@ -174,7 +174,7 @@ def override_configs(args, overrides: Optional[Dict[str, Any]] = None):
         overrides (Dict[str, Any]): Dictionary of overrides to apply.
 
     Yields:
-        IterableSimpleNamespace: Configuration arguments with overrides applied.
+        (IterableSimpleNamespace): Configuration arguments with overrides applied.
     """
     if overrides:
         original_args = copy(args)

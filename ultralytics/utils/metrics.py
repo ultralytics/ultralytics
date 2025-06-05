@@ -1496,7 +1496,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
             List[Dict]: A list with one dictionary containing Top-1 and Top-5 classification accuracy.
 
         Examples:
-            >>> results = model.val(data="imagenet.yaml")
+            >>> results = model.val(data="imagenet10")
             >>> classify_summary = results.summary(decimals=4)
             >>> print(classify_summary)
         """
@@ -1615,7 +1615,7 @@ class OBBMetrics(SimpleClass, DataExportMixin):
             List[Dict]: A list of dictionaries, each representing one class with detection metrics.
 
         Examples:
-            >>> results = model.val(data="coco8.yaml")
+            >>> results = model.val(data="dota8.yaml")
             >>> detection_summary = results.summary(decimals=4)
             >>> print(detection_summary)
         """

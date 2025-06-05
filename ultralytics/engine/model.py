@@ -623,7 +623,7 @@ class Model(torch.nn.Module):
 
         Examples:
             >>> model = YOLO("yolo11n.pt")
-            >>> results = model.val(data="path/to/datset", imgsz=640)
+            >>> results = model.val(data="path/to/dataset", imgsz=640)
             >>> print(results.box.map)  # Print mAP50-95
         """
         custom = {"rect": True}  # method defaults

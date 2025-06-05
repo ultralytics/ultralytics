@@ -754,7 +754,7 @@ class Model(torch.nn.Module):
             **kwargs (Any): Arbitrary keyword arguments for training configuration. Common options include:
                 data (str): Path to dataset configuration file.
                 epochs (int): Number of training epochs.
-                batch_size (int): Batch size for training.
+                batch (int): Batch size for training.
                 imgsz (int): Input image size.
                 device (str): Device to run training on (e.g., 'cuda', 'cpu').
                 workers (int): Number of worker threads for data loading.

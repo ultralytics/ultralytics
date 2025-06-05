@@ -186,7 +186,6 @@ class LoadStreams:
                 cap.release()  # release video capture
             except Exception as e:
                 LOGGER.warning(f"Could not release VideoCapture object: {e}")
-        cv2.destroyAllWindows()
 
     def __iter__(self):
         """Iterate through YOLO image feed and re-open unresponsive streams."""
@@ -201,7 +200,7 @@ class LoadStreams:
         for i, x in enumerate(self.imgs):
             # Wait until a frame is available in each buffer
             while not x:
-                if not self.threads[i].is_alive() or cv2.waitKey(1) == ord("q"):  # q to quit
+                if not self.threads[i].is_alive():
                     self.close()
                     raise StopIteration
                 time.sleep(1 / min(self.fps))

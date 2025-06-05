@@ -48,14 +48,13 @@ class ClassificationValidator(BaseValidator):
         Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
         """
         Initialize ClassificationValidator with dataloader, save directory, and other parameters.
 
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to use for validation.
             save_dir (str | Path, optional): Directory to save results.
-            pbar (bool, optional): Display a progress bar.
             args (dict, optional): Arguments containing model and validation configuration.
             _callbacks (list, optional): List of callback functions to be called during validation.
 
@@ -65,7 +64,7 @@ class ClassificationValidator(BaseValidator):
             >>> validator = ClassificationValidator(args=args)
             >>> validator()
         """
-        super().__init__(dataloader, save_dir, pbar, args, _callbacks)
+        super().__init__(dataloader, save_dir, args, _callbacks)
         self.targets = None
         self.pred = None
         self.args.task = "classify"
@@ -79,7 +78,9 @@ class ClassificationValidator(BaseValidator):
         """Initialize confusion matrix, class names, and tracking containers for predictions and targets."""
         self.names = model.names
         self.nc = len(model.names)
-        self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf, task="classify")
+        self.confusion_matrix = ConfusionMatrix(
+            nc=self.nc, conf=self.args.conf, names=self.names.values(), task="classify"
+        )
         self.pred = []
         self.targets = []
 
@@ -124,9 +125,7 @@ class ClassificationValidator(BaseValidator):
         self.confusion_matrix.process_cls_preds(self.pred, self.targets)
         if self.args.plots:
             for normalize in True, False:
-                self.confusion_matrix.plot(
-                    save_dir=self.save_dir, names=self.names.values(), normalize=normalize, on_plot=self.on_plot
-                )
+                self.confusion_matrix.plot(save_dir=self.save_dir, normalize=normalize, on_plot=self.on_plot)
         self.metrics.speed = self.speed
         self.metrics.confusion_matrix = self.confusion_matrix
         self.metrics.save_dir = self.save_dir

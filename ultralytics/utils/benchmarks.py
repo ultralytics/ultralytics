@@ -172,7 +172,15 @@ def benchmark(
 
             # Validate
             results = exported_model.val(
-                data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
+                data=data,
+                batch=1,
+                imgsz=imgsz,
+                plots=False,
+                device=device,
+                half=half,
+                int8=int8,
+                verbose=False,
+                conf=0.001,  # all the pre-set benchmark mAP values are based on conf=0.001
             )
             metric, speed = results.results_dict[key], results.speed["inference"]
             fps = round(1000 / (speed + eps), 2)  # frames per second

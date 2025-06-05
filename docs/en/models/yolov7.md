@@ -99,225 +99,225 @@ To use YOLOv7 ONNX model with Ultralytics:
 
 0. (Optional) Install Ultralytics and export an ONNX model to have the required dependencies automatically installed:
 
-```bash
-pip install ultralytics
-yolo export model=yolo11n.pt format=onnx
-```
+    ```bash
+    pip install ultralytics
+    yolo export model=yolo11n.pt format=onnx
+    ```
 
 1. Export the desired YOLOv7 model by using the exporter in the [YOLOv7 repo](https://github.com/WongKinYiu/yolov7):
 
-```bash
-git clone https://github.com/WongKinYiu/yolov7
-cd yolov7
-python export.py --weights yolov7-tiny.pt --grid --end2end --simplify --topk-all 100 --iou-thres 0.65 --conf-thres 0.35 --img-size 640 640 --max-wh 640
-```
+    ```bash
+    git clone https://github.com/WongKinYiu/yolov7
+    cd yolov7
+    python export.py --weights yolov7-tiny.pt --grid --end2end --simplify --topk-all 100 --iou-thres 0.65 --conf-thres 0.35 --img-size 640 640 --max-wh 640
+    ```
 
 2. Modify the ONNX model graph to be compatible with Ultralytics using the following script:
 
-```python
-import numpy as np
-import onnx
-from onnx import helper, numpy_helper
+    ```python
+    import numpy as np
+    import onnx
+    from onnx import helper, numpy_helper
 
-# Load the ONNX model
-model_path = "yolov7/yolov7-tiny.onnx"  # Replace with your model path
-model = onnx.load(model_path)
-graph = model.graph
+    # Load the ONNX model
+    model_path = "yolov7/yolov7-tiny.onnx"  # Replace with your model path
+    model = onnx.load(model_path)
+    graph = model.graph
 
-# Fix input shape to batch size 1
-input_shape = graph.input[0].type.tensor_type.shape
-input_shape.dim[0].dim_value = 1
+    # Fix input shape to batch size 1
+    input_shape = graph.input[0].type.tensor_type.shape
+    input_shape.dim[0].dim_value = 1
 
-# Define the output of the original model
-original_output_name = graph.output[0].name
+    # Define the output of the original model
+    original_output_name = graph.output[0].name
 
-# Create slicing nodes
-sliced_output_name = f"{original_output_name}_sliced"
+    # Create slicing nodes
+    sliced_output_name = f"{original_output_name}_sliced"
 
-# Define initializers for slicing (remove the first value)
-start = numpy_helper.from_array(np.array([1], dtype=np.int64), name="slice_start")
-end = numpy_helper.from_array(np.array([7], dtype=np.int64), name="slice_end")
-axes = numpy_helper.from_array(np.array([1], dtype=np.int64), name="slice_axes")
-steps = numpy_helper.from_array(np.array([1], dtype=np.int64), name="slice_steps")
+    # Define initializers for slicing (remove the first value)
+    start = numpy_helper.from_array(np.array([1], dtype=np.int64), name="slice_start")
+    end = numpy_helper.from_array(np.array([7], dtype=np.int64), name="slice_end")
+    axes = numpy_helper.from_array(np.array([1], dtype=np.int64), name="slice_axes")
+    steps = numpy_helper.from_array(np.array([1], dtype=np.int64), name="slice_steps")
 
-graph.initializer.extend([start, end, axes, steps])
+    graph.initializer.extend([start, end, axes, steps])
 
-slice_node = helper.make_node(
-    "Slice",
-    inputs=[original_output_name, "slice_start", "slice_end", "slice_axes", "slice_steps"],
-    outputs=[sliced_output_name],
-    name="SliceNode",
-)
-graph.node.append(slice_node)
+    slice_node = helper.make_node(
+        "Slice",
+        inputs=[original_output_name, "slice_start", "slice_end", "slice_axes", "slice_steps"],
+        outputs=[sliced_output_name],
+        name="SliceNode",
+    )
+    graph.node.append(slice_node)
 
-# Define segment slicing
-seg1_start = numpy_helper.from_array(np.array([0], dtype=np.int64), name="seg1_start")
-seg1_end = numpy_helper.from_array(np.array([4], dtype=np.int64), name="seg1_end")
-seg2_start = numpy_helper.from_array(np.array([4], dtype=np.int64), name="seg2_start")
-seg2_end = numpy_helper.from_array(np.array([5], dtype=np.int64), name="seg2_end")
-seg3_start = numpy_helper.from_array(np.array([5], dtype=np.int64), name="seg3_start")
-seg3_end = numpy_helper.from_array(np.array([6], dtype=np.int64), name="seg3_end")
+    # Define segment slicing
+    seg1_start = numpy_helper.from_array(np.array([0], dtype=np.int64), name="seg1_start")
+    seg1_end = numpy_helper.from_array(np.array([4], dtype=np.int64), name="seg1_end")
+    seg2_start = numpy_helper.from_array(np.array([4], dtype=np.int64), name="seg2_start")
+    seg2_end = numpy_helper.from_array(np.array([5], dtype=np.int64), name="seg2_end")
+    seg3_start = numpy_helper.from_array(np.array([5], dtype=np.int64), name="seg3_start")
+    seg3_end = numpy_helper.from_array(np.array([6], dtype=np.int64), name="seg3_end")
 
-graph.initializer.extend([seg1_start, seg1_end, seg2_start, seg2_end, seg3_start, seg3_end])
+    graph.initializer.extend([seg1_start, seg1_end, seg2_start, seg2_end, seg3_start, seg3_end])
 
-# Create intermediate tensors for segments
-segment_1_name = f"{sliced_output_name}_segment1"
-segment_2_name = f"{sliced_output_name}_segment2"
-segment_3_name = f"{sliced_output_name}_segment3"
+    # Create intermediate tensors for segments
+    segment_1_name = f"{sliced_output_name}_segment1"
+    segment_2_name = f"{sliced_output_name}_segment2"
+    segment_3_name = f"{sliced_output_name}_segment3"
 
-# Add segment slicing nodes
-graph.node.extend(
-    [
-        helper.make_node(
-            "Slice",
-            inputs=[sliced_output_name, "seg1_start", "seg1_end", "slice_axes", "slice_steps"],
-            outputs=[segment_1_name],
-            name="SliceSegment1",
-        ),
-        helper.make_node(
-            "Slice",
-            inputs=[sliced_output_name, "seg2_start", "seg2_end", "slice_axes", "slice_steps"],
-            outputs=[segment_2_name],
-            name="SliceSegment2",
-        ),
-        helper.make_node(
-            "Slice",
-            inputs=[sliced_output_name, "seg3_start", "seg3_end", "slice_axes", "slice_steps"],
-            outputs=[segment_3_name],
-            name="SliceSegment3",
-        ),
-    ]
-)
+    # Add segment slicing nodes
+    graph.node.extend(
+        [
+            helper.make_node(
+                "Slice",
+                inputs=[sliced_output_name, "seg1_start", "seg1_end", "slice_axes", "slice_steps"],
+                outputs=[segment_1_name],
+                name="SliceSegment1",
+            ),
+            helper.make_node(
+                "Slice",
+                inputs=[sliced_output_name, "seg2_start", "seg2_end", "slice_axes", "slice_steps"],
+                outputs=[segment_2_name],
+                name="SliceSegment2",
+            ),
+            helper.make_node(
+                "Slice",
+                inputs=[sliced_output_name, "seg3_start", "seg3_end", "slice_axes", "slice_steps"],
+                outputs=[segment_3_name],
+                name="SliceSegment3",
+            ),
+        ]
+    )
 
-# Concatenate the segments
-concat_output_name = f"{sliced_output_name}_concat"
-concat_node = helper.make_node(
-    "Concat",
-    inputs=[segment_1_name, segment_3_name, segment_2_name],
-    outputs=[concat_output_name],
-    axis=1,
-    name="ConcatSwapped",
-)
-graph.node.append(concat_node)
+    # Concatenate the segments
+    concat_output_name = f"{sliced_output_name}_concat"
+    concat_node = helper.make_node(
+        "Concat",
+        inputs=[segment_1_name, segment_3_name, segment_2_name],
+        outputs=[concat_output_name],
+        axis=1,
+        name="ConcatSwapped",
+    )
+    graph.node.append(concat_node)
 
-# Reshape to [1, -1, 6]
-reshape_shape = numpy_helper.from_array(np.array([1, -1, 6], dtype=np.int64), name="reshape_shape")
-graph.initializer.append(reshape_shape)
+    # Reshape to [1, -1, 6]
+    reshape_shape = numpy_helper.from_array(np.array([1, -1, 6], dtype=np.int64), name="reshape_shape")
+    graph.initializer.append(reshape_shape)
 
-final_output_name = f"{concat_output_name}_batched"
-reshape_node = helper.make_node(
-    "Reshape",
-    inputs=[concat_output_name, "reshape_shape"],
-    outputs=[final_output_name],
-    name="AddBatchDimension",
-)
-graph.node.append(reshape_node)
+    final_output_name = f"{concat_output_name}_batched"
+    reshape_node = helper.make_node(
+        "Reshape",
+        inputs=[concat_output_name, "reshape_shape"],
+        outputs=[final_output_name],
+        name="AddBatchDimension",
+    )
+    graph.node.append(reshape_node)
 
-# Get the shape of the reshaped tensor
-shape_node_name = f"{final_output_name}_shape"
-shape_node = helper.make_node(
-    "Shape",
-    inputs=[final_output_name],
-    outputs=[shape_node_name],
-    name="GetShapeDim",
-)
-graph.node.append(shape_node)
+    # Get the shape of the reshaped tensor
+    shape_node_name = f"{final_output_name}_shape"
+    shape_node = helper.make_node(
+        "Shape",
+        inputs=[final_output_name],
+        outputs=[shape_node_name],
+        name="GetShapeDim",
+    )
+    graph.node.append(shape_node)
 
-# Extract the second dimension
-dim_1_index = numpy_helper.from_array(np.array([1], dtype=np.int64), name="dim_1_index")
-graph.initializer.append(dim_1_index)
+    # Extract the second dimension
+    dim_1_index = numpy_helper.from_array(np.array([1], dtype=np.int64), name="dim_1_index")
+    graph.initializer.append(dim_1_index)
 
-second_dim_name = f"{final_output_name}_dim1"
-gather_node = helper.make_node(
-    "Gather",
-    inputs=[shape_node_name, "dim_1_index"],
-    outputs=[second_dim_name],
-    name="GatherSecondDim",
-)
-graph.node.append(gather_node)
+    second_dim_name = f"{final_output_name}_dim1"
+    gather_node = helper.make_node(
+        "Gather",
+        inputs=[shape_node_name, "dim_1_index"],
+        outputs=[second_dim_name],
+        name="GatherSecondDim",
+    )
+    graph.node.append(gather_node)
 
-# Subtract from 100 to determine how many values to pad
-target_size = numpy_helper.from_array(np.array([100], dtype=np.int64), name="target_size")
-graph.initializer.append(target_size)
+    # Subtract from 100 to determine how many values to pad
+    target_size = numpy_helper.from_array(np.array([100], dtype=np.int64), name="target_size")
+    graph.initializer.append(target_size)
 
-pad_size_name = f"{second_dim_name}_padsize"
-sub_node = helper.make_node(
-    "Sub",
-    inputs=["target_size", second_dim_name],
-    outputs=[pad_size_name],
-    name="CalculatePadSize",
-)
-graph.node.append(sub_node)
+    pad_size_name = f"{second_dim_name}_padsize"
+    sub_node = helper.make_node(
+        "Sub",
+        inputs=["target_size", second_dim_name],
+        outputs=[pad_size_name],
+        name="CalculatePadSize",
+    )
+    graph.node.append(sub_node)
 
-# Build the [2, 3] pad array:
-# 1st row -> [0, 0, 0] (no padding at the start of any dim)
-# 2nd row -> [0, pad_size, 0] (pad only at the end of the second dim)
-pad_starts = numpy_helper.from_array(np.array([0, 0, 0], dtype=np.int64), name="pad_starts")
-graph.initializer.append(pad_starts)
+    # Build the [2, 3] pad array:
+    # 1st row -> [0, 0, 0] (no padding at the start of any dim)
+    # 2nd row -> [0, pad_size, 0] (pad only at the end of the second dim)
+    pad_starts = numpy_helper.from_array(np.array([0, 0, 0], dtype=np.int64), name="pad_starts")
+    graph.initializer.append(pad_starts)
 
-zero_scalar = numpy_helper.from_array(np.array([0], dtype=np.int64), name="zero_scalar")
-graph.initializer.append(zero_scalar)
+    zero_scalar = numpy_helper.from_array(np.array([0], dtype=np.int64), name="zero_scalar")
+    graph.initializer.append(zero_scalar)
 
-pad_ends_name = "pad_ends"
-concat_pad_ends_node = helper.make_node(
-    "Concat",
-    inputs=["zero_scalar", pad_size_name, "zero_scalar"],
-    outputs=[pad_ends_name],
-    axis=0,
-    name="ConcatPadEnds",
-)
-graph.node.append(concat_pad_ends_node)
+    pad_ends_name = "pad_ends"
+    concat_pad_ends_node = helper.make_node(
+        "Concat",
+        inputs=["zero_scalar", pad_size_name, "zero_scalar"],
+        outputs=[pad_ends_name],
+        axis=0,
+        name="ConcatPadEnds",
+    )
+    graph.node.append(concat_pad_ends_node)
 
-pad_values_name = "pad_values"
-concat_pad_node = helper.make_node(
-    "Concat",
-    inputs=["pad_starts", pad_ends_name],
-    outputs=[pad_values_name],
-    axis=0,
-    name="ConcatPadStartsEnds",
-)
-graph.node.append(concat_pad_node)
+    pad_values_name = "pad_values"
+    concat_pad_node = helper.make_node(
+        "Concat",
+        inputs=["pad_starts", pad_ends_name],
+        outputs=[pad_values_name],
+        axis=0,
+        name="ConcatPadStartsEnds",
+    )
+    graph.node.append(concat_pad_node)
 
-# Create Pad operator to pad with zeros
-pad_output_name = f"{final_output_name}_padded"
-pad_constant_value = numpy_helper.from_array(
-    np.array([0.0], dtype=np.float32),
-    name="pad_constant_value",
-)
-graph.initializer.append(pad_constant_value)
+    # Create Pad operator to pad with zeros
+    pad_output_name = f"{final_output_name}_padded"
+    pad_constant_value = numpy_helper.from_array(
+        np.array([0.0], dtype=np.float32),
+        name="pad_constant_value",
+    )
+    graph.initializer.append(pad_constant_value)
 
-pad_node = helper.make_node(
-    "Pad",
-    inputs=[final_output_name, pad_values_name, "pad_constant_value"],
-    outputs=[pad_output_name],
-    mode="constant",
-    name="PadToFixedSize",
-)
-graph.node.append(pad_node)
+    pad_node = helper.make_node(
+        "Pad",
+        inputs=[final_output_name, pad_values_name, "pad_constant_value"],
+        outputs=[pad_output_name],
+        mode="constant",
+        name="PadToFixedSize",
+    )
+    graph.node.append(pad_node)
 
-# Update the graph's final output to [1, 100, 6]
-new_output_type = onnx.helper.make_tensor_type_proto(
-    elem_type=graph.output[0].type.tensor_type.elem_type, shape=[1, 100, 6]
-)
-new_output = onnx.helper.make_value_info(name=pad_output_name, type_proto=new_output_type)
+    # Update the graph's final output to [1, 100, 6]
+    new_output_type = onnx.helper.make_tensor_type_proto(
+        elem_type=graph.output[0].type.tensor_type.elem_type, shape=[1, 100, 6]
+    )
+    new_output = onnx.helper.make_value_info(name=pad_output_name, type_proto=new_output_type)
 
-# Replace the old output with the new one
-graph.output.pop()
-graph.output.extend([new_output])
+    # Replace the old output with the new one
+    graph.output.pop()
+    graph.output.extend([new_output])
 
-# Save the modified model
-onnx.save(model, "yolov7-ultralytics.onnx")
-```
+    # Save the modified model
+    onnx.save(model, "yolov7-ultralytics.onnx")
+    ```
 
 3. You can then load the modified ONNX model and run inference with it in Ultralytics normally:
 
-```python
-from ultralytics import ASSETS, YOLO
+    ```python
+    from ultralytics import ASSETS, YOLO
 
-model = YOLO("yolov7-ultralytics.onnx", task="detect")
+    model = YOLO("yolov7-ultralytics.onnx", task="detect")
 
-results = model(ASSETS / "bus.jpg")
-```
+    results = model(ASSETS / "bus.jpg")
+    ```
 
 ### TensorRT Export
 
@@ -325,55 +325,27 @@ results = model(ASSETS / "bus.jpg")
 
 2. Install the `TensorRT` Python package:
 
-```python
-pip install tensorrt
-```
+    ```python
+    pip install tensorrt
+    ```
 
 3. Run the following script to convert the modified ONNX model to TensorRT engine:
 
-```python
-# Based off of https://github.com/NVIDIA/TensorRT/blob/release/10.7/samples/python/introductory_parser_samples/onnx_resnet50.py
+    ```python
+    from ultralytics.utils.export import export_engine
 
-import tensorrt as trt
-
-TRT_LOGGER = trt.Logger(trt.Logger.WARNING)
-
-
-def GiB(val):
-    return val * 1 << 30
-
-
-def build_engine_onnx(model_file):
-    builder = trt.Builder(TRT_LOGGER)
-    network = builder.create_network(0)
-    config = builder.create_builder_config()
-    parser = trt.OnnxParser(network, TRT_LOGGER)
-
-    config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, GiB(4))
-    with open(model_file, "rb") as model:
-        if not parser.parse(model.read()):
-            print("ERROR: Failed to parse the ONNX file.")
-            for error in range(parser.num_errors):
-                print(parser.get_error(error))
-            return None
-    config.set_flag(trt.BuilderFlag.FP16)
-    engine_bytes = builder.build_serialized_network(network, config)
-    with open(model_file.replace("onnx", "engine"), "wb") as f:
-        f.write(engine_bytes)
-
-
-build_engine_onnx("yolov7-ultralytics.onnx")  # path to the modified ONNX file
-```
+    export_engine("yolov7-ultralytics.onnx", half=True)
+    ```
 
 4. Load and run the model in Ultralytics:
 
-```python
-from ultralytics import ASSETS, YOLO
+    ```python
+    from ultralytics import ASSETS, YOLO
 
-model = YOLO("yolov7-ultralytics.engine", task="detect")
+    model = YOLO("yolov7-ultralytics.engine", task="detect")
 
-results = model(ASSETS / "bus.jpg")
-```
+    results = model(ASSETS / "bus.jpg")
+    ```
 
 ## Citations and Acknowledgements
 

@@ -1,6 +1,7 @@
 from ultralytics.models.yolo_manitou import detect
 from ultralytics.models.yolo_manitou import detect_multiCam
-from .model import YOLOManitou
+from ultralytics.models.yolo_manitou import segment
+from .model import YOLOManitou, YOLOManitou_MultiCam
 
 
-__all__ = ["detect", "detect_multiCam", "YOLOManitou"]  # allow simpler import
+__all__ = ["detect", "detect_multiCam", "segment", "YOLOManitou", "YOLOManitou_MultiCam"]  # allow simpler import

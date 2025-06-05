@@ -3,7 +3,7 @@ import cv2
 from ultralytics.engine.results import Results
 from ultralytics.models import yolo_manitou
 from ultralytics.utils import DEFAULT_CFG, ops
-from ultralytics.models.yolo_manitou.detect.utils import invert_manitou_resize_crop_xyxy, process_mask_native, process_mask
+from ultralytics.ultralytics.models.yolo_manitou.utils import invert_manitou_resize_crop_xyxy, process_mask_native, process_mask
 
 class ManitouSegmentationPredictor(yolo_manitou.detect.ManitouPredictor):
     """

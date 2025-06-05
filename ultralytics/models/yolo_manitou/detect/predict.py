@@ -14,7 +14,7 @@ from ultralytics.data.augmentV1 import (
     ManitouResizeCrop,
     LetterBox,
 )
-from .utils import invert_manitou_resize_crop_xyxy
+from ultralytics.ultralytics.models.yolo_manitou.utils import invert_manitou_resize_crop_xyxy
 
 
 class ManitouPredictor(DetectionPredictor):
@@ -97,7 +97,7 @@ class ManitouPredictor(DetectionPredictor):
                         "postprocess": profilers[2].dt * 1e3 / n,
                     }
                     if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
-                        s[i] += self.write_results(i, Path(paths[i]), im, s)
+                        s[i] += self.write_results(i, Path(paths[i]), im0s[i], s)
 
                 # Print batch results
                 if self.args.verbose:
@@ -160,6 +160,7 @@ class ManitouPredictor(DetectionPredictor):
         """
         resize_crop = ManitouResizeCrop(self.pre_crop_cfg["scale"],
                                         self.pre_crop_cfg["target_size"],
+                                        self.pre_crop_cfg["original_size"],
                                         1.0 if self.pre_crop_cfg["is_crop"] else 0.0)
         
         same_shapes = len({x.shape for x in im}) == 1
@@ -171,7 +172,7 @@ class ManitouPredictor(DetectionPredictor):
             stride=self.model.stride,
         )
         
-        for transform in [resize_crop, letterbox]:
+        for transform in [resize_crop]:
             im = [transform(image=x) for x in im]
             
         return im
@@ -261,7 +262,7 @@ class ManitouPredictor(DetectionPredictor):
             obj_feats = self.get_obj_feats(self._feats, preds[1])
             preds = preds[0]
 
-        results = self.construct_results(preds, orig_imgs)
+        results = self.construct_results(preds, img, orig_imgs, **kwargs)
 
         if save_feats:
             for r, f in zip(results, obj_feats):
@@ -269,7 +270,7 @@ class ManitouPredictor(DetectionPredictor):
 
         return results
     
-    def construct_results(self, preds, orig_imgs):
+    def construct_results(self, preds, img, orig_imgs, **kwargs):
         """
         Construct a list of Results objects from model predictions.
 

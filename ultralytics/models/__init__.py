@@ -5,6 +5,7 @@ from .nas import NAS
 from .rtdetr import RTDETR
 from .sam import SAM
 from .yolo import YOLO, YOLOE, YOLOWorld
-from .yolo_manitou import YOLOManitou
+from .yolo_manitou import YOLOManitou, YOLOManitou_MultiCam
 
-__all__ = "YOLO", "RTDETR", "SAM", "FastSAM", "NAS", "YOLOWorld", "YOLOE", "YOLOManitou"  # allow simpler import
+__all__ = ["YOLO", "RTDETR", "SAM", "FastSAM", "NAS", "YOLOWorld", "YOLOE",
+           "YOLOManitou", "YOLOManitou_MultiCam"]

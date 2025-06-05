@@ -13,6 +13,7 @@ import torch.nn as nn
 from torch import distributed as dist
 
 from pathlib import Path
+from ultralytics.nn.tasks import DetectionModel
 from ultralytics.data import build_dataloader, build_manitou_dataset, get_manitou_dataset
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.cfg import cfg2dict, check_cfg, get_save_dir
@@ -230,5 +231,22 @@ class ManitouTrainer(DetectionTrainer):
         """
         batch = super().preprocess_batch(batch)
         return batch
+    
+    def get_model(self, cfg=None, weights=None, verbose=True):
+        """
+        Return a YOLO detection model.
+
+        Args:
+            cfg (str, optional): Path to model configuration file.
+            weights (str, optional): Path to model weights.
+            verbose (bool): Whether to display model information.
+
+        Returns:
+            (DetectionModel): YOLO detection model.
+        """
+        model = DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
+        if weights:
+            model.load(weights)
+        return model
 
         

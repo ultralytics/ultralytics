@@ -14,6 +14,7 @@ import torch.nn as nn
 from torch import distributed as dist
 
 from pathlib import Path
+from ultralytics.nn.tasks import DetectionModel_MultiView
 from ultralytics.data import build_manitou_dataset, get_manitou_dataset
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo_manitou
@@ -194,10 +195,10 @@ class ManitouTrainer_MultiCam(ManitouTrainer):
             if RANK != -1:
                 self.train_loader.sampler.set_epoch(epoch)
             pbar = enumerate(self.train_loader)
-            # Update dataloader attributes (optional)
-            if epoch == (self.epochs - self.args.close_mosaic):
-                self._close_dataloader_mosaic()
-                self.train_loader.reset()
+            # # Update dataloader attributes (optional)
+            # if epoch == (self.epochs - self.args.close_mosaic):
+            #     self._close_dataloader_mosaic()
+            #     self.train_loader.reset()
 
             if RANK in {-1, 0}:
                 LOGGER.info(self.progress_string())
@@ -220,8 +221,8 @@ class ManitouTrainer_MultiCam(ManitouTrainer):
 
                 # Forward
                 with autocast(self.amp):
-                    batch = self.preprocess_batch(batch)
-                    batch = batch["key_frames"]
+                    _batch = self.preprocess_batch(batch)
+                    batch, ref_batch = _batch["key_frames"], _batch["ref_frames"]
                     loss, self.loss_items = self.model(batch)
                     self.loss = loss.sum()
                     if RANK != -1:
@@ -263,8 +264,9 @@ class ManitouTrainer_MultiCam(ManitouTrainer):
                     )
                     self.run_callbacks("on_batch_end")
                     if self.args.plots and ni in self.plot_idx:
-                        self.plot_training_samples(batch, ni)
-
+                        self.plot_training_samples(batch, ni, prefix="key")
+                        self.plot_training_samples(ref_batch, ni, prefix="ref")
+                        
                 self.run_callbacks("on_train_batch_end")
 
             self.lr = {f"lr/pg{ir}": x["lr"] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
@@ -372,8 +374,25 @@ class ManitouTrainer_MultiCam(ManitouTrainer):
             ref_frames["img"] = ref_frames["img"].to(self.device, non_blocking=True).float() / 255
         
         return batch
+    
+    def get_model(self, cfg=None, weights=None, verbose=True):
+        """
+        Return a YOLO detection model.
 
-    def plot_training_samples(self, batch, ni):
+        Args:
+            cfg (str, optional): Path to model configuration file.
+            weights (str, optional): Path to model weights.
+            verbose (bool): Whether to display model information.
+
+        Returns:
+            (DetectionModel): YOLO detection model.
+        """
+        model = DetectionModel_MultiView(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
+        if weights:
+            model.load(weights)
+        return model
+
+    def plot_training_samples(self, batch, ni, prefix):
         """
         Plot training samples with their annotations.
 
@@ -387,7 +406,7 @@ class ManitouTrainer_MultiCam(ManitouTrainer):
             cls=batch["cls"].squeeze(-1),
             bboxes=batch["bboxes"],
             paths=batch["im_file"],
-            fname=self.save_dir / f"train_batch_key_{ni}.jpg",
+            fname=self.save_dir / f"{prefix}_train_batch_{ni}.jpg",
             on_plot=self.on_plot,
         )
         

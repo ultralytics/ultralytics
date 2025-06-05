@@ -6,11 +6,14 @@ from typing import Union, List, Any
 import torch
 import numpy as np
 
+from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.engine.model import Model
 from ultralytics.engine.results import Results
 from ultralytics.models import yolo_manitou
 from ultralytics.nn.tasks import (
     DetectionModel,
+    SegmentationModel,
+    DetectionModel_MultiView,
 )
 
 
@@ -27,12 +30,12 @@ class YOLOManitou(Model):
                 "validator": yolo_manitou.detect.ManitouValidator,
                 "predictor": yolo_manitou.detect.ManitouPredictor,
             },
-            "detect_multiCam": {
-                "model": DetectionModel,
-                "trainer": yolo_manitou.detect_multiCam.ManitouTrainer_MultiCam,
-                "validator": yolo_manitou.detect_multiCam.ManitouValidator_MultiCam,
-                "predictor": yolo_manitou.detect_multiCam.ManitouPredictor_MultiCam,
-            },
+            "segment":{
+                "model": SegmentationModel,
+                "trainer": yolo_manitou.segment.ManitouSegmentationTrainer,
+                "validator": yolo_manitou.segment.ManitouSegmentationValidator,
+                "predictor": yolo_manitou.segment.ManitouSegmentationPredictor,
+            }
         }
         
     def track(
@@ -78,3 +81,66 @@ class YOLOManitou(Model):
         kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
         kwargs["mode"] = "track"
         return self.predict(source=source, stream=stream, **kwargs)
+    
+    
+class YOLOManitou_MultiCam(Model):
+    """YOLO (You Only Look Once) object detection model for multi-camera scenarios."""
+
+    @property
+    def task_map(self):
+        """Map head to model, trainer, validator, and predictor classes."""
+        return {
+                "detect": {
+                    "model": DetectionModel_MultiView,
+                    "trainer": yolo_manitou.detect_multiCam.ManitouTrainer_MultiCam,
+                    "validator": yolo_manitou.detect_multiCam.ManitouValidator_MultiCam,
+                    "predictor": yolo_manitou.detect_multiCam.ManitouPredictor_MultiCam,
+                },
+        }
+        
+    def predict(
+        self,
+        data_cfg,
+        predictor=None,
+        **kwargs: Any,
+    ) -> List[Results]:
+        if data_cfg is None:
+            (f"'data_cfg' is missing. Using 'data_cfg={data_cfg}'.")
+
+        custom = {"conf": 0.25, "batch": 1, "mode": "predict", "rect": True}  # method defaults
+        args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
+
+        if not self.predictor:
+            self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
+            self.predictor.setup_model(model=self.model)
+        else:  # only update args if predictor is already setup
+            self.predictor.args = get_cfg(self.predictor.args, args)
+            if "project" in args or "name" in args:
+                self.predictor.save_dir = get_save_dir(self.predictor.args)
+        return self.predictor(data_cfg=data_cfg)
+
+    def track(
+        self,
+        data_cfg,
+        persist: bool = False,
+        **kwargs: Any,
+    ) -> List[Results]:
+
+        if not hasattr(self.predictor, "trackers"):
+            from ultralytics.trackers import register_tracker_manitou
+
+            register_tracker_manitou(self, persist)
+        kwargs["conf"] = kwargs.get("conf") or 0.1  # ByteTrack-based method needs low confidence predictions as input
+        kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
+        kwargs["mode"] = "track"
+        return self.predict(data_cfg=data_cfg, **kwargs)
+    
+    def __call__(
+        self,
+        data_cfg,
+        stream: bool = False,
+        **kwargs: Any,
+    ) -> list:
+        return self.predict(data_cfg, **kwargs)
+
+                        

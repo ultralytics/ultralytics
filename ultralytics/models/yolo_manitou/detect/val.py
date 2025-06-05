@@ -209,5 +209,68 @@ class ManitouValidator(DetectionValidator):
             return stats
             
             
+class ManitouValidatorVanillaYOLO(ManitouValidator):
+    def init_metrics(self, model):
+        """
+        Initialize evaluation metrics for YOLO detection validation.
+
+        Args:
+            model (torch.nn.Module): Model to validate.
+        """
+        val = self.data.get(self.args.split, "")  # validation path
+        self.is_coco = (
+            isinstance(val, str)
+            and "coco" in val
+            and (val.endswith(f"{os.sep}val2017.txt") or val.endswith(f"{os.sep}test-dev2017.txt"))
+        )  # is COCO
+        self.is_lvis = isinstance(val, str) and "lvis" in val and not self.is_coco  # is LVIS
         
+        from ultralytics.data import converter
+        self.coco_class_map = converter.coco80_to_coco91_class() if self.is_coco else list(range(1, len(model.names) + 1))
+        self.coco_names = model.names
+        
+        self.class_map = list(range(1, len(self.names) + 1))
+        # self.names = model.names
+        self.nc = len(self.names)
+        
+        self.end2end = getattr(model, "end2end", False)
+        self.metrics.names = self.names
+        self.metrics.plot = self.args.plots
+        self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf)
+        self.seen = 0
+        self.jdict = []
+        self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
+        
+    def remap_predictions(self, preds):
+        """
+        Remap predictions of original YOLO (80 cls) to the correct class of Manitou dataset.
+        """
+        if not hasattr(self, "coco_manitou_class_map"):
+            # build the mapping from coco classes to manitou classes
+            self.coco_manitou_class_map = {}
+            name2label = {name: l for l, name in self.names.items()}
+            for c_l, c_n in self.coco_names.items():
+                if c_n in ["person"]:
+                    self.coco_manitou_class_map[c_l] = name2label["Pedestrians"]
+                
+                elif c_n in ["car", "bus", "truck"]:
+                    self.coco_manitou_class_map[c_l] = name2label["Vehicles"]
+        
+        new_preds = []
+        new_pred = []
+        for pred in preds:
+            for i in range(pred.shape[0]):
+                l = int(pred[i, 5])
+                if l in self.coco_manitou_class_map:
+                    new_pred.append(pred[i].clone())
+                    new_pred[-1][5] = self.coco_manitou_class_map[l]
+        
+            new_pred = torch.stack(new_pred, dim=0) if new_pred else torch.empty((0, 6), device=preds.device)
+            new_preds.append(new_pred)
+        return new_preds
+        
+    
+    def update_metrics(self, preds, batch):
+        preds = self.remap_predictions(preds)
+        return super().update_metrics(preds, batch)
         

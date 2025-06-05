@@ -105,7 +105,7 @@ class BboxLoss(nn.Module):
         else:
             target_ltrb = bbox2dist(anchor_points, target_bboxes)
             loss_dfl = (
-                F.l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask], reduction="none").mean(-1, keepdim=True) * weight
+                F.mse_loss(pred_dist[fg_mask], target_ltrb[fg_mask], reduction="none").mean(-1, keepdim=True) * weight
             )
             loss_dfl = loss_dfl.sum() / target_scores_sum
             # loss_dfl = torch.tensor(0.0).to(pred_dist.device)

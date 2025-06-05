@@ -1046,7 +1046,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         This format is useful for exporting evaluation metrics to formats such as CSV, JSON, or HTML.
 
         Args:
-           normalize (bool): For detection metrics, everything is normalized  by default [0-1].
+           normalize (bool): For Detect metrics, everything is normalized  by default [0-1].
            decimals (int): Number of decimal places to round the output values to.
 
         Returns:
@@ -1222,7 +1222,7 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
         Includes both box and mask scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
 
         Args:
-            normalize (bool): For segmentation metrics, everything is normalized  by default [0-1].
+            normalize (bool): For Segment metrics, everything is normalized  by default [0-1].
             decimals (int): Number of decimal places to round the output values to.
 
         Returns:
@@ -1403,7 +1403,7 @@ class PoseMetrics(SegmentMetrics):
         Includes both box and pose scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
 
         Args:
-            normalize (bool): For pose metrics, everything is normalized  by default [0-1].
+            normalize (bool): For Pose metrics, everything is normalized  by default [0-1].
             decimals (int): Number of decimal places to round the output values to.
 
         Returns:
@@ -1502,7 +1502,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         This format is useful for reporting or exporting classification results.
 
         Args:
-            normalize (bool): For classification metrics, everything is normalized  by default [0-1].
+            normalize (bool): For Classify metrics, everything is normalized  by default [0-1].
             decimals (int): Number of decimal places to round the output values to.
 
         Returns:
@@ -1618,15 +1618,34 @@ class OBBMetrics(SimpleClass, DataExportMixin):
         """Return a list of curves for accessing specific metrics curves."""
         return []
 
-    def summary(self, **kwargs) -> List[Dict[str, Union[str, float]]]:
-        """Return per-class detection metrics with shared scalar values included."""
+    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
+        """
+        Generate a summarized representation of per-class detection metrics as a list of dictionaries.
+        Includes shared scalar metrics (mAP, mAP50, mAP75) along with precision, recall, and F1-score for each class.
+
+        Args:
+            normalize (bool): For OBB metrics, everything is normalized  by default [0-1].
+            decimals (int): Number of decimal places to round the output values to.
+
+        Returns:
+            List[Dict[str, float]]: A list of dictionaries, each representing one class with detection metrics.
+
+        Examples:
+            >>> results = model.val(data="coco8.yaml")
+            >>> detection_summary = results.box.summary(decimals=4)
+            >>> print(detection_summary)
+        """
         scalars = {
-            "box-map": self.box.map,
-            "box-map50": self.box.map50,
-            "box-map75": self.box.map75,
+            "box-map": round(self.box.map, decimals),
+            "box-map50": round(self.box.map50, decimals),
+            "box-map75": round(self.box.map75, decimals),
         }
         per_class = {"box-p": self.box.p, "box-r": self.box.r, "box-f1": self.box.f1}
         return [
-            {"class_name": self.names[i], **{k: v[i] for k, v in per_class.items()}, **scalars}
+            {
+                "class_name": self.names[i] if hasattr(self, "names") and i in self.names else str(i),
+                **{k: round(v[i], decimals) for k, v in per_class.items()},
+                **scalars,
+            }
             for i in range(len(next(iter(per_class.values()), [])))
         ]

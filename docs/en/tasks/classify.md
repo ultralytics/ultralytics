@@ -74,7 +74,8 @@ Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
 
 !!! tip
 
-    Ultralytics YOLO classification trainer is using [torchvision.transorms.RandomResizedCrop](https://pytorch.org) as augmentation for training and [torchvision.transforms.CenterCrop](https://pytorch.org) for validation and inference, which might be suboptimal for some images that have large aspect ratio differences. If you have such images, consider using the [torchvision.transforms.Resize](https://pytorch.org) transform instead, and here's an example how to customize augmentations for ultralytics classification training.
+    Ultralytics YOLO classification uses [torchvision.transforms.RandomResizedCrop](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.RandomResizedCrop.html) for training augmentation and [torchvision.transforms.CenterCrop](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.CenterCrop.html) for validation/inference. 
+    For images with extreme aspect ratios, consider using [torchvision.transforms.Resize](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.Resize.html) instead. The example below shows how to customize augmentations for classification training.
     ```python
     from ultralytics.models.yolo.classify import ClassificationTrainer
     from ultralytics.data.dataset import ClassificationDataset

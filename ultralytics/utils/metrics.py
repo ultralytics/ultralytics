@@ -1216,15 +1216,30 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
         """Return dictionary of computed performance metrics and statistics."""
         return self.box.curves_results + self.seg.curves_results
 
-    def summary(self, **kwargs) -> List[Dict[str, Union[str, float]]]:
-        """Return per-class segmentation metrics with shared scalar values included (box + mask)."""
+    def summary(self, normalize: bool = False, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
+        """
+        Generate a summarized representation of per-class segmentation metrics as a list of dictionaries.
+        Includes both box and mask scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
+
+        Args:
+            normalize (bool): For detection metrics, everything is normalized  by default [0-1].
+            decimals (int): Number of decimal places to round the output values to.
+
+        Returns:
+            List[Dict]: A list of dictionaries, each representing one class with corresponding metric values.
+
+        Examples:
+            >>> results = model.val(data="coco8-seg.yaml")
+            >>> seg_summary = results.box.summary(decimals=4)
+            >>> print(seg_summary)
+        """
         scalars = {
-            "box-map": self.box.map,
-            "box-map50": self.box.map50,
-            "box-map75": self.box.map75,
-            "mask-map": self.seg.map,
-            "mask-map50": self.seg.map50,
-            "mask-map75": self.seg.map75,
+            "box-map": round(self.box.map, decimals),
+            "box-map50": round(self.box.map50, decimals),
+            "box-map75": round(self.box.map75, decimals),
+            "mask-map": round(self.seg.map, decimals),
+            "mask-map50": round(self.seg.map50, decimals),
+            "mask-map75": round(self.seg.map75, decimals),
         }
         per_class = {
             "box-p": self.box.p,
@@ -1235,10 +1250,13 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
             "mask-f1": self.seg.f1,
         }
         return [
-            {"class_name": self.names[i], **{k: v[i] for k, v in per_class.items()}, **scalars}
+            {
+                "class_name": self.names[i] if hasattr(self, "names") and i in self.names else str(i),
+                **{k: round(v[i], decimals) for k, v in per_class.items()},
+                **scalars,
+            }
             for i in range(len(next(iter(per_class.values()), [])))
         ]
-
 
 class PoseMetrics(SegmentMetrics):
     """

@@ -1039,7 +1039,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         """Return dictionary of computed performance metrics and statistics."""
         return self.box.curves_results
 
-    def summary(self, normalize: bool = False, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
+    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
         """
         Generate a summarized representation of per-class detection metrics as a list of dictionaries.
         Includes shared scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
@@ -1216,7 +1216,7 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
         """Return dictionary of computed performance metrics and statistics."""
         return self.box.curves_results + self.seg.curves_results
 
-    def summary(self, normalize: bool = False, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
+    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
         """
         Generate a summarized representation of per-class segmentation metrics as a list of dictionaries.
         Includes both box and mask scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
@@ -1397,7 +1397,7 @@ class PoseMetrics(SegmentMetrics):
         """Return dictionary of computed performance metrics and statistics."""
         return self.box.curves_results + self.pose.curves_results
 
-    def summary(self, normalize: bool = False, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
+    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
         """
         Generate a summarized representation of per-class pose metrics as a list of dictionaries.
         Includes both box and pose scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.

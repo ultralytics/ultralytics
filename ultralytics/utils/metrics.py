@@ -463,6 +463,7 @@ class ConfusionMatrix(DataExportMixin):
             im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation="none")
             ax.xaxis.set_label_position("bottom")
             if nc < 30:  # Add score for each cell of confusion matrix
+                black_white_switch_threshold = 0.7 if normalize else 0.7 * np.nanmax(array)
                 for i, row in enumerate(array[:nc]):
                     for j, val in enumerate(row[:nc]):
                         val = array[i, j]
@@ -475,7 +476,7 @@ class ConfusionMatrix(DataExportMixin):
                             ha="center",
                             va="center",
                             fontsize=10,
-                            color="white" if val > (0.7 if normalize else 2) else "black",
+                            color="white" if val > black_white_switch_threshold else "black",
                         )
             cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.05)
         title = "Confusion Matrix" + " Normalized" * normalize

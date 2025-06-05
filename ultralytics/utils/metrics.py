@@ -1041,8 +1041,8 @@ class DetMetrics(SimpleClass, DataExportMixin):
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
         """
-        Generate a summarized representation of per-class detection metrics as a list of dictionaries. Includes
-        shared scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
+        Generate a summarized representation of per-class detection metrics as a list of dictionaries. Includes shared
+        scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
 
         Args:
            normalize (bool): For Detect metrics, everything is normalized  by default [0-1].
@@ -1249,6 +1249,7 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
             for i in range(len(next(iter(per_class.values()), [])))
         ]
 
+
 class PoseMetrics(SegmentMetrics):
     """
     Calculate and aggregate detection and pose metrics over a given set of classes.
@@ -1390,8 +1391,8 @@ class PoseMetrics(SegmentMetrics):
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
         """
-        Generate a summarized representation of per-class pose metrics as a list of dictionaries. Includes both box
-        and pose scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
+        Generate a summarized representation of per-class pose metrics as a list of dictionaries. Includes both box and
+        pose scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
 
         Args:
             normalize (bool): For Pose metrics, everything is normalized  by default [0-1].

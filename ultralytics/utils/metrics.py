@@ -1055,7 +1055,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
            >>> results = model.val(data="coco8.yaml")
            >>> detection_summary = results.box.summary()
            >>> print(detection_summary)
-       """
+        """
         scalars = {
             "box-map": round(self.box.map, decimals),
             "box-map50": round(self.box.map50, decimals),

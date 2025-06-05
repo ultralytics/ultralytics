@@ -172,26 +172,26 @@ Benchmarks below run on 12th Gen Intel® Core® i9-12900KS CPU at FP32 precision
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
 | ------- | ----------- | ------ | --------- | ------------------- | ---------------------- |
-| YOLO11n | PyTorch     | ✅     | 5.4       | 0.61                | 28.73                  |
-| YOLO11n | TorchScript | ✅     | 10.5      | 0.6082              | 36.27                  |
-| YOLO11n | ONNX        | ✅     | 10.2      | 0.6082              | 19.62                  |
-| YOLO11n | OpenVINO    | ✅     | 10.4      | 0.6082              | 12.72                  |
-| YOLO11s | PyTorch     | ✅     | 18.4      | 0.7526              | 35.28                  |
-| YOLO11s | TorchScript | ✅     | 36.6      | 0.74                | 54.57                  |
-| YOLO11s | ONNX        | ✅     | 36.3      | 0.74                | 37.91                  |
-| YOLO11s | OpenVINO    | ✅     | 36.4      | 0.74                | 34.38                  |
-| YOLO11m | PyTorch     | ✅     | 38.8      | 0.7598              | 82.46                  |
-| YOLO11m | TorchScript | ✅     | 77.3      | 0.7643              | 121.66                 |
-| YOLO11m | ONNX        | ✅     | 76.9      | 0.7643              | 87.21                  |
-| YOLO11m | OpenVINO    | ✅     | 77.1      | 0.7643              | 78.94                  |
-| YOLO11l | PyTorch     | ✅     | 49.0      | 0.743               | 111.51                 |
-| YOLO11l | TorchScript | ✅     | 97.7      | 0.725               | 161.36                 |
-| YOLO11l | ONNX        | ✅     | 97.0      | 0.725               | 109.23                 |
-| YOLO11l | OpenVINO    | ✅     | 97.3      | 0.725               | 100.42                 |
-| YOLO11x | PyTorch     | ✅     | 109.3     | 0.8288              | 241.93                 |
-| YOLO11x | TorchScript | ✅     | 218.1     | 0.8308              | 307.04                 |
-| YOLO11x | ONNX        | ✅     | 217.5     | 0.8308              | 205.75                 |
-| YOLO11x | OpenVINO    | ✅     | 217.8     | 0.8308              | 211.69                 |
+| YOLO11n | PyTorch     | ✅     | 5.4       | 0.5071              | 21.00                  |
+| YOLO11n | TorchScript | ✅     | 10.5      | 0.5077              | 21.39                  |
+| YOLO11n | ONNX        | ✅     | 10.2      | 0.5077              | 15.55                  |
+| YOLO11n | OpenVINO    | ✅     | 10.4      | 0.5077              | 11.49                  |
+| YOLO11s | PyTorch     | ✅     | 18.4      | 0.5770              | 43.16                  |
+| YOLO11s | TorchScript | ✅     | 36.6      | 0.5781              | 50.06                  |
+| YOLO11s | ONNX        | ✅     | 36.3      | 0.5781              | 31.53                  |
+| YOLO11s | OpenVINO    | ✅     | 36.4      | 0.5781              | 30.82                  |
+| YOLO11m | PyTorch     | ✅     | 38.8      | 0.6257              | 110.60                 |
+| YOLO11m | TorchScript | ✅     | 77.3      | 0.6306              | 128.09                 |
+| YOLO11m | ONNX        | ✅     | 76.9      | 0.6306              | 76.06                  |
+| YOLO11m | OpenVINO    | ✅     | 77.1      | 0.6306              | 79.38                  |
+| YOLO11l | PyTorch     | ✅     | 49.0      | 0.6367              | 150.38                 |
+| YOLO11l | TorchScript | ✅     | 97.7      | 0.6408              | 172.57                 |
+| YOLO11l | ONNX        | ✅     | 97.0      | 0.6408              | 108.91                 |
+| YOLO11l | OpenVINO    | ✅     | 97.3      | 0.6408              | 102.30                 |
+| YOLO11x | PyTorch     | ✅     | 109.3     | 0.6989              | 272.72                 |
+| YOLO11x | TorchScript | ✅     | 218.1     | 0.6900              | 320.86                 |
+| YOLO11x | ONNX        | ✅     | 217.5     | 0.6900              | 196.20                 |
+| YOLO11x | OpenVINO    | ✅     | 217.8     | 0.6900              | 195.32                 |
 
 ### Intel® Core™ Ultra
 

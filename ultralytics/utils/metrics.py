@@ -1053,7 +1053,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
 
         Examples:
            >>> results = model.val(data="coco8.yaml")
-           >>> detection_summary = results.box.summary()
+           >>> detection_summary = results.summary()
            >>> print(detection_summary)
         """
         scalars = {
@@ -1225,7 +1225,7 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
 
         Examples:
             >>> results = model.val(data="coco8-seg.yaml")
-            >>> seg_summary = results.box.summary(decimals=4)
+            >>> seg_summary = results.summary(decimals=4)
             >>> print(seg_summary)
         """
         scalars = {
@@ -1403,7 +1403,7 @@ class PoseMetrics(SegmentMetrics):
 
         Examples:
             >>> results = model.val(data="coco8-pose.yaml")
-            >>> pose_summary = results.box.summary(decimals=4)
+            >>> pose_summary = results.summary(decimals=4)
             >>> print(pose_summary)
         """
         scalars = {
@@ -1497,7 +1497,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
 
         Examples:
             >>> results = model.val(data="imagenet.yaml")
-            >>> classify_summary = results.classify.summary(decimals=4)
+            >>> classify_summary = results.summary(decimals=4)
             >>> print(classify_summary)
         """
         return [{"classify-top1": round(self.top1, decimals), "classify-top5": round(self.top5, decimals)}]
@@ -1616,7 +1616,7 @@ class OBBMetrics(SimpleClass, DataExportMixin):
 
         Examples:
             >>> results = model.val(data="coco8.yaml")
-            >>> detection_summary = results.box.summary(decimals=4)
+            >>> detection_summary = results.summary(decimals=4)
             >>> print(detection_summary)
         """
         scalars = {

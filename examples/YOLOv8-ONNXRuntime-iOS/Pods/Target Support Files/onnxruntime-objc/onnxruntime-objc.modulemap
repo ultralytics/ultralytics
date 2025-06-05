@@ -1,0 +1,6 @@
+framework module onnxruntime_objc {
+  umbrella header "onnxruntime-objc-umbrella.h"
+
+  export *
+  module * { export * }
+}

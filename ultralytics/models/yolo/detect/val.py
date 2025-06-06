@@ -197,7 +197,6 @@ class DetectionValidator(BaseValidator):
                     "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
                 }
             )
-
             # Evaluate
             if self.args.plots:
                 self.confusion_matrix.process_batch(predn, pbatch)

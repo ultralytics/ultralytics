@@ -971,8 +971,15 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.box = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "detect"
+        self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
-    def process(self, tp: np.ndarray, conf: np.ndarray, pred_cls: np.ndarray, target_cls: np.ndarray, on_plot=None):
+    # def update_stats(self, tp: np.ndarray, conf: np.ndarray, pred_cls: np.ndarray, target_cls: np.ndarray, target_img: np.ndarray):
+    #     self.stats["tp"].append(tp)
+    #     self.stats["conf"].append(conf)
+    #     self.stats["pred_cls"].append(pred_cls)
+    #     self.stats["target_cls"].append(target_cls)
+
+    def process(self, on_plot=None):
         """
         Process predicted results for object detection and update metrics.
 
@@ -983,6 +990,10 @@ class DetMetrics(SimpleClass, DataExportMixin):
             target_cls (np.ndarray): Target class indices array.
             on_plot (callable, optional): Function to call after plots are generated.
         """
+        tp = np.concatenate(self.stats["tp"], axis=0)
+        conf = np.concatenate(self.stats["conf"], axis=0)
+        pred_cls = np.concatenate(self.stats["pred_cls"], axis=0)
+        target_cls = np.concatenate(self.stats["target_cls"], axis=0)
         results = ap_per_class(
             tp,
             conf,

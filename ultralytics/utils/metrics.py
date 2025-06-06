@@ -368,7 +368,7 @@ class ConfusionMatrix(DataExportMixin):
         if gt_cls.shape[0] == 0:  # Check if labels is empty
             if detections is not None:
                 detections = {k: v[detections["conf"] > self.conf] for k, v in detections.items()}
-                detection_classes = detections[:, 5].int()
+                detection_classes = detections["cls"].int()
                 for dc in detection_classes:
                     self.matrix[dc, self.nc] += 1  # false positives
             return

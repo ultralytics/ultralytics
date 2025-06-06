@@ -1503,7 +1503,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         return [{"classify-top1": round(self.top1, decimals), "classify-top5": round(self.top5, decimals)}]
 
 
-class OBBMetrics(SimpleClass, DataExportMixin):
+class OBBMetrics(DetMetrics, DataExportMixin):
     """
     Metrics for evaluating oriented bounding box (OBB) detection.
 
@@ -1528,104 +1528,6 @@ class OBBMetrics(SimpleClass, DataExportMixin):
             plot (bool, optional): Whether to plot precision-recall curves.
             names (Dict[int, str], optional): Dictionary of class names.
         """
-        self.save_dir = save_dir
-        self.plot = plot
-        self.names = names
-        self.box = Metric()
-        self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
+        DetMetrics.__init__(self, save_dir, plot, names)
+        # TODO: probably remove task as well
         self.task = "obb"
-
-    def process(self, tp: np.ndarray, conf: np.ndarray, pred_cls: np.ndarray, target_cls: np.ndarray, on_plot=None):
-        """
-        Process predicted results for object detection and update metrics.
-
-        Args:
-            tp (np.ndarray): True positive array.
-            conf (np.ndarray): Confidence array.
-            pred_cls (np.ndarray): Predicted class indices array.
-            target_cls (np.ndarray): Target class indices array.
-            on_plot (callable, optional): Function to call after plots are generated.
-        """
-        results = ap_per_class(
-            tp,
-            conf,
-            pred_cls,
-            target_cls,
-            plot=self.plot,
-            save_dir=self.save_dir,
-            names=self.names,
-            on_plot=on_plot,
-        )[2:]
-        self.box.nc = len(self.names)
-        self.box.update(results)
-
-    @property
-    def keys(self) -> List[str]:
-        """Return a list of keys for accessing specific metrics."""
-        return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP50(B)", "metrics/mAP50-95(B)"]
-
-    def mean_results(self) -> List[float]:
-        """Calculate mean of detected objects & return precision, recall, mAP50, and mAP50-95."""
-        return self.box.mean_results()
-
-    def class_result(self, i: int) -> Tuple[float, float, float, float]:
-        """Return the result of evaluating the performance of an object detection model on a specific class."""
-        return self.box.class_result(i)
-
-    @property
-    def maps(self) -> np.ndarray:
-        """Return mean Average Precision (mAP) scores per class."""
-        return self.box.maps
-
-    @property
-    def fitness(self) -> float:
-        """Return the fitness of box object."""
-        return self.box.fitness()
-
-    @property
-    def ap_class_index(self) -> List:
-        """Return the average precision index per class."""
-        return self.box.ap_class_index
-
-    @property
-    def results_dict(self) -> Dict[str, float]:
-        """Return dictionary of computed performance metrics and statistics."""
-        return dict(zip(self.keys + ["fitness"], self.mean_results() + [self.fitness]))
-
-    @property
-    def curves(self) -> List:
-        """Return a list of curves for accessing specific metrics curves."""
-        return []
-
-    @property
-    def curves_results(self) -> List:
-        """Return a list of curves for accessing specific metrics curves."""
-        return []
-
-    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
-        """
-        Generate a summarized representation of per-class detection metrics as a list of dictionaries. Includes shared
-        scalar metrics (mAP, mAP50, mAP75) along with precision, recall, and F1-score for each class.
-
-        Args:
-            normalize (bool): For OBB metrics, everything is normalized  by default [0-1].
-            decimals (int): Number of decimal places to round the metrics values to.
-
-        Returns:
-            (List[Dict[str, Union[str, float]]]): A list of dictionaries, each representing one class with detection metrics.
-
-        Examples:
-            >>> results = model.val(data="dota8.yaml")
-            >>> detection_summary = results.summary(decimals=4)
-            >>> print(detection_summary)
-        """
-        scalars = {
-            "box-map": round(self.box.map, decimals),
-            "box-map50": round(self.box.map50, decimals),
-            "box-map75": round(self.box.map75, decimals),
-        }
-        per_class = {"box-p": self.box.p, "box-r": self.box.r, "box-f1": self.box.f1}
-        return [
-            {"class_name": self.names[i], **{k: round(v[i], decimals) for k, v in per_class.items()}, **scalars}
-            for i in range(len(next(iter(per_class.values()), [])))
-        ]

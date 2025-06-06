@@ -240,7 +240,9 @@ class SegmentationValidator(DetectionValidator):
         plot_images(
             batch["img"],
             # TODO: optimize this
-            *output_to_target(preds[0], max_det=50),  # not set to self.args.max_det due to slow plotting speed
+            *output_to_target(
+                [p["detection"] for p in preds], max_det=50
+            ),  # not set to self.args.max_det due to slow plotting speed
             torch.cat(self.plot_masks, dim=0) if len(self.plot_masks) else self.plot_masks,
             paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_pred.jpg",

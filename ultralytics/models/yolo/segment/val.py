@@ -153,65 +153,64 @@ class SegmentationValidator(DetectionValidator):
             outputs["coco_masks"] = coco_masks
         return outputs
 
-    def update_metrics(self, preds: Tuple[List[torch.Tensor], torch.Tensor], batch: Dict[str, Any]) -> None:
-        """
-        Update metrics with the current batch predictions and targets.
-
-        Args:
-            preds (Tuple[List[torch.Tensor], torch.Tensor]): List of predictions from the model.
-            batch (Dict[str, Any]): Batch data containing ground truth.
-        """
-        for si, pred in enumerate(preds):
-            self.seen += 1
-            npr = len(pred["detection"])
-            stat = dict(
-                conf=torch.zeros(0, device=self.device),
-                pred_cls=torch.zeros(0, device=self.device),
-                tp=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device),
-                tp_m=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device),
-            )
-            pbatch = self._prepare_batch(si, batch)
-            cls = pbatch["cls"]
-            nl = len(cls)
-            stat["target_cls"] = cls
-            stat["target_img"] = cls.unique()
-            if npr == 0:
-                if nl:
-                    self.metrics.update_stats(stat)
-                    if self.args.plots:
-                        self.confusion_matrix.process_batch(detections=None, batch=pbatch)
-                continue
-
-            # Predictions
-            predn = self._prepare_pred(pred, pbatch)
-            stat["conf"] = predn["conf"]
-            stat["pred_cls"] = predn["cls"]
-
-            # Evaluate
-            if nl:
-                stat["tp"], stat["tp_m"] = self._process_batch(predn, pbatch)
-            if self.args.plots:
-                self.confusion_matrix.process_batch(predn, pbatch)
-            self.metrics.update_stats(stat)
-
-            # TODO
-            pred_masks = torch.as_tensor(predn["masks"], dtype=torch.uint8)
-            if self.args.plots and self.batch_i < 3:
-                self.plot_masks.append(pred_masks[:50].cpu())  # Limit plotted items for speed
-                if pred_masks.shape[0] > 50:
-                    LOGGER.warning("Limiting validation plots to first 50 items per image for speed...")
-
-            # Save
-            if self.args.save_json:
-                self.pred_to_json(predn, batch["im_file"][si])
-            if self.args.save_txt:
-                self.save_one_txt(
-                    predn,
-                    pred_masks,
-                    self.args.save_conf,
-                    pbatch["ori_shape"],
-                    self.save_dir / "labels" / f"{Path(batch['im_file'][si]).stem}.txt",
-                )
+    # def update_metrics(self, preds: Tuple[List[torch.Tensor], torch.Tensor], batch: Dict[str, Any]) -> None:
+    #     """
+    #     Update metrics with the current batch predictions and targets.
+    #
+    #     Args:
+    #         preds (Tuple[List[torch.Tensor], torch.Tensor]): List of predictions from the model.
+    #         batch (Dict[str, Any]): Batch data containing ground truth.
+    #     """
+    #     for si, pred in enumerate(preds):
+    #         self.seen += 1
+    #         npr = len(pred["detection"])
+    #         stat = dict(
+    #             conf=torch.zeros(0, device=self.device),
+    #             pred_cls=torch.zeros(0, device=self.device),
+    #             tp=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device),
+    #             tp_m=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device),
+    #         )
+    #         pbatch = self._prepare_batch(si, batch)
+    #         cls = pbatch["cls"]
+    #         nl = len(cls)
+    #         stat["target_cls"] = cls
+    #         stat["target_img"] = cls.unique()
+    #         if npr == 0:
+    #             if nl:
+    #                 self.metrics.update_stats(stat)
+    #                 if self.args.plots:
+    #                     self.confusion_matrix.process_batch(detections=None, batch=pbatch)
+    #             continue
+    #
+    #         # Predictions
+    #         predn = self._prepare_pred(pred, pbatch)
+    #         stat["conf"] = predn["conf"]
+    #         stat["pred_cls"] = predn["cls"]
+    #
+    #         # Evaluate
+    #         if nl:
+    #             stat["tp"], stat["tp_m"] = self._process_batch(predn, pbatch)
+    #         if self.args.plots:
+    #             self.confusion_matrix.process_batch(predn, pbatch)
+    #         self.metrics.update_stats(stat)
+    #
+    #         # TODO
+    #         pred_masks = torch.as_tensor(predn["masks"], dtype=torch.uint8)
+    #         if self.args.plots and self.batch_i < 3:
+    #             self.plot_masks.append(pred_masks[:50].cpu())  # Limit plotted items for speed
+    #             if pred_masks.shape[0] > 50:
+    #                 LOGGER.warning("Limiting validation plots to first 50 items per image for speed...")
+    #
+    #         # Save
+    #         if self.args.save_json:
+    #             self.pred_to_json(predn, batch["im_file"][si])
+    #         if self.args.save_txt:
+    #             self.save_one_txt(
+    #                 predn,
+    #                 self.args.save_conf,
+    #                 pbatch["ori_shape"],
+    #                 self.save_dir / "labels" / f"{Path(batch['im_file'][si]).stem}.txt",
+    #             )
 
     def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
         """
@@ -257,7 +256,7 @@ class SegmentationValidator(DetectionValidator):
                 gt_masks = F.interpolate(gt_masks[None], pred_masks.shape[1:], mode="bilinear", align_corners=False)[0]
                 gt_masks = gt_masks.gt_(0.5)
             iou = mask_iou(gt_masks.view(gt_masks.shape[0], -1), pred_masks.view(pred_masks.shape[0], -1))
-            tp_m = self.match_predictions(preds["cls"], gt_cls, iou)
+            tp_m = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
         tp.update({"tp_m": tp_m})  # update tp with mask IoU
         return tp
 
@@ -301,15 +300,12 @@ class SegmentationValidator(DetectionValidator):
         )  # pred
         self.plot_masks.clear()
 
-    def save_one_txt(
-        self, predn: torch.Tensor, pred_masks: torch.Tensor, save_conf: bool, shape: Tuple[int, int], file: Path
-    ) -> None:
+    def save_one_txt(self, predn: torch.Tensor, save_conf: bool, shape: Tuple[int, int], file: Path) -> None:
         """
         Save YOLO detections to a txt file in normalized coordinates in a specific format.
 
         Args:
             predn (torch.Tensor): Predictions in the format (x1, y1, x2, y2, conf, class).
-            pred_masks (torch.Tensor): Predicted masks.
             save_conf (bool): Whether to save confidence scores.
             shape (Tuple[int, int]): Shape of the original image.
             file (Path): File path to save the detections.
@@ -320,8 +316,8 @@ class SegmentationValidator(DetectionValidator):
             np.zeros((shape[0], shape[1]), dtype=np.uint8),
             path=None,
             names=self.names,
-            boxes=predn[:, :6],
-            masks=pred_masks,
+            boxes=torch.cat([predn["bbox"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
+            masks=torch.as_tensor(predn["masks"], dtype=torch.uint8),
         ).save_txt(file, save_conf=save_conf)
 
     def pred_to_json(self, predn: torch.Tensor, filename: str) -> None:

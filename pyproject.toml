@@ -118,7 +118,7 @@ export = [
     "MNN>=2.9.6",  # MNN
     "ncnn",  # NCNN
     "tensorrt>7.0.0,!=10.1.0",  # TensorRT
-    "rknn-toolkit2",  # RKNN
+    # "rknn-toolkit2",  # RKNN
     # IMX
     "model-compression-toolkit>=2.3.0",
     "sony-custom-layers>=0.3.0",

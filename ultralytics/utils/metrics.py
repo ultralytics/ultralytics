@@ -367,7 +367,7 @@ class ConfusionMatrix(DataExportMixin):
         gt_cls, gt_bboxes = batch["cls"], batch["bbox"]
         if gt_cls.shape[0] == 0:  # Check if labels is empty
             if detections is not None:
-                detections = detections[detections[:, 4] > self.conf]
+                detections = {k: v[detections["conf"] > self.conf] for k, v in detections.items()}
                 detection_classes = detections[:, 5].int()
                 for dc in detection_classes:
                     self.matrix[dc, self.nc] += 1  # false positives
@@ -378,14 +378,15 @@ class ConfusionMatrix(DataExportMixin):
                 self.matrix[self.nc, gc] += 1  # background FN
             return
 
-        detections = detections[detections[:, 4] > self.conf]
+        detections = {k: v[detections["conf"] > self.conf] for k, v in detections.items()}
         gt_classes = gt_cls.int()
-        detection_classes = detections[:, 5].int()
-        is_obb = detections.shape[1] == 7 and gt_bboxes.shape[1] == 5  # with additional `angle` dimension
+        detection_classes = detections["cls"].int()
+        # TODO: apply for OBB
+        is_obb = "angle" in detections  # check if detections contains angle for OBB
         iou = (
-            batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:, -1:]], dim=-1))
+            batch_probiou(gt_bboxes, torch.cat([detections["bbox"], detections["angle"]], dim=-1))
             if is_obb
-            else box_iou(gt_bboxes, detections[:, :4])
+            else box_iou(gt_bboxes, detections["bbox"])
         )
 
         x = torch.where(iou > self.iou_thres)

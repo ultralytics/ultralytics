@@ -168,7 +168,7 @@ class PoseValidator(DetectionValidator):
             nk = pbatch["kpts"].shape[1]
             pred_kpts = pred[:, 6:].view(len(pred), nk, -1)
             ops.scale_coords(pbatch["imgsz"], pred_kpts, pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
-            predn.update({"kpts": pred_kpts})
+            predn["kpts"] = pred_kpts
         return predn
 
     def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:

@@ -141,24 +141,25 @@ class SegmentationValidator(DetectionValidator):
             pred_masks (torch.Tensor): Processed mask predictions.
         """
         predn = super()._prepare_pred(pred["detection"], pbatch)
-        pred_masks = self.process(
-            pred["proto"], pred["detection"][:, 6:], pred["detection"][:, :4], shape=pbatch["imgsz"]
-        )
-        outputs = {**predn, "masks": pred_masks}
-        if self.args.save_json and len(pred_masks):
-            coco_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
-            coco_masks = ops.scale_image(
-                pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
-                pbatch["ori_shape"],
-                ratio_pad=pbatch["ratio_pad"],
+        if len(pred):
+            pred_masks = self.process(
+                pred["proto"], pred["detection"][:, 6:], pred["detection"][:, :4], shape=pbatch["imgsz"]
             )
-            outputs["coco_masks"] = coco_masks
-        if self.args.plots and self.batch_i < 3:
-            plot_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
-            self.plot_masks.append(plot_masks[:50].cpu())  # Limit plotted items for speed
-            if plot_masks.shape[0] > 50:
-                LOGGER.warning("Limiting validation plots to first 50 items per image for speed...")
-        return outputs
+            predn["masks"] = pred_masks
+            if self.args.save_json and len(pred_masks):
+                coco_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
+                coco_masks = ops.scale_image(
+                    pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
+                    pbatch["ori_shape"],
+                    ratio_pad=pbatch["ratio_pad"],
+                )
+                predn["coco_masks"] = coco_masks
+            if self.args.plots and self.batch_i < 3:
+                plot_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
+                self.plot_masks.append(plot_masks[:50].cpu())  # Limit plotted items for speed
+                if plot_masks.shape[0] > 50:
+                    LOGGER.warning("Limiting validation plots to first 50 items per image for speed...")
+        return predn
 
     def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
         """

@@ -33,7 +33,6 @@ class PoseValidator(DetectionValidator):
         _prepare_batch: Prepare a batch for processing by converting keypoints to float and scaling to original
             dimensions.
         _prepare_pred: Prepare and scale keypoints in predictions for pose processing.
-        update_metrics: Update metrics with new predictions and ground truth data.
         _process_batch: Return correct prediction matrix by computing Intersection over Union (IoU) between
             detections and ground truth.
         plot_val_samples: Plot and save validation set samples with ground truth bounding boxes and keypoints.

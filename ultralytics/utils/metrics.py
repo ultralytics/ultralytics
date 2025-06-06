@@ -1120,7 +1120,7 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
 
     def update_stats(self, stat):
         for k in self.stats.keys():
-            self.stats[k].append(stat[k].cpu().numpy())
+            self.stats[k].append(stat[k])
 
     def process(self, on_plot=None):
         """

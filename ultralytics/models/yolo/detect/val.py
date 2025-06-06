@@ -187,7 +187,7 @@ class DetectionValidator(BaseValidator):
                 tp=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device),
             )
             pbatch = self._prepare_batch(si, batch)
-            cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
+            cls, bbox = pbatch["cls"], pbatch["bbox"]
             nl = len(cls)
             stat["target_cls"] = cls
             stat["target_img"] = cls.unique()
@@ -207,7 +207,7 @@ class DetectionValidator(BaseValidator):
 
             # Evaluate
             if nl:
-                stat["tp"] = self._process_batch(predn, bbox, cls)
+                stat["tp"] = self._process_batch(predn, pbatch)
             if self.args.plots:
                 self.confusion_matrix.process_batch(predn, bbox, cls)
             self.metrics.update_stats(stat)

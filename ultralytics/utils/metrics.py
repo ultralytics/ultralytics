@@ -365,14 +365,15 @@ class ConfusionMatrix(DataExportMixin):
                 'cls' (Array[M]) keys, where M is the number of ground truth objects.
         """
         gt_cls, gt_bboxes = batch["cls"], batch["bbox"]
+        no_pred = len(detections["cls"]) == 0
         if gt_cls.shape[0] == 0:  # Check if labels is empty
-            if detections is not None:
+            if not no_pred:
                 detections = {k: v[detections["conf"] > self.conf] for k, v in detections.items()}
                 detection_classes = detections["cls"].int()
                 for dc in detection_classes:
                     self.matrix[dc, self.nc] += 1  # false positives
             return
-        if detections is None:
+        if no_pred:
             gt_classes = gt_cls.int()
             for gc in gt_classes:
                 self.matrix[self.nc, gc] += 1  # background FN

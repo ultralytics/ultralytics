@@ -197,15 +197,13 @@ class DetectionValidator(BaseValidator):
                     "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
                 }
             )
-            if no_pred:
-                if len(cls):
-                    if self.args.plots:
-                        self.confusion_matrix.process_batch(detections=None, batch=pbatch)
-                continue
 
             # Evaluate
             if self.args.plots:
                 self.confusion_matrix.process_batch(predn, pbatch)
+
+            if no_pred:
+                continue
 
             # TODO: handle "predn" in dict format
             # Save

@@ -120,10 +120,10 @@ export = [
     # "tensorrt>7.0.0,!=10.1.0",  # TensorRT
     # "rknn-toolkit2",  # RKNN
     # IMX
-    "model-compression-toolkit>=2.3.0",
-    "sony-custom-layers>=0.3.0",
-    "edge-mdt-tpc>=1.1.0",
-    "imx500-converter[pt]>=3.16.1",
+    # "model-compression-toolkit>=2.3.0",
+    # "sony-custom-layers>=0.3.0",
+    # "edge-mdt-tpc>=1.1.0",
+    # "imx500-converter[pt]>=3.16.1",
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching

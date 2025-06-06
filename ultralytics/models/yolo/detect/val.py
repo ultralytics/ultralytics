@@ -96,6 +96,7 @@ class DetectionValidator(BaseValidator):
         self.is_lvis = isinstance(val, str) and "lvis" in val and not self.is_coco  # is LVIS
         self.class_map = converter.coco80_to_coco91_class() if self.is_coco else list(range(1, len(model.names) + 1))
         self.args.save_json |= self.args.val and (self.is_coco or self.is_lvis) and not self.training  # run final val
+        self.args.save_json = False
         self.names = model.names
         self.nc = len(model.names)
         self.end2end = getattr(model, "end2end", False)
@@ -184,20 +185,25 @@ class DetectionValidator(BaseValidator):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)
             predn = self._prepare_pred(pred, pbatch)
+
             cls = pbatch["cls"].cpu().numpy()
-            nl = len(cls)
-            self.metrics.update_stats({"target_cls": cls, "target_img": np.unique(cls)})
-            if len(predn["cls"]) == 0:
-                if nl:
+            no_pred = len(predn["cls"]) == 0
+            self.metrics.update_stats(
+                {
+                    **self._process_batch(predn, pbatch),
+                    "target_cls": cls,
+                    "target_img": np.unique(cls),
+                    "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
+                    "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
+                }
+            )
+            if no_pred:
+                if len(cls):
                     if self.args.plots:
                         self.confusion_matrix.process_batch(detections=None, batch=pbatch)
                 continue
 
-            self.metrics.update_stats({"conf": predn["conf"].cpu().numpy(), "pred_cls": predn["cls"].cpu().numpy()})
-
             # Evaluate
-            if nl:
-                self.metrics.update_stats(self._process_batch(predn, pbatch))
             if self.args.plots:
                 self.confusion_matrix.process_batch(predn, pbatch)
 
@@ -262,6 +268,8 @@ class DetectionValidator(BaseValidator):
         Returns:
             (torch.Tensor): Correct prediction matrix of shape (N, 10) for 10 IoU levels.
         """
+        if len(batch["bbox"]) == 0:
+            return {"tp": np.zeros((len(preds["bbox"]), self.niou), dtype=bool)}
         iou = box_iou(batch["bbox"], preds["bbox"])
         return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 

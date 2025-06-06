@@ -178,8 +178,6 @@ class SegmentationValidator(DetectionValidator):
             # Masks
             gt_masks = pbatch.pop("masks")
             # Predictions
-            if self.args.single_cls:
-                pred[:, 5] = 0
             predn, pred_masks = self._prepare_pred(pred, pbatch, proto)
             stat["conf"] = predn[:, 4]
             stat["pred_cls"] = predn[:, 5]

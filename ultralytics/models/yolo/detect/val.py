@@ -164,6 +164,8 @@ class DetectionValidator(BaseValidator):
         Returns:
             (torch.Tensor): Prepared predictions in native space.
         """
+        if self.args.single_cls:
+            pred[:, 5] = 0
         predn = pred.clone()
         ops.scale_boxes(
             pbatch["imgsz"], predn[:, :4], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
@@ -199,8 +201,6 @@ class DetectionValidator(BaseValidator):
                 continue
 
             # Predictions
-            if self.args.single_cls:
-                pred[:, 5] = 0
             predn = self._prepare_pred(pred, pbatch)
             stat["conf"] = predn[:, 4]
             stat["pred_cls"] = predn[:, 5]

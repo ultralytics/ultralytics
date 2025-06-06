@@ -527,8 +527,12 @@ class BaseTrainer:
                 total = torch.cuda.get_device_properties(self.device).total_memory
         return ((memory / total) if total > 0 else 0) if fraction else (memory / 2**30)
 
-    def _clear_memory(self):
+    def _clear_memory(self, threhold: float = None):
         """Clear accelerator memory by calling garbage collector and emptying cache."""
+        if threhold is not None:
+            assert 0 <= threhold <= 1, "Threshold must be between 0 and 1."
+            if self._get_memory(fraction=True) < threhold:
+                return
         gc.collect()
         if self.device.type == "mps":
             torch.mps.empty_cache()

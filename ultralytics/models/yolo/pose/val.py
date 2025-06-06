@@ -340,8 +340,8 @@ class PoseValidator(DetectionValidator):
             np.zeros((shape[0], shape[1]), dtype=np.uint8),
             path=None,
             names=self.names,
-            boxes=predn[:, :6],
-            keypoints=pred_kpts,
+            boxes=torch.cat([predn["bbox"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
+            keypoints=predn["kpts"],
         ).save_txt(file, save_conf=save_conf)
 
     def pred_to_json(self, predn: torch.Tensor, filename: str) -> None:
@@ -362,6 +362,7 @@ class PoseValidator(DetectionValidator):
             converts bounding boxes from xyxy to xywh format, and adjusts coordinates from center to top-left corner
             before saving to the JSON dictionary.
         """
+        # TODO: to be verified
         super().pred_to_json(predn, filename)  # save to self.jdict
         for i, p in enumerate(predn):
             self.jdict[i]["keypoints"] = p[6:]  # add keypoints to jdict

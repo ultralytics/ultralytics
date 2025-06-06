@@ -371,20 +371,9 @@ class PoseValidator(DetectionValidator):
             converts bounding boxes from xyxy to xywh format, and adjusts coordinates from center to top-left corner
             before saving to the JSON dictionary.
         """
-        stem = Path(filename).stem
-        image_id = int(stem) if stem.isnumeric() else stem
-        box = ops.xyxy2xywh(predn[:, :4])  # xywh
-        box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
-        for p, b in zip(predn.tolist(), box.tolist()):
-            self.jdict.append(
-                {
-                    "image_id": image_id,
-                    "category_id": self.class_map[int(p[5])],
-                    "bbox": [round(x, 3) for x in b],
-                    "keypoints": p[6:],
-                    "score": round(p[4], 5),
-                }
-            )
+        super().pred_to_json(predn, filename)  # save to self.jdict
+        for i, p in enumerate(predn):
+            self.jdict[i]["keypoints"] = p[6:]  # add keypoints to jdict
 
     def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
         """Evaluate object detection model using COCO JSON format."""

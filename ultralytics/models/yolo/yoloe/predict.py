@@ -18,23 +18,23 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
     Attributes:
         model (torch.nn.Module): The YOLO model for inference.
         device (torch.device): Device to run the model on (CPU or CUDA).
-        prompts (dict): Visual prompts containing class indices and bounding boxes or masks.
+        prompts (dict | torch.Tensor): Visual prompts containing class indices and bounding boxes or masks.
 
     Methods:
         setup_model: Initialize the YOLO model and set it to evaluation mode.
-        set_return_vpe: Set whether to return visual prompt embeddings.
         set_prompts: Set the visual prompts for the model.
         pre_transform: Preprocess images and prompts before inference.
         inference: Run inference with visual prompts.
+        get_vpe: Process source to get visual prompt embeddings.
     """
 
-    def setup_model(self, model, verbose=True):
+    def setup_model(self, model, verbose: bool = True):
         """
-        Sets up the model for prediction.
+        Set up the model for prediction.
 
         Args:
             model (torch.nn.Module): Model to load or use.
-            verbose (bool): If True, provides detailed logging.
+            verbose (bool, optional): If True, provides detailed logging.
         """
         super().setup_model(model, verbose=verbose)
         self.done_warmup = True
@@ -95,17 +95,17 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
 
     def _process_single_image(self, dst_shape, src_shape, category, bboxes=None, masks=None):
         """
-        Processes a single image by resizing bounding boxes or masks and generating visuals.
+        Process a single image by resizing bounding boxes or masks and generating visuals.
 
         Args:
             dst_shape (tuple): The target shape (height, width) of the image.
             src_shape (tuple): The original shape (height, width) of the image.
             category (str): The category of the image for visual prompts.
-            bboxes (list | np.ndarray, optional): A list of bounding boxes in the format [x1, y1, x2, y2]. Defaults to None.
-            masks (np.ndarray, optional): A list of masks corresponding to the image. Defaults to None.
+            bboxes (list | np.ndarray, optional): A list of bounding boxes in the format [x1, y1, x2, y2].
+            masks (np.ndarray, optional): A list of masks corresponding to the image.
 
         Returns:
-            visuals: The processed visuals for the image.
+            (torch.Tensor): The processed visuals for the image.
 
         Raises:
             ValueError: If neither `bboxes` nor `masks` are provided.
@@ -146,7 +146,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
 
     def get_vpe(self, source):
         """
-        Processes the source to get the visual prompt embeddings (VPE).
+        Process the source to get the visual prompt embeddings (VPE).
 
         Args:
             source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | List | Tuple): The source
@@ -164,6 +164,6 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
 
 
 class YOLOEVPSegPredictor(YOLOEVPDetectPredictor, SegmentationPredictor):
-    """Predictor for YOLOE VP segmentation."""
+    """Predictor for YOLO-EVP segmentation tasks combining detection and segmentation capabilities."""
 
     pass

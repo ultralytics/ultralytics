@@ -153,6 +153,11 @@ class SegmentationValidator(DetectionValidator):
                 ratio_pad=pbatch["ratio_pad"],
             )
             outputs["coco_masks"] = coco_masks
+        if self.args.plots and self.batch_i < 3:
+            plot_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
+            self.plot_masks.append(plot_masks[:50].cpu())  # Limit plotted items for speed
+            if plot_masks.shape[0] > 50:
+                LOGGER.warning("Limiting validation plots to first 50 items per image for speed...")
         return outputs
 
     def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:

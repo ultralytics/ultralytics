@@ -170,7 +170,7 @@ class DetectionValidator(BaseValidator):
         ops.scale_boxes(
             pbatch["imgsz"], predn[:, :4], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
         )  # native-space pred
-        return predn
+        return {"bbox": predn[:, :4], "conf": predn[:, 4], "cls": predn[:, 5]}
 
     def update_metrics(self, preds: List[torch.Tensor], batch: Dict[str, Any]) -> None:
         """
@@ -202,8 +202,8 @@ class DetectionValidator(BaseValidator):
 
             # Predictions
             predn = self._prepare_pred(pred, pbatch)
-            stat["conf"] = predn[:, 4]
-            stat["pred_cls"] = predn[:, 5]
+            stat["conf"] = predn["conf"]
+            stat["pred_cls"] = predn["cls"]
 
             # Evaluate
             if nl:
@@ -212,6 +212,7 @@ class DetectionValidator(BaseValidator):
                 self.confusion_matrix.process_batch(predn, pbatch)
             self.metrics.update_stats(stat)
 
+            # TODO: handle "predn" in dict format
             # Save
             if self.args.save_json:
                 self.pred_to_json(predn, batch["im_file"][si])
@@ -260,7 +261,7 @@ class DetectionValidator(BaseValidator):
                     pf % (self.names[c], self.nt_per_image[c], self.nt_per_class[c], *self.metrics.class_result(i))
                 )
 
-    def _process_batch(self, detections: torch.Tensor, batch: Dict[str, Any]) -> torch.Tensor:
+    def _process_batch(self, preds: torch.Tensor, batch: Dict[str, Any]) -> torch.Tensor:
         """
         Return correct prediction matrix.
 
@@ -272,8 +273,8 @@ class DetectionValidator(BaseValidator):
         Returns:
             (torch.Tensor): Correct prediction matrix of shape (N, 10) for 10 IoU levels.
         """
-        iou = box_iou(batch["bbox"], detections[:, :4])
-        return self.match_predictions(detections[:, 5], batch["cls"], iou)
+        iou = box_iou(batch["bbox"], preds["bbox"])
+        return self.match_predictions(preds["cls"], batch["cls"], iou)
 
     def build_dataset(self, img_path: str, mode: str = "val", batch: Optional[int] = None) -> torch.utils.data.Dataset:
         """

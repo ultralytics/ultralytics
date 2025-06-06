@@ -110,10 +110,12 @@ class ParkingPtsSelection:
         """Upload and display an image on the canvas, resizing it to fit within specified dimensions."""
         from PIL import Image, ImageTk  # Scoped import because ImageTk requires tkinter package
 
-        self.image = Image.open(self.filedialog.askopenfilename(filetypes=[("Image Files", "*.png *.jpg *.jpeg")]))
-        if not self.image:
+        file = self.filedialog.askopenfilename(filetypes=[("Image Files", "*.png *.jpg *.jpeg")])
+        if not file:
+            LOGGER.info("No image selected.")
             return
 
+        self.image = Image.open(file)
         self.imgw, self.imgh = self.image.size
         aspect_ratio = self.imgw / self.imgh
         canvas_width = (

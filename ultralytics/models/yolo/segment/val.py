@@ -141,7 +141,9 @@ class SegmentationValidator(DetectionValidator):
             pred_masks (torch.Tensor): Processed mask predictions.
         """
         predn = super()._prepare_pred(pred["detection"], pbatch)
-        pred_masks = self.process(pred["proto"], pred["detection"][:, 6:], predn["bbox"], shape=pbatch["imgsz"])
+        pred_masks = self.process(
+            pred["proto"], pred["detection"][:, 6:], pred["detection"][:, :4], shape=pbatch["imgsz"]
+        )
         outputs = {**predn, "masks": pred_masks}
         if self.args.save_json and len(pred_masks):
             coco_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)

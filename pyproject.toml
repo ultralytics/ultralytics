@@ -92,7 +92,7 @@ dev = [
     "mkdocs-macros-plugin>=1.0.5"  # duplicating content (i.e. export tables) in multiple places
 ]
 export = [
-    # ONNX export
+    # ONNX
     "onnx>=1.12.0,<1.18.0",
     "onnxslim>=0.1.56", 
     # CoreML
@@ -117,7 +117,7 @@ export = [
     "x2paddle",  # Paddle
     "MNN>=2.9.6",  # MNN
     "ncnn",  # NCNN
-    # "tensorrt>7.0.0,!=10.1.0",  # TensorRT
+    # "tensorrt>7.0.0,!=10.1.0",  # TensorRT, commented as it's gpu-specific
     # "rknn-toolkit2",  # RKNN, commented for now as it'd downgrade torch to 2.4.0
     # IMX
     "model-compression-toolkit>=2.3.0",

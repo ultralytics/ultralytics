@@ -1320,7 +1320,7 @@ class PoseMetrics(SegmentMetrics):
             on_plot (callable, optional): Function to call after plots are generated.
         """
         tp = np.concatenate(self.stats["tp"], axis=0)
-        tp_p = np.concatenate(self.stats["tp_m"], axis=0)
+        tp_p = np.concatenate(self.stats["tp_p"], axis=0)
         conf = np.concatenate(self.stats["conf"], axis=0)
         pred_cls = np.concatenate(self.stats["pred_cls"], axis=0)
         target_cls = np.concatenate(self.stats["target_cls"], axis=0)

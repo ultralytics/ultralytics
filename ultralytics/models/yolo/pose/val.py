@@ -165,71 +165,9 @@ class PoseValidator(DetectionValidator):
         """
         predn = super()._prepare_pred(pred, pbatch)
         nk = pbatch["kpts"].shape[1]
-        pred_kpts = predn[:, 6:].view(len(predn), nk, -1)
+        pred_kpts = pred[:, 6:].view(len(pred), nk, -1)
         ops.scale_coords(pbatch["imgsz"], pred_kpts, pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
         return {**predn, "kpts": pred_kpts}
-
-    def update_metrics(self, preds: List[torch.Tensor], batch: Dict[str, Any]) -> None:
-        """
-        Update metrics with new predictions and ground truth data.
-
-        This method processes each prediction, compares it with ground truth, and updates various statistics
-        for performance evaluation.
-
-        Args:
-            preds (List[torch.Tensor]): List of prediction tensors from the model.
-            batch (Dict[str, Any]): Batch data containing images and ground truth annotations.
-        """
-        for si, pred in enumerate(preds):
-            self.seen += 1
-            npr = len(pred)
-            stat = dict(
-                conf=torch.zeros(0, device=self.device),
-                pred_cls=torch.zeros(0, device=self.device),
-                tp=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device),
-                tp_p=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device),
-            )
-            pbatch = self._prepare_batch(si, batch)
-            cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
-            nl = len(cls)
-            stat["target_cls"] = cls
-            stat["target_img"] = cls.unique()
-            if npr == 0:
-                if nl:
-                    for k in self.stats.keys():
-                        self.stats[k].append(stat[k])
-                    if self.args.plots:
-                        self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
-                continue
-
-            # Predictions
-            if self.args.single_cls:
-                pred[:, 5] = 0
-            predn, pred_kpts = self._prepare_pred(pred, pbatch)
-            stat["conf"] = predn[:, 4]
-            stat["pred_cls"] = predn[:, 5]
-
-            # Evaluate
-            if nl:
-                stat["tp"] = self._process_batch(predn, bbox, cls)
-                stat["tp_p"] = self._process_batch(predn, bbox, cls, pred_kpts, pbatch["kpts"])
-            if self.args.plots:
-                self.confusion_matrix.process_batch(predn, bbox, cls)
-
-            for k in self.stats.keys():
-                self.stats[k].append(stat[k])
-
-            # Save
-            if self.args.save_json:
-                self.pred_to_json(predn, batch["im_file"][si])
-            if self.args.save_txt:
-                self.save_one_txt(
-                    predn,
-                    pred_kpts,
-                    self.args.save_conf,
-                    pbatch["ori_shape"],
-                    self.save_dir / "labels" / f"{Path(batch['im_file'][si]).stem}.txt",
-                )
 
     def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
         """
@@ -257,7 +195,7 @@ class PoseValidator(DetectionValidator):
             # `0.53` is from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384
             area = ops.xyxy2xywh(batch["bbox"])[:, 2:].prod(1) * 0.53
             iou = kpt_iou(batch["kpts"], preds["kpts"], sigma=self.sigma, area=area)
-            tp_p = self.match_predictions(preds["cls"], gt_cls, iou)
+            tp_p = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
         tp.update({"tp_p": tp_p})  # update tp with mask IoU
         return tp
 
@@ -314,7 +252,6 @@ class PoseValidator(DetectionValidator):
     def save_one_txt(
         self,
         predn: torch.Tensor,
-        pred_kpts: torch.Tensor,
         save_conf: bool,
         shape: Tuple[int, int],
         file: Path,

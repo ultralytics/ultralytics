@@ -205,7 +205,7 @@ The Core Ultra™ family includes various models tailored for different performa
 
 As part of Intel's ongoing innovation, the Core Ultra™ series sets a new standard for future-ready computing. With multiple models available and more on the horizon, this series underscores Intel's commitment to delivering cutting-edge solutions for the next generation of intelligent, AI-enhanced devices.
 
-Benchmarks below run on Intel® Core™ Ultra™ 7 258V at FP32 and INT8 precision.
+Benchmarks below run on Intel® Core™ Ultra™ 7 258V and Intel® Core™ Ultra™ 7 265K at FP32 and INT8 precision.
 
 #### Intel® Core™ Ultra™ 7 258V
 
@@ -377,6 +377,8 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V at FP32 and INT8 precisi
 ## Intel® Arc GPU
 
 Intel® Arc™ is Intel's line of discrete graphics cards designed for high-performance gaming, content creation, and AI workloads. The Arc series features advanced GPU architectures that support real-time ray tracing, AI-enhanced graphics, and high-resolution gaming. With a focus on performance and efficiency, Intel® Arc™ aims to compete with other leading GPU brands while providing unique features like hardware-accelerated AV1 encoding and support for the latest graphics APIs.
+
+Benchmarks below run on Intel Arc A770 and Intel Arc B580 at FP32 and INT8 precision.
 
 ### Intel Arc A770
 

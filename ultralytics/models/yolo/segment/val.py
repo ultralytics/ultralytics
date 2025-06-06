@@ -143,7 +143,7 @@ class SegmentationValidator(DetectionValidator):
         predn = super()._prepare_pred(pred["detection"], pbatch)
         pred_masks = self.process(pred["proto"], pred["detection"][:, 6:], predn["bbox"], shape=pbatch["imgsz"])
         outputs = {**predn, "masks": pred_masks}
-        if self.args.json and len(pred_masks):
+        if self.args.save_json and len(pred_masks):
             coco_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
             coco_masks = ops.scale_image(
                 pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),

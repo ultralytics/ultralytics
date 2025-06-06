@@ -973,11 +973,9 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.task = "detect"
         self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
-    # def update_stats(self, tp: np.ndarray, conf: np.ndarray, pred_cls: np.ndarray, target_cls: np.ndarray, target_img: np.ndarray):
-    #     self.stats["tp"].append(tp)
-    #     self.stats["conf"].append(conf)
-    #     self.stats["pred_cls"].append(pred_cls)
-    #     self.stats["target_cls"].append(target_cls)
+    def update_stats(self, stat):
+        for k in self.stats.keys():
+            self.stats[k].append(stat[k].cpu().numpy())
 
     def process(self, on_plot=None):
         """

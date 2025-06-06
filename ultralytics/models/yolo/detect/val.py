@@ -193,8 +193,7 @@ class DetectionValidator(BaseValidator):
             stat["target_img"] = cls.unique()
             if npr == 0:
                 if nl:
-                    for k in self.metrics.stats.keys():
-                        self.metrics.stats[k].append(stat[k].cpu().numpy())
+                    self.metrics.update_stats(stat)
                     if self.args.plots:
                         self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
                 continue
@@ -211,8 +210,7 @@ class DetectionValidator(BaseValidator):
                 stat["tp"] = self._process_batch(predn, bbox, cls)
             if self.args.plots:
                 self.confusion_matrix.process_batch(predn, bbox, cls)
-            for k in self.metrics.stats.keys():
-                self.metrics.stats[k].append(stat[k].cpu().numpy())
+            self.metrics.update_stats(stat)
 
             # Save
             if self.args.save_json:

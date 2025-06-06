@@ -182,35 +182,24 @@ class DetectionValidator(BaseValidator):
         """
         for si, pred in enumerate(preds):
             self.seen += 1
-            npr = len(pred)
-            stat = dict(
-                conf=torch.zeros(0, device=self.device),
-                pred_cls=torch.zeros(0, device=self.device),
-                tp=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device),
-            )
             pbatch = self._prepare_batch(si, batch)
-            cls = pbatch["cls"]
+            predn = self._prepare_pred(pred, pbatch)
+            cls = pbatch["cls"].cpu().numpy()
             nl = len(cls)
-            stat["target_cls"] = cls
-            stat["target_img"] = cls.unique()
-            if npr == 0:
+            self.metrics.update_stats({"target_cls": cls, "target_img": np.unique(cls)})
+            if len(predn["cls"]) == 0:
                 if nl:
-                    self.metrics.update_stats(stat)
                     if self.args.plots:
                         self.confusion_matrix.process_batch(detections=None, batch=pbatch)
                 continue
 
-            # Predictions
-            predn = self._prepare_pred(pred, pbatch)
-            stat["conf"] = predn["conf"]
-            stat["pred_cls"] = predn["cls"]
+            self.metrics.update_stats({"conf": predn["conf"].cpu().numpy(), "pred_cls": predn["cls"].cpu().numpy()})
 
             # Evaluate
             if nl:
-                stat["tp"] = self._process_batch(predn, pbatch)
+                self.metrics.update_stats(self._process_batch(predn, pbatch))
             if self.args.plots:
                 self.confusion_matrix.process_batch(predn, pbatch)
-            self.metrics.update_stats(stat)
 
             # TODO: handle "predn" in dict format
             # Save
@@ -274,7 +263,7 @@ class DetectionValidator(BaseValidator):
             (torch.Tensor): Correct prediction matrix of shape (N, 10) for 10 IoU levels.
         """
         iou = box_iou(batch["bbox"], preds["bbox"])
-        return self.match_predictions(preds["cls"], batch["cls"], iou)
+        return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 
     def build_dataset(self, img_path: str, mode: str = "val", batch: Optional[int] = None) -> torch.utils.data.Dataset:
         """

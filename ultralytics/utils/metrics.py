@@ -976,12 +976,14 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "detect"
         self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
+        self.stat_empty = dict(conf=np.zeros(0), pred_cls=np.zeros(0), tp=np.zeros((0, 10), dtype=bool))  # hardcoded to 10 for now
         # self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
         # self.niou = self.iouv.numel()
 
     def update_stats(self, stat):
-        for k in self.stats.keys():
-            self.stats[k].append(stat[k].cpu().numpy())
+        stat = {**self.stat_empty, **stat}
+        for k in stat.keys():
+            self.stats[k].append(stat[k])
 
     # def update_stats(self, batch, pred):
     #     npr = len(pred)

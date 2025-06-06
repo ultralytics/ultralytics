@@ -351,7 +351,7 @@ class ConfusionMatrix(DataExportMixin):
         for p, t in zip(preds.cpu().numpy(), targets.cpu().numpy()):
             self.matrix[p][t] += 1
 
-    def process_batch(self, detections, gt_bboxes, gt_cls):
+    def process_batch(self, detections, batch):
         """
         Update confusion matrix for object detection task.
 
@@ -361,7 +361,10 @@ class ConfusionMatrix(DataExportMixin):
                                       or with an additional element `angle` when it's obb.
             gt_bboxes (Array[M, 4]| Array[N, 5]): Ground truth bounding boxes with xyxy/xyxyr format.
             gt_cls (Array[M]): The class labels.
+            batch (Dict[str, Any]): Batch dictionary containing ground truth data with 'bbox' (Array[M, 4]| Array[N, 5]) and
+                'cls' (Array[M]) keys, where M is the number of ground truth objects.
         """
+        gt_cls, gt_bboxes = batch["cls"], batch["bbox"]
         if gt_cls.shape[0] == 0:  # Check if labels is empty
             if detections is not None:
                 detections = detections[detections[:, 4] > self.conf]
@@ -994,7 +997,6 @@ class DetMetrics(SimpleClass, DataExportMixin):
     #     stat["pred_cls"] = pred[:, 5]
     #     if nl:
     #         stat["tp"] = self._process_batch(pred, bbox, cls)
-
 
     def process(self, on_plot=None):
         """

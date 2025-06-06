@@ -187,7 +187,7 @@ class DetectionValidator(BaseValidator):
                 tp=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device),
             )
             pbatch = self._prepare_batch(si, batch)
-            cls, bbox = pbatch["cls"], pbatch["bbox"]
+            cls = pbatch["cls"]
             nl = len(cls)
             stat["target_cls"] = cls
             stat["target_img"] = cls.unique()
@@ -195,7 +195,7 @@ class DetectionValidator(BaseValidator):
                 if nl:
                     self.metrics.update_stats(stat)
                     if self.args.plots:
-                        self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
+                        self.confusion_matrix.process_batch(detections=None, batch=pbatch)
                 continue
 
             # Predictions
@@ -209,7 +209,7 @@ class DetectionValidator(BaseValidator):
             if nl:
                 stat["tp"] = self._process_batch(predn, pbatch)
             if self.args.plots:
-                self.confusion_matrix.process_batch(predn, bbox, cls)
+                self.confusion_matrix.process_batch(predn, pbatch)
             self.metrics.update_stats(stat)
 
             # Save

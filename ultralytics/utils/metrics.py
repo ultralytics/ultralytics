@@ -440,6 +440,7 @@ class ConfusionMatrix(DataExportMixin):
         import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
 
         array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1e-9) if normalize else 1)  # normalize columns
+        black_white_switch_threshold = 0.7 if normalize else 0.7 * array.max()
         array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
 
         fig, ax = plt.subplots(1, 1, figsize=(12, 9))
@@ -463,7 +464,6 @@ class ConfusionMatrix(DataExportMixin):
             im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation="none")
             ax.xaxis.set_label_position("bottom")
             if nc < 30:  # Add score for each cell of confusion matrix
-                black_white_switch_threshold = 0.7 if normalize else 0.7 * np.nanmax(array)
                 for i, row in enumerate(array[:nc]):
                     for j, val in enumerate(row[:nc]):
                         val = array[i, j]

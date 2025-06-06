@@ -167,7 +167,7 @@ The Intel® Core® series is a range of high-performance processors by Intel. Th
 Benchmarks below run on 12th Gen Intel® Core® i9-12900KS CPU at FP32 precision.
 
 <div align="center">
-<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-core-cpu.avif" alt="Core CPU benchmarks">
+<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-corei9.avif" alt="Core CPU benchmarks">
 </div>
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
@@ -230,7 +230,7 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V at FP32 and INT8 precisi
         | YOLO11x | OpenVINO | INT8      | ✅     | 55.9      | 0.6856              | 30.60                  |
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
+        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra7-258V-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
         </div>
 
     === "Intel® Meteor Lake CPU"
@@ -254,7 +254,7 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V at FP32 and INT8 precisi
         | YOLO11x | OpenVINO | INT8      | ✅     | 55.9      | 0.6890              | 346.82                 |
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
+        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra7-258V-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
         </div>
 
     === "Integrated Intel® AI Boost NPU"
@@ -278,7 +278,7 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V at FP32 and INT8 precisi
         | YOLO11x | OpenVINO | INT8      | ✅     | 55.9      | 0.6890              | 34.04                  |
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra-npu.avif" alt="Intel Core Ultra NPU benchmarks">
+        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra7-258V-npu.avif" alt="Intel Core Ultra NPU benchmarks">
         </div>
 
 #### Intel® Core™ Ultra™ 7 265K
@@ -306,7 +306,7 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V at FP32 and INT8 precisi
         | YOLO11x | OpenVINO | INT8      | ✅     | 55.9      | 0.6900              | 52.06                  |
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra-256k-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
+        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra7-265K-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
         </div>
 
     === "Intel® Arrow Lake CPU"
@@ -330,7 +330,7 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V at FP32 and INT8 precisi
         | YOLO11x | OpenVINO | INT8      | ✅     | 55.9      | 0.6897              | 113.04                 |
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra-256k-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
+        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra7-265K-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
         </div>
 
     === "Integrated Intel® AI Boost NPU"
@@ -354,7 +354,7 @@ Benchmarks below run on Intel® Core™ Ultra™ 7 258V at FP32 and INT8 precisi
         | YOLO11x | OpenVINO | INT8      | ✅     | 55.9      | 0.6417              | 49.76                  |
 
         <div align="center">
-        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra-256k-npu.avif" alt="Intel Core Ultra NPU benchmarks">
+        <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra7-265K-npu.avif" alt="Intel Core Ultra NPU benchmarks">
         </div>
 
 ## Intel® Arc GPU
@@ -372,17 +372,17 @@ Intel® Arc™ is Intel's line of discrete graphics cards designed for high-perf
 | YOLO11s | OpenVINO | FP32      | ✅     | 36.4      | 0.5798              | 9.41                   |
 | YOLO11s | OpenVINO | INT8      | ✅     | 9.8       | 0.5751              | 8.72                   |
 | YOLO11m | PyTorch  | FP32      | ✅     | 38.8      | 0.6258              | 100.65                 |
-| YOLO11m | OpenVINO | FP32      | ✅     | 77.1      | 0.6311              | 14.88                  |
-| YOLO11m | OpenVINO | INT8      | ✅     | 20.2      | 0.6126              | 11.97                  |
+| YOLO11m | OpenVINO | FP32      | ✅     | 77.1      | 0.6311              | 14.88                   |
+| YOLO11m | OpenVINO | INT8      | ✅     | 20.2      | 0.6126              | 11.97                   |
 | YOLO11l | PyTorch  | FP32      | ✅     | 49.0      | 0.6367              | 131.37                 |
-| YOLO11l | OpenVINO | FP32      | ✅     | 97.3      | 0.6364              | 19.17                  |
-| YOLO11l | OpenVINO | INT8      | ✅     | 25.7      | 0.6241              | 15.75                  |
+| YOLO11l | OpenVINO | FP32      | ✅     | 97.3      | 0.6364              | 19.17                   |
+| YOLO11l | OpenVINO | INT8      | ✅     | 25.7      | 0.6241              | 15.75                   |
 | YOLO11x | PyTorch  | FP32      | ✅     | 109.3     | 0.6990              | 212.45                 |
-| YOLO11x | OpenVINO | FP32      | ✅     | 217.8     | 0.6888              | 18.13                  |
-| YOLO11x | OpenVINO | INT8      | ✅     | 55.9      | 0.6930              | 18.91                  |
+| YOLO11x | OpenVINO | FP32      | ✅     | 217.8     | 0.6888              | 18.13                   |
+| YOLO11x | OpenVINO | INT8      | ✅     | 55.9      | 0.6930              | 18.91                   |
 
 <div align="center">
-<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra-256k-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
+<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-arc-a770-gpu.avif" alt="Intel Core Ultra CPU benchmarks">
 </div>
 
 ### Intel Arc B580
@@ -406,7 +406,7 @@ Intel® Arc™ is Intel's line of discrete graphics cards designed for high-perf
 | YOLO11x | OpenVINO | INT8      | ✅     | 55.9      | 0.6924              | 10.30                  |
 
 <div align="center">
-<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ultra-256k-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
+<img width="800" src="https://github.com/ultralytics/docs/releases/download/0/openvino-arc-b580-gpu.avif" alt="Intel Core Ultra CPU benchmarks">
 </div>
 
 ## Reproduce Our Results

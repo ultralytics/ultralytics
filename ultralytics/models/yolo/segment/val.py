@@ -347,6 +347,7 @@ class SegmentationValidator(DetectionValidator):
         Examples:
              >>> result = {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
         """
+        # TODO: fix this, this cocoeval results is incorrect
         super().pred_to_json(predn, filename)
         from pycocotools.mask import encode  # noqa
 

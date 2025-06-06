@@ -117,7 +117,7 @@ export = [
     "x2paddle",  # Paddle
     "MNN>=2.9.6",  # MNN
     "ncnn",  # NCNN
-    "tensorrt>7.0.0,!=10.1.0",  # TensorRT
+    # "tensorrt>7.0.0,!=10.1.0",  # TensorRT
     # "rknn-toolkit2",  # RKNN
     # IMX
     "model-compression-toolkit>=2.3.0",

@@ -353,7 +353,7 @@ class DetectionValidator(BaseValidator):
             np.zeros((shape[0], shape[1]), dtype=np.uint8),
             path=None,
             names=self.names,
-            boxes=predn[:, :6],
+            boxes=torch.cat([predn["bbox"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
         ).save_txt(file, save_conf=save_conf)
 
     def pred_to_json(self, predn: torch.Tensor, filename: str) -> None:

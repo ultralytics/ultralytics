@@ -456,8 +456,7 @@ class BaseTrainer:
 
                 # Validation
                 if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
-                    if self._get_memory(fraction=True) > 0.5:
-                        self._clear_memory()  # clear if memory utilization > 50%
+                    self._clear_memory(threhold=0.5)  # prevent VRAM spike
                     self.metrics, self.fitness = self.validate()
                 self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
                 self.stop |= self.stopper(epoch + 1, self.fitness) or final_epoch
@@ -480,8 +479,7 @@ class BaseTrainer:
                 self.scheduler.last_epoch = self.epoch  # do not move
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
             self.run_callbacks("on_fit_epoch_end")
-            if self._get_memory(fraction=True) > 0.5:
-                self._clear_memory()  # clear if memory utilization > 50%
+            self._clear_memory(0.5)  # clear if memory utilization > 50%
 
             # Early Stopping
             if RANK != -1:  # if DDP training
@@ -529,7 +527,7 @@ class BaseTrainer:
 
     def _clear_memory(self, threhold: float = None):
         """Clear accelerator memory by calling garbage collector and emptying cache."""
-        if threhold is not None:
+        if threhold:
             assert 0 <= threhold <= 1, "Threshold must be between 0 and 1."
             if self._get_memory(fraction=True) < threhold:
                 return

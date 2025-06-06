@@ -118,7 +118,6 @@ class PoseValidator(DetectionValidator):
         is_pose = self.kpt_shape == [17, 3]
         nkpt = self.kpt_shape[0]
         self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
-        self.stats = dict(tp_p=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
     def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -168,7 +167,7 @@ class PoseValidator(DetectionValidator):
         nk = pbatch["kpts"].shape[1]
         pred_kpts = predn[:, 6:].view(len(predn), nk, -1)
         ops.scale_coords(pbatch["imgsz"], pred_kpts, pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
-        return predn, pred_kpts
+        return {**predn, "kpts": pred_kpts}
 
     def update_metrics(self, preds: List[torch.Tensor], batch: Dict[str, Any]) -> None:
         """
@@ -232,26 +231,15 @@ class PoseValidator(DetectionValidator):
                     self.save_dir / "labels" / f"{Path(batch['im_file'][si]).stem}.txt",
                 )
 
-    def _process_batch(
-        self,
-        detections: torch.Tensor,
-        gt_bboxes: torch.Tensor,
-        gt_cls: torch.Tensor,
-        pred_kpts: Optional[torch.Tensor] = None,
-        gt_kpts: Optional[torch.Tensor] = None,
-    ) -> torch.Tensor:
+    def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
         """
         Return correct prediction matrix by computing Intersection over Union (IoU) between detections and ground truth.
 
         Args:
-            detections (torch.Tensor): Tensor with shape (N, 6) representing detection boxes and scores, where each
+            preds (torch.Tensor): Tensor with shape (N, 6) representing detection boxes and scores, where each
                 detection is of the format (x1, y1, x2, y2, conf, class).
-            gt_bboxes (torch.Tensor): Tensor with shape (M, 4) representing ground truth bounding boxes, where each
+            batch (torch.Tensor): Tensor with shape (M, 4) representing ground truth bounding boxes, where each
                 box is of the format (x1, y1, x2, y2).
-            gt_cls (torch.Tensor): Tensor with shape (M,) representing ground truth class indices.
-            pred_kpts (torch.Tensor, optional): Tensor with shape (N, 51) representing predicted keypoints, where
-                51 corresponds to 17 keypoints each having 3 values.
-            gt_kpts (torch.Tensor, optional): Tensor with shape (N, 51) representing ground truth keypoints.
 
         Returns:
             (torch.Tensor): A tensor with shape (N, 10) representing the correct prediction matrix for 10 IoU levels,
@@ -261,14 +249,17 @@ class PoseValidator(DetectionValidator):
             `0.53` scale factor used in area computation is referenced from
             https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384.
         """
-        if pred_kpts is not None and gt_kpts is not None:
+        tp = super()._process_batch(preds, batch)
+        gt_cls = batch["cls"]
+        if len(gt_cls) == 0:
+            tp_p = np.zeros((len(preds["kpts"]), self.niou), dtype=bool)
+        else:
             # `0.53` is from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384
-            area = ops.xyxy2xywh(gt_bboxes)[:, 2:].prod(1) * 0.53
-            iou = kpt_iou(gt_kpts, pred_kpts, sigma=self.sigma, area=area)
-        else:  # boxes
-            iou = box_iou(gt_bboxes, detections[:, :4])
-
-        return self.match_predictions(detections[:, 5], gt_cls, iou)
+            area = ops.xyxy2xywh(batch["bbox"])[:, 2:].prod(1) * 0.53
+            iou = kpt_iou(batch["kpts"], preds["kpts"], sigma=self.sigma, area=area)
+            tp_p = self.match_predictions(preds["cls"], gt_cls, iou)
+        tp.update({"tp_p": tp_p})  # update tp with mask IoU
+        return tp
 
     def plot_val_samples(self, batch: Dict[str, Any], ni: int) -> None:
         """

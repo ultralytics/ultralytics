@@ -142,9 +142,6 @@ extra = [
     "pycocotools>=2.0.7", # COCO mAP
 ]
 
-[tool.uv]
-override-dependencies = ["protobuf>=5"]
-
 [project.urls]
 "Homepage" = "https://ultralytics.com"
 "Source" = "https://github.com/ultralytics/ultralytics"
@@ -210,3 +207,6 @@ in-place = true
 [tool.codespell]
 ignore-words-list = "crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall"
 skip = '*.pt,*.pth,*.torchscript,*.onnx,*.tflite,*.pb,*.bin,*.param,*.mlmodel,*.engine,*.npy,*.data*,*.csv,*pnnx*,*venv*,*translat*,__pycache__*,*.ico,*.jpg,*.png,*.mp4,*.mov,/runs,/.git,./docs/??/*.md,./docs/mkdocs_??.yml'
+
+[tool.uv]
+override-dependencies = ["protobuf>=5"]  # always allow protobuf 5+ even there's conflicts between dependencies

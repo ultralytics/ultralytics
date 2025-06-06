@@ -529,7 +529,7 @@ class BaseTrainer:
         """Clear accelerator memory by calling garbage collector and emptying cache."""
         if threhold:
             assert 0 <= threhold <= 1, "Threshold must be between 0 and 1."
-            if self._get_memory(fraction=True) < threhold:
+            if self._get_memory(fraction=True) <= threhold:
                 return
         gc.collect()
         if self.device.type == "mps":

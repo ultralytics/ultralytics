@@ -107,9 +107,9 @@ class SegmentationValidator(DetectionValidator):
             p (List[torch.Tensor]): Processed detection predictions.
             proto (torch.Tensor): Prototype masks for segmentation.
         """
-        p = super().postprocess(preds[0])
+        pred = super().postprocess(preds[0])
         proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
-        return p, proto
+        return [{"detection": p, "proto": mask} for p, mask in zip(pred, proto)]
 
     def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
         """

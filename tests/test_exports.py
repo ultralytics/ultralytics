@@ -1,9 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import io
 import shutil
 import uuid
-from contextlib import redirect_stderr, redirect_stdout
 from itertools import product
 from pathlib import Path
 

@@ -118,12 +118,12 @@ export = [
     "MNN>=2.9.6",  # MNN
     "ncnn",  # NCNN
     # "tensorrt>7.0.0,!=10.1.0",  # TensorRT
-    # "rknn-toolkit2",  # RKNN
+    # "rknn-toolkit2",  # RKNN, commented for now as it'd downgrade torch to 2.4.0
     # IMX
-    # "model-compression-toolkit>=2.3.0",
-    # "sony-custom-layers>=0.3.0",
-    # "edge-mdt-tpc>=1.1.0",
-    # "imx500-converter[pt]>=3.16.1",
+    "model-compression-toolkit>=2.3.0",
+    "sony-custom-layers>=0.3.0",
+    "edge-mdt-tpc>=1.1.0",
+    "imx500-converter[pt]>=3.16.1",
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching
@@ -141,6 +141,9 @@ extra = [
     "albumentations>=1.4.6", # training augmentations
     "pycocotools>=2.0.7", # COCO mAP
 ]
+
+[tool.uv]
+override-dependencies = ["protobuf>=5"]
 
 [project.urls]
 "Homepage" = "https://ultralytics.com"

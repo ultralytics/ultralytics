@@ -347,6 +347,7 @@ class SegmentationValidator(DetectionValidator):
         Examples:
              >>> result = {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
         """
+        super().pred_to_json(predn, filename)
         from pycocotools.mask import encode  # noqa
 
         def single_encode(x):
@@ -355,23 +356,11 @@ class SegmentationValidator(DetectionValidator):
             rle["counts"] = rle["counts"].decode("utf-8")
             return rle
 
-        stem = Path(filename).stem
-        image_id = int(stem) if stem.isnumeric() else stem
-        box = ops.xyxy2xywh(predn[:, :4])  # xywh
-        box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
         pred_masks = np.transpose(pred_masks, (2, 0, 1))
         with ThreadPool(NUM_THREADS) as pool:
             rles = pool.map(single_encode, pred_masks)
-        for i, (p, b) in enumerate(zip(predn.tolist(), box.tolist())):
-            self.jdict.append(
-                {
-                    "image_id": image_id,
-                    "category_id": self.class_map[int(p[5])],
-                    "bbox": [round(x, 3) for x in b],
-                    "score": round(p[4], 5),
-                    "segmentation": rles[i],
-                }
-            )
+        for i, rls in enumerate(rles):
+            self.jdict[i]["segmentation"] = rls  # add RLE to jdict
 
     def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
         """Return COCO-style instance segmentation evaluation metrics."""

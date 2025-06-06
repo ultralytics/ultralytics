@@ -142,7 +142,16 @@ class SegmentationValidator(DetectionValidator):
         """
         predn = super()._prepare_pred(pred["detection"], pbatch)
         pred_masks = self.process(pred["proto"], pred["detection"][:, 6:], predn["bbox"], shape=pbatch["imgsz"])
-        return {**predn, "masks": pred_masks}
+        outputs = {**predn, "masks": pred_masks}
+        if self.args.json and len(pred_masks):
+            coco_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
+            coco_masks = ops.scale_image(
+                pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
+                pbatch["ori_shape"],
+                ratio_pad=pbatch["ratio_pad"],
+            )
+            outputs["coco_masks"] = coco_masks
+        return outputs
 
     def update_metrics(self, preds: Tuple[List[torch.Tensor], torch.Tensor], batch: Dict[str, Any]) -> None:
         """
@@ -323,7 +332,7 @@ class SegmentationValidator(DetectionValidator):
             masks=pred_masks,
         ).save_txt(file, save_conf=save_conf)
 
-    def pred_to_json(self, predn: torch.Tensor, filename: str, pred_masks: torch.Tensor) -> None:
+    def pred_to_json(self, predn: torch.Tensor, filename: str) -> None:
         """
         Save one JSON result for COCO evaluation.
 
@@ -335,8 +344,6 @@ class SegmentationValidator(DetectionValidator):
         Examples:
              >>> result = {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
         """
-        # TODO: fix this, this cocoeval results is incorrect
-        super().pred_to_json(predn, filename)
         from pycocotools.mask import encode  # noqa
 
         def single_encode(x):
@@ -345,11 +352,23 @@ class SegmentationValidator(DetectionValidator):
             rle["counts"] = rle["counts"].decode("utf-8")
             return rle
 
-        pred_masks = np.transpose(pred_masks, (2, 0, 1))
+        stem = Path(filename).stem
+        image_id = int(stem) if stem.isnumeric() else stem
+        box = ops.xyxy2xywh(predn["bbox"])  # xywh
+        box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
+        pred_masks = np.transpose(predn["coco_masks"], (2, 0, 1))
         with ThreadPool(NUM_THREADS) as pool:
             rles = pool.map(single_encode, pred_masks)
-        for i, rls in enumerate(rles):
-            self.jdict[i]["segmentation"] = rls  # add RLE to jdict
+        for i, (b, s, c) in enumerate(zip(box.tolist(), predn["conf"].tolist(), predn["cls"].tolist())):
+            self.jdict.append(
+                {
+                    "image_id": image_id,
+                    "category_id": self.class_map[int(c)],
+                    "bbox": [round(x, 3) for x in b],
+                    "score": round(s, 5),
+                    "segmentation": rles[i],
+                }
+            )
 
     def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
         """Return COCO-style instance segmentation evaluation metrics."""

@@ -231,6 +231,7 @@ class DetectionValidator(BaseValidator):
         Returns:
             (Dict[str, Any]): Dictionary containing metrics results.
         """
+        # TODO: clean this up
         stats = {k: np.concatenate(v, 0) for k, v in self.metrics.stats.items()}  # to numpy
         self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=self.nc)
         self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=self.nc)

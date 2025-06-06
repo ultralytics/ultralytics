@@ -1306,27 +1306,24 @@ class PoseMetrics(SegmentMetrics):
         self.pose = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "pose"
+        self.stats = dict(tp_p=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
-    def process(
-        self,
-        tp: np.ndarray,
-        tp_p: np.ndarray,
-        conf: np.ndarray,
-        pred_cls: np.ndarray,
-        target_cls: np.ndarray,
-        on_plot=None,
-    ):
+    def update_stats(self, stat):
+        for k in self.stats.keys():
+            self.stats[k].append(stat[k])
+
+    def process(self, on_plot=None):
         """
         Process the detection and pose metrics over the given set of predictions.
 
         Args:
-            tp (np.ndarray): True positive array for boxes.
-            tp_p (np.ndarray): True positive array for keypoints.
-            conf (np.ndarray): Confidence array.
-            pred_cls (np.ndarray): Predicted class indices array.
-            target_cls (np.ndarray): Target class indices array.
             on_plot (callable, optional): Function to call after plots are generated.
         """
+        tp = np.concatenate(self.stats["tp"], axis=0)
+        tp_p = np.concatenate(self.stats["tp_m"], axis=0)
+        conf = np.concatenate(self.stats["conf"], axis=0)
+        pred_cls = np.concatenate(self.stats["pred_cls"], axis=0)
+        target_cls = np.concatenate(self.stats["target_cls"], axis=0)
         results_pose = ap_per_class(
             tp_p,
             conf,

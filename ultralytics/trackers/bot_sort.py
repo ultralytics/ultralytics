@@ -260,11 +260,13 @@ class ReID:
         from ultralytics import YOLO
 
         self.model = YOLO(model)
-        self.model(embed=[len(self.model.model.model) - 2 if ".pt" in model else -1], verbose=False)  # initialize
+        self.model(embed=[len(self.model.model.model) - 2 if ".pt" in model else -1], verbose=False, save=False)  # init
 
     def __call__(self, img: np.ndarray, dets: np.ndarray) -> List[np.ndarray]:
         """Extract embeddings for detected objects."""
-        feats = self.model([save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))])
+        feats = self.model.predictor(
+            [save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))]
+        )
         if len(feats) != dets.shape[0] and feats[0].shape[0] == dets.shape[0]:
             feats = feats[0]  # batched prediction with non-PyTorch backend
         return [f.cpu().numpy() for f in feats]

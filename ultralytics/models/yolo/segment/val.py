@@ -241,20 +241,24 @@ class SegmentationValidator(DetectionValidator):
             >>> gt_cls = torch.tensor([1, 0])
             >>> correct_preds = validator._process_batch(detections, gt_bboxes, gt_cls)
         """
-        gt_cls, gt_bboxes, gt_masks = batch["cls"], batch["bbox"], batch["masks"]
+        tp = super()._process_batch(preds, batch)
+        gt_cls, gt_masks = batch["cls"], batch["masks"]
         pred_masks = preds["masks"]
-        if self.args.overlap_mask:
-            nl = len(gt_cls)
-            index = torch.arange(nl, device=gt_masks.device).view(nl, 1, 1) + 1
-            gt_masks = gt_masks.repeat(nl, 1, 1)  # shape(1,640,640) -> (n,640,640)
-            gt_masks = torch.where(gt_masks == index, 1.0, 0.0)
-        if gt_masks.shape[1:] != pred_masks.shape[1:]:
-            gt_masks = F.interpolate(gt_masks[None], pred_masks.shape[1:], mode="bilinear", align_corners=False)[0]
-            gt_masks = gt_masks.gt_(0.5)
-        iou_m = mask_iou(gt_masks.view(gt_masks.shape[0], -1), pred_masks.view(pred_masks.shape[0], -1))
-        iou_b = box_iou(gt_bboxes, preds["bbox"])
-
-        return self.match_predictions(preds["cls"], gt_cls, iou_b), self.match_predictions(preds["cls"], gt_cls, iou_m)
+        if len(gt_cls) == 0:
+            tp_m = np.zeros((len(preds["masks"]), self.niou), dtype=bool)
+        else:
+            if self.args.overlap_mask:
+                nl = len(gt_cls)
+                index = torch.arange(nl, device=gt_masks.device).view(nl, 1, 1) + 1
+                gt_masks = gt_masks.repeat(nl, 1, 1)  # shape(1,640,640) -> (n,640,640)
+                gt_masks = torch.where(gt_masks == index, 1.0, 0.0)
+            if gt_masks.shape[1:] != pred_masks.shape[1:]:
+                gt_masks = F.interpolate(gt_masks[None], pred_masks.shape[1:], mode="bilinear", align_corners=False)[0]
+                gt_masks = gt_masks.gt_(0.5)
+            iou = mask_iou(gt_masks.view(gt_masks.shape[0], -1), pred_masks.view(pred_masks.shape[0], -1))
+            tp_m = self.match_predictions(preds["cls"], gt_cls, iou)
+        tp.update({"tp_m": tp_m})  # update tp with mask IoU
+        return tp
 
     def plot_val_samples(self, batch: Dict[str, Any], ni: int) -> None:
         """

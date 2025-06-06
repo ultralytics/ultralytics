@@ -140,10 +140,9 @@ class SegmentationValidator(DetectionValidator):
             predn (torch.Tensor): Processed bounding box predictions.
             pred_masks (torch.Tensor): Processed mask predictions.
         """
-        detection = pred["detection"]
-        predn = super()._prepare_pred(detection, pbatch)
-        pred_masks = self.process(pred["proto"], detection[:, 6:], detection[:, :4], shape=pbatch["imgsz"])
-        return {"detection": predn, "masks": pred_masks}
+        predn = super()._prepare_pred(pred["detection"], pbatch)
+        pred_masks = self.process(pred["proto"], pred["detection"][:, 6:], predn["bbox"], shape=pbatch["imgsz"])
+        return {**predn, "masks": pred_masks}
 
     def update_metrics(self, preds: Tuple[List[torch.Tensor], torch.Tensor], batch: Dict[str, Any]) -> None:
         """
@@ -176,16 +175,15 @@ class SegmentationValidator(DetectionValidator):
 
             # Predictions
             predn = self._prepare_pred(pred, pbatch)
-            stat["conf"] = predn["detection"][:, 4]
-            stat["pred_cls"] = predn["detection"][:, 5]
+            stat["conf"] = predn["conf"]
+            stat["pred_cls"] = predn["cls"]
 
             # Evaluate
             if nl:
                 stat["tp"], stat["tp_m"] = self._process_batch(predn, pbatch)
             if self.args.plots:
-                self.confusion_matrix.process_batch(predn["detection"], pbatch)
+                self.confusion_matrix.process_batch(predn, pbatch)
             self.metrics.update_stats(stat)
-
 
             pred_masks = torch.as_tensor(predn["masks"], dtype=torch.uint8)
             if self.args.plots and self.batch_i < 3:
@@ -253,11 +251,9 @@ class SegmentationValidator(DetectionValidator):
             gt_masks = F.interpolate(gt_masks[None], pred_masks.shape[1:], mode="bilinear", align_corners=False)[0]
             gt_masks = gt_masks.gt_(0.5)
         iou_m = mask_iou(gt_masks.view(gt_masks.shape[0], -1), pred_masks.view(pred_masks.shape[0], -1))
-        iou_b = box_iou(gt_bboxes, preds["detection"][:, :4])
+        iou_b = box_iou(gt_bboxes, preds["bbox"])
 
-        return self.match_predictions(preds["detection"][:, 5], gt_cls, iou_b), self.match_predictions(
-            preds["detection"][:, 5], gt_cls, iou_m
-        )
+        return self.match_predictions(preds["cls"], gt_cls, iou_b), self.match_predictions(preds["cls"], gt_cls, iou_m)
 
     def plot_val_samples(self, batch: Dict[str, Any], ni: int) -> None:
         """

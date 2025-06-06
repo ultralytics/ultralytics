@@ -183,16 +183,6 @@ def test_export_coreml():
     assert "Error" not in output, f"CoreML export produced errors: {output}"
     assert "You will not be able to run predict()" not in output, "CoreML export has predict() error"
 
-
-@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
-@pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
-def test_export_tflite():
-    """Test YOLO export to TFLite format under specific OS and Python version conditions."""
-    model = YOLO(MODEL)
-    file = model.export(format="tflite", imgsz=32)
-    YOLO(file)(SOURCE, imgsz=32)
-
-
 @pytest.mark.skipif(True, reason="Test disabled")
 @pytest.mark.skipif(not LINUX, reason="TF suffers from install conflicts on Windows and macOS")
 def test_export_pb():

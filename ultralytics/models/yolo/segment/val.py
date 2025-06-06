@@ -192,8 +192,8 @@ class SegmentationValidator(DetectionValidator):
         tp = super()._process_batch(preds, batch)
         gt_cls, gt_masks = batch["cls"], batch["masks"]
         pred_masks = preds["masks"]
-        if len(gt_cls) == 0:
-            tp_m = np.zeros((len(preds["masks"]), self.niou), dtype=bool)
+        if len(gt_cls) == 0 or len(preds["cls"]) == 0:
+            tp_m = np.zeros((len(preds["cls"]), self.niou), dtype=bool)
         else:
             if self.args.overlap_mask:
                 nl = len(gt_cls)

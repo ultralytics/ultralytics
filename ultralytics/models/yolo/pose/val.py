@@ -164,10 +164,12 @@ class PoseValidator(DetectionValidator):
             pred_kpts (torch.Tensor): Predicted keypoints scaled to original image dimensions.
         """
         predn = super()._prepare_pred(pred, pbatch)
-        nk = pbatch["kpts"].shape[1]
-        pred_kpts = pred[:, 6:].view(len(pred), nk, -1)
-        ops.scale_coords(pbatch["imgsz"], pred_kpts, pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
-        return {**predn, "kpts": pred_kpts}
+        if len(pred):
+            nk = pbatch["kpts"].shape[1]
+            pred_kpts = pred[:, 6:].view(len(pred), nk, -1)
+            ops.scale_coords(pbatch["imgsz"], pred_kpts, pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
+            predn.update({"kpts": pred_kpts})
+        return predn
 
     def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
         """
@@ -189,8 +191,8 @@ class PoseValidator(DetectionValidator):
         """
         tp = super()._process_batch(preds, batch)
         gt_cls = batch["cls"]
-        if len(gt_cls) == 0:
-            tp_p = np.zeros((len(preds["kpts"]), self.niou), dtype=bool)
+        if len(gt_cls) == 0 or len(preds["cls"]) == 0:
+            tp_p = np.zeros((len(preds["cls"]), self.niou), dtype=bool)
         else:
             # `0.53` is from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384
             area = ops.xyxy2xywh(batch["bbox"])[:, 2:].prod(1) * 0.53
@@ -301,8 +303,8 @@ class PoseValidator(DetectionValidator):
         """
         # TODO: to be verified
         super().pred_to_json(predn, filename)  # save to self.jdict
-        for i, p in enumerate(predn):
-            self.jdict[i]["keypoints"] = p[6:]  # add keypoints to jdict
+        for i, k in enumerate(predn["kpts"].tolist()):
+            self.jdict[i]["keypoints"] = k  # add keypoints to jdict
 
     def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
         """Evaluate object detection model using COCO JSON format."""
@@ -310,25 +312,25 @@ class PoseValidator(DetectionValidator):
             anno_json = self.data["path"] / "annotations/person_keypoints_val2017.json"  # annotations
             pred_json = self.save_dir / "predictions.json"  # predictions
             LOGGER.info(f"\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...")
-            try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
-                check_requirements("pycocotools>=2.0.6")
-                from pycocotools.coco import COCO  # noqa
-                from pycocotools.cocoeval import COCOeval  # noqa
+            # try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
+            check_requirements("pycocotools>=2.0.6")
+            from pycocotools.coco import COCO  # noqa
+            from pycocotools.cocoeval import COCOeval  # noqa
 
-                for x in anno_json, pred_json:
-                    assert x.is_file(), f"{x} file not found"
-                anno = COCO(str(anno_json))  # init annotations api
-                pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
-                for i, eval in enumerate([COCOeval(anno, pred, "bbox"), COCOeval(anno, pred, "keypoints")]):
-                    if self.is_coco:
-                        eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
-                    eval.evaluate()
-                    eval.accumulate()
-                    eval.summarize()
-                    idx = i * 4 + 2
-                    stats[self.metrics.keys[idx + 1]], stats[self.metrics.keys[idx]] = eval.stats[
-                        :2
-                    ]  # update mAP50-95 and mAP50
-            except Exception as e:
-                LOGGER.warning(f"pycocotools unable to run: {e}")
+            for x in anno_json, pred_json:
+                assert x.is_file(), f"{x} file not found"
+            anno = COCO(str(anno_json))  # init annotations api
+            pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
+            for i, eval in enumerate([COCOeval(anno, pred, "bbox"), COCOeval(anno, pred, "keypoints")]):
+                if self.is_coco:
+                    eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
+                eval.evaluate()
+                eval.accumulate()
+                eval.summarize()
+                idx = i * 4 + 2
+                stats[self.metrics.keys[idx + 1]], stats[self.metrics.keys[idx]] = eval.stats[
+                    :2
+                ]  # update mAP50-95 and mAP50
+            # except Exception as e:
+            #     LOGGER.warning(f"pycocotools unable to run: {e}")
         return stats

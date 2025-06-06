@@ -1132,16 +1132,13 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
         self.seg = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "segment"
+        self.stats = dict(tp_m=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
-    def process(
-        self,
-        tp: np.ndarray,
-        tp_m: np.ndarray,
-        conf: np.ndarray,
-        pred_cls: np.ndarray,
-        target_cls: np.ndarray,
-        on_plot=None,
-    ):
+    def update_stats(self, stat):
+        for k in self.stats.keys():
+            self.stats[k].append(stat[k].cpu().numpy())
+
+    def process(self, on_plot=None):
         """
         Process the detection and segmentation metrics over the given set of predictions.
 
@@ -1153,6 +1150,11 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
             target_cls (np.ndarray): Target class indices array.
             on_plot (callable, optional): Function to call after plots are generated.
         """
+        tp = np.concatenate(self.stats["tp"], axis=0)
+        tp_m = np.concatenate(self.stats["tp_m"], axis=0)
+        conf = np.concatenate(self.stats["conf"], axis=0)
+        pred_cls = np.concatenate(self.stats["pred_cls"], axis=0)
+        target_cls = np.concatenate(self.stats["target_cls"], axis=0)
         results_mask = ap_per_class(
             tp_m,
             conf,

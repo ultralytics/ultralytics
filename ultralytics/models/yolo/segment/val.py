@@ -79,7 +79,6 @@ class SegmentationValidator(DetectionValidator):
             check_requirements("pycocotools>=2.0.6")
         # More accurate vs faster
         self.process = ops.process_mask_native if self.args.save_json or self.args.save_txt else ops.process_mask
-        self.stats = dict(tp_m=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
 
     def get_desc(self) -> str:
         """Return a formatted description of evaluation metrics."""
@@ -165,16 +164,15 @@ class SegmentationValidator(DetectionValidator):
                 tp_m=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device),
             )
             pbatch = self._prepare_batch(si, batch)
-            cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
+            cls, bbox = pbatch["cls"], pbatch["bbox"]
             nl = len(cls)
             stat["target_cls"] = cls
             stat["target_img"] = cls.unique()
             if npr == 0:
                 if nl:
-                    for k in self.stats.keys():
-                        self.stats[k].append(stat[k])
+                    self.metrics.update_stats(stat)
                     if self.args.plots:
-                        self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
+                        self.confusion_matrix.process_batch(detections=None, batch=pbatch)
                 continue
 
             # Masks
@@ -193,10 +191,9 @@ class SegmentationValidator(DetectionValidator):
                     predn, bbox, cls, pred_masks, gt_masks, self.args.overlap_mask, masks=True
                 )
             if self.args.plots:
-                self.confusion_matrix.process_batch(predn, bbox, cls)
+                self.confusion_matrix.process_batch(predn, pbatch)
 
-            for k in self.stats.keys():
-                self.stats[k].append(stat[k])
+            self.metrics.update_stats(stat)
 
             pred_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
             if self.args.plots and self.batch_i < 3:

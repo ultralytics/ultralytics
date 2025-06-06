@@ -185,6 +185,7 @@ class SegmentationValidator(DetectionValidator):
                 self.confusion_matrix.process_batch(predn, pbatch)
             self.metrics.update_stats(stat)
 
+            # TODO
             pred_masks = torch.as_tensor(predn["masks"], dtype=torch.uint8)
             if self.args.plots and self.batch_i < 3:
                 self.plot_masks.append(pred_masks[:50].cpu())  # Limit plotted items for speed

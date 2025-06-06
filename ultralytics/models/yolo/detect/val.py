@@ -260,22 +260,20 @@ class DetectionValidator(BaseValidator):
                     pf % (self.names[c], self.nt_per_image[c], self.nt_per_class[c], *self.metrics.class_result(i))
                 )
 
-    def _process_batch(self, detections: torch.Tensor, gt_bboxes: torch.Tensor, gt_cls: torch.Tensor) -> torch.Tensor:
+    def _process_batch(self, detections: torch.Tensor, batch: Dict[str, Any]) -> torch.Tensor:
         """
         Return correct prediction matrix.
 
         Args:
             detections (torch.Tensor): Tensor of shape (N, 6) representing detections where each detection is
                 (x1, y1, x2, y2, conf, class).
-            gt_bboxes (torch.Tensor): Tensor of shape (M, 4) representing ground-truth bounding box coordinates. Each
-                bounding box is of the format: (x1, y1, x2, y2).
-            gt_cls (torch.Tensor): Tensor of shape (M,) representing target class indices.
+            batch (Dict[str, Any]): Batch dictionary containing ground truth data with 'bbox' and 'cls' keys.
 
         Returns:
             (torch.Tensor): Correct prediction matrix of shape (N, 10) for 10 IoU levels.
         """
-        iou = box_iou(gt_bboxes, detections[:, :4])
-        return self.match_predictions(detections[:, 5], gt_cls, iou)
+        iou = box_iou(batch["bbox"], detections[:, :4])
+        return self.match_predictions(detections[:, 5], batch["cls"], iou)
 
     def build_dataset(self, img_path: str, mode: str = "val", batch: Optional[int] = None) -> torch.utils.data.Dataset:
         """

@@ -100,8 +100,8 @@ export = [
     "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.13'", # CoreML k-means quantization
     # OpenVINO
     "openvino>=2024.0.0",  # OpenVINO export
-    # "packaging>=23.2",  # int8 export
-    # "nncf>=2.14.0",
+    "packaging>=23.2",  # int8 export
+    "nncf>=2.14.0; python_version >= '3.9'",
     # TensorFlow SavedModel
     "tensorflow>=2.0.0", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
     "tf_keras",  # required by 'onnx2tf' package

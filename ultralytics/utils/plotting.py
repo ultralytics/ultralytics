@@ -697,7 +697,6 @@ def plot_images(
         batch_idx: Batch indices for each detection. Shape: (num_detections,).
         cls: Class labels for each detection. Shape: (num_detections,).
         bboxes: Bounding boxes for each detection. Shape: (num_detections, 4) or (num_detections, 5) for rotated boxes.
-        confs: Confidence scores for each detection. Shape: (num_detections,).
         masks: Instance segmentation masks. Shape: (num_detections, height, width) or (1, height, width).
         kpts: Keypoints for each detection. Shape: (num_detections, 51).
         paths: List of file paths for each image in the batch.
@@ -716,7 +715,7 @@ def plot_images(
         This function supports both tensor and numpy array inputs. It will automatically
         convert tensor inputs to numpy arrays for processing.
     """
-    for k in {"cls", "bboxes", "confs", "masks", "kpts", "batch_idx", "images"}:
+    for k in {"cls", "bboxes", "conf", "masks", "kpts", "batch_idx", "images"}:
         if k not in labels:
             continue
         if k == "cls" and labels[k].ndim == 2:
@@ -727,7 +726,7 @@ def plot_images(
     cls = labels.get("cls", np.zeros(0, dtype=np.int64))
     batch_idx = labels.get("batch_idx", np.zeros(cls.shape, dtype=np.int64))
     bboxes = labels.get("bboxes", np.zeros(0, dtype=np.float32))
-    confs = labels.get("confs", None)
+    confs = labels.get("conf", None)
     masks = labels.get("masks", np.zeros(0, dtype=np.uint8))
     kpts = labels.get("kpts", np.zeros(0, dtype=np.float32))
     images = labels.get("img", images)  # default to input images

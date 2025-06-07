@@ -13,6 +13,17 @@ from ultralytics.utils.torch_utils import model_info
 from .predict import NASPredictor
 from .val import NASValidator
 
+names = [
+    'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
+    'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant',
+    'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee', 'skis', 'snowboard',
+    'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket', 'bottle',
+    'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich', 'orange', 'broccoli',
+    'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed', 'dining table', 'toilet',
+    'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator',
+    'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush'
+]
+
 
 class NAS(Model):
     """
@@ -52,13 +63,9 @@ class NAS(Model):
             weights (str): Path to the model weights file or model name.
             task (str, optional): Task type for the model.
         """
-        import super_gradients
-
         suffix = Path(weights).suffix
-        if suffix == ".pt":
+        if suffix == ".torchscript":
             self.model = torch.load(attempt_download_asset(weights))
-        elif suffix == "":
-            self.model = super_gradients.training.models.get(weights, pretrained_weights="coco")
 
         # Override the forward method to ignore additional arguments
         def new_forward(x, *args, **kwargs):
@@ -71,7 +78,7 @@ class NAS(Model):
         # Standardize model attributes for compatibility
         self.model.fuse = lambda verbose=True: self.model
         self.model.stride = torch.tensor([32])
-        self.model.names = dict(enumerate(self.model._class_names))
+        self.model.names = dict(enumerate(names))
         self.model.is_fused = lambda: False  # for info()
         self.model.yaml = {}  # for info()
         self.model.pt_path = weights  # for export()

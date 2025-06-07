@@ -365,19 +365,19 @@ class ConfusionMatrix(DataExportMixin):
         if gt_cls.shape[0] == 0:  # Check if labels is empty
             if detections is not None:
                 detections = detections[detections[:, 4] > self.conf]
-                detection_classes = detections[:, 5].int()
+                detection_classes = detections[:, 5].int().tolist()
                 for dc in detection_classes:
                     self.matrix[dc, self.nc] += 1  # false positives
             return
         if detections is None:
-            gt_classes = gt_cls.int()
+            gt_classes = gt_cls.int().tolist()
             for gc in gt_classes:
                 self.matrix[self.nc, gc] += 1  # background FN
             return
 
         detections = detections[detections[:, 4] > self.conf]
-        gt_classes = gt_cls.int()
-        detection_classes = detections[:, 5].int()
+        gt_classes = gt_cls.int().tolist()
+        detection_classes = detections[:, 5].int().tolist()
         is_obb = detections.shape[1] == 7 and gt_bboxes.shape[1] == 5  # with additional `angle` dimension
         iou = (
             batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:, -1:]], dim=-1))
@@ -401,7 +401,7 @@ class ConfusionMatrix(DataExportMixin):
         for i, gc in enumerate(gt_classes):
             j = m0 == i
             if n and sum(j) == 1:
-                self.matrix[detection_classes[m1[j]], gc] += 1  # correct
+                self.matrix[detection_classes[m1[j].item()], gc] += 1  # correct
             else:
                 self.matrix[self.nc, gc] += 1  # true background
 

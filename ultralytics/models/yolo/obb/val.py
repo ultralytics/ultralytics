@@ -68,7 +68,7 @@ class OBBValidator(DetectionValidator):
         val = self.data.get(self.args.split, "")  # validation path
         self.is_dota = isinstance(val, str) and "DOTA" in val  # check if dataset is DOTA format
 
-    def _process_batch(self, detections: torch.Tensor, gt_bboxes: torch.Tensor, gt_cls: torch.Tensor) -> torch.Tensor:
+    def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
         """
         Compute the correct prediction matrix for a batch of detections and ground truth bounding boxes.
 
@@ -89,8 +89,10 @@ class OBBValidator(DetectionValidator):
             >>> gt_cls = torch.randint(0, 5, (50,))  # 50 ground truth class labels
             >>> correct_matrix = validator._process_batch(detections, gt_bboxes, gt_cls)
         """
-        iou = batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:, -1:]], dim=-1))
-        return self.match_predictions(detections[:, 5], gt_cls, iou)
+        if len(batch["cls"]) == 0 or len(preds["cls"]) == 0:
+            return {"tp": np.zeros((len(preds["cls"]), self.niou), dtype=bool)}
+        iou = batch_probiou(batch["bbox"], preds["bbox"])
+        return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 
     def _prepare_batch(self, si: int, batch: Dict) -> Dict:
         """
@@ -141,7 +143,7 @@ class OBBValidator(DetectionValidator):
         ops.scale_boxes(
             pbatch["imgsz"], predn[:, :4], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"], xywh=True
         )  # native-space pred
-        return predn
+        return {"bbox": torch.cat([predn[:, :4], predn[:, -1:]], dim=-1), "conf": predn[:, 4], "cls": predn[:, 5]}
 
     def plot_predictions(self, batch: Dict[str, Any], preds: List[torch.Tensor], ni: int) -> None:
         """

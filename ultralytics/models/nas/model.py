@@ -5,8 +5,9 @@ from typing import Any, Dict
 
 import torch
 
+from ultralytics.data.utils import coco_names
 from ultralytics.engine.model import Model
-from ultralytics.utils import DEFAULT_CFG_DICT
+from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.torch_utils import model_info
 
@@ -39,7 +40,7 @@ class NAS(Model):
         YOLO-NAS models only support pre-trained models. Do not provide YAML configuration files.
     """
 
-    def __init__(self, model: str = "yolo_nas_s.pt") -> None:
+    def __init__(self, model: str = "yolo_nas_s.torchscript") -> None:
         """Initialize the NAS model with the provided or default model."""
         assert Path(model).suffix not in {".yaml", ".yml"}, "YOLO-NAS models only support pre-trained models."
         super().__init__(model, task="detect")
@@ -52,13 +53,18 @@ class NAS(Model):
             weights (str): Path to the model weights file or model name.
             task (str, optional): Task type for the model.
         """
-        import super_gradients
-
         suffix = Path(weights).suffix
+
         if suffix == ".pt":
-            self.model = torch.load(attempt_download_asset(weights))
-        elif suffix == "":
-            self.model = super_gradients.training.models.get(weights, pretrained_weights="coco")
+            LOGGER.warning(
+                "YOLO-NAS PyTorch models (.pt) are deprecated in Ultralytics >= 8.3.53. "
+                "Please use TorchScript models (.torchscript) instead. i.e yolo_nas_s.torchscript"
+            )
+            raise NotImplementedError("Loading .pt models is no longer supported for YOLO-NAS.")
+        elif suffix == ".torchscript":
+            self.model = torch.jit.load(attempt_download_asset(weights))
+        else:
+            raise ValueError(f"Unsupported model format '{suffix}'. Expected '.torchscript'.")
 
         # Override the forward method to ignore additional arguments
         def new_forward(x, *args, **kwargs):
@@ -71,7 +77,7 @@ class NAS(Model):
         # Standardize model attributes for compatibility
         self.model.fuse = lambda verbose=True: self.model
         self.model.stride = torch.tensor([32])
-        self.model.names = dict(enumerate(self.model._class_names))
+        self.model.names = dict(enumerate(coco_names))
         self.model.is_fused = lambda: False  # for info()
         self.model.yaml = {}  # for info()
         self.model.pt_path = weights  # for export()

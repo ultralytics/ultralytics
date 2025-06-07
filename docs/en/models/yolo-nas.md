@@ -9,7 +9,7 @@ keywords: YOLO-NAS, Deci AI, object detection, deep learning, Neural Architectur
 !!! note "Important Update"
 
     Please note that [Deci](https://www.linkedin.com/company/deciai/), the original creators of YOLO-NAS, have been acquired by NVIDIA. As a result, these models are no longer actively maintained by Deci. Ultralytics continues to support the usage of these models, but no further updates from the original team are expected.
-    
+
     Also for the `super-gradients` library has ended for Python versions above 3.9. To ensure continued compatibility and long-term usability, Ultralytics has converted all YOLO-NAS models to the TorchScript format.
 
 ## Overview
@@ -99,11 +99,11 @@ We offer three variants of the YOLO-NAS models: Small (s), Medium (m), and Large
 
 Below is a detailed overview of each model, including links to their pre-trained weights, the tasks they support, and their compatibility with different operating modes.
 
-| Model Type | Pre-trained Weights                                                                                    | Tasks Supported                        | Inference | Validation | Training | Export |
-| ---------- |--------------------------------------------------------------------------------------------------------| -------------------------------------- | --------- | ---------- | -------- | ------ |
+| Model Type | Pre-trained Weights                                                                                             | Tasks Supported                        | Inference | Validation | Training | Export |
+| ---------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
 | YOLO-NAS-s | [yolo_nas_s.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_s.torchscript) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
-| YOLO-NAS-m | [yolo_nas_m.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_m.torchscript)          | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
-| YOLO-NAS-l | [yolo_nas_l.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_l.torchscript)          | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
+| YOLO-NAS-m | [yolo_nas_m.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_m.torchscript) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
+| YOLO-NAS-l | [yolo_nas_l.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_l.torchscript) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
 
 ## Citations and Acknowledgements
 

@@ -382,13 +382,9 @@ class ConfusionMatrix(DataExportMixin):
         detections = {k: v[detections["conf"] > self.conf] for k, v in detections.items()}
         gt_classes = gt_cls.int()
         detection_classes = detections["cls"].int()
-        # TODO: apply for OBB
-        is_obb = "angle" in detections  # check if detections contains angle for OBB
-        iou = (
-            batch_probiou(gt_bboxes, torch.cat([detections["bbox"], detections["angle"]], dim=-1))
-            if is_obb
-            else box_iou(gt_bboxes, detections["bbox"])
-        )
+        bboxes = detections["bbox"]
+        is_obb = bboxes.shape[1] == 5  # check if detections contains angle for OBB
+        iou = batch_probiou(gt_bboxes, bboxes) if is_obb else box_iou(gt_bboxes, bboxes)
 
         x = torch.where(iou > self.iou_thres)
         if x[0].shape[0]:

@@ -119,7 +119,7 @@ class DetectionValidator(BaseValidator):
         Returns:
             (List[torch.Tensor]): Processed predictions after NMS.
         """
-        return ops.non_max_suppression(
+        outputs = ops.non_max_suppression(
             preds,
             self.args.conf,
             self.args.iou,
@@ -130,6 +130,7 @@ class DetectionValidator(BaseValidator):
             end2end=self.end2end,
             rotated=self.args.task == "obb",
         )
+        return [{"bbox": x[:, :4], "conf": x[:, 4], "cls": x[:, 5]} for x in outputs]
 
     def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -164,13 +165,14 @@ class DetectionValidator(BaseValidator):
         Returns:
             (torch.Tensor): Prepared predictions in native space.
         """
+        cls = pred["cls"]
         if self.args.single_cls:
-            pred[:, 5] = 0
-        predn = pred.clone()
-        ops.scale_boxes(
-            pbatch["imgsz"], predn[:, :4], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
+            cls *= 0 
+        # predn = pred.clone()
+        bboxes = ops.scale_boxes(
+            pbatch["imgsz"], pred["bbox"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
         )  # native-space pred
-        return {"bbox": predn[:, :4], "conf": predn[:, 4], "cls": predn[:, 5]}
+        return {"bbox": bboxes, "conf": pred["conf"], "cls": cls}
 
     def update_metrics(self, preds: List[torch.Tensor], batch: Dict[str, Any]) -> None:
         """
@@ -325,9 +327,15 @@ class DetectionValidator(BaseValidator):
             preds (List[torch.Tensor]): List of predictions from the model.
             ni (int): Batch index.
         """
+        for i, pred in enumerate(preds):
+            pred["batch_idx"] = torch.ones_like(pred["conf"]) * i  # add batch index to predictions
+        keys = preds[0].keys()
+        batched_preds = {k: torch.cat([x[k][:self.args.max_det] for x in preds], dim=0) for k in keys}
+        batched_preds["bboxes"] = ops.xyxy2xywh(batched_preds["bbox"])  # convert to xywh format
+        batched_preds["confs"] = batched_preds["conf"]  # rename conf to confs for consistency
         plot_images(
-            batch["img"],
-            *output_to_target(preds, max_det=self.args.max_det),
+            images=batch["img"],
+            labels=batched_preds,
             paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_pred.jpg",
             names=self.names,

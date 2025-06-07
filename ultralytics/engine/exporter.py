@@ -74,7 +74,7 @@ from ultralytics import __version__
 from ultralytics.cfg import TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader
 from ultralytics.data.dataset import YOLODataset
-from ultralytics.data.utils import check_cls_dataset, check_det_dataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset, coco_names
 from ultralytics.nn.autobackend import check_class_names, default_class_names
 from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
@@ -416,7 +416,12 @@ class Exporter:
             p.requires_grad = False
         model.eval()
         model.float()
-        model = model.fuse()
+        nas = isinstance(self.args.model, str) and Path(self.args.model).stem.lower().startswith("yolo_nas_")
+        if nas:
+            model.stride, model.task, model.names, = torch.tensor([32]), "detect", coco_names
+            model.yaml = {"channels": 3}
+        else:
+            model = model.fuse()
 
         if imx:
             from ultralytics.utils.torch_utils import FXModel
@@ -465,7 +470,8 @@ class Exporter:
             else tuple(tuple(x.shape if isinstance(x, torch.Tensor) else []) for x in y)
         )
         self.pretty_name = Path(self.model.yaml.get("yaml_file", self.file)).stem.replace("yolo", "YOLO")
-        data = model.args["data"] if hasattr(model, "args") and isinstance(model.args, dict) else ""
+        data = "coco8.yaml" if nas else model.args["data"] if hasattr(model, "args") and isinstance(model.args,
+                                                                                                    dict) else ""
         description = f"Ultralytics {self.pretty_name} model {f'trained on {data}' if data else ''}"
         self.metadata = {
             "description": description,

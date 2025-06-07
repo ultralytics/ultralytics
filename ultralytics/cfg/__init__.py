@@ -948,7 +948,7 @@ def entrypoint(debug: str = "") -> None:
         from ultralytics import SAM
 
         model = SAM(model)
-    elif "yolo_nas_" in stem:
+    elif "yolo_nas_" in stem and Path(model).suffix.lower() == ".torchscript":
         from ultralytics import NAS
 
         model = NAS(model)

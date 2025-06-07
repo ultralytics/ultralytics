@@ -156,6 +156,9 @@ class SegmentationValidator(DetectionValidator):
                 self.plot_masks.append(plot_masks[:50].cpu())  # Limit plotted items for speed
                 if plot_masks.shape[0] > 50:
                     LOGGER.warning("Limiting validation plots to first 50 items per image for speed...")
+        # remove intermediate variables
+        pred.pop("proto")
+        pred.pop("nm")
         return predn
 
     def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:

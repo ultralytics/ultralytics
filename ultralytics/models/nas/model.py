@@ -62,7 +62,7 @@ class NAS(Model):
             )
             raise NotImplementedError("Loading .pt models is no longer supported for YOLO-NAS.")
         elif suffix == ".torchscript":
-            self.model = torch.load(attempt_download_asset(weights))
+            self.model = torch.jit.load(attempt_download_asset(weights))
         else:
             raise ValueError(f"Unsupported model format '{suffix}'. Expected '.torchscript'.")
 

@@ -130,7 +130,7 @@ class DetectionValidator(BaseValidator):
             end2end=self.end2end,
             rotated=self.args.task == "obb",
         )
-        return [{"bbox": x[:, :4], "conf": x[:, 4], "cls": x[:, 5]} for x in outputs]
+        return [{"bboxes": x[:, :4], "conf": x[:, 4], "cls": x[:, 5]} for x in outputs]
 
     def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -152,7 +152,7 @@ class DetectionValidator(BaseValidator):
         if len(cls):
             bbox = ops.xywh2xyxy(bbox) * torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]]  # target boxes
             ops.scale_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad)  # native-space labels
-        return {"cls": cls, "bbox": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
+        return {"cls": cls, "bboxes": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
 
     def _prepare_pred(self, pred: torch.Tensor, pbatch: Dict[str, Any]) -> torch.Tensor:
         """
@@ -170,9 +170,9 @@ class DetectionValidator(BaseValidator):
             cls *= 0 
         # predn = pred.clone()
         bboxes = ops.scale_boxes(
-            pbatch["imgsz"], pred["bbox"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
+            pbatch["imgsz"], pred["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
         )  # native-space pred
-        return {"bbox": bboxes, "conf": pred["conf"], "cls": cls}
+        return {"bboxes": bboxes, "conf": pred["conf"], "cls": cls}
 
     def update_metrics(self, preds: List[torch.Tensor], batch: Dict[str, Any]) -> None:
         """
@@ -271,7 +271,7 @@ class DetectionValidator(BaseValidator):
         """
         if len(batch["cls"]) == 0 or len(preds["cls"]) == 0:
             return {"tp": np.zeros((len(preds["cls"]), self.niou), dtype=bool)}
-        iou = box_iou(batch["bbox"], preds["bbox"])
+        iou = box_iou(batch["bboxes"], preds["bboxes"])
         return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 
     def build_dataset(self, img_path: str, mode: str = "val", batch: Optional[int] = None) -> torch.utils.data.Dataset:
@@ -331,8 +331,7 @@ class DetectionValidator(BaseValidator):
             pred["batch_idx"] = torch.ones_like(pred["conf"]) * i  # add batch index to predictions
         keys = preds[0].keys()
         batched_preds = {k: torch.cat([x[k][:self.args.max_det] for x in preds], dim=0) for k in keys}
-        batched_preds["bboxes"] = ops.xyxy2xywh(batched_preds["bbox"])  # convert to xywh format
-        batched_preds["confs"] = batched_preds["conf"]  # rename conf to confs for consistency
+        batched_preds["bboxes"] = ops.xyxy2xywh(batched_preds["bboxes"])  # convert to xywh format
         plot_images(
             images=batch["img"],
             labels=batched_preds,
@@ -358,7 +357,7 @@ class DetectionValidator(BaseValidator):
             np.zeros((shape[0], shape[1]), dtype=np.uint8),
             path=None,
             names=self.names,
-            boxes=torch.cat([predn["bbox"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
+            boxes=torch.cat([predn["bboxes"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
         ).save_txt(file, save_conf=save_conf)
 
     def pred_to_json(self, predn: torch.Tensor, filename: str) -> None:
@@ -371,7 +370,7 @@ class DetectionValidator(BaseValidator):
         """
         stem = Path(filename).stem
         image_id = int(stem) if stem.isnumeric() else stem
-        box = ops.xyxy2xywh(predn["bbox"])  # xywh
+        box = ops.xyxy2xywh(predn["bboxes"])  # xywh
         box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
         for b, s, c in zip(box.tolist(), predn["conf"].tolist(), predn["cls"].tolist()):
             self.jdict.append(

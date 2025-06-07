@@ -54,6 +54,5 @@ class NASPredictor(DetectionPredictor):
             >>> results = predictor.postprocess(raw_preds, img, orig_imgs)
         """
         boxes = ops.xyxy2xywh(preds_in[0])  # Convert bounding boxes from xyxy to xywh format
-        scores = preds_in[1]  # shape: [1, N, num_classes]
-        preds = torch.cat((boxes, scores), dim=-1).permute(0, 2, 1)  # Concatenate boxes with class scores
+        preds = torch.cat((boxes, preds_in[1]), dim=-1).permute(0, 2, 1)  # Concatenate boxes with class scores
         return super().postprocess(preds, img, orig_imgs)

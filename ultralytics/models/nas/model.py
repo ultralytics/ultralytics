@@ -9,7 +9,7 @@ from ultralytics.engine.model import Model
 from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.torch_utils import model_info
-
+from ultralytics.data.utils import coco_names
 from .predict import NASPredictor
 from .val import NASValidator
 
@@ -52,13 +52,8 @@ class NAS(Model):
             weights (str): Path to the model weights file or model name.
             task (str, optional): Task type for the model.
         """
-        import super_gradients
-
-        suffix = Path(weights).suffix
-        if suffix == ".pt":
+        if Path(weights).suffix == ".torchscript":
             self.model = torch.load(attempt_download_asset(weights))
-        elif suffix == "":
-            self.model = super_gradients.training.models.get(weights, pretrained_weights="coco")
 
         # Override the forward method to ignore additional arguments
         def new_forward(x, *args, **kwargs):
@@ -71,7 +66,7 @@ class NAS(Model):
         # Standardize model attributes for compatibility
         self.model.fuse = lambda verbose=True: self.model
         self.model.stride = torch.tensor([32])
-        self.model.names = dict(enumerate(self.model._class_names))
+        self.model.names = dict(enumerate(coco_names))
         self.model.is_fused = lambda: False  # for info()
         self.model.yaml = {}  # for info()
         self.model.pt_path = weights  # for export()

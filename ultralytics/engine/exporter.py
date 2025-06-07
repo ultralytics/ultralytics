@@ -418,7 +418,11 @@ class Exporter:
         model.float()
         nas = isinstance(self.args.model, str) and Path(self.args.model).stem.lower().startswith("yolo_nas_")
         if nas:
-            model.stride, model.task, model.names, = torch.tensor([32]), "detect", coco_names
+            (
+                model.stride,
+                model.task,
+                model.names,
+            ) = torch.tensor([32]), "detect", coco_names
             model.yaml = {"channels": 3}
         else:
             model = model.fuse()
@@ -470,8 +474,13 @@ class Exporter:
             else tuple(tuple(x.shape if isinstance(x, torch.Tensor) else []) for x in y)
         )
         self.pretty_name = Path(self.model.yaml.get("yaml_file", self.file)).stem.replace("yolo", "YOLO")
-        data = "coco8.yaml" if nas else model.args["data"] if hasattr(model, "args") and isinstance(model.args,
-                                                                                                    dict) else ""
+        data = (
+            "coco8.yaml"
+            if nas
+            else model.args["data"]
+            if hasattr(model, "args") and isinstance(model.args, dict)
+            else ""
+        )
         description = f"Ultralytics {self.pretty_name} model {f'trained on {data}' if data else ''}"
         self.metadata = {
             "description": description,

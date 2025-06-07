@@ -364,7 +364,7 @@ class ConfusionMatrix(DataExportMixin):
             batch (Dict[str, Any]): Batch dictionary containing ground truth data with 'bbox' (Array[M, 4]| Array[N, 5]) and
                 'cls' (Array[M]) keys, where M is the number of ground truth objects.
         """
-        gt_cls, gt_bboxes = batch["cls"], batch["bbox"]
+        gt_cls, gt_bboxes = batch["cls"], batch["bboxes"]
         no_pred = len(detections["cls"]) == 0
         if gt_cls.shape[0] == 0:  # Check if labels is empty
             if not no_pred:
@@ -382,7 +382,7 @@ class ConfusionMatrix(DataExportMixin):
         detections = {k: v[detections["conf"] > self.conf] for k, v in detections.items()}
         gt_classes = gt_cls.int()
         detection_classes = detections["cls"].int()
-        bboxes = detections["bbox"]
+        bboxes = detections["bboxes"]
         is_obb = bboxes.shape[1] == 5  # check if detections contains angle for OBB
         iou = batch_probiou(gt_bboxes, bboxes) if is_obb else box_iou(gt_bboxes, bboxes)
 

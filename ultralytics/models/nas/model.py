@@ -5,11 +5,12 @@ from typing import Any, Dict
 
 import torch
 
+from ultralytics.data.utils import coco_names
 from ultralytics.engine.model import Model
 from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.torch_utils import model_info
-from ultralytics.data.utils import coco_names
+
 from .predict import NASPredictor
 from .val import NASValidator
 

@@ -432,6 +432,16 @@ class DetectionValidator(BaseValidator):
                 stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = (
                     val.stats[:2] if self.is_coco else [val.results["AP"], val.results["AP50"]]
                 )
+
+                # Capture size-specific metrics when available (COCO only)
+                if self.is_coco and hasattr(val, 'stats') and len(val.stats) >= 6:
+                    # COCO stats array: [AP@50:95, AP@50, AP@75, AP@50:95 (small), AP@50:95 (medium), AP@50:95 (large), AR50-95, ..]
+                    self.metrics.box.update_size_metrics(
+                        map_small=val.stats[3],   # AP for small objects
+                        map_medium=val.stats[4],  # AP for medium objects  
+                        map_large=val.stats[5]    # AP for large objects
+                    )
+
                 if self.is_lvis:
                     stats["metrics/APr(B)"] = val.results["APr"]
                     stats["metrics/APc(B)"] = val.results["APc"]

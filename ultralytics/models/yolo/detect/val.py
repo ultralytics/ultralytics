@@ -130,7 +130,8 @@ class DetectionValidator(BaseValidator):
             end2end=self.end2end,
             rotated=self.args.task == "obb",
         )
-        return [{"bboxes": x[:, :4], "conf": x[:, 4], "cls": x[:, 5]} for x in outputs]
+        # TODO: fix this `nm`
+        return [{"bboxes": x[:, :4], "conf": x[:, 4], "cls": x[:, 5], "nm": x[:, 6:]} for x in outputs]
 
     def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
         """

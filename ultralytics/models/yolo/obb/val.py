@@ -160,6 +160,7 @@ class OBBValidator(DetectionValidator):
             >>> preds = [torch.rand(10, 7)]  # Example predictions for one image
             >>> validator.plot_predictions(batch, preds, 0)
         """
+        # TODO
         plot_images(
             batch["img"],
             *output_to_rotated_target(preds, max_det=self.args.max_det),
@@ -185,14 +186,14 @@ class OBBValidator(DetectionValidator):
         """
         stem = Path(filename).stem
         image_id = int(stem) if stem.isnumeric() else stem
-        rbox = torch.cat([predn[:, :4], predn[:, -1:]], dim=-1)
+        rbox = predn["bbox"]
         poly = ops.xywhr2xyxyxyxy(rbox).view(-1, 8)
-        for i, (r, b) in enumerate(zip(rbox.tolist(), poly.tolist())):
+        for r, b, s, c in enumerate(zip(rbox.tolist(), poly.tolist(), predn["conf"].tolist(), predn["cls"].tolist())):
             self.jdict.append(
                 {
                     "image_id": image_id,
-                    "category_id": self.class_map[int(predn[i, 5].item())],
-                    "score": round(predn[i, 4].item(), 5),
+                    "category_id": self.class_map[int(c)],
+                    "score": round(s, 5),
                     "rbox": [round(x, 3) for x in r],
                     "poly": [round(x, 3) for x in b],
                 }

@@ -40,7 +40,7 @@ class NAS(Model):
         YOLO-NAS models only support pre-trained models. Do not provide YAML configuration files.
     """
 
-    def __init__(self, model: str = "yolo_nas_s.pt") -> None:
+    def __init__(self, model: str = "yolo_nas_s.torchscript") -> None:
         """Initialize the NAS model with the provided or default model."""
         assert Path(model).suffix not in {".yaml", ".yml"}, "YOLO-NAS models only support pre-trained models."
         super().__init__(model, task="detect")

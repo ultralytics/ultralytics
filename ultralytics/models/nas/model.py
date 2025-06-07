@@ -52,8 +52,18 @@ class NAS(Model):
             weights (str): Path to the model weights file or model name.
             task (str, optional): Task type for the model.
         """
-        if Path(weights).suffix == ".torchscript":
+        suffix = Path(weights).suffix
+
+        if suffix == ".pt":
+            LOGGER.warning(
+                "YOLO-NAS PyTorch models (.pt) are deprecated in Ultralytics >= 8.3.53. "
+                "Please use TorchScript models (.torchscript) instead. i.e yolo_nas_s.torchscript"
+            )
+            raise NotImplementedError("Loading .pt models is no longer supported for YOLO-NAS.")
+        elif suffix == ".torchscript":
             self.model = torch.load(attempt_download_asset(weights))
+        else:
+            raise ValueError(f"Unsupported model format '{suffix}'. Expected '.torchscript'.")
 
         # Override the forward method to ignore additional arguments
         def new_forward(x, *args, **kwargs):

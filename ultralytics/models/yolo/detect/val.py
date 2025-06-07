@@ -319,7 +319,7 @@ class DetectionValidator(BaseValidator):
             on_plot=self.on_plot,
         )
 
-    def plot_predictions(self, batch: Dict[str, Any], preds: List[torch.Tensor], ni: int) -> None:
+    def plot_predictions(self, batch: Dict[str, Any], preds: List[torch.Tensor], ni: int, max_det: int = None) -> None:
         """
         Plot predicted bounding boxes on input images and save the result.
 
@@ -331,7 +331,8 @@ class DetectionValidator(BaseValidator):
         for i, pred in enumerate(preds):
             pred["batch_idx"] = torch.ones_like(pred["conf"]) * i  # add batch index to predictions
         keys = preds[0].keys()
-        batched_preds = {k: torch.cat([x[k][:self.args.max_det] for x in preds], dim=0) for k in keys}
+        max_det = max_det or self.args.max_det
+        batched_preds = {k: torch.cat([x[k][:max_det] for x in preds], dim=0) for k in keys}
         batched_preds["bboxes"] = ops.xyxy2xywh(batched_preds["bboxes"])  # convert to xywh format
         plot_images(
             images=batch["img"],

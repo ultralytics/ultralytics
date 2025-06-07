@@ -154,8 +154,8 @@ class SegmentationValidator(DetectionValidator):
             if self.args.plots and self.batch_i < 3:
                 plot_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
                 self.plot_masks.append(plot_masks[:50].cpu())  # Limit plotted items for speed
-                # if plot_masks.shape[0] > 50:
-                #     LOGGER.warning("Limiting validation plots to first 50 items per image for speed...")
+                if plot_masks.shape[0] > 50:
+                    LOGGER.warning("Limiting validation plots to first 50 items per image for speed...")
         return predn
 
     def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
@@ -218,19 +218,7 @@ class SegmentationValidator(DetectionValidator):
         # TODO: optimize this
         for i, p in enumerate(preds):
             p["masks"] = self.plot_masks[i]
-        super().plot_predictions(batch, preds, ni)  # plot bboxes
-        # plot_images(
-        #     batch["img"],
-        #     # TODO: optimize this
-        #     *output_to_target(
-        #         [p["detection"] for p in preds], max_det=50
-        #     ),  # not set to self.args.max_det due to slow plotting speed
-        #     torch.cat(self.plot_masks, dim=0) if len(self.plot_masks) else self.plot_masks,
-        #     paths=batch["im_file"],
-        #     fname=self.save_dir / f"val_batch{ni}_pred.jpg",
-        #     names=self.names,
-        #     on_plot=self.on_plot,
-        # )  # pred
+        super().plot_predictions(batch, preds, ni, max_det=50)  # plot bboxes
         self.plot_masks.clear()
 
     def save_one_txt(self, predn: torch.Tensor, save_conf: bool, shape: Tuple[int, int], file: Path) -> None:

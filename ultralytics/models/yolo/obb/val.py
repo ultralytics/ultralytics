@@ -221,14 +221,11 @@ class OBBValidator(DetectionValidator):
 
         from ultralytics.engine.results import Results
 
-        rboxes = torch.cat([predn[:, :4], predn[:, -1:]], dim=-1)
-        # xywh, r, conf, cls
-        obb = torch.cat([rboxes, predn[:, 4:6]], dim=-1)
         Results(
             np.zeros((shape[0], shape[1]), dtype=np.uint8),
             path=None,
             names=self.names,
-            obb=obb,
+            obb=torch.cat([predn["bbox"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
         ).save_txt(file, save_conf=save_conf)
 
     def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:

@@ -63,8 +63,7 @@ class NAS(Model):
             weights (str): Path to the model weights file or model name.
             task (str, optional): Task type for the model.
         """
-        suffix = Path(weights).suffix
-        if suffix == ".torchscript":
+        if Path(weights).suffix == ".torchscript":
             self.model = torch.load(attempt_download_asset(weights))
 
         # Override the forward method to ignore additional arguments

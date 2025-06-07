@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
 import torch
+import numpy as np
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops

@@ -380,8 +380,8 @@ class LoadImagesAndVideos:
         # Define files as images or videos
         images, videos = [], []
         for f in files:
-        # for f in FILES:  # pathlib
-        #     f = str(Path(f).absolute())
+            # for f in FILES:  # pathlib
+            #     f = str(Path(f).absolute())
             suffix = f.rpartition(".")[-1].lower()  # Get file extension without the dot and lowercase
             if suffix in IMG_FORMATS:
                 images.append(f)

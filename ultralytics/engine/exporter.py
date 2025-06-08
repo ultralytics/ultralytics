@@ -418,12 +418,7 @@ class Exporter:
         model.float()
         nas = isinstance(self.args.model, str) and Path(self.args.model).stem.lower().startswith("yolo_nas_")
         if nas:
-            (
-                model.stride,
-                model.task,
-                model.names,
-            ) = torch.tensor([32]), "detect", coco_names
-            model.yaml = {"channels": 3}
+            model.stride, model.task, model.names, model.yaml = torch.tensor([32]), "detect", coco_names, {}
         else:
             model = model.fuse()
 

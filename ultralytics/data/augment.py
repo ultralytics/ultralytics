@@ -1560,16 +1560,16 @@ class RandomFlip:
         h = 1 if instances.normalized else h
         w = 1 if instances.normalized else w
 
-        # Flip up-down
-        if self.direction == "vertical" and random.random() < self.p:
-            img = np.flipud(img)
-            instances.flipud(h)
-        if self.direction == "horizontal" and random.random() < self.p:
-            img = np.fliplr(img)
-            instances.fliplr(w)
-        # For keypoints
-        if self.flip_idx is not None and instances.keypoints is not None:
-            instances.keypoints = np.ascontiguousarray(instances.keypoints[:, self.flip_idx, :])
+        # WARNING: two calls to random.random() needed here for reproducibility with older versions https://github.com/ultralytics/ultralytics/pull/20932
+        if (self.direction == "vertical" and random.random() < self.p) or (
+            self.direction == "horizontal" and random.random() < self.p
+        ):
+            img = np.fliplr(img) if self.direction == "horizontal" else np.flipud(img)
+            instances.fliplr(w) if self.direction == "horizontal" else instances.flipud(h)
+            # For keypoints
+            if self.flip_idx is not None and instances.keypoints is not None:
+                instances.keypoints = np.ascontiguousarray(instances.keypoints[:, self.flip_idx, :])
+
         labels["img"] = np.ascontiguousarray(img)
         labels["instances"] = instances
         return labels

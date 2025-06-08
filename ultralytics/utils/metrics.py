@@ -806,7 +806,7 @@ class Metric(SimpleClass):
         self.all_ap = []  # (nc, 10)
         self.ap_class_index = []  # (nc, )
         self.nc = 0
-        self.size_specific_metrics = [0.0, 0.0, 0.0]    # [map_small, map_medium, map_large]
+        self.size_specific_metrics = [0.0, 0.0, 0.0]  # [map_small, map_medium, map_large]
 
     @property
     def ap50(self) -> Union[np.ndarray, List]:
@@ -867,7 +867,7 @@ class Metric(SimpleClass):
             (float): The mAP at an IoU threshold of 0.75.
         """
         return self.all_ap[:, 5].mean() if len(self.all_ap) else 0.0
-            
+
     @property
     def map_small(self) -> float:
         """
@@ -897,7 +897,7 @@ class Metric(SimpleClass):
             (float): The mAP for large objects, or 0.0 if not available.
         """
         return self.size_specific_metrics[2]
-    
+
     def update_size_metrics(self, map_small: float, map_medium: float, map_large: float) -> None:
         """
         Update size-specific mAP metrics.

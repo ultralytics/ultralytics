@@ -44,6 +44,7 @@ class TrackZone(BaseSolution):
         super().__init__(**kwargs)
         default_region = [(75, 75), (565, 75), (565, 285), (75, 285)]
         self.region = cv2.convexHull(np.array(self.region or default_region, dtype=np.int32))
+        self.mask = None
 
     def process(self, im0):
         """
@@ -66,10 +67,10 @@ class TrackZone(BaseSolution):
         """
         annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
-        # Create a mask for the region and extract tracks from the masked image
-        mask = np.zeros_like(im0[:, :, 0])
-        mask = cv2.fillPoly(mask, [self.region], 255)
-        masked_frame = cv2.bitwise_and(im0, im0, mask=mask)
+        if self.mask is None:  # Create a mask for the region
+            self.mask = np.zeros_like(im0[:, :, 0])
+            cv2.fillPoly(self.mask, [self.region], 255)
+        masked_frame = cv2.bitwise_and(im0, im0, mask=self.mask)
         self.extract_tracks(masked_frame)
 
         # Draw the region boundary

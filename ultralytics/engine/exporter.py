@@ -220,6 +220,16 @@ def arange_patch(args):
         yield
 
 
+class NASONNXWrapper(torch.nn.Module):
+    def __init__(self, scripted_model):
+        super().__init__()
+        self.model = scripted_model  # already traced/scripted
+
+    def forward(self, x):
+        boxes, scores = self.model(x)
+        return torch.cat([boxes, scores], dim=-1)  # shape: [B, 8400, 84]
+
+
 class Exporter:
     """
     A class for exporting YOLO models to various formats.
@@ -418,6 +428,8 @@ class Exporter:
         model.float()
         nas = isinstance(self.args.model, str) and Path(self.args.model).stem.lower().startswith("yolo_nas_")
         if nas:
+            LOGGER.info("Wrapping NAS model for ONNX export to merge outputs.")
+            model = NASONNXWrapper(model)
             model.stride, model.task, model.names, model.yaml = torch.tensor([32]), "detect", coco_names, {}
         else:
             model = model.fuse()

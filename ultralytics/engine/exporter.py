@@ -417,7 +417,7 @@ class Exporter:
         model.eval()
         model.float()
         nas = isinstance(self.args.model, str) and Path(self.args.model).stem.lower().startswith("yolo_nas_")
-        if nas:
+        if nas:  # Only inference supported for NAS models, task="detect".
             model.stride, model.task, model.names, model.yaml = torch.tensor([32]), "detect", coco_names, {}
         else:
             model = model.fuse()

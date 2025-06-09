@@ -221,8 +221,7 @@ def check_source(source):
         source_lower = source.lower()
         is_file = source_lower.rpartition(".")[-1] in (IMG_FORMATS | VID_FORMATS)
         try:
-            parsed_url = urlparse(source_lower)
-            is_pinterest = parsed_url.hostname == "pinterest.com"
+            is_pinterest = urlparse(source_lower).hostname == "pinterest.com"
         except ValueError:
             is_pinterest = False
         is_url = source_lower.startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")) and not is_pinterest

@@ -977,6 +977,12 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.nt_per_image = None
 
     def update_stats(self, stat):
+        """Update statistics by appending new values to existing stat collections.
+        
+        Args:
+            stat (dict): Dictionary containing new statistical values to append.
+                        Keys should match existing keys in self.stats.
+        """
         for k in stat.keys():
             self.stats[k].append(stat[k])
 

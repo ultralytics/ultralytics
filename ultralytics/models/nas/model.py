@@ -5,7 +5,6 @@ from typing import Any, Dict
 
 import torch
 
-from ultralytics.data.utils import coco_names
 from ultralytics.engine.model import Model
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER
 from ultralytics.utils.downloads import attempt_download_asset
@@ -77,7 +76,7 @@ class NAS(Model):
         # Standardize model attributes for compatibility
         self.model.fuse = lambda verbose=True: self.model
         self.model.stride = torch.tensor([32])
-        self.model.names = dict(enumerate(coco_names))
+        self.model.names = {i: str(i) for i in range(80)}
         self.model.is_fused = lambda: False  # for info()
         self.model.yaml = {}  # for info()
         self.model.pt_path = weights  # for export()

@@ -23,8 +23,6 @@ class DetectionValidator(BaseValidator):
     prediction processing, and visualization of results.
 
     Attributes:
-        nt_per_class (np.ndarray): Number of targets per class.
-        nt_per_image (np.ndarray): Number of targets per image.
         is_coco (bool): Whether the dataset is COCO.
         is_lvis (bool): Whether the dataset is LVIS.
         class_map (List[int]): Mapping from model class indices to dataset class indices.
@@ -53,8 +51,6 @@ class DetectionValidator(BaseValidator):
             _callbacks (List[Any], optional): List of callback functions.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
-        self.nt_per_class = None
-        self.nt_per_image = None
         self.is_coco = False
         self.is_lvis = False
         self.class_map = None
@@ -104,7 +100,6 @@ class DetectionValidator(BaseValidator):
         self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf, names=self.names.values())
         self.seen = 0
         self.jdict = []
-        self.metrics.clear_stats()
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing class metrics of YOLO model."""
@@ -234,27 +229,28 @@ class DetectionValidator(BaseValidator):
         Returns:
             (Dict[str, Any]): Dictionary containing metrics results.
         """
-        # TODO: clean this up
-        stats = {k: np.concatenate(v, 0) for k, v in self.metrics.stats.items()}  # to numpy
-        self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=self.nc)
-        self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=self.nc)
-        stats.pop("target_img", None)
-        if len(stats):
-            self.metrics.process(on_plot=self.on_plot)
+        self.metrics.process(on_plot=self.on_plot)
+        self.metrics.clear_stats()
         return self.metrics.results_dict
 
     def print_results(self) -> None:
         """Print training/validation set metrics per class."""
         pf = "%22s" + "%11i" * 2 + "%11.3g" * len(self.metrics.keys)  # print format
-        LOGGER.info(pf % ("all", self.seen, self.nt_per_class.sum(), *self.metrics.mean_results()))
-        if self.nt_per_class.sum() == 0:
+        LOGGER.info(pf % ("all", self.seen, self.metrics.nt_per_class.sum(), *self.metrics.mean_results()))
+        if self.metrics.nt_per_class.sum() == 0:
             LOGGER.warning(f"no labels found in {self.args.task} set, can not compute metrics without labels")
 
         # Print results per class
         if self.args.verbose and not self.training and self.nc > 1 and len(self.metrics.stats):
             for i, c in enumerate(self.metrics.ap_class_index):
                 LOGGER.info(
-                    pf % (self.names[c], self.nt_per_image[c], self.nt_per_class[c], *self.metrics.class_result(i))
+                    pf
+                    % (
+                        self.names[c],
+                        self.metrics.nt_per_image[c],
+                        self.metrics.nt_per_class[c],
+                        *self.metrics.class_result(i),
+                    )
                 )
 
     def _process_batch(self, preds: torch.Tensor, batch: Dict[str, Any]) -> torch.Tensor:

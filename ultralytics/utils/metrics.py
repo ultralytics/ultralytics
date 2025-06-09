@@ -973,6 +973,8 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "detect"
         self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
+        self.nt_per_class = None
+        self.nt_per_image = None
 
     def update_stats(self, stat):
         for k in stat.keys():
@@ -989,16 +991,14 @@ class DetMetrics(SimpleClass, DataExportMixin):
             target_cls (np.ndarray): Target class indices array.
             on_plot (callable, optional): Function to call after plots are generated.
         """
-        # stats = {k: np.concatenate(v, 0) for k, v in self.metrics.stats.items()}  # to numpy
-        tp = np.concatenate(self.stats["tp"], axis=0)
-        conf = np.concatenate(self.stats["conf"], axis=0)
-        pred_cls = np.concatenate(self.stats["pred_cls"], axis=0)
-        target_cls = np.concatenate(self.stats["target_cls"], axis=0)
+        stats = {k: np.concatenate(v, 0) for k, v in self.stats.items()}  # to numpy
+        if len(stats) == 0:
+            return stats
         results = ap_per_class(
-            tp,
-            conf,
-            pred_cls,
-            target_cls,
+            stats["tp"],
+            stats["conf"],
+            stats["pred_cls"],
+            stats["target_cls"],
             plot=self.plot,
             save_dir=self.save_dir,
             names=self.names,
@@ -1006,6 +1006,9 @@ class DetMetrics(SimpleClass, DataExportMixin):
         )[2:]
         self.box.nc = len(self.names)
         self.box.update(results)
+        self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=len(self.names))
+        self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=len(self.names))
+        return stats
 
     def clear_stats(self):
         """Clear the stored statistics."""

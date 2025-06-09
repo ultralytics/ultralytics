@@ -147,7 +147,8 @@ def export_engine(
     LOGGER.info(f"{prefix} building {'INT8' if int8 else 'FP' + ('16' if half else '32')} engine as {engine_file}")
     if int8:
         config.set_flag(trt.BuilderFlag.INT8)
-        config.set_calibration_profile(profile)
+        if dynamic:
+            config.set_calibration_profile(profile)
         config.profiling_verbosity = trt.ProfilingVerbosity.DETAILED
 
         class EngineCalibrator(trt.IInt8Calibrator):

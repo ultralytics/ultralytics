@@ -421,17 +421,6 @@ jobs:
           echo "This job fails intentionally on the first attempt"
           exit 1
 
-  Rerun-on-failure:
-    needs: FailTest 
-    if: failure() && fromJSON(github.run_attempt) < 3
-    runs-on: ubuntu-latest
-    steps:
-      - env:
-          GH_REPO: ${{ github.repository }}
-          GH_TOKEN: ${{ github.token }}
-          GH_DEBUG: api
-        run: gh workflow run rerun.yml -r ${{ github.head_ref || github.ref_name }} -F run_id=${{ github.run_id }}
-
   Summary:
     runs-on: ubuntu-latest
     needs: [HUB, Benchmarks, Tests, GPU, RaspberryPi, Conda]

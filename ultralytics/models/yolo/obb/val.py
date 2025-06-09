@@ -9,7 +9,6 @@ import numpy as np
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.metrics import OBBMetrics, batch_probiou
-from ultralytics.utils.plotting import output_to_rotated_target, plot_images
 
 
 class OBBValidator(DetectionValidator):
@@ -164,7 +163,8 @@ class OBBValidator(DetectionValidator):
             >>> validator.plot_predictions(batch, preds, 0)
         """
         for p in preds:
-            p["bboxes"] = torch.cat((p["bboxes"], p["nm"]), dim=1)  # reshape keypoints
+            # TODO: fix this duplicated `xywh2xyxy`
+            p["bboxes"] = torch.cat((ops.xywh2xyxy(p["bboxes"]), p["nm"]), dim=1)  # reshape keypoints
         super().plot_predictions(batch, preds, ni)  # plot bboxes
 
     def pred_to_json(self, predn: torch.Tensor, filename: Union[str, Path]) -> None:

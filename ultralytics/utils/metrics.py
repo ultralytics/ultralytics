@@ -978,7 +978,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
 
     def update_stats(self, stat):
         """Update statistics by appending new values to existing stat collections.
-        
+
         Args:
             stat (dict): Dictionary containing new statistical values to append.
                         Keys should match existing keys in self.stats.
@@ -1097,7 +1097,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         ]
 
 
-class SegmentMetrics(SimpleClass, DataExportMixin):
+class SegmentMetrics(DetMetrics):
     """
     Calculate and aggregate detection and segmentation metrics over a given set of classes.
 
@@ -1120,18 +1120,10 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
             plot (bool, optional): Whether to plot precision-recall curves.
             names (Dict[int, str], optional): Dictionary of class names.
         """
-        self.save_dir = save_dir
-        self.plot = plot
-        self.names = names
-        self.box = Metric()
+        DetMetrics.__init__(self, save_dir, plot, names)
         self.seg = Metric()
-        self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "segment"
-        self.stats = dict(tp_m=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
-
-    def update_stats(self, stat):
-        for k in self.stats.keys():
-            self.stats[k].append(stat[k])
+        self.stats["tp_m"] = []  # add additional stats for masks
 
     def process(self, on_plot=None):
         """
@@ -1145,16 +1137,12 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
             target_cls (np.ndarray): Target class indices array.
             on_plot (callable, optional): Function to call after plots are generated.
         """
-        tp = np.concatenate(self.stats["tp"], axis=0)
-        tp_m = np.concatenate(self.stats["tp_m"], axis=0)
-        conf = np.concatenate(self.stats["conf"], axis=0)
-        pred_cls = np.concatenate(self.stats["pred_cls"], axis=0)
-        target_cls = np.concatenate(self.stats["target_cls"], axis=0)
+        stats = DetMetrics.process(self, on_plot=on_plot)  # process box stats
         results_mask = ap_per_class(
-            tp_m,
-            conf,
-            pred_cls,
-            target_cls,
+            stats["tp_m"],
+            stats["conf"],
+            stats["pred_cls"],
+            stats["target_cls"],
             plot=self.plot,
             on_plot=on_plot,
             save_dir=self.save_dir,
@@ -1163,28 +1151,11 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
         )[2:]
         self.seg.nc = len(self.names)
         self.seg.update(results_mask)
-        results_box = ap_per_class(
-            tp,
-            conf,
-            pred_cls,
-            target_cls,
-            plot=self.plot,
-            on_plot=on_plot,
-            save_dir=self.save_dir,
-            names=self.names,
-            prefix="Box",
-        )[2:]
-        self.box.nc = len(self.names)
-        self.box.update(results_box)
 
     @property
     def keys(self) -> List[str]:
         """Return a list of keys for accessing metrics."""
-        return [
-            "metrics/precision(B)",
-            "metrics/recall(B)",
-            "metrics/mAP50(B)",
-            "metrics/mAP50-95(B)",
+        return DetMetrics.keys.fget(self) + [
             "metrics/precision(M)",
             "metrics/recall(M)",
             "metrics/mAP50(M)",
@@ -1193,40 +1164,26 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
 
     def mean_results(self) -> List[float]:
         """Return the mean metrics for bounding box and segmentation results."""
-        return self.box.mean_results() + self.seg.mean_results()
+        return DetMetrics.mean_results(self) + self.seg.mean_results()
 
     def class_result(self, i: int) -> List[float]:
         """Return classification results for a specified class index."""
-        return self.box.class_result(i) + self.seg.class_result(i)
+        return DetMetrics.class_result(self, i) + self.seg.class_result(i)
 
     @property
     def maps(self) -> np.ndarray:
         """Return mAP scores for object detection and semantic segmentation models."""
-        return self.box.maps + self.seg.maps
+        return DetMetrics.maps.fget(self) + self.seg.maps
 
     @property
     def fitness(self) -> float:
         """Return the fitness score for both segmentation and bounding box models."""
-        return self.seg.fitness() + self.box.fitness()
-
-    @property
-    def ap_class_index(self) -> List:
-        """Return the class indices (boxes and masks have the same ap_class_index)."""
-        return self.box.ap_class_index
-
-    @property
-    def results_dict(self) -> Dict[str, float]:
-        """Return results of object detection model for evaluation."""
-        return dict(zip(self.keys + ["fitness"], self.mean_results() + [self.fitness]))
+        return self.seg.fitness() + DetMetrics.fitness.fget(self)
 
     @property
     def curves(self) -> List[str]:
         """Return a list of curves for accessing specific metrics curves."""
-        return [
-            "Precision-Recall(B)",
-            "F1-Confidence(B)",
-            "Precision-Confidence(B)",
-            "Recall-Confidence(B)",
+        return DetMetrics.curves.fget(self) + [
             "Precision-Recall(M)",
             "F1-Confidence(M)",
             "Precision-Confidence(M)",
@@ -1236,7 +1193,7 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
     @property
     def curves_results(self) -> List[List]:
         """Return dictionary of computed performance metrics and statistics."""
-        return self.box.curves_results + self.seg.curves_results
+        return DetMetrics.curves_results.fget(self) + self.seg.curves_results
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
         """

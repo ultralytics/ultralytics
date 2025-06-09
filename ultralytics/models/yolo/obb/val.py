@@ -140,11 +140,13 @@ class OBBValidator(DetectionValidator):
         Returns:
             (torch.Tensor): Scaled prediction tensor with bounding boxes in original image dimensions.
         """
-        predn = pred.clone()
-        ops.scale_boxes(
-            pbatch["imgsz"], predn[:, :4], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"], xywh=True
+        cls = pred["cls"]
+        if self.args.single_cls:
+            cls *= 0
+        bboxes = ops.scale_boxes(
+            pbatch["imgsz"], pred["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"], xywh=True
         )  # native-space pred
-        return {"bboxes": torch.cat([predn[:, :4], predn[:, -1:]], dim=-1), "conf": predn[:, 4], "cls": predn[:, 5]}
+        return {"bboxes": torch.cat([bboxes, pred["nm"]], dim=-1), "conf": pred["conf"], "cls": cls}
 
     def plot_predictions(self, batch: Dict[str, Any], preds: List[torch.Tensor], ni: int) -> None:
         """

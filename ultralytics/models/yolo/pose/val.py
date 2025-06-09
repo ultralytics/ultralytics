@@ -117,7 +117,7 @@ class PoseValidator(DetectionValidator):
         nkpt = self.kpt_shape[0]
         self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
 
-    def postprocess(self, preds: torch.Tensor) -> List[torch.Tensor]:
+    def postprocess(self, preds: torch.Tensor) -> Dict[torch.Tensor]:
         """
         Postprocess YOLO predictions to extract and reshape keypoints for pose estimation.
 
@@ -131,7 +131,7 @@ class PoseValidator(DetectionValidator):
                 bounding boxes, confidence scores, class predictions, and keypoint data.
 
         Returns:
-            (List[torch.Tensor]): List of processed prediction dictionaries, each containing:
+            (Dict[torch.Tensor]): Dict of processed prediction dictionaries, each containing:
                 - 'bboxes': Bounding box coordinates
                 - 'conf': Confidence scores  
                 - 'cls': Class predictions

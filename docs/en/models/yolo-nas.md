@@ -56,7 +56,7 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
 !!! example
 
     This example provides simple inference and validation code for YOLO-NAS. For handling inference results see [Predict](../modes/predict.md) mode. For using YOLO-NAS with additional modes see [Val](../modes/val.md). YOLO-NAS on the `ultralytics` package does not support training and export.
-    
+
     Due to limitations of TorchScript format, the model only works on CPU device. i.e `device=cpu`
 
     === "Python"

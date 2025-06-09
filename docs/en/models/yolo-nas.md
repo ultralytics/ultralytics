@@ -100,10 +100,10 @@ We offer three variants of the YOLO-NAS models: Small (s), Medium (m), and Large
 Below is a detailed overview of each model, including links to their pre-trained weights, the tasks they support, and their compatibility with different operating modes.
 
 | Model Type | Pre-trained Weights                                                                                             | Tasks Supported                        | Inference | Validation | Training | Export |
-| ---------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | --- |
-| YOLO-NAS-s | [yolo_nas_s.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_s.torchscript) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ❌   |
-| YOLO-NAS-m | [yolo_nas_m.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_m.torchscript) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ❌   |
-| YOLO-NAS-l | [yolo_nas_l.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_l.torchscript) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ❌   |
+| ---------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLO-NAS-s | [yolo_nas_s.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_s.torchscript) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ❌     |
+| YOLO-NAS-m | [yolo_nas_m.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_m.torchscript) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ❌     |
+| YOLO-NAS-l | [yolo_nas_l.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_l.torchscript) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ❌     |
 
 ## Citations and Acknowledgements
 

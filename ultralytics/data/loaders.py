@@ -666,7 +666,7 @@ def download_pinterest_video(url: str) -> Optional[str]:
     from yt_dlp import YoutubeDL
 
     pin_id = urllib.parse.urlparse(url).path.strip("/").split("/")[-1]
-    ydl_opts = {"quiet": False, "outtmpl": f'{pin_id}.%(ext)s', "format": "best[ext=mp4]/best"}
+    ydl_opts = {"quiet": False, "outtmpl": f"{pin_id}.%(ext)s", "format": "best[ext=mp4]/best"}
 
     try:
         with YoutubeDL(ydl_opts) as ydl:

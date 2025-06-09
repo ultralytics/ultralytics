@@ -75,9 +75,9 @@ This section will address common issues faced while training and their respectiv
 - Confirm that the path to your `.yaml` configuration file is correct.
 - Make sure you pass the path to your `.yaml` file as the `data` argument when calling `model.train()`, as shown below:
 
-```python
-model.train(data="/path/to/your/data.yaml", batch=4)
-```
+    ```python
+    model.train(data="/path/to/your/data.yaml", batch=4)
+    ```
 
 #### Accelerating Training with Multiple GPUs
 
@@ -90,10 +90,10 @@ model.train(data="/path/to/your/data.yaml", batch=4)
 - Increase the batch size accordingly to fully utilize the multiple GPUs without exceeding memory limits.
 - Modify your training command to utilize multiple GPUs:
 
-```python
-# Adjust the batch size and other settings as needed to optimize training speed
-model.train(data="/path/to/your/data.yaml", batch=32, multi_scale=True)
-```
+    ```python
+    # Adjust the batch size and other settings as needed to optimize training speed
+    model.train(data="/path/to/your/data.yaml", batch=32, multi_scale=True)
+    ```
 
 #### Continuous Monitoring Parameters
 
@@ -174,13 +174,13 @@ This section will address common issues faced during model prediction.
 
 - Coordinate Format: YOLO11 provides bounding box coordinates in absolute pixel values. To convert these to relative coordinates (ranging from 0 to 1), you need to divide by the image dimensions. For example, let's say your image size is 640x640. Then you would do the following:
 
-```python
-# Convert absolute coordinates to relative coordinates
-x1 = x1 / 640  # Divide x-coordinates by image width
-x2 = x2 / 640
-y1 = y1 / 640  # Divide y-coordinates by image height
-y2 = y2 / 640
-```
+    ```python
+    # Convert absolute coordinates to relative coordinates
+    x1 = x1 / 640  # Divide x-coordinates by image width
+    x2 = x2 / 640
+    y1 = y1 / 640  # Divide y-coordinates by image height
+    y2 = y2 / 640
+    ```
 
 - File Name: To obtain the file name of the image you're predicting on, access the image file path directly from the result object within your prediction loop.
 

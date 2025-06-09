@@ -49,7 +49,7 @@ class PoseValidator(DetectionValidator):
         >>> validator()
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
         """
         Initialize a PoseValidator object for pose estimation validation.
 
@@ -59,7 +59,6 @@ class PoseValidator(DetectionValidator):
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
             save_dir (Path | str, optional): Directory to save results.
-            pbar (Any, optional): Progress bar for displaying progress.
             args (dict, optional): Arguments for the validator including task set to "pose".
             _callbacks (list, optional): List of callback functions to be executed during validation.
 
@@ -74,7 +73,7 @@ class PoseValidator(DetectionValidator):
             for OKS calculation and sets up PoseMetrics for evaluation. A warning is displayed when using Apple MPS
             due to a known bug with pose models.
         """
-        super().__init__(dataloader, save_dir, pbar, args, _callbacks)
+        super().__init__(dataloader, save_dir, args, _callbacks)
         self.sigma = None
         self.kpt_shape = None
         self.args.task = "pose"
@@ -107,8 +106,13 @@ class PoseValidator(DetectionValidator):
             "mAP50-95)",
         )
 
-    def init_metrics(self, model):
-        """Initialize pose estimation metrics for YOLO model."""
+    def init_metrics(self, model: torch.nn.Module) -> None:
+        """
+        Initialize evaluation metrics for YOLO pose validation.
+
+        Args:
+            model (torch.nn.Module): Model to validate.
+        """
         super().init_metrics(model)
         self.kpt_shape = self.data["kpt_shape"]
         is_pose = self.kpt_shape == [17, 3]
@@ -122,10 +126,10 @@ class PoseValidator(DetectionValidator):
 
         Args:
             si (int): Batch index.
-            batch (dict): Dictionary containing batch data with keys like 'keypoints', 'batch_idx', etc.
+            batch (Dict[str, Any]): Dictionary containing batch data with keys like 'keypoints', 'batch_idx', etc.
 
         Returns:
-            (dict): Prepared batch with keypoints scaled to original image dimensions.
+            (Dict[str, Any]): Prepared batch with keypoints scaled to original image dimensions.
 
         Notes:
             This method extends the parent class's _prepare_batch method by adding keypoint processing.
@@ -151,7 +155,7 @@ class PoseValidator(DetectionValidator):
 
         Args:
             pred (torch.Tensor): Raw prediction tensor from the model.
-            pbatch (dict): Processed batch dictionary containing image information including:
+            pbatch (Dict[str, Any]): Processed batch dictionary containing image information including:
                 - imgsz: Image size used for inference
                 - ori_shape: Original image shape
                 - ratio_pad: Ratio and padding information for coordinate scaling
@@ -166,7 +170,7 @@ class PoseValidator(DetectionValidator):
         ops.scale_coords(pbatch["imgsz"], pred_kpts, pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
         return predn, pred_kpts
 
-    def update_metrics(self, preds: List[torch.Tensor], batch: Dict[str, Any]):
+    def update_metrics(self, preds: List[torch.Tensor], batch: Dict[str, Any]) -> None:
         """
         Update metrics with new predictions and ground truth data.
 
@@ -175,7 +179,7 @@ class PoseValidator(DetectionValidator):
 
         Args:
             preds (List[torch.Tensor]): List of prediction tensors from the model.
-            batch (dict): Batch data containing images and ground truth annotations.
+            batch (Dict[str, Any]): Batch data containing images and ground truth annotations.
         """
         for si, pred in enumerate(preds):
             self.seen += 1
@@ -266,12 +270,12 @@ class PoseValidator(DetectionValidator):
 
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
-    def plot_val_samples(self, batch: Dict[str, Any], ni: int):
+    def plot_val_samples(self, batch: Dict[str, Any], ni: int) -> None:
         """
         Plot and save validation set samples with ground truth bounding boxes and keypoints.
 
         Args:
-            batch (dict): Dictionary containing batch data with keys:
+            batch (Dict[str, Any]): Dictionary containing batch data with keys:
                 - img (torch.Tensor): Batch of images
                 - batch_idx (torch.Tensor): Batch indices for each image
                 - cls (torch.Tensor): Class labels
@@ -292,12 +296,12 @@ class PoseValidator(DetectionValidator):
             on_plot=self.on_plot,
         )
 
-    def plot_predictions(self, batch: Dict[str, Any], preds: List[torch.Tensor], ni: int):
+    def plot_predictions(self, batch: Dict[str, Any], preds: List[torch.Tensor], ni: int) -> None:
         """
         Plot and save model predictions with bounding boxes and keypoints.
 
         Args:
-            batch (dict): Dictionary containing batch data including images, file paths, and other metadata.
+            batch (Dict[str, Any]): Dictionary containing batch data including images, file paths, and other metadata.
             preds (List[torch.Tensor]): List of prediction tensors from the model, each containing bounding boxes,
                 confidence scores, class predictions, and keypoints.
             ni (int): Batch index used for naming the output file.
@@ -323,7 +327,7 @@ class PoseValidator(DetectionValidator):
         save_conf: bool,
         shape: Tuple[int, int],
         file: Path,
-    ):
+    ) -> None:
         """
         Save YOLO pose detections to a text file in normalized coordinates.
 
@@ -349,7 +353,7 @@ class PoseValidator(DetectionValidator):
             keypoints=pred_kpts,
         ).save_txt(file, save_conf=save_conf)
 
-    def pred_to_json(self, predn: torch.Tensor, filename: str):
+    def pred_to_json(self, predn: torch.Tensor, filename: str) -> None:
         """
         Convert YOLO predictions to COCO JSON format.
 

@@ -293,7 +293,7 @@ class Model(torch.nn.Module):
 
         if str(weights).rpartition(".")[-1] == "pt":
             self.model, self.ckpt = attempt_load_one_weight(weights)
-            self.task = self.model.args["task"]
+            self.task = self.model.task
             self.overrides = self.model.args = self._reset_ckpt_args(self.model.args)
             self.ckpt_path = self.model.pt_path
         else:
@@ -673,8 +673,8 @@ class Model(torch.nn.Module):
         custom = {"verbose": False}  # method defaults
         args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, "mode": "benchmark"}
         fmts = export_formats()
-        export_args = set(dict(zip(fmts["Argument"], fmts["Arguments"])).get(format, []))
-        export_kwargs = {k: v for k, v in args.items() if k in export_args - set(["batch"])}
+        export_args = set(dict(zip(fmts["Argument"], fmts["Arguments"])).get(format, [])) - {"batch"}
+        export_kwargs = {k: v for k, v in args.items() if k in export_args}
         return benchmark(
             model=self,
             data=data,  # if no 'data' argument passed set data=None for default datasets
@@ -754,7 +754,7 @@ class Model(torch.nn.Module):
             **kwargs (Any): Arbitrary keyword arguments for training configuration. Common options include:
                 data (str): Path to dataset configuration file.
                 epochs (int): Number of training epochs.
-                batch_size (int): Batch size for training.
+                batch (int): Batch size for training.
                 imgsz (int): Input image size.
                 device (str): Device to run training on (e.g., 'cuda', 'cpu').
                 workers (int): Number of worker threads for data loading.
@@ -1033,7 +1033,7 @@ class Model(torch.nn.Module):
             self.callbacks[event] = [callbacks.default_callbacks[event][0]]
 
     @staticmethod
-    def _reset_ckpt_args(args: dict) -> dict:
+    def _reset_ckpt_args(args: Dict[str, Any]) -> Dict[str, Any]:
         """
         Reset specific arguments when loading a PyTorch model checkpoint.
 

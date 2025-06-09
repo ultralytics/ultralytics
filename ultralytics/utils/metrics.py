@@ -989,6 +989,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
             target_cls (np.ndarray): Target class indices array.
             on_plot (callable, optional): Function to call after plots are generated.
         """
+        # stats = {k: np.concatenate(v, 0) for k, v in self.metrics.stats.items()}  # to numpy
         tp = np.concatenate(self.stats["tp"], axis=0)
         conf = np.concatenate(self.stats["conf"], axis=0)
         pred_cls = np.concatenate(self.stats["pred_cls"], axis=0)
@@ -1005,6 +1006,11 @@ class DetMetrics(SimpleClass, DataExportMixin):
         )[2:]
         self.box.nc = len(self.names)
         self.box.update(results)
+
+    def clear_stats(self):
+        """Clear the stored statistics."""
+        for v in self.stats.values():
+            v.clear()
 
     @property
     def keys(self) -> List[str]:

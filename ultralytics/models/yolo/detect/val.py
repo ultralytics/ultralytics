@@ -104,6 +104,7 @@ class DetectionValidator(BaseValidator):
         self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf, names=self.names.values())
         self.seen = 0
         self.jdict = []
+        self.metrics.clear_stats()
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing class metrics of YOLO model."""

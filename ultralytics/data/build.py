@@ -2,9 +2,9 @@
 
 import os
 import random
+import urllib
 from pathlib import Path
 from typing import Any, Iterator
-import urllib
 
 import numpy as np
 import torch

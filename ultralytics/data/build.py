@@ -220,7 +220,11 @@ def check_source(source):
         source = str(source)
         source_lower = source.lower()
         is_file = source_lower.rpartition(".")[-1] in (IMG_FORMATS | VID_FORMATS)
-        is_pinterest = "pinterest.com" in source_lower
+        try:
+            parsed_url = urlparse(source_lower)
+            is_pinterest = parsed_url.hostname == "pinterest.com"
+        except ValueError:
+            is_pinterest = False
         is_url = source_lower.startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")) and not is_pinterest
         webcam = source.isnumeric() or source.endswith(".streams") or (is_url and not is_file)
         screenshot = source_lower == "screen"

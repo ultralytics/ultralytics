@@ -130,8 +130,7 @@ class DetectionValidator(BaseValidator):
             end2end=self.end2end,
             rotated=self.args.task == "obb",
         )
-        # TODO: fix this `nm`
-        return [{"bboxes": x[:, :4], "conf": x[:, 4], "cls": x[:, 5], "nm": x[:, 6:]} for x in outputs]
+        return [{"bboxes": x[:, :4], "conf": x[:, 4], "cls": x[:, 5], "extra": x[:, 6:]} for x in outputs]
 
     def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -208,7 +207,6 @@ class DetectionValidator(BaseValidator):
             if no_pred:
                 continue
 
-            # TODO: handle "predn" in dict format
             # Save
             if self.args.save_json:
                 self.pred_to_json(predn, batch["im_file"][si])

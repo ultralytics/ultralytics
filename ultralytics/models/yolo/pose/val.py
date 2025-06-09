@@ -163,7 +163,7 @@ class PoseValidator(DetectionValidator):
         """
         predn = super()._prepare_pred(pred, pbatch)
         if len(pred):
-            pred_kpts = pred["nm"].view(-1, *self.kpt_shape).clone()
+            pred_kpts = pred["extra"].view(-1, *self.kpt_shape).clone()
             ops.scale_coords(pbatch["imgsz"], pred_kpts, pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
             predn["keypoints"] = pred_kpts
         return predn
@@ -212,8 +212,8 @@ class PoseValidator(DetectionValidator):
         on the input images. The resulting visualization is saved to the specified save directory.
         """
         for p in preds:
-            p["keypoints"] = p["nm"].view(-1, *self.kpt_shape)  # reshape keypoints
-            p.pop("nm")
+            p["keypoints"] = p["extra"].view(-1, *self.kpt_shape)  # reshape keypoints
+            p.pop("extra")
         super().plot_predictions(batch, preds, ni)  # plot bboxes
 
     def save_one_txt(

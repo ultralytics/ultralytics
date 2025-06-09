@@ -141,7 +141,7 @@ class SegmentationValidator(DetectionValidator):
         """
         predn = super()._prepare_pred(pred, pbatch)
         if len(pred):
-            pred_masks = self.process(pred["proto"], pred["nm"], pred["bboxes"], shape=pbatch["imgsz"])
+            pred_masks = self.process(pred["proto"], pred["extra"], pred["bboxes"], shape=pbatch["imgsz"])
             predn["masks"] = pred_masks
             if self.args.save_json and len(pred_masks):
                 coco_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
@@ -158,7 +158,7 @@ class SegmentationValidator(DetectionValidator):
                     LOGGER.warning("Limiting validation plots to first 50 items per image for speed...")
         # remove intermediate variables
         pred.pop("proto")
-        pred.pop("nm")
+        pred.pop("extra")
         return predn
 
     def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:

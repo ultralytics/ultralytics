@@ -145,7 +145,7 @@ class OBBValidator(DetectionValidator):
         bboxes = ops.scale_boxes(
             pbatch["imgsz"], pred["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"], xywh=True
         )  # native-space pred
-        return {"bboxes": torch.cat([bboxes, pred["nm"]], dim=-1), "conf": pred["conf"], "cls": cls}
+        return {"bboxes": torch.cat([bboxes, pred["extra"]], dim=-1), "conf": pred["conf"], "cls": cls}
 
     def plot_predictions(self, batch: Dict[str, Any], preds: List[torch.Tensor], ni: int) -> None:
         """
@@ -164,7 +164,7 @@ class OBBValidator(DetectionValidator):
         """
         for p in preds:
             # TODO: fix this duplicated `xywh2xyxy`
-            p["bboxes"] = torch.cat((ops.xywh2xyxy(p["bboxes"]), p["nm"]), dim=1)  # reshape keypoints
+            p["bboxes"] = torch.cat((ops.xywh2xyxy(p["bboxes"]), p["extra"]), dim=1)  # reshape keypoints
         super().plot_predictions(batch, preds, ni)  # plot bboxes
 
     def pred_to_json(self, predn: torch.Tensor, filename: Union[str, Path]) -> None:

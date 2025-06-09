@@ -670,8 +670,7 @@ def download_pinterest_video(url: str) -> Optional[str]:
 
     try:
         with YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            downloaded_file = f"{pin_id}.{info.get('ext', 'mp4')}"
+            downloaded_file = f"{pin_id}.{ydl.extract_info(url, download=True).get('ext', 'mp4')}"
             return downloaded_file if os.path.isfile(downloaded_file) else None
     except Exception as e:
         print(f"Download failed: {e}")

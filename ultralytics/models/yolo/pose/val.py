@@ -164,12 +164,9 @@ class PoseValidator(DetectionValidator):
         """
         predn = super()._prepare_pred(pred, pbatch)
         if len(pred):
-            nk = pbatch["keypoints"].shape[1]
-            pred_kpts = pred["nm"]
-            pred_kpts = pred_kpts.view(len(pred_kpts), nk, -1)
+            pred_kpts = pred["nm"].view(-1, *self.kpt_shape).clone()
             ops.scale_coords(pbatch["imgsz"], pred_kpts, pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
             predn["keypoints"] = pred_kpts
-        pred.pop("nm")
         return predn
 
     def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
@@ -215,17 +212,10 @@ class PoseValidator(DetectionValidator):
         The function extracts keypoints from predictions, converts predictions to target format, and plots them
         on the input images. The resulting visualization is saved to the specified save directory.
         """
-        return
-        pred_kpts = torch.cat([p[:, 6:].view(-1, *self.kpt_shape) for p in preds], 0)
-        plot_images(
-            batch["img"],
-            *output_to_target(preds, max_det=self.args.max_det),
-            kpts=pred_kpts,
-            paths=batch["im_file"],
-            fname=self.save_dir / f"val_batch{ni}_pred.jpg",
-            names=self.names,
-            on_plot=self.on_plot,
-        )  # pred
+        for p in preds:
+            p["keypoints"] = p["nm"].view(-1, *self.kpt_shape)  # reshape keypoints
+            p.pop("nm")
+        super().plot_predictions(batch, preds, ni)  # plot bboxes
 
     def save_one_txt(
         self,

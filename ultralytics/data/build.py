@@ -4,7 +4,6 @@ import os
 import random
 from pathlib import Path
 from typing import Any, Iterator
-from urllib.parse import urlparse
 
 import numpy as np
 import torch

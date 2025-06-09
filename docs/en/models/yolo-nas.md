@@ -55,7 +55,7 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
 
 !!! example
 
-    This example provides simple inference and validation code for YOLO-NAS. For handling inference results see [Predict](../modes/predict.md) mode. For using YOLO-NAS with additional modes see [Val](../modes/val.md) and [Export](../modes/export.md). YOLO-NAS on the `ultralytics` package does not support training.
+    This example provides simple inference and validation code for YOLO-NAS. For handling inference results see [Predict](../modes/predict.md) mode. For using YOLO-NAS with additional modes see [Val](../modes/val.md). YOLO-NAS on the `ultralytics` package does not support training and export.
 
     === "Python"
 
@@ -70,7 +70,7 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
         # Display model information (optional)
         model.info()
 
-        # Validate the model on the COCO8 example dataset
+        # Validate the torchscript model on the COCO8 example dataset
         results = model.val(data="coco8.yaml")
 
         # Run inference with the YOLO-NAS-s torchscript model on the 'bus.jpg' image
@@ -143,7 +143,7 @@ from ultralytics import NAS
 # Load a COCO-pretrained YOLO-NAS-s torchscript model
 model = NAS("yolo_nas_s.torchscript")
 
-# Validate the model on the COCO8 example dataset
+# Validate the torchscript model on the COCO8 example dataset
 results = model.val(data="coco8.yaml")
 
 # Run inference with the YOLO-NAS-s model on the 'bus.jpg' image

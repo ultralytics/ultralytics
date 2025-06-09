@@ -110,9 +110,9 @@ class SegmentationValidator(DetectionValidator):
         preds = super().postprocess(preds[0])
         imgsz = [4 * x for x in proto.shape[2:]]  # get image size from proto
         for i, pred in enumerate(preds):
-            if len(pred) == 0:
-                continue
             coefficient = pred.pop("extra")  # remove extra if exists
+            if len(coefficient) == 0:
+                continue
             pred["masks"] = self.process(proto[i], coefficient, pred["bboxes"], shape=imgsz)
         return preds
 

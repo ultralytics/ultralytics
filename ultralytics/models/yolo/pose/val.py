@@ -117,6 +117,39 @@ class PoseValidator(DetectionValidator):
         nkpt = self.kpt_shape[0]
         self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
 
+    def postprocess(self, preds: torch.Tensor) -> List[torch.Tensor]:
+        """
+        Postprocess YOLO predictions to extract and reshape keypoints for pose estimation.
+
+        This method extends the parent class postprocessing by extracting keypoints from the 'extra'
+        field of predictions and reshaping them according to the keypoint shape configuration.
+        The keypoints are reshaped from a flattened format to the proper dimensional structure
+        (typically [N, 17, 3] for COCO pose format).
+
+        Args:
+            preds (torch.Tensor): Raw prediction tensor from the YOLO pose model containing
+                bounding boxes, confidence scores, class predictions, and keypoint data.
+
+        Returns:
+            (List[torch.Tensor]): List of processed prediction dictionaries, each containing:
+                - 'bboxes': Bounding box coordinates
+                - 'conf': Confidence scores  
+                - 'cls': Class predictions
+                - 'keypoints': Reshaped keypoint coordinates with shape (-1, *self.kpt_shape)
+
+        Note:
+            If no keypoints are present in a prediction (empty keypoints), that prediction
+            is skipped and continues to the next one. The keypoints are extracted from the
+            'extra' field which contains additional task-specific data beyond basic detection.
+        """
+        preds = super().postprocess(preds)
+        for pred in preds:
+            keypoints = pred.pop("extra")  # remove extra if exists
+            if len(keypoints) == 0:
+                continue
+            pred["keypoints"] = keypoints.view(-1, *self.kpt_shape)
+        return preds
+
     def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
         """
         Prepare a batch for processing by converting keypoints to float and scaling to original dimensions.
@@ -162,10 +195,12 @@ class PoseValidator(DetectionValidator):
             pred_kpts (torch.Tensor): Predicted keypoints scaled to original image dimensions.
         """
         predn = super()._prepare_pred(pred, pbatch)
-        if len(pred):
-            pred_kpts = pred["extra"].view(-1, *self.kpt_shape).clone()
-            ops.scale_coords(pbatch["imgsz"], pred_kpts, pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
-            predn["keypoints"] = pred_kpts
+        kpts = pred.get("keypoints", None)
+        if kpts is None:
+            return predn
+        predn["keypoints"] = ops.scale_coords(
+            pbatch["imgsz"], kpts.clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
+        )
         return predn
 
     def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
@@ -197,24 +232,6 @@ class PoseValidator(DetectionValidator):
             tp_p = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
         tp.update({"tp_p": tp_p})  # update tp with mask IoU
         return tp
-
-    def plot_predictions(self, batch: Dict[str, Any], preds: List[torch.Tensor], ni: int) -> None:
-        """
-        Plot and save model predictions with bounding boxes and keypoints.
-
-        Args:
-            batch (Dict[str, Any]): Dictionary containing batch data including images, file paths, and other metadata.
-            preds (List[torch.Tensor]): List of prediction tensors from the model, each containing bounding boxes,
-                confidence scores, class predictions, and keypoints.
-            ni (int): Batch index used for naming the output file.
-
-        The function extracts keypoints from predictions, converts predictions to target format, and plots them
-        on the input images. The resulting visualization is saved to the specified save directory.
-        """
-        for p in preds:
-            p["keypoints"] = p["extra"].view(-1, *self.kpt_shape)  # reshape keypoints
-            p.pop("extra")
-        super().plot_predictions(batch, preds, ni)  # plot bboxes
 
     def save_one_txt(
         self,

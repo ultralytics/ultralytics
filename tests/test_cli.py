@@ -37,8 +37,8 @@ def test_val(task: str, model: str, data: str) -> None:
 
 
 def test_yolo_nas():
-    run(f"yolo predict model=yolo_nas_s.torchscript")  # Predict
-    run(f"yolo val model=yolo_nas_s.torchscript data=coco8.yaml imgsz=32")  # Val
+    run("yolo predict model=yolo_nas_s.torchscript")  # Predict
+    run("yolo val model=yolo_nas_s.torchscript data=coco8.yaml imgsz=32")  # Val
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)

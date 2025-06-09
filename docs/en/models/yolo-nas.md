@@ -100,10 +100,10 @@ We offer three variants of the YOLO-NAS models: Small (s), Medium (m), and Large
 Below is a detailed overview of each model, including links to their pre-trained weights, the tasks they support, and their compatibility with different operating modes.
 
 | Model Type | Pre-trained Weights                                                                                             | Tasks Supported                        | Inference | Validation | Training | Export |
-| ---------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLO-NAS-s | [yolo_nas_s.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_s.torchscript) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
-| YOLO-NAS-m | [yolo_nas_m.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_m.torchscript) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
-| YOLO-NAS-l | [yolo_nas_l.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_l.torchscript) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
+| ---------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | --- |
+| YOLO-NAS-s | [yolo_nas_s.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_s.torchscript) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ❌   |
+| YOLO-NAS-m | [yolo_nas_m.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_m.torchscript) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ❌   |
+| YOLO-NAS-l | [yolo_nas_l.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_l.torchscript) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ❌   |
 
 ## Citations and Acknowledgements
 
@@ -164,7 +164,7 @@ These features contribute to its high accuracy, efficient performance, and suita
 
 ### Which tasks and modes are supported by YOLO-NAS models?
 
-YOLO-NAS models support various object detection tasks and modes such as inference, validation, and export. They do not support training. The supported models include YOLO-NAS-s, YOLO-NAS-m, and YOLO-NAS-l, each tailored to different computational capacities and performance needs. For a detailed overview, refer to the [Supported Tasks and Modes](#supported-tasks-and-modes) section.
+YOLO-NAS models support various object detection tasks and modes such as inference, validation. They do not support training and export. The supported models include YOLO-NAS-s, YOLO-NAS-m, and YOLO-NAS-l, each tailored to different computational capacities and performance needs. For a detailed overview, refer to the [Supported Tasks and Modes](#supported-tasks-and-modes) section.
 
 ### Are there pre-trained YOLO-NAS models available and how do I access them?
 

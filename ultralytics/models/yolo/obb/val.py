@@ -92,7 +92,7 @@ class OBBValidator(DetectionValidator):
         """
         if len(batch["cls"]) == 0 or len(preds["cls"]) == 0:
             return {"tp": np.zeros((len(preds["cls"]), self.niou), dtype=bool)}
-        iou = batch_probiou(batch["bbox"], preds["bbox"])
+        iou = batch_probiou(batch["bboxes"], preds["bboxes"])
         return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 
     def _prepare_batch(self, si: int, batch: Dict) -> Dict:
@@ -121,7 +121,7 @@ class OBBValidator(DetectionValidator):
         if len(cls):
             bbox[..., :4].mul_(torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]])  # target boxes
             ops.scale_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad, xywh=True)  # native-space labels
-        return {"cls": cls, "bbox": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
+        return {"cls": cls, "bboxes": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
 
     def _prepare_pred(self, pred: torch.Tensor, pbatch: Dict[str, Any]) -> torch.Tensor:
         """
@@ -144,7 +144,7 @@ class OBBValidator(DetectionValidator):
         ops.scale_boxes(
             pbatch["imgsz"], predn[:, :4], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"], xywh=True
         )  # native-space pred
-        return {"bbox": torch.cat([predn[:, :4], predn[:, -1:]], dim=-1), "conf": predn[:, 4], "cls": predn[:, 5]}
+        return {"bboxes": torch.cat([predn[:, :4], predn[:, -1:]], dim=-1), "conf": predn[:, 4], "cls": predn[:, 5]}
 
     def plot_predictions(self, batch: Dict[str, Any], preds: List[torch.Tensor], ni: int) -> None:
         """
@@ -187,7 +187,7 @@ class OBBValidator(DetectionValidator):
         """
         stem = Path(filename).stem
         image_id = int(stem) if stem.isnumeric() else stem
-        rbox = predn["bbox"]
+        rbox = predn["bboxes"]
         poly = ops.xywhr2xyxyxyxy(rbox).view(-1, 8)
         for r, b, s, c in enumerate(zip(rbox.tolist(), poly.tolist(), predn["conf"].tolist(), predn["cls"].tolist())):
             self.jdict.append(
@@ -226,7 +226,7 @@ class OBBValidator(DetectionValidator):
             np.zeros((shape[0], shape[1]), dtype=np.uint8),
             path=None,
             names=self.names,
-            obb=torch.cat([predn["bbox"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
+            obb=torch.cat([predn["bboxes"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
         ).save_txt(file, save_conf=save_conf)
 
     def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:

@@ -2,6 +2,7 @@
 
 import os
 import random
+import urllib.parse
 from pathlib import Path
 from typing import Any, Iterator
 
@@ -220,10 +221,7 @@ def check_source(source):
         source = str(source)
         source_lower = source.lower()
         is_file = source_lower.rpartition(".")[-1] in (IMG_FORMATS | VID_FORMATS)
-        try:
-            is_pinterest = urlparse(source_lower).hostname == "pinterest.com"
-        except ValueError:
-            is_pinterest = False
+        is_pinterest = source_lower.startswith("https://in.pinterest")
         is_url = source_lower.startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")) and not is_pinterest
         webcam = source.isnumeric() or source.endswith(".streams") or (is_url and not is_file)
         screenshot = source_lower == "screen"

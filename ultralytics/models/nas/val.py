@@ -34,6 +34,6 @@ class NASValidator(DetectionValidator):
 
     def postprocess(self, preds_in):
         """Apply Non-maximum suppression to prediction outputs."""
-        boxes = ops.xyxy2xywh(preds_in[0][0])  # Convert bounding box format from xyxy to xywh
-        preds = torch.cat((boxes, preds_in[0][1]), -1).permute(0, 2, 1)  # Concatenate boxes with scores and permute
+        boxes = ops.xyxy2xywh(preds_in[0])  # Convert bounding box format from xyxy to xywh
+        preds = torch.cat((boxes, preds_in[1]), -1).permute(0, 2, 1)  # Concatenate boxes with scores and permute
         return super().postprocess(preds)

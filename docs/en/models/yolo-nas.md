@@ -10,6 +10,8 @@ keywords: YOLO-NAS, Deci AI, object detection, deep learning, Neural Architectur
 
     Please note that [Deci](https://www.linkedin.com/company/deciai/), the original creators of YOLO-NAS, have been acquired by NVIDIA. As a result, these models are no longer actively maintained by Deci. Ultralytics continues to support the usage of these models, but no further updates from the original team are expected.
 
+    Also for the `super-gradients` library has ended for Python versions above 3.9. To ensure continued compatibility and long-term usability, Ultralytics has converted all YOLO-NAS models to the TorchScript format.
+
 ## Overview
 
 Developed by Deci AI, YOLO-NAS is a groundbreaking object detection foundational model. It is the product of advanced [Neural Architecture Search](https://www.ultralytics.com/glossary/neural-architecture-search-nas) technology, meticulously designed to address the limitations of previous YOLO models. With significant improvements in quantization support and [accuracy](https://www.ultralytics.com/glossary/accuracy)-latency trade-offs, YOLO-NAS represents a major leap in object detection.
@@ -53,7 +55,7 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
 
 !!! example
 
-    This example provides simple inference and validation code for YOLO-NAS. For handling inference results see [Predict](../modes/predict.md) mode. For using YOLO-NAS with additional modes see [Val](../modes/val.md) and [Export](../modes/export.md). YOLO-NAS on the `ultralytics` package does not support training.
+    This example provides simple inference and validation code for YOLO-NAS. For handling inference results see [Predict](../modes/predict.md) mode. For using YOLO-NAS with additional modes see [Val](../modes/val.md). YOLO-NAS on the `ultralytics` package does not support training and export.
 
     === "Python"
 
@@ -62,16 +64,16 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
         ```python
         from ultralytics import NAS
 
-        # Load a COCO-pretrained YOLO-NAS-s model
-        model = NAS("yolo_nas_s.pt")
+        # Load a COCO-pretrained YOLO-NAS-s torchscript model
+        model = NAS("yolo_nas_s.torchscript")
 
         # Display model information (optional)
         model.info()
 
-        # Validate the model on the COCO8 example dataset
+        # Validate the torchscript model on the COCO8 example dataset
         results = model.val(data="coco8.yaml")
 
-        # Run inference with the YOLO-NAS-s model on the 'bus.jpg' image
+        # Run inference with the YOLO-NAS-s torchscript model on the 'bus.jpg' image
         results = model("path/to/bus.jpg")
         ```
 
@@ -80,11 +82,11 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
         CLI commands are available to directly run the models:
 
         ```bash
-        # Load a COCO-pretrained YOLO-NAS-s model and validate it's performance on the COCO8 example dataset
-        yolo val model=yolo_nas_s.pt data=coco8.yaml
+        # Load a COCO-pretrained YOLO-NAS-s torchscript model and validate it's performance on the COCO8 example dataset
+        yolo val model=yolo_nas_s.torchscript data=coco8.yaml
 
-        # Load a COCO-pretrained YOLO-NAS-s model and run inference on the 'bus.jpg' image
-        yolo predict model=yolo_nas_s.pt source=path/to/bus.jpg
+        # Load a COCO-pretrained YOLO-NAS-s torchscript model and run inference on the 'bus.jpg' image
+        yolo predict model=yolo_nas_s.torchscript source=path/to/bus.jpg
         ```
 
 ## Supported Tasks and Modes
@@ -97,11 +99,11 @@ We offer three variants of the YOLO-NAS models: Small (s), Medium (m), and Large
 
 Below is a detailed overview of each model, including links to their pre-trained weights, the tasks they support, and their compatibility with different operating modes.
 
-| Model Type | Pre-trained Weights                                                                           | Tasks Supported                        | Inference | Validation | Training | Export |
-| ---------- | --------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_s.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
-| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_m.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
-| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_l.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
+| Model Type | Pre-trained Weights                                                                                             | Tasks Supported                        | Inference | Validation | Training | Export |
+| ---------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
+| YOLO-NAS-s | [yolo_nas_s.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_s.torchscript) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
+| YOLO-NAS-m | [yolo_nas_m.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_m.torchscript) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
+| YOLO-NAS-l | [yolo_nas_l.torchscript](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_l.torchscript) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
 
 ## Citations and Acknowledgements
 
@@ -138,10 +140,10 @@ You can easily integrate YOLO-NAS models into your Python application using the 
 ```python
 from ultralytics import NAS
 
-# Load a COCO-pretrained YOLO-NAS-s model
-model = NAS("yolo_nas_s.pt")
+# Load a COCO-pretrained YOLO-NAS-s torchscript model
+model = NAS("yolo_nas_s.torchscript")
 
-# Validate the model on the COCO8 example dataset
+# Validate the torchscript model on the COCO8 example dataset
 results = model.val(data="coco8.yaml")
 
 # Run inference with the YOLO-NAS-s model on the 'bus.jpg' image
@@ -168,6 +170,6 @@ YOLO-NAS models support various object detection tasks and modes such as inferen
 
 Yes, Ultralytics provides pre-trained YOLO-NAS models that you can access directly. These models are pre-trained on datasets like COCO, ensuring high performance in terms of both speed and accuracy. You can download these models using the links provided in the [Pre-trained Models](#pre-trained-models) section. Here are some examples:
 
-- [YOLO-NAS-s](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_s.pt)
-- [YOLO-NAS-m](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_m.pt)
-- [YOLO-NAS-l](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_l.pt)
+- [YOLO-NAS-s](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_s.torchscript)
+- [YOLO-NAS-m](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_m.torchscript)
+- [YOLO-NAS-l](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_l.torchscript)

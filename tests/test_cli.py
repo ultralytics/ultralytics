@@ -36,6 +36,11 @@ def test_val(task: str, model: str, data: str) -> None:
     run(f"yolo val {task} model={model} data={data} imgsz=32 save_txt save_json")
 
 
+def test_yolo_nas():
+    run(f"yolo predict model=yolo_nas_s.torchscript")  # Predict
+    run(f"yolo val model=yolo_nas_s.torchscript data=coco8.yaml imgsz=32")  # Val
+
+
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_predict(task: str, model: str, data: str) -> None:
     """Test YOLO prediction on provided sample assets for specified task and model."""

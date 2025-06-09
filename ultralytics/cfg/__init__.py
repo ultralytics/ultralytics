@@ -948,6 +948,10 @@ def entrypoint(debug: str = "") -> None:
         from ultralytics import SAM
 
         model = SAM(model)
+    elif "yolo_nas_" in stem:
+        from ultralytics import NAS
+
+        model = NAS(model)
     else:
         from ultralytics import YOLO
 

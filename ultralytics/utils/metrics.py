@@ -1068,7 +1068,11 @@ class DetMetrics(SimpleClass, DataExportMixin):
             "box-f1": self.box.f1,
         }
         return [
-            {"class_name": self.names[self.ap_class_index[i]], **{k: round(v[i], decimals) for k, v in per_class.items()}, **scalars}
+            {
+                "class_name": self.names[self.ap_class_index[i]],
+                **{k: round(v[i], decimals) for k, v in per_class.items()},
+                **scalars,
+            }
             for i in range(len(per_class["box-p"]))
         ]
 
@@ -1246,7 +1250,11 @@ class SegmentMetrics(SimpleClass, DataExportMixin):
             "mask-f1": self.seg.f1,
         }
         return [
-            {"class_name": self.names[self.ap_class_index[i]], **{k: round(v[i], decimals) for k, v in per_class.items()}, **scalars}
+            {
+                "class_name": self.names[self.ap_class_index[i]],
+                **{k: round(v[i], decimals) for k, v in per_class.items()},
+                **scalars,
+            }
             for i in range(len(per_class["box-p"]))
         ]
 
@@ -1424,7 +1432,11 @@ class PoseMetrics(SegmentMetrics):
             "pose-f1": self.pose.f1,
         }
         return [
-            {"class_name": self.names[self.ap_class_index[i]], **{k: round(v[i], decimals) for k, v in per_class.items()}, **scalars}
+            {
+                "class_name": self.names[self.ap_class_index[i]],
+                **{k: round(v[i], decimals) for k, v in per_class.items()},
+                **scalars,
+            }
             for i in range(len(per_class["box-p"]))
         ]
 
@@ -1627,6 +1639,10 @@ class OBBMetrics(SimpleClass, DataExportMixin):
         }
         per_class = {"box-p": self.box.p, "box-r": self.box.r, "box-f1": self.box.f1}
         return [
-            {"class_name": self.names[self.ap_class_index[i]], **{k: round(v[i], decimals) for k, v in per_class.items()}, **scalars}
+            {
+                "class_name": self.names[self.ap_class_index[i]],
+                **{k: round(v[i], decimals) for k, v in per_class.items()},
+                **scalars,
+            }
             for i in range(len(per_class["box-p"]))
         ]

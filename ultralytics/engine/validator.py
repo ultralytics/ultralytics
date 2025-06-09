@@ -220,8 +220,8 @@ class BaseValidator:
 
             self.update_metrics(preds, batch)
             if self.args.plots and batch_i < 3:
-                self.plot_val_samples(batch.copy(), batch_i)
-                self.plot_predictions(batch.copy(), preds, batch_i)
+                self.plot_val_samples(batch, batch_i)
+                self.plot_predictions(batch, preds, batch_i)
 
             self.run_callbacks("on_val_batch_end")
         stats = self.get_stats()

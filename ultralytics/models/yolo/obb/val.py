@@ -163,15 +163,9 @@ class OBBValidator(DetectionValidator):
             >>> preds = [torch.rand(10, 7)]  # Example predictions for one image
             >>> validator.plot_predictions(batch, preds, 0)
         """
-        # TODO
-        plot_images(
-            batch["img"],
-            *output_to_rotated_target(preds, max_det=self.args.max_det),
-            paths=batch["im_file"],
-            fname=self.save_dir / f"val_batch{ni}_pred.jpg",
-            names=self.names,
-            on_plot=self.on_plot,
-        )  # pred
+        for p in preds:
+            p["bboxes"] = torch.cat((p["bboxes"], p["nm"]), dim=1)  # reshape keypoints
+        super().plot_predictions(batch, preds, ni)  # plot bboxes
 
     def pred_to_json(self, predn: torch.Tensor, filename: Union[str, Path]) -> None:
         """

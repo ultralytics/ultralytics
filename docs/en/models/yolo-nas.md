@@ -144,7 +144,7 @@ from ultralytics import NAS
 model = NAS("yolo_nas_s.torchscript")
 
 # Validate the torchscript model on the COCO8 example dataset
-results = model.val(data="coco8.yaml")
+results = model.val(data="coco8.yaml", device="cpu")
 
 # Run inference with the YOLO-NAS-s torchscript model on the 'bus.jpg' image
 results = model("path/to/bus.jpg", device="cpu")

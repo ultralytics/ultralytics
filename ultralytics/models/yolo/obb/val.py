@@ -94,6 +94,15 @@ class OBBValidator(DetectionValidator):
         iou = batch_probiou(batch["bboxes"], preds["bboxes"])
         return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 
+    def postprocess(self, preds: torch.Tensor) -> Dict[str, torch.Tensor]:
+        preds = super().postprocess(preds)
+        for pred in preds:
+            angle = pred.pop("extra")  # remove extra if exists
+            if len(angle) == 0:
+                continue
+            pred["bboxes"] = torch.cat([pred["bboxes"], angle], dim=-1)
+        return preds
+
     def _prepare_batch(self, si: int, batch: Dict) -> Dict:
         """
         Prepare batch data for OBB validation with proper scaling and formatting.
@@ -145,7 +154,7 @@ class OBBValidator(DetectionValidator):
         bboxes = ops.scale_boxes(
             pbatch["imgsz"], pred["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"], xywh=True
         )  # native-space pred
-        return {"bboxes": torch.cat([bboxes, pred["extra"]], dim=-1), "conf": pred["conf"], "cls": cls}
+        return {"bboxes": bboxes, "conf": pred["conf"], "cls": cls}
 
     def plot_predictions(self, batch: Dict[str, Any], preds: List[torch.Tensor], ni: int) -> None:
         """
@@ -164,7 +173,7 @@ class OBBValidator(DetectionValidator):
         """
         for p in preds:
             # TODO: fix this duplicated `xywh2xyxy`
-            p["bboxes"] = torch.cat((ops.xywh2xyxy(p["bboxes"]), p["extra"]), dim=1)  # reshape keypoints
+            p["bboxes"][:, :4] = ops.xywh2xyxy(p["bboxes"][:, :4])  # convert to xyxy format
         super().plot_predictions(batch, preds, ni)  # plot bboxes
 
     def pred_to_json(self, predn: torch.Tensor, filename: Union[str, Path]) -> None:

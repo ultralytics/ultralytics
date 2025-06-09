@@ -117,7 +117,7 @@ class PoseValidator(DetectionValidator):
         nkpt = self.kpt_shape[0]
         self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
 
-    def postprocess(self, preds: torch.Tensor) -> Dict[torch.Tensor]:
+    def postprocess(self, preds: torch.Tensor) -> Dict[str, torch.Tensor]:
         """
         Postprocess YOLO predictions to extract and reshape keypoints for pose estimation.
 

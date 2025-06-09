@@ -39,6 +39,10 @@ keywords: Ultralytics, data loaders, SourceTypes, LoadStreams, LoadScreenshots, 
 
 <br><br><hr><br>
 
+## ::: ultralytics.data.loaders.download_pinterest_video
+
+<br><br><hr><br>
+
 ## ::: ultralytics.data.loaders.get_best_youtube_url
 
 <br><br>

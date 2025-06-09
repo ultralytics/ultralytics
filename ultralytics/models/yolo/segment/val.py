@@ -106,9 +106,15 @@ class SegmentationValidator(DetectionValidator):
             p (List[torch.Tensor]): Processed detection predictions.
             proto (torch.Tensor): Prototype masks for segmentation.
         """
-        pred = super().postprocess(preds[0])
         proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
-        return [{**p, "proto": proto[i]} for i, p in enumerate(pred)]
+        preds = super().postprocess(preds[0])
+        imgsz = [4 * x for x in proto.shape[2:]]  # get image size from proto
+        for i, pred in enumerate(preds):
+            if len(pred) == 0:
+                continue
+            coefficient = pred.pop("extra")  # remove extra if exists
+            pred["masks"] = self.process(proto[i], coefficient, pred["bboxes"], shape=imgsz)
+        return preds
 
     def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -141,24 +147,15 @@ class SegmentationValidator(DetectionValidator):
         """
         predn = super()._prepare_pred(pred, pbatch)
         if len(pred):
-            pred_masks = self.process(pred["proto"], pred["extra"], pred["bboxes"], shape=pbatch["imgsz"])
-            predn["masks"] = pred_masks
-            if self.args.save_json and len(pred_masks):
-                coco_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
+            predn["masks"] = pred["masks"]
+            if self.args.save_json:
+                coco_masks = torch.as_tensor(pred["masks"], dtype=torch.uint8)
                 coco_masks = ops.scale_image(
-                    pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
+                    coco_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
                     pbatch["ori_shape"],
                     ratio_pad=pbatch["ratio_pad"],
                 )
                 predn["coco_masks"] = coco_masks
-            if self.args.plots and self.batch_i < 3:
-                plot_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
-                self.plot_masks.append(plot_masks[:50].cpu())  # Limit plotted items for speed
-                if plot_masks.shape[0] > 50:
-                    LOGGER.warning("Limiting validation plots to first 50 items per image for speed...")
-        # remove intermediate variables
-        pred.pop("proto")
-        pred.pop("extra")
         return predn
 
     def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
@@ -192,10 +189,10 @@ class SegmentationValidator(DetectionValidator):
         """
         tp = super()._process_batch(preds, batch)
         gt_cls, gt_masks = batch["cls"], batch["masks"]
-        pred_masks = preds["masks"]
         if len(gt_cls) == 0 or len(preds["cls"]) == 0:
             tp_m = np.zeros((len(preds["cls"]), self.niou), dtype=bool)
         else:
+            pred_masks = preds["masks"]
             if self.args.overlap_mask:
                 nl = len(gt_cls)
                 index = torch.arange(nl, device=gt_masks.device).view(nl, 1, 1) + 1
@@ -218,11 +215,12 @@ class SegmentationValidator(DetectionValidator):
             preds (List[torch.Tensor]): List of predictions from the model.
             ni (int): Batch index.
         """
-        # TODO: optimize this
-        for i, p in enumerate(preds):
-            p["masks"] = self.plot_masks[i]
+        for p in preds:
+            masks = p["masks"]
+            if masks.shape[0] > 50:
+                LOGGER.warning("Limiting validation plots to first 50 items per image for speed...")
+            p["masks"] = torch.as_tensor(masks[:50], dtype=torch.uint8).cpu()
         super().plot_predictions(batch, preds, ni, max_det=50)  # plot bboxes
-        self.plot_masks.clear()
 
     def save_one_txt(self, predn: torch.Tensor, save_conf: bool, shape: Tuple[int, int], file: Path) -> None:
         """

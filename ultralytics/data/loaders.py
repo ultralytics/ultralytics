@@ -652,6 +652,32 @@ def autocast_list(source: List[Any]) -> List[Union[Image.Image, np.ndarray]]:
     return files
 
 
+def download_pinterest_video(url: str) -> Optional[str]:
+    """
+    Downloads the best available MP4 video from a Pinterest link using yt-dlp.
+
+    Args:
+        url (str): Pinterest video page URL i.e. https://in.pinterest.com/pin/356980707982596275/
+
+    Returns:
+        (str): Path to the downloaded video file, or None if download fails.
+    """
+    check_requirements("yt-dlp")
+    from yt_dlp import YoutubeDL
+
+    pin_id = urllib.parse.urlparse(url).path.strip("/").split("/")[-1]
+    ydl_opts = {"quiet": False, "outtmpl": f"{pin_id}.%(ext)s", "format": "best[ext=mp4]/best"}
+
+    try:
+        with YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=True)
+            downloaded_file = f"{pin_id}.{info.get('ext', 'mp4')}"
+            return downloaded_file if os.path.isfile(downloaded_file) else None
+    except Exception as e:
+        print(f"Download failed: {e}")
+        return None
+
+
 def get_best_youtube_url(url: str, method: str = "pytube") -> Optional[str]:
     """
     Retrieve the URL of the best quality MP4 video stream from a given YouTube video.

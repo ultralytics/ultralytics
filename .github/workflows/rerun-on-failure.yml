@@ -1,5 +1,9 @@
 name: Re-run Failed Jobs
 
+permissions:
+  contents: read
+  actions: write
+
 on:
   workflow_run:
     workflows: ["Ultralytics CI"]

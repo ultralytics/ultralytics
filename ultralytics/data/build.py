@@ -4,6 +4,7 @@ import os
 import random
 from pathlib import Path
 from typing import Any, Iterator
+from urllib.parse import urlparse
 
 import numpy as np
 import torch
@@ -220,7 +221,7 @@ def check_source(source):
         source = str(source)
         source_lower = source.lower()
         is_file = source_lower.rpartition(".")[-1] in (IMG_FORMATS | VID_FORMATS)
-        is_pinterest = source_lower.startswith("https://in.pinterest.com")
+        is_pinterest = urllib.parse.urlparse(source_lower).hostname == "in.pinterest.com"
         is_url = source_lower.startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")) and not is_pinterest
         webcam = source.isnumeric() or source.endswith(".streams") or (is_url and not is_file)
         screenshot = source_lower == "screen"

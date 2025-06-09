@@ -2,7 +2,6 @@
 
 import os
 import random
-import urllib.parse
 from pathlib import Path
 from typing import Any, Iterator
 

@@ -71,10 +71,10 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
         model.info()
 
         # Validate the torchscript model on the COCO8 example dataset
-        results = model.val(data="coco8.yaml")
+        results = model.val(data="coco8.yaml", device="cpu")
 
         # Run inference with the YOLO-NAS-s torchscript model on the 'bus.jpg' image
-        results = model("path/to/bus.jpg")
+        results = model("path/to/bus.jpg", device="cpu")
         ```
 
     === "CLI"
@@ -83,10 +83,10 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
 
         ```bash
         # Load a COCO-pretrained YOLO-NAS-s torchscript model and validate it's performance on the COCO8 example dataset
-        yolo val model=yolo_nas_s.torchscript data=coco8.yaml
+        yolo val model=yolo_nas_s.torchscript data=coco8.yaml device="cpu"
 
         # Load a COCO-pretrained YOLO-NAS-s torchscript model and run inference on the 'bus.jpg' image
-        yolo predict model=yolo_nas_s.torchscript source=path/to/bus.jpg
+        yolo predict model=yolo_nas_s.torchscript source=path/to/bus.jpg device="cpu"
         ```
 
 ## Supported Tasks and Modes
@@ -147,7 +147,7 @@ model = NAS("yolo_nas_s.torchscript")
 results = model.val(data="coco8.yaml")
 
 # Run inference with the YOLO-NAS-s torchscript model on the 'bus.jpg' image
-results = model("path/to/bus.jpg")
+results = model("path/to/bus.jpg", device="cpu")
 ```
 
 For more information, refer to the [Inference and Validation Examples](#inference-and-validation-examples).

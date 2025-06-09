@@ -176,7 +176,7 @@ class RTDETRValidator(DetectionValidator):
             pred = pred[score.argsort(descending=True)]
             outputs[i] = pred[score > self.args.conf]
 
-        return outputs
+        return [{"bboxes": x[:, :4], "conf": x[:, 4], "cls": x[:, 5]} for x in outputs]
 
     def _prepare_batch(self, si, batch):
         """
@@ -199,7 +199,7 @@ class RTDETRValidator(DetectionValidator):
             bbox = ops.xywh2xyxy(bbox)  # target boxes
             bbox[..., [0, 2]] *= ori_shape[1]  # native-space pred
             bbox[..., [1, 3]] *= ori_shape[0]  # native-space pred
-        return {"cls": cls, "bbox": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
+        return {"cls": cls, "bboxes": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
 
     def _prepare_pred(self, pred, pbatch):
         """
@@ -212,7 +212,10 @@ class RTDETRValidator(DetectionValidator):
         Returns:
             (torch.Tensor): Predictions scaled to original image dimensions.
         """
-        predn = pred.clone()
-        predn[..., [0, 2]] *= pbatch["ori_shape"][1] / self.args.imgsz  # native-space pred
-        predn[..., [1, 3]] *= pbatch["ori_shape"][0] / self.args.imgsz  # native-space pred
-        return predn.float()
+        cls = pred["cls"]
+        if self.args.single_cls:
+            cls *= 0
+        bboxes = pred["bboxes"].clone()
+        bboxes[..., [0, 2]] *= pbatch["ori_shape"][1] / self.args.imgsz  # native-space pred
+        bboxes[..., [1, 3]] *= pbatch["ori_shape"][0] / self.args.imgsz  # native-space pred
+        return {"bboxes": bboxes, "conf": pred["conf"], "cls": cls}

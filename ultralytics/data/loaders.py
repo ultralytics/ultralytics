@@ -124,6 +124,8 @@ class LoadStreams:
             if urllib.parse.urlparse(s).hostname in {"www.youtube.com", "youtube.com", "youtu.be"}:  # YouTube video
                 # YouTube format i.e. 'https://www.youtube.com/watch?v=Jsn8D3aC840' or 'https://youtu.be/Jsn8D3aC840'
                 s = get_best_youtube_url(s)
+            elif "pinterest.com" in hostname or "pinimg.com" in hostname:
+                s = download_and_return_path_from_url(s)  # NEW: Pinterest handler
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
             if s == 0 and (IS_COLAB or IS_KAGGLE):
                 raise NotImplementedError(
@@ -650,6 +652,47 @@ def autocast_list(source: List[Any]) -> List[Union[Image.Image, np.ndarray]]:
             )
 
     return files
+
+
+def download_pinterest_video(url: str) -> Optional[str]:
+    """
+    Downloads the best available MP4 video from a Pinterest link using yt-dlp.
+
+    Args:
+        url (str): Pinterest video page URL.
+        output_dir (str): Local directory to save the video. Defaults to "videos".
+
+    Returns:
+        Optional[str]: Path to the downloaded video file, or None if download fails.
+
+    Example:
+        >>> path = download_pinterest_video("https://in.pinterest.com/pin/2040762328456404")
+        >>> print(path)
+        2040762328456404.mp4
+
+    Notes:
+        - The returned file path can be used as input to Ultralytics: `yolo source=test.mp4`
+    """
+    check_requirements("yt-dlp")
+
+    from yt_dlp import YoutubeDL
+
+    output_path = f"{urlparse(url).path.strip('/').split('/')[-1]}.%(ext)s"  # Extract PinID (last part of the URL)
+    ydl_opts = {
+        "quiet": False,
+        "outtmpl": output_path,
+        "format": "best[ext=mp4]/best"
+    }
+
+    try:
+        with YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=True)
+            ext = info.get("ext", "mp4")
+            downloaded_file = f"pinterest_video.{ext}"
+            return downloaded_file if os.path.isfile(downloaded_file) else None
+    except Exception as e:
+        print(f"Download failed: {e}")
+        return None
 
 
 def get_best_youtube_url(url: str, method: str = "pytube") -> Optional[str]:

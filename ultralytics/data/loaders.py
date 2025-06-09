@@ -660,35 +660,22 @@ def download_pinterest_video(url: str) -> Optional[str]:
 
     Args:
         url (str): Pinterest video page URL.
-        output_dir (str): Local directory to save the video. Defaults to "videos".
 
     Returns:
         Optional[str]: Path to the downloaded video file, or None if download fails.
-
-    Example:
-        >>> path = download_pinterest_video("https://in.pinterest.com/pin/2040762328456404")
-        >>> print(path)
-        2040762328456404.mp4
-
-    Notes:
-        - The returned file path can be used as input to Ultralytics: `yolo source=test.mp4`
     """
     check_requirements("yt-dlp")
-
     from yt_dlp import YoutubeDL
 
-    output_path = f"{urlparse(url).path.strip('/').split('/')[-1]}.%(ext)s"  # Extract PinID (last part of the URL)
-    ydl_opts = {
-        "quiet": False,
-        "outtmpl": output_path,
-        "format": "best[ext=mp4]/best"
-    }
+    pin_id = urllib.parse.urlparse(url).path.strip("/").split("/")[-1]
+    file_name = f"{pin_id}.%(ext)s"  # e.g., 2040762328456404.mp4
+    ydl_opts = {"quiet": False, "outtmpl": file_name, "format": "best[ext=mp4]/best"}
 
     try:
         with YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
             ext = info.get("ext", "mp4")
-            downloaded_file = f"pinterest_video.{ext}"
+            downloaded_file = f"{pin_id}.{ext}"  # Do NOT double the extension
             return downloaded_file if os.path.isfile(downloaded_file) else None
     except Exception as e:
         print(f"Download failed: {e}")

@@ -279,6 +279,7 @@ def load_inference_source(source=None, batch: int = 1, vid_stride: int = 1, buff
     else:
         if is_pinterest:
             source = download_pinterest_video(source)
+            print(source)
         dataset = LoadImagesAndVideos(source, batch=batch, vid_stride=vid_stride, channels=channels)
 
     # Attach source types to the dataset

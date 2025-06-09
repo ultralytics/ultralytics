@@ -328,6 +328,7 @@ class DetectionValidator(BaseValidator):
             preds (List[torch.Tensor]): List of predictions from the model.
             ni (int): Batch index.
         """
+        # TODO: optimize this
         for i, pred in enumerate(preds):
             pred["batch_idx"] = torch.ones_like(pred["conf"]) * i  # add batch index to predictions
         keys = preds[0].keys()

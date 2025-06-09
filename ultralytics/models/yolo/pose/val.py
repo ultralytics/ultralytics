@@ -140,7 +140,7 @@ class PoseValidator(DetectionValidator):
         kpts[..., 0] *= w
         kpts[..., 1] *= h
         kpts = ops.scale_coords(pbatch["imgsz"], kpts, pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
-        pbatch["kpts"] = kpts
+        pbatch["keypoints"] = kpts
         return pbatch
 
     def _prepare_pred(self, pred: torch.Tensor, pbatch: Dict[str, Any]) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -164,10 +164,10 @@ class PoseValidator(DetectionValidator):
         """
         predn = super()._prepare_pred(pred, pbatch)
         if len(pred):
-            nk = pbatch["kpts"].shape[1]
+            nk = pbatch["keypoints"].shape[1]
             pred_kpts = pred[:, 6:].view(len(pred), nk, -1)
             ops.scale_coords(pbatch["imgsz"], pred_kpts, pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
-            predn["kpts"] = pred_kpts
+            predn["keypoints"] = pred_kpts
         return predn
 
     def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
@@ -195,7 +195,7 @@ class PoseValidator(DetectionValidator):
         else:
             # `0.53` is from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384
             area = ops.xyxy2xywh(batch["bbox"])[:, 2:].prod(1) * 0.53
-            iou = kpt_iou(batch["kpts"], preds["kpts"], sigma=self.sigma, area=area)
+            iou = kpt_iou(batch["keypoints"], preds["keypoints"], sigma=self.sigma, area=area)
             tp_p = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
         tp.update({"tp_p": tp_p})  # update tp with mask IoU
         return tp
@@ -279,7 +279,7 @@ class PoseValidator(DetectionValidator):
             path=None,
             names=self.names,
             boxes=torch.cat([predn["bbox"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
-            keypoints=predn["kpts"],
+            keypoints=predn["keypoints"],
         ).save_txt(file, save_conf=save_conf)
 
     def pred_to_json(self, predn: torch.Tensor, filename: str) -> None:
@@ -305,7 +305,10 @@ class PoseValidator(DetectionValidator):
         box = ops.xyxy2xywh(predn["bbox"])  # xywh
         box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
         for b, s, c, k in zip(
-            box.tolist(), predn["conf"].tolist(), predn["cls"].tolist(), predn["kpts"].flatten(1, 2).tolist()
+            box.tolist(),
+            predn["conf"].tolist(),
+            predn["cls"].tolist(),
+            predn["keypoints"].flatten(1, 2).tolist(),
         ):
             self.jdict.append(
                 {

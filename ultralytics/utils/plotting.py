@@ -728,7 +728,7 @@ def plot_images(
     bboxes = labels.get("bboxes", np.zeros(0, dtype=np.float32))
     confs = labels.get("conf", None)
     masks = labels.get("masks", np.zeros(0, dtype=np.uint8))
-    kpts = labels.get("kpts", np.zeros(0, dtype=np.float32))
+    kpts = labels.get("keypoints", np.zeros(0, dtype=np.float32))
     images = labels.get("img", images)  # default to input images
 
     if len(images) and isinstance(images, torch.Tensor):

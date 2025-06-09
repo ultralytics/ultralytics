@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import torch
@@ -9,8 +9,7 @@ import torch
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.metrics import OKS_SIGMA, PoseMetrics, box_iou, kpt_iou
-from ultralytics.utils.plotting import output_to_target, plot_images
+from ultralytics.utils.metrics import OKS_SIGMA, PoseMetrics, kpt_iou
 
 
 class PoseValidator(DetectionValidator):

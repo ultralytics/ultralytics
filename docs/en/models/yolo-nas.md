@@ -146,7 +146,7 @@ model = NAS("yolo_nas_s.torchscript")
 # Validate the torchscript model on the COCO8 example dataset
 results = model.val(data="coco8.yaml")
 
-# Run inference with the YOLO-NAS-s model on the 'bus.jpg' image
+# Run inference with the YOLO-NAS-s torchscript model on the 'bus.jpg' image
 results = model("path/to/bus.jpg")
 ```
 

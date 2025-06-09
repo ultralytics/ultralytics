@@ -165,9 +165,11 @@ class PoseValidator(DetectionValidator):
         predn = super()._prepare_pred(pred, pbatch)
         if len(pred):
             nk = pbatch["keypoints"].shape[1]
-            pred_kpts = pred[:, 6:].view(len(pred), nk, -1)
+            pred_kpts = pred["nm"]
+            pred_kpts = pred_kpts.view(len(pred_kpts), nk, -1)
             ops.scale_coords(pbatch["imgsz"], pred_kpts, pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
             predn["keypoints"] = pred_kpts
+        pred.pop("nm")
         return predn
 
     def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
@@ -194,37 +196,11 @@ class PoseValidator(DetectionValidator):
             tp_p = np.zeros((len(preds["cls"]), self.niou), dtype=bool)
         else:
             # `0.53` is from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384
-            area = ops.xyxy2xywh(batch["bbox"])[:, 2:].prod(1) * 0.53
+            area = ops.xyxy2xywh(batch["bboxes"])[:, 2:].prod(1) * 0.53
             iou = kpt_iou(batch["keypoints"], preds["keypoints"], sigma=self.sigma, area=area)
             tp_p = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
         tp.update({"tp_p": tp_p})  # update tp with mask IoU
         return tp
-
-    def plot_val_samples(self, batch: Dict[str, Any], ni: int) -> None:
-        """
-        Plot and save validation set samples with ground truth bounding boxes and keypoints.
-
-        Args:
-            batch (Dict[str, Any]): Dictionary containing batch data with keys:
-                - img (torch.Tensor): Batch of images
-                - batch_idx (torch.Tensor): Batch indices for each image
-                - cls (torch.Tensor): Class labels
-                - bboxes (torch.Tensor): Bounding box coordinates
-                - keypoints (torch.Tensor): Keypoint coordinates
-                - im_file (list): List of image file paths
-            ni (int): Batch index used for naming the output file
-        """
-        plot_images(
-            batch["img"],
-            batch["batch_idx"],
-            batch["cls"].squeeze(-1),
-            batch["bboxes"],
-            kpts=batch["keypoints"],
-            paths=batch["im_file"],
-            fname=self.save_dir / f"val_batch{ni}_labels.jpg",
-            names=self.names,
-            on_plot=self.on_plot,
-        )
 
     def plot_predictions(self, batch: Dict[str, Any], preds: List[torch.Tensor], ni: int) -> None:
         """
@@ -239,6 +215,7 @@ class PoseValidator(DetectionValidator):
         The function extracts keypoints from predictions, converts predictions to target format, and plots them
         on the input images. The resulting visualization is saved to the specified save directory.
         """
+        return
         pred_kpts = torch.cat([p[:, 6:].view(-1, *self.kpt_shape) for p in preds], 0)
         plot_images(
             batch["img"],
@@ -278,7 +255,7 @@ class PoseValidator(DetectionValidator):
             np.zeros((shape[0], shape[1]), dtype=np.uint8),
             path=None,
             names=self.names,
-            boxes=torch.cat([predn["bbox"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
+            boxes=torch.cat([predn["bboxes"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
             keypoints=predn["keypoints"],
         ).save_txt(file, save_conf=save_conf)
 
@@ -302,7 +279,7 @@ class PoseValidator(DetectionValidator):
         """
         stem = Path(filename).stem
         image_id = int(stem) if stem.isnumeric() else stem
-        box = ops.xyxy2xywh(predn["bbox"])  # xywh
+        box = ops.xyxy2xywh(predn["bboxes"])  # xywh
         box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
         for b, s, c, k in zip(
             box.tolist(),

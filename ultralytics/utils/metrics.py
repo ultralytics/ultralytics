@@ -1521,7 +1521,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         return [{"classify-top1": round(self.top1, decimals), "classify-top5": round(self.top5, decimals)}]
 
 
-class OBBMetrics(DetMetrics, DataExportMixin):
+class OBBMetrics(DetMetrics):
     """
     Metrics for evaluating oriented bounding box (OBB) detection.
 

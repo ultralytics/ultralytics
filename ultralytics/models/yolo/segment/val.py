@@ -146,7 +146,7 @@ class SegmentationValidator(DetectionValidator):
             pred_masks (torch.Tensor): Processed mask predictions.
         """
         predn = super()._prepare_pred(pred, pbatch)
-        if len(pred):
+        if pred.get("masks") is not None:
             predn["masks"] = pred["masks"]
             if self.args.save_json:
                 coco_masks = torch.as_tensor(pred["masks"], dtype=torch.uint8)

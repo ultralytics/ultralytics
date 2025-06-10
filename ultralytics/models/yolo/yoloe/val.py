@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 from typing import Any, Dict, Optional, Union
-
+from pathlib import Path
 import torch
 from torch.nn import functional as F
 
@@ -182,7 +182,7 @@ class YOLOEDetectValidator(DetectionValidator):
                 assert load_vp, "Refer data is only used for visual prompt validation."
             self.device = select_device(self.args.device)
 
-            if isinstance(model, str):
+            if isinstance(model, (str, Path)):
                 from ultralytics.nn.tasks import attempt_load_weights
 
                 model = attempt_load_weights(model, device=self.device, inplace=True)

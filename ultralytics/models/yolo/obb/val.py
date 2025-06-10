@@ -68,20 +68,20 @@ class OBBValidator(DetectionValidator):
         val = self.data.get(self.args.split, "")  # validation path
         self.is_dota = isinstance(val, str) and "DOTA" in val  # check if dataset is DOTA format
 
-    def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
+    def _process_batch(self, preds: Dict[str, torch.Tensor], batch: Dict[str, torch.Tensor]) -> Dict[str, np.ndarray]:
         """
         Compute the correct prediction matrix for a batch of detections and ground truth bounding boxes.
 
         Args:
-            detections (torch.Tensor): Detected bounding boxes and associated data with shape (N, 7) where each
-                detection is represented as (x1, y1, x2, y2, conf, class, angle).
-            gt_bboxes (torch.Tensor): Ground truth bounding boxes with shape (M, 5) where each box is represented
-                as (x1, y1, x2, y2, angle).
-            gt_cls (torch.Tensor): Class labels for the ground truth bounding boxes with shape (M,).
+            preds (Dict[str, torch.Tensor]): Prediction dictionary containing 'cls' and 'bboxes' keys with detected 
+                class labels and bounding boxes.
+            batch (Dict[str, torch.Tensor]): Batch dictionary containing 'cls' and 'bboxes' keys with ground truth 
+                class labels and bounding boxes.
 
         Returns:
-            (torch.Tensor): The correct prediction matrix with shape (N, 10), which includes 10 IoU levels for each
-                detection, indicating the accuracy of predictions compared to the ground truth.
+            (Dict[str, np.ndarray]): Dictionary containing 'tp' key with the correct prediction matrix as a numpy 
+                array with shape (N, 10), which includes 10 IoU levels for each detection, indicating the accuracy 
+                of predictions compared to the ground truth.
 
         Examples:
             >>> detections = torch.rand(100, 7)  # 100 sample detections
@@ -94,7 +94,14 @@ class OBBValidator(DetectionValidator):
         iou = batch_probiou(batch["bboxes"], preds["bboxes"])
         return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 
-    def postprocess(self, preds: torch.Tensor) -> Dict[str, torch.Tensor]:
+    def postprocess(self, preds: torch.Tensor) -> List[Dict[str, torch.Tensor]]:
+        """
+        Args:
+            preds (torch.Tensor): Raw predictions from the model.
+
+        Returns:
+            (List[Dict[str, torch.Tensor]]): Processed predictions with angle information concatenated to bboxes.
+        """
         preds = super().postprocess(preds)
         for pred in preds:
             angle = pred.pop("extra")  # remove extra if exists
@@ -103,7 +110,7 @@ class OBBValidator(DetectionValidator):
             pred["bboxes"] = torch.cat([pred["bboxes"], angle], dim=-1)
         return preds
 
-    def _prepare_batch(self, si: int, batch: Dict) -> Dict:
+    def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
         """
         Prepare batch data for OBB validation with proper scaling and formatting.
 
@@ -131,7 +138,7 @@ class OBBValidator(DetectionValidator):
             ops.scale_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad, xywh=True)  # native-space labels
         return {"cls": cls, "bboxes": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
 
-    def _prepare_pred(self, pred: torch.Tensor, pbatch: Dict[str, Any]) -> torch.Tensor:
+    def _prepare_pred(self, pred: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> Dict[str, torch.Tensor]:
         """
         Prepare predictions by scaling bounding boxes to original image dimensions.
 
@@ -139,14 +146,14 @@ class OBBValidator(DetectionValidator):
         input dimensions to the original image dimensions using the provided batch information.
 
         Args:
-            pred (torch.Tensor): Prediction tensor containing bounding box coordinates and other information.
+            pred (Dict[str, torch.Tensor]): Prediction dictionary containing bounding box coordinates and other information.
             pbatch (Dict[str, Any]): Dictionary containing batch information with keys:
                 - imgsz (tuple): Model input image size.
                 - ori_shape (tuple): Original image shape.
                 - ratio_pad (tuple): Ratio and padding information for scaling.
 
         Returns:
-            (torch.Tensor): Scaled prediction tensor with bounding boxes in original image dimensions.
+            (Dict[str, torch.Tensor]): Scaled prediction dictionary with bounding boxes in original image dimensions.
         """
         cls = pred["cls"]
         if self.args.single_cls:
@@ -176,13 +183,13 @@ class OBBValidator(DetectionValidator):
             p["bboxes"][:, :4] = ops.xywh2xyxy(p["bboxes"][:, :4])  # convert to xyxy format
         super().plot_predictions(batch, preds, ni)  # plot bboxes
 
-    def pred_to_json(self, predn: torch.Tensor, filename: Union[str, Path]) -> None:
+    def pred_to_json(self, predn: Dict[str, torch.Tensor], filename: Union[str, Path]) -> None:
         """
         Convert YOLO predictions to COCO JSON format with rotated bounding box information.
 
         Args:
-            predn (torch.Tensor): Prediction tensor containing bounding box coordinates, confidence scores,
-                class predictions, and rotation angles with shape (N, 6+) where the last column is the angle.
+            predn (Dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', and 'cls' keys
+                with bounding box coordinates, confidence scores, and class predictions.
             filename (str | Path): Path to the image file for which predictions are being processed.
 
         Notes:

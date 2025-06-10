@@ -1228,7 +1228,7 @@ class SegmentMetrics(DetMetrics):
         return summary
 
 
-class PoseMetrics(SegmentMetrics):
+class PoseMetrics(DetMetrics):
     """
     Calculate and aggregate detection and pose metrics over a given set of classes.
 
@@ -1261,18 +1261,9 @@ class PoseMetrics(SegmentMetrics):
             names (Dict[int, str], optional): Dictionary of class names.
         """
         super().__init__(save_dir, plot, names)
-        self.save_dir = save_dir
-        self.plot = plot
-        self.names = names
-        self.box = Metric()
         self.pose = Metric()
-        self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "pose"
-        self.stats = dict(tp_p=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
-
-    def update_stats(self, stat):
-        for k in self.stats.keys():
-            self.stats[k].append(stat[k])
+        self.stats["tp_p"] = []  # add additional stats for pose
 
     def process(self, on_plot=None):
         """
@@ -1281,16 +1272,12 @@ class PoseMetrics(SegmentMetrics):
         Args:
             on_plot (callable, optional): Function to call after plots are generated.
         """
-        tp = np.concatenate(self.stats["tp"], axis=0)
-        tp_p = np.concatenate(self.stats["tp_p"], axis=0)
-        conf = np.concatenate(self.stats["conf"], axis=0)
-        pred_cls = np.concatenate(self.stats["pred_cls"], axis=0)
-        target_cls = np.concatenate(self.stats["target_cls"], axis=0)
+        stats = DetMetrics.process(self, on_plot=on_plot)  # process box stats
         results_pose = ap_per_class(
-            tp_p,
-            conf,
-            pred_cls,
-            target_cls,
+            stats["tp_p"],
+            stats["conf"],
+            stats["pred_cls"],
+            stats["target_cls"],
             plot=self.plot,
             on_plot=on_plot,
             save_dir=self.save_dir,
@@ -1299,28 +1286,11 @@ class PoseMetrics(SegmentMetrics):
         )[2:]
         self.pose.nc = len(self.names)
         self.pose.update(results_pose)
-        results_box = ap_per_class(
-            tp,
-            conf,
-            pred_cls,
-            target_cls,
-            plot=self.plot,
-            on_plot=on_plot,
-            save_dir=self.save_dir,
-            names=self.names,
-            prefix="Box",
-        )[2:]
-        self.box.nc = len(self.names)
-        self.box.update(results_box)
 
     @property
     def keys(self) -> List[str]:
         """Return list of evaluation metric keys."""
-        return [
-            "metrics/precision(B)",
-            "metrics/recall(B)",
-            "metrics/mAP50(B)",
-            "metrics/mAP50-95(B)",
+        return DetMetrics.keys.fget(self) + [
             "metrics/precision(P)",
             "metrics/recall(P)",
             "metrics/mAP50(P)",
@@ -1329,26 +1299,26 @@ class PoseMetrics(SegmentMetrics):
 
     def mean_results(self) -> List[float]:
         """Return the mean results of box and pose."""
-        return self.box.mean_results() + self.pose.mean_results()
+        return DetMetrics.mean_results(self) + self.pose.mean_results()
 
     def class_result(self, i: int) -> List[float]:
         """Return the class-wise detection results for a specific class i."""
-        return self.box.class_result(i) + self.pose.class_result(i)
+        return DetMetrics.class_result(self, i) + self.pose.class_result(i)
 
     @property
     def maps(self) -> np.ndarray:
         """Return the mean average precision (mAP) per class for both box and pose detections."""
-        return self.box.maps + self.pose.maps
+        return DetMetrics.maps.fget(self) + self.pose.maps
 
     @property
     def fitness(self) -> float:
         """Return combined fitness score for pose and box detection."""
-        return self.pose.fitness() + self.box.fitness()
+        return self.pose.fitness() + DetMetrics.fitness.fget(self)
 
     @property
     def curves(self) -> List[str]:
         """Return a list of curves for accessing specific metrics curves."""
-        return [
+        return DetMetrics.curves.fget(self) + [
             "Precision-Recall(B)",
             "F1-Confidence(B)",
             "Precision-Confidence(B)",
@@ -1362,7 +1332,7 @@ class PoseMetrics(SegmentMetrics):
     @property
     def curves_results(self) -> List[List]:
         """Return dictionary of computed performance metrics and statistics."""
-        return self.box.curves_results + self.pose.curves_results
+        return DetMetrics.curves_results.fget(self) + self.pose.curves_results
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
         """
@@ -1382,25 +1352,19 @@ class PoseMetrics(SegmentMetrics):
             >>> print(pose_summary)
         """
         scalars = {
-            "box-map": round(self.box.map, decimals),
-            "box-map50": round(self.box.map50, decimals),
-            "box-map75": round(self.box.map75, decimals),
             "pose-map": round(self.pose.map, decimals),
             "pose-map50": round(self.pose.map50, decimals),
             "pose-map75": round(self.pose.map75, decimals),
         }
         per_class = {
-            "box-p": self.box.p,
-            "box-r": self.box.r,
-            "box-f1": self.box.f1,
             "pose-p": self.pose.p,
             "pose-r": self.pose.r,
             "pose-f1": self.pose.f1,
         }
-        return [
-            {"class_name": self.names[i], **{k: round(v[i], decimals) for k, v in per_class.items()}, **scalars}
-            for i in range(len(next(iter(per_class.values()), [])))
-        ]
+        summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
+        for i, s in enumerate(summary):
+            s.update({**{k: round(v[i], decimals) for k, v in per_class.items()}, **scalars})
+        return summary
 
 
 class ClassifyMetrics(SimpleClass, DataExportMixin):

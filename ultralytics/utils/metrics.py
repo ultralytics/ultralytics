@@ -1104,6 +1104,10 @@ class SegmentMetrics(DetMetrics):
         seg (Metric): An instance of the Metric class to calculate mask segmentation metrics.
         speed (Dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'segment'.
+        stats (Dict[str, List]): A dictionary containing lists for true positives, confidence scores, predicted classes, target classes, and target images.
+        nt_per_class: Number of targets per class.
+        nt_per_image: Number of targets per image.
+        confusion_matrix (ConfusionMatrix): An instance of the ConfusionMatrix class for tracking classification performance.
     """
 
     def __init__(self, names: Dict[int, str] = {}) -> None:
@@ -1118,17 +1122,17 @@ class SegmentMetrics(DetMetrics):
         self.task = "segment"
         self.stats["tp_m"] = []  # add additional stats for masks
 
-    def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None):
+    def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> Dict[str, np.ndarray]:
         """
         Process the detection and segmentation metrics over the given set of predictions.
 
         Args:
-            tp (np.ndarray): True positive array for boxes.
-            tp_m (np.ndarray): True positive array for masks.
-            conf (np.ndarray): Confidence array.
-            pred_cls (np.ndarray): Predicted class indices array.
-            target_cls (np.ndarray): Target class indices array.
-            on_plot (callable, optional): Function to call after plots are generated.
+            save_dir (Path): Directory to save plots. Defaults to Path(".").
+            plot (bool): Whether to plot precision-recall curves. Defaults to False.
+            on_plot (callable, optional): Function to call after plots are generated. Defaults to None.
+
+        Returns:
+            (Dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
         stats = DetMetrics.process(self, on_plot=on_plot)  # process box stats
         results_mask = ap_per_class(
@@ -1144,6 +1148,7 @@ class SegmentMetrics(DetMetrics):
         )[2:]
         self.seg.nc = len(self.names)
         self.seg.update(results_mask)
+        return stats
 
     @property
     def keys(self) -> List[str]:
@@ -1231,6 +1236,10 @@ class PoseMetrics(DetMetrics):
         box (Metric): An instance of the Metric class for storing detection results.
         speed (Dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'pose'.
+        stats (Dict[str, List]): A dictionary containing lists for true positives, confidence scores, predicted classes, target classes, and target images.
+        nt_per_class: Number of targets per class.
+        nt_per_image: Number of targets per image.
+        confusion_matrix (ConfusionMatrix): An instance of the ConfusionMatrix class for tracking classification performance.
 
     Methods:
         process(tp_m, tp_b, conf, pred_cls, target_cls): Process metrics over the given set of predictions.
@@ -1441,6 +1450,10 @@ class OBBMetrics(DetMetrics):
         box (Metric): An instance of the Metric class for storing detection results.
         speed (Dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'obb'.
+        stats (Dict[str, List]): A dictionary containing lists for true positives, confidence scores, predicted classes, target classes, and target images.
+        nt_per_class: Number of targets per class.
+        nt_per_image: Number of targets per image.
+        confusion_matrix (ConfusionMatrix): An instance of the ConfusionMatrix class for tracking classification performance.
 
     References:
         https://arxiv.org/pdf/2106.06072.pdf

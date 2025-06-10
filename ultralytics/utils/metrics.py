@@ -1380,6 +1380,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         top5 (float): The top-5 accuracy.
         speed (dict): A dictionary containing the time taken for each step in the pipeline.
         task (str): The task type, set to 'classify'.
+        confusion_matrix (ConfusionMatrix): An instance of the ConfusionMatrix class for tracking classification performance.
     """
 
     def __init__(self, names: Dict[int, str]) -> None:

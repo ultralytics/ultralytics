@@ -11,7 +11,7 @@ from ultralytics.data import build_dataloader, build_yolo_dataset, converter
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
+from ultralytics.utils.metrics import DetMetrics, box_iou
 from ultralytics.utils.plotting import plot_images
 
 
@@ -102,7 +102,7 @@ class DetectionValidator(BaseValidator):
         """Return a formatted string summarizing class metrics of YOLO model."""
         return ("%22s" + "%11s" * 6) % ("Class", "Images", "Instances", "Box(P", "R", "mAP50", "mAP50-95)")
 
-    def postprocess(self, preds: torch.Tensor) -> List[torch.Tensor]:
+    def postprocess(self, preds: torch.Tensor) -> List[Dict[str, torch.Tensor]]:
         """
         Apply Non-maximum suppression to prediction outputs.
 
@@ -110,7 +110,8 @@ class DetectionValidator(BaseValidator):
             preds (torch.Tensor): Raw predictions from the model.
 
         Returns:
-            (List[torch.Tensor]): Processed predictions after NMS.
+            (List[Dict[str, torch.Tensor]]): Processed predictions after NMS, where each dict contains
+                'bboxes', 'conf', 'cls', and 'extra' tensors.
         """
         outputs = ops.non_max_suppression(
             preds,
@@ -147,16 +148,16 @@ class DetectionValidator(BaseValidator):
             ops.scale_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad)  # native-space labels
         return {"cls": cls, "bboxes": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
 
-    def _prepare_pred(self, pred: torch.Tensor, pbatch: Dict[str, Any]) -> torch.Tensor:
+    def _prepare_pred(self, pred: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> Dict[str, torch.Tensor]:
         """
         Prepare predictions for evaluation against ground truth.
 
         Args:
-            pred (torch.Tensor): Model predictions.
+            pred (Dict[str, torch.Tensor]): Model predictions.
             pbatch (Dict[str, Any]): Prepared batch information.
 
         Returns:
-            (torch.Tensor): Prepared predictions in native space.
+            (Dict[str, torch.Tensor]): Prepared predictions in native space.
         """
         cls = pred["cls"]
         if self.args.single_cls:
@@ -167,12 +168,12 @@ class DetectionValidator(BaseValidator):
         )  # native-space pred
         return {"bboxes": bboxes, "conf": pred["conf"], "cls": cls}
 
-    def update_metrics(self, preds: List[torch.Tensor], batch: Dict[str, Any]) -> None:
+    def update_metrics(self, preds: List[Dict[str, torch.Tensor]], batch: Dict[str, Any]) -> None:
         """
         Update metrics with new predictions and ground truth.
 
         Args:
-            preds (List[torch.Tensor]): List of predictions from the model.
+            preds (List[Dict[str, torch.Tensor]]): List of predictions from the model.
             batch (Dict[str, Any]): Batch data containing ground truth.
         """
         for si, pred in enumerate(preds):
@@ -249,17 +250,16 @@ class DetectionValidator(BaseValidator):
                     )
                 )
 
-    def _process_batch(self, preds: torch.Tensor, batch: Dict[str, Any]) -> torch.Tensor:
+    def _process_batch(self, preds: Dict[str, torch.Tensor], batch: Dict[str, Any]) -> Dict[str, np.ndarray]:
         """
         Return correct prediction matrix.
 
         Args:
-            detections (torch.Tensor): Tensor of shape (N, 6) representing detections where each detection is
-                (x1, y1, x2, y2, conf, class).
-            batch (Dict[str, Any]): Batch dictionary containing ground truth data with 'bbox' and 'cls' keys.
+            preds (Dict[str, torch.Tensor]): Dictionary containing prediction data with 'bboxes' and 'cls' keys.
+            batch (Dict[str, Any]): Batch dictionary containing ground truth data with 'bboxes' and 'cls' keys.
 
         Returns:
-            (torch.Tensor): Correct prediction matrix of shape (N, 10) for 10 IoU levels.
+            (Dict[str, np.ndarray]): Dictionary containing 'tp' key with correct prediction matrix of shape (N, 10) for 10 IoU levels.
         """
         if len(batch["cls"]) == 0 or len(preds["cls"]) == 0:
             return {"tp": np.zeros((len(preds["cls"]), self.niou), dtype=bool)}
@@ -310,14 +310,15 @@ class DetectionValidator(BaseValidator):
             on_plot=self.on_plot,
         )
 
-    def plot_predictions(self, batch: Dict[str, Any], preds: List[torch.Tensor], ni: int, max_det: int = None) -> None:
+    def plot_predictions(self, batch: Dict[str, Any], preds: List[Dict[str, torch.Tensor]], ni: int, max_det: Optional[int] = None) -> None:
         """
         Plot predicted bounding boxes on input images and save the result.
 
         Args:
             batch (Dict[str, Any]): Batch containing images and annotations.
-            preds (List[torch.Tensor]): List of predictions from the model.
+            preds (List[Dict[str, torch.Tensor]]): List of predictions from the model.
             ni (int): Batch index.
+            max_det (Optional[int]): Maximum number of detections to plot.
         """
         # TODO: optimize this
         for i, pred in enumerate(preds):

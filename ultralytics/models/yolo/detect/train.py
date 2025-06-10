@@ -3,7 +3,7 @@
 import math
 import random
 from copy import copy
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import torch.nn as nn

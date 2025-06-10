@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional, Union
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import PoseModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER
-from ultralytics.utils.plotting import plot_images, plot_results
+from ultralytics.utils.plotting import plot_results
 
 
 class PoseTrainer(yolo.detect.DetectionTrainer):

@@ -944,12 +944,14 @@ class DetMetrics(SimpleClass, DataExportMixin):
     Utility class for computing detection metrics such as precision, recall, and mean average precision (mAP).
 
     Attributes:
-        save_dir (Path): A path to the directory where the output plots will be saved.
-        plot (bool): A flag that indicates whether to plot precision-recall curves for each class.
         names (Dict[int, str]): A dictionary of class names.
         box (Metric): An instance of the Metric class for storing detection results.
         speed (Dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'detect'.
+        stats (Dict[str, List]): A dictionary containing lists for true positives, confidence scores, predicted classes, target classes, and target images.
+        nt_per_class: Number of targets per class.
+        nt_per_image: Number of targets per image.
+        confusion_matrix (ConfusionMatrix): An instance of the ConfusionMatrix class for tracking classification performance.
     """
 
     def __init__(self, names: Dict[int, str] = {}) -> None:
@@ -970,26 +972,27 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.nt_per_image = None
         self.confusion_matrix = ConfusionMatrix(names=list(names.values()))
 
-    def update_stats(self, stat):
+    def update_stats(self, stat: Dict[str, any]) -> None:
         """Update statistics by appending new values to existing stat collections.
 
         Args:
-            stat (dict): Dictionary containing new statistical values to append.
-                        Keys should match existing keys in self.stats.
+            stat (Dict[str, any]): Dictionary containing new statistical values to append.
+                         Keys should match existing keys in self.stats.
         """
         for k in stat.keys():
             self.stats[k].append(stat[k])
 
-    def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None):
+    def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> Dict[str, np.ndarray]:
         """
         Process predicted results for object detection and update metrics.
 
         Args:
-            tp (np.ndarray): True positive array.
-            conf (np.ndarray): Confidence array.
-            pred_cls (np.ndarray): Predicted class indices array.
-            target_cls (np.ndarray): Target class indices array.
-            on_plot (callable, optional): Function to call after plots are generated.
+            save_dir (Path): Directory to save plots. Defaults to Path(".").
+            plot (bool): Whether to plot precision-recall curves. Defaults to False.
+            on_plot (callable, optional): Function to call after plots are generated. Defaults to None.
+
+        Returns:
+            (Dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
         stats = {k: np.concatenate(v, 0) for k, v in self.stats.items()}  # to numpy
         if len(stats) == 0:

@@ -49,7 +49,7 @@ class PoseValidator(DetectionValidator):
         >>> validator()
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None) -> None:
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
         """
         Initialize a PoseValidator object for pose estimation validation.
 
@@ -59,7 +59,6 @@ class PoseValidator(DetectionValidator):
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
             save_dir (Path | str, optional): Directory to save results.
-            pbar (Any, optional): Progress bar for displaying progress.
             args (dict, optional): Arguments for the validator including task set to "pose".
             _callbacks (list, optional): List of callback functions to be executed during validation.
 
@@ -74,7 +73,7 @@ class PoseValidator(DetectionValidator):
             for OKS calculation and sets up PoseMetrics for evaluation. A warning is displayed when using Apple MPS
             due to a known bug with pose models.
         """
-        super().__init__(dataloader, save_dir, pbar, args, _callbacks)
+        super().__init__(dataloader, save_dir, args, _callbacks)
         self.sigma = None
         self.kpt_shape = None
         self.args.task = "pose"

@@ -1263,12 +1263,17 @@ class PoseMetrics(DetMetrics):
         self.task = "pose"
         self.stats["tp_p"] = []  # add additional stats for pose
 
-    def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None):
+    def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> Dict[str, np.ndarray]:
         """
         Process the detection and pose metrics over the given set of predictions.
 
         Args:
+            save_dir (Path): Directory to save plots. Defaults to Path(".").
+            plot (bool): Whether to plot precision-recall curves. Defaults to False.
             on_plot (callable, optional): Function to call after plots are generated.
+
+        Returns:
+            (Dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
         stats = DetMetrics.process(self, on_plot=on_plot)  # process box stats
         results_pose = ap_per_class(
@@ -1284,6 +1289,7 @@ class PoseMetrics(DetMetrics):
         )[2:]
         self.pose.nc = len(self.names)
         self.pose.update(results_pose)
+        return stats
 
     @property
     def keys(self) -> List[str]:

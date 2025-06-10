@@ -316,6 +316,8 @@ class ConfusionMatrix(DataExportMixin):
     Attributes:
         task (str): The type of task, either 'detect' or 'classify'.
         matrix (np.ndarray): The confusion matrix, with dimensions depending on the task.
+        nc (int): The number of category.
+        names (List[str]): The names of the classes, used as labels on the plot.
     """
 
     def __init__(self, names: List[str] = [], task: str = "detect"):

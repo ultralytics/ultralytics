@@ -55,7 +55,6 @@ class OBBValidator(DetectionValidator):
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "obb"
-        self.metrics = OBBMetrics(save_dir=self.save_dir, plot=True)
 
     def init_metrics(self, model: torch.nn.Module) -> None:
         """
@@ -65,6 +64,7 @@ class OBBValidator(DetectionValidator):
             model (torch.nn.Module): Model to validate.
         """
         super().init_metrics(model)
+        self.metrics = OBBMetrics(save_dir=self.save_dir, plot=self.args.plots, names=self.names)
         val = self.data.get(self.args.split, "")  # validation path
         self.is_dota = isinstance(val, str) and "DOTA" in val  # check if dataset is DOTA format
 

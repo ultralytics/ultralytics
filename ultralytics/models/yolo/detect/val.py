@@ -55,7 +55,6 @@ class DetectionValidator(BaseValidator):
         self.is_lvis = False
         self.class_map = None
         self.args.task = "detect"
-        self.metrics = DetMetrics(save_dir=self.save_dir)
         self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
 
@@ -95,8 +94,7 @@ class DetectionValidator(BaseValidator):
         self.names = model.names
         self.nc = len(model.names)
         self.end2end = getattr(model, "end2end", False)
-        self.metrics.names = self.names
-        self.metrics.plot = self.args.plots
+        self.metrics = DetMetrics(save_dir=self.save_dir, plot=self.args.plots, names=self.names)
         self.confusion_matrix = ConfusionMatrix(names=self.names.values())
         self.seen = 0
         self.jdict = []

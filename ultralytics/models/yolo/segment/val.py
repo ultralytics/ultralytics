@@ -48,7 +48,6 @@ class SegmentationValidator(DetectionValidator):
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.process = None
         self.args.task = "segment"
-        self.metrics = SegmentMetrics(save_dir=self.save_dir)
 
     def preprocess(self, batch: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -72,6 +71,7 @@ class SegmentationValidator(DetectionValidator):
             model (torch.nn.Module): Model to validate.
         """
         super().init_metrics(model)
+        self.metrics = SegmentMetrics(save_dir=self.save_dir, plot=self.args.plots, names=self.names)
         if self.args.save_json:
             check_requirements("pycocotools>=2.0.6")
         # More accurate vs faster

@@ -158,13 +158,13 @@ class RTDETRValidator(DetectionValidator):
         Apply Non-maximum suppression to prediction outputs.
 
         Args:
-            preds (torch.Tensor | List | Tuple): Raw predictions from the model. If tensor, should have shape 
+            preds (torch.Tensor | List | Tuple): Raw predictions from the model. If tensor, should have shape
                 (batch_size, num_predictions, num_classes + 4) where last dimension contains bbox coords and class scores.
 
         Returns:
             (List[Dict[str, torch.Tensor]]): List of dictionaries for each image, each containing:
                 - 'bboxes': Tensor of shape (N, 4) with bounding box coordinates
-                - 'conf': Tensor of shape (N,) with confidence scores  
+                - 'conf': Tensor of shape (N,) with confidence scores
                 - 'cls': Tensor of shape (N,) with class indices
         """
         if not isinstance(preds, (list, tuple)):  # list for PyTorch inference but list[0] Tensor for export inference

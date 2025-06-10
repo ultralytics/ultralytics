@@ -73,14 +73,14 @@ class OBBValidator(DetectionValidator):
         Compute the correct prediction matrix for a batch of detections and ground truth bounding boxes.
 
         Args:
-            preds (Dict[str, torch.Tensor]): Prediction dictionary containing 'cls' and 'bboxes' keys with detected 
+            preds (Dict[str, torch.Tensor]): Prediction dictionary containing 'cls' and 'bboxes' keys with detected
                 class labels and bounding boxes.
-            batch (Dict[str, torch.Tensor]): Batch dictionary containing 'cls' and 'bboxes' keys with ground truth 
+            batch (Dict[str, torch.Tensor]): Batch dictionary containing 'cls' and 'bboxes' keys with ground truth
                 class labels and bounding boxes.
 
         Returns:
-            (Dict[str, np.ndarray]): Dictionary containing 'tp' key with the correct prediction matrix as a numpy 
-                array with shape (N, 10), which includes 10 IoU levels for each detection, indicating the accuracy 
+            (Dict[str, np.ndarray]): Dictionary containing 'tp' key with the correct prediction matrix as a numpy
+                array with shape (N, 10), which includes 10 IoU levels for each detection, indicating the accuracy
                 of predictions compared to the ground truth.
 
         Examples:

@@ -133,7 +133,7 @@ class PoseValidator(DetectionValidator):
         Returns:
             (Dict[torch.Tensor]): Dict of processed prediction dictionaries, each containing:
                 - 'bboxes': Bounding box coordinates
-                - 'conf': Confidence scores  
+                - 'conf': Confidence scores
                 - 'cls': Class predictions
                 - 'keypoints': Reshaped keypoint coordinates with shape (-1, *self.kpt_shape)
 

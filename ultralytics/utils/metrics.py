@@ -345,7 +345,7 @@ class ConfusionMatrix(DataExportMixin):
         for p, t in zip(preds.cpu().numpy(), targets.cpu().numpy()):
             self.matrix[p][t] += 1
 
-    def process_batch(self, detections, batch, conf: float=0.25, iou_thres: float=0.45):
+    def process_batch(self, detections, batch, conf: float = 0.25, iou_thres: float = 0.45):
         """
         Update confusion matrix for object detection task.
 
@@ -974,7 +974,8 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.confusion_matrix = ConfusionMatrix(names=list(names.values()))
 
     def update_stats(self, stat: Dict[str, any]) -> None:
-        """Update statistics by appending new values to existing stat collections.
+        """
+        Update statistics by appending new values to existing stat collections.
 
         Args:
             stat (Dict[str, any]): Dictionary containing new statistical values to append.

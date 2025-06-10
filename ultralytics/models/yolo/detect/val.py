@@ -310,7 +310,9 @@ class DetectionValidator(BaseValidator):
             on_plot=self.on_plot,
         )
 
-    def plot_predictions(self, batch: Dict[str, Any], preds: List[Dict[str, torch.Tensor]], ni: int, max_det: Optional[int] = None) -> None:
+    def plot_predictions(
+        self, batch: Dict[str, Any], preds: List[Dict[str, torch.Tensor]], ni: int, max_det: Optional[int] = None
+    ) -> None:
         """
         Plot predicted bounding boxes on input images and save the result.
 

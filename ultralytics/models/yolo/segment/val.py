@@ -46,7 +46,6 @@ class SegmentationValidator(DetectionValidator):
             _callbacks (list, optional): List of callback functions.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
-        self.plot_masks = None
         self.process = None
         self.args.task = "segment"
         self.metrics = SegmentMetrics(save_dir=self.save_dir)
@@ -73,7 +72,6 @@ class SegmentationValidator(DetectionValidator):
             model (torch.nn.Module): Model to validate.
         """
         super().init_metrics(model)
-        self.plot_masks = []
         if self.args.save_json:
             check_requirements("pycocotools>=2.0.6")
         # More accurate vs faster

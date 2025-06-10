@@ -5,7 +5,7 @@ import torch
 from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER
-from ultralytics.utils.metrics import ClassifyMetrics
+from ultralytics.utils.metrics import ClassifyMetrics, ConfusionMatrix
 from ultralytics.utils.plotting import plot_images
 
 
@@ -68,6 +68,7 @@ class ClassificationValidator(BaseValidator):
         self.targets = None
         self.pred = None
         self.args.task = "classify"
+        self.metrics = ClassifyMetrics()
 
     def get_desc(self):
         """Return a formatted string summarizing classification metrics."""
@@ -79,7 +80,7 @@ class ClassificationValidator(BaseValidator):
         self.nc = len(model.names)
         self.pred = []
         self.targets = []
-        self.metrics = ClassifyMetrics(self.names)
+        self.confusion_matrix = ConfusionMatrix(names=list(model.names.values()))
 
     def preprocess(self, batch):
         """Preprocess input batch by moving data to device and converting to appropriate dtype."""

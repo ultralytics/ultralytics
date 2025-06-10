@@ -97,6 +97,7 @@ class DetectionValidator(BaseValidator):
         self.end2end = getattr(model, "end2end", False)
         self.seen = 0
         self.jdict = []
+        self.metrics.names = self.names
         self.confusion_matrix = ConfusionMatrix(names=list(model.names.values()))
 
     def get_desc(self) -> str:

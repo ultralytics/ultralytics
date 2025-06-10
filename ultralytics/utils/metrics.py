@@ -1378,7 +1378,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         task (str): The task type, set to 'classify'.
     """
 
-    def __init__(self, names: Dict[int, str]) -> None:
+    def __init__(self) -> None:
         """Initialize a ClassifyMetrics instance."""
         self.top1 = 0
         self.top5 = 0

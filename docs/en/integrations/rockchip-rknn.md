@@ -178,11 +178,11 @@ YOLO11 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based 
     | YOLO11l | `rknn` | ✅     | 53.3      | 0.633       | 282.0                  |
     | YOLO11x | `rknn` | ✅     | 114.6     | 0.687       | 679.2                  |
 
-    Benchmarked with Ultralytics 8.3.152
+    Benchmarked with `ultralytics 8.3.152`
 
     !!! note
 
-        Validation for the above benchmarks were done using coco128 dataset. Inference time does not include pre/ post-processing.
+        Validation for the above benchmarks were done using COCO18 dataset. Inference time does not include pre/ post-processing.
 
 ## Summary
 

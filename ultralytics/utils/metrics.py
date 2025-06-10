@@ -316,18 +316,13 @@ class ConfusionMatrix(DataExportMixin):
     Attributes:
         task (str): The type of task, either 'detect' or 'classify'.
         matrix (np.ndarray): The confusion matrix, with dimensions depending on the task.
-        nc (int): The number of classes.
-        conf (float): The confidence threshold for detections.
-        iou_thres (float): The Intersection over Union threshold.
     """
 
-    def __init__(self, conf: float = 0.25, iou_thres: float = 0.45, names: tuple = (), task: str = "detect"):
+    def __init__(self, names: tuple = (), task: str = "detect"):
         """
         Initialize a ConfusionMatrix instance.
 
         Args:
-            conf (float, optional): Confidence threshold for detections.
-            iou_thres (float, optional): IoU threshold for matching detections to ground truth.
             names (tuple, optional): Names of classes, used as labels on the plot.
             task (str, optional): Type of task, either 'detect' or 'classify'.
         """
@@ -335,8 +330,6 @@ class ConfusionMatrix(DataExportMixin):
         self.nc = len(names)  # number of classes
         self.matrix = np.zeros((self.nc + 1, self.nc + 1)) if self.task == "detect" else np.zeros((self.nc, self.nc))
         self.names = list(names)  # name of classes
-        self.conf = 0.25 if conf in {None, 0.001} else conf  # apply 0.25 if default val conf is passed
-        self.iou_thres = iou_thres
 
     def process_cls_preds(self, preds, targets):
         """
@@ -350,24 +343,25 @@ class ConfusionMatrix(DataExportMixin):
         for p, t in zip(preds.cpu().numpy(), targets.cpu().numpy()):
             self.matrix[p][t] += 1
 
-    def process_batch(self, detections, batch):
+    def process_batch(self, detections, batch, conf: float=0.25, iou_thres: float=0.45):
         """
         Update confusion matrix for object detection task.
 
         Args:
-            detections (Array[N, 6] | Array[N, 7]): Detected bounding boxes and their associated information.
-                                      Each row should contain (x1, y1, x2, y2, conf, class)
-                                      or with an additional element `angle` when it's obb.
-            gt_bboxes (Array[M, 4]| Array[N, 5]): Ground truth bounding boxes with xyxy/xyxyr format.
-            gt_cls (Array[M]): The class labels.
-            batch (Dict[str, Any]): Batch dictionary containing ground truth data with 'bbox' (Array[M, 4]| Array[N, 5]) and
+            detections (Dict[str, Any]): Dictionary containing detected bounding boxes and their associated information.
+                                       Should contain 'cls', 'conf', and 'bboxes' keys, where 'bboxes' can be
+                                       Array[N, 4] for regular boxes or Array[N, 5] for OBB with angle.
+            batch (Dict[str, Any]): Batch dictionary containing ground truth data with 'bboxes' (Array[M, 4]| Array[M, 5]) and
                 'cls' (Array[M]) keys, where M is the number of ground truth objects.
+            conf (float, optional): Confidence threshold for detections.
+            iou_thres (float, optional): IoU threshold for matching detections to ground truth.
         """
+        conf = 0.25 if conf in {None, 0.001} else conf  # apply 0.25 if default val conf is passed
         gt_cls, gt_bboxes = batch["cls"], batch["bboxes"]
         no_pred = len(detections["cls"]) == 0
         if gt_cls.shape[0] == 0:  # Check if labels is empty
             if not no_pred:
-                detections = {k: v[detections["conf"] > self.conf] for k, v in detections.items()}
+                detections = {k: v[detections["conf"] > conf] for k, v in detections.items()}
                 detection_classes = detections["cls"].int()
                 for dc in detection_classes:
                     self.matrix[dc, self.nc] += 1  # false positives
@@ -378,14 +372,14 @@ class ConfusionMatrix(DataExportMixin):
                 self.matrix[self.nc, gc] += 1  # background FN
             return
 
-        detections = {k: v[detections["conf"] > self.conf] for k, v in detections.items()}
+        detections = {k: v[detections["conf"] > conf] for k, v in detections.items()}
         gt_classes = gt_cls.int()
         detection_classes = detections["cls"].int()
         bboxes = detections["bboxes"]
         is_obb = bboxes.shape[1] == 5  # check if detections contains angle for OBB
         iou = batch_probiou(gt_bboxes, bboxes) if is_obb else box_iou(gt_bboxes, bboxes)
 
-        x = torch.where(iou > self.iou_thres)
+        x = torch.where(iou > iou_thres)
         if x[0].shape[0]:
             matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]), 1).cpu().numpy()
             if x[0].shape[0] > 1:

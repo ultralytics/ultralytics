@@ -356,12 +356,13 @@ class DetectionValidator(BaseValidator):
             boxes=torch.cat([predn["bboxes"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
         ).save_txt(file, save_conf=save_conf)
 
-    def pred_to_json(self, predn: torch.Tensor, filename: str) -> None:
+    def pred_to_json(self, predn: Dict[str, torch.Tensor], filename: str) -> None:
         """
         Serialize YOLO predictions to COCO json format.
 
         Args:
-            predn (torch.Tensor): Predictions in the format (x1, y1, x2, y2, conf, class).
+            predn (Dict[str, torch.Tensor]): Predictions dictionary containing 'bboxes', 'conf', and 'cls' keys
+                with bounding box coordinates, confidence scores, and class predictions.
             filename (str): Image filename.
         """
         stem = Path(filename).stem

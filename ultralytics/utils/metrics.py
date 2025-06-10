@@ -1093,8 +1093,6 @@ class SegmentMetrics(DetMetrics):
     Calculate and aggregate detection and segmentation metrics over a given set of classes.
 
     Attributes:
-        save_dir (Path): Path to the directory where the output plots should be saved.
-        plot (bool): Whether to save the detection and segmentation plots.
         names (Dict[int, str]): Dictionary of class names.
         box (Metric): An instance of the Metric class for storing detection results.
         seg (Metric): An instance of the Metric class to calculate mask segmentation metrics.
@@ -1102,21 +1100,19 @@ class SegmentMetrics(DetMetrics):
         task (str): The task type, set to 'segment'.
     """
 
-    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: Dict[int, str] = {}) -> None:
+    def __init__(self, names: Dict[int, str] = {}) -> None:
         """
         Initialize a SegmentMetrics instance with a save directory, plot flag, and class names.
 
         Args:
-            save_dir (Path, optional): Directory to save plots.
-            plot (bool, optional): Whether to plot precision-recall curves.
             names (Dict[int, str], optional): Dictionary of class names.
         """
-        DetMetrics.__init__(self, save_dir, plot, names)
+        DetMetrics.__init__(self, names)
         self.seg = Metric()
         self.task = "segment"
         self.stats["tp_m"] = []  # add additional stats for masks
 
-    def process(self, on_plot=None):
+    def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None):
         """
         Process the detection and segmentation metrics over the given set of predictions.
 
@@ -1134,9 +1130,9 @@ class SegmentMetrics(DetMetrics):
             stats["conf"],
             stats["pred_cls"],
             stats["target_cls"],
-            plot=self.plot,
+            plot=plot,
             on_plot=on_plot,
-            save_dir=self.save_dir,
+            save_dir=save_dir,
             names=self.names,
             prefix="Mask",
         )[2:]
@@ -1224,8 +1220,6 @@ class PoseMetrics(DetMetrics):
     Calculate and aggregate detection and pose metrics over a given set of classes.
 
     Attributes:
-        save_dir (Path): Path to the directory where the output plots should be saved.
-        plot (bool): Whether to save the detection and pose plots.
         names (Dict[int, str]): Dictionary of class names.
         pose (Metric): An instance of the Metric class to calculate pose metrics.
         box (Metric): An instance of the Metric class for storing detection results.
@@ -1242,21 +1236,19 @@ class PoseMetrics(DetMetrics):
         results_dict: Return the dictionary containing all the detection and segmentation metrics and fitness score.
     """
 
-    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: Dict[int, str] = {}) -> None:
+    def __init__(self, names: Dict[int, str] = {}) -> None:
         """
         Initialize the PoseMetrics class with directory path, class names, and plotting options.
 
         Args:
-            save_dir (Path, optional): Directory to save plots.
-            plot (bool, optional): Whether to plot precision-recall curves.
             names (Dict[int, str], optional): Dictionary of class names.
         """
-        super().__init__(save_dir, plot, names)
+        super().__init__(names)
         self.pose = Metric()
         self.task = "pose"
         self.stats["tp_p"] = []  # add additional stats for pose
 
-    def process(self, on_plot=None):
+    def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None):
         """
         Process the detection and pose metrics over the given set of predictions.
 
@@ -1269,9 +1261,9 @@ class PoseMetrics(DetMetrics):
             stats["conf"],
             stats["pred_cls"],
             stats["target_cls"],
-            plot=self.plot,
+            plot=plot,
             on_plot=on_plot,
-            save_dir=self.save_dir,
+            save_dir=save_dir,
             names=self.names,
             prefix="Pose",
         )[2:]
@@ -1438,8 +1430,6 @@ class OBBMetrics(DetMetrics):
     Metrics for evaluating oriented bounding box (OBB) detection.
 
     Attributes:
-        save_dir (Path): Path to the directory where the output plots should be saved.
-        plot (bool): Whether to save the detection plots.
         names (Dict[int, str]): Dictionary of class names.
         box (Metric): An instance of the Metric class for storing detection results.
         speed (Dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
@@ -1449,15 +1439,13 @@ class OBBMetrics(DetMetrics):
         https://arxiv.org/pdf/2106.06072.pdf
     """
 
-    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: Dict[int, str] = {}) -> None:
+    def __init__(self, names: Dict[int, str] = {}) -> None:
         """
         Initialize an OBBMetrics instance with directory, plotting, and class names.
 
         Args:
-            save_dir (Path, optional): Directory to save plots.
-            plot (bool, optional): Whether to plot precision-recall curves.
             names (Dict[int, str], optional): Dictionary of class names.
         """
-        DetMetrics.__init__(self, save_dir, plot, names)
+        DetMetrics.__init__(self, names)
         # TODO: probably remove task as well
         self.task = "obb"

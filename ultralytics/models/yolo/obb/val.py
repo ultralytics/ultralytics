@@ -64,7 +64,7 @@ class OBBValidator(DetectionValidator):
             model (torch.nn.Module): Model to validate.
         """
         super().init_metrics(model)
-        self.metrics = OBBMetrics(save_dir=self.save_dir, plot=self.args.plots, names=self.names)
+        self.metrics = OBBMetrics(names=self.names)
         val = self.data.get(self.args.split, "")  # validation path
         self.is_dota = isinstance(val, str) and "DOTA" in val  # check if dataset is DOTA format
 

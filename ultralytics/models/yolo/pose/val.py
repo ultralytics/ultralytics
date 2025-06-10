@@ -111,7 +111,7 @@ class PoseValidator(DetectionValidator):
             model (torch.nn.Module): Model to validate.
         """
         super().init_metrics(model)
-        self.metrics = PoseMetrics(save_dir=self.save_dir, plot=self.args.plots, names=self.names)
+        self.metrics = PoseMetrics(names=self.names)
         self.kpt_shape = self.data["kpt_shape"]
         is_pose = self.kpt_shape == [17, 3]
         nkpt = self.kpt_shape[0]

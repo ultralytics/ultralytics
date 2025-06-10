@@ -71,7 +71,7 @@ class SegmentationValidator(DetectionValidator):
             model (torch.nn.Module): Model to validate.
         """
         super().init_metrics(model)
-        self.metrics = SegmentMetrics(save_dir=self.save_dir, plot=self.args.plots, names=self.names)
+        self.metrics = SegmentMetrics(names=self.names)
         if self.args.save_json:
             check_requirements("pycocotools>=2.0.6")
         # More accurate vs faster

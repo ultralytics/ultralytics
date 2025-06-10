@@ -244,8 +244,6 @@ class PoseValidator(DetectionValidator):
 
         Args:
             predn (torch.Tensor): Prediction boxes and scores with shape (N, 6) for (x1, y1, x2, y2, conf, cls).
-            pred_kpts (torch.Tensor): Predicted keypoints with shape (N, K, D) where K is the number of keypoints
-                and D is the dimension (typically 3 for x, y, visibility).
             save_conf (bool): Whether to save confidence scores.
             shape (tuple): Original image shape (height, width).
             file (Path): Output file path to save detections.

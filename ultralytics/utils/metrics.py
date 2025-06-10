@@ -960,8 +960,6 @@ class DetMetrics(SimpleClass, DataExportMixin):
         Initialize a DetMetrics instance with a save directory, plot flag, and class names.
 
         Args:
-            save_dir (Path, optional): Directory to save plots.
-            plot (bool, optional): Whether to plot precision-recall curves.
             names (Dict[int, str], optional): Dictionary of class names.
         """
         self.names = names

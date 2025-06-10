@@ -94,7 +94,7 @@ class DetectionValidator(BaseValidator):
         self.names = model.names
         self.nc = len(model.names)
         self.end2end = getattr(model, "end2end", False)
-        self.metrics = DetMetrics(save_dir=self.save_dir, plot=self.args.plots, names=self.names)
+        self.metrics = DetMetrics(names=self.names)
         self.confusion_matrix = ConfusionMatrix(names=self.names.values())
         self.seen = 0
         self.jdict = []
@@ -227,7 +227,7 @@ class DetectionValidator(BaseValidator):
         Returns:
             (Dict[str, Any]): Dictionary containing metrics results.
         """
-        self.metrics.process(on_plot=self.on_plot)
+        self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         self.metrics.clear_stats()
         return self.metrics.results_dict
 

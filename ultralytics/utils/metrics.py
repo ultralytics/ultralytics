@@ -950,7 +950,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         task (str): The task type, set to 'detect'.
     """
 
-    def __init__(self, save_dir: Path = Path("."), plot: bool = False, names: Dict[int, str] = {}) -> None:
+    def __init__(self, names: Dict[int, str] = {}) -> None:
         """
         Initialize a DetMetrics instance with a save directory, plot flag, and class names.
 
@@ -959,8 +959,6 @@ class DetMetrics(SimpleClass, DataExportMixin):
             plot (bool, optional): Whether to plot precision-recall curves.
             names (Dict[int, str], optional): Dictionary of class names.
         """
-        self.save_dir = save_dir
-        self.plot = plot
         self.names = names
         self.box = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
@@ -979,7 +977,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         for k in stat.keys():
             self.stats[k].append(stat[k])
 
-    def process(self, on_plot=None):
+    def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None):
         """
         Process predicted results for object detection and update metrics.
 
@@ -998,8 +996,8 @@ class DetMetrics(SimpleClass, DataExportMixin):
             stats["conf"],
             stats["pred_cls"],
             stats["target_cls"],
-            plot=self.plot,
-            save_dir=self.save_dir,
+            plot=plot,
+            save_dir=save_dir,
             names=self.names,
             on_plot=on_plot,
         )[2:]

@@ -5,7 +5,7 @@ import torch
 from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER
-from ultralytics.utils.metrics import ClassifyMetrics, ConfusionMatrix
+from ultralytics.utils.metrics import ClassifyMetrics
 from ultralytics.utils.plotting import plot_images
 
 
@@ -68,7 +68,6 @@ class ClassificationValidator(BaseValidator):
         self.targets = None
         self.pred = None
         self.args.task = "classify"
-        self.metrics = ClassifyMetrics()
 
     def get_desc(self):
         """Return a formatted string summarizing classification metrics."""
@@ -78,11 +77,9 @@ class ClassificationValidator(BaseValidator):
         """Initialize confusion matrix, class names, and tracking containers for predictions and targets."""
         self.names = model.names
         self.nc = len(model.names)
-        self.confusion_matrix = ConfusionMatrix(
-            nc=self.nc, conf=self.args.conf, names=self.names.values(), task="classify"
-        )
         self.pred = []
         self.targets = []
+        self.metrics = ClassifyMetrics(self.names)
 
     def preprocess(self, batch):
         """Preprocess input batch by moving data to device and converting to appropriate dtype."""
@@ -127,8 +124,8 @@ class ClassificationValidator(BaseValidator):
             for normalize in True, False:
                 self.confusion_matrix.plot(save_dir=self.save_dir, normalize=normalize, on_plot=self.on_plot)
         self.metrics.speed = self.speed
-        self.metrics.confusion_matrix = self.confusion_matrix
         self.metrics.save_dir = self.save_dir
+        self.metrics.confusion_matrix = self.confusion_matrix
 
     def postprocess(self, preds):
         """Extract the primary prediction from model output if it's in a list or tuple format."""
@@ -175,10 +172,9 @@ class ClassificationValidator(BaseValidator):
             >>> batch = {"img": torch.rand(16, 3, 224, 224), "cls": torch.randint(0, 10, (16,))}
             >>> validator.plot_val_samples(batch, 0)
         """
+        batch["batch_idx"] = torch.arange(len(batch["img"]))  # add batch index for plotting
         plot_images(
-            images=batch["img"],
-            batch_idx=torch.arange(len(batch["img"])),
-            cls=batch["cls"].view(-1),  # warning: use .view(), not .squeeze() for Classify models
+            labels=batch,
             fname=self.save_dir / f"val_batch{ni}_labels.jpg",
             names=self.names,
             on_plot=self.on_plot,
@@ -199,10 +195,13 @@ class ClassificationValidator(BaseValidator):
             >>> preds = torch.rand(16, 10)  # 16 images, 10 classes
             >>> validator.plot_predictions(batch, preds, 0)
         """
-        plot_images(
-            batch["img"],
+        batched_preds = dict(
+            img=batch["img"],
             batch_idx=torch.arange(len(batch["img"])),
             cls=torch.argmax(preds, dim=1),
+        )
+        plot_images(
+            batched_preds,
             fname=self.save_dir / f"val_batch{ni}_pred.jpg",
             names=self.names,
             on_plot=self.on_plot,

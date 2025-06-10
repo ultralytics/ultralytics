@@ -321,20 +321,19 @@ class ConfusionMatrix(DataExportMixin):
         iou_thres (float): The Intersection over Union threshold.
     """
 
-    def __init__(self, nc: int, conf: float = 0.25, iou_thres: float = 0.45, names: tuple = (), task: str = "detect"):
+    def __init__(self, conf: float = 0.25, iou_thres: float = 0.45, names: tuple = (), task: str = "detect"):
         """
         Initialize a ConfusionMatrix instance.
 
         Args:
-            nc (int): Number of classes.
             conf (float, optional): Confidence threshold for detections.
             iou_thres (float, optional): IoU threshold for matching detections to ground truth.
             names (tuple, optional): Names of classes, used as labels on the plot.
             task (str, optional): Type of task, either 'detect' or 'classify'.
         """
         self.task = task
-        self.matrix = np.zeros((nc + 1, nc + 1)) if self.task == "detect" else np.zeros((nc, nc))
-        self.nc = nc  # number of classes
+        self.nc = len(names)  # number of classes
+        self.matrix = np.zeros((self.nc + 1, self.nc + 1)) if self.task == "detect" else np.zeros((self.nc, self.nc))
         self.names = list(names)  # name of classes
         self.conf = 0.25 if conf in {None, 0.001} else conf  # apply 0.25 if default val conf is passed
         self.iou_thres = iou_thres

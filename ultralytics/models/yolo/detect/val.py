@@ -97,7 +97,7 @@ class DetectionValidator(BaseValidator):
         self.end2end = getattr(model, "end2end", False)
         self.metrics.names = self.names
         self.metrics.plot = self.args.plots
-        self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf, names=self.names.values())
+        self.confusion_matrix = ConfusionMatrix(conf=self.args.conf, names=self.names.values())
         self.seen = 0
         self.jdict = []
 

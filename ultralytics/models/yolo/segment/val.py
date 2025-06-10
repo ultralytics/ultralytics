@@ -109,7 +109,7 @@ class SegmentationValidator(DetectionValidator):
         for i, pred in enumerate(preds):
             coefficient = pred.pop("extra")  # remove extra if exists
             if len(coefficient) == 0:
-                continue
+                pred["masks"] = torch.zeros((0, imgsz[0], imgsz[1]), dtype=torch.uint8, device=pred["bboxes"].device)
             pred["masks"] = self.process(proto[i], coefficient, pred["bboxes"], shape=imgsz)
         return preds
 

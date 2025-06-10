@@ -202,19 +202,19 @@ class PoseValidator(DetectionValidator):
         )
         return predn
 
-    def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
+    def _process_batch(self, preds: Dict[str, torch.Tensor], batch: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         """
         Return correct prediction matrix by computing Intersection over Union (IoU) between detections and ground truth.
 
         Args:
-            preds (torch.Tensor): Tensor with shape (N, 6) representing detection boxes and scores, where each
-                detection is of the format (x1, y1, x2, y2, conf, class).
-            batch (torch.Tensor): Tensor with shape (M, 4) representing ground truth bounding boxes, where each
-                box is of the format (x1, y1, x2, y2).
+            preds (Dict[str, torch.Tensor]): Dictionary containing prediction data with keys 'cls' for class predictions
+                and 'keypoints' for keypoint predictions.
+            batch (Dict[str, torch.Tensor]): Dictionary containing ground truth data with keys 'cls' for class labels,
+                'bboxes' for bounding boxes, and 'keypoints' for keypoint annotations.
 
         Returns:
-            (torch.Tensor): A tensor with shape (N, 10) representing the correct prediction matrix for 10 IoU levels,
-                where N is the number of detections.
+            (Dict[str, torch.Tensor]): Dictionary containing the correct prediction matrix including 'tp_p' for pose
+                true positives across 10 IoU levels.
 
         Notes:
             `0.53` scale factor used in area computation is referenced from
@@ -264,7 +264,7 @@ class PoseValidator(DetectionValidator):
             keypoints=predn["keypoints"],
         ).save_txt(file, save_conf=save_conf)
 
-    def pred_to_json(self, predn: torch.Tensor, filename: str) -> None:
+    def pred_to_json(self, predn: Dict[str, torch.Tensor], filename: str) -> None:
         """
         Convert YOLO predictions to COCO JSON format.
 
@@ -272,10 +272,9 @@ class PoseValidator(DetectionValidator):
         to COCO format, and appends the results to the internal JSON dictionary (self.jdict).
 
         Args:
-            predn (torch.Tensor): Prediction tensor containing bounding boxes, confidence scores, class IDs,
-                and keypoints, with shape (N, 6+K) where N is the number of predictions and K is the flattened
-                keypoints dimension.
-            filename (str | Path): Path to the image file for which predictions are being processed.
+            predn (Dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', 'cls',
+                and 'keypoints' tensors.
+            filename (str): Path to the image file for which predictions are being processed.
 
         Notes:
             The method extracts the image ID from the filename stem (either as an integer if numeric, or as a string),

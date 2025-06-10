@@ -142,16 +142,15 @@ class SegmentationValidator(DetectionValidator):
             Dict[str, torch.Tensor]: Processed bounding box predictions.
         """
         predn = super()._prepare_pred(pred, pbatch)
-        if pred.get("masks") is not None:
-            predn["masks"] = pred["masks"]
-            if self.args.save_json:
-                coco_masks = torch.as_tensor(pred["masks"], dtype=torch.uint8)
-                coco_masks = ops.scale_image(
-                    coco_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
-                    pbatch["ori_shape"],
-                    ratio_pad=pbatch["ratio_pad"],
-                )
-                predn["coco_masks"] = coco_masks
+        predn["masks"] = pred["masks"]
+        if self.args.save_json and len(predn["masks"]):
+            coco_masks = torch.as_tensor(pred["masks"], dtype=torch.uint8)
+            coco_masks = ops.scale_image(
+                coco_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
+                pbatch["ori_shape"],
+                ratio_pad=pbatch["ratio_pad"],
+            )
+            predn["coco_masks"] = coco_masks
         return predn
 
     def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:

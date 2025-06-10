@@ -74,6 +74,7 @@ save_crop: False # (bool) save cropped images with results
 show_labels: True # (bool) show prediction labels, i.e. 'person'
 show_conf: True # (bool) show prediction confidence, i.e. '0.99'
 show_boxes: True # (bool) show prediction boxes
+show_masks: True # (bool) show prediction masks
 line_width: # (int, optional) line width of the bounding boxes. Scaled to image size if None.
 
 # Export settings ------------------------------------------------------------------------------------------------------

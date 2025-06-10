@@ -104,10 +104,7 @@ class OBBValidator(DetectionValidator):
         """
         preds = super().postprocess(preds)
         for pred in preds:
-            angle = pred.pop("extra")  # remove extra if exists
-            if len(angle) == 0:
-                continue
-            pred["bboxes"] = torch.cat([pred["bboxes"], angle], dim=-1)
+            pred["bboxes"] = torch.cat([pred["bboxes"], pred.pop("extra")], dim=-1)
         return preds
 
     def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:

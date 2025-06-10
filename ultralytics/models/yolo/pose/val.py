@@ -144,10 +144,7 @@ class PoseValidator(DetectionValidator):
         """
         preds = super().postprocess(preds)
         for pred in preds:
-            keypoints = pred.pop("extra")  # remove extra if exists
-            if len(keypoints) == 0:
-                continue
-            pred["keypoints"] = keypoints.view(-1, *self.kpt_shape)
+            pred["keypoints"] = pred.pop("extra").reshape(-1, *self.kpt_shape)  # remove extra if exists
         return preds
 
     def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
@@ -194,12 +191,11 @@ class PoseValidator(DetectionValidator):
             (Dict[str, Any]): Processed prediction dictionary with keypoints scaled to original image dimensions.
         """
         predn = super()._prepare_pred(pred, pbatch)
-        kpts = pred.get("keypoints", None)
-        if kpts is None:
-            return predn
-        predn["keypoints"] = ops.scale_coords(
-            pbatch["imgsz"], kpts.clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
-        )
+        kpts = pred.get("keypoints")
+        if len(kpts):
+            predn["keypoints"] = ops.scale_coords(
+                pbatch["imgsz"], kpts.clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
+            )
         return predn
 
     def _process_batch(self, preds: Dict[str, torch.Tensor], batch: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:

@@ -1213,25 +1213,19 @@ class SegmentMetrics(DetMetrics):
             >>> print(seg_summary)
         """
         scalars = {
-            "box-map": round(self.box.map, decimals),
-            "box-map50": round(self.box.map50, decimals),
-            "box-map75": round(self.box.map75, decimals),
             "mask-map": round(self.seg.map, decimals),
             "mask-map50": round(self.seg.map50, decimals),
             "mask-map75": round(self.seg.map75, decimals),
         }
         per_class = {
-            "box-p": self.box.p,
-            "box-r": self.box.r,
-            "box-f1": self.box.f1,
             "mask-p": self.seg.p,
             "mask-r": self.seg.r,
             "mask-f1": self.seg.f1,
         }
-        return [
-            {"class_name": self.names[i], **{k: round(v[i], decimals) for k, v in per_class.items()}, **scalars}
-            for i in range(len(next(iter(per_class.values()), [])))
-        ]
+        summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
+        for i, s in enumerate(summary):
+            s.update({**{k: round(v[i], decimals) for k, v in per_class.items()}, **scalars})
+        return summary
 
 
 class PoseMetrics(SegmentMetrics):

@@ -76,7 +76,7 @@ class AIGym(BaseSolution):
         self.extract_tracks(im0)  # Extract tracks (bounding boxes, classes, and masks)
 
         if len(self.boxes):
-            kpt_data = self.tracks.keypoints.data  # Avoid repeated .cpu() calls
+            kpt_data = self.tracks.keypoints.data
 
             for i, k in enumerate(kpt_data):
                 state = self.states[self.track_ids[i]]  # get state details

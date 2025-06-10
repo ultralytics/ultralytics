@@ -68,7 +68,6 @@ class ClassificationValidator(BaseValidator):
         self.targets = None
         self.pred = None
         self.args.task = "classify"
-        self.metrics = ClassifyMetrics()
 
     def get_desc(self):
         """Return a formatted string summarizing classification metrics."""
@@ -78,9 +77,9 @@ class ClassificationValidator(BaseValidator):
         """Initialize confusion matrix, class names, and tracking containers for predictions and targets."""
         self.names = model.names
         self.nc = len(model.names)
-        self.confusion_matrix = ConfusionMatrix(names=self.names.values(), task="classify")
         self.pred = []
         self.targets = []
+        self.metrics = ClassifyMetrics(self.names)
 
     def preprocess(self, batch):
         """Preprocess input batch by moving data to device and converting to appropriate dtype."""
@@ -120,12 +119,11 @@ class ClassificationValidator(BaseValidator):
             >>> validator.finalize_metrics()
             >>> print(validator.metrics.confusion_matrix)  # Access the confusion matrix
         """
-        self.confusion_matrix.process_cls_preds(self.pred, self.targets)
+        self.metrics.confusion_matrix.process_cls_preds(self.pred, self.targets)
         if self.args.plots:
             for normalize in True, False:
-                self.confusion_matrix.plot(save_dir=self.save_dir, normalize=normalize, on_plot=self.on_plot)
+                self.metrics.confusion_matrix.plot(save_dir=self.save_dir, normalize=normalize, on_plot=self.on_plot)
         self.metrics.speed = self.speed
-        self.metrics.confusion_matrix = self.confusion_matrix
         self.metrics.save_dir = self.save_dir
 
     def postprocess(self, preds):

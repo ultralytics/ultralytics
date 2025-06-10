@@ -95,7 +95,6 @@ class DetectionValidator(BaseValidator):
         self.nc = len(model.names)
         self.end2end = getattr(model, "end2end", False)
         self.metrics = DetMetrics(names=self.names)
-        self.confusion_matrix = ConfusionMatrix(names=self.names.values())
         self.seen = 0
         self.jdict = []
 
@@ -196,7 +195,7 @@ class DetectionValidator(BaseValidator):
             )
             # Evaluate
             if self.args.plots:
-                self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
+                self.metrics.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
 
             if no_pred:
                 continue
@@ -216,9 +215,8 @@ class DetectionValidator(BaseValidator):
         """Set final values for metrics speed and confusion matrix."""
         if self.args.plots:
             for normalize in True, False:
-                self.confusion_matrix.plot(save_dir=self.save_dir, normalize=normalize, on_plot=self.on_plot)
+                self.metrics.confusion_matrix.plot(save_dir=self.save_dir, normalize=normalize, on_plot=self.on_plot)
         self.metrics.speed = self.speed
-        self.metrics.confusion_matrix = self.confusion_matrix
 
     def get_stats(self) -> Dict[str, Any]:
         """

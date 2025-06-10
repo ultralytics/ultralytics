@@ -318,18 +318,18 @@ class ConfusionMatrix(DataExportMixin):
         matrix (np.ndarray): The confusion matrix, with dimensions depending on the task.
     """
 
-    def __init__(self, names: tuple = (), task: str = "detect"):
+    def __init__(self, names: List[str] = [], task: str = "detect"):
         """
         Initialize a ConfusionMatrix instance.
 
         Args:
-            names (tuple, optional): Names of classes, used as labels on the plot.
+            names (List[str], optional): Names of classes, used as labels on the plot.
             task (str, optional): Type of task, either 'detect' or 'classify'.
         """
         self.task = task
         self.nc = len(names)  # number of classes
         self.matrix = np.zeros((self.nc + 1, self.nc + 1)) if self.task == "detect" else np.zeros((self.nc, self.nc))
-        self.names = list(names)  # name of classes
+        self.names = names  # name of classes
 
     def process_cls_preds(self, preds, targets):
         """
@@ -966,6 +966,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
         self.nt_per_class = None
         self.nt_per_image = None
+        self.confusion_matrix = ConfusionMatrix(names=list(names.values()))
 
     def update_stats(self, stat):
         """Update statistics by appending new values to existing stat collections.
@@ -1361,12 +1362,13 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         task (str): The task type, set to 'classify'.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, names: Dict[int, str]) -> None:
         """Initialize a ClassifyMetrics instance."""
         self.top1 = 0
         self.top5 = 0
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "classify"
+        self.confusion_matrix = ConfusionMatrix(names=list(names.values()), task="classify")
 
     def process(self, targets: torch.Tensor, pred: torch.Tensor):
         """

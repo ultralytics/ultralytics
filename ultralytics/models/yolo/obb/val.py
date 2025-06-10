@@ -198,7 +198,7 @@ class OBBValidator(DetectionValidator):
         image_id = int(stem) if stem.isnumeric() else stem
         rbox = predn["bboxes"]
         poly = ops.xywhr2xyxyxyxy(rbox).view(-1, 8)
-        for r, b, s, c in enumerate(zip(rbox.tolist(), poly.tolist(), predn["conf"].tolist(), predn["cls"].tolist())):
+        for r, b, s, c in zip(rbox.tolist(), poly.tolist(), predn["conf"].tolist(), predn["cls"].tolist()):
             self.jdict.append(
                 {
                     "image_id": image_id,

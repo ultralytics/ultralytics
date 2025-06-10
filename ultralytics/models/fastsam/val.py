@@ -39,4 +39,3 @@ class FastSAMValidator(SegmentationValidator):
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "segment"
         self.args.plots = False  # disable ConfusionMatrix and other plots to avoid errors
-        self.metrics = SegmentMetrics(save_dir=self.save_dir)
